@@ -27,11 +27,18 @@ const reply = await fetch(`https://api.supabase.com/v1/projects/${ref}/config/au
 if (!reply.ok) throw new Error(`Reading the Auth settings failed: HTTP ${reply.status}`);
 const auth = await reply.json();
 
-/** The numbers in `sms_test_otp` ("919000000101=123456,…"), without the codes, which are never printed. */
+/**
+ * The numbers in `sms_test_otp` ("919000000101=123456,…"), as digits, or null for an entry that is
+ * not number=code. Only a number's last four digits are ever printed: a malformed entry could hold
+ * a code, and a number may be a real person's, in a public log.
+ */
 function testNumbers(setting) {
   // A missing or renamed field must not read as "no test numbers" and wave a release through.
-  if (setting !== null && typeof setting !== 'string') throw new Error('Unexpected Auth settings: sms_test_otp is missing');
-  return (setting ?? '').split(',').map((entry) => entry.split('=')[0].trim()).filter((number) => number !== '');
+  if (setting !== null && typeof setting !== 'string') throw new Error('Unexpected Auth settings: sms_test_otp is missing or not text');
+  return (setting ?? '')
+    .split(',')
+    .filter((entry) => entry.trim() !== '')
+    .map((entry) => /^\s*\+?(\d{1,15})\s*=\s*\d+\s*$/.exec(entry)?.[1] ?? null);
 }
 
 /** The seed's phone numbers, as Auth writes them: digits only, no plus sign. */
@@ -40,9 +47,12 @@ function seedNumbers() {
   return new Set([...seed.matchAll(/'\+(\d{10,15})'/g)].map((match) => match[1]));
 }
 
-const seeded = seedNumbers();
-const unexpected = testNumbers(auth.sms_test_otp).filter((number) => !staging || !seeded.has(number));
-const gaps = unexpected.map((number) => `test sign-in number ${number} is listed (${staging ? 'not a seed number' : 'production has none'})`);
+const seeded = staging ? seedNumbers() : new Set();
+const gaps = testNumbers(auth.sms_test_otp).flatMap((number) => {
+  if (number === null) return ['a test sign-in entry is not "number=code" (not shown: it may hold a code)'];
+  if (seeded.has(number)) return [];
+  return [`test sign-in number ending ${number.slice(-4)} is listed (${staging ? 'not a seed number' : 'production has none'})`];
+});
 
 // A missing or renamed field must not read as "phone sign-in off" and wave a release through.
 if (typeof auth.external_phone_enabled !== 'boolean') throw new Error('Unexpected Auth settings: external_phone_enabled is missing');
