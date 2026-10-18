@@ -48,6 +48,8 @@ export const playerApp = {
     sendUtr: 'Send UTR',
     utrInvalid: 'Enter the 12-digit UTR from your payment.',
     utrUsed: 'This UTR was already given for another booking. Check it and try again.',
+    /** A UTR given after the seat's hold cannot be changed until the cashier checks it (#222). */
+    utrLocked: 'Your seat was no longer held when you gave this UTR, so it stays until the cashier checks it. To change it, speak to the front desk.',
     unavailable: 'Academy booking is not available right now. Try again in a few minutes.',
   },
   /** Profile, behind the member's initial. */

@@ -1,11 +1,14 @@
 -- Two ways someone inside the club could misuse a turned-down Academy payment (#222, from the
 -- security review of #8).
 -- 1. A cashier turns down a member's genuine UTR, which frees it; an accomplice gives it on their own
---    booking, and the same cashier confirms it. Every turn-down is now kept with who made it, and
---    nobody confirms a UTR they turned down on another booking: another staff member must.
--- 2. After the 48-hour hold a claim is always recorded (#220), so a made-up UTR given again after each
---    turn-down could keep a batch over its seats. A member's seat whose hold has lapsed is now
---    cancelled when its claim is turned down; the member still sees it, and why (question #257).
+--    booking, and it is confirmed there. Every turn-down is now kept, with who made it, and never
+--    changed. Nobody confirms a UTR they turned down on another booking, and a UTR turned down on
+--    another member's booking is confirmed only by a manager who also works the cage (members.manage
+--    with cage.transact: the owner and general manager), who checks whose money it is.
+-- 2. After the 48-hour hold a UTR is always recorded (#220), so a made-up one given again and again
+--    could keep a batch over its seats. A UTR given after the hold now stays until the cage checks it,
+--    and if the cage turns it down the booking is cancelled; the member still sees it, and why
+--    (question #257). A UTR given within the hold works as before.
 
 -- Every UTR the cage turned down, on which booking, and by whom.
 create table public.academy_utr_rejection (
@@ -24,9 +27,11 @@ create index academy_utr_rejection_utr_idx on public.academy_utr_rejection (venu
 create index academy_utr_rejection_booking_id_idx on public.academy_utr_rejection (booking_id);
 create index academy_utr_rejection_staff_idx on public.academy_utr_rejection (rejected_by_staff_id);
 
-create trigger academy_utr_rejection_touch_updated_at before update on public.academy_utr_rejection
-  for each row execute function private.touch_updated_at();
-create trigger academy_utr_rejection_audit after insert or update or delete on public.academy_utr_rejection
+-- A turn-down is kept as made: changing or removing one would quietly allow the confirmation it
+-- blocks. Purge (lane A) needs its own exception, as the ledger has.
+create trigger academy_utr_rejection_append_only before update or delete on public.academy_utr_rejection
+  for each row execute function private.refuse_change();
+create trigger academy_utr_rejection_audit after insert on public.academy_utr_rejection
   for each row execute function private.audit_row_change();
 
 alter table public.academy_utr_rejection enable row level security;
@@ -77,9 +82,9 @@ begin
   perform private.assert_writable(v_booking.venue_id);
   insert into public.academy_utr_rejection (venue_id, booking_id, utr, rejected_by_staff_id)
   values (v_booking.venue_id, v_booking.id, v_booking.utr, private.current_staff_id(v_booking.venue_id));
-  -- A member's own seat past its hold gives the seat up; a company's booking, which only staff
-  -- record a UTR for, goes back to unpaid as before.
-  v_lapsed := v_booking.kind = 'individual' and v_booking.created_at + private.academy_seat_hold() <= now();
+  -- A UTR given after the hold gives the seat up; one given within it puts the seat back to unpaid,
+  -- held as before. The same for a company's booking, whose UTR staff record.
+  v_lapsed := v_booking.claimed_at > v_booking.created_at + private.academy_seat_hold();
   update public.academy_booking
   set status = case when v_lapsed then 'cancelled' else 'awaiting_payment' end,
       utr = null, claimed_at = null, recorded_by_staff_id = null
@@ -106,10 +111,15 @@ begin
   if v_booking.recorded_by_staff_id = private.current_staff_id(v_booking.venue_id) then
     raise exception 'A payment is confirmed by someone other than the staff who recorded it' using errcode = '42501';
   end if;
-  if exists (select 1 from public.academy_utr_rejection r
-             where r.venue_id = v_booking.venue_id and r.utr = p_utr and r.booking_id <> v_booking.id
-               and r.rejected_by_staff_id = private.current_staff_id(v_booking.venue_id)) then
-    raise exception 'A UTR turned down on another booking is confirmed by someone other than who turned it down'
+  -- A UTR turned down on another booking: never confirmed by whoever turned it down (any of their
+  -- staff records, at any venue), and, if that booking was another member's, only by a manager who
+  -- checks whose money it is (cashiers do not manage members).
+  if exists (select 1 from public.academy_utr_rejection r join public.academy_booking k on k.id = r.booking_id
+             where r.utr = p_utr and r.booking_id <> v_booking.id and k.is_practice = v_booking.is_practice
+               and (r.rejected_by_staff_id in (select s.id from public.staff s where s.user_id = (select auth.uid()))
+                    or (k.member_id <> v_booking.member_id
+                        and not private.has_permission(v_booking.venue_id, 'members.manage')))) then
+    raise exception 'A UTR turned down on another booking is confirmed by someone else, and by a manager if another member''s'
       using errcode = '42501';
   end if;
   if v_booking.status <> 'payment_claimed' then
@@ -135,6 +145,40 @@ begin
     'booking_id', v_booking.id, 'member_id', v_booking.member_id, 'batch_id', v_booking.batch_id,
     'kind', v_booking.kind, 'seats', v_booking.seats, 'amount_paise', v_booking.amount), 'academy.booked:' || v_booking.id);
   return v_transaction_id;
+end;
+$$;
+
+-- After the hold, a UTR given stays until the cage checks it: changing it again and again would keep
+-- the seat however many the cage turns down (#222).
+create or replace function private.claim_academy_payment(p_booking_id uuid, p_utr text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_booking public.academy_booking;
+begin
+  if p_utr is null or p_utr !~ '^[0-9]{12}$' then
+    raise exception 'A UTR is 12 digits' using errcode = '22023';
+  end if;
+  select * into v_booking from public.academy_booking k
+  where k.id = p_booking_id and k.member_id = private.current_member_id() and k.kind = 'individual'
+    and k.status in ('awaiting_payment', 'payment_claimed')
+  for update;
+  if v_booking.id is null or not private.has_feature(v_booking.member_id, 'academy.booking') then
+    raise exception 'No unpaid booking of yours' using errcode = '42501';
+  end if;
+  if v_booking.status = 'payment_claimed' and v_booking.created_at + private.academy_seat_hold() <= now() then
+    raise exception 'After the hold, a UTR given stays until the cage checks it' using errcode = 'RVLCK';
+  end if;
+  perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
+  begin
+    update public.academy_booking set status = 'payment_claimed', utr = p_utr, claimed_at = now(), recorded_by_staff_id = null
+    where id = v_booking.id;
+  exception when unique_violation then
+    raise exception 'This UTR was already given for another booking' using errcode = 'RVUTR';
+  end;
 end;
 $$;
 

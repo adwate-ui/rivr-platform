@@ -42,7 +42,8 @@ export interface AcademyPayment {
 }
 
 /** Why an Academy step did not go through, as a screen tells it. */
-export type AcademyFailure = 'full' | 'closed' | 'not_open' | 'stopped' | 'paused' | 'no_fee' | 'invalid_utr' | 'utr_used' | 'unavailable';
+export type AcademyFailure =
+  | 'full' | 'closed' | 'not_open' | 'stopped' | 'paused' | 'no_fee' | 'invalid_utr' | 'utr_used' | 'utr_locked' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVFUL: 'full',
@@ -54,6 +55,8 @@ const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVPRC: 'no_fee',
   '22023': 'invalid_utr',
   RVUTR: 'utr_used',
+  // After the hold, a UTR given stays until the cage checks it (#222).
+  RVLCK: 'utr_locked',
 };
 
 const STATUSES: readonly AcademyBookingStatus[] = ['awaiting_payment', 'payment_claimed', 'paid', 'cancelled'];

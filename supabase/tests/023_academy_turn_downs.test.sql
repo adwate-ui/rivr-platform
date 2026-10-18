@@ -22,7 +22,8 @@ insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_
   ('00000000-0000-4000-8000-0000000000e4', '00000000-0000-4000-8000-000000000001', false, '00000000-0000-4000-8000-0000000000e1',
    '00000000-0000-4000-8000-000000000209', 'individual', 1, 200000, now() - interval '49 hours');
 
--- 1. Sana turns down Kabir's UTR, Dev gives the same UTR on his own booking, and Sana may not confirm it.
+-- 1. Sana turns down Kabir's UTR and Dev gives the same UTR on his own booking: neither Sana nor
+--    another cashier confirms it; a manager checks whose money it is.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000202", "role": "authenticated"}';
 select public.claim_academy_payment('00000000-0000-4000-8000-0000000000e2', '412345678921');
@@ -40,8 +41,11 @@ set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", 
 select throws_ok($$ select public.confirm_academy_payment('00000000-0000-4000-8000-0000000000e3', '412345678921') $$,
   '42501', null, 'a cashier never confirms a UTR they turned down on another booking');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000105", "role": "authenticated"}';
+select throws_ok($$ select public.confirm_academy_payment('00000000-0000-4000-8000-0000000000e3', '412345678921') $$,
+  '42501', null, 'nor does another cashier: it was turned down on another member''s booking');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
 select isnt(public.confirm_academy_payment('00000000-0000-4000-8000-0000000000e3', '412345678921'), null,
-  'another cashier, who looks for it in the bank, may');
+  'a manager who works the cage may, having checked whose payment it is');
 -- A UTR turned down and given again on the same booking: the cashier who looks for it again may confirm it.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000202", "role": "authenticated"}';
 select public.claim_academy_payment('00000000-0000-4000-8000-0000000000e2', '412345678925');
@@ -75,7 +79,7 @@ select results_eq($$ select status from public.my_academy_bookings() where batch
   $$ values ('awaiting_payment'::text), ('cancelled'::text) $$, 'and sees the new seat beside the cancelled one');
 reset role;
 
--- A company's booking, whose UTR only staff record, goes back to unpaid however old it is.
+-- A company's booking whose UTR staff recorded after the hold is cancelled the same way.
 insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_id, kind, company_name, seats, amount, request_id,
                                     status, utr, claimed_at, created_at) values
   ('00000000-0000-4000-8000-0000000000e5', '00000000-0000-4000-8000-000000000001', false, '00000000-0000-4000-8000-0000000000e1',
@@ -85,8 +89,35 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
 select public.reject_academy_payment('00000000-0000-4000-8000-0000000000e5', '412345678924');
 reset role;
-select is((select status from public.academy_booking where id = '00000000-0000-4000-8000-0000000000e5'), 'awaiting_payment',
-  'a company''s booking is never cancelled by a turn-down');
+select is((select status from public.academy_booking where id = '00000000-0000-4000-8000-0000000000e5'), 'cancelled',
+  'a company''s booking whose UTR was recorded after the hold is cancelled when it is turned down');
+
+-- 3. Naina gave her UTR within the hold; the cage turns it down after it. Her seat goes back to unpaid,
+--    as before. A UTR she gives now is late: it stays until the cage checks it, and a turn-down cancels.
+insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_id, kind, seats, amount, status, utr, claimed_at, created_at) values
+  ('00000000-0000-4000-8000-0000000000e8', '00000000-0000-4000-8000-000000000001', false, '00000000-0000-4000-8000-0000000000e1',
+   '00000000-0000-4000-8000-000000000203', 'individual', 1, 200000, 'payment_claimed', '412345678927',
+   now() - interval '48 hours', now() - interval '49 hours');
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
+select public.reject_academy_payment('00000000-0000-4000-8000-0000000000e8', '412345678927');
+reset role;
+select is((select status from public.academy_booking where id = '00000000-0000-4000-8000-0000000000e8'), 'awaiting_payment',
+  'a UTR given within the hold and turned down after it puts the seat back to unpaid');
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000203", "role": "authenticated"}';
+select public.claim_academy_payment('00000000-0000-4000-8000-0000000000e8', '412345678928');
+select throws_ok($$ select public.claim_academy_payment('00000000-0000-4000-8000-0000000000e8', '412345678929') $$,
+  'RVLCK', null, 'a UTR given after the hold cannot be changed before the cage checks it');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
+select public.reject_academy_payment('00000000-0000-4000-8000-0000000000e8', '412345678928');
+reset role;
+select is((select status from public.academy_booking where id = '00000000-0000-4000-8000-0000000000e8'), 'cancelled',
+  'and turned down, it cancels the seat');
+
+-- A turn-down is never changed or removed.
+select throws_ok($$ update public.academy_utr_rejection set utr = '412345678999' $$, '42501', null, 'a turn-down is never changed');
+select throws_ok($$ delete from public.academy_utr_rejection $$, '42501', null, 'nor removed');
 
 -- A seat staff cancel stays out of the member's list, whether or not a UTR was turned down on it first.
 insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_id, kind, seats, amount, created_at) values
