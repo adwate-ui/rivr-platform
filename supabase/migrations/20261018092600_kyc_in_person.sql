@@ -22,6 +22,27 @@ alter table public.kyc_record add constraint kyc_record_photo_is_the_selfie chec
 -- review of a vendor's check is 'vendor'.
 alter table public.kyc_review add column method text not null default 'vendor' check (method in ('vendor', 'manual'));
 
+-- The method is the check's own, whichever way the decision is made: a check in person later approved
+-- from the queue stays manual.
+create function private.kyc_review_method()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.method := case when (select k.method from public.kyc_record k where k.member_id = new.member_id) = 'manual'
+                     then 'manual' else 'vendor' end;
+  return new;
+end;
+$$;
+
+create trigger kyc_review_method before insert on public.kyc_review
+  for each row execute function private.kyc_review_method();
+
+-- A check in person that clashes with another check goes to review, and its row says so.
+alter table public.kyc_review drop constraint kyc_review_outcome_check;
+alter table public.kyc_review add constraint kyc_review_outcome_check check (outcome in ('verified', 'refused', 'needs_review'));
+
 -- The audit log keeps the method with the decision; still never the reason.
 create or replace function private.audit_kyc_review_change()
 returns trigger
@@ -154,7 +175,7 @@ declare
   v_status text;
 begin
   -- One check of a member at a time: a second waits here, then finds the first decided.
-  select m.venue_id into v_venue_id from public.member m where m.id = p_member_id for update;
+  select m.venue_id into v_venue_id from public.member m where m.id = p_member_id for no key update;
   perform private.assert_may_check_in_person(p_member_id);
   v_staff_id := private.current_staff_id(v_venue_id);
   if p_consent is not true or p_date_of_birth is null or p_date_of_birth not between '1900-01-01' and current_date

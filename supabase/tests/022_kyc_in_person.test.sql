@@ -150,7 +150,9 @@ select is((select refusal || ' ' || coalesce(same_face_as::text, 'none') from pu
            where member_id = '00000000-0000-4000-8000-0000000002f1'),
   'duplicate_face 00000000-0000-4000-8000-000000000203', 'refused as a duplicate face');
 
--- Never one's own check, nor a member the reviewer added or changed.
+-- Never one's own check, nor a member the reviewer added or changed. Vikram's own member record is
+-- the test's, not his: no claims, so the audit log names nobody.
+select set_config('request.jwt.claims', '', true);
 insert into public.member (venue_id, user_id, full_name, phone)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000101', 'Vikram Rao', '+919000000101');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
@@ -174,8 +176,25 @@ reset role;
 select ok(exists (select 1 from public.outbox_event e where e.venue_id = '00000000-0000-4000-8000-000000000002'
                   and e.event_type = 'kyc.completed' and e.payload ->> 'member_id' = '00000000-0000-4000-8000-000000000301'),
   'its check completes');
-select is((select count(*)::integer from public.outbox_delivery d where d.venue_id = '00000000-0000-4000-8000-000000000002'), 0,
-  'and nothing from the practice venue is delivered outside');
+-- Its event reaches no consumer: deliveries leave out the practice venue (006_kill_switch_and_outbox).
+
+-- A check that clashes with another check, here one waiting for review with the same PAN, goes to review.
+select set_config('request.jwt.claims', '', true);
+insert into public.member (id, venue_id, full_name, phone) values
+  ('00000000-0000-4000-8000-0000000002f4', '00000000-0000-4000-8000-000000000001', 'Ira Shah', '+919000000294'),
+  ('00000000-0000-4000-8000-0000000002f5', '00000000-0000-4000-8000-000000000001', 'Kiran Rao', '+919000000295');
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000002f4', 'needs_review', 'pan', '1988-08-08',
+   'ABCPI4444I', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000002f4/selfie.jpg');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
+select is(pg_temp.check('00000000-0000-4000-8000-0000000002f5', '1989-09-09', '9999', 'ABCPI4444I'), 'needs_review',
+  'a check in person holding the PAN of another unfinished check goes to review');
+select results_eq($$ select waiting_because from public.kyc_review_queue('00000000-0000-4000-8000-000000000001')
+                     where member_id = '00000000-0000-4000-8000-0000000002f5' $$,
+  $$ values ('clash'::text) $$, 'where the queue says it clashes');
+reset role;
+select results_eq($$ select outcome, method from public.kyc_review where member_id = '00000000-0000-4000-8000-0000000002f5' $$,
+  $$ values ('needs_review'::text, 'manual'::text) $$, 'and its review row says where it went');
 
 -- The KYC sign-up kill switch stops checks in person. Last: the switch is not released in this test.
 insert into public.control_state (venue_id, level, feature, reason, engaged_by_staff_id)
