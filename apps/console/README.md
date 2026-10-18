@@ -24,6 +24,7 @@ src/
     frame/            the app's shell: staff only, the rail for the role, who is signed in, the
                       practice venue switch, sign out, the kill-switch banner, not found
     sign-in/          mobile number and code, as in the player app (decision 0032)
+    kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
 ```

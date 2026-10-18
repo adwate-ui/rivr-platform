@@ -7,6 +7,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | Table | Purpose |
 |---|---|
 | `kyc_record` | Vendor reference, masked Aadhaar, PAN, date of birth, address, KYC photo path (private bucket), liveness and face-match results, status |
+| `kyc_review` | A KYC reviewer's decision on a check: approve or reject, the reason, whether they entered the date of birth, where the check ended, who (decision 0035) |
 | `consent` | DPDP consent per purpose (marketing, KYC, analytics events), with time and withdrawal |
 | `member_limit`, `self_exclusion` | Player-set and floor-set limits, cool-off and self-exclusion |
 | `visit` | Check-in and check-out: opened by QR or phone at the door, closed at the door or on final cash-out |
@@ -29,6 +30,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `public.check_in(venue, card_code)`, `public.check_out(venue, card_code)` | door screen | Opens or closes a visit; refuses an excluded member; check-out before call time follows lane B's rule; emits `visit.opened` / `visit.closed` |
 | `public.book_academy(batch)`, `public.claim_academy_payment(booking, utr)`, `public.academy_payment_details(booking)` | player app | A seat in an open Academy batch at the `academy.price` fee; the member's UPI payment and UTR (#8) |
 | `public.academy_open_batches()`, `public.my_academy_bookings()` | player app | The batches the member can book, with seats left and the fee; the member's own seats, with the UTR given and the last one the cage turned down (decision 0033) |
+| `public.kyc_review_queue(venue)`, `public.review_kyc(member, approve, reason, date_of_birth?)` | console (KYC review) | Checks waiting for a KYC reviewer, with what the vendor found; approve or reject with a reason, never one's own, the gate still applying; emits `kyc.completed` on verifying (decision 0035) |
 | `public.confirm_academy_payment(booking, utr)` | console (cage) | A cashier confirms the UTR found in the bank (it must be the booking's, and never their own booking): bank in, Academy fees (`venue.academy`) out of the ledger; emits `academy.booked` |
 | `public.reject_academy_payment(booking, utr)` | console (cage) | A cashier turns down a UTR not found in the bank: the booking is unpaid again and its UTR freed |
 | `public.create_academy_batch(...)`, `public.book_academy_corporate(..., request_id)`, `public.record_academy_payment(booking, utr)`, `public.cancel_academy_booking(booking)` | console | Batches; a company's heads at the corporate fee per head, once per request id; the UTR of a payment the payer could not give in the app; cancelling a booking with no payment given |

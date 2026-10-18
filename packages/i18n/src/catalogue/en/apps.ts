@@ -190,6 +190,9 @@ export const consoleApp = {
     noPayment: 'This booking has no payment to act on. Check it again.',
     utrMismatch: 'The payer changed the UTR on this booking. Look for the new one.',
     utrUsed: 'This UTR is already on another booking. Check it with the payer.',
+    stopped: 'The venue or this member is frozen. Try again once it is released.',
+    unavailable: 'Could not save this. Check the connection and try again.',
+  },
   /** The KYC review queue (#31). `{name}` is the member's; scores are 0 to 100. */
   kycReview: {
     title: 'KYC review',
