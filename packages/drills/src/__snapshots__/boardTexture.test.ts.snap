@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`across every distinct flop > tags all 1,755 identically to the committed digest 1`] = `
+{
+  "hash": "0fd7e7106c396f3f4dcb5943a79e8ce1f64a5b352ce9246d42678a22c82e9319",
+  "tagHistogram": {
+    "ace_high": 379,
+    "broadway_heavy": 490,
+    "connected": 702,
+    "disconnected": 402,
+    "dynamic": 550,
+    "flush_complete": 0,
+    "flush_possible": 286,
+    "gapped": 651,
+    "high": 965,
+    "low": 266,
+    "middling": 524,
+    "monotone": 286,
+    "paired": 312,
+    "rainbow": 455,
+    "semi_static": 906,
+    "static": 299,
+    "straight_complete": 0,
+    "straight_possible": 320,
+    "trips": 13,
+    "two_tone": 1014,
+    "two_wheel_cards": 314,
+  },
+}
+`;

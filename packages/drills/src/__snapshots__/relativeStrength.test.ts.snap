@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the sampled regression > scores 5,000 seeded spots identically to the committed digest 1`] = `
+{
+  "buckets": {
+    "medium": 1484,
+    "nuts": 103,
+    "strong": 773,
+    "weak": 2640,
+  },
+  "hash": "89e2a1e1c34d3b91ee422d91f5670112f42c79e2ab8e33720e68c134bef3dc57",
+}
+`;
