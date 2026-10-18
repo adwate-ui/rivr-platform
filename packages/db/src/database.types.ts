@@ -47,14 +47,14 @@ isOneToOne: false
                   ]
                 },"academy_booking": {
                   Row: {
-                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"request_id": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -776,7 +776,10 @@ isOneToOne: false
 { Args: { "p_batch_id": string }; Returns: string
                            },
 "book_academy_corporate":
-{ Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_seats": number,"p_utr"?: string }; Returns: string
+{ Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number,"p_utr"?: string }; Returns: string
+                           },
+"cancel_academy_booking":
+{ Args: { "p_booking_id": string }; Returns: undefined
                            },
 "claim_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
@@ -790,7 +793,7 @@ isOneToOne: false
             }[]
                            },
 "confirm_academy_payment":
-{ Args: { "p_booking_id": string }; Returns: string
+{ Args: { "p_booking_id": string,"p_utr": string }; Returns: string
                            },
 "create_academy_batch":
 { Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string

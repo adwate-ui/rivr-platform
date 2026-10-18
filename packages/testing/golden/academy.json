@@ -1,0 +1,36 @@
+{
+  "rule": "academy fee",
+  "about": "What an Academy booking costs (scope-v1 module 15): one seat at the individual fee, or each head of a company at the corporate fee per head. The fees come from the academy.price setting. Nothing is rounded: Academy fees are not chips, so the ₹50 rule does not apply. The setting allows at most ₹1,00,000 a seat or head, and a booking has at most 100 heads.",
+  "cases": [
+    {
+      "description": "One seat at the opening fee, ₹2,000.",
+      "operation": "fee",
+      "inputs": { "kind": "individual", "seats": "1", "individual": "₹2,000", "corporatePerHead": "₹1,500" },
+      "expected": { "result": "₹2,000" }
+    },
+    {
+      "description": "Three heads of a company at ₹1,500 each.",
+      "operation": "fee",
+      "inputs": { "kind": "corporate", "seats": "3", "individual": "₹2,000", "corporatePerHead": "₹1,500" },
+      "expected": { "result": "₹4,500" }
+    },
+    {
+      "description": "No rounding to ₹50: one seat at ₹1,999.99 costs ₹1,999.99.",
+      "operation": "fee",
+      "inputs": { "kind": "individual", "seats": "1", "individual": "₹1,999.99", "corporatePerHead": "₹1,500" },
+      "expected": { "result": "₹1,999.99" }
+    },
+    {
+      "description": "No rounding for a company either: three heads at ₹1,500.25 cost ₹4,500.75.",
+      "operation": "fee",
+      "inputs": { "kind": "corporate", "seats": "3", "individual": "₹2,000", "corporatePerHead": "₹1,500.25" },
+      "expected": { "result": "₹4,500.75" }
+    },
+    {
+      "description": "The largest booking: 100 heads at the highest fee the setting allows, ₹1,00,000 a head.",
+      "operation": "fee",
+      "inputs": { "kind": "corporate", "seats": "100", "individual": "₹2,000", "corporatePerHead": "₹1,00,000" },
+      "expected": { "result": "₹1,00,00,000" }
+    }
+  ]
+}
