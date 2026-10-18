@@ -21,7 +21,7 @@ function failureOf(code: string | undefined): SignUpFailure {
  * Result and reloads the member.
  */
 export function useSignUp() {
-  const { client, userId } = useRivrData();
+  const { client } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ fullName }: { fullName: string }): Promise<Result<null, SignUpFailure>> => {
