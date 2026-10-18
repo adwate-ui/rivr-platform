@@ -12,7 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@rivr/contracts": "workspace:*"
+    "@rivr/contracts": "workspace:*",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.5",
