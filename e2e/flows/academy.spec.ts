@@ -15,10 +15,14 @@ test.describe('Academy booking', () => {
     await expect(page.getByRole('heading', { name: 'RIVR Academy' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Level 1' })).toBeVisible();
 
-    const book = page.getByRole('button', { name: 'Book a seat' });
-    const again = page.getByRole('button', { name: /^(Pay|Change the UTR)$/ });
-    await expect(book.or(again)).toBeVisible();
-    await ((await book.isVisible()) ? book : again).click();
+    // Level 1's card: other flows open batches of their own. A first run books the seat; a later
+    // run finds it booked and pays, or corrects the UTR.
+    const action = /^(Book a seat|Pay|Change the UTR)$/;
+    const level1 = page.locator('div')
+      .filter({ has: page.getByRole('heading', { name: 'Level 1' }) })
+      .filter({ has: page.getByRole('button', { name: action }) })
+      .last();
+    await level1.getByRole('button', { name: action }).click();
 
     await expect(page.getByRole('heading', { name: 'Pay for your seat' })).toBeVisible();
     await expect(page.getByText('₹2,000')).toBeVisible();

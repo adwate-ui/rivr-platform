@@ -915,6 +915,11 @@ isOneToOne: false
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
                            },
+"staff_academy_batches":
+{ Args: { "p_venue_id": string }; Returns: {
+              "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
+            }[]
+                           },
 "withdraw_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            }
