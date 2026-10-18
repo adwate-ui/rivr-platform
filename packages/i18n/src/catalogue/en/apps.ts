@@ -21,7 +21,6 @@ export const playerApp = {
     resend: 'Send again',
     resendIn: 'Send again in {seconds} s',
     phoneInvalid: 'Enter a 10-digit mobile number.',
-    codeInvalid: 'Enter the 6-digit code.',
     codeRejected: 'Code wrong or expired. Check it, or request a new one.',
     tooManyRequests: 'Too many attempts. Wait a minute, then try again.',
     unavailable: 'Sign-in is not available right now. Try again in a few minutes.',
