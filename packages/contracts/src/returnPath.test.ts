@@ -24,6 +24,7 @@ describe('returnPathFrom', () => {
   it('nor sign-in or sign-up themselves', () => {
     expect(returnPathFrom('/sign-in')).toBeNull();
     expect(returnPathFrom('/sign-up/')).toBeNull();
+    expect(returnPathFrom('/Sign-In')).toBeNull();
     expect(returnPathFrom('/sign-inside')).toBe('/sign-inside');
   });
 
