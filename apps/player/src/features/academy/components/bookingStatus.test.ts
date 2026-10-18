@@ -17,7 +17,7 @@ describe('holdLine', () => {
 
   it('says the seat is no longer held once the time has passed, and that paying still seats them', () => {
     expect(holdLine(booking('awaiting_payment', null, null), new Date('2026-10-20T10:00:01Z'))).toBe(
-      'Your seat is no longer held, but paying now still seats you.',
+      'Your seat is no longer held, so it may go to another member. Paying now still seats you.',
     );
   });
 
