@@ -48,12 +48,10 @@ create index kyc_record_aadhaar_reference_idx on public.kyc_record (venue_id, aa
 create unique index kyc_record_verified_pan_key on public.kyc_record (venue_id, pan) where status = 'verified';
 create unique index kyc_record_verified_aadhaar_key on public.kyc_record (venue_id, aadhaar_reference) where status = 'verified';
 
--- The key aadhaar_reference is kept under. Only the database's own functions read it.
-create table private.kyc_reference_key (
-  id boolean primary key default true check (id),
-  key bytea not null default extensions.gen_random_bytes(32)
-);
-insert into private.kyc_reference_key default values;
+-- The key aadhaar_reference is kept under, in Vault: encrypted with a key that lives outside the
+-- database, so a dump or a backup holds the HMACs but never the key. Only the functions below read it.
+select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'kyc_reference_key',
+                           'HMAC key for kyc_record.aadhaar_reference');
 
 create function private.kyc_reference(p_reference text)
 returns text
@@ -62,7 +60,9 @@ stable
 security definer
 set search_path = ''
 as $$
-  select encode(extensions.hmac(convert_to(p_reference, 'UTF8'), k.key, 'sha256'), 'hex') from private.kyc_reference_key k;
+  select encode(extensions.hmac(convert_to(p_reference, 'UTF8'), decode(s.decrypted_secret, 'hex'), 'sha256'), 'hex')
+  from vault.decrypted_secrets s
+  where s.name = 'kyc_reference_key';
 $$;
 
 -- The audit trail now also records why a check was refused.
@@ -165,8 +165,8 @@ end;
 $$;
 
 -- A selfie check begins. One at a time per member, so two uploads cannot race to become the KYC
--- photo; a claim lapses after five minutes, longer than an Edge Function may run, so a request that
--- died never locks the member out.
+-- photo; a claim lapses after ten minutes, longer than an Edge Function may run (400 seconds), so a
+-- request that died never locks the member out.
 create function public.claim_kyc_selfie(p_member_id uuid)
 returns boolean
 language plpgsql
@@ -178,7 +178,7 @@ begin
   update public.kyc_record
   set selfie_claimed_at = now()
   where member_id = p_member_id and status = 'started' and digilocker_session_id is null and photo_path is null
-    and (selfie_claimed_at is null or selfie_claimed_at < now() - interval '5 minutes');
+    and (selfie_claimed_at is null or selfie_claimed_at < now() - interval '10 minutes');
   return found;
 end;
 $$;
@@ -207,7 +207,8 @@ begin
   update public.kyc_record k
   set photo_path = k.venue_id::text || '/' || k.member_id::text || '/selfie.jpg', liveness_score = p_liveness_score,
       same_face_as = nullif(p_same_face_as, p_member_id), selfie_claimed_at = null
-  where k.member_id = p_member_id and k.status = 'started' and k.digilocker_session_id is null and k.photo_path is null;
+  where k.member_id = p_member_id and k.status = 'started' and k.digilocker_session_id is null and k.photo_path is null
+    and k.selfie_claimed_at is not null;
   if not found then return null; end if;
   return private.settle_kyc(p_member_id, 'started');
 end;

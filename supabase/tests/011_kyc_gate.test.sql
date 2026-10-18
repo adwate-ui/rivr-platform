@@ -39,9 +39,10 @@ select is((select digilocker_session_id from public.kyc_record where member_id =
 select pg_temp.begin_check('00000000-0000-4000-8000-000000000201');
 select ok(public.claim_kyc_selfie('00000000-0000-4000-8000-000000000201'), 'a selfie check begins');
 select ok(not public.claim_kyc_selfie('00000000-0000-4000-8000-000000000201'), 'a second one at the same time does not');
-update public.kyc_record set selfie_claimed_at = now() - interval '6 minutes' where member_id = '00000000-0000-4000-8000-000000000201';
-select ok(public.claim_kyc_selfie('00000000-0000-4000-8000-000000000201'), 'a check that died lapses after five minutes');
+update public.kyc_record set selfie_claimed_at = now() - interval '11 minutes' where member_id = '00000000-0000-4000-8000-000000000201';
+select ok(public.claim_kyc_selfie('00000000-0000-4000-8000-000000000201'), 'a check that died lapses after ten minutes');
 select public.release_kyc_selfie('00000000-0000-4000-8000-000000000201');
+select is(public.record_kyc_selfie('00000000-0000-4000-8000-000000000201', 96, null), null, 'a selfie is only recorded by the check holding the claim');
 select ok(public.claim_kyc_selfie('00000000-0000-4000-8000-000000000201'), 'and a failed one is released at once');
 select is(public.record_kyc_selfie('00000000-0000-4000-8000-000000000201', 96, null), 'started', 'a live selfie is kept');
 select is((select photo_path from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201'),
