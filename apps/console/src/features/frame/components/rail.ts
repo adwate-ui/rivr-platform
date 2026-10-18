@@ -23,6 +23,16 @@ const RAIL: readonly RailGroup[] = [
     label: 'ui.consoleRail.groups.floor',
     entries: [{ id: 'liveFloor', label: 'ui.consoleRail.items.liveFloor', href: '/', anyOf: [] }],
   },
+  {
+    id: 'money',
+    label: 'ui.consoleRail.groups.money',
+    entries: [{ id: 'academyPayments', label: 'ui.consoleRail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'] }],
+  },
+  {
+    id: 'growth',
+    label: 'ui.consoleRail.groups.growth',
+    entries: [{ id: 'academy', label: 'ui.consoleRail.items.academy', href: '/academy', anyOf: ['members.manage'] }],
+  },
 ];
 
 /** The rail for a staff member: the screens their role allows, with no empty group. */

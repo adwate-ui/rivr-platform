@@ -49,6 +49,7 @@ export const ui = {
       jackpots: 'Jackpots',
       rewards: 'Rewards',
       academy: 'Academy',
+      academyPayments: 'Academy payments',
       staff: 'Staff',
       dealers: 'Dealers',
       sops: 'SOPs',

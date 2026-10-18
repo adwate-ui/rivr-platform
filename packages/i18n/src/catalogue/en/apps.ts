@@ -129,6 +129,62 @@ export const consoleApp = {
   },
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',
+  /** A screen opened by address that the staff member's role does not include. */
+  notAllowed: 'Your role does not include this screen.',
+  /** Academy batches and bookings, for Academy staff. `{taken}` and `{seats}` are counts. */
+  academy: {
+    title: 'Academy',
+    newBatch: 'New batch',
+    batchName: 'Name',
+    startsOn: 'First day',
+    endsOn: 'Last day',
+    seats: 'Seats',
+    openBatch: 'Open batch',
+    batchInvalid: 'Give the batch a name, a first and last day in order, and 1 to 500 seats.',
+    noBatches: 'No batches yet.',
+    dates: '{from} to {to}',
+    booked: '{taken} of {seats} seats booked',
+    closed: 'Closed for booking.',
+    noBookings: 'No bookings yet.',
+    /** A company's booking: the company, its heads and its contact. */
+    company: '{company}, {seats} heads, contact {name}',
+    awaiting: 'Waiting for payment.',
+    claimed: 'UTR {utr}, waiting for the cage.',
+    paid: 'Paid.',
+    /** The UTR field on one booking; `{name}` says whose. */
+    utrFor: 'UTR for {name}',
+    recordUtr: 'Record UTR',
+    utrInvalid: 'Enter the 12-digit UTR from the payment.',
+    cancel: 'Cancel booking',
+    bookCompany: 'Book for a company',
+    contactPhone: 'Contact mobile number',
+    companyName: 'Company',
+    heads: 'Heads',
+    book: 'Book',
+    companyInvalid: 'Give the contact\'s 10-digit number, the company and 1 to 100 heads.',
+  },
+  /** Academy payments the cage checks against the bank. */
+  academyPayments: {
+    title: 'Academy payments',
+    empty: 'No payments to check.',
+    payment: 'UTR {utr}',
+    found: 'Found in the bank',
+    notFound: 'Not in the bank',
+  },
+  /** Why an Academy step did not go through. */
+  academyFailures: {
+    notAllowed: 'Your role does not allow this.',
+    noMember: 'No member has that number. Sign the contact up first.',
+    invalid: 'Check the details and try again.',
+    full: 'Not enough seats left in this batch.',
+    closed: 'This batch is closed or has started.',
+    noFee: 'The Academy fees are not set. Set them before booking.',
+    noPayment: 'This booking has no payment to act on. Check it again.',
+    utrMismatch: 'The UTR on this booking has changed. Check the new one.',
+    utrUsed: 'This UTR is already on another booking.',
+    stopped: 'The venue or this member is frozen.',
+    unavailable: 'Could not save this. Check the connection and try again.',
+  },
 } as const;
 
 export const tabletApp = {
