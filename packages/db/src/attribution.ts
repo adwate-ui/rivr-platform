@@ -23,9 +23,9 @@ function readStored(): { search: string; firstSeenAt: string } | null {
 export function storedAttribution(now = new Date()): SignUpAttribution | null {
   try {
     const stored = readStored();
-    const age = now.getTime() - Date.parse(stored.firstSeenAt);
+    if (stored === null) return null;
     // A time that does not read (NaN) counts as expired.
-    if (stored === null || !(age <= KEEP_FOR_MS)) return null;
+    if (!(now.getTime() - Date.parse(stored.firstSeenAt) <= KEEP_FOR_MS)) return null;
     const codes = attributionFrom(stored.search);
     return codes ? { ...codes, firstSeenAt: stored.firstSeenAt } : null;
   } catch {
