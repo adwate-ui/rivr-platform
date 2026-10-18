@@ -23,6 +23,8 @@ const reply = await fetch(`https://api.supabase.com/v1/projects/${ref}/config/au
 if (!reply.ok) throw new Error(`Reading the Auth settings failed: HTTP ${reply.status}`);
 const auth = await reply.json();
 
+// A missing or renamed field must not read as "phone sign-in off" and wave a release through.
+if (typeof auth.external_phone_enabled !== "boolean") throw new Error("Unexpected Auth settings: external_phone_enabled is missing");
 if (auth.external_phone_enabled !== true) {
   process.stdout.write('::notice::Phone sign-in is off on this project, so the code-only settings are not required yet.\n');
   process.exit(0);

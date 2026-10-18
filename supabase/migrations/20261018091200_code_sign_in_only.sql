@@ -9,11 +9,11 @@
 create function private.require_code_sign_in(event jsonb)
 returns jsonb
 language sql
-immutable
+stable
 set search_path = ''
 as $$
   select case
-    -- Lax JSON path: an amr that is missing, null or not an array simply has no `otp`.
+    -- Lax JSON path: an amr that is missing or null, or holds no otp method, matches nothing.
     when jsonb_path_exists(event, '$.claims.amr[*] ? (@.method == "otp")') then event
     else jsonb_build_object(
       'error', jsonb_build_object('http_code', 403, 'message', 'Sign in with the code sent to your phone.')
