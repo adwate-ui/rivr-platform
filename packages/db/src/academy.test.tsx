@@ -38,23 +38,29 @@ describe('Academy data', () => {
   it('gives the open batches, the member\'s bookings and what to pay, money in paise as bigint', async () => {
     const { result } = renderAcademy({
       '/rpc/academy_open_batches': { body: [{ id: 'b1', name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', seats_left: 4, fee: 200000 }] },
-      '/rest/v1/academy_booking': { body: [{ id: 'k1', batch_id: 'b1', status: 'payment_claimed', amount: 200000, utr: '412345678901' }] },
+      '/rpc/my_academy_bookings': {
+        body: [{
+          id: 'k1', batch_id: 'b1', batch_name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', status: 'awaiting_payment',
+          amount: 200000, utr: null, turned_down_utr: '412345678901',
+        }],
+      },
       '/rpc/academy_payment_details': { body: { amount: 200000, upi_vpa: 'rivr.gurugram@icici', upi_payee_name: 'RIVR' } },
     });
 
     await waitFor(() => expect(result.current.batches.data).toEqual([
       { id: 'b1', name: 'Level 1', startsOn: '2026-11-15', endsOn: '2026-11-17', seatsLeft: 4, fee: 200000n },
     ]));
-    await waitFor(() => expect(result.current.bookings.data).toEqual([
-      { id: 'k1', batchId: 'b1', status: 'payment_claimed', amount: 200000n, utr: '412345678901' },
-    ]));
+    await waitFor(() => expect(result.current.bookings.data).toEqual([{
+      id: 'k1', batchId: 'b1', batchName: 'Level 1', startsOn: '2026-11-15', endsOn: '2026-11-17', status: 'awaiting_payment',
+      amount: 200000n, utr: null, turnedDownUtr: '412345678901',
+    }]));
     await waitFor(() => expect(result.current.payment.data).toEqual({ amount: 200000n, upiVpa: 'rivr.gurugram@icici', upiPayeeName: 'RIVR' }));
   });
 
   it('books a seat and gives the UTR, saying why when the database refuses', async () => {
     const { result, calls } = renderAcademy({
       '/rpc/academy_open_batches': { body: [] },
-      '/rest/v1/academy_booking': { body: [] },
+      '/rpc/my_academy_bookings': { body: [] },
       '/rpc/book_academy': { body: 'k1' },
       '/rpc/claim_academy_payment': { status: 400, body: { code: 'RVUTR', message: 'This UTR was already given for another booking' } },
     });

@@ -1,28 +1,50 @@
 import { useAcademyBatches, useAcademyBookings, useFeature } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { FeatureGate, Screen, Stack } from '@rivr/ui';
+import { FeatureGate, Heading, Screen, Stack } from '@rivr/ui';
 import { BatchCard } from './BatchCard.tsx';
+import { BookingCard } from './BookingCard.tsx';
 
-/** RIVR Academy: the open batches, each with the member's booking or the way to book a seat. */
+/** RIVR Academy, for members whose tier has Academy booking (feature academy.booking). */
 export function AcademyScreen() {
+  return (
+    <FeatureGate access={useFeature('academy.booking')}>
+      <AcademyBatches />
+    </FeatureGate>
+  );
+}
+
+/** The member's own seats, then the open batches they have no seat in. */
+function AcademyBatches() {
   const batches = useAcademyBatches();
   const bookings = useAcademyBookings();
   const title = t('player.academy.title');
-  const access = useFeature('academy.booking');
   if (batches.isPending || bookings.isPending) return <Screen title={title} status="loading" />;
   if (batches.isError || bookings.isError) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([batches.refetch(), bookings.refetch()])} />;
   }
-  if (batches.data.length === 0) return <Screen title={title} status="empty" emptyText={t('player.academy.empty')} />;
+  const booked = new Set(bookings.data.map((booking) => booking.batchId));
+  const open = batches.data.filter((batch) => !booked.has(batch.id));
+  if (bookings.data.length === 0 && open.length === 0) return <Screen title={title} status="empty" emptyText={t('player.academy.empty')} />;
   return (
-    <FeatureGate access={access}>
-      <Screen title={title}>
-        <Stack gap={8} divided>
-          {batches.data.map((batch) => (
-            <BatchCard key={batch.id} batch={batch} booking={bookings.data.find((booking) => booking.batchId === batch.id)} />
-          ))}
-        </Stack>
-      </Screen>
-    </FeatureGate>
+    <Screen title={title}>
+      <Stack gap={8}>
+        {bookings.data.length > 0 ? (
+          <Stack gap={4}>
+            <Heading level={2}>{t('player.academy.yourBookings')}</Heading>
+            <Stack gap={6} divided>
+              {bookings.data.map((booking) => <BookingCard key={booking.id} booking={booking} />)}
+            </Stack>
+          </Stack>
+        ) : null}
+        {open.length > 0 ? (
+          <Stack gap={4}>
+            <Heading level={2}>{t('player.academy.openBatches')}</Heading>
+            <Stack gap={6} divided>
+              {open.map((batch) => <BatchCard key={batch.id} batch={batch} />)}
+            </Stack>
+          </Stack>
+        ) : null}
+      </Stack>
+    </Screen>
   );
 }

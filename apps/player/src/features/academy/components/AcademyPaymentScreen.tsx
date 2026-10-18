@@ -1,61 +1,66 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAcademyActions, useAcademyPayment } from '@rivr/db';
-import { formatMoney, t } from '@rivr/i18n';
-import { Button, Input, StepScreen, Text } from '@rivr/ui';
+import { useAcademyBookings, useAcademyPayment, useFeature, type AcademyPayment } from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { Button, FeatureGate, Money, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useForm, type FieldError } from 'react-hook-form';
-import { z } from 'zod';
-import { FAILURE_COPY } from './failureCopy.ts';
+import { bookingStatus } from './bookingStatus.ts';
+import { UtrForm } from './UtrForm.tsx';
 
-const utrForm = z.object({ utr: z.string().trim().regex(/^\d{12}$/) });
-
-/** A refusal carries its own words; anything else failed the field's check. */
-function utrErrorOf(error: FieldError | undefined): string | undefined {
-  if (!error) return undefined;
-  return error.type === 'server' ? error.message : t('player.academy.utrInvalid');
+/** Paying for a seat, for members whose tier has Academy booking (feature academy.booking). */
+export function AcademyPaymentScreen() {
+  return (
+    <FeatureGate access={useFeature('academy.booking')}>
+      <Payment />
+    </FeatureGate>
+  );
 }
 
-/** The booking once the UTR is sent, or once it is paid: where it stands, and back to the batches. */
-function PaymentDone({ isSent, onDone }: { isSent: boolean; onDone: () => void }) {
+/** The amount and the club's UPI ID, paid from any UPI app, then the UTR of that payment. */
+function PayDetails({ payment, bookingId }: { payment: AcademyPayment; bookingId: string }) {
+  if (payment.upiVpa === null) return <Text>{t('player.academy.noUpi')}</Text>;
   return (
-    <StepScreen title={t('player.academy.payTitle')} back={{ label: t('common.back'), onBack: onDone }}
-      footer={<Button variant="primary" fullWidth onClick={onDone}>{t('player.academy.done')}</Button>}>
-      <Text>{t(isSent ? 'player.academy.paymentSent' : 'player.academy.paid')}</Text>
-    </StepScreen>
+    <Stack gap={6}>
+      <Stack gap={1}>
+        <Text variant="small" tone="muted">{t('player.academy.amount')}</Text>
+        <Money paise={payment.amount} />
+      </Stack>
+      <Stack gap={1}>
+        <Text variant="small" tone="muted">{t('player.academy.upiId')}</Text>
+        <Text weight="medium">{payment.upiVpa}</Text>
+        {payment.upiPayeeName === null ? null : <Text tone="muted">{payment.upiPayeeName}</Text>}
+      </Stack>
+      <Text>{t('player.academy.payHow')}</Text>
+      <UtrForm bookingId={bookingId} />
+    </Stack>
   );
 }
 
 /**
- * Paying for a seat: the amount and the club's UPI, paid from any UPI app, then the 12-digit UTR
- * from that payment. A cashier confirms it against the bank.
+ * One of the member's seats: where it stands, then while it is unpaid what to pay and where, and the
+ * UTR. A cashier confirms the UTR against the bank.
  */
-export function AcademyPaymentScreen() {
+function Payment() {
   const { bookingId = '' } = useParams({ strict: false });
+  const bookings = useAcademyBookings();
   const payment = useAcademyPayment(bookingId);
-  const { claimPayment } = useAcademyActions();
   const navigate = useNavigate();
-  const [isSent, setIsSent] = useState(false);
-  const [resolver] = useState(() => zodResolver(utrForm));
-  const form = useForm<z.input<typeof utrForm>, unknown, z.output<typeof utrForm>>({ resolver, defaultValues: { utr: '' } });
-  const toBatches = () => void navigate({ to: '/academy' });
-
-  const send = form.handleSubmit(async ({ utr }) => {
-    const sent = await claimPayment.mutateAsync({ bookingId, utr });
-    if (sent.ok) setIsSent(true);
-    else form.setError('utr', { type: 'server', message: t(FAILURE_COPY[sent.error]) });
-  });
-  if (isSent || payment.data === null) return <PaymentDone isSent={isSent} onDone={toBatches} />;
-  const utrField = form.register('utr');
+  const title = t('player.academy.payTitle');
+  const back = (
+    <Button variant="text" onClick={() => void navigate({ to: '/academy' })}>
+      {t('common.back')}
+    </Button>
+  );
+  if (bookings.isPending || payment.isPending) return <Screen title={title} status="loading" />;
+  if (bookings.isError || payment.isError) {
+    return <Screen title={title} status="error" onRetry={() => void Promise.all([bookings.refetch(), payment.refetch()])} />;
+  }
+  const booking = bookings.data.find((candidate) => candidate.id === bookingId);
+  if (!booking) return <Screen title={title} actions={back} status="empty" emptyText={t('player.academy.bookingGone')} />;
   return (
-    <StepScreen title={t('player.academy.payTitle')} back={{ label: t('common.back'), onBack: toBatches }} onSubmit={send}
-      footer={<Button variant="primary" type="submit" fullWidth isLoading={claimPayment.isPending || payment.isPending}>{t('player.academy.sendUtr')}</Button>}>
-      {payment.isError ? <Text>{t('common.loadFailed')}</Text> : null}
-      {payment.data ? (
-        <Text>{t('player.academy.payTo', { amount: formatMoney(payment.data.amount), upi: payment.data.upiVpa ?? '' })}</Text>
-      ) : null}
-      <Input {...utrField} label={t('player.academy.utrLabel')} inputMode="numeric" maxLength={12} autoComplete="off"
-        error={utrErrorOf(form.formState.errors.utr)} />
-    </StepScreen>
+    <Screen title={title} actions={back}>
+      <Stack gap={6}>
+        <Text>{bookingStatus(booking)}</Text>
+        {booking.status !== 'paid' && payment.data ? <PayDetails payment={payment.data} bookingId={booking.id} /> : null}
+      </Stack>
+    </Screen>
   );
 }

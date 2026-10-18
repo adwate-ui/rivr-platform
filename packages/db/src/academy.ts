@@ -13,15 +13,22 @@ export interface AcademyBatch {
   readonly fee: bigint | null;
 }
 
-export type AcademyBookingStatus = 'awaiting_payment' | 'payment_claimed' | 'paid' | 'cancelled';
+export type AcademyBookingStatus = 'awaiting_payment' | 'payment_claimed' | 'paid';
 
-/** One of the member's bookings: the amount in paise, and the UTR they gave. */
+/**
+ * One of the member's own seats: its batch, the amount in paise, the UTR they gave, and the last UTR
+ * the cashier could not find in the bank (cleared once they give one again).
+ */
 export interface AcademyBooking {
   readonly id: string;
   readonly batchId: string;
+  readonly batchName: string;
+  readonly startsOn: string;
+  readonly endsOn: string;
   readonly status: AcademyBookingStatus;
   readonly amount: bigint;
   readonly utr: string | null;
+  readonly turnedDownUtr: string | null;
 }
 
 /** What to pay for a booking, and the club's UPI. */
@@ -45,10 +52,13 @@ const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVUTR: 'utr_used',
 };
 
-const STATUSES: readonly AcademyBookingStatus[] = ['awaiting_payment', 'payment_claimed', 'paid', 'cancelled'];
+const STATUSES: readonly AcademyBookingStatus[] = ['awaiting_payment', 'payment_claimed', 'paid'];
 
+/** A status this app knows; anything else is a fault, never shown as some other status. */
 function toStatus(value: string): AcademyBookingStatus {
-  return STATUSES.find((status) => status === value) ?? 'awaiting_payment';
+  const status = STATUSES.find((known) => known === value);
+  if (status === undefined) throw new Error(`Unknown Academy booking status: ${value}`);
+  return status;
 }
 
 /** The batches the signed-in member can book, soonest first. */
@@ -68,16 +78,23 @@ export function useAcademyBatches() {
   });
 }
 
-/** The signed-in member's bookings that are not cancelled. */
+/**
+ * The signed-in member's own seats that are not cancelled, soonest first, also once their batch has
+ * closed or started. Read through `my_academy_bookings`, never the table, which shows staff the
+ * venue's bookings.
+ */
 export function useAcademyBookings() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.academyBookings(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<AcademyBooking[]> => {
-      const { data, error } = await client.from('academy_booking').select('id, batch_id, status, amount, utr').neq('status', 'cancelled');
+      const { data, error } = await client.rpc('my_academy_bookings');
       if (error) throw error;
-      return data.map((row) => ({ id: row.id, batchId: row.batch_id, status: toStatus(row.status), amount: BigInt(row.amount), utr: row.utr }));
+      return data.map((row) => ({
+        id: row.id, batchId: row.batch_id, batchName: row.batch_name, startsOn: row.starts_on, endsOn: row.ends_on,
+        status: toStatus(row.status), amount: BigInt(row.amount), utr: row.utr, turnedDownUtr: row.turned_down_utr,
+      }));
     },
   });
 }

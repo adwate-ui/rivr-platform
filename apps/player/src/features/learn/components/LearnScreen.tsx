@@ -17,7 +17,6 @@ export function LearnScreen() {
           <FeatureGate access={academy}>
             <Stack gap={3}>
               <Heading level={2}>{t('player.academy.title')}</Heading>
-              <Text tone="muted">{t('player.academy.intro')}</Text>
               <Button variant="secondary" onClick={() => void navigate({ to: '/academy' })}>
                 {t('player.academy.seeBatches')}
               </Button>
