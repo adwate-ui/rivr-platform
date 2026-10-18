@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuthStatus, useMember, useSignUp, type SignUpFailure } from '@rivr/db';
+import { useAuthStatus, useMember, useSignOut, useSignUp, type SignUpFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, Input, StepScreen, Text } from '@rivr/ui';
 import { Navigate, useNavigate } from '@tanstack/react-router';
@@ -25,6 +25,7 @@ export function SignUpScreen() {
   const authStatus = useAuthStatus();
   const member = useMember();
   const signUp = useSignUp();
+  const signOut = useSignOut();
   const navigate = useNavigate();
   const [resolver] = useState(() => zodResolver(nameForm));
   const form = useForm<z.input<typeof nameForm>, unknown, z.output<typeof nameForm>>({ resolver, defaultValues: { fullName: '' } });
@@ -44,9 +45,15 @@ export function SignUpScreen() {
       title={t('player.signUp.title')}
       onSubmit={join}
       footer={
-        <Button variant="primary" type="submit" fullWidth isLoading={signUp.isPending || member.isPending}>
-          {t('player.signUp.submit')}
-        </Button>
+        <>
+          <Button variant="primary" type="submit" fullWidth isLoading={signUp.isPending || member.isPending}>
+            {t('player.signUp.submit')}
+          </Button>
+          {/* A mistyped number signs out and starts again: this screen sends a signed-out phone to sign-in. */}
+          <Button variant="text" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>
+            {t('player.signUp.otherNumber')}
+          </Button>
+        </>
       }
     >
       <Text tone="muted">{t('player.signUp.intro')}</Text>

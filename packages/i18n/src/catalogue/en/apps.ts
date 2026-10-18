@@ -80,6 +80,8 @@ export const playerApp = {
     intro: 'Your full name as on your Aadhaar. We check it when you verify your identity.',
     nameLabel: 'Full name as on your Aadhaar',
     submit: 'Continue',
+    /** Signs out, for someone who signed in with the wrong number. */
+    otherNumber: 'Use another number',
     nameInvalid: 'Enter your full name in English letters, as on your Aadhaar.',
     staff: 'Staff join as members at the front desk.',
     stopped: 'New sign-ups are paused for now. Try again later.',

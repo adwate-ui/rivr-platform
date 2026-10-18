@@ -101,3 +101,14 @@ describe('sign-in', () => {
     expect(await screen.findByText('Sign-in is not available right now. Try again in a few minutes.', {}, { timeout: 3000 })).toBeDefined();
   });
 });
+
+describe('sign-up', () => {
+  // Nothing answers at the client's address, so this also signs out with Auth out of reach.
+  it('lets a number that signed in by mistake sign out and start again', async () => {
+    signIn();
+    renderAt('/sign-up');
+    fireEvent.click(await screen.findByRole('button', { name: 'Use another number' }, LAZY_SCREEN));
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+});
