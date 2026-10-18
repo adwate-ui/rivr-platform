@@ -1,6 +1,6 @@
 # Lane contracts
 
-Four lanes: A money, B floor, C member and web, D growth and content. Their tasks are worked one at a time, in issue-number order (`docs/decisions/0024`), but each contract still says what a lane owns and what it offers the others, so code stays in its lane's tables, functions and folders, and one lane's task calls another lane's work only through the interfaces listed here. The schema foundation, these contracts and the task issues froze when Lane 0 merged. A task changes another lane's contract, or the foundation, only through a `question` issue.
+Four lanes: A money, B floor, C member and web, D growth and content. Their tasks are worked one at a time, in issue-number order (`docs/decisions/0024`), but each contract still says what a lane owns and what it offers the others, so code stays in its lane's tables, functions and folders, and one lane's task calls another lane's work only through the interfaces listed here. The schema foundation, these contracts and the task issues froze when Lane 0 merged. A task changes another lane's contract, or the foundation, only through a `question` issue the owner answers.
 
 - [Lane A: money](lane-a.md)
 - [Lane B: floor](lane-b.md)

@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Reviews a diff against its task, the lane contract and the repository rules in a fresh context. Use before opening every PR, and in the reviewer session for every open PR.
+description: Reviews a diff against its task, the lane contract and the repository rules in a fresh context. Use before opening every PR.
 tools: Read, Grep, Glob, Bash
 model: opus
 ---

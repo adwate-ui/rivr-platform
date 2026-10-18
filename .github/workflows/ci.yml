@@ -1,5 +1,5 @@
 # Runs on every pull request and every push to main. Branch protection requires all four
-# jobs plus the `agent-review` status set by the reviewer session (scripts/github/setup-repo.sh).
+# jobs plus the `agent-review` status, posted once the review subagents pass (decision 0024).
 name: CI
 
 on:
