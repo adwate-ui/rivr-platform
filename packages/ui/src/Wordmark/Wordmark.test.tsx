@@ -22,8 +22,29 @@ describe('Wordmark', () => {
     expect(screen.getByRole('img', { name: 'RIVR पोकर क्लब' })).toHaveTextContent('पोकर क्लब');
   });
 
+  it('sets the motto beneath the mark as text a screen reader reads, in the display face', () => {
+    renderIn(<Wordmark size="lg" withTagline withMotto />);
+    const motto = screen.getByText('Skill runs deep.');
+    expect(motto).toHaveClass('font-display', 'italic');
+    expect(motto.closest('[role="img"]')).toBeNull();
+  });
+
+  it('keeps the English motto marked as English, and italic, on a Hindi page', () => {
+    renderIn(<Wordmark size="lg" withTagline withMotto />, 'hi');
+    const motto = screen.getByText('Skill runs deep.');
+    expect(motto).toHaveAttribute('lang', 'en');
+    expect(motto).toHaveClass('italic');
+    expect(motto).not.toHaveClass('hindi:not-italic');
+  });
+
+  it('centres the mark, the tagline and the motto when asked', () => {
+    const { container } = renderIn(<Wordmark size="lg" withTagline withMotto align="center" />);
+    expect(container.firstElementChild).toHaveClass('items-center');
+    expect(screen.getByRole('img', { name: 'RIVR Poker Club' })).toHaveClass('items-center');
+  });
+
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<Wordmark withTagline />);
+    const { container } = renderIn(<Wordmark withTagline withMotto />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

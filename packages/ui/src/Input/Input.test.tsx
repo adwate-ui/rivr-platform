@@ -45,4 +45,49 @@ describe('Input', () => {
     const { container } = renderIn(<Input label="UTR" hint="12 digits." error="UTR not found." />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('shows a fixed prefix before the value and reads it out with the field', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" defaultValue="98110 42817" />);
+    const field = screen.getByRole('textbox', { name: 'Mobile number' });
+    expect(screen.getByText('+91')).toBeInTheDocument();
+    expect(field).toHaveAccessibleDescription('+91');
+    expect(field).toHaveValue('98110 42817');
+  });
+
+  it('draws a code field as a large letter-spaced underline, which turns red on an error', () => {
+    renderIn(<Input label="Code" variant="code" placeholder="6 digits" error="Code expired. Request a new one." />);
+    const field = screen.getByRole('textbox', { name: 'Code' });
+    expect(field).toHaveAttribute('placeholder', '6 digits');
+    expect(field).toHaveClass('border-b', 'border-alert', 'tracking-tv');
+    expect(field).not.toHaveClass('rounded-md');
+  });
+
+  it('draws a line field as an underline, hairline until an error turns it red', () => {
+    renderIn(<Input label="Name" variant="line" />);
+    renderIn(<Input label="Surname" variant="line" error="Enter your surname." />);
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass('border-b', 'border-hairline');
+    const withError = screen.getByRole('textbox', { name: 'Surname' });
+    expect(withError).toHaveClass('border-b', 'border-alert');
+    expect(withError).not.toHaveClass('rounded-md', 'border-hairline');
+  });
+
+  it('runs the underline, and its error colour, under the prefix and the value together', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" error="Enter the 10 digits." />);
+    const row = screen.getByRole('textbox', { name: 'Mobile number' }).parentElement;
+    expect(row).toHaveClass('border-b', 'border-alert');
+    expect(row).toContainElement(screen.getByText('+91'));
+  });
+
+  it('keeps a prefixed field a full touch target, and dims the prefix with it when disabled', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" disabled />);
+    const field = screen.getByRole('textbox', { name: 'Mobile number' });
+    expect(field).toHaveClass('min-h-touch');
+    expect(field).not.toHaveClass('disabled:opacity-disabled');
+    expect(field.parentElement).toHaveClass('has-disabled:opacity-disabled');
+  });
+
+  it('has no accessibility violations as a line field with a prefix', async () => {
+    const { container } = renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" />);
+    expect(await axeViolations(container)).toEqual([]);
+  });
 });

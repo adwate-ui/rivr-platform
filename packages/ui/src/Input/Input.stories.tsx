@@ -38,3 +38,33 @@ export const Hindi: Story = {
     error: 'UTR नहीं मिला। नंबर जाँचें और फिर से कोशिश करें।',
   },
 };
+
+/** The sign-in number: an underline with the country code fixed in front. */
+export const LineWithPrefix: Story = {
+  args: { label: 'Mobile number', hint: undefined, type: 'tel', inputMode: 'tel', variant: 'line', prefix: '+91', defaultValue: '98110 42817' },
+};
+
+export const LineWithError: Story = {
+  args: { ...LineWithPrefix.args, error: 'Enter the 10 digits of an Indian mobile number.' },
+};
+
+export const LineDisabled: Story = { args: { ...LineWithPrefix.args, disabled: true } };
+
+/** The one-time code: large and letter-spaced. */
+export const Code: Story = {
+  args: { label: 'Code', hint: 'Sent to +91 98110 42817', variant: 'code', inputMode: 'numeric', placeholder: '6 digits', autoComplete: 'one-time-code' },
+};
+
+export const CodeWithError: Story = {
+  args: { ...Code.args, defaultValue: '482913', error: 'Code expired. Request a new one.' },
+};
+
+export const CodeHindi: Story = {
+  globals: { locale: 'hi' },
+  args: { ...Code.args, label: 'कोड', hint: '+91 98110 42817 पर भेजा गया', placeholder: '6 अंक', defaultValue: '482913' },
+};
+
+export const LineHindi: Story = {
+  globals: { locale: 'hi' },
+  args: { label: 'मोबाइल नंबर', hint: undefined, type: 'tel', variant: 'line', prefix: '+91', defaultValue: '98110 42817' },
+};

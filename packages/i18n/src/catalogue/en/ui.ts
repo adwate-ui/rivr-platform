@@ -5,6 +5,8 @@ export const ui = {
     name: 'RIVR',
     /** Letter-spaced beneath the wordmark. */
     tagline: 'Poker club',
+    /** The brand line beneath the wordmark on the sign-in screen, and nowhere else (design prompt). */
+    motto: 'Skill runs deep.',
     /** The wordmark's accessible name. */
     label: 'RIVR Poker Club',
   },
