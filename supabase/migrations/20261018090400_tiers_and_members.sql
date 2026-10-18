@@ -71,9 +71,10 @@ $$;
 -- Links the signed-in login to the staff and member records registered under its verified
 -- phone that have no login yet. Apps call public.link_my_login() after every sign-in. This is
 -- the only way a login reaches a record: clients cannot write staff.user_id or member.user_id.
--- It links only a session that signed in with a one-time code sent to that phone, and never a
--- login with a password: a phone marked confirmed is not proof on its own, because Auth can
--- confirm one at a password sign-up when SMS confirmations are off.
+-- It links only a session that signed in with a one-time code, whose phone was confirmed by that
+-- sign-in or before it. A confirmed phone alone is not proof: with SMS confirmations off, Auth
+-- confirms one at a password sign-up or a phone change without sending a code. (Auth gives every
+-- user a password, even code-only ones, so the sign-in method is what tells them apart.)
 create function private.link_my_login()
 returns void
 language plpgsql
@@ -81,14 +82,17 @@ security definer
 set search_path = ''
 as $$
 declare
-  signed_in_by_code boolean := exists (
-    select 1 from jsonb_array_elements(coalesce((select auth.jwt()) -> 'amr', '[]'::jsonb)) method
+  -- When this session signed in with a code, from the token's authentication methods (amr).
+  code_signed_in_at timestamptz := (
+    select max(to_timestamp((method ->> 'timestamp')::bigint))
+    from jsonb_array_elements(coalesce((select auth.jwt()) -> 'amr', '[]'::jsonb)) method
     where method ->> 'method' = 'otp');
+  -- The amr timestamp is in whole seconds, so allow the second it falls in.
   verified_phone text := (select '+' || u.phone from auth.users u
-                          where u.id = (select auth.uid()) and u.phone_confirmed_at is not null
-                            and coalesce(u.encrypted_password, '') = '');
+                          where u.id = (select auth.uid())
+                            and u.phone_confirmed_at < code_signed_in_at + interval '1 second');
 begin
-  if not signed_in_by_code or verified_phone is null then return; end if;
+  if verified_phone is null then return; end if;
   -- One staff record per venue, so each venue's record links separately.
   update public.staff s set user_id = (select auth.uid())
   where s.user_id is null and s.phone = verified_phone

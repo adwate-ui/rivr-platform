@@ -123,31 +123,46 @@ select results_eq($$ select slug from public.public_venue order by slug $$, $$ v
   'the public sees real venues, never the practice venue');
 select throws_ok($$ select * from public.venue $$, '42501', null, 'the public cannot read the venue table');
 
--- A cashier registered by phone links her login the first time she signs in with a code.
+-- Signing in: the session's token says how and when (amr). Called as the database owner, before
+-- switching to the signed-in role.
 reset role;
-insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at)
+create function pg_temp.sign_in(p_user uuid, p_method text, p_at timestamptz)
+returns void language sql as $$
+  select set_config('request.jwt.claims', jsonb_build_object(
+    'sub', p_user, 'role', 'authenticated',
+    'amr', jsonb_build_array(jsonb_build_object('method', p_method, 'timestamp', extract(epoch from p_at)::bigint)))::text, true);
+$$;
+
+-- A cashier registered by phone links her login the first time she signs in with a code. Auth
+-- creates her user with a confirmed phone and a random password, as it does for every code sign-in.
+insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, encrypted_password, created_at, updated_at)
 values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e3', 'authenticated', 'authenticated',
-        '919000000997', now(), now(), now());
+        '919000000997', now(), '$2a$10$abcdefghijklmnopqrstuuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY', now(), now());
 insert into public.staff (venue_id, full_name, job_title, role, phone)
 values ('00000000-0000-4000-8000-000000000001', 'Linked Cashier', 'Cashier', 'cashier', '+919000000997');
--- Another new hire's record, whose phone an attacker signs up with using a password; Auth marks
--- the phone confirmed without sending a code when SMS confirmations are off.
+-- Another new hire's record. An attacker gets its phone onto their own login without a code: a
+-- password sign-up, or a phone change, both of which Auth confirms when SMS confirmations are off.
 insert into public.staff (venue_id, full_name, job_title, role, phone)
 values ('00000000-0000-4000-8000-000000000001', 'Target Cashier', 'Cashier', 'cashier', '+919000000996');
 insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, encrypted_password, created_at, updated_at)
 values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e4', 'authenticated', 'authenticated',
         '919000000996', now(), '$2a$10$abcdefghijklmnopqrstuuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY', now(), now());
+
+select pg_temp.sign_in('00000000-0000-4000-8000-0000000000e4', 'password', now());
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e4", "role": "authenticated", "amr": [{"method": "password", "timestamp": 1792300000}]}';
 select public.link_my_login();
-select is((select count(*) from public.staff)::int, 0, 'a password sign-up cannot claim a record by its phone');
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e4", "role": "authenticated", "amr": [{"method": "otp", "timestamp": 1792300000}]}';
+select is((select count(*) from public.staff)::int, 0, 'a password sign-in cannot claim a record by its phone');
+reset role;
+select pg_temp.sign_in('00000000-0000-4000-8000-0000000000e4', 'otp', now() - interval '1 hour');
+set local role authenticated;
 select public.link_my_login();
-select is((select count(*) from public.staff)::int, 0, 'nor can a login that has a password, whatever its session claims');
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e3", "role": "authenticated", "amr": [{"method": "password", "timestamp": 1792300000}]}';
-select public.link_my_login();
-select is((select count(*) from public.staff)::int, 0, 'and the real cashier links only from a session signed in by code');
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e3", "role": "authenticated", "amr": [{"method": "otp", "timestamp": 1792300000}]}';
+select is((select count(*) from public.staff)::int, 0,
+  'nor can a code sign-in to another number whose phone was switched afterwards');
+
+reset role;
+select pg_temp.sign_in('00000000-0000-4000-8000-0000000000e3', 'otp', now());
+set local role authenticated;
+select is((select count(*) from public.staff)::int, 0, 'before linking, a new login is nobody');
 select lives_ok($$ select public.link_my_login() $$, 'she signs in with a code and links her login');
 select ok((select count(*) from public.staff where full_name = 'Linked Cashier') = 1, 'and is staff at her venue from then on');
 
