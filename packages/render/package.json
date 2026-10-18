@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
-    "build": "vite build"
+    "build": "vite build",
+    "render:brand-kit": "node scripts/render-brand-kit.ts"
   },
   "dependencies": {
     "@rivr/i18n": "workspace:*",

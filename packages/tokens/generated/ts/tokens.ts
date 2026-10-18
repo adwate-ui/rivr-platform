@@ -166,6 +166,12 @@ export const tokens = {
       "height": 1920
     }
   },
+  "brand": {
+    "icon": 96,
+    "maskable": 112,
+    "adaptive": 132,
+    "lockup": 400
+  },
   "breakpoint": {
     "phone": 390,
     "tablet": 1180,
