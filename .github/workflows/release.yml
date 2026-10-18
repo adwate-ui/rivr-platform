@@ -89,6 +89,8 @@ jobs:
           pnpm supabase db push --password "$SUPABASE_DB_PASSWORD"
       - name: Edge Functions
         run: pnpm supabase functions deploy --project-ref "$PROJECT_REF"
+      - name: Auth settings (sessions only from a code, #187)
+        run: node scripts/ci/check-auth-config.mjs
 
   pages:
     needs: database
