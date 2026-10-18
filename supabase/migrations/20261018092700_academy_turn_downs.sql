@@ -26,6 +26,8 @@ create index academy_utr_rejection_staff_idx on public.academy_utr_rejection (re
 
 create trigger academy_utr_rejection_touch_updated_at before update on public.academy_utr_rejection
   for each row execute function private.touch_updated_at();
+create trigger academy_utr_rejection_audit after insert or update or delete on public.academy_utr_rejection
+  for each row execute function private.audit_row_change();
 
 alter table public.academy_utr_rejection enable row level security;
 grant select on public.academy_utr_rejection to authenticated;
@@ -34,7 +36,8 @@ create policy "cage staff see the venue's turned-down UTRs" on public.academy_ut
   for select to authenticated
   using (venue_id in (select private.venues_where('cage.transact')));
 
--- The turned-down UTR is kept on a seat the turn-down cancels too, so the member sees which one.
+-- The turned-down UTR is kept on a seat the turn-down cancels too, so the member sees which one. A
+-- seat staff cancel keeps none: only the cage's cancellation is shown to the member, with its UTR.
 create or replace function private.keep_turned_down_utr()
 returns trigger
 language plpgsql
@@ -43,7 +46,7 @@ as $$
 begin
   if old.status = 'payment_claimed' and new.status in ('awaiting_payment', 'cancelled') then
     new.turned_down_utr := old.utr;
-  elsif new.utr is not null then
+  elsif new.utr is not null or (old.status = 'awaiting_payment' and new.status = 'cancelled') then
     new.turned_down_utr := null;
   end if;
   return new;
