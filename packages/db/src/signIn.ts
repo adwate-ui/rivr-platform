@@ -1,7 +1,8 @@
 import { err, ok, type IndianMobile, type Result } from '@rivr/contracts';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 import { useRivrData } from './provider.tsx';
+import { queryKeys } from './queryKeys.ts';
 
 /** A sign-in step's outcome: done, or why not. */
 export type SignInResult = Result<null, SignInFailure>;
@@ -14,11 +15,11 @@ export type SignInResult = Result<null, SignInFailure>;
  */
 export function useSignIn() {
   const { client } = useRivrData();
+  const queryClient = useQueryClient();
 
   const requestCode = useMutation({
-    mutationFn: async ({ phone, language }: { phone: IndianMobile; language: 'en' | 'hi' }): Promise<SignInResult> => {
-      // `language` picks the WhatsApp template; Auth keeps it on a new user's metadata.
-      const { error } = await client.auth.signInWithOtp({ phone, options: { data: { language } } });
+    mutationFn: async ({ phone }: { phone: IndianMobile }): Promise<SignInResult> => {
+      const { error } = await client.auth.signInWithOtp({ phone });
       return error ? err(toSignInFailure(error)) : ok(null);
     },
   });
@@ -30,9 +31,13 @@ export function useSignIn() {
       const linked = await client.rpc('link_my_login');
       if (linked.error) {
         // Signed in but not linked would show the person as nobody: undo it and let them try again.
-        await client.auth.signOut();
+        // Only on this device: the same person's console or tablet sessions stay signed in.
+        await client.auth.signOut({ scope: 'local' });
         return err('unavailable');
       }
+      // Auth reports the sign-in before the records are linked, so open screens may already have
+      // asked, and cached, what a nobody may see. Ask again now that the person is linked.
+      await queryClient.invalidateQueries({ queryKey: queryKeys.personal });
       return ok(null);
     },
   });
