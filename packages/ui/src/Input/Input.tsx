@@ -43,10 +43,12 @@ export interface InputProps extends NativeInputProps {
   ref?: Ref<HTMLInputElement>;
 }
 
+// The line and the code are sized as in the prototype's sign-in: a 48 px row for the number, and
+// large digits set apart for a code (the prototype's 32 px, at 28 on the type scale).
 const FRAME: Record<InputVariant, string> = {
   boxed: 'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
-  line: 'min-h-touch w-full border-b bg-transparent font-text text-24 text-content',
-  code: 'min-h-touch w-full border-b bg-transparent font-text text-28 tracking-tv text-content',
+  line: 'min-h-12 w-full border-b bg-transparent font-text text-20 tracking-wide text-content',
+  code: 'min-h-touch w-full border-b bg-transparent py-2 font-text text-28 tracking-code text-content',
 };
 
 const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed';
@@ -99,8 +101,9 @@ function Field({ id, type, variant, prefix, isInvalid, describedBy, native }: Fi
   );
   if (!prefix) return input;
   return (
-    <div className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
-      <span id={`${id}-prefix`} className="text-content-muted">
+    // data-field-row: the focus ring goes round the whole row, prefix included (styles.css).
+    <div data-field-row className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
+      <span id={`${id}-prefix`} className="text-18 tracking-normal text-content-muted">
         {prefix}
       </span>
       {input}

@@ -39,6 +39,7 @@
   --rivr-font-letter-spacing-normal: 0em;
   --rivr-font-letter-spacing-wide: 0.06em; /** Small capitals labels. */
   --rivr-font-letter-spacing-tv: 0.2em; /** Letter-spaced labels on the TV and under the wordmark. */
+  --rivr-font-letter-spacing-code: 0.5em; /** The digits of a one-time code, set apart to be read and typed. */
   --rivr-font-figures-numeric: tabular-nums;
   --rivr-space-0: 0px;
   --rivr-space-1: 4px;

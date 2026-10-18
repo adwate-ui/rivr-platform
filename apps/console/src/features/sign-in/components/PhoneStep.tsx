@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { indianMobileSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Input, StepScreen, Wordmark } from '@rivr/ui';
+import { Button, Heading, Input, StepScreen, Wordmark } from '@rivr/ui';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
@@ -30,12 +30,14 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
       footer={
         <>
           <Input {...form.register('phone')} label={t('common.signIn.phoneLabel')} variant="line" prefix={t('common.signIn.countryCode')} type="tel" inputMode="tel" autoComplete="tel-national" autoFocus error={error} />
-          <Button variant="primary" type="submit" fullWidth isLoading={requestCode.isPending}>
+          <Button variant="primary" size="large" type="submit" fullWidth isLoading={requestCode.isPending}>
             {t('common.signIn.sendCode')}
           </Button>
         </>
       }
     >
+      {/* The wordmark names the screen as an image: its h1 is for screen readers. */}
+      <Heading level={1} isVisuallyHidden>{t('common.signIn.title')}</Heading>
       <Wordmark size="lg" withTagline withMotto align="center" />
     </StepScreen>
   );
