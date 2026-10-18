@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "@rivr/contracts": "../../../packages/contracts/src/index.ts",
+    "@rivr/adapters/sign-in-code": "../../../packages/adapters/src/sign-in-code/index.ts",
+    "@rivr/adapters/whatsapp": "../../../packages/adapters/src/whatsapp/index.ts",
+    "zod": "npm:zod@^4.6.7",
+    "standardwebhooks": "npm:standardwebhooks@1.0.0"
+  }
+}

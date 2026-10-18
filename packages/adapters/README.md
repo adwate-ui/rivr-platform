@@ -53,13 +53,23 @@ const payouts = createFakeUpiPayouts();
 payouts.failNext({ code: 'unavailable' });
 ```
 
+## Sign-in codes
+
+`sendSignInCode({ whatsapp, smsOtp }, { to, code, language })` from `@rivr/adapters/sign-in-code` sends a sign-in code. It tries the WhatsApp authentication template (`sign_in_code`) first, then SMS. A channel left out is skipped, and with neither it fails closed (`not_configured`). `handleSendSmsHook(payload, channels)` answers Supabase Auth's Send SMS hook with the status and body Auth expects; `supabase/functions/auth-send-code` checks the signature and calls it (decision 0025).
+
+## Live implementations
+
+| Adapter | Import | Credentials |
+|---|---|---|
+| WhatsApp, Meta Cloud API | `createWhatsAppCloudApi({ phoneNumberId, accessToken })` from `@rivr/adapters/whatsapp` | `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN` as Edge Function secrets |
+
 ## Adding a live implementation
 
 Implement the same interface in the vendor's folder (`live.ts`), with `fetch` only. Parse every response with Zod in a `parse/` folder, map vendor errors to `AdapterFailure`, and pass it to `createAdapters` through `live` when the venue's credentials exist.
 
 ## Must not
 
-- Be called from an app, a hook or a request handler. External calls happen in outbox consumers only.
+- Be called from an app, a hook or a request handler. External calls happen in outbox consumers only, with one exception: the Send SMS auth hook sends sign-in codes (decision 0025).
 - Import Node built-ins or a vendor SDK, or log anything; no personal data in a `reason` either.
 - Send raw phone numbers or ids to an ads vendor. Hash them as `toMetaServerEvent` and `toClickConversion` do.
 - Let the practice venue reach a vendor.

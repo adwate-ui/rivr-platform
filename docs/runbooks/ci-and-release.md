@@ -39,6 +39,10 @@ Auth and API on staging and production, in the Supabase dashboard:
 - Set the rate limits from `[auth.rate_limit]` in `supabase/config.template.toml`.
 - Expose only the `public` and `graphql_public` schemas, never `private`.
 - On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number, so a seed sign-in never sends a real SMS. Give them a private code kept outside the repository, never the local `123456`: the seed includes super admins, and anyone who knows the code could sign in as one.
+- Sign-in codes (decision 0025):
+  - Under Authentication → Hooks, add a **Send SMS** hook of type HTTPS, pointing to `https://<project-ref>.supabase.co/functions/v1/auth-send-code`, and generate its secret.
+  - Under Edge Functions → Secrets, set `SEND_SMS_HOOK_SECRET` to that same secret.
+  - Once WhatsApp is approved, also set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN`. Until a channel is set, every sign-in except the test numbers is refused.
 
 ## Releasing
 

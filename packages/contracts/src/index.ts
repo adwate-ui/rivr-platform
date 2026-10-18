@@ -27,6 +27,7 @@ export {
   type Pan,
 } from './identity.ts';
 export { upiVpaSchema, utrSchema, type UpiVpa, type Utr } from './payments.ts';
+export { sendSmsHookSchema, type SendSmsHook } from './auth-hooks.ts';
 export {
   INBOX_CHANNELS,
   SOCIAL_CHANNELS,

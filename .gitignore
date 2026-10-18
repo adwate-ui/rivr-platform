@@ -13,6 +13,7 @@ reports/
 
 # Generated per worktree by scripts/supabase.mjs from supabase/config.template.toml
 supabase/config.toml
+supabase/.hook-secret
 supabase/.temp/
 supabase/.branches/
 .rivr-port-block
