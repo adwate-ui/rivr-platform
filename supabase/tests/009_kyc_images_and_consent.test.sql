@@ -13,7 +13,8 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000e9', 'Practice cashier', 'Cashier', 'cashier', '+919000000999');
 
 insert into storage.objects (bucket_id, name) values
-  ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg');
+  ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  ('kyc', '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-000000000301/aadhaar.jpg');
 
 -- Whether a person may see one KYC image (public.authorize_kyc_image, which the kyc-image-url
 -- Edge Function calls before it signs a one-minute URL).
@@ -44,6 +45,12 @@ select ok(not pg_temp.may_see('00000000-0000-4000-8000-0000000000e9', '00000000-
 select ok(pg_temp.may_see('00000000-0000-4000-8000-0000000000e9', '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-000000000301/aadhaar.jpg'),
   'that cashier may see an image of their own venue');
 select ok(not pg_temp.may_see('00000000-0000-4000-8000-000000000103', 'not-a-venue/aadhaar.jpg'), 'a path outside a venue folder is refused');
+select ok(not pg_temp.may_see('00000000-0000-4000-8000-0000000000e9',
+  '00000000-0000-4000-8000-000000000002/../00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  'a path that climbs out of the caller''s venue folder is refused');
+select ok(not pg_temp.may_see('00000000-0000-4000-8000-000000000103',
+  '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/missing.jpg'),
+  'an image that does not exist is refused');
 select is((select count(*)::int from public.audit_log where action = 'kyc_image.view'), 3, 'every allowed view is audited');
 select is((select actor_user_id from public.audit_log where action = 'kyc_image.view' order by created_at limit 1),
   '00000000-0000-4000-8000-000000000103'::uuid, 'with who looked');

@@ -20,18 +20,23 @@ function reply(body: object, status: number): Response {
   return Response.json(body, { status, headers: CORS });
 }
 
-/** The image's path from the request body, `<venue_id>/<member_id>/<file>`, or null. */
+// Exactly <venue_id>/<member_id>/<file>.<jpg|png|webp>, as authorize_kyc_image accepts. Anything
+// else, a `..` above all, could be normalised into another object once it is in a URL.
+const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+const KYC_IMAGE_PATH = new RegExp(`^${UUID}/${UUID}/[a-z0-9_-]+\\.(jpg|png|webp)$`);
+
+/** The image's path from the request body, or null unless it has exactly the KYC image shape. */
 async function pathFrom(request: Request): Promise<string | null> {
   const body: unknown = await request.json().catch(() => null);
   const path: unknown = typeof body === 'object' && body !== null ? Reflect.get(body, 'path') : null;
-  return typeof path === 'string' && path !== '' ? path : null;
+  return typeof path === 'string' && KYC_IMAGE_PATH.test(path) ? path : null;
 }
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
   const path = await pathFrom(request);
-  if (path === null) return reply({ error: 'path is required' }, 400);
+  if (path === null) return reply({ error: 'path must be <venue_id>/<member_id>/<file>.<jpg|png|webp>' }, 400);
 
   // Asked as the caller, so the database sees who it is.
   const allowed = await fetch(`${supabaseUrl}/rest/v1/rpc/authorize_kyc_image`, {
@@ -41,8 +46,8 @@ Deno.serve(async (request) => {
   });
   if (!allowed.ok) return reply({ error: 'Not allowed to see this image' }, 403);
 
-  const encoded = path.split('/').map(encodeURIComponent).join('/');
-  const signed = await fetch(`${supabaseUrl}/storage/v1/object/sign/kyc/${encoded}`, {
+  // The path matched KYC_IMAGE_PATH, so it holds only characters that need no encoding.
+  const signed = await fetch(`${supabaseUrl}/storage/v1/object/sign/kyc/${path}`, {
     method: 'POST',
     headers: { apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}`, 'content-type': 'application/json' },
     body: JSON.stringify({ expiresIn: URL_SECONDS }),

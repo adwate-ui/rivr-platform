@@ -63,6 +63,13 @@ test.describe('KYC images', () => {
     });
     expect(direct.ok()).toBe(false);
 
+    // A path that climbs out of its venue folder never reaches the database or Storage.
+    const climbing = await request.post(`${url}/functions/v1/kyc-image-url`, {
+      headers: { apikey: publishableKey, authorization: `Bearer ${admin}`, 'content-type': 'application/json' },
+      data: { path: `00000000-0000-4000-8000-000000000002/../${PATH}` },
+    });
+    expect(climbing.status()).toBe(400);
+
     const host = await signIn(request, '+919000000108');
     expect((await ask(host)).status()).toBe(403);
   });

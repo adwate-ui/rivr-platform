@@ -25,6 +25,9 @@ $$;
 
 -- Whether the caller may see one KYC image: active staff with KYC review (at review) or the cage
 -- (at a withdrawal) at the image's venue. Every view is audited. Refuses with 42501 otherwise.
+-- The name must be exactly <venue_id>/<member_id>/<file>.<jpg|png|webp> and an object that exists:
+-- a name with `..` would pass a check of its first folder, then resolve to another venue's image
+-- once the signing request's URL is normalised.
 create function public.authorize_kyc_image(p_name text)
 returns void
 language plpgsql
@@ -34,7 +37,8 @@ as $$
 declare
   v_venue_id uuid := private.kyc_object_venue_id(p_name);
 begin
-  if v_venue_id is null
+  if p_name !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[a-z0-9_-]+\.(jpg|png|webp)$'
+     or not exists (select 1 from storage.objects o where o.bucket_id = 'kyc' and o.name = p_name)
      or not (private.has_permission(v_venue_id, 'kyc.review') or private.has_permission(v_venue_id, 'cage.transact')) then
     raise exception 'Not allowed to see this KYC image' using errcode = '42501';
   end if;
