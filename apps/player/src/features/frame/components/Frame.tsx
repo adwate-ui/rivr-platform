@@ -1,6 +1,6 @@
-import { useControlState, useFeature } from '@rivr/db';
+import { useAuthStatus, useControlState, useFeature, useMember } from '@rivr/db';
 import { KillSwitchBanner, PlayerShell, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
-import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 
 // Home, Balance and Rewards always show as tabs; the features inside them are gated one by one.
@@ -14,13 +14,19 @@ const TAB_FOR_PATH: Readonly<Record<string, PlayerTab>> = {
   '/learn': 'learn',
 };
 
-/** The player app's frame: tabs gated by tier, the kill-switch banner and navigation. */
+/**
+ * The player app's frame for a signed-in member: tabs gated by tier, the member's initial (which
+ * opens Profile), the kill-switch banner and navigation. Nobody signed in goes to sign-in.
+ */
 export function Frame({ children }: { children: ReactNode }) {
+  const authStatus = useAuthStatus();
+  const member = useMember();
   const sessions = useFeature('sessions.history');
   const learn = useFeature('learn.library');
   const { isVenueFrozen } = useControlState();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" replace />;
   const tabs: BottomNavItem[] = [
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },
@@ -32,7 +38,7 @@ export function Frame({ children }: { children: ReactNode }) {
     <PlayerShell
       tabs={tabs}
       currentTab={TAB_FOR_PATH[pathname]}
-      // No memberInitial yet: the shell shows a profile icon. Lane C passes the signed-in member's initial.
+      memberInitial={member.data?.initial}
       profileHref="/profile"
       onNavigate={(href) => void navigate({ href })}
       banner={isVenueFrozen ? <KillSwitchBanner audience="member" /> : null}
