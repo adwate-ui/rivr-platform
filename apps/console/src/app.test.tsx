@@ -48,10 +48,14 @@ function renderAt(path: string) {
   );
 }
 
+// Sign-in is loaded lazily: the first test to open it waits for its module, which a busy CI runner
+// can take more than findBy's default second to load.
+const LAZY_SCREEN = { timeout: 5000 };
+
 describe('the console', () => {
   it('sends someone signed out to sign-in', async () => {
     renderAt('/');
-    expect(await screen.findByRole('textbox', { name: 'Mobile number' })).toBeDefined();
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
   });
 
   it('opens on Live floor for staff, with the rail, who is signed in and the venue', async () => {
