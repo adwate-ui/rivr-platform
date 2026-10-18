@@ -49,7 +49,11 @@ const FRAME: Record<InputVariant, string> = {
   code: 'min-h-touch w-full border-b bg-transparent font-text text-28 tracking-tv text-content hindi:tracking-normal',
 };
 
-const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed disabled:opacity-disabled';
+const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed';
+
+// A plain input dims itself when disabled; with a prefix the whole row dims, prefix included.
+const DIMMED = 'disabled:opacity-disabled';
+const ROW_DIMMED = 'has-disabled:opacity-disabled';
 
 /** A labelled text field with an optional prefix, hint and error message. */
 export function Input({ label, hint, error, type = 'text', variant = 'boxed', prefix, ...native }: InputProps) {
@@ -86,7 +90,8 @@ function Field({ id, type, variant, prefix, isInvalid, describedBy, native }: Fi
     <input
       id={id}
       type={type}
-      className={prefix ? cx('min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE)}
+      // With a prefix the input still fills the row's full touch height, so a tap beside the value focuses it.
+      className={prefix ? cx('min-h-touch min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE, DIMMED)}
       aria-invalid={isInvalid || undefined}
       aria-describedby={describedBy}
       {...native}
@@ -94,7 +99,7 @@ function Field({ id, type, variant, prefix, isInvalid, describedBy, native }: Fi
   );
   if (!prefix) return input;
   return (
-    <div className={cx(frame, 'flex items-baseline gap-3')}>
+    <div className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
       <span id={`${id}-prefix`} className="text-content-muted">
         {prefix}
       </span>

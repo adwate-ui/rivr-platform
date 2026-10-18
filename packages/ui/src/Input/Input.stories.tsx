@@ -48,9 +48,11 @@ export const LineWithError: Story = {
   args: { ...LineWithPrefix.args, error: 'Enter the 10 digits of an Indian mobile number.' },
 };
 
+export const LineDisabled: Story = { args: { ...LineWithPrefix.args, disabled: true } };
+
 /** The one-time code: large and letter-spaced. */
 export const Code: Story = {
-  args: { label: 'Code', hint: 'Sent to +91 98110 42817', variant: 'code', placeholder: '6 digits', autoComplete: 'one-time-code' },
+  args: { label: 'Code', hint: 'Sent to +91 98110 42817', variant: 'code', inputMode: 'numeric', placeholder: '6 digits', autoComplete: 'one-time-code' },
 };
 
 export const CodeWithError: Story = {

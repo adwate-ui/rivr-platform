@@ -29,6 +29,13 @@ describe('Wordmark', () => {
     expect(motto.closest('[role="img"]')).toBeNull();
   });
 
+  it('keeps the English motto marked as English, and italic, on a Hindi page', () => {
+    renderIn(<Wordmark size="lg" withTagline withMotto />, 'hi');
+    const motto = screen.getByText('Skill runs deep.');
+    expect(motto).toHaveAttribute('lang', 'en');
+    expect(motto).not.toHaveClass('hindi:not-italic');
+  });
+
   it('centres the mark, the tagline and the motto when asked', () => {
     const { container } = renderIn(<Wordmark size="lg" withTagline withMotto align="center" />);
     expect(container.firstElementChild).toHaveClass('items-center');

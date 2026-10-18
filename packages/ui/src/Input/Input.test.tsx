@@ -62,6 +62,14 @@ describe('Input', () => {
     expect(field).not.toHaveClass('rounded-md');
   });
 
+  it('keeps a prefixed field a full touch target, and dims the prefix with it when disabled', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" disabled />);
+    const field = screen.getByRole('textbox', { name: 'Mobile number' });
+    expect(field).toHaveClass('min-h-touch');
+    expect(field).not.toHaveClass('disabled:opacity-disabled');
+    expect(field.parentElement).toHaveClass('has-disabled:opacity-disabled');
+  });
+
   it('has no accessibility violations as a line field with a prefix', async () => {
     const { container } = renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" />);
     expect(await axeViolations(container)).toEqual([]);

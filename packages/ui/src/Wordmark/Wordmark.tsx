@@ -54,11 +54,15 @@ export function Wordmark({ size = 'md', withTagline = false, withMotto = false, 
     </div>
   );
   if (!withMotto) return mark;
-  // The motto sits outside the image so a screen reader reads it. Devanagari has no italic.
+  // The motto sits outside the image so a screen reader reads it. It is English in both
+  // catalogues, so it is marked English and stays italic on a Hindi page; when a Hindi motto
+  // arrives, `lang` must follow the locale and Devanagari must drop the italic.
   return (
     <div className={cx('inline-flex flex-col gap-6', ALIGN[align])}>
       {mark}
-      <p className="font-display text-24 italic leading-snug text-content-muted hindi:not-italic">{t('ui.brand.motto')}</p>
+      <p lang="en" className="font-display text-24 italic leading-snug text-content-muted">
+        {t('ui.brand.motto')}
+      </p>
     </div>
   );
 }
