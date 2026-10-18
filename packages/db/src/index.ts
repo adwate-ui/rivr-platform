@@ -5,6 +5,8 @@ export { useMember, type Member } from './member.ts';
 export { useControlState, useFeature } from './hooks.ts';
 export { useSignIn, type SignInResult } from './signIn.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
+export { useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
+export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
 export { HIDDEN, toFeatureAccess, toFeatureAccessMap, type FeatureAccess, type FeatureAccessRow } from './parse/featureAccess.ts';

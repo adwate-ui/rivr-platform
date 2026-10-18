@@ -33,25 +33,27 @@ const FICTIONAL_RECORD: DigiLockerRecord = {
   vendorReference: 'fake-digilocker',
 };
 
+// The fake's sessions carry their own mark, so a pull in a later request (a new Edge Function
+// invocation, with no memory of the start) still recognises them.
+const FAKE_SESSION = 'fake-digilocker-';
+
 /** KYC that passes everyone unless told otherwise. For tests, Storybook and the practice venue. */
 export function createFakeKyc(options: FakeKycOptions = {}): FakeKyc {
   const recorder = createRecorder<KycCall, AdapterFailure>();
   const record = { ...FICTIONAL_RECORD, ...options.record };
-  const sessions = new Set<string>();
   return {
     calls: recorder.calls,
     failNext: (failure) => recorder.failNext(failure),
-    async startDigiLocker({ memberId }) {
+    async startDigiLocker({ memberId, returnUrl }) {
       const failure = recorder.record({ method: 'startDigiLocker', memberId });
       if (failure) return err(failure);
-      const sessionId = `fake-digilocker-${recorder.calls.length}`;
-      sessions.add(sessionId);
-      return ok({ sessionId, redirectUrl: `https://digilocker.invalid/consent/${sessionId}` });
+      // The fake consents at once: the member goes straight back to the app, never to a pretend DigiLocker page.
+      return ok({ sessionId: `${FAKE_SESSION}${memberId}`, redirectUrl: returnUrl });
     },
     async pullDigiLocker({ sessionId }) {
       const failure = recorder.record({ method: 'pullDigiLocker', sessionId });
       if (failure) return err(failure);
-      return sessions.has(sessionId) ? ok(record) : err({ code: 'rejected', reason: 'unknown DigiLocker session' });
+      return sessionId.startsWith(FAKE_SESSION) ? ok(record) : err({ code: 'rejected', reason: 'unknown DigiLocker session' });
     },
     async verifyPan({ pan }) {
       const failure = recorder.record({ method: 'verifyPan', pan });

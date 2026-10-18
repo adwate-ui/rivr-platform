@@ -138,6 +138,9 @@ deno_version = 2
 
 [edge_runtime.secrets]
 SEND_SMS_HOOK_SECRET = "{{SEND_SMS_HOOK_SECRET}}"
+# The player app the kyc function sends DigiLocker back to (#4). Staging and production set it as a
+# function secret: https://rivr-player-staging.pages.dev and the production player domain.
+PLAYER_APP_URL = "http://127.0.0.1:{{BLOCK}}40"
 
 # verify_jwt on would make the gateway refuse calls without a signed-in person's token. Auth calls
 # this function as a service, not as a person, so it is off here; the function's own signature

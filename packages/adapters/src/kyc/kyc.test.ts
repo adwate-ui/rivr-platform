@@ -6,16 +6,17 @@ const memberId = memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3e');
 const returnUrl = 'https://app.rivr.test/kyc/return';
 
 describe('fake KYC', () => {
-  it('runs the DigiLocker hand-off and returns only a masked Aadhaar', async () => {
+  it('runs the DigiLocker hand-off, straight back to the app, and returns only a masked Aadhaar', async () => {
     const kyc = createFakeKyc();
     const session = await kyc.startDigiLocker({ memberId, returnUrl });
     if (!session.ok) throw new Error('expected a session');
 
-    const pulled = await kyc.pullDigiLocker({ sessionId: session.value.sessionId });
+    // A new fake, as a later Edge Function invocation would have, still knows the session.
+    const pulled = await createFakeKyc().pullDigiLocker({ sessionId: session.value.sessionId });
 
-    expect(session.value.redirectUrl).toContain('.invalid/');
+    expect(session.value.redirectUrl).toBe(returnUrl);
     expect(pulled.ok && pulled.value.maskedAadhaar).toMatch(/^XXXX XXXX \d{4}$/);
-    expect(kyc.calls.map((call) => call.method)).toEqual(['startDigiLocker', 'pullDigiLocker']);
+    expect(kyc.calls.map((call) => call.method)).toEqual(['startDigiLocker']);
   });
 
   it('refuses to pull a session it never started', async () => {
