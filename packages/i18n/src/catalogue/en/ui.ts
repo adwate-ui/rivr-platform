@@ -71,4 +71,14 @@ export const ui = {
     /** Shown to staff on every screen while the venue is frozen. */
     staff: 'Venue frozen. Money, seating and hand entries are refused until it is released.',
   },
+  /** The player app with no connection: it opens from its cached shell. */
+  offlineBanner: 'Offline. What you see may be out of date.',
+  /** The offer to add the player app to the home screen, on a member's second visit. */
+  installOffer: {
+    title: 'RIVR on your home screen',
+    prompt: 'Open RIVR in one tap, full screen, like any app.',
+    ios: 'In Safari, tap Share, then Add to Home Screen.',
+    install: 'Install',
+    notNow: 'Not now',
+  },
 } as const;

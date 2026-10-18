@@ -1,8 +1,9 @@
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
 import { useAuthStatus, useControlState, useFeature, useMember, type AuthStatus } from '@rivr/db';
-import { KillSwitchBanner, PlayerShell, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
+import { InstallOffer, KillSwitchBanner, OfflineBanner, PlayerShell, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
+import { useInstallOffer } from '../install.ts';
 
 // Home, Balance and Rewards always show as tabs; the features inside them are gated one by one.
 const ALWAYS: FeatureAccess = { state: 'enabled' };
@@ -30,8 +31,8 @@ function useReturnSearch(authStatus: AuthStatus): { toSignIn: ReturnSearch; toSi
 
 /**
  * The player app's frame for a signed-in member: tabs gated by tier, the member's initial (which
- * opens Profile), the kill-switch banner and navigation. Nobody signed in goes to sign-in, and back
- * to this screen once signed in.
+ * opens Profile), the kill-switch or offline banner and navigation, and on Tonight the offer to
+ * install the app (#16). Nobody signed in goes to sign-in, and back to this screen once signed in.
  */
 export function Frame({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
@@ -42,6 +43,7 @@ export function Frame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { toSignIn, toSignUp } = useReturnSearch(authStatus);
+  const offer = useInstallOffer(Boolean(member.data));
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={toSignIn} replace />;
   // Signed in with a number that is not a member yet: join first.
   if (member.isSuccess && member.data === null) return <Navigate to="/sign-up" search={toSignUp} replace />;
@@ -59,8 +61,9 @@ export function Frame({ children }: { children: ReactNode }) {
       memberInitial={member.data?.initial}
       profileHref="/profile"
       onNavigate={(href) => void navigate({ href })}
-      banner={isVenueFrozen ? <KillSwitchBanner audience="member" /> : null}
+      banner={isVenueFrozen ? <KillSwitchBanner audience="member" /> : <OfflineBanner />}
     >
+      {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
       {children}
     </PlayerShell>
   );

@@ -41,6 +41,10 @@ export * from './FeatureGate/index.ts';
 export * from './LockedNotice/index.ts';
 export * from './KillSwitchBanner/index.ts';
 
+// The installed player app: offline, and the offer to install
+export * from './OfflineBanner/index.ts';
+export * from './InstallOffer/index.ts';
+
 // Navigation and shells
 export * from './BottomNav/index.ts';
 export * from './SideNav/index.ts';

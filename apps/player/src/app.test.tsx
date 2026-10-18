@@ -1,14 +1,24 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { startInstallWatch } from './features/frame/index.ts';
 import { createAppRouter } from './router.tsx';
 
 afterEach(() => {
+  // Back online while the app is still mounted, so the query client hears it: a client that thinks
+  // it is offline holds every later request.
+  goOnline(true);
   cleanup();
   localStorage.clear();
   vi.unstubAllGlobals();
 });
+
+/** Tells the app the phone has, or has lost, its connection. */
+function goOnline(online: boolean) {
+  Object.defineProperty(navigator, 'onLine', { value: online, configurable: true });
+  window.dispatchEvent(new Event(online ? 'online' : 'offline'));
+}
 
 /** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Kabir. */
 function signIn({ expired = false } = {}) {
@@ -46,7 +56,66 @@ function renderAt(path: string, rivr = client) {
   return router;
 }
 
+// The watch main.tsx starts keeps the browser's install prompt; started once here, as at app start.
+startInstallWatch();
+
+/** The browser offering to install the app, as Chromium does once a page qualifies. */
+function browserOffersInstall() {
+  const prompt = vi.fn(async () => undefined);
+  act(() => {
+    window.dispatchEvent(Object.assign(new Event('beforeinstallprompt'), { prompt }));
+  });
+  return prompt;
+}
+
+/** Kabir, a member, opening the app at `path` on his `visit`th visit. */
+async function memberOpens(path: string, visit: number) {
+  signIn();
+  localStorage.setItem('rivr-visits', String(visit));
+  renderAt(path, clientWithKabir());
+  await screen.findByRole('navigation', { name: 'Main' });
+}
+
+describe('the install offer', () => {
+  const offer = () => screen.queryByRole('region', { name: 'RIVR on your home screen' });
+
+  it('is never made on a member\'s first visit, nor on any screen but Tonight', async () => {
+    await memberOpens('/', 1);
+    browserOffersInstall();
+    expect(offer()).toBeNull();
+    cleanup();
+    await memberOpens('/balance', 2);
+    expect(offer()).toBeNull();
+  });
+
+  it('is made on Tonight from the second visit, and Not now puts it away for good', async () => {
+    await memberOpens('/', 2);
+    browserOffersInstall();
+    fireEvent.click(await screen.findByRole('button', { name: 'Not now' }));
+    expect(offer()).toBeNull();
+    expect(localStorage.getItem('rivr-install-dismissed')).toBe('1');
+  });
+
+  it('asks the browser to install, and is not made again whatever the answer', async () => {
+    await memberOpens('/', 2);
+    const prompt = browserOffersInstall();
+    fireEvent.click(await screen.findByRole('button', { name: 'Install' }));
+    expect(prompt).toHaveBeenCalledTimes(1);
+    expect(offer()).toBeNull();
+    expect(localStorage.getItem('rivr-install-dismissed')).toBe('1');
+  });
+});
+
 describe('the player app', () => {
+  it('says it is offline above the screen while the phone has no connection', async () => {
+    signIn();
+    renderAt('/');
+    await screen.findByRole('heading', { name: 'Tonight' });
+    expect(screen.queryByText('Offline. What you see may be out of date.')).toBeNull();
+    act(() => goOnline(false));
+    expect(screen.getByRole('status').textContent).toBe('Offline. What you see may be out of date.');
+  });
+
   it('opens on Tonight inside the frame', async () => {
     signIn();
     renderAt('/');
