@@ -28,14 +28,17 @@ describe('StepScreen', () => {
     expect(screen.getByRole('main')).toHaveTextContent('Six digits');
   });
 
-  it('puts the action after the content, in a footer', () => {
+  it('puts the action in main, after the content', () => {
     renderStep();
-    expect(screen.getByRole('contentinfo')).toContainElement(screen.getByRole('button', { name: 'Verify' }));
+    const action = screen.getByRole('button', { name: 'Verify' });
+    expect(screen.getByRole('main')).toContainElement(action);
+    expect(screen.getByText('Six digits').compareDocumentPosition(action)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('goes back from Back, which comes first in focus order', async () => {
+  it('goes back from Back, in the header and first in focus order', async () => {
     const onBack = vi.fn();
     renderStep(onBack);
+    expect(screen.getByRole('banner')).toContainElement(screen.getByRole('button', { name: 'Back' }));
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'Back' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
@@ -49,8 +52,8 @@ describe('StepScreen', () => {
       </StepScreen>,
     );
     expect(screen.queryByRole('heading')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
-    expect(screen.getByRole('main')).toHaveClass('items-center', 'justify-center');
+    expect(screen.queryByRole('banner')).toBeNull();
+    expect(screen.getByText('The lockup').parentElement).toHaveClass('items-center', 'justify-center');
   });
 
   it('has no accessibility violations', async () => {
