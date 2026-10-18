@@ -1,8 +1,7 @@
-import { useKycActions, type KycFailure } from '@rivr/db';
+import { shrinkPhoto, useKycActions, type KycFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { CameraButton, StepScreen, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { shrinkPhoto } from '../photo.ts';
 import { FAILURE_COPY } from './failureCopy.ts';
 
 /**

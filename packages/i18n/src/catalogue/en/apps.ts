@@ -2,6 +2,8 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
+import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
+
 export const playerApp = {
   tonight: { title: 'Tonight', empty: 'No tables are running.' },
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
@@ -256,6 +258,8 @@ export const consoleApp = {
     stopped: 'The venue or this member is frozen. Try again once it is released.',
     unavailable: 'Could not save this. Check the connection and try again.',
   },
+  kycInPerson,
+  kycInPersonFailures,
 } as const;
 
 export const tabletApp = {

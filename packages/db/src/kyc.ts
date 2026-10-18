@@ -26,8 +26,8 @@ function toStatus(value: unknown): KycStatus | null {
   return STATUSES.find((status) => status === value) ?? null;
 }
 
-/** A photo as base64, for the kyc function's JSON body. */
-async function toBase64(photo: Blob): Promise<string> {
+/** A photo as base64, for a KYC function's JSON body (kyc, kyc-in-person). */
+export async function toBase64(photo: Blob): Promise<string> {
   const bytes = new Uint8Array(await photo.arrayBuffer());
   let binary = '';
   for (let at = 0; at < bytes.length; at += 0x8000) binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
