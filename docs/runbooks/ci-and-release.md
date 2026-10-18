@@ -59,6 +59,13 @@ Auth and API on staging and production, in the Supabase dashboard:
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
   - CAPTCHA on code requests, and the hourly code limit, are issue #182.
 
+Outbox consumers (#215), on staging and production, once, in the SQL editor:
+
+- pg_cron runs each consumer's Edge Function every minute through `private.run_outbox_consumer`, which reads the project's address and service-role key from Vault at each run. Until both are there, a run does nothing, and no consumer runs.
+- Add them: `select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');` and `select vault.create_secret('<the service-role key>', 'service_role_key');`. Paste the key in the SQL editor only, never into the repository or a workflow.
+- To rotate the key: `select vault.update_secret((select id from vault.secrets where name = 'service_role_key'), '<the new key>');`
+- Check it: `select jobname, schedule from cron.job;` lists `outbox-<function>` for each consumer, and `select status_code, created from net._http_response order by created desc limit 5;` shows 200s.
+
 ## Releasing
 
 1. Confirm the day's `main` is green and the staging deploy of the commit you will release succeeded. The release refuses a commit that is not on `main` or that staging is not running.
