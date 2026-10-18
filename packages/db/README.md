@@ -71,4 +71,5 @@ The same `private.has_feature` check guards the feature's tables and write funct
 
 - Compute money or apply business rules. Those live in `@rivr/domain` (or a SQL function proved equal to it).
 - Hold the service-role key or any secret.
+- Import a runtime value from the `@rivr/contracts` index. Use the module itself (`@rivr/contracts/result`): the index builds every Zod schema, which would put Zod on the player app's first screen (#11). Type-only imports from the index are fine.
 - Filter rows for security in TypeScript. If a person must not see a row, the policy says so.

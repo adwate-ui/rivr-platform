@@ -19,8 +19,9 @@ The dev server listens on this worktree's port block (`player` is port `<block>4
 src/
   main.tsx            the client, the providers and the router
   router.tsx          every route, in one list
-  routes/             one file per URL; renders a feature's screen and nothing else. frame.tsx is the
-                      layout route for the tabs; sign-in sits outside it
+  routes/             one file per URL; renders a feature's screen and nothing else, loaded with
+                      lazyRouteComponent so it stays out of the initial JavaScript (#11). frame.tsx
+                      (the tabs) and root.tsx are the only eager routes; sign-in sits outside the frame
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: navigation, the kill-switch banner, not found
 ```
