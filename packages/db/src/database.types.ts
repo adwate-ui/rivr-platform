@@ -637,7 +637,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "claim_outbox_deliveries":
+            "authorize_kyc_image":
+{ Args: { "p_name": string }; Returns: undefined
+                           },
+"claim_outbox_deliveries":
 { Args: { "p_consumer": string,"p_event_types": (string)[],"p_is_messaging"?: boolean,"p_limit"?: number }; Returns: {
               "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
             }[]

@@ -1,4 +1,4 @@
--- KYC images (private bucket, venue staff with kyc.review or cage.transact only) and consent per
+-- KYC images (private bucket; only venue staff with kyc.review or cage.transact may see one) and consent per
 -- purpose (#3). 103 Aditya (admin, kyc.review), 104 Sana (cashier, cage.transact), 108 Karan
 -- (host), 201 Arjun and 202 Kabir (members). Seeded staff work at both venues, so the test adds
 -- a cashier who works at the practice venue only.
@@ -13,37 +13,53 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000e9', 'Practice cashier', 'Cashier', 'cashier', '+919000000999');
 
 insert into storage.objects (bucket_id, name) values
-  ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
-  ('kyc', '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-000000000301/aadhaar.jpg');
+  ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg');
 
-create function pg_temp.kyc_images_seen_by(p_user uuid) returns int language plpgsql as $$
-declare v_count int;
+-- Whether a person may see one KYC image (public.authorize_kyc_image, which the kyc-image-url
+-- Edge Function calls before it signs a one-minute URL).
+create function pg_temp.may_see(p_user uuid, p_name text) returns boolean language plpgsql as $$
 begin
   perform set_config('role', 'authenticated', true);
   perform set_config('request.jwt.claims', jsonb_build_object('sub', p_user, 'role', 'authenticated')::text, true);
-  select count(*) into v_count from storage.objects where bucket_id = 'kyc';
+  perform public.authorize_kyc_image(p_name);
   perform set_config('role', 'postgres', true);
-  return v_count;
+  return true;
+exception when insufficient_privilege then
+  perform set_config('role', 'postgres', true);
+  return false;
 end;
 $$;
 
 select is((select public from storage.buckets where id = 'kyc'), false, 'the KYC bucket is private');
-select is(pg_temp.kyc_images_seen_by('00000000-0000-4000-8000-000000000103'), 2, 'a KYC reviewer reads the images of the venues where they review');
-select is(pg_temp.kyc_images_seen_by('00000000-0000-4000-8000-000000000104'), 2, 'the cage reads them too');
-select is(pg_temp.kyc_images_seen_by('00000000-0000-4000-8000-000000000108'), 0, 'a host does not');
-select is(pg_temp.kyc_images_seen_by('00000000-0000-4000-8000-000000000201'), 0, 'a member does not, their own included');
-select is(pg_temp.kyc_images_seen_by('00000000-0000-4000-8000-0000000000e9'), 1, 'a cashier reads only the images of their own venue');
+select ok(pg_temp.may_see('00000000-0000-4000-8000-000000000103', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  'a KYC reviewer may see an image of their venue');
+select ok(pg_temp.may_see('00000000-0000-4000-8000-000000000104', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  'so may the cage');
+select ok(not pg_temp.may_see('00000000-0000-4000-8000-000000000108', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  'a host may not');
+select ok(not pg_temp.may_see('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  'a member may not, their own included');
+select ok(not pg_temp.may_see('00000000-0000-4000-8000-0000000000e9', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg'),
+  'a cashier of another venue may not');
+select ok(pg_temp.may_see('00000000-0000-4000-8000-0000000000e9', '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-000000000301/aadhaar.jpg'),
+  'that cashier may see an image of their own venue');
+select ok(not pg_temp.may_see('00000000-0000-4000-8000-000000000103', 'not-a-venue/aadhaar.jpg'), 'a path outside a venue folder is refused');
+select is((select count(*)::int from public.audit_log where action = 'kyc_image.view'), 3, 'every allowed view is audited');
+select is((select actor_user_id from public.audit_log where action = 'kyc_image.view' order by created_at limit 1),
+  '00000000-0000-4000-8000-000000000103'::uuid, 'with who looked');
 
-set local role anon;
-select is((select count(*)::int from storage.objects where bucket_id = 'kyc'), 0, 'the public reads nothing');
-reset role;
-
+-- No client reads, lists, signs or writes objects in the bucket directly.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
+select is((select count(*)::int from storage.objects where bucket_id = 'kyc'), 0, 'not even a KYC reviewer reads the bucket directly');
 select throws_ok(
   $$ insert into storage.objects (bucket_id, name) values ('kyc', '00000000-0000-4000-8000-000000000001/x/selfie.jpg') $$,
   '42501', null, 'staff cannot upload an image; only the KYC flow writes'
 );
+reset role;
+set local role anon;
+select is((select count(*)::int from storage.objects where bucket_id = 'kyc'), 0, 'the public reads nothing');
+select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/x.jpg') $$, '42501', null, 'the public cannot ask');
 reset role;
 
 -- Consent: Arjun gives marketing consent, gives it again, withdraws it and gives it once more.
@@ -80,6 +96,8 @@ select ok(private.has_consent('00000000-0000-4000-8000-000000000201', 'marketing
 
 -- Who sees consents.
 set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
+select is((select count(*)::int from public.consent), 2, 'a member sees their own consent history');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000202", "role": "authenticated"}';
 select is((select count(*)::int from public.consent), 0, 'a member sees only their own consents');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';

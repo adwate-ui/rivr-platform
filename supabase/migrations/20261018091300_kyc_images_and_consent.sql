@@ -2,8 +2,11 @@
 -- consent recorded per purpose).
 
 -- KYC images live in a private bucket, one folder per venue and member:
--- <venue_id>/<member_id>/<file>. Nothing reads them directly: the console asks @rivr/db for a
--- signed URL that lives a minute, and only staff who may read the object can mint one.
+-- <venue_id>/<member_id>/<file>. No client reads, lists or signs objects in it: storage.objects
+-- has no policy for the bucket, because a client that may read an object may also mint a signed
+-- URL that lasts ten years. Staff ask the kyc-image-url Edge Function instead. It calls
+-- authorize_kyc_image below, which checks the permission and writes the audit row, then signs a
+-- one-minute URL with the service role.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('kyc', 'kyc', false, 5242880, array['image/jpeg', 'image/png', 'image/webp']);
 
@@ -20,20 +23,27 @@ as $$
   end
 $$;
 
-grant execute on function private.kyc_object_venue_id(text) to authenticated, service_role;
+-- Whether the caller may see one KYC image: active staff with KYC review (at review) or the cage
+-- (at a withdrawal) at the image's venue. Every view is audited. Refuses with 42501 otherwise.
+create function public.authorize_kyc_image(p_name text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_venue_id uuid := private.kyc_object_venue_id(p_name);
+begin
+  if v_venue_id is null
+     or not (private.has_permission(v_venue_id, 'kyc.review') or private.has_permission(v_venue_id, 'cage.transact')) then
+    raise exception 'Not allowed to see this KYC image' using errcode = '42501';
+  end if;
+  perform private.audit(v_venue_id, 'kyc_image.view', 'kyc_image', p_name);
+end;
+$$;
 
--- KYC reviewers check the photo at review; the cage checks it at a withdrawal.
-create policy "KYC reviewers and the cage read the venue's KYC images" on storage.objects
-  for select to authenticated
-  using (
-    bucket_id = 'kyc'
-    and private.kyc_object_venue_id(name) in (
-      select private.venues_where('kyc.review')
-      union
-      select private.venues_where('cage.transact')
-    )
-  );
--- No insert, update or delete policy: only the KYC flow's Edge Functions (service role) write images.
+grant execute on function public.authorize_kyc_image(text) to authenticated;
+-- Writes to the bucket: only the KYC flow's Edge Functions, with the service role.
 
 -- Consent per purpose (DPDP). A grant is a row with its time; withdrawing it stamps withdrawn_at
 -- and keeps the row as the record. Giving it again later adds a new row.
@@ -74,6 +84,8 @@ create policy "staff with member access see the venue's consents" on public.cons
   using (venue_id in (select private.venues_where('members.read')));
 
 -- The signed-in member gives consent for a purpose. Giving it while it is in force changes nothing.
+-- Neither consent function calls private.assert_writable: a freeze stops money, seats and hands,
+-- never a member's say over their own data.
 create function public.give_consent(p_purpose text)
 returns void
 language plpgsql
