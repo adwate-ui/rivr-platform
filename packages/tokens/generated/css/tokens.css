@@ -89,6 +89,10 @@
   --rivr-viewport-feed-height: 1350px;
   --rivr-viewport-story-width: 1080px;
   --rivr-viewport-story-height: 1920px;
+  --rivr-brand-icon: 96px; /** An app icon: the red card fills its middle. */
+  --rivr-brand-maskable: 112px; /** A maskable PWA icon: the card inside the safe circle, 80% of the width. */
+  --rivr-brand-adaptive: 140px; /** An Android adaptive icon's foreground: the card inside the safe zone, 66 of 108, with room to spare. */
+  --rivr-brand-lockup: 400px; /** A splash screen or cover: the wordmark and tagline. */
   --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
   --rivr-icon-size-sm: 16px;

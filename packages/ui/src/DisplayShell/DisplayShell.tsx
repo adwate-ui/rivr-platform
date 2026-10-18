@@ -1,5 +1,6 @@
 import { tokens } from '@rivr/tokens';
-import { useSyncExternalStore, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { useFitScale } from '../internal/fit.ts';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
 
 const { width: TV_WIDTH, height: TV_HEIGHT } = tokens.viewport.tv;
@@ -11,22 +12,12 @@ export interface DisplayShellProps {
   corner?: ReactNode;
 }
 
-function subscribeToResize(onResize: () => void): () => void {
-  window.addEventListener('resize', onResize);
-  return () => window.removeEventListener('resize', onResize);
-}
-
-/** How much the 1920 by 1080 stage shrinks or grows to fit the window without cropping. */
-function fitScale(): number {
-  return Math.min(window.innerWidth / TV_WIDTH, window.innerHeight / TV_HEIGHT);
-}
-
 /**
  * The TV frame: every TV mode is laid out on a fixed 1920 by 1080 stage, scaled to fit the
  * screen it runs on, under the wordmark. It holds no state of its own; the scale follows the window.
  */
 export function DisplayShell({ children, corner }: DisplayShellProps) {
-  const scale = useSyncExternalStore(subscribeToResize, fitScale, () => 1);
+  const scale = useFitScale(TV_WIDTH, TV_HEIGHT);
   return (
     <div className="flex h-dvh w-full items-center justify-center overflow-hidden bg-surface">
       <div

@@ -1,3 +1,4 @@
+import { BrandArt } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { BadBeatJackpotSlide } from './BadBeatJackpotSlide.tsx';
 import { HighHandCard } from './social/HighHandCard.tsx';
@@ -15,6 +16,8 @@ export const templates = {
   'social.promoCard': PromoCard,
   'social.winnerCard': WinnerCard,
   'social.highHandCard': HighHandCard,
+  // Icons, splash screens, profile images and covers: the brand kit (src/brandKit.ts).
+  'brand.art': BrandArt,
 };
 
 export type TemplateName = keyof typeof templates;
