@@ -27,6 +27,7 @@ export * from './Wordmark/index.ts';
 
 // Controls
 export * from './Button/index.ts';
+export * from './CameraButton/index.ts';
 export * from './Input/index.ts';
 
 // Tier-gated features and the kill switch

@@ -1,6 +1,7 @@
 export type {
   DigiLockerRecord,
   DigiLockerSession,
+  FaceEnrolment,
   FaceMatch,
   KycAdapter,
   LivenessCheck,

@@ -33,16 +33,31 @@ afterEach(cleanup);
 describe('useKycRecord', () => {
   it('gives the member their check, the masked Aadhaar and no more', async () => {
     const { result } = renderKyc({
-      record: { status: 'verified', date_of_birth: '1990-01-01', masked_aadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F' },
+      record: { status: 'verified', photo_path: 'v/m/selfie.jpg', date_of_birth: '1990-01-01', masked_aadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F' },
     });
 
     await waitFor(() => expect(result.current.record.data).toEqual({
-      status: 'verified', dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F',
+      status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F',
     }));
   });
 });
 
 describe('useKycActions', () => {
+  const photo = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], { type: 'image/jpeg' });
+
+  it('sends the selfie as base64 and gives the status after it', async () => {
+    const { result, calls } = renderKyc({ kyc: { status: 200, body: { status: 'started' } } });
+
+    expect(await act(() => result.current.actions.sendSelfie.mutateAsync(photo))).toEqual({ ok: true, value: 'started' });
+    expect(calls.find((call) => call.url.includes('/functions/v1/kyc'))?.body).toEqual({ action: 'selfie', image: '/9j/4A==' });
+  });
+
+  it('says when a selfie did not pass liveness', async () => {
+    const { result } = renderKyc({ kyc: { status: 422, body: { error: 'not_live' } } });
+
+    expect(await act(() => result.current.actions.sendSelfie.mutateAsync(photo))).toEqual({ ok: false, error: 'not_live' });
+  });
+
   it('starts the DigiLocker hand-off and gives the URL to send the member to', async () => {
     const { result, calls } = renderKyc({ kyc: { status: 200, body: { redirectUrl: 'https://digilocker.example/consent' } } });
 

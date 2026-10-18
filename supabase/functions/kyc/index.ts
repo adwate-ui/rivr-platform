@@ -1,91 +1,27 @@
-// KYC for the signed-in member (#4): the DigiLocker hand-off, its return, and a PAN check when
-// DigiLocker fails. The practice venue gets the fake vendor; a real venue without vendor keys fails
-// closed (docs/decisions/0014). This function writes the member's kyc_record with the service role;
-// members can only read it, so nobody verifies themselves. Every vendor call first passes
-// begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
-import { createAdapters, createFakeKyc, type AdapterFailure } from '@rivr/adapters';
-import { memberIdSchema, panSchema } from '@rivr/contracts';
+// KYC for the signed-in member (#4, #5): the selfie, the DigiLocker hand-off and its return, and a
+// PAN check when DigiLocker fails. The practice venue gets the fake vendor; a real venue without
+// vendor keys fails closed (docs/decisions/0014). This function writes the member's kyc_record with
+// the service role; members can only read it, so nobody verifies themselves. Every vendor call first
+// passes begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
+import { panSchema } from '@rivr/contracts';
 import { isSameName } from '@rivr/domain/identity';
+import { takeSelfie } from './selfie.ts';
+import { CORS, currentRecord, failed, field, photoUrl, refusal, reply, rpc } from './server.ts';
+import { subjectFor, type Subject } from './subject.ts';
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+// A selfie of at most 2 MB, in base64, and the rest of the body.
+const MAX_BODY_BYTES = 3 * 1024 * 1024;
+
 // Where DigiLocker sends the member back. Fixed here, never taken from the request, so the hand-off
 // cannot be pointed at someone else's page.
 const playerAppUrl = Deno.env.get('PLAYER_APP_URL') ?? '';
 
-const CORS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-headers': 'authorization, apikey, content-type, x-client-info',
-  'access-control-allow-methods': 'POST, OPTIONS',
-};
-
-function reply(body: object, status = 200): Response {
-  return Response.json(body, { status, headers: CORS });
-}
-
-function failed(failure: AdapterFailure): Response {
-  return failure.code === 'not_configured' ? reply({ error: 'not_configured' }, 503) : reply({ error: 'unavailable' }, 502);
-}
-
-/** A database function's refusal, with its SQLSTATE (RVKIL, RVCON, RVRAT and so on). */
-class Refused extends Error {
-  constructor(readonly code: string) {
-    super(`refused: ${code}`);
-  }
-}
-
-/** Calls a database function, as the caller (their token) or as the server (the service role). */
-async function rpc(name: string, args: object, token: string | null): Promise<unknown> {
-  const answer = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
-    method: 'POST',
-    headers: {
-      apikey: token === null ? serviceRoleKey : anonKey,
-      authorization: token === null ? `Bearer ${serviceRoleKey}` : token,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(args),
-  });
-  if (answer.ok) return answer.status === 204 ? null : await answer.json();
-  const body: unknown = await answer.json().catch(() => null);
-  throw new Refused(String(typeof body === 'object' && body !== null ? Reflect.get(body, 'code') : answer.status));
-}
-
-/** What the gate's refusals mean to the app. */
-function refusal(error: unknown): Response {
-  const code = error instanceof Refused ? error.code : '';
-  if (code === 'RVKIL' || code === 'RVFRZ' || code === 'RVMBR') return reply({ error: 'stopped' }, 423);
-  if (code === 'RVRAT') return reply({ error: 'too_many_attempts' }, 429);
-  if (code === 'RVCON') return reply({ error: 'no_consent' }, 403);
-  return reply({ error: 'unavailable' }, 502);
-}
-
-/** The member's current record, as the server reads it. */
-async function currentRecord(memberId: string): Promise<Record<string, unknown> | null> {
-  const answer = await fetch(`${supabaseUrl}/rest/v1/kyc_record?member_id=eq.${memberId}&select=status,method,digilocker_session_id,date_of_birth`, {
-    headers: { apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}` },
-  });
-  const rows: unknown = await answer.json();
-  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-}
-
-function field(body: unknown, name: string): string | null {
-  const value: unknown = typeof body === 'object' && body !== null ? Reflect.get(body, name) : null;
-  return typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
-}
-
-type Kyc = ReturnType<typeof createAdapters>['kyc'];
-interface Subject {
-  readonly memberId: ReturnType<typeof memberIdSchema.parse>;
-  readonly fullName: string;
-  readonly kyc: Kyc;
-}
-
-/** The DigiLocker hand-off: the member consents, the gate passes, then the vendor is called. */
-async function start({ memberId, kyc }: Subject, token: string): Promise<Response> {
+/** The DigiLocker hand-off, once the selfie is in: the gate passes, then the vendor is called. */
+async function start({ memberId, kyc }: Subject): Promise<Response> {
   if (playerAppUrl === '') return reply({ error: 'not_configured' }, 503);
-  // DPDP: the member consents to the identity check before anything is sent to the vendor.
-  await rpc('give_consent', { p_purpose: 'kyc_verification' }, token);
+  const record = await currentRecord(memberId);
+  const canStart = record?.status === 'started' || record?.status === 'needs_pan';
+  if (!canStart || typeof record?.photo_path !== 'string') return reply({ error: 'The selfie comes first' }, 409);
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const started = await kyc.startDigiLocker({ memberId, returnUrl: `${playerAppUrl}/kyc/return` });
   if (!started.ok) return failed(started.error);
@@ -94,33 +30,43 @@ async function start({ memberId, kyc }: Subject, token: string): Promise<Respons
 }
 
 /**
- * The member is back from DigiLocker: pull the record, or move them to a PAN check. A record in
- * another name than the member's means someone else consented at DigiLocker: it waits for staff.
+ * The member is back from DigiLocker: pull the record and match its photo against the selfie, or
+ * move them to a PAN check. A name or a face that is not the member's means someone else's documents:
+ * the check waits for staff.
  */
 async function complete({ memberId, fullName, kyc }: Subject): Promise<Response> {
   const record = await currentRecord(memberId);
-  if (record === null || typeof record.digilocker_session_id !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
+  const session = record?.digilocker_session_id;
+  if (typeof session !== 'string' || typeof record?.photo_path !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
   if (record.status !== 'started') return reply({ status: record.status });
-  await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: false }, null);
-  const pulled = await kyc.pullDigiLocker({ sessionId: record.digilocker_session_id });
+  // The pull and the face match are paid: they count against the five a day.
+  await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
+  const pulled = await kyc.pullDigiLocker({ sessionId: session });
   if (!pulled.ok && pulled.error.code === 'not_configured') return failed(pulled.error);
   if (!pulled.ok) {
     await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
     return reply({ status: 'needs_pan' });
   }
-  const { name, dateOfBirth, maskedAadhaar, pan, address, vendorReference } = pulled.value;
+  const face = await kyc.matchFace({ selfieUrl: await photoUrl(record.photo_path), referenceUrl: pulled.value.photoUrl });
+  if (!face.ok) return failed(face.error);
+  const { name, dateOfBirth, maskedAadhaar, aadhaarReference, pan, address, vendorReference } = pulled.value;
   const status = await rpc('record_kyc_digilocker', {
-    p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_pan: pan,
-    p_address: address, p_vendor_reference: vendorReference, p_name_matches: isSameName(name, fullName),
+    p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
+    p_pan: pan, p_address: address, p_vendor_reference: vendorReference, p_name_matches: isSameName(name, fullName),
+    p_face_matches: face.value.isMatch, p_face_match_score: Math.round(face.value.score),
   }, null);
   return reply({ status });
 }
 
-/** The PAN to check, and the date of birth: DigiLocker's when it gave one, else the member's. */
+/**
+ * The PAN to check, and the date of birth: after DigiLocker always DigiLocker's, never one typed in;
+ * after a failed DigiLocker the member's own, which leaves the check for staff.
+ */
 function panInput(record: Record<string, unknown>, body: unknown) {
   const pan = panSchema.safeParse(field(body, 'pan') ?? '');
-  const dateOfBirth = typeof record.date_of_birth === 'string' ? record.date_of_birth : field(body, 'dateOfBirth');
-  if (!pan.success || dateOfBirth === null || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return null;
+  const dateOfBirth = record.method === 'digilocker' ? record.date_of_birth : field(body, 'dateOfBirth');
+  if (typeof dateOfBirth !== 'string') return null;
+  if (!pan.success || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return null;
   return { pan: pan.data, dateOfBirth };
 }
 
@@ -144,31 +90,29 @@ async function checkPan({ memberId, fullName, kyc }: Subject, body: unknown): Pr
   return reply({ status });
 }
 
-/** The signed-in member this request is for, or null for staff and the public. */
-async function subjectFor(token: string): Promise<Subject | null> {
-  const rows = await rpc('kyc_subject', {}, token).catch(() => []);
-  const row: unknown = Array.isArray(rows) ? rows[0] : undefined;
-  if (typeof row !== 'object' || row === null) return null;
-  const fullName = String(Reflect.get(row, 'full_name'));
-  // The practice venue gets the fake vendor (decision 0014), whose DigiLocker returns the member's own
-  // name, as DigiLocker does for the right person; a real venue gets what createAdapters gives.
-  const kyc = Reflect.get(row, 'is_practice') === true ? createFakeKyc({ record: { name: fullName } }) : createAdapters({ isPracticeVenue: false, live: {} }).kyc;
-  return { memberId: memberIdSchema.parse(Reflect.get(row, 'member_id')), fullName, kyc };
+/** Runs the step the body names. */
+async function act(subject: Subject, token: string, body: unknown): Promise<Response> {
+  const action = field(body, 'action');
+  if (action === 'selfie') return await takeSelfie(subject, token, body);
+  if (action === 'start') return await start(subject);
+  if (action === 'complete') return await complete(subject);
+  if (action === 'pan') return await checkPan(subject, body);
+  return reply({ error: 'action must be selfie, start, complete or pan' }, 400);
 }
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
+  // A body without its length, or a longer one, is refused before it is read.
+  const length = request.headers.get('content-length');
+  if (length === null || length === '' || !(Number(length) <= MAX_BODY_BYTES)) return reply({ error: 'Too large' }, 413);
   const token = request.headers.get('authorization') ?? '';
-  const body: unknown = await request.json().catch(() => null);
+  // Who is asking before anything else is read.
   const subject = await subjectFor(token);
   if (subject === null) return reply({ error: 'Only a signed-in member has KYC' }, 403);
+  const body: unknown = await request.json().catch(() => null);
   try {
-    const action = field(body, 'action');
-    if (action === 'start') return await start(subject, token);
-    if (action === 'complete') return await complete(subject);
-    if (action === 'pan') return await checkPan(subject, body);
-    return reply({ error: 'action must be start, complete or pan' }, 400);
+    return await act(subject, token, body);
   } catch (error) {
     return refusal(error);
   }

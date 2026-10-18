@@ -15,7 +15,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 
 | Key | Import | Interface | What it does |
 |---|---|---|---|
-| `kyc` | `@rivr/adapters/kyc` | `KycAdapter` | DigiLocker pull (masked Aadhaar, PAN), PAN verification fallback, selfie liveness, face match |
+| `kyc` | `@rivr/adapters/kyc` | `KycAdapter` | DigiLocker pull (masked Aadhaar, PAN, a stable Aadhaar reference), PAN verification fallback, selfie liveness, face match, and the face search for duplicates (`enrolFace`) |
 | `smsOtp` | `@rivr/adapters/sms-otp` | `SmsOtpAdapter` | Sign-in codes by SMS |
 | `whatsapp` | `@rivr/adapters/whatsapp` | `WhatsAppAdapter` | Utility, authentication and marketing templates; marketing needs `optedInAt` |
 | `upiPayouts` | `@rivr/adapters/upi-payouts` | `UpiPayoutAdapter` | Withdrawals; one payout per idempotency key |

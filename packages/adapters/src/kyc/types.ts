@@ -14,6 +14,11 @@ export interface DigiLockerRecord {
   readonly dateOfBirth: string;
   /** `XXXX XXXX 1234`. */
   readonly maskedAadhaar: string;
+  /**
+   * The vendor's stable reference for the Aadhaar number (a token or hash, never the number): the
+   * same on every pull for the same Aadhaar, so a second account with it is a duplicate.
+   */
+  readonly aadhaarReference: string;
   /** Null when DigiLocker holds no PAN; verify one with `verifyPan` instead. */
   readonly pan: Pan | null;
   readonly address: string;
@@ -43,7 +48,17 @@ export interface FaceMatch {
   readonly vendorReference: string;
 }
 
-/** KYC: DigiLocker pull of masked Aadhaar and PAN, PAN verification fallback, selfie liveness, face match. */
+/** A selfie added to the venue's face gallery under a member, and who else already has that face. */
+export interface FaceEnrolment {
+  /** The member already in the gallery with the same face, or null. Anyone else is a duplicate. */
+  readonly sameFaceAs: MemberId | null;
+  readonly vendorReference: string;
+}
+
+/**
+ * KYC: DigiLocker pull of masked Aadhaar and PAN, PAN verification fallback, selfie liveness, face
+ * match, and a face search for duplicate identities.
+ */
 export interface KycAdapter {
   /** Starts a DigiLocker consent hand-off for a member. */
   startDigiLocker(input: {
@@ -62,4 +77,6 @@ export interface KycAdapter {
   checkLiveness(input: { readonly selfieUrl: string }): Promise<Result<LivenessCheck, AdapterFailure>>;
   /** Compares the selfie with the DigiLocker photo. */
   matchFace(input: { readonly selfieUrl: string; readonly referenceUrl: string }): Promise<Result<FaceMatch, AdapterFailure>>;
+  /** Adds the selfie to the venue's face gallery under the member, and finds anyone already there with that face. */
+  enrolFace(input: { readonly selfieUrl: string; readonly memberId: MemberId }): Promise<Result<FaceEnrolment, AdapterFailure>>;
 }

@@ -30,7 +30,11 @@ export const playerApp = {
   /** KYC: DigiLocker, or a PAN when DigiLocker fails. Only the masked Aadhaar is ever shown. */
   kyc: {
     title: 'Identity',
-    intro: 'We check your identity with DigiLocker. We keep your masked Aadhaar, PAN, date of birth and address, and nothing else.',
+    intro: 'We check your identity with a selfie and DigiLocker. We keep your photo, masked Aadhaar, PAN, date of birth and address, and nothing else.',
+    selfieIntro: 'First, a selfie. Hold the phone at eye level, face inside the frame.',
+    takeSelfie: 'Take a selfie',
+    notLive: 'We could not use that photo. Face the camera in good light and try again.',
+    digilockerIntro: 'Your selfie is in. Next, DigiLocker shares your Aadhaar and PAN with us. We keep the masked Aadhaar only.',
     start: 'Continue with DigiLocker',
     checking: 'Checking your identity',
     verifiedTitle: 'Identity verified',
@@ -46,6 +50,8 @@ export const playerApp = {
     dateOfBirthInvalid: 'Enter your date of birth.',
     panRejected: 'This PAN did not match. Check it and the name, then try again.',
     reviewTitle: 'With staff',
+    refusedTitle: 'Not verified',
+    refused: 'We could not complete your identity check. Speak to the front desk at the club.',
     review: 'Staff will check your documents at the club to finish.',
     stopped: 'Identity checks are paused for now. Try again later.',
     tooManyAttempts: 'Too many tries today. Try again tomorrow, or ask at the club.',
