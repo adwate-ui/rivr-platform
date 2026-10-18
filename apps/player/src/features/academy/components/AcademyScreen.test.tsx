@@ -12,11 +12,26 @@ afterEach(() => {
 
 const LEVEL_1 = { id: 'b1', name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', seats_left: 4, fee: 200000 };
 
+/** Kabir's seat in Level 1, unpaid. */
+const KABIRS_SEAT = {
+  id: 'k1', batch_id: 'b1', batch_name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', status: 'awaiting_payment',
+  amount: 200000, utr: null, turned_down_utr: null,
+};
+
+interface Setup {
+  openBatches?: unknown[][];
+  refusalCode?: string;
+  holdSecondBooking?: boolean;
+  /** Academy booking for Kabir's tier: enabled, or locked to the Black card. */
+  access?: 'enabled' | 'locked';
+  myBookings?: unknown[];
+}
+
 /**
- * Kabir signed in with Academy booking, and a fake API: the open batches it is given (each answer
- * in turn, the last one again), no bookings, and the booking refusal it is given.
+ * Kabir signed in, and a fake API: his Academy access, the open batches it is given (each answer in
+ * turn, the last one again), his seats, and the booking refusal it is given.
  */
-function renderAcademy({ openBatches, refusalCode, holdSecondBooking = false }: { openBatches: unknown[][]; refusalCode: string; holdSecondBooking?: boolean }) {
+function renderAcademy({ openBatches = [[]], refusalCode = 'RVBAT', holdSecondBooking = false, access = 'enabled', myBookings = [] }: Setup) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -32,8 +47,11 @@ function renderAcademy({ openBatches, refusalCode, holdSecondBooking = false }: 
   let bookings = 0;
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/my_feature_access')) return Response.json([{ feature_key: 'academy.booking', state: 'enabled', tiers: null }]);
+    if (url.includes('/rpc/my_feature_access')) {
+      return Response.json([{ feature_key: 'academy.booking', state: access, tiers: access === 'locked' ? ['Black card'] : null }]);
+    }
     if (url.includes('/rpc/academy_open_batches')) return Response.json(openBatches[Math.min(asked++, openBatches.length - 1)]);
+    if (url.includes('/rpc/my_academy_bookings')) return Response.json(myBookings);
     if (url.includes('/rpc/book_academy')) {
       // A second try that is still going, when asked for: the first one's refusal must already be gone.
       if (++bookings > 1 && holdSecondBooking) await new Promise(() => undefined);
@@ -52,6 +70,24 @@ function renderAcademy({ openBatches, refusalCode, holdSecondBooking = false }: 
     </RivrDataProvider>,
   );
 }
+
+describe('the Academy screen without Academy booking', () => {
+  it('still shows the member\'s own seats, to read only, with the locked notice in place of the open batches', async () => {
+    renderAcademy({ access: 'locked', myBookings: [KABIRS_SEAT], openBatches: [[LEVEL_1]] });
+    expect(await screen.findByRole('heading', { name: 'Your bookings' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Level 1' })).toBeDefined();
+    expect(screen.getByText('Booked. Pay to keep your seat.')).toBeDefined();
+    expect(screen.getByText('Black card only.')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Open batches' })).toBeNull();
+  });
+
+  it('shows only the locked notice to a member with no seats, as before', async () => {
+    renderAcademy({ access: 'locked' });
+    expect(await screen.findByText('Black card only.')).toBeDefined();
+    expect(screen.queryByRole('heading', { name: 'Your bookings' })).toBeNull();
+  });
+});
 
 describe('the Academy screen', () => {
   it('still says why a booking was refused, by the batch\'s name, once the batch has closed and left the list', async () => {
