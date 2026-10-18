@@ -67,7 +67,7 @@ No SMS vendor is chosen yet, so `smsOtp` is never passed and codes go by WhatsAp
 
 The hook secret, `SEND_SMS_HOOK_SECRET`, is made per checkout in the gitignored `supabase/.hook-secret` (`scripts/lib/supabase-config.mjs`). On staging and production it is generated in the Supabase dashboard and set as a function secret (`docs/runbooks/ci-and-release.md`).
 
-Locally no channel is configured, so the hook answers 503 to every real number. Only the seed's test numbers sign in, with code `123456`; Auth answers those itself and never calls the hook.
+Locally no channel is configured, so the hook refuses every real number and Auth answers the app with 503. Only the seed's test numbers sign in, with code `123456`; Auth answers those itself and never calls the hook.
 
 ## Live implementations
 
