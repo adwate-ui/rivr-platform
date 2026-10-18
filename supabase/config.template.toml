@@ -106,7 +106,8 @@ max_frequency = "60s"
 919000000302 = "123456"
 
 # Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
-# never reach it. These are placeholders, not credentials: the hook below sends every code.
+# never reach it. These are placeholders, not credentials; any other number fails locally.
+# Every other code goes through the Send SMS hook below.
 [auth.sms.twilio]
 enabled = true
 account_sid = "local-placeholder"
