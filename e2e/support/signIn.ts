@@ -1,4 +1,4 @@
-/** Signing a seeded member in to the player app, as a person does: number, code, Tonight. */
+/** Signing a seeded person in, as a person does: number, then code. Members to the player app, staff to the console. */
 import { expect, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from './apps.ts';
 
@@ -15,4 +15,15 @@ export async function signInToPlayer(page: Page, number: string) {
   await page.getByRole('textbox', { name: /^Code sent to/ }).fill(SIGN_IN_CODE);
   await page.getByRole('button', { name: 'Verify' }).click();
   await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+}
+
+/** Signs someone in to the console at 1440 px; what they land on is the caller's to check. */
+export async function signInToConsole(page: Page, number: string) {
+  if (SIGN_IN_CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the flow cannot sign in on staging');
+  await page.setViewportSize(VIEWPORT.console);
+  await page.goto(appUrl('console'));
+  await page.getByRole('textbox', { name: 'Mobile number' }).fill(number);
+  await page.getByRole('button', { name: 'Send code' }).click();
+  await page.getByRole('textbox', { name: /^Code sent to/ }).fill(SIGN_IN_CODE);
+  await page.getByRole('button', { name: 'Verify' }).click();
 }
