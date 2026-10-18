@@ -1,13 +1,22 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createAppRouter } from './router.tsx';
 
 afterEach(() => {
+  // Back online while the app is still mounted, so the query client hears it: a client that thinks
+  // it is offline holds every later request.
+  goOnline(true);
   cleanup();
   localStorage.clear();
 });
+
+/** Tells the app the phone has, or has lost, its connection. */
+function goOnline(online: boolean) {
+  Object.defineProperty(navigator, 'onLine', { value: online, configurable: true });
+  window.dispatchEvent(new Event(online ? 'online' : 'offline'));
+}
 
 /** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Kabir. */
 function signIn() {
@@ -37,6 +46,15 @@ function renderAt(path: string) {
 }
 
 describe('the player app', () => {
+  it('says it is offline above the screen while the phone has no connection', async () => {
+    signIn();
+    renderAt('/');
+    await screen.findByRole('heading', { name: 'Tonight' });
+    expect(screen.queryByText('Offline. What you see may be out of date.')).toBeNull();
+    act(() => goOnline(false));
+    expect(screen.getByRole('status').textContent).toBe('Offline. What you see may be out of date.');
+  });
+
   it('opens on Tonight inside the frame', async () => {
     signIn();
     renderAt('/');

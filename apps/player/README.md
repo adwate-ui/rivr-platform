@@ -34,6 +34,14 @@ Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every re
 
 Lane C owns the shell, routes, sign-in and KYC, Home, Sessions, Profile and Learn. Lane A adds `features/balance`, lane B `features/waitlist`, `call-time`, `tournament` and `fnb`, and lane D `features/rewards`, `promotions` and `winner-cards` (`docs/contracts/`).
 
+## Installed app (PWA)
+
+The build writes the manifest and a service worker (`vite-plugin-pwa`, `vite.config.ts`). The manifest's colours, and the theme colour in `index.html`, come from `@rivr/tokens`. The icons in `public/icons` and the iPhone launch screens in `public/splash` come from the brand kit (`docs/brand`, never edited by hand); `index.html` links each launch screen to the screen it fits.
+- **Offline.** The service worker keeps the shell, so the app opens with no connection. It keeps no data: a screen offline shows its error state under the frame's `OfflineBanner`.
+- **Install offer.** The frame offers to install the app on Tonight, from a member's second visit, and only after sign-up: on iPhone an app installed before sign-up cannot read the link's codes (decision 0031). It asks the browser where it can, and on iPhone says how (Share, then Add to Home Screen). Not now puts it away for good. `startInstallWatch` (`main.tsx`) counts visits and keeps the browser's prompt, which fires once and often before Tonight has drawn.
+
+`pnpm e2e --grep "PWA"` checks the manifest and its icons, every launch screen against its screen, and opening offline.
+
 ## Budgets
 
-Initial JavaScript under 200 KB gzipped, checked in CI by `scripts/check-bundle.mjs`.
+Initial JavaScript under 200 KB gzipped, checked in CI by `scripts/check-bundle.mjs`. With the service worker's registration it is about 178 KB.
