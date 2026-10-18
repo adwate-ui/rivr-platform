@@ -2,19 +2,28 @@ import { useAcademyActions, type AcademyBatch, type AcademyFailure } from '@rivr
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 import { BatchDates } from './BatchDates.tsx';
 import { FAILURE_COPY } from './failureCopy.ts';
 
+interface BatchCardProps {
+  batch: AcademyBatch;
+  /** Why the last booking of this batch was refused, said here while the card is listed. */
+  failure: AcademyFailure | null;
+  /** A booking is being tried: any earlier refusal no longer stands. */
+  onBooking: () => void;
+  /** The booking was refused; the screen keeps it, so it is still said once this card has gone. */
+  onRefused: (failure: AcademyFailure) => void;
+}
+
 /** An open batch the member has no seat in: its dates, fee and seats left, and the way to book one. */
-export function BatchCard({ batch }: { batch: AcademyBatch }) {
+export function BatchCard({ batch, failure, onBooking, onRefused }: BatchCardProps) {
   const { book } = useAcademyActions();
   const navigate = useNavigate();
-  const [failure, setFailure] = useState<AcademyFailure | null>(null);
   const bookSeat = async () => {
+    onBooking();
     const booked = await book.mutateAsync(batch.id);
     if (booked.ok) await navigate({ to: '/academy/$bookingId', params: { bookingId: booked.value } });
-    else setFailure(booked.error);
+    else onRefused(booked.error);
   };
   const isFull = batch.seatsLeft === 0;
   return (

@@ -18,6 +18,8 @@ export const playerApp = {
     dates: '{from} to {to}',
     seatsLeft: 'Seats left: {seats}',
     book: 'Book a seat',
+    /** A refused booking, at the top of the screen: `{batch}` is its name, `{reason}` one of the lines below. */
+    refused: '{batch}: {reason}',
     full: 'This batch is full.',
     closed: 'This batch is not open for booking.',
     notOpen: 'Academy booking is not open to you.',
