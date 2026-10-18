@@ -40,6 +40,17 @@ export const playerApp = {
     limits: 'Limits and self-exclusion',
   },
   limits: { title: 'Limits and self-exclusion', empty: 'Ask at the front desk to set limits or take a break.' },
+  /** Joining the club after the first code: the name on the player's Aadhaar. */
+  signUp: {
+    title: 'Your name',
+    intro: 'Your full name as on your Aadhaar. We check it when you verify your identity.',
+    nameLabel: 'Full name as on your Aadhaar',
+    submit: 'Continue',
+    nameInvalid: 'Enter your full name in English letters, as on your Aadhaar.',
+    staff: 'Staff join as members at the front desk.',
+    stopped: 'New sign-ups are paused for now. Try again later.',
+    unavailable: 'Sign-up is not available right now. Try again in a few minutes.',
+  },
   /** Sign-in: a mobile number, then the six-digit code sent to it. `{phone}` is `+91 98765 43210`. */
   signIn: {
     phoneLabel: 'Mobile number',

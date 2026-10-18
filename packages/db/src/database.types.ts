@@ -95,6 +95,26 @@ isOneToOne: false
       referencedColumns: ["id","is_practice"]
     }
                   ]
+                },"alert": {
+                  Row: {
+                    "created_at": string,"detail": NonNullable<Json>,"id": string,"kind": string,"raised_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind": string,"raised_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind"?: string,"raised_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "alert_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"audit_log": {
                   Row: {
                     "action": string,"actor_user_id": string | null,"after": Json | null,"before": Json | null,"created_at": string,"device_id": string | null,"entity": string,"entity_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"updated_at": string,"venue_id": string
@@ -577,6 +597,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"sign_up_attribution": {
+                  Row: {
+                    "created_at": string,"creator_code": string | null,"first_seen_at": string | null,"id": string,"member_id": string,"referral_code": string | null,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null,"utm_term": string | null,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"creator_code"?: string | null,"first_seen_at"?: string | null,"id"?: string,"member_id": string,"referral_code"?: string | null,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null,"utm_term"?: string | null,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"creator_code"?: string | null,"first_seen_at"?: string | null,"id"?: string,"member_id"?: string,"referral_code"?: string | null,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null,"utm_term"?: string | null,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sign_up_attribution_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"staff": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"is_active": boolean,"job_title": string,"phone": string | null,"role": Database["public"]['Enums']["staff_role"],"updated_at": string,"user_id": string | null,"venue_id": string
@@ -861,6 +901,9 @@ isOneToOne: false
                            },
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
+                           },
+"sign_up":
+{ Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
                            },
 "withdraw_consent":
 { Args: { "p_purpose": string }; Returns: undefined

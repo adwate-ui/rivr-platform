@@ -27,6 +27,8 @@ export function Frame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" replace />;
+  // Signed in with a number that is not a member yet: join first.
+  if (member.isSuccess && member.data === null) return <Navigate to="/sign-up" replace />;
   const tabs: BottomNavItem[] = [
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },

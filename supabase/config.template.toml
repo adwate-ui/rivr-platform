@@ -107,6 +107,8 @@ max_frequency = "60s"
 919000000302 = "123456"
 # Not seeded: the code-only sign-in flow signs this number up with a password (e2e, #187).
 919000000901 = "123456"
+# Not seeded: the Attribution flow signs this number up (#10).
+919000000902 = "123456"
 
 # Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
 # never reach it. These are placeholders, not credentials; any other number fails locally.
