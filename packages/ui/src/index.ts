@@ -55,3 +55,6 @@ export * from './StepScreen/index.ts';
 // Website blocks
 export * from './HeroBlock/index.ts';
 export * from './TextBlock/index.ts';
+
+// Social cards, drawn by @rivr/render
+export * from './SocialCard/index.ts';

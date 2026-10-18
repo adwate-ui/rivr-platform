@@ -13,6 +13,8 @@ const DEVICE_VIEWPORTS = {
   'viewport-tablet': tokens.viewport.tablet,
   'viewport-console': tokens.viewport.console,
   'viewport-tv': tokens.viewport.tv,
+  'viewport-feed': tokens.viewport.feed,
+  'viewport-story': tokens.viewport.story,
 };
 type DeviceTag = keyof typeof DEVICE_VIEWPORTS;
 
