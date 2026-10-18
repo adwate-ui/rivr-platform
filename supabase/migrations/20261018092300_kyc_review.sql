@@ -106,7 +106,7 @@ create table public.kyc_review (
   -- this refuses (twelve digits as an Aadhaar has, or a PAN's shape).
   reason text not null check (
     length(trim(reason)) between 3 and 500
-    and reason !~ '[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}'
+    and reason !~ '[0-9]{4}[^0-9]?[0-9]{4}[^0-9]?[0-9]{4}'
     and reason !~* '[a-z]{5}[0-9]{4}[a-z]'
   ),
   -- The reviewer entered the date of birth, or the PAN, from the original document at the club,
@@ -179,7 +179,7 @@ as $$
          case
            when k.status <> 'needs_review' then null
            when k.method = 'pan' then 'pan_alone'
-           when k.date_of_birth is null and k.pan is null then 'nothing_kept'
+           when k.date_of_birth is null and k.pan is null and k.aadhaar_reference is null then 'nothing_kept'
            when k.date_of_birth is null then 'no_date_of_birth'
            when private.kyc_clashes(k.member_id) then 'clash'
          end,
@@ -238,7 +238,7 @@ begin
     raise exception 'This check is not waiting for review' using errcode = 'RVKYC';
   end if;
   if p_reason is null or length(trim(p_reason)) not between 3 and 500
-     or p_reason ~ '[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}' or p_reason ~* '[a-z]{5}[0-9]{4}[a-z]'
+     or p_reason ~ '[0-9]{4}[^0-9]?[0-9]{4}[^0-9]?[0-9]{4}' or p_reason ~* '[a-z]{5}[0-9]{4}[a-z]'
      or (p_date_of_birth is not null and (v_record.date_of_birth is not null or p_date_of_birth not between '1900-01-01' and current_date))
      or (p_pan is not null and (v_record.pan is not null or upper(trim(p_pan)) !~ '^[A-Z]{3}[ABCFGHJLPT][A-Z][0-9]{4}[A-Z]$')) then
     raise exception 'A review needs its reason, with no document numbers, and a date of birth or PAN only where the check has none'

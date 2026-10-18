@@ -7,7 +7,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | Table | Purpose |
 |---|---|
 | `kyc_record` | Vendor reference, masked Aadhaar, PAN, date of birth, address, KYC photo path (private bucket), liveness and face-match results, status |
-| `kyc_review` | A KYC reviewer's decision on a check: approve or reject, the reason, whether they entered the date of birth, where the check ended, who (decision 0035) |
+| `kyc_review` | A KYC reviewer's decision on a check: approve or reject, the reason, whether they entered the date of birth or the PAN, where the check ended, who (decision 0035) |
 | `consent` | DPDP consent per purpose (marketing, KYC, analytics events), with time and withdrawal |
 | `member_limit`, `self_exclusion` | Player-set and floor-set limits, cool-off and self-exclusion |
 | `visit` | Check-in and check-out: opened by QR or phone at the door, closed at the door or on final cash-out |

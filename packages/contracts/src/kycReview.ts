@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // A document number never goes in a reason: twelve digits as an Aadhaar has, or a PAN's shape. The
 // database refuses the same (kyc_review.reason).
-const AADHAAR_LIKE = /[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}/;
+const AADHAAR_LIKE = /[0-9]{4}[^0-9]?[0-9]{4}[^0-9]?[0-9]{4}/;
 const PAN_LIKE = /[a-z]{5}[0-9]{4}[a-z]/i;
 const PAN = /^[A-Z]{3}[ABCFGHJLPT][A-Z][0-9]{4}[A-Z]$/;
 

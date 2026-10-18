@@ -56,7 +56,7 @@ select is_empty($$ select * from public.kyc_review_queue('00000000-0000-4000-800
 -- What a decision must carry.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.review_kyc('00000000-0000-4000-8000-000000000202', true, ' ') $$, '22023', null, 'a decision needs its reason');
-select throws_ok($$ select public.review_kyc('00000000-0000-4000-8000-000000000202', true, 'Aadhaar 1234 5678 9012 seen') $$, '22023', null,
+select throws_ok($$ select public.review_kyc('00000000-0000-4000-8000-000000000202', true, 'Aadhaar 1234.5678.9012 seen') $$, '22023', null,
   'with no Aadhaar number in it');
 select throws_ok($$ select public.review_kyc('00000000-0000-4000-8000-000000000202', true, 'Card ABCPK1234K seen') $$, '22023', null,
   'nor a PAN');
