@@ -12,5 +12,6 @@ export const FAILURE_COPY: Readonly<Record<AcademyFailure, MessageKey>> = {
   no_fee: 'player.academy.noFee',
   invalid_utr: 'player.academy.utrInvalid',
   utr_used: 'player.academy.utrUsed',
+  utr_locked: 'player.academy.utrLocked',
   unavailable: 'player.academy.unavailable',
 };

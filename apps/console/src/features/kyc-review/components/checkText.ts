@@ -16,6 +16,12 @@ const WAIT_COPY: Readonly<Record<KycWaitReason, MessageKey>> = {
   clash: 'console.kycReview.waitClash',
 };
 
+const METHOD_COPY: Readonly<Record<KycCheck['method'], MessageKey>> = {
+  digilocker: 'console.kycReview.digilocker',
+  pan: 'console.kycReview.panAlone',
+  manual: 'console.kycInPerson.method',
+};
+
 /** What the console says for each way a decision can fail. */
 export const FAILURE_COPY: Readonly<Record<KycReviewFailure, MessageKey>> = {
   not_allowed: 'console.kycReviewFailures.notAllowed',
@@ -56,7 +62,7 @@ export function checkDetails(check: KycCheck): readonly { label: string; value: 
     { label: t('console.kycReview.pan'), value: check.pan ?? none },
     { label: t('console.kycReview.address'), value: check.address ?? none },
     {
-      label: t(check.method === 'pan' ? 'console.kycReview.panAlone' : 'console.kycReview.digilocker'),
+      label: t(METHOD_COPY[check.method]),
       value: t('console.kycReview.scores', { liveness: score(check.livenessScore), match: score(check.faceMatchScore) }),
     },
     { label: t('console.kycReview.vendorReference'), value: check.vendorReference ?? none },

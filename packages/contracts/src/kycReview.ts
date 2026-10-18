@@ -20,3 +20,18 @@ export const kycReviewSchema = z.object({
   dateOfBirth: z.union([z.literal(''), z.iso.date()]).transform(notGiven),
   pan: z.string().trim().toUpperCase().refine((pan) => pan === '' || PAN.test(pan)).transform(notGiven),
 });
+
+/**
+ * A check in person at the club (#246), as the console sends it with the member's photo: the date of
+ * birth and PAN from the originals, only the last four Aadhaar digits (never the whole number), and
+ * the member's consent, given there. The database checks the same.
+ */
+export const kycInPersonSchema = z.object({
+  memberId: z.uuid(),
+  dateOfBirth: z.iso.date(),
+  aadhaarLast4: z.string().trim().regex(/^[0-9]{4}$/),
+  pan: z.string().trim().toUpperCase().regex(PAN),
+  consent: z.literal(true),
+});
+
+export type KycInPerson = z.output<typeof kycInPersonSchema>;

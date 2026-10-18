@@ -2,7 +2,7 @@
 /**
  * pnpm verify | verify:quick | verify:all
  *   quick    typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
- *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ changed,
+ *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
  *            the generated-tokens check, the drill gates, Storybook build and visual tests
  *   all      every step for every package
  * quick and changed cover packages changed against origin/main (or main), uncommitted work
@@ -107,7 +107,8 @@ function stepsFor(mode, scope) {
   if (mode === 'quick') return steps;
   const money = moneyModulesToMutate(scope);
   if (money.length > 0) steps.push(mutationStep(money));
-  if (touched('supabase/')) steps.push(pgtapStep());
+  // A golden file is proved in SQL too (decision 0037).
+  if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
   if (touched('packages/tokens/')) steps.push(step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']));
   if (touched('packages/drills/')) steps.push(step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']));
   if (touched('packages/ui/') || touched('packages/tokens/')) {
