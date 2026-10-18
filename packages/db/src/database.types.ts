@@ -47,14 +47,14 @@ isOneToOne: false
                   ]
                 },"academy_booking": {
                   Row: {
-                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"recorded_by_staff_id": string | null,"request_id": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"recorded_by_staff_id": string | null,"request_id": string | null,"seats": number,"status": string,"turned_down_utr": string | null,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -813,7 +813,12 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "academy_payment_details":
+            "academy_open_batches":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "ends_on": string,"fee": number,"id": string,"name": string,"seats_left": number,"starts_on": string
+            }[]
+                           },
+"academy_payment_details":
 { Args: { "p_booking_id": string }; Returns: {
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
@@ -866,6 +871,11 @@ isOneToOne: false
                            },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"my_academy_bookings":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
+            }[]
                            },
 "my_feature_access":
 { Args: Record<PropertyKey, never>; Returns: {
