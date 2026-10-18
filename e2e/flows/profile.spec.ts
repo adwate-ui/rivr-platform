@@ -1,6 +1,7 @@
 /**
  * Profile (#7): behind the member's initial, the identity check, the games for waitlist alerts,
- * notifications and promotions, and the way to limits and self-exclusion. Choices survive a reload.
+ * notifications and promotions, the way to limits and self-exclusion, and sign out (#207). Choices
+ * survive a reload.
  * Each run flips a choice and checks it held, so runs after the first still prove something. Tara
  * Menon is this flow's own member: Auth sends one code a minute to a number, so no other flow signs
  * in as her.
@@ -37,5 +38,12 @@ test.describe('Profile', () => {
 
     await page.getByRole('button', { name: 'Limits and self-exclusion' }).click();
     await expect(page.getByRole('heading', { name: 'Limits and self-exclusion' })).toBeVisible();
+
+    // Profile ends with sign out (#207): back to sign-in, and Profile is out of reach.
+    await page.goBack();
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toHaveCount(0);
   });
 });
