@@ -87,3 +87,7 @@ Implement the same interface in the vendor's folder (`live.ts`), with `fetch` on
 - Import Node built-ins or a vendor SDK, or log anything; no personal data in a `reason` either.
 - Send raw phone numbers or ids to an ads vendor. Hash them as `toMetaServerEvent` and `toClickConversion` do.
 - Let the practice venue reach a vendor.
+
+## Outbox consumers
+
+`runConsumer(store, consumer)` runs one consumer once (#12). It claims the consumer's batch, hands each delivery to its one adapter, and finishes each as delivered, or as failed with a backoff that doubles from a minute (`backoffSeconds`, at most six hours). After `MAX_ATTEMPTS` (ten) failures the database alerts the owner (`private.raise_alert`). A consumer Edge Function is one line over `supabase/functions/_shared/outbox.ts`: `Deno.serve(serveConsumer({ name, eventTypes, isMessaging, deliver }))`. Practice-venue events never reach a consumer.

@@ -25,7 +25,33 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "audit_log": {
+            "alert": {
+                  Row: {
+                    "acknowledged_at": string | null,"acknowledged_by_staff_id": string | null,"created_at": string,"detail": NonNullable<Json>,"id": string,"kind": string,"raised_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "acknowledged_at"?: string | null,"acknowledged_by_staff_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind": string,"raised_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "acknowledged_at"?: string | null,"acknowledged_by_staff_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind"?: string,"raised_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "alert_acknowledged_by_staff_id_fkey"
+      columns: ["acknowledged_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "alert_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"audit_log": {
                   Row: {
                     "action": string,"actor_user_id": string | null,"after": Json | null,"before": Json | null,"created_at": string,"device_id": string | null,"entity": string,"entity_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"updated_at": string,"venue_id": string
                   }
