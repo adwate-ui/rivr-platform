@@ -102,6 +102,16 @@ describe('sign-in', () => {
     expect(router.state.location.search).toEqual({ next: '/kyc' });
   });
 
+  it('says someone is signed in when opened over a live session, and lets the next person sign in', async () => {
+    signIn();
+    renderAt('/sign-in');
+    // Nothing answers at the client's address, so the member's name is not known: it says someone.
+    expect(await screen.findByText('Someone is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+  });
+
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {
     renderAt('/sign-in');
     expect(await screen.findByRole('img', { name: 'RIVR Poker Club' }, LAZY_SCREEN)).toBeDefined();

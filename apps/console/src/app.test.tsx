@@ -130,6 +130,24 @@ describe('the console', () => {
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
 
+  it('says who is signed in when sign-in is opened over a live session, instead of the form', async () => {
+    signIn();
+    answerStaff([CLUB]);
+    renderAt('/sign-in');
+    expect(await screen.findByText('Sana Qureshi is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByRole('heading', { name: 'Live floor' })).toBeDefined();
+  });
+
+  it('lets the next person sign in once the live session signs out', async () => {
+    signIn();
+    answerStaff([CLUB]);
+    renderAt('/sign-in');
+    fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }, LAZY_SCREEN));
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' })).toBeDefined();
+  });
+
   it('says so when a page does not exist', async () => {
     signIn();
     answerStaff([CLUB]);

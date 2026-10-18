@@ -4,7 +4,7 @@
  * is not staff is turned away. Each test uses its own seeded number: Auth sends one code a minute.
  */
 import { expect, test } from '@playwright/test';
-import { isRemoteTarget } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 test.describe('Console sign-in', () => {
@@ -17,6 +17,13 @@ test.describe('Console sign-in', () => {
 
     await rail.getByRole('switch', { name: 'Practice venue' }).click();
     await expect(rail.getByText('RIVR Practice')).toBeVisible();
+
+    // A bookmark to sign-in on a shared computer says who is signed in, not an empty form (#227).
+    await page.goto(`${appUrl('console')}/sign-in`);
+    await expect(page.getByText('Sana Qureshi is signed in on this device.')).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.getByRole('heading', { name: 'Live floor' })).toBeVisible();
 
     await rail.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
