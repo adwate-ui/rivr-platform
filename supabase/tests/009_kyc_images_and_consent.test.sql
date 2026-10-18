@@ -52,8 +52,9 @@ select ok(not pg_temp.may_see('00000000-0000-4000-8000-000000000103',
   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/missing.jpg'),
   'an image that does not exist is refused');
 select is((select count(*)::int from public.audit_log where action = 'kyc_image.view'), 3, 'every allowed view is audited');
-select is((select actor_user_id from public.audit_log where action = 'kyc_image.view' order by created_at limit 1),
-  '00000000-0000-4000-8000-000000000103'::uuid, 'with who looked');
+-- Rows written in one transaction share created_at, so the check names the viewer, not an order.
+select ok(exists (select 1 from public.audit_log where action = 'kyc_image.view' and actor_user_id = '00000000-0000-4000-8000-000000000103'),
+  'with who looked');
 
 -- No client reads, lists, signs or writes objects in the bucket directly.
 set local role authenticated;

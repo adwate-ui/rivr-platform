@@ -23,7 +23,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 
 | Function | Used by | What it does |
 |---|---|---|
-| `private.is_kyc_complete(member)` | A, B | KYC verified and 18 or over; duplicate identities never pass |
+| `private.is_kyc_complete(member)` | A, B | KYC verified and at least the venue's minimum age (`kyc.minimum_age`, never below 18); duplicate identities never pass |
 | `private.member_restrictions(member, at)` | A, B | Limits, cool-off and self-exclusion in force |
 | `public.check_in(venue, card_code)`, `public.check_out(venue, card_code)` | door screen | Opens or closes a visit; refuses an excluded member; check-out before call time follows lane B's rule; emits `visit.opened` / `visit.closed` |
 | `private.current_visit(member)`, `private.close_visit(member, at, reason)` | A (final cash-out), B | The open visit; closing it emits `visit.closed` |
