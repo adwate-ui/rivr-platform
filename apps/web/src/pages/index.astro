@@ -2,10 +2,9 @@
 // Astro pages hold only document elements; every visible block is a React component from
 // @rivr/ui, composed in a feature (additions, "Resolved conflicts").
 import '@rivr/ui/styles.css';
-import { createTranslator } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { HomePage } from '../features/home/index.ts';
 
-const t = createTranslator('en');
 ---
 
 <html lang="en">

@@ -11,7 +11,7 @@ describe('time and dates are shown in IST', () => {
   });
 
   it('uses the IST date, not the UTC one', () => {
-    expect(formatDate(OPENING_NIGHT, 'en')).toBe('15 Nov 2026');
-    expect(formatWeekday(OPENING_NIGHT, 'en')).toBe('Sunday');
+    expect(formatDate(OPENING_NIGHT)).toBe('15 Nov 2026');
+    expect(formatWeekday(OPENING_NIGHT)).toBe('Sunday');
   });
 });

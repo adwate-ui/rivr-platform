@@ -3,7 +3,6 @@
  * marks the body ready once the page is drawn and its webfonts have loaded.
  */
 import '@rivr/ui/styles.css';
-import { I18nProvider } from '@rivr/i18n';
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { parseHostJob } from '../parse/job.ts';
@@ -20,15 +19,14 @@ function SignalReady() {
   return null;
 }
 
-const { element, locale } = parseHostJob(window.location.search);
-document.documentElement.lang = locale;
+const element = parseHostJob(window.location.search);
 
 const container = document.getElementById('root');
 if (!container) throw new Error('The render host page has no #root element.');
 
 createRoot(container).render(
-  <I18nProvider locale={locale}>
+  <>
     {element}
     <SignalReady />
-  </I18nProvider>,
+  </>,
 );
