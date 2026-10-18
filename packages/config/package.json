@@ -9,6 +9,10 @@
     "./vitest": {
       "types": "./vitest/base.d.ts",
       "default": "./vitest/base.js"
+    },
+    "./worktree": {
+      "types": "./worktree/index.d.ts",
+      "default": "./worktree/index.js"
     }
   },
   "scripts": {

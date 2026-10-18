@@ -29,9 +29,10 @@ export * from './Wordmark/index.ts';
 export * from './Button/index.ts';
 export * from './Input/index.ts';
 
-// Tier-gated features
+// Tier-gated features and the kill switch
 export * from './FeatureGate/index.ts';
 export * from './LockedNotice/index.ts';
+export * from './KillSwitchBanner/index.ts';
 
 // Navigation and shells
 export * from './BottomNav/index.ts';

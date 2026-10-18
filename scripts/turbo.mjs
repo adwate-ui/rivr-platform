@@ -7,7 +7,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { localBinary, worktreeRoot } from './lib/worktree.mjs';
+import { localBinary, worktreeRoot } from '@rivr/config/worktree';
 
 const root = worktreeRoot();
 const SCOPED_PACKAGES = new Set(

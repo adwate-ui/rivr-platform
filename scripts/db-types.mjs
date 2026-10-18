@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { writeSupabaseConfig } from './lib/supabase-config.mjs';
-import { localBinary, worktreeRoot } from './lib/worktree.mjs';
+import { localBinary, worktreeRoot } from '@rivr/config/worktree';
 
 const root = worktreeRoot();
 writeSupabaseConfig(root);

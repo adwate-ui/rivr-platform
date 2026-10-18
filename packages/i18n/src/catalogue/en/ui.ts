@@ -58,4 +58,10 @@ export const ui = {
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
   },
+  killSwitch: {
+    /** Shown to members on every screen while the venue is frozen. */
+    member: 'The club is paused. Staff will assist you.',
+    /** Shown to staff on every screen while the venue is frozen. */
+    staff: 'Venue frozen. Money, seating and hand entries are refused until it is released.',
+  },
 } as const;

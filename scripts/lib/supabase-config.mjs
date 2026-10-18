@@ -1,7 +1,7 @@
 /** Writes supabase/config.toml for this worktree from the committed template. */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { portBlock, worktreeName, worktreeRoot } from './worktree.mjs';
+import { portBlock, worktreeName, worktreeRoot } from '@rivr/config/worktree';
 
 /** Generates the config and returns the worktree's port block. */
 export function writeSupabaseConfig(root = worktreeRoot()) {
