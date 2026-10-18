@@ -33,6 +33,7 @@ describe('Wordmark', () => {
     renderIn(<Wordmark size="lg" withTagline withMotto />, 'hi');
     const motto = screen.getByText('Skill runs deep.');
     expect(motto).toHaveAttribute('lang', 'en');
+    expect(motto).toHaveClass('italic');
     expect(motto).not.toHaveClass('hindi:not-italic');
   });
 
