@@ -54,8 +54,8 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | DigiLocker | The government document wallet KYC pulls masked Aadhaar and PAN from |
 | Liveness, face match | Selfie checks at KYC: that a live person is present, and that they match the ID photo |
 | Mutation score | The share of deliberately broken copies of the code that the tests catch; money modules need 80% |
-| Port block | The first three digits of a worktree's local ports (543 root, 544 to 547 lanes A to D, 548 review) |
-| Lane | One of four parallel streams of work, each in its own worktree: A money, B floor, C member and web, D growth and content. Lane 0 is the shared foundation built first |
+| Port block | The first three digits of a checkout's local ports: 543 by default, or the number in a gitignored `.rivr-port-block` on a machine where 543 is taken |
+| Lane | One of four areas of ownership: A money, B floor, C member and web, D growth and content. Their tasks are worked one at a time, in release-gate order (decision 0024). Lane 0 is the shared foundation built first |
 | Super admin | The owner-level staff role (`super_admin`): all data, purge, full exports, the kill switch, per-member overrides and venue configuration. No other role can be given these |
 | Admin | The floor manager's role: games, the waitlist, call times, promotions, tournaments |
 | Owner view | A read-only role for investors: reports and dashboards |

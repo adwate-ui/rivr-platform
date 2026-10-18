@@ -8,6 +8,8 @@ name: Deploy staging
 on:
   push:
     branches: [main]
+  # "Run workflow" on main redeploys staging, for example after its secrets are first added.
+  workflow_dispatch:
 
 concurrency:
   group: deploy-staging

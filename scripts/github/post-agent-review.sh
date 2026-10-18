@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Posts the agent-review status on a pull request's head commit: the required check that says the
-# reviewer session reviewed it. Only the reviewer session runs this, never a lane (question #176).
+# review subagents passed it (docs/decisions/0024). Run it only after they have, never to skip one.
 # It is the one GitHub write the agent settings allow, so it can post nothing but this status.
 #   scripts/github/post-agent-review.sh <pr-number> <success|failure> "<one-line reason>"
 set -euo pipefail
