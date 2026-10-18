@@ -32,17 +32,3 @@ export const Loading: Story = { args: { children: <Screen title="Hand entry" sta
 export const WithError: Story = { args: { children: <Screen title="Hand entry" status="error" onRetry={() => undefined} /> } };
 
 export const LongText: Story = { args: { tableName: 'Private Room · Pot-limit Omaha 1,000/2,000 · Bomb pot every orbit' } };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    tableName: 'टेबल 3',
-    banner: <OfflineBanner locale="hi" />,
-    actions: <Button>डाउन खत्म</Button>,
-    children: (
-      <Screen title="हाथ दर्ज करें">
-        <TablesList locale="hi" />
-      </Screen>
-    ),
-  },
-};

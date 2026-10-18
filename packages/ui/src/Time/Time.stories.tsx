@@ -34,13 +34,3 @@ export const LongText: Story = {
     </Inline>
   ),
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Inline gap={2} align="baseline">
-      <Text>होल्ड खत्म</Text>
-      <Time at={OPENING_NIGHT} size="lead" />
-    </Inline>
-  ),
-};

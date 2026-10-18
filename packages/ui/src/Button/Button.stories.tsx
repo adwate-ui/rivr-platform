@@ -33,15 +33,3 @@ export const Disabled: Story = { args: { isDisabled: true, children: 'Approve' }
 export const LongText: Story = { args: { children: 'Send the withdrawal to the second approver', variant: 'secondary' } };
 
 export const FullWidth: Story = { args: { fullWidth: true, children: 'Log hand' } };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Inline gap={3} wrap>
-      <Button variant="primary">जुड़ें</Button>
-      <Button variant="secondary">बुलाएँ</Button>
-      <Button variant="text">छोड़ें</Button>
-      <Button isLoading>निकासी</Button>
-    </Inline>
-  ),
-};

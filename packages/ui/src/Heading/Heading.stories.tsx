@@ -29,17 +29,3 @@ export const Levels: Story = {
 export const LongText: Story = {
   args: { children: 'Tournament registration and late entry for the RIVR Sunday main event' },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Stack gap={3}>
-      <Heading level={1} variant="display">
-        रविवार टूर्नामेंट
-      </Heading>
-      <Heading level={1}>बैलेंस</Heading>
-      <Heading level={2}>लेन-देन</Heading>
-      <Heading level={3}>मार्कर</Heading>
-    </Stack>
-  ),
-};

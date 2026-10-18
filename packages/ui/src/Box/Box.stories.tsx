@@ -32,8 +32,3 @@ export const LongText: Story = {
     ),
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: { children: <Text>टेबल 3 · 100/200 · 2 सीटें खाली</Text> },
-};

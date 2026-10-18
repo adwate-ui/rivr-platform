@@ -55,16 +55,3 @@ export const Truncated: Story = {
     ),
   ],
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Stack gap={3}>
-      <Text variant="lead">होल्ड 02:40 पर खत्म होगा</Text>
-      <Text>आपकी सीट तैयार है। टेबल 3, सीट 6।</Text>
-      <Text variant="small" tone="muted">
-        रविवार को समाप्त
-      </Text>
-    </Stack>
-  ),
-};

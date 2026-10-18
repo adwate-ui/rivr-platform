@@ -19,5 +19,3 @@ export const Default: Story = {};
 export const LockedTab: Story = { args: { items: withLearn({ state: 'locked', tiers: ['Academy graduate', 'Black card'] }) } };
 
 export const HiddenTab: Story = { args: { items: withLearn({ state: 'hidden' }), current: 'balance' } };
-
-export const Hindi: Story = { globals: { locale: 'hi' }, args: { current: 'rewards' } };

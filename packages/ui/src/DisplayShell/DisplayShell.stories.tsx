@@ -47,8 +47,3 @@ export const Empty: Story = {
 export const LongText: Story = {
   args: { children: jackpot('Bad-beat jackpot, main pool plus the season pool', 'High hand tonight · Straight flush, nine high · Private Room · 01:12') },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: { children: jackpot('बैड-बीट जैकपॉट', 'आज का हाई हैंड · चार नहले · टेबल 3') },
-};

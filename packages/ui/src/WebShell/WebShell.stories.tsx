@@ -49,15 +49,3 @@ export const LongText: Story = {
     ),
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    links: [
-      { label: 'टूर्नामेंट', href: '#tournaments' },
-      { label: 'सदस्यता', href: '#membership' },
-      { label: 'पता', href: '#visit' },
-    ],
-    children: hero('रविवार टूर्नामेंट', 'गुरुग्राम का सदस्यों वाला पोकर क्लब। हर रात 14:00 से।'),
-  },
-};

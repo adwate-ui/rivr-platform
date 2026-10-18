@@ -41,14 +41,3 @@ export const LongText: Story = {
     </Stack>
   ),
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Stack gap={3}>
-      <Text>नकद</Text>
-      <Divider />
-      <Text>बोनस</Text>
-    </Stack>
-  ),
-};

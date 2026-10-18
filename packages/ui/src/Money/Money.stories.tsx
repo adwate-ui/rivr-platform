@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Inline } from '../Inline/Inline.tsx';
 import { Stack } from '../Stack/Stack.tsx';
-import { Text } from '../Text/Text.tsx';
 import { Money } from './Money.tsx';
 
 const meta = {
@@ -36,13 +34,3 @@ export const Empty: Story = { args: { paise: 0n, tone: 'muted' } };
 export const Negative: Story = { args: { paise: -1_250_000n } };
 
 export const LongText: Story = { args: { paise: 1_234_567_850n, size: 'title' } };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Inline gap={3} align="baseline">
-      <Text>बोनस</Text>
-      <Money paise={400_000n} tone="player" size="lead" />
-    </Inline>
-  ),
-};

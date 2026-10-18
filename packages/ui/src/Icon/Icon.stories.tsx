@@ -41,13 +41,3 @@ export const Sizes: Story = {
     </Inline>
   ),
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Inline gap={2}>
-      <Icon name="offline" label="ऑफ़लाइन" />
-      <Text>ऑफ़लाइन।</Text>
-    </Inline>
-  ),
-};

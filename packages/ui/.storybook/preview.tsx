@@ -1,41 +1,17 @@
-import { I18nProvider, type Locale } from '@rivr/i18n';
+import { I18nProvider } from '@rivr/i18n';
 import type { Decorator, Preview } from '@storybook/react-vite';
-import { useEffect, type ReactNode } from 'react';
 import { themes } from 'storybook/theming';
 import '../src/styles.css';
 
-/** Sets the document language so screen readers and the a11y checks read Hindi as Hindi. */
-function DocumentLanguage({ locale, children }: { locale: Locale; children: ReactNode }) {
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
-  return <I18nProvider locale={locale}>{children}</I18nProvider>;
-}
-
-/** Wraps every story in the language picked in the toolbar, or the one the story fixes. */
-const withLocale: Decorator = (Story, context) => (
-  <DocumentLanguage locale={context.globals.locale === 'hi' ? 'hi' : 'en'}>
+/** Wraps every story in the app's copy, so components that read `t` show real strings. */
+const withCopy: Decorator = (Story) => (
+  <I18nProvider locale="en">
     <Story />
-  </DocumentLanguage>
+  </I18nProvider>
 );
 
 const preview: Preview = {
-  decorators: [withLocale],
-  globalTypes: {
-    locale: {
-      description: 'Language',
-      toolbar: {
-        title: 'Language',
-        icon: 'globe',
-        items: [
-          { value: 'en', title: 'English' },
-          { value: 'hi', title: 'हिन्दी' },
-        ],
-        dynamicTitle: true,
-      },
-    },
-  },
-  initialGlobals: { locale: 'en' },
+  decorators: [withCopy],
   parameters: {
     layout: 'padded',
     // The controls panel serialises args as JSON, which cannot hold bigint paise or the

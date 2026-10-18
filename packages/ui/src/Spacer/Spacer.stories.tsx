@@ -42,14 +42,3 @@ export const LongText: Story = {
     </Inline>
   ),
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  render: () => (
-    <Inline gap={0}>
-      <Text>नकद</Text>
-      <Spacer />
-      <Text tone="money">₹1,20,000</Text>
-    </Inline>
-  ),
-};

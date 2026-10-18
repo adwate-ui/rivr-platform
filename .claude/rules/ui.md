@@ -31,13 +31,10 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 ## In `packages/ui/`
 - Tailwind classes only from the token preset. No hex, px or font name.
 - One component per folder: `Component.tsx`, `Component.stories.tsx`, `Component.test.tsx`, `index.ts`.
-- Stories for default, loading, empty, error, long text and Hindi.
+- Stories for default, loading, empty, error and long text. RIVR is English only (#186).
 - Accessible: labels, focus order, 4.5:1 contrast, 44 px touch targets for player and tablet.
 - Prefer a prop or variant on an existing component over a new component.
 - `@rivr/render` templates compose `@rivr/ui`; they define no styles.
-
-## Hindi
-Bodoni Moda and Instrument Sans have no Devanagari. Tokens fall back to Tiro Devanagari Hindi (display) and Noto Sans Devanagari (text). Every component's Hindi story must render in those faces at the same scale.
 
 ## Visual standard
 - Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only.

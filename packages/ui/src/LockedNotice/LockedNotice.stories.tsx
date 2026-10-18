@@ -15,5 +15,3 @@ export const Default: Story = {};
 export const TwoTiers: Story = { args: { tiers: ['Founders’ Circle', 'Black card'] } };
 
 export const LongText: Story = { args: { tiers: ['Academy graduate', 'Founders’ Circle', 'Black card', 'Private Room regulars'] } };
-
-export const Hindi: Story = { globals: { locale: 'hi' }, args: { tiers: ['Founders’ Circle', 'Black card'] } };

@@ -33,5 +33,3 @@ export const Hidden: Story = { args: { access: { state: 'hidden' } } };
 export const LongText: Story = {
   args: { access: { state: 'locked', tiers: ['Academy graduate', 'Founders’ Circle', 'Black card', 'Private Room regulars'] } },
 };
-
-export const Hindi: Story = { globals: { locale: 'hi' }, args: { access: { state: 'locked', tiers: ['Black card'] } } };

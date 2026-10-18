@@ -36,18 +36,3 @@ export const LongTextWraps: Story = {
     )),
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    children: [
-      <Text key="1">टेबल 3</Text>,
-      <Text key="2" tone="muted">
-        100/200
-      </Text>,
-      <Text key="3" tone="muted">
-        2 सीटें खाली
-      </Text>,
-    ],
-  },
-};
