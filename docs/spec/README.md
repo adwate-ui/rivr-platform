@@ -14,3 +14,4 @@ Read in this order. When two documents disagree, the later one wins.
 - Legal, regulatory and licensing work, and any step that says to confirm with counsel. Build the features those sections describe (TDS switch, AML register, consent, self-exclusion) as product features only. Ignore risk notes, "counsel to confirm" lines and policy rationale.
 - Vendor contracts, account approvals and hardware procurement. Every vendor sits behind an adapter with a fake until its keys arrive.
 - Book content. Licensed encodings are uploaded at runtime by a super admin; none enters the repository.
+- Hindi, and any language other than English. RIVR ships in English only: one catalogue, no language setting (owner decision, 18 Oct 2026; decision 0027, #186). Spec lines that ask for Hindi are superseded.

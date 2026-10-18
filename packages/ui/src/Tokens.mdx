@@ -64,22 +64,22 @@ In `@rivr/ui` the Tailwind theme holds only these values: `bg-surface`, `text-co
 
 ## Type scale
 
-Display face: Bodoni Moda, with Tiro Devanagari Hindi for Hindi. 20 px and up.
+Display face: Bodoni Moda, with Tiro Devanagari Hindi for the ₹ sign. 20 px and up.
 
 <Typeset
   fontFamily={tokens.font.family.display.join(', ')}
   fontWeight={tokens.font.weight.regular}
   fontSizes={[20, 24, 28, 36, 44, 56, 96].map((size) => tokens.font.size[size])}
-  sampleText="₹3,42,600 Bad-beat jackpot · बैड-बीट जैकपॉट"
+  sampleText="₹3,42,600 Bad-beat jackpot"
 />
 
-Text face: Instrument Sans, with Noto Sans Devanagari for Hindi, tabular figures.
+Text face: Instrument Sans, with Noto Sans Devanagari for the ₹ sign, tabular figures.
 
 <Typeset
   fontFamily={tokens.font.family.text.join(', ')}
   fontWeight={tokens.font.weight.regular}
   fontSizes={[12, 13, 14, 16, 18, 20, 24, 28].map((size) => tokens.font.size[size])}
-  sampleText="Your seat is ready. Table 3, seat 6. 02:40 · आपकी सीट तैयार है।"
+  sampleText="Your seat is ready. Table 3, seat 6. 02:40"
 />
 
 Weights: regular {tokens.font.weight.regular}, medium {tokens.font.weight.medium}, semibold {tokens.font.weight.semibold}.

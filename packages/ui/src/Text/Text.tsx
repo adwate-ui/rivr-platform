@@ -33,7 +33,7 @@ const WEIGHT = { regular: 'font-regular', medium: 'font-medium', semibold: 'font
 
 const ALIGN = { start: 'text-start', center: 'text-center', end: 'text-end' } as const;
 
-/** Running text in the text face. Hindi falls back to Noto Sans Devanagari at the same size. */
+/** Running text in the text face. */
 export function Text({ children, variant = 'body', tone = 'default', weight, as: Element = 'p', align, truncate = false, id }: TextProps) {
   const classes = cx(
     'font-text',

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { cx } from '../internal/classes.ts';
 
 /**
- * `display` is set in the display face (Bodoni Moda, Tiro Devanagari Hindi in Hindi) for TV
+ * `display` is set in the display face (Bodoni Moda) for TV
  * titles and the wordmark lockup; it is never smaller than 20 px. The rest use the text face.
  */
 export type HeadingVariant = 'display' | 'title' | 'section' | 'subsection';

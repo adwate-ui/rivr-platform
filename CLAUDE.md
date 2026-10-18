@@ -57,7 +57,7 @@ Show evidence, not claims: the command you ran and its output, or the screenshot
 ## Done means
 
 - The task's acceptance criteria pass, end to end where a flow exists, with the evidence in the PR.
-- Built only from `@rivr/ui` and `@rivr/i18n`, in English and Hindi, with loading, empty and error states.
+- Built only from `@rivr/ui` and `@rivr/i18n`, in English (Hindi is out of scope, decision 0027), with loading, empty and error states.
 - Works on the target device: phone (player), dealer tablet, 1440 px (console), 1920 px (TV).
 - Correct in the practice venue, and nothing from it reaches an external system.
 - Package README updated; the PR closes its issue.
