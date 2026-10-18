@@ -22,7 +22,7 @@ Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which set
 - `packages/domain` every business rule (money, rake, call time, TDS, GST, priority, payouts, points). Pure TypeScript.
 - `packages/db` the only code that talks to Supabase.
 - `packages/contracts` Zod schemas shared by apps and Edge Functions.
-- `packages/i18n` every user-facing string (en, hi) and the money/time formatters.
+- `packages/i18n` every user-facing string (English only) and the money/time formatters.
 - `packages/adapters` one interface per vendor, each with a fake.
 - `supabase/` migrations, Edge Functions, seed, pgTAP tests.
 

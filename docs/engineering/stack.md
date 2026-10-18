@@ -45,7 +45,7 @@ packages/
   domain/      pure TypeScript business rules: money, rake, TDS, GST, waitlist priority, payouts, points
   db/          generated database types, typed query functions, query keys, Realtime subscriptions
   contracts/   Zod schemas and types shared across lanes and with Edge Functions
-  i18n/        message catalogues (en, hi) and formatters for money, time and stakes
+  i18n/        the message catalogue (English) and formatters for money, time and stakes
   offline/     IndexedDB outbox, ordered replay, idempotency keys
   render/      graphics templates and the render service client
   drills/      the drill engine ported from poker-settle
