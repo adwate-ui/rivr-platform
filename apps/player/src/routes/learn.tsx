@@ -1,6 +1,9 @@
-import { createRoute } from '@tanstack/react-router';
-import { LearnScreen } from '../features/learn/index.ts';
+import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Learn, gated by tier inside the feature. */
-export const learnRoute = createRoute({ getParentRoute: () => frameRoute, path: '/learn', component: LearnScreen });
+/** Learn: the library and drills. Loaded when first opened, so it does not count against the initial JavaScript budget. */
+export const learnRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: '/learn',
+  component: lazyRouteComponent(() => import('../features/learn/index.ts'), 'LearnScreen'),
+});

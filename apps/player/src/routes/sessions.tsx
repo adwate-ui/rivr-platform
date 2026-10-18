@@ -1,6 +1,9 @@
-import { createRoute } from '@tanstack/react-router';
-import { SessionsScreen } from '../features/sessions/index.ts';
+import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Session history, gated by tier inside the feature. */
-export const sessionsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/sessions', component: SessionsScreen });
+/** Sessions: the member's played sessions. Loaded when first opened, so it does not count against the initial JavaScript budget. */
+export const sessionsRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: '/sessions',
+  component: lazyRouteComponent(() => import('../features/sessions/index.ts'), 'SessionsScreen'),
+});
