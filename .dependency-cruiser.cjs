@@ -53,6 +53,17 @@ module.exports = {
       to: { path: 'node_modules/@supabase/' },
     },
     {
+      name: 'routes-only-compose-features',
+      severity: 'error',
+      comment:
+        'A route file holds no logic (.claude/rules/apps.md): it imports features through their index, ' +
+        'other route files and the router. Screens, hooks and copy belong in a feature.',
+      from: { path: '^apps/[^/]+/src/routes/' },
+      to: {
+        pathNot: ['^apps/[^/]+/src/features/[^/]+/index\\.ts$', '^apps/[^/]+/src/routes/', '@tanstack/react-router'],
+      },
+    },
+    {
       name: 'features-never-import-routes',
       severity: 'error',
       comment: 'Layering inside an app: routes -> features -> packages.',

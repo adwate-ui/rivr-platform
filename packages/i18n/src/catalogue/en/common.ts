@@ -8,6 +8,8 @@ export const common = {
   cancel: 'Cancel',
   confirm: 'Confirm',
   back: 'Back',
+  /** The heading over notFound. */
+  notFoundTitle: 'Page not found',
   notFound: 'This page does not exist.',
   /** LockedNotice: a feature this member's tier does not have. `{tiers}` is a formatted list. */
   featureLocked: '{tiers} only.',

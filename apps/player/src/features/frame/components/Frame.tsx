@@ -32,7 +32,7 @@ export function Frame({ children }: { children: ReactNode }) {
     <PlayerShell
       tabs={tabs}
       currentTab={TAB_FOR_PATH[pathname]}
-      memberInitial=""
+      // No memberInitial yet: the shell shows a profile icon. Lane C passes the signed-in member's initial.
       profileHref="/profile"
       onNavigate={(href) => void navigate({ href })}
       banner={isVenueFrozen ? <KillSwitchBanner audience="member" /> : null}

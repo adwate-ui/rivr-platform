@@ -45,6 +45,7 @@ describe('the player app', () => {
 
   it('says so when a page does not exist', async () => {
     renderAt('/nowhere');
-    expect(await screen.findByText('This page does not exist.')).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
+    expect(screen.getByText('This page does not exist.')).toBeDefined();
   });
 });

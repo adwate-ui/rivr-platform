@@ -10,6 +10,7 @@ export const common: Messages<typeof en> = {
   cancel: 'रद्द करें',
   confirm: 'पुष्टि करें',
   back: 'वापस',
+  notFoundTitle: 'पेज नहीं मिला',
   notFound: 'यह पेज मौजूद नहीं है।',
   featureLocked: 'केवल {tiers} के लिए।',
 };
