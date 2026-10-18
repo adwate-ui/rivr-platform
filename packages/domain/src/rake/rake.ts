@@ -25,10 +25,9 @@ export interface PotTake {
  * What the dealer takes from a pot (scope-v1 module 4). Rake is the rate of the pot, no more than
  * the cap, rounded down to whole ₹50 chips. While the jackpot is live, a pot above `dropAbove`
  * also drops `drop` (in whole chips) into it. The pull is the two together. Nothing rounds up.
- * Throws on a negative pot, because that is a bug in the caller.
+ * A negative pot is a bug in the caller: shareOf refuses it with a RangeError.
  */
 export function potTake(pot: Paise, rules: RakeRules): PotTake {
-  if (pot < 0n) throw new RangeError(`A pot cannot be negative (${pot} paise)`);
   const rake = roundDownToChip(min(shareOf(pot, rules.rateBasisPoints), rules.cap));
   const drop = rules.isJackpotLive && pot > rules.dropAbove ? roundDownToChip(rules.drop) : ZERO;
   return { rake, drop, pull: add(rake, drop) };
