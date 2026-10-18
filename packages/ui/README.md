@@ -25,11 +25,10 @@ Shells take their navigation and slots as props (`tabs`, `sections`, `banner`, `
 import '@rivr/ui/styles.css';
 
 // apps/player/src/routes/balance.tsx
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { Button, Inline, Money, Screen, Text } from '@rivr/ui';
 
 export function Balance({ cashPaise }: { cashPaise: bigint }) {
-  const t = useT();
   return (
     <Screen title={t('balance.title')} actions={<Button variant="primary">{t('balance.withdraw')}</Button>}>
       <Inline justify="between">

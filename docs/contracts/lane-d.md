@@ -17,7 +17,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `channel_metric` | Daily follower counts per channel |
 | `wall_post` | Tagged Instagram posts and their moderation |
 | `feedback_survey`, `feedback_ticket`, `review_request` | Visit feedback (3 or below opens a ticket for the General Manager); review request after the third visit, sent regardless of score |
-| `message_template` | WhatsApp utility and marketing templates (en, hi) |
+| `message_template` | WhatsApp utility and marketing templates (English) |
 | `host_queue_item` | Lapsed players with churn reasons and offers |
 
 ## Functions offered to other lanes

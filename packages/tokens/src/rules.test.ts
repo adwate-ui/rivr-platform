@@ -40,7 +40,7 @@ describe('the design inventory', () => {
     expect(sizes.map((token) => px(token.value))).toEqual([12, 13, 14, 16, 18, 20, 24, 28, 36, 44, 56, 96]);
   });
 
-  it('sets Hindi in Tiro Devanagari Hindi and Noto Sans Devanagari after the Latin faces', () => {
+  it('sets the ₹ sign in Tiro Devanagari Hindi and Noto Sans Devanagari, after the Latin faces that lack it', () => {
     expect(tokenValue('font.family.display')).toEqual(['Bodoni Moda', 'Tiro Devanagari Hindi', 'serif']);
     expect(tokenValue('font.family.text')).toEqual(['Instrument Sans', 'Noto Sans Devanagari', 'sans-serif']);
   });

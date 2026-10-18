@@ -9,8 +9,8 @@ const payload = {
 };
 
 describe('the Send SMS hook payload', () => {
-  it('gives the number being checked in E.164 form, the six-digit code and English by default', () => {
-    expect(sendSmsHookSchema.parse(payload)).toEqual({ to: '+919000000201', code: '482913', language: 'en' });
+  it('gives the number being checked in E.164 form and the six-digit code', () => {
+    expect(sendSmsHookSchema.parse(payload)).toEqual({ to: '+919000000201', code: '482913' });
   });
 
   it('sends a phone change to the new number, never the old one', () => {
@@ -19,13 +19,6 @@ describe('the Send SMS hook payload', () => {
       sms: { otp: '482913', phone: '919822222222' },
     };
     expect(sendSmsHookSchema.parse(phoneChange).to).toBe('+919822222222');
-  });
-
-  it('gives Hindi when the sign-up asked for it, and English for anything else', () => {
-    const inHindi = { ...payload, user: { ...payload.user, user_metadata: { language: 'hi' } } };
-    const inKlingon = { ...payload, user: { ...payload.user, user_metadata: { language: 'tlh' } } };
-    expect(sendSmsHookSchema.parse(inHindi).language).toBe('hi');
-    expect(sendSmsHookSchema.parse(inKlingon).language).toBe('en');
   });
 
   it('refuses a number that is not an Indian mobile', () => {

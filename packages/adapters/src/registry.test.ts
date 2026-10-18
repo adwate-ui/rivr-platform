@@ -56,7 +56,7 @@ describe('createAdapters for a real venue', () => {
   it('falls back to the fake for an adapter without credentials', async () => {
     const adapters = createAdapters({ isPracticeVenue: false, live: {} });
 
-    expect(await adapters.whatsapp.sendTemplate({ category: 'utility', to: phone, template: 'x', language: 'en', params: [] })).toMatchObject({
+    expect(await adapters.whatsapp.sendTemplate({ category: 'utility', to: phone, template: 'x', params: [] })).toMatchObject({
       ok: true,
     });
     expect(await adapters.cachePurge.purgeUrls({ urls: ['https://rivr.test/'] })).toMatchObject({ ok: true });

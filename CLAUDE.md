@@ -22,7 +22,7 @@ Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which set
 - `packages/domain` every business rule (money, rake, call time, TDS, GST, priority, payouts, points). Pure TypeScript.
 - `packages/db` the only code that talks to Supabase.
 - `packages/contracts` Zod schemas shared by apps and Edge Functions.
-- `packages/i18n` every user-facing string (en, hi) and the money/time formatters.
+- `packages/i18n` every user-facing string (English only) and the money/time formatters.
 - `packages/adapters` one interface per vendor, each with a fake.
 - `supabase/` migrations, Edge Functions, seed, pgTAP tests.
 
@@ -57,7 +57,7 @@ Show evidence, not claims: the command you ran and its output, or the screenshot
 ## Done means
 
 - The task's acceptance criteria pass, end to end where a flow exists, with the evidence in the PR.
-- Built only from `@rivr/ui` and `@rivr/i18n`, in English and Hindi, with loading, empty and error states.
+- Built only from `@rivr/ui` and `@rivr/i18n`, in English (Hindi is out of scope, decision 0027), with loading, empty and error states.
 - Works on the target device: phone (player), dealer tablet, 1440 px (console), 1920 px (TV).
 - Correct in the practice venue, and nothing from it reaches an external system.
 - Package README updated; the PR closes its issue.

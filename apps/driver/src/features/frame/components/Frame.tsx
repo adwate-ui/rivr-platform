@@ -1,5 +1,5 @@
 import { useControlState } from '@rivr/db';
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { DriverShell, KillSwitchBanner } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
@@ -8,7 +8,6 @@ import type { ReactNode } from 'react';
  * trip screens, the foreground location service and drop confirmation by player code.
  */
 export function Frame({ children }: { children: ReactNode }) {
-  const t = useT();
   const { isVenueFrozen } = useControlState();
   return (
     <DriverShell
