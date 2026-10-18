@@ -49,7 +49,7 @@ export function SignUpScreen() {
           <Button variant="primary" type="submit" fullWidth isLoading={signUp.isPending || member.isPending}>
             {t('player.signUp.submit')}
           </Button>
-          {/* A mistyped number signs out and starts again; the frame sends a signed-out phone to sign-in. */}
+          {/* A mistyped number signs out and starts again: this screen sends a signed-out phone to sign-in. */}
           <Button variant="text" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>
             {t('player.signUp.otherNumber')}
           </Button>

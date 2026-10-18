@@ -7,6 +7,7 @@
  * in as her.
  */
 import { expect, test, type Locator } from '@playwright/test';
+import { appUrl } from '../support/apps.ts';
 import { signInToPlayer } from '../support/signIn.ts';
 
 /** Presses a control and checks its state flipped; returns the state it should keep. */
@@ -18,7 +19,7 @@ async function flip(control: Locator, attribute: 'aria-pressed' | 'aria-checked'
 }
 
 test.describe('Profile', () => {
-  test('a member keeps their games, notifications and promotions choice, and finds limits', async ({ page }) => {
+  test('a member keeps their games, notifications and promotions choice, finds limits, and signs out', async ({ page }) => {
     await signInToPlayer(page, '9000000209');
     await page.getByRole('link', { name: 'Profile' }).click();
     await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible();
@@ -39,11 +40,12 @@ test.describe('Profile', () => {
     await page.getByRole('button', { name: 'Limits and self-exclusion' }).click();
     await expect(page.getByRole('heading', { name: 'Limits and self-exclusion' })).toBeVisible();
 
-    // Profile ends with sign out (#207): back to sign-in, and Profile is out of reach.
+    // Profile ends with sign out (#207): back to sign-in, and Profile, opened by its address, is out of reach.
     await page.goBack();
     await page.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
-    await page.goBack();
+    await page.goto(`${appUrl('player')}/profile`);
+    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toHaveCount(0);
   });
 });

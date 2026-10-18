@@ -14,8 +14,19 @@ import { SignOutSection } from './SignOutSection.tsx';
 export function ProfileScreen() {
   const preferences = usePreferences();
   const title = t('player.profile.title');
-  if (preferences.isPending) return <Screen title={title} status="loading" />;
-  if (preferences.isError) return <Screen title={title} status="error" onRetry={() => void preferences.refetch()} />;
+  if (preferences.isPending || preferences.isError) {
+    // Sign out works offline, so it stays within reach when Profile cannot load.
+    return (
+      <Stack gap={8}>
+        {preferences.isPending ? (
+          <Screen title={title} status="loading" />
+        ) : (
+          <Screen title={title} status="error" onRetry={() => void preferences.refetch()} />
+        )}
+        <SignOutSection />
+      </Stack>
+    );
+  }
   return (
     <Screen title={title}>
       <Stack gap={8}>
