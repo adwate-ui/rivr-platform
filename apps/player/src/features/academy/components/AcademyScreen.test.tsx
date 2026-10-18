@@ -16,7 +16,7 @@ const LEVEL_1 = { id: 'b1', name: 'Level 1', starts_on: '2026-11-15', ends_on: '
  * Kabir signed in with Academy booking, and a fake API: the open batches it is given (each answer
  * in turn, the last one again), no bookings, and the booking refusal it is given.
  */
-function renderAcademy({ openBatches, refusalCode }: { openBatches: unknown[][]; refusalCode: string }) {
+function renderAcademy({ openBatches, refusalCode, holdSecondBooking = false }: { openBatches: unknown[][]; refusalCode: string; holdSecondBooking?: boolean }) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -29,11 +29,16 @@ function renderAcademy({ openBatches, refusalCode }: { openBatches: unknown[][];
     }),
   );
   let asked = 0;
+  let bookings = 0;
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/my_feature_access')) return Response.json([{ feature_key: 'academy.booking', state: 'enabled', tiers: null }]);
     if (url.includes('/rpc/academy_open_batches')) return Response.json(openBatches[Math.min(asked++, openBatches.length - 1)]);
-    if (url.includes('/rpc/book_academy')) return Response.json({ code: refusalCode, message: 'refused' }, { status: 400 });
+    if (url.includes('/rpc/book_academy')) {
+      // A second try that is still going, when asked for: the first one's refusal must already be gone.
+      if (++bookings > 1 && holdSecondBooking) await new Promise(() => undefined);
+      return Response.json({ code: refusalCode, message: 'refused' }, { status: 400 });
+    }
     return Response.json([]);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
@@ -62,5 +67,27 @@ describe('the Academy screen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
     expect(await screen.findByText('This batch is full.')).toBeDefined();
     expect(screen.queryByText('Level 1: This batch is full.')).toBeNull();
+  });
+
+  it('says why on the card itself while the batch is still listed, where the member tapped', async () => {
+    renderAcademy({ openBatches: [[LEVEL_1]], refusalCode: 'RVPRC' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
+    expect(await screen.findAllByText('The club has not set the Academy fee yet. Try again later.')).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: 'Level 1' })).toBeDefined();
+  });
+
+  it('says a refusal about the whole club in its own words, not as the batch\'s', async () => {
+    renderAcademy({ openBatches: [[LEVEL_1], []], refusalCode: 'RVFRZ' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
+    expect(await screen.findByText('The club is paused. Staff will assist you.')).toBeDefined();
+    expect(screen.queryByText(/^Level 1:/)).toBeNull();
+  });
+
+  it('drops an earlier refusal as soon as the member tries again', async () => {
+    renderAcademy({ openBatches: [[LEVEL_1]], refusalCode: 'RVPRC', holdSecondBooking: true });
+    fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
+    await screen.findByText('The club has not set the Academy fee yet. Try again later.');
+    fireEvent.click(screen.getByRole('button', { name: 'Book a seat' }));
+    expect(screen.queryByText('The club has not set the Academy fee yet. Try again later.')).toBeNull();
   });
 });

@@ -22,16 +22,18 @@ export function AcademyScreen() {
   );
 }
 
+// Refusals about the batch itself name it; the rest (the club paused, the account, the connection)
+// are the same whatever the batch, and keep their own words.
+const ABOUT_THE_BATCH: readonly AcademyFailure[] = ['full', 'closed'];
+
 /**
- * Why the last booking was refused, at the top of the screen with the batch's name: the batch may
- * have closed and left the list since, taking its card with it (#230). A batch that has just filled
- * says so on its own card, so that refusal is not said twice.
+ * Why the last booking was refused, at the top of the screen, once the batch has left the list and
+ * taken its card with it (#230). While the batch is listed, its card says why, where the member tapped.
  */
 function RefusalMessage({ refusal, open }: { refusal: Refusal | null; open: readonly AcademyBatch[] }) {
-  if (refusal === null) return null;
-  const saidOnCard = refusal.failure === 'full' && open.some((batch) => batch.id === refusal.batchId && batch.seatsLeft === 0);
-  if (saidOnCard) return null;
-  return <ErrorMessage>{t('player.academy.refused', { batch: refusal.batchName, reason: t(FAILURE_COPY[refusal.failure]) })}</ErrorMessage>;
+  if (refusal === null || open.some((batch) => batch.id === refusal.batchId)) return null;
+  const reason = t(FAILURE_COPY[refusal.failure]);
+  return <ErrorMessage>{ABOUT_THE_BATCH.includes(refusal.failure) ? t('player.academy.refused', { batch: refusal.batchName, reason }) : reason}</ErrorMessage>;
 }
 
 /** The member's own seats, then the open batches they have no seat in. */
@@ -54,7 +56,12 @@ function AcademyBatches() {
         <RefusalMessage refusal={refusal} open={open} />
         {isEmpty ? <Text tone="muted">{t('player.academy.empty')}</Text> : null}
         <YourBookings bookings={bookings.data} />
-        <OpenBatches open={open} onBooking={() => setRefusal(null)} onRefused={(batch, failure) => setRefusal({ batchId: batch.id, batchName: batch.name, failure })} />
+        <OpenBatches
+          open={open}
+          refusal={refusal}
+          onBooking={() => setRefusal(null)}
+          onRefused={(batch, failure) => setRefusal({ batchId: batch.id, batchName: batch.name, failure })}
+        />
       </Stack>
     </Screen>
   );
@@ -75,19 +82,26 @@ function YourBookings({ bookings }: { bookings: readonly AcademyBooking[] }) {
 
 interface OpenBatchesProps {
   open: readonly AcademyBatch[];
+  refusal: Refusal | null;
   onBooking: () => void;
   onRefused: (batch: AcademyBatch, failure: AcademyFailure) => void;
 }
 
 /** The open batches the member has no seat in, or nothing when there are none. */
-function OpenBatches({ open, onBooking, onRefused }: OpenBatchesProps) {
+function OpenBatches({ open, refusal, onBooking, onRefused }: OpenBatchesProps) {
   if (open.length === 0) return null;
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('player.academy.openBatches')}</Heading>
       <Stack gap={6} divided>
         {open.map((batch) => (
-          <BatchCard key={batch.id} batch={batch} onBooking={onBooking} onRefused={(failure) => onRefused(batch, failure)} />
+          <BatchCard
+            key={batch.id}
+            batch={batch}
+            failure={refusal?.batchId === batch.id ? refusal.failure : null}
+            onBooking={onBooking}
+            onRefused={(failure) => onRefused(batch, failure)}
+          />
         ))}
       </Stack>
     </Stack>
