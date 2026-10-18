@@ -22,6 +22,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
   ('00000000-0000-4000-8000-000000000204', '+919000000204', 'Rohan Bhatia'),
+  ('00000000-0000-4000-8000-000000000209', '+919000000209', 'Tara Menon'),
   ('00000000-0000-4000-8000-000000000301', '+919000000301', 'Asha Verma'),
   ('00000000-0000-4000-8000-000000000302', '+919000000302', 'Rajat Singh');
 
@@ -68,7 +69,9 @@ from (values
   ('00000000-0000-4000-8000-000000000201'::uuid, 'Black card', 10000::bigint, 20000::bigint),
   ('00000000-0000-4000-8000-000000000202'::uuid, 'Member', null, null),
   ('00000000-0000-4000-8000-000000000203'::uuid, 'Member', null, null),
-  ('00000000-0000-4000-8000-000000000204'::uuid, 'Member', null, null)
+  ('00000000-0000-4000-8000-000000000204'::uuid, 'Member', null, null),
+  -- The Profile flow's own member: Auth sends one code a minute to a number, so each flow signs in as its own.
+  ('00000000-0000-4000-8000-000000000209'::uuid, 'Member', null, null)
 ) as m (person_id, tier_name, small_blind, big_blind)
 join seed_person p on p.id = m.person_id
 on conflict (id) do nothing;
