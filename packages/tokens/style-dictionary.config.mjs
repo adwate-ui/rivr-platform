@@ -2,11 +2,14 @@
  * Builds every token output from tokens.json into generated/. Run it with
  * `pnpm --filter @rivr/tokens build`; never edit generated/ by hand.
  */
-import { rmSync } from 'node:fs';
+import { mkdirSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 import StyleDictionary from 'style-dictionary';
 import { androidTheme, manifestColors, tailwindTheme, typescriptConstants } from './formats.mjs';
 
-const OUT = 'generated/';
+const GENERATED = 'generated/';
+// Built here first, then moved into generated/ (see the end of this file).
+const OUT = 'generated.next/';
 
 StyleDictionary.registerFileHeader({
   name: 'rivr',
@@ -59,6 +62,24 @@ const config = {
   },
 };
 
-// Start clean so an output removed from the config does not linger in generated/.
+/** Every file under `dir`, as paths relative to it. */
+function filesIn(dir) {
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => relative(dir, join(entry.parentPath, entry.name)));
+}
+
 rmSync(OUT, { recursive: true, force: true });
 await new StyleDictionary(config).buildAllPlatforms();
+
+// Typechecks read generated/ while CI builds in parallel, so it is never emptied: each new file
+// replaces the old one in a single rename, then an output removed from the config is deleted.
+const built = new Set(filesIn(OUT));
+for (const file of built) {
+  mkdirSync(dirname(join(GENERATED, file)), { recursive: true });
+  renameSync(join(OUT, file), join(GENERATED, file));
+}
+for (const file of filesIn(GENERATED)) {
+  if (!built.has(file)) rmSync(join(GENERATED, file));
+}
+rmSync(OUT, { recursive: true, force: true });
