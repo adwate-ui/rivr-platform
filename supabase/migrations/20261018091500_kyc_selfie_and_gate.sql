@@ -53,16 +53,23 @@ create unique index kyc_record_verified_aadhaar_key on public.kyc_record (venue_
 select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'kyc_reference_key',
                            'HMAC key for kyc_record.aadhaar_reference');
 
+-- Without the key every reference would be stored as null and no duplicate Aadhaar ever found, so a
+-- missing key stops the check instead.
 create function private.kyc_reference(p_reference text)
 returns text
-language sql
+language plpgsql
 stable
 security definer
 set search_path = ''
 as $$
-  select encode(extensions.hmac(convert_to(p_reference, 'UTF8'), decode(s.decrypted_secret, 'hex'), 'sha256'), 'hex')
-  from vault.decrypted_secrets s
-  where s.name = 'kyc_reference_key';
+declare
+  v_key text := (select s.decrypted_secret from vault.decrypted_secrets s where s.name = 'kyc_reference_key');
+begin
+  if v_key is null then
+    raise exception 'The KYC reference key is missing from Vault';
+  end if;
+  return encode(extensions.hmac(convert_to(p_reference, 'UTF8'), decode(v_key, 'hex'), 'sha256'), 'hex');
+end;
 $$;
 
 -- The audit trail now also records why a check was refused.

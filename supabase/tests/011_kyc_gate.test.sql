@@ -124,6 +124,11 @@ select is((select row(pan, aadhaar_reference, date_of_birth)::text from public.k
 select ok(exists (select 1 from public.audit_log where entity = 'kyc_record' and after ->> 'refusal' = 'duplicate_face'),
   'the audit log records why a check was refused');
 
+-- Without the Vault key, Aadhaar references stop rather than go unchecked.
+delete from vault.secrets where name = 'kyc_reference_key';
+select throws_ok($$ select private.kyc_reference('aadhaar-anyone') $$, 'P0001', 'The KYC reference key is missing from Vault',
+  'a missing key stops the check rather than skip duplicates');
+
 -- Members see their own status, never why it was refused or the vendor's scores; only the kyc Edge
 -- Function writes; only lanes' own functions ask the gate.
 set local role authenticated;

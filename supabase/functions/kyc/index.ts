@@ -104,7 +104,8 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
   // A body without its length, or a longer one, is refused before it is read.
-  if (!(Number(request.headers.get('content-length')) <= MAX_BODY_BYTES)) return reply({ error: 'Too large' }, 413);
+  const length = request.headers.get('content-length');
+  if (length === null || length === '' || !(Number(length) <= MAX_BODY_BYTES)) return reply({ error: 'Too large' }, 413);
   const token = request.headers.get('authorization') ?? '';
   // Who is asking before anything else is read.
   const subject = await subjectFor(token);
