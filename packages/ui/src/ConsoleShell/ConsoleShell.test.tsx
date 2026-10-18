@@ -32,6 +32,16 @@ describe('ConsoleShell', () => {
     expect(screen.getByRole('complementary')).toHaveTextContent('Sana Qureshi');
   });
 
+  it('scrolls the list of screens, not the foot of the rail, so signing out stays in view', () => {
+    renderShell();
+    const list = screen.getByRole('navigation', { name: 'Sections' }).parentElement;
+    expect(list).toHaveClass('overflow-y-auto');
+    expect(list).not.toContainElement(screen.getByText('Sana Qureshi'));
+    expect(screen.getByRole('main')).toHaveClass('overflow-y-auto');
+    // A keyboard can scroll the screen even when it has nothing else to focus.
+    expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
+  });
+
   it('groups the rail as the design prompt lists it and marks the current screen', () => {
     renderShell();
     for (const group of ['Floor', 'Money', 'Players', 'Growth', 'Team']) {
