@@ -24,6 +24,18 @@ select is(private.require_code_sign_in(pg_temp.event(array[]::text[], 'password'
   'a session with no sign-in method gets no token');
 select is(private.require_code_sign_in('{}'::jsonb) -> 'error' ->> 'message', 'Sign in with the code sent to your phone.',
   'an event without claims gets no token, and the reason says how to sign in');
+select is(private.require_code_sign_in(pg_temp.event(array['otp', 'totp'], 'totp')) -> 'error', null,
+  'a code sign-in with a second factor added keeps its token');
+select is(private.require_code_sign_in(pg_temp.event(array['password', 'mfa/phone'], 'mfa/phone')) -> 'error' ->> 'http_code', '403',
+  'a password sign-in with a phone second factor gets no token');
+select is(private.require_code_sign_in('{"claims": {"amr": null}}'::jsonb) -> 'error' ->> 'http_code', '403',
+  'an amr that is null is refused, not an error');
+
+select is(
+  (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'private' and p.proname <> 'require_code_sign_in'
+     and has_function_privilege('supabase_auth_admin', p.oid, 'execute'))::int,
+  0, 'Auth can call nothing else in private');
 
 select ok(has_function_privilege('supabase_auth_admin', 'private.require_code_sign_in(jsonb)', 'execute'), 'Auth can call it');
 select ok(not has_function_privilege('authenticated', 'private.require_code_sign_in(jsonb)', 'execute'), 'a signed-in person cannot');

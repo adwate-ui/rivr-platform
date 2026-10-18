@@ -25,18 +25,16 @@ test.describe('sign-in: code only', () => {
   test('a password set before the owner first signs in never opens a session', async ({ request }) => {
     const auth = authApi(request);
 
-    const signUp = await auth('signup', { phone: PHONE, password: PASSWORD });
-    if (signUp.status() === 200) {
-      // The owner's first sign-in by code confirms the number; that session is issued and refreshes.
-      const byCode = await auth('verify', { type: 'sms', phone: PHONE, token: TEST_CODE });
-      expect(byCode.status()).toBe(200);
-      const refreshToken: unknown = Reflect.get(await byCode.json(), 'refresh_token');
-      expect(typeof refreshToken).toBe('string');
-      expect((await auth('token?grant_type=refresh_token', { refresh_token: refreshToken })).status()).toBe(200);
-    } else {
-      // An earlier run on this database got this far already; `pnpm db:reset` starts afresh.
-      expect(signUp.status()).toBe(422);
-    }
+    // With phone confirmations on, Auth answers 200 even when an earlier run made the account,
+    // and a test number takes its code whether or not one is pending, so a rerun passes too.
+    expect((await auth('signup', { phone: PHONE, password: PASSWORD })).status()).toBe(200);
+
+    // The owner's first sign-in by code confirms the number; that session is issued and refreshes.
+    const byCode = await auth('verify', { type: 'sms', phone: PHONE, token: TEST_CODE });
+    expect(byCode.status()).toBe(200);
+    const refreshToken: unknown = Reflect.get(await byCode.json(), 'refresh_token');
+    expect(typeof refreshToken).toBe('string');
+    expect((await auth('token?grant_type=refresh_token', { refresh_token: refreshToken })).status()).toBe(200);
 
     const byPassword = await auth('token?grant_type=password', { phone: PHONE, password: PASSWORD });
     expect(byPassword.status()).toBe(403);
