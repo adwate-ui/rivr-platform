@@ -13,6 +13,11 @@ export const queryKeys = {
   controlState: (userId: string) => ['user', userId, 'control-state'] as const,
   /** The signed-in member's games, stake, notification choices and marketing consent. */
   preferences: (userId: string) => ['user', userId, 'preferences'] as const,
+  /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
+  academy: (userId: string) => ['user', userId, 'academy'] as const,
+  academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,
+  academyBookings: (userId: string) => ['user', userId, 'academy', 'bookings'] as const,
+  academyPayment: (userId: string, bookingId: string) => ['user', userId, 'academy', 'payment', bookingId] as const,
   /** The signed-in member's KYC record. */
   kycRecord: (userId: string) => ['user', userId, 'kyc-record'] as const,
   /** The venues where the signed-in person is active staff, with their role. */

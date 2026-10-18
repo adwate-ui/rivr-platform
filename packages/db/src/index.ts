@@ -10,6 +10,17 @@ export { rememberAttribution, storedAttribution, type SignUpAttribution } from '
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
 export {
+  useAcademyActions,
+  useAcademyBatches,
+  useAcademyBookings,
+  useAcademyPayment,
+  type AcademyBatch,
+  type AcademyBooking,
+  type AcademyBookingStatus,
+  type AcademyFailure,
+  type AcademyPayment,
+} from './academy.ts';
+export {
   GAMES,
   PUSH_CHOICES,
   usePreferenceActions,

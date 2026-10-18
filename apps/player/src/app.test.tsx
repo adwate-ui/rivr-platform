@@ -68,16 +68,20 @@ describe('the player app', () => {
   });
 });
 
+// Sign-in is loaded lazily: the first test to open it waits for its module, which a busy CI runner
+// can take more than findBy's default second to load.
+const LAZY_SCREEN = { timeout: 5000 };
+
 describe('sign-in', () => {
   it('is where anyone signed out goes', async () => {
     renderAt('/');
-    expect(await screen.findByRole('textbox', { name: 'Mobile number' })).toBeDefined();
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
   });
 
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {
     renderAt('/sign-in');
-    expect(await screen.findByRole('img', { name: 'RIVR Poker Club' })).toBeDefined();
+    expect(await screen.findByRole('img', { name: 'RIVR Poker Club' }, LAZY_SCREEN)).toBeDefined();
     expect(screen.getAllByText('Skill runs deep.')).toHaveLength(1);
     expect(screen.getByRole('textbox', { name: 'Mobile number' })).toBeDefined();
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
