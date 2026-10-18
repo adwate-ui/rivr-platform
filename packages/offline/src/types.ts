@@ -1,11 +1,20 @@
-/** What `send` reports for one write: the server has it (a duplicate key counts), or try again later. */
-export type SendOutcome = 'sent' | 'retry';
+/**
+ * What `send` reports for one write: the server has it (a duplicate key counts), try again later
+ * (offline, a timeout, a server error), or the server refused it for good (a check violation, a
+ * frozen venue) and retrying would only block every write behind it.
+ */
+export type SendOutcome = 'sent' | 'retry' | 'rejected';
 
 /** A write waiting in the queue. */
 export interface QueuedWrite<Payload> {
   readonly idempotencyKey: string;
   readonly payload: Payload;
   readonly enqueuedAt: Date;
+}
+
+/** A write the server refused for good, kept for a supervisor to see and resolve. */
+export interface ParkedWrite<Payload> extends QueuedWrite<Payload> {
+  readonly rejectedAt: Date;
 }
 
 /** How long to wait between attempts: the first delay doubles after each failed attempt, up to the cap. */
@@ -31,9 +40,10 @@ export interface OfflineQueueOptions<Payload> {
   readonly schedule?: Schedule;
 }
 
-/** What one flush did: writes delivered, and writes still waiting. */
+/** What one flush did: writes delivered, writes parked as refused, and writes still waiting. */
 export interface FlushResult {
   readonly sent: number;
+  readonly parked: number;
   readonly pending: number;
 }
 
@@ -41,8 +51,15 @@ export interface FlushResult {
 export interface OfflineQueue<Payload> {
   /** Keeps the write and starts sending. A key already in the queue is ignored, so a double tap lands once. */
   enqueue(payload: Payload, idempotencyKey: string): Promise<void>;
-  /** Sends waiting writes oldest first and stops at the first failure, so order is kept. */
+  /**
+   * Sends waiting writes oldest first and stops at the first 'retry', so order is kept. A
+   * 'rejected' write moves to the parked list and the writes behind it carry on.
+   */
   flush(): Promise<FlushResult>;
+  /** Writes the server refused for good, oldest first, for the app to show a supervisor. */
+  parked(): Promise<readonly ParkedWrite<Payload>[]>;
+  /** Forgets a parked write once a person has dealt with it. */
+  discardParked(idempotencyKey: string): Promise<void>;
   /** How many writes are waiting. */
   pendingCount(): Promise<number>;
   /** Calls `listener` with the waiting count once it is read, then whenever it changes. Returns an unsubscribe. */

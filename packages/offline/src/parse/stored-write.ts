@@ -1,4 +1,4 @@
-import type { QueuedWrite } from '../types.ts';
+import type { ParkedWrite, QueuedWrite } from '../types.ts';
 
 /** A queued write as IndexedDB holds it, with the sequence number that orders the queue. */
 export interface StoredWrite<Payload> extends QueuedWrite<Payload> {
@@ -26,6 +26,24 @@ export function toStoredWrite<Payload>(value: unknown): StoredWrite<Payload> {
     sequence: value.sequence,
     idempotencyKey: value.idempotencyKey,
     enqueuedAt: value.enqueuedAt,
+    payload: value.payload as Payload,
+  };
+}
+
+/** Checks a parked write read back from IndexedDB, trusting the payload as toStoredWrite does. */
+export function toParkedWrite<Payload>(value: unknown): ParkedWrite<Payload> {
+  if (
+    !isRecord(value) ||
+    typeof value.idempotencyKey !== 'string' ||
+    !(value.enqueuedAt instanceof Date) ||
+    !(value.rejectedAt instanceof Date)
+  ) {
+    throw new Error('The offline queue holds a parked record it did not write');
+  }
+  return {
+    idempotencyKey: value.idempotencyKey,
+    enqueuedAt: value.enqueuedAt,
+    rejectedAt: value.rejectedAt,
     payload: value.payload as Payload,
   };
 }

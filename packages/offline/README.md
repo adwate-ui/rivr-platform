@@ -6,16 +6,20 @@ The one outbox for writes made offline, kept in IndexedDB so they survive a relo
 
 | Export | What it does |
 |---|---|
-| `createOfflineQueue({ name, send, indexedDB?, retry?, schedule? })` | Opens the queue in the IndexedDB database `name`. `send` delivers one write and resolves `'sent'` or `'retry'`; a throw counts as `'retry'`. |
+| `createOfflineQueue({ name, send, indexedDB?, retry?, schedule? })` | Opens the queue in the IndexedDB database `name`. `send` delivers one write and resolves `'sent'`, `'retry'` or `'rejected'`; a throw counts as `'retry'`. |
 | `queue.enqueue(payload, idempotencyKey)` | Keeps the write, then starts sending. A key already queued is ignored, so a double tap lands once. |
-| `queue.flush()` | Sends oldest first and stops at the first failure, so order is kept. Resolves `{ sent, pending }`. |
+| `queue.flush()` | Sends oldest first and stops at the first `'retry'`, so order is kept. A `'rejected'` write is parked and the writes behind it carry on. Resolves `{ sent, parked, pending }`. |
 | `queue.pendingCount()` | How many writes wait. |
+| `queue.parked()` | The writes the server refused for good, oldest first, each with `rejectedAt`, for the app to show a supervisor. |
+| `queue.discardParked(idempotencyKey)` | Forgets a parked write once a person has dealt with it. |
 | `queue.subscribe(listener)` | Calls `listener(pending)` once the count is read, then on every change; returns an unsubscribe. |
-| `queue.close()` | Stops retries and releases the database. Waiting writes stay for the next open. |
+| `queue.close()` | Stops retries and releases the database. Waiting and parked writes stay for the next open. |
 | `retryDelay(failures, policy)`, `DEFAULT_RETRY` | The backoff: 1 s doubling to 60 s by default. |
-| `OfflineQueue`, `OfflineQueueOptions`, `QueuedWrite`, `SendOutcome`, `FlushResult`, `RetryPolicy`, `Schedule` | Types. |
+| `OfflineQueue`, `OfflineQueueOptions`, `QueuedWrite`, `ParkedWrite`, `SendOutcome`, `FlushResult`, `RetryPolicy`, `Schedule` | Types. |
 
-After a failure the queue retries on its own with the backoff, and starts over at the first delay once the queue empties.
+After a `'retry'` the queue retries on its own with the backoff, and starts over at the first delay once the queue empties.
+
+`'retry'` is for anything that may succeed later: offline, a timeout, a server error. `'rejected'` is for a refusal that never will: a check violation, a venue freeze, a hand for a closed table. Retrying those would block every hand behind them, so they are parked instead.
 
 ## Usage
 
@@ -24,11 +28,16 @@ import { createOfflineQueue } from '@rivr/offline';
 
 const hands = createOfflineQueue<HandPayload>({
   name: 'tablet-hands',
-  send: async ({ payload, idempotencyKey }) => ((await logHand(payload, idempotencyKey)).ok ? 'sent' : 'retry'),
+  send: async ({ payload, idempotencyKey }) => {
+    const result = await logHand(payload, idempotencyKey);
+    if (result.ok) return 'sent';
+    return result.isPermanent ? 'rejected' : 'retry';
+  },
 });
 
 await hands.enqueue(hand, idempotencyKey); // the key is made once, when the dealer taps Log hand
 hands.subscribe((pending) => setBanner(pending)); // "Offline. 3 hands queued."
+const refused = await hands.parked(); // shown to the floor supervisor until each is resolved
 ```
 
 ## What the server must do

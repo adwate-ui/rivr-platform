@@ -4,6 +4,7 @@ export type {
   FlushResult,
   OfflineQueue,
   OfflineQueueOptions,
+  ParkedWrite,
   QueuedWrite,
   RetryPolicy,
   Schedule,

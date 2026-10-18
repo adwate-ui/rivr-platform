@@ -5,6 +5,7 @@ import type {
   FlushResult,
   OfflineQueue,
   OfflineQueueOptions,
+  ParkedWrite,
   QueuedWrite,
   RetryPolicy,
   Schedule,
@@ -66,19 +67,35 @@ class Outbox<Payload> implements OfflineQueue<Payload> {
     this.#store.close();
   }
 
+  parked(): Promise<readonly ParkedWrite<Payload>[]> {
+    return this.#store.parked();
+  }
+
+  discardParked(idempotencyKey: string): Promise<void> {
+    return this.#store.discardParked(idempotencyKey);
+  }
+
   async #drain(): Promise<FlushResult> {
     this.#cancelRetry?.();
     let sent = 0;
+    let parked = 0;
     let oldest = await this.#store.oldest();
     while (oldest !== undefined) {
-      if ((await this.#deliver(oldest)) === 'retry') return this.#afterFailure(sent);
-      await this.#store.remove(oldest.sequence);
-      sent += 1;
+      const outcome = await this.#deliver(oldest);
+      if (outcome === 'retry') return this.#afterFailure(sent, parked);
+      if (outcome === 'rejected') {
+        // Retrying a refused write would block every hand behind it: park it for a person.
+        await this.#store.park(oldest, new Date());
+        parked += 1;
+      } else {
+        await this.#store.remove(oldest.sequence);
+        sent += 1;
+      }
       await this.#notify();
       oldest = await this.#store.oldest();
     }
     this.#failuresInARow = 0;
-    return { sent, pending: 0 };
+    return { sent, parked, pending: 0 };
   }
 
   async #deliver(write: StoredWrite<Payload>): Promise<SendOutcome> {
@@ -89,10 +106,10 @@ class Outbox<Payload> implements OfflineQueue<Payload> {
     }
   }
 
-  async #afterFailure(sent: number): Promise<FlushResult> {
+  async #afterFailure(sent: number, parked: number): Promise<FlushResult> {
     this.#failuresInARow += 1;
     this.#scheduleRetry();
-    return { sent, pending: await this.#store.count() };
+    return { sent, parked, pending: await this.#store.count() };
   }
 
   #scheduleRetry(): void {

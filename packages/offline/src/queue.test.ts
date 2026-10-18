@@ -13,15 +13,19 @@ function fakeServer() {
   const delivered: string[] = [];
   const kept = new Map<string, Hand>();
   const failing = new Set<string>();
+  // Writes the database refuses for good, such as a check violation.
+  const refusing = new Set<string>();
   return {
     attempts,
     delivered,
     kept,
     failing,
+    refusing,
     isDown: false,
     async send(write: QueuedWrite<Hand>): Promise<SendOutcome> {
       attempts.push(write.idempotencyKey);
       if (this.isDown || failing.has(write.idempotencyKey)) return 'retry';
+      if (refusing.has(write.idempotencyKey)) return 'rejected';
       delivered.push(write.idempotencyKey);
       if (!kept.has(write.idempotencyKey)) kept.set(write.idempotencyKey, write.payload);
       return 'sent';
@@ -80,7 +84,7 @@ describe('offline queue', () => {
     await queue.enqueue(hand(14_000_000n), 'hand-2');
     await queue.enqueue(hand(250_000n), 'hand-3');
 
-    expect(await queue.flush()).toEqual({ sent: 0, pending: 0 });
+    expect(await queue.flush()).toEqual({ sent: 0, parked: 0, pending: 0 });
     expect([...server.kept.keys()]).toEqual(['hand-1', 'hand-2', 'hand-3']);
     expect(server.kept.get('hand-1')).toEqual(hand(4_800_000n));
     expect(await queue.pendingCount()).toBe(0);
@@ -93,10 +97,10 @@ describe('offline queue', () => {
     await queue.enqueue(hand(4_800_000n), 'hand-1');
     await queue.enqueue(hand(4_800_000n), 'hand-1');
     // Still down: this flush waits behind the ones the two taps started.
-    expect(await queue.flush()).toEqual({ sent: 0, pending: 1 });
+    expect(await queue.flush()).toEqual({ sent: 0, parked: 0, pending: 1 });
 
     server.isDown = false;
-    expect(await queue.flush()).toEqual({ sent: 1, pending: 0 });
+    expect(await queue.flush()).toEqual({ sent: 1, parked: 0, pending: 0 });
     expect(server.delivered).toEqual(['hand-1']);
   });
 
@@ -107,11 +111,11 @@ describe('offline queue', () => {
     await queue.enqueue(hand(100_000n), 'hand-1');
     await queue.enqueue(hand(200_000n), 'hand-2');
     await queue.enqueue(hand(300_000n), 'hand-3');
-    expect(await queue.flush()).toEqual({ sent: 0, pending: 2 });
+    expect(await queue.flush()).toEqual({ sent: 0, parked: 0, pending: 2 });
     expect(server.attempts).not.toContain('hand-3');
 
     server.failing.clear();
-    expect(await queue.flush()).toEqual({ sent: 2, pending: 0 });
+    expect(await queue.flush()).toEqual({ sent: 2, parked: 0, pending: 0 });
     expect([...server.kept.keys()]).toEqual(['hand-1', 'hand-2', 'hand-3']);
   });
 
@@ -125,7 +129,7 @@ describe('offline queue', () => {
 
     await queue.enqueue(hand(100_000n), 'hand-1');
 
-    expect(await queue.flush()).toEqual({ sent: 0, pending: 1 });
+    expect(await queue.flush()).toEqual({ sent: 0, parked: 0, pending: 1 });
     expect(scheduler.delays.length).toBeGreaterThan(0);
   });
 
@@ -180,6 +184,51 @@ describe('offline queue', () => {
   });
 });
 
+describe('offline queue: writes the server refuses for good', () => {
+  it('parks a refused write and sends the ones behind it', async () => {
+    server.refusing.add('hand-2');
+    const queue = openQueue();
+
+    await queue.enqueue(hand(100_000n), 'hand-1');
+    await queue.enqueue(hand(200_000n), 'hand-2');
+    await queue.enqueue(hand(300_000n), 'hand-3');
+    await queue.flush();
+
+    expect([...server.kept.keys()]).toEqual(['hand-1', 'hand-3']);
+    expect(await queue.pendingCount()).toBe(0);
+    const parked = await queue.parked();
+    expect(parked.map((write) => write.idempotencyKey)).toEqual(['hand-2']);
+    expect(parked[0]?.payload).toEqual(hand(200_000n));
+  });
+
+  it('reports parked writes from a flush and keeps them across a reload', async () => {
+    server.isDown = true;
+    server.refusing.add('hand-1');
+    const before = openQueue();
+    await before.enqueue(hand(100_000n), 'hand-1');
+    await before.enqueue(hand(200_000n), 'hand-2');
+    expect(await before.flush()).toEqual({ sent: 0, parked: 0, pending: 2 });
+
+    server.isDown = false;
+    expect(await before.flush()).toEqual({ sent: 1, parked: 1, pending: 0 });
+    before.close();
+
+    const after = openQueue();
+    expect((await after.parked()).map((write) => write.idempotencyKey)).toEqual(['hand-1']);
+  });
+
+  it('forgets a parked write once a person has dealt with it', async () => {
+    server.refusing.add('hand-1');
+    const queue = openQueue();
+    await queue.enqueue(hand(100_000n), 'hand-1');
+    await queue.flush();
+
+    await queue.discardParked('hand-1');
+
+    expect(await queue.parked()).toEqual([]);
+  });
+});
+
 describe('offline queue across a reload', () => {
   it('keeps unsent writes when the app closes', async () => {
     server.isDown = true;
@@ -211,7 +260,7 @@ describe('offline queue across a reload', () => {
 
     const reloaded = openQueue();
     expect(await reloaded.pendingCount()).toBe(2);
-    expect(await reloaded.flush()).toEqual({ sent: 2, pending: 0 });
+    expect(await reloaded.flush()).toEqual({ sent: 2, parked: 0, pending: 0 });
 
     expect(server.attempts).toEqual(['hand-1', 'hand-2', 'hand-2', 'hand-3']);
     expect([...server.kept.keys()]).toEqual(['hand-1', 'hand-2', 'hand-3']);
