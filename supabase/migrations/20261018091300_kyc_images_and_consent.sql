@@ -28,7 +28,7 @@ $$;
 -- The name must be exactly <venue_id>/<member_id>/<file>.<jpg|png|webp> and an object that exists:
 -- a name with `..` would pass a check of its first folder, then resolve to another venue's image
 -- once the signing request's URL is normalised.
-create function public.authorize_kyc_image(p_name text)
+create function private.authorize_kyc_image(p_name text)
 returns void
 language plpgsql
 security definer
@@ -46,7 +46,7 @@ begin
 end;
 $$;
 
-grant execute on function public.authorize_kyc_image(text) to authenticated;
+grant execute on function private.authorize_kyc_image(text) to authenticated;
 -- Writes to the bucket: only the KYC flow's Edge Functions, with the service role.
 
 -- Consent per purpose (DPDP). A grant is a row with its time; withdrawing it stamps withdrawn_at
@@ -90,7 +90,7 @@ create policy "staff with member access see the venue's consents" on public.cons
 -- The signed-in member gives consent for a purpose. Giving it while it is in force changes nothing.
 -- Neither consent function calls private.assert_writable: a freeze stops money, seats and hands,
 -- never a member's say over their own data.
-create function public.give_consent(p_purpose text)
+create function private.give_consent(p_purpose text)
 returns void
 language plpgsql
 security definer
@@ -109,7 +109,7 @@ end;
 $$;
 
 -- The signed-in member withdraws consent for a purpose. Always allowed, a venue freeze included.
-create function public.withdraw_consent(p_purpose text)
+create function private.withdraw_consent(p_purpose text)
 returns void
 language plpgsql
 security definer
@@ -141,5 +141,35 @@ as $$
   );
 $$;
 
-grant execute on function public.give_consent(text), public.withdraw_consent(text) to authenticated;
+grant execute on function private.give_consent(text), private.withdraw_consent(text) to authenticated;
 grant execute on function private.has_consent(uuid, text) to service_role;
+
+-- Signed-in callers reach the definer functions above only through these invoker wrappers.
+create function public.authorize_kyc_image(p_name text)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select * from private.authorize_kyc_image(p_name);
+$$;
+
+create function public.give_consent(p_purpose text)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select * from private.give_consent(p_purpose);
+$$;
+
+create function public.withdraw_consent(p_purpose text)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select * from private.withdraw_consent(p_purpose);
+$$;
+
+grant execute on function public.authorize_kyc_image(text), public.give_consent(text), public.withdraw_consent(text) to authenticated;
