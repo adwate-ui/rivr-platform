@@ -5,3 +5,4 @@
 *.woff2 binary
 *.jar binary
 *.keystore binary
+*.bat text eol=crlf
