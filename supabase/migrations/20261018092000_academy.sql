@@ -4,13 +4,17 @@
 -- and confirms it, and only then is the money in the ledger (bank in, Academy fees) and academy.booked
 -- emitted. Fees come from the academy.price setting, in paise; private.academy_fee is proved equal to
 -- @rivr/domain academyFee by the golden cases in packages/testing/golden/academy.json. Whether the fees
--- include GST is question #217; whether a member freeze stops a confirmation is question #219 (it does).
+-- include GST is question #217; whether a member freeze stops a confirmation is question #219 (it does);
+-- a payment made after the seat hold lapsed is question #220 (it is recorded).
 
 -- The club's UPI check could never run: Postgres allows at most 255 repeats, and it asked for 256.
 -- Academy fees are paid to this address, so it is the first one stored.
 alter table public.venue_config
   drop constraint venue_config_upi_vpa_check,
   add constraint venue_config_upi_vpa_check check (upi_vpa ~ '^[a-zA-Z0-9._-]{2,255}@[a-zA-Z]{2,64}$');
+
+-- Lets a booking carry its venue's practice flag, kept true by a foreign key.
+alter table public.venue add constraint venue_id_is_practice_key unique (id, is_practice);
 
 insert into public.setting_key (key, description, scope, value_schema) values
   ('academy.price',
@@ -42,6 +46,8 @@ comment on table public.academy_batch is 'An Academy batch: its dates and seats.
 create table public.academy_booking (
   id uuid primary key default gen_random_uuid(),
   venue_id uuid not null,
+  -- The venue's, so a trainee's UTR in the practice venue never blocks a real one.
+  is_practice boolean not null,
   batch_id uuid not null,
   -- The member who booked, or for a corporate booking the company's contact.
   member_id uuid not null,
@@ -65,10 +71,13 @@ create table public.academy_booking (
   foreign key (batch_id, venue_id) references public.academy_batch (id, venue_id),
   foreign key (member_id, venue_id) references public.member (id, venue_id),
   foreign key (ledger_transaction_id, venue_id) references public.ledger_transaction (id, venue_id),
+  foreign key (venue_id, is_practice) references public.venue (id, is_practice),
   unique (venue_id, request_id),
   check ((kind = 'individual') = (company_name is null)),
   check (kind = 'corporate' or seats = 1),
-  check (status not in ('payment_claimed', 'paid') or utr is not null),
+  check (kind = 'individual' or request_id is not null),
+  -- A UTR is on a booking exactly while it is claimed or paid, so a cancelled one never holds a UTR.
+  check ((status in ('payment_claimed', 'paid')) = (utr is not null)),
   check ((status = 'paid') = (paid_at is not null and confirmed_by_staff_id is not null and ledger_transaction_id is not null))
 );
 
@@ -80,8 +89,9 @@ create index academy_booking_batch_id_idx on public.academy_booking (batch_id, v
 create index academy_booking_member_id_idx on public.academy_booking (member_id, venue_id);
 create index academy_booking_confirmed_by_idx on public.academy_booking (confirmed_by_staff_id);
 create index academy_booking_ledger_transaction_idx on public.academy_booking (ledger_transaction_id, venue_id);
--- A UPI reference pays one booking, in any venue; a member holds one live seat per batch.
-create unique index academy_booking_utr_key on public.academy_booking (utr) where utr is not null;
+-- A UPI reference pays one booking across the club's venues (the practice venue keeps its own); a
+-- member holds one live seat per batch.
+create unique index academy_booking_utr_key on public.academy_booking (utr, is_practice) where utr is not null;
 create unique index academy_booking_one_seat_key on public.academy_booking (batch_id, member_id)
   where kind = 'individual' and status <> 'cancelled';
 
@@ -134,7 +144,7 @@ $$;
 
 -- The seats a batch's bookings hold: paid and claimed ones, and an unpaid one for 48 hours after it
 -- was booked, so a booking nobody pays for does not keep a seat for good.
-create function private.academy_seats_taken(p_batch_id uuid, p_except_booking_id uuid default null)
+create function private.academy_seats_taken(p_batch_id uuid)
 returns integer
 language sql
 stable
@@ -142,13 +152,13 @@ security definer
 set search_path = ''
 as $$
   select coalesce(sum(k.seats), 0)::integer from public.academy_booking k
-  where k.batch_id = p_batch_id and k.id is distinct from p_except_booking_id
+  where k.batch_id = p_batch_id
     and (k.status in ('payment_claimed', 'paid')
          or (k.status = 'awaiting_payment' and k.created_at > now() - interval '48 hours'));
 $$;
 
 -- A batch locked for a booking: open, not started on the venue's calendar, with enough seats left.
-create function private.lock_academy_batch(p_batch_id uuid, p_venue_id uuid, p_seats integer, p_except_booking_id uuid default null)
+create function private.lock_academy_batch(p_batch_id uuid, p_venue_id uuid, p_seats integer)
 returns void
 language plpgsql
 security definer
@@ -164,7 +174,7 @@ begin
   if v_seats is null then
     raise exception 'This batch is not open for booking' using errcode = 'RVBAT';
   end if;
-  if v_seats - private.academy_seats_taken(p_batch_id, p_except_booking_id) < p_seats then
+  if v_seats - private.academy_seats_taken(p_batch_id) < p_seats then
     raise exception 'This batch is full' using errcode = 'RVFUL';
   end if;
 end;
@@ -196,8 +206,9 @@ begin
   if v_fee is null then
     raise exception 'Academy fees are not set' using errcode = 'RVPRC';
   end if;
-  insert into public.academy_booking (venue_id, batch_id, member_id, kind, seats, amount)
-  values (v_venue_id, p_batch_id, v_member_id, 'individual', 1, v_fee)
+  insert into public.academy_booking (venue_id, is_practice, batch_id, member_id, kind, seats, amount)
+  values (v_venue_id, (select v.is_practice from public.venue v where v.id = v_venue_id), p_batch_id, v_member_id,
+          'individual', 1, v_fee)
   returning id into v_booking_id;
   return v_booking_id;
 end;
@@ -219,7 +230,9 @@ as $$
 $$;
 
 -- The member says they paid their own seat, with the UPI reference; they may correct it until a
--- cashier confirms. An unpaid booking past its 48-hour hold takes a seat again first, if one is left.
+-- cashier confirms. Never refused because the batch filled after the 48-hour hold: the money has been
+-- sent, so it is recorded and the claim takes the seat back (question #220). A cashier who cannot find
+-- the UTR turns it down, which frees the seat.
 create function private.claim_academy_payment(p_booking_id uuid, p_utr text)
 returns void
 language plpgsql
@@ -240,9 +253,6 @@ begin
     raise exception 'No unpaid booking of yours' using errcode = '42501';
   end if;
   perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
-  if v_booking.status = 'awaiting_payment' and v_booking.created_at <= now() - interval '48 hours' then
-    perform private.lock_academy_batch(v_booking.batch_id, v_booking.venue_id, v_booking.seats, v_booking.id);
-  end if;
   begin
     update public.academy_booking set status = 'payment_claimed', utr = p_utr, claimed_at = now() where id = v_booking.id;
   exception when unique_violation then
@@ -320,6 +330,64 @@ begin
 end;
 $$;
 
+-- A cashier did not find the booking's UTR in the bank: the claim is undone, so a made-up reference
+-- keeps no seat, and the payer can give the right one. The UTR searched for must be the booking's.
+create function private.reject_academy_payment(p_booking_id uuid, p_utr text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_booking public.academy_booking;
+begin
+  select * into v_booking from public.academy_booking k where k.id = p_booking_id for update;
+  if v_booking.id is null or not private.has_permission(v_booking.venue_id, 'cage.transact')
+     or v_booking.member_id = private.current_member_id() then
+    raise exception 'Only the cage turns down a payment, never for its own booking' using errcode = '42501';
+  end if;
+  if v_booking.status <> 'payment_claimed' then
+    raise exception 'This booking has no payment to turn down' using errcode = 'RVPAY';
+  end if;
+  if v_booking.utr is distinct from p_utr then
+    raise exception 'The UTR searched for is not the one on this booking' using errcode = 'RVUTM';
+  end if;
+  perform private.assert_writable(v_booking.venue_id);
+  update public.academy_booking set status = 'awaiting_payment', utr = null, claimed_at = null where id = v_booking.id;
+end;
+$$;
+
+-- Staff record the UTR of a payment the payer could not give in the app: a company's, or a member's
+-- whose tier no longer has Academy booking. Never for their own booking; a cashier still confirms it.
+create function private.record_academy_payment(p_booking_id uuid, p_utr text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_booking public.academy_booking;
+begin
+  if p_utr is null or p_utr !~ '^[0-9]{12}$' then
+    raise exception 'A UTR is 12 digits' using errcode = '22023';
+  end if;
+  select * into v_booking from public.academy_booking k where k.id = p_booking_id for update;
+  if v_booking.id is null or not private.has_permission(v_booking.venue_id, 'members.manage')
+     or v_booking.member_id = private.current_member_id() then
+    raise exception 'Only Academy staff record a payment, never for their own booking' using errcode = '42501';
+  end if;
+  if v_booking.status not in ('awaiting_payment', 'payment_claimed') then
+    raise exception 'This booking is paid or cancelled' using errcode = 'RVPAY';
+  end if;
+  perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
+  begin
+    update public.academy_booking set status = 'payment_claimed', utr = p_utr, claimed_at = now() where id = v_booking.id;
+  exception when unique_violation then
+    raise exception 'This UTR was already given for another booking' using errcode = 'RVUTR';
+  end;
+end;
+$$;
+
 -- Staff open a batch.
 create function private.create_academy_batch(p_venue_id uuid, p_name text, p_starts_on date, p_ends_on date, p_seats integer)
 returns uuid
@@ -342,9 +410,10 @@ end;
 $$;
 
 -- Staff book a company's heads at the corporate fee per head, under a member as the contact (never
--- themselves), with the UTR when the company has already paid. The request id makes a retry book once.
+-- themselves); the company's UTR is recorded once it pays. The console's request id makes a retry
+-- return the same booking, and is refused for a different one.
 create function private.book_academy_corporate(
-  p_batch_id uuid, p_member_id uuid, p_company_name text, p_seats integer, p_request_id uuid, p_utr text default null
+  p_batch_id uuid, p_member_id uuid, p_company_name text, p_seats integer, p_request_id uuid
 )
 returns uuid
 language plpgsql
@@ -353,6 +422,7 @@ set search_path = ''
 as $$
 declare
   v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id);
+  v_existing public.academy_booking;
   v_fee bigint;
   v_booking_id uuid;
 begin
@@ -360,51 +430,62 @@ begin
      or p_member_id = private.current_member_id() then
     raise exception 'Only Academy staff book for a company, never for themselves' using errcode = '42501';
   end if;
-  select k.id into v_booking_id from public.academy_booking k where k.venue_id = v_venue_id and k.request_id = p_request_id;
-  if v_booking_id is not null then return v_booking_id; end if;
-  if p_utr is not null and p_utr !~ '^[0-9]{12}$' then
-    raise exception 'A UTR is 12 digits' using errcode = '22023';
+  if p_request_id is null or p_seats is null or p_seats not between 1 and 100 then
+    raise exception 'A corporate booking needs its request id and 1 to 100 heads' using errcode = '22023';
   end if;
-  perform private.assert_writable(v_venue_id, null, p_member_id);
-  perform private.lock_academy_batch(p_batch_id, v_venue_id, p_seats);
-  v_fee := private.academy_fee('corporate', p_seats, private.setting_at(v_venue_id, 'academy.price', '', now()));
-  if v_fee is null then
-    raise exception 'Academy fees are not set' using errcode = 'RVPRC';
-  end if;
-  begin
-    insert into public.academy_booking (venue_id, batch_id, member_id, kind, company_name, seats, amount, status, utr, claimed_at, request_id)
-    values (v_venue_id, p_batch_id, p_member_id, 'corporate', trim(p_company_name), p_seats, v_fee,
-            case when p_utr is null then 'awaiting_payment' else 'payment_claimed' end, p_utr,
-            case when p_utr is null then null else now() end, p_request_id)
+  select * into v_existing from public.academy_booking k where k.venue_id = v_venue_id and k.request_id = p_request_id;
+  if v_existing.id is null then
+    perform private.assert_writable(v_venue_id, null, p_member_id);
+    perform private.lock_academy_batch(p_batch_id, v_venue_id, p_seats);
+    v_fee := private.academy_fee('corporate', p_seats, private.setting_at(v_venue_id, 'academy.price', '', now()));
+    if v_fee is null then
+      raise exception 'Academy fees are not set' using errcode = 'RVPRC';
+    end if;
+    insert into public.academy_booking (venue_id, is_practice, batch_id, member_id, kind, company_name, seats, amount, request_id)
+    values (v_venue_id, (select v.is_practice from public.venue v where v.id = v_venue_id), p_batch_id, p_member_id,
+            'corporate', trim(p_company_name), p_seats, v_fee, p_request_id)
+    on conflict (venue_id, request_id) do nothing
     returning id into v_booking_id;
-  exception when unique_violation then
-    raise exception 'This UTR was already given for another booking' using errcode = 'RVUTR';
-  end;
-  return v_booking_id;
+    if v_booking_id is not null then return v_booking_id; end if;
+    -- A retry running at the same moment booked it first.
+    select * into v_existing from public.academy_booking k where k.venue_id = v_venue_id and k.request_id = p_request_id;
+  end if;
+  if (v_existing.batch_id, v_existing.member_id, v_existing.company_name, v_existing.seats)
+     is distinct from (p_batch_id, p_member_id, trim(p_company_name), p_seats) then
+    raise exception 'This request id was used for another booking' using errcode = '22023';
+  end if;
+  return v_existing.id;
 end;
 $$;
 
--- Staff cancel a booking nobody has paid for. A paid booking is refunded through the cage (lane A).
+-- Staff cancel a booking with no payment given. A claimed payment is confirmed or turned down by the
+-- cage first, so a UTR is never dropped; a paid booking is refunded through the cage (lane A).
 create function private.cancel_academy_booking(p_booking_id uuid)
 returns void
 language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_booking public.academy_booking;
 begin
-  update public.academy_booking k set status = 'cancelled'
-  where k.id = p_booking_id and k.status in ('awaiting_payment', 'payment_claimed')
-    and private.has_permission(k.venue_id, 'members.manage');
-  if not found then
-    raise exception 'No unpaid booking to cancel' using errcode = 'RVPAY';
+  select * into v_booking from public.academy_booking k where k.id = p_booking_id for update;
+  if v_booking.id is null or not private.has_permission(v_booking.venue_id, 'members.manage') then
+    raise exception 'Only Academy staff cancel a booking' using errcode = '42501';
   end if;
+  if v_booking.status <> 'awaiting_payment' then
+    raise exception 'Only a booking with no payment given is cancelled' using errcode = 'RVPAY';
+  end if;
+  perform private.assert_writable(v_booking.venue_id);
+  update public.academy_booking set status = 'cancelled' where id = v_booking.id;
 end;
 $$;
 
 grant execute on function private.book_academy(uuid), private.academy_payment_details(uuid),
   private.claim_academy_payment(uuid, text), private.confirm_academy_payment(uuid, text),
+  private.reject_academy_payment(uuid, text), private.record_academy_payment(uuid, text),
   private.create_academy_batch(uuid, text, date, date, integer),
-  private.book_academy_corporate(uuid, uuid, text, integer, uuid, text), private.cancel_academy_booking(uuid)
+  private.book_academy_corporate(uuid, uuid, text, integer, uuid), private.cancel_academy_booking(uuid)
   to authenticated;
 
 -- Signed-in callers reach the functions above only through these invoker wrappers.
@@ -417,18 +498,23 @@ create function public.claim_academy_payment(p_booking_id uuid, p_utr text) retu
 as $$ select private.claim_academy_payment(p_booking_id, p_utr); $$;
 create function public.confirm_academy_payment(p_booking_id uuid, p_utr text) returns uuid language sql security invoker set search_path = ''
 as $$ select private.confirm_academy_payment(p_booking_id, p_utr); $$;
+create function public.reject_academy_payment(p_booking_id uuid, p_utr text) returns void language sql security invoker set search_path = ''
+as $$ select private.reject_academy_payment(p_booking_id, p_utr); $$;
+create function public.record_academy_payment(p_booking_id uuid, p_utr text) returns void language sql security invoker set search_path = ''
+as $$ select private.record_academy_payment(p_booking_id, p_utr); $$;
 create function public.create_academy_batch(p_venue_id uuid, p_name text, p_starts_on date, p_ends_on date, p_seats integer)
 returns uuid language sql security invoker set search_path = ''
 as $$ select private.create_academy_batch(p_venue_id, p_name, p_starts_on, p_ends_on, p_seats); $$;
 create function public.book_academy_corporate(
-  p_batch_id uuid, p_member_id uuid, p_company_name text, p_seats integer, p_request_id uuid, p_utr text default null
+  p_batch_id uuid, p_member_id uuid, p_company_name text, p_seats integer, p_request_id uuid
 ) returns uuid language sql security invoker set search_path = ''
-as $$ select private.book_academy_corporate(p_batch_id, p_member_id, p_company_name, p_seats, p_request_id, p_utr); $$;
+as $$ select private.book_academy_corporate(p_batch_id, p_member_id, p_company_name, p_seats, p_request_id); $$;
 create function public.cancel_academy_booking(p_booking_id uuid) returns void language sql security invoker set search_path = ''
 as $$ select private.cancel_academy_booking(p_booking_id); $$;
 
 grant execute on function public.book_academy(uuid), public.academy_payment_details(uuid),
   public.claim_academy_payment(uuid, text), public.confirm_academy_payment(uuid, text),
+  public.reject_academy_payment(uuid, text), public.record_academy_payment(uuid, text),
   public.create_academy_batch(uuid, text, date, date, integer),
-  public.book_academy_corporate(uuid, uuid, text, integer, uuid, text), public.cancel_academy_booking(uuid)
+  public.book_academy_corporate(uuid, uuid, text, integer, uuid), public.cancel_academy_booking(uuid)
   to authenticated;

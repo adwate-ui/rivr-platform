@@ -47,14 +47,14 @@ isOneToOne: false
                   ]
                 },"academy_booking": {
                   Row: {
-                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"request_id": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"request_id": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -81,6 +81,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "academy_booking_venue_id_is_practice_fkey"
+      columns: ["venue_id","is_practice"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id","is_practice"]
     }
                   ]
                 },"audit_log": {
@@ -776,7 +782,7 @@ isOneToOne: false
 { Args: { "p_batch_id": string }; Returns: string
                            },
 "book_academy_corporate":
-{ Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number,"p_utr"?: string }; Returns: string
+{ Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
                            },
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
@@ -820,6 +826,9 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
+"record_academy_payment":
+{ Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
+                           },
 "record_kyc_digilocker":
 { Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_masked_aadhaar": string,"p_member_id": string,"p_name_matches": boolean,"p_pan": string,"p_vendor_reference": string }; Returns: string
                            },
@@ -834,6 +843,9 @@ isOneToOne: false
                            },
 "record_kyc_started":
 { Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
+                           },
+"reject_academy_payment":
+{ Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined

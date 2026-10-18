@@ -1,7 +1,7 @@
 -- Academy (#8): fees equal to @rivr/domain academyFee (golden cases); batches with dates and seats; a
 -- member books at the individual fee and claims a UPI payment with its UTR; a cashier confirms the UTR
--- found in the bank, the ledger takes the money and academy.booked goes out; staff book a company at
--- the corporate fee per head. 103 Aditya (admin, members.manage), 104 Sana (cashier, cage.transact),
+-- found in the bank, the ledger takes the money and academy.booked goes out, or turns down a UTR it
+-- cannot find; staff book a company at the corporate fee per head and record its UTR. 103 Aditya (admin, members.manage), 104 Sana (cashier, cage.transact),
 -- 106 Pema (dealer), 201 Arjun, 202 Kabir, 203 Naina, 204 Rohan (members), 301 Asha (practice venue).
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -99,19 +99,32 @@ select public.claim_academy_payment(pg_temp.id('sana'), '612345678901');
 select throws_ok($$ select public.confirm_academy_payment(pg_temp.id('sana'), '612345678901') $$, '42501', null,
   'a cashier who is also a member cannot confirm their own booking');
 
--- A company books its heads at the corporate fee, once per request, never for the staff member.
+-- A company books its heads at the corporate fee, once per request, never for the staff member; staff
+-- record the company's UTR when it pays.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
 insert into ids values ('acme', public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000203', 'Acme Pvt Ltd', 3,
-  '00000000-0000-4000-8000-0000000000c1', '512345678901'));
+  '00000000-0000-4000-8000-0000000000c1'));
 select results_eq($$ select amount, status from public.academy_booking where id = pg_temp.id('acme') $$,
-  $$ values (450000::bigint, 'payment_claimed'::text) $$, 'three heads at ₹1,500 each, the company''s UTR given');
+  $$ values (450000::bigint, 'awaiting_payment'::text) $$, 'three heads at ₹1,500 each, waiting for the company to pay');
 select is(public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000203', 'Acme Pvt Ltd', 3,
-  '00000000-0000-4000-8000-0000000000c1', '512345678901'), pg_temp.id('acme'), 'a retried request books once');
+  '00000000-0000-4000-8000-0000000000c1'), pg_temp.id('acme'), 'a retried request books once');
+select throws_ok($$ select public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000203', 'Acme Pvt Ltd', 4,
+  '00000000-0000-4000-8000-0000000000c1') $$, '22023', null, 'a request id used for another booking is refused');
+select throws_ok($$ select public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000203', 'Acme Pvt Ltd', 3,
+  null) $$, '22023', null, 'a corporate booking needs its request id, so a retry never books twice');
+select throws_ok($$ select public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000203', 'Acme Pvt Ltd', 0,
+  '00000000-0000-4000-8000-0000000000c5') $$, '22023', null, 'and 1 to 100 heads');
 select throws_ok($$ select public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000103', 'Mine Ltd', 1,
   '00000000-0000-4000-8000-0000000000c2') $$, '42501', null, 'staff cannot make themselves the contact of a corporate booking');
+select lives_ok($$ select public.record_academy_payment(pg_temp.id('acme'), '512345678901') $$, 'staff record the UTR the company paid with');
+select is((select status from public.academy_booking where id = pg_temp.id('acme')), 'payment_claimed', 'for the cage to confirm');
+insert into ids values ('aditya', public.book_academy(pg_temp.id('large')));
+select throws_ok($$ select public.record_academy_payment(pg_temp.id('aditya'), '522345678901') $$, '42501', null,
+  'staff never record a payment for their own booking');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000201');
 select throws_ok($$ select public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000201', 'Me Ltd', 5,
   '00000000-0000-4000-8000-0000000000c3') $$, '42501', null, 'a member cannot give themselves the corporate fee');
+select throws_ok($$ select public.record_academy_payment(pg_temp.id('acme'), '999999999997') $$, '42501', null, 'nor record a payment');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000203');
 select throws_ok($$ select public.claim_academy_payment(pg_temp.id('acme'), '999999999998') $$, '42501', null,
   'the company''s contact cannot change the UTR staff entered');
@@ -122,14 +135,32 @@ insert into ids values ('kabir_tiny', public.book_academy(pg_temp.id('tiny')));
 reset role;
 update public.academy_booking set created_at = now() - interval '49 hours' where id = pg_temp.id('kabir_tiny');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000201');
-select lives_ok($$ select public.book_academy(pg_temp.id('tiny')) $$, 'a seat held unpaid for more than 48 hours goes to the next member');
-select pg_temp.as_user('00000000-0000-4000-8000-000000000202');
-select throws_ok($$ select public.claim_academy_payment(pg_temp.id('kabir_tiny'), '712345678901') $$, 'RVFUL', null,
-  'and the late payer finds the batch full');
+insert into ids values ('arjun_tiny', public.book_academy(pg_temp.id('tiny')));
+select ok(pg_temp.id('arjun_tiny') is not null, 'a seat held unpaid for more than 48 hours goes to the next member');
 
--- Staff cancel a booking nobody paid for, never a paid one.
+-- A late payer's UTR is still recorded: the money has been sent (question #220).
+select pg_temp.as_user('00000000-0000-4000-8000-000000000202');
+select lives_ok($$ select public.claim_academy_payment(pg_temp.id('kabir_tiny'), '712345678901') $$,
+  'a payment given after the hold, the batch since filled, is still recorded (#220)');
+
+-- The cage turns down a UTR it cannot find: the claim is undone and keeps no seat.
+select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
+select throws_ok($$ select public.reject_academy_payment(pg_temp.id('kabir_tiny'), '799999999999') $$, 'RVUTM', null,
+  'only the UTR the cashier searched for is turned down');
+select lives_ok($$ select public.reject_academy_payment(pg_temp.id('kabir_tiny'), '712345678901') $$,
+  'a cashier turns down a UTR that is not in the bank');
+reset role;
+select results_eq($$ select status, utr, private.academy_seats_taken(batch_id) from public.academy_booking where id = pg_temp.id('kabir_tiny') $$,
+  $$ values ('awaiting_payment'::text, null::text, 1) $$, 'the booking is unpaid again, and its lapsed hold keeps no seat');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000202');
+select lives_ok($$ select public.claim_academy_payment(pg_temp.id('kabir'), '712345678901') $$,
+  'a UTR turned down can be given again, for the booking it paid');
+
+-- Staff cancel a booking with no payment given; never a claimed or paid one.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.cancel_academy_booking(pg_temp.id('kabir_tiny')) $$, 'staff cancel an unpaid booking');
+select throws_ok($$ select public.cancel_academy_booking(pg_temp.id('sana')) $$, 'RVPAY', null,
+  'never one with a UTR given: the cage confirms or turns it down first');
 select throws_ok($$ select public.cancel_academy_booking(pg_temp.id('arjun')) $$, 'RVPAY', null, 'never a paid one: that is a refund at the cage');
 
 -- The practice venue keeps its own ledger.
@@ -143,6 +174,10 @@ reset role;
 select ok((select bool_and(a.venue_id = '00000000-0000-4000-8000-000000000002') from public.ledger_entry e
            join public.ledger_account a on a.id = e.account_id where e.transaction_id = pg_temp.id('asha_paid')),
   'a practice-venue fee goes to the practice venue''s own accounts');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000201');
+select lives_ok($$ select public.claim_academy_payment(pg_temp.id('arjun_tiny'), '812345678901') $$,
+  'a trainee''s UTR in the practice venue never blocks a real one');
+reset role;
 
 -- A batch that has started, a member without the feature, and frozen members.
 with started as (
@@ -163,6 +198,9 @@ select is((select count(*)::int from public.academy_batch), 0, 'nor sees the bat
 select is_empty($$ select * from public.academy_payment_details(pg_temp.id('rohan')) $$, 'nor what to pay');
 select throws_ok($$ select public.claim_academy_payment(pg_temp.id('rohan'), '912345678901') $$, '42501', null, 'nor gives a UTR');
 select is((select count(*)::int from public.academy_booking), 1, 'but still sees their own booking, a record of their money');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.record_academy_payment(pg_temp.id('rohan'), '912345678901') $$,
+  'and staff record the UTR for them, so money already sent still reaches the cage');
 reset role;
 insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)
 select '00000000-0000-4000-8000-000000000001', 'member_freeze', m.id, 'Dispute', s.id
@@ -190,6 +228,17 @@ select pg_temp.as_user('00000000-0000-4000-8000-000000000106');
 select is((select count(*)::int from public.academy_booking), 0, 'a dealer sees no bookings');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select ok((select count(*) from public.academy_booking) >= 5, 'the cashier sees the venue''s bookings');
+
+-- A venue freeze stops a cancellation and a turned-down payment too.
+reset role;
+insert into public.control_state (venue_id, level, reason, engaged_by_staff_id)
+select '00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Audit', s.id from public.staff s
+where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.cancel_academy_booking(pg_temp.id('aditya')) $$, 'RVFRZ', null, 'a venue freeze stops a cancellation');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
+select throws_ok($$ select public.reject_academy_payment(pg_temp.id('arjun_tiny'), '812345678901') $$, 'RVFRZ', null,
+  'and a turned-down payment');
 reset role;
 
 select * from finish();
