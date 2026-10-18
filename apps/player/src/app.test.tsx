@@ -1,12 +1,12 @@
 import { createRivrClient, RivrDataProvider } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createAppRouter } from './router.tsx';
 
 afterEach(cleanup);
 
-// No one is signed in, so nothing is fetched: the client never reaches this address.
+// Nothing listens at this address: signed out, nothing is fetched, and a sign-in request fails.
 const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 
 function renderAt(path: string) {
@@ -44,5 +44,29 @@ describe('the player app', () => {
     renderAt('/nowhere');
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
     expect(screen.getByText('This page does not exist.')).toBeDefined();
+  });
+});
+
+describe('sign-in', () => {
+  it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {
+    renderAt('/sign-in');
+    expect(await screen.findByRole('img', { name: 'RIVR Poker Club' })).toBeDefined();
+    expect(screen.getAllByText('Skill runs deep.')).toHaveLength(1);
+    expect(screen.getByRole('textbox', { name: 'Mobile number' })).toBeDefined();
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
+  });
+
+  it('asks for a ten-digit mobile number before sending anything', async () => {
+    renderAt('/sign-in');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '12345' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
+    expect(await screen.findByText('Enter a 10-digit mobile number.')).toBeDefined();
+  });
+
+  it('says sign-in is not available when Auth cannot be reached', async () => {
+    renderAt('/sign-in');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '98765 43210' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
+    expect(await screen.findByText('Sign-in is not available right now. Try again in a few minutes.', {}, { timeout: 3000 })).toBeDefined();
   });
 });

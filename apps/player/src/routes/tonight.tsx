@@ -1,6 +1,6 @@
 import { createRoute } from '@tanstack/react-router';
 import { HomeScreen } from '../features/home/index.ts';
-import { rootRoute } from './root.tsx';
+import { frameRoute } from './frame.tsx';
 
 /** Home: tonight's floor. */
-export const tonightRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomeScreen });
+export const tonightRoute = createRoute({ getParentRoute: () => frameRoute, path: '/', component: HomeScreen });
