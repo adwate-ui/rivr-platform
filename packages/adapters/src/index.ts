@@ -16,6 +16,7 @@ export * from './google-ads/index.ts';
 export * from './instagram-graph/index.ts';
 export * from './kitchen-printer/index.ts';
 export * from './kyc/index.ts';
+export * from './outbox/index.ts';
 export * from './meta-conversions/index.ts';
 export * from './push/index.ts';
 export * from './receipt-printer/index.ts';
