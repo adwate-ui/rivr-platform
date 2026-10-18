@@ -1,10 +1,9 @@
 /**
- * The copy rules from .claude/rules/copy.md and the design prompt, checked on every message
- * in every locale. The banned words are the union of both lists (additions, "Resolved conflicts").
+ * The copy rules from .claude/rules/copy.md and the design prompt, checked on every message.
+ * The banned words are the union of both lists (additions, "Resolved conflicts").
  */
 import { describe, expect, it } from 'vitest';
 import { en } from './catalogue/en/index.ts';
-import { hi } from './catalogue/hi/index.ts';
 
 const BANNED_WORDS = [
   'unlock', 'elevate', 'seamless', 'effortless', 'experience', 'journey', 'discover', 'explore',
@@ -22,8 +21,6 @@ function messages(node: object, prefix = ''): [string, string][] {
 }
 
 const english = messages(en);
-const hindi = messages(hi);
-const everything = [...english, ...hindi];
 
 describe('copy rules', () => {
   it.each(BANNED_WORDS)('never uses the banned word "%s"', (word) => {
@@ -35,28 +32,12 @@ describe('copy rules', () => {
     expect(english.filter(([, text]) => /\bAI\b/.test(text)).map(([key]) => key)).toEqual([]);
   });
 
-  it('has no exclamation marks, emoji or em dashes in any language', () => {
-    const offending = everything.filter(([, text]) => /[!—]|\p{Extended_Pictographic}/u.test(text));
+  it('has no exclamation marks, emoji or em dashes', () => {
+    const offending = english.filter(([, text]) => /[!—]|\p{Extended_Pictographic}/u.test(text));
     expect(offending.map(([key]) => key)).toEqual([]);
   });
 
   it('has no empty messages', () => {
-    expect(everything.filter(([, text]) => text.trim() === '').map(([key]) => key)).toEqual([]);
-  });
-});
-
-describe('Hindi catalogue', () => {
-  it('has exactly the English keys', () => {
-    expect(hindi.map(([key]) => key).sort()).toEqual(english.map(([key]) => key).sort());
-  });
-
-  it('keeps every placeholder of the English message', () => {
-    const placeholders = (text: string) => (text.match(/\{\w+\}/g) ?? []).sort();
-    const english_ = new Map(english);
-    const mismatched = hindi.filter(([key, text]) => {
-      const source = english_.get(key) ?? '';
-      return placeholders(text).join() !== placeholders(source).join();
-    });
-    expect(mismatched.map(([key]) => key)).toEqual([]);
+    expect(english.filter(([, text]) => text.trim() === '').map(([key]) => key)).toEqual([]);
   });
 });

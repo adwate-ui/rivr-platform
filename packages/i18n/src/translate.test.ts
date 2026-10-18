@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createTranslator } from './translate.ts';
 
 describe('createTranslator', () => {
-  it('returns the message for the locale', () => {
+  it('returns the message for the key', () => {
     expect(createTranslator('en')('common.retry')).toBe('Try again');
-    expect(createTranslator('hi')('common.retry')).toBe('फिर से कोशिश करें');
   });
 
   it('fills placeholders from params', () => {

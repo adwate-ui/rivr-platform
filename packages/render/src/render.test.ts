@@ -57,12 +57,6 @@ describe('renderToPng', () => {
     if (process.env.RIVR_UPDATE_BASELINES) writeFileSync(BASELINE, png);
     expect(await differentPixels(png, readFileSync(BASELINE))).toBeLessThanOrEqual(MAX_DIFFERENT_PIXELS);
   });
-
-  it('draws the Hindi slide at the same size', async () => {
-    const png = await renderToPng({ ...SLIDE, locale: 'hi' });
-    expect(pngSize(png)).toEqual({ chunk: 'IHDR', width: 1920, height: 1080 });
-    expect(await differentPixels(png, readFileSync(BASELINE))).toBeGreaterThan(MAX_DIFFERENT_PIXELS);
-  });
 });
 
 describe('renderToPdf', () => {

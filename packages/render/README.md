@@ -29,7 +29,6 @@ const png = await renderToPng({
   props: { amountPaise: 34_260_000n }, // ₹3,42,600
   width: 1920,
   height: 1080,
-  locale: 'hi',
 });
 ```
 
