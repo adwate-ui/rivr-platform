@@ -12,7 +12,9 @@
  */
 export default {
   testRunner: 'command',
-  commandRunner: { command: 'npx vitest run --bail=1 --reporter=dot' },
+  // Coverage is measured by the normal test run; inside Stryker's sandbox the injected mutant
+  // switches lower the line count, so the coverage threshold would fail every run.
+  commandRunner: { command: 'npx vitest run --bail=1 --reporter=dot --coverage.enabled=false' },
   coverageAnalysis: 'off',
   mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
   thresholds: { high: 95, low: 85, break: 80 },
