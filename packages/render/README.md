@@ -2,14 +2,14 @@
 
 Draws `@rivr/ui` components to PNG and PDF in headless Chromium (Playwright), so TV slides, social and winner cards, receipts and the membership card use exactly the CSS the apps use. Node only.
 
-A small Vite page, the render host (`src/host/`), loads `@rivr/ui/styles.css`, mounts the template named in its `?job=` parameter with its props and language, and marks itself ready once the webfonts are in. `renderToPng` and `renderToPdf` open that page at the requested size and capture it.
+A small Vite page, the render host (`src/host/`), loads `@rivr/ui/styles.css`, mounts the template named in its `?job=` parameter with its props, and marks itself ready once the webfonts are in. `renderToPng` and `renderToPdf` open that page at the requested size and capture it.
 
 ## Public API
 
 | Export | What it does |
 |---|---|
-| `renderToPng({ template, props, width, height, locale? })` | A `Buffer` holding a PNG of exactly `width` × `height` pixels. |
-| `renderToPdf({ template, props, width, height, locale? })` | A one-page PDF of `width` × `height` CSS pixels, backgrounds printed. |
+| `renderToPng({ template, props, width, height })` | A `Buffer` holding a PNG of exactly `width` × `height` pixels. |
+| `renderToPdf({ template, props, width, height })` | A one-page PDF of `width` × `height` CSS pixels, backgrounds printed. |
 | `templates`, `TemplateName`, `TemplateProps<Name>` | The template registry; props are type-checked per template. |
 | `RenderRequest<Name>` | The request type. |
 
@@ -29,7 +29,6 @@ const png = await renderToPng({
   props: { amountPaise: 34_260_000n }, // ₹3,42,600
   width: 1920,
   height: 1080,
-  locale: 'hi',
 });
 ```
 

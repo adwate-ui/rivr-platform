@@ -35,7 +35,7 @@ describe('apps never draw or style', () => {
   });
 
   it('accepts a screen composed from @rivr/ui with copy from @rivr/i18n', async () => {
-    const code = 'import { Text } from "@rivr/ui";\nimport { useT } from "@rivr/i18n";\nexport const Home = () => { const t = useT(); return <Text variant="body">{t("home.title")}</Text>; };\n';
+    const code = 'import { Text } from "@rivr/ui";\nimport { t } from "@rivr/i18n";\nexport const Home = () => <Text variant="body">{t("home.title")}</Text>;\n';
     expect(await ruleIdsFor(PLAYER_ROUTE, code)).toEqual([]);
   });
 });

@@ -46,7 +46,7 @@ export interface InputProps extends NativeInputProps {
 const FRAME: Record<InputVariant, string> = {
   boxed: 'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
   line: 'min-h-touch w-full border-b bg-transparent font-text text-24 text-content',
-  code: 'min-h-touch w-full border-b bg-transparent font-text text-28 tracking-tv text-content hindi:tracking-normal',
+  code: 'min-h-touch w-full border-b bg-transparent font-text text-28 tracking-tv text-content',
 };
 
 const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed';

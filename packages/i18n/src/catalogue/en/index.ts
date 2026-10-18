@@ -1,7 +1,6 @@
 /**
- * The English catalogue, the source of every message key. One file per namespace so
- * lanes add copy without editing each other's files; register a new namespace here
- * and in ../hi/index.ts.
+ * The catalogue: every message and so every message key. One file per namespace so lanes
+ * add copy without editing each other's files; register a new namespace here.
  */
 import { consoleApp, displayApp, driverApp, playerApp, tabletApp, webApp } from './apps.ts';
 import { common } from './common.ts';

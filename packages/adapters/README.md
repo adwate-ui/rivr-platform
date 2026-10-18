@@ -42,7 +42,7 @@ Every fake records its calls (`fake.calls`) and fails on demand (`fake.failNext(
 import { createAdapters } from '@rivr/adapters';
 
 const adapters = createAdapters({ isPracticeVenue: venue.isPractice, live: liveAdaptersFromVault() });
-const sent = await adapters.whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: ['Table 3', '6'] });
+const sent = await adapters.whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: ['Table 3', '6'] });
 if (!sent.ok && sent.error.code !== 'rejected') return retryLater();
 ```
 
@@ -61,7 +61,7 @@ The one exception to "outbox consumers only": Auth waits for the code to go out,
 2. Auth posts it to the Send SMS hook set in `supabase/config.template.toml` (`[auth.hook.send_sms]`), signed with the hook secret.
 3. `supabase/functions/auth-send-code` checks the signature, then calls `handleSendSmsHook(payload, channels)`.
 4. `handleSendSmsHook` parses the payload with `sendSmsHookSchema` (`@rivr/contracts`) and calls `sendSignInCode`.
-5. `sendSignInCode({ whatsapp, smsOtp }, { to, code, language })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS. A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in.
+5. `sendSignInCode({ whatsapp, smsOtp }, { to, code })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS. A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in.
 
 No SMS vendor is chosen yet, so `smsOtp` is never passed and codes go by WhatsApp alone until one is.
 

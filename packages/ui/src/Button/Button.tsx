@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import type { MouseEvent, ReactNode } from 'react';
 import { Icon, type IconName } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
@@ -66,7 +66,6 @@ export function Button({ children, variant = 'secondary', type = 'button', onCli
 
 /** The icon and label, or the loading label while an action is in flight. */
 function ButtonLabel({ icon, isLoading, children }: { icon: IconName | undefined; isLoading: boolean | undefined; children: ReactNode }) {
-  const t = useT();
   if (isLoading) return <>{t('common.loading')}</>;
   return (
     <>

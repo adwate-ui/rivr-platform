@@ -52,7 +52,7 @@ Auth and API on staging and production, in the Supabase dashboard:
      - The deploy checks it from then on (`scripts/ci/check-auth-config.mjs`): while phone sign-in is on, a gap is a warning on staging and fails a production release.
   5. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs both hooks in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
   6. Once WhatsApp is approved:
-     - In Meta's dashboard, approve the authentication template `sign_in_code` in both `en` and `hi`, under exactly those language codes.
+     - In Meta's dashboard, approve the authentication template `sign_in_code` in English, under the language code `en` (RIVR is English only, decision 0027).
      - Set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` as function secrets. Use a system user's token scoped to `whatsapp_business_messaging` for this one business account; every function in the project can read the secrets.
      - Until a channel is set, every sign-in except the test numbers is refused.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.

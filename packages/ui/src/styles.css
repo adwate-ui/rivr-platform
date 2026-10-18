@@ -14,9 +14,6 @@
 /* Only the library's own source is scanned for classes. */
 @source './';
 
-/* Devanagari is never letter-spaced: spacing breaks the headline joining its letters. */
-@custom-variant hindi (&:lang(hi));
-
 @layer base {
   html {
     color-scheme: dark;

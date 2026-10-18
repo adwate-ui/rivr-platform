@@ -57,11 +57,6 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('labels the loading state in Hindi', () => {
-    renderIn(<Button isLoading>Withdraw</Button>, 'hi');
-    expect(screen.getByRole('button', { name: 'लोड हो रहा है' })).toBeInTheDocument();
-  });
-
   it('has no accessibility violations in any variant', async () => {
     const { container } = renderIn(
       <>

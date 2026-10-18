@@ -11,12 +11,7 @@ describe('time and dates are shown in IST', () => {
   });
 
   it('uses the IST date, not the UTC one', () => {
-    expect(formatDate(OPENING_NIGHT, 'en')).toBe('15 Nov 2026');
-    expect(formatWeekday(OPENING_NIGHT, 'en')).toBe('Sunday');
-  });
-
-  it('names the day in Hindi with Latin digits', () => {
-    expect(formatWeekday(OPENING_NIGHT, 'hi')).toBe('रविवार');
-    expect(formatDate(OPENING_NIGHT, 'hi')).toMatch(/^15 .+ 2026$/);
+    expect(formatDate(OPENING_NIGHT)).toBe('15 Nov 2026');
+    expect(formatWeekday(OPENING_NIGHT)).toBe('Sunday');
   });
 });

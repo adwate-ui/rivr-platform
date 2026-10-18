@@ -1,6 +1,6 @@
 # Lane C: member and web
 
-The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens, Profile), check-in and check-out at the door, the membership card, Academy operations, the website and its editor, link-in-bio, the live floor widget, Learn with licensed sources, Hindi, push notifications, PWA install, share cards, cab safety and the driver app, and the accessories store. Lane C carries the 30 Oct release.
+The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens, Profile), check-in and check-out at the door, the membership card, Academy operations, the website and its editor, link-in-bio, the live floor widget, Learn with licensed sources, push notifications, PWA install, share cards, cab safety and the driver app, and the accessories store. Lane C carries the 30 Oct release.
 
 ## Tables owned
 
@@ -43,7 +43,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 
 ## Screens
 
-Player app: the shell and routes, sign-in and KYC, Home (composing B's and D's features), Sessions, Profile, Learn, the membership card. Website (`apps/web`): every page and block. Console: `features/kyc-review`, `features/members` (records and Hindi language), `features/academy`, `features/website`, `features/learn-sources`, `features/cab`. Door screen (a console route on an enrolled door device). Driver app: all of it. Feature keys: `learn.*`, `sessions.history`, `academy.booking`, `cab.requests`, `referral.share_cards`, `push.withdrawal_sent`, `push.promotion_published`, and the core keys.
+Player app: the shell and routes, sign-in and KYC, Home (composing B's and D's features), Sessions, Profile, Learn, the membership card. Website (`apps/web`): every page and block. Console: `features/kyc-review`, `features/members` (records), `features/academy`, `features/website`, `features/learn-sources`, `features/cab`. Door screen (a console route on an enrolled door device). Driver app: all of it. Feature keys: `learn.*`, `sessions.history`, `academy.booking`, `cab.requests`, `referral.share_cards`, `push.withdrawal_sent`, `push.promotion_published`, and the core keys.
 
 ## Settings keys added
 

@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
 import type { Navigate } from '../internal/navigation.ts';
 import { SideNav, type SideNavSection } from '../SideNav/SideNav.tsx';
@@ -17,7 +17,6 @@ export interface ConsoleShellProps {
 
 /** The floor console frame at 1440 px: banner, the left rail, and the screen. */
 export function ConsoleShell({ children, sections, currentItem, onNavigate, banner }: ConsoleShellProps) {
-  const t = useT();
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       {banner}

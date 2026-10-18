@@ -25,7 +25,7 @@ const VARIANT: Record<TextVariant, string> = {
   caption: 'text-12 leading-normal',
   label: 'text-14 leading-snug font-medium',
   lead: 'text-18 leading-snug',
-  tvLabel: 'text-24 leading-snug font-medium uppercase tracking-tv hindi:tracking-normal',
+  tvLabel: 'text-24 leading-snug font-medium uppercase tracking-tv',
   tvBody: 'text-36 leading-snug',
 };
 
@@ -33,7 +33,7 @@ const WEIGHT = { regular: 'font-regular', medium: 'font-medium', semibold: 'font
 
 const ALIGN = { start: 'text-start', center: 'text-center', end: 'text-end' } as const;
 
-/** Running text in the text face. Hindi falls back to Noto Sans Devanagari at the same size. */
+/** Running text in the text face. */
 export function Text({ children, variant = 'body', tone = 'default', weight, as: Element = 'p', align, truncate = false, id }: TextProps) {
   const classes = cx(
     'font-text',

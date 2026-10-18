@@ -14,11 +14,6 @@ describe('KillSwitchBanner', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Venue frozen. Money, seating and hand entries are refused until it is released.');
   });
 
-  it('reads in Hindi', () => {
-    renderIn(<KillSwitchBanner audience="member" />, 'hi');
-    expect(screen.getByRole('alert')).toHaveTextContent('क्लब अभी रुका हुआ है। स्टाफ आपकी सहायता करेगा।');
-  });
-
   it('cannot be dismissed', () => {
     renderIn(<KillSwitchBanner audience="member" />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

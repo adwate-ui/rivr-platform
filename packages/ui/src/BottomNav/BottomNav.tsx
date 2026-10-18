@@ -1,4 +1,4 @@
-import { formatList, useLocale, useT } from '@rivr/i18n';
+import { formatList, t } from '@rivr/i18n';
 import { useId } from 'react';
 import type { FeatureAccess } from '../FeatureGate/FeatureGate.tsx';
 import { Icon } from '../Icon/Icon.tsx';
@@ -23,7 +23,6 @@ export interface BottomNavProps {
 
 /** The player app's tab bar. Tabs a member's tier lacks are hidden or locked from the same source as FeatureGate. */
 export function BottomNav({ items, current, onNavigate }: BottomNavProps) {
-  const t = useT();
   const visible = items.filter((item) => item.access.state !== 'hidden');
   return (
     <nav aria-label={t('ui.playerTabs.label')} className="border-t border-hairline bg-raised">
@@ -45,8 +44,6 @@ interface TabLinkProps {
 }
 
 function TabLink({ item, isCurrent, onNavigate }: TabLinkProps) {
-  const t = useT();
-  const locale = useLocale();
   const lockedId = useId();
   const tiers = item.access.state === 'locked' ? item.access.tiers : null;
   return (
@@ -69,7 +66,7 @@ function TabLink({ item, isCurrent, onNavigate }: TabLinkProps) {
       </a>
       {tiers ? (
         <span id={lockedId} className="sr-only">
-          {t('common.featureLocked', { tiers: formatList(tiers, locale) })}
+          {t('common.featureLocked', { tiers: formatList(tiers) })}
         </span>
       ) : null}
     </>

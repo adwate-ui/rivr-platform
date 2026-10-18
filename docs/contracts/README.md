@@ -18,7 +18,7 @@ Four lanes: A money, B floor, C member and web, D growth and content. Their task
 - **Access revoke.** An engaged `access_revoke` removes the staff member or device from every access helper at once, so no policy or write check needs to look for it.
 - **Settings.** Rules that change over time are setting keys (`packages/contracts/src/settings.ts` and a migration), read with `private.setting_at(venue, key, subject, at)` at the transaction's own time.
 - **Apps.** A lane owns the feature folders listed in its contract, in whichever app they sit. Shared files (an app's `router.tsx`, `packages/ui/src/index.ts`, catalogue `index.ts` files) take one-line additions; rebase rather than reformat them.
-- **Copy.** Each feature area gets its own catalogue namespace file in `packages/i18n/src/catalogue/{en,hi}/`, registered in both `index.ts` files.
+- **Copy.** Each feature area gets its own catalogue namespace file in `packages/i18n/src/catalogue/en/`, registered in its `index.ts` (English only, decision 0027).
 - **UI.** Anything visible comes from `@rivr/ui`; a lane adds the components it needs with the `new-ui-component` skill. If two lanes need the same new component, the first to need it builds it and the other waits on that issue.
 
 ## The Lane 0 foundation (all lanes use; nobody changes without a question issue)

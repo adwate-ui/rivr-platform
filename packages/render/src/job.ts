@@ -2,13 +2,11 @@
  * A render job travels from Node to the host page in the URL. JSON has no bigint, and every
  * amount in RIVR is bigint paise, so bigints are written as `{"$bigint":"34260000"}`.
  */
-import type { Locale } from '@rivr/i18n';
 
 /** What the host page needs to draw one template. */
 export interface RenderJob {
   template: string;
   props: object;
-  locale: Locale;
 }
 
 /** The job as the `job` query parameter of the host page. */

@@ -27,7 +27,7 @@ describe('WhatsApp Cloud API', () => {
     const { fetch, requests } = fakeFetch(200, accepted);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
 
-    const sent = await whatsapp.sendTemplate({ category: 'authentication', to, template: 'sign_in_code', language: 'en', params: ['482913'] });
+    const sent = await whatsapp.sendTemplate({ category: 'authentication', to, template: 'sign_in_code', params: ['482913'] });
 
     expect(sent).toEqual({ ok: true, value: { messageId: 'wamid.ABC123' } });
     expect(requests[0]?.url).toBe(`https://graph.facebook.com/${GRAPH_API_VERSION}/1098765/messages`);
@@ -51,12 +51,12 @@ describe('WhatsApp Cloud API', () => {
     const { fetch, requests } = fakeFetch(200, accepted);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
 
-    await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'hi', params: ['Table 3', '6'] });
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: ['Table 3', '6'] });
 
     expect(sentBody(requests)).toMatchObject({
       template: {
         name: 'seat_ready',
-        language: { code: 'hi' },
+        language: { code: 'en' },
         components: [{ type: 'body', parameters: [{ type: 'text', text: 'Table 3' }, { type: 'text', text: '6' }] }],
       },
     });
@@ -71,7 +71,7 @@ describe('WhatsApp Cloud API', () => {
     const { fetch } = fakeFetch(status, body);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
 
-    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: [] })).toEqual({
       ok: false,
       error: failure,
     });
@@ -82,7 +82,7 @@ describe('WhatsApp Cloud API', () => {
     const { fetch } = fakeFetch(200, { messages: [] });
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
 
-    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: [] })).toEqual({
       ok: true,
       value: { messageId: 'unknown' },
     });
@@ -93,7 +93,7 @@ describe('WhatsApp Cloud API', () => {
       new Promise((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(init.signal?.reason)));
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch: neverAnswers, timeoutMs: 20 });
 
-    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: [] })).toEqual({
       ok: false,
       error: { code: 'unavailable' },
     });
@@ -106,7 +106,7 @@ describe('WhatsApp Cloud API', () => {
       fetch: () => Promise.reject(new TypeError('fetch failed')),
     });
 
-    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: [] })).toEqual({
       ok: false,
       error: { code: 'unavailable' },
     });

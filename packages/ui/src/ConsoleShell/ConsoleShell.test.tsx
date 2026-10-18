@@ -5,12 +5,11 @@ import { consoleSections } from '../storybook/fixtures.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { ConsoleShell } from './ConsoleShell.tsx';
 
-function renderShell(onNavigate = vi.fn(), locale: 'en' | 'hi' = 'en') {
+function renderShell(onNavigate = vi.fn()) {
   return renderIn(
-    <ConsoleShell sections={consoleSections(locale)} currentItem="cage" onNavigate={onNavigate} banner={<p>Venue frozen.</p>}>
+    <ConsoleShell sections={consoleSections()} currentItem="cage" onNavigate={onNavigate} banner={<p>Venue frozen.</p>}>
       <h1>Cage</h1>
     </ConsoleShell>,
-    locale,
   );
 }
 
@@ -36,12 +35,6 @@ describe('ConsoleShell', () => {
     renderShell(onNavigate);
     await userEvent.click(screen.getByRole('link', { name: 'KYC review' }));
     expect(onNavigate).toHaveBeenCalledWith('#kycReview');
-  });
-
-  it('labels the rail in Hindi', () => {
-    renderShell(vi.fn(), 'hi');
-    expect(screen.getByRole('navigation', { name: 'सेक्शन' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'केज' })).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {

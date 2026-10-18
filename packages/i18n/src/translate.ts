@@ -1,14 +1,11 @@
 import { en } from './catalogue/en/index.ts';
-import { hi } from './catalogue/hi/index.ts';
-import type { Catalogue, Locale, MessageKey, MessageParams } from './catalogue/types.ts';
+import type { MessageKey, MessageParams } from './catalogue/types.ts';
 
-const CATALOGUES: Record<Locale, Catalogue> = { en, hi };
-
-/** Translates one message key. `{name}` placeholders are filled from `params`. */
+/** Looks up one message key. `{name}` placeholders are filled from `params`. */
 export type Translate = (key: MessageKey, params?: MessageParams) => string;
 
-function lookup(catalogue: Catalogue, key: MessageKey): string {
-  let node: unknown = catalogue;
+function lookup(key: MessageKey): string {
+  let node: unknown = en;
   for (const part of key.split('.')) {
     node = typeof node === 'object' && node !== null ? Reflect.get(node, part) : undefined;
   }
@@ -22,8 +19,5 @@ function fill(message: string, params: MessageParams): string {
   );
 }
 
-/** Returns the translate function for a locale. */
-export function createTranslator(locale: Locale): Translate {
-  const catalogue = CATALOGUES[locale];
-  return (key, params = {}) => fill(lookup(catalogue, key), params);
-}
+/** The message for a key, placeholders filled: `t('common.featureLocked', { tiers })`. */
+export const t: Translate = (key, params = {}) => fill(lookup(key), params);

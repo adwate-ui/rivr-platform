@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Locale } from '@rivr/i18n';
 import { chromium, type Page, type Route } from 'playwright';
 import { encodeJob } from './job.ts';
 import type { TemplateName, TemplateProps } from './templates/index.ts';
@@ -9,14 +8,13 @@ import type { TemplateName, TemplateProps } from './templates/index.ts';
 const HOST_DIR = new URL('../dist/host/', import.meta.url);
 const ORIGIN = 'http://render.rivr.test';
 
-/** One template drawn at a size, in a language. */
+/** One template drawn at a size. */
 export interface RenderRequest<Name extends TemplateName> {
   template: Name;
   props: TemplateProps<Name>;
   /** Width and height in CSS pixels; the image has exactly this many pixels. */
   width: number;
   height: number;
-  locale?: Locale;
 }
 
 async function serveHostFile(route: Route): Promise<void> {
@@ -40,7 +38,7 @@ async function withDrawnPage<Name extends TemplateName, Result>(request: RenderR
   try {
     const page = await browser.newPage({ viewport: { width: request.width, height: request.height }, deviceScaleFactor: 1 });
     await page.route(`${ORIGIN}/**`, serveHostFile);
-    const job = encodeJob({ template: request.template, props: request.props, locale: request.locale ?? 'en' });
+    const job = encodeJob({ template: request.template, props: request.props });
     await page.goto(`${ORIGIN}/index.html?job=${encodeURIComponent(job)}`);
     await waitUntilDrawn(page);
     return await capture(page);

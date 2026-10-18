@@ -10,8 +10,9 @@
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 /**
- * The faces, weights, styles and subsets the token typefaces need. Devanagari faces only set
- * Hindi. Bodoni Moda's italic sets the brand motto on the sign-in screen (Wordmark `withMotto`).
+ * The faces, weights, styles and subsets the token typefaces need. The Devanagari faces set
+ * only the ₹ sign, which Bodoni Moda and Instrument Sans lack; RIVR is English only (0027).
+ * Bodoni Moda's italic sets the brand motto on the sign-in screen (Wordmark `withMotto`).
  */
 const FACES = [
   { name: 'bodoni-moda', weights: [400], styles: ['normal', 'italic'], subsets: ['latin', 'latin-ext'] },

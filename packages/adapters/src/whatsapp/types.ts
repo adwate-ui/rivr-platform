@@ -1,14 +1,10 @@
 import type { IndianMobile, Result } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
 
-/** A WhatsApp template's language. */
-export type WhatsAppLanguage = 'en' | 'hi';
-
 interface TemplateMessage {
   readonly to: IndianMobile;
-  /** The approved template's name, `seat_ready`. */
+  /** The approved template's name, `seat_ready`. Every template is in English (decision 0027). */
   readonly template: string;
-  readonly language: WhatsAppLanguage;
   readonly params: readonly string[];
 }
 

@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
 import { Spade } from 'lucide-react';
 import { cx } from '../internal/classes.ts';
@@ -32,7 +32,6 @@ const ALIGN = { start: 'items-start', center: 'items-center' } as const;
  * cream spade. The one place a filled shape and the red card appear.
  */
 export function Wordmark({ size = 'md', withTagline = false, withMotto = false, align = 'start' }: WordmarkProps) {
-  const t = useT();
   const tile = cx('flex items-center justify-center', TILE[size]);
   const mark = (
     <div role="img" aria-label={t('ui.brand.label')} className={cx('inline-flex flex-col gap-2', ALIGN[align])}>
@@ -47,20 +46,18 @@ export function Wordmark({ size = 'md', withTagline = false, withMotto = false, 
         </span>
       </div>
       {withTagline ? (
-        <span className={cx('font-text font-medium uppercase tracking-tv text-content hindi:tracking-normal', TAGLINE[size])}>
+        <span className={cx('font-text font-medium uppercase tracking-tv text-content', TAGLINE[size])}>
           {t('ui.brand.tagline')}
         </span>
       ) : null}
     </div>
   );
   if (!withMotto) return mark;
-  // The motto sits outside the image so a screen reader reads it. It is English in both
-  // catalogues, so it is marked English and stays italic on a Hindi page; when a Hindi motto
-  // arrives, `lang` must follow the locale and Devanagari must drop the italic.
+  // The motto sits outside the image so a screen reader reads it.
   return (
     <div className={cx('inline-flex flex-col gap-6', ALIGN[align])}>
       {mark}
-      <p lang="en" className="font-display text-24 italic leading-snug text-content-muted">
+      <p className="font-display text-24 italic leading-snug text-content-muted">
         {t('ui.brand.motto')}
       </p>
     </div>
