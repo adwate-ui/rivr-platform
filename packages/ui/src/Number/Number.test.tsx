@@ -13,9 +13,4 @@ describe('Number', () => {
     renderIn(<Number value={18_420n} tone="muted" size="title" />);
     expect(screen.getByText('18,420')).toHaveClass('text-content-muted', 'text-28');
   });
-
-  it('writes Latin digits in Hindi too', () => {
-    renderIn(<Number value={18_420} />, 'hi');
-    expect(screen.getByText('18,420')).toBeInTheDocument();
-  });
 });

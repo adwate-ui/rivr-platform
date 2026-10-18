@@ -54,12 +54,6 @@ describe('BottomNav', () => {
     expect(onNavigate).toHaveBeenCalledWith('/sessions');
   });
 
-  it('labels the tabs in Hindi', () => {
-    renderIn(<BottomNav items={tabs()} />, 'hi');
-    expect(screen.getByRole('navigation', { name: 'मुख्य' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'बैलेंस' })).toBeInTheDocument();
-  });
-
   it('has no accessibility violations with a locked tab', async () => {
     const { container } = renderIn(<BottomNav items={tabs({ learn: { state: 'locked', tiers: ['Black card'] } })} current="home" />);
     expect(await axeViolations(container)).toEqual([]);

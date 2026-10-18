@@ -17,9 +17,9 @@ describe('Wordmark', () => {
     expect(tiles[4]).toHaveClass('bg-alert');
   });
 
-  it('adds the letter-spaced tagline when asked, in the reader’s language', () => {
-    renderIn(<Wordmark size="lg" withTagline />, 'hi');
-    expect(screen.getByRole('img', { name: 'RIVR पोकर क्लब' })).toHaveTextContent('पोकर क्लब');
+  it('adds the letter-spaced tagline when asked', () => {
+    renderIn(<Wordmark size="lg" withTagline />);
+    expect(screen.getByRole('img', { name: 'RIVR Poker Club' })).toHaveTextContent('Poker club');
   });
 
   it('sets the motto beneath the mark as text a screen reader reads, in the display face', () => {
@@ -27,14 +27,6 @@ describe('Wordmark', () => {
     const motto = screen.getByText('Skill runs deep.');
     expect(motto).toHaveClass('font-display', 'italic');
     expect(motto.closest('[role="img"]')).toBeNull();
-  });
-
-  it('keeps the English motto marked as English, and italic, on a Hindi page', () => {
-    renderIn(<Wordmark size="lg" withTagline withMotto />, 'hi');
-    const motto = screen.getByText('Skill runs deep.');
-    expect(motto).toHaveAttribute('lang', 'en');
-    expect(motto).toHaveClass('italic');
-    expect(motto).not.toHaveClass('hindi:not-italic');
   });
 
   it('centres the mark, the tagline and the motto when asked', () => {

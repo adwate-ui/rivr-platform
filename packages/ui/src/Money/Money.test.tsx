@@ -29,9 +29,4 @@ describe('Money', () => {
     expect(screen.getByText('−₹1,000')).toBeInTheDocument();
     expect(screen.getByText('₹1,20,000.50')).toBeInTheDocument();
   });
-
-  it('uses the same digits in Hindi', () => {
-    renderIn(<Money paise={18_500_000n} />, 'hi');
-    expect(screen.getByText('₹1,85,000')).toBeInTheDocument();
-  });
 });

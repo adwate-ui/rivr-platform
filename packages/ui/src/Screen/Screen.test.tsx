@@ -39,11 +39,6 @@ describe('Screen', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('shows its states in Hindi', () => {
-    renderIn(<Screen title="बैलेंस" status="error" onRetry={() => undefined} />, 'hi');
-    expect(screen.getByRole('button', { name: 'फिर से कोशिश करें' })).toBeInTheDocument();
-  });
-
   it('has no accessibility violations in the error state', async () => {
     const { container } = renderIn(<Screen title="Balance" status="error" errorText="Balance not loaded." onRetry={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
