@@ -16,6 +16,8 @@ export interface KycCheck {
   /** `needs_review` waits for a reviewer; `needs_pan` waits for the member; `refused` is final. */
   readonly status: 'needs_review' | 'needs_pan' | 'refused';
   readonly method: 'digilocker' | 'pan';
+  /** Why a check waits for review: a PAN alone, nothing kept, no date of birth, or a clash; null otherwise. */
+  readonly waitingBecause: KycWaitReason | null;
   /** Null when the vendor's was not kept: the reviewer enters the one on the original document. */
   readonly dateOfBirth: string | null;
   readonly maskedAadhaar: string | null;
@@ -24,19 +26,29 @@ export interface KycCheck {
   readonly photoPath: string | null;
   readonly livenessScore: number | null;
   readonly faceMatchScore: number | null;
+  /** The vendor's own reference, to look the check up with them. */
+  readonly vendorReference: string | null;
   readonly refusal: KycRefusal | null;
   readonly clashesWith: readonly string[];
+  /** When the check last moved: for one waiting, when it began to wait. */
+  readonly updatedAt: string;
 }
 
+/** Why a check waits for a reviewer. */
+export type KycWaitReason = 'pan_alone' | 'nothing_kept' | 'no_date_of_birth' | 'clash';
+
 /** Why a review did not go through, as the console tells it. */
-export type KycReviewFailure = 'not_allowed' | 'decided' | 'needs_date_of_birth' | 'invalid' | 'stopped' | 'unavailable';
+export type KycReviewFailure =
+  | 'not_allowed' | 'decided' | 'needs_date_of_birth' | 'needs_pan' | 'invalid' | 'stopped' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, KycReviewFailure>> = {
-  '42501': 'not_allowed', RVKYC: 'decided', RVDOB: 'needs_date_of_birth', '22023': 'invalid', RVFRZ: 'stopped', RVMBR: 'stopped',
+  '42501': 'not_allowed', RVKYC: 'decided', RVDOB: 'needs_date_of_birth', RVPAN: 'needs_pan', '22023': 'invalid',
+  RVFRZ: 'stopped', RVMBR: 'stopped', RVKIL: 'paused',
 };
 
 const STATUSES = ['needs_review', 'needs_pan', 'refused'] as const;
 const METHODS = ['digilocker', 'pan'] as const;
+const WAIT_REASONS = ['pan_alone', 'nothing_kept', 'no_date_of_birth', 'clash'] as const;
 const REFUSALS = ['under_18', 'duplicate_face', 'duplicate_pan', 'duplicate_aadhaar', 'staff_rejected'] as const;
 
 /** One of `known`, or a fault: a value this console does not know is never shown as some other. */
@@ -57,20 +69,22 @@ export function useKycReviewQueue(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         memberId: row.member_id, fullName: row.full_name, status: oneOf(STATUSES, row.status), method: oneOf(METHODS, row.method),
+        waitingBecause: row.waiting_because === null ? null : oneOf(WAIT_REASONS, row.waiting_because),
         dateOfBirth: row.date_of_birth, maskedAadhaar: row.masked_aadhaar, pan: row.pan, address: row.address, photoPath: row.photo_path,
-        livenessScore: row.liveness_score, faceMatchScore: row.face_match_score,
-        refusal: row.refusal === null ? null : oneOf(REFUSALS, row.refusal), clashesWith: row.clashes_with,
+        livenessScore: row.liveness_score, faceMatchScore: row.face_match_score, vendorReference: row.vendor_reference,
+        refusal: row.refusal === null ? null : oneOf(REFUSALS, row.refusal), clashesWith: row.clashes_with, updatedAt: row.updated_at,
       }));
     },
   });
 }
 
-/** A reviewer's decision: approve or reject with the reason, and the date of birth where the check has none. */
+/** A reviewer's decision: approve or reject with the reason, and the date of birth and PAN where the check has none. */
 export interface KycDecision {
   memberId: string;
   approve: boolean;
   reason: string;
   dateOfBirth?: string | undefined;
+  pan?: string | undefined;
 }
 
 /**
@@ -86,6 +100,7 @@ export function useKycReviewActions(venueId: string) {
       const { data, error } = await client.rpc('review_kyc', {
         p_member_id: decision.memberId, p_approve: decision.approve, p_reason: decision.reason,
         ...(decision.dateOfBirth === undefined ? {} : { p_date_of_birth: decision.dateOfBirth }),
+        ...(decision.pan === undefined ? {} : { p_pan: decision.pan }),
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.kycReview(userId ?? 'signed-out', venueId) });
       if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');

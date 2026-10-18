@@ -13,7 +13,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `paiseSchema`, `Paise` | Money in integer paise, from a bigint or an integer string as Postgres returns `bigint`. Rejects JavaScript numbers, decimals and grouping. Combine amounts only through `@rivr/domain/money`. |
 | `indianMobileSchema`, `IndianMobile` | `9876543210`, `+91 98765 43210` → `+919876543210`. Ten digits starting 6 to 9. |
 | `panSchema`, `Pan` | PAN in capitals, holder type checked (fourth letter). |
-| `kycReviewSchema` | A KYC reviewer's decision from the console: a reason of 3 to 500 characters, and a date of birth only where the check kept none. |
+| `kycReviewSchema` | A KYC reviewer's decision from the console: a reason of 3 to 500 characters with no document numbers, and a date of birth and PAN only where the check kept none. |
 | `gstinSchema`, `Gstin` | GSTIN in capitals, check character verified. |
 | `upiVpaSchema`, `UpiVpa` | `arjun.mehta@hdfcbank`, lower-cased. |
 | `utrSchema`, `Utr` | Twelve-digit bank reference, `412908771204`. |

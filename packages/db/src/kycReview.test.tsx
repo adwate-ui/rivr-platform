@@ -36,16 +36,17 @@ describe('KYC review', () => {
     const { result, calls } = renderReview({
       '/rpc/kyc_review_queue': {
         body: [{
-          member_id: 'm204', full_name: 'Rohan Bhatia', status: 'needs_review', method: 'pan', date_of_birth: '1995-01-01',
-          masked_aadhaar: null, pan: 'ABCPD1111D', address: null, photo_path: 'v1/m204/selfie.jpg', liveness_score: 91,
-          face_match_score: null, refusal: null, clashes_with: ['Arjun Mehta'], updated_at: '2026-10-18T10:00:00Z',
+          member_id: 'm204', full_name: 'Rohan Bhatia', status: 'needs_review', method: 'pan', waiting_because: 'pan_alone',
+          date_of_birth: '1995-01-01', masked_aadhaar: null, pan: 'ABCPD1111D', address: null, photo_path: 'v1/m204/selfie.jpg',
+          liveness_score: 91, face_match_score: null, vendor_reference: 'fake-pan', refusal: null, clashes_with: ['Arjun Mehta'],
+          updated_at: '2026-10-18T10:00:00Z',
         }],
       },
     });
     await waitFor(() => expect(result.current.queue.data).toEqual([{
-      memberId: 'm204', fullName: 'Rohan Bhatia', status: 'needs_review', method: 'pan', dateOfBirth: '1995-01-01', maskedAadhaar: null,
-      pan: 'ABCPD1111D', address: null, photoPath: 'v1/m204/selfie.jpg', livenessScore: 91, faceMatchScore: null, refusal: null,
-      clashesWith: ['Arjun Mehta'],
+      memberId: 'm204', fullName: 'Rohan Bhatia', status: 'needs_review', method: 'pan', waitingBecause: 'pan_alone', dateOfBirth: '1995-01-01',
+      maskedAadhaar: null, pan: 'ABCPD1111D', address: null, photoPath: 'v1/m204/selfie.jpg', livenessScore: 91, faceMatchScore: null,
+      vendorReference: 'fake-pan', refusal: null, clashesWith: ['Arjun Mehta'], updatedAt: '2026-10-18T10:00:00Z',
     }]));
     expect(calls.find((call) => call.url.includes('/rpc/kyc_review_queue'))?.body).toEqual({ p_venue_id: 'v1' });
   });

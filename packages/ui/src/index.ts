@@ -33,6 +33,9 @@ export * from './ChoiceChips/index.ts';
 export * from './Switch/index.ts';
 export * from './Input/index.ts';
 
+// Data
+export * from './KycPhoto/index.ts';
+
 // Tier-gated features and the kill switch
 export * from './FeatureGate/index.ts';
 export * from './LockedNotice/index.ts';
@@ -41,7 +44,6 @@ export * from './KillSwitchBanner/index.ts';
 // Navigation and shells
 export * from './BottomNav/index.ts';
 export * from './SideNav/index.ts';
-export * from './Photo/index.ts';
 export * from './PlayerShell/index.ts';
 export * from './ConsoleShell/index.ts';
 export * from './TabletShell/index.ts';

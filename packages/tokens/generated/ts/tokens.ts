@@ -103,6 +103,9 @@ export const tokens = {
     "text": 640,
     "photo": 160
   },
+  "aspect": {
+    "portrait": "3 / 4"
+  },
   "radius": {
     "sm": 3,
     "md": 4,

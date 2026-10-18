@@ -24,6 +24,7 @@ export {
   type KycDecision,
   type KycRefusal,
   type KycReviewFailure,
+  type KycWaitReason,
 } from './kycReview.ts';
 export {
   useAcademyActions,

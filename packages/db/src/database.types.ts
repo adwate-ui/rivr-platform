@@ -293,14 +293,14 @@ isOneToOne: false
                   ]
                 },"kyc_review": {
                   Row: {
-                    "created_at": string,"decision": string,"entered_date_of_birth": boolean,"id": string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"decision": string,"entered_date_of_birth": boolean,"entered_pan": boolean,"id": string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decision": string,"entered_date_of_birth"?: boolean,"id"?: string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decision": string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decision"?: string,"entered_date_of_birth"?: boolean,"id"?: string,"member_id"?: string,"outcome"?: string,"reason"?: string,"reviewed_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decision"?: string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id"?: string,"outcome"?: string,"reason"?: string,"reviewed_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -892,7 +892,7 @@ isOneToOne: false
                            },
 "kyc_review_queue":
 { Args: { "p_venue_id": string }; Returns: {
-              "address": string,"clashes_with": (string)[],"date_of_birth": string,"face_match_score": number,"full_name": string,"liveness_score": number,"masked_aadhaar": string,"member_id": string,"method": string,"pan": string,"photo_path": string,"refusal": string,"status": string,"updated_at": string
+              "address": string,"clashes_with": (string)[],"date_of_birth": string,"face_match_score": number,"full_name": string,"liveness_score": number,"masked_aadhaar": string,"member_id": string,"method": string,"pan": string,"photo_path": string,"refusal": string,"status": string,"updated_at": string,"vendor_reference": string,"waiting_because": string
             }[]
                            },
 "kyc_subject":
@@ -938,7 +938,7 @@ isOneToOne: false
 { Args: { "p_member_id": string }; Returns: undefined
                            },
 "review_kyc":
-{ Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_reason": string }; Returns: string
+{ Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string
                            },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined

@@ -1,6 +1,6 @@
 import { tokens } from '@rivr/tokens';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Photo } from './Photo.tsx';
+import { KycPhoto } from './KycPhoto.tsx';
 
 // A plain portrait drawn in place, in the palette, so the screenshot never depends on a network image.
 const { greenBlack, cream } = tokens.color;
@@ -12,10 +12,10 @@ const PORTRAIT =
   );
 
 const meta = {
-  title: 'Media/Photo',
-  component: Photo,
+  title: 'Media/KycPhoto',
+  component: KycPhoto,
   args: { alt: 'KYC photo of Kabir Sethi', src: PORTRAIT },
-} satisfies Meta<typeof Photo>;
+} satisfies Meta<typeof KycPhoto>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

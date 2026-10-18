@@ -80,6 +80,7 @@
   --spacing-header: var(--rivr-size-header);
   --spacing-text: var(--rivr-size-text);
   --spacing-photo: var(--rivr-size-photo);
+  --aspect-portrait: var(--rivr-aspect-portrait);
   --radius-sm: var(--rivr-radius-sm);
   --radius-md: var(--rivr-radius-md);
   --radius-lg: var(--rivr-radius-lg);

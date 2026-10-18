@@ -21,6 +21,7 @@ const THEME_NAMESPACES = [
   ['size', '--spacing'],
   ['icon.size', '--spacing-icon'],
   ['radius', '--radius'],
+  ['aspect', '--aspect'],
   ['shadow', '--shadow'],
   ['opacity', '--opacity'],
   ['z', '--z-index'],

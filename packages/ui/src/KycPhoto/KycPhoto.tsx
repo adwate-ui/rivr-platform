@@ -2,7 +2,7 @@ import { t } from '@rivr/i18n';
 import { useState } from 'react';
 import { Text } from '../Text/Text.tsx';
 
-export interface PhotoProps {
+export interface KycPhotoProps {
   /** What it shows, read out: "KYC photo of Kabir Sethi". */
   alt: string;
   /** The image's address; null while it loads or when there is none (see `status`). */
@@ -12,17 +12,17 @@ export interface PhotoProps {
 }
 
 /**
- * A person's photo at a fixed 3:4 portrait size beside their details, such as a member's KYC photo in
- * the review queue. Shows in words when it is loading, missing or could not load.
+ * A member's KYC photo at a fixed portrait size beside their details: in the review queue, and at the
+ * cage (A-003). Shows in words when it is loading, missing or could not load.
  */
-export function Photo({ alt, src, status = 'ready' }: PhotoProps) {
+export function KycPhoto({ alt, src, status = 'ready' }: KycPhotoProps) {
   // The address that failed to load, so a new address is tried again.
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const isFailed = status === 'error' || (src !== null && src === failedSrc);
   const isShown = status === 'ready' && src !== null && !isFailed;
   const words = status === 'loading' ? t('common.loading') : isFailed ? t('ui.photo.failed') : t('ui.photo.missing');
   return (
-    <div className="flex aspect-3/4 w-photo shrink-0 items-center justify-center overflow-hidden rounded-md border border-hairline bg-raised">
+    <div className="flex aspect-portrait w-photo shrink-0 items-center justify-center overflow-hidden rounded-md border border-hairline bg-raised">
       {isShown ? (
         <img src={src} alt={alt} className="h-full w-full object-cover" onError={() => setFailedSrc(src)} />
       ) : (
