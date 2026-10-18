@@ -2,8 +2,9 @@
 // deliveries through the database's own functions, with the service role, and the request handler
 // that runs a consumer once. A consumer's index.ts is then one line:
 //   Deno.serve(serveConsumer({ name, eventTypes, isMessaging, deliver }));
-// pg_cron calls each consumer with the service role every minute (#215): the consumer's migration runs
-// `select private.schedule_outbox_consumer('<function name>')`.
+// pg_cron calls each consumer every minute with the scheduler's secret (#215, decision 0038): the
+// consumer's migration runs `select private.schedule_outbox_consumer('<function name>')`, and
+// config.template.toml turns verify_jwt off for its function.
 // Practice-venue events never reach a consumer: claim_outbox_deliveries leaves them out.
 import { runConsumer, type ClaimedDelivery, type Consumer, type OutboxStore } from '@rivr/adapters';
 
@@ -45,11 +46,26 @@ export const outboxStore: OutboxStore = {
   },
 };
 
-/** The request handler for one consumer: only the service role (pg_cron) may run it. */
+// The scheduler's own secret (decision 0038), the same as Vault's outbox_scheduler_secret.
+const schedulerSecret = Deno.env.get('OUTBOX_SCHEDULER_SECRET') ?? '';
+
+/** Whether two texts are equal, in a time that does not depend on where they differ. */
+function sameText(given: string, expected: string): boolean {
+  const a = new TextEncoder().encode(given);
+  const b = new TextEncoder().encode(expected);
+  let difference = a.length ^ b.length;
+  for (let at = 0; at < b.length; at += 1) difference |= (a[at] ?? 0) ^ (b[at] ?? 0);
+  return difference === 0;
+}
+
+/**
+ * The request handler for one consumer: only the scheduler (pg_cron, with its secret) may run it.
+ * The consumer's function is deployed with verify_jwt off, as the scheduler carries no person's token.
+ */
 export function serveConsumer(consumer: Consumer): (request: Request) => Promise<Response> {
   return async (request) => {
     if (request.method !== 'POST') return Response.json({ error: 'POST only' }, { status: 405 });
-    if (serviceRoleKey === '' || request.headers.get('authorization') !== `Bearer ${serviceRoleKey}`) {
+    if (schedulerSecret === '' || !sameText(request.headers.get('x-outbox-secret') ?? '', schedulerSecret)) {
       return Response.json({ error: 'Only the scheduler runs a consumer' }, { status: 403 });
     }
     return Response.json(await runConsumer(outboxStore, consumer));
