@@ -107,7 +107,8 @@ function stepsFor(mode, scope) {
   if (mode === 'quick') return steps;
   const money = moneyModulesToMutate(scope);
   if (money.length > 0) steps.push(mutationStep(money));
-  if (touched('supabase/')) steps.push(pgtapStep());
+  // A golden file is proved in SQL too (decision 0037).
+  if (touched('supabase/') || touched('packages/testing/golden/')) steps.push(pgtapStep());
   if (touched('packages/tokens/')) steps.push(step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']));
   if (touched('packages/drills/')) steps.push(step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']));
   if (touched('packages/ui/') || touched('packages/tokens/')) {

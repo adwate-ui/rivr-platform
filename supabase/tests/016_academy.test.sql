@@ -25,17 +25,7 @@ insert into public.member (venue_id, user_id, full_name, phone) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000103', 'Aditya Malhotra', '+919000000103'),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000104', 'Sana Qureshi', '+919000000104');
 
--- The fee, case by case as in packages/testing/golden/academy.json (@rivr/domain academyFee).
-select is(private.academy_fee('individual', 1, '{"individual_paise": 200000, "corporate_per_head_paise": 150000}'), 200000::bigint,
-  'golden: one seat at the opening fee, ₹2,000');
-select is(private.academy_fee('corporate', 3, '{"individual_paise": 200000, "corporate_per_head_paise": 150000}'), 450000::bigint,
-  'golden: three heads of a company at ₹1,500 each');
-select is(private.academy_fee('individual', 1, '{"individual_paise": 199999, "corporate_per_head_paise": 150000}'), 199999::bigint,
-  'golden: no rounding to ₹50, one seat at ₹1,999.99');
-select is(private.academy_fee('corporate', 3, '{"individual_paise": 200000, "corporate_per_head_paise": 150025}'), 450075::bigint,
-  'golden: no rounding for a company either, three heads at ₹1,500.25');
-select is(private.academy_fee('corporate', 100, '{"individual_paise": 200000, "corporate_per_head_paise": 10000000}'), 1000000000::bigint,
-  'golden: the largest booking, 100 heads at ₹1,00,000');
+-- The fee's golden cases are proved in 024_golden_twins, from packages/testing/golden/academy.json itself.
 select is(private.academy_fee('individual', 2, '{"individual_paise": 200000, "corporate_per_head_paise": 150000}'), null::bigint,
   'an individual booking is one seat');
 
