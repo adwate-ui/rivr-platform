@@ -31,7 +31,7 @@ select lives_ok($$ select public.begin_kyc_vendor_call('00000000-0000-4000-8000-
 -- DigiLocker with a PAN: verified.
 select lives_ok($$ select public.record_kyc_started('00000000-0000-4000-8000-000000000201', 'session-1') $$, 'a hand-off is recorded');
 select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000201', '1990-04-12', 'XXXX XXXX 4321',
-  'ABCPM1234F', 'Sector 65, Gurugram', 'vendor-1'), 'verified', 'DigiLocker with a PAN verifies the member');
+  'ABCPM1234F', 'Sector 65, Gurugram', 'vendor-1', true), 'verified', 'DigiLocker with a PAN verifies the member');
 select lives_ok($$ select public.record_kyc_started('00000000-0000-4000-8000-000000000201', 'session-2') $$, 'a second hand-off is harmless');
 select is((select status from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201'), 'verified', 'a verified record stays verified');
 
@@ -39,11 +39,18 @@ select is((select status from public.kyc_record where member_id = '00000000-0000
 select pg_temp.consent('00000000-0000-4000-8000-000000000202');
 select public.begin_kyc_vendor_call('00000000-0000-4000-8000-000000000202', true);
 select public.record_kyc_started('00000000-0000-4000-8000-000000000202', 'session-3');
-select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000202', '1992-02-02', 'XXXX XXXX 1111', null, 'DLF Phase 3', 'vendor-2'),
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000202', '1992-02-02', 'XXXX XXXX 1111', null, 'DLF Phase 3', 'vendor-2', true),
   'needs_pan', 'without a PAN the check waits for one');
 select is(public.record_kyc_pan('00000000-0000-4000-8000-000000000202', 'BCDPS2345G', '2000-01-01', 'vendor-pan'), 'verified', 'a valid PAN completes it');
 select is((select date_of_birth from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000202'), '1992-02-02'::date,
   'DigiLocker''s date of birth is kept');
+
+-- Someone else's DigiLocker (the name does not match the member's): staff review.
+select pg_temp.consent('00000000-0000-4000-8000-000000000204');
+select public.begin_kyc_vendor_call('00000000-0000-4000-8000-000000000204', true);
+select public.record_kyc_started('00000000-0000-4000-8000-000000000204', 'session-6');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000204', '1980-03-03', 'XXXX XXXX 2222', 'DEFPR4567J', 'Elsewhere', 'vendor-3', false),
+  'needs_review', 'a DigiLocker record in another name waits for staff, never verifies');
 
 -- DigiLocker fails: a PAN alone waits for staff.
 select pg_temp.consent('00000000-0000-4000-8000-000000000203');
@@ -95,7 +102,7 @@ select throws_ok($$ select public.begin_kyc_vendor_call('00000000-0000-4000-8000
   'nor pass the gate themselves');
 select throws_ok($$ update public.kyc_record set status = 'verified' $$, '42501', null, 'nor change it directly');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select is((select count(*)::int from public.kyc_record), 3, 'a KYC reviewer sees the venue''s records');
+select is((select count(*)::int from public.kyc_record), 4, 'a KYC reviewer sees the venue''s records');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000108", "role": "authenticated"}';
 select is((select count(*)::int from public.kyc_record), 0, 'a host sees none');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000ea", "role": "authenticated"}';

@@ -125,9 +125,11 @@ as $$
   where member_id = p_member_id and status <> 'verified';
 $$;
 
--- DigiLocker returned the member's record. Without a PAN the check waits for one.
+-- DigiLocker returned the member's record. Without a PAN the check waits for one; a DigiLocker name
+-- that does not match the member's registered name (someone else consented) waits for staff.
 create function public.record_kyc_digilocker(
-  p_member_id uuid, p_date_of_birth date, p_masked_aadhaar text, p_pan text, p_address text, p_vendor_reference text
+  p_member_id uuid, p_date_of_birth date, p_masked_aadhaar text, p_pan text, p_address text, p_vendor_reference text,
+  p_name_matches boolean
 )
 returns text
 language sql
@@ -138,8 +140,8 @@ as $$
   update public.kyc_record
   set date_of_birth = p_date_of_birth, masked_aadhaar = p_masked_aadhaar, pan = p_pan, address = p_address,
       vendor_reference = p_vendor_reference,
-      status = case when p_pan is null then 'needs_pan' else 'verified' end,
-      verified_at = case when p_pan is null then null else now() end
+      status = case when not p_name_matches then 'needs_review' when p_pan is null then 'needs_pan' else 'verified' end,
+      verified_at = case when p_name_matches and p_pan is not null then now() end
   where member_id = p_member_id and status = 'started'
   returning status;
 $$;
@@ -187,7 +189,7 @@ $$;
 
 grant execute on function public.kyc_subject() to authenticated;
 grant execute on function public.begin_kyc_vendor_call(uuid, boolean), public.record_kyc_started(uuid, text),
-  public.record_kyc_digilocker(uuid, date, text, text, text, text), public.record_kyc_digilocker_failed(uuid),
+  public.record_kyc_digilocker(uuid, date, text, text, text, text, boolean), public.record_kyc_digilocker_failed(uuid),
   public.record_kyc_pan(uuid, text, date, text)
   to service_role;
 grant select on public.kyc_record to service_role;

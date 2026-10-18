@@ -3,7 +3,7 @@
 // closed (docs/decisions/0014). This function writes the member's kyc_record with the service role;
 // members can only read it, so nobody verifies themselves. Every vendor call first passes
 // begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
-import { createAdapters, type AdapterFailure } from '@rivr/adapters';
+import { createAdapters, createFakeKyc, type AdapterFailure } from '@rivr/adapters';
 import { memberIdSchema, panSchema } from '@rivr/contracts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -92,8 +92,17 @@ async function start({ memberId, kyc }: Subject, token: string): Promise<Respons
   return reply({ redirectUrl: started.value.redirectUrl });
 }
 
+/**
+ * Whether DigiLocker's name is the member's registered one, ignoring case, spacing and punctuation.
+ * A different name means someone else consented at DigiLocker: the record waits for staff.
+ */
+function sameName(digiLocker: string, registered: string): boolean {
+  const plain = (name: string) => name.toLowerCase().replace(/[^\p{L}\s]/gu, '').replace(/\s+/g, ' ').trim();
+  return plain(digiLocker) === plain(registered);
+}
+
 /** The member is back from DigiLocker: pull the record, or move them to a PAN check. */
-async function complete({ memberId, kyc }: Subject): Promise<Response> {
+async function complete({ memberId, fullName, kyc }: Subject): Promise<Response> {
   const record = await currentRecord(memberId);
   if (record === null || typeof record.digilocker_session_id !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
   if (record.status !== 'started') return reply({ status: record.status });
@@ -104,10 +113,10 @@ async function complete({ memberId, kyc }: Subject): Promise<Response> {
     await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
     return reply({ status: 'needs_pan' });
   }
-  const { dateOfBirth, maskedAadhaar, pan, address, vendorReference } = pulled.value;
+  const { name, dateOfBirth, maskedAadhaar, pan, address, vendorReference } = pulled.value;
   const status = await rpc('record_kyc_digilocker', {
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_pan: pan,
-    p_address: address, p_vendor_reference: vendorReference,
+    p_address: address, p_vendor_reference: vendorReference, p_name_matches: sameName(name, fullName),
   }, null);
   return reply({ status });
 }
@@ -145,8 +154,11 @@ async function subjectFor(token: string): Promise<Subject | null> {
   const rows = await rpc('kyc_subject', {}, token).catch(() => []);
   const row: unknown = Array.isArray(rows) ? rows[0] : undefined;
   if (typeof row !== 'object' || row === null) return null;
-  const { kyc } = createAdapters({ isPracticeVenue: Reflect.get(row, 'is_practice') === true, live: {} });
-  return { memberId: memberIdSchema.parse(Reflect.get(row, 'member_id')), fullName: String(Reflect.get(row, 'full_name')), kyc };
+  const fullName = String(Reflect.get(row, 'full_name'));
+  // The practice venue gets the fake vendor (decision 0014), whose DigiLocker returns the member's own
+  // name, as DigiLocker does for the right person; a real venue gets what createAdapters gives.
+  const kyc = Reflect.get(row, 'is_practice') === true ? createFakeKyc({ record: { name: fullName } }) : createAdapters({ isPracticeVenue: false, live: {} }).kyc;
+  return { memberId: memberIdSchema.parse(Reflect.get(row, 'member_id')), fullName, kyc };
 }
 
 Deno.serve(async (request) => {
