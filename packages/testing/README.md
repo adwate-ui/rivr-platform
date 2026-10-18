@@ -33,6 +33,8 @@ it.each(casesFor(readGolden(rakeJson), 'rake'))('%s', (_description, goldenCase)
 
 `golden/<rule>.json` has a `rule`, an `about` note for the reader, and `cases`, each with a plain-language `description`, an `operation`, and `inputs` and `expected` as text. Amounts are written as on a receipt (`"₹2,449.50"`). Every money rule has normal, cap, ₹50-rounding and zero cases.
 
+A rule that also runs in SQL (the Academy fee now; rake, TDS and GST later) is proved against the same file there: `pnpm supabase test db` loads every case into the local database, and `supabase/tests/024_golden_twins.test.sql` runs the SQL twin on each (decision 0037). A case added here is tested on both sides.
+
 ## Must not
 
 - Import `@rivr/domain` or any package but `@rivr/contracts`. The domain's own tests use this package.
