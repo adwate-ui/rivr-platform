@@ -2,3 +2,4 @@
 export * from './money/index.ts';
 export * from './ledger/index.ts';
 export * from './identity/index.ts';
+export * from './academy/index.ts';
