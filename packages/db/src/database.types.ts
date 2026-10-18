@@ -723,6 +723,9 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
+"has_my_consent":
+{ Args: { "p_purpose": string }; Returns: boolean
+                           },
 "kyc_subject":
 { Args: Record<PropertyKey, never>; Returns: {
               "full_name": string,"is_practice": boolean,"member_id": string,"venue_id": string

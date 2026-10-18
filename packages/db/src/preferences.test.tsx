@@ -16,6 +16,7 @@ function renderPreferences(tables: Record<string, unknown>) {
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
     calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    if (url.includes('/rest/v1/rpc/has_my_consent')) return Response.json(tables.has_my_consent ?? false);
     if (url.includes('/rest/v1/rpc/')) return new Response(null, { status: 204 });
     const table = Object.keys(tables).find((name) => url.includes(`/rest/v1/${name}?`));
     return Response.json(table ? tables[table] : null);
@@ -36,7 +37,7 @@ describe('usePreferences', () => {
     const { result } = renderPreferences({
       member_preference: { games: ['tournaments', 'nlh'], small_blind: 10000, big_blind: 20000 },
       notification_preference: [{ push_type: 'push.seat_ready', is_on: false }, { push_type: 'push.withdrawal_sent', is_on: true }],
-      consent: { id: 'c1' },
+      has_my_consent: true,
     });
 
     await waitFor(() =>
@@ -50,7 +51,7 @@ describe('usePreferences', () => {
   });
 
   it('starts with every notification on, no games, any stake and no marketing', async () => {
-    const { result } = renderPreferences({ member_preference: null, notification_preference: [], consent: null });
+    const { result } = renderPreferences({ member_preference: null, notification_preference: [], has_my_consent: false });
 
     await waitFor(() =>
       expect(result.current.preferences.data).toEqual({ games: [], stake: null, notificationsOff: [], marketing: false }),
@@ -79,7 +80,7 @@ describe('usePreferenceActions', () => {
     await act(() => result.current.actions.setMarketing.mutateAsync(true));
     await act(() => result.current.actions.setMarketing.mutateAsync(false));
 
-    const rpcs = calls.filter((call) => call.url.includes('/rpc/')).map((call) => [call.url.split('/rpc/')[1], call.body]);
+    const rpcs = calls.filter((call) => call.url.includes('/rpc/') && !call.url.includes('/rpc/has_my_consent')).map((call) => [call.url.split('/rpc/')[1], call.body]);
     expect(rpcs).toEqual([
       ['set_my_notification', { p_push_type: 'push.seat_ready', p_is_on: false }],
       ['give_consent', { p_purpose: 'marketing' }],

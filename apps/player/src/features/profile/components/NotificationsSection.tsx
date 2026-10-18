@@ -9,21 +9,24 @@ const PUSH_COPY: Readonly<Record<PushChoice, { label: MessageKey; hint: MessageK
   'push.tournament_starting': { label: 'player.profile.tournamentStarts', hint: 'player.profile.tournamentStartsHint' },
 };
 
-/** One kind of push notification, shown only to tiers that have it. */
+/** One kind of push notification: its switch for tiers that have it, its name and the tiers that do for the rest. */
 function NotificationSwitch({ type, isOn }: { type: PushChoice; isOn: boolean }) {
   const access = useFeature(type);
   const { setNotification } = usePreferenceActions();
   return (
-    <FeatureGate access={access}>
-      <Switch
-        label={t(PUSH_COPY[type].label)}
-        hint={t(PUSH_COPY[type].hint)}
-        isOn={isOn}
-        isDisabled={setNotification.isPending}
-        onChange={(next) => setNotification.mutate({ type, isOn: next })}
-      />
-      {setNotification.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}
-    </FeatureGate>
+    <>
+      {access.state === 'locked' ? <Text>{t(PUSH_COPY[type].label)}</Text> : null}
+      <FeatureGate access={access}>
+        <Switch
+          label={t(PUSH_COPY[type].label)}
+          hint={t(PUSH_COPY[type].hint)}
+          isOn={isOn}
+          isDisabled={setNotification.isPending}
+          onChange={(next) => setNotification.mutate({ type, isOn: next })}
+        />
+        {setNotification.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}
+      </FeatureGate>
+    </>
   );
 }
 

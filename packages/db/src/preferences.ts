@@ -43,7 +43,8 @@ export function usePreferences() {
       const [saved, choices, consent] = await Promise.all([
         client.from('member_preference').select('games, small_blind, big_blind').maybeSingle(),
         client.from('notification_preference').select('push_type, is_on'),
-        client.from('consent').select('id').eq('purpose', 'marketing').is('withdrawn_at', null).maybeSingle(),
+        // Their own consent only: a login that is also staff can read every member's consent rows.
+        client.rpc('has_my_consent', { p_purpose: 'marketing' }),
       ]);
       const error = saved.error ?? choices.error ?? consent.error;
       if (error) throw error;
@@ -52,7 +53,7 @@ export function usePreferences() {
         games: GAMES.filter((game) => saved.data?.games.includes(game)),
         stake: stakeOf(saved.data),
         notificationsOff: PUSH_CHOICES.filter((type) => off.includes(type)),
-        marketing: consent.data !== null,
+        marketing: consent.data === true,
       };
     },
   });

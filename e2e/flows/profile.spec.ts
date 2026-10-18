@@ -15,7 +15,7 @@ async function flip(control: Locator, attribute: 'aria-pressed' | 'aria-checked'
 }
 
 test.describe('Profile', () => {
-  test('a member keeps their games and their promotions choice, and finds limits', async ({ page }) => {
+  test('a member keeps their games, notifications and promotions choice, and finds limits', async ({ page }) => {
     await signInToPlayer(page, '9000000202');
     await page.getByRole('link', { name: 'Profile' }).click();
     await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible();
@@ -23,12 +23,15 @@ test.describe('Profile', () => {
 
     const plo = page.getByRole('button', { name: 'PLO' });
     const promotions = page.getByRole('switch', { name: 'Promotions and offers' });
+    const seatCalls = page.getByRole('switch', { name: 'Seat calls' });
     const ploPressed = await flip(plo, 'aria-pressed');
     const promotionsOn = await flip(promotions, 'aria-checked');
+    const seatCallsOn = await flip(seatCalls, 'aria-checked');
 
     await page.reload();
     await expect(plo).toHaveAttribute('aria-pressed', ploPressed);
     await expect(promotions).toHaveAttribute('aria-checked', promotionsOn);
+    await expect(seatCalls).toHaveAttribute('aria-checked', seatCallsOn);
 
     await page.getByRole('button', { name: 'Limits and self-exclusion' }).click();
     await expect(page.getByRole('heading', { name: 'Limits and self-exclusion' })).toBeVisible();
