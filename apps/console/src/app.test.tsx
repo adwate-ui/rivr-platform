@@ -1,5 +1,4 @@
 import { createRivrClient, RivrDataProvider } from '@rivr/db';
-import { I18nProvider } from '@rivr/i18n';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -12,11 +11,9 @@ const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'te
 
 function renderAt(path: string) {
   return render(
-    <I18nProvider locale="en">
-      <RivrDataProvider client={client}>
-        <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: [path] }))} />
-      </RivrDataProvider>
-    </I18nProvider>,
+    <RivrDataProvider client={client}>
+      <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: [path] }))} />
+    </RivrDataProvider>,
   );
 }
 

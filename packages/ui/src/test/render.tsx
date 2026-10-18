@@ -1,11 +1,10 @@
-import { I18nProvider, type Locale } from '@rivr/i18n';
 import { render, type RenderResult } from '@testing-library/react';
 import axe from 'axe-core';
 import type { ReactElement } from 'react';
 
-/** Renders `element` in a language, English unless told otherwise. */
-export function renderIn(element: ReactElement, locale: Locale = 'en'): RenderResult {
-  return render(<I18nProvider locale={locale}>{element}</I18nProvider>);
+/** Renders `element` for a test. Kept as the one entry point so a shared wrapper has one home. */
+export function renderIn(element: ReactElement): RenderResult {
+  return render(element);
 }
 
 /**

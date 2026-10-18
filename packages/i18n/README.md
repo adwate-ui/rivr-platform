@@ -6,19 +6,17 @@ Every word a member or staff user reads, and the one formatter for money, number
 
 | Export | What it does |
 |---|---|
-| `useT()` | The translate function for the current language: `t('common.retry')`. |
-| `I18nProvider` | Sets the language (`'en'`, the only one) for everything below it. The next part of #186 removes it. |
-| `useLocale()` | The current language. |
-| `createTranslator(locale)` | `t` outside React (Edge Functions, render templates, tests). |
+| `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. Works anywhere: components, Astro pages, Edge Functions, render templates, tests. |
+| `useT()` | Returns `t`, for components written before #186. The next part of #186 replaces it with `t`. |
 | `formatMoney(paise)` | `₹1,20,000`. Indian grouping, no decimals on whole rupees, never rounded, `−₹1,000` for negatives. |
 | `formatNumber(n)` | `18,420`. |
 | `formatStakes(small, big)` | Blinds in paise to `100/200`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
-| `formatDate(date, locale)`, `formatWeekday(date, locale)` | `15 Nov 2026`, `Sunday`, in IST. |
-| `formatList(items, locale)` | `Black card and Founders' Circle`. |
+| `formatDate(date)`, `formatWeekday(date)` | `15 Nov 2026`, `Sunday`, in IST. |
+| `formatList(items)` | `Black card and Founders' Circle`. |
 | `en` | The catalogue itself, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not this. |
 | `Translate` | The type of `t`. |
-| `MessageKey`, `MessageParams`, `Messages`, `Locale`, `Catalogue` | Types: every key (`'common.retry'`), the values for a message's `{placeholders}`, a namespace's shape, `'en'`, and the whole catalogue. |
+| `MessageKey`, `MessageParams` | Types: every key (`'common.retry'`) and the values for a message's `{placeholders}`. |
 
 ## Usage
 

@@ -1,17 +1,8 @@
-import { I18nProvider } from '@rivr/i18n';
-import type { Decorator, Preview } from '@storybook/react-vite';
+import type { Preview } from '@storybook/react-vite';
 import { themes } from 'storybook/theming';
 import '../src/styles.css';
 
-/** Wraps every story in the app's copy, so components that read `t` show real strings. */
-const withCopy: Decorator = (Story) => (
-  <I18nProvider locale="en">
-    <Story />
-  </I18nProvider>
-);
-
 const preview: Preview = {
-  decorators: [withCopy],
   parameters: {
     layout: 'padded',
     // The controls panel serialises args as JSON, which cannot hold bigint paise or the
