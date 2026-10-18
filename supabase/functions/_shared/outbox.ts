@@ -2,7 +2,7 @@
 // deliveries through the database's own functions, with the service role, and the request handler
 // that runs a consumer once. A consumer's index.ts is then one line:
 //   Deno.serve(serveConsumer({ name, eventTypes, isMessaging, deliver }));
-// pg_cron calls each consumer with the service role on its schedule (added with the first consumer).
+// pg_cron calls each consumer with the service role on its schedule (#215, with the first consumer).
 // Practice-venue events never reach a consumer: claim_outbox_deliveries leaves them out.
 import { runConsumer, type ClaimedDelivery, type Consumer, type OutboxStore } from '@rivr/adapters';
 
@@ -38,7 +38,8 @@ export const outboxStore: OutboxStore = {
   },
   async finish({ deliveryId, isDelivered, error, retryAfterSeconds }) {
     await rpc('finish_outbox_delivery', {
-      p_delivery_id: deliveryId, p_delivered: isDelivered, p_error: error, p_retry_after: `${retryAfterSeconds} seconds`,
+      p_delivery_id: deliveryId, p_delivered: isDelivered, p_error: error,
+      p_retry_after: retryAfterSeconds === null ? null : `${retryAfterSeconds} seconds`,
     });
   },
 };

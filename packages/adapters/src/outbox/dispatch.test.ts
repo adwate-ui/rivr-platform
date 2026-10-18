@@ -1,4 +1,4 @@
-import { err, ok } from '@rivr/contracts/result';
+import { err, ok } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
 import { backoffSeconds, runConsumer, type ClaimedDelivery, type Consumer, type OutboxStore } from './dispatch.ts';
 
@@ -45,21 +45,30 @@ describe('runConsumer', () => {
   it('finishes a failure with its reason and a backoff that grows with the attempts', async () => {
     const { store, finished } = fakeStore([delivery('a', 1), delivery('b', 3)]);
 
-    const outcome = await runConsumer(store, consumer(async (claimed) => (claimed.deliveryId === 'a' ? err({ code: 'rate_limited' }) : err({ code: 'rejected', reason: 'template not approved' }))));
+    const outcome = await runConsumer(store, consumer(async (claimed) => (claimed.deliveryId === 'a' ? err({ code: 'rate_limited' }) : err({ code: 'unavailable' }))));
 
     expect(outcome).toEqual({ delivered: 0, failed: 2 });
     expect(finished).toEqual([
       { deliveryId: 'a', isDelivered: false, error: 'rate_limited', retryAfterSeconds: 60 },
-      { deliveryId: 'b', isDelivered: false, error: 'rejected: template not approved', retryAfterSeconds: 240 },
+      { deliveryId: 'b', isDelivered: false, error: 'unavailable', retryAfterSeconds: 240 },
     ]);
+  });
+
+  it('never tries again a delivery the vendor rejected', async () => {
+    const { store, finished } = fakeStore([delivery('a', 1)]);
+
+    await runConsumer(store, consumer(async () => err({ code: 'rejected', reason: 'template not approved' })));
+
+    expect(finished).toEqual([{ deliveryId: 'a', isDelivered: false, error: 'rejected: template not approved', retryAfterSeconds: null }]);
   });
 
   it('counts a delivery that throws as unavailable, and carries on with the rest', async () => {
     const { store, finished } = fakeStore([delivery('a'), delivery('b')]);
 
-    const outcome = await runConsumer(store, consumer(async (claimed) => {
-      if (claimed.deliveryId === 'a') throw new Error('socket closed');
-      return ok(null);
+    const outcome = await runConsumer(store, consumer((claimed) => {
+      // Not async: it throws before any promise exists, as a payload check can.
+      if (claimed.deliveryId === 'a') throw new Error('bad payload');
+      return Promise.resolve(ok(null));
     }));
 
     expect(outcome).toEqual({ delivered: 1, failed: 1 });

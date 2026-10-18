@@ -1,7 +1,9 @@
 -- The outbox dispatcher's database side (#12; tech plan, "One event outbox"). Consumers retry a
--- failed delivery with backoff, ten attempts in all; a delivery that fails its tenth raises an alert.
--- private.raise_alert and the alert table are lane A's (lane A contract); this is their first cut,
--- which lane A's alerting task extends with the owner dashboard and the alert WhatsApp number.
+-- failed delivery with backoff, ten attempts in all; a delivery the vendor rejected is not tried
+-- again. A delivery that fails for good raises an alert, at most one an hour per consumer. The alert
+-- table and private.raise_alert are lane A's (lane A contract); this is their smallest first cut,
+-- which lane A's alerting task (#100) extends with acknowledgement, thresholds, the owner dashboard
+-- and the alert WhatsApp number.
 
 create table public.alert (
   id uuid primary key default gen_random_uuid(),
@@ -10,17 +12,13 @@ create table public.alert (
   -- What happened, for the owner dashboard. Never personal data.
   detail jsonb not null default '{}',
   raised_at timestamptz not null default now(),
-  acknowledged_at timestamptz,
-  acknowledged_by_staff_id uuid references public.staff (id),
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  check ((acknowledged_at is null) = (acknowledged_by_staff_id is null))
+  updated_at timestamptz not null default now()
 );
 
 comment on table public.alert is 'Alerts for the owner dashboard and the alert WhatsApp number (lane A).';
 
 create index alert_venue_id_raised_at_idx on public.alert (venue_id, raised_at desc);
-create index alert_acknowledged_by_staff_id_idx on public.alert (acknowledged_by_staff_id);
 create trigger alert_touch_updated_at before update on public.alert
   for each row execute function private.touch_updated_at();
 create trigger alert_audit after insert or update or delete on public.alert
@@ -53,8 +51,9 @@ $$;
 
 grant execute on function private.raise_alert(uuid, text, jsonb) to service_role;
 
--- A delivery that will not be tried again: alert the owner, unless it was itself an alert's
--- delivery, which would only raise another alert to be delivered the same way.
+-- A delivery that will not be tried again: alert the owner, once an hour per consumer at most (a
+-- vendor down for a night is one alert, not hundreds), and never for an alert's own delivery, which
+-- would only raise another alert to be delivered the same way.
 create function private.alert_failed_delivery(p_delivery_id uuid)
 returns void
 language sql
@@ -65,11 +64,14 @@ as $$
     'delivery_id', d.id, 'consumer', d.consumer, 'event_type', e.event_type, 'attempts', d.attempts,
     'error', left(coalesce(d.last_error, ''), 500)))
   from public.outbox_delivery d join public.outbox_event e on e.id = d.event_id
-  where d.id = p_delivery_id and e.event_type <> 'alert.raised';
+  where d.id = p_delivery_id and e.event_type <> 'alert.raised'
+    and not exists (select 1 from public.alert a
+                    where a.venue_id = d.venue_id and a.kind = 'outbox.delivery_failed'
+                      and a.detail ->> 'consumer' = d.consumer and a.raised_at > now() - interval '1 hour');
 $$;
 
--- Marks a claimed delivery done, or failed and due again after p_retry_after. A failure on the tenth
--- and last attempt alerts the owner.
+-- Marks a claimed delivery done, or failed and due again after p_retry_after. A null p_retry_after
+-- (the vendor rejected it) fails it for good at once. A delivery that fails for good alerts the owner.
 create or replace function public.finish_outbox_delivery(
   p_delivery_id uuid,
   p_delivered boolean,
@@ -88,7 +90,8 @@ begin
   set status = case when p_delivered then 'delivered'::public.outbox_status else 'failed'::public.outbox_status end,
       delivered_at = case when p_delivered then now() end,
       last_error = case when p_delivered then null else p_error end,
-      available_at = case when p_delivered then d.available_at else now() + p_retry_after end,
+      available_at = case when p_delivered or p_retry_after is null then d.available_at else now() + p_retry_after end,
+      attempts = case when not p_delivered and p_retry_after is null then greatest(d.attempts, 10) else d.attempts end,
       locked_until = null
   where d.id = p_delivery_id and d.status = 'processing'
   returning d.attempts into v_attempts;

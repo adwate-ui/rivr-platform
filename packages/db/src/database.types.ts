@@ -27,23 +27,17 @@ export type Database = {
           Tables: {
             "alert": {
                   Row: {
-                    "acknowledged_at": string | null,"acknowledged_by_staff_id": string | null,"created_at": string,"detail": NonNullable<Json>,"id": string,"kind": string,"raised_at": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"detail": NonNullable<Json>,"id": string,"kind": string,"raised_at": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "acknowledged_at"?: string | null,"acknowledged_by_staff_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind": string,"raised_at"?: string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind": string,"raised_at"?: string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "acknowledged_at"?: string | null,"acknowledged_by_staff_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind"?: string,"raised_at"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"detail"?: NonNullable<Json>,"id"?: string,"kind"?: string,"raised_at"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
-      foreignKeyName: "alert_acknowledged_by_staff_id_fkey"
-      columns: ["acknowledged_by_staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    },{
       foreignKeyName: "alert_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
