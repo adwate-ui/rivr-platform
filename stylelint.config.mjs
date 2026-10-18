@@ -4,7 +4,8 @@
  */
 export default {
   // Built output: the compiled stylesheet holds the token values by design.
-  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**', '**/coverage/**'],
+  // The Android projects hold a copy of the built web bundle (`cap sync`), also build output.
+  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**', '**/coverage/**', 'apps/*/android/**'],
   rules: {
     'color-no-hex': true,
     'color-named': 'never',

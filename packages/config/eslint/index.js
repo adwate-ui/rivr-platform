@@ -69,6 +69,11 @@ export default defineConfig(
     languageOptions: { globals: { Deno: 'readonly' } },
   },
   {
+    // k6 load tests run in k6's runtime, which provides these.
+    files: ['load/k6/**/*.js'],
+    languageOptions: { globals: { __ENV: 'readonly', __VU: 'readonly', __ITER: 'readonly' } },
+  },
+  {
     // Type assertions are allowed only where external data is parsed.
     files: ['**/parse/**'],
     rules: { '@typescript-eslint/consistent-type-assertions': 'off' },
