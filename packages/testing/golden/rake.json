@@ -1,0 +1,72 @@
+{
+  "rule": "rake",
+  "about": "What the house takes from a pot (scope-v1 module 4, design prompt flows 4 and 5). Rake is the table type's rate of the pot (5%), no more than the table type's cap, rounded down to whole ₹50 chips. While the bad-beat jackpot is live, ₹100 more is dropped into it from every pot above ₹5,000 (not from a pot of exactly ₹5,000). The pull is the rake and the drop together: the chips the dealer takes from the pot. Nothing ever rounds up. Every case here is a ₹6,000-cap table.",
+  "cases": [
+    {
+      "description": "Design prompt flow 4: a ₹48,000 pot with the jackpot live. Rake ₹2,400, drop ₹100, pull ₹2,500.",
+      "operation": "rake",
+      "inputs": { "pot": "₹48,000", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹2,400", "drop": "₹100", "pull": "₹2,500" }
+    },
+    {
+      "description": "Design prompt flow 5, at the cap: 5% of a ₹1,40,000 pot is ₹7,000, so the rake is the ₹6,000 cap.",
+      "operation": "rake",
+      "inputs": { "pot": "₹1,40,000", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹6,000", "drop": "₹100", "pull": "₹6,100" }
+    },
+    {
+      "description": "Exactly at the cap: 5% of ₹1,20,000 is ₹6,000.",
+      "operation": "rake",
+      "inputs": { "pot": "₹1,20,000", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹6,000", "drop": "₹100", "pull": "₹6,100" }
+    },
+    {
+      "description": "Just under the cap: 5% of ₹1,19,000 is ₹5,950, a whole number of chips.",
+      "operation": "rake",
+      "inputs": { "pot": "₹1,19,000", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹5,950", "drop": "₹100", "pull": "₹6,050" }
+    },
+    {
+      "description": "₹50 boundary: 5% of ₹48,990 is ₹2,449.50, which rounds down to ₹2,400.",
+      "operation": "rake",
+      "inputs": { "pot": "₹48,990", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹2,400", "drop": "₹100", "pull": "₹2,500" }
+    },
+    {
+      "description": "₹50 boundary on a small pot: 5% of ₹4,950 is ₹247.50, which rounds down to ₹200; no drop at or under ₹5,000.",
+      "operation": "rake",
+      "inputs": { "pot": "₹4,950", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹200", "drop": "₹0", "pull": "₹200" }
+    },
+    {
+      "description": "A pot of exactly ₹5,000 is not above ₹5,000: rake ₹250 and no drop.",
+      "operation": "rake",
+      "inputs": { "pot": "₹5,000", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹250", "drop": "₹0", "pull": "₹250" }
+    },
+    {
+      "description": "The first pot above ₹5,000: ₹5,050 gives 5% of ₹252.50, so rake ₹250, and the ₹100 drop.",
+      "operation": "rake",
+      "inputs": { "pot": "₹5,050", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹250", "drop": "₹100", "pull": "₹350" }
+    },
+    {
+      "description": "A pot too small for a chip of rake: 5% of ₹950 is ₹47.50, which rounds down to ₹0.",
+      "operation": "rake",
+      "inputs": { "pot": "₹950", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹0", "drop": "₹0", "pull": "₹0" }
+    },
+    {
+      "description": "Zero: an empty pot takes nothing.",
+      "operation": "rake",
+      "inputs": { "pot": "₹0", "rate": "5%", "cap": "₹6,000", "jackpotLive": "yes", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹0", "drop": "₹0", "pull": "₹0" }
+    },
+    {
+      "description": "Before the bad-beat jackpot is live there is no drop: a ₹48,000 pot gives rake ₹2,400 and pull ₹2,400.",
+      "operation": "rake",
+      "inputs": { "pot": "₹48,000", "rate": "5%", "cap": "₹6,000", "jackpotLive": "no", "drop": "₹100", "dropAbove": "₹5,000" },
+      "expected": { "rake": "₹2,400", "drop": "₹0", "pull": "₹2,400" }
+    }
+  ]
+}
