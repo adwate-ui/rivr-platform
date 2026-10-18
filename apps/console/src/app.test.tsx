@@ -64,6 +64,7 @@ describe('the console', () => {
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'Academy payments' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'KYC review' })).toBeNull();
   });
 
   it('and Academy staff\'s for an admin', async () => {
@@ -72,6 +73,7 @@ describe('the console', () => {
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'Academy' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Academy payments' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'KYC review' })).toBeDefined();
   });
 
   it('refuses a screen the role does not include, opened by its address', async () => {

@@ -100,7 +100,11 @@ export const tokens = {
     "rail": 248,
     "bottomNav": 64,
     "header": 56,
-    "text": 640
+    "text": 640,
+    "photo": 160
+  },
+  "aspect": {
+    "portrait": "3 / 4"
   },
   "radius": {
     "sm": 3,

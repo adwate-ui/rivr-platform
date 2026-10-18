@@ -29,6 +29,11 @@ const RAIL: readonly RailGroup[] = [
     entries: [{ id: 'academyPayments', label: 'ui.consoleRail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'] }],
   },
   {
+    id: 'players',
+    label: 'ui.consoleRail.groups.players',
+    entries: [{ id: 'kycReview', label: 'ui.consoleRail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] }],
+  },
+  {
     id: 'growth',
     label: 'ui.consoleRail.groups.growth',
     entries: [{ id: 'academy', label: 'ui.consoleRail.items.academy', href: '/academy', anyOf: ['members.manage'] }],

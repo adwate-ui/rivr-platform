@@ -291,6 +291,32 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"kyc_review": {
+                  Row: {
+                    "created_at": string,"decision": string,"entered_date_of_birth": boolean,"entered_pan": boolean,"id": string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"decision": string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"decision"?: string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id"?: string,"outcome"?: string,"reason"?: string,"reviewed_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "kyc_review_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "kyc_review_reviewed_by_staff_id_fkey"
+      columns: ["reviewed_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ledger_account": {
                   Row: {
                     "code": string,"created_at": string,"id": string,"is_players_money": boolean,"kind": Database["public"]['Enums']["ledger_account_kind"],"member_id": string | null,"name": string,"unit": Database["public"]['Enums']["ledger_unit"],"updated_at": string,"venue_id": string
@@ -864,6 +890,11 @@ isOneToOne: false
 "has_my_consent":
 { Args: { "p_purpose": string }; Returns: boolean
                            },
+"kyc_review_queue":
+{ Args: { "p_venue_id": string }; Returns: {
+              "address": string,"clashes_with": (string)[],"date_of_birth": string,"face_match_score": number,"full_name": string,"liveness_score": number,"masked_aadhaar": string,"member_id": string,"method": string,"pan": string,"photo_path": string,"refusal": string,"status": string,"updated_at": string,"vendor_reference": string,"waiting_because": string
+            }[]
+                           },
 "kyc_subject":
 { Args: Record<PropertyKey, never>; Returns: {
               "full_name": string,"is_practice": boolean,"member_id": string,"venue_id": string
@@ -905,6 +936,9 @@ isOneToOne: false
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
+                           },
+"review_kyc":
+{ Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string
                            },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
