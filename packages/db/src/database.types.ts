@@ -65,6 +65,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"consent": {
+                  Row: {
+                    "created_at": string,"granted_at": string,"id": string,"member_id": string,"purpose": string,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"granted_at"?: string,"id"?: string,"member_id": string,"purpose": string,"updated_at"?: string,"venue_id": string,"withdrawn_at"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"granted_at"?: string,"id"?: string,"member_id"?: string,"purpose"?: string,"updated_at"?: string,"venue_id"?: string,"withdrawn_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "consent_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"control_state": {
                   Row: {
                     "created_at": string,"device_id": string | null,"engaged_at": string,"engaged_by_staff_id": string | null,"feature": Database["public"]['Enums']["killable_feature"] | null,"id": string,"level": Database["public"]['Enums']["control_level"],"member_id": string | null,"reason": string,"release_reason": string | null,"release_second_staff_id": string | null,"released_at": string | null,"released_by_staff_id": string | null,"staff_id": string | null,"updated_at": string,"venue_id": string
@@ -625,6 +645,9 @@ isOneToOne: false
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
+"give_consent":
+{ Args: { "p_purpose": string }; Returns: undefined
+                           },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -632,6 +655,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
+                           },
+"withdraw_consent":
+{ Args: { "p_purpose": string }; Returns: undefined
                            }
           }
           Enums: {
