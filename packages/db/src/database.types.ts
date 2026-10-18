@@ -813,7 +813,12 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "academy_payment_details":
+            "academy_open_batches":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "ends_on": string,"fee": number,"id": string,"name": string,"seats_left": number,"starts_on": string
+            }[]
+                           },
+"academy_payment_details":
 { Args: { "p_booking_id": string }; Returns: {
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]

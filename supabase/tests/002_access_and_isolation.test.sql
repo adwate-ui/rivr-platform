@@ -28,7 +28,7 @@ select is((select count(*) from public.member where venue_id = '00000000-0000-40
   'a cashier sees no member of another venue');
 select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-0000000000e1')::int, 0,
   'a cashier sees no staff of another venue');
-select ok((select count(*) from public.member where venue_id = '00000000-0000-4000-8000-000000000001') = 5,
+select ok((select count(*) from public.member where venue_id = '00000000-0000-4000-8000-000000000001') = 6,
   'a cashier (members.read) sees her venue''s members');
 select throws_ok(
   $$ select * from public.staff_credential $$, '42501', null,
