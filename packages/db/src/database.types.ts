@@ -181,6 +181,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"kyc_record": {
+                  Row: {
+                    "address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"id": string,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"id"?: string,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
+                  }
+                  Update: {
+                    "address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"id"?: string,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "kyc_record_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"ledger_account": {
                   Row: {
                     "code": string,"created_at": string,"id": string,"is_players_money": boolean,"kind": Database["public"]['Enums']["ledger_account_kind"],"member_id": string | null,"name": string,"unit": Database["public"]['Enums']["ledger_unit"],"updated_at": string,"venue_id": string
@@ -640,6 +660,9 @@ isOneToOne: false
             "authorize_kyc_image":
 { Args: { "p_name": string }; Returns: undefined
                            },
+"begin_kyc_vendor_call":
+{ Args: { "p_is_paid": boolean,"p_member_id": string }; Returns: undefined
+                           },
 "claim_outbox_deliveries":
 { Args: { "p_consumer": string,"p_event_types": (string)[],"p_is_messaging"?: boolean,"p_limit"?: number }; Returns: {
               "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
@@ -651,6 +674,11 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
+"kyc_subject":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "full_name": string,"is_practice": boolean,"member_id": string,"venue_id": string
+            }[]
+                           },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -658,6 +686,18 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
+                           },
+"record_kyc_digilocker":
+{ Args: { "p_address": string,"p_date_of_birth": string,"p_masked_aadhaar": string,"p_member_id": string,"p_pan": string,"p_vendor_reference": string }; Returns: string
+                           },
+"record_kyc_digilocker_failed":
+{ Args: { "p_member_id": string }; Returns: undefined
+                           },
+"record_kyc_pan":
+{ Args: { "p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_vendor_reference": string }; Returns: string
+                           },
+"record_kyc_started":
+{ Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
                            },
 "withdraw_consent":
 { Args: { "p_purpose": string }; Returns: undefined

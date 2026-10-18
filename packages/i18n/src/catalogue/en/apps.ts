@@ -27,6 +27,31 @@ export const playerApp = {
     tooManyRequests: 'Too many attempts. Wait a minute, then try again.',
     unavailable: 'Sign-in is not available right now. Try again in a few minutes.',
   },
+  /** KYC: DigiLocker, or a PAN when DigiLocker fails. Only the masked Aadhaar is ever shown. */
+  kyc: {
+    title: 'Identity',
+    intro: 'We check your identity with DigiLocker. We keep your masked Aadhaar, PAN, date of birth and address, and nothing else.',
+    start: 'Continue with DigiLocker',
+    checking: 'Checking your identity',
+    verifiedTitle: 'Identity verified',
+    dateOfBirthLabel: 'Date of birth',
+    aadhaarLabel: 'Aadhaar',
+    panLabel: 'PAN',
+    continue: 'Continue',
+    panTitle: 'PAN',
+    panIntro: 'Enter your PAN to finish.',
+    panPlaceholder: 'ABCDE1234F',
+    verify: 'Verify',
+    panInvalid: 'Enter a PAN like ABCDE1234F.',
+    dateOfBirthInvalid: 'Enter your date of birth.',
+    panRejected: 'This PAN did not match. Check it and the name, then try again.',
+    reviewTitle: 'With staff',
+    review: 'Your PAN is checked. Staff will see your documents at the club to finish.',
+    stopped: 'Identity checks are paused for now. Try again later.',
+    tooManyAttempts: 'Too many tries today. Try again tomorrow, or ask at the club.',
+    notConfigured: 'Identity checks are not open yet. Staff will check your documents at the club.',
+    unavailable: 'Identity checks are not available right now. Try again in a few minutes.',
+  },
 } as const;
 
 export const consoleApp = {
