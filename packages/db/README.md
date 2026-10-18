@@ -15,6 +15,8 @@ The only code that talks to Supabase. It holds the typed client, the generated d
 | `useKycImageUrl(path)`, `KYC_IMAGE_URL_SECONDS` | A signed URL, valid for a minute, for one KYC image in the private `kyc` bucket (`<venue_id>/<member_id>/<file>`). The `kyc-image-url` Edge Function signs it for staff with KYC review or the cage at that venue and audits the view; no client reads the bucket. The one way an app shows a KYC image. |
 | `useKycRecord()` | The signed-in member's identity check: `status` (`started`, `needs_pan`, `verified`), name, date of birth, masked Aadhaar and PAN, or null before the first check. |
 | `useKycActions()` | `start({ returnUrl })` (the DigiLocker hand-off URL), `complete()` and `verifyPan({ pan, fullName?, dateOfBirth? })`, through the `kyc` Edge Function. Each resolves to a Result; failures are `not_configured` (a real venue without vendor keys), `pan_rejected` or `unavailable` (`toKycFailure`). |
+| `useAuthStatus()`, `AuthStatus` | `loading` until the stored session is read, then `signed-in` or `signed-out`: what an app decides sign-in by. |
+| `useMember()`, `Member` | The signed-in member (id, name, initial), or null for staff and the public. A login with no member yet links once and asks again. |
 | `useRivrData()` | The client and user id, for the query hooks lanes add. |
 | `queryKeys` | Every TanStack Query key. Keys holding a person's data start with their user id. |
 | `Database` | The generated types (`pnpm db:types`). |

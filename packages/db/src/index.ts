@@ -1,6 +1,7 @@
 export { createRivrClient, type RivrClient, type RivrClientOptions } from './client.ts';
 export type { Database } from './database.types.ts';
-export { RivrDataProvider, useRivrData } from './provider.tsx';
+export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from './provider.tsx';
+export { useMember, type Member } from './member.ts';
 export { useControlState, useFeature } from './hooks.ts';
 export { useSignIn, type SignInResult } from './signIn.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';

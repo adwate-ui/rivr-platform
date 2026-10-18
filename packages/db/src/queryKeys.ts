@@ -5,6 +5,8 @@
 export const queryKeys = {
   /** The start of every key below: everything cached for the signed-in person. */
   personal: ['user'] as const,
+  /** The signed-in member's name and initial. */
+  member: (userId: string) => ['user', userId, 'member'] as const,
   /** Every feature's state for the signed-in member. */
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
   /** Kill-switch controls the signed-in person can see. */

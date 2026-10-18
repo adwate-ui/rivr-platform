@@ -11,10 +11,9 @@ async function open(page: import('@playwright/test').Page, app: App) {
 }
 
 test.describe('smoke: every surface starts', () => {
-  test('the player app opens on Tonight with its tab bar', async ({ page }) => {
+  test('the player app opens on sign-in for someone signed out', async ({ page }) => {
     await open(page, 'player');
-    await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
   });
 
   test('the console opens on Live floor with its rail', async ({ page }) => {

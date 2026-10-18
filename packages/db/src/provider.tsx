@@ -1,12 +1,17 @@
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { RivrClient } from './client.ts';
 import { queryKeys } from './queryKeys.ts';
 
+/** Whether anyone is signed in; `loading` until the stored session has been read. */
+export type AuthStatus = 'loading' | 'signed-in' | 'signed-out';
+
 interface RivrData {
   readonly client: RivrClient;
   /** The signed-in user, or null before sign-in and while the session loads. */
   readonly userId: string | null;
+  readonly authStatus: AuthStatus;
 }
 
 const RivrDataContext = createContext<RivrData | null>(null);
@@ -20,14 +25,24 @@ const TABLES_THAT_CHANGE_ACCESS: ReadonlyArray<readonly [table: string, staleQue
   ['control_state', queryKeys.controlState],
 ];
 
-function useSessionUserId(client: RivrClient): string | null {
-  const [userId, setUserId] = useState<string | null>(null);
+function useSession(client: RivrClient): { userId: string | null; authStatus: AuthStatus } {
+  const [session, setSession] = useState<{ userId: string | null; authStatus: AuthStatus }>({ userId: null, authStatus: 'loading' });
   useEffect(() => {
-    void client.auth.getSession().then(({ data }) => setUserId(data.session?.user.id ?? null));
-    const { data } = client.auth.onAuthStateChange((_event, session) => setUserId(session?.user.id ?? null));
+    const signedInAs = (userId: string | null) => setSession({ userId, authStatus: userId === null ? 'signed-out' : 'signed-in' });
+    void client.auth.getSession().then(({ data, error }) => {
+      // An expired session that cannot be refreshed for want of a network is not a sign-out: stay
+      // loading, and the refresh that follows when the network returns reports the session.
+      if (isAuthRetryableFetchError(error)) return;
+      signedInAs(data.session?.user.id ?? null);
+    });
+    const { data } = client.auth.onAuthStateChange((event, current) => {
+      // getSession above reads the stored session; INITIAL_SESSION only repeats it (as null after a failed refresh).
+      if (event === 'INITIAL_SESSION') return;
+      signedInAs(current?.user.id ?? null);
+    });
     return () => data.subscription.unsubscribe();
   }, [client]);
-  return userId;
+  return session;
 }
 
 /** One Realtime channel per app: a matrix, override, tier or kill-switch change refreshes open screens. */
@@ -49,7 +64,7 @@ function useLiveUpdates(client: RivrClient, userId: string | null): void {
 }
 
 // A component only so the hook runs inside QueryClientProvider, where useQueryClient works.
-function LiveUpdates({ client, userId }: RivrData) {
+function LiveUpdates({ client, userId }: Pick<RivrData, 'client' | 'userId'>) {
   useLiveUpdates(client, userId);
   return null;
 }
@@ -61,9 +76,9 @@ export function RivrDataProvider({ client, queryClient, children }: {
   children: ReactNode;
 }) {
   const [cache] = useState(() => queryClient ?? new QueryClient());
-  const userId = useSessionUserId(client);
+  const { userId, authStatus } = useSession(client);
   return (
-    <RivrDataContext.Provider value={{ client, userId }}>
+    <RivrDataContext.Provider value={{ client, userId, authStatus }}>
       <QueryClientProvider client={cache}>
         <LiveUpdates client={client} userId={userId} />
         {children}
@@ -77,4 +92,9 @@ export function useRivrData(): RivrData {
   const data = useContext(RivrDataContext);
   if (data === null) throw new Error('useRivrData must be used inside RivrDataProvider');
   return data;
+}
+
+/** Whether anyone is signed in, for an app deciding between sign-in and its screens. */
+export function useAuthStatus(): AuthStatus {
+  return useRivrData().authStatus;
 }
