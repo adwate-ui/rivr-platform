@@ -6,9 +6,12 @@
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { localBinary, worktreeRoot } from './lib/worktree.mjs';
 
+const root = worktreeRoot();
 const SCOPED_PACKAGES = new Set(
-  readdirSync('packages').filter((name) => existsSync(`packages/${name}/package.json`)),
+  readdirSync(join(root, 'packages')).filter((name) => existsSync(join(root, 'packages', name, 'package.json'))),
 );
 
 /** `domain` becomes `@rivr/domain`; anything else (an app, a glob, `...[origin/main]`) is kept. */
@@ -28,5 +31,6 @@ function expandArgs(args) {
   return [...expanded, ...rest];
 }
 
-const result = spawnSync('turbo', expandArgs(process.argv.slice(2)), { stdio: 'inherit' });
+const result = spawnSync(localBinary('turbo', root), expandArgs(process.argv.slice(2)), { stdio: 'inherit', cwd: root });
+if (result.error) process.stderr.write(`turbo did not start: ${result.error.message}\n`);
 process.exit(result.status ?? 1);

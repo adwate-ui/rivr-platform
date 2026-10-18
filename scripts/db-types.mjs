@@ -7,11 +7,11 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { writeSupabaseConfig } from './lib/supabase-config.mjs';
-import { worktreeRoot } from './lib/worktree.mjs';
+import { localBinary, worktreeRoot } from './lib/worktree.mjs';
 
 const root = worktreeRoot();
 writeSupabaseConfig(root);
-const types = execFileSync('supabase', ['gen', 'types', '--lang', 'typescript', '--local'], {
+const types = execFileSync(localBinary('supabase', root), ['gen', 'types', '--lang', 'typescript', '--local'], {
   cwd: root,
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'inherit'],

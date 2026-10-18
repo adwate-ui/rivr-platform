@@ -6,7 +6,10 @@
     "./eslint": "./eslint/index.js",
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./tsconfig/react.json": "./tsconfig/react.json",
-    "./vitest": "./vitest/base.js"
+    "./vitest": {
+      "types": "./vitest/base.d.ts",
+      "default": "./vitest/base.js"
+    }
   },
   "scripts": {
     "lint": "eslint . --max-warnings=0",

@@ -20,6 +20,11 @@ export function worktreeRoot() {
   return execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
 }
 
+/** Path of a dev-dependency CLI installed in this worktree, so scripts work with or without `pnpm`. */
+export function localBinary(name, root = worktreeRoot()) {
+  return join(root, 'node_modules', '.bin', name);
+}
+
 /** The worktree folder name, used as the Supabase project_id: `rivr-lane-a`. */
 export function worktreeName(root = worktreeRoot()) {
   return basename(root).replace(/[^a-z0-9-]/gi, '-').toLowerCase();

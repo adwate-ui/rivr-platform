@@ -1,0 +1,39 @@
+import { describe, expect, it } from 'vitest';
+import { formatMoney, formatNumber, formatStakes } from './money.ts';
+
+describe('formatMoney', () => {
+  it.each([
+    [0n, '₹0'],
+    [500_000n, '₹5,000'],
+    [12_000_000n, '₹1,20,000'],
+    [18_500_000n, '₹1,85,000'],
+    [34_260_000n, '₹3,42,600'],
+    [1_000_000_000n, '₹1,00,00,000'],
+  ])('writes %s paise as %s with Indian grouping and no decimals', (paise, text) => {
+    expect(formatMoney(paise)).toBe(text);
+  });
+
+  it('shows paise only when there are some, and never rounds them away', () => {
+    expect(formatMoney(12_000_050n)).toBe('₹1,20,000.50');
+    expect(formatMoney(7n)).toBe('₹0.07');
+  });
+
+  it('puts a minus sign before the rupee symbol for negatives', () => {
+    expect(formatMoney(-100_000n)).toBe('−₹1,000');
+  });
+});
+
+describe('formatStakes', () => {
+  it('writes blinds in rupees as small/big', () => {
+    expect(formatStakes(10_000n, 20_000n)).toBe('100/200');
+    expect(formatStakes(5_000n, 10_000n)).toBe('50/100');
+    expect(formatStakes(100_000n, 200_000n)).toBe('1,000/2,000');
+  });
+});
+
+describe('formatNumber', () => {
+  it('groups points the Indian way', () => {
+    expect(formatNumber(18_420)).toBe('18,420');
+    expect(formatNumber(1_234_567n)).toBe('12,34,567');
+  });
+});
