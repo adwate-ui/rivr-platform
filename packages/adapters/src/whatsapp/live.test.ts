@@ -67,7 +67,6 @@ describe('WhatsApp Cloud API', () => {
     ['a per-user pair rate limit', 400, { error: { code: 131056 } }, { code: 'rate_limited' }],
     ['a server error', 503, { error: { code: 2 } }, { code: 'unavailable' }],
     ['a refused template', 400, { error: { code: 132001 } }, { code: 'rejected', reason: 'WhatsApp error 132001' }],
-    ['a reply it cannot read', 200, { messages: [] }, { code: 'unavailable' }],
   ])('maps %s to a failure the caller handles', async (_case, status, body, failure) => {
     const { fetch } = fakeFetch(status, body);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
@@ -75,6 +74,28 @@ describe('WhatsApp Cloud API', () => {
     expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
       ok: false,
       error: failure,
+    });
+  });
+
+  it('counts any accepted reply as sent, even one whose message id it cannot read', async () => {
+    // Meta accepted the message; calling it a failure would invite a second send of the same code.
+    const { fetch } = fakeFetch(200, { messages: [] });
+    const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
+
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
+      ok: true,
+      value: { messageId: 'unknown' },
+    });
+  });
+
+  it('gives up on a reply that takes longer than the timeout, as unavailable', async () => {
+    const neverAnswers: typeof globalThis.fetch = (_input, init) =>
+      new Promise((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(init.signal?.reason)));
+    const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch: neverAnswers, timeoutMs: 20 });
+
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', language: 'en', params: [] })).toEqual({
+      ok: false,
+      error: { code: 'unavailable' },
     });
   });
 

@@ -73,7 +73,9 @@ Locally no channel is configured, so the hook answers 503 to every real number. 
 
 | Adapter | Import | Credentials |
 |---|---|---|
-| WhatsApp, Meta Cloud API | `createWhatsAppCloudApi({ phoneNumberId, accessToken })` from `@rivr/adapters/whatsapp` | `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN` as Edge Function secrets |
+| WhatsApp, Meta Cloud API | `createWhatsAppCloudApi({ phoneNumberId, accessToken })` from `@rivr/adapters/whatsapp` | `WHATSAPP_PHONE_NUMBER_ID` (the business number's id in Meta's dashboard) and `WHATSAPP_ACCESS_TOKEN` (a system user's permanent token), as Edge Function secrets |
+
+The WhatsApp adapter sends every template category. Marketing opt-in rules, and the templates themselves, arrive with #62.
 
 ## Adding a live implementation
 

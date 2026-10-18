@@ -18,6 +18,11 @@ export interface WhatsAppCloudApiOptions {
   readonly accessToken: string;
   /** For tests; the platform's fetch by default. */
   readonly fetch?: typeof globalThis.fetch;
+  /**
+   * How long to wait for Meta before giving up as unavailable. 4 seconds by default, inside the
+   * 5 seconds Supabase Auth gives its Send SMS hook, so a slow reply still leaves time to answer Auth.
+   */
+  readonly timeoutMs?: number;
 }
 
 type Component =
@@ -62,7 +67,12 @@ async function readJson(response: Response): Promise<unknown> {
 }
 
 /** WhatsApp through Meta's Cloud API directly (scope-v1, decision S-D3). Runs under Deno and Node. */
-export function createWhatsAppCloudApi({ phoneNumberId, accessToken, fetch = globalThis.fetch }: WhatsAppCloudApiOptions): WhatsAppAdapter {
+export function createWhatsAppCloudApi({
+  phoneNumberId,
+  accessToken,
+  fetch = globalThis.fetch,
+  timeoutMs = 4_000,
+}: WhatsAppCloudApiOptions): WhatsAppAdapter {
   const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`;
   return {
     async sendTemplate(message): Promise<Result<{ readonly messageId: string }, AdapterFailure>> {
@@ -72,14 +82,16 @@ export function createWhatsAppCloudApi({ phoneNumberId, accessToken, fetch = glo
           method: 'POST',
           headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
           body: JSON.stringify(requestBody(message)),
+          signal: AbortSignal.timeout(timeoutMs),
         });
       } catch {
+        // A network failure, or no reply within the timeout.
         return err({ code: 'unavailable' });
       }
       const reply = await readJson(response);
       if (!response.ok) return err(failureFrom(response.status, reply));
-      const messageId = messageIdFrom(reply);
-      return messageId === undefined ? err({ code: 'unavailable' }) : ok({ messageId });
+      // Meta accepted it. Reporting a failure here would invite sending the same message again.
+      return ok({ messageId: messageIdFrom(reply) ?? 'unknown' });
     },
   };
 }
