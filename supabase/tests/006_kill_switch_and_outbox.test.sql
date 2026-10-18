@@ -31,7 +31,7 @@ select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'adjustment', 'freeze-test',
        jsonb_build_array(
          jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.cash_drawer'), 'amount', '5000'),
-         jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.opening_balance'), 'amount', '-5000'))) $$,
+         jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.opening_balance'), 'amount', '-5000')), null) $$,
   'RVFRZ', null, 'the ledger refuses a post while the venue is frozen');
 select lives_ok($$ select private.assert_writable('00000000-0000-4000-8000-000000000002') $$, 'the practice venue is unaffected');
 select is((select is_frozen from public.public_venue_status where venue_id = '00000000-0000-4000-8000-000000000001'), true,

@@ -25,21 +25,25 @@ select throws_ok($$ truncate public.ledger_entry $$, '42501', null, 'entries can
 -- Kabir buys ₹10,000 of chips from his cash balance.
 select lives_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'buy_in', 'test-buy-in-1',
-       pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 1000000)) $$,
+       pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 1000000), null) $$,
   'a balanced transaction posts');
 select is(pg_temp.cash('00000000-0000-4000-8000-000000000202'), 1000000::bigint, 'the balance is the sum of entries');
 
 select is(
   private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'buy_in', 'test-buy-in-1',
-    pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 1000000)),
+    pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 1000000), null),
   (select id from public.ledger_transaction where idempotency_key = 'test-buy-in-1'),
   'replaying the same idempotency key returns the first transaction');
 select is(pg_temp.cash('00000000-0000-4000-8000-000000000202'), 1000000::bigint, 'and writes nothing new');
+select throws_ok(
+  $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'buy_in', 'test-buy-in-1',
+       pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 1000100), null) $$,
+  '23505', null, 'a key reused for a different amount is refused, not silently answered');
 
 select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'buy_in', 'test-unbalanced',
        jsonb_build_array(jsonb_build_object('account_id', pg_temp.account('venue.cash_drawer'), 'amount', '5000'),
-                         jsonb_build_object('account_id', pg_temp.account('venue.rake'), 'amount', '-4950'))) $$,
+                         jsonb_build_object('account_id', pg_temp.account('venue.rake'), 'amount', '-4950')), null) $$,
   '23514', null, 'lines that do not sum to zero are refused');
 
 -- The commit-time check catches a transaction written without the posting function.
@@ -57,11 +61,11 @@ $$;
 select throws_ok($$ select pg_temp.write_one_sided_and_commit_checks() $$, '23514', null, 'a one-sided transaction cannot commit');
 select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'adjustment', 'test-mixed-units',
-       pg_temp.lines(pg_temp.account('member.points', '00000000-0000-4000-8000-000000000202'), pg_temp.account('venue.rake'), 100)) $$,
+       pg_temp.lines(pg_temp.account('member.points', '00000000-0000-4000-8000-000000000202'), pg_temp.account('venue.rake'), 100), null) $$,
   '23514', null, 'points and money never share a transaction');
 select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'adjustment', 'test-cross-venue',
-       pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('venue.rake', null, '00000000-0000-4000-8000-000000000002'), 5000)) $$,
+       pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('venue.rake', null, '00000000-0000-4000-8000-000000000002'), 5000), null) $$,
   '23503', null, 'one venue''s transaction cannot touch another venue''s account');
 
 select throws_ok($$ update public.ledger_entry set amount = 1 $$, '42501', null, 'entries cannot be edited');
@@ -77,6 +81,49 @@ select throws_ok(
   $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'test-buy-in-1'),
        'test-reverse-2', 'Again') $$,
   '23505', null, 'a transaction is reversed at most once');
+select throws_ok(
+  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'seed:arjun:bonus'),
+       'seed:arjun:cash', 'Key belongs to another transaction') $$,
+  '23505', null, 'a reversal cannot reuse another transaction''s key');
+
+-- A member freeze stops money moving through that member's accounts.
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000202', 'Under review');
+select throws_ok(
+  $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'buy_in', 'test-frozen-member',
+       pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 500000), null) $$,
+  'RVMBR', null, 'a frozen member''s accounts take no postings');
+insert into public.control_state (venue_id, level, feature, reason)
+values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'withdrawals', 'Bank issue');
+select throws_ok(
+  $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'withdrawal', 'test-withdrawal-killed',
+       pg_temp.lines(pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000201'), pg_temp.account('venue.cash_drawer'), 500000),
+       'withdrawals') $$,
+  'RVKIL', null, 'a switched-off feature''s postings are refused');
+
+-- Purge (lane A) deletes whole transactions. Each function ends by turning purge off and
+-- deferring the checks again, so the tests after it run as normal.
+create function pg_temp.purge(p_statements text)
+returns void language plpgsql as $$
+begin
+  set local rivr.purge = 'on';
+  execute p_statements;
+  set constraints all immediate;
+  set constraints all deferred;
+  set local rivr.purge = 'off';
+end;
+$$;
+select throws_ok(
+  $$ select pg_temp.purge('update public.ledger_entry set amount = amount where venue_id = ''00000000-0000-4000-8000-000000000001''') $$,
+  '42501', null, 'purge never edits an entry');
+select throws_ok(
+  $$ select pg_temp.purge('delete from public.ledger_entry where id = (select min(e.id) from public.ledger_entry e
+       join public.ledger_transaction t on t.id = e.transaction_id where t.idempotency_key = ''seed:arjun:bonus'')') $$,
+  '23514', null, 'purge cannot leave one side of a transaction');
+select lives_ok(
+  $$ select pg_temp.purge('delete from public.ledger_entry where transaction_id = (select id from public.ledger_transaction where idempotency_key = ''seed:arjun:bonus'');
+       delete from public.ledger_transaction where idempotency_key = ''seed:arjun:bonus''') $$,
+  'purge removes a whole transaction');
 
 select throws_ok(
   $$ insert into public.chip_denomination (venue_id, value_paise, name) values ('00000000-0000-4000-8000-000000000001', 7500, '₹75') $$,
@@ -91,10 +138,19 @@ select is((select count(*) from public.ledger_entry e join public.ledger_account
   'he sees no one else''s entries');
 select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'gift', 'test-self-credit',
-       pg_temp.lines(pg_temp.account('venue.opening_balance'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000201'), 100)) $$,
+       pg_temp.lines(pg_temp.account('venue.opening_balance'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000201'), 100), null) $$,
   '42501', null, 'a member cannot post to the ledger');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
 select ok((select count(*) from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001') > 4, 'a cashier sees the venue''s accounts');
+reset role;
+
+-- The commit-time check must see every entry, whoever the session is. Here it runs as Arjun,
+-- who sees only his own side of a deposit to his cash.
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'deposit', 'test-checked-as-member',
+  pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000201'), 5000), null);
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
+select lives_ok($$ set constraints all immediate $$, 'a balanced transaction commits whoever the session is');
 reset role;
 
 select * from finish();

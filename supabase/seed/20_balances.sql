@@ -17,7 +17,7 @@ as $$
     p_venue_id, 'opening_balance', p_key,
     jsonb_build_array(
       jsonb_build_object('account_id', p_debit, 'amount', p_amount::text),
-      jsonb_build_object('account_id', p_credit, 'amount', (-p_amount)::text)));
+      jsonb_build_object('account_id', p_credit, 'amount', (-p_amount)::text)), null);
 $$;
 
 do $$

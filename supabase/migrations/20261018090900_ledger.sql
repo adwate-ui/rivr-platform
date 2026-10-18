@@ -64,18 +64,37 @@ create index ledger_entry_transaction_idx on public.ledger_entry (transaction_id
 create index ledger_entry_account_idx on public.ledger_entry (account_id, venue_id);
 
 -- Checked when the transaction commits: at least two entries, summing to zero, in one unit.
+-- Security definer so it sees every entry: under the session's row-level security a member or
+-- a tablet sees only part of a transaction, and a balanced posting would look unbalanced.
 create function private.assert_transaction_balanced()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
-  -- Fires for both tables: an entry names its transaction; a transaction is its own id.
-  txn_id uuid := (to_jsonb(new) ->> case when tg_table_name = 'ledger_entry' then 'transaction_id' else 'id' end)::uuid;
+  changed_row jsonb;
+  txn_id uuid;
   entry_count integer;
   total numeric;
   unit_count integer;
 begin
+  -- A delete (purge) has only the old row; an insert has only the new one.
+  if tg_op = 'DELETE' then
+    changed_row := to_jsonb(old);
+  else
+    changed_row := to_jsonb(new);
+  end if;
+  -- Fires for both tables: an entry names its transaction; a transaction is its own id.
+  if tg_table_name = 'ledger_entry' then
+    txn_id := (changed_row ->> 'transaction_id')::uuid;
+  else
+    txn_id := (changed_row ->> 'id')::uuid;
+  end if;
+  -- Purge removed the whole transaction: nothing is left to balance.
+  if not exists (select 1 from public.ledger_transaction t where t.id = txn_id) then
+    return null;
+  end if;
   select count(*), coalesce(sum(e.amount), 0), count(distinct a.unit)
   into entry_count, total, unit_count
   from public.ledger_entry e
@@ -90,7 +109,7 @@ end;
 $$;
 
 create constraint trigger ledger_entry_balanced
-  after insert on public.ledger_entry
+  after insert or delete on public.ledger_entry
   deferrable initially deferred
   for each row execute function private.assert_transaction_balanced();
 create constraint trigger ledger_transaction_balanced
@@ -99,15 +118,20 @@ create constraint trigger ledger_transaction_balanced
   for each row execute function private.assert_transaction_balanced();
 
 -- The ledger is append-only. The only exception is purge, a super_admin testing tool (lane A):
--- it runs as the database owner with rivr.purge set for its own transaction.
+-- it runs as the database owner with rivr.purge set for its own transaction, for a caller who
+-- holds purge.run at the row's venue. Purge only deletes, and the balance check above makes it
+-- delete whole transactions.
 create function private.ledger_append_only()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
-  if current_setting('rivr.purge', true) = 'on' and current_user = 'postgres' then
-    return coalesce(new, old);
+  if tg_op = 'DELETE'
+     and current_setting('rivr.purge', true) = 'on'
+     and current_user = 'postgres'
+     and (session_user = 'postgres' or private.has_permission(old.venue_id, 'purge.run')) then
+    return old;
   end if;
   raise exception '% is append-only; post a reversing transaction instead', tg_table_name
     using errcode = 'insufficient_privilege';
@@ -155,14 +179,59 @@ begin
 end;
 $$;
 
+-- The transaction already posted under this key, or null. A retry must repeat the original
+-- exactly: a key reused for a different kind, reversal or set of lines is refused.
+create function private.find_ledger_replay(
+  p_venue_id uuid,
+  p_idempotency_key text,
+  p_kind text,
+  p_lines jsonb,
+  p_reverses_transaction_id uuid
+)
+returns uuid
+language plpgsql
+stable
+set search_path = ''
+as $$
+declare
+  original public.ledger_transaction;
+  posted_lines text[];
+  given_lines text[];
+begin
+  select * into original from public.ledger_transaction t
+  where t.venue_id = p_venue_id and t.idempotency_key = p_idempotency_key;
+  if not found then return null; end if;
+
+  -- Each line as 'account amount', sorted, so the order lines were sent in does not matter.
+  select array_agg(e.account_id::text || ' ' || e.amount::text order by e.account_id, e.amount)
+  into posted_lines
+  from public.ledger_entry e where e.transaction_id = original.id;
+  select array_agg(((line ->> 'account_id')::uuid)::text || ' ' || ((line ->> 'amount')::bigint)::text
+                   order by (line ->> 'account_id')::uuid, (line ->> 'amount')::bigint)
+  into given_lines
+  from jsonb_array_elements(p_lines) line;
+
+  if original.kind <> p_kind
+     or original.reverses_transaction_id is distinct from p_reverses_transaction_id
+     or posted_lines is distinct from given_lines then
+    raise exception 'idempotency key % was already used for a different ledger transaction', p_idempotency_key
+      using errcode = 'unique_violation';
+  end if;
+  return original.id;
+end;
+$$;
+
 -- Posts one balanced transaction and returns its id. p_lines is a JSON array of
 -- {"account_id": uuid, "amount": "<integer paise or points as a string>"}.
+-- p_feature names the kill switch that stops this money movement ('withdrawals', 'credit'...);
+-- pass null only when no switch covers it. It has no default so every caller decides.
 -- Replaying the same idempotency key returns the first transaction and writes nothing.
 create function private.post_ledger_transaction(
   p_venue_id uuid,
   p_kind text,
   p_idempotency_key text,
   p_lines jsonb,
+  p_feature public.killable_feature,
   p_memo text default null,
   p_reverses_transaction_id uuid default null
 )
@@ -174,16 +243,25 @@ as $$
 declare
   txn_id uuid;
 begin
-  select t.id into txn_id from public.ledger_transaction t
-  where t.venue_id = p_venue_id and t.idempotency_key = p_idempotency_key;
-  if found then return txn_id; end if;
+  txn_id := private.find_ledger_replay(p_venue_id, p_idempotency_key, p_kind, p_lines, p_reverses_transaction_id);
+  if txn_id is not null then return txn_id; end if;
 
-  perform private.assert_writable(p_venue_id);
+  perform private.assert_writable(p_venue_id, p_feature);
   perform private.check_ledger_lines(p_venue_id, p_lines);
+  -- A frozen member's accounts take no postings, whichever lane writes them.
+  perform private.assert_writable(p_venue_id, null, a.member_id)
+  from public.ledger_account a
+  where a.member_id is not null
+    and a.id in (select (line ->> 'account_id')::uuid from jsonb_array_elements(p_lines) line);
 
   insert into public.ledger_transaction (venue_id, kind, idempotency_key, memo, reverses_transaction_id, created_by_user_id)
   values (p_venue_id, p_kind, p_idempotency_key, p_memo, p_reverses_transaction_id, (select auth.uid()))
+  on conflict (venue_id, idempotency_key) do nothing
   returning id into txn_id;
+  -- A concurrent call with the same key committed first: answer as a replay.
+  if txn_id is null then
+    return private.find_ledger_replay(p_venue_id, p_idempotency_key, p_kind, p_lines, p_reverses_transaction_id);
+  end if;
 
   insert into public.ledger_entry (venue_id, transaction_id, account_id, amount)
   select p_venue_id, txn_id, (line ->> 'account_id')::uuid, (line ->> 'amount')::bigint
@@ -193,6 +271,7 @@ end;
 $$;
 
 -- Posts the exact opposite of a transaction, linked to it. A transaction is reversed at most once.
+-- A reversal is a staff correction, so no feature switch stops it; a venue or member freeze does.
 create function private.reverse_ledger_transaction(
   p_transaction_id uuid,
   p_idempotency_key text,
@@ -215,12 +294,12 @@ begin
     original.venue_id, 'reversal', p_idempotency_key,
     (select jsonb_agg(jsonb_build_object('account_id', e.account_id, 'amount', (-e.amount)::text))
      from public.ledger_entry e where e.transaction_id = p_transaction_id),
-    p_reason, p_transaction_id);
+    null, p_reason, p_transaction_id);
   return reversal_id;
 end;
 $$;
 
-grant execute on function private.post_ledger_transaction(uuid, text, text, jsonb, text, uuid),
+grant execute on function private.post_ledger_transaction(uuid, text, text, jsonb, public.killable_feature, text, uuid),
   private.reverse_ledger_transaction(uuid, text, text) to service_role;
 
 -- Every member gets a cash, bonus, points and receivable account when they join.
@@ -290,6 +369,8 @@ create policy "members see their entries; ledger staff see the venue's" on publi
     or account_id in (select a.id from public.ledger_account a where a.member_id = (select private.current_member_id()))
   );
 
+-- The subquery reads ledger_entry under its own policy above, so a member matches only the
+-- transactions that touch one of their accounts.
 create policy "members see their transactions; ledger staff see the venue's" on public.ledger_transaction
   for select to authenticated
   using (
