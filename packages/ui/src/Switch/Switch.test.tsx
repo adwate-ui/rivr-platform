@@ -32,6 +32,11 @@ describe('Switch', () => {
     expect(onChange.mock.calls).toEqual([[false], [false]]);
   });
 
+  it('keeps a 44 px target around its track', () => {
+    renderIn(<Switch label="Seat calls" isOn onChange={() => undefined} />);
+    expect(screen.getByRole('switch')).toHaveClass('min-h-touch', 'min-w-touch');
+  });
+
   it('reads its hint as the description', () => {
     renderIn(<Switch label="Seat calls" hint="When your seat is ready." isOn onChange={() => undefined} />);
     expect(screen.getByRole('switch')).toHaveAccessibleDescription('When your seat is ready.');
