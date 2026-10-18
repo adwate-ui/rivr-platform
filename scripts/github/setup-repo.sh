@@ -12,7 +12,7 @@ repo="${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
 label() { gh label create "$1" --repo "$repo" --color "$2" --description "$3" --force >/dev/null; echo "label $1"; }
 label 'lane:a' 'c9a85c' 'Lane A: money (ledger, cage, wallet, markers, TDS, GST, Tally)'
 label 'lane:b' '0e3b2c' 'Lane B: floor (tables, waitlist, tablet, tournaments, jackpots, TVs)'
-label 'lane:c' 'f3ede0' 'Lane C: member and web (PWA, KYC, website, Learn, Hindi, cab)'
+label 'lane:c' 'f3ede0' 'Lane C: member and web (PWA, KYC, website, Learn, cab)'
 label 'lane:d' 'c4162a' 'Lane D: growth and content (renderer, social, outbox consumers)'
 label 'status:todo' 'ededed' 'Ready to be taken once its dependencies are closed'
 label 'status:doing' 'fbca04' 'Being worked on now'
@@ -47,6 +47,7 @@ echo "workflows from outside contributors need approval"
 #   preview     pull requests; a Cloudflare token for the staging account only
 #   staging     main only; staging Supabase and Cloudflare
 #   production  release-* tags only, and the repository owner approves each release
+#   e2e-staging release-* tags only; the staging test numbers' sign-in code for the release's e2e run
 owner_id="$(gh api "users/${repo%%/*}" --jq .id)"
 environment() {
   gh api --method PUT "repos/$repo/environments/$1" --input - >/dev/null
@@ -66,6 +67,8 @@ cat <<JSON | environment production
 }
 JSON
 deploy_only_from production 'release-*' tag
+echo '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}' | environment e2e-staging
+deploy_only_from e2e-staging 'release-*' tag
 
 # Only repository admins create, move or delete release-* tags.
 if ! gh api "repos/$repo/rulesets" --jq '.[].name' | grep -qx 'release tags'; then

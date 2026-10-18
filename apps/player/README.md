@@ -1,6 +1,6 @@
 # player
 
-The member app: a PWA on a 390 px phone. Tonight's floor, the waitlist, session history, balance and withdrawals, rewards, Learn and the member's profile, in English and Hindi. Every member-facing entry point is behind `FeatureGate` with its tier-gated feature key.
+The member app: a PWA on a 390 px phone. Tonight's floor, the waitlist, session history, balance and withdrawals, rewards, Learn and the member's profile. Every member-facing entry point is behind `FeatureGate` with its tier-gated feature key.
 
 ## Run it
 
@@ -19,7 +19,8 @@ The dev server listens on this worktree's port block (`player` is port `<block>4
 src/
   main.tsx            the client, the providers and the router
   router.tsx          every route, in one list
-  routes/             one file per URL; renders a feature's screen and nothing else
+  routes/             one file per URL; renders a feature's screen and nothing else. frame.tsx is the
+                      layout route for the tabs; sign-in sits outside it
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: navigation, the kill-switch banner, not found
 ```

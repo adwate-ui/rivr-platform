@@ -6,14 +6,14 @@ Every word a member or staff user reads, and the one formatter for money, number
 
 | Export | What it does |
 |---|---|
-| `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. Works anywhere: components, Astro pages, Edge Functions, render templates, tests. |
-| `useT()` | Returns `t`, for components written before #186. The next part of #186 replaces it with `t`. |
+| `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. The one way to get copy, anywhere: components, Astro pages, Edge Functions, render templates, tests. |
 | `formatMoney(paise)` | `₹1,20,000`. Indian grouping, no decimals on whole rupees, never rounded, `−₹1,000` for negatives. |
 | `formatNumber(n)` | `18,420`. |
 | `formatStakes(small, big)` | Blinds in paise to `100/200`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
 | `formatDate(date)`, `formatWeekday(date)` | `15 Nov 2026`, `Sunday`, in IST. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
+| `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |
 | `en` | The catalogue itself, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not this. |
 | `Translate` | The type of `t`. |
 | `MessageKey`, `MessageParams` | Types: every key (`'common.retry'`) and the values for a message's `{placeholders}`. |
@@ -21,10 +21,9 @@ Every word a member or staff user reads, and the one formatter for money, number
 ## Usage
 
 ```tsx
-import { formatMoney, useT } from '@rivr/i18n';
+import { formatMoney, t } from '@rivr/i18n';
 
 function LockedLine({ tiers }: { tiers: string }) {
-  const t = useT();
   return <Text>{t('common.featureLocked', { tiers })}</Text>; // "Black card only."
 }
 

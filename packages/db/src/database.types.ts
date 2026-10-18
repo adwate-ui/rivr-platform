@@ -273,14 +273,14 @@ isOneToOne: false
                   ]
                 },"member": {
                   Row: {
-                    "created_at": string,"full_name": string,"id": string,"member_number": number,"phone": string,"preferred_language": string,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
+                    "created_at": string,"full_name": string,"id": string,"member_number": number,"phone": string,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"full_name": string,"id"?: string,"member_number"?: never,"phone": string,"preferred_language"?: string,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
+                    "created_at"?: string,"full_name": string,"id"?: string,"member_number"?: never,"phone": string,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string,"preferred_language"?: string,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
+                    "created_at"?: string,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {

@@ -1,5 +1,5 @@
 const PAISE_PER_RUPEE = 100n;
-// Indian grouping with Latin digits in every locale: 1,20,000 (docs/decisions/0007).
+// Indian grouping with Latin digits: 1,20,000 (docs/decisions/0007).
 const RUPEES = new Intl.NumberFormat('en-IN');
 
 /**

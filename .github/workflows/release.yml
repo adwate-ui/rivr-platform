@@ -50,6 +50,7 @@ jobs:
   e2e-staging:
     needs: check
     runs-on: ubuntu-latest
+    environment: e2e-staging
     timeout-minutes: 45
     env:
       RIVR_E2E_TARGET: staging
@@ -59,6 +60,8 @@ jobs:
       E2E_DISPLAY_URL: ${{ vars.STAGING_DISPLAY_URL }}
       E2E_DRIVER_URL: ${{ vars.STAGING_DRIVER_URL }}
       E2E_WEB_URL: ${{ vars.STAGING_WEB_URL }}
+      # The private code staging's test numbers take, for the sign-in flow.
+      E2E_SIGN_IN_CODE: ${{ secrets.E2E_SIGN_IN_CODE }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup
@@ -86,6 +89,8 @@ jobs:
           pnpm supabase db push --password "$SUPABASE_DB_PASSWORD"
       - name: Edge Functions
         run: pnpm supabase functions deploy --project-ref "$PROJECT_REF"
+      - name: Auth settings (sessions only from a code, #187)
+        run: node scripts/ci/check-auth-config.mjs
 
   pages:
     needs: database

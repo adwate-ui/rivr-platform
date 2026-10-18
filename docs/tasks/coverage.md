@@ -85,7 +85,7 @@ Every requirement in every specification file mapped to the issues that deliver 
 | T-I16 | Tally export: daily voucher file per venue per day from a ledger-to-Tally mapping | #96 |
 | T-I17 | CCTV: camera id and timestamp on hands, cage transactions and incidents with a playback link | #122 |
 | T-I18 | Staff training: practice venue and dealer and cashier certification quizzes | #50 |
-| T-I19 | Hindi: player app, dealer tablet, SOPs and WhatsApp templates; language per user and dealer | #137, #138, #62 |
+| T-I19 | Hindi: player app, dealer tablet, SOPs and WhatsApp templates; language per user and dealer | Out of scope (#186, decision 0027); #137 closed; #138 keeps its English part, drill text in the catalogue |
 | T-I20 | GST invoicing: series per venue, rate and basis effective-dated, PDF tax invoice | #23, #68 |
 | T-I21 | Six tables: one ₹5,000, four ₹10,000, the ₹20,000 Private Room | #34 |
 | T-I22 | Owner dashboard: role-scoped mobile view of live rake, tables, cash position, alerts | #101 |
@@ -153,7 +153,7 @@ Every requirement in every specification file mapped to the issues that deliver 
 | AD-6 | Web push notifications, each type switchable | #139 |
 | AD-7 | PWA install: manifest, icons, splash, service worker, install prompt | #16 |
 | AD-8 | Learn specification copied; six screens rebuilt; licensed encodings uploaded at runtime | #1, #131 |
-| AD-9 | Hindi typefaces as token fallbacks | #1 |
+| AD-9 | Hindi typefaces as token fallbacks | Out of scope (#186, decision 0027) |
 | AD-10 | Venue configuration holds legal and payment details | #1, #33 |
 | AD-F13 | Flow 13, call time: early cash-out shows the shortfall; admin override with reason; early departure recorded | #79 |
 | AD-F14 | Flow 14, check-out: membership QR at the door closes the visit; hours and points update | #82 |

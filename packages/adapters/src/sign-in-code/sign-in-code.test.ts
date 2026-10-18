@@ -17,7 +17,7 @@ beforeEach(() => {
 describe('sendSignInCode', () => {
   it('sends the WhatsApp authentication template with the code, and no SMS', async () => {
     expect(await sendSignInCode({ whatsapp, smsOtp }, { to, code })).toEqual({ ok: true, value: { channel: 'whatsapp', messageId: 'fake-whatsapp-1' } });
-    expect(whatsapp.calls).toEqual([{ category: 'authentication', to, template: SIGN_IN_CODE_TEMPLATE, language: 'en', params: [code] }]);
+    expect(whatsapp.calls).toEqual([{ category: 'authentication', to, template: SIGN_IN_CODE_TEMPLATE, params: [code] }]);
     expect(smsOtp.calls).toEqual([]);
   });
 
@@ -41,11 +41,5 @@ describe('sendSignInCode', () => {
 
   it('fails closed with no channel configured, so a code is never "sent" by nobody', async () => {
     expect(await sendSignInCode({}, { to, code })).toEqual({ ok: false, error: { code: 'not_configured' } });
-  });
-
-  it('sends the Hindi template to a member who reads Hindi', async () => {
-    await sendSignInCode({ whatsapp }, { to, code, language: 'hi' });
-
-    expect(whatsapp.calls[0]?.language).toBe('hi');
   });
 });

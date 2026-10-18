@@ -22,7 +22,7 @@ Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which set
 - `packages/domain` every business rule (money, rake, call time, TDS, GST, priority, payouts, points). Pure TypeScript.
 - `packages/db` the only code that talks to Supabase.
 - `packages/contracts` Zod schemas shared by apps and Edge Functions.
-- `packages/i18n` every user-facing string (en, hi) and the money/time formatters.
+- `packages/i18n` every user-facing string (English only) and the money/time formatters.
 - `packages/adapters` one interface per vendor, each with a fake.
 - `supabase/` migrations, Edge Functions, seed, pgTAP tests.
 
@@ -48,16 +48,16 @@ Use the `feature-task` skill. In short:
 4. Implement in small steps. Run the narrowest test after each step.
 5. For UI, screenshot the screen and compare it with `docs/design/prototype.html`. List differences and fix them.
 6. Run `pnpm verify`. Paste the summary into the PR.
-7. Ask the `reviewer` subagent to review the diff against the task. Fix correctness and requirement gaps; ignore style preferences the linters do not enforce.
-8. Open the PR with `gh pr create`, titled `type(scope): summary`, body `Closes #<issue>`, under 400 changed lines.
-9. When CI is green and the reviewers pass, post `agent-review` with `scripts/github/post-agent-review.sh` and squash-merge. Then take the next task.
+7. Ask the `reviewer` subagent to review the diff against the task, once. Add the `security-reviewer` only for auth, money or database policies. Fix correctness and requirement gaps; ignore style preferences the linters do not enforce.
+8. Open one PR per task with `gh pr create`, titled `type(scope): summary`, body `Closes #<issue>`, up to about 800 changed lines (`docs/decisions/0028`). Build only the acceptance criteria; polish and design nits become follow-up issues.
+9. When CI is green and the review passes, post `agent-review` with `scripts/github/post-agent-review.sh` and squash-merge. Then take the next task.
 
 Show evidence, not claims: the command you ran and its output, or the screenshot.
 
 ## Done means
 
 - The task's acceptance criteria pass, end to end where a flow exists, with the evidence in the PR.
-- Built only from `@rivr/ui` and `@rivr/i18n`, in English and Hindi, with loading, empty and error states.
+- Built only from `@rivr/ui` and `@rivr/i18n`, in English (Hindi is out of scope, decision 0027), with loading, empty and error states.
 - Works on the target device: phone (player), dealer tablet, 1440 px (console), 1920 px (TV).
 - Correct in the practice venue, and nothing from it reaches an external system.
 - Package README updated; the PR closes its issue.

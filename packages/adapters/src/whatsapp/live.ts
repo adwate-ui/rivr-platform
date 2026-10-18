@@ -6,6 +6,9 @@ import type { WhatsAppAdapter, WhatsAppMessage } from './types.ts';
 /** The Graph API version the requests name. Meta supports each version for about two years. */
 export const GRAPH_API_VERSION = 'v23.0';
 
+/** Every approved template is in English: RIVR ships in English only (decision 0027). */
+const TEMPLATE_LANGUAGE = 'en';
+
 // Meta's rate-limit error codes, worth retrying later (developers.facebook.com, WhatsApp Cloud API
 // "Error codes"): 4 app calls, 80007 account calls, 130429 throughput, 131048 spam limit, 131056
 // too many messages to one person.
@@ -44,7 +47,7 @@ function requestBody(message: WhatsAppMessage) {
     // Meta takes the number as digits only: +919876543210 becomes 919876543210.
     to: message.to.slice(1),
     type: 'template',
-    template: { name: message.template, language: { code: message.language }, components: components(message) },
+    template: { name: message.template, language: { code: TEMPLATE_LANGUAGE }, components: components(message) },
   };
 }
 

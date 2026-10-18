@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
 import { BottomNav, type BottomNavItem, type PlayerTab } from '../BottomNav/BottomNav.tsx';
 import { Icon } from '../Icon/Icon.tsx';
@@ -20,7 +20,6 @@ export interface PlayerShellProps {
 
 /** The player app frame on a 390 px phone: banner, wordmark and the member's initial, the screen, and the tab bar. */
 export function PlayerShell({ children, tabs, currentTab, memberInitial, profileHref, onNavigate, banner }: PlayerShellProps) {
-  const t = useT();
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-content">
       {banner}

@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { Icon } from '../Icon/Icon.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -12,7 +12,6 @@ export interface KillSwitchBannerProps {
  * It has no close button: it goes when a second super admin releases the freeze.
  */
 export function KillSwitchBanner({ audience }: KillSwitchBannerProps) {
-  const t = useT();
   return (
     <div role="alert" className="flex items-center gap-2 bg-alert px-4 py-2 text-on-alert">
       <Icon name="alert" size="sm" />

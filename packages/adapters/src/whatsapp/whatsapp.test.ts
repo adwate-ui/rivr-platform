@@ -11,7 +11,6 @@ describe('fake WhatsApp', () => {
       category: 'utility',
       to,
       template: 'seat_ready',
-      language: 'en',
       params: ['Table 3', '6'],
     };
 
@@ -23,11 +22,11 @@ describe('fake WhatsApp', () => {
     const whatsapp = createFakeWhatsApp({ now: () => new Date('2026-11-17T00:00:00Z') });
     const optedInAt = new Date('2026-11-01T10:00:00Z');
 
-    const sent = await whatsapp.sendTemplate({ category: 'marketing', to, template: 'promo', language: 'hi', params: [], optedInAt });
+    const sent = await whatsapp.sendTemplate({ category: 'marketing', to, template: 'promo', params: [], optedInAt });
 
     expect(sent.ok).toBe(true);
     // @ts-expect-error A marketing message without an opt-in does not compile.
-    const withoutOptIn: WhatsAppMessage = { category: 'marketing', to, template: 'promo', language: 'en', params: [] };
+    const withoutOptIn: WhatsAppMessage = { category: 'marketing', to, template: 'promo', params: [] };
     expect(withoutOptIn.category).toBe('marketing');
   });
 
@@ -35,7 +34,7 @@ describe('fake WhatsApp', () => {
     const whatsapp = createFakeWhatsApp({ now: () => new Date('2026-11-17T00:00:00Z') });
     const optedInAt = new Date('2026-11-18T00:00:00Z');
 
-    expect(await whatsapp.sendTemplate({ category: 'marketing', to, template: 'promo', language: 'en', params: [], optedInAt })).toEqual({
+    expect(await whatsapp.sendTemplate({ category: 'marketing', to, template: 'promo', params: [], optedInAt })).toEqual({
       ok: false,
       error: { code: 'rejected', reason: 'no opt-in recorded before sending' },
     });
@@ -45,7 +44,7 @@ describe('fake WhatsApp', () => {
     const whatsapp = createFakeWhatsApp();
     whatsapp.failNext({ code: 'unavailable' });
 
-    const sent = await whatsapp.sendTemplate({ category: 'utility', to, template: 'x', language: 'en', params: [] });
+    const sent = await whatsapp.sendTemplate({ category: 'utility', to, template: 'x', params: [] });
 
     expect(sent).toEqual({ ok: false, error: { code: 'unavailable' } });
   });
