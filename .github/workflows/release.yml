@@ -1,0 +1,120 @@
+# A tag release-YYYYMMDD-N deploys the tagged commit to production after the end-to-end
+# suite passes on staging, and builds signed APKs for the dealer tablet and driver shells.
+# Production is never seeded. Rollback is a Pages rollback plus a forward-fix migration.
+# docs/spec/additions-2026-10-14.md, "Environments and release" and "Android builds".
+name: Release
+
+on:
+  push:
+    tags: ['release-*']
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  e2e-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RIVR_E2E_TARGET: staging
+      E2E_PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
+      E2E_CONSOLE_URL: ${{ vars.STAGING_CONSOLE_URL }}
+      E2E_TABLET_URL: ${{ vars.STAGING_TABLET_URL }}
+      E2E_DISPLAY_URL: ${{ vars.STAGING_DISPLAY_URL }}
+      E2E_DRIVER_URL: ${{ vars.STAGING_DRIVER_URL }}
+      E2E_WEB_URL: ${{ vars.STAGING_WEB_URL }}
+    steps:
+      - name: Tag is release-YYYYMMDD-N
+        run: '[[ "$GITHUB_REF_NAME" =~ ^release-[0-9]{8}-[0-9]+$ ]] || { echo "::error::Tag must look like release-20261115-1"; exit 1; }'
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+        with:
+          playwright: 'true'
+      - run: pnpm e2e
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-staging
+          path: playwright-report/
+          if-no-files-found: ignore
+
+  database:
+    needs: e2e-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_PROD_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROD_REF }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Migrations (no seed, ever)
+        run: |
+          pnpm supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          pnpm supabase db push --password "$SUPABASE_DB_PASSWORD"
+      - name: Edge Functions
+        run: pnpm supabase functions deploy --project-ref "$PROJECT_REF"
+
+  pages:
+    needs: database
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+      PUBLIC_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - run: pnpm build --filter player --filter console --filter display --filter tablet --filter driver --filter web
+      - run: node scripts/ci/pages-deploy.mjs production main player console display tablet driver web
+
+  android:
+    needs: e2e-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: production
+    strategy:
+      matrix:
+        app: [tablet, driver]
+    env:
+      RIVR_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
+      RIVR_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      RIVR_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      RIVR_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      # The APK is a shell around the hosted, versioned bundle, so code changes need no reinstall.
+      RIVR_SHELL_URL: ${{ matrix.app == 'tablet' && vars.PROD_TABLET_URL || vars.PROD_DRIVER_URL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RIVR_ANDROID_KEYSTORE_FILE"
+      - run: pnpm build --filter ${{ matrix.app }}
+      - run: pnpm --filter ${{ matrix.app }} exec cap sync android
+      - run: ./gradlew assembleRelease
+        working-directory: apps/${{ matrix.app }}/android
+      - run: cp apps/${{ matrix.app }}/android/app/build/outputs/apk/release/app-release.apk "rivr-${{ matrix.app }}-${GITHUB_REF_NAME}.apk"
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: rivr-${{ matrix.app }}-${{ github.ref_name }}.apk
+      - if: always()
+        run: rm -f "$RIVR_ANDROID_KEYSTORE_FILE"

@@ -1,0 +1,42 @@
+# A Cloudflare Pages preview of every web surface for each pull request, against staging data.
+# Skips with a notice until the Cloudflare secrets exist (docs/runbooks/ci-and-release.md).
+name: Preview
+
+on:
+  pull_request:
+
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  preview:
+    # Pull requests from forks receive no secrets and never deploy.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      PUBLIC_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - if: env.HAS_CLOUDFLARE != 'true'
+        run: echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipping preview deployments."
+      - if: env.HAS_CLOUDFLARE == 'true'
+        uses: actions/checkout@v7
+      - if: env.HAS_CLOUDFLARE == 'true'
+        uses: ./.github/actions/setup
+      - if: env.HAS_CLOUDFLARE == 'true'
+        run: pnpm build --filter player --filter console --filter display --filter tablet --filter driver --filter web
+      - if: env.HAS_CLOUDFLARE == 'true'
+        run: node scripts/ci/pages-deploy.mjs preview "pr-${{ github.event.number }}" player console display tablet driver web

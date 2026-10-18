@@ -1,0 +1,19 @@
+name: Set up the workspace
+description: Node from .node-version, pnpm from package.json, and a frozen-lockfile install.
+inputs:
+  playwright:
+    description: Also install Chromium and its system libraries for Playwright.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v6
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .node-version
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+    - if: inputs.playwright == 'true'
+      run: pnpm exec playwright install --with-deps chromium
+      shell: bash
