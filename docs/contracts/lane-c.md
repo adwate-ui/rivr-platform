@@ -26,6 +26,9 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `private.is_kyc_complete(member)` | A, B | KYC verified and at least the venue's minimum age (`kyc.minimum_age`, never below 18); duplicate identities never pass |
 | `private.member_restrictions(member, at)` | A, B | Limits, cool-off and self-exclusion in force |
 | `public.check_in(venue, card_code)`, `public.check_out(venue, card_code)` | door screen | Opens or closes a visit; refuses an excluded member; check-out before call time follows lane B's rule; emits `visit.opened` / `visit.closed` |
+| `public.book_academy(batch)`, `public.claim_academy_payment(booking, utr)`, `public.academy_payment_details(booking)` | player app | A seat in an open Academy batch at the `academy.price` fee; the member's UPI payment and UTR (#8) |
+| `public.confirm_academy_payment(booking)` | console (cage) | A cashier confirms the UPI payment: bank in, Academy fees (`venue.academy`) out of the ledger; emits `academy.booked` |
+| `public.create_academy_batch(...)`, `public.book_academy_corporate(...)` | console | Batches; a company's heads at the corporate fee per head |
 | `private.current_visit(member)`, `private.close_visit(member, at, reason)` | A (final cash-out), B | The open visit; closing it emits `visit.closed` |
 | `private.visits_this_month(member, at)` | D (cab and promotions conditions) | Closed visits in the calendar month |
 | `private.has_consent(member, purpose)` | D (marketing sends, Meta events) | Consent in force |

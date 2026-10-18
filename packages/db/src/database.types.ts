@@ -25,7 +25,65 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "audit_log": {
+            "academy_batch": {
+                  Row: {
+                    "created_at": string,"ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"starts_on": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"ends_on": string,"id"?: string,"is_open"?: boolean,"name": string,"seats": number,"starts_on": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"ends_on"?: string,"id"?: string,"is_open"?: boolean,"name"?: string,"seats"?: number,"starts_on"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "academy_batch_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"academy_booking": {
+                  Row: {
+                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                  }
+                  Update: {
+                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "academy_booking_batch_id_venue_id_fkey"
+      columns: ["batch_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "academy_batch"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "academy_booking_confirmed_by_staff_id_fkey"
+      columns: ["confirmed_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "academy_booking_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "academy_booking_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"audit_log": {
                   Row: {
                     "action": string,"actor_user_id": string | null,"after": Json | null,"before": Json | null,"created_at": string,"device_id": string | null,"entity": string,"entity_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"updated_at": string,"venue_id": string
                   }
@@ -703,11 +761,25 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "authorize_kyc_image":
+            "academy_payment_details":
+{ Args: { "p_booking_id": string }; Returns: {
+              "amount": number,"upi_payee_name": string,"upi_vpa": string
+            }[]
+                           },
+"authorize_kyc_image":
 { Args: { "p_name": string }; Returns: undefined
                            },
 "begin_kyc_vendor_call":
 { Args: { "p_is_paid": boolean,"p_member_id": string }; Returns: undefined
+                           },
+"book_academy":
+{ Args: { "p_batch_id": string }; Returns: string
+                           },
+"book_academy_corporate":
+{ Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_seats": number,"p_utr"?: string }; Returns: string
+                           },
+"claim_academy_payment":
+{ Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
 "claim_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: boolean
@@ -716,6 +788,12 @@ isOneToOne: false
 { Args: { "p_consumer": string,"p_event_types": (string)[],"p_is_messaging"?: boolean,"p_limit"?: number }; Returns: {
               "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
             }[]
+                           },
+"confirm_academy_payment":
+{ Args: { "p_booking_id": string }; Returns: string
+                           },
+"create_academy_batch":
+{ Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
                            },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined

@@ -40,8 +40,18 @@ const kycMinimumAge = {
   value: z.strictObject({ years: z.int().min(18).max(25) }),
 } as const satisfies SettingDefinition;
 
+const academyPrice = {
+  key: 'academy.price',
+  description: 'Academy fees in paise: one seat, and per head in a corporate booking (scope-v1 module 15).',
+  scope: 'venue',
+  value: z.strictObject({
+    individual_paise: z.int().min(1).max(10_000_000),
+    corporate_per_head_paise: z.int().min(1).max(10_000_000),
+  }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge] as const;
+export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];
