@@ -4,6 +4,10 @@
   "tasks": {
     "build": {
       "outputs": ["generated/**"]
+    },
+    // src/generated.test.ts reads this package's own build output, so the build runs first.
+    "test": {
+      "dependsOn": ["^build", "build"]
     }
   }
 }
