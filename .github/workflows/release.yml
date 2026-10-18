@@ -108,6 +108,10 @@ jobs:
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RIVR_ANDROID_KEYSTORE_FILE"
+      - name: Version from the tag (release-20261115-1 is code 202611151)
+        run: |
+          echo "RIVR_VERSION_NAME=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+          echo "RIVR_VERSION_CODE=$(echo "$GITHUB_REF_NAME" | tr -cd '0-9')" >> "$GITHUB_ENV"
       - run: pnpm build --filter ${{ matrix.app }}
       - run: pnpm --filter ${{ matrix.app }} exec cap sync android
       - run: ./gradlew assembleRelease

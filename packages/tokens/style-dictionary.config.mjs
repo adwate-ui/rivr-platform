@@ -10,7 +10,8 @@ const OUT = 'generated/';
 
 StyleDictionary.registerFileHeader({
   name: 'rivr',
-  fileHeader: () => ['Generated from packages/tokens/tokens.json. Do not edit.', 'Run `pnpm --filter @rivr/tokens build` after changing tokens.json.'],
+  // No double hyphen: these lines also become XML comments in the Android resources, where "--" is invalid.
+  fileHeader: () => ['Generated from packages/tokens/tokens.json. Do not edit.', 'Run the @rivr/tokens build script after changing tokens.json.'],
 });
 StyleDictionary.registerFormat({ name: 'rivr/tailwind-theme', format: tailwindTheme });
 StyleDictionary.registerFormat({ name: 'rivr/typescript', format: typescriptConstants });

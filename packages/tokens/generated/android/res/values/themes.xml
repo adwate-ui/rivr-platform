@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Generated from packages/tokens/tokens.json. Do not edit.
-  Run `pnpm --filter @rivr/tokens build` after changing tokens.json.
+  Run the @rivr/tokens build script after changing tokens.json.
 -->
 <resources>
   <style name="Theme.Rivr" parent="Theme.AppCompat.NoActionBar">

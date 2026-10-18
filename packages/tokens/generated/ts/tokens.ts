@@ -1,5 +1,5 @@
 // Generated from packages/tokens/tokens.json. Do not edit.
-// Run `pnpm --filter @rivr/tokens build` after changing tokens.json.
+// Run the @rivr/tokens build script after changing tokens.json.
 
 
 /** Every design value, resolved. Dimensions in px are numbers. */

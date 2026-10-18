@@ -71,4 +71,11 @@ describe('generated platform colours', () => {
     expect(generatedFile('android/res/values/colors.xml')).toContain('<color name="rivr_color_surface">#ff0e3b2c</color>');
     expect(generatedFile('android/res/values/themes.xml')).toContain('@color/rivr_color_surface');
   });
+
+  it('writes Android comments the resource compiler accepts (XML forbids "--" inside a comment)', () => {
+    for (const file of ['android/res/values/colors.xml', 'android/res/values/themes.xml']) {
+      const comments = generatedFile(file).match(/<!--([\s\S]*?)-->/g) ?? [];
+      expect(comments.filter((comment) => comment.slice(4, -3).includes('--'))).toEqual([]);
+    }
+  });
 });
