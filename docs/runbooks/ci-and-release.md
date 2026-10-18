@@ -32,7 +32,13 @@ Variables are plain and visible, so they hold only non-secret values (Settings â
 | `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,DRIVER,WEB}_URL` | the release's end-to-end run against staging |
 | `PROD_TABLET_URL`, `PROD_DRIVER_URL` | the hosted bundle the APK shells load |
 
-Auth and API on staging and production: in the Supabase dashboard turn email sign-up off, set the rate limits from `[auth.rate_limit]` in `supabase/config.template.toml`, and expose only the `public` and `graphql_public` schemas, never `private`. On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number with its code, so a seed sign-in never sends a real SMS.
+Auth and API on staging and production, in the Supabase dashboard:
+
+- Turn email sign-up off.
+- Turn phone confirmations on ("Confirm phone"). Without it, Auth confirms a phone at a password sign-up without sending a code, and `link_my_login` refuses such logins anyway.
+- Set the rate limits from `[auth.rate_limit]` in `supabase/config.template.toml`.
+- Expose only the `public` and `graphql_public` schemas, never `private`.
+- On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number, so a seed sign-in never sends a real SMS. Give them a private code kept outside the repository, never the local `123456`: the seed includes super admins, and anyone who knows the code could sign in as one.
 
 ## Releasing
 

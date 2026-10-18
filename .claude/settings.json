@@ -14,7 +14,8 @@
       "Bash(gh run *)",
       "Bash(jq *)",
       "Bash(gh issue *)",
-      "Bash(gh api repos/*/statuses/*)",
+      "Bash(scripts/github/post-agent-review.sh *)",
+      "Bash(bash scripts/github/post-agent-review.sh *)",
       "Bash(git switch -c task/*)",
       "Bash(git push -u origin task/*)"
     ],
@@ -50,7 +51,12 @@
       "Bash(*/.env*)",
       "Bash(git push origin release-*)",
       "Bash(git push --tags*)",
-      "Bash(git tag *)"
+      "Bash(git tag *)",
+      "Bash(*wrangler*deploy*)",
+      "Bash(*wrangler*versions*)",
+      "Bash(*supabase*functions deploy*)",
+      "Bash(*supabase*db push*)",
+      "Bash(*supabase link*)"
     ]
   },
   "hooks": {

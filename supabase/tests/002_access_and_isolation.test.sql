@@ -123,17 +123,32 @@ select results_eq($$ select slug from public.public_venue order by slug $$, $$ v
   'the public sees real venues, never the practice venue');
 select throws_ok($$ select * from public.venue $$, '42501', null, 'the public cannot read the venue table');
 
--- A cashier registered by phone links her login the first time she signs in.
+-- A cashier registered by phone links her login the first time she signs in with a code.
 reset role;
 insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at)
 values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e3', 'authenticated', 'authenticated',
         '919000000997', now(), now(), now());
 insert into public.staff (venue_id, full_name, job_title, role, phone)
 values ('00000000-0000-4000-8000-000000000001', 'Linked Cashier', 'Cashier', 'cashier', '+919000000997');
+-- Another new hire's record, whose phone an attacker signs up with using a password; Auth marks
+-- the phone confirmed without sending a code when SMS confirmations are off.
+insert into public.staff (venue_id, full_name, job_title, role, phone)
+values ('00000000-0000-4000-8000-000000000001', 'Target Cashier', 'Cashier', 'cashier', '+919000000996');
+insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, encrypted_password, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e4', 'authenticated', 'authenticated',
+        '919000000996', now(), '$2a$10$abcdefghijklmnopqrstuuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY', now(), now());
 set local role authenticated;
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e3", "role": "authenticated"}';
-select is((select count(*) from public.staff)::int, 0, 'before linking, a new login is nobody');
-select lives_ok($$ select public.link_my_login() $$, 'she links her login');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e4", "role": "authenticated", "amr": [{"method": "password", "timestamp": 1792300000}]}';
+select public.link_my_login();
+select is((select count(*) from public.staff)::int, 0, 'a password sign-up cannot claim a record by its phone');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e4", "role": "authenticated", "amr": [{"method": "otp", "timestamp": 1792300000}]}';
+select public.link_my_login();
+select is((select count(*) from public.staff)::int, 0, 'nor can a login that has a password, whatever its session claims');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e3", "role": "authenticated", "amr": [{"method": "password", "timestamp": 1792300000}]}';
+select public.link_my_login();
+select is((select count(*) from public.staff)::int, 0, 'and the real cashier links only from a session signed in by code');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e3", "role": "authenticated", "amr": [{"method": "otp", "timestamp": 1792300000}]}';
+select lives_ok($$ select public.link_my_login() $$, 'she signs in with a code and links her login');
 select ok((select count(*) from public.staff where full_name = 'Linked Cashier') = 1, 'and is staff at her venue from then on');
 
 -- The matrix itself refuses to give a super_admin-only permission to any other role.

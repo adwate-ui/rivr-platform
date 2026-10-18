@@ -78,9 +78,10 @@ sign_in_sign_ups = 30
 token_verifications = 30
 
 [auth.sms]
-# Members sign in with a mobile number and a one-time code.
+# Members sign in with a mobile number and a one-time code. Confirmations stay on: without them
+# Auth marks a phone confirmed at a password sign-up or a phone change without sending a code.
 enable_signup = true
-enable_confirmations = false
+enable_confirmations = true
 template = "Your RIVR code is {{ .Code }}"
 max_frequency = "5s"
 

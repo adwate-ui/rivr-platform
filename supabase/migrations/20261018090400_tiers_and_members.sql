@@ -71,6 +71,9 @@ $$;
 -- Links the signed-in login to the staff and member records registered under its verified
 -- phone that have no login yet. Apps call public.link_my_login() after every sign-in. This is
 -- the only way a login reaches a record: clients cannot write staff.user_id or member.user_id.
+-- It links only a session that signed in with a one-time code sent to that phone, and never a
+-- login with a password: a phone marked confirmed is not proof on its own, because Auth can
+-- confirm one at a password sign-up when SMS confirmations are off.
 create function private.link_my_login()
 returns void
 language plpgsql
@@ -78,10 +81,14 @@ security definer
 set search_path = ''
 as $$
 declare
+  signed_in_by_code boolean := exists (
+    select 1 from jsonb_array_elements(coalesce((select auth.jwt()) -> 'amr', '[]'::jsonb)) method
+    where method ->> 'method' = 'otp');
   verified_phone text := (select '+' || u.phone from auth.users u
-                          where u.id = (select auth.uid()) and u.phone_confirmed_at is not null);
+                          where u.id = (select auth.uid()) and u.phone_confirmed_at is not null
+                            and coalesce(u.encrypted_password, '') = '');
 begin
-  if verified_phone is null then return; end if;
+  if not signed_in_by_code or verified_phone is null then return; end if;
   -- One staff record per venue, so each venue's record links separately.
   update public.staff s set user_id = (select auth.uid())
   where s.user_id is null and s.phone = verified_phone

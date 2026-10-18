@@ -6,6 +6,7 @@ Tasks live as GitHub issues, not files, so parallel lanes never edit the same fi
 - Dependencies: a `Depends on: #12, #15` line in the body. A task is ready when every dependency is closed.
 - A PR closes its issue with `Closes #<n>`. Merging closes the issue; nothing else marks a task done.
 - Questions are issues labelled `question`. The reviewer session answers them in a comment and closes them.
+- `main` requires the `agent-review` status. Only the reviewer session sets it, after its review, with `scripts/github/post-agent-review.sh <pr> success "<reason>"` (or `failure`). A lane session never posts it on its own PR.
 - `docs/tasks/coverage.md`, written once by Lane 0, maps every requirement in every spec file to an issue number. Coverage is read from issue state; the file is not edited after Lane 0.
 
 ## Issue body format
