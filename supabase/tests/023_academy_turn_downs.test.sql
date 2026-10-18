@@ -115,9 +115,30 @@ reset role;
 select is((select status from public.academy_booking where id = '00000000-0000-4000-8000-0000000000e8'), 'cancelled',
   'and turned down, it cancels the seat');
 
+-- A company's turned-down UTR given on its contact's own seat: the contact is not the payer, so only a
+-- manager confirms it.
+insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_id, kind, company_name, seats, amount, request_id,
+                                    status, utr, claimed_at, created_at) values
+  ('00000000-0000-4000-8000-0000000000ea', '00000000-0000-4000-8000-000000000001', false, '00000000-0000-4000-8000-0000000000e1',
+   '00000000-0000-4000-8000-000000000203', 'corporate', 'Acme', 2, 400000, gen_random_uuid(),
+   'payment_claimed', '412345678930', now(), now() - interval '1 hour');
+insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_id, kind, seats, amount) values
+  ('00000000-0000-4000-8000-0000000000e9', '00000000-0000-4000-8000-000000000001', false, '00000000-0000-4000-8000-0000000000e1',
+   '00000000-0000-4000-8000-000000000203', 'individual', 1, 200000);
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
+select public.reject_academy_payment('00000000-0000-4000-8000-0000000000ea', '412345678930');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000203", "role": "authenticated"}';
+select public.claim_academy_payment('00000000-0000-4000-8000-0000000000e9', '412345678930');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000105", "role": "authenticated"}';
+select throws_ok($$ select public.confirm_academy_payment('00000000-0000-4000-8000-0000000000e9', '412345678930') $$,
+  '42501', null, 'a company''s turned-down UTR on its contact''s own seat is not confirmed by a cashier');
+reset role;
+
 -- A turn-down is never changed or removed.
 select throws_ok($$ update public.academy_utr_rejection set utr = '412345678999' $$, '42501', null, 'a turn-down is never changed');
 select throws_ok($$ delete from public.academy_utr_rejection $$, '42501', null, 'nor removed');
+select throws_ok($$ truncate public.academy_utr_rejection $$, '42501', null, 'nor emptied');
 
 -- A seat staff cancel stays out of the member's list, whether or not a UTR was turned down on it first.
 insert into public.academy_booking (id, venue_id, is_practice, batch_id, member_id, kind, seats, amount, created_at) values

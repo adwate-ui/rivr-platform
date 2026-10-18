@@ -3,8 +3,9 @@
 -- 1. A cashier turns down a member's genuine UTR, which frees it; an accomplice gives it on their own
 --    booking, and it is confirmed there. Every turn-down is now kept, with who made it, and never
 --    changed. Nobody confirms a UTR they turned down on another booking, and a UTR turned down on
---    another member's booking is confirmed only by a manager who also works the cage (members.manage
---    with cage.transact: the owner and general manager), who checks whose money it is.
+--    another member's booking, or where a company's booking is either side, is confirmed only by a
+--    manager who also works the cage (members.manage with cage.transact: the owner and general
+--    manager), who checks whose money it is.
 -- 2. After the 48-hour hold a UTR is always recorded (#220), so a made-up one given again and again
 --    could keep a batch over its seats. A UTR given after the hold now stays until the cage checks it,
 --    and if the cage turns it down the booking is cancelled; the member still sees it, and why
@@ -31,6 +32,8 @@ create index academy_utr_rejection_staff_idx on public.academy_utr_rejection (re
 -- blocks. Purge (lane A) needs its own exception, as the ledger has.
 create trigger academy_utr_rejection_append_only before update or delete on public.academy_utr_rejection
   for each row execute function private.refuse_change();
+create trigger academy_utr_rejection_no_truncate before truncate on public.academy_utr_rejection
+  for each statement execute function private.refuse_change();
 create trigger academy_utr_rejection_audit after insert on public.academy_utr_rejection
   for each row execute function private.audit_row_change();
 
@@ -112,12 +115,13 @@ begin
     raise exception 'A payment is confirmed by someone other than the staff who recorded it' using errcode = '42501';
   end if;
   -- A UTR turned down on another booking: never confirmed by whoever turned it down (any of their
-  -- staff records, at any venue), and, if that booking was another member's, only by a manager who
-  -- checks whose money it is (cashiers do not manage members).
+  -- staff records, at any venue), and, if that booking was another member's or either is a company's
+  -- (whose contact is not the payer), only by a manager who checks whose money it is (cashiers do not
+  -- manage members).
   if exists (select 1 from public.academy_utr_rejection r join public.academy_booking k on k.id = r.booking_id
              where r.utr = p_utr and r.booking_id <> v_booking.id and k.is_practice = v_booking.is_practice
                and (r.rejected_by_staff_id in (select s.id from public.staff s where s.user_id = (select auth.uid()))
-                    or (k.member_id <> v_booking.member_id
+                    or ((k.member_id <> v_booking.member_id or k.kind = 'corporate' or v_booking.kind = 'corporate')
                         and not private.has_permission(v_booking.venue_id, 'members.manage')))) then
     raise exception 'A UTR turned down on another booking is confirmed by someone else, and by a manager if another member''s'
       using errcode = '42501';
