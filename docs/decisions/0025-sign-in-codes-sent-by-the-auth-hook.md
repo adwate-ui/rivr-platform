@@ -11,4 +11,4 @@ Decision: the hook, the Edge Function `auth-send-code`, is the one place outside
 - It never logs or stores the code or the phone.
 - With no live channel configured it answers 503, so Auth refuses the sign-in instead of a fake pretending to send.
 
-Test numbers (local `123456`, staging's private code) never reach the hook. Question #179 asks the owner to confirm.
+Test numbers never reach the hook: the local stack's `123456` (`supabase/config.template.toml`), and staging's private code (`docs/runbooks/ci-and-release.md`). Question #179 asks the owner to confirm.

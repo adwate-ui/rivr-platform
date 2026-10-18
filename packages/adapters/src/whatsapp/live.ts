@@ -6,7 +6,9 @@ import type { WhatsAppAdapter, WhatsAppMessage } from './types.ts';
 /** The Graph API version the requests name. Meta supports each version for about two years. */
 export const GRAPH_API_VERSION = 'v23.0';
 
-// Meta's error codes for throughput and per-user pair limits, worth retrying later.
+// Meta's rate-limit error codes, worth retrying later (developers.facebook.com, WhatsApp Cloud API
+// "Error codes"): 4 app calls, 80007 account calls, 130429 throughput, 131048 spam limit, 131056
+// too many messages to one person.
 const RATE_LIMIT_CODES = new Set([4, 80007, 130429, 131048, 131056]);
 
 export interface WhatsAppCloudApiOptions {
@@ -26,6 +28,7 @@ type Component =
 function components(message: WhatsAppMessage): Component[] {
   const body: Component = { type: 'body', parameters: message.params.map((text) => ({ type: 'text', text })) };
   if (message.category !== 'authentication') return [body];
+  // Meta requires an authentication template's code twice: in the body, and as the copy-code button's parameter.
   const code = message.params[0] ?? '';
   return [body, { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: code }] }];
 }
@@ -33,6 +36,7 @@ function components(message: WhatsAppMessage): Component[] {
 function requestBody(message: WhatsAppMessage) {
   return {
     messaging_product: 'whatsapp',
+    // Meta takes the number as digits only: +919876543210 becomes 919876543210.
     to: message.to.slice(1),
     type: 'template',
     template: { name: message.template, language: { code: message.language }, components: components(message) },
@@ -43,10 +47,12 @@ function requestBody(message: WhatsAppMessage) {
 function failureFrom(status: number, reply: unknown): AdapterFailure {
   const code = errorCodeFrom(reply);
   if (status === 429 || (code !== undefined && RATE_LIMIT_CODES.has(code))) return { code: 'rate_limited' };
+  // A server error, or a refusal Meta did not explain, is treated as passing trouble and retried.
   if (status >= 500 || code === undefined) return { code: 'unavailable' };
   return { code: 'rejected', reason: `WhatsApp error ${code}` };
 }
 
+/** The reply's JSON, or undefined when the body is not JSON (a gateway's HTML error page, say). */
 async function readJson(response: Response): Promise<unknown> {
   try {
     return await response.json();

@@ -82,3 +82,10 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Account code | The dotted name of a ledger account, such as `member.cash` or `venue.rake`; the chart of accounts is in `docs/contracts/README.md` |
 | Parked write | An offline write the server refused for good, kept on the tablet for a supervisor instead of being retried |
 | Login link | The tie between a sign-in (a verified phone) and a staff or member record, made only by `link_my_login()` |
+| amr | "Authentication methods reference": the list in a sign-in token saying how the person signed in (`otp` for a one-time code, `password`...) and when |
+| E.164 | The international phone format: a plus, the country code and the number, `+919876543210` |
+| Send SMS hook | A Supabase Auth setting that makes Auth hand each sign-in code to our function (`auth-send-code`) instead of calling an SMS vendor itself |
+| Standard Webhooks | A signing scheme for webhooks: the sender signs the body with a shared secret and the receiver checks the signature headers before trusting the call (the `standardwebhooks` package) |
+| verify_jwt | A Supabase Edge Function setting: when on, the gateway refuses calls without a signed-in person's token. Off only for functions another service calls with its own signature |
+| Authentication template | A WhatsApp message type Meta reserves for one-time codes, approved in Meta's dashboard; it shows a "Copy code" button |
+| Copy-code button | The button on a WhatsApp authentication template that copies the code; Meta requires the code to be sent again as the button's parameter |

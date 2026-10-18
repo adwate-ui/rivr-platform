@@ -3,7 +3,10 @@ import type { AdapterFailure } from '../shared/failure.ts';
 import type { SmsOtpAdapter } from '../sms-otp/index.ts';
 import type { WhatsAppAdapter, WhatsAppLanguage } from '../whatsapp/index.ts';
 
-/** The approved WhatsApp authentication template that carries a sign-in code as its one parameter. */
+/**
+ * The name of the WhatsApp authentication template that carries a sign-in code as its one
+ * parameter. Exported because it must match the template approved in Meta's dashboard.
+ */
 export const SIGN_IN_CODE_TEMPLATE = 'sign_in_code';
 
 /** The channels that have live credentials. A channel left out is not tried. */
@@ -27,6 +30,7 @@ export async function sendSignInCode(
   channels: SignInCodeChannels,
   { to, code, language = 'en' }: { readonly to: IndianMobile; readonly code: string; readonly language?: WhatsAppLanguage },
 ): Promise<Result<SignInCodeSent, AdapterFailure>> {
+  // Stays not_configured if no channel is tried; otherwise the last channel's failure is reported.
   let lastFailure: AdapterFailure = { code: 'not_configured' };
   if (channels.whatsapp) {
     const sent = await channels.whatsapp.sendTemplate({ category: 'authentication', to, template: SIGN_IN_CODE_TEMPLATE, language, params: [code] });

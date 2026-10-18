@@ -55,7 +55,19 @@ payouts.failNext({ code: 'unavailable' });
 
 ## Sign-in codes
 
-`sendSignInCode({ whatsapp, smsOtp }, { to, code, language })` from `@rivr/adapters/sign-in-code` sends a sign-in code. It tries the WhatsApp authentication template (`sign_in_code`) first, then SMS. A channel left out is skipped, and with neither it fails closed (`not_configured`). `handleSendSmsHook(payload, channels)` answers Supabase Auth's Send SMS hook with the status and body Auth expects; `supabase/functions/auth-send-code` checks the signature and calls it (decision 0025).
+The one exception to "outbox consumers only": Auth waits for the code to go out, and the outbox would store the code in a table (decision 0025). A code travels like this:
+
+1. The app asks Auth for a code (`signInWithOtp`). Auth generates it.
+2. Auth posts it to the Send SMS hook set in `supabase/config.template.toml` (`[auth.hook.send_sms]`), signed with the hook secret.
+3. `supabase/functions/auth-send-code` checks the signature, then calls `handleSendSmsHook(payload, channels)`.
+4. `handleSendSmsHook` parses the payload with `sendSmsHookSchema` (`@rivr/contracts`) and calls `sendSignInCode`.
+5. `sendSignInCode({ whatsapp, smsOtp }, { to, code, language })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS. A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in.
+
+No SMS vendor is chosen yet, so `smsOtp` is never passed and codes go by WhatsApp alone until one is.
+
+The hook secret, `SEND_SMS_HOOK_SECRET`, is made per checkout in the gitignored `supabase/.hook-secret` (`scripts/lib/supabase-config.mjs`). On staging and production it is generated in the Supabase dashboard and set as a function secret (`docs/runbooks/ci-and-release.md`).
+
+Locally no channel is configured, so the hook answers 503 to every real number. Only the seed's test numbers sign in, with code `123456`; Auth answers those itself and never calls the hook.
 
 ## Live implementations
 

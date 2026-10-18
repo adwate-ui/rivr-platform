@@ -16,14 +16,16 @@ export const sendSmsHookSchema = z
     sms: z.object({ otp: z.string().regex(/^\d{6}$/) }),
   })
   .transform(({ user, sms }, context) => {
+    // Auth stores the phone without the plus; dropping a plus first means either form parses.
     const to = indianMobileSchema.safeParse(`+${user.phone.replace(/^\+/, '')}`);
     if (!to.success) {
       context.addIssue({ code: 'custom', message: 'The phone is not an Indian mobile', path: ['user', 'phone'] });
       return z.NEVER;
     }
+    // Anything but Hindi, including nothing at all, is English.
     const language: 'en' | 'hi' = user.user_metadata?.language === 'hi' ? 'hi' : 'en';
     return { to: to.data, code: sms.otp, language };
   });
 
-/** A sign-in code to send, from the Send SMS hook. */
-export type SendSmsHook = z.infer<typeof sendSmsHookSchema>;
+/** The sign-in code to send, parsed from the Send SMS hook's payload. */
+export type SignInCodeToSend = z.infer<typeof sendSmsHookSchema>;

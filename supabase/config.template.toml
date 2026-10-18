@@ -131,7 +131,9 @@ deno_version = 2
 [edge_runtime.secrets]
 SEND_SMS_HOOK_SECRET = "{{SEND_SMS_HOOK_SECRET}}"
 
-# Auth signs its calls to the hook; it sends no user's JWT.
+# verify_jwt on would make the gateway refuse calls without a signed-in person's token. Auth calls
+# this function as a service, not as a person, so it is off here; the function's own signature
+# check is the guard.
 [functions.auth-send-code]
 verify_jwt = false
 
