@@ -41,7 +41,7 @@ describe('Academy data', () => {
       '/rpc/my_academy_bookings': {
         body: [{
           id: 'k1', batch_id: 'b1', batch_name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', status: 'awaiting_payment',
-          amount: 200000, utr: null, turned_down_utr: '412345678901',
+          amount: 200000, utr: null, turned_down_utr: '412345678901', hold_until: '2026-10-20T10:00:00+00:00',
         }],
       },
       '/rpc/academy_payment_details': { body: { amount: 200000, upi_vpa: 'rivr.gurugram@icici', upi_payee_name: 'RIVR' } },
@@ -52,7 +52,7 @@ describe('Academy data', () => {
     ]));
     await waitFor(() => expect(result.current.bookings.data).toEqual([{
       id: 'k1', batchId: 'b1', batchName: 'Level 1', startsOn: '2026-11-15', endsOn: '2026-11-17', status: 'awaiting_payment',
-      amount: 200000n, utr: null, turnedDownUtr: '412345678901',
+      amount: 200000n, utr: null, turnedDownUtr: '412345678901', holdUntil: '2026-10-20T10:00:00+00:00',
     }]));
     await waitFor(() => expect(result.current.payment.data).toEqual({ amount: 200000n, upiVpa: 'rivr.gurugram@icici', upiPayeeName: 'RIVR' }));
   });

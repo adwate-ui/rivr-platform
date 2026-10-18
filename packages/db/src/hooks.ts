@@ -5,14 +5,11 @@ import { HIDDEN, toFeatureAccessMap, type FeatureAccess } from './parse/featureA
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/**
- * How a member-facing feature shows for the signed-in member: pass it to FeatureGate.
- * Hidden until known, so a locked entry point never flashes open.
- */
-export function useFeature(key: FeatureKey | LearnSourceFeatureKey): FeatureAccess {
+/** The signed-in member's access to every feature, by key. */
+function useFeatureAccessMap() {
   const { client, userId } = useRivrData();
   // Signed out, the query is disabled; 'signed-out' only gives the key a value.
-  const { data } = useQuery({
+  return useQuery({
     queryKey: queryKeys.featureAccess(userId ?? 'signed-out'),
     enabled: userId !== null,
     staleTime: 60_000,
@@ -22,7 +19,34 @@ export function useFeature(key: FeatureKey | LearnSourceFeatureKey): FeatureAcce
       return toFeatureAccessMap(rows);
     },
   });
-  return data?.get(key) ?? HIDDEN;
+}
+
+/**
+ * How a member-facing feature shows for the signed-in member: pass it to FeatureGate.
+ * Hidden until known, so a locked entry point never flashes open.
+ */
+export function useFeature(key: FeatureKey | LearnSourceFeatureKey): FeatureAccess {
+  return useFeatureAccessMap().data?.get(key) ?? HIDDEN;
+}
+
+/** A feature's access, or that it is not known yet. */
+export type FeatureStatus =
+  | { readonly status: 'loading' }
+  | { readonly status: 'error'; readonly retry: () => void }
+  | { readonly status: 'ready'; readonly access: FeatureAccess };
+
+/**
+ * useFeature for a screen that shows something either way, such as the Academy, which shows a member
+ * their own seats without the feature (decision 0033): it waits until access is known, rather than
+ * showing the screen for no access and then switching.
+ */
+export function useFeatureStatus(key: FeatureKey | LearnSourceFeatureKey): FeatureStatus {
+  const { authStatus } = useRivrData();
+  const query = useFeatureAccessMap();
+  // A failed refresh keeps what was known.
+  if (query.data !== undefined) return { status: 'ready', access: query.data.get(key) ?? HIDDEN };
+  if (authStatus === 'signed-out') return { status: 'ready', access: HIDDEN };
+  return query.isError ? { status: 'error', retry: () => void query.refetch() } : { status: 'loading' };
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useAcademyBatches, useAcademyBookings, useFeature, type AcademyBatch, type AcademyBooking, type AcademyFailure } from '@rivr/db';
+import { useAcademyBatches, useAcademyBookings, useFeatureStatus, type AcademyBatch, type AcademyBooking, type AcademyFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, type FeatureAccess } from '@rivr/ui';
 import { useState } from 'react';
@@ -18,9 +18,13 @@ interface Refusal {
  * seats are a record of their money and always show (decision 0033, the owner's answer to #231).
  */
 export function AcademyScreen() {
-  const access = useFeature('academy.booking');
-  if (access.state === 'enabled') return <AcademyBatches />;
-  return <BookingsOnly access={access} />;
+  const feature = useFeatureStatus('academy.booking');
+  const title = t('player.academy.title');
+  // Until access is known: either view first would switch to the other once it is.
+  if (feature.status === 'loading') return <Screen title={title} status="loading" />;
+  if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
+  if (feature.access.state === 'enabled') return <AcademyBatches />;
+  return <BookingsOnly access={feature.access} />;
 }
 
 /**

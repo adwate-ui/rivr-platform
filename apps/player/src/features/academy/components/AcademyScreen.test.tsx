@@ -12,18 +12,18 @@ afterEach(() => {
 
 const LEVEL_1 = { id: 'b1', name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', seats_left: 4, fee: 200000 };
 
-/** Kabir's seat in Level 1, unpaid. */
+/** Kabir's seat in Level 1, unpaid and held for another day. */
 const KABIRS_SEAT = {
   id: 'k1', batch_id: 'b1', batch_name: 'Level 1', starts_on: '2026-11-15', ends_on: '2026-11-17', status: 'awaiting_payment',
-  amount: 200000, utr: null, turned_down_utr: null,
+  amount: 200000, utr: null, turned_down_utr: null, hold_until: new Date(Date.now() + 86_400_000).toISOString(),
 };
 
 interface Setup {
   openBatches?: unknown[][];
   refusalCode?: string;
   holdSecondBooking?: boolean;
-  /** Academy booking for Kabir's tier: enabled, or locked to the Black card. */
-  access?: 'enabled' | 'locked';
+  /** Academy booking for Kabir's tier: enabled, locked to the Black card, or hidden. */
+  access?: 'enabled' | 'locked' | 'hidden';
   myBookings?: unknown[];
 }
 
@@ -79,7 +79,23 @@ describe('the Academy screen without Academy booking', () => {
     expect(screen.getByText('Booked. Pay to keep your seat.')).toBeDefined();
     expect(screen.getByText('Black card only.')).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull();
+    // Paying is not theirs to do here, so neither is the deadline for it.
+    expect(screen.queryByText(/^Pay by/)).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Open batches' })).toBeNull();
+  });
+
+  it('shows the seats, and nothing in place of the batches, when Academy booking is hidden from the tier', async () => {
+    renderAcademy({ access: 'hidden', myBookings: [KABIRS_SEAT] });
+    expect(await screen.findByRole('heading', { name: 'Your bookings' })).toBeDefined();
+    expect(screen.getByText('Booked. Pay to keep your seat.')).toBeDefined();
+    expect(screen.queryByText('Black card only.')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull();
+  });
+
+  it('offers no change of UTR on a seat waiting for the cashier', async () => {
+    renderAcademy({ access: 'locked', myBookings: [{ ...KABIRS_SEAT, status: 'payment_claimed', utr: '123456789012', hold_until: null }] });
+    expect(await screen.findByText(/^Payment sent with UTR 123456789012/)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Change the UTR' })).toBeNull();
   });
 
   it('shows only the locked notice to a member with no seats, as before', async () => {
