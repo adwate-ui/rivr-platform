@@ -32,7 +32,7 @@ Four lanes: A money, B floor, C member and web, D growth and content. Their task
 | Settings | `setting_key`, `setting` | `private.setting_at(venue, key, subject, at)` |
 | Audit | `audit_log` | `private.audit(...)`, trigger `private.audit_row_change()` |
 | Kill switch | `control_state` | `private.assert_writable(venue, feature?, member?)` (refusals `RVFRZ`, `RVKIL`, `RVMBR`), `private.is_messaging_stopped(venue)` |
-| Outbox | `outbox_event`, `outbox_delivery` | `private.emit(venue, type, payload, key?)`, `public.claim_outbox_deliveries(consumer, types, is_messaging = true, limit)` (a consumer that sends nothing to people passes `false`), `public.finish_outbox_delivery(...)` |
+| Outbox | `outbox_event`, `outbox_delivery` | `private.emit(venue, type, payload, key?)`, `public.claim_outbox_deliveries(consumer, types, is_messaging = true, limit)` (a consumer that sends nothing to people passes `false`), `public.finish_outbox_delivery(...)`; a consumer's migration schedules its Edge Function with `private.schedule_outbox_consumer(function, schedule = every minute)` (#215) |
 | Ledger | `ledger_account`, `ledger_transaction`, `ledger_entry`, `chip_denomination` | `private.post_ledger_transaction(venue, kind, key, lines, feature, memo?, reverses?)`, `private.reverse_ledger_transaction(transaction, key, reason)`, view `ledger_balance` (full balances of the accounts the caller may see) |
 | Public surfaces | views `public_venue`, `public_venue_status` | |
 

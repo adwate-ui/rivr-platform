@@ -39,7 +39,7 @@ Auth and API on staging and production, in the Supabase dashboard:
 - Turn phone confirmations on ("Confirm phone"). Without it, Auth confirms a phone at a password sign-up without sending a code, and with the access-token hook on, a new member's first code request fails.
 - Set the rate limits from `[auth.rate_limit]` in `supabase/config.template.toml`.
 - Expose only the `public` and `graphql_public` schemas, never `private`.
-- On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number, so a seed sign-in never sends a real SMS. Give them a private code kept outside the repository, never the local `123456`: the seed includes super admins, and anyone who knows the code could sign in as one. Production has no test numbers.
+- On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number, so a seed sign-in never sends a real SMS. Give them a private code kept outside the repository, never the local `123456`: the seed includes super admins, and anyone who knows the code could sign in as one. Production has no test numbers. `scripts/ci/check-auth-config.mjs` checks both (#229): a release fails if production lists any test number, and the staging deploy warns about any test number that is not a seed number.
 - Never run `supabase config push` against staging or production. The generated `config.toml` carries the local hook address, a local secret and the seed's `123456` test numbers.
 - Sign-in codes (decision 0025), in this order:
   1. Make sure the `auth-send-code` function is deployed: the staging deploy does it, or a release does for production.
@@ -58,6 +58,15 @@ Auth and API on staging and production, in the Supabase dashboard:
      - Until a channel is set, every sign-in except the test numbers is refused.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
   - CAPTCHA on code requests, and the hourly code limit, are issue #182.
+
+Outbox consumers (#215, decision 0038), on staging and production, once:
+
+- pg_cron runs each consumer's Edge Function every minute through `private.run_outbox_consumer`, which reads the project's address and the scheduler's secret from Vault at each run. Until both are there, a run does nothing, and no consumer runs. It never sends the service-role key.
+- Make a secret on your own computer: `openssl rand -hex 32`. Keep it only as long as these steps take.
+- On the Vault page (Project Settings → Vault, or Integrations → Vault), add `project_url` = `https://<project-ref>.supabase.co`, and `outbox_scheduler_secret` = the secret. Use the Vault page, not the SQL editor, which keeps what is typed in it.
+- Under Edge Functions → Secrets, set `OUTBOX_SCHEDULER_SECRET` to the same secret.
+- To rotate it, change both to a new secret, the Edge Function secret first. Runs refused in between are tried again the next minute.
+- Check it: `select jobname, schedule from cron.job;` lists `outbox-<function>` for each consumer, and `select status_code, created from net._http_response order by created desc limit 5;` shows 200s.
 
 ## Releasing
 
