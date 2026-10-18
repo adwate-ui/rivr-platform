@@ -19,6 +19,7 @@ Secrets live in GitHub environments (Settings → Environments), never at reposi
 |---|---|---|
 | `preview` | pull requests from this repository | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for the **staging** Cloudflare account. Never the production token: any branch can run this job. |
 | `staging` | `main` only | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD`, and the staging `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` |
+| `e2e-staging` | `release-*` tags only | `E2E_SIGN_IN_CODE`: the private code staging's test numbers take, so the release's sign-in flow can sign in. Without it that flow fails. |
 | `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` and `SENTRY_DSN` when Sentry is wired in |
 
 Staging and production use separate Cloudflare accounts, or at least tokens scoped to their own projects, so a preview token can never deploy production.

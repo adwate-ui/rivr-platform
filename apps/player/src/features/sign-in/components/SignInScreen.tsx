@@ -12,5 +12,5 @@ export function SignInScreen() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState<IndianMobile | null>(null);
   if (phone === null) return <PhoneStep onCodeSent={setPhone} />;
-  return <CodeStep phone={phone} onBack={() => setPhone(null)} onSignedIn={() => void navigate({ to: '/' })} />;
+  return <CodeStep phone={phone} onBack={() => setPhone(null)} onSignedIn={() => void navigate({ to: '/', replace: true })} />;
 }

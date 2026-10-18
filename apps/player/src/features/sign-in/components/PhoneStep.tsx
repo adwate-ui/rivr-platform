@@ -29,7 +29,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
       onSubmit={send}
       footer={
         <>
-          <Input {...form.register('phone')} label={t('player.signIn.phoneLabel')} variant="line" prefix="+91" type="tel" inputMode="tel" autoComplete="tel-national" autoFocus error={error} />
+          <Input {...form.register('phone')} label={t('player.signIn.phoneLabel')} variant="line" prefix={t('player.signIn.countryCode')} type="tel" inputMode="tel" autoComplete="tel-national" autoFocus error={error} />
           <Button variant="primary" type="submit" fullWidth isLoading={requestCode.isPending}>
             {t('player.signIn.sendCode')}
           </Button>

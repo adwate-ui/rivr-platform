@@ -22,8 +22,9 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
     else fail(signedIn.error);
   });
 
-  // Verify stays off until six digits are in, so the only error is a refusal from Auth.
-  const error = form.formState.errors.code?.message;
+  const { errors } = form.formState;
+  // A refusal from Auth carries its own words; anything else failed the six-digit check.
+  const error = errors.code ? (errors.code.type === 'server' ? errors.code.message : t('player.signIn.codeInvalid')) : undefined;
   const codeField = form.register('code');
   const hasSixDigits = signInCodeSchema.safeParse(useWatch({ control: form.control, name: 'code' })).success;
   return (

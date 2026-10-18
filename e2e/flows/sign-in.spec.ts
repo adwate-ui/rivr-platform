@@ -6,8 +6,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 
-// Locally every seeded number takes 123456 (supabase/config.template.toml); staging's code is private.
-const CODE = isRemoteTarget() ? process.env.E2E_SIGN_IN_CODE : '123456';
+// Locally every seeded number takes 123456 (supabase/config.template.toml); staging's code is
+// private, in the e2e-staging environment (docs/runbooks/ci-and-release.md).
+const CODE = isRemoteTarget() ? (process.env.E2E_SIGN_IN_CODE ?? '') : '123456';
 
 async function requestCode(page: Page, number: string) {
   await page.setViewportSize(VIEWPORT.player);
@@ -18,28 +19,38 @@ async function requestCode(page: Page, number: string) {
 }
 
 test.describe('Sign-in', () => {
-  test.skip(CODE === undefined, 'E2E_SIGN_IN_CODE is not set for the staging run');
+  test.beforeAll(() => {
+    if (CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the sign-in flow cannot sign in on staging');
+  });
 
   test('a member signs in with the code sent to their number and lands on Tonight', async ({ page }) => {
     await requestCode(page, '90000 00202');
-    await page.getByRole('textbox', { name: 'Code sent to +91 90000 00202' }).fill(CODE ?? '');
+    await page.getByRole('textbox', { name: 'Code sent to +91 90000 00202' }).fill(CODE);
     await page.getByRole('button', { name: 'Verify' }).click();
     await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+    // Signed in, Back does not lead to the sign-in screen again.
+    await page.goBack();
+    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toHaveCount(0);
   });
 
   test('a wrong code is refused, and says what to do', async ({ page }) => {
     await requestCode(page, '9000000203');
     await expect(page.getByRole('button', { name: 'Verify' })).toBeDisabled();
-    await page.getByRole('textbox', { name: 'Code sent to +91 90000 00203' }).fill('000000');
+    const code = page.getByRole('textbox', { name: 'Code sent to +91 90000 00203' });
+    await code.fill('000000');
     await page.getByRole('button', { name: 'Verify' }).click();
     await expect(page.getByText('Code wrong or expired. Check it, or request a new one.')).toBeVisible();
     await expect(page.getByRole('button', { name: /Send again in \d+ s/ })).toBeDisabled();
+    await code.fill('00000');
+    await expect(page.getByText('Enter the 6-digit code.')).toBeVisible();
   });
 
-  test('Change number goes back to the number', async ({ page }) => {
+  test('Change number goes back, and a second code inside the minute is refused', async ({ page }) => {
     await requestCode(page, '9000000204');
     await page.getByRole('button', { name: 'Change number' }).click();
-    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
+    await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000204');
+    await page.getByRole('button', { name: 'Send code' }).click();
+    await expect(page.getByText('Too many attempts. Wait a minute, then try again.')).toBeVisible();
   });
 });

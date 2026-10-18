@@ -44,6 +44,7 @@ describe('the player app', () => {
     renderAt('/nowhere');
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
     expect(screen.getByText('This page does not exist.')).toBeDefined();
+    expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);
   });
 });
 

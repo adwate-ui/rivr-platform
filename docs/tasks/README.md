@@ -29,4 +29,4 @@ Verify
 pnpm test --filter domain -- waitlist && pnpm e2e --grep "Black card at another stake"
 ```
 
-Title: `B-014 Waitlist priority for black card at qualifying stake`. One session and one PR (up to about 800 changed lines, decision 0028) per task.
+Title: `B-014 Waitlist priority for black card at qualifying stake`. One session and one PR (under 400 changed lines) per task.

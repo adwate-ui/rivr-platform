@@ -12,6 +12,7 @@ export const playerApp = {
   /** Sign-in: a mobile number, then the six-digit code sent to it. `{phone}` is `+91 98765 43210`. */
   signIn: {
     phoneLabel: 'Mobile number',
+    countryCode: '+91',
     sendCode: 'Send code',
     codeTitle: 'Code',
     codeLabel: 'Code sent to {phone}',
@@ -21,6 +22,7 @@ export const playerApp = {
     resend: 'Send again',
     resendIn: 'Send again in {seconds} s',
     phoneInvalid: 'Enter a 10-digit mobile number.',
+    codeInvalid: 'Enter the 6-digit code.',
     codeRejected: 'Code wrong or expired. Check it, or request a new one.',
     tooManyRequests: 'Too many attempts. Wait a minute, then try again.',
     unavailable: 'Sign-in is not available right now. Try again in a few minutes.',
