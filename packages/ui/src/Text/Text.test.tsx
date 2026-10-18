@@ -27,6 +27,11 @@ describe('Text', () => {
     expect(screen.getByText('High hand')).toHaveClass('uppercase', 'tracking-tv');
   });
 
+  it('sets social post labels in letter-spaced capitals at 36 px, legible once shrunk to a phone', () => {
+    renderIn(<Text variant="posterLabel">Tournament</Text>);
+    expect(screen.getByText('Tournament')).toHaveClass('uppercase', 'tracking-tv', 'text-36');
+  });
+
   it('renders inline when asked and can truncate', () => {
     renderIn(
       <Text as="span" truncate id="seat">
