@@ -58,7 +58,7 @@ describe('Input', () => {
     renderIn(<Input label="Code" variant="code" placeholder="6 digits" error="Code expired. Request a new one." />);
     const field = screen.getByRole('textbox', { name: 'Code' });
     expect(field).toHaveAttribute('placeholder', '6 digits');
-    expect(field).toHaveClass('border-b', 'border-alert', 'text-32', 'tracking-code');
+    expect(field).toHaveClass('border-b', 'border-alert', 'text-28', 'tracking-code');
     expect(field).not.toHaveClass('rounded-md');
   });
 
