@@ -42,7 +42,7 @@ Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which set
 
 Use the `feature-task` skill. In short:
 
-1. Take the next ready issue for your lane, on a fresh branch from `origin/main`. One task per session; run `/clear` before the next.
+1. Take the lowest-numbered ready issue, whatever its lane, on a fresh branch from `origin/main`. Tasks run one at a time in the main checkout, in release-gate order (`docs/decisions/0024`).
 2. Read the task's spec section and the files it names. Use plan mode when it touches more than one package.
 3. Write the failing test first, from the task's acceptance criteria.
 4. Implement in small steps. Run the narrowest test after each step.
@@ -50,6 +50,7 @@ Use the `feature-task` skill. In short:
 6. Run `pnpm verify`. Paste the summary into the PR.
 7. Ask the `reviewer` subagent to review the diff against the task. Fix correctness and requirement gaps; ignore style preferences the linters do not enforce.
 8. Open the PR with `gh pr create`, titled `type(scope): summary`, body `Closes #<issue>`, under 400 changed lines.
+9. When CI is green and the reviewers pass, post `agent-review` with `scripts/github/post-agent-review.sh` and squash-merge. Then take the next task.
 
 Show evidence, not claims: the command you ran and its output, or the screenshot.
 
@@ -68,7 +69,7 @@ If it affects money, identity or a rule a player sees: open a `question` issue, 
 ## Gotchas
 
 - Run everything inside WSL, never on the Windows filesystem.
-- Each worktree has its own Supabase port block (root 543xx, A 544xx, B 545xx, C 546xx, D 547xx) with Studio, analytics and mail disabled. Start it only for database work and stop it when done.
+- The local Supabase stack uses the checkout's port block (root 543xx; a gitignored `.rivr-port-block` overrides it on a machine where 543xx is taken) with Studio, analytics and mail disabled. Start it only for database work and stop it when done.
 - Never touch `rivr-prod`. Only CI deploys.
 - Regenerate types (`pnpm db:types`) after every migration or the build will lie to you.
 - When compacting, keep the task id, the files changed and the verification command.
