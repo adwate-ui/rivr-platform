@@ -34,5 +34,12 @@ export const common = {
     tooManyRequests: 'Too many attempts. Wait a minute, then try again.',
     unavailable: 'Sign-in is not available right now. Try again in a few minutes.',
     signOut: 'Sign out',
+    /** Sign-in opened while someone is still signed in on this device, such as a bookmark on a shared computer. */
+    signedInTitle: 'This device',
+    signedInAs: '{name} is signed in on this device.',
+    signedInSomeone: 'Someone is signed in on this device.',
+    signedInChecking: 'Checking who is signed in on this device.',
+    continueAs: 'Continue as {name}',
+    continue: 'Continue',
   },
 } as const;
