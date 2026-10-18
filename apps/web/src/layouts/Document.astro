@@ -1,0 +1,24 @@
+---
+// The HTML document around every page: document elements only. Every visible block is a React
+// component from @rivr/ui, composed in a feature (additions, "Resolved conflicts").
+import '@rivr/ui/styles.css';
+
+interface Props {
+  title: string;
+  description?: string | null | undefined;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description ? <meta name="description" content={description} /> : null}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

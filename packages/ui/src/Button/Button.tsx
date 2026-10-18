@@ -23,6 +23,8 @@ export interface ButtonProps {
   fullWidth?: boolean;
   /** Submits the form with this id from outside it. */
   form?: string;
+  /** Makes it a link to this address that looks the same: the website's hand-off to the player app. */
+  href?: string;
   'aria-describedby'?: string;
 }
 
@@ -37,8 +39,17 @@ const BASE =
   'inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-lg font-text text-16 leading-snug font-medium ' +
   'select-none transition-colors disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress aria-busy:opacity-disabled';
 
-/** A button with a 44 px minimum touch target. */
-export function Button({ children, variant = 'secondary', type = 'button', onClick, isLoading, isDisabled, icon, fullWidth, ...rest }: ButtonProps) {
+/** A button with a 44 px minimum touch target; a link that looks like one when it has an `href`. */
+export function Button({ children, variant = 'secondary', type = 'button', onClick, isLoading, isDisabled, icon, fullWidth, href, ...rest }: ButtonProps) {
+  if (href !== undefined) {
+    return (
+      <a href={href} className={cx(BASE, VARIANT[variant], fullWidth && 'w-full')} aria-describedby={rest['aria-describedby']}>
+        <ButtonLabel icon={icon} isLoading={false}>
+          {children}
+        </ButtonLabel>
+      </a>
+    );
+  }
   const busy = isLoading ? true : undefined;
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (isLoading) {

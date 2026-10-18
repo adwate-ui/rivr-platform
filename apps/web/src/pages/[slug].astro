@@ -1,0 +1,14 @@
+---
+// Every other page of the website, by its address. The front page is only at /.
+import { t } from '@rivr/i18n';
+import { loadPage, NotFoundPage, SitePage } from '../features/site/index.ts';
+import Document from '../layouts/Document.astro';
+
+const slug = Astro.params.slug ?? '';
+const { page, attribution, playerUrl } = slug === 'home' ? { page: null, attribution: null, playerUrl: '' } : await loadPage(slug, Astro.url);
+if (!page) Astro.response.status = 404;
+---
+
+<Document title={page?.title ?? t('common.notFoundTitle')} description={page?.description}>
+  {page ? <SitePage page={page} playerUrl={playerUrl} attribution={attribution} /> : <NotFoundPage />}
+</Document>

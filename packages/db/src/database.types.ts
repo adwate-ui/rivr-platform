@@ -617,6 +617,46 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"site_block": {
+                  Row: {
+                    "content": NonNullable<Json>,"created_at": string,"id": string,"kind": string,"page_id": string,"position": number,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content": NonNullable<Json>,"created_at"?: string,"id"?: string,"kind": string,"page_id": string,"position": number,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "content"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"kind"?: string,"page_id"?: string,"position"?: number,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "site_block_page_id_venue_id_fkey"
+      columns: ["page_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "site_page"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"site_page": {
+                  Row: {
+                    "created_at": string,"description": string | null,"id": string,"is_published": boolean,"nav_position": number | null,"slug": string,"title": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"description"?: string | null,"id"?: string,"is_published"?: boolean,"nav_position"?: number | null,"slug": string,"title": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"description"?: string | null,"id"?: string,"is_published"?: boolean,"nav_position"?: number | null,"slug"?: string,"title"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "site_page_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"staff": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"is_active": boolean,"job_title": string,"phone": string | null,"role": Database["public"]['Enums']["staff_role"],"updated_at": string,"user_id": string | null,"venue_id": string
@@ -785,6 +825,22 @@ isOneToOne: false
       referencedRelation: "venue"
       referencedColumns: ["id"]
     }
+                  ]
+                },"public_site_block": {
+                  Row: {
+                    "content": Json | null,"kind": string | null,"page_slug": string | null,"position": number | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                },"public_site_page": {
+                  Row: {
+                    "description": string | null,"nav_position": number | null,"slug": string | null,"title": string | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
                   ]
                 },"public_venue": {
                   Row: {

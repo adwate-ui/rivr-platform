@@ -4,6 +4,7 @@ export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from '.
 export { useMember, type Member } from './member.ts';
 export { useControlState, useFeature } from './hooks.ts';
 export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
+// The website's reads are at @rivr/db/site, so the apps' bundles never carry their schemas.
 export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
 export {
   useStaffAcademyActions,

@@ -1,19 +1,13 @@
 ---
-// Astro pages hold only document elements; every visible block is a React component from
-// @rivr/ui, composed in a feature (additions, "Resolved conflicts").
-import '@rivr/ui/styles.css';
+// The website's front page: the club's published `home` page.
 import { t } from '@rivr/i18n';
-import { HomePage } from '../features/home/index.ts';
+import { loadPage, NotFoundPage, SitePage } from '../features/site/index.ts';
+import Document from '../layouts/Document.astro';
 
+const { page, attribution, playerUrl } = await loadPage('home', Astro.url);
+if (!page) Astro.response.status = 404;
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{t('ui.brand.label')}</title>
-  </head>
-  <body>
-    <HomePage />
-  </body>
-</html>
+<Document title={page?.title ?? t('common.notFoundTitle')} description={page?.description}>
+  {page ? <SitePage page={page} playerUrl={playerUrl} attribution={attribution} /> : <NotFoundPage />}
+</Document>
