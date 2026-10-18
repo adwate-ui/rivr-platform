@@ -27,9 +27,15 @@ describe('SocialCard', () => {
     expect(screen.getByRole('article')).toHaveStyle({ width: '1080px', height: '1920px' });
   });
 
-  it('shows no figure when the card has none, such as a promotion', () => {
+  it('says what the figure is directly beneath it', () => {
+    renderIn(<SocialCard format="feed" {...WINNER} label="Tournament" title="RIVR Sunday" amountLabel="Guaranteed" />);
+    expect(screen.getByText('₹5,00,000').nextElementSibling).toHaveTextContent('Guaranteed');
+  });
+
+  it('makes the title the hero when the card has no figure, such as a promotion', () => {
     renderIn(<SocialCard format="feed" label="Promotion" title="Double points" details={['Thursday, 14:00 to 20:00']} venue={WINNER.venue} />);
     expect(screen.queryByText(/₹/)).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Double points' })).toHaveClass('text-96');
   });
 
   it('has no accessibility violations', async () => {
