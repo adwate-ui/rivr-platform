@@ -37,7 +37,6 @@ export {
 } from './channels.ts';
 export {
   FEATURES,
-  isFeatureKey,
   type FeatureDefinition,
   type FeatureKey,
   type LearnSourceFeatureKey,
@@ -47,7 +46,6 @@ export {
   ROLE_PERMISSIONS,
   STAFF_ROLES,
   SUPER_ADMIN_ONLY,
-  roleHasPermission,
   type Permission,
   type StaffRole,
 } from './roles.ts';

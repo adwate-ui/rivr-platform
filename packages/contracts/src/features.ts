@@ -71,7 +71,3 @@ export type FeatureKey = (typeof FEATURES)[number]['key'];
 /** The key of a licensed Learn source, added at upload. */
 export type LearnSourceFeatureKey = `learn.source.${string}`;
 
-/** True when `key` is declared in code (not a runtime Learn source key). */
-export function isFeatureKey(key: string): key is FeatureKey {
-  return FEATURES.some((feature) => feature.key === key);
-}

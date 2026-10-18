@@ -16,7 +16,9 @@ Every word a member or staff user reads, in English and Hindi, and the one forma
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
 | `formatDate(date, locale)`, `formatWeekday(date, locale)` | `15 Nov 2026`, `Sunday`, in IST. |
 | `formatList(items, locale)` | `Black card and Founders' Circle`. |
-| `MessageKey`, `Locale`, `Catalogue` | Types. |
+| `en`, `hi` | The two catalogues themselves, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not these. |
+| `Translate` | The type of `t`. |
+| `MessageKey`, `MessageParams`, `Messages`, `Locale`, `Catalogue` | Types: every key (`'common.retry'`), the values for a message's `{placeholders}`, the shape a Hindi file must match, `'en' \| 'hi'`, and a whole catalogue. |
 
 ## Usage
 

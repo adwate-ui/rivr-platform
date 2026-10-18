@@ -55,3 +55,30 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Liveness, face match | Selfie checks at KYC: that a live person is present, and that they match the ID photo |
 | Mutation score | The share of deliberately broken copies of the code that the tests catch; money modules need 80% |
 | Port block | The first three digits of a worktree's local ports (543 root, 544 to 547 lanes A to D, 548 review) |
+| Lane | One of four parallel streams of work, each in its own worktree: A money, B floor, C member and web, D growth and content. Lane 0 is the shared foundation built first |
+| Super admin | The owner-level staff role (`super_admin`): all data, purge, full exports, the kill switch, per-member overrides and venue configuration. No other role can be given these |
+| Admin | The floor manager's role: games, the waitlist, call times, promotions, tournaments |
+| Owner view | A read-only role for investors: reports and dashboards |
+| Gateable / core feature | A gateable feature can be switched on or off per tier; a core feature (a member's own balance, sign-in) is never gated |
+| RVFRZ, RVKIL, RVMBR | The error codes the database raises when a write is refused by the kill switch: venue frozen, feature switched off, member frozen |
+| Access revoke | The kill-switch level that ends one staff member's or device's access at once |
+| KYC | Know your customer: checking a member's identity (DigiLocker, liveness, face match, PAN) before they can transact |
+| PAN | The Indian tax identity number, checked at KYC and used for TDS |
+| GST, GSTIN | Goods and services tax, and the club's GST registration number printed on invoices |
+| AML | Anti-money-laundering; the console keeps an AML register of money movements to review |
+| SOP | Standard operating procedure: a written routine staff acknowledge, kept in the console |
+| Host queue | The console's list of members a host should contact, with the churn reason and the offer to make |
+| Academy | RIVR's poker course, booked individually or by a company; graduates move to the Academy graduate tier |
+| Founders' Circle | A seeded tier with waitlist priority: after Black card, ahead of everyone else, who wait in join order |
+| League | A points leaderboard members compete on, shown under Rewards and on the TVs |
+| Learn | The player app's study section: drills and licensed books |
+| Learn source | One licensed book or course in Learn, switched on per source; its licence expiry switches it off |
+| Drill | A practice question in Learn, built from an encoded hand by the drill engine (`@rivr/drills`) |
+| Encoding | The structured form of a book's hands and quizzes the drill engine reads; book encodings never enter this public repository |
+| RLS | Row-level security: Postgres policies that decide which rows each signed-in person can read or write |
+| Policy | One row-level security rule on a table, such as "members see their own entries" |
+| Security definer | A database function that runs with its owner's rights instead of the caller's; used for checks that must see every row, kept in the `private` schema |
+| Realtime | Supabase's change feed; the apps listen to it so a tier or kill-switch change shows without a reload |
+| Account code | The dotted name of a ledger account, such as `member.cash` or `venue.rake`; the chart of accounts is in `docs/contracts/README.md` |
+| Parked write | An offline write the server refused for good, kept on the tablet for a supervisor instead of being retried |
+| Login link | The tie between a sign-in (a verified phone) and a staff or member record, made only by `link_my_login()` |

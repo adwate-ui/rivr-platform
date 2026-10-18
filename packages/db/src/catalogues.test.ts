@@ -14,6 +14,7 @@ import {
   ROLE_PERMISSIONS,
   SETTINGS,
   STAFF_ROLES,
+  SUPER_ADMIN_ONLY,
   settingValueJsonSchema,
 } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
@@ -63,6 +64,20 @@ describe('the role matrix', () => {
     for (const role of STAFF_ROLES) {
       const expected = role === 'super_admin' ? [...PERMISSIONS] : [...ROLE_PERMISSIONS[role]];
       expect([role, inDatabase.get(role)]).toEqual([role, expected.sort()]);
+    }
+  });
+});
+
+describe('the super-admin-only permissions', () => {
+  it('are the ones the database refuses to give any other role', () => {
+    const constraint = sql.match(/constraint super_admin_only_permissions check \(([\s\S]*?)\n\s*\)/)?.[1] ?? '';
+    const inDatabase = [...constraint.matchAll(/'([a-z_]+\.[a-z_]+)'/g)].map(([, permission]) => permission);
+    expect(inDatabase.sort()).toEqual([...SUPER_ADMIN_ONLY].sort());
+  });
+
+  it('are held by no other role in code', () => {
+    for (const role of STAFF_ROLES.filter((role) => role !== 'super_admin')) {
+      expect([role, ROLE_PERMISSIONS[role].filter((permission) => SUPER_ADMIN_ONLY.includes(permission))]).toEqual([role, []]);
     }
   });
 });

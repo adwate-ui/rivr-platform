@@ -81,7 +81,3 @@ export const SUPER_ADMIN_ONLY: readonly Permission[] = [
   'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure',
 ];
 
-/** True when `role` holds `permission`. */
-export function roleHasPermission(role: StaffRole, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role].includes(permission);
-}
