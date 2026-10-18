@@ -33,7 +33,7 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
   const step = (
     <>
       <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>
-        {title ? <Heading level={1}>{title}</Heading> : null}
+        {title ? <Heading level={1} variant="step">{title}</Heading> : null}
         {children}
       </div>
       <div className="flex flex-col gap-6 pt-6">{footer}</div>

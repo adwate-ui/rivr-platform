@@ -90,4 +90,15 @@ describe('Button', () => {
     );
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('is 48 px tall when large, for the one action of a sign-in step, and 44 px otherwise', () => {
+    renderIn(
+      <>
+        <Button variant="primary" size="large">Send code</Button>
+        <Button variant="primary">Seat</Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Send code' })).toHaveClass('min-h-12', 'font-semibold');
+    expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('min-h-touch');
+  });
 });

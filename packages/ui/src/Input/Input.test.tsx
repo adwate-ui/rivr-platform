@@ -58,7 +58,7 @@ describe('Input', () => {
     renderIn(<Input label="Code" variant="code" placeholder="6 digits" error="Code expired. Request a new one." />);
     const field = screen.getByRole('textbox', { name: 'Code' });
     expect(field).toHaveAttribute('placeholder', '6 digits');
-    expect(field).toHaveClass('border-b', 'border-alert', 'tracking-tv');
+    expect(field).toHaveClass('border-b', 'border-alert', 'text-32', 'tracking-code');
     expect(field).not.toHaveClass('rounded-md');
   });
 
@@ -69,6 +69,11 @@ describe('Input', () => {
     const withError = screen.getByRole('textbox', { name: 'Surname' });
     expect(withError).toHaveClass('border-b', 'border-alert');
     expect(withError).not.toHaveClass('rounded-md', 'border-hairline');
+  });
+
+  it('marks a prefixed field as one row, so its focus ring goes round the prefix and the value', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" />);
+    expect(screen.getByRole('textbox', { name: 'Mobile number' }).parentElement).toHaveAttribute('data-field-row');
   });
 
   it('runs the underline, and its error colour, under the prefix and the value together', () => {

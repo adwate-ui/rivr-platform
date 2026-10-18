@@ -4,9 +4,10 @@ import { cx } from '../internal/classes.ts';
 /**
  * `display` is set in the display face (Bodoni Moda) for TV
  * titles and the wordmark lockup; it is never smaller than 20 px. `poster` is the display face at its
- * largest, the hero of a social post with no figure. The rest use the text face.
+ * largest, the hero of a social post with no figure. `step` is the title of a step of sign-in or KYC.
+ * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'title' | 'section' | 'subsection';
+export type HeadingVariant = 'display' | 'poster' | 'step' | 'title' | 'section' | 'subsection';
 
 export interface HeadingProps {
   children: ReactNode;
@@ -16,11 +17,14 @@ export interface HeadingProps {
   variant?: HeadingVariant;
   align?: 'start' | 'center';
   id?: string;
+  /** Heard by screen readers only: a screen whose name is an image, such as the wordmark, still has its h1. */
+  isVisuallyHidden?: boolean;
 }
 
 const VARIANT: Record<HeadingVariant, string> = {
   display: 'font-display text-56 leading-tight font-regular',
   poster: 'font-display text-96 leading-tight font-regular',
+  step: 'font-text text-28 leading-snug font-medium',
   title: 'font-text text-24 leading-snug font-medium',
   section: 'font-text text-20 leading-snug font-semibold',
   subsection: 'font-text text-16 leading-snug font-semibold',
@@ -29,10 +33,10 @@ const VARIANT: Record<HeadingVariant, string> = {
 const DEFAULT_VARIANT = { 1: 'title', 2: 'section', 3: 'subsection', 4: 'subsection' } as const;
 
 /** A heading. Headings are nouns (Balance, Waitlist, Tonight) with no subtitle beneath. */
-export function Heading({ children, level, variant = DEFAULT_VARIANT[level], align = 'start', id }: HeadingProps) {
+export function Heading({ children, level, variant = DEFAULT_VARIANT[level], align = 'start', id, isVisuallyHidden }: HeadingProps) {
   const Element = `h${level}` as const;
   return (
-    <Element className={cx('text-content', VARIANT[variant], align === 'center' && 'text-center')} id={id}>
+    <Element className={cx('text-content', VARIANT[variant], align === 'center' && 'text-center', isVisuallyHidden && 'sr-only')} id={id}>
       {children}
     </Element>
   );

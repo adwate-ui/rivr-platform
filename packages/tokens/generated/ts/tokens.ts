@@ -55,6 +55,7 @@ export const tokens = {
       "20": 20,
       "24": 24,
       "28": 28,
+      "32": 32,
       "36": 36,
       "44": 44,
       "56": 56,
@@ -73,7 +74,8 @@ export const tokens = {
     "letterSpacing": {
       "normal": "0em",
       "wide": "0.06em",
-      "tv": "0.2em"
+      "tv": "0.2em",
+      "code": "0.5em"
     },
     "figures": {
       "numeric": "tabular-nums"

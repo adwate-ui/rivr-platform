@@ -26,6 +26,7 @@
   --rivr-font-size-20: 20px;
   --rivr-font-size-24: 24px;
   --rivr-font-size-28: 28px;
+  --rivr-font-size-32: 32px; /** A one-time code. */
   --rivr-font-size-36: 36px;
   --rivr-font-size-44: 44px;
   --rivr-font-size-56: 56px;
@@ -39,6 +40,7 @@
   --rivr-font-letter-spacing-normal: 0em;
   --rivr-font-letter-spacing-wide: 0.06em; /** Small capitals labels. */
   --rivr-font-letter-spacing-tv: 0.2em; /** Letter-spaced labels on the TV and under the wordmark. */
+  --rivr-font-letter-spacing-code: 0.5em; /** The digits of a one-time code, set apart to be read and typed. */
   --rivr-font-figures-numeric: tabular-nums;
   --rivr-space-0: 0px;
   --rivr-space-1: 4px;

@@ -37,4 +37,13 @@ describe('Heading', () => {
     );
     expect(screen.getByRole('heading', { name: 'Double points' })).toHaveClass('font-display', 'text-96');
   });
+
+  it('can be heard by screen readers only, for a screen named by an image', () => {
+    renderIn(
+      <Heading level={1} isVisuallyHidden>
+        Sign in
+      </Heading>,
+    );
+    expect(screen.getByRole('heading', { level: 1, name: 'Sign in' })).toHaveClass('sr-only');
+  });
 });

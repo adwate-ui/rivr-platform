@@ -28,6 +28,16 @@
     outline-offset: var(--rivr-border-width-focus);
   }
 
+  /* A field with a prefix is one row (+91 and the number): the ring goes round the row, not the input. */
+  [data-field-row]:has(input:focus-visible) {
+    outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
+    outline-offset: var(--rivr-border-width-focus);
+  }
+
+  [data-field-row] input:focus-visible {
+    outline: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

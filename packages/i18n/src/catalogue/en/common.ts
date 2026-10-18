@@ -18,6 +18,8 @@ export const common = {
    * in the console. `{phone}` is `+91 98765 43210`.
    */
   signIn: {
+    /** The number step's heading, for screen readers: the wordmark names the screen as an image. */
+    title: 'Sign in',
     phoneLabel: 'Mobile number',
     countryCode: '+91',
     sendCode: 'Send code',

@@ -35,7 +35,7 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
       onSubmit={verify}
       footer={
         <>
-          <Button variant="primary" type="submit" fullWidth isDisabled={!hasSixDigits} isLoading={verifyCode.isPending}>
+          <Button variant="primary" size="large" type="submit" fullWidth isDisabled={!hasSixDigits} isLoading={verifyCode.isPending}>
             {t('common.signIn.submit')}
           </Button>
           <ResendButton phone={phone} onFail={fail} />

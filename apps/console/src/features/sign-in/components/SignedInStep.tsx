@@ -24,7 +24,7 @@ export function SignedInStep({ name, checking, onContinue }: SignedInStepProps) 
       footer={
         <>
           {onContinue && name ? (
-            <Button variant="primary" fullWidth onClick={onContinue}>
+            <Button variant="primary" size="large" fullWidth onClick={onContinue}>
               {t('common.signIn.continueAs', { name })}
             </Button>
           ) : null}
