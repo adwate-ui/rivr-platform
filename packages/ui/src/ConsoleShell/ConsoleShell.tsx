@@ -17,20 +17,26 @@ export interface ConsoleShellProps {
   railFooter?: ReactNode;
 }
 
-/** The floor console frame at 1440 px: banner, the left rail, and the screen. */
+/**
+ * The floor console frame at 1440 px: banner, the left rail, and the screen. The frame fills the
+ * window: the rail's list of screens and the screen each scroll on their own, and the foot of the
+ * rail (who is signed in, signing out) always stays in view, however many screens the rail lists.
+ */
 export function ConsoleShell({ children, sections, currentItem, onNavigate, banner, railFooter }: ConsoleShellProps) {
   return (
-    <div className="flex min-h-dvh flex-col bg-surface text-content">
+    <div className="flex h-dvh flex-col bg-surface text-content">
       {banner}
       <div className="flex min-h-0 flex-1">
-        <aside className="flex w-rail shrink-0 flex-col gap-8 border-r border-hairline bg-raised px-3 py-6">
-          <div className="px-3">
+        <aside className="flex w-rail shrink-0 flex-col gap-8 border-r border-hairline bg-raised py-6">
+          <div className="px-6">
             <Wordmark withTagline />
           </div>
-          <SideNav label={t('ui.consoleRail.label')} sections={sections} current={currentItem} onNavigate={onNavigate} />
-          {railFooter ? <div className="mt-auto px-3">{railFooter}</div> : null}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3">
+            <SideNav label={t('ui.consoleRail.label')} sections={sections} current={currentItem} onNavigate={onNavigate} />
+          </div>
+          {railFooter ? <div className="shrink-0 px-6">{railFooter}</div> : null}
         </aside>
-        <main className="min-w-0 flex-1 px-8 py-6">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">{children}</main>
       </div>
     </div>
   );
