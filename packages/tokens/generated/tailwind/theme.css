@@ -60,6 +60,7 @@
   --tracking-normal: var(--rivr-font-letter-spacing-normal);
   --tracking-wide: var(--rivr-font-letter-spacing-wide);
   --tracking-tv: var(--rivr-font-letter-spacing-tv);
+  --tracking-code: var(--rivr-font-letter-spacing-code);
   --spacing-0: var(--rivr-space-0);
   --spacing-1: var(--rivr-space-1);
   --spacing-2: var(--rivr-space-2);

@@ -25,7 +25,7 @@ export function Switch({ label, hint, isOn, onChange, isDisabled }: SwitchProps)
   return (
     <div className={cx('flex min-h-touch items-center justify-between gap-4', isDisabled && 'opacity-disabled')}>
       <Stack gap={1} grow>
-        <Label htmlFor={id}>{label}</Label>
+        <Label htmlFor={id} variant="setting">{label}</Label>
         {hint ? (
           <Text variant="caption" tone="muted" id={hintId}>
             {hint}

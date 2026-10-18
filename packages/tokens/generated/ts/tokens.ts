@@ -73,7 +73,8 @@ export const tokens = {
     "letterSpacing": {
       "normal": "0em",
       "wide": "0.06em",
-      "tv": "0.2em"
+      "tv": "0.2em",
+      "code": "0.5em"
     },
     "figures": {
       "numeric": "tabular-nums"
