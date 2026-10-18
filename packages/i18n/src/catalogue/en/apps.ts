@@ -75,6 +75,8 @@ export const playerApp = {
     marketing: 'Promotions and offers',
     marketingHint: 'By WhatsApp and app notification. Stop any time.',
     saveFailed: 'Not saved. Try again.',
+    /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
+    academyBookings: 'Your Academy bookings',
     responsiblePlay: 'Responsible play',
     responsiblePlayHint: 'Set limits or take a break.',
     limits: 'Limits and self-exclusion',

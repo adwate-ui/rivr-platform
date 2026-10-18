@@ -42,5 +42,10 @@ test.describe('Academy booking', () => {
     await page.getByRole('button', { name: 'Back' }).click();
     await expect(page.getByRole('heading', { name: 'Your bookings' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Change the UTR' })).toBeVisible();
+
+    // Profile, which every tier has, leads back to the seat (#248).
+    await page.getByRole('link', { name: 'Profile' }).click();
+    await page.getByRole('button', { name: 'Your Academy bookings' }).click();
+    await expect(page.getByRole('heading', { name: 'Your bookings' })).toBeVisible();
   });
 });

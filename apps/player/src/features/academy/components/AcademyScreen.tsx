@@ -1,6 +1,6 @@
-import { useAcademyBatches, useAcademyBookings, useFeature, type AcademyBatch, type AcademyBooking, type AcademyFailure } from '@rivr/db';
+import { useAcademyBatches, useAcademyBookings, useFeatureStatus, type AcademyBatch, type AcademyBooking, type AcademyFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, FeatureGate, Heading, Screen, Stack, Text } from '@rivr/ui';
+import { ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, type FeatureAccess } from '@rivr/ui';
 import { useState } from 'react';
 import { BatchCard } from './BatchCard.tsx';
 import { BookingCard } from './BookingCard.tsx';
@@ -13,12 +13,39 @@ interface Refusal {
   readonly failure: AcademyFailure;
 }
 
-/** RIVR Academy, for members whose tier has Academy booking (feature academy.booking). */
+/**
+ * RIVR Academy. Booking and paying need Academy booking (feature academy.booking), but a member's own
+ * seats are a record of their money and always show (decision 0033, the owner's answer to #231).
+ */
 export function AcademyScreen() {
+  const feature = useFeatureStatus('academy.booking');
+  // Both views show the member's seats: read them alongside access, not after it.
+  useAcademyBookings();
+  const title = t('player.academy.title');
+  // Until access is known: either view first would switch to the other once it is.
+  if (feature.status === 'loading') return <Screen title={title} status="loading" />;
+  if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
+  if (feature.access.state === 'enabled') return <AcademyBatches />;
+  return <BookingsOnly access={feature.access} />;
+}
+
+/**
+ * Without Academy booking: the member's own seats, to read only, and the locked notice where the open
+ * batches would be. With no seats, only the notice, as before.
+ */
+function BookingsOnly({ access }: { access: FeatureAccess }) {
+  const bookings = useAcademyBookings();
+  const title = t('player.academy.title');
+  if (bookings.isPending) return <Screen title={title} status="loading" />;
+  if (bookings.isError) return <Screen title={title} status="error" onRetry={() => void bookings.refetch()} />;
+  if (bookings.data.length === 0) return <FeatureGate access={access}>{null}</FeatureGate>;
   return (
-    <FeatureGate access={useFeature('academy.booking')}>
-      <AcademyBatches />
-    </FeatureGate>
+    <Screen title={title}>
+      <Stack gap={8}>
+        <YourBookings bookings={bookings.data} canPay={false} />
+        <FeatureGate access={access}>{null}</FeatureGate>
+      </Stack>
+    </Screen>
   );
 }
 
@@ -55,7 +82,7 @@ function AcademyBatches() {
       <Stack gap={8}>
         <RefusalMessage refusal={refusal} open={open} />
         {isEmpty ? <Text tone="muted">{t('player.academy.empty')}</Text> : null}
-        <YourBookings bookings={bookings.data} />
+        <YourBookings bookings={bookings.data} canPay />
         <OpenBatches
           open={open}
           refusal={refusal}
@@ -67,14 +94,14 @@ function AcademyBatches() {
   );
 }
 
-/** The member's own seats, or nothing when they have none. */
-function YourBookings({ bookings }: { bookings: readonly AcademyBooking[] }) {
+/** The member's own seats, or nothing when they have none; with the way to pay only when they can. */
+function YourBookings({ bookings, canPay }: { bookings: readonly AcademyBooking[]; canPay: boolean }) {
   if (bookings.length === 0) return null;
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('player.academy.yourBookings')}</Heading>
       <Stack gap={6} divided>
-        {bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)}
+        {bookings.map((booking) => <BookingCard key={booking.id} booking={booking} canPay={canPay} />)}
       </Stack>
     </Stack>
   );
