@@ -5,7 +5,8 @@
 export default {
   // Built output: the compiled stylesheet holds the token values by design.
   // The Android projects hold a copy of the built web bundle (`cap sync`), also build output.
-  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**', '**/coverage/**', 'apps/*/android/**'],
+  // Playwright's local report and results carry the trace viewer's own stylesheets.
+  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**', '**/coverage/**', 'apps/*/android/**', 'playwright-report/**', 'test-results/**'],
   rules: {
     'color-no-hex': true,
     'color-named': 'never',

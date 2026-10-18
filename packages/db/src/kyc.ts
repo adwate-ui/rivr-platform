@@ -4,7 +4,7 @@ import { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** Where a member's identity check stands; `needs_review` is a PAN alone, waiting for staff. */
+/** Where a member's identity check stands; `needs_review` waits for staff (a PAN alone, or a DigiLocker record in another name). */
 export type KycStatus = 'started' | 'needs_pan' | 'needs_review' | 'verified';
 
 /** What the member sees of their own check: never more than the masked Aadhaar. */

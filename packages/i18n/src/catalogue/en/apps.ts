@@ -46,7 +46,7 @@ export const playerApp = {
     dateOfBirthInvalid: 'Enter your date of birth.',
     panRejected: 'This PAN did not match. Check it and the name, then try again.',
     reviewTitle: 'With staff',
-    review: 'Your PAN is checked. Staff will see your documents at the club to finish.',
+    review: 'Staff will check your documents at the club to finish.',
     stopped: 'Identity checks are paused for now. Try again later.',
     tooManyAttempts: 'Too many tries today. Try again tomorrow, or ask at the club.',
     notConfigured: 'Identity checks are not open yet. Staff will check your documents at the club.',

@@ -6,8 +6,9 @@ create table public.kyc_record (
   id uuid primary key default gen_random_uuid(),
   venue_id uuid not null,
   member_id uuid not null unique,
-  -- started: sent to DigiLocker. needs_pan: DigiLocker failed or held no PAN. needs_review: a PAN
-  -- alone, with no DigiLocker photo, waits for staff. verified: done.
+  -- started: sent to DigiLocker. needs_pan: DigiLocker failed or held no PAN. needs_review: staff
+  -- check the documents at the club (a PAN alone, with no DigiLocker photo, or a DigiLocker record in
+  -- another name). verified: done.
   status text not null default 'started' check (status in ('started', 'needs_pan', 'needs_review', 'verified')),
   method text not null default 'digilocker' check (method in ('digilocker', 'pan')),
   digilocker_session_id text,
@@ -125,8 +126,9 @@ as $$
   where member_id = p_member_id and status <> 'verified';
 $$;
 
--- DigiLocker returned the member's record. Without a PAN the check waits for one; a DigiLocker name
--- that does not match the member's registered name (someone else consented) waits for staff.
+-- DigiLocker returned the member's record. Without a PAN the check waits for one. A record in another
+-- name than the member's is someone else's (they consented at DigiLocker): it waits for staff, and
+-- only its vendor reference is kept, for the reviewer, never that person's PAN or address.
 create function public.record_kyc_digilocker(
   p_member_id uuid, p_date_of_birth date, p_masked_aadhaar text, p_pan text, p_address text, p_vendor_reference text,
   p_name_matches boolean
@@ -138,10 +140,13 @@ set search_path = ''
 as $$
   select private.assert_writable((select m.venue_id from public.member m where m.id = p_member_id), 'kyc_signup', p_member_id);
   update public.kyc_record
-  set date_of_birth = p_date_of_birth, masked_aadhaar = p_masked_aadhaar, pan = p_pan, address = p_address,
+  set date_of_birth = case when p_name_matches is true then p_date_of_birth end,
+      masked_aadhaar = case when p_name_matches is true then p_masked_aadhaar end,
+      pan = case when p_name_matches is true then p_pan end,
+      address = case when p_name_matches is true then p_address end,
       vendor_reference = p_vendor_reference,
-      status = case when not p_name_matches then 'needs_review' when p_pan is null then 'needs_pan' else 'verified' end,
-      verified_at = case when p_name_matches and p_pan is not null then now() end
+      status = case when p_name_matches is not true then 'needs_review' when p_pan is null then 'needs_pan' else 'verified' end,
+      verified_at = case when p_name_matches is true and p_pan is not null then now() end
   where member_id = p_member_id and status = 'started'
   returning status;
 $$;

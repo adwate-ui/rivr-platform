@@ -1,7 +1,7 @@
 -- KYC records (#4): only the server writes them; members see their own, KYC reviewers their
 -- venue's; the audit log keeps no identity details; every vendor call passes a gate (kill switch,
 -- consent, five paid calls a day). 103 Aditya (admin, kyc.review), 108 Karan (host), 201 Arjun,
--- 202 Kabir and 203 Naina (members).
+-- 202 Kabir, 203 Naina and 204 Rohan (members), 302 Rajat (practice venue).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -51,6 +51,15 @@ select public.begin_kyc_vendor_call('00000000-0000-4000-8000-000000000204', true
 select public.record_kyc_started('00000000-0000-4000-8000-000000000204', 'session-6');
 select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000204', '1980-03-03', 'XXXX XXXX 2222', 'DEFPR4567J', 'Elsewhere', 'vendor-3', false),
   'needs_review', 'a DigiLocker record in another name waits for staff, never verifies');
+select is((select row(pan, date_of_birth, masked_aadhaar, address)::text from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000204'),
+  '(,,,)', 'and none of that other person''s identity is kept');
+select pg_temp.consent('00000000-0000-4000-8000-000000000302');
+select public.begin_kyc_vendor_call('00000000-0000-4000-8000-000000000302', true);
+select public.record_kyc_started('00000000-0000-4000-8000-000000000302', 'session-7');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000302', '1981-04-04', 'XXXX XXXX 3333', null, 'Elsewhere', 'vendor-4', false),
+  'needs_review', 'another name without a PAN waits for staff too, never for a PAN that would verify it');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000302', '1981-04-04', 'XXXX XXXX 3333', 'DEFPR4567J', 'Elsewhere', 'vendor-4', null),
+  null, 'and a record already with staff is not pulled again');
 
 -- DigiLocker fails: a PAN alone waits for staff.
 select pg_temp.consent('00000000-0000-4000-8000-000000000203');
@@ -102,11 +111,12 @@ select throws_ok($$ select public.begin_kyc_vendor_call('00000000-0000-4000-8000
   'nor pass the gate themselves');
 select throws_ok($$ update public.kyc_record set status = 'verified' $$, '42501', null, 'nor change it directly');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select is((select count(*)::int from public.kyc_record), 4, 'a KYC reviewer sees the venue''s records');
+select is((select count(*)::int from public.kyc_record), 5, 'a KYC reviewer sees the records of the venues they work at (seeded staff: both)');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000108", "role": "authenticated"}';
 select is((select count(*)::int from public.kyc_record), 0, 'a host sees none');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000ea", "role": "authenticated"}';
-select is((select count(*)::int from public.kyc_record), 0, 'a KYC reviewer of another venue sees none');
+select results_eq($$ select member_id from public.kyc_record $$, $$ values ('00000000-0000-4000-8000-000000000302'::uuid) $$,
+  'a KYC reviewer of the practice venue sees only its records');
 reset role;
 
 select * from finish();

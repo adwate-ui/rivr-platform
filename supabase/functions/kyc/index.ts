@@ -5,6 +5,7 @@
 // begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
 import { createAdapters, createFakeKyc, type AdapterFailure } from '@rivr/adapters';
 import { memberIdSchema, panSchema } from '@rivr/contracts';
+import { isSameName } from '@rivr/domain/identity';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -93,15 +94,9 @@ async function start({ memberId, kyc }: Subject, token: string): Promise<Respons
 }
 
 /**
- * Whether DigiLocker's name is the member's registered one, ignoring case, spacing and punctuation.
- * A different name means someone else consented at DigiLocker: the record waits for staff.
+ * The member is back from DigiLocker: pull the record, or move them to a PAN check. A record in
+ * another name than the member's means someone else consented at DigiLocker: it waits for staff.
  */
-function sameName(digiLocker: string, registered: string): boolean {
-  const plain = (name: string) => name.toLowerCase().replace(/[^\p{L}\s]/gu, '').replace(/\s+/g, ' ').trim();
-  return plain(digiLocker) === plain(registered);
-}
-
-/** The member is back from DigiLocker: pull the record, or move them to a PAN check. */
 async function complete({ memberId, fullName, kyc }: Subject): Promise<Response> {
   const record = await currentRecord(memberId);
   if (record === null || typeof record.digilocker_session_id !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
@@ -116,7 +111,7 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
   const { name, dateOfBirth, maskedAadhaar, pan, address, vendorReference } = pulled.value;
   const status = await rpc('record_kyc_digilocker', {
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_pan: pan,
-    p_address: address, p_vendor_reference: vendorReference, p_name_matches: sameName(name, fullName),
+    p_address: address, p_vendor_reference: vendorReference, p_name_matches: isSameName(name, fullName),
   }, null);
   return reply({ status });
 }

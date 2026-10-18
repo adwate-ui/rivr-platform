@@ -2,7 +2,7 @@ import { t } from '@rivr/i18n';
 import { Button, StepScreen, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
-/** A PAN alone, with no DigiLocker photo, waits for staff to see the member's documents at the club. */
+/** A check staff finish at the club: a PAN alone, with no DigiLocker photo, or a DigiLocker record in another name. */
 export function KycUnderReview() {
   const navigate = useNavigate();
   return (
