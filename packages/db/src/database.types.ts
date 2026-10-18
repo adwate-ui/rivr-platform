@@ -355,6 +355,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"member_preference": {
+                  Row: {
+                    "big_blind": number | null,"created_at": string,"games": (string)[],"member_id": string,"small_blind": number | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id": string,"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id"?: string,"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_preference_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"notification_preference": {
+                  Row: {
+                    "created_at": string,"is_on": boolean,"member_id": string,"push_type": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"is_on": boolean,"member_id": string,"push_type": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"is_on"?: boolean,"member_id"?: string,"push_type"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notification_preference_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "notification_preference_push_type_fkey"
+      columns: ["push_type"]
+isOneToOne: false
+      referencedRelation: "feature"
+      referencedColumns: ["key"]
+    }
+                  ]
                 },"outbox_delivery": {
                   Row: {
                     "attempts": number,"available_at": string,"consumer": string,"created_at": string,"delivered_at": string | null,"event_id": string,"id": string,"last_error": string | null,"locked_until": string | null,"status": Database["public"]['Enums']["outbox_status"],"updated_at": string,"venue_id": string
@@ -677,6 +723,9 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
+"has_my_consent":
+{ Args: { "p_purpose": string }; Returns: boolean
+                           },
 "kyc_subject":
 { Args: Record<PropertyKey, never>; Returns: {
               "full_name": string,"is_practice": boolean,"member_id": string,"venue_id": string
@@ -707,6 +756,12 @@ isOneToOne: false
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
+                           },
+"save_my_preferences":
+{ Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
+                           },
+"set_my_notification":
+{ Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
                            },
 "withdraw_consent":
 { Args: { "p_purpose": string }; Returns: undefined
