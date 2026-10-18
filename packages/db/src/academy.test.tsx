@@ -56,7 +56,7 @@ describe('Academy data', () => {
       '/rpc/academy_open_batches': { body: [] },
       '/rest/v1/academy_booking': { body: [] },
       '/rpc/book_academy': { body: 'k1' },
-      '/rpc/claim_academy_payment': { status: 409, body: { code: '23505', message: 'duplicate key' } },
+      '/rpc/claim_academy_payment': { status: 400, body: { code: 'RVUTR', message: 'This UTR was already given for another booking' } },
     });
 
     expect(await act(() => result.current.actions.book.mutateAsync('b1'))).toEqual({ ok: true, value: 'k1' });

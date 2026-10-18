@@ -42,7 +42,7 @@ const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVFRZ: 'stopped',
   RVPRC: 'no_fee',
   '22023': 'invalid_utr',
-  '23505': 'utr_used',
+  RVUTR: 'utr_used',
 };
 
 const STATUSES: readonly AcademyBookingStatus[] = ['awaiting_payment', 'payment_claimed', 'paid', 'cancelled'];
