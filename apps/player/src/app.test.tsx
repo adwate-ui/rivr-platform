@@ -1,6 +1,6 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAppRouter } from './router.tsx';
 
@@ -11,13 +11,13 @@ afterEach(() => {
 });
 
 /** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Kabir. */
-function signIn() {
+function signIn({ expired = false } = {}) {
   const session = {
     access_token: 'test',
     refresh_token: 'test',
     token_type: 'bearer',
     expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    expires_at: Math.floor(Date.now() / 1000) + (expired ? -60 : 3600),
     user: { id: '00000000-0000-4000-8000-000000000202', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   };
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
@@ -112,14 +112,25 @@ describe('sign-in', () => {
     expect(router.state.location.search).toEqual({ next: '/kyc' });
   });
 
-  it('says someone is signed in when opened over a live session, and lets the next person sign in', async () => {
+  it('says someone is signed in when opened over a live session, and lets the next person start afresh', async () => {
     signIn();
-    renderAt('/sign-in');
+    const router = renderAt('/sign-in?next=/academy');
     // Nothing answers at the client's address, so the member's name is not known: it says someone.
     expect(await screen.findByText('Someone is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    // The next person lands on Tonight, not where the last one's link pointed.
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('next'));
+  });
+
+  it('never shows the form while it is still reading whether someone is signed in', async () => {
+    // An expired session with nothing answering: Auth keeps trying to refresh it.
+    signIn({ expired: true });
+    renderAt('/sign-in');
+    expect(await screen.findByText('Checking who is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
 
   it('names the member signed in, and continues to the screen the link pointed at', async () => {

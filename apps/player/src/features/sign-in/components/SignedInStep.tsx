@@ -30,7 +30,8 @@ export function SignedInStep({ name, checking, onContinue, onSignedOut }: Signed
               {name ? t('common.signIn.continueAs', { name }) : t('common.signIn.continue')}
             </Button>
           ) : null}
-          <Button variant="secondary" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate(undefined, { onSuccess: onSignedOut })}>
+          {/* Awaited, not an onSuccess: signing out replaces this step before such a callback could run. */}
+          <Button variant="secondary" fullWidth isLoading={signOut.isPending} onClick={() => void signOut.mutateAsync().then(onSignedOut)}>
             {t('common.signIn.signOut')}
           </Button>
         </>
