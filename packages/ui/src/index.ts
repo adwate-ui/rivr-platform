@@ -43,3 +43,4 @@ export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
 export * from './WebShell/index.ts';
 export * from './DriverShell/index.ts';
+export * from './StepScreen/index.ts';

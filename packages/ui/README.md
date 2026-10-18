@@ -11,6 +11,7 @@ Every visible element in every RIVR app. Apps compose these components; they wri
 | Controls | `Button` (`primary` gold, `secondary`, `text`, `danger`; loading and disabled; 44 px target), `Input` (label, hint, error; `variant` `boxed`, `line` or `code`; `prefix` such as `+91`) |
 | Tier-gated features | `FeatureGate`, `LockedNotice`, and the `FeatureAccess` type (`docs/decisions/0010`) |
 | Navigation | `BottomNav` (the five player tabs, hidden or locked from `FeatureAccess`), `SideNav` (grouped console rail) |
+| Steps | `StepScreen` (one step of a flow outside the tabs: Back, heading, content, the action at the bottom of the screen) |
 | Shells | `PlayerShell` (390 px), `ConsoleShell` (1440 px), `TabletShell` (1180 × 820), `DisplayShell` (1920 × 1080 stage scaled to the screen), `WebShell`, `DriverShell` |
 
 `@rivr/ui/styles.css` is the compiled stylesheet: preflight, token custom properties, the utilities the components use, and the webfonts (`docs/decisions/0005`, `0011`). Each app imports it once.
