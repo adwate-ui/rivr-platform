@@ -58,6 +58,29 @@ describe('the console', () => {
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
   });
 
+  it('shows in the rail only the screens the role allows: the cage\'s for a cashier', async () => {
+    signIn();
+    answerStaff([CLUB]);
+    renderAt('/');
+    expect(await screen.findByRole('link', { name: 'Academy payments' })).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
+  });
+
+  it('and Academy staff\'s for an admin', async () => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Aditya Malhotra', role: 'admin' }]);
+    renderAt('/');
+    expect(await screen.findByRole('link', { name: 'Academy' })).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Academy payments' })).toBeNull();
+  });
+
+  it('refuses a screen the role does not include, opened by its address', async () => {
+    signIn();
+    answerStaff([CLUB]);
+    renderAt('/academy');
+    expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
+  });
+
   it('opens on Live floor for staff, with the rail, who is signed in and the venue', async () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);

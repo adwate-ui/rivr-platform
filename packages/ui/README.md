@@ -8,7 +8,7 @@ Every visible element in every RIVR app. Apps compose these components; they wri
 |---|---|
 | Layout | `Box`, `Stack`, `Inline`, `Grid`, `Spacer`, `Divider`, `Container`, `ScrollArea`, `Screen` (heading plus loading, empty and error states) |
 | Type | `Text`, `Heading`, `Label`, `Money` (bigint paise), `Number`, `Time` (IST), `Stakes`, `Icon`, `Wordmark` (`size`, `withTagline`; `withMotto` and `align="center"` for the sign-in lockup) |
-| Controls | `Button` (`primary` gold, `secondary`, `text`, `danger`; loading and disabled; 44 px target), `Input` (label, hint, error; `variant` `boxed`, `line` or `code`; `prefix` such as `+91`), `CameraButton` (opens the phone's camera, the front one for a selfie, and hands back the photo), `Switch` (an on-off setting in a 44 px row; label, hint), `ChoiceChips` (a few choices as chips; `mode` `many` or `one`) |
+| Controls | `Button` (`primary` gold, `secondary`, `text`, `danger`; loading and disabled; 44 px target), `Input` (label, hint, error; `variant` `boxed`, `line` or `code`; `prefix` such as `+91`), `ErrorMessage` (why a step failed and what to do: an alert icon and the message, announced; Input's error uses it), `CameraButton` (opens the phone's camera, the front one for a selfie, and hands back the photo), `Switch` (an on-off setting in a 44 px row; label, hint), `ChoiceChips` (a few choices as chips; `mode` `many` or `one`) |
 | Tier-gated features | `FeatureGate`, `LockedNotice`, and the `FeatureAccess` type (`docs/decisions/0010`) |
 | Navigation | `BottomNav` (the five player tabs, hidden or locked from `FeatureAccess`), `SideNav` (grouped console rail) |
 | Steps | `StepScreen` (one step of a flow outside the tabs: Back, heading, content, the action at the bottom of the screen) |

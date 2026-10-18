@@ -16,6 +16,8 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `gstinSchema`, `Gstin` | GSTIN in capitals, check character verified. |
 | `upiVpaSchema`, `UpiVpa` | `arjun.mehta@hdfcbank`, lower-cased. |
 | `utrSchema`, `Utr` | Twelve-digit bank reference, `412908771204`. |
+| `academyBatchSchema` | A new Academy batch from the console: name, first and last day (in order), 1 to 500 seats as typed in a field. |
+| `companyBookingSchema` | A company's Academy booking: the contact's mobile number, the company, 1 to 100 heads as typed in a field. |
 | `signInCodeSchema` | A one-time sign-in code: six digits. The sign-in form and the hook payload both use it. |
 | `sendSmsHookSchema`, `SignInCodeToSend` | Supabase Auth's Send SMS hook payload, parsed to the number being checked (`sms.phone`, E.164), and the six-digit code. |
 | `SOCIAL_CHANNELS`, `socialChannelSchema`, `SocialChannel` | The eight publishing channels. |

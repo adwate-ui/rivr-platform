@@ -24,6 +24,8 @@ src/
     frame/            the app's shell: staff only, the rail for the role, who is signed in, the
                       practice venue switch, sign out, the kill-switch banner, not found
     sign-in/          mobile number and code, as in the player app (decision 0032)
+    academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
+                      /academy); the payments the cage checks against the bank (/academy/payments)
 ```
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.

@@ -5,6 +5,14 @@ export { useMember, type Member } from './member.ts';
 export { useControlState, useFeature } from './hooks.ts';
 export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
+export {
+  useStaffAcademyActions,
+  useStaffAcademyBatches,
+  useStaffAcademyBookings,
+  type AcademyStaffFailure,
+  type StaffAcademyBatch,
+  type StaffAcademyBooking,
+} from './academyStaff.ts';
 export { useSignUp, type SignUpFailure } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';

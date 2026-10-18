@@ -1,5 +1,5 @@
 import { useId, type InputHTMLAttributes, type Ref } from 'react';
-import { Icon } from '../Icon/Icon.tsx';
+import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { cx } from '../internal/classes.ts';
 import { Label } from '../Label/Label.tsx';
 import { Stack } from '../Stack/Stack.tsx';
@@ -108,14 +108,7 @@ function Field({ id, type, variant, prefix, isInvalid, describedBy, native }: Fi
   );
 }
 
-/** The error line: an alert icon and the message in cream, so it never relies on red text. */
+/** The error line, which the field points at. */
 function FieldError({ id, message }: { id: string; message: string }) {
-  return (
-    <div className="flex items-start gap-2 text-content">
-      <Icon name="alert" size="sm" />
-      <Text variant="small" id={id}>
-        {message}
-      </Text>
-    </div>
-  );
+  return <ErrorMessage id={id}>{message}</ErrorMessage>;
 }

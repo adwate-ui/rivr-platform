@@ -1,6 +1,6 @@
 import { useAcademyActions, type AcademyBatch, type AcademyFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Heading, Inline, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { BatchDates } from './BatchDates.tsx';
@@ -33,7 +33,7 @@ export function BatchCard({ batch }: { batch: AcademyBatch }) {
         </Button>
       )}
       {/* A refusal for a batch that has just filled is already said above. */}
-      {failure !== null && !(failure === 'full' && isFull) ? <Text>{t(FAILURE_COPY[failure])}</Text> : null}
+      {failure !== null && !(failure === 'full' && isFull) ? <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage> : null}
     </Stack>
   );
 }

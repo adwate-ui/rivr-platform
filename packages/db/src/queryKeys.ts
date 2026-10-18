@@ -20,6 +20,8 @@ export const queryKeys = {
   academyPayment: (userId: string, bookingId: string) => ['user', userId, 'academy', 'payment', bookingId] as const,
   /** The signed-in member's KYC record. */
   kycRecord: (userId: string) => ['user', userId, 'kyc-record'] as const,
+  /** A venue's Academy batches and bookings, as staff see them. */
+  academyStaff: (userId: string, venueId: string) => ['user', userId, 'academy-staff', venueId] as const,
   /** The venues where the signed-in person is active staff, with their role. */
   staffVenues: (userId: string) => ['user', userId, 'staff-venues'] as const,
   /** A signed URL for one KYC image. */
