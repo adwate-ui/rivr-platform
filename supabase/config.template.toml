@@ -83,7 +83,8 @@ token_verifications = 30
 enable_signup = true
 enable_confirmations = true
 template = "Your RIVR code is {{ .Code }}"
-max_frequency = "5s"
+# A new code for the same phone at most once a minute.
+max_frequency = "60s"
 
 # Seed people sign in with code 123456 on local stacks (supabase/seed/10_people.sql).
 # Staging sets its own test numbers in the dashboard; production has none.
@@ -106,18 +107,36 @@ max_frequency = "5s"
 
 # Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
 # never reach it. These are placeholders, not credentials; any other number fails locally.
-# Staging and production send codes through the SMS adapter (lane C).
+# Every other code goes through the Send SMS hook below.
 [auth.sms.twilio]
 enabled = true
 account_sid = "local-placeholder"
 message_service_sid = "local-placeholder"
 auth_token = "local-placeholder"
 
+# Auth hands every other code to our function, which sends it by WhatsApp, then SMS
+# (supabase/functions/auth-send-code, docs/decisions/0025). With no channel configured, as on a
+# local stack, it refuses, so only the test numbers above can sign in locally. The secret is made
+# per checkout by scripts/lib/supabase-config.mjs and kept in the gitignored supabase/.hook-secret.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:{{BLOCK}}21/functions/v1/auth-send-code"
+secrets = "{{SEND_SMS_HOOK_SECRET}}"
+
 [edge_runtime]
 enabled = true
 policy = "per_worker"
 inspector_port = {{BLOCK}}83
 deno_version = 2
+
+[edge_runtime.secrets]
+SEND_SMS_HOOK_SECRET = "{{SEND_SMS_HOOK_SECRET}}"
+
+# verify_jwt on would make the gateway refuse calls without a signed-in person's token. Auth calls
+# this function as a service, not as a person, so it is off here; the function's own signature
+# check is the guard.
+[functions.auth-send-code]
+verify_jwt = false
 
 [analytics]
 enabled = false

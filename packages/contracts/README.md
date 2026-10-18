@@ -16,6 +16,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `gstinSchema`, `Gstin` | GSTIN in capitals, check character verified. |
 | `upiVpaSchema`, `UpiVpa` | `arjun.mehta@hdfcbank`, lower-cased. |
 | `utrSchema`, `Utr` | Twelve-digit bank reference, `412908771204`. |
+| `sendSmsHookSchema`, `SignInCodeToSend` | Supabase Auth's Send SMS hook payload, parsed to the number being checked (`sms.phone`, E.164), the six-digit code, and `en` or `hi`. |
 | `SOCIAL_CHANNELS`, `socialChannelSchema`, `SocialChannel` | The eight publishing channels. |
 | `INBOX_CHANNELS`, `inboxChannelSchema`, `InboxChannel` | Instagram, Facebook and WhatsApp. |
 
