@@ -60,6 +60,11 @@ export const ui = {
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
   },
+  /** KycPhoto, in place of a member's photo that is not there. */
+  photo: {
+    missing: 'No photo',
+    failed: 'The photo could not load. Reload the page, or check the member at the desk.',
+  },
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
     member: 'The club is paused. Staff will assist you.',

@@ -33,6 +33,9 @@ export * from './ChoiceChips/index.ts';
 export * from './Switch/index.ts';
 export * from './Input/index.ts';
 
+// Data
+export * from './KycPhoto/index.ts';
+
 // Tier-gated features and the kill switch
 export * from './FeatureGate/index.ts';
 export * from './LockedNotice/index.ts';
