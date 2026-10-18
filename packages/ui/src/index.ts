@@ -1,0 +1,44 @@
+/**
+ * @rivr/ui: every visible element in every RIVR app. Apps compose these components and
+ * import the compiled stylesheet once as `@rivr/ui/styles.css`.
+ */
+
+// Layout
+export * from './Box/index.ts';
+export * from './Stack/index.ts';
+export * from './Inline/index.ts';
+export * from './Grid/index.ts';
+export * from './Spacer/index.ts';
+export * from './Divider/index.ts';
+export * from './Container/index.ts';
+export * from './ScrollArea/index.ts';
+export * from './Screen/index.ts';
+
+// Type
+export * from './Text/index.ts';
+export * from './Heading/index.ts';
+export * from './Label/index.ts';
+export * from './Money/index.ts';
+export * from './Number/index.ts';
+export * from './Time/index.ts';
+export * from './Stakes/index.ts';
+export * from './Icon/index.ts';
+export * from './Wordmark/index.ts';
+
+// Controls
+export * from './Button/index.ts';
+export * from './Input/index.ts';
+
+// Tier-gated features
+export * from './FeatureGate/index.ts';
+export * from './LockedNotice/index.ts';
+
+// Navigation and shells
+export * from './BottomNav/index.ts';
+export * from './SideNav/index.ts';
+export * from './PlayerShell/index.ts';
+export * from './ConsoleShell/index.ts';
+export * from './TabletShell/index.ts';
+export * from './DisplayShell/index.ts';
+export * from './WebShell/index.ts';
+export * from './DriverShell/index.ts';

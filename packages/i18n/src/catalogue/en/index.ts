@@ -4,7 +4,11 @@
  * and in ../hi/index.ts.
  */
 import { common } from './common.ts';
+import { tv } from './tv.ts';
+import { ui } from './ui.ts';
 
 export const en = {
   common,
+  ui,
+  tv,
 } as const;

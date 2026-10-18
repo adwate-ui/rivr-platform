@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
-    "storybook": "storybook dev --port ${RIVR_STORYBOOK_PORT:-6006} --no-open",
-    "build-storybook": "storybook build --quiet",
+    "storybook": "node scripts/fonts.mjs && storybook dev --port ${RIVR_STORYBOOK_PORT:-6006} --no-open",
+    "build-storybook": "node scripts/fonts.mjs && storybook build --quiet",
     "visual": "node visual/run.mjs",
-    "build": "tailwindcss -i src/styles.css -o dist/styles.css --minify"
+    "build": "node scripts/fonts.mjs && tailwindcss -i src/styles.css -o dist/styles.css --minify"
   },
   "dependencies": {
     "@fontsource/bodoni-moda": "^5.3.0",

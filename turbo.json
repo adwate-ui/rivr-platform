@@ -4,12 +4,19 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "storybook-static/**"]
+      "outputs": ["dist/**"]
     },
     "typecheck": {},
     "lint": {},
-    "test": {},
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "build-storybook": {
+      "dependsOn": ["^build"],
+      "outputs": ["storybook-static/**"]
+    },
     "visual": {
+      "dependsOn": ["build-storybook"],
       "cache": false
     },
     "dev": {
@@ -18,8 +25,10 @@
       "persistent": true
     },
     "storybook": {
+      "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "passThroughEnv": ["RIVR_STORYBOOK_PORT"]
     }
   }
 }

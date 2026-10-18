@@ -3,6 +3,8 @@
  * Apps hold no styles at all: any stylesheet under apps/ fails, empty or not.
  */
 export default {
+  // Built output: the compiled stylesheet holds the token values by design.
+  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**'],
   rules: {
     'color-no-hex': true,
     'color-named': 'never',

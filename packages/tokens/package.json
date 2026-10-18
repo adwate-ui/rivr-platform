@@ -14,7 +14,7 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "build": "node style-dictionary.config.mjs",
-    "check:generated": "node style-dictionary.config.mjs && git diff --exit-code -- generated"
+    "check:generated": "node scripts/check-generated.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",
