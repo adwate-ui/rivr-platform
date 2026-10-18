@@ -1,3 +1,4 @@
+import { err, ok } from '@rivr/contracts/result';
 import { createClient } from '@supabase/supabase-js';
 import { describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
@@ -29,25 +30,25 @@ describe('fetchSitePage', () => {
       { kind: 'video', content: { url: 'x' } },
       { kind: 'text', content: { body: 'Cash games every night.' } },
     ]);
-    expect(await fetchSitePage(client, 'home')).toEqual({
+    expect(await fetchSitePage(client, 'home')).toEqual(ok({
       slug: 'home', title: 'RIVR Poker Club', description: 'A members\' poker club.',
       blocks: [
         { kind: 'hero', content: { heading: 'RIVR Poker Club', action: { label: 'Join RIVR', to: 'sign-up' } } },
         { kind: 'text', content: { body: 'Cash games every night.' } },
       ],
       navigation: [{ slug: 'academy', title: 'RIVR Academy' }, { slug: 'faq', title: 'FAQ' }],
-    });
+    }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
   });
 
   it('is null for a page the public views do not have', async () => {
     const { client } = siteClient(PAGES, []);
-    expect(await fetchSitePage(client, 'careers')).toBeNull();
+    expect(await fetchSitePage(client, 'careers')).toEqual(ok(null));
   });
 
-  it('fails when the database cannot be reached, for the website to say so', async () => {
+  it('is unavailable when the database cannot be read, for the website to say so', async () => {
     const fetch: typeof globalThis.fetch = async () => Response.json({ message: 'down' }, { status: 500 });
     const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', { global: { fetch }, auth: { persistSession: false } });
-    await expect(fetchSitePage(client, 'home')).rejects.toBeDefined();
+    expect(await fetchSitePage(client, 'home')).toEqual(err('unavailable'));
   });
 });

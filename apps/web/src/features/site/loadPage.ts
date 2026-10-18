@@ -24,11 +24,9 @@ export async function loadPage(slug: string | null, url: URL): Promise<SiteView>
   const shared = { attribution: attributionFrom(url.search), playerUrl: import.meta.env.PUBLIC_PLAYER_URL, page: null, description: null };
   if (slug === null) return { ...shared, status: 404, title: t('common.notFoundTitle') };
   const client = createRivrClient({ url: import.meta.env.PUBLIC_SUPABASE_URL, publishableKey: import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY });
-  try {
-    const page = await fetchSitePage(client, slug);
-    if (!page) return { ...shared, status: 404, title: t('common.notFoundTitle') };
-    return { ...shared, status: 200, page, title: page.title, description: page.description };
-  } catch {
-    return { ...shared, status: 503, title: t('web.unavailableTitle') };
-  }
+  const result = await fetchSitePage(client, slug);
+  if (!result.ok) return { ...shared, status: 503, title: t('web.unavailableTitle') };
+  const page = result.value;
+  if (!page) return { ...shared, status: 404, title: t('common.notFoundTitle') };
+  return { ...shared, status: 200, page, title: page.title, description: page.description };
 }

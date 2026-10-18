@@ -45,6 +45,8 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000107", "role": "authenticated"}';
 select is_empty($$ select * from public.site_page where venue_id = '00000000-0000-4000-8000-000000000002' $$,
   'a website editor reads only the pages of venues where they edit');
+select ok((select count(*) from public.site_page where venue_id = '00000000-0000-4000-8000-000000000001') >= 3,
+  'and still every page of the club, drafts included');
 select is_empty($$ select * from public.site_block where venue_id = '00000000-0000-4000-8000-000000000002' $$,
   'and only their blocks');
 reset role;
