@@ -8,8 +8,8 @@ insert into public.academy_batch (id, venue_id, name, starts_on, ends_on, seats,
   ('00000000-0000-4000-8000-0000000000b1', '00000000-0000-4000-8000-000000000001', 'Open', current_date + 5, current_date + 6, 3, true),
   ('00000000-0000-4000-8000-0000000000b2', '00000000-0000-4000-8000-000000000001', 'Closed', current_date + 5, current_date + 6, 3, false),
   ('00000000-0000-4000-8000-0000000000b3', '00000000-0000-4000-8000-000000000001', 'Started', current_date - 1, current_date + 1, 3, true);
-insert into public.academy_booking (venue_id, batch_id, member_id, kind, seats, amount) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000b1', '00000000-0000-4000-8000-000000000202', 'individual', 1, 200000);
+insert into public.academy_booking (venue_id, is_practice, batch_id, member_id, kind, seats, amount) values
+  ('00000000-0000-4000-8000-000000000001', false, '00000000-0000-4000-8000-0000000000b1', '00000000-0000-4000-8000-000000000202', 'individual', 1, 200000);
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
