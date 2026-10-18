@@ -1,12 +1,13 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAppRouter } from './router.tsx';
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 /** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Kabir. */
@@ -25,11 +26,20 @@ function signIn() {
 // Nothing listens at this address: signed out, nothing is fetched, and a sign-in request fails.
 const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 
+/** A client whose API answers Kabir's member record, and nothing else; created after the fake fetch. */
+function clientWithKabir() {
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    return Response.json(url.includes('/rest/v1/member') ? { id: 'm1', full_name: 'Kabir Sethi' } : []);
+  });
+  return createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
+}
+
 /** Opens the app at `path`; the router tells a test where the app went. */
-function renderAt(path: string) {
+function renderAt(path: string, rivr = client) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
   render(
-    <RivrDataProvider client={client}>
+    <RivrDataProvider client={rivr}>
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
@@ -110,6 +120,15 @@ describe('sign-in', () => {
     expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+  });
+
+  it('names the member signed in, and continues to the screen the link pointed at', async () => {
+    signIn();
+    const router = renderAt('/sign-in?next=/academy', clientWithKabir());
+    expect(await screen.findByText('Kabir Sethi is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue as Kabir Sethi' }));
+    await screen.findByRole('navigation', { name: 'Main' }, LAZY_SCREEN);
+    expect(router.state.location.pathname).toBe('/academy');
   });
 
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {

@@ -22,7 +22,7 @@ test.describe('Console sign-in', () => {
     await page.goto(`${appUrl('console')}/sign-in`);
     await expect(page.getByText('Sana Qureshi is signed in on this device.')).toBeVisible();
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toHaveCount(0);
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Continue as Sana Qureshi' }).click();
     await expect(page.getByRole('heading', { name: 'Live floor' })).toBeVisible();
 
     await rail.getByRole('button', { name: 'Sign out' }).click();

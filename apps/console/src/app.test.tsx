@@ -1,7 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAppRouter } from './router.tsx';
 
@@ -33,6 +33,36 @@ function answerStaff(staff: unknown[], status = 200) {
     const url = String(input instanceof Request ? input.url : input);
     return url.includes('/rest/v1/staff') ? Response.json(staff, { status }) : Response.json([]);
   });
+}
+
+/**
+ * A fake Auth that accepts the code, and an API that fails linking the login to its staff record
+ * once the test lets it answer: until then the person is signed in but still checking their code.
+ */
+function answerSignInThenFailLinking(): () => void {
+  let answerLinking: () => void = () => undefined;
+  const linking = new Promise<void>((resolve) => {
+    answerLinking = resolve;
+  });
+  const session = {
+    access_token: 'test',
+    refresh_token: 'test',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: '00000000-0000-4000-8000-000000000104', aud: 'authenticated', role: 'authenticated', phone: '919876543210', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+  };
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url.includes('/auth/v1/otp')) return Response.json({});
+    if (url.includes('/auth/v1/verify')) return Response.json(session);
+    if (url.includes('/rpc/link_my_login')) {
+      await linking;
+      return Response.json({ message: 'unavailable' }, { status: 500 });
+    }
+    return Response.json([]);
+  });
+  return answerLinking;
 }
 
 function renderAt(path: string) {
@@ -136,8 +166,34 @@ describe('the console', () => {
     renderAt('/sign-in');
     expect(await screen.findByText('Sana Qureshi is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue as Sana Qureshi' }));
     expect(await screen.findByRole('heading', { name: 'Live floor' })).toBeDefined();
+  });
+
+  it('never offers a way in before it knows whose console it is', async () => {
+    signIn();
+    answerStaff([], 500);
+    renderAt('/sign-in');
+    expect(await screen.findByText('Someone is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('button', { name: /^Continue/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+  });
+
+  it('never says someone is signed in while their own code is being checked', async () => {
+    // The code is right, so Auth signs in, but linking the staff record fails and signs out again.
+    const answerLinking = answerSignInThenFailLinking();
+    renderAt('/sign-in');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
+    fireEvent.change(await screen.findByRole('textbox', { name: /^Code sent to/ }), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    // Signed in by Auth while the staff record is still being linked: the code step stays.
+    await waitFor(() => expect(localStorage.getItem(SESSION_STORAGE_KEY)).not.toBeNull());
+    await new Promise((settle) => setTimeout(settle, 50));
+    expect(screen.queryByText(/is signed in on this device/)).toBeNull();
+    expect(screen.getByRole('textbox', { name: /^Code sent to/ })).toBeDefined();
+    answerLinking();
+    expect(await screen.findByText('Sign-in is not available right now. Try again in a few minutes.')).toBeDefined();
   });
 
   it('lets the next person sign in once the live session signs out', async () => {
