@@ -33,7 +33,7 @@ export function RecordUtr({ venueId, bookingId, payer }: { venueId: string; book
     <Inline gap={3} align="end">
       <Input {...utrField} label={t('console.academy.utrFor', { name: payer })} inputMode="numeric" maxLength={12} autoComplete="off"
         error={utrErrorOf(form.formState.errors.utr)} />
-      <Button variant="primary" isLoading={recordPayment.isPending} onClick={() => void record()}>
+      <Button variant="secondary" isLoading={recordPayment.isPending} onClick={() => void record()}>
         {t('console.academy.recordUtr')}
       </Button>
     </Inline>

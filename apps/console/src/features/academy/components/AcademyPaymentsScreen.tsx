@@ -11,11 +11,11 @@ export function AcademyPaymentsScreen() {
   if (!staff.venue.permissions.includes('cage.transact')) {
     return <Screen title={t('console.academyPayments.title')} status="error" errorText={t('console.notAllowed')} />;
   }
-  return <PaymentsToCheck venueId={staff.venue.venueId} />;
+  return <PaymentsToCheck venueId={staff.venue.venueId} staffId={staff.venue.staffId} />;
 }
 
 /** Every UTR a payer gave, oldest first, for the cashier to find in the bank. */
-function PaymentsToCheck({ venueId }: { venueId: string }) {
+function PaymentsToCheck({ venueId, staffId }: { venueId: string; staffId: string }) {
   const batches = useStaffAcademyBatches(venueId);
   const bookings = useStaffAcademyBookings(venueId);
   const title = t('console.academyPayments.title');
@@ -29,7 +29,9 @@ function PaymentsToCheck({ venueId }: { venueId: string }) {
   return (
     <Screen title={title}>
       <Stack gap={6} divided>
-        {toCheck.map((booking) => <PaymentRow key={booking.id} venueId={venueId} booking={booking} batchName={batchName(booking.batchId)} />)}
+        {toCheck.map((booking) => (
+          <PaymentRow key={booking.id} venueId={venueId} staffId={staffId} booking={booking} batchName={batchName(booking.batchId)} />
+        ))}
       </Stack>
     </Screen>
   );

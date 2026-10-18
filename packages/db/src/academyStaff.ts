@@ -5,17 +5,24 @@ import type { RivrClient } from './client.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** An Academy batch as staff see it: dates as ISO days, seats, and whether it takes bookings. */
+/**
+ * An Academy batch as staff see it: dates as ISO days, seats, the seats taken as the database counts
+ * them (paid and claimed, and unpaid for 48 hours), and whether it takes bookings.
+ */
 export interface StaffAcademyBatch {
   readonly id: string;
   readonly name: string;
   readonly startsOn: string;
   readonly endsOn: string;
   readonly seats: number;
+  readonly seatsTaken: number;
   readonly isOpen: boolean;
 }
 
-/** A booking as staff see it: the member (a company's contact for a corporate one), the amount in paise, the UTR given. */
+/**
+ * A booking as staff see it: the member (a company's contact for a corporate one), the amount in
+ * paise, the UTR given, and the staff member who recorded it, who never confirms it themselves.
+ */
 export interface StaffAcademyBooking {
   readonly id: string;
   readonly batchId: string;
@@ -25,6 +32,7 @@ export interface StaffAcademyBooking {
   readonly amount: bigint;
   readonly status: 'awaiting_payment' | 'payment_claimed' | 'paid';
   readonly utr: string | null;
+  readonly recordedByStaffId: string | null;
 }
 
 /** Why a staff step on the Academy did not go through, as the console tells it. */
@@ -56,10 +64,12 @@ export function useStaffAcademyBatches(venueId: string) {
     queryKey: [...queryKeys.academyStaff(userId ?? 'signed-out', venueId), 'batches'],
     enabled: userId !== null,
     queryFn: async (): Promise<StaffAcademyBatch[]> => {
-      const { data, error } = await client.from('academy_batch').select('id, name, starts_on, ends_on, seats, is_open')
-        .eq('venue_id', venueId).order('starts_on').order('name');
+      const { data, error } = await client.rpc('staff_academy_batches', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({ id: row.id, name: row.name, startsOn: row.starts_on, endsOn: row.ends_on, seats: row.seats, isOpen: row.is_open }));
+      return data.map((row) => ({
+        id: row.id, name: row.name, startsOn: row.starts_on, endsOn: row.ends_on, seats: row.seats, seatsTaken: row.seats_taken,
+        isOpen: row.is_open,
+      }));
     },
   });
 }
@@ -72,12 +82,13 @@ export function useStaffAcademyBookings(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<StaffAcademyBooking[]> => {
       const { data, error } = await client.from('academy_booking')
-        .select('id, batch_id, company_name, seats, amount, status, utr, member (full_name)')
+        .select('id, batch_id, company_name, seats, amount, status, utr, recorded_by_staff_id, member (full_name)')
         .eq('venue_id', venueId).neq('status', 'cancelled').order('created_at');
       if (error) throw error;
+      // Every role that reads bookings also reads members (pgTAP 018), so the member is always there.
       return data.map((row) => ({
         id: row.id, batchId: row.batch_id, memberName: row.member.full_name, companyName: row.company_name, seats: row.seats,
-        amount: BigInt(row.amount), status: toStatus(row.status), utr: row.utr,
+        amount: BigInt(row.amount), status: toStatus(row.status), utr: row.utr, recordedByStaffId: row.recorded_by_staff_id,
       }));
     },
   });

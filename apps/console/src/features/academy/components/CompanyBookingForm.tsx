@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { companyBookingSchema } from '@rivr/contracts';
 import { useStaffAcademyActions, type AcademyStaffFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -35,15 +35,15 @@ export function CompanyBookingForm({ venueId, batchId, onDone }: { venueId: stri
         <Input {...contactPhone} type="tel" label={t('console.academy.contactPhone')} prefix={t('common.signIn.countryCode')} inputMode="tel" autoComplete="off" />
         <Input {...companyName} label={t('console.academy.companyName')} autoComplete="off" />
         <Input {...seats} label={t('console.academy.heads')} inputMode="numeric" autoComplete="off" />
-        <Button variant="primary" isLoading={bookCompany.isPending} onClick={() => void book()}>
+        <Button variant="secondary" isLoading={bookCompany.isPending} onClick={() => void book()}>
           {t('console.academy.book')}
         </Button>
         <Button variant="text" onClick={onDone}>
           {t('common.cancel')}
         </Button>
       </Inline>
-      {isInvalid ? <Text>{t('console.academy.companyInvalid')}</Text> : null}
-      {failure === null ? null : <Text>{t(FAILURE_COPY[failure])}</Text>}
+      {isInvalid ? <ErrorMessage>{t('console.academy.companyInvalid')}</ErrorMessage> : null}
+      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
 }

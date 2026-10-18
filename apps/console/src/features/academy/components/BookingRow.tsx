@@ -1,6 +1,6 @@
 import { useStaffAcademyActions, type AcademyStaffFailure, type StaffAcademyBooking } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Inline, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Money, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { bookingFor, bookingStatus } from './bookingText.ts';
 import { FAILURE_COPY } from './failureCopy.ts';
@@ -30,7 +30,7 @@ export function BookingRow({ venueId, booking }: { venueId: string; booking: Sta
           </Button>
         </Inline>
       ) : null}
-      {failure === null ? null : <Text>{t(FAILURE_COPY[failure])}</Text>}
+      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
 }

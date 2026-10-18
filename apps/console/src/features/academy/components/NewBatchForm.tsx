@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { academyBatchSchema } from '@rivr/contracts';
 import { useStaffAcademyActions, type AcademyStaffFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -38,8 +38,8 @@ export function NewBatchForm({ venueId }: { venueId: string }) {
           {t('console.academy.openBatch')}
         </Button>
       </Inline>
-      {isInvalid ? <Text>{t('console.academy.batchInvalid')}</Text> : null}
-      {failure === null ? null : <Text>{t(FAILURE_COPY[failure])}</Text>}
+      {isInvalid ? <ErrorMessage>{t('console.academy.batchInvalid')}</ErrorMessage> : null}
+      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
 }

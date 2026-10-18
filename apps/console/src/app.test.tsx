@@ -78,7 +78,7 @@ describe('the console', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/academy');
-    expect(await screen.findByText('Your role does not include this screen.')).toBeDefined();
+    expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
   });
 
   it('opens on Live floor for staff, with the rail, who is signed in and the venue', async () => {

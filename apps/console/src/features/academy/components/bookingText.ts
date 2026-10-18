@@ -4,6 +4,7 @@ import { formatDate, t } from '@rivr/i18n';
 /** Who a booking is for: the member, or the company with its heads and contact. */
 export function bookingFor(booking: StaffAcademyBooking): string {
   if (booking.companyName === null) return booking.memberName;
+  if (booking.seats === 1) return t('console.academy.companyOneHead', { company: booking.companyName, name: booking.memberName });
   return t('console.academy.company', { company: booking.companyName, seats: String(booking.seats), name: booking.memberName });
 }
 
