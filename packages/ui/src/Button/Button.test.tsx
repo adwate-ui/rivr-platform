@@ -67,6 +67,16 @@ describe('Button', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 
+  it('as a link, only goes somewhere: it cannot be disabled, loading or pressed', () => {
+    renderIn(
+      // @ts-expect-error A link cannot be disabled; it would still be followed.
+      <Button href="/academy" isDisabled>
+        Academy
+      </Button>,
+    );
+    expect(screen.getByRole('link', { name: 'Academy' })).toHaveAttribute('href', '/academy');
+  });
+
   it('has no accessibility violations in any variant', async () => {
     const { container } = renderIn(
       <>

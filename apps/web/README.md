@@ -16,12 +16,14 @@ It listens on this worktree's port `<block>45`. `PUBLIC_SUPABASE_URL` and `PUBLI
 ```
 src/
   layouts/Document    the HTML document around every page: title, description, styles
-  pages/              Astro pages: index.astro (the front page) and [slug].astro (every other)
-  features/site/      the page and its blocks, loadPage (read per request), links that carry the
-                      visitor's referral and UTM codes into the player app (#10, decision 0031)
+  pages/              Astro pages: index.astro (the front page), [slug].astro (every other) and
+                      404.astro (an address with no route)
+  features/site/      loadPage (read per request into a SiteView), Website (the page, or the
+                      missing or unavailable page), the blocks, and links that carry the visitor's
+                      referral and UTM codes into the player app (#10, decision 0031)
 ```
 
-Pages come from `site_page` and `site_block` through the `public_site_page` and `public_site_block` views (`@rivr/db/site`), which hold only published pages of real venues. A block is a kind from `siteBlockSchema` in `@rivr/contracts` drawn by its `@rivr/ui` block; one the website cannot read is left out. `PUBLIC_PLAYER_URL` is the player app's address (the local one by default; `STAGING_PLAYER_URL` and `PROD_PLAYER_URL` in CI).
+Pages come from `site_page` and `site_block` through the `public_site_page` and `public_site_block` views (`@rivr/db/site`), which hold only the club's published pages (decision 0036). A draft or unknown address is a 404 and content that cannot be read a 503, each with a way home that keeps the codes. A block is a kind from `siteBlockSchema` in `@rivr/contracts` drawn by its `@rivr/ui` block; one the website cannot read is left out. `PUBLIC_PLAYER_URL` is the player app's address (the local one by default; `STAGING_PLAYER_URL` and `PROD_PLAYER_URL` in CI).
 
 `astro check` runs as the typecheck. Every visible element comes from `@rivr/ui`, every word from `@rivr/i18n`.
 

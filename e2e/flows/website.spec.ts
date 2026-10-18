@@ -22,4 +22,14 @@ test.describe('Website', () => {
     expect((await request.get(`${appUrl('web')}/careers`)).status()).toBe(404);
     expect((await request.get(`${appUrl('web')}/home`)).status()).toBe(404);
   });
+
+  test('a missing page keeps the visitor\'s codes on the way home', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT.web);
+    for (const address of ['/careers', '/academy/no-such-page']) {
+      const response = await page.goto(`${appUrl('web')}${address}?ref=FRIEND1`);
+      expect(response?.status()).toBe(404);
+      await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'RIVR Poker Club' })).toHaveAttribute('href', '/?ref=FRIEND1');
+    }
+  });
 });

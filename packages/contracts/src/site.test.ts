@@ -9,6 +9,11 @@ describe('siteBlockSchema', () => {
     expect(siteBlockSchema.parse({ kind: 'text', content: { body: 'Training only.' } })).toEqual({ kind: 'text', content: { body: 'Training only.' } });
   });
 
+  it('keeps a hero whose line under the heading was left blank, with its action', () => {
+    const hero = siteBlockSchema.parse({ kind: 'hero', content: { heading: 'RIVR', text: '   ', action: { label: 'Join RIVR', to: 'sign-up' } } });
+    expect(hero.content).toEqual({ heading: 'RIVR', text: '', action: { label: 'Join RIVR', to: 'sign-up' } });
+  });
+
   it('refuses a block it does not know, and a link anywhere but the player app\'s destinations', () => {
     expect(siteBlockSchema.safeParse({ kind: 'video', content: { url: 'x' } }).success).toBe(false);
     expect(siteBlockSchema.safeParse({ kind: 'hero', content: { heading: 'Hi', action: { label: 'Go', to: 'https://evil.example' } } }).success).toBe(false);

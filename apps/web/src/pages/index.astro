@@ -1,13 +1,12 @@
 ---
 // The website's front page: the club's published `home` page.
-import { t } from '@rivr/i18n';
-import { loadPage, NotFoundPage, SitePage } from '../features/site/index.ts';
+import { loadPage, Website } from '../features/site/index.ts';
 import Document from '../layouts/Document.astro';
 
-const { page, attribution, playerUrl } = await loadPage('home', Astro.url);
-if (!page) Astro.response.status = 404;
+const view = await loadPage('home', Astro.url);
+Astro.response.status = view.status;
 ---
 
-<Document title={page?.title ?? t('common.notFoundTitle')} description={page?.description}>
-  {page ? <SitePage page={page} playerUrl={playerUrl} attribution={attribution} /> : <NotFoundPage />}
+<Document title={view.title} description={view.description}>
+  <Website view={view} />
 </Document>

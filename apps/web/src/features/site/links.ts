@@ -11,7 +11,7 @@ function query(attribution: Attribution | null): string {
  * is credited to the friend, creator or campaign that brought them (#10, decision 0031).
  */
 export function playerHref(playerUrl: string, to: PlayerDestination, attribution: Attribution | null): string {
-  return `${playerUrl}${PLAYER_DESTINATIONS[to]}${query(attribution)}`;
+  return `${new URL(PLAYER_DESTINATIONS[to], playerUrl).href}${query(attribution)}`;
 }
 
 /** A link to another page of the website that keeps the codes, so they reach the player app from any page. */

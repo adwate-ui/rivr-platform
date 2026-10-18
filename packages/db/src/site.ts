@@ -17,14 +17,15 @@ export interface SitePage {
 }
 
 /**
- * A published page of a venue's website, as the public views give it, or null when there is none:
- * a draft, the practice venue's, or no such page. For the website's server, once per request. A
- * block the website cannot read is left out rather than break the page.
+ * A published page of the club's website, as the public views give it, or null when there is none:
+ * a draft, or no such page. The views hold only the club's pages, the one venue that is not the
+ * practice venue, as sign-up picks it (decision 0036). For the website's server, once per request.
+ * A block the website cannot read is left out rather than break the page.
  */
-export async function fetchSitePage(client: RivrClient, venueSlug: string, slug: string): Promise<SitePage | null> {
+export async function fetchSitePage(client: RivrClient, slug: string): Promise<SitePage | null> {
   const [pages, blocks] = await Promise.all([
-    client.from('public_site_page').select('slug, title, description, nav_position').eq('venue_slug', venueSlug),
-    client.from('public_site_block').select('kind, content').eq('venue_slug', venueSlug).eq('page_slug', slug).order('position'),
+    client.from('public_site_page').select('slug, title, description, nav_position'),
+    client.from('public_site_block').select('kind, content').eq('page_slug', slug).order('position'),
   ]);
   if (pages.error) throw pages.error;
   if (blocks.error) throw blocks.error;

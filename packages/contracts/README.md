@@ -24,6 +24,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `SOCIAL_CHANNELS`, `socialChannelSchema`, `SocialChannel` | The eight publishing channels. |
 | `INBOX_CHANNELS`, `inboxChannelSchema`, `InboxChannel` | Instagram, Facebook and WhatsApp. |
 | `ATTRIBUTION_PARAMS`, `attributionFrom`, `attributionSearch`, `Attribution`, `AttributionField` | The referral, creator and UTM codes a link carries (`ref`, `creator`, `utm_*`): read from a query string, malformed ones dropped, and written back. `@rivr/contracts/attribution` holds no Zod. |
+| `siteBlockSchema`, `SiteBlock`, `PLAYER_DESTINATIONS`, `PlayerDestination` | A website block as `site_block.content` holds it, by kind (`hero`, `text`); an optional field left blank is not shown. A block links into the player app only by a named destination (`sign-up`, `academy`), never a raw address. Also at `@rivr/contracts/site`. |
 
 Feature keys, roles and settings schemas live here too, each documented in its own file.
 

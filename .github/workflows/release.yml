@@ -33,7 +33,7 @@ jobs:
       - name: The website knows the production player app
         env:
           PROD_PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
-        run: '[ -n "$PROD_PLAYER_URL" ] || { echo "::error::Set the repository variable PROD_PLAYER_URL, or the website links to a local address."; exit 1; }'
+        run: '[[ "$PROD_PLAYER_URL" =~ ^https://[a-z0-9.-]+/?$ ]] || { echo "::error::Set the repository variable PROD_PLAYER_URL to the player app address, such as https://app.example.com, or the website links nowhere."; exit 1; }'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0

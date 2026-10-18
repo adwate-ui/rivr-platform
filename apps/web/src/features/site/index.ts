@@ -1,3 +1,2 @@
-export { NotFoundPage } from './components/NotFoundPage.tsx';
-export { SitePage } from './components/SitePage.tsx';
-export { loadPage } from './loadPage.ts';
+export { Website } from './components/Website.tsx';
+export { loadPage, type SiteView } from './loadPage.ts';

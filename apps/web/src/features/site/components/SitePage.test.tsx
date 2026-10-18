@@ -29,4 +29,9 @@ describe('a website page', () => {
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in?ref=FRIEND1&utm_source=instagram');
     expect(screen.getByRole('link', { name: 'RIVR Academy' }).getAttribute('href')).toBe('/academy?ref=FRIEND1&utm_source=instagram');
   });
+
+  it('joins the player app\'s address however it was written', () => {
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid/" attribution={null} />);
+    expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in');
+  });
 });

@@ -13,21 +13,22 @@ const actionSchema = z.object({
 
 /**
  * One block of a website page, by kind, as `site_block.content` holds it (#9). C-019 adds kinds:
- * games and stakes, the tournament calendar, FAQ, map, house rules and the rest.
+ * games and stakes, the tournament calendar, FAQ, map, house rules and the rest. An optional field
+ * left blank is simply not shown; only a missing required one leaves the block out.
  */
 export const siteBlockSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('hero'),
     content: z.object({
       heading: z.string().trim().min(1).max(80),
-      text: z.string().trim().min(1).max(300).optional(),
+      text: z.string().trim().max(300).optional(),
       action: actionSchema.optional(),
     }),
   }),
   z.object({
     kind: z.literal('text'),
     content: z.object({
-      heading: z.string().trim().min(1).max(80).optional(),
+      heading: z.string().trim().max(80).optional(),
       body: z.string().trim().min(1).max(4000),
     }),
   }),

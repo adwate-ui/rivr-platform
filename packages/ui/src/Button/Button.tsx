@@ -9,24 +9,39 @@ import { cx } from '../internal/classes.ts';
  */
 export type ButtonVariant = 'primary' | 'secondary' | 'text' | 'danger';
 
-export interface ButtonProps {
+interface ButtonLookProps {
   /** The label: a verb, sentence case. */
   children: ReactNode;
   variant?: ButtonVariant;
+  /** A leading icon, only where it carries meaning a word cannot. */
+  icon?: IconName;
+  fullWidth?: boolean;
+  'aria-describedby'?: string;
+}
+
+interface ActionButtonProps extends ButtonLookProps {
+  href?: undefined;
   type?: 'button' | 'submit' | 'reset';
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   /** Shows the loading label and ignores presses while an action is in flight. Focus stays put. */
   isLoading?: boolean;
   isDisabled?: boolean;
-  /** A leading icon, only where it carries meaning a word cannot. */
-  icon?: IconName;
-  fullWidth?: boolean;
   /** Submits the form with this id from outside it. */
   form?: string;
-  /** Makes it a link to this address that looks the same: the website's hand-off to the player app. */
-  href?: string;
-  'aria-describedby'?: string;
 }
+
+/** A link only goes somewhere: it is never loading, disabled or a form's submit. */
+interface LinkButtonProps extends ButtonLookProps {
+  /** Makes it a link to this address that looks the same: the website's hand-off to the player app. */
+  href: string;
+  type?: never;
+  onClick?: never;
+  isLoading?: never;
+  isDisabled?: never;
+  form?: never;
+}
+
+export type ButtonProps = ActionButtonProps | LinkButtonProps;
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-action px-5 text-on-action',
