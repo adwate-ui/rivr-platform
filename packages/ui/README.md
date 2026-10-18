@@ -7,8 +7,8 @@ Every visible element in every RIVR app. Apps compose these components; they wri
 | Group | Components |
 |---|---|
 | Layout | `Box`, `Stack`, `Inline`, `Grid`, `Spacer`, `Divider`, `Container`, `ScrollArea`, `Screen` (heading plus loading, empty and error states) |
-| Type | `Text`, `Heading`, `Label`, `Money` (bigint paise), `Number`, `Time` (IST), `Stakes`, `Icon`, `Wordmark` |
-| Controls | `Button` (`primary` gold, `secondary`, `text`, `danger`; loading and disabled; 44 px target), `Input` (label, hint, error) |
+| Type | `Text`, `Heading`, `Label`, `Money` (bigint paise), `Number`, `Time` (IST), `Stakes`, `Icon`, `Wordmark` (`size`, `withTagline`; `withMotto` and `align="center"` for the sign-in lockup) |
+| Controls | `Button` (`primary` gold, `secondary`, `text`, `danger`; loading and disabled; 44 px target), `Input` (label, hint, error; `variant` `boxed`, `line` or `code`; `prefix` such as `+91`) |
 | Tier-gated features | `FeatureGate`, `LockedNotice`, and the `FeatureAccess` type (`docs/decisions/0010`) |
 | Navigation | `BottomNav` (the five player tabs, hidden or locked from `FeatureAccess`), `SideNav` (grouped console rail) |
 | Shells | `PlayerShell` (390 px), `ConsoleShell` (1440 px), `TabletShell` (1180 × 820), `DisplayShell` (1920 × 1080 stage scaled to the screen), `WebShell`, `DriverShell` |

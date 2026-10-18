@@ -59,6 +59,11 @@ export const CodeWithError: Story = {
   args: { ...Code.args, defaultValue: '482913', error: 'Code expired. Request a new one.' },
 };
 
+export const CodeHindi: Story = {
+  globals: { locale: 'hi' },
+  args: { ...Code.args, label: 'कोड', hint: '+91 98110 42817 पर भेजा गया', placeholder: '6 अंक', defaultValue: '482913' },
+};
+
 export const LineHindi: Story = {
   globals: { locale: 'hi' },
   args: { label: 'मोबाइल नंबर', hint: undefined, type: 'tel', variant: 'line', prefix: '+91', defaultValue: '98110 42817' },
