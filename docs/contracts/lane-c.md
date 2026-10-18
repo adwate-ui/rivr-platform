@@ -18,6 +18,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `site_page`, `site_block`, `site_revision`, `site_publish` | Website pages of typed blocks, drafts, scheduled publish, history and rollback |
 | `cab_request`, `cab_trip`, `driver` | Eligibility, pickup and drop requests, driver assignment, live trip, drop confirmed by player code |
 | `share_card` | Rendered share cards with the member's referral code |
+| `sign_up_attribution` | The referral, creator and UTM codes a member signed up with (first touch) |
 
 ## Functions offered to other lanes
 
@@ -30,11 +31,11 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `private.visits_this_month(member, at)` | D (cab and promotions conditions) | Closed visits in the calendar month |
 | `private.has_consent(member, purpose)` | D (marketing sends, Meta events) | Consent in force |
 | `private.wants_push(member, push_type)` | C and D push senders | Whether the member gets that push: only if their tier has the push feature, then on unless they turned it off in Profile; a promotion only with marketing consent |
-| `public.sign_up_attribution(...)` | player app | Records referral, creator and UTM codes at sign-up for lane D's funnel |
+| `public.sign_up(full_name, attribution)` | player app | Joins the signed-in number: links a registered member, or creates one in the club with the referral, creator and UTM codes it arrived with; emits `member.signed_up` |
 
 ## Events
 
-- Emits: `member.signed_up`, `kyc.completed`, `visit.opened`, `visit.closed`, `academy.booked`, `academy.graduated`, `learn.session_completed`, `learn.principle_mastered`, `share_card.rendered`, `cab.requested`, `site.published`.
+- Emits: `member.signed_up` (`member_id`, and `referral_code`, `creator_code`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` when the link had them), `kyc.completed`, `visit.opened`, `visit.closed`, `academy.booked`, `academy.graduated`, `learn.session_completed`, `learn.principle_mastered`, `share_card.rendered`, `cab.requested`, `site.published`.
 - Consumes: `seat.taken`, `waitlist.called`, `call_time.completed`, `withdrawal.sent`, `tournament.starting`, `promotion.published` (push through the `push` adapter); `site.published` (Cloudflare cache purge through the adapter).
 
 ## Uses from other lanes

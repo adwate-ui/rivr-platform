@@ -1,4 +1,5 @@
 export { err, ok, type Err, type Ok, type Result } from './result.ts';
+export { ATTRIBUTION_PARAMS, attributionFrom, attributionSearch, type Attribution, type AttributionField } from './attribution.ts';
 export {
   deviceIdSchema,
   idempotencyKeySchema,
