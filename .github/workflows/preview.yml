@@ -32,6 +32,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      PUBLIC_PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
     steps:
       - if: env.HAS_CLOUDFLARE != 'true'
         run: echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipping preview deployments."

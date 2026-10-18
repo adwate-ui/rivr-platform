@@ -546,6 +546,9 @@ importers:
       '@astrojs/react':
         specifier: ^7.1.0
         version: 7.1.0(@types/node@22.20.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(esbuild@0.28.2)(jiti@2.7.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+      '@rivr/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@rivr/db':
         specifier: workspace:*
         version: link:../../packages/db

@@ -30,6 +30,10 @@ jobs:
     steps:
       - name: Tag is release-YYYYMMDD-N, N from 1 to 99
         run: '[[ "$GITHUB_REF_NAME" =~ ^release-[0-9]{8}-[1-9][0-9]?$ ]] || { echo "::error::Tag must look like release-20261115-1, N from 1 to 99"; exit 1; }'
+      - name: The website knows the production player app
+        env:
+          PROD_PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
+        run: '[[ "$PROD_PLAYER_URL" =~ ^https://[a-z0-9.-]+/?$ ]] || { echo "::error::Set the repository variable PROD_PLAYER_URL to the player app address, such as https://app.example.com, or the website links nowhere."; exit 1; }'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
@@ -104,6 +108,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+      PUBLIC_PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup

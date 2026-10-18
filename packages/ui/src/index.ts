@@ -51,3 +51,7 @@ export * from './DisplayShell/index.ts';
 export * from './WebShell/index.ts';
 export * from './DriverShell/index.ts';
 export * from './StepScreen/index.ts';
+
+// Website blocks
+export * from './HeroBlock/index.ts';
+export * from './TextBlock/index.ts';
