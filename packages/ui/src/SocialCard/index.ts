@@ -1,1 +1,1 @@
-export { SocialCard, type SocialCardProps, type SocialFormat } from './SocialCard.tsx';
+export { SocialCard, type SocialCardProps } from './SocialCard.tsx';

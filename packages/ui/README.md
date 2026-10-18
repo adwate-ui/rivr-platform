@@ -13,7 +13,7 @@ Every visible element in every RIVR app. Apps compose these components; they wri
 | Navigation | `BottomNav` (the five player tabs, hidden or locked from `FeatureAccess`), `SideNav` (grouped console rail) |
 | Steps | `StepScreen` (one step of a flow outside the tabs: Back, heading, content, the action at the bottom of the screen) |
 | Website blocks | `HeroBlock` (a page's one h1, a line, and its one gold action as a link), `TextBlock` (an optional heading and paragraphs, split at blank lines, at reading width) |
-| Social cards | `SocialCard` (a post at its exact size for `@rivr/render`: `format` `feed` 1080 × 1350 or `story` 1080 × 1920; the wordmark, then above the venue's address a label, a title, an optional gold figure with what it is, and detail lines; without a figure the title is the hero. Never scaled, unlike `DisplayShell`) |
+| Social cards | `SocialCard` (a post for `@rivr/render` that fills the page it is drawn on: a feed post at `tokens.viewport.feed`, 1080 × 1350, or a story at `.story`, 1080 × 1920; the wordmark, then above the venue's address a label, a title, an optional gold figure with what it is, and detail lines; without a figure the title is the hero. Never scaled, unlike `DisplayShell`) |
 | Shells | `PlayerShell` (390 px), `ConsoleShell` (1440 px), `TabletShell` (1180 × 820), `DisplayShell` (1920 × 1080 stage scaled to the screen), `WebShell`, `DriverShell` |
 
 `@rivr/ui/styles.css` is the compiled stylesheet: preflight, token custom properties, the utilities the components use, and the webfonts (`docs/decisions/0005`, `0011`). Each app imports it once.

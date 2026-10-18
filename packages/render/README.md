@@ -18,12 +18,12 @@ Templates:
 | Name | Size | Props |
 |---|---|---|
 | `tv.badBeatJackpot` | 1920 × 1080 | `amountPaise: bigint` |
-| `social.tournamentPoster` | feed or story | `format`, `name`, `startsAt` (ISO), `buyInPaise`, `guaranteePaise`, `venue` |
-| `social.promoCard` | feed or story | `format`, `title`, `runs` and `who` (as the promotion builder words them), `venue` |
-| `social.winnerCard` | feed or story | `format`, `playerName` (as the player agreed to be shown), `eventName`, `prizePaise`, `wonAt` (ISO), `venue` |
-| `social.highHandCard` | feed or story | `format`, `hand`, `playerName`, `tableName`, `bonusPaise`, `at` (ISO), `venue` |
+| `social.tournamentPoster` | feed or story | `name`, `startsAt` (ISO), `buyInPaise`, `guaranteePaise` (absent for a tournament without one), `venue` |
+| `social.promoCard` | feed or story | `title`, `rewardPaise` (when the reward is an amount), `runs` and `who` (as the promotion builder words them, in IST), `venue` |
+| `social.winnerCard` | feed or story | `playerName` (as the player agreed to be shown), `eventName`, `prizePaise` (as announced, before TDS), `wonAt` (ISO), `venue` |
+| `social.highHandCard` | feed or story | `hand`, `playerName`, `tableName`, `bonusPaise`, `at` (ISO), `venue` |
 
-The social cards are `SocialCard` from `@rivr/ui`. `feed` is 1080 × 1350 and `story` 1080 × 1920 (`tokens.viewport.feed` and `.story`); render each at its format's size. Times show in IST. `venue` is the club's address from venue configuration. Their copy is in the `social` namespace of `@rivr/i18n`. `pnpm test --filter render -- social` draws all eight and compares them with `baselines/social-*.png`.
+The social cards are `SocialCard` from `@rivr/ui`, which fills the page, so the render request alone sets the format. Use `tokens.viewport.feed` (1080 × 1350) for a post and `tokens.viewport.story` (1080 × 1920) for a story. Times show in IST. `venue` is the club's address from venue configuration. Their copy is in the `social` namespace of `@rivr/i18n`. `pnpm test --filter render -- social` draws all eight and compares them with `baselines/social-*.png`.
 
 ## Usage
 

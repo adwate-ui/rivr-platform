@@ -9,7 +9,7 @@ export function pngSize(png: Buffer) {
 }
 
 /** How many pixels differ between two PNGs of the same size, decoded by Chromium itself. */
-export async function differentPixels(actual: Buffer, expected: Buffer): Promise<number> {
+async function differentPixels(actual: Buffer, expected: Buffer): Promise<number> {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();

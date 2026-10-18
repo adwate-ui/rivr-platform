@@ -12,9 +12,8 @@ const WINNER = {
 } as const;
 
 describe('SocialCard', () => {
-  it('draws a feed post at 1080 by 1350 under the wordmark: label, title, the figure in gold and its details', () => {
-    renderIn(<SocialCard format="feed" {...WINNER} />);
-    expect(screen.getByRole('article')).toHaveStyle({ width: '1080px', height: '1350px' });
+  it('draws the wordmark, the label, the title, the figure in gold, its details and the venue', () => {
+    renderIn(<SocialCard {...WINNER} />);
     expect(screen.getByRole('img', { name: 'RIVR Poker Club' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Arjun M.' })).toBeInTheDocument();
     expect(screen.getByText('₹5,00,000')).toHaveClass('text-money');
@@ -22,24 +21,24 @@ describe('SocialCard', () => {
     expect(screen.getByText(WINNER.venue)).toBeInTheDocument();
   });
 
-  it('draws a story at 1080 by 1920', () => {
-    renderIn(<SocialCard format="story" {...WINNER} />);
-    expect(screen.getByRole('article')).toHaveStyle({ width: '1080px', height: '1920px' });
+  it('fills the page it is drawn on, so the render request alone sets the size', () => {
+    renderIn(<SocialCard {...WINNER} />);
+    expect(screen.getByRole('article')).toHaveClass('h-dvh', 'w-full');
   });
 
   it('says what the figure is directly beneath it', () => {
-    renderIn(<SocialCard format="feed" {...WINNER} label="Tournament" title="RIVR Sunday" amountLabel="Guaranteed" />);
+    renderIn(<SocialCard {...WINNER} label="Tournament" title="RIVR Sunday" amountLabel="Guaranteed" />);
     expect(screen.getByText('₹5,00,000').nextElementSibling).toHaveTextContent('Guaranteed');
   });
 
   it('makes the title the hero when the card has no figure, such as a promotion', () => {
-    renderIn(<SocialCard format="feed" label="Promotion" title="Double points" details={['Thursday, 14:00 to 20:00']} venue={WINNER.venue} />);
+    renderIn(<SocialCard label="Promotion" title="Double points" details={['Thursday, 14:00 to 20:00']} venue={WINNER.venue} />);
     expect(screen.queryByText(/₹/)).toBeNull();
     expect(screen.getByRole('heading', { level: 1, name: 'Double points' })).toHaveClass('text-96');
   });
 
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<SocialCard format="feed" {...WINNER} />);
+    const { container } = renderIn(<SocialCard {...WINNER} />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

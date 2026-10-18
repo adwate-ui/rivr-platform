@@ -1,14 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SocialCard } from './SocialCard.tsx';
 
-// A card is a static render for @rivr/render: it has no loading, empty or error state.
+// A card is a static render for @rivr/render: it has no loading, empty or error state. It fills the
+// page, so each story's viewport tag is its format.
 const meta = {
   title: 'Social/SocialCard',
   component: SocialCard,
-  tags: ['viewport-feed'],
   parameters: { layout: 'fullscreen' },
   args: {
-    format: 'feed',
     label: 'Tournament',
     title: 'RIVR Sunday',
     amountPaise: 50_000_000n,
@@ -21,18 +20,20 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Feed: Story = {};
+export const Feed: Story = { tags: ['viewport-feed'] };
 
-export const StoryFormat: Story = { tags: ['viewport-story'], args: { format: 'story' } };
+export const StoryFormat: Story = { tags: ['viewport-story'] };
 
 /** A promotion has no figure: the title is the hero. */
 export const WithoutAmount: Story = {
+  tags: ['viewport-feed'],
   args: { label: 'Promotion', title: 'Double points', amountPaise: undefined, amountLabel: undefined, details: ['Thursday, 14:00 to 20:00', '100/200'] },
 };
 
-export const NoDetails: Story = { args: { label: 'Winner', title: 'Arjun M.', amountLabel: undefined, details: [] } };
+export const NoDetails: Story = { tags: ['viewport-feed'], args: { label: 'Winner', title: 'Arjun M.', amountLabel: undefined, details: [] } };
 
 export const LongText: Story = {
+  tags: ['viewport-feed'],
   args: {
     label: 'High hand',
     title: 'Straight flush, nine high, in the Private Room',

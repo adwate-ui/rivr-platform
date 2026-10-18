@@ -1,9 +1,8 @@
 import { t } from '@rivr/i18n';
-import { SocialCard, type SocialFormat } from '@rivr/ui';
+import { SocialCard } from '@rivr/ui';
 import { when } from './when.ts';
 
 export interface HighHandCardProps {
-  format: SocialFormat;
   /** The hand, as the floor approved it: `Straight flush`. */
   hand: string;
   /** As the player agreed to be shown: first name and initial, `Arjun M.` */
@@ -19,10 +18,9 @@ export interface HighHandCardProps {
 }
 
 /** A high-hand card: the hand, the bonus, who, where and when. */
-export function HighHandCard({ format, hand, playerName, tableName, bonusPaise, at, venue }: HighHandCardProps) {
+export function HighHandCard({ hand, playerName, tableName, bonusPaise, at, venue }: HighHandCardProps) {
   return (
     <SocialCard
-      format={format}
       label={t('social.highHand.label')}
       title={hand}
       amountPaise={bonusPaise}
