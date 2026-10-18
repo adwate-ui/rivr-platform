@@ -45,4 +45,25 @@ describe('Input', () => {
     const { container } = renderIn(<Input label="UTR" hint="12 digits." error="UTR not found." />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('shows a fixed prefix before the value and reads it out with the field', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" defaultValue="98110 42817" />);
+    const field = screen.getByRole('textbox', { name: 'Mobile number' });
+    expect(screen.getByText('+91')).toBeInTheDocument();
+    expect(field).toHaveAccessibleDescription('+91');
+    expect(field).toHaveValue('98110 42817');
+  });
+
+  it('draws a line field and a code field as an underline, which turns red on an error', () => {
+    renderIn(<Input label="Code" variant="code" placeholder="6 digits" error="Code expired. Request a new one." />);
+    const field = screen.getByRole('textbox', { name: 'Code' });
+    expect(field).toHaveAttribute('placeholder', '6 digits');
+    expect(field).toHaveClass('border-b', 'border-alert', 'tracking-tv');
+    expect(field).not.toHaveClass('rounded-md');
+  });
+
+  it('has no accessibility violations as a line field with a prefix', async () => {
+    const { container } = renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" />);
+    expect(await axeViolations(container)).toEqual([]);
+  });
 });

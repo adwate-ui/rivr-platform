@@ -5,6 +5,8 @@ export const ui: Messages<typeof en> = {
   brand: {
     name: 'RIVR',
     tagline: 'पोकर क्लब',
+    // The brand line stays in English, like the name, until the owner gives a Hindi one.
+    motto: 'Skill runs deep.',
     label: 'RIVR पोकर क्लब',
   },
   playerTabs: {

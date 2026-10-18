@@ -3,13 +3,17 @@ import { tokens } from '@rivr/tokens';
 import { Spade } from 'lucide-react';
 import { cx } from '../internal/classes.ts';
 
-/** `md` heads the phone and console shells; `lg` heads the TV. */
+/** `md` heads the phone and console shells; `lg` heads the TV and the sign-in screen. */
 export type WordmarkSize = 'md' | 'lg';
 
 export interface WordmarkProps {
   size?: WordmarkSize;
   /** Sets "Poker club" letter-spaced beneath the tiles. */
   withTagline?: boolean;
+  /** Sets the motto, "Skill runs deep.", beneath it all. Used once, on the sign-in screen. */
+  withMotto?: boolean;
+  /** `center` for a lockup standing alone on a screen, such as sign-in. */
+  align?: 'start' | 'center';
 }
 
 const TILE: Record<WordmarkSize, string> = {
@@ -21,15 +25,17 @@ const TAGLINE: Record<WordmarkSize, string> = { md: 'text-12', lg: 'text-20' };
 
 const SPADE: Record<WordmarkSize, number> = { md: tokens.icon.size.sm, lg: tokens.icon.size.xl };
 
+const ALIGN = { start: 'items-start', center: 'items-center' } as const;
+
 /**
  * The brand mark: R I V R as cream tiles with ink serif capitals, then a red card with a
  * cream spade. The one place a filled shape and the red card appear.
  */
-export function Wordmark({ size = 'md', withTagline = false }: WordmarkProps) {
+export function Wordmark({ size = 'md', withTagline = false, withMotto = false, align = 'start' }: WordmarkProps) {
   const t = useT();
   const tile = cx('flex items-center justify-center', TILE[size]);
-  return (
-    <div role="img" aria-label={t('ui.brand.label')} className="inline-flex flex-col items-start gap-2">
+  const mark = (
+    <div role="img" aria-label={t('ui.brand.label')} className={cx('inline-flex flex-col gap-2', ALIGN[align])}>
       <div className="flex gap-1">
         {[...t('ui.brand.name')].map((letter, index) => (
           <span key={index} className={cx(tile, 'bg-cream font-display leading-tight text-on-cream')}>
@@ -45,6 +51,14 @@ export function Wordmark({ size = 'md', withTagline = false }: WordmarkProps) {
           {t('ui.brand.tagline')}
         </span>
       ) : null}
+    </div>
+  );
+  if (!withMotto) return mark;
+  // The motto sits outside the image so a screen reader reads it. Devanagari has no italic.
+  return (
+    <div className={cx('inline-flex flex-col gap-6', ALIGN[align])}>
+      {mark}
+      <p className="font-display text-24 italic leading-snug text-content-muted hindi:not-italic">{t('ui.brand.motto')}</p>
     </div>
   );
 }

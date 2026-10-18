@@ -8,8 +8,26 @@ import { Text } from '../Text/Text.tsx';
 /** The native input attributes forms need; works with React Hook Form's `register`. */
 type NativeInputProps = Pick<
   InputHTMLAttributes<HTMLInputElement>,
-  'name' | 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'autoComplete' | 'inputMode' | 'maxLength' | 'required' | 'disabled' | 'readOnly'
+  | 'name'
+  | 'value'
+  | 'defaultValue'
+  | 'onChange'
+  | 'onBlur'
+  | 'autoComplete'
+  | 'autoFocus'
+  | 'inputMode'
+  | 'maxLength'
+  | 'placeholder'
+  | 'required'
+  | 'disabled'
+  | 'readOnly'
 >;
+
+/**
+ * `boxed` for forms; `line`, an underline, for a screen with one field, such as the sign-in
+ * number; `code`, a large letter-spaced underline, for a one-time code.
+ */
+export type InputVariant = 'boxed' | 'line' | 'code';
 
 export interface InputProps extends NativeInputProps {
   /** The visible label. Every input has one. */
@@ -19,37 +37,69 @@ export interface InputProps extends NativeInputProps {
   /** What is wrong and what to do, in one or two lines. Marks the field invalid. */
   error?: string | undefined;
   type?: 'text' | 'tel' | 'email' | 'password' | 'search' | 'url';
+  variant?: InputVariant;
+  /** Fixed text before the value that is not typed, such as `+91`. Read out with the field. */
+  prefix?: string | undefined;
   ref?: Ref<HTMLInputElement>;
 }
 
-const FIELD =
-  'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content transition-colors ' +
-  'disabled:cursor-not-allowed disabled:opacity-disabled';
+const FRAME: Record<InputVariant, string> = {
+  boxed: 'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
+  line: 'min-h-touch w-full border-b bg-transparent font-text text-24 text-content',
+  code: 'min-h-touch w-full border-b bg-transparent font-text text-28 tracking-tv text-content hindi:tracking-normal',
+};
 
-/** A labelled text field with an optional hint and an error message. */
-export function Input({ label, hint, error, type = 'text', ...native }: InputProps) {
+const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed disabled:opacity-disabled';
+
+/** A labelled text field with an optional prefix, hint and error message. */
+export function Input({ label, hint, error, type = 'text', variant = 'boxed', prefix, ...native }: InputProps) {
   const id = useId();
-  const hintId = `${id}-hint`;
-  const errorId = `${id}-error`;
-  const describedBy = cx(hint && hintId, error && errorId) || undefined;
+  const describedBy = cx(prefix && `${id}-prefix`, hint && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <Stack gap={2}>
       <Label htmlFor={id}>{label}</Label>
-      <input
-        id={id}
-        type={type}
-        className={cx(FIELD, error ? 'border-alert' : 'border-hairline')}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        {...native}
-      />
+      <Field id={id} type={type} variant={variant} prefix={prefix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} />
       {hint ? (
-        <Text variant="small" tone="muted" id={hintId}>
+        <Text variant="small" tone="muted" id={`${id}-hint`}>
           {hint}
         </Text>
       ) : null}
-      {error ? <FieldError id={errorId} message={error} /> : null}
+      {error ? <FieldError id={`${id}-error`} message={error} /> : null}
     </Stack>
+  );
+}
+
+interface FieldProps {
+  id: string;
+  type: NonNullable<InputProps['type']>;
+  variant: InputVariant;
+  prefix: string | undefined;
+  isInvalid: boolean;
+  describedBy: string | undefined;
+  native: NativeInputProps;
+}
+
+/** The input itself, inside its frame. With a prefix the frame runs under the prefix and the value together. */
+function Field({ id, type, variant, prefix, isInvalid, describedBy, native }: FieldProps) {
+  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-hairline');
+  const input = (
+    <input
+      id={id}
+      type={type}
+      className={prefix ? cx('min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE)}
+      aria-invalid={isInvalid || undefined}
+      aria-describedby={describedBy}
+      {...native}
+    />
+  );
+  if (!prefix) return input;
+  return (
+    <div className={cx(frame, 'flex items-baseline gap-3')}>
+      <span id={`${id}-prefix`} className="text-content-muted">
+        {prefix}
+      </span>
+      {input}
+    </div>
   );
 }
 
