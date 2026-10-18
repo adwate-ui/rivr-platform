@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { Heading, Stack, Text, WebShell } from '@rivr/ui';
 
 /**
@@ -6,7 +6,6 @@ import { Heading, Stack, Text, WebShell } from '@rivr/ui';
  * console (hero, games and stakes, tournament calendar, live floor...).
  */
 export function HomePage() {
-  const t = useT();
   return (
     <WebShell links={[]}>
       <Stack gap={4}>

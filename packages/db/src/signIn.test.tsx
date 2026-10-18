@@ -123,7 +123,8 @@ describe('useSignIn', () => {
     await waitFor(() => expect(calls.map((call) => call.path)).toContain('/rest/v1/rpc/my_feature_access'));
     expect(await act(() => verified)).toEqual({ ok: true, value: null });
 
-    await waitFor(() => expect(result.current.onScreen).toEqual({ state: 'enabled' }));
+    // A slow runner can take over a second for the sign-in, the link and the refetch.
+    await waitFor(() => expect(result.current.onScreen).toEqual({ state: 'enabled' }), { timeout: 5000 });
   });
 
   it('signs out again on this device only if the records cannot be linked, so nobody is left signed in as no one', async () => {

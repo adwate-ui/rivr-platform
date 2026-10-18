@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { useId, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
@@ -36,7 +36,6 @@ export function Screen(props: ScreenProps) {
 }
 
 function ScreenBody(props: ScreenProps) {
-  const t = useT();
   switch (props.status) {
     case 'loading':
       return (

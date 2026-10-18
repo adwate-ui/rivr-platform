@@ -12,7 +12,7 @@ repo="${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
 label() { gh label create "$1" --repo "$repo" --color "$2" --description "$3" --force >/dev/null; echo "label $1"; }
 label 'lane:a' 'c9a85c' 'Lane A: money (ledger, cage, wallet, markers, TDS, GST, Tally)'
 label 'lane:b' '0e3b2c' 'Lane B: floor (tables, waitlist, tablet, tournaments, jackpots, TVs)'
-label 'lane:c' 'f3ede0' 'Lane C: member and web (PWA, KYC, website, Learn, Hindi, cab)'
+label 'lane:c' 'f3ede0' 'Lane C: member and web (PWA, KYC, website, Learn, cab)'
 label 'lane:d' 'c4162a' 'Lane D: growth and content (renderer, social, outbox consumers)'
 label 'status:todo' 'ededed' 'Ready to be taken once its dependencies are closed'
 label 'status:doing' 'fbca04' 'Being worked on now'

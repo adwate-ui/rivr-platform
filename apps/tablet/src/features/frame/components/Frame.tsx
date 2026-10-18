@@ -1,5 +1,5 @@
 import { useControlState } from '@rivr/db';
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { KillSwitchBanner, TabletShell } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
@@ -8,7 +8,6 @@ import type { ReactNode } from 'react';
  * the table from the device's assignment and the offline banner from @rivr/offline.
  */
 export function Frame({ children }: { children: ReactNode }) {
-  const t = useT();
   const { isVenueFrozen } = useControlState();
   return (
     <TabletShell

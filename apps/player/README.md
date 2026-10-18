@@ -1,6 +1,6 @@
 # player
 
-The member app: a PWA on a 390 px phone. Tonight's floor, the waitlist, session history, balance and withdrawals, rewards, Learn and the member's profile, in English and Hindi. Every member-facing entry point is behind `FeatureGate` with its tier-gated feature key.
+The member app: a PWA on a 390 px phone. Tonight's floor, the waitlist, session history, balance and withdrawals, rewards, Learn and the member's profile. Every member-facing entry point is behind `FeatureGate` with its tier-gated feature key.
 
 ## Run it
 

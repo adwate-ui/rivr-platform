@@ -16,8 +16,8 @@
   --rivr-color-chart-4: #8DB8E0; /** Sky. */
   --rivr-color-chart-5: #E88B7D; /** Coral. */
   --rivr-color-chart-6: #B9A4D8; /** Lilac. */
-  --rivr-font-family-display: 'Bodoni Moda', 'Tiro Devanagari Hindi', serif; /** Display only: wordmark, TV titles, the jackpot figure. Never below 20 px. Tiro Devanagari Hindi sets Hindi. */
-  --rivr-font-family-text: 'Instrument Sans', 'Noto Sans Devanagari', sans-serif; /** Everything else. Noto Sans Devanagari sets Hindi. */
+  --rivr-font-family-display: 'Bodoni Moda', 'Tiro Devanagari Hindi', serif; /** Display only: wordmark, TV titles, the jackpot figure. Never below 20 px. Tiro Devanagari Hindi sets the ₹ sign, which Bodoni Moda lacks. */
+  --rivr-font-family-text: 'Instrument Sans', 'Noto Sans Devanagari', sans-serif; /** Everything else. Noto Sans Devanagari sets the ₹ sign, which Instrument Sans lacks. */
   --rivr-font-size-12: 12px;
   --rivr-font-size-13: 13px;
   --rivr-font-size-14: 14px;

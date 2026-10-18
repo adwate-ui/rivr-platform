@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { DisplayShell, Heading, Money, Stack } from '@rivr/ui';
 
 export interface BadBeatJackpotSlideProps {
@@ -8,7 +8,6 @@ export interface BadBeatJackpotSlideProps {
 
 /** TV slide, 1920 by 1080: the bad-beat jackpot figure large in the display face. */
 export function BadBeatJackpotSlide({ amountPaise }: BadBeatJackpotSlideProps) {
-  const t = useT();
   return (
     <DisplayShell>
       <Stack grow justify="center" gap={8}>
