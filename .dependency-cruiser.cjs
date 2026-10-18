@@ -34,6 +34,13 @@ module.exports = {
       to: { pathNot: '^packages/(domain|contracts)/src/' },
     },
     {
+      name: 'testing-imports-only-contracts',
+      severity: 'error',
+      comment: "domain's tests import @rivr/testing, so testing importing domain would be a cycle (docs/decisions/0013).",
+      from: { path: '^packages/testing/src/' },
+      to: { path: '^packages/', pathNot: '^packages/(testing|contracts)/' },
+    },
+    {
       name: 'ui-imports-only-tokens-and-i18n',
       severity: 'error',
       from: { path: '^packages/ui/src/', pathNot: NOT_TESTS },

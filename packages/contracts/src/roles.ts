@@ -1,0 +1,87 @@
+/**
+ * The seven permission roles and what each may do (docs/spec/features-2026-10-14.md,
+ * "Roles"). Job titles (dealer, floor supervisor, cashier, host...) are a separate field on
+ * staff; access comes only from the role. The `role_permission` table holds this matrix and
+ * row-level security checks it; a db test keeps the two equal.
+ */
+
+export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view'] as const;
+
+/** A staff member's permission role. */
+export type StaffRole = (typeof STAFF_ROLES)[number];
+
+/** Every permission a role can hold. Lanes add one here, in a migration, and to the matrix below. */
+export const PERMISSIONS = [
+  'venue.configure', // legal entity, GSTIN, payee, bank, invoice prefix
+  'settings.manage', // effective-dated rules: rake, caps, call time, bonuses, limits
+  'staff.manage',
+  'devices.manage', // enrol and revoke tablets, cage computers, TVs
+  'members.read',
+  'members.manage',
+  'members.override_features', // grant or revoke one feature for one member
+  'kyc.review',
+  'tiers.manage', // tiers and the tier x feature matrix
+  'floor.manage', // tables, seating, games
+  'waitlist.manage',
+  'call_time.override', // let a player leave before call time, with a reason
+  'hands.log',
+  'cage.transact', // buy-ins and cash-outs
+  'cage.second_approve', // second approver above the configured limit
+  'markers.issue',
+  'markers.manage_limits',
+  'withdrawals.approve',
+  'ledger.read',
+  'tournaments.manage',
+  'promotions.manage',
+  'jackpots.approve', // high hands and jackpot payouts
+  'marketing.publish',
+  'website.edit',
+  'host_queue.manage',
+  'fnb.manage',
+  'reports.read',
+  'dashboards.read',
+  'exports.table', // export a filtered console table
+  'exports.full', // the full encrypted archive
+  'audit.read',
+  'control.engage', // the kill switch
+  'purge.run', // super_admin only, never grantable to another role
+  'sops.manage',
+  'sops.acknowledge',
+  'incidents.log',
+  'aml.review',
+  'learn.manage_sources', // upload licensed Learn encodings
+] as const;
+
+/** A permission key. */
+export type Permission = (typeof PERMISSIONS)[number];
+
+const EVERY_STAFF_MEMBER: readonly Permission[] = ['sops.acknowledge', 'incidents.log'];
+
+/** Which permissions each role holds. super_admin holds every permission. */
+export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>> = {
+  super_admin: PERMISSIONS,
+  admin: [
+    ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'members.read', 'members.manage',
+    'kyc.review', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
+    'markers.manage_limits', 'ledger.read', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
+    'host_queue.manage', 'fnb.manage', 'reports.read', 'exports.table', 'sops.manage', 'aml.review',
+  ],
+  cashier: [
+    ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',
+    'withdrawals.approve', 'ledger.read',
+  ],
+  dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
+  marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit'],
+  host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage'],
+  owner_view: [...EVERY_STAFF_MEMBER, 'reports.read', 'dashboards.read', 'ledger.read', 'audit.read'],
+};
+
+/** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */
+export const SUPER_ADMIN_ONLY: readonly Permission[] = [
+  'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure',
+];
+
+/** True when `role` holds `permission`. */
+export function roleHasPermission(role: StaffRole, permission: Permission): boolean {
+  return ROLE_PERMISSIONS[role].includes(permission);
+}
