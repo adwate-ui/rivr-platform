@@ -36,10 +36,11 @@ function androidApp(app: 'tablet' | 'driver'): BrandOutput[] {
   return [...perDensity, { path: `${res}/drawable/splash.png`, art: 'lockup', width: 480, height: 320 }];
 }
 
-// iPhone launch screens, portrait, in device pixels: from the 4-inch SE to the 6.9-inch Pro Max.
-const IPHONE_SCREENS = [
+// iPhone launch screens, portrait, in device pixels: every screen size from the 4-inch SE to the
+// 6.9-inch Pro Max, the Plus models and the Air included. A size missing here opens on a blank screen.
+export const IPHONE_SCREENS = [
   [640, 1136], [750, 1334], [828, 1792], [1125, 2436], [1170, 2532], [1179, 2556],
-  [1206, 2622], [1242, 2688], [1284, 2778], [1290, 2796], [1320, 2868],
+  [1206, 2622], [1242, 2208], [1242, 2688], [1260, 2736], [1284, 2778], [1290, 2796], [1320, 2868],
 ] as const;
 
 /** The player app as an installed PWA: icons for the manifest and the home screen, and iPhone launch screens. */
@@ -73,10 +74,18 @@ const CHANNELS = [
   ['whatsapp-profile', 640, 640],
 ] as const;
 
+/**
+ * A profile image is shown as a small circle, so it is the red card inside the safe circle, which
+ * reads at avatar size; a cover is wide, so it carries the wordmark.
+ */
+function channel(name: string, width: number, height: number): BrandOutput {
+  return { path: `docs/brand/social/${name}.png`, art: width === height ? 'maskable' : 'lockup', width, height };
+}
+
 /** Every file the brand kit writes (`pnpm --filter @rivr/render render:brand-kit`). */
 export const BRAND_KIT: readonly BrandOutput[] = [
   ...playerPwa(),
   ...androidApp('tablet'),
   ...androidApp('driver'),
-  ...CHANNELS.map(([name, width, height]): BrandOutput => ({ path: `docs/brand/social/${name}.png`, art: 'lockup', width, height })),
+  ...CHANNELS.map(([name, width, height]) => channel(name, width, height)),
 ];

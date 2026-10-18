@@ -25,8 +25,11 @@ describe('BrandArt', () => {
 
   it('keeps the card inside the safe zone of a maskable or adaptive icon by drawing it on a larger stage', () => {
     resizeWindow(512, 512);
-    renderIn(<BrandArt art="maskable" />);
+    const { unmount } = renderIn(<BrandArt art="maskable" />);
     expect(stage()).toHaveStyle({ width: '112px' });
+    unmount();
+    renderIn(<BrandArt art="adaptive" />);
+    expect(stage()).toHaveStyle({ width: '140px' });
   });
 
   it('draws the wordmark and tagline for a splash screen or cover, fitted to the shorter side', () => {

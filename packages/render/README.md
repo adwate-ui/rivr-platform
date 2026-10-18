@@ -24,7 +24,7 @@ Templates:
 | `social.highHandCard` | feed or story | `hand`, `playerName`, `tableName`, `bonusPaise`, `at` (ISO), `venue` |
 | `brand.art` | any | `art`: `icon`, `maskable`, `adaptive` or `lockup` (`BrandArt`, drawn on a fixed stage and scaled to the request) |
 
-The brand kit (`docs/brand/README.md`) is `brand.art` at every size in `src/brandKit.ts`. `pnpm --filter @rivr/render render:brand-kit` builds the host and writes all of it into the repository, about 80 files in under half a minute. `src/brand.test.ts` compares six of them with `baselines/brand-*.png`.
+The brand kit (`docs/brand/README.md`) is `brand.art` at every size in `src/brandKit.ts`. `pnpm --filter @rivr/render render:brand-kit` rebuilds the tokens, `@rivr/ui` and the host, then writes all of it into the repository, 83 files in under a minute. `src/brand.test.ts` compares six of them with `baselines/brand-*.png`.
 
 The social cards are `SocialCard` from `@rivr/ui`, which fills the page, so the render request alone sets the format. Use `tokens.viewport.feed` (1080 × 1350) for a post and `tokens.viewport.story` (1080 × 1920) for a story. Times show in IST. `venue` is the club's address from venue configuration. Their copy is in the `social` namespace of `@rivr/i18n`. `pnpm test --filter render -- social` draws all eight and compares them with `baselines/social-*.png`.
 

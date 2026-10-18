@@ -169,7 +169,7 @@ export const tokens = {
   "brand": {
     "icon": 96,
     "maskable": 112,
-    "adaptive": 132,
+    "adaptive": 140,
     "lockup": 400
   },
   "breakpoint": {

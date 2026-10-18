@@ -10,7 +10,7 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "build": "vite build",
-    "render:brand-kit": "node scripts/render-brand-kit.ts"
+    "render:brand-kit": "tsx scripts/render-brand-kit.ts"
   },
   "dependencies": {
     "@rivr/i18n": "workspace:*",
@@ -27,6 +27,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
   }

@@ -13,9 +13,9 @@ Then commit what it writes. The list of files and their sizes is `packages/rende
 | Where | What |
 |---|---|
 | `apps/player/public/icons/` | PWA icons 192 and 512, a maskable 512 (the card inside the safe circle), the home-screen icon 180 and the favicon 32 (#16 wires them into the manifest) |
-| `apps/player/public/splash/` | iPhone launch screens, `apple-splash-<width>x<height>.png`, from 640 × 1136 to 1320 × 2868 |
-| `apps/tablet/…/res`, `apps/driver/…/res` | Android launcher icon, round icon and adaptive foreground at every density (the adaptive background is the token green), and the splash for portrait and landscape |
-| `docs/brand/social/` | A profile image and cover for each publishing channel, at its recommended upload size (below) |
+| `apps/player/public/splash/` | iPhone launch screens, `apple-splash-<width>x<height>.png`, for every screen size from 640 × 1136 to 1320 × 2868, the Plus models and the Air included |
+| `apps/tablet/…/res`, `apps/driver/…/res` | Android launcher icon, round icon and adaptive foreground at every density (the adaptive background is the token surface green), and the splash for portrait and landscape. The round icon is square with the card inside the safe circle; only Android 7.1 shows it, as 8 and later use the adaptive icon |
+| `docs/brand/social/` | A profile image and cover for each publishing channel, at its recommended upload size (below). A profile image is the red card, which reads at avatar size inside a circle; a cover carries the wordmark |
 
 ## Channels
 
@@ -30,7 +30,7 @@ Then commit what it writes. The list of files and their sizes is `packages/rende
 | Google Business Profile | `google-business-logo.png` 720 × 720 | `google-business-cover.png` 1024 × 576 |
 | WhatsApp | `whatsapp-profile.png` 640 × 640 | none |
 
-Every profile image keeps the wordmark clear of a circular crop.
+Every profile image keeps the card inside a circular crop.
 
 ## Handles and bios
 
