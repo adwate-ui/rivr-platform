@@ -14,7 +14,7 @@ export interface PlayerShellProps {
   memberInitial?: string | undefined;
   profileHref: string;
   onNavigate?: Navigate | undefined;
-  /** Above everything, for the kill-switch banner. */
+  /** Above everything: the kill-switch banner, or while the phone is offline the offline banner. */
   banner?: ReactNode;
 }
 
