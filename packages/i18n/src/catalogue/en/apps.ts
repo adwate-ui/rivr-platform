@@ -2,6 +2,8 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
+import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
+
 export const playerApp = {
   tonight: { title: 'Tonight', empty: 'No tables are running.' },
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
@@ -32,6 +34,8 @@ export const playerApp = {
     holdLapsed: 'Your seat is no longer held, so it may go to another member. Paying now still seats you.',
     /** The cashier did not find the UTR the member gave; `{utr}` is that UTR. */
     turnedDown: 'The cashier could not find UTR {utr} in the bank. Check it in your UPI app and give it again.',
+    /** The cage turned down `{utr}` after the seat's hold had lapsed, so the seat was given up (#222). */
+    cancelled: 'Cancelled. The cashier could not find UTR {utr} in the bank, and your seat was no longer held. If you paid, show the payment at the front desk.',
     pay: 'Pay',
     changeUtr: 'Change the UTR',
     paymentSent: 'Payment sent with UTR {utr}. The cashier checks it against the bank, usually within a day.',
@@ -46,6 +50,8 @@ export const playerApp = {
     sendUtr: 'Send UTR',
     utrInvalid: 'Enter the 12-digit UTR from your payment.',
     utrUsed: 'This UTR was already given for another booking. Check it and try again.',
+    /** A UTR given after the seat's hold cannot be changed until the cashier checks it (#222). */
+    utrLocked: 'Your seat\'s hold has ended, so this UTR stays until the cashier checks it. To change it, speak to the front desk.',
     unavailable: 'Academy booking is not available right now. Try again in a few minutes.',
   },
   /** Profile, behind the member's initial. */
@@ -189,7 +195,7 @@ export const consoleApp = {
   },
   /** Why an Academy step did not go through. */
   academyFailures: {
-    notAllowed: 'Your role does not allow this. Ask an admin, or another staff member who can.',
+    notAllowed: 'Your role does not allow this. Ask a manager, or another staff member who can.',
     noMember: 'No member has that number. Sign the contact up first.',
     invalid: 'Check the details and try again.',
     full: 'Not enough seats left in this batch. Choose another batch, or fewer heads.',
@@ -252,6 +258,8 @@ export const consoleApp = {
     stopped: 'The venue or this member is frozen. Try again once it is released.',
     unavailable: 'Could not save this. Check the connection and try again.',
   },
+  kycInPerson,
+  kycInPersonFailures,
 } as const;
 
 export const tabletApp = {

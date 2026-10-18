@@ -73,7 +73,8 @@ function AcademyBatches() {
   if (batches.isError || bookings.isError) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([batches.refetch(), bookings.refetch()])} />;
   }
-  const booked = new Set(bookings.data.map((booking) => booking.batchId));
+  // A cancelled seat leaves its batch open to book again.
+  const booked = new Set(bookings.data.filter((booking) => booking.status !== 'cancelled').map((booking) => booking.batchId));
   const open = batches.data.filter((batch) => !booked.has(batch.id));
   const isEmpty = bookings.data.length === 0 && open.length === 0;
   if (isEmpty && refusal === null) return <Screen title={title} status="empty" emptyText={t('player.academy.empty')} />;

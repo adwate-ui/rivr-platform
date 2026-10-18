@@ -17,12 +17,18 @@ export {
 export { useSignUp, type SignUpFailure } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
-export { useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
+export { toBase64, useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
+export { shrinkPhoto } from './photo.ts';
 export {
+  useKycInPerson,
+  useKycInPersonCandidates,
   useKycReviewActions,
   useKycReviewQueue,
+  type KycCandidate,
   type KycCheck,
   type KycDecision,
+  type KycInPersonFailure,
+  type KycInPersonOutcome,
   type KycRefusal,
   type KycReviewFailure,
   type KycWaitReason,

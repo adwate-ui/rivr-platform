@@ -13,7 +13,8 @@ export interface AcademyBatch {
   readonly fee: bigint | null;
 }
 
-export type AcademyBookingStatus = 'awaiting_payment' | 'payment_claimed' | 'paid';
+/** `cancelled` reaches a member only for a seat the cage cancelled by turning down a UTR after the hold (#222). */
+export type AcademyBookingStatus = 'awaiting_payment' | 'payment_claimed' | 'paid' | 'cancelled';
 
 /**
  * One of the member's own seats: its batch, the amount in paise, the UTR they gave, and the last UTR
@@ -41,7 +42,8 @@ export interface AcademyPayment {
 }
 
 /** Why an Academy step did not go through, as a screen tells it. */
-export type AcademyFailure = 'full' | 'closed' | 'not_open' | 'stopped' | 'paused' | 'no_fee' | 'invalid_utr' | 'utr_used' | 'unavailable';
+export type AcademyFailure =
+  | 'full' | 'closed' | 'not_open' | 'stopped' | 'paused' | 'no_fee' | 'invalid_utr' | 'utr_used' | 'utr_locked' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVFUL: 'full',
@@ -53,9 +55,11 @@ const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVPRC: 'no_fee',
   '22023': 'invalid_utr',
   RVUTR: 'utr_used',
+  // After the hold, a UTR given stays until the cage checks it (#222).
+  RVLCK: 'utr_locked',
 };
 
-const STATUSES: readonly AcademyBookingStatus[] = ['awaiting_payment', 'payment_claimed', 'paid'];
+const STATUSES: readonly AcademyBookingStatus[] = ['awaiting_payment', 'payment_claimed', 'paid', 'cancelled'];
 
 /** A status this app knows; anything else is a fault, never shown as some other status. */
 function toStatus(value: string): AcademyBookingStatus {
@@ -82,9 +86,9 @@ export function useAcademyBatches() {
 }
 
 /**
- * The signed-in member's own seats that are not cancelled, soonest first, also once their batch has
- * closed or started. Read through `my_academy_bookings`, never the table, which shows staff the
- * venue's bookings.
+ * The signed-in member's own seats, soonest first, also once their batch has closed or started; of the
+ * cancelled ones, only a seat the cage cancelled by turning down its UTR, so the member sees why.
+ * Read through `my_academy_bookings`, never the table, which shows staff the venue's bookings.
  */
 export function useAcademyBookings() {
   const { client, userId } = useRivrData();
