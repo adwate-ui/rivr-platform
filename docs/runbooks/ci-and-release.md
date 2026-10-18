@@ -44,7 +44,7 @@ Auth and API on staging and production, in the Supabase dashboard:
   1. Make sure the `auth-send-code` function is deployed: the staging deploy does it, or a release does for production.
   2. Under Authentication → Hooks, add a **Send SMS** hook of type HTTPS pointing to `https://<project-ref>.supabase.co/functions/v1/auth-send-code`, and generate its secret.
   3. Under Edge Functions → Secrets, set `SEND_SMS_HOOK_SECRET` to that same secret.
-  4. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs the hook in place.
+  4. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs the hook in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
   5. Once WhatsApp is approved:
      - In Meta's dashboard, approve the authentication template `sign_in_code` in both `en` and `hi`, under exactly those language codes.
      - Set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` as function secrets. Use a system user's token scoped to `whatsapp_business_messaging` for this one business account; every function in the project can read the secrets.
