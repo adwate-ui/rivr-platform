@@ -117,9 +117,11 @@ describe('the sampled regression', () => {
      * every drill that keys on `relative_strength` now asks something different.
      *
      * About 5.5 million evaluations: a few seconds alone, longer when the whole
-     * suite shares the machine, so it carries its own timeout.
+     * suite shares the machine, so it carries its own timeout. Measured with the
+     * whole repository's tests running at once: 16 s in WSL, 38 s on a 2-core
+     * GitHub runner.
      */
-    it('scores 5,000 seeded spots identically to the committed digest', { timeout: 30_000 }, () => {
+    it('scores 5,000 seeded spots identically to the committed digest', { timeout: 120_000 }, () => {
         const rng = makeRng(20260821);
         const lines: string[] = [];
         const buckets: Record<RelativeStrength, number> = { nuts: 0, strong: 0, medium: 0, weak: 0 };
