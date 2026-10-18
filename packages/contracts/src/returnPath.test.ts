@@ -14,6 +14,19 @@ describe('returnPathFrom', () => {
     }
   });
 
+  it('answers at once for a crafted path built to make the check slow', () => {
+    const started = performance.now();
+    expect(returnPathFrom(`/${'a'.repeat(150)}!`)).toBeNull();
+    expect(returnPathFrom(`/academy/${'a1-'.repeat(60)}!`)).toBeNull();
+    expect(performance.now() - started).toBeLessThan(50);
+  });
+
+  it('nor sign-in or sign-up themselves', () => {
+    expect(returnPathFrom('/sign-in')).toBeNull();
+    expect(returnPathFrom('/sign-up/')).toBeNull();
+    expect(returnPathFrom('/sign-inside')).toBe('/sign-inside');
+  });
+
   it('nor anything that is not a path', () => {
     expect(returnPathFrom(undefined)).toBeNull();
     expect(returnPathFrom(42)).toBeNull();

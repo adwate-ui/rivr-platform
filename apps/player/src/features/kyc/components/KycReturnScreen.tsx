@@ -1,7 +1,8 @@
 import type { Result } from '@rivr/contracts';
-import { useKycActions, useKycRecord, type KycFailure, type KycRecord, type KycStatus } from '@rivr/db';
+import { useAuthStatus, useKycActions, useKycRecord, type KycFailure, type KycRecord, type KycStatus } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, StepScreen, Text } from '@rivr/ui';
+import { Navigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
 import { KycOutcome } from './KycOutcome.tsx';
@@ -21,16 +22,19 @@ function viewOf(completed: Result<KycStatus, KycFailure> | undefined, record: Re
 
 /** Back from DigiLocker: pull the record once, then show what it says, or the PAN check. */
 export function KycReturnScreen() {
+  const authStatus = useAuthStatus();
   const record = useKycRecord();
   const { complete } = useKycActions();
   const asked = useRef(false);
 
+  // Pulled once the session is known to be signed in; signed out, sign-in comes first (#233).
   useEffect(() => {
-    if (asked.current) return;
+    if (asked.current || authStatus !== 'signed-in') return;
     asked.current = true;
     complete.mutate();
-  }, [complete]);
+  }, [complete, authStatus]);
 
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={{ next: '/kyc/return' }} replace />;
   const view = viewOf(complete.data, record);
   if (view.kind === 'outcome') return <KycOutcome record={view.record} onChecked={() => void record.refetch()} />;
   if (view.kind === 'failed') {

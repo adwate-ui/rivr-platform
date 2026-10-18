@@ -46,7 +46,7 @@ export function SignUpScreen() {
     if (!joined.ok) return form.setError('fullName', { type: 'server', message: t(FAILURE_COPY[joined.error]) });
     await navigate({ href: next ?? '/', replace: true });
   });
-  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={next ? { next } : {}} replace />;
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={{ next }} replace />;
   if (member.data) return <GoTo href={next ?? '/'} />;
   const { errors } = form.formState;
   const nameError = errors.fullName ? (errors.fullName.type === 'server' ? errors.fullName.message : t('player.signUp.nameInvalid')) : undefined;

@@ -44,6 +44,8 @@ test.describe('Profile', () => {
     await page.goBack();
     await page.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
+    // Signing out starts afresh: the next person to sign in on this phone lands on Tonight (#233).
+    await expect(page).toHaveURL(/\/sign-in$/);
     await page.goto(`${appUrl('player')}/profile`);
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toHaveCount(0);

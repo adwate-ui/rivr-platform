@@ -96,6 +96,12 @@ describe('sign-in', () => {
     expect(router.state.matches.at(-1)?.search).toMatchObject({ next: undefined });
   });
 
+  it('is where identity sends someone signed out, to come back to it', async () => {
+    const router = renderAt('/kyc');
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    expect(router.state.location.search).toEqual({ next: '/kyc' });
+  });
+
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {
     renderAt('/sign-in');
     expect(await screen.findByRole('img', { name: 'RIVR Poker Club' }, LAZY_SCREEN)).toBeDefined();
