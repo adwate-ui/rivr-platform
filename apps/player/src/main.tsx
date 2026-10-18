@@ -16,9 +16,17 @@ rememberAttribution(window.location.search);
 // sight, then takes over and reloads it (#252); a closed app opens on it anyway.
 const HOUR = 60 * 60 * 1000;
 startInstallWatch();
+// Reloaded here, not by the plugin: it reloads only a page a worker already served when it loaded,
+// and a first visit (an iPhone Home Screen app's first launch) would keep the old code.
+const reloadOnNewWorker = () => {
+  navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload(), { once: true });
+  void updateSW(true);
+};
 const updateSW = registerSW({
   immediate: true,
-  onNeedRefresh: () => takeUpdateWhenHidden(() => void updateSW(true)),
+  onNeedRefresh: () => takeUpdateWhenHidden(reloadOnNewWorker),
+  // Another window took the new version: this one waits too, until it is out of sight.
+  onNeedReload: () => takeUpdateWhenHidden(() => window.location.reload()),
   onRegisteredSW: (_url, registration) => {
     if (registration) setInterval(() => void registration.update(), HOUR);
   },
