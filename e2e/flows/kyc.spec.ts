@@ -4,19 +4,8 @@
  * sends the member straight back; a real venue without vendor keys fails closed (decision 0014).
  */
 import { expect, test, type Page } from '@playwright/test';
-import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-
-const CODE = isRemoteTarget() ? (process.env.E2E_SIGN_IN_CODE ?? '') : '123456';
-
-async function signIn(page: Page, number: string) {
-  await page.setViewportSize(VIEWPORT.player);
-  await page.goto(`${appUrl('player')}/sign-in`);
-  await page.getByRole('textbox', { name: 'Mobile number' }).fill(number);
-  await page.getByRole('button', { name: 'Send code' }).click();
-  await page.getByRole('textbox', { name: /^Code sent to/ }).fill(CODE);
-  await page.getByRole('button', { name: 'Verify' }).click();
-  await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
-}
+import { appUrl } from '../support/apps.ts';
+import { signInToPlayer } from '../support/signIn.ts';
 
 /** A plain JPEG made in the page: the practice venue's fake vendor passes any selfie. */
 async function selfie(page: Page): Promise<Buffer> {
@@ -50,13 +39,9 @@ async function startDigiLocker(page: Page) {
 }
 
 test.describe('KYC', () => {
-  test.beforeAll(() => {
-    if (CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the KYC flow cannot sign in on staging');
-  });
-
   test('a practice-venue member is verified with a selfie and DigiLocker in under three minutes', async ({ page }) => {
     const began = Date.now();
-    await signIn(page, '9000000301');
+    await signInToPlayer(page, '9000000301');
     await takeSelfie(page);
     await startDigiLocker(page);
     await expect(page.getByRole('heading', { name: 'Identity verified' })).toBeVisible();
@@ -67,7 +52,7 @@ test.describe('KYC', () => {
   });
 
   test('a real venue without a KYC vendor fails closed', async ({ page }) => {
-    await signIn(page, '9000000201');
+    await signInToPlayer(page, '9000000201');
     await takeSelfie(page);
     await expect(page.getByText('Identity checks are not open yet. Staff will check your documents at the club.')).toBeVisible();
   });

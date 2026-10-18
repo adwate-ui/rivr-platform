@@ -28,6 +28,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `private.current_visit(member)`, `private.close_visit(member, at, reason)` | A (final cash-out), B | The open visit; closing it emits `visit.closed` |
 | `private.visits_this_month(member, at)` | D (cab and promotions conditions) | Closed visits in the calendar month |
 | `private.has_consent(member, purpose)` | D (marketing sends, Meta events) | Consent in force |
+| `private.wants_push(member, push_type)` | C and D push senders | Whether the member wants that push: on unless they turned it off in Profile; a promotion only with marketing consent |
 | `public.sign_up_attribution(...)` | player app | Records referral, creator and UTM codes at sign-up for lane D's funnel |
 
 ## Events
