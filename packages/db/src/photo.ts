@@ -2,8 +2,9 @@ const LONGEST_SIDE = 1024;
 const QUALITY = 0.85;
 
 /**
- * A photo from the phone's camera, made small enough to send: a JPEG at most 1024 px on its longest
- * side, about 150 KB, which is plenty for liveness and face match. Rejects a file that is not an image.
+ * A KYC photo from a camera (the member's selfie, or a reviewer's photo at a check in person), made
+ * small enough to send: a JPEG at most 1024 px on its longest side, about 150 KB, which is plenty for
+ * liveness and face match. Rejects a file that is not an image.
  */
 export async function shrinkPhoto(photo: Blob): Promise<Blob> {
   const image = await createImageBitmap(photo);

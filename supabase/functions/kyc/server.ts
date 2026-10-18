@@ -47,13 +47,24 @@ export async function rpc(name: string, args: object, token: string | null): Pro
   throw new Refused(String(typeof body === 'object' && body !== null ? Reflect.get(body, 'code') : answer.status));
 }
 
+// What the gate's refusals mean to the app, by SQLSTATE: the member's own steps, and a check staff
+// make in person (kyc-in-person). Anything else is a fault.
+const REFUSALS: Readonly<Record<string, readonly [string, number]>> = {
+  RVKIL: ['stopped', 423],
+  RVFRZ: ['stopped', 423],
+  RVMBR: ['stopped', 423],
+  RVRAT: ['too_many_attempts', 429],
+  RVCON: ['no_consent', 403],
+  '42501': ['not_allowed', 403],
+  RVKYC: ['decided', 409],
+  RVPHT: ['no_photo', 409],
+  '22023': ['invalid', 400],
+};
+
 /** What the gate's refusals mean to the app. */
 export function refusal(error: unknown): Response {
-  const code = error instanceof Refused ? error.code : '';
-  if (code === 'RVKIL' || code === 'RVFRZ' || code === 'RVMBR') return reply({ error: 'stopped' }, 423);
-  if (code === 'RVRAT') return reply({ error: 'too_many_attempts' }, 429);
-  if (code === 'RVCON') return reply({ error: 'no_consent' }, 403);
-  return reply({ error: 'unavailable' }, 502);
+  const [message, status] = REFUSALS[error instanceof Refused ? error.code : ''] ?? ['unavailable', 502];
+  return reply({ error: message }, status);
 }
 
 /** The member's current record, as the server reads it. */
