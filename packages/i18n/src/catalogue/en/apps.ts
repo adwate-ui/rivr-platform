@@ -26,6 +26,10 @@ export const playerApp = {
     stopped: 'Your account is paused. Speak to the front desk.',
     noFee: 'The club has not set the Academy fee yet. Try again later.',
     awaitingPayment: 'Booked. Pay to keep your seat.',
+    /** Until when an unpaid seat is held: `Tuesday 20 Oct 2026, 15:30`, in IST (#247). */
+    payBy: 'Pay by {weekday} {date}, {time}.',
+    /** The 48-hour hold has passed; a late payment is still seated (#220). */
+    holdLapsed: 'Your seat is no longer held, so it may go to another member. Paying now still seats you.',
     /** The cashier did not find the UTR the member gave; `{utr}` is that UTR. */
     turnedDown: 'The cashier could not find UTR {utr} in the bank. Check it in your UPI app and give it again.',
     pay: 'Pay',

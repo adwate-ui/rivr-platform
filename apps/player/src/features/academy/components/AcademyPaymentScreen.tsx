@@ -2,7 +2,7 @@ import { useAcademyBookings, useAcademyPayment, useFeature, type AcademyPayment 
 import { t } from '@rivr/i18n';
 import { Button, FeatureGate, Money, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { bookingStatus } from './bookingStatus.ts';
+import { bookingStatus, holdLine } from './bookingStatus.ts';
 import { UtrForm } from './UtrForm.tsx';
 
 /** Paying for a seat, for members whose tier has Academy booking (feature academy.booking). */
@@ -55,10 +55,14 @@ function Payment() {
   }
   const booking = bookings.data.find((candidate) => candidate.id === bookingId);
   if (!booking) return <Screen title={title} actions={back} status="empty" emptyText={t('player.academy.bookingGone')} />;
+  const hold = holdLine(booking, new Date());
   return (
     <Screen title={title} actions={back}>
       <Stack gap={6}>
-        <Text>{bookingStatus(booking)}</Text>
+        <Stack gap={1}>
+          <Text>{bookingStatus(booking)}</Text>
+          {hold === null ? null : <Text tone="muted">{hold}</Text>}
+        </Stack>
         {booking.status !== 'paid' && payment.data ? <PayDetails payment={payment.data} bookingId={booking.id} /> : null}
       </Stack>
     </Screen>

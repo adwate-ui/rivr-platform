@@ -29,6 +29,8 @@ export interface AcademyBooking {
   readonly amount: bigint;
   readonly utr: string | null;
   readonly turnedDownUtr: string | null;
+  /** While unpaid, when the seat stops being held (ISO timestamp, from the database); null otherwise. */
+  readonly holdUntil: string | null;
 }
 
 /** What to pay for a booking, and the club's UPI. */
@@ -95,6 +97,7 @@ export function useAcademyBookings() {
       return data.map((row) => ({
         id: row.id, batchId: row.batch_id, batchName: row.batch_name, startsOn: row.starts_on, endsOn: row.ends_on,
         status: toStatus(row.status), amount: BigInt(row.amount), utr: row.utr, turnedDownUtr: row.turned_down_utr,
+        holdUntil: row.hold_until,
       }));
     },
   });

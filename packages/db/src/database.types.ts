@@ -961,7 +961,7 @@ isOneToOne: false
                            },
 "my_academy_bookings":
 { Args: Record<PropertyKey, never>; Returns: {
-              "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
+              "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"hold_until": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
             }[]
                            },
 "my_feature_access":
