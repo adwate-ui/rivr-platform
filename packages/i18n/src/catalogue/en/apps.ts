@@ -261,5 +261,7 @@ export const driverApp = {
 } as const;
 
 export const webApp = {
-  opening: 'Opens Sunday 15 November.',
+  /** A website page when its content cannot be read. */
+  unavailableTitle: 'The website is not available',
+  unavailable: 'Try again in a few minutes.',
 } as const;

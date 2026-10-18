@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.0",
     "@astrojs/react": "^7.1.0",
+    "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/ui": "workspace:*",

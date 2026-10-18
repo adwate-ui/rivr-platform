@@ -16,7 +16,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `member_preference` | Games and stake for waitlist alerts |
 | `academy_batch`, `academy_booking`, `academy_attendance` | Batches, bookings and payment, attendance, graduation |
 | `learn_source`, `learn_licence`, `learn_card`, `learn_attempt`, `learn_lesson` | Licensed encodings (private bucket), licences, FSRS cards and attempts per member, Academy lessons |
-| `site_page`, `site_block`, `site_revision`, `site_publish` | Website pages of typed blocks, drafts, scheduled publish, history and rollback |
+| `site_page`, `site_block`, `site_revision`, `site_publish` | Website pages of typed blocks, drafts, scheduled publish, history and rollback (`site_page` and `site_block` from #9, read publicly through `public_site_page` and `public_site_block`, never the practice venue) |
 | `cab_request`, `cab_trip`, `driver` | Eligibility, pickup and drop requests, driver assignment, live trip, drop confirmed by player code |
 | `share_card` | Rendered share cards with the member's referral code |
 | `sign_up_attribution` | The referral, creator and UTM codes a member signed up with (first touch) |

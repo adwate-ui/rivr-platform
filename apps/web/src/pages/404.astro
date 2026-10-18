@@ -1,0 +1,12 @@
+---
+// An address the website has no route for, such as /academy/x: the missing page, keeping the visitor's codes.
+import { loadPage, Website } from '../features/site/index.ts';
+import Document from '../layouts/Document.astro';
+
+const view = await loadPage(null, Astro.url);
+Astro.response.status = view.status;
+---
+
+<Document title={view.title} description={view.description}>
+  <Website view={view} />
+</Document>

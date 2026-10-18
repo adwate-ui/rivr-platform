@@ -57,6 +57,26 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it('is a link that looks the same when it has an address', () => {
+    renderIn(
+      <Button variant="primary" href="https://player.invalid/sign-in?ref=FRIEND1">
+        Join RIVR
+      </Button>,
+    );
+    expect(screen.getByRole('link', { name: 'Join RIVR' })).toHaveAttribute('href', 'https://player.invalid/sign-in?ref=FRIEND1');
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('as a link, only goes somewhere: it cannot be disabled, loading or pressed', () => {
+    renderIn(
+      // @ts-expect-error A link cannot be disabled; it would still be followed.
+      <Button href="/academy" isDisabled>
+        Academy
+      </Button>,
+    );
+    expect(screen.getByRole('link', { name: 'Academy' })).toHaveAttribute('href', '/academy');
+  });
+
   it('has no accessibility violations in any variant', async () => {
     const { container } = renderIn(
       <>

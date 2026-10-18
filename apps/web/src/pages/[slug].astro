@@ -1,0 +1,13 @@
+---
+// Every other page of the website, by its address. The front page is only at /.
+import { loadPage, Website } from '../features/site/index.ts';
+import Document from '../layouts/Document.astro';
+
+const slug = Astro.params.slug;
+const view = await loadPage(slug && slug !== 'home' ? slug : null, Astro.url);
+Astro.response.status = view.status;
+---
+
+<Document title={view.title} description={view.description}>
+  <Website view={view} />
+</Document>
