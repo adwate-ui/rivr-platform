@@ -5,26 +5,22 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { RivrDataProvider, useAuthStatus } from './provider.tsx';
-import { useSignOut } from './signIn.ts';
+import { RivrDataProvider } from './provider.tsx';
 import { StaffVenueProvider, useStaffVenue } from './staff.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const SANA = '00000000-0000-4000-8000-000000000104';
 
+// The staff rows PostgREST answers with: Sana is a cashier at the club and at the practice venue.
 const PRACTICE_ROW = { id: 's2', venue_id: 'v2', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Practice', is_practice: true } };
 const CLUB_ROW = { id: 's1', venue_id: 'v1', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Gurugram', is_practice: false } };
 
-/** A fake API: each path answers with its reply; the calls are recorded. */
-function renderStaff(replies: Record<string, { status?: number; body: unknown }>) {
-  const calls: string[] = [];
+/** A fake API answering the staff read with `reply`, for Sana signed in. */
+function renderStaff(reply: { status?: number; body: unknown }) {
   const fetch: typeof globalThis.fetch = async (input) => {
     const url = input instanceof Request ? input.url : String(input);
-    calls.push(url);
-    const path = Object.keys(replies).find((key) => url.includes(key));
-    const reply = path ? replies[path] : undefined;
-    const status = reply?.status ?? 200;
-    return new Response(status === 204 ? null : JSON.stringify(reply?.body ?? null), { status, headers: { 'content-type': 'application/json' } });
+    const answer = url.includes('/rest/v1/staff') ? reply : { body: [] };
+    return Response.json(answer.body, { status: answer.status ?? 200 });
   };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
     global: { fetch },
@@ -36,21 +32,19 @@ function renderStaff(replies: Record<string, { status?: number; body: unknown }>
       <StaffVenueProvider>{children}</StaffVenueProvider>
     </RivrDataProvider>
   );
-  const { result } = renderHook(() => ({ staff: useStaffVenue(), auth: useAuthStatus(), signOut: useSignOut() }), { wrapper });
-  return { result, calls };
+  return renderHook(() => useStaffVenue(), { wrapper });
 }
 
 afterEach(cleanup);
 
 describe('the console venue', () => {
   it('is the club, with what the role allows, until the staff member switches to the practice venue', async () => {
-    const { result } = renderStaff({ '/rest/v1/staff': { body: [PRACTICE_ROW, CLUB_ROW] } });
+    const { result } = renderStaff({ body: [PRACTICE_ROW, CLUB_ROW] });
 
-    await waitFor(() => expect(result.current.staff.status).toBe('ready'));
+    await waitFor(() => expect(result.current.status).toBe('ready'));
     const ready = () => {
-      const { staff } = result.current;
-      if (staff.status !== 'ready') throw new Error(`expected ready, got ${staff.status}`);
-      return staff;
+      if (result.current.status !== 'ready') throw new Error(`expected ready, got ${result.current.status}`);
+      return result.current;
     };
     expect(ready().venue).toMatchObject({ venueId: 'v1', venueName: 'RIVR Gurugram', isPractice: false, fullName: 'Sana Qureshi', role: 'cashier' });
     expect(ready().venue.permissions).toContain('cage.transact');
@@ -64,24 +58,12 @@ describe('the console venue', () => {
   });
 
   it('is nobody\'s for someone who is not active staff', async () => {
-    const { result } = renderStaff({ '/rest/v1/staff': { body: [] } });
-    await waitFor(() => expect(result.current.staff.status).toBe('not-staff'));
+    const { result } = renderStaff({ body: [] });
+    await waitFor(() => expect(result.current.status).toBe('not-staff'));
   });
 
   it('says so when the staff list cannot load', async () => {
-    const { result } = renderStaff({ '/rest/v1/staff': { status: 500, body: { message: 'down' } } });
-    await waitFor(() => expect(result.current.staff.status).toBe('error'));
-  });
-});
-
-describe('signing out', () => {
-  it('ends the session on this device', async () => {
-    const { result, calls } = renderStaff({ '/rest/v1/staff': { body: [CLUB_ROW] }, '/auth/v1/logout': { status: 204, body: null } });
-    await waitFor(() => expect(result.current.auth).toBe('signed-in'));
-
-    await act(() => result.current.signOut.mutateAsync());
-
-    await waitFor(() => expect(result.current.auth).toBe('signed-out'));
-    expect(calls.find((url) => url.includes('/auth/v1/logout'))).toContain('scope=local');
+    const { result } = renderStaff({ status: 500, body: { message: 'down' } });
+    await waitFor(() => expect(result.current.status).toBe('error'));
   });
 });

@@ -42,18 +42,22 @@ export const WithError: Story = {
 
 export const KillSwitchBanner: Story = { args: { banner: <Banner audience="staff" /> } };
 
-/** The foot of the rail as the console fills it: the staff member, the practice switch, sign out. */
-export const WithStaff: Story = {
-  args: {
-    railFooter: (
-      <Stack gap={3}>
-        <Stack gap={1}>
-          <Text weight="medium">Sana Qureshi</Text>
-          <Text variant="small" tone="muted">RIVR Gurugram</Text>
-        </Stack>
-        <Switch label="Practice venue" isOn={false} onChange={() => undefined} />
-        <Button variant="secondary">Sign out</Button>
+/** The foot of the rail as the console fills it: the staff member, the venue, the practice switch, sign out. */
+function staffFooter(name: string, venue: string) {
+  return (
+    <Stack gap={3}>
+      <Stack gap={1}>
+        <Text weight="medium">{name}</Text>
+        <Text variant="small" tone="muted">{venue}</Text>
       </Stack>
-    ),
-  },
+      <Switch label="Practice venue" isOn={false} onChange={() => undefined} />
+      <Button variant="secondary">Sign out</Button>
+    </Stack>
+  );
+}
+
+export const WithStaff: Story = { args: { railFooter: staffFooter('Sana Qureshi', 'RIVR Gurugram') } };
+
+export const WithStaffLongText: Story = {
+  args: { railFooter: staffFooter('Venkataraghavan Subramaniam-Krishnamurthy', 'RIVR Gurugram, Upper floor, Glaza, M3M 65th Avenue') },
 };

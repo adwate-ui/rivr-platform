@@ -1,4 +1,5 @@
-import { createRivrClient, RivrDataProvider, StaffVenueProvider } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
+import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +11,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** Stores a session as the client keeps one after sign-in (under sb-<host>-auth-token), for Sana, a cashier. */
+/** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Sana, a cashier. */
 function signIn() {
   const session = {
     access_token: 'test',
@@ -20,26 +21,26 @@ function signIn() {
     expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000104', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   };
-  localStorage.setItem('sb-127-auth-token', JSON.stringify(session));
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
 }
 
 const CLUB = { id: 's1', venue_id: 'v1', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Gurugram', is_practice: false } };
 const PRACTICE = { id: 's2', venue_id: 'v2', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Practice', is_practice: true } };
 
-/** A fake API: the staff records it is given, and nothing for anything else. */
-function answerStaff(staff: unknown[]) {
+/** A fake API: the staff records it is given (or a failure), and nothing for anything else. */
+function answerStaff(staff: unknown[], status = 200) {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
-    const body = url.includes('/rest/v1/staff') ? staff : [];
-    return new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
+    return url.includes('/rest/v1/staff') ? Response.json(staff, { status }) : Response.json([]);
   });
 }
 
 function renderAt(path: string) {
   // Created after the fetch is faked, so the client uses the fake.
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <RivrDataProvider client={client}>
+    <RivrDataProvider client={client} queryClient={queryClient}>
       <StaffVenueProvider>
         <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: [path] }))} />
       </StaffVenueProvider>
@@ -89,6 +90,15 @@ describe('the console', () => {
     expect(await screen.findByRole('heading', { name: 'Staff only' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
     expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull();
+  });
+
+  it('says so when the staff record cannot load, and still offers sign out', async () => {
+    signIn();
+    answerStaff([], 500);
+    renderAt('/');
+    expect(await screen.findByText('Could not load this. Check the connection and try again.')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
 
   it('says so when a page does not exist', async () => {

@@ -4,7 +4,7 @@
  * is not staff is turned away. Each test uses its own seeded number: Auth sends one code a minute.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { appUrl, VIEWPORT } from '../support/apps.ts';
+import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { SIGN_IN_CODE } from '../support/signIn.ts';
 
 async function signInToConsole(page: Page, number: string) {
@@ -36,6 +36,7 @@ test.describe('Console sign-in', () => {
   });
 
   test('someone who is not staff is turned away, and can sign out', async ({ page }) => {
+    test.skip(isRemoteTarget(), 'signs in with a number that is not seeded, so the local stack only');
     await signInToConsole(page, '9000000903');
     await expect(page.getByRole('heading', { name: 'Staff only' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Sections' })).toHaveCount(0);

@@ -1,6 +1,7 @@
 import type { IndianMobile } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { SESSION_STORAGE_KEY } from './client.ts';
 import { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -47,16 +48,22 @@ export function useSignIn() {
 }
 
 /**
- * Signs out on this device only: the person's other devices stay signed in. Their cached data goes
- * with them, so the next person never sees it.
+ * Signs out on this device only: the person's other devices stay signed in. Everything cached goes
+ * with them, so the next person at a shared computer never sees it.
  */
 export function useSignOut() {
   const { client } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      await client.auth.signOut({ scope: 'local' });
-      queryClient.removeQueries({ queryKey: queryKeys.personal });
+      const { error } = await client.auth.signOut({ scope: 'local' });
+      if (error) {
+        // Offline with an expired token, Auth keeps the session it could not refresh. Drop it from
+        // the browser, then sign out again, which now finds no session and signs out at once.
+        globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
+        await client.auth.signOut({ scope: 'local' });
+      }
+      queryClient.clear();
     },
   });
 }

@@ -1,19 +1,11 @@
-import { useSignOut } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, StepScreen, Text } from '@rivr/ui';
+import { StepScreen, Text } from '@rivr/ui';
+import { SignOutButton } from './SignOutButton.tsx';
 
 /** Someone signed in who is not active staff at any venue: they can only sign out. */
 export function NotStaff() {
-  const signOut = useSignOut();
   return (
-    <StepScreen
-      title={t('console.notStaff.title')}
-      footer={
-        <Button variant="primary" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>
-          {t('common.signIn.signOut')}
-        </Button>
-      }
-    >
+    <StepScreen title={t('console.notStaff.title')} footer={<SignOutButton variant="primary" fullWidth />}>
       <Text>{t('console.notStaff.body')}</Text>
     </StepScreen>
   );

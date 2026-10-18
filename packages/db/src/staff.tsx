@@ -17,12 +17,16 @@ export interface StaffVenue {
   readonly permissions: readonly Permission[];
 }
 
-/** The venues where the signed-in person is active staff: the club first, then the practice venue. */
+/**
+ * The venues where the signed-in person is active staff: the club first, then the practice venue.
+ * Asked again every minute, so someone deactivated loses the console without a reload.
+ */
 export function useStaffVenues() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.staffVenues(userId ?? 'signed-out'),
     enabled: userId !== null,
+    refetchInterval: 60_000,
     queryFn: async (): Promise<StaffVenue[]> => {
       const { data, error } = await client
         .from('staff')
@@ -48,8 +52,11 @@ const PracticeContext = createContext<PracticeChoice | null>(null);
 
 /** Holds whether the console works in the practice venue. Wrap the console in it, inside RivrDataProvider. */
 export function StaffVenueProvider({ children }: { children: ReactNode }) {
+  const { userId } = useRivrData();
   // The user who switched to practice: someone else signing in on this device starts at the club.
   const [practiceFor, setPracticeFor] = useState<string | null>(null);
+  // Signing out ends practice too, so even the same person signs back in at the club.
+  if (userId === null && practiceFor !== null) setPracticeFor(null);
   return <PracticeContext.Provider value={{ practiceFor, setPracticeFor }}>{children}</PracticeContext.Provider>;
 }
 
@@ -72,8 +79,8 @@ export function useStaffVenue(): StaffVenueState {
   const choice = useContext(PracticeContext);
   if (choice === null) throw new Error('useStaffVenue must be used inside StaffVenueProvider');
   const venues = useStaffVenues();
-  if (venues.isError) return { status: 'error', retry: () => void venues.refetch() };
-  if (!venues.data) return { status: 'loading' };
+  // A failed refresh keeps what was known, so the screen and any half-filled form stay.
+  if (venues.data === undefined) return venues.isError ? { status: 'error', retry: () => void venues.refetch() } : { status: 'loading' };
   const club = venues.data.find((venue) => !venue.isPractice);
   const practice = venues.data.find((venue) => venue.isPractice);
   const wantsPractice = userId !== null && choice.practiceFor === userId;

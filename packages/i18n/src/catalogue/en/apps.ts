@@ -91,7 +91,7 @@ export const consoleApp = {
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',
-    body: 'This console is for RIVR staff. This number is not on the staff list; a manager can add it.',
+    body: 'This console is for RIVR staff. A manager can add your number to the staff list.',
   },
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',

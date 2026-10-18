@@ -1,4 +1,4 @@
-export { createRivrClient, type RivrClient, type RivrClientOptions } from './client.ts';
+export { createRivrClient, SESSION_STORAGE_KEY, type RivrClient, type RivrClientOptions } from './client.ts';
 export type { Database } from './database.types.ts';
 export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from './provider.tsx';
 export { useMember, type Member } from './member.ts';
