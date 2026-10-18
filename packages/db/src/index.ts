@@ -4,6 +4,8 @@ export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from '.
 export { useMember, type Member } from './member.ts';
 export { useControlState, useFeature } from './hooks.ts';
 export { useSignIn, type SignInResult } from './signIn.ts';
+export { useSignUp, type SignUpFailure } from './signUp.ts';
+export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
 export {
