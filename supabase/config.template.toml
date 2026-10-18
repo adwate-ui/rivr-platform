@@ -104,6 +104,8 @@ max_frequency = "60s"
 919000000204 = "123456"
 919000000301 = "123456"
 919000000302 = "123456"
+# Not seeded: the code-only sign-in flow signs this number up with a password (e2e, #187).
+919000000901 = "123456"
 
 # Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
 # never reach it. These are placeholders, not credentials; any other number fails locally.
@@ -122,6 +124,11 @@ auth_token = "local-placeholder"
 enabled = true
 uri = "http://host.docker.internal:{{BLOCK}}21/functions/v1/auth-send-code"
 secrets = "{{SEND_SMS_HOOK_SECRET}}"
+
+# Tokens only for code sign-ins (#187): no session from a password, ever.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/private/require_code_sign_in"
 
 [edge_runtime]
 enabled = true

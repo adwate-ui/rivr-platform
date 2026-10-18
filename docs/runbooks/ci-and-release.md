@@ -35,7 +35,7 @@ Variables are plain and visible, so they hold only non-secret values (Settings �
 Auth and API on staging and production, in the Supabase dashboard:
 
 - Turn email sign-up off.
-- Turn phone confirmations on ("Confirm phone"). Without it, Auth confirms a phone at a password sign-up without sending a code, and `link_my_login` refuses such logins anyway.
+- Turn phone confirmations on ("Confirm phone"). Without it, Auth confirms a phone at a password sign-up without sending a code.
 - Set the rate limits from `[auth.rate_limit]` in `supabase/config.template.toml`.
 - Expose only the `public` and `graphql_public` schemas, never `private`.
 - On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number, so a seed sign-in never sends a real SMS. Give them a private code kept outside the repository, never the local `123456`: the seed includes super admins, and anyone who knows the code could sign in as one. Production has no test numbers.
@@ -44,9 +44,10 @@ Auth and API on staging and production, in the Supabase dashboard:
   1. Make sure the `auth-send-code` function is deployed: the staging deploy does it, or a release does for production.
   2. Under Authentication → Hooks, add a **Send SMS** hook of type HTTPS pointing to `https://<project-ref>.supabase.co/functions/v1/auth-send-code`, and generate its secret.
   3. Under Edge Functions → Secrets, set `SEND_SMS_HOOK_SECRET` to that same secret.
-  4. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs the hook in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
-  5. Once WhatsApp is approved:
-     - In Meta's dashboard, approve the authentication template `sign_in_code` in both `en` and `hi`, under exactly those language codes.
+  4. Under Authentication → Hooks, add a **Customize Access Token (JWT) Claims** hook of type Postgres, schema `private`, function `require_code_sign_in` (the migrations create it). It refuses every session not started by a code. Without it, a password set on a number before its owner's first sign-in opens that account (#187).
+  5. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs both hooks in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
+  6. Once WhatsApp is approved:
+     - In Meta's dashboard, approve the authentication template `sign_in_code` in English, under the language code `en` (RIVR is English only, decision 0027).
      - Set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` as function secrets. Use a system user's token scoped to `whatsapp_business_messaging` for this one business account; every function in the project can read the secrets.
      - Until a channel is set, every sign-in except the test numbers is refused.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
