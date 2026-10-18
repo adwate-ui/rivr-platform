@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { indianMobileSchema } from './identity.ts';
 
+/** A one-time sign-in code: six digits, as Auth generates and a person types it. */
+export const signInCodeSchema = z.string().regex(/^\d{6}$/);
+
 /**
  * What Supabase Auth posts to the Send SMS hook (`supabase/functions/auth-send-code`), parsed to
  * the number to send to in E.164 form and the code. Everything else is ignored.
@@ -11,7 +14,7 @@ import { indianMobileSchema } from './identity.ts';
  */
 export const sendSmsHookSchema = z
   .object({
-    sms: z.object({ otp: z.string().regex(/^\d{6}$/), phone: z.string() }),
+    sms: z.object({ otp: signInCodeSchema, phone: z.string() }),
   })
   .transform(({ sms }, context) => {
     // Auth sends the number without the plus; dropping a plus first means either form parses.
