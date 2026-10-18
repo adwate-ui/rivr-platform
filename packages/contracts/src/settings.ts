@@ -33,8 +33,15 @@ const defaultTier = {
   value: z.strictObject({ tier_id: z.uuid() }),
 } as const satisfies SettingDefinition;
 
+const kycMinimumAge = {
+  key: 'kyc.minimum_age',
+  description: 'The age a member must have reached to be verified and to play; never below 18 (scope-v1 module 1, "18+ gate").',
+  scope: 'venue',
+  value: z.strictObject({ years: z.int().min(18).max(25) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier] as const;
+export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];
