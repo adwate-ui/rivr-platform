@@ -9,6 +9,9 @@ import { takeSelfie } from './selfie.ts';
 import { CORS, currentRecord, failed, field, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
 
+// A selfie of at most 2 MB, in base64, and the rest of the body.
+const MAX_BODY_BYTES = 3 * 1024 * 1024;
+
 // Where DigiLocker sends the member back. Fixed here, never taken from the request, so the hand-off
 // cannot be pointed at someone else's page.
 const playerAppUrl = Deno.env.get('PLAYER_APP_URL') ?? '';
@@ -36,7 +39,8 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
   const session = record?.digilocker_session_id;
   if (typeof session !== 'string' || typeof record?.photo_path !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
   if (record.status !== 'started') return reply({ status: record.status });
-  await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: false }, null);
+  // The pull and the face match are paid: they count against the five a day.
+  await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const pulled = await kyc.pullDigiLocker({ sessionId: session });
   if (!pulled.ok && pulled.error.code === 'not_configured') return failed(pulled.error);
   if (!pulled.ok) {
@@ -49,16 +53,20 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
   const status = await rpc('record_kyc_digilocker', {
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
     p_pan: pan, p_address: address, p_vendor_reference: vendorReference, p_name_matches: isSameName(name, fullName),
-    p_face_matches: face.value.isMatch, p_face_match_score: face.value.score,
+    p_face_matches: face.value.isMatch, p_face_match_score: Math.round(face.value.score),
   }, null);
   return reply({ status });
 }
 
-/** The PAN to check, and the date of birth: DigiLocker's when it gave one, else the member's. */
+/**
+ * The PAN to check, and the date of birth: after DigiLocker always DigiLocker's, never one typed in;
+ * after a failed DigiLocker the member's own, which leaves the check for staff.
+ */
 function panInput(record: Record<string, unknown>, body: unknown) {
   const pan = panSchema.safeParse(field(body, 'pan') ?? '');
-  const dateOfBirth = typeof record.date_of_birth === 'string' ? record.date_of_birth : field(body, 'dateOfBirth');
-  if (!pan.success || dateOfBirth === null || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return null;
+  const dateOfBirth = record.method === 'digilocker' ? record.date_of_birth : field(body, 'dateOfBirth');
+  if (typeof dateOfBirth !== 'string') return null;
+  if (!pan.success || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return null;
   return { pan: pan.data, dateOfBirth };
 }
 
@@ -82,20 +90,27 @@ async function checkPan({ memberId, fullName, kyc }: Subject, body: unknown): Pr
   return reply({ status });
 }
 
+/** Runs the step the body names. */
+async function act(subject: Subject, token: string, body: unknown): Promise<Response> {
+  const action = field(body, 'action');
+  if (action === 'selfie') return await takeSelfie(subject, token, body);
+  if (action === 'start') return await start(subject);
+  if (action === 'complete') return await complete(subject);
+  if (action === 'pan') return await checkPan(subject, body);
+  return reply({ error: 'action must be selfie, start, complete or pan' }, 400);
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
+  if (Number(request.headers.get('content-length') ?? '0') > MAX_BODY_BYTES) return reply({ error: 'Too large' }, 413);
   const token = request.headers.get('authorization') ?? '';
-  const body: unknown = await request.json().catch(() => null);
+  // Who is asking before anything else is read.
   const subject = await subjectFor(token);
   if (subject === null) return reply({ error: 'Only a signed-in member has KYC' }, 403);
+  const body: unknown = await request.json().catch(() => null);
   try {
-    const action = field(body, 'action');
-    if (action === 'selfie') return await takeSelfie(subject, token, body);
-    if (action === 'start') return await start(subject);
-    if (action === 'complete') return await complete(subject);
-    if (action === 'pan') return await checkPan(subject, body);
-    return reply({ error: 'action must be selfie, start, complete or pan' }, 400);
+    return await act(subject, token, body);
   } catch (error) {
     return refusal(error);
   }

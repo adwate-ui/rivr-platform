@@ -4,6 +4,7 @@ import { Button, StepScreen, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
 import { KycOutcome } from './KycOutcome.tsx';
+import { KycLoadFailed, KycLoading } from './KycRecordStates.tsx';
 import { SelfieStep } from './SelfieStep.tsx';
 
 /**
@@ -16,13 +17,8 @@ export function KycStartScreen() {
   const { start } = useKycActions();
   const [failure, setFailure] = useState<KycFailure | null>(null);
 
-  if (record.isPending) {
-    return (
-      <StepScreen title={t('player.kyc.title')} footer={null}>
-        <Text tone="muted">{t('common.loading')}</Text>
-      </StepScreen>
-    );
-  }
+  if (record.isPending) return <KycLoading />;
+  if (record.isError) return <KycLoadFailed onRetry={() => void record.refetch()} />;
   if (record.data && record.data.status !== 'started') return <KycOutcome record={record.data} onChecked={() => void record.refetch()} />;
   if (!record.data?.hasSelfie) return <SelfieStep />;
   const begin = async () => {
