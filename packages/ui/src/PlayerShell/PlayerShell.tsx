@@ -1,6 +1,7 @@
 import { useT } from '@rivr/i18n';
 import type { ReactNode } from 'react';
 import { BottomNav, type BottomNavItem, type PlayerTab } from '../BottomNav/BottomNav.tsx';
+import { Icon } from '../Icon/Icon.tsx';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
 
@@ -9,8 +10,8 @@ export interface PlayerShellProps {
   /** The five tabs with each one's access from `useFeature`. */
   tabs: readonly BottomNavItem[];
   currentTab?: PlayerTab | undefined;
-  /** The member's initial, shown top right; it opens Profile. */
-  memberInitial: string;
+  /** The member's initial, shown top right; it opens Profile. A profile icon stands in until it is known. */
+  memberInitial?: string | undefined;
   profileHref: string;
   onNavigate?: Navigate | undefined;
   /** Above everything, for the kill-switch banner. */
@@ -35,7 +36,7 @@ export function PlayerShell({ children, tabs, currentTab, memberInitial, profile
             aria-hidden="true"
             className="flex size-8 items-center justify-center rounded-md border border-hairline bg-raised font-text text-16 font-medium"
           >
-            {memberInitial}
+            {memberInitial ? memberInitial : <Icon name="profile" size="sm" />}
           </span>
         </a>
       </header>

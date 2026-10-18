@@ -30,7 +30,6 @@ export const ui = {
       players: 'Players',
       growth: 'Growth',
       team: 'Team',
-      reports: 'Reports',
     },
     items: {
       liveFloor: 'Live floor',

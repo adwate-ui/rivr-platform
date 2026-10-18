@@ -11,8 +11,11 @@ export interface SideNavItem {
 
 export interface SideNavSection {
   id: string;
-  /** The group heading (Floor, Money...). No icon sits beside it. */
-  label: string;
+  /**
+   * The group heading (Floor, Money...). No icon sits beside it. Leave it out for a section that
+   * is a single link, such as Reports, so the name does not show twice.
+   */
+  label?: string | undefined;
   items: readonly SideNavItem[];
 }
 
@@ -46,10 +49,12 @@ function RailSection({ section, current, onNavigate }: RailSectionProps) {
   const headingId = useId();
   return (
     <div className="flex flex-col gap-1">
-      <p id={headingId} className="px-3 font-text text-13 text-content-muted">
-        {section.label}
-      </p>
-      <ul aria-labelledby={headingId} className="flex flex-col">
+      {section.label ? (
+        <p id={headingId} className="px-3 font-text text-13 text-content-muted">
+          {section.label}
+        </p>
+      ) : null}
+      <ul aria-labelledby={section.label ? headingId : undefined} className="flex flex-col">
         {section.items.map((item) => (
           <li key={item.id}>
             <a

@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Screen } from '../Screen/Screen.tsx';
 import { PLAYER_TABS } from '../storybook/fixtures.ts';
-import { FrozenBanner, TablesList } from '../storybook/screens.tsx';
+import { KillSwitchBanner as Banner } from '../KillSwitchBanner/KillSwitchBanner.tsx';
+import { TablesList } from '../storybook/screens.tsx';
 import { PlayerShell } from './PlayerShell.tsx';
 
 const meta = {
@@ -37,7 +38,9 @@ export const WithError: Story = {
   args: { currentTab: 'balance', children: <Screen title="Balance" status="error" onRetry={() => undefined} /> },
 };
 
-export const KillSwitchBanner: Story = { args: { banner: <FrozenBanner /> } };
+export const KillSwitchBanner: Story = { args: { banner: <Banner audience="member" /> } };
+
+export const BeforeSignIn: Story = { args: { memberInitial: undefined } };
 
 export const LockedTab: Story = {
   args: {
@@ -49,7 +52,7 @@ export const Hindi: Story = {
   globals: { locale: 'hi' },
   args: {
     memberInitial: 'आ',
-    banner: <FrozenBanner locale="hi" />,
+    banner: <Banner audience="member" />,
     children: (
       <Screen title="आज रात">
         <TablesList locale="hi" />

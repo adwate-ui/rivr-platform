@@ -19,13 +19,11 @@ const TABLES = [
 
 const COPY = {
   en: {
-    seatsOpen: (count: number) => `${count} seats open`,
-    frozen: 'Venue frozen. Buy-ins and cash-outs are paused.',
+    seatsOpen: (count: number) => (count === 1 ? '1 seat open' : `${count} seats open`),
     offline: 'Offline. 3 hands queued.',
   },
   hi: {
-    seatsOpen: (count: number) => `${count} सीटें खाली`,
-    frozen: 'वेन्यू रोका गया है। बाय-इन और कैश-आउट रुके हैं।',
+    seatsOpen: (count: number) => (count === 1 ? '1 सीट खाली' : `${count} सीटें खाली`),
     offline: 'ऑफ़लाइन। 3 हाथ कतार में।',
   },
 };
@@ -48,20 +46,6 @@ export function TablesList({ locale = 'en' }: { locale?: Locale }) {
         </li>
       ))}
     </Stack>
-  );
-}
-
-/** The kill-switch banner as the shells' banner slot will hold it. */
-export function FrozenBanner({ locale = 'en' }: { locale?: Locale }) {
-  return (
-    <Box surface="alert" paddingX={4} paddingY={2}>
-      <Inline gap={2}>
-        <Icon name="alert" size="sm" />
-        <Text variant="small" tone="onAlert" weight="medium">
-          {COPY[locale].frozen}
-        </Text>
-      </Inline>
-    </Box>
   );
 }
 

@@ -18,7 +18,8 @@ export function consoleSections(locale: Locale = 'en'): SideNavSection[] {
     { id: 'players', label: t('ui.consoleRail.groups.players'), items: [item('members'), item('kycReview'), item('hostQueue')] },
     { id: 'growth', label: t('ui.consoleRail.groups.growth'), items: [item('promotions'), item('jackpots'), item('rewards'), item('academy')] },
     { id: 'team', label: t('ui.consoleRail.groups.team'), items: [item('staff'), item('dealers'), item('sops')] },
-    { id: 'reports', label: t('ui.consoleRail.groups.reports'), items: [item('reports')] },
+    // Reports is a single link, so it has no heading of its own.
+    { id: 'reports', items: [item('reports')] },
   ];
 }
 

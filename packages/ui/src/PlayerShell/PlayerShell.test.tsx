@@ -30,6 +30,17 @@ describe('PlayerShell', () => {
     expect(onNavigate).toHaveBeenCalledWith('/profile');
   });
 
+  it('shows a profile icon, not an empty tile, before the member is known', () => {
+    const { container } = renderIn(
+      <PlayerShell tabs={PLAYER_TABS} currentTab="home" profileHref="/profile">
+        <h1>Tonight</h1>
+      </PlayerShell>,
+    );
+    const profile = screen.getByRole('link', { name: 'Profile' });
+    expect(profile).toHaveTextContent('');
+    expect(container.querySelector('a[href="/profile"] svg')).toBeInTheDocument();
+  });
+
   it('shows the banner first, before the profile link in focus order', async () => {
     renderShell();
     expect(screen.getByText('Venue frozen.')).toBeInTheDocument();

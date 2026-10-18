@@ -14,10 +14,16 @@ const sections: SideNavSection[] = [
     ],
   },
   { id: 'money', label: 'Money', items: [{ id: 'cage', label: 'Cage', href: '#cage' }] },
-  { id: 'reports', label: 'Reports', items: [{ id: 'reports', label: 'Reports', href: '#reports' }] },
+  { id: 'reports', items: [{ id: 'reports', label: 'Reports', href: '#reports' }] },
 ];
 
 describe('SideNav', () => {
+  it('shows a section without a heading as its links alone, so Reports appears once', () => {
+    renderIn(<SideNav label="Sections" sections={sections} />);
+    expect(screen.getAllByText('Reports')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Reports' })).toBeInTheDocument();
+  });
+
   it('is a named navigation landmark with one list per section, named by its heading', () => {
     renderIn(<SideNav label="Sections" sections={sections} />);
     const nav = screen.getByRole('navigation', { name: 'Sections' });

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../Button/Button.tsx';
 import { Stack } from '../Stack/Stack.tsx';
-import { FrozenBanner } from '../storybook/screens.tsx';
+import { KillSwitchBanner as Banner } from '../KillSwitchBanner/KillSwitchBanner.tsx';
 import { Text } from '../Text/Text.tsx';
 import { DriverShell } from './DriverShell.tsx';
 
@@ -35,7 +35,7 @@ export const Default: Story = {};
 
 export const Empty: Story = { args: { footer: undefined, children: <Text tone="muted">No pickups yet.</Text> } };
 
-export const WithBanner: Story = { args: { banner: <FrozenBanner /> } };
+export const WithBanner: Story = { args: { banner: <Banner audience="staff" /> } };
 
 export const LongText: Story = {
   args: { children: pickup('Aarav M. and two guests', 'Tower B lobby, DLF The Crest, Sector 54, Golf Course Road · 22:40 · drop at RIVR') },

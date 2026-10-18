@@ -26,7 +26,6 @@ export const ui: Messages<typeof en> = {
       players: 'खिलाड़ी',
       growth: 'ग्रोथ',
       team: 'टीम',
-      reports: 'रिपोर्ट',
     },
     items: {
       liveFloor: 'लाइव फ़्लोर',
