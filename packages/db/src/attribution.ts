@@ -1,4 +1,5 @@
-import { attributionFrom, type Attribution } from '@rivr/contracts';
+// The module itself, not the package index, which would put Zod on the player app's first screen.
+import { attributionFrom, attributionSearch, type Attribution } from '@rivr/contracts/attribution';
 
 // The first link with codes the player opened, kept in this browser until useSignUp carries it.
 // Sign-up happens in the browser the link opened in; the app is installed after it (#16), so the
@@ -22,7 +23,9 @@ function readStored(): { search: string; firstSeenAt: string } | null {
 export function storedAttribution(now = new Date()): SignUpAttribution | null {
   try {
     const stored = readStored();
-    if (stored === null || now.getTime() - Date.parse(stored.firstSeenAt) > KEEP_FOR_MS) return null;
+    const age = now.getTime() - Date.parse(stored.firstSeenAt);
+    // A time that does not read (NaN) counts as expired.
+    if (stored === null || !(age <= KEEP_FOR_MS)) return null;
     const codes = attributionFrom(stored.search);
     return codes ? { ...codes, firstSeenAt: stored.firstSeenAt } : null;
   } catch {
@@ -36,9 +39,11 @@ export function storedAttribution(now = new Date()): SignUpAttribution | null {
  * touch). The player app calls it once at start, with `window.location.search`.
  */
 export function rememberAttribution(search: string, now = new Date()): void {
-  if (attributionFrom(search) === null || storedAttribution(now) !== null) return;
+  const codes = attributionFrom(search);
+  if (codes === null || storedAttribution(now) !== null) return;
   try {
-    localStorage.setItem(KEY, JSON.stringify({ search, firstSeenAt: now.toISOString() }));
+    // Only the codes: anything else the link carried (a lead id, a number) is never kept.
+    localStorage.setItem(KEY, JSON.stringify({ search: attributionSearch(codes), firstSeenAt: now.toISOString() }));
   } catch {
     // Storage blocked: nothing to keep.
   }

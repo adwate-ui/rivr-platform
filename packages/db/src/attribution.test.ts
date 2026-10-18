@@ -13,6 +13,16 @@ describe('attribution kept until sign-up', () => {
     expect(storedAttribution(OCT_17)).toEqual({ referral: 'FRIEND1', utmSource: 'instagram', firstSeenAt: '2026-10-17T10:00:00.000Z' });
   });
 
+  it('keeps the codes alone, nothing else the link carried', () => {
+    rememberAttribution('?ref=FRIEND1&lead=98765', OCT_17);
+    expect(JSON.parse(localStorage.getItem('rivr.attribution') ?? '{}')).toMatchObject({ search: 'ref=FRIEND1' });
+  });
+
+  it('treats a stored time that does not read as expired', () => {
+    localStorage.setItem('rivr.attribution', JSON.stringify({ search: 'ref=X', firstSeenAt: 'not a time' }));
+    expect(storedAttribution(OCT_17)).toBeNull();
+  });
+
   it('ignores a link without codes', () => {
     rememberAttribution('?tab=home', OCT_17);
     expect(storedAttribution(OCT_17)).toBeNull();

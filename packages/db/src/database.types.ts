@@ -509,14 +509,14 @@ isOneToOne: false
                   ]
                 },"sign_up_attribution": {
                   Row: {
-                    "created_at": string,"creator_code": string | null,"first_seen_at": string | null,"member_id": string,"referral_code": string | null,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null,"utm_term": string | null,"venue_id": string
+                    "created_at": string,"creator_code": string | null,"first_seen_at": string | null,"id": string,"member_id": string,"referral_code": string | null,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null,"utm_term": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"creator_code"?: string | null,"first_seen_at"?: string | null,"member_id": string,"referral_code"?: string | null,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null,"utm_term"?: string | null,"venue_id": string
+                    "created_at"?: string,"creator_code"?: string | null,"first_seen_at"?: string | null,"id"?: string,"member_id": string,"referral_code"?: string | null,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null,"utm_term"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"creator_code"?: string | null,"first_seen_at"?: string | null,"member_id"?: string,"referral_code"?: string | null,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null,"utm_term"?: string | null,"venue_id"?: string
+                    "created_at"?: string,"creator_code"?: string | null,"first_seen_at"?: string | null,"id"?: string,"member_id"?: string,"referral_code"?: string | null,"updated_at"?: string,"utm_campaign"?: string | null,"utm_content"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null,"utm_term"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {

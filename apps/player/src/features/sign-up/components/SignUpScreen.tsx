@@ -7,10 +7,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const nameForm = z.object({ fullName: z.string().trim().min(2).max(100) });
+// The name as on Aadhaar, in English letters, as the database requires.
+const nameForm = z.object({ fullName: z.string().trim().min(2).max(100).regex(/^[A-Za-z][A-Za-z .'-]*$/) });
 
 const FAILURE_COPY: Readonly<Record<SignUpFailure, MessageKey>> = {
   invalid_name: 'player.signUp.nameInvalid',
+  staff: 'player.signUp.staff',
   stopped: 'player.signUp.stopped',
   unavailable: 'player.signUp.unavailable',
 };

@@ -21,6 +21,16 @@ export type Attribution = Partial<Record<AttributionField, string>>;
 // the same rule (public.attribution_code).
 const CODE = /^[A-Za-z0-9 _.+-]{1,64}$/;
 
+/** The codes as a query string, for a link that hands the player on, or for keeping them alone. */
+export function attributionSearch(attribution: Attribution): string {
+  const params = new URLSearchParams();
+  for (const [field, param] of ATTRIBUTION_PARAMS) {
+    const value = attribution[field];
+    if (value) params.set(param, value);
+  }
+  return params.toString();
+}
+
 /** The codes in a query string, or null when it carries none. A malformed code is dropped. */
 export function attributionFrom(search: string): Attribution | null {
   const params = new URLSearchParams(search);
