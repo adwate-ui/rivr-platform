@@ -1,4 +1,4 @@
-import { err, ok, type Result } from '@rivr/contracts';
+import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 import { useRivrData } from './provider.tsx';
