@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { RivrClient } from './client.ts';
+import { queryKeys } from './queryKeys.ts';
 
 interface RivrData {
   readonly client: RivrClient;
@@ -10,12 +11,13 @@ interface RivrData {
 
 const RivrDataContext = createContext<RivrData | null>(null);
 
-// Tables whose changes alter what the signed-in person may do, and the cached query they affect.
-const LIVE_TABLES: ReadonlyArray<readonly [table: string, queryName: string]> = [
-  ['tier_feature', 'feature-access'],
-  ['member_feature_override', 'feature-access'],
-  ['member', 'feature-access'],
-  ['control_state', 'control-state'],
+// Tables whose changes alter what the signed-in person may do, and the cached query each one makes
+// stale. Keys come from queryKeys, so renaming a key cannot silently stop live updates.
+const TABLES_THAT_CHANGE_ACCESS: ReadonlyArray<readonly [table: string, staleQuery: (userId: string) => readonly string[]]> = [
+  ['tier_feature', queryKeys.featureAccess],
+  ['member_feature_override', queryKeys.featureAccess],
+  ['member', queryKeys.featureAccess],
+  ['control_state', queryKeys.controlState],
 ];
 
 function useSessionUserId(client: RivrClient): string | null {
@@ -34,9 +36,9 @@ function useLiveUpdates(client: RivrClient, userId: string | null): void {
   useEffect(() => {
     if (userId === null) return undefined;
     const channel = client.channel(`rivr-live-${userId}`);
-    for (const [table, queryName] of LIVE_TABLES) {
+    for (const [table, staleQuery] of TABLES_THAT_CHANGE_ACCESS) {
       channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['user', userId, queryName] });
+        void queryClient.invalidateQueries({ queryKey: staleQuery(userId) });
       });
     }
     channel.subscribe();
@@ -46,6 +48,7 @@ function useLiveUpdates(client: RivrClient, userId: string | null): void {
   }, [client, queryClient, userId]);
 }
 
+// A component only so the hook runs inside QueryClientProvider, where useQueryClient works.
 function LiveUpdates({ client, userId }: RivrData) {
   useLiveUpdates(client, userId);
   return null;

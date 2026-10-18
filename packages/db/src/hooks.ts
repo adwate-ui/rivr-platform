@@ -11,6 +11,7 @@ import { queryKeys } from './queryKeys.ts';
  */
 export function useFeature(key: FeatureKey | LearnSourceFeatureKey): FeatureAccess {
   const { client, userId } = useRivrData();
+  // Signed out, the query is disabled; 'signed-out' only gives the key a value.
   const { data } = useQuery({
     queryKey: queryKeys.featureAccess(userId ?? 'signed-out'),
     enabled: userId !== null,
