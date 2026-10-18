@@ -66,6 +66,20 @@ select throws_ok($$ update public.control_state set reason = 'rewritten' where l
   '42501', null, 'a released control cannot change');
 select throws_ok($$ delete from public.control_state $$, '42501', null, 'controls are never deleted');
 
+-- Access revoke: Sana (104, cashier) loses access at Gurugram at once, and keeps the practice venue.
+insert into public.control_state (venue_id, level, staff_id, reason)
+select '00000000-0000-4000-8000-000000000001', 'access_revoke', s.id, 'Left the club'
+from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000104' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
+select ok(not private.has_permission('00000000-0000-4000-8000-000000000001', 'cage.transact'),
+  'a revoked cashier holds no permission at that venue');
+select is((select count(*) from public.ledger_entry where venue_id = '00000000-0000-4000-8000-000000000001')::int, 0,
+  'and reads none of its ledger');
+select ok(private.has_permission('00000000-0000-4000-8000-000000000002', 'cage.transact'),
+  'the revoke is for one venue');
+reset role;
+
 -- Outbox: idempotent emit; practice-venue events never offered; messaging holds during a stop.
 select is(private.emit('00000000-0000-4000-8000-000000000001', 'visit.closed', '{}', 'visit-1'),
           private.emit('00000000-0000-4000-8000-000000000001', 'visit.closed', '{}', 'visit-1'),
@@ -80,8 +94,14 @@ insert into public.control_state (venue_id, level, reason)
 values ('00000000-0000-4000-8000-000000000001', 'messaging_stop', 'Wrong template');
 select is_empty($$ select * from public.claim_outbox_deliveries('whatsapp', array['visit.closed'], true) $$,
   'messaging consumers hold while a messaging stop is engaged');
+select is_empty($$ select * from public.claim_outbox_deliveries('social', array['visit.closed']) $$,
+  'a consumer that does not say it sends nothing to people holds too');
 select isnt_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
   'other consumers carry on');
+-- The tally consumer dies holding its delivery; once the lock expires it is offered again.
+update public.outbox_delivery set locked_until = now() - interval '1 second' where consumer = 'tally';
+select isnt_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
+  'a delivery whose lock expired is claimed again');
 select lives_ok(
   $$ select public.finish_outbox_delivery((select id from public.outbox_delivery where consumer = 'feedback'), true) $$,
   'a consumer marks its delivery done');

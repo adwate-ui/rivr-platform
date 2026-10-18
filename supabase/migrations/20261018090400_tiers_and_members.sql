@@ -68,12 +68,55 @@ as $$
   select m.venue_id from public.member m where m.user_id = (select auth.uid());
 $$;
 
+-- Links the signed-in login to the staff and member records registered under its verified
+-- phone that have no login yet. Apps call public.link_my_login() after every sign-in. This is
+-- the only way a login reaches a record: clients cannot write staff.user_id or member.user_id.
+create function private.link_my_login()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  verified_phone text := (select '+' || u.phone from auth.users u
+                          where u.id = (select auth.uid()) and u.phone_confirmed_at is not null);
+begin
+  if verified_phone is null then return; end if;
+  -- One staff record per venue, so each venue's record links separately.
+  update public.staff s set user_id = (select auth.uid())
+  where s.user_id is null and s.phone = verified_phone
+    and not exists (select 1 from public.staff o where o.venue_id = s.venue_id and o.user_id = (select auth.uid()));
+  -- A login is one member, so it links the oldest unlinked record and only if it has none.
+  update public.member m set user_id = (select auth.uid())
+  where m.id = (select o.id from public.member o
+                where o.user_id is null and o.phone = verified_phone
+                order by o.created_at limit 1)
+    and not exists (select 1 from public.member o where o.user_id = (select auth.uid()));
+end;
+$$;
+
+create function public.link_my_login()
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select private.link_my_login();
+$$;
+
 grant execute on function private.current_member_id(), private.current_member_venue_id() to authenticated, service_role;
+grant execute on function private.link_my_login(), public.link_my_login() to authenticated;
 
 alter table public.tier enable row level security;
 alter table public.member enable row level security;
 grant select, insert, update on public.tier to authenticated;
-grant select, insert, update on public.member to authenticated;
+-- No client writes member.user_id (see link_my_login) or changes a member's phone, which is
+-- their sign-in: a phone change is a lane C function that verifies the new number.
+grant select on public.member to authenticated;
+grant insert (venue_id, full_name, phone, tier_id, qualifying_small_blind, qualifying_big_blind, preferred_language)
+  on public.member to authenticated;
+grant update (full_name, tier_id, qualifying_small_blind, qualifying_big_blind, preferred_language)
+  on public.member to authenticated;
 
 create policy "members see their own venue" on public.venue
   for select to authenticated

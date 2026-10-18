@@ -4,10 +4,16 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Behind hosted Supabase, Cloudflare sets cf-connecting-ip; the client writes X-Forwarded-For.
+set local request.headers = '{"x-forwarded-for": "203.0.113.9, 10.0.0.1", "cf-connecting-ip": "198.51.100.7"}';
+select is(private.request_ip(), '198.51.100.7'::inet, 'the audit log takes the address Cloudflare saw, not the one the client claims');
+set local request.headers = '{"x-forwarded-for": "203.0.113.9, 10.0.0.1"}';
+select is(private.request_ip(), '203.0.113.9'::inet, 'the local stack has no Cloudflare and falls back to X-Forwarded-For');
+
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
 insert into public.staff (venue_id, full_name, job_title, role)
-values ('00000000-0000-4000-8000-000000000001', 'Audited Hire', 'Dealer', 'dealer');
+values ('00000000-0000-4000-8000-000000000001', 'Audited Hire', 'Host', 'host');
 reset role;
 
 select is(

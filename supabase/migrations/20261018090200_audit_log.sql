@@ -58,7 +58,8 @@ set search_path = ''
 as $$
   insert into public.audit_log (venue_id, actor_user_id, device_id, ip, action, entity, entity_id, before, after, reason)
   values (
-    p_venue_id, (select auth.uid()), private.request_device_id(), private.request_ip(),
+    -- The device is the enrolled device signed in as this login, never a header the client sends.
+    p_venue_id, (select auth.uid()), private.current_device_id(), private.request_ip(),
     p_action, p_entity, p_entity_id, p_before, p_after,
     coalesce(p_reason, nullif(current_setting('rivr.audit_reason', true), ''))
   );

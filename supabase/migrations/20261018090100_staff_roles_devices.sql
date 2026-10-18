@@ -125,6 +125,9 @@ create index device_enrolled_by_staff_id_idx on public.device (enrolled_by_staff
 create trigger device_touch_updated_at before update on public.device
   for each row execute function private.touch_updated_at();
 
+-- The four helpers below (venues_where, staff_venues, current_staff_id, current_device_id) are
+-- redefined in the control_state migration to ignore revoked staff and devices.
+--
 -- Venues where the caller is active staff holding a permission. Policies use
 --   venue_id in (select private.venues_where('members.read'))
 -- so the lookup runs once per query rather than once per row.
@@ -187,8 +190,24 @@ as $$
   where d.auth_user_id = (select auth.uid()) and d.revoked_at is null;
 $$;
 
+-- True when the caller may give a staff member this role at the venue: a super_admin may give
+-- any role; anyone else only a role whose every permission they hold themselves. So an admin
+-- cannot create an owner_view login to read the audit log.
+create function private.can_grant_role(p_venue_id uuid, p_role public.staff_role)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.has_permission(p_venue_id, 'venue.configure')
+      or not exists (select 1 from public.role_permission rp
+                     where rp.role = p_role and not private.has_permission(p_venue_id, rp.permission));
+$$;
+
 grant execute on function private.venues_where(text), private.staff_venues(),
-  private.has_permission(uuid, text), private.current_staff_id(uuid), private.current_device_id()
+  private.has_permission(uuid, text), private.current_staff_id(uuid), private.current_device_id(),
+  private.can_grant_role(uuid, public.staff_role)
   to authenticated, service_role;
 
 -- Row-level security. Default deny; each policy names who may do what.
@@ -198,8 +217,14 @@ alter table public.staff_credential enable row level security;
 alter table public.device enable row level security;
 
 grant select on public.role_permission to authenticated;
-grant select, insert, update on public.staff to authenticated;
-grant select, insert, update on public.device to authenticated;
+-- Logins (staff.user_id, device.auth_user_id) are never written by a client: a staff login is
+-- linked by private.link_my_login() from the verified phone, a device login by its enrolment
+-- (lane A). Otherwise a manager could point someone else's record at their own login.
+grant select on public.staff, public.device to authenticated;
+grant insert (venue_id, full_name, job_title, role, phone, is_active) on public.staff to authenticated;
+grant update (full_name, job_title, role, phone, is_active) on public.staff to authenticated;
+grant insert (venue_id, kind, name, enrolled_by_staff_id) on public.device to authenticated;
+grant update (name, revoked_at, revoked_reason) on public.device to authenticated;
 -- staff_credential: no grants. Only security-definer functions read or write PINs.
 
 create policy "staff read the role matrix" on public.role_permission
@@ -218,23 +243,24 @@ create policy "staff see their colleagues" on public.staff
   for select to authenticated
   using (venue_id in (select private.staff_venues()));
 
--- Only a super_admin (venue.configure) may create, change or promote a super_admin.
+-- A manager adds or changes only staff whose role they could grant (can_grant_role), before
+-- and after the change. Only a super_admin creates, changes or promotes a super_admin.
 create policy "staff managers add staff" on public.staff
   for insert to authenticated
   with check (
     venue_id in (select private.venues_where('staff.manage'))
-    and (role <> 'super_admin' or venue_id in (select private.venues_where('venue.configure')))
+    and private.can_grant_role(venue_id, role)
   );
 
 create policy "staff managers change staff" on public.staff
   for update to authenticated
   using (
     venue_id in (select private.venues_where('staff.manage'))
-    and (role <> 'super_admin' or venue_id in (select private.venues_where('venue.configure')))
+    and private.can_grant_role(venue_id, role)
   )
   with check (
     venue_id in (select private.venues_where('staff.manage'))
-    and (role <> 'super_admin' or venue_id in (select private.venues_where('venue.configure')))
+    and private.can_grant_role(venue_id, role)
   );
 
 create policy "staff see the venue's devices" on public.device

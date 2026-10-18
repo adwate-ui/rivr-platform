@@ -324,15 +324,29 @@ create trigger member_open_accounts after insert on public.member
 
 -- Balances: the sum of entries. natural_balance is positive for an account's normal side
 -- (assets and expenses debit, everything else credit), so a member's cash shows as a positive amount.
+-- The view reads ledger_account under the caller's row-level security, so it lists only the
+-- accounts they may see; the definer function then sums every entry of each one. A member whose
+-- tier hides their points history (the entries) still sees the right points balance.
+create function private.account_balance(p_account_id uuid)
+returns bigint
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(sum(e.amount), 0)::bigint from public.ledger_entry e where e.account_id = p_account_id;
+$$;
+
+grant execute on function private.account_balance(uuid) to authenticated;
+
 create view public.ledger_balance
 with (security_invoker = true)
 as
 select a.id as account_id, a.venue_id, a.code, a.name, a.kind, a.unit, a.member_id,
-       coalesce(sum(e.amount), 0)::bigint as balance,
-       (coalesce(sum(e.amount), 0) * case when a.kind in ('asset', 'expense') then 1 else -1 end)::bigint as natural_balance
+       b.balance,
+       b.balance * case when a.kind in ('asset', 'expense') then 1 else -1 end as natural_balance
 from public.ledger_account a
-left join public.ledger_entry e on e.account_id = a.id
-group by a.id;
+cross join lateral (select private.account_balance(a.id) as balance) b;
 
 -- Chip denominations: the smallest chip is ₹50, so every denomination is a multiple of 5000 paise.
 create table public.chip_denomination (
@@ -362,11 +376,15 @@ create policy "members see their accounts; ledger staff see the venue's" on publ
   for select to authenticated
   using (member_id = (select private.current_member_id()) or venue_id in (select private.venues_where('ledger.read')));
 
+-- A member's points movements are the gated feature rewards.points_history; their balance is not.
 create policy "members see their entries; ledger staff see the venue's" on public.ledger_entry
   for select to authenticated
   using (
     venue_id in (select private.venues_where('ledger.read'))
-    or account_id in (select a.id from public.ledger_account a where a.member_id = (select private.current_member_id()))
+    or account_id in (
+      select a.id from public.ledger_account a
+      where a.member_id = (select private.current_member_id())
+        and (a.unit <> 'points' or private.has_feature(a.member_id, 'rewards.points_history')))
   );
 
 -- The subquery reads ledger_entry under its own policy above, so a member matches only the

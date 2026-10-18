@@ -45,12 +45,20 @@ set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", 
 select is((select count(*) from public.member)::int, 0, 'a dealer sees no members');
 select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, 9,
   'a dealer sees her colleagues');
+select throws_ok($$ select bank_account_number from public.venue_config $$, '42501', null,
+  'a dealer cannot read the bank details');
+select is((select count(*) from public.venue_config)::int, 2, 'but reads what documents show');
 
 -- Aditya, an admin (staff.manage, not venue.configure).
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
 select lives_ok(
+  $$ insert into public.staff (venue_id, full_name, job_title, role) values ('00000000-0000-4000-8000-000000000001', 'New Host', 'Host', 'host') $$,
+  'an admin adds a host, whose permissions she holds'
+);
+select throws_ok(
   $$ insert into public.staff (venue_id, full_name, job_title, role) values ('00000000-0000-4000-8000-000000000001', 'New Cashier', 'Cashier', 'cashier') $$,
-  'an admin adds a cashier'
+  '42501', null,
+  'an admin cannot add a cashier: the cage is a permission she does not hold'
 );
 select throws_ok(
   $$ insert into public.staff (venue_id, full_name, job_title, role) values ('00000000-0000-4000-8000-000000000001', 'Usurper', 'Owner', 'super_admin') $$,
@@ -69,6 +77,26 @@ select is((select count(*) from public.staff where role = 'super_admin' and job_
 update public.venue_config set invoice_prefix = 'HACK' where venue_id = '00000000-0000-4000-8000-000000000001';
 select is((select invoice_prefix from public.venue_config where venue_id = '00000000-0000-4000-8000-000000000001'), 'RIVR',
   'an admin cannot change the venue configuration');
+select is((select count(*) from public.venue_config_detail)::int, 0, 'nor read its bank details and IP allowlist');
+
+-- Nobody takes over a login by editing records: logins link only through link_my_login().
+select throws_ok(
+  $$ update public.member set user_id = '00000000-0000-4000-8000-000000000103' where id = '00000000-0000-4000-8000-000000000201' $$,
+  '42501', null, 'an admin cannot point a member''s record at her own login');
+select throws_ok(
+  $$ update public.member set phone = '+919000000990' where id = '00000000-0000-4000-8000-000000000201' $$,
+  '42501', null, 'staff cannot change the phone a member signs in with');
+select throws_ok(
+  $$ update public.staff set user_id = '00000000-0000-4000-8000-000000000103' where role = 'cashier' $$,
+  '42501', null, 'an admin cannot point a staff record at her own login');
+select throws_ok(
+  $$ insert into public.device (venue_id, kind, name, auth_user_id)
+     values ('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2', '00000000-0000-4000-8000-000000000103') $$,
+  '42501', null, 'no client binds a device to a login');
+select throws_ok(
+  $$ insert into public.staff (venue_id, full_name, job_title, role, phone)
+     values ('00000000-0000-4000-8000-000000000001', 'Second phone', 'Investor', 'owner_view', '+919000000990') $$,
+  '42501', null, 'an admin cannot create a role holding a permission she lacks (owner_view reads the audit log)');
 
 -- Vikram, a super_admin.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
@@ -79,6 +107,7 @@ select lives_ok(
 update public.venue_config set invoice_prefix = 'RIVRG' where venue_id = '00000000-0000-4000-8000-000000000001';
 select is((select invoice_prefix from public.venue_config where venue_id = '00000000-0000-4000-8000-000000000001'), 'RIVRG',
   'a super_admin changes the venue configuration');
+select is((select count(*) from public.venue_config_detail)::int, 2, 'and reads all of it at both his venues');
 
 -- Arjun, a member.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
@@ -93,6 +122,19 @@ set local role anon;
 select results_eq($$ select slug from public.public_venue order by slug $$, $$ values ('elsewhere'), ('gurugram') $$,
   'the public sees real venues, never the practice venue');
 select throws_ok($$ select * from public.venue $$, '42501', null, 'the public cannot read the venue table');
+
+-- A cashier registered by phone links her login the first time she signs in.
+reset role;
+insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e3', 'authenticated', 'authenticated',
+        '919000000997', now(), now(), now());
+insert into public.staff (venue_id, full_name, job_title, role, phone)
+values ('00000000-0000-4000-8000-000000000001', 'Linked Cashier', 'Cashier', 'cashier', '+919000000997');
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000e3", "role": "authenticated"}';
+select is((select count(*) from public.staff)::int, 0, 'before linking, a new login is nobody');
+select lives_ok($$ select public.link_my_login() $$, 'she links her login');
+select ok((select count(*) from public.staff where full_name = 'Linked Cashier') = 1, 'and is staff at her venue from then on');
 
 -- The matrix itself refuses to give a super_admin-only permission to any other role.
 reset role;

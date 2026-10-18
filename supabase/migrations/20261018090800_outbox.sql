@@ -76,10 +76,13 @@ grant execute on function private.emit(uuid, text, jsonb, text) to service_role;
 
 -- A consumer's next batch, locked for five minutes. Practice-venue events are never offered to any
 -- consumer, and messaging consumers hold while a messaging stop is engaged. Service role only.
+-- p_is_messaging defaults to true so a consumer that forgets it holds rather than sends; only
+-- consumers that send nothing to people (Tally, Meta Conversions API) pass false.
+-- A delivery whose consumer died mid-batch is offered again once its lock expires.
 create function public.claim_outbox_deliveries(
   p_consumer text,
   p_event_types text[],
-  p_is_messaging boolean default false,
+  p_is_messaging boolean default true,
   p_limit integer default 20
 )
 returns table (delivery_id uuid, event_id uuid, venue_id uuid, event_type text, payload jsonb, attempts integer)
@@ -103,7 +106,8 @@ begin
     select d.id from public.outbox_delivery d
     join public.venue v on v.id = d.venue_id and not v.is_practice
     where d.consumer = p_consumer
-      and d.status in ('pending', 'failed') and d.attempts < 10
+      and (d.status in ('pending', 'failed') or (d.status = 'processing' and d.locked_until < now()))
+      and d.attempts < 10
       and d.available_at <= now() and (d.locked_until is null or d.locked_until < now())
       and not (p_is_messaging and private.is_messaging_stopped(d.venue_id))
     order by d.available_at

@@ -14,6 +14,11 @@ alter default privileges for role postgres revoke execute on functions from publ
 alter default privileges for role postgres in schema public revoke all on functions from anon, authenticated;
 alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated;
 alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated;
+-- Supabase also leaves service_role TRUNCATE, TRIGGER, REFERENCES and MAINTAIN on new tables. A
+-- leaked service key must not wipe a table, so it gets nothing by default: Edge Functions work
+-- through security-definer functions, or a lane grants exactly what one needs.
+alter default privileges for role postgres in schema public revoke all on tables from service_role;
+alter default privileges for role postgres in schema public revoke all on sequences from service_role;
 
 -- Keeps updated_at current on every table that has one.
 create function private.touch_updated_at()
@@ -27,7 +32,10 @@ begin
 end;
 $$;
 
--- The caller's IP address from the API gateway, for the audit log. Null outside an API request.
+-- The caller's IP address, for the audit log. Null outside an API request. Hosted Supabase sits
+-- behind Cloudflare, which overwrites cf-connecting-ip with the real client address, so a client
+-- cannot forge it. The first X-Forwarded-For entry is whatever the client sent; it is used only
+-- when cf-connecting-ip is absent, which is the local stack (docs/decisions/0022).
 create function private.request_ip()
 returns inet
 language plpgsql
@@ -35,24 +43,10 @@ stable
 set search_path = ''
 as $$
 declare
-  forwarded text := split_part(
-    coalesce(current_setting('request.headers', true)::json ->> 'x-forwarded-for', ''), ',', 1);
+  headers json := current_setting('request.headers', true)::json;
+  address text := coalesce(headers ->> 'cf-connecting-ip', split_part(coalesce(headers ->> 'x-forwarded-for', ''), ',', 1));
 begin
-  return nullif(trim(forwarded), '')::inet;
-exception when invalid_text_representation then
-  return null;
-end;
-$$;
-
--- The enrolled device the request came from, sent by the apps as x-rivr-device-id.
-create function private.request_device_id()
-returns uuid
-language plpgsql
-stable
-set search_path = ''
-as $$
-begin
-  return nullif(current_setting('request.headers', true)::json ->> 'x-rivr-device-id', '')::uuid;
+  return nullif(trim(address), '')::inet;
 exception when invalid_text_representation then
   return null;
 end;

@@ -5,11 +5,15 @@
 # docs/engineering/stack.md, "Security checks in CI".
 set -euo pipefail
 
-SPLINTER_VERSION=2026.09.1
+# splinter 2026.09.1, pinned by commit and checksum: a moved tag cannot change what runs here.
+# To upgrade, resolve the new tag's commit and recompute the checksum of its splinter.sql.
+SPLINTER_COMMIT=e74a9e36cb12258cb67d1464bc1cb196e9cd8446
+SPLINTER_SHA256=d8d558baad3e03832e521c527907fa50a9a172fabd899dd0f5c2504a5a0e9349
 root="$(git rev-parse --show-toplevel)"
 container="supabase_db_$(basename "$root" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')"
 splinter="$(mktemp)"
-curl -fsSL "https://raw.githubusercontent.com/supabase/splinter/${SPLINTER_VERSION}/splinter.sql" -o "$splinter"
+curl -fsSL "https://raw.githubusercontent.com/supabase/splinter/${SPLINTER_COMMIT}/splinter.sql" -o "$splinter"
+echo "${SPLINTER_SHA256}  ${splinter}" | sha256sum --check --quiet
 
 # splinter.sql is a setup block (`set local` and a `do $$ ... end $$;`) followed by one query.
 # Run the setup, store the query's rows in a temp table, and keep only security findings.

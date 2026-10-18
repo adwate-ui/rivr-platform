@@ -11,9 +11,11 @@ Four lanes build in parallel from 19 Oct: A money, B floor, C member and web, D 
 
 - **Tables.** A lane creates and migrates only the tables it owns. Every table follows `.claude/rules/database.md`: `venue_id`, timestamps, RLS with default deny, grants, pgTAP tests including another venue and the practice venue. `supabase/tests/001_schema_rules.test.sql` fails a table that forgets.
 - **Calling another lane.** A lane calls another lane only through the functions in that lane's contract, never by reading or writing its tables. Function signatures in a contract are stable; a change goes through a `question` issue.
-- **Money.** Every rupee moves through `private.post_ledger_transaction` with an idempotency key, using the account codes in [the chart of accounts](#chart-of-accounts). Write functions call `private.assert_writable` first. Money rules live in `@rivr/domain`; when SQL computes money it has a golden test against domain.
+- **Money.** Every rupee moves through `private.post_ledger_transaction` with an idempotency key, using the account codes in [the chart of accounts](#chart-of-accounts). Its `p_feature` argument has no default: pass the kill switch that stops the movement (`withdrawals`, `credit`...) or `null` when none does. The ledger refuses postings during a venue freeze, a switched-off `p_feature`, or a member freeze on any member account in the lines. A retry must repeat the original exactly; a key reused for different lines is refused (`23505`). Write functions still call `private.assert_writable` first, before any other write. Money rules live in `@rivr/domain`; when SQL computes money it has a golden test against domain.
 - **Events.** A business event writes one `outbox_event` row through `private.emit` in the same transaction. Event types are `area.past_tense` (`hand.logged`). The emitting lane lists them in its contract; consumers list what they consume.
-- **Member-facing features.** Each has a key in `packages/contracts/src/features.ts` (and a migration inserting it), a `FeatureGate` in the app, and `private.has_feature` in its policies and write functions.
+- **Member-facing features.** Each has a key in `packages/contracts/src/features.ts` (and a migration inserting it), a `FeatureGate` in the app, and `private.has_feature` in its policies and write functions. The member side of a read policy checks the feature too: a gated history (sessions, points) is hidden in the database, not only on screen.
+- **Logins.** No client writes `staff.user_id`, `member.user_id` or `device.auth_user_id`. Apps call `public.link_my_login()` after every sign-in; it links the records registered under the login's verified phone. A device login is bound by its enrolment (lane A, service role). A member's phone changes only through a lane C function that verifies the new number.
+- **Access revoke.** An engaged `access_revoke` removes the staff member or device from every access helper at once, so no policy or write check needs to look for it.
 - **Settings.** Rules that change over time are setting keys (`packages/contracts/src/settings.ts` and a migration), read with `private.setting_at(venue, key, subject, at)` at the transaction's own time.
 - **Apps.** A lane owns the feature folders listed in its contract, in whichever app they sit. Shared files (an app's `router.tsx`, `packages/ui/src/index.ts`, catalogue `index.ts` files) take one-line additions; rebase rather than reformat them.
 - **Copy.** Each feature area gets its own catalogue namespace file in `packages/i18n/src/catalogue/{en,hi}/`, registered in both `index.ts` files.
@@ -23,15 +25,15 @@ Four lanes build in parallel from 19 Oct: A money, B floor, C member and web, D 
 
 | Area | Tables | Functions |
 |---|---|---|
-| Venues | `venue`, `venue_config` | `private.bootstrap_venue` (operations only) |
-| Staff and access | `staff`, `staff_credential`, `role_permission`, `device` | `private.venues_where(permission)`, `private.staff_venues()`, `private.has_permission(venue, permission)`, `private.current_staff_id(venue)`, `private.current_device_id()` |
-| Members and tiers | `member`, `tier` | `private.current_member_id()`, `private.current_member_venue_id()` |
+| Venues | `venue`, `venue_config` | `private.bootstrap_venue` (operations only), view `venue_config_detail` (bank details, IP allowlist and alert number; super admins only) |
+| Staff and access | `staff`, `staff_credential`, `role_permission`, `device` | `private.venues_where(permission)`, `private.staff_venues()`, `private.has_permission(venue, permission)`, `private.current_staff_id(venue)`, `private.current_device_id()`, `private.can_grant_role(venue, role)` |
+| Members and tiers | `member`, `tier` | `private.current_member_id()`, `private.current_member_venue_id()`, `public.link_my_login()` |
 | Tier-gated features | `feature`, `tier_feature`, `member_feature_override` | `private.has_feature(member, key)`, `private.feature_state(member, key)`, `public.my_feature_access()` |
 | Settings | `setting_key`, `setting` | `private.setting_at(venue, key, subject, at)` |
 | Audit | `audit_log` | `private.audit(...)`, trigger `private.audit_row_change()` |
 | Kill switch | `control_state` | `private.assert_writable(venue, feature?, member?)` (refusals `RVFRZ`, `RVKIL`, `RVMBR`), `private.is_messaging_stopped(venue)` |
-| Outbox | `outbox_event`, `outbox_delivery` | `private.emit(venue, type, payload, key?)`, `public.claim_outbox_deliveries(...)`, `public.finish_outbox_delivery(...)` |
-| Ledger | `ledger_account`, `ledger_transaction`, `ledger_entry`, `chip_denomination` | `private.post_ledger_transaction(...)`, `private.reverse_ledger_transaction(...)`, view `ledger_balance` |
+| Outbox | `outbox_event`, `outbox_delivery` | `private.emit(venue, type, payload, key?)`, `public.claim_outbox_deliveries(consumer, types, is_messaging = true, limit)` (a consumer that sends nothing to people passes `false`), `public.finish_outbox_delivery(...)` |
+| Ledger | `ledger_account`, `ledger_transaction`, `ledger_entry`, `chip_denomination` | `private.post_ledger_transaction(venue, kind, key, lines, feature, memo?, reverses?)`, `private.reverse_ledger_transaction(transaction, key, reason)`, view `ledger_balance` (full balances of the accounts the caller may see) |
 | Public surfaces | views `public_venue`, `public_venue_status` | |
 
 Packages: `@rivr/contracts`, `@rivr/domain` (money, ledger), `@rivr/db` (`useFeature`, `useControlState`, the client and provider), `@rivr/ui`, `@rivr/i18n`, `@rivr/adapters`, `@rivr/offline`, `@rivr/render`, `@rivr/testing`, `@rivr/drills`.

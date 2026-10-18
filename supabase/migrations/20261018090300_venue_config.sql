@@ -30,11 +30,35 @@ create trigger venue_config_audit after insert or update or delete on public.ven
   for each row execute function private.audit_row_change();
 
 alter table public.venue_config enable row level security;
-grant select, update on public.venue_config to authenticated;
+-- Every staff member reads what documents and the cage show. Bank details, the IP allowlist and
+-- the alert number are not granted to clients; super admins read them through venue_config_detail.
+grant select (venue_id, legal_name, gstin, address, upi_payee_name, upi_vpa, invoice_prefix, logo_path, created_at, updated_at)
+  on public.venue_config to authenticated;
+grant update on public.venue_config to authenticated;
 
 create policy "staff read their venue's configuration" on public.venue_config
   for select to authenticated
   using (venue_id in (select private.staff_venues()));
+
+-- Full rows for super admins (venue.configure).
+create function private.venue_config_detail_rows()
+returns setof public.venue_config
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.* from public.venue_config c where c.venue_id in (select private.venues_where('venue.configure'));
+$$;
+
+grant execute on function private.venue_config_detail_rows() to authenticated;
+
+create view public.venue_config_detail
+with (security_invoker = true)
+as
+select * from private.venue_config_detail_rows();
+
+grant select on public.venue_config_detail to authenticated;
 
 create policy "super admins change the configuration" on public.venue_config
   for update to authenticated

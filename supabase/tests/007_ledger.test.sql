@@ -129,11 +129,18 @@ select throws_ok(
   $$ insert into public.chip_denomination (venue_id, value_paise, name) values ('00000000-0000-4000-8000-000000000001', 7500, '₹75') $$,
   '23514', null, 'every chip is a multiple of ₹50');
 
--- Who sees what.
+-- Who sees what. Arjun's points history is switched off for him, so his points entries hide
+-- while his points balance still shows.
+insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', 'rewards.points_history', false, 'Test');
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select is((select count(*) from public.ledger_account)::int, 4, 'a member sees his four accounts');
 select is((select natural_balance from public.ledger_balance where code = 'member.cash'), 18500000::bigint, 'and his cash balance');
+select is((select count(*) from public.ledger_entry e join public.ledger_account a on a.id = e.account_id where a.unit = 'points')::int, 0,
+  'his points history is hidden when his tier does not have it');
+select is((select natural_balance from public.ledger_balance where code = 'member.points'), 18420::bigint,
+  'but his points balance is still right');
 select is((select count(*) from public.ledger_entry e join public.ledger_account a on a.id = e.account_id where a.member_id <> '00000000-0000-4000-8000-000000000201')::int, 0,
   'he sees no one else''s entries');
 select throws_ok(

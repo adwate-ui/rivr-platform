@@ -82,6 +82,8 @@ create trigger control_state_release_only before update on public.control_state
   for each row execute function private.control_state_release_only();
 create trigger control_state_no_delete before delete on public.control_state
   for each row execute function private.refuse_change();
+create trigger control_state_no_truncate before truncate on public.control_state
+  for each statement execute function private.refuse_change();
 create trigger control_state_audit after insert or update on public.control_state
   for each row execute function private.audit_row_change();
 
@@ -115,6 +117,63 @@ begin
     raise exception 'member_frozen' using errcode = 'RVMBR';
   end if;
 end;
+$$;
+
+-- Access revoke ends a staff member's or a device's access at once (features, "Kill switch").
+-- The access helpers from the staff migration are redefined here, now that control_state
+-- exists, to ignore anyone with an engaged revoke. Every policy and write check goes through them.
+create or replace function private.venues_where(p_permission text)
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select s.venue_id
+  from public.staff s
+  join public.role_permission rp on rp.role = s.role
+  where s.user_id = (select auth.uid()) and s.is_active and rp.permission = p_permission
+    and not exists (select 1 from public.control_state c
+                    where c.level = 'access_revoke' and c.staff_id = s.id and c.released_at is null);
+$$;
+
+create or replace function private.staff_venues()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select s.venue_id from public.staff s
+  where s.user_id = (select auth.uid()) and s.is_active
+    and not exists (select 1 from public.control_state c
+                    where c.level = 'access_revoke' and c.staff_id = s.id and c.released_at is null);
+$$;
+
+create or replace function private.current_staff_id(p_venue_id uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select s.id from public.staff s
+  where s.user_id = (select auth.uid()) and s.venue_id = p_venue_id and s.is_active
+    and not exists (select 1 from public.control_state c
+                    where c.level = 'access_revoke' and c.staff_id = s.id and c.released_at is null);
+$$;
+
+create or replace function private.current_device_id()
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select d.id from public.device d
+  where d.auth_user_id = (select auth.uid()) and d.revoked_at is null
+    and not exists (select 1 from public.control_state c
+                    where c.level = 'access_revoke' and c.device_id = d.id and c.released_at is null);
 $$;
 
 -- True while outbound messages for the venue must hold.

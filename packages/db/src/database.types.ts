@@ -606,6 +606,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"venue_config_detail": {
+                  Row: {
+                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"staff_ip_allowlist": (unknown)[] | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Functions: {
@@ -616,6 +624,9 @@ isOneToOne: false
                            },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
+                           },
+"link_my_login":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "my_feature_access":
 { Args: Record<PropertyKey, never>; Returns: {
