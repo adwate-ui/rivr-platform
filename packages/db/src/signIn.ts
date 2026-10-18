@@ -1,4 +1,5 @@
-import { err, ok, type IndianMobile, type Result } from '@rivr/contracts';
+import type { IndianMobile } from '@rivr/contracts';
+import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 import { useRivrData } from './provider.tsx';

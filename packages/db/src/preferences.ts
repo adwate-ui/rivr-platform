@@ -1,4 +1,6 @@
-import { err, ok, type Result } from '@rivr/contracts';
+// From the result module alone: the package index builds every Zod schema, which the player app's
+// first screen does not need (#11).
+import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
