@@ -1,6 +1,7 @@
 import { usePreferences } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
+import { AcademySection } from './AcademySection.tsx';
 import { GamesSection } from './GamesSection.tsx';
 import { IdentitySection } from './IdentitySection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
@@ -9,7 +10,8 @@ import { SignOutSection } from './SignOutSection.tsx';
 
 /**
  * Profile, behind the member's initial (design prompt, "Profile"): the identity check, the games for
- * waitlist alerts, notifications and promotions, the way to limits and self-exclusion, and sign out.
+ * waitlist alerts, notifications and promotions, the way to any Academy seats, the way to limits and
+ * self-exclusion, and sign out.
  */
 export function ProfileScreen() {
   const preferences = usePreferences();
@@ -33,6 +35,7 @@ export function ProfileScreen() {
         <IdentitySection />
         <GamesSection preferences={preferences.data} />
         <NotificationsSection preferences={preferences.data} />
+        <AcademySection />
         <ResponsiblePlaySection />
         <SignOutSection />
       </Stack>

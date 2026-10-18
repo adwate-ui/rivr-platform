@@ -1,12 +1,31 @@
 import type { AcademyBooking } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
-import { bookingStatus } from './bookingStatus.ts';
+import { bookingStatus, holdLine } from './bookingStatus.ts';
 
-const seat = { id: 'k1', batchId: 'b1', batchName: 'Level 1', startsOn: '2026-11-15', endsOn: '2026-11-17', amount: 200000n };
+// Held until 15:30 IST on Tuesday 20 October.
+const HOLD_UNTIL = '2026-10-20T10:00:00+00:00';
+const seat = { id: 'k1', batchId: 'b1', batchName: 'Level 1', startsOn: '2026-11-15', endsOn: '2026-11-17', amount: 200000n, holdUntil: HOLD_UNTIL };
 
 function booking(status: AcademyBooking['status'], utr: string | null, turnedDownUtr: string | null): AcademyBooking {
   return { ...seat, status, utr, turnedDownUtr };
 }
+
+describe('holdLine', () => {
+  it('says until when an unpaid seat is held, in IST', () => {
+    expect(holdLine(booking('awaiting_payment', null, null), new Date('2026-10-19T10:00:00Z'))).toBe('Pay by Tuesday 20 Oct 2026, 15:30.');
+  });
+
+  it('says the seat is no longer held once the time has passed, and that paying still seats them', () => {
+    expect(holdLine(booking('awaiting_payment', null, null), new Date('2026-10-20T10:00:01Z'))).toBe(
+      'Your seat is no longer held, so it may go to another member. Paying now still seats you.',
+    );
+  });
+
+  it('says nothing once a UTR is given or the seat is paid', () => {
+    expect(holdLine({ ...booking('payment_claimed', '412345678902', null), holdUntil: null }, new Date('2026-10-19T10:00:00Z'))).toBeNull();
+    expect(holdLine({ ...booking('paid', '412345678902', null), holdUntil: null }, new Date('2026-10-19T10:00:00Z'))).toBeNull();
+  });
+});
 
 describe('bookingStatus', () => {
   it('says where a seat stands, with the UTR given', () => {
