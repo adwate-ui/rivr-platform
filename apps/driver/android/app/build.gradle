@@ -7,7 +7,7 @@ android {
         applicationId "club.rivr.driver"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // A release tag release-20261115-1 builds versionName release-20261115-1 and versionCode 202611151.
+        // A release tag release-20261115-1 builds versionName release-20261115-1 and versionCode 2026111501 (YYYYMMDD * 100 + N).
         versionCode Integer.parseInt(System.getenv('RIVR_VERSION_CODE') ?: '1')
         versionName System.getenv('RIVR_VERSION_NAME') ?: '0.0.0-dev'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

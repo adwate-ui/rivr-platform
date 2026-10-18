@@ -10,6 +10,8 @@ project_id = "{{PROJECT_ID}}"
 [api]
 enabled = true
 port = {{BLOCK}}21
+# Never add "private": its security-definer helpers (account_balance, venues_where...) trust
+# that only policies, views and other functions call them (docs/decisions/0019).
 schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000

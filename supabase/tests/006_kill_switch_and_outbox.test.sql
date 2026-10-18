@@ -102,6 +102,13 @@ select isnt_empty($$ select * from public.claim_outbox_deliveries('tally', array
 update public.outbox_delivery set locked_until = now() - interval '1 second' where consumer = 'tally';
 select isnt_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
   'a delivery whose lock expired is claimed again');
+-- It dies again on its tenth and last attempt: the next claim marks it failed, so the owner's
+-- alert on failed deliveries sees it instead of it sitting in processing for good.
+update public.outbox_delivery set attempts = 10, locked_until = now() - interval '1 second' where consumer = 'tally';
+select is_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
+  'a delivery out of attempts is not offered again');
+select is((select status::text from public.outbox_delivery where consumer = 'tally'), 'failed',
+  'and is marked failed');
 select lives_ok(
   $$ select public.finish_outbox_delivery((select id from public.outbox_delivery where consumer = 'feedback'), true) $$,
   'a consumer marks its delivery done');

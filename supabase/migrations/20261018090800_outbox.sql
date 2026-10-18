@@ -101,6 +101,13 @@ begin
   where e.event_type = any (p_event_types) and e.occurred_at > now() - interval '30 days'
   on conflict (event_id, consumer) do nothing;
 
+  -- A consumer that died on the last allowed attempt left its delivery processing. Mark it failed
+  -- so the alert on failed deliveries (lane A) sees it instead of it waiting for good.
+  update public.outbox_delivery d
+  set status = 'failed', locked_until = null,
+      last_error = coalesce(d.last_error, 'the consumer stopped during its last attempt')
+  where d.consumer = p_consumer and d.status = 'processing' and d.attempts >= 10 and d.locked_until < now();
+
   return query
   with ready as (
     select d.id from public.outbox_delivery d
