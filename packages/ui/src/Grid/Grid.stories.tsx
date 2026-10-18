@@ -31,8 +31,3 @@ export const LongText: Story = {
     ],
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: { children: ['टेबल 1', 'टेबल 2', 'टेबल 3', 'टेबल 4', 'टेबल 5', 'प्राइवेट रूम'].map(cell) },
-};

@@ -43,10 +43,10 @@ export function Balance({ cashPaise }: { cashPaise: bigint }) {
 
 ## Working on it
 
-- `pnpm storybook --filter ui` starts Storybook on `RIVR_STORYBOOK_PORT` (default 6006). The toolbar switches English and Hindi; "Tokens / Design tokens" is the design-system reference.
+- `pnpm storybook --filter ui` starts Storybook on `RIVR_STORYBOOK_PORT` (default 6006). "Tokens / Design tokens" is the design-system reference.
 - `pnpm test --filter ui` runs Testing Library and axe checks in jsdom.
 - `pnpm --filter @rivr/ui build-storybook`, then `pnpm visual` compares every story with `visual/baselines/` inside the Playwright container (`docs/decisions/0009`). `pnpm visual -- --update` accepts changes; review the PNG diff in the PR.
-- New component: follow `.claude/skills/new-ui-component/SKILL.md`. One folder per component with `Name.tsx`, `Name.stories.tsx` (default, loading, empty, error, long text, Hindi where they apply), `Name.test.tsx` and `index.ts`, exported from `src/index.ts`.
+- New component: follow `.claude/skills/new-ui-component/SKILL.md`. One folder per component with `Name.tsx`, `Name.stories.tsx` (default, loading, empty, error, long text), `Name.test.tsx` and `index.ts`, exported from `src/index.ts`.
 
 ## Must not
 

@@ -34,10 +34,3 @@ export const LongText: Story = {
     ],
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    children: [<Text key="1">टेबल 1 · 50/100</Text>, <Text key="2">टेबल 2 · 100/200</Text>, <Text key="3">प्राइवेट रूम · 1,000/2,000</Text>],
-  },
-};

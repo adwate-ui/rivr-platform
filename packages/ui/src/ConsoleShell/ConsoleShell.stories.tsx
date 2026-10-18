@@ -37,16 +37,3 @@ export const WithError: Story = {
 };
 
 export const KillSwitchBanner: Story = { args: { banner: <Banner audience="staff" /> } };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    sections: consoleSections('hi'),
-    banner: <Banner audience="staff" />,
-    children: (
-      <Screen title="लाइव फ़्लोर">
-        <TablesList locale="hi" />
-      </Screen>
-    ),
-  },
-};

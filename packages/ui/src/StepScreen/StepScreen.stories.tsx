@@ -80,19 +80,3 @@ export const LongText: Story = {
     back: { label: 'Back to the mobile number', onBack: () => undefined },
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    title: 'कोड',
-    back: { label: 'वापस', onBack: () => undefined },
-    children: (
-      <Input label="कोड" variant="code" inputMode="numeric" placeholder="6 अंक" hint="+91 98110 42817 पर भेजा गया" />
-    ),
-    footer: (
-      <Button variant="primary" fullWidth>
-        पुष्टि करें
-      </Button>
-    ),
-  },
-};

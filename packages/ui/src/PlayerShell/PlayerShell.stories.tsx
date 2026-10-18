@@ -47,16 +47,3 @@ export const LockedTab: Story = {
     tabs: PLAYER_TABS.map((item) => (item.tab === 'learn' ? { ...item, access: { state: 'locked', tiers: ['Black card'] } } : item)),
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    memberInitial: 'आ',
-    banner: <Banner audience="member" />,
-    children: (
-      <Screen title="आज रात">
-        <TablesList locale="hi" />
-      </Screen>
-    ),
-  },
-};

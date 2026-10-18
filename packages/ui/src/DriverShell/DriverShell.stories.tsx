@@ -40,16 +40,3 @@ export const WithBanner: Story = { args: { banner: <Banner audience="staff" /> }
 export const LongText: Story = {
   args: { children: pickup('Aarav M. and two guests', 'Tower B lobby, DLF The Crest, Sector 54, Golf Course Road · 22:40 · drop at RIVR') },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    title: 'पिकअप',
-    footer: (
-      <Button variant="primary" fullWidth>
-        पहुँच गए
-      </Button>
-    ),
-    children: pickup('आरव एम.', 'सेक्टर 65 · 22:40'),
-  },
-};

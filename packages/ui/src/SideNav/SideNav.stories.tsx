@@ -35,5 +35,3 @@ export const LongText: Story = {
     ],
   },
 };
-
-export const Hindi: Story = { globals: { locale: 'hi' }, args: { label: 'सेक्शन', sections: consoleSections('hi') } };

@@ -30,15 +30,6 @@ export const LongText: Story = {
   },
 };
 
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    label: 'UTR नंबर',
-    hint: 'बैंक ऐप से 12 अंकों का रेफ़रेंस।',
-    error: 'UTR नहीं मिला। नंबर जाँचें और फिर से कोशिश करें।',
-  },
-};
-
 /** The sign-in number: an underline with the country code fixed in front. */
 export const LineWithPrefix: Story = {
   args: { label: 'Mobile number', hint: undefined, type: 'tel', inputMode: 'tel', variant: 'line', prefix: '+91', defaultValue: '98110 42817' },
@@ -57,14 +48,4 @@ export const Code: Story = {
 
 export const CodeWithError: Story = {
   args: { ...Code.args, defaultValue: '482913', error: 'Code expired. Request a new one.' },
-};
-
-export const CodeHindi: Story = {
-  globals: { locale: 'hi' },
-  args: { ...Code.args, label: 'कोड', hint: '+91 98110 42817 पर भेजा गया', placeholder: '6 अंक', defaultValue: '482913' },
-};
-
-export const LineHindi: Story = {
-  globals: { locale: 'hi' },
-  args: { label: 'मोबाइल नंबर', hint: undefined, type: 'tel', variant: 'line', prefix: '+91', defaultValue: '98110 42817' },
 };

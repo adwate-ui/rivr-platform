@@ -34,14 +34,3 @@ export const LongText: Story = {
     ),
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    children: (
-      <Text>
-        सदस्य RIVR पोकर क्लब के नियमों के तहत खेलते हैं। वेटलिस्ट से बुलाई गई सीट पंद्रह मिनट तक रखी जाती है। एक हाथ में एक खिलाड़ी।
-      </Text>
-    ),
-  },
-};

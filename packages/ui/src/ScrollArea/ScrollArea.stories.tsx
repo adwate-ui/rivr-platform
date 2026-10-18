@@ -47,8 +47,3 @@ export const LongText: Story = {
     ),
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: { label: 'लेन-देन', children: <Stack gap={3}>{rows('बाय-इन', 20)}</Stack> },
-};

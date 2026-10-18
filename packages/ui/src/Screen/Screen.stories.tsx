@@ -44,17 +44,3 @@ export const LongText: Story = {
     onRetry: () => undefined,
   },
 };
-
-export const Hindi: Story = {
-  globals: { locale: 'hi' },
-  args: {
-    title: 'बैलेंस',
-    actions: <Button variant="primary">निकासी</Button>,
-    children: (
-      <Inline justify="between">
-        <Text>नकद</Text>
-        <Money paise={12_000_000n} tone="player" size="lead" />
-      </Inline>
-    ),
-  },
-};

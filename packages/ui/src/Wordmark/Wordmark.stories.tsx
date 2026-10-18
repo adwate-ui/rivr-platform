@@ -15,9 +15,5 @@ export const WithTagline: Story = { args: { withTagline: true } };
 
 export const Large: Story = { args: { size: 'lg', withTagline: true } };
 
-export const Hindi: Story = { globals: { locale: 'hi' }, args: { size: 'lg', withTagline: true } };
-
 /** The sign-in lockup: centred, with the motto. */
 export const SignIn: Story = { args: { size: 'lg', withTagline: true, withMotto: true, align: 'center' } };
-
-export const SignInHindi: Story = { globals: { locale: 'hi' }, args: { size: 'lg', withTagline: true, withMotto: true, align: 'center' } };
