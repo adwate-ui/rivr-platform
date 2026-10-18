@@ -31,7 +31,7 @@ export const playerApp = {
   kyc: {
     title: 'Identity',
     intro: 'We check your identity with a selfie and DigiLocker. We keep your photo, masked Aadhaar, PAN, date of birth and address, and nothing else.',
-    selfieIntro: 'First, a selfie. Face the camera in good light, without glasses or a cap.',
+    selfieIntro: 'First, a selfie. Hold the phone at eye level, face inside the frame.',
     takeSelfie: 'Take a selfie',
     notLive: 'We could not use that photo. Face the camera in good light and try again.',
     digilockerIntro: 'Your selfie is in. Next, DigiLocker shares your Aadhaar and PAN with us. We keep the masked Aadhaar only.',
