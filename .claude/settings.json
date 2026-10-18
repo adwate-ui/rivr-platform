@@ -1,0 +1,81 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(git rebase origin/main)",
+      "Bash(git fetch*)",
+      "Bash(gh pr *)",
+      "Bash(gh run *)",
+      "Bash(jq *)",
+      "Bash(gh issue *)",
+      "Bash(gh api repos/*/statuses/*)",
+      "Bash(git switch -c task/*)",
+      "Bash(git push -u origin task/*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push origin main*)",
+      "Bash(git reset --hard*)",
+      "Bash(supabase db push*)",
+      "Bash(supabase link*)",
+      "Bash(*--linked*)",
+      "Bash(*rivr-prod*)",
+      "Bash(wrangler deploy*)",
+      "Bash(wrangler pages deploy*)",
+      "Bash(rm -rf /*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Bash(git push -u origin main*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(gh pr merge --admin*)",
+      "Bash(pnpm supabase db push*)",
+      "Bash(pnpm supabase link*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-write.sh",
+            "args": []
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-file.sh",
+            "args": []
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-verify.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}
