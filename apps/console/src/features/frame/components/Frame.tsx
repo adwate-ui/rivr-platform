@@ -1,5 +1,5 @@
 import { useControlState } from '@rivr/db';
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { ConsoleShell, KillSwitchBanner, type SideNavSection } from '@rivr/ui';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
@@ -9,7 +9,6 @@ import type { ReactNode } from 'react';
  * exist; each lane adds its items as it builds them, and lane A filters the rail by staff role.
  */
 export function Frame({ children }: { children: ReactNode }) {
-  const t = useT();
   const { isVenueFrozen } = useControlState();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });

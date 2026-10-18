@@ -6,8 +6,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 
 | Export | What it does |
 |---|---|
-| `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. Works anywhere: components, Astro pages, Edge Functions, render templates, tests. |
-| `useT()` | Returns `t`, for components written before #186. The next part of #186 replaces it with `t`. |
+| `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. The one way to get copy, anywhere: components, Astro pages, Edge Functions, render templates, tests. |
 | `formatMoney(paise)` | `₹1,20,000`. Indian grouping, no decimals on whole rupees, never rounded, `−₹1,000` for negatives. |
 | `formatNumber(n)` | `18,420`. |
 | `formatStakes(small, big)` | Blinds in paise to `100/200`. |
@@ -21,10 +20,9 @@ Every word a member or staff user reads, and the one formatter for money, number
 ## Usage
 
 ```tsx
-import { formatMoney, useT } from '@rivr/i18n';
+import { formatMoney, t } from '@rivr/i18n';
 
 function LockedLine({ tiers }: { tiers: string }) {
-  const t = useT();
   return <Text>{t('common.featureLocked', { tiers })}</Text>; // "Black card only."
 }
 

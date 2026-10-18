@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
 import { Spade } from 'lucide-react';
 import { cx } from '../internal/classes.ts';
@@ -32,7 +32,6 @@ const ALIGN = { start: 'items-start', center: 'items-center' } as const;
  * cream spade. The one place a filled shape and the red card appear.
  */
 export function Wordmark({ size = 'md', withTagline = false, withMotto = false, align = 'start' }: WordmarkProps) {
-  const t = useT();
   const tile = cx('flex items-center justify-center', TILE[size]);
   const mark = (
     <div role="img" aria-label={t('ui.brand.label')} className={cx('inline-flex flex-col gap-2', ALIGN[align])}>

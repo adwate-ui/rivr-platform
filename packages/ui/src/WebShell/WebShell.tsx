@@ -1,4 +1,4 @@
-import { useT } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
@@ -24,7 +24,6 @@ export interface WebShellProps {
  * footer. Astro pages render it inside `body` and add only document elements around it.
  */
 export function WebShell({ children, links, homeHref = '/', footer, onNavigate }: WebShellProps) {
-  const t = useT();
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       <header className="border-b border-hairline">
