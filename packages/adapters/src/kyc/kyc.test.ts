@@ -19,6 +19,22 @@ describe('fake KYC', () => {
     expect(kyc.calls.map((call) => call.method)).toEqual(['startDigiLocker']);
   });
 
+  it('gives each member their own PAN and Aadhaar reference, so practice members never look like duplicates', async () => {
+    const other = memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3f');
+    const pulled = await Promise.all(
+      [memberId, other].map(async (id) => {
+        const kyc = createFakeKyc();
+        const session = await kyc.startDigiLocker({ memberId: id, returnUrl });
+        return session.ok ? kyc.pullDigiLocker({ sessionId: session.value.sessionId }) : session;
+      }),
+    );
+    const [first, second] = pulled.map((result) => (result.ok ? result.value : null));
+
+    expect(first?.pan).toMatch(/^ABCP[A-Z][0-9]{4}[A-Z]$/);
+    expect(first?.pan).not.toBe(second?.pan);
+    expect(first?.aadhaarReference).not.toBe(second?.aadhaarReference);
+  });
+
   it('refuses to pull a session it never started', async () => {
     const kyc = createFakeKyc();
 
@@ -47,6 +63,14 @@ describe('fake KYC', () => {
     expect(await failing.matchFace({ selfieUrl, referenceUrl: selfieUrl })).toMatchObject({ value: { score: 41 } });
   });
 
+  it('finds no one else with the selfie\'s face unless a test names a duplicate', async () => {
+    const selfieUrl = 'https://storage.rivr.test/kyc/selfie.jpg';
+    const other = memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3f');
+
+    expect(await createFakeKyc().enrolFace({ selfieUrl, memberId })).toMatchObject({ value: { sameFaceAs: null } });
+    expect(await createFakeKyc({ sameFaceAs: other }).enrolFace({ selfieUrl, memberId })).toMatchObject({ value: { sameFaceAs: other } });
+  });
+
   it('returns a scripted vendor failure on the next call only', async () => {
     const kyc = createFakeKyc();
     kyc.failNext({ code: 'unavailable' });
@@ -68,5 +92,6 @@ describe('unconfigured KYC', () => {
     );
     expect(await kyc.checkLiveness({ selfieUrl: 'x' })).toEqual(notConfigured);
     expect(await kyc.matchFace({ selfieUrl: 'x', referenceUrl: 'y' })).toEqual(notConfigured);
+    expect(await kyc.enrolFace({ selfieUrl: 'x', memberId })).toEqual(notConfigured);
   });
 });

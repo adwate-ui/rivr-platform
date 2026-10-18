@@ -183,14 +183,14 @@ isOneToOne: false
                   ]
                 },"kyc_record": {
                   Row: {
-                    "address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"id": string,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
+                    "aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"photo_path": string | null,"refusal": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"id"?: string,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
+                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
                   }
                   Update: {
-                    "address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"id"?: string,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
+                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -688,13 +688,16 @@ isOneToOne: false
             }[]
                            },
 "record_kyc_digilocker":
-{ Args: { "p_address": string,"p_date_of_birth": string,"p_masked_aadhaar": string,"p_member_id": string,"p_name_matches": boolean,"p_pan": string,"p_vendor_reference": string }; Returns: string
+{ Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_masked_aadhaar": string,"p_member_id": string,"p_name_matches": boolean,"p_pan": string,"p_vendor_reference": string }; Returns: string
                            },
 "record_kyc_digilocker_failed":
 { Args: { "p_member_id": string }; Returns: undefined
                            },
 "record_kyc_pan":
 { Args: { "p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_vendor_reference": string }; Returns: string
+                           },
+"record_kyc_selfie":
+{ Args: { "p_liveness_score": number,"p_member_id": string,"p_same_face_as": string }; Returns: string
                            },
 "record_kyc_started":
 { Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined

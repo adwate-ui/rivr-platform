@@ -27,6 +27,12 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `balanceOf(account, lines)` | A balance is always a sum of lines, never a stored number. |
 | `reverse(lines)` | The correcting entry. Lines are never edited. |
 
+### `@rivr/domain/identity`
+
+| Export | What it does |
+|---|---|
+| `isSameName(documentName, registeredName)` | Whether the name on an identity document is the member's, ignoring case, spacing and punctuation. Devanagari vowel signs count; a name with no letters matches nothing. |
+
 ## Usage
 
 ```ts

@@ -1,11 +1,12 @@
 /** Why a KYC step did not go through, as a screen tells it. */
-export type KycFailure = 'not_configured' | 'pan_rejected' | 'stopped' | 'too_many_attempts' | 'unavailable';
+export type KycFailure = 'not_configured' | 'not_live' | 'pan_rejected' | 'stopped' | 'too_many_attempts' | 'unavailable';
 
-const KNOWN: readonly KycFailure[] = ['not_configured', 'pan_rejected', 'stopped', 'too_many_attempts'];
+const KNOWN: readonly KycFailure[] = ['not_configured', 'not_live', 'pan_rejected', 'stopped', 'too_many_attempts'];
 
 /**
  * Reads the kyc Edge Function's refusal from supabase-js's error, whose `context` is the HTTP
- * response: `{ "error": "not_configured" }` (503), `pan_rejected` (422), `stopped` (423, the KYC
+ * response: `{ "error": "not_configured" }` (503), `not_live` (422, a selfie that failed liveness),
+ * `pan_rejected` (422), `stopped` (423, the KYC
  * kill switch), `too_many_attempts` (429). Anything else, a network failure included, is `unavailable`.
  */
 export async function toKycFailure(error: unknown): Promise<KycFailure> {
