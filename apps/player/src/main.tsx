@@ -11,9 +11,16 @@ import { router } from './router.tsx';
 rememberAttribution(window.location.search);
 
 // The installed app (#16): this visit counted for the install offer, its prompt kept when it comes,
-// and the service worker that keeps the shell for opening offline, updated in the background.
+// and the service worker that keeps the shell for opening offline. An app left open seldom loads a
+// page, so it asks for a new version every hour; one that arrives takes over and reloads the page.
+const HOUR = 60 * 60 * 1000;
 startInstallWatch();
-registerSW({ immediate: true });
+registerSW({
+  immediate: true,
+  onRegisteredSW: (_url, registration) => {
+    if (registration) setInterval(() => void registration.update(), HOUR);
+  },
+});
 
 const client = createRivrClient({
   url: import.meta.env.VITE_SUPABASE_URL,

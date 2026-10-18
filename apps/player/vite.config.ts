@@ -15,7 +15,8 @@ defaultToLocalSupabase('VITE_');
 const pwa = VitePWA({
   registerType: 'autoUpdate',
   injectRegister: false,
-  includeAssets: ['icons/favicon-32.png', 'icons/apple-touch-icon.png', 'splash/*.png'],
+  // Launch screens are read once, at install, so they stay out of the offline cache.
+  includeAssets: ['icons/favicon-32.png', 'icons/apple-touch-icon.png'],
   manifest: {
     name: 'RIVR Poker Club',
     short_name: 'RIVR',
@@ -33,7 +34,13 @@ const pwa = VitePWA({
   },
   workbox: {
     globPatterns: ['**/*.{js,css,html,woff2}', 'icons/*.png'],
+    // English only (#186): the Devanagari faces the stylesheet still carries are never drawn.
+    globIgnores: ['**/*devanagari*'],
     navigateFallback: '/index.html',
+    // A new version takes over at once, even in an app left open for days: a fix, security fixes
+    // above all, never waits for every window to close (registerSW then reloads the page once).
+    skipWaiting: true,
+    clientsClaim: true,
   },
 });
 

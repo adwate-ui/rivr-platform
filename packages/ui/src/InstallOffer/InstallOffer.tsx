@@ -1,7 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useId } from 'react';
 import { Button } from '../Button/Button.tsx';
-import { Heading } from '../Heading/Heading.tsx';
 import { Inline } from '../Inline/Inline.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -21,9 +20,10 @@ export function InstallOffer({ kind, onInstall, onDismiss }: InstallOfferProps) 
   const headingId = useId();
   return (
     <section aria-labelledby={headingId} className="mb-6 flex flex-col gap-3 border-b border-hairline pb-6">
-      <Heading level={2} id={headingId}>
+      {/* Not a heading: the offer sits above the screen's h1, and must not come first in its outline. */}
+      <Text id={headingId} weight="semibold">
         {t('ui.installOffer.title')}
-      </Heading>
+      </Text>
       <Text tone="muted">{t(kind === 'ios' ? 'ui.installOffer.ios' : 'ui.installOffer.prompt')}</Text>
       <Inline gap={2}>
         {kind === 'prompt' && onInstall ? (

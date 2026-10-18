@@ -2,11 +2,16 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useEffect } from 'react';
 import { OfflineBanner } from './OfflineBanner.tsx';
 
-/** Makes the story's window report offline, as a phone with no connection does. */
+function setOnline(online: boolean) {
+  Object.defineProperty(navigator, 'onLine', { value: online, configurable: true });
+  window.dispatchEvent(new Event(online ? 'online' : 'offline'));
+}
+
+/** Makes the story's window report offline, as a phone with no connection does, and online again after. */
 function Offline() {
   useEffect(() => {
-    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
-    window.dispatchEvent(new Event('offline'));
+    setOnline(false);
+    return () => setOnline(true);
   }, []);
   return <OfflineBanner />;
 }

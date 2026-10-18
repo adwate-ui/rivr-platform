@@ -30,7 +30,8 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
   return (
     <StepScreen
       title={t('common.signIn.codeTitle')}
-      back={{ label: t('common.signIn.changeNumber'), onBack }}
+      // Not while the code is being checked: going back mid-check would lose its outcome (#227).
+      back={verifyCode.isPending ? undefined : { label: t('common.signIn.changeNumber'), onBack }}
       onSubmit={verify}
       footer={
         <>

@@ -7,6 +7,9 @@ interface InstallPromptEvent extends Event {
 
 const VISITS = 'rivr-visits';
 const DISMISSED = 'rivr-install-dismissed';
+// Set for the life of the tab or installed app: a reload, an update or the return from DigiLocker
+// is the same visit, not a second one.
+const COUNTED = 'rivr-visit-counted';
 
 let deferredPrompt: InstallPromptEvent | null = null;
 const listeners = new Set<() => void>();
@@ -41,12 +44,23 @@ function isInstallPrompt(event: Event): event is InstallPromptEvent {
   return typeof Reflect.get(event, 'prompt') === 'function';
 }
 
+/** Counts this opening of the app as a visit, once however often the page loads in it. */
+function countVisit() {
+  try {
+    if (sessionStorage.getItem(COUNTED) === '1') return;
+    sessionStorage.setItem(COUNTED, '1');
+  } catch {
+    return;
+  }
+  write(VISITS, String(Number(read(VISITS) ?? '0') + 1));
+}
+
 /**
  * Counts this opening of the app, and keeps the browser's install prompt for later: it fires once,
  * often before the screen that offers it has drawn. Called once, at start (main.tsx).
  */
 export function startInstallWatch() {
-  write(VISITS, String(Number(read(VISITS) ?? '0') + 1));
+  countVisit();
   window.addEventListener('beforeinstallprompt', (event) => {
     if (!isInstallPrompt(event)) return;
     event.preventDefault();
@@ -92,9 +106,11 @@ export function useInstallOffer(isMember: boolean) {
     write(DISMISSED, '1');
     setDismissed(true);
   };
+  // The browser's own dialog is the answer, yes or no: the offer is not made again.
   const install = () => {
     void deferredPrompt?.prompt();
     deferredPrompt = null;
+    dismiss();
     changed();
   };
   const kind = installOfferKind({

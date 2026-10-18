@@ -1,7 +1,8 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { startInstallWatch } from './features/frame/index.ts';
 import { createAppRouter } from './router.tsx';
 
 afterEach(() => {
@@ -10,6 +11,7 @@ afterEach(() => {
   goOnline(true);
   cleanup();
   localStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 /** Tells the app the phone has, or has lost, its connection. */
@@ -19,13 +21,13 @@ function goOnline(online: boolean) {
 }
 
 /** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Kabir. */
-function signIn() {
+function signIn({ expired = false } = {}) {
   const session = {
     access_token: 'test',
     refresh_token: 'test',
     token_type: 'bearer',
     expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    expires_at: Math.floor(Date.now() / 1000) + (expired ? -60 : 3600),
     user: { id: '00000000-0000-4000-8000-000000000202', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   };
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
@@ -34,16 +36,75 @@ function signIn() {
 // Nothing listens at this address: signed out, nothing is fetched, and a sign-in request fails.
 const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 
+/** A client whose API answers Kabir's member record, and nothing else; created after the fake fetch. */
+function clientWithKabir() {
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    return Response.json(url.includes('/rest/v1/member') ? { id: 'm1', full_name: 'Kabir Sethi' } : []);
+  });
+  return createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
+}
+
 /** Opens the app at `path`; the router tells a test where the app went. */
-function renderAt(path: string) {
+function renderAt(path: string, rivr = client) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
   render(
-    <RivrDataProvider client={client}>
+    <RivrDataProvider client={rivr}>
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
   return router;
 }
+
+// The watch main.tsx starts keeps the browser's install prompt; started once here, as at app start.
+startInstallWatch();
+
+/** The browser offering to install the app, as Chromium does once a page qualifies. */
+function browserOffersInstall() {
+  const prompt = vi.fn(async () => undefined);
+  act(() => {
+    window.dispatchEvent(Object.assign(new Event('beforeinstallprompt'), { prompt }));
+  });
+  return prompt;
+}
+
+/** Kabir, a member, opening the app at `path` on his `visit`th visit. */
+async function memberOpens(path: string, visit: number) {
+  signIn();
+  localStorage.setItem('rivr-visits', String(visit));
+  renderAt(path, clientWithKabir());
+  await screen.findByRole('navigation', { name: 'Main' });
+}
+
+describe('the install offer', () => {
+  const offer = () => screen.queryByRole('region', { name: 'RIVR on your home screen' });
+
+  it('is never made on a member\'s first visit, nor on any screen but Tonight', async () => {
+    await memberOpens('/', 1);
+    browserOffersInstall();
+    expect(offer()).toBeNull();
+    cleanup();
+    await memberOpens('/balance', 2);
+    expect(offer()).toBeNull();
+  });
+
+  it('is made on Tonight from the second visit, and Not now puts it away for good', async () => {
+    await memberOpens('/', 2);
+    browserOffersInstall();
+    fireEvent.click(await screen.findByRole('button', { name: 'Not now' }));
+    expect(offer()).toBeNull();
+    expect(localStorage.getItem('rivr-install-dismissed')).toBe('1');
+  });
+
+  it('asks the browser to install, and is not made again whatever the answer', async () => {
+    await memberOpens('/', 2);
+    const prompt = browserOffersInstall();
+    fireEvent.click(await screen.findByRole('button', { name: 'Install' }));
+    expect(prompt).toHaveBeenCalledTimes(1);
+    expect(offer()).toBeNull();
+    expect(localStorage.getItem('rivr-install-dismissed')).toBe('1');
+  });
+});
 
 describe('the player app', () => {
   it('says it is offline above the screen while the phone has no connection', async () => {
@@ -118,6 +179,36 @@ describe('sign-in', () => {
     const router = renderAt('/kyc');
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(router.state.location.search).toEqual({ next: '/kyc' });
+  });
+
+  it('says someone is signed in when opened over a live session, and lets the next person start afresh', async () => {
+    signIn();
+    const router = renderAt('/sign-in?next=/academy');
+    // Nothing answers at the client's address, so the member's name is not known: it says someone.
+    expect(await screen.findByText('Someone is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    // The next person lands on Tonight, not where the last one's link pointed.
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('next'));
+  });
+
+  it('never shows the form while it is still reading whether someone is signed in', async () => {
+    // An expired session with nothing answering: Auth keeps trying to refresh it.
+    signIn({ expired: true });
+    renderAt('/sign-in');
+    expect(await screen.findByText('Checking who is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+  });
+
+  it('names the member signed in, and continues to the screen the link pointed at', async () => {
+    signIn();
+    const router = renderAt('/sign-in?next=/academy', clientWithKabir());
+    expect(await screen.findByText('Kabir Sethi is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue as Kabir Sethi' }));
+    await screen.findByRole('navigation', { name: 'Main' }, LAZY_SCREEN);
+    expect(router.state.location.pathname).toBe('/academy');
   });
 
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {
