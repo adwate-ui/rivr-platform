@@ -1,7 +1,8 @@
 -- Academy (#8): fees equal to @rivr/domain academyFee (golden cases); batches with dates and seats; a
 -- member books at the individual fee and claims a UPI payment with its UTR; a cashier confirms the UTR
 -- found in the bank, the ledger takes the money and academy.booked goes out, or turns down a UTR it
--- cannot find; staff book a company at the corporate fee per head and record its UTR. 103 Aditya (admin, members.manage), 104 Sana (cashier, cage.transact),
+-- cannot find; staff book a company at the corporate fee per head and record its UTR. 101 super admin,
+-- 103 Aditya (admin, members.manage), 104 Sana (cashier, cage.transact),
 -- 106 Pema (dealer), 201 Arjun, 202 Kabir, 203 Naina, 204 Rohan (members), 301 Asha (practice venue).
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -121,6 +122,8 @@ select is((select status from public.academy_booking where id = pg_temp.id('acme
 insert into ids values ('aditya', public.book_academy(pg_temp.id('large')));
 select throws_ok($$ select public.record_academy_payment(pg_temp.id('aditya'), '522345678901') $$, '42501', null,
   'staff never record a payment for their own booking');
+select throws_ok($$ select public.record_academy_payment(pg_temp.id('sana'), '532345678901') $$, 'RVPAY', null,
+  'nor replace a UTR the payer gave: the cage turns a wrong one down first');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000201');
 select throws_ok($$ select public.book_academy_corporate(pg_temp.id('large'), '00000000-0000-4000-8000-000000000201', 'Me Ltd', 5,
   '00000000-0000-4000-8000-0000000000c3') $$, '42501', null, 'a member cannot give themselves the corporate fee');
@@ -198,9 +201,11 @@ select is((select count(*)::int from public.academy_batch), 0, 'nor sees the bat
 select is_empty($$ select * from public.academy_payment_details(pg_temp.id('rohan')) $$, 'nor what to pay');
 select throws_ok($$ select public.claim_academy_payment(pg_temp.id('rohan'), '912345678901') $$, '42501', null, 'nor gives a UTR');
 select is((select count(*)::int from public.academy_booking), 1, 'but still sees their own booking, a record of their money');
-select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
 select lives_ok($$ select public.record_academy_payment(pg_temp.id('rohan'), '912345678901') $$,
   'and staff record the UTR for them, so money already sent still reaches the cage');
+select throws_ok($$ select public.confirm_academy_payment(pg_temp.id('rohan'), '912345678901') $$, '42501', null,
+  'where someone other than the staff who recorded it confirms it');
 reset role;
 insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)
 select '00000000-0000-4000-8000-000000000001', 'member_freeze', m.id, 'Dispute', s.id

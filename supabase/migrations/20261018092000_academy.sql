@@ -63,6 +63,8 @@ create table public.academy_booking (
   -- A staff booking's own key, so a retried request books once.
   request_id uuid,
   claimed_at timestamptz,
+  -- Staff who recorded the UTR for the payer; they never confirm it themselves.
+  recorded_by_staff_id uuid references public.staff (id),
   paid_at timestamptz,
   confirmed_by_staff_id uuid references public.staff (id),
   ledger_transaction_id uuid,
@@ -88,6 +90,7 @@ create index academy_booking_venue_id_idx on public.academy_booking (venue_id, s
 create index academy_booking_batch_id_idx on public.academy_booking (batch_id, venue_id);
 create index academy_booking_member_id_idx on public.academy_booking (member_id, venue_id);
 create index academy_booking_confirmed_by_idx on public.academy_booking (confirmed_by_staff_id);
+create index academy_booking_recorded_by_idx on public.academy_booking (recorded_by_staff_id);
 create index academy_booking_ledger_transaction_idx on public.academy_booking (ledger_transaction_id, venue_id);
 -- A UPI reference pays one booking across the club's venues (the practice venue keeps its own); a
 -- member holds one live seat per batch.
@@ -254,7 +257,8 @@ begin
   end if;
   perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
   begin
-    update public.academy_booking set status = 'payment_claimed', utr = p_utr, claimed_at = now() where id = v_booking.id;
+    update public.academy_booking set status = 'payment_claimed', utr = p_utr, claimed_at = now(), recorded_by_staff_id = null
+    where id = v_booking.id;
   exception when unique_violation then
     raise exception 'This UTR was already given for another booking' using errcode = 'RVUTR';
   end;
@@ -287,7 +291,7 @@ $$;
 -- A cashier found the booking's UTR in the bank: the booking is paid, the ledger takes the money
 -- (bank in, Academy fees), and academy.booked goes out. The UTR the cashier matched must be the one
 -- on the booking, so a reference changed after the bank check never confirms. Never the cashier's own
--- booking. Confirming twice changes nothing.
+-- booking, nor one whose UTR they recorded. Confirming twice changes nothing.
 create function private.confirm_academy_payment(p_booking_id uuid, p_utr text)
 returns uuid
 language plpgsql
@@ -304,6 +308,9 @@ begin
     raise exception 'Only the cage confirms a payment, never for its own booking' using errcode = '42501';
   end if;
   if v_booking.status = 'paid' then return v_booking.ledger_transaction_id; end if;
+  if v_booking.recorded_by_staff_id = private.current_staff_id(v_booking.venue_id) then
+    raise exception 'A payment is confirmed by someone other than the staff who recorded it' using errcode = '42501';
+  end if;
   if v_booking.status <> 'payment_claimed' then
     raise exception 'This booking has no payment to confirm' using errcode = 'RVPAY';
   end if;
@@ -353,12 +360,15 @@ begin
     raise exception 'The UTR searched for is not the one on this booking' using errcode = 'RVUTM';
   end if;
   perform private.assert_writable(v_booking.venue_id);
-  update public.academy_booking set status = 'awaiting_payment', utr = null, claimed_at = null where id = v_booking.id;
+  update public.academy_booking set status = 'awaiting_payment', utr = null, claimed_at = null, recorded_by_staff_id = null
+  where id = v_booking.id;
 end;
 $$;
 
 -- Staff record the UTR of a payment the payer could not give in the app: a company's, or a member's
--- whose tier no longer has Academy booking. Never for their own booking; a cashier still confirms it.
+-- whose tier no longer has Academy booking. Only on a booking with no UTR yet, so a payer's UTR is never
+-- replaced (the cage turns a wrong one down first). Never for their own booking; another staff member
+-- confirms it.
 create function private.record_academy_payment(p_booking_id uuid, p_utr text)
 returns void
 language plpgsql
@@ -376,12 +386,15 @@ begin
      or v_booking.member_id = private.current_member_id() then
     raise exception 'Only Academy staff record a payment, never for their own booking' using errcode = '42501';
   end if;
-  if v_booking.status not in ('awaiting_payment', 'payment_claimed') then
-    raise exception 'This booking is paid or cancelled' using errcode = 'RVPAY';
+  if v_booking.status <> 'awaiting_payment' then
+    raise exception 'This booking already has a UTR, or is paid or cancelled' using errcode = 'RVPAY';
   end if;
   perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
   begin
-    update public.academy_booking set status = 'payment_claimed', utr = p_utr, claimed_at = now() where id = v_booking.id;
+    update public.academy_booking
+    set status = 'payment_claimed', utr = p_utr, claimed_at = now(),
+        recorded_by_staff_id = private.current_staff_id(v_booking.venue_id)
+    where id = v_booking.id;
   exception when unique_violation then
     raise exception 'This UTR was already given for another booking' using errcode = 'RVUTR';
   end;
@@ -433,28 +446,27 @@ begin
   if p_request_id is null or p_seats is null or p_seats not between 1 and 100 then
     raise exception 'A corporate booking needs its request id and 1 to 100 heads' using errcode = '22023';
   end if;
+  -- A retry sent at the same moment waits here, then finds the booking the first one made.
+  perform pg_advisory_xact_lock(hashtext(p_request_id::text));
   select * into v_existing from public.academy_booking k where k.venue_id = v_venue_id and k.request_id = p_request_id;
-  if v_existing.id is null then
-    perform private.assert_writable(v_venue_id, null, p_member_id);
-    perform private.lock_academy_batch(p_batch_id, v_venue_id, p_seats);
-    v_fee := private.academy_fee('corporate', p_seats, private.setting_at(v_venue_id, 'academy.price', '', now()));
-    if v_fee is null then
-      raise exception 'Academy fees are not set' using errcode = 'RVPRC';
+  if v_existing.id is not null then
+    if (v_existing.batch_id, v_existing.member_id, v_existing.company_name, v_existing.seats)
+       is distinct from (p_batch_id, p_member_id, trim(p_company_name), p_seats) then
+      raise exception 'This request id was used for another booking' using errcode = '22023';
     end if;
-    insert into public.academy_booking (venue_id, is_practice, batch_id, member_id, kind, company_name, seats, amount, request_id)
-    values (v_venue_id, (select v.is_practice from public.venue v where v.id = v_venue_id), p_batch_id, p_member_id,
-            'corporate', trim(p_company_name), p_seats, v_fee, p_request_id)
-    on conflict (venue_id, request_id) do nothing
-    returning id into v_booking_id;
-    if v_booking_id is not null then return v_booking_id; end if;
-    -- A retry running at the same moment booked it first.
-    select * into v_existing from public.academy_booking k where k.venue_id = v_venue_id and k.request_id = p_request_id;
+    return v_existing.id;
   end if;
-  if (v_existing.batch_id, v_existing.member_id, v_existing.company_name, v_existing.seats)
-     is distinct from (p_batch_id, p_member_id, trim(p_company_name), p_seats) then
-    raise exception 'This request id was used for another booking' using errcode = '22023';
+  perform private.assert_writable(v_venue_id, null, p_member_id);
+  perform private.lock_academy_batch(p_batch_id, v_venue_id, p_seats);
+  v_fee := private.academy_fee('corporate', p_seats, private.setting_at(v_venue_id, 'academy.price', '', now()));
+  if v_fee is null then
+    raise exception 'Academy fees are not set' using errcode = 'RVPRC';
   end if;
-  return v_existing.id;
+  insert into public.academy_booking (venue_id, is_practice, batch_id, member_id, kind, company_name, seats, amount, request_id)
+  values (v_venue_id, (select v.is_practice from public.venue v where v.id = v_venue_id), p_batch_id, p_member_id,
+          'corporate', trim(p_company_name), p_seats, v_fee, p_request_id)
+  returning id into v_booking_id;
+  return v_booking_id;
 end;
 $$;
 

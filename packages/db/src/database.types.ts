@@ -47,14 +47,14 @@ isOneToOne: false
                   ]
                 },"academy_booking": {
                   Row: {
-                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"request_id": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"recorded_by_staff_id": string | null,"request_id": string | null,"seats": number,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -81,6 +81,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "academy_booking_recorded_by_staff_id_fkey"
+      columns: ["recorded_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "academy_booking_venue_id_is_practice_fkey"
       columns: ["venue_id","is_practice"]
