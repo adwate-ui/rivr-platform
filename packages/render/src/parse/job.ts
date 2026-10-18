@@ -19,5 +19,5 @@ export function parseHostJob(search: string): HostJob {
   const job = decodeJobJson(text) as { template: string; props: object; locale: string };
   if (!isTemplateName(job.template)) throw new Error(`Unknown render template "${job.template}".`);
   const template = templates[job.template] as ComponentType<object>;
-  return { element: createElement(template, job.props), locale: job.locale === 'hi' ? 'hi' : 'en' };
+  return { element: createElement(template, job.props), locale: 'en' };
 }

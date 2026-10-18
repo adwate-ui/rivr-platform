@@ -2,7 +2,7 @@ import type { Locale } from '../catalogue/types.ts';
 
 // Times are stored in UTC and always shown in India time.
 const TIME_ZONE = 'Asia/Kolkata';
-const INTL_LOCALE: Record<Locale, string> = { en: 'en-GB', hi: 'hi-IN-u-nu-latn' };
+const INTL_LOCALE: Record<Locale, string> = { en: 'en-GB' };
 
 const CLOCK = new Intl.DateTimeFormat('en-GB', {
   timeZone: TIME_ZONE,

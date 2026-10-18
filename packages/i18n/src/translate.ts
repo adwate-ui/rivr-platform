@@ -1,8 +1,7 @@
 import { en } from './catalogue/en/index.ts';
-import { hi } from './catalogue/hi/index.ts';
 import type { Catalogue, Locale, MessageKey, MessageParams } from './catalogue/types.ts';
 
-const CATALOGUES: Record<Locale, Catalogue> = { en, hi };
+const CATALOGUES: Record<Locale, Catalogue> = { en };
 
 /** Translates one message key. `{name}` placeholders are filled from `params`. */
 export type Translate = (key: MessageKey, params?: MessageParams) => string;
