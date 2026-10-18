@@ -73,14 +73,21 @@ function mutationStep(modules) {
   ]);
 }
 
-/** Resets the local database to migrations plus seed, runs pgTAP, and stops it again if it was not running. */
+/**
+ * Resets the local database to migrations plus seed, runs pgTAP, regenerates the database types
+ * and fails if they differ from the committed file, then stops the stack if it was not running.
+ */
 function pgtapStep() {
   return {
-    name: 'database tests (pgTAP)',
+    name: 'database tests (pgTAP) and generated types',
     run: () => {
       const wasRunning = spawnSync('pnpm', ['-s', 'supabase', 'status'], { stdio: 'ignore' }).status === 0;
       if (!wasRunning && run('pnpm', ['-s', 'db:start']) !== 0) return 1;
-      const status = run('pnpm', ['-s', 'db:reset']) || run('pnpm', ['-s', 'supabase', 'test', 'db']);
+      const status =
+        run('pnpm', ['-s', 'db:reset']) ||
+        run('pnpm', ['-s', 'supabase', 'test', 'db']) ||
+        run('pnpm', ['-s', 'db:types']) ||
+        run('git', ['diff', '--exit-code', '--', 'packages/db/src/database.types.ts']);
       if (!wasRunning) run('pnpm', ['-s', 'db:stop']);
       return status;
     },

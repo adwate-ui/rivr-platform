@@ -72,6 +72,34 @@ enable_confirmations = false
 template = "Your RIVR code is {{ .Code }}"
 max_frequency = "5s"
 
+# Seed people sign in with code 123456 on local stacks (supabase/seed/10_people.sql).
+# Staging sets its own test numbers in the dashboard; production has none.
+[auth.sms.test_otp]
+919000000101 = "123456"
+919000000102 = "123456"
+919000000103 = "123456"
+919000000104 = "123456"
+919000000105 = "123456"
+919000000106 = "123456"
+919000000107 = "123456"
+919000000108 = "123456"
+919000000109 = "123456"
+919000000201 = "123456"
+919000000202 = "123456"
+919000000203 = "123456"
+919000000204 = "123456"
+919000000301 = "123456"
+919000000302 = "123456"
+
+# Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
+# never reach it. These are placeholders, not credentials; any other number fails locally.
+# Staging and production send codes through the SMS adapter (lane C).
+[auth.sms.twilio]
+enabled = true
+account_sid = "local-placeholder"
+message_service_sid = "local-placeholder"
+auth_token = "local-placeholder"
+
 [edge_runtime]
 enabled = true
 policy = "per_worker"
