@@ -10,5 +10,7 @@ export function worktreeName(root?: string): string;
 export function portBlock(root?: string): number;
 /** The port an app serves on in this worktree. */
 export function appPort(app: RivrApp, root?: string): number;
+/** Points an app at the local stack unless `<prefix>SUPABASE_URL` is already set. */
+export function defaultToLocalSupabase(prefix: 'VITE_' | 'PUBLIC_', root?: string): void;
 /** The local Supabase stack's API URL and publishable key; never the service-role key. */
 export function localSupabaseEnv(root?: string): { url: string; publishableKey: string };

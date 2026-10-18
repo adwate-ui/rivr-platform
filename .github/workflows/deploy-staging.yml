@@ -66,4 +66,4 @@ jobs:
       - if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm --filter @rivr/ui build-storybook
       - if: env.HAS_CLOUDFLARE == 'true'
-        run: node scripts/ci/pages-deploy.mjs staging main player console display tablet driver web storybook
+        run: node scripts/ci/cloudflare-deploy.mjs staging main player console display tablet driver web storybook

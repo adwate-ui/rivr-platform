@@ -39,4 +39,4 @@ jobs:
       - if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm build --filter player --filter console --filter display --filter tablet --filter driver --filter web
       - if: env.HAS_CLOUDFLARE == 'true'
-        run: node scripts/ci/pages-deploy.mjs preview "pr-${{ github.event.number }}" player console display tablet driver web
+        run: node scripts/ci/cloudflare-deploy.mjs preview "pr-${{ github.event.number }}" player console display tablet driver web

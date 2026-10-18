@@ -25,6 +25,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@rivr/config": "workspace:*",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^22.18.0",
     "@types/react": "^19.2.0",

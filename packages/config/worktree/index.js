@@ -55,6 +55,18 @@ export function appPort(/** @type {keyof typeof APP_PORT_OFFSET} */ app, root = 
 }
 
 /**
+ * Points an app at this worktree's local Supabase stack unless the environment already names a
+ * project (CI and deploys set `<prefix>SUPABASE_URL` and `<prefix>SUPABASE_PUBLISHABLE_KEY`).
+ * Vite apps use the prefix `VITE_`; the Astro website uses `PUBLIC_`.
+ */
+export function defaultToLocalSupabase(/** @type {'VITE_' | 'PUBLIC_'} */ prefix, root = worktreeRoot()) {
+  if (process.env[`${prefix}SUPABASE_URL`]) return;
+  const local = localSupabaseEnv(root);
+  process.env[`${prefix}SUPABASE_URL`] = local.url;
+  process.env[`${prefix}SUPABASE_PUBLISHABLE_KEY`] = local.publishableKey;
+}
+
+/**
  * The local Supabase stack's API URL and publishable key, for apps in development. Falls back
  * to the expected URL and an empty key when the stack is not running (the app then shows its
  * error state). Never returns the service-role key.

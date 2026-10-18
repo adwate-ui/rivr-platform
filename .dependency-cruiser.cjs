@@ -70,7 +70,7 @@ module.exports = {
       name: 'features-only-through-index',
       severity: 'error',
       comment: "A feature's index.ts is its only import surface.",
-      from: { path: '^apps/([^/]+)/src/', pathNot: '^apps/$1/src/features/' },
+      from: { path: '^apps/([^/]+)/src/', pathNot: '^apps/[^/]+/src/features/' },
       to: { path: '^apps/$1/src/features/[^/]+/', pathNot: '^apps/$1/src/features/[^/]+/index\\.ts$' },
     },
   ],

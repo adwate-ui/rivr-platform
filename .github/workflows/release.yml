@@ -80,7 +80,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - run: pnpm build --filter player --filter console --filter display --filter tablet --filter driver --filter web
-      - run: node scripts/ci/pages-deploy.mjs production main player console display tablet driver web
+      - run: node scripts/ci/cloudflare-deploy.mjs production main player console display tablet driver web
 
   android:
     needs: e2e-staging

@@ -28,7 +28,7 @@ Read by Lane 0 when setting up the repository, and by anyone changing tooling.
 - **Graphics:** `@rivr/render` renders `@rivr/ui` components in headless Chromium (Playwright) to PNG and PDF, and with Remotion to MP4, so TV slides, social cards, receipts and the membership card use the same CSS as the apps. Satori is not used; it supports only a subset of CSS and would drift from the apps.
 - **Testing:** Vitest, fast-check, Stryker, Testing Library, Playwright, pgTAP.
 - **Component workshop:** Storybook for `@rivr/ui`.
-- **Hosting:** Cloudflare Pages for `player`, `console`, `display`, `web`, with a preview deployment per PR.
+- **Hosting:** Cloudflare Pages for `player`, `console`, `display` and the `tablet` and `driver` bundles; the `web` site on a Cloudflare Worker (`docs/decisions/0021-website-on-a-cloudflare-worker.md`). A preview deployment per PR.
 - **Monitoring:** Sentry in every app and Edge Function, with personal data scrubbed. No product analytics; the growth funnel is built in lane D from our own data.
 - **CI:** GitHub Actions on GitHub-hosted `ubuntu-latest` runners (the repository is public; see `docs/decisions/0001-hosted-ci-runners.md`).
 

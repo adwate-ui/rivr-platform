@@ -4,7 +4,7 @@
  */
 export default {
   // Built output: the compiled stylesheet holds the token values by design.
-  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**'],
+  ignoreFiles: ['**/dist/**', '**/storybook-static/**', '**/node_modules/**', '**/coverage/**'],
   rules: {
     'color-no-hex': true,
     'color-named': 'never',
