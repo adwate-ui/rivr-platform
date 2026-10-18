@@ -18,6 +18,14 @@ export { rememberAttribution, storedAttribution, type SignUpAttribution } from '
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
 export {
+  useKycReviewActions,
+  useKycReviewQueue,
+  type KycCheck,
+  type KycDecision,
+  type KycRefusal,
+  type KycReviewFailure,
+} from './kycReview.ts';
+export {
   useAcademyActions,
   useAcademyBatches,
   useAcademyBookings,

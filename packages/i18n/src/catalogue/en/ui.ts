@@ -60,6 +60,11 @@ export const ui = {
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
   },
+  /** Photo, in place of a person's photo that is not there. */
+  photo: {
+    missing: 'No photo',
+    failed: 'The photo could not load.',
+  },
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
     member: 'The club is paused. Staff will assist you.',

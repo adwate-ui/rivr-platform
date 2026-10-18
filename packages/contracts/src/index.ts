@@ -29,6 +29,7 @@ export {
 } from './identity.ts';
 export { upiVpaSchema, utrSchema, type UpiVpa, type Utr } from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';
+export { kycReviewSchema } from './kycReview.ts';
 export { sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
 export {
   INBOX_CHANNELS,

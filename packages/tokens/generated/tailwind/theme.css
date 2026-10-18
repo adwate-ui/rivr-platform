@@ -79,6 +79,7 @@
   --spacing-bottom-nav: var(--rivr-size-bottom-nav);
   --spacing-header: var(--rivr-size-header);
   --spacing-text: var(--rivr-size-text);
+  --spacing-photo: var(--rivr-size-photo);
   --radius-sm: var(--rivr-radius-sm);
   --radius-md: var(--rivr-radius-md);
   --radius-lg: var(--rivr-radius-lg);

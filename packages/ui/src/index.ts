@@ -41,6 +41,7 @@ export * from './KillSwitchBanner/index.ts';
 // Navigation and shells
 export * from './BottomNav/index.ts';
 export * from './SideNav/index.ts';
+export * from './Photo/index.ts';
 export * from './PlayerShell/index.ts';
 export * from './ConsoleShell/index.ts';
 export * from './TabletShell/index.ts';
