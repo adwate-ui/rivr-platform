@@ -1,0 +1,45 @@
+/**
+ * Smoke: every surface starts on its target screen size against the seeded stack. The linked flows
+ * (design prompt section 7, additions "Linked flows") are added by the lanes, one file each.
+ */
+import { expect, test } from '@playwright/test';
+import { appUrl, VIEWPORT, type App } from '../support/apps.ts';
+
+async function open(page: import('@playwright/test').Page, app: App) {
+  await page.setViewportSize(VIEWPORT[app]);
+  await page.goto(appUrl(app));
+}
+
+test.describe('smoke: every surface starts', () => {
+  test('the player app opens on Tonight with its tab bar', async ({ page }) => {
+    await open(page, 'player');
+    await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+  });
+
+  test('the console opens on Live floor with its rail', async ({ page }) => {
+    await open(page, 'console');
+    await expect(page.getByRole('heading', { name: 'Live floor' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Sections' })).toBeVisible();
+  });
+
+  test('the dealer tablet opens on hand entry', async ({ page }) => {
+    await open(page, 'tablet');
+    await expect(page.getByRole('heading', { name: 'Hand entry' })).toBeVisible();
+  });
+
+  test('a TV says it is not paired', async ({ page }) => {
+    await open(page, 'display');
+    await expect(page.getByText('This screen is not paired.')).toBeVisible();
+  });
+
+  test('the driver app opens on pickups', async ({ page }) => {
+    await open(page, 'driver');
+    await expect(page.getByRole('heading', { name: 'Pickups' })).toBeVisible();
+  });
+
+  test('the website names the club', async ({ page }) => {
+    await open(page, 'web');
+    await expect(page.getByRole('heading', { name: 'RIVR Poker Club' })).toBeVisible();
+  });
+});

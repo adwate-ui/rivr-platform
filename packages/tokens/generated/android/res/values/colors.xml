@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Generated from packages/tokens/tokens.json. Do not edit.
+  Run the @rivr/tokens build script after changing tokens.json.
+-->
+<resources>
+  <color name="rivr_color_green">#ff0e3b2c</color>
+  <color name="rivr_color_green_black">#ff0a2a20</color>
+  <color name="rivr_color_cream">#fff3ede0</color>
+  <color name="rivr_color_gold">#ffc9a85c</color>
+  <color name="rivr_color_red">#ffc4162a</color>
+  <color name="rivr_color_ink">#ff141414</color>
+  <color name="rivr_color_muted">#99f3ede0</color>
+  <color name="rivr_color_hairline">#40c9a85c</color>
+  <color name="rivr_color_surface">#ff0e3b2c</color>
+  <color name="rivr_color_raised">#ff0a2a20</color>
+  <color name="rivr_color_content">#fff3ede0</color>
+  <color name="rivr_color_content_muted">#99f3ede0</color>
+  <color name="rivr_color_on_cream">#ff141414</color>
+  <color name="rivr_color_action">#ffc9a85c</color>
+  <color name="rivr_color_on_action">#ff0a2a20</color>
+  <color name="rivr_color_money">#ffc9a85c</color>
+  <color name="rivr_color_alert">#ffc4162a</color>
+  <color name="rivr_color_on_alert">#fff3ede0</color>
+  <color name="rivr_color_focus">#fff3ede0</color>
+  <color name="rivr_color_chart_1">#ffc9a85c</color>
+  <color name="rivr_color_chart_2">#fff3ede0</color>
+  <color name="rivr_color_chart_3">#ff7fc8a9</color>
+  <color name="rivr_color_chart_4">#ff8db8e0</color>
+  <color name="rivr_color_chart_5">#ffe88b7d</color>
+  <color name="rivr_color_chart_6">#ffb9a4d8</color>
+</resources>

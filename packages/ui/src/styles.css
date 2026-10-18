@@ -1,0 +1,41 @@
+/*
+ * The @rivr/ui stylesheet. `pnpm --filter ui build` compiles it to dist/styles.css, which
+ * apps import once as @rivr/ui/styles.css (docs/decisions/0005). Tailwind's own theme is
+ * replaced by the token theme, so only token values exist as utilities (docs/decisions/0008).
+ */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import '@rivr/tokens/tokens.css';
+@import '@rivr/tokens/tailwind.css';
+@import '../dist/fonts.css';
+
+/* Only the library's own source is scanned for classes. */
+@source './';
+
+/* Devanagari is never letter-spaced: spacing breaks the headline joining its letters. */
+@custom-variant hindi (&:lang(hi));
+
+@layer base {
+  html {
+    color-scheme: dark;
+    font-variant-numeric: var(--rivr-font-figures-numeric);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    @apply bg-surface font-text text-16 leading-normal text-content;
+  }
+
+  :focus-visible {
+    outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
+    outline-offset: var(--rivr-border-width-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      transition-duration: 0s !important;
+    }
+  }
+}

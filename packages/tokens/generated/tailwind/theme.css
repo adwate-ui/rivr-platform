@@ -1,0 +1,109 @@
+/**
+ * Generated from packages/tokens/tokens.json. Do not edit.
+ * Run the @rivr/tokens build script after changing tokens.json.
+ */
+
+
+@theme {
+  --*: initial;
+}
+
+@theme inline {
+  --default-font-family: var(--rivr-font-family-text);
+  --default-transition-duration: var(--rivr-motion-duration-state);
+  --default-transition-timing-function: var(--rivr-motion-easing-out);
+  --color-green: var(--rivr-color-green);
+  --color-green-black: var(--rivr-color-green-black);
+  --color-cream: var(--rivr-color-cream);
+  --color-gold: var(--rivr-color-gold);
+  --color-red: var(--rivr-color-red);
+  --color-ink: var(--rivr-color-ink);
+  --color-muted: var(--rivr-color-muted);
+  --color-hairline: var(--rivr-color-hairline);
+  --color-surface: var(--rivr-color-surface);
+  --color-raised: var(--rivr-color-raised);
+  --color-content: var(--rivr-color-content);
+  --color-content-muted: var(--rivr-color-content-muted);
+  --color-on-cream: var(--rivr-color-on-cream);
+  --color-action: var(--rivr-color-action);
+  --color-on-action: var(--rivr-color-on-action);
+  --color-money: var(--rivr-color-money);
+  --color-alert: var(--rivr-color-alert);
+  --color-on-alert: var(--rivr-color-on-alert);
+  --color-focus: var(--rivr-color-focus);
+  --color-chart-1: var(--rivr-color-chart-1);
+  --color-chart-2: var(--rivr-color-chart-2);
+  --color-chart-3: var(--rivr-color-chart-3);
+  --color-chart-4: var(--rivr-color-chart-4);
+  --color-chart-5: var(--rivr-color-chart-5);
+  --color-chart-6: var(--rivr-color-chart-6);
+  --font-display: var(--rivr-font-family-display);
+  --font-text: var(--rivr-font-family-text);
+  --text-12: var(--rivr-font-size-12);
+  --text-13: var(--rivr-font-size-13);
+  --text-14: var(--rivr-font-size-14);
+  --text-16: var(--rivr-font-size-16);
+  --text-18: var(--rivr-font-size-18);
+  --text-20: var(--rivr-font-size-20);
+  --text-24: var(--rivr-font-size-24);
+  --text-28: var(--rivr-font-size-28);
+  --text-36: var(--rivr-font-size-36);
+  --text-44: var(--rivr-font-size-44);
+  --text-56: var(--rivr-font-size-56);
+  --text-96: var(--rivr-font-size-96);
+  --font-weight-regular: var(--rivr-font-weight-regular);
+  --font-weight-medium: var(--rivr-font-weight-medium);
+  --font-weight-semibold: var(--rivr-font-weight-semibold);
+  --leading-tight: var(--rivr-font-line-height-tight);
+  --leading-snug: var(--rivr-font-line-height-snug);
+  --leading-normal: var(--rivr-font-line-height-normal);
+  --tracking-normal: var(--rivr-font-letter-spacing-normal);
+  --tracking-wide: var(--rivr-font-letter-spacing-wide);
+  --tracking-tv: var(--rivr-font-letter-spacing-tv);
+  --spacing-0: var(--rivr-space-0);
+  --spacing-1: var(--rivr-space-1);
+  --spacing-2: var(--rivr-space-2);
+  --spacing-3: var(--rivr-space-3);
+  --spacing-4: var(--rivr-space-4);
+  --spacing-5: var(--rivr-space-5);
+  --spacing-6: var(--rivr-space-6);
+  --spacing-8: var(--rivr-space-8);
+  --spacing-10: var(--rivr-space-10);
+  --spacing-12: var(--rivr-space-12);
+  --spacing-16: var(--rivr-space-16);
+  --spacing-20: var(--rivr-space-20);
+  --spacing-24: var(--rivr-space-24);
+  --spacing-32: var(--rivr-space-32);
+  --spacing-touch: var(--rivr-size-touch);
+  --spacing-rail: var(--rivr-size-rail);
+  --spacing-bottom-nav: var(--rivr-size-bottom-nav);
+  --spacing-header: var(--rivr-size-header);
+  --spacing-text: var(--rivr-size-text);
+  --radius-sm: var(--rivr-radius-sm);
+  --radius-md: var(--rivr-radius-md);
+  --radius-lg: var(--rivr-radius-lg);
+  --shadow-modal: var(--rivr-shadow-modal);
+  --opacity-muted: var(--rivr-opacity-muted);
+  --opacity-hairline: var(--rivr-opacity-hairline);
+  --opacity-disabled: var(--rivr-opacity-disabled);
+  --z-index-base: var(--rivr-z-base);
+  --z-index-raised: var(--rivr-z-raised);
+  --z-index-nav: var(--rivr-z-nav);
+  --z-index-banner: var(--rivr-z-banner);
+  --z-index-overlay: var(--rivr-z-overlay);
+  --z-index-modal: var(--rivr-z-modal);
+  --z-index-toast: var(--rivr-z-toast);
+  --breakpoint-phone: 390px;
+  --container-phone: var(--rivr-breakpoint-phone);
+  --breakpoint-tablet: 1180px;
+  --container-tablet: var(--rivr-breakpoint-tablet);
+  --breakpoint-console: 1440px;
+  --container-console: var(--rivr-breakpoint-console);
+  --breakpoint-tv: 1920px;
+  --container-tv: var(--rivr-breakpoint-tv);
+  --ease-out: var(--rivr-motion-easing-out);
+  --spacing-icon-sm: var(--rivr-icon-size-sm);
+  --spacing-icon-md: var(--rivr-icon-size-md);
+  --spacing-icon-lg: var(--rivr-icon-size-lg);
+  --spacing-icon-xl: var(--rivr-icon-size-xl);
+}

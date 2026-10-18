@@ -1,0 +1,124 @@
+import { ColorItem, ColorPalette, Meta, Typeset } from '@storybook/addon-docs/blocks';
+import { chartPalette, tokens } from '@rivr/tokens';
+
+<Meta title="Tokens/Design tokens" />
+
+# Design tokens
+
+Every colour, typeface, size, space, radius and motion value in RIVR comes from one file,
+`packages/tokens/tokens.json`. Style Dictionary generates the CSS custom properties, the Tailwind
+theme, TypeScript constants, the Android colours and theme, and the PWA manifest colours from it.
+Change the file, run `pnpm --filter @rivr/tokens build`, and every surface changes together.
+
+In `@rivr/ui` the Tailwind theme holds only these values: `bg-surface`, `text-content-muted`,
+`p-4`, `rounded-lg`, `text-16`. Tailwind's own palette and scale do not exist here.
+
+## Rules
+
+- Dark only. Flat surfaces separated by spacing and 1 px gold hairlines at 25%.
+- Corner radius 6 px at most. One gold filled button per screen at most.
+- Bodoni Moda only for display: TV titles, the jackpot figure, the wordmark; never below 20 px.
+- Every number uses tabular figures. Money is `₹1,20,000`; time is the 24-hour IST clock.
+- Motion only on state changes: 200 ms, ease-out.
+
+## Palette
+
+<ColorPalette>
+  <ColorItem
+    title="Brand"
+    subtitle="color.green, greenBlack, cream, gold, red, ink"
+    colors={{
+      Green: tokens.color.green,
+      'Green-black': tokens.color.greenBlack,
+      Cream: tokens.color.cream,
+      Gold: tokens.color.gold,
+      Red: tokens.color.red,
+      Ink: tokens.color.ink,
+    }}
+  />
+  <ColorItem
+    title="Surfaces and text"
+    subtitle="surface, raised, content, contentMuted (cream at 60%), hairline (gold at 25%)"
+    colors={{
+      surface: tokens.color.surface,
+      raised: tokens.color.raised,
+      content: tokens.color.content,
+      contentMuted: tokens.color.contentMuted,
+      hairline: tokens.color.hairline,
+    }}
+  />
+  <ColorItem
+    title="Actions and states"
+    subtitle="action and onAction, money, alert and onAlert, focus"
+    colors={{
+      action: tokens.color.action,
+      onAction: tokens.color.onAction,
+      money: tokens.color.money,
+      alert: tokens.color.alert,
+      onAlert: tokens.color.onAlert,
+      focus: tokens.color.focus,
+    }}
+  />
+  <ColorItem title="Chart" subtitle="Series 1 to 6, in order; each reads on green" colors={[...chartPalette]} />
+</ColorPalette>
+
+## Type scale
+
+Display face: Bodoni Moda, with Tiro Devanagari Hindi for Hindi. 20 px and up.
+
+<Typeset
+  fontFamily={tokens.font.family.display.join(', ')}
+  fontWeight={tokens.font.weight.regular}
+  fontSizes={[20, 24, 28, 36, 44, 56, 96].map((size) => tokens.font.size[size])}
+  sampleText="₹3,42,600 Bad-beat jackpot · बैड-बीट जैकपॉट"
+/>
+
+Text face: Instrument Sans, with Noto Sans Devanagari for Hindi, tabular figures.
+
+<Typeset
+  fontFamily={tokens.font.family.text.join(', ')}
+  fontWeight={tokens.font.weight.regular}
+  fontSizes={[12, 13, 14, 16, 18, 20, 24, 28].map((size) => tokens.font.size[size])}
+  sampleText="Your seat is ready. Table 3, seat 6. 02:40 · आपकी सीट तैयार है।"
+/>
+
+Weights: regular {tokens.font.weight.regular}, medium {tokens.font.weight.medium}, semibold {tokens.font.weight.semibold}.
+Line heights: tight {tokens.font.lineHeight.tight}, snug {tokens.font.lineHeight.snug}, normal {tokens.font.lineHeight.normal}.
+
+## Spacing
+
+A 4 px grid. Utilities use the step: `p-4` is 16 px, `gap-2` is 8 px.
+
+<div style={{ display: 'flex', flexDirection: 'column', gap: tokens.space[2] }}>
+  {Object.entries(tokens.space).map(([step, size]) => (
+    <div key={step} style={{ display: 'flex', alignItems: 'center', gap: tokens.space[4] }}>
+      <code style={{ width: tokens.space[32] }}>{`space.${step} · ${size} px`}</code>
+      <div style={{ width: size, height: tokens.space[3], background: tokens.color.gold }} />
+    </div>
+  ))}
+</div>
+
+Touch targets on the player app and the dealer tablet are at least {tokens.size.touch} px.
+
+## Radius
+
+<div style={{ display: 'flex', gap: tokens.space[6] }}>
+  {Object.entries(tokens.radius).map(([name, size]) => (
+    <div key={name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: tokens.space[2] }}>
+      <div
+        style={{
+          width: tokens.space[16],
+          height: tokens.space[16],
+          borderRadius: size,
+          border: `${tokens.border.width.hairline}px solid ${tokens.color.gold}`,
+        }}
+      />
+      <code>{`rounded-${name} · ${size} px`}</code>
+    </div>
+  ))}
+</div>
+
+## Devices
+
+Phone {tokens.viewport.phone.width} × {tokens.viewport.phone.height}, dealer tablet {tokens.viewport.tablet.width} × {tokens.viewport.tablet.height},
+console {tokens.viewport.console.width} × {tokens.viewport.console.height}, TV {tokens.viewport.tv.width} × {tokens.viewport.tv.height}.

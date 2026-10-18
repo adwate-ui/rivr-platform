@@ -1,0 +1,174 @@
+{
+  "rule": "money",
+  "about": "Worked examples for the money rules every lane builds on. Amounts are in rupees, written as a receipt shows them. A share is given in basis points: 100 basis points is 1%, so 500 is 5% and 2000 is 20%. A share is rounded down to the paisa, and chip rounding is down to the nearest ₹50; nothing ever rounds up. The smallest chip on the floor is ₹50.",
+  "cases": [
+    {
+      "description": "Normal pot: 5% of ₹10,000 is ₹500.",
+      "operation": "share",
+      "inputs": { "amount": "₹10,000", "basisPoints": "500" },
+      "expected": { "result": "₹500" }
+    },
+    {
+      "description": "Design prompt flow 4: 5% of a ₹48,000 pot is ₹2,400.",
+      "operation": "share",
+      "inputs": { "amount": "₹48,000", "basisPoints": "500" },
+      "expected": { "result": "₹2,400" }
+    },
+    {
+      "description": "Design prompt flow 5: 5% of a ₹1,40,000 pot is ₹7,000, before the table's ₹6,000 cap is applied.",
+      "operation": "share",
+      "inputs": { "amount": "₹1,40,000", "basisPoints": "500" },
+      "expected": { "result": "₹7,000" }
+    },
+    {
+      "description": "Zero: 5% of an empty pot is ₹0.",
+      "operation": "share",
+      "inputs": { "amount": "₹0", "basisPoints": "500" },
+      "expected": { "result": "₹0" }
+    },
+    {
+      "description": "Paise round down, never up: 5% of ₹1.99 is 9.95 paise, which is ₹0.09.",
+      "operation": "share",
+      "inputs": { "amount": "₹1.99", "basisPoints": "500" },
+      "expected": { "result": "₹0.09" }
+    },
+    {
+      "description": "Just off a ₹50 boundary: 5% of ₹48,990 is ₹2,449.50, before chip rounding.",
+      "operation": "share",
+      "inputs": { "amount": "₹48,990", "basisPoints": "500" },
+      "expected": { "result": "₹2,449.50" }
+    },
+    {
+      "description": "Buy-in bonus Tuesday: 20% of a ₹10,000 buy-in is ₹2,000.",
+      "operation": "share",
+      "inputs": { "amount": "₹10,000", "basisPoints": "2000" },
+      "expected": { "result": "₹2,000" }
+    },
+    {
+      "description": "The whole amount: 100% (10,000 basis points) of ₹2,500 is ₹2,500.",
+      "operation": "share",
+      "inputs": { "amount": "₹2,500", "basisPoints": "10000" },
+      "expected": { "result": "₹2,500" }
+    },
+    {
+      "description": "Large amount, past what a floating-point number holds exactly: 5% of ₹10,00,00,00,00,00,001.01 is ₹50,00,00,00,00,000.05 after rounding down.",
+      "operation": "share",
+      "inputs": { "amount": "₹10,00,00,00,00,00,001.01", "basisPoints": "500" },
+      "expected": { "result": "₹50,00,00,00,00,000.05" }
+    },
+    {
+      "description": "₹50 rounding: ₹2,449.50 rounds down to ₹2,400.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹2,449.50" },
+      "expected": { "result": "₹2,400" }
+    },
+    {
+      "description": "₹50 rounding: exactly on a chip, ₹2,450 stays ₹2,450.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹2,450" },
+      "expected": { "result": "₹2,450" }
+    },
+    {
+      "description": "₹50 rounding: one paisa short of a chip, ₹2,449.99 rounds down to ₹2,400.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹2,449.99" },
+      "expected": { "result": "₹2,400" }
+    },
+    {
+      "description": "₹50 rounding: one paisa past a chip, ₹2,450.01 rounds down to ₹2,450.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹2,450.01" },
+      "expected": { "result": "₹2,450" }
+    },
+    {
+      "description": "₹50 rounding: below the smallest chip, ₹49.99 rounds down to ₹0.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹49.99" },
+      "expected": { "result": "₹0" }
+    },
+    {
+      "description": "₹50 rounding: zero stays zero.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹0" },
+      "expected": { "result": "₹0" }
+    },
+    {
+      "description": "₹50 rounding of a large amount: ₹50,00,00,00,00,000.05 rounds down to ₹50,00,00,00,00,000.",
+      "operation": "roundDownToChip",
+      "inputs": { "amount": "₹50,00,00,00,00,000.05" },
+      "expected": { "result": "₹50,00,00,00,00,000" }
+    },
+    {
+      "description": "A ₹5,000 buy-in can be paid in ₹50 chips.",
+      "operation": "isChipMultiple",
+      "inputs": { "amount": "₹5,000" },
+      "expected": { "result": "yes" }
+    },
+    {
+      "description": "₹5,025 cannot be paid in ₹50 chips.",
+      "operation": "isChipMultiple",
+      "inputs": { "amount": "₹5,025" },
+      "expected": { "result": "no" }
+    },
+    {
+      "description": "₹50.01 cannot be paid in ₹50 chips.",
+      "operation": "isChipMultiple",
+      "inputs": { "amount": "₹50.01" },
+      "expected": { "result": "no" }
+    },
+    {
+      "description": "₹0 needs no chips, so it counts as a whole number of them.",
+      "operation": "isChipMultiple",
+      "inputs": { "amount": "₹0" },
+      "expected": { "result": "yes" }
+    },
+    {
+      "description": "Design prompt flow 4: rake ₹2,400 plus a ₹100 jackpot drop is a pull of ₹2,500.",
+      "operation": "add",
+      "inputs": { "first": "₹2,400", "second": "₹100" },
+      "expected": { "result": "₹2,500" }
+    },
+    {
+      "description": "Design prompt flow 4: the ₹3,42,600 bad-beat jackpot plus a ₹100 drop is ₹3,42,700.",
+      "operation": "add",
+      "inputs": { "first": "₹3,42,600", "second": "₹100" },
+      "expected": { "result": "₹3,42,700" }
+    },
+    {
+      "description": "Adding zero changes nothing: ₹1,85,000 plus ₹0 is ₹1,85,000.",
+      "operation": "add",
+      "inputs": { "first": "₹1,85,000", "second": "₹0" },
+      "expected": { "result": "₹1,85,000" }
+    },
+    {
+      "description": "Design prompt flow 8: a ₹1,20,000 cash-out settles the ₹50,000 marker first, leaving ₹70,000.",
+      "operation": "subtract",
+      "inputs": { "from": "₹1,20,000", "amount": "₹50,000" },
+      "expected": { "result": "₹70,000" }
+    },
+    {
+      "description": "Design prompt flow 3: a ₹1,85,000 balance less a ₹10,000 buy-in is ₹1,75,000.",
+      "operation": "subtract",
+      "inputs": { "from": "₹1,85,000", "amount": "₹10,000" },
+      "expected": { "result": "₹1,75,000" }
+    },
+    {
+      "description": "Five buy-ins of ₹10,000 are ₹50,000.",
+      "operation": "times",
+      "inputs": { "amount": "₹10,000", "count": "5" },
+      "expected": { "result": "₹50,000" }
+    },
+    {
+      "description": "RIVR Sunday: 58 entries of ₹9,000 to the pool are ₹5,22,000.",
+      "operation": "times",
+      "inputs": { "amount": "₹9,000", "count": "58" },
+      "expected": { "result": "₹5,22,000" }
+    },
+    {
+      "description": "No entries are ₹0.",
+      "operation": "times",
+      "inputs": { "amount": "₹9,000", "count": "0" },
+      "expected": { "result": "₹0" }
+    }
+  ]
+}

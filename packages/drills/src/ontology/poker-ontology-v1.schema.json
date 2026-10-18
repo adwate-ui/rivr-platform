@@ -1,0 +1,1329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poker-settle.local/schemas/poker-ontology-v1.2.json",
+  "title": "Poker Decision Ontology v1.2",
+  "description": "Source-agnostic coordinate system for no-limit hold 'em strategy. Any source (book, video course, article set) encodes into this schema. The app validates every import against it and refuses malformed objects.",
+  "$defs": {
+    "position": {
+      "enum": [
+        "UTG",
+        "UTG1",
+        "UTG2",
+        "LJ",
+        "HJ",
+        "CO",
+        "BTN",
+        "SB",
+        "BB"
+      ],
+      "description": "Seat relative to the button. Sources written for a different table size map onto this via source.position_map."
+    },
+    "street": {
+      "enum": [
+        "preflop",
+        "flop",
+        "turn",
+        "river"
+      ]
+    },
+    "pot_type": {
+      "enum": [
+        "limped",
+        "single_raised",
+        "three_bet",
+        "four_bet_plus"
+      ],
+      "description": "How the pot was contested preflop. Determines range assumptions downstream."
+    },
+    "player_count": {
+      "enum": [
+        "heads_up",
+        "three_way",
+        "multiway"
+      ],
+      "description": "Players remaining in the hand at the decision point. Multiway is 4+."
+    },
+    "stack_bracket": {
+      "enum": [
+        "short",
+        "standard",
+        "deep",
+        "very_deep"
+      ],
+      "description": "Effective stack in big blinds. Boundaries are set per source in source.stack_brackets, because a source written for 100bb and one written for 300bb mean different things by 'deep'."
+    },
+    "villain_raise_size": {
+      "enum": [
+        "small",
+        "standard",
+        "large",
+        "all_in"
+      ],
+      "description": "Size of the bet or raise the hero is FACING. Distinct from hero's own sizing bucket. Boundaries per source: source.raise_size_brackets preflop (blind multiples), source.bet_size_brackets postflop (pot fraction)."
+    },
+    "sizing_bucket": {
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "all_in",
+        "unspecified"
+      ],
+      "description": "Hero's own sizing. 'unspecified' where the source gives an action but no size \u2014 graded on action only."
+    },
+    "action": {
+      "enum": [
+        "fold",
+        "check",
+        "call",
+        "bet",
+        "raise",
+        "limp",
+        "all_in"
+      ]
+    },
+    "preflop_facing_state": {
+      "enum": [
+        "unopened",
+        "facing_limp",
+        "facing_raise",
+        "facing_raise_and_call",
+        "facing_3bet",
+        "facing_4bet",
+        "facing_steal"
+      ],
+      "description": "facing_steal is separated from facing_raise deliberately: many sources treat a late-position steal attempt as a distinct situation with its own response, not as a raise with a wider range."
+    },
+    "postflop_facing_state": {
+      "enum": [
+        "first_to_act",
+        "facing_check",
+        "facing_bet",
+        "facing_raise",
+        "facing_donk"
+      ]
+    },
+    "villain_archetype": {
+      "enum": [
+        "nit",
+        "tight_passive",
+        "tight_aggressive",
+        "loose_passive",
+        "loose_aggressive",
+        "calling_station",
+        "maniac",
+        "competent_reg",
+        "unknown"
+      ],
+      "description": "Canonical superset. Each source defines its own labels in opponent_types and maps them here via canonical_archetype, so a rule written in one source's idiom can still be compared against another's."
+    },
+    "board_tag": {
+      "enum": [
+        "paired",
+        "trips",
+        "monotone",
+        "two_tone",
+        "rainbow",
+        "connected",
+        "gapped",
+        "disconnected",
+        "high",
+        "middling",
+        "low",
+        "ace_high",
+        "broadway_heavy",
+        "straight_possible",
+        "flush_possible",
+        "straight_complete",
+        "flush_complete",
+        "static",
+        "semi_static",
+        "dynamic",
+        "two_wheel_cards"
+      ]
+    },
+    "hand_class": {
+      "enum": [
+        "no_pair",
+        "ace_high",
+        "underpair",
+        "weak_pair",
+        "second_pair",
+        "top_pair_weak_kicker",
+        "top_pair_good_kicker",
+        "overpair",
+        "two_pair",
+        "set",
+        "straight",
+        "flush",
+        "full_house_plus"
+      ]
+    },
+    "draw_class": {
+      "enum": [
+        "none",
+        "backdoor_flush",
+        "backdoor_straight",
+        "gutshot",
+        "open_ended",
+        "flush_draw",
+        "combo_draw"
+      ]
+    },
+    "relative_strength": {
+      "enum": [
+        "nuts",
+        "strong",
+        "medium",
+        "weak"
+      ],
+      "description": "Rank of the made hand against what the board makes possible. Many heuristic rules key on this rather than on absolute class."
+    },
+    "runout_tag": {
+      "enum": [
+        "brick",
+        "overcard",
+        "pairs_board",
+        "pairs_hero",
+        "flush_completing",
+        "flush_drawing",
+        "four_flush",
+        "straight_completing",
+        "straight_completing_low",
+        "straight_drawing",
+        "four_straight"
+      ],
+      "description": "What the card that just landed changed. four_flush / four_straight are additive: a flush is 'possible' from three of a suit, so a fourth completed nothing and drew to nothing, and brick (no other tag fired) claimed it. straight_completing requires a fill both of whose ranks are seven-plus; straight_completing_low carries the baby-only fills (the 2 on A-7-5) that raw geometry used to miscount as scare cards."
+    },
+    "range_notation": {
+      "type": "string",
+      "pattern": "^([AKQJT98765432]{2}[so]?|[AKQJT98765432]{2}[so]?\\+|[AKQJT98765432]{2}[so]?-[AKQJT98765432]{2}[so]?)$",
+      "description": "Standard notation: 'AKs', 'QQ', '77+', 'ATs-A7s'. Code expands to combos; ranges are never stored as combo lists."
+    },
+    "range_set": {
+      "type": "object",
+      "description": "A named, reusable set of starting hands. First-class rather than inlined, because ranges get referenced by several rules and swapped by game-texture modifiers. One definition, many pointers.",
+      "required": [
+        "id",
+        "hands"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "hands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/range_notation"
+          }
+        },
+        "derived_from": {
+          "type": "string",
+          "description": "Optional parent range id. Lets a source express 'the early-position range minus the weakest suited hands' without restating it."
+        },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/range_notation"
+          }
+        }
+      }
+    },
+    "situation": {
+      "type": "object",
+      "description": "A region of the decision space. Any field omitted means 'unconstrained' \u2014 the generator may sample freely on that coordinate. This is how a source that ignores stack depth still produces valid rules.",
+      "properties": {
+        "street": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/street"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/street"
+              }
+            }
+          ],
+          "description": "Streets on which this claim holds. Array for consistency with every other coordinate; a claim spanning turn and river is one principle, not two. The 1.0 single-value form is still accepted: extensions are ADDITIVE ONLY, and the v1.2 draft narrowed this to array-only, which stopped example-encoding.json validating. Narrowing an existing field invalidates encodings already in the wild, which is the one thing the version rule exists to prevent."
+        },
+        "hero_position": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/position"
+          }
+        },
+        "villain_position": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/position"
+          }
+        },
+        "pot_type": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pot_type"
+          }
+        },
+        "player_count": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/player_count"
+          }
+        },
+        "stack_bracket": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stack_bracket"
+          }
+        },
+        "preflop_facing_state": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/preflop_facing_state"
+          }
+        },
+        "postflop_facing_state": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/postflop_facing_state"
+          }
+        },
+        "villain_raise_size": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/villain_raise_size"
+          }
+        },
+        "villain_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Source-scoped opponent_type ids"
+        },
+        "board_require": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/board_tag"
+          }
+        },
+        "board_exclude": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/board_tag"
+          }
+        },
+        "hand_class_any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hand_class"
+          }
+        },
+        "draw_class_any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/draw_class"
+          }
+        },
+        "draw_class_exclude": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/draw_class"
+          },
+          "description": "Draws the hand must not have (1.7). draw_class_any is any-of over a hand that can hold several draws at once, so a rule about hands with no real draw needs an exclusion: a gutshot that also backs into a flush must not slip in through the backdoor."
+        },
+        "relative_strength_any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relative_strength"
+          }
+        },
+        "runout_any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runout_tag"
+          }
+        },
+        "runout_exclude": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runout_tag"
+          },
+          "description": "Runout tags the spot must not carry (1.7). For rules stated as \"as long as the turn does not ...\": a card may be an overcard and still not complete a draw, which runout_any alone could not say because brick means no other tag fired."
+        },
+        "node_path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Exact prior action sequence to the decision point, as <street>_<action> steps (flop_bet, turn_call). Since 1.7 a step may name who acted with a hero_ or villain_ prefix (hero_flop_bet, villain_flop_call); an unprefixed step matches either actor. The generator replays this verbatim and never adds a node. This is what keeps an all-streets scope bounded."
+        },
+        "spr_bracket": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/spr_bracket"
+          }
+        },
+        "stakes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stakes"
+          },
+          "minItems": 1,
+          "description": "Stakes levels this principle applies to. Omit only where the author states the idea holds at every level."
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "action"
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/action"
+        },
+        "sizing": {
+          "$ref": "#/$defs/sizing_bucket"
+        },
+        "acceptable_alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "$ref": "#/$defs/action"
+              },
+              "sizing": {
+                "$ref": "#/$defs/sizing_bucket"
+              }
+            }
+          },
+          "description": "For spots the source treats as close. Graded as correct, flagged as secondary."
+        },
+        "feedback": {
+          "$ref": "#/$defs/feedback_override",
+          "description": "Feedback for THIS outcome, read before the principle's (1.7). Required, with at least `correct`, on every outcome of a rule whose outcomes differ in action: a range rule that raises the list and folds the rest cannot explain both with one sentence."
+        }
+      }
+    },
+    "author_label": {
+      "type": "object",
+      "description": "A quiz hand's answer to a classify question (1.9): the id of one of the governing rule's labels.",
+      "required": ["kind", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "classify" },
+        "label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "author_count": {
+      "type": "object",
+      "description": "A quiz hand's answer to a count question (2.0). `tolerance` is the PAGE's hedge (\"about 60\"), set from the sentence and never from how close the encoding came; it is independent of the rule's own tolerance, which is what a reader is graded to.",
+      "required": ["kind", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "count" },
+        "value": { "type": "integer", "minimum": 0 },
+        "tolerance": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "feedback_override": {
+      "type": "object",
+      "description": "The same keys as a principle's feedback, all optional; whatever is present wins for the outcome it sits on.",
+      "properties": {
+        "correct": {
+          "type": "string"
+        },
+        "too_loose": {
+          "type": "string"
+        },
+        "too_tight": {
+          "type": "string"
+        },
+        "too_passive": {
+          "type": "string"
+        },
+        "too_aggressive": {
+          "type": "string"
+        },
+        "wrong_sizing": {
+          "type": "string"
+        },
+        "right_idea_wrong_spot": {
+          "type": "string"
+        },
+        "wrong_label": {
+          "type": "string",
+          "description": "The reader chose a label the source does not give for this spot (1.9)."
+        },
+        "too_few": {
+          "type": "string"
+        },
+        "too_many": {
+          "type": "string"
+        }
+      }
+    },
+    "range_lookup_rule": {
+      "type": "object",
+      "description": "Preflop shape: a situation resolves to a range, and membership determines the action. Covers essentially all preflop advice in any source.",
+      "required": [
+        "kind",
+        "situation",
+        "range_set_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "range_lookup"
+        },
+        "situation": {
+          "$ref": "#/$defs/situation"
+        },
+        "range_set_id": {
+          "type": "string"
+        },
+        "in_range": {
+          "$ref": "#/$defs/outcome",
+          "description": "Optional since 1.5: an omitted side ABSTAINS, declining the spot rather than inventing an answer the source never gave."
+        },
+        "out_of_range": {
+          "$ref": "#/$defs/outcome",
+          "description": "Optional since 1.5: an omitted side ABSTAINS, declining the spot rather than inventing an answer the source never gave."
+        }
+      }
+    },
+    "classify_label": {
+      "type": "object",
+      "description": "One answer a classify rule offers. `id` is graded and stored; `label` is what the reader sees, so the source's wording can change without invalidating attempts recorded under the old words.",
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "classify_outcome": {
+      "type": "object",
+      "description": "A classify answer: the id of one of the rule's own labels.",
+      "required": [
+        "label"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "feedback": {
+          "$ref": "#/$defs/feedback_override",
+          "description": "Feedback for THIS label, read before the principle's. A rule whose labels differ in meaning cannot explain them all with one sentence."
+        }
+      }
+    },
+    "classify_rule": {
+      "type": "object",
+      "description": "A rule whose answer is a LABEL rather than an action (1.9). For the questions an action pad cannot express: strong fit or weak fit, scare card or brick, nit or regular. Labels are a closed list PER RULE, because the partitions belong to the source and do not line up between chapters, let alone between books.",
+      "required": [
+        "kind",
+        "situation",
+        "labels",
+        "perspective",
+        "prompt",
+        "branches"
+      ],
+      "properties": {
+        "kind": {
+          "const": "classify"
+        },
+        "situation": {
+          "$ref": "#/$defs/situation"
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/classify_label"
+          },
+          "description": "At least two: a question with one answer is not a question."
+        },
+        "perspective": {
+          "enum": [
+            "hero",
+            "villain"
+          ],
+          "description": "Whose cards the question is about. `villain` means the dealt cards are a hypothetical OPPONENT holding, which the drill must say out loud, because a reader shown two cards assumes they are theirs. It also means the generator must not ask whether the hand is playable or whether it fits the hero's line."
+        },
+        "prompt": {
+          "type": "string",
+          "description": "The question, in the source's own words."
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "when",
+              "then"
+            ],
+            "properties": {
+              "when": {
+                "$ref": "#/$defs/situation"
+              },
+              "then": {
+                "$ref": "#/$defs/classify_outcome"
+              }
+            }
+          }
+        },
+        "default": {
+          "$ref": "#/$defs/classify_outcome",
+          "description": "Omitted ABSTAINS, exactly as for a predicate rule."
+        }
+      }
+    },
+    "count_filter": {
+      "description": "How a count question narrows the range. Exactly one shape per question. `bare_ace_of_suit` and `pocket_pairs` exist because sources ask for them by name.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "total" } }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "hand_class"],
+          "properties": {
+            "kind": { "const": "hand_class_min" },
+            "hand_class": { "$ref": "#/$defs/hand_class" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "hand_classes"],
+          "properties": {
+            "kind": { "const": "hand_class_any" },
+            "hand_classes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hand_class" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "draw_classes"],
+          "properties": {
+            "kind": { "const": "draw_class_any" },
+            "draw_classes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/draw_class" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "description": "The ace of one suit and no second card of it. Omit `suit` to mean the suit the board has three of, which is how a generated monotone flop in any suit is asked about; the rule must then require a monotone flop.",
+          "properties": {
+            "kind": { "const": "bare_ace_of_suit" },
+            "suit": { "enum": ["s", "h", "d", "c"] }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "pocket_pairs" } }
+        }
+      ]
+    },
+    "count_rule": {
+      "type": "object",
+      "description": "A rule whose answer is a NUMBER of combinations (2.0). The only answer kind the engine checks arithmetically rather than against what an author wrote down, which is why a count is reported on its own line and kept out of the perfect-score population: it measures whether a transcribed range and a counter agree, not whether the encoding says what the source says. Hand slots are forbidden in `situation` \u2014 the question is about the opponent's whole range, and the hero's cards matter only as dead cards.",
+      "required": [
+        "kind",
+        "situation",
+        "range_set_id",
+        "dead_cards",
+        "filter",
+        "prompt"
+      ],
+      "properties": {
+        "kind": { "const": "count" },
+        "situation": { "$ref": "#/$defs/situation" },
+        "range_set_id": { "type": "string" },
+        "dead_cards": {
+          "enum": ["board", "hero", "none"],
+          "description": "Which cards the count treats as gone. Stated, never inferred: sources switch between all three readings."
+        },
+        "filter": { "$ref": "#/$defs/count_filter" },
+        "prompt": { "type": "string", "description": "The question, in the source's own words." },
+        "tolerance": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How far off still counts as right. Defaults to 0. Set only where the page itself hedges (\"about\", \"roughly\") \u2014 never because the arithmetic is hard, which would hide which of the range and the counter is wrong."
+        }
+      }
+    },
+    "predicate_rule": {
+      "type": "object",
+      "description": "Postflop shape: ordered branches over classifier outputs, first match wins, falling through to a default. Flat conjunction within a branch; use several branches for disjunction.",
+      "required": [
+        "kind",
+        "situation",
+        "branches"
+      ],
+      "properties": {
+        "kind": {
+          "const": "predicate"
+        },
+        "situation": {
+          "$ref": "#/$defs/situation"
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "when",
+              "then"
+            ],
+            "properties": {
+              "when": {
+                "$ref": "#/$defs/situation"
+              },
+              "then": {
+                "$ref": "#/$defs/outcome"
+              }
+            }
+          }
+        },
+        "default": {
+          "$ref": "#/$defs/outcome",
+          "description": "What to answer when no branch matches. OPTIONAL since 1.2+: a rule that omits it ABSTAINS on any spot its branches do not cover, and so does not claim that spot at all. A mandatory default forces a rule to answer spots the passage never addressed, which turns a scope error into a wrong answer."
+        }
+      }
+    },
+    "modifier": {
+      "type": "object",
+      "description": "Conditional adjustment applied on top of a rule without duplicating it \u2014 e.g. a source that says 'in very loose games, use this wider range instead'. Keeps one rule where a source states one rule.",
+      "required": [
+        "id",
+        "when",
+        "effect"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "when": {
+          "type": "object",
+          "properties": {
+            "game_texture": {
+              "enum": [
+                "loose_passive",
+                "loose_aggressive",
+                "tight_passive",
+                "tight_aggressive",
+                "fold_happy",
+                "station_heavy"
+              ]
+            },
+            "stack_bracket": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/stack_bracket"
+              }
+            }
+          }
+        },
+        "effect": {
+          "type": "object",
+          "properties": {
+            "substitute_range_set_id": {
+              "type": "string"
+            },
+            "substitute_outcome": {
+              "$ref": "#/$defs/outcome"
+            }
+          }
+        }
+      }
+    },
+    "principle": {
+      "type": "object",
+      "description": "One drillable unit. Wraps a rule with everything the drill engine needs: identity, provenance pointer, authored feedback, and the user's override channel.",
+      "required": [
+        "id",
+        "source_id",
+        "name",
+        "rule",
+        "rationale",
+        "feedback"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_unit_id": {
+          "type": "string"
+        },
+        "page_ref": {
+          "type": [
+            "integer",
+            "string"
+          ],
+          "description": "Pointer only. Source text is never carried into the app."
+        },
+        "name": {
+          "type": "string"
+        },
+        "tier": {
+          "type": "string",
+          "description": "Source's own difficulty tier, if it has one. Used to gate later material behind earlier."
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rule": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/range_lookup_rule"
+            },
+            {
+              "$ref": "#/$defs/predicate_rule"
+            },
+            {
+              "$ref": "#/$defs/classify_rule"
+            },
+            {
+              "$ref": "#/$defs/count_rule"
+            }
+          ]
+        },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "when",
+              "then"
+            ],
+            "properties": {
+              "when": {
+                "$ref": "#/$defs/situation"
+              },
+              "then": {
+                "$ref": "#/$defs/outcome"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Evaluated before the base rule. First match wins."
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/modifier"
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Why the rule holds. The encoder's own words."
+        },
+        "feedback": {
+          "type": "object",
+          "description": "Authored once per principle, keyed by error type rather than by scenario \u2014 which is why it covers every scenario the generator will ever produce from this rule. This replaces the runtime LLM entirely.",
+          "required": [
+            "correct"
+          ],
+          "properties": {
+            "correct": {
+              "type": "string"
+            },
+            "too_loose": {
+              "type": "string"
+            },
+            "too_tight": {
+              "type": "string"
+            },
+            "too_passive": {
+              "type": "string"
+            },
+            "too_aggressive": {
+              "type": "string"
+            },
+            "wrong_sizing": {
+              "type": "string"
+            },
+            "right_idea_wrong_spot": {
+              "type": "string"
+            },
+            "wrong_label": {
+              "type": "string",
+              "description": "The reader chose a label the source does not give for this spot (1.9)."
+            },
+            "too_few": {
+              "type": "string"
+            },
+            "too_many": {
+              "type": "string"
+            }
+          }
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "status": {
+          "enum": [
+            "active",
+            "disputed",
+            "overridden",
+            "retired"
+          ]
+        },
+        "override_rule": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/range_lookup_rule"
+            },
+            {
+              "$ref": "#/$defs/predicate_rule"
+            },
+            {
+              "$ref": "#/$defs/classify_rule"
+            },
+            {
+              "$ref": "#/$defs/count_rule"
+            }
+          ],
+          "description": "The user's amended rule where they have concluded the source is wrong. Supersedes rule and exceptions at grading time."
+        },
+        "drillable": {
+          "type": "boolean",
+          "default": true,
+          "description": "false routes this to concept recall instead of a decision drill. Set this rather than inventing a rule to fill the field."
+        }
+      }
+    },
+    "opponent_type": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "canonical_archetype"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string",
+          "description": "The source's own term"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "canonical_archetype": {
+          "$ref": "#/$defs/villain_archetype"
+        },
+        "behavioural_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "quiz_hand": {
+      "type": "object",
+      "description": "Validation fixture. Where a source supplies worked examples with stated answers, encoding them lets you test whether your rule encoding reproduces the author's own conclusions \u2014 turning extraction fidelity from a judgement call into pass/fail.",
+      "required": [
+        "id",
+        "source_id",
+        "situation_instance"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "page_ref": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "situation_instance": {
+          "type": "object",
+          "description": "A concrete spot. Card and stack fields describe what was dealt; the coordinate fields below mirror the situation vocabulary so the harness can determine which principles govern the hand. Omitted coordinates are treated as unknown and the harness must not infer them.",
+          "properties": {
+            "stakes": {
+              "type": "string"
+            },
+            "effective_stack_bb": {
+              "type": "number"
+            },
+            "hero_position": {
+              "$ref": "#/$defs/position"
+            },
+            "hero_cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "board": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 5
+            },
+            "action_log": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "villain_notes": {
+              "type": "string"
+            },
+            "street": {
+              "$ref": "#/$defs/street",
+              "description": "Stated explicitly rather than inferred from board length. Board length fails whenever a hand is recorded up to a decision point mid-street."
+            },
+            "pot_type": {
+              "$ref": "#/$defs/pot_type"
+            },
+            "player_count": {
+              "$ref": "#/$defs/player_count"
+            },
+            "preflop_facing_state": {
+              "$ref": "#/$defs/preflop_facing_state"
+            },
+            "postflop_facing_state": {
+              "$ref": "#/$defs/postflop_facing_state"
+            },
+            "villain_raise_size": {
+              "$ref": "#/$defs/villain_raise_size"
+            },
+            "spr_bracket": {
+              "$ref": "#/$defs/spr_bracket"
+            },
+            "villain_type_id": {
+              "type": "string",
+              "description": "Reference to an opponent_types id. villain_notes stays as free prose; this is the machine-matchable form."
+            },
+            "villain_position": {
+              "$ref": "#/$defs/position",
+              "description": "The seat of the opponent whose action is being answered, where the text states it (1.7). Omitted means unknown, as every other coordinate here does."
+            },
+            "game_texture": {
+              "enum": [
+                "loose_passive",
+                "loose_aggressive",
+                "tight_passive",
+                "tight_aggressive",
+                "fold_happy",
+                "station_heavy"
+              ],
+              "description": "The table's character, where the passage states it. Drives `modifiers` at grading time — until a hand could state it, no modifier could fire under the harness and the loose-game layer was unmeasurable. Omitted means unknown, and an unknown texture fires no modifier."
+            }
+          }
+        },
+        "author_answer": {
+          "oneOf": [
+            { "$ref": "#/$defs/outcome" },
+            { "$ref": "#/$defs/author_label" },
+            { "$ref": "#/$defs/author_count" }
+          ],
+          "description": "What the author says to do or, for a reading or a count, what the author says the answer is: an action outcome (no `kind`), a label (1.9) or a number (2.0). Optional ONLY on an indeterminate hand: a hand the author never answered must not carry an answer invented for it, because that answer would then be scored as if it were theirs."
+        },
+        "indeterminate": {
+          "type": "boolean",
+          "description": "Source gives no single answer. Excluded from pass-rate scoring."
+        },
+        "indeterminate_reason": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Why this hand cannot be scored, written FROM THE SOURCE TEXT. \"No principle got it right\" is a coverage hole wearing a disguise; the reason has to be something the passage itself says."
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Where the hand came from (1.8). Worked examples are the passages the rules were encoded from and pass in-sample by construction; probe and held_out hands were transcribed after an encoding freeze from pages no rule cites, and only they measure fidelity. Omitted means unstated, which the harness counts as in-sample. Never derived from what a rule matches.",
+          "required": [
+            "kind",
+            "form"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "worked_example",
+                "probe",
+                "held_out"
+              ]
+            },
+            "form": {
+              "enum": [
+                "literal",
+                "instantiated"
+              ],
+              "description": "literal: the author's own cards, board and line. instantiated: the passage named a hand class or a shape and the transcriber chose the cards. The two are not equal evidence and are never blended into one number."
+            }
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "book",
+            "video_course",
+            "article_set",
+            "personal_notes"
+          ]
+        },
+        "state": {
+          "enum": [
+            "draft",
+            "importing",
+            "validating",
+            "active",
+            "archived"
+          ]
+        },
+        "state_changed_on": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Date the state last changed. The gates print how long a non-active source has been suppressing their failures, and WARN past 30 days, so the suppression cannot become permanent by inattention."
+        },
+        "table_size": {
+          "type": "integer",
+          "description": "Table size the source assumes. Drives position_map."
+        },
+        "position_map": {
+          "type": "object",
+          "description": "Maps the source's seat labels onto the canonical position vocabulary."
+        },
+        "stack_brackets": {
+          "type": "object",
+          "description": "bb boundaries for short/standard/deep/very_deep as this source means them.",
+          "properties": {
+            "short_max": {
+              "type": "number"
+            },
+            "standard_max": {
+              "type": "number"
+            },
+            "deep_max": {
+              "type": "number"
+            }
+          }
+        },
+        "raise_size_brackets": {
+          "type": "object",
+          "description": "PREFLOP: multiples of THE POT separating a small/standard/large raise. Not of the big blind: live opens are often several big blinds, which a blind reading would file as large while, measured against the pot they raise into, they are standard.",
+          "properties": {
+            "small_max": {
+              "type": "number"
+            },
+            "standard_max": {
+              "type": "number"
+            }
+          }
+        },
+        "bet_size_brackets": {
+          "type": "object",
+          "description": "POSTFLOP: a bet as a fraction of the pot, the same buckets whichever side makes it (1.7). small up to small_max; medium (hero) / standard (opponent) up to standard_max; large above; all_in when the bet is the stack.",
+          "properties": {
+            "small_max": {
+              "type": "number"
+            },
+            "standard_max": {
+              "type": "number"
+            }
+          }
+        },
+        "sizing_map": {
+          "type": "object",
+          "description": "Pot fractions for the hero sizing buckets as this source means them.",
+          "properties": {
+            "small": {
+              "type": "number"
+            },
+            "medium": {
+              "type": "number"
+            },
+            "large": {
+              "type": "number"
+            }
+          }
+        },
+        "quiz_pass_threshold": {
+          "type": "number",
+          "description": "Set BEFORE the first validation run. Below this, the source does not activate."
+        },
+        "spr_brackets": {
+          "type": "object",
+          "description": "SPR boundaries as this source means them.",
+          "properties": {
+            "very_low_max": {
+              "type": "number"
+            },
+            "low_max": {
+              "type": "number"
+            },
+            "medium_max": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "spr_bracket": {
+      "enum": [
+        "very_low",
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "Stack-to-pot ratio at the decision point. Distinct from stack_bracket: the same effective stack yields very different SPR in a limped pot versus a 3-bet pot, and most postflop commitment logic keys on SPR rather than on raw depth. Boundaries per source in source.spr_brackets."
+    },
+    "stakes": {
+      "type": "string",
+      "enum": [
+        "1/2",
+        "2/5",
+        "5/10"
+      ],
+      "description": "The game a principle is about. Advice that is right at one level is often wrong at the next, so a principle that omits this claims spots at every level, including ones its source never addressed."
+    },
+    "source_unit": {
+      "type": "object",
+      "description": "A chapter or skill of the source. Principles point at one via source_unit_id, which lets a reader drill the part of the book they just read.",
+      "required": [
+        "id",
+        "label",
+        "order"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string",
+          "description": "As the source names it."
+        },
+        "order": {
+          "type": "integer",
+          "description": "Position in the source."
+        },
+        "page_ref": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        }
+      }
+    }
+  },
+  "type": "object",
+  "required": [
+    "ontology_version",
+    "source",
+    "opponent_types",
+    "range_sets",
+    "principles"
+  ],
+  "properties": {
+    "ontology_version": {
+      "enum": [
+        "1.0",
+        "1.1",
+        "1.2",
+        "1.3",
+        "1.4",
+        "1.5",
+        "1.6",
+        "1.7",
+        "1.8",
+        "1.9",
+        "2.0"
+      ]
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "opponent_types": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/opponent_type"
+      }
+    },
+    "range_sets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/range_set"
+      }
+    },
+    "principles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/principle"
+      }
+    },
+    "quiz_hands": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/quiz_hand"
+      }
+    },
+    "source_units": {
+      "type": "array",
+      "description": "Chapters or skills. Additive in 1.6.",
+      "items": {
+        "$ref": "#/$defs/source_unit"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "extends": "@rivr/config/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM"],
+    "types": []
+  },
+  "include": [
+    "src",
+    "scripts",
+    "visual",
+    "*.ts",
+    "*.tsx",
+    ".storybook"
+  ]
+}

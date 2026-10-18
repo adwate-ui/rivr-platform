@@ -1,0 +1,110 @@
+/**
+ * Generated from packages/tokens/tokens.json. Do not edit.
+ * Run the @rivr/tokens build script after changing tokens.json.
+ */
+
+:root {
+  --rivr-color-green: #0E3B2C; /** Deep green. Primary background on every surface. */
+  --rivr-color-green-black: #0A2A20; /** Green-black. Raised surfaces, nav bars, table rows on hover. */
+  --rivr-color-cream: #F3EDE0; /** Primary text and the wordmark tiles. */
+  --rivr-color-gold: #C9A85C; /** The one primary action per screen, money that belongs to the player, hairlines at 25%. */
+  --rivr-color-red: #C4162A; /** Alerts, negatives, the spade card in the mark. Nothing else. */
+  --rivr-color-ink: #141414; /** Text on cream tiles only. */
+  --rivr-color-muted: #F3EDE099; /** Cream at 60%. Secondary text; at least 4.5:1 on green. */
+  --rivr-color-hairline: #C9A85C40; /** Gold at 25%. The 1 px rules that separate content. */
+  --rivr-color-chart-3: #7FC8A9; /** Mint. */
+  --rivr-color-chart-4: #8DB8E0; /** Sky. */
+  --rivr-color-chart-5: #E88B7D; /** Coral. */
+  --rivr-color-chart-6: #B9A4D8; /** Lilac. */
+  --rivr-font-family-display: 'Bodoni Moda', 'Tiro Devanagari Hindi', serif; /** Display only: wordmark, TV titles, the jackpot figure. Never below 20 px. Tiro Devanagari Hindi sets Hindi. */
+  --rivr-font-family-text: 'Instrument Sans', 'Noto Sans Devanagari', sans-serif; /** Everything else. Noto Sans Devanagari sets Hindi. */
+  --rivr-font-size-12: 12px;
+  --rivr-font-size-13: 13px;
+  --rivr-font-size-14: 14px;
+  --rivr-font-size-16: 16px;
+  --rivr-font-size-18: 18px;
+  --rivr-font-size-20: 20px;
+  --rivr-font-size-24: 24px;
+  --rivr-font-size-28: 28px;
+  --rivr-font-size-36: 36px;
+  --rivr-font-size-44: 44px;
+  --rivr-font-size-56: 56px;
+  --rivr-font-size-96: 96px;
+  --rivr-font-weight-regular: 400;
+  --rivr-font-weight-medium: 500;
+  --rivr-font-weight-semibold: 600;
+  --rivr-font-line-height-tight: 1.1; /** Display sizes, 28 px and up. */
+  --rivr-font-line-height-snug: 1.3; /** Headings, 18 to 24 px. */
+  --rivr-font-line-height-normal: 1.5; /** Body text. */
+  --rivr-font-letter-spacing-normal: 0em;
+  --rivr-font-letter-spacing-wide: 0.06em; /** Small capitals labels. */
+  --rivr-font-letter-spacing-tv: 0.2em; /** Letter-spaced labels on the TV and under the wordmark. */
+  --rivr-font-figures-numeric: tabular-nums;
+  --rivr-space-0: 0px;
+  --rivr-space-1: 4px;
+  --rivr-space-2: 8px;
+  --rivr-space-3: 12px;
+  --rivr-space-4: 16px;
+  --rivr-space-5: 20px;
+  --rivr-space-6: 24px;
+  --rivr-space-8: 32px;
+  --rivr-space-10: 40px;
+  --rivr-space-12: 48px;
+  --rivr-space-16: 64px;
+  --rivr-space-20: 80px;
+  --rivr-space-24: 96px;
+  --rivr-space-32: 128px;
+  --rivr-size-touch: 44px; /** Minimum touch target on the player app and the dealer tablet. */
+  --rivr-size-rail: 248px; /** Console left rail. */
+  --rivr-size-bottom-nav: 64px; /** Player bottom tab bar. */
+  --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
+  --rivr-size-text: 640px; /** Longest comfortable line of text. */
+  --rivr-radius-sm: 3px;
+  --rivr-radius-md: 4px;
+  --rivr-radius-lg: 6px;
+  --rivr-border-width-hairline: 1px;
+  --rivr-border-width-focus: 2px;
+  --rivr-shadow-modal: 0px 16px 48px 0px #00000080; /** The only shadow, under a modal. */
+  --rivr-opacity-muted: 0.6;
+  --rivr-opacity-hairline: 0.25;
+  --rivr-opacity-disabled: 0.4;
+  --rivr-z-base: 0;
+  --rivr-z-raised: 10;
+  --rivr-z-nav: 20;
+  --rivr-z-banner: 30;
+  --rivr-z-overlay: 40;
+  --rivr-z-modal: 50;
+  --rivr-z-toast: 60;
+  --rivr-viewport-phone-width: 390px;
+  --rivr-viewport-phone-height: 844px;
+  --rivr-viewport-tablet-width: 1180px;
+  --rivr-viewport-tablet-height: 820px;
+  --rivr-viewport-console-width: 1440px;
+  --rivr-viewport-console-height: 900px;
+  --rivr-viewport-tv-width: 1920px;
+  --rivr-viewport-tv-height: 1080px;
+  --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
+  --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
+  --rivr-icon-size-sm: 16px;
+  --rivr-icon-size-md: 20px;
+  --rivr-icon-size-lg: 24px;
+  --rivr-icon-size-xl: 32px;
+  --rivr-icon-stroke: 1.5px; /** Line icons, 1.5 px stroke at every size. */
+  --rivr-color-surface: var(--rivr-color-green); /** Page background. */
+  --rivr-color-raised: var(--rivr-color-green-black); /** Raised surfaces: nav bars, rails, sheets, row hover. */
+  --rivr-color-content: var(--rivr-color-cream); /** Primary text and icons. */
+  --rivr-color-content-muted: var(--rivr-color-muted); /** Secondary text. */
+  --rivr-color-on-cream: var(--rivr-color-ink); /** Text on a cream tile. */
+  --rivr-color-action: var(--rivr-color-gold); /** Fill of the one primary action on a screen. */
+  --rivr-color-on-action: var(--rivr-color-green-black); /** Text on the primary action. */
+  --rivr-color-money: var(--rivr-color-gold); /** Money that belongs to the player. */
+  --rivr-color-alert: var(--rivr-color-red); /** Alert and danger fills, negative markers. */
+  --rivr-color-on-alert: var(--rivr-color-cream); /** Text on an alert fill. */
+  --rivr-color-focus: var(--rivr-color-cream); /** Keyboard focus ring. */
+  --rivr-color-chart-1: var(--rivr-color-gold);
+  --rivr-color-chart-2: var(--rivr-color-cream);
+  --rivr-breakpoint-phone: var(--rivr-viewport-phone-width);
+  --rivr-breakpoint-tablet: var(--rivr-viewport-tablet-width);
+  --rivr-breakpoint-console: var(--rivr-viewport-console-width);
+  --rivr-breakpoint-tv: var(--rivr-viewport-tv-width);
+}

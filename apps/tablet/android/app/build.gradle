@@ -1,0 +1,78 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "club.rivr.dealer"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "club.rivr.dealer"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // A release tag release-20261115-1 builds versionName release-20261115-1 and versionCode 2026111501 (YYYYMMDD * 100 + N).
+        versionCode Integer.parseInt(System.getenv('RIVR_VERSION_CODE') ?: '1')
+        versionName System.getenv('RIVR_VERSION_NAME') ?: '0.0.0-dev'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    // Colours and the Theme.Rivr theme come from the design tokens (packages/tokens/tokens.json);
+    // Style Dictionary generates them, so this app never holds a raw colour.
+    sourceSets {
+        main {
+            res.srcDirs += ['../../../../packages/tokens/generated/android/res']
+        }
+    }
+    // The release workflow decodes the signing key from GitHub secrets into a file and names it
+    // here (docs/runbooks/ci-and-release.md). Without it a release build is left unsigned.
+    signingConfigs {
+        release {
+            def keystore = System.getenv('RIVR_ANDROID_KEYSTORE_FILE')
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv('RIVR_ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('RIVR_ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('RIVR_ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (System.getenv('RIVR_ANDROID_KEYSTORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

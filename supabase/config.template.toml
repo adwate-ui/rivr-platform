@@ -1,0 +1,124 @@
+# Local Supabase for one worktree. scripts/supabase.mjs copies this file to config.toml
+# (gitignored) on every `pnpm supabase`, `pnpm db:*` run, filling in:
+#   {{PROJECT_ID}}  the worktree folder name, so each worktree has its own containers
+#   {{BLOCK}}       the worktree's port block (CLAUDE.md, "Gotchas"): 543 root, 544-547 lanes A-D, 548 review
+# Studio, analytics and the mail catcher are off so four stacks fit in memory.
+# Full reference: https://supabase.com/docs/guides/local-development/cli/config
+
+project_id = "{{PROJECT_ID}}"
+
+[api]
+enabled = true
+port = {{BLOCK}}21
+# Never add "private": its security-definer helpers (account_balance, venues_where...) trust
+# that only policies, views and other functions call them (docs/decisions/0019).
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+# New tables get no API access until a migration grants it (default deny).
+auto_expose_new_tables = false
+
+[db]
+port = {{BLOCK}}22
+shadow_port = {{BLOCK}}20
+major_version = 17
+
+[db.pooler]
+enabled = false
+port = {{BLOCK}}29
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+# Local and staging only. Production is never seeded.
+enabled = true
+sql_paths = ["./seed/*.sql"]
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = false
+port = {{BLOCK}}23
+
+[local_smtp]
+enabled = false
+port = {{BLOCK}}24
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[storage.vector]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:{{BLOCK}}40"
+additional_redirect_urls = ["http://127.0.0.1:{{BLOCK}}40", "http://127.0.0.1:{{BLOCK}}41"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+# Everyone signs in by phone; email sign-up stays off.
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+
+# Local limits. Staging and production set theirs in the dashboard (docs/runbooks/ci-and-release.md).
+[auth.rate_limit]
+email_sent = 2
+sms_sent = 30
+anonymous_users = 0
+token_refresh = 150
+sign_in_sign_ups = 30
+token_verifications = 30
+
+[auth.sms]
+# Members sign in with a mobile number and a one-time code. Confirmations stay on: without them
+# Auth marks a phone confirmed at a password sign-up or a phone change without sending a code.
+enable_signup = true
+enable_confirmations = true
+template = "Your RIVR code is {{ .Code }}"
+max_frequency = "5s"
+
+# Seed people sign in with code 123456 on local stacks (supabase/seed/10_people.sql).
+# Staging sets its own test numbers in the dashboard; production has none.
+[auth.sms.test_otp]
+919000000101 = "123456"
+919000000102 = "123456"
+919000000103 = "123456"
+919000000104 = "123456"
+919000000105 = "123456"
+919000000106 = "123456"
+919000000107 = "123456"
+919000000108 = "123456"
+919000000109 = "123456"
+919000000201 = "123456"
+919000000202 = "123456"
+919000000203 = "123456"
+919000000204 = "123456"
+919000000301 = "123456"
+919000000302 = "123456"
+
+# Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
+# never reach it. These are placeholders, not credentials; any other number fails locally.
+# Staging and production send codes through the SMS adapter (lane C).
+[auth.sms.twilio]
+enabled = true
+account_sid = "local-placeholder"
+message_service_sid = "local-placeholder"
+auth_token = "local-placeholder"
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+inspector_port = {{BLOCK}}83
+deno_version = 2
+
+[analytics]
+enabled = false
+port = {{BLOCK}}27

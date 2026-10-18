@@ -1,0 +1,32 @@
+{
+  "name": "@rivr/render",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@rivr/i18n": "workspace:*",
+    "@rivr/tokens": "workspace:*",
+    "@rivr/ui": "workspace:*",
+    "playwright": "1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}

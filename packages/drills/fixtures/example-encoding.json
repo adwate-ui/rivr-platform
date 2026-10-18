@@ -1,0 +1,274 @@
+{
+  "_note": "WORKED EXAMPLE ONLY. Every rule and every quiz hand below is invented to demonstrate the schema and to give the CI gates something to measure. Nothing here is drawn from any published source, and it should not be drilled. Licensed encodings are uploaded at runtime and never enter this repository.",
+
+  "ontology_version": "1.8",
+
+  "source": {
+    "id": "src_example",
+    "title": "Schema Demonstration",
+    "author": "—",
+    "kind": "personal_notes",
+    "state": "active",
+    "state_changed_on": "2026-10-18",
+    "table_size": 9,
+    "stack_brackets": { "short_max": 50, "standard_max": 120, "deep_max": 250 },
+    "raise_size_brackets": { "small_max": 2.5, "standard_max": 4.0 },
+    "sizing_map": { "small": 0.33, "medium": 0.66, "large": 1.0 },
+    "quiz_pass_threshold": 0.85
+  },
+
+  "opponent_types": [
+    {
+      "id": "opp_station",
+      "label": "Station",
+      "aliases": ["calling station", "sticky player"],
+      "canonical_archetype": "calling_station",
+      "behavioural_tags": ["calls_too_wide_preflop", "rarely_folds_top_pair", "seldom_bluffs"]
+    },
+    {
+      "id": "opp_nit",
+      "label": "Rock",
+      "aliases": ["nit"],
+      "canonical_archetype": "nit",
+      "behavioural_tags": ["opens_narrow", "folds_to_aggression", "value_bets_only"]
+    }
+  ],
+
+  "range_sets": [
+    {
+      "id": "rs_btn_open",
+      "label": "Button opening range",
+      "hands": ["22+", "A2s+", "K7s+", "Q9s+", "J9s+", "T9s", "A9o+", "KTo+", "QTo+"]
+    },
+    {
+      "id": "rs_btn_open_wide",
+      "label": "Button opening range, loose-passive games",
+      "derived_from": "rs_btn_open",
+      "hands": ["K5s+", "Q7s+", "J8s+", "T8s", "98s", "A7o+", "K9o+"]
+    }
+  ],
+
+  "principles": [
+    {
+      "id": "pr_btn_rfi",
+      "source_id": "src_example",
+      "name": "Button raise-first-in",
+      "page_ref": 0,
+      "tier": "foundation",
+      "rule": {
+        "kind": "range_lookup",
+        "situation": {
+          "street": "preflop",
+          "hero_position": ["BTN"],
+          "preflop_facing_state": ["unopened"],
+          "stack_bracket": ["standard", "deep"]
+        },
+        "range_set_id": "rs_btn_open",
+        "in_range": { "action": "raise", "sizing": "medium", "feedback": { "correct": "On the button opening list, so it is raised." } },
+        "out_of_range": { "action": "fold", "sizing": "unspecified", "feedback": { "correct": "Not on the button opening list — a third of hands are, two thirds are not — so it is folded." } }
+      },
+      "modifiers": [
+        {
+          "id": "mod_loose_game",
+          "label": "Widen in loose-passive games",
+          "when": { "game_texture": "loose_passive" },
+          "effect": { "substitute_range_set_id": "rs_btn_open_wide" }
+        }
+      ],
+      "exceptions": [],
+      "rationale": "Position is the dominant variable preflop. Acting last on every subsequent street converts marginal holdings into playable ones, so the button range widens well past what the same hands justify from earlier seats.",
+      "feedback": {
+        "correct": "Right — position is doing the work here, not the raw strength of the holding.",
+        "too_loose": "This is outside the opening range even on the button. Widening past the range costs more in dominated spots than position recovers.",
+        "too_tight": "You can open this profitably from the button. Folding here leaves the blinds uncontested for no reason.",
+        "too_passive": "Limping surrenders the initiative and invites the blinds in cheaply. Raise or fold.",
+        "wrong_sizing": "Sizing is off for an unopened pot from late position."
+      },
+      "confidence": "high",
+      "status": "active",
+      "drillable": true
+    },
+
+    {
+      "id": "pr_flop_cbet_dry_vs_station",
+      "source_id": "src_example",
+      "name": "Flop continuation bet on dry boards against a station",
+      "page_ref": 0,
+      "tier": "foundation",
+      "prerequisites": ["pr_btn_rfi"],
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": "flop",
+          "hero_position": ["BTN"],
+          "pot_type": ["single_raised"],
+          "player_count": ["heads_up"],
+          "postflop_facing_state": ["facing_check"],
+          "villain_types": ["opp_station"],
+          "board_require": ["rainbow", "disconnected"],
+          "board_exclude": ["paired"],
+          "node_path": ["hero_preflop_raise", "villain_preflop_call"]
+        },
+        "branches": [
+          {
+            "when": { "hand_class_any": ["top_pair_good_kicker", "overpair", "two_pair", "set"] },
+            "then": { "action": "bet", "sizing": "medium", "feedback": { "correct": "A hand worse hands call: bet it for value, at a size they will pay." } }
+          },
+          {
+            "when": {
+              "hand_class_any": ["no_pair"],
+              "draw_class_any": ["backdoor_flush", "backdoor_straight", "gutshot"]
+            },
+            "then": { "action": "bet", "sizing": "small", "feedback": { "correct": "A small bet with a little equity: cheap enough that the station's call costs you nothing you cannot outdraw." } }
+          },
+          {
+            "when": { "hand_class_any": ["no_pair"], "draw_class_any": ["none"] },
+            "then": { "action": "check", "sizing": "unspecified", "feedback": { "correct": "Nothing and no draw against a player who does not fold: the bet cannot win, so it is not made." } }
+          }
+        ],
+        "default": { "action": "check", "sizing": "unspecified", "feedback": { "correct": "Against a station a bet is a value bet or nothing; this hand is not a value bet." } }
+      },
+      "exceptions": [
+        {
+          "when": { "stack_bracket": ["very_deep"] },
+          "then": { "action": "bet", "sizing": "small", "feedback": { "correct": "Very deep, the small size keeps the pot manageable across three streets of a player who will not fold." } },
+          "note": "Very deep, the small size keeps the pot manageable across three streets of a player who will not fold."
+        }
+      ],
+      "rationale": "Against an opponent who calls too wide and folds too rarely, a continuation bet stops functioning as a bluff and starts functioning as a thin value bet. Bet the hands that get called by worse; check the ones that only get called by better.",
+      "feedback": {
+        "correct": "Right — against this opponent the bet is earning value, not fold equity.",
+        "too_aggressive": "Bluffing a player who does not fold is spending money to reach a showdown you were going to lose anyway.",
+        "too_passive": "This holding gets called by worse often enough to bet. Checking gives up value against a station.",
+        "wrong_sizing": "Against a caller, sizing should track how much worse he will pay, not how much you want to fold him out.",
+        "right_idea_wrong_spot": "The read is right but this board texture changes which holdings are ahead of his calling range."
+      },
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true
+    }
+  ],
+
+  "quiz_hands": [
+    {
+      "id": "qh_btn_ako",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["As", "Kd"], "board": [], "action_log": [] },
+      "author_answer": { "action": "raise", "sizing": "medium" }
+    },
+    {
+      "id": "qh_btn_k7s",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["Kh", "7h"], "board": [], "action_log": [] },
+      "author_answer": { "action": "raise", "sizing": "medium" }
+    },
+    {
+      "id": "qh_btn_t9s",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 180, "hero_cards": ["Th", "9h"], "board": [], "action_log": [] },
+      "author_answer": { "action": "raise", "sizing": "medium" }
+    },
+    {
+      "id": "qh_btn_qto",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["Qd", "Tc"], "board": [], "action_log": [] },
+      "author_answer": { "action": "raise", "sizing": "medium" }
+    },
+    {
+      "id": "qh_btn_deuces",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["2c", "2d"], "board": [], "action_log": [] },
+      "author_answer": { "action": "raise", "sizing": "medium" }
+    },
+    {
+      "id": "qh_btn_72o",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["7c", "2d"], "board": [], "action_log": [] },
+      "author_answer": { "action": "fold", "sizing": "unspecified" }
+    },
+    {
+      "id": "qh_btn_j8o",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["Jd", "8s"], "board": [], "action_log": [] },
+      "author_answer": { "action": "fold", "sizing": "unspecified" }
+    },
+    {
+      "id": "qh_btn_k5s_loose_game",
+      "source_id": "src_example",
+      "provenance": { "kind": "held_out", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["Ks", "5s"], "board": [], "action_log": [], "game_texture": "loose_passive" },
+      "author_answer": { "action": "raise", "sizing": "medium" }
+    },
+    {
+      "id": "qh_btn_a5o_no_single_answer",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "preflop", "hero_position": "BTN", "preflop_facing_state": "unopened", "effective_stack_bb": 100, "hero_cards": ["Ad", "5c"], "board": [], "action_log": [] },
+      "indeterminate": true,
+      "indeterminate_reason": "Invented for the fixture: the example source calls this hand a matter of table image and gives no single answer."
+    },
+    {
+      "id": "qh_cbet_top_pair",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["Kh", "Qs"], "board": ["Kc", "7d", "2s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "medium" }
+    },
+    {
+      "id": "qh_cbet_overpair",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["Kh", "Kd"], "board": ["Qc", "8d", "3s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "medium" }
+    },
+    {
+      "id": "qh_cbet_backdoor_straight",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["9h", "8h"], "board": ["Kc", "7d", "2s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "small" }
+    },
+    {
+      "id": "qh_cbet_gutshot",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["Qh", "Jd"], "board": ["Kc", "9d", "2s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "small" }
+    },
+    {
+      "id": "qh_cbet_air",
+      "source_id": "src_example",
+      "provenance": { "kind": "worked_example", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["Qd", "4c"], "board": ["Jc", "7d", "2s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "check", "sizing": "unspecified" }
+    },
+    {
+      "id": "qh_cbet_very_deep",
+      "source_id": "src_example",
+      "provenance": { "kind": "held_out", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 300, "hero_cards": ["Kh", "Qs"], "board": ["Kc", "7d", "2s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "small" }
+    },
+    {
+      "id": "qh_cbet_ace_high_probe",
+      "source_id": "src_example",
+      "provenance": { "kind": "probe", "form": "instantiated" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["Ac", "6h"], "board": ["Kd", "9s", "3c"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "small" }
+    },
+    {
+      "id": "qh_cbet_paired_board",
+      "source_id": "src_example",
+      "provenance": { "kind": "probe", "form": "literal" },
+      "situation_instance": { "street": "flop", "hero_position": "BTN", "villain_position": "BB", "pot_type": "single_raised", "player_count": "heads_up", "postflop_facing_state": "facing_check", "villain_type_id": "opp_station", "effective_stack_bb": 100, "hero_cards": ["Ah", "Kd"], "board": ["7c", "7d", "2s"], "action_log": ["hero_preflop_raise", "villain_preflop_call"] },
+      "author_answer": { "action": "bet", "sizing": "small" }
+    }
+  ]
+}

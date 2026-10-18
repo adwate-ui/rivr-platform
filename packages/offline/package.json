@@ -1,0 +1,17 @@
+{
+  "name": "@rivr/offline",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.6",
+    "vitest": "^5.0.5"
+  }
+}

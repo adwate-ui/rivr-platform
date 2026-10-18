@@ -1,0 +1,55 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "globalPassThroughEnv": [
+    "RIVR_PORT_BLOCK"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "typecheck": {},
+    "lint": {},
+    "test": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-storybook": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "storybook-static/**"
+      ]
+    },
+    "visual": {
+      "dependsOn": [
+        "build-storybook"
+      ],
+      "cache": false
+    },
+    "dev": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "storybook": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": [
+        "RIVR_STORYBOOK_PORT"
+      ]
+    }
+  }
+}
