@@ -2,15 +2,19 @@ import { sendSmsHookSchema } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
 import { sendSignInCode, type SignInCodeChannels } from './send.ts';
 
-/** What the Edge Function answers Auth: 200 with an empty body, or the error shape Auth hooks use. */
+/** What the Edge Function answers Auth: HTTP 200, with an empty body or an error for the app. */
 export interface HookReply {
-  readonly status: number;
+  readonly status: 200;
   readonly body: Record<string, never> | { readonly error: { readonly http_code: number; readonly message: string } };
 }
 
-/** A refusal in the shape Auth hooks use. The Edge Function uses it for its own refusals too. */
-export function hookError(status: number, message: string): HookReply {
-  return { status, body: { error: { http_code: status, message } } };
+/**
+ * A refusal Auth passes on to the app. Auth reads an error only from an HTTP 200 reply; for any
+ * other status it drops the body and answers the app with a bare 500, so the app could not tell
+ * "wait a minute" from "cannot send". `httpCode` and `message` are what the app receives.
+ */
+export function hookError(httpCode: number, message: string): HookReply {
+  return { status: 200, body: { error: { http_code: httpCode, message } } };
 }
 
 function replyTo(failure: AdapterFailure): HookReply {

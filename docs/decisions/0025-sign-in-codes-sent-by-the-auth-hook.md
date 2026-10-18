@@ -2,13 +2,16 @@
 
 Date: 18 Oct 2026
 
-CLAUDE.md rule 5 puts every external call in an outbox consumer. Sign-in codes cannot wait for one: Supabase Auth generates the code, calls its Send SMS hook, and waits for the hook to deliver before it tells the app the code is on its way. Through the outbox, a live sign-in code would also sit in `outbox_event`, readable by reports staff and kept for 30 days.
+CLAUDE.md rule 5 puts every external call in an outbox consumer. Sign-in codes cannot wait for one: Supabase Auth generates the code, calls its Send SMS hook, and waits for the hook before telling the app the code is on its way. Through the outbox, a live code would also sit in `outbox_event` for 30 days, readable by reports staff.
 
-Decision: the hook, the Edge Function `auth-send-code`, is the one place outside an outbox consumer that calls an adapter, and it does nothing else.
+Decision: the Edge Function `auth-send-code` is the one place outside an outbox consumer that calls an adapter, and it only sends sign-in codes.
 
-- It checks Auth's Standard Webhooks signature.
-- It sends the code with `sendSignInCode` from `@rivr/adapters`: the WhatsApp authentication template first, SMS when that fails.
-- It never logs or stores the code or the phone.
-- With no live channel configured it answers 503, so Auth refuses the sign-in instead of a fake pretending to send.
+- It checks Auth's Standard Webhooks signature. A signed call replayed within its five-minute window is accepted; it can only resend the same code to the same number.
+- It sends to the number Auth is checking (`sms.phone`), never the account's current number. During a phone change the two differ, and the old number must not confirm the new one.
+- It uses `sendSignInCode`: the WhatsApp authentication template, then SMS when WhatsApp fails at once. A number not on WhatsApp fails only later, so that case is #181. WhatsApp gives up after 4 of Auth's 5 seconds; a WhatsApp timeout may still deliver, so when SMS arrives a member could get two codes, and the SMS call must fit the remaining second.
+- Expected failures go back as HTTP 200 with Auth's error object, because Auth reads no other body. The app receives 503 (no channel configured), 429 or 502, with the message.
+- It builds its adapters itself rather than through `createAdapters` (decision 0014). A sign-in belongs to no venue, so the practice-venue rule does not apply, and it must fail closed rather than fall back to fakes.
+- A messaging stop does not halt sign-in codes: halting them would also lock out the super admins who release it (question #179).
+- It never logs the code or the phone. Auth's own logs do record the phone; that is Supabase's behaviour.
 
-Test numbers never reach the hook: the local stack's `123456` (`supabase/config.template.toml`), and staging's private code (`docs/runbooks/ci-and-release.md`). Question #179 asks the owner to confirm.
+Test numbers never reach the hook. Question #179 asks the owner to confirm this exception.

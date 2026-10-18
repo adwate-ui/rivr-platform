@@ -11,7 +11,8 @@ import { portBlock, worktreeName, worktreeRoot } from '@rivr/config/worktree';
  */
 function hookSecret(root) {
   const file = join(root, 'supabase/.hook-secret');
-  if (!existsSync(file)) writeFileSync(file, `v1,whsec_${randomBytes(32).toString('base64')}\n`);
+  // Readable by its owner only.
+  if (!existsSync(file)) writeFileSync(file, `v1,whsec_${randomBytes(32).toString('base64')}\n`, { mode: 0o600 });
   return readFileSync(file, 'utf8').trim();
 }
 

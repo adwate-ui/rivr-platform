@@ -22,15 +22,17 @@ function reply({ status, body }: HookReply): Response {
 }
 
 Deno.serve(async (request) => {
-  if (request.method !== 'POST') return reply(hookError(405, 'Only Auth calls this function.'));
-  if (secret === '') return reply(hookError(500, 'SEND_SMS_HOOK_SECRET is not set.'));
+  // A caller that is not Auth gets a plain HTTP refusal and nothing else.
+  if (request.method !== 'POST') return new Response(null, { status: 405 });
+  // Auth is calling but the function cannot check it: refuse in a way the app can show.
+  if (secret === '') return reply(hookError(500, 'Sign-in codes cannot be sent yet.'));
   let payload: unknown;
   try {
     // verify() reads the webhook-id, webhook-timestamp and webhook-signature headers, rejects a
     // timestamp more than five minutes old, and returns the parsed body only if the signature matches.
     payload = new Webhook(secret).verify(await request.text(), Object.fromEntries(request.headers));
   } catch {
-    return reply(hookError(401, 'The hook signature did not verify.'));
+    return new Response(null, { status: 401 });
   }
   return reply(await handleSendSmsHook(payload, liveChannels()));
 });
