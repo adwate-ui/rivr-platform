@@ -23,11 +23,28 @@ select is(private.kyc_minimum_age('00000000-0000-4000-8000-000000000001'), 21, '
 select ok(not private.is_kyc_complete('00000000-0000-4000-8000-000000000201'), 'and then a 20-year-old may not play');
 select pg_temp.verified('00000000-0000-4000-8000-000000000202', 21);
 select ok(private.is_kyc_complete('00000000-0000-4000-8000-000000000202'), 'while a member who turned 21 today may');
+select is(private.kyc_refusal('00000000-0000-4000-8000-000000000202'), null, 'and is not refused');
+-- A day short of 21.
+update public.kyc_record
+set date_of_birth = ((now() at time zone 'Asia/Kolkata')::date - interval '21 years' + interval '1 day')::date
+where member_id = '00000000-0000-4000-8000-000000000202';
+select ok(not private.is_kyc_complete('00000000-0000-4000-8000-000000000202'), 'a member a day short of 21 may not play');
+select is(private.kyc_refusal('00000000-0000-4000-8000-000000000202'), 'under_18', 'and is refused');
 select is(private.kyc_minimum_age('00000000-0000-4000-8000-000000000002'), 18, 'another venue keeps its own minimum');
 
 -- The gate refuses a new check under the venue's minimum.
 update public.kyc_record set status = 'started', verified_at = null where member_id = '00000000-0000-4000-8000-000000000201';
 select is(private.kyc_refusal('00000000-0000-4000-8000-000000000201'), 'under_18', 'a check under the venue''s minimum is refused');
+
+-- A raise dated in the future applies from then, not now.
+insert into public.setting (venue_id, key, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000002', 'kyc.minimum_age', '{"years": 25}', now() + interval '1 day', 'Next month');
+select is(private.kyc_minimum_age('00000000-0000-4000-8000-000000000002'), 18, 'a raise from tomorrow does not apply today');
+
+-- 21.0 is accepted as an integer and must read as 21, never stop the gate.
+insert into public.setting (venue_id, key, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'kyc.minimum_age', '{"years": 21.0}', now(), 'Written with a decimal point');
+select is(private.kyc_minimum_age('00000000-0000-4000-8000-000000000001'), 21, '21.0 reads as 21');
 
 -- Never below 18.
 select throws_ok(

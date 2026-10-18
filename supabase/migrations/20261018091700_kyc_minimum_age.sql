@@ -9,7 +9,8 @@ insert into public.setting_key (key, description, scope, value_schema) values
    'venue',
    '{"type":"object","properties":{"years":{"type":"integer","minimum":18,"maximum":25}},"required":["years"],"additionalProperties":false}');
 
--- The age a member of the venue must have reached today: the setting in force, never below 18.
+-- The age a member of the venue must have reached today: the setting in force, never below 18. The
+-- value is cast from JSON, not from text, so 21.0, which the schema accepts as an integer, reads as 21.
 create function private.kyc_minimum_age(p_venue_id uuid)
 returns integer
 language sql
@@ -17,7 +18,7 @@ stable
 security definer
 set search_path = ''
 as $$
-  select greatest(18, coalesce((private.setting_at(p_venue_id, 'kyc.minimum_age', '', now()) ->> 'years')::integer, 18));
+  select greatest(18, coalesce((private.setting_at(p_venue_id, 'kyc.minimum_age', '', now()) -> 'years')::integer, 18));
 $$;
 
 create or replace function private.kyc_refusal(p_member_id uuid)
