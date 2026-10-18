@@ -1,4 +1,4 @@
-import { createRivrClient, RivrDataProvider } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -9,7 +9,7 @@ afterEach(() => {
   localStorage.clear();
 });
 
-/** Stores a session as the client keeps one after sign-in (under sb-<host>-auth-token), for Kabir. */
+/** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Kabir. */
 function signIn() {
   const session = {
     access_token: 'test',
@@ -19,7 +19,7 @@ function signIn() {
     expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000202', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   };
-  localStorage.setItem('sb-127-auth-token', JSON.stringify(session));
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
 }
 
 // Nothing listens at this address: signed out, nothing is fetched, and a sign-in request fails.

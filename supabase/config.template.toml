@@ -110,6 +110,8 @@ max_frequency = "60s"
 919000000901 = "123456"
 # Not seeded: the Attribution flow signs this number up (#10).
 919000000902 = "123456"
+# Not seeded: the Console sign-in flow signs in as someone who is not staff (#223).
+919000000903 = "123456"
 
 # Auth refuses phone sign-in without an SMS provider, even for the test numbers above, which
 # never reach it. These are placeholders, not credentials; any other number fails locally.

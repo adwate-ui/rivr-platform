@@ -18,7 +18,7 @@ export function ResendButton({ phone, onFail }: { phone: IndianMobile; onFail: (
   };
   return (
     <Button variant="text" fullWidth isDisabled={countdown.left > 0} isLoading={requestCode.isPending} onClick={() => void resend()}>
-      {countdown.left > 0 ? t('player.signIn.resendIn', { seconds: countdown.left }) : t('player.signIn.resend')}
+      {countdown.left > 0 ? t('common.signIn.resendIn', { seconds: countdown.left }) : t('common.signIn.resend')}
     </Button>
   );
 }

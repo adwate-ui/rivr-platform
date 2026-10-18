@@ -85,24 +85,6 @@ export const playerApp = {
     stopped: 'New sign-ups are paused for now. Try again later.',
     unavailable: 'Sign-up is not available right now. Try again in a few minutes.',
   },
-  /** Sign-in: a mobile number, then the six-digit code sent to it. `{phone}` is `+91 98765 43210`. */
-  signIn: {
-    phoneLabel: 'Mobile number',
-    countryCode: '+91',
-    sendCode: 'Send code',
-    codeTitle: 'Code',
-    codeLabel: 'Code sent to {phone}',
-    codePlaceholder: '6 digits',
-    submit: 'Verify',
-    changeNumber: 'Change number',
-    resend: 'Send again',
-    resendIn: 'Send again in {seconds} s',
-    phoneInvalid: 'Enter a 10-digit mobile number.',
-    codeInvalid: 'Enter the 6-digit code.',
-    codeRejected: 'Code wrong or expired. Check it, or request a new one.',
-    tooManyRequests: 'Too many attempts. Wait a minute, then try again.',
-    unavailable: 'Sign-in is not available right now. Try again in a few minutes.',
-  },
   /** KYC: DigiLocker, or a PAN when DigiLocker fails. Only the masked Aadhaar is ever shown. */
   kyc: {
     title: 'Identity',
@@ -137,7 +119,16 @@ export const playerApp = {
 } as const;
 
 export const consoleApp = {
+  /** The heading while the console finds the staff member's venue, or fails to. */
+  title: 'Console',
   liveFloor: { title: 'Live floor', empty: 'No tables are running.' },
+  /** Someone signed in who is not active staff at any venue. */
+  notStaff: {
+    title: 'Staff only',
+    body: 'This console is for RIVR staff. A manager can add your number to the staff list.',
+  },
+  /** At the foot of the rail: switches the console to the practice venue, where staff train. */
+  practice: 'Practice venue',
 } as const;
 
 export const tabletApp = {

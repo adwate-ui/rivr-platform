@@ -13,10 +13,12 @@ export interface ConsoleShellProps {
   onNavigate?: Navigate | undefined;
   /** Across the top, for the kill-switch banner. */
   banner?: ReactNode;
+  /** At the foot of the rail: who is signed in, the venue, and signing out. */
+  railFooter?: ReactNode;
 }
 
 /** The floor console frame at 1440 px: banner, the left rail, and the screen. */
-export function ConsoleShell({ children, sections, currentItem, onNavigate, banner }: ConsoleShellProps) {
+export function ConsoleShell({ children, sections, currentItem, onNavigate, banner, railFooter }: ConsoleShellProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       {banner}
@@ -26,6 +28,7 @@ export function ConsoleShell({ children, sections, currentItem, onNavigate, bann
             <Wordmark withTagline />
           </div>
           <SideNav label={t('ui.consoleRail.label')} sections={sections} current={currentItem} onNavigate={onNavigate} />
+          {railFooter ? <div className="mt-auto px-3">{railFooter}</div> : null}
         </aside>
         <main className="min-w-0 flex-1 px-8 py-6">{children}</main>
       </div>

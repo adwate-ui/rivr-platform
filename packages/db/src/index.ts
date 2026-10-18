@@ -1,9 +1,10 @@
-export { createRivrClient, type RivrClient, type RivrClientOptions } from './client.ts';
+export { createRivrClient, SESSION_STORAGE_KEY, type RivrClient, type RivrClientOptions } from './client.ts';
 export type { Database } from './database.types.ts';
 export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from './provider.tsx';
 export { useMember, type Member } from './member.ts';
 export { useControlState, useFeature } from './hooks.ts';
-export { useSignIn, type SignInResult } from './signIn.ts';
+export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
+export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
 export { useSignUp, type SignUpFailure } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
