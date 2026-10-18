@@ -82,3 +82,6 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Account code | The dotted name of a ledger account, such as `member.cash` or `venue.rake`; the chart of accounts is in `docs/contracts/README.md` |
 | Parked write | An offline write the server refused for good, kept on the tablet for a supervisor instead of being retried |
 | Login link | The tie between a sign-in (a verified phone) and a staff or member record, made only by `link_my_login()` |
+| E.164 | The international phone format: a plus, the country code and the number, `+919876543210` |
+| Authentication template | A WhatsApp message type Meta reserves for one-time codes, approved in Meta's dashboard; it shows a "Copy code" button |
+| Copy-code button | The button on a WhatsApp authentication template that copies the code; Meta requires the code to be sent again as the button's parameter |

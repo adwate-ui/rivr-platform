@@ -53,6 +53,14 @@ const payouts = createFakeUpiPayouts();
 payouts.failNext({ code: 'unavailable' });
 ```
 
+## Live implementations
+
+| Adapter | Import | Credentials |
+|---|---|---|
+| WhatsApp, Meta Cloud API | `createWhatsAppCloudApi({ phoneNumberId, accessToken })` from `@rivr/adapters/whatsapp` | `WHATSAPP_PHONE_NUMBER_ID` (the business number's id in Meta's dashboard) and `WHATSAPP_ACCESS_TOKEN` (a system user's permanent token), as Edge Function secrets |
+
+The WhatsApp adapter sends every template category. Marketing opt-in rules, and the templates themselves, arrive with #62.
+
 ## Adding a live implementation
 
 Implement the same interface in the vendor's folder (`live.ts`), with `fetch` only. Parse every response with Zod in a `parse/` folder, map vendor errors to `AdapterFailure`, and pass it to `createAdapters` through `live` when the venue's credentials exist.
