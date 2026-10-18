@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { useControlState, useFeature } from './hooks.ts';
-import { RivrDataProvider } from './provider.tsx';
+import { RivrDataProvider, useAuthStatus } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ARJUN = '00000000-0000-4000-8000-000000000201';
@@ -81,6 +81,38 @@ function freshDatabase(): FakeDatabase {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+function AuthProbe() {
+  return <p>{`auth: ${useAuthStatus()}`}</p>;
+}
+
+describe('useAuthStatus', () => {
+  it('is signed-in with a stored session, and signed-out without one', async () => {
+    const signedIn = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+      auth: { storage: sessionStorageFor(ARJUN), storageKey: 'rivr-test-auth', autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    render(<RivrDataProvider client={signedIn}><AuthProbe /></RivrDataProvider>);
+    expect(await screen.findByText('auth: signed-in')).toBeDefined();
+    cleanup();
+
+    const signedOut = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+      auth: { storage: sessionStorageFor(null), storageKey: 'rivr-test-auth', autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    render(<RivrDataProvider client={signedOut}><AuthProbe /></RivrDataProvider>);
+    expect(await screen.findByText('auth: signed-out')).toBeDefined();
+  });
+
+  it('stays loading, not signed-out, when an expired session cannot be refreshed for want of a network', async () => {
+    const offline = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+      global: { fetch: () => Promise.reject(new TypeError('Failed to fetch')) },
+      auth: { storage: sessionStorageFor(ARJUN, Math.floor(Date.now() / 1000) - 60), storageKey: 'rivr-test-auth', autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    render(<RivrDataProvider client={offline}><AuthProbe /></RivrDataProvider>);
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.getByText('auth: loading')).toBeDefined();
+  });
 });
 
 describe('RivrDataProvider, useFeature and useControlState', () => {
