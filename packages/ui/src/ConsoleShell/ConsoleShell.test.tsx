@@ -38,6 +38,8 @@ describe('ConsoleShell', () => {
     expect(list).toHaveClass('overflow-y-auto');
     expect(list).not.toContainElement(screen.getByText('Sana Qureshi'));
     expect(screen.getByRole('main')).toHaveClass('overflow-y-auto');
+    // A keyboard can scroll the screen even when it has nothing else to focus.
+    expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });
 
   it('groups the rail as the design prompt lists it and marks the current screen', () => {

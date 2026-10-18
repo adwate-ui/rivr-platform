@@ -36,7 +36,10 @@ export function ConsoleShell({ children, sections, currentItem, onNavigate, bann
           </div>
           {railFooter ? <div className="shrink-0 px-6">{railFooter}</div> : null}
         </aside>
-        <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">{children}</main>
+        {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). */}
+        <main tabIndex={0} className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
+          {children}
+        </main>
       </div>
     </div>
   );
