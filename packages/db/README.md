@@ -11,11 +11,13 @@ The only code that talks to Supabase. It holds the typed client, the generated d
 | `RivrDataProvider` | Wraps an app: client, query cache, the signed-in user, and one Realtime channel that refreshes feature access and kill-switch state when an admin changes them. |
 | `useFeature(key)` | How a member-facing feature shows for the signed-in member: `{ state: 'enabled' }`, `{ state: 'locked', tiers }` or `{ state: 'hidden' }`. Pass it to `FeatureGate`. Hidden until known. |
 | `useControlState(venueId?)` | The kill switch: `isVenueFrozen`, `killedFeatures`, `isMemberFrozen` (member apps). Drives `KillSwitchBanner`. |
+| `useSignIn()` | Sign-in by mobile number and one-time code, for every app. `requestCode.mutateAsync({ phone })` asks Auth to send a code; `verifyCode.mutateAsync({ phone, code })` checks it, links the records registered under the number (`link_my_login`) and refetches the person's cached queries, or signs out on this device if linking fails. Each resolves to a `SignInResult`: `ok`, or a `SignInFailure` of `code_rejected` (wrong or expired, which Auth does not tell apart), `too_many_requests` or `unavailable`. |
 | `useRivrData()` | The client and user id, for the query hooks lanes add. |
 | `queryKeys` | Every TanStack Query key. Keys holding a person's data start with their user id. |
 | `Database` | The generated types (`pnpm db:types`). |
 | `toFeatureAccess`, `toFeatureAccessMap`, `HIDDEN`, `FeatureAccess`, `FeatureAccessRow` | The parser behind `useFeature`, the "not known yet" value, and their types. |
 | `toControlState`, `NOTHING_ENGAGED`, `ControlState`, `KillableFeature` | The parser behind `useControlState`, the "nothing engaged" value, and their types. |
+| `toSignInFailure`, `SignInFailure`, `SignInResult` | The parser behind `useSignIn`'s failures (Auth's error to `code_rejected`, `too_many_requests` or `unavailable`), and the types. |
 
 ## Usage
 
@@ -32,7 +34,7 @@ function LearnTab() {
 root.render(<RivrDataProvider client={client}><App /></RivrDataProvider>);
 ```
 
-After every sign-in an app calls `client.rpc('link_my_login')`, which links the staff and member records registered under the login's verified phone. No client ever writes a login onto a record.
+Apps sign in through `useSignIn`, whose `verifyCode` calls `link_my_login`: it links the staff and member records registered under the login's verified phone. No client ever writes a login onto a record.
 
 ## How a feature is decided
 
