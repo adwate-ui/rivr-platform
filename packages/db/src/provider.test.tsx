@@ -5,6 +5,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { useControlState, useFeature } from './hooks.ts';
 import { RivrDataProvider } from './provider.tsx';
+import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ARJUN = '00000000-0000-4000-8000-000000000201';
 
@@ -32,32 +33,11 @@ function fakeFetch(database: FakeDatabase): typeof fetch {
   };
 }
 
-/** Browser storage holding a signed-in session for `userId`, or nothing when signed out. */
-function sessionStorageFor(userId: string | null) {
-  const items = new Map<string, string>();
-  if (userId !== null) {
-    const session = {
-      access_token: 'test-access-token',
-      refresh_token: 'test-refresh-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      user: { id: userId, aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
-    };
-    items.set('rivr-test-auth', JSON.stringify(session));
-  }
-  return {
-    getItem: (key: string) => items.get(key) ?? null,
-    setItem: (key: string, value: string) => void items.set(key, value),
-    removeItem: (key: string) => void items.delete(key),
-  };
-}
-
 /** A real client whose network is the fake database, with Realtime held so tests fire changes. */
 function testClient(database: FakeDatabase, userId: string | null) {
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
     global: { fetch: fakeFetch(database) },
-    auth: { storage: sessionStorageFor(userId), storageKey: 'rivr-test-auth', autoRefreshToken: false, detectSessionInUrl: false },
+    auth: { storage: sessionStorageFor(userId), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const channels: RealtimeChannel[] = [];
   const openChannel = client.channel.bind(client);

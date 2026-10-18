@@ -9,4 +9,6 @@ export const queryKeys = {
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
   /** Kill-switch controls the signed-in person can see. */
   controlState: (userId: string) => ['user', userId, 'control-state'] as const,
+  /** A signed URL for one KYC image. */
+  kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
 };
