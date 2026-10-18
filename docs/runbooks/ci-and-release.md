@@ -13,28 +13,32 @@ Deploy jobs skip with a notice until their secrets exist, so `main` stays green 
 
 ## Secrets and variables
 
-Set under Settings → Secrets and variables → Actions. Secrets are encrypted; variables are plain and visible (only non-secret values).
+Secrets live in GitHub environments (Settings → Environments), never at repository level, so each job holds only its own environment's keys. `scripts/github/setup-repo.sh` creates the environments; a person adds the values.
 
-| Name | Kind | Used by |
+| Environment | Who can use it | Secrets |
 |---|---|---|
-| `SUPABASE_ACCESS_TOKEN` | secret | staging and production database deploys |
-| `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD` | secret | staging |
-| `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD` | secret | production |
-| `CLOUDFLARE_API_TOKEN` (Pages edit), `CLOUDFLARE_ACCOUNT_ID` | secret | previews, staging, production |
-| `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | secret | release APKs |
-| `SENTRY_AUTH_TOKEN`, `SENTRY_DSN` | secret | when Sentry is wired in |
-| `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_PUBLISHABLE_KEY` | variable | builds for previews and staging |
-| `PROD_SUPABASE_URL`, `PROD_SUPABASE_PUBLISHABLE_KEY` | variable | production builds |
-| `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,DRIVER,WEB}_URL` | variable | the release's end-to-end run against staging |
-| `PROD_TABLET_URL`, `PROD_DRIVER_URL` | variable | the hosted bundle the APK shells load |
+| `preview` | pull requests from this repository | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for the **staging** Cloudflare account. Never the production token: any branch can run this job. |
+| `staging` | `main` only | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD`, and the staging `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` |
+| `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` and `SENTRY_DSN` when Sentry is wired in |
 
-The production jobs use a GitHub environment named `production`; add required reviewers there if a person should approve each release.
+Staging and production use separate Cloudflare accounts, or at least tokens scoped to their own projects, so a preview token can never deploy production.
+
+Variables are plain and visible, so they hold only non-secret values (Settings → Secrets and variables → Actions → Variables):
+
+| Name | Used by |
+|---|---|
+| `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_PUBLISHABLE_KEY` | builds for previews and staging |
+| `PROD_SUPABASE_URL`, `PROD_SUPABASE_PUBLISHABLE_KEY` | production builds |
+| `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,DRIVER,WEB}_URL` | the release's end-to-end run against staging |
+| `PROD_TABLET_URL`, `PROD_DRIVER_URL` | the hosted bundle the APK shells load |
+
+Auth on staging and production: in the Supabase dashboard turn email sign-up off and set the rate limits from `[auth.rate_limit]` in `supabase/config.template.toml`. On staging, add every seed phone number (`supabase/seed/10_people.sql`) as a test number with its code, so a seed sign-in never sends a real SMS.
 
 ## Releasing
 
-1. Confirm the day's `main` is green and staging looks right.
-2. `git tag release-20261115-1 <commit> && git push origin release-20261115-1` (a person does this; agents cannot push tags to production).
-3. Watch the Release workflow. If the staging e2e run fails, nothing reaches production.
+1. Confirm the day's `main` is green and the staging deploy of the commit you will release succeeded. The release refuses a commit that is not on `main` or that staging is not running.
+2. `git tag release-20261115-1 <commit> && git push origin release-20261115-1`. Only repository admins can create `release-*` tags; agents never do. N runs from 1 to 99 per day, and the APK version code is YYYYMMDD × 100 + N.
+3. Approve the `production` deployment when the Release workflow asks. If the staging e2e run fails, nothing reaches production.
 
 ## Rolling back
 
@@ -44,4 +48,4 @@ The production jobs use a GitHub environment named `production`; add required re
 
 ## First-time repository setup
 
-Run `scripts/github/setup-repo.sh` once with admin rights: labels, branch protection on `main` (requires `verify`, `e2e`, `budgets`, `security` and `agent-review`), squash-only merges, and approval for workflows from outside contributors.
+Run `scripts/github/setup-repo.sh` once with admin rights: labels, branch protection on `main` (requires `verify`, `e2e`, `budgets`, `security` and `agent-review`), squash-only merges, approval for workflows from outside contributors, the three environments and the `release-*` tag rule. Safe to run again.

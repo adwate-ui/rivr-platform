@@ -14,8 +14,12 @@ export default defineConfig({
   retries: 0,
   // Flows share the seeded database, so they run one at a time.
   workers: 1,
-  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
-  use: { trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  reporter: isRemoteTarget() ? [['list']] : [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
+  // Against staging nothing is kept: a trace or screenshot would hold staging sessions, and
+  // this repository and its workflow artifacts are public.
+  use: isRemoteTarget()
+    ? { trace: 'off', screenshot: 'off' }
+    : { trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: isRemoteTarget()
     ? []

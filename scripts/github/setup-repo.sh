@@ -4,6 +4,7 @@
 #   2. branch protection on main: CI's four jobs and the agent-review status are required,
 #      merges are squash-only, no force pushes, no deletion
 #   3. Actions on pull requests from outside contributors wait for approval
+#   4. the preview, staging and production environments, and release-* tags for admins only
 # Safe to run again. Usage: scripts/github/setup-repo.sh [owner/repo]
 set -euo pipefail
 repo="${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
@@ -40,3 +41,43 @@ echo "squash merges only, branches deleted after merge"
 
 gh api --method PUT "repos/$repo/actions/permissions/fork-pr-contributor-approval" -f approval_policy=all_external_contributors >/dev/null
 echo "workflows from outside contributors need approval"
+
+# Deploy environments. Secrets live in an environment, never at repository level, so a job gets
+# only its environment's keys:
+#   preview     pull requests; a Cloudflare token for the staging account only
+#   staging     main only; staging Supabase and Cloudflare
+#   production  release-* tags only, and the repository owner approves each release
+owner_id="$(gh api "users/${repo%%/*}" --jq .id)"
+environment() {
+  gh api --method PUT "repos/$repo/environments/$1" --input - >/dev/null
+  echo "environment $1"
+}
+deploy_only_from() {
+  # Refused when the policy already exists, which is fine on a re-run.
+  gh api --method POST "repos/$repo/environments/$1/deployment-branch-policies" -f name="$2" -f type="$3" >/dev/null 2>&1 || true
+}
+echo '{}' | environment preview
+echo '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}' | environment staging
+deploy_only_from staging main branch
+cat <<JSON | environment production
+{
+  "reviewers": [{ "type": "User", "id": $owner_id }],
+  "deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true }
+}
+JSON
+deploy_only_from production 'release-*' tag
+
+# Only repository admins create, move or delete release-* tags.
+if ! gh api "repos/$repo/rulesets" --jq '.[].name' | grep -qx 'release tags'; then
+  gh api --method POST "repos/$repo/rulesets" --input - >/dev/null <<'JSON'
+{
+  "name": "release tags",
+  "target": "tag",
+  "enforcement": "active",
+  "bypass_actors": [{ "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always" }],
+  "conditions": { "ref_name": { "include": ["refs/tags/release-*"], "exclude": [] } },
+  "rules": [{ "type": "creation" }, { "type": "update" }, { "type": "deletion" }]
+}
+JSON
+fi
+echo "release-* tags: admins only"

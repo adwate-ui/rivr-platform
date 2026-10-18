@@ -38,7 +38,19 @@
       "Bash(git push origin HEAD:main*)",
       "Bash(gh pr merge --admin*)",
       "Bash(pnpm supabase db push*)",
-      "Bash(pnpm supabase link*)"
+      "Bash(pnpm supabase link*)",
+      "Bash(pnpm exec wrangler*)",
+      "Bash(pnpm wrangler*)",
+      "Bash(npx wrangler*)",
+      "Bash(supabase functions deploy*)",
+      "Bash(pnpm supabase functions deploy*)",
+      "Bash(pnpm exec supabase*)",
+      "Bash(*--project-ref*)",
+      "Bash(* .env*)",
+      "Bash(*/.env*)",
+      "Bash(git push origin release-*)",
+      "Bash(git push --tags*)",
+      "Bash(git tag *)"
     ]
   },
   "hooks": {
