@@ -13,7 +13,8 @@ defaultToLocalSupabase('VITE_');
  * cached by it: a screen offline shows its error state under the offline banner.
  */
 const pwa = VitePWA({
-  registerType: 'autoUpdate',
+  // A new version waits to be taken (main.tsx), so a reload never lands on a member mid-entry (#252).
+  registerType: 'prompt',
   injectRegister: false,
   // Launch screens are read once, at install, so they stay out of the offline cache.
   includeAssets: ['icons/favicon-32.png', 'icons/apple-touch-icon.png'],
@@ -37,9 +38,10 @@ const pwa = VitePWA({
     // English only (#186): the Devanagari faces the stylesheet still carries are never drawn.
     globIgnores: ['**/*devanagari*'],
     navigateFallback: '/index.html',
-    // A new version takes over at once, even in an app left open for days: a fix, security fixes
-    // above all, never waits for every window to close (registerSW then reloads the page once).
-    skipWaiting: true,
+    // A new version waits until the app takes it, once out of sight, rather than for every window to
+    // close: a fix, a security fix above all, reaches an app left open for days within an hour of
+    // the member next leaving it. The first version serves the page that installed it at once.
+    skipWaiting: false,
     clientsClaim: true,
   },
 });
