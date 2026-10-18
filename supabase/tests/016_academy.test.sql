@@ -1,4 +1,4 @@
--- Academy (#8): fees equal to @rivr/domain academyFee (golden cases); batches with dates and seats; a
+-- Academy (#8): the fee's one non-golden case (its golden cases are in 024); batches with dates and seats; a
 -- member books at the individual fee and claims a UPI payment with its UTR; a cashier confirms the UTR
 -- found in the bank, the ledger takes the money and academy.booked goes out, or turns down a UTR it
 -- cannot find; staff book a company at the corporate fee per head and record its UTR. 101 super admin,

@@ -18,7 +18,7 @@ paths:
 - Store times in UTC; display IST.
 - Second approver above configured limits, enforced in the database.
 - Kill switch: every write function checks `control_state` first and refuses when frozen.
-- When SQL must compute money, write a SQL function and a golden test proving it equals `@rivr/domain` on the same cases.
+- When SQL must compute money, write a SQL function and prove it on the same golden file as `@rivr/domain`, in `supabase/tests/024_golden_twins.test.sql` (decision 0037).
 
 ## Tests required for every change here
 - Golden fixtures in `packages/testing/golden/`, readable by a non-engineer, covering normal, cap and ₹50-rounding edge cases.

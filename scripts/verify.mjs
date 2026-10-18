@@ -2,7 +2,7 @@
 /**
  * pnpm verify | verify:quick | verify:all
  *   quick    typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
- *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ changed,
+ *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
  *            the generated-tokens check, the drill gates, Storybook build and visual tests
  *   all      every step for every package
  * quick and changed cover packages changed against origin/main (or main), uncommitted work
