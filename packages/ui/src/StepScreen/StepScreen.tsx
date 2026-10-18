@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { cx } from '../internal/classes.ts';
@@ -14,6 +14,11 @@ export interface StepScreenProps {
   back?: { label: string; onBack: () => void } | undefined;
   /** `top` sets the content under the title; `center` sets it in the middle of the screen. */
   align?: 'top' | 'center';
+  /**
+   * Makes the step a form: Enter in a field, the keyboard's Go key or a `type="submit"` button
+   * calls this, and the page never reloads. React Hook Form's `handleSubmit(onValid)` fits as is.
+   */
+  onSubmit?: ((event: FormEvent<HTMLFormElement>) => void | Promise<void>) | undefined;
 }
 
 const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
@@ -24,7 +29,20 @@ const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
  * prompt, "Sign-in and KYC"). The action stays inside `main`: it is the step's purpose, not
  * page furniture, so a screen reader jumping to main finds the field and the button.
  */
-export function StepScreen({ children, footer, title, back, align = 'top' }: StepScreenProps) {
+export function StepScreen({ children, footer, title, back, align = 'top', onSubmit }: StepScreenProps) {
+  const step = (
+    <>
+      <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>
+        {title ? <Heading level={1}>{title}</Heading> : null}
+        {children}
+      </div>
+      <div className="flex flex-col gap-6 pt-6">{footer}</div>
+    </>
+  );
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void onSubmit?.(event);
+  };
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface px-6 pt-4 pb-8 text-content">
       {back ? (
@@ -35,11 +53,14 @@ export function StepScreen({ children, footer, title, back, align = 'top' }: Ste
         </header>
       ) : null}
       <main className="flex flex-1 flex-col">
-        <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>
-          {title ? <Heading level={1}>{title}</Heading> : null}
-          {children}
-        </div>
-        <div className="flex flex-col gap-6 pt-6">{footer}</div>
+        {onSubmit ? (
+          // Fields are checked by the form's schema, so the browser's own validation stays off.
+          <form noValidate className="flex flex-1 flex-col" onSubmit={submit}>
+            {step}
+          </form>
+        ) : (
+          step
+        )}
       </main>
     </div>
   );

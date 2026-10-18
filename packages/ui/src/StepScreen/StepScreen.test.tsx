@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from '../Button/Button.tsx';
+import { Input } from '../Input/Input.tsx';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { StepScreen } from './StepScreen.tsx';
 
@@ -54,6 +55,31 @@ describe('StepScreen', () => {
     expect(screen.queryByRole('heading')).toBeNull();
     expect(screen.queryByRole('banner')).toBeNull();
     expect(screen.getByText('The lockup').parentElement).toHaveClass('items-center', 'justify-center');
+  });
+
+  it('is a form when it takes onSubmit: Enter in the field or the submit button sends it', async () => {
+    const onSubmit = vi.fn();
+    renderIn(
+      <StepScreen
+        onSubmit={onSubmit}
+        footer={
+          <Button variant="primary" type="submit">
+            Send code
+          </Button>
+        }
+      >
+        <Input label="Mobile number" />
+      </StepScreen>,
+    );
+    await userEvent.type(screen.getByRole('textbox', { name: 'Mobile number' }), '9876543210{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: 'Send code' }));
+    expect(onSubmit).toHaveBeenCalledTimes(2);
+    expect(onSubmit.mock.calls[0]?.[0].defaultPrevented).toBe(true);
+  });
+
+  it('is not a form without onSubmit', () => {
+    const { container } = renderStep();
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('has no accessibility violations', async () => {

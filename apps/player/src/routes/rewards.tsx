@@ -1,6 +1,6 @@
 import { createRoute } from '@tanstack/react-router';
 import { RewardsScreen } from '../features/rewards/index.ts';
-import { rootRoute } from './root.tsx';
+import { frameRoute } from './frame.tsx';
 
 /** Rewards. */
-export const rewardsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/rewards', component: RewardsScreen });
+export const rewardsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/rewards', component: RewardsScreen });
