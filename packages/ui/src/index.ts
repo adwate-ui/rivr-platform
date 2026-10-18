@@ -56,5 +56,6 @@ export * from './StepScreen/index.ts';
 export * from './HeroBlock/index.ts';
 export * from './TextBlock/index.ts';
 
-// Social cards, drawn by @rivr/render
+// Social cards and brand art, drawn by @rivr/render
 export * from './SocialCard/index.ts';
+export * from './BrandArt/index.ts';

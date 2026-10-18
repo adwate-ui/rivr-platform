@@ -27,6 +27,15 @@ const SPADE: Record<WordmarkSize, number> = { md: tokens.icon.size.sm, lg: token
 
 const ALIGN = { start: 'items-start', center: 'items-center' } as const;
 
+/** The mark's last tile: the red card with the cream spade. Alone, it is the app icon (BrandArt). */
+export function WordmarkCard({ size = 'md' }: { size?: WordmarkSize }) {
+  return (
+    <span className={cx('flex items-center justify-center bg-alert text-on-alert', TILE[size])}>
+      <Spade size={SPADE[size]} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+    </span>
+  );
+}
+
 /**
  * The brand mark: R I V R as cream tiles with ink serif capitals, then a red card with a
  * cream spade. The one place a filled shape and the red card appear.
@@ -41,9 +50,7 @@ export function Wordmark({ size = 'md', withTagline = false, withMotto = false, 
             {letter}
           </span>
         ))}
-        <span className={cx(tile, 'bg-alert text-on-alert')}>
-          <Spade size={SPADE[size]} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-        </span>
+        <WordmarkCard size={size} />
       </div>
       {withTagline ? (
         <span className={cx('font-text font-medium uppercase tracking-tv text-content', TAGLINE[size])}>
