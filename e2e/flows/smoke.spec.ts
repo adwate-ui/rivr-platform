@@ -16,10 +16,9 @@ test.describe('smoke: every surface starts', () => {
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
   });
 
-  test('the console opens on Live floor with its rail', async ({ page }) => {
+  test('the console opens on sign-in for someone signed out', async ({ page }) => {
     await open(page, 'console');
-    await expect(page.getByRole('heading', { name: 'Live floor' })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: 'Sections' })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
   });
 
   test('the dealer tablet opens on hand entry', async ({ page }) => {

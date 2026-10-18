@@ -7,7 +7,13 @@ import { ConsoleShell } from './ConsoleShell.tsx';
 
 function renderShell(onNavigate = vi.fn()) {
   return renderIn(
-    <ConsoleShell sections={consoleSections()} currentItem="cage" onNavigate={onNavigate} banner={<p>Venue frozen.</p>}>
+    <ConsoleShell
+      sections={consoleSections()}
+      currentItem="cage"
+      onNavigate={onNavigate}
+      banner={<p>Venue frozen.</p>}
+      railFooter={<p>Sana Qureshi</p>}
+    >
       <h1>Cage</h1>
     </ConsoleShell>,
   );
@@ -19,6 +25,11 @@ describe('ConsoleShell', () => {
     expect(screen.getByRole('complementary')).toContainElement(screen.getByRole('navigation', { name: 'Sections' }));
     expect(screen.getByRole('main')).toHaveTextContent('Cage');
     expect(screen.getByText('Venue frozen.')).toBeInTheDocument();
+  });
+
+  it('puts who is signed in at the foot of the rail', () => {
+    renderShell();
+    expect(screen.getByRole('complementary')).toHaveTextContent('Sana Qureshi');
   });
 
   it('groups the rail as the design prompt lists it and marks the current screen', () => {

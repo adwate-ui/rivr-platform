@@ -24,24 +24,24 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
 
   const { errors } = form.formState;
   // A refusal from Auth carries its own words; anything else failed the six-digit check.
-  const error = errors.code ? (errors.code.type === 'server' ? errors.code.message : t('player.signIn.codeInvalid')) : undefined;
+  const error = errors.code ? (errors.code.type === 'server' ? errors.code.message : t('common.signIn.codeInvalid')) : undefined;
   const codeField = form.register('code');
   const hasSixDigits = signInCodeSchema.safeParse(useWatch({ control: form.control, name: 'code' })).success;
   return (
     <StepScreen
-      title={t('player.signIn.codeTitle')}
-      back={{ label: t('player.signIn.changeNumber'), onBack }}
+      title={t('common.signIn.codeTitle')}
+      back={{ label: t('common.signIn.changeNumber'), onBack }}
       onSubmit={verify}
       footer={
         <>
           <Button variant="primary" type="submit" fullWidth isDisabled={!hasSixDigits} isLoading={verifyCode.isPending}>
-            {t('player.signIn.submit')}
+            {t('common.signIn.submit')}
           </Button>
           <ResendButton phone={phone} onFail={fail} />
         </>
       }
     >
-      <Input {...codeField} label={t('player.signIn.codeLabel', { phone: formatMobile(phone) })} variant="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder={t('player.signIn.codePlaceholder')} autoFocus error={error} />
+      <Input {...codeField} label={t('common.signIn.codeLabel', { phone: formatMobile(phone) })} variant="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder={t('common.signIn.codePlaceholder')} autoFocus error={error} />
     </StepScreen>
   );
 }

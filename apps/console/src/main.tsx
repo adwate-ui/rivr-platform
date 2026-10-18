@@ -1,5 +1,5 @@
 import '@rivr/ui/styles.css';
-import { createRivrClient, RivrDataProvider } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, StaffVenueProvider } from '@rivr/db';
 import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -16,7 +16,9 @@ if (!container) throw new Error('index.html has no #root element');
 createRoot(container).render(
   <StrictMode>
     <RivrDataProvider client={client}>
-      <RouterProvider router={router} />
+      <StaffVenueProvider>
+        <RouterProvider router={router} />
+      </StaffVenueProvider>
     </RivrDataProvider>
   </StrictMode>,
 );

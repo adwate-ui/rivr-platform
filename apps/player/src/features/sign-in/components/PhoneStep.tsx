@@ -22,16 +22,16 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
 
   const { errors } = form.formState;
   // A refusal from Auth carries its own words; anything else failed the number check.
-  const error = errors.phone ? (errors.phone.type === 'server' ? errors.phone.message : t('player.signIn.phoneInvalid')) : undefined;
+  const error = errors.phone ? (errors.phone.type === 'server' ? errors.phone.message : t('common.signIn.phoneInvalid')) : undefined;
   return (
     <StepScreen
       align="center"
       onSubmit={send}
       footer={
         <>
-          <Input {...form.register('phone')} label={t('player.signIn.phoneLabel')} variant="line" prefix={t('player.signIn.countryCode')} type="tel" inputMode="tel" autoComplete="tel-national" autoFocus error={error} />
+          <Input {...form.register('phone')} label={t('common.signIn.phoneLabel')} variant="line" prefix={t('common.signIn.countryCode')} type="tel" inputMode="tel" autoComplete="tel-national" autoFocus error={error} />
           <Button variant="primary" type="submit" fullWidth isLoading={requestCode.isPending}>
-            {t('player.signIn.sendCode')}
+            {t('common.signIn.sendCode')}
           </Button>
         </>
       }

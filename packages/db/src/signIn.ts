@@ -45,3 +45,18 @@ export function useSignIn() {
 
   return { requestCode, verifyCode };
 }
+
+/**
+ * Signs out on this device only: the person's other devices stay signed in. Their cached data goes
+ * with them, so the next person never sees it.
+ */
+export function useSignOut() {
+  const { client } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await client.auth.signOut({ scope: 'local' });
+      queryClient.removeQueries({ queryKey: queryKeys.personal });
+    },
+  });
+}

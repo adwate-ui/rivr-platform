@@ -15,6 +15,8 @@ export const queryKeys = {
   preferences: (userId: string) => ['user', userId, 'preferences'] as const,
   /** The signed-in member's KYC record. */
   kycRecord: (userId: string) => ['user', userId, 'kyc-record'] as const,
+  /** The venues where the signed-in person is active staff, with their role. */
+  staffVenues: (userId: string) => ['user', userId, 'staff-venues'] as const,
   /** A signed URL for one KYC image. */
   kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
 };

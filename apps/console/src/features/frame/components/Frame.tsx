@@ -1,30 +1,51 @@
-import { useControlState } from '@rivr/db';
+import { useAuthStatus, useControlState, useStaffVenue, type StaffVenueState } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ConsoleShell, KillSwitchBanner, type SideNavSection } from '@rivr/ui';
-import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { ConsoleShell, KillSwitchBanner, Screen } from '@rivr/ui';
+import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
+import { NotStaff } from './NotStaff.tsx';
+import { railFor, railItemAt } from './rail.ts';
+import { StaffFooter } from './StaffFooter.tsx';
 
 /**
- * The console's frame: the left rail and the kill-switch banner. The rail lists only screens that
- * exist; each lane adds its items as it builds them, and lane A filters the rail by staff role.
+ * The console's frame for signed-in staff: the rail for their role at the venue the console works
+ * in, the kill-switch banner, and who is signed in. Nobody signed in goes to sign-in; someone who
+ * is not staff can only sign out.
  */
 export function Frame({ children }: { children: ReactNode }) {
-  const { isVenueFrozen } = useControlState();
+  const authStatus = useAuthStatus();
+  const staff = useStaffVenue();
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" replace />;
+  if (staff.status === 'not-staff') return <NotStaff />;
+  if (staff.status === 'loading') {
+    return (
+      <ConsoleShell sections={[]}>
+        <Screen title={t('console.title')} status="loading" />
+      </ConsoleShell>
+    );
+  }
+  if (staff.status === 'error') {
+    return (
+      <ConsoleShell sections={[]}>
+        <Screen title={t('console.title')} status="error" onRetry={staff.retry} />
+      </ConsoleShell>
+    );
+  }
+  return <StaffFrame staff={staff}>{children}</StaffFrame>;
+}
+
+function StaffFrame({ staff, children }: { staff: Extract<StaffVenueState, { status: 'ready' }>; children: ReactNode }) {
+  const { isVenueFrozen } = useControlState(staff.venue.venueId);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const sections: SideNavSection[] = [
-    {
-      id: 'floor',
-      label: t('ui.consoleRail.groups.floor'),
-      items: [{ id: 'liveFloor', label: t('ui.consoleRail.items.liveFloor'), href: '/' }],
-    },
-  ];
+  const sections = railFor(staff.venue.permissions);
   return (
     <ConsoleShell
       sections={sections}
-      currentItem={pathname === '/' ? 'liveFloor' : undefined}
+      currentItem={railItemAt(sections, pathname)}
       onNavigate={(href) => void navigate({ href })}
       banner={isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
+      railFooter={<StaffFooter staff={staff} />}
     >
       {children}
     </ConsoleShell>
