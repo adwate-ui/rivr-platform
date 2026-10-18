@@ -14,7 +14,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `membership_card` | Rotating QR secret per member |
 | `push_subscription`, `notification_preference` | Web push endpoints; which push types a member wants |
 | `member_preference` | Games and stake for waitlist alerts |
-| `academy_batch`, `academy_booking`, `academy_attendance` | Batches, bookings and payment, attendance, graduation |
+| `academy_batch`, `academy_booking`, `academy_utr_rejection`, `academy_attendance` | Batches, bookings and payment, the UTRs the cage turned down and by whom, attendance, graduation |
 | `learn_source`, `learn_licence`, `learn_card`, `learn_attempt`, `learn_lesson` | Licensed encodings (private bucket), licences, FSRS cards and attempts per member, Academy lessons |
 | `site_page`, `site_block`, `site_revision`, `site_publish` | Website pages of typed blocks, drafts, scheduled publish, history and rollback (`site_page` and `site_block` from #9, read publicly through `public_site_page` and `public_site_block`, never the practice venue) |
 | `cab_request`, `cab_trip`, `driver` | Eligibility, pickup and drop requests, driver assignment, live trip, drop confirmed by player code |
@@ -29,10 +29,10 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `private.member_restrictions(member, at)` | A, B | Limits, cool-off and self-exclusion in force |
 | `public.check_in(venue, card_code)`, `public.check_out(venue, card_code)` | door screen | Opens or closes a visit; refuses an excluded member; check-out before call time follows lane B's rule; emits `visit.opened` / `visit.closed` |
 | `public.book_academy(batch)`, `public.claim_academy_payment(booking, utr)`, `public.academy_payment_details(booking)` | player app | A seat in an open Academy batch at the `academy.price` fee; the member's UPI payment and UTR (#8) |
-| `public.academy_open_batches()`, `public.my_academy_bookings()` | player app | The batches the member can book, with seats left and the fee; the member's own seats, with the UTR given, the last one the cage turned down and `hold_until` while unpaid (decision 0033, #247) |
+| `public.academy_open_batches()`, `public.my_academy_bookings()` | player app | The batches the member can book, with seats left and the fee; the member's own seats, with the UTR given, the last one the cage turned down and `hold_until` while unpaid, and a seat the cage cancelled that way (decision 0033, #247, #222) |
 | `public.kyc_review_queue(venue)`, `public.review_kyc(member, approve, reason, date_of_birth?, pan?)` | console (KYC review) | Checks waiting for a KYC reviewer, with what the vendor found; approve or reject with a reason, never one's own, the gate still applying; emits `kyc.completed` on verifying (decision 0035) |
-| `public.confirm_academy_payment(booking, utr)` | console (cage) | A cashier confirms the UTR found in the bank (it must be the booking's, and never their own booking): bank in, Academy fees (`venue.academy`) out of the ledger; emits `academy.booked` |
-| `public.reject_academy_payment(booking, utr)` | console (cage) | A cashier turns down a UTR not found in the bank: the booking is unpaid again and its UTR freed |
+| `public.confirm_academy_payment(booking, utr)` | console (cage) | A cashier confirms the UTR found in the bank (it must be the booking's, never their own booking, and never a UTR they turned down on another booking, #222): bank in, Academy fees (`venue.academy`) out of the ledger; emits `academy.booked` |
+| `public.reject_academy_payment(booking, utr)` | console (cage) | A cashier turns down a UTR not found in the bank, kept with who did: the booking is unpaid again and its UTR freed, or, for a member's seat past its 48-hour hold, cancelled (#222, question #257) |
 | `public.create_academy_batch(...)`, `public.book_academy_corporate(..., request_id)`, `public.record_academy_payment(booking, utr)`, `public.cancel_academy_booking(booking)` | console | Batches; a company's heads at the corporate fee per head, once per request id; the UTR of a payment the payer could not give in the app; cancelling a booking with no payment given |
 | `private.current_visit(member)`, `private.close_visit(member, at, reason)` | A (final cash-out), B | The open visit; closing it emits `visit.closed` |
 | `private.visits_this_month(member, at)` | D (cab and promotions conditions) | Closed visits in the calendar month |

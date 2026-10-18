@@ -32,6 +32,8 @@ export const playerApp = {
     holdLapsed: 'Your seat is no longer held, so it may go to another member. Paying now still seats you.',
     /** The cashier did not find the UTR the member gave; `{utr}` is that UTR. */
     turnedDown: 'The cashier could not find UTR {utr} in the bank. Check it in your UPI app and give it again.',
+    /** The cage turned down `{utr}` after the seat's hold had lapsed, so the seat was given up (#222). */
+    cancelled: 'Cancelled. The cashier could not find UTR {utr} in the bank, and your seat was no longer held. If you paid, show the payment at the front desk.',
     pay: 'Pay',
     changeUtr: 'Change the UTR',
     paymentSent: 'Payment sent with UTR {utr}. The cashier checks it against the bank, usually within a day.',

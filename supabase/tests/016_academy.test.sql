@@ -154,14 +154,15 @@ select lives_ok($$ select public.reject_academy_payment(pg_temp.id('kabir_tiny')
   'a cashier turns down a UTR that is not in the bank');
 reset role;
 select results_eq($$ select status, utr, private.academy_seats_taken(batch_id) from public.academy_booking where id = pg_temp.id('kabir_tiny') $$,
-  $$ values ('awaiting_payment'::text, null::text, 1) $$, 'the booking is unpaid again, and its lapsed hold keeps no seat');
+  $$ values ('cancelled'::text, null::text, 1) $$, 'past its hold, the booking is cancelled (#222) and keeps no seat');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000202');
 select lives_ok($$ select public.claim_academy_payment(pg_temp.id('kabir'), '712345678901') $$,
   'a UTR turned down can be given again, for the booking it paid');
 
 -- Staff cancel a booking with no payment given; never a claimed or paid one.
+insert into ids values ('kabir_large', public.book_academy(pg_temp.id('large')));
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.cancel_academy_booking(pg_temp.id('kabir_tiny')) $$, 'staff cancel an unpaid booking');
+select lives_ok($$ select public.cancel_academy_booking(pg_temp.id('kabir_large')) $$, 'staff cancel an unpaid booking');
 select throws_ok($$ select public.cancel_academy_booking(pg_temp.id('sana')) $$, 'RVPAY', null,
   'never one with a UTR given: the cage confirms or turns it down first');
 select throws_ok($$ select public.cancel_academy_booking(pg_temp.id('arjun')) $$, 'RVPAY', null, 'never a paid one: that is a refund at the cage');
