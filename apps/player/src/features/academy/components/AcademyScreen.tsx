@@ -19,6 +19,8 @@ interface Refusal {
  */
 export function AcademyScreen() {
   const feature = useFeatureStatus('academy.booking');
+  // Both views show the member's seats: read them alongside access, not after it.
+  useAcademyBookings();
   const title = t('player.academy.title');
   // Until access is known: either view first would switch to the other once it is.
   if (feature.status === 'loading') return <Screen title={title} status="loading" />;
