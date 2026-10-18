@@ -3,7 +3,7 @@ export const kycInPerson = {
   /** How the check was done, in the queue, where a vendor's check says DigiLocker. */
   method: 'In person',
   title: 'Check in person',
-  hint: 'For a member at the club with their original Aadhaar and PAN card.',
+  hint: 'For a member at the club with their original Aadhaar and PAN card. Photograph their face, never a document.',
   search: 'Member\'s name or the last digits of their number',
   noMatch: 'No member with an unfinished check matches.',
   /** `{digits}` is the last four digits of the member's mobile number. */
@@ -19,12 +19,13 @@ export const kycInPerson = {
   invalid: 'Take their photo, enter the date of birth, the last four Aadhaar digits and the PAN from the originals, and record their consent.',
   verified: '{name} is verified and can take a seat.',
   refused: '{name} was refused. The refused checks below say why.',
+  needsReview: '{name} goes to review: another check holds the same PAN, Aadhaar or face. It is in the list below.',
 } as const;
 
 /** Why a check in person did not go through. */
 export const kycInPersonFailures = {
-  notAllowed: 'Your role does not allow this, and nobody checks themselves. Ask another reviewer.',
-  decided: 'This member\'s check is already decided or waiting for review. The list below shows it.',
+  notAllowed: 'Your role does not allow this, and nobody checks themselves or a member they added or changed. Ask another reviewer.',
+  decided: 'This member\'s check is decided, waiting for review, or waiting for their PAN in the app.',
   noPhoto: 'The photo did not arrive. Take it again.',
   invalid: 'Check the photo, the date of birth, the last four Aadhaar digits and the PAN.',
   stopped: 'KYC sign-up is switched off, or the venue or this member is frozen. Try again once it is released.',

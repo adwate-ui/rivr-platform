@@ -114,16 +114,16 @@ export function useKycReviewActions(venueId: string) {
   return { review };
 }
 
-/** A member a KYC reviewer may check in person: no check yet, or one a vendor never finished. */
+/** A member a KYC reviewer may check in person: no check yet (`status` null), or one the app started and never finished. */
 export interface KycCandidate {
   readonly memberId: string;
   readonly fullName: string;
   /** The last four digits of their mobile number, to tell two of the same name apart. */
   readonly phoneLast4: string;
-  readonly status: 'started' | 'needs_pan' | null;
+  readonly status: 'started' | null;
 }
 
-const CANDIDATE_STATUSES = ['started', 'needs_pan'] as const;
+const CANDIDATE_STATUSES = ['started'] as const;
 
 /** The members found by name, or by the last digits of their number, for a check in person (two characters at least). */
 export function useKycInPersonCandidates(venueId: string, search: string) {
@@ -147,16 +147,22 @@ export type KycInPersonFailure = 'not_allowed' | 'decided' | 'no_photo' | 'inval
 
 const IN_PERSON_FAILURES: readonly KycInPersonFailure[] = ['not_allowed', 'decided', 'no_photo', 'invalid', 'stopped'];
 
+/** Where a check in person ended. */
+export type KycInPersonOutcome = 'verified' | 'refused' | 'needs_review';
+
+const IN_PERSON_OUTCOMES: readonly KycInPersonOutcome[] = ['verified', 'needs_review'];
+
 /**
  * A check in person (the kyc-in-person Edge Function): the member's photo (a JPEG) and the details
- * from their originals. Resolves to where the check ended, `verified` or `refused` (the gate refuses
- * under 18 and a PAN a verified member holds), or why it did not go through; then reloads the queue.
+ * from their originals. Resolves to where the check ended: `verified`, `refused` (the gate refuses
+ * under 18 and a PAN or Aadhaar a verified member holds) or `needs_review` (another check holds the
+ * same PAN, Aadhaar or face); or why it did not go through. Then reloads the queue.
  */
 export function useKycInPerson(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const check = useMutation({
-    mutationFn: async ({ photo, ...details }: KycInPerson & { photo: Blob }): Promise<Result<'verified' | 'refused', KycInPersonFailure>> => {
+    mutationFn: async ({ photo, ...details }: KycInPerson & { photo: Blob }): Promise<Result<KycInPersonOutcome, KycInPersonFailure>> => {
       const { data, error } = await client.functions.invoke('kyc-in-person', { body: { ...details, image: await toBase64(photo) } });
       const user = userId ?? 'signed-out';
       // The queue, which now holds a refused check, and the search, which no longer finds a decided one.
@@ -169,7 +175,8 @@ export function useKycInPerson(venueId: string) {
         return err(IN_PERSON_FAILURES.find((known) => known === code) ?? 'unavailable');
       }
       const status: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'status') : null;
-      return ok(status === 'verified' ? 'verified' : 'refused');
+      // Anything else reads as refused, the safe reading.
+      return ok(IN_PERSON_OUTCOMES.find((known) => known === status) ?? 'refused');
     },
   });
   return { check };

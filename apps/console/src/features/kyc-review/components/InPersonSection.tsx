@@ -1,5 +1,5 @@
-import { useKycInPersonCandidates, type KycCandidate } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
+import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { InPersonForm } from './InPersonForm.tsx';
@@ -7,8 +7,14 @@ import { InPersonForm } from './InPersonForm.tsx';
 /** The last check in person and where it ended, said once the form closes. */
 interface Outcome {
   name: string;
-  status: 'verified' | 'refused';
+  status: KycInPersonOutcome;
 }
+
+const OUTCOME_COPY: Readonly<Record<KycInPersonOutcome, MessageKey>> = {
+  verified: 'console.kycInPerson.verified',
+  refused: 'console.kycInPerson.refused',
+  needs_review: 'console.kycInPerson.needsReview',
+};
 
 /**
  * A check in person (#246, while no KYC vendor is live): the reviewer finds a member at the club by
@@ -34,7 +40,7 @@ export function InPersonSection({ venueId }: { venueId: string }) {
       <Text tone="muted">{t('console.kycInPerson.hint')}</Text>
       {outcome === null ? null : (
         <Text weight="medium">
-          {t(outcome.status === 'verified' ? 'console.kycInPerson.verified' : 'console.kycInPerson.refused', { name: outcome.name })}
+          {t(OUTCOME_COPY[outcome.status], { name: outcome.name })}
         </Text>
       )}
       {member === null ? (

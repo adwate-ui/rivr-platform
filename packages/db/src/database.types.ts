@@ -912,9 +912,7 @@ isOneToOne: false
             }[]
                            },
 "authorize_in_person_kyc":
-{ Args: { "p_member_id": string }; Returns: {
-              "has_photo": boolean,"photo_path": string
-            }[]
+{ Args: { "p_member_id": string }; Returns: string
                            },
 "authorize_kyc_image":
 { Args: { "p_name": string }; Returns: undefined
@@ -932,7 +930,7 @@ isOneToOne: false
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
 "check_kyc_in_person":
-{ Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string }; Returns: string
+{ Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
                            },
 "claim_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined

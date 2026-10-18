@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
-import { shrinkPhoto, toBase64, useKycInPerson, type KycCandidate, type KycInPersonFailure } from '@rivr/db';
+import { shrinkPhoto, toBase64, useKycInPerson, type KycCandidate, type KycInPersonFailure, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, CameraButton, ErrorMessage, Inline, Input, KycPhoto, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
@@ -35,8 +35,8 @@ async function photoFrom(taken: File): Promise<Photo | null> {
 interface InPersonFormProps {
   venueId: string;
   member: KycCandidate;
-  /** The check went through the gate: verified, or refused (under 18, or a PAN a verified member holds). */
-  onDecided: (outcome: 'verified' | 'refused') => void;
+  /** The check went through the gate: verified, refused, or sent to review by a clash with another check. */
+  onDecided: (outcome: KycInPersonOutcome) => void;
   onCancel: () => void;
 }
 

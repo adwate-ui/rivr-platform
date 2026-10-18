@@ -28,6 +28,7 @@ export {
   type KycCheck,
   type KycDecision,
   type KycInPersonFailure,
+  type KycInPersonOutcome,
   type KycRefusal,
   type KycReviewFailure,
   type KycWaitReason,

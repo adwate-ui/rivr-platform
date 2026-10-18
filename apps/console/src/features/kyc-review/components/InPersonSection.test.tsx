@@ -1,15 +1,20 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InPersonSection } from './InPersonSection.tsx';
 
-// jsdom cannot decode an image, so the photo goes as taken.
-vi.mock('@rivr/db', async (importOriginal) => ({ ...(await importOriginal<Record<string, unknown>>()), shrinkPhoto: async (photo: Blob) => photo }));
+// jsdom decodes and draws nothing: the camera's photo comes back from the canvas as these bytes.
+beforeEach(() => {
+  vi.stubGlobal('createImageBitmap', async () => ({ width: 1200, height: 1600, close: () => undefined }));
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => null);
+  vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((done) => done(new Blob(['jpeg'], { type: 'image/jpeg' })));
+});
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null };
@@ -39,20 +44,25 @@ function renderSection(reply: () => Response) {
   return sent;
 }
 
-/** Finds Naina, takes her photo, enters what her originals say and her consent, and verifies. */
-async function checkNaina() {
+/**
+ * Finds Naina and fills in every detail from her originals, then verifies; the photo and her consent
+ * unless a test leaves one out.
+ */
+async function checkNaina({ photo = true, consent = true } = {}) {
   fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
   expect(await screen.findByText('Mobile ending 0203')).toBeDefined();
   fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
-  // The camera's hidden file input, as a phone or webcam fills it.
-  const camera = document.querySelector('input[type="file"]');
-  if (camera === null) throw new Error('No camera');
-  fireEvent.change(camera, { target: { files: [new File(['jpeg'], 'naina.jpg', { type: 'image/jpeg' })] } });
-  await screen.findByRole('button', { name: 'Take the photo again' });
+  if (photo) {
+    // The camera's hidden file input, as a phone or webcam fills it.
+    const camera = document.querySelector('input[type="file"]');
+    if (camera === null) throw new Error('No camera');
+    fireEvent.change(camera, { target: { files: [new File(['raw'], 'naina.jpg', { type: 'image/jpeg' })] } });
+    await screen.findByRole('button', { name: 'Take the photo again' });
+  }
   fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '1990-04-12' } });
   fireEvent.change(screen.getByLabelText('Last four digits of Naina Kapoor\'s Aadhaar'), { target: { value: '1234' } });
   fireEvent.change(screen.getByLabelText('Naina Kapoor\'s PAN from the original card'), { target: { value: 'abcpn1234d' } });
-  fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this identity check' }));
+  if (consent) fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this identity check' }));
   fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
 }
 
@@ -67,24 +77,33 @@ describe('a check in person', () => {
     expect(screen.queryByRole('button', { name: 'Verify Naina Kapoor' })).toBeNull();
   });
 
-  it('says a member the gate refused was refused', async () => {
+  it('says where the gate sent a check it did not verify', async () => {
     renderSection(() => Response.json({ status: 'refused' }));
     await checkNaina();
     expect(await screen.findByText('Naina Kapoor was refused. The refused checks below say why.')).toBeDefined();
+    cleanup();
+    renderSection(() => Response.json({ status: 'needs_review' }));
+    await checkNaina();
+    expect(await screen.findByText(/^Naina Kapoor goes to review/)).toBeDefined();
   });
 
   it('keeps the form, and says why, when the check did not go through', async () => {
     renderSection(() => Response.json({ error: 'not_allowed' }, { status: 403 }));
     await checkNaina();
-    expect((await screen.findByRole('alert')).textContent).toBe('Your role does not allow this, and nobody checks themselves. Ask another reviewer.');
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Your role does not allow this/);
     expect(screen.getByRole('button', { name: 'Verify Naina Kapoor' })).toBeDefined();
   });
 
-  it('sends nothing without the photo and the member\'s consent', async () => {
+  it('sends nothing without the member\'s consent, however complete the rest', async () => {
     const sent = renderSection(() => Response.json({ status: 'verified' }));
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: '0203' } });
-    fireEvent.click(await screen.findByRole('button', { name: 'Check Naina Kapoor' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
+    await checkNaina({ consent: false });
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Take their photo/);
+    expect(sent).toEqual([]);
+  });
+
+  it('sends nothing without the member\'s photo', async () => {
+    const sent = renderSection(() => Response.json({ status: 'verified' }));
+    await checkNaina({ photo: false });
     expect((await screen.findByRole('alert')).textContent).toMatch(/^Take their photo/);
     expect(sent).toEqual([]);
   });
