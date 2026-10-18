@@ -106,6 +106,17 @@ describe('the Academy screen without Academy booking', () => {
 });
 
 describe('the Academy screen', () => {
+  it('shows a seat the cage cancelled, and why, and offers its batch again', async () => {
+    renderAcademy({
+      myBookings: [{ ...KABIRS_SEAT, status: 'cancelled', turned_down_utr: '412345678901', hold_until: null }],
+      openBatches: [[LEVEL_1]],
+    });
+    expect(await screen.findByText(/^Cancelled. The cashier could not find UTR 412345678901/)).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Open batches' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Book a seat' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull();
+  });
+
   it('still says why a booking was refused, by the batch\'s name, once the batch has closed and left the list', async () => {
     renderAcademy({ openBatches: [[LEVEL_1], []], refusalCode: 'RVBAT' });
     fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));

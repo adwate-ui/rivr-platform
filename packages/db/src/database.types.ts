@@ -95,6 +95,38 @@ isOneToOne: false
       referencedColumns: ["id","is_practice"]
     }
                   ]
+                },"academy_utr_rejection": {
+                  Row: {
+                    "booking_id": string,"created_at": string,"id": string,"rejected_by_staff_id": string,"updated_at": string,"utr": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "booking_id": string,"created_at"?: string,"id"?: string,"rejected_by_staff_id": string,"updated_at"?: string,"utr": string,"venue_id": string
+                  }
+                  Update: {
+                    "booking_id"?: string,"created_at"?: string,"id"?: string,"rejected_by_staff_id"?: string,"updated_at"?: string,"utr"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "academy_utr_rejection_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "academy_booking"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "academy_utr_rejection_rejected_by_staff_id_fkey"
+      columns: ["rejected_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "academy_utr_rejection_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"alert": {
                   Row: {
                     "created_at": string,"detail": NonNullable<Json>,"id": string,"kind": string,"raised_at": string,"updated_at": string,"venue_id": string

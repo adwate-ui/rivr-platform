@@ -28,6 +28,12 @@ describe('holdLine', () => {
 });
 
 describe('bookingStatus', () => {
+  it('says a seat the cage cancelled after its hold, with the UTR it could not find, and what to do if they paid', () => {
+    expect(bookingStatus(booking('cancelled', null, '412345678901'))).toBe(
+      'Cancelled. The cashier could not find UTR 412345678901 in the bank, and your seat was no longer held. If you paid, show the payment at the front desk.',
+    );
+  });
+
   it('says where a seat stands, with the UTR given', () => {
     expect(bookingStatus(booking('awaiting_payment', null, null))).toBe('Booked. Pay to keep your seat.');
     expect(bookingStatus(booking('payment_claimed', '412345678902', null))).toBe(

@@ -71,4 +71,15 @@ describe('Academy data', () => {
     });
     expect(calls.find((call) => call.url.includes('/rpc/claim_academy_payment'))?.body).toEqual({ p_booking_id: 'k1', p_utr: '412345678901' });
   });
+
+  it('says a UTR given after the hold cannot be changed until the cage checks it', async () => {
+    const { result } = renderAcademy({
+      '/rpc/academy_open_batches': { body: [] },
+      '/rpc/my_academy_bookings': { body: [] },
+      '/rpc/claim_academy_payment': { status: 400, body: { code: 'RVLCK', message: 'After the hold, a UTR given stays until the cage checks it' } },
+    });
+    expect(await act(() => result.current.actions.claimPayment.mutateAsync({ bookingId: 'k1', utr: '412345678902' }))).toEqual({
+      ok: false, error: 'utr_locked',
+    });
+  });
 });
