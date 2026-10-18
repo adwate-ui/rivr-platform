@@ -39,14 +39,15 @@ export interface AcademyPayment {
 }
 
 /** Why an Academy step did not go through, as a screen tells it. */
-export type AcademyFailure = 'full' | 'closed' | 'not_open' | 'stopped' | 'no_fee' | 'invalid_utr' | 'utr_used' | 'unavailable';
+export type AcademyFailure = 'full' | 'closed' | 'not_open' | 'stopped' | 'paused' | 'no_fee' | 'invalid_utr' | 'utr_used' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, AcademyFailure>> = {
   RVFUL: 'full',
   RVBAT: 'closed',
   '42501': 'not_open',
+  // The member's own account frozen, or the whole club paused (the kill switch).
   RVMBR: 'stopped',
-  RVFRZ: 'stopped',
+  RVFRZ: 'paused',
   RVPRC: 'no_fee',
   '22023': 'invalid_utr',
   RVUTR: 'utr_used',
