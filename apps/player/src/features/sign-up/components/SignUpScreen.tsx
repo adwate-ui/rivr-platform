@@ -2,8 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStatus, useMember, useSignOut, useSignUp, type SignUpFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, Input, StepScreen, Text } from '@rivr/ui';
-import { Navigate, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -17,9 +17,19 @@ const FAILURE_COPY: Readonly<Record<SignUpFailure, MessageKey>> = {
   unavailable: 'player.signUp.unavailable',
 };
 
+/** Opens a path in the app (a checked `?next=`, never an outside address) in place of this screen. */
+function GoTo({ href }: { href: string }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    void navigate({ href, replace: true });
+  }, [href, navigate]);
+  return null;
+}
+
 /**
  * Joining the club, after the code: a new number gives the name on their Aadhaar, which the identity
- * check later matches, and becomes a member with the codes of the link they arrived by.
+ * check later matches, and becomes a member with the codes of the link they arrived by. Joined, they
+ * land on the screen the link pointed at (`?next=`), or on Tonight.
  */
 export function SignUpScreen() {
   const authStatus = useAuthStatus();
@@ -27,16 +37,17 @@ export function SignUpScreen() {
   const signUp = useSignUp();
   const signOut = useSignOut();
   const navigate = useNavigate();
+  const { next } = useSearch({ from: '/sign-up' });
   const [resolver] = useState(() => zodResolver(nameForm));
   const form = useForm<z.input<typeof nameForm>, unknown, z.output<typeof nameForm>>({ resolver, defaultValues: { fullName: '' } });
 
   const join = form.handleSubmit(async ({ fullName }) => {
     const joined = await signUp.mutateAsync({ fullName });
     if (!joined.ok) return form.setError('fullName', { type: 'server', message: t(FAILURE_COPY[joined.error]) });
-    await navigate({ to: '/', replace: true });
+    await navigate({ href: next ?? '/', replace: true });
   });
-  if (authStatus === 'signed-out') return <Navigate to="/sign-in" replace />;
-  if (member.data) return <Navigate to="/" replace />;
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={next ? { next } : {}} replace />;
+  if (member.data) return <GoTo href={next ?? '/'} />;
   const { errors } = form.formState;
   const nameError = errors.fullName ? (errors.fullName.type === 'server' ? errors.fullName.message : t('player.signUp.nameInvalid')) : undefined;
   const nameField = form.register('fullName');

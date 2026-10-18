@@ -1,3 +1,4 @@
+import { returnSearchFrom } from '@rivr/contracts/returnPath';
 import { useAuthStatus, useControlState, useFeature, useMember } from '@rivr/db';
 import { KillSwitchBanner, PlayerShell, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
@@ -16,7 +17,8 @@ const TAB_FOR_PATH: Readonly<Record<string, PlayerTab>> = {
 
 /**
  * The player app's frame for a signed-in member: tabs gated by tier, the member's initial (which
- * opens Profile), the kill-switch banner and navigation. Nobody signed in goes to sign-in.
+ * opens Profile), the kill-switch banner and navigation. Nobody signed in goes to sign-in, and back
+ * to this screen once signed in.
  */
 export function Frame({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
@@ -26,9 +28,13 @@ export function Frame({ children }: { children: ReactNode }) {
   const { isVenueFrozen } = useControlState();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  if (authStatus === 'signed-out') return <Navigate to="/sign-in" replace />;
+  // Sign-in, and sign-up after it, return to the screen a link pointed at (#233): the screen this
+  // frame shows, not the address it is already leaving for.
+  const shown = useRouterState({ select: (state) => state.matches.at(-1)?.pathname ?? '/' });
+  const next = returnSearchFrom({ next: shown === '/' ? undefined : shown });
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={next} replace />;
   // Signed in with a number that is not a member yet: join first.
-  if (member.isSuccess && member.data === null) return <Navigate to="/sign-up" replace />;
+  if (member.isSuccess && member.data === null) return <Navigate to="/sign-up" search={next} replace />;
   const tabs: BottomNavItem[] = [
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },

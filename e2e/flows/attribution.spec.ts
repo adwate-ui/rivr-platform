@@ -1,6 +1,6 @@
 /**
- * Attribution (#10): a new player opens a link with a referral and UTM codes, signs in with a code,
- * gives their name and joins; the codes are kept with the sign-up (supabase/tests/014_sign_up proves
+ * Attribution (#10): a new player opens a link to the Academy with a referral and UTM codes, signs in
+ * with a code, gives their name, joins and lands on the Academy (#233); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
  * member.signed_up carries them). Local stack only: it frees its number from the member an earlier run
  * created, and reads the codes, in the local database itself.
  */
@@ -26,8 +26,9 @@ test.describe('Attribution', () => {
     sql(`update public.member set user_id = null, phone = '+916' || lpad(floor(random() * 1e9)::bigint::text, 9, '0')
          where phone = '+91${NUMBER}'`);
 
+    // The link points at the Academy: sign-in and sign-up return there once joined (#233).
     await page.setViewportSize(VIEWPORT.player);
-    await page.goto(`${appUrl('player')}/?ref=FRIEND1&utm_source=instagram&utm_campaign=launch`);
+    await page.goto(`${appUrl('player')}/academy?ref=FRIEND1&utm_source=instagram&utm_campaign=launch`);
     await page.getByRole('textbox', { name: 'Mobile number' }).fill(NUMBER);
     await page.getByRole('button', { name: 'Send code' }).click();
     await page.getByRole('textbox', { name: /^Code sent to/ }).fill('123456');
@@ -36,7 +37,7 @@ test.describe('Attribution', () => {
     await expect(page.getByRole('heading', { name: 'Your name' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Full name as on your Aadhaar' }).fill('Tara Joshi');
     await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'RIVR Academy' })).toBeVisible();
 
     expect(
       sql(`select m.full_name || '|' || a.referral_code || '|' || a.utm_source || '|' || a.utm_campaign
