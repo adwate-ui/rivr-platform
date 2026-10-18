@@ -9,7 +9,9 @@ import { signInToPlayer } from '../support/signIn.ts';
 
 test.describe('Academy booking', () => {
   test('a member books a seat in a batch and gives the UTR of the UPI payment', async ({ page }) => {
-    await signInToPlayer(page, '9000000210');
+    // The website's "Book a seat" opens the Academy signed out: sign-in returns there (#233).
+    await signInToPlayer(page, '9000000210', '/academy');
+    await expect(page.getByRole('heading', { name: 'RIVR Academy' })).toBeVisible();
     await page.getByRole('link', { name: 'Learn' }).click();
     await page.getByRole('button', { name: 'See batches' }).click();
     await expect(page.getByRole('heading', { name: 'RIVR Academy' })).toBeVisible();

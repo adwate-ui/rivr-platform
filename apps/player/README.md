@@ -26,6 +26,8 @@ src/
     frame/            the app's shell: navigation, the kill-switch banner, not found
 ```
 
+A link to any screen opened signed out goes to `/sign-in?next=<that screen>`, and a new number then to `/sign-up?next=…`. Each returns there when done, which is how the website's links land on the Academy. `next` is checked by `returnSearchFrom` (`@rivr/contracts/returnPath`): only a path in the app, never another site (#233).
+
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).
 
 ## Who builds what

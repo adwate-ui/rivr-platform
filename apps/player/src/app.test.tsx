@@ -25,13 +25,15 @@ function signIn() {
 // Nothing listens at this address: signed out, nothing is fetched, and a sign-in request fails.
 const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 
+/** Opens the app at `path`; the router tells a test where the app went. */
 function renderAt(path: string) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
-  return render(
+  render(
     <RivrDataProvider client={client}>
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
+  return router;
 }
 
 describe('the player app', () => {
@@ -74,9 +76,30 @@ const LAZY_SCREEN = { timeout: 5000 };
 
 describe('sign-in', () => {
   it('is where anyone signed out goes', async () => {
-    renderAt('/');
+    const router = renderAt('/');
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
+    expect(router.state.location.search).not.toHaveProperty('next');
+  });
+
+  it('keeps the screen a link pointed at, to open once signed in', async () => {
+    const router = renderAt('/academy?ref=FRIEND1');
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    expect(router.state.location.pathname).toBe('/sign-in');
+    expect(router.state.location.search).toEqual({ next: '/academy' });
+  });
+
+  it('never keeps an address outside the app', async () => {
+    const router = renderAt('/sign-in?next=%2F%2Fevil.example');
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    // What the sign-in screen reads: the route's checked search.
+    expect(router.state.matches.at(-1)?.search).toMatchObject({ next: undefined });
+  });
+
+  it('is where identity sends someone signed out, to come back to it', async () => {
+    const router = renderAt('/kyc');
+    expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
+    expect(router.state.location.search).toEqual({ next: '/kyc' });
   });
 
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {
