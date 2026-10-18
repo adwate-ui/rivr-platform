@@ -18,3 +18,10 @@ minimumReleaseAgeExclude:
   - '@tanstack/query-core@5.104.4'
   - '@tanstack/react-query@5.104.4'
   - lucide-react@1.59.0
+
+# Advisories `pnpm audit` skips. Each is reached only through dev tooling and has a decision
+# and a question issue; remove the entry when a patched version ships.
+auditConfig:
+  ignoreGhsas:
+    # braces <=3.0.3, via stylelint and @tailwindcss/cli (docs/decisions/0023, issue #175).
+    - GHSA-vfj7-8cjw-p6xm
