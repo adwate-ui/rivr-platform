@@ -85,6 +85,10 @@
   --rivr-viewport-console-height: 900px;
   --rivr-viewport-tv-width: 1920px;
   --rivr-viewport-tv-height: 1080px;
+  --rivr-viewport-feed-width: 1080px;
+  --rivr-viewport-feed-height: 1350px;
+  --rivr-viewport-story-width: 1080px;
+  --rivr-viewport-story-height: 1920px;
   --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
   --rivr-icon-size-sm: 16px;

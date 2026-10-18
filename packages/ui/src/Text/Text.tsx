@@ -4,8 +4,12 @@ import { TONE, type TextTone } from '../internal/tone.ts';
 
 export type { TextTone };
 
-/** Body copy sizes. `tvLabel` is the letter-spaced capitals label used only on the TV. */
-export type TextVariant = 'body' | 'small' | 'caption' | 'label' | 'lead' | 'tvLabel' | 'tvBody';
+/**
+ * Body copy sizes. `tvLabel` is the letter-spaced capitals label on the TV. `tvBody` is body copy on
+ * large canvases: the TV and social posts. `posterLabel` is the letter-spaced capitals label on a
+ * social post, large enough to read once the post is shrunk to a phone's width.
+ */
+export type TextVariant = 'body' | 'small' | 'caption' | 'label' | 'lead' | 'tvLabel' | 'tvBody' | 'posterLabel';
 
 export interface TextProps {
   children: ReactNode;
@@ -27,6 +31,7 @@ const VARIANT: Record<TextVariant, string> = {
   lead: 'text-18 leading-snug',
   tvLabel: 'text-24 leading-snug font-medium uppercase tracking-tv',
   tvBody: 'text-36 leading-snug',
+  posterLabel: 'text-36 leading-snug font-medium uppercase tracking-tv',
 };
 
 const WEIGHT = { regular: 'font-regular', medium: 'font-medium', semibold: 'font-semibold' } as const;

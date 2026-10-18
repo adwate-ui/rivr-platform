@@ -156,6 +156,14 @@ export const tokens = {
     "tv": {
       "width": 1920,
       "height": 1080
+    },
+    "feed": {
+      "width": 1080,
+      "height": 1350
+    },
+    "story": {
+      "width": 1080,
+      "height": 1920
     }
   },
   "breakpoint": {

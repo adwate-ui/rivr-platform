@@ -28,4 +28,13 @@ describe('Heading', () => {
     );
     expect(screen.getByRole('heading', { name: 'RIVR Sunday' })).toHaveClass('font-display', 'text-56', 'text-center');
   });
+
+  it('sets the poster variant in the display face at its largest, for a social post with no figure', () => {
+    renderIn(
+      <Heading level={1} variant="poster">
+        Double points
+      </Heading>,
+    );
+    expect(screen.getByRole('heading', { name: 'Double points' })).toHaveClass('font-display', 'text-96');
+  });
 });

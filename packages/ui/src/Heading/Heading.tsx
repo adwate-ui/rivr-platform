@@ -3,9 +3,10 @@ import { cx } from '../internal/classes.ts';
 
 /**
  * `display` is set in the display face (Bodoni Moda) for TV
- * titles and the wordmark lockup; it is never smaller than 20 px. The rest use the text face.
+ * titles and the wordmark lockup; it is never smaller than 20 px. `poster` is the display face at its
+ * largest, the hero of a social post with no figure. The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'title' | 'section' | 'subsection';
+export type HeadingVariant = 'display' | 'poster' | 'title' | 'section' | 'subsection';
 
 export interface HeadingProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ export interface HeadingProps {
 
 const VARIANT: Record<HeadingVariant, string> = {
   display: 'font-display text-56 leading-tight font-regular',
+  poster: 'font-display text-96 leading-tight font-regular',
   title: 'font-text text-24 leading-snug font-medium',
   section: 'font-text text-20 leading-snug font-semibold',
   subsection: 'font-text text-16 leading-snug font-semibold',
