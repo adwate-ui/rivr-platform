@@ -30,7 +30,7 @@ Read by Lane 0 when setting up the repository, and by anyone changing tooling.
 - **Component workshop:** Storybook for `@rivr/ui`.
 - **Hosting:** Cloudflare Pages for `player`, `console`, `display`, `web`, with a preview deployment per PR.
 - **Monitoring:** Sentry in every app and Edge Function, with personal data scrubbed. No product analytics; the growth funnel is built in lane D from our own data.
-- **CI:** GitHub Actions on the self-hosted runner.
+- **CI:** GitHub Actions on GitHub-hosted `ubuntu-latest` runners (the repository is public; see `docs/decisions/0001-hosted-ci-runners.md`).
 
 Add a dependency only with a line in the PR saying why the platform and the existing dependencies do not cover it.
 
@@ -92,4 +92,4 @@ Enforced by ESLint and dependency-cruiser in CI.
 - Rate limits on OTP, login, withdrawal and marker endpoints.
 - Webhooks verify signatures. Secrets live in the Supabase vault and GitHub secrets.
 - CI runs `supabase db lint`, the Supabase security advisors, dependency audit and secret scanning; a new finding fails the build.
-- CI jobs from forks never run on the self-hosted runner.
+- CI jobs from forks never receive secrets, and deploy jobs never run for them (`docs/decisions/0001-hosted-ci-runners.md`).

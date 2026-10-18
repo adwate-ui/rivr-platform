@@ -1,0 +1,16 @@
+{
+  "extends": "@rivr/config/tsconfig/base.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src",
+    "scripts",
+    "visual",
+    "*.ts",
+    "*.tsx",
+    ".storybook"
+  ]
+}

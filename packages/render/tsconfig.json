@@ -1,0 +1,16 @@
+{
+  "extends": "@rivr/config/tsconfig/react.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src",
+    "scripts",
+    "visual",
+    "*.ts",
+    "*.tsx",
+    ".storybook"
+  ]
+}

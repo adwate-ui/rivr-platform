@@ -1,0 +1,21 @@
+{
+  "name": "@rivr/testing",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./golden/*": "./golden/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rivr/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "vitest": "^5.0.5"
+  }
+}

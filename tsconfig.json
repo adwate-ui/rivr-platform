@@ -1,0 +1,6 @@
+{
+  "//": "Used by editors and dependency-cruiser at the root. Each package has its own tsconfig.json for typecheck.",
+  "extends": "./packages/config/tsconfig/react.json",
+  "include": [],
+  "files": []
+}

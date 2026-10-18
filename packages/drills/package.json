@@ -1,0 +1,22 @@
+{
+  "name": "@rivr/drills",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
+    "gates": "tsx scripts/run-gates.ts"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "tsx": "^4.21.0",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,0 +1,20 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Packages whose install scripts may run. Each downloads or builds a native binary:
+# the Supabase CLI, esbuild, Tailwind's oxide engine, the Parcel file watcher and
+# Cloudflare's workerd runtime (used by Wrangler).
+allowBuilds:
+  '@parcel/watcher': true
+  '@tailwindcss/oxide': true
+  esbuild: true
+  supabase: true
+  workerd: true
+
+# pnpm holds back versions published in the last few days (a supply-chain guard).
+# These three were current when Lane 0 installed them; pnpm added the exclusions itself.
+minimumReleaseAgeExclude:
+  - '@tanstack/query-core@5.104.4'
+  - '@tanstack/react-query@5.104.4'
+  - lucide-react@1.59.0
