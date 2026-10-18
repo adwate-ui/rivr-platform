@@ -12,5 +12,5 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare(),
   integrations: [react()],
-  server: { port: appPort('web') },
+  server: { host: '127.0.0.1', port: appPort('web') },
 });

@@ -7,6 +7,6 @@ defaultToLocalSupabase('VITE_');
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: appPort('driver'), strictPort: true },
-  preview: { port: appPort('driver'), strictPort: true },
+  server: { host: '127.0.0.1', port: appPort('driver'), strictPort: true },
+  preview: { host: '127.0.0.1', port: appPort('driver'), strictPort: true },
 });

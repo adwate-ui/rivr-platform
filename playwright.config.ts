@@ -25,7 +25,9 @@ export default defineConfig({
     ? []
     : APPS.map((app) => ({
         command: `pnpm --filter ${app} preview`,
-        port: appPort(app),
+        // Wait for the exact address the tests open: a port check passes on IPv6 localhost
+        // while 127.0.0.1 still refuses, which is what failed on GitHub's runners.
+        url: `http://127.0.0.1:${appPort(app)}`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       })),
