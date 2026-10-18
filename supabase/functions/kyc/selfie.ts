@@ -2,22 +2,9 @@
 // venue's face gallery for anyone already enrolled with that face. A passing selfie is kept in the
 // private kyc bucket as the member's KYC photo; anything else is deleted.
 import type { MemberId } from '@rivr/contracts';
-import { cleanJpeg } from './jpeg.ts';
+import { jpegFromBase64 } from './jpeg.ts';
 import { currentRecord, failed, field, photoUrl, putPhoto, removePhoto, reply, rpc } from './server.ts';
 import type { Kyc, Subject } from './subject.ts';
-
-const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
-
-/** The selfie from the request: a base64 JPEG of at most 2 MB, without its metadata, or null. */
-function jpegFrom(body: unknown) {
-  const image = field(body, 'image');
-  if (image === null || image.length > Math.ceil(MAX_PHOTO_BYTES / 3) * 4) return null;
-  try {
-    return cleanJpeg(Uint8Array.from(atob(image), (char) => char.charCodeAt(0)));
-  } catch {
-    return null;
-  }
-}
 
 type FaceCheck =
   | { readonly ok: true; readonly score: number; readonly sameFaceAs: MemberId | null }
@@ -56,7 +43,7 @@ async function checkAndKeep({ memberId, venueId, kyc }: Subject, jpeg: Uint8Arra
 
 /** Takes the member's one selfie, before DigiLocker. DigiLocker's photo is later matched against it. */
 export async function takeSelfie(subject: Subject, token: string, body: unknown): Promise<Response> {
-  const jpeg = jpegFrom(body);
+  const jpeg = jpegFromBase64(field(body, 'image'));
   if (jpeg === null) return reply({ error: 'image must be a JPEG of at most 2 MB, in base64' }, 400);
   const record = await currentRecord(subject.memberId);
   if (record !== null && (record.status !== 'started' || record.photo_path !== null)) return reply({ error: 'The selfie is already taken' }, 409);

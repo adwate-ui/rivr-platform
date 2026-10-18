@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { kycReviewSchema } from './kycReview.ts';
+import { kycInPersonSchema, kycReviewSchema } from './kycReview.ts';
+
+const IN_PERSON = { memberId: '00000000-0000-4000-8000-000000000203', dateOfBirth: '1990-04-12', aadhaarLast4: '1234', pan: ' abcpn1234d ', consent: true };
+
+describe('kycInPersonSchema', () => {
+  it('takes the date of birth, the last four Aadhaar digits, the PAN and the member\'s consent', () => {
+    expect(kycInPersonSchema.parse(IN_PERSON)).toEqual({ ...IN_PERSON, pan: 'ABCPN1234D' });
+  });
+
+  it('refuses the whole Aadhaar number, a malformed PAN, or no consent', () => {
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, aadhaarLast4: '123412341234' }).success).toBe(false);
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, pan: 'ABC1234' }).success).toBe(false);
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, consent: false }).success).toBe(false);
+  });
+});
 
 describe('kycReviewSchema', () => {
   it('takes a reason, and a date of birth and PAN only when one is given', () => {

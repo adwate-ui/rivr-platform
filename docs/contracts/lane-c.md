@@ -7,8 +7,8 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | Table | Purpose |
 |---|---|
 | `kyc_record` | Vendor reference, masked Aadhaar, PAN, date of birth, address, KYC photo path (private bucket), liveness and face-match results, status |
-| `kyc_review` | A KYC reviewer's decision on a check: approve or reject, the reason, whether they entered the date of birth or the PAN, where the check ended, who (decision 0035) |
-| `consent` | DPDP consent per purpose (marketing, KYC, analytics events), with time and withdrawal |
+| `kyc_review` | A KYC reviewer's decision on a check: approve or reject, the reason, whether they entered the date of birth or the PAN, where the check ended, who, and whether it was a vendor's check or `manual`, in person (decision 0035, #246) |
+| `consent` | DPDP consent per purpose (marketing, KYC, analytics events), with time and withdrawal, and the staff member who recorded one given in person |
 | `member_limit`, `self_exclusion` | Player-set and floor-set limits, cool-off and self-exclusion |
 | `visit` | Check-in and check-out: opened by QR or phone at the door, closed at the door or on final cash-out |
 | `membership_card` | Rotating QR secret per member |
@@ -31,6 +31,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `public.book_academy(batch)`, `public.claim_academy_payment(booking, utr)`, `public.academy_payment_details(booking)` | player app | A seat in an open Academy batch at the `academy.price` fee; the member's UPI payment and UTR (#8) |
 | `public.academy_open_batches()`, `public.my_academy_bookings()` | player app | The batches the member can book, with seats left and the fee; the member's own seats, with the UTR given, the last one the cage turned down and `hold_until` while unpaid (decision 0033, #247) |
 | `public.kyc_review_queue(venue)`, `public.review_kyc(member, approve, reason, date_of_birth?, pan?)` | console (KYC review) | Checks waiting for a KYC reviewer, with what the vendor found; approve or reject with a reason, never one's own, the gate still applying; emits `kyc.completed` on verifying (decision 0035) |
+| `public.kyc_in_person_candidates(venue, search)`, `public.authorize_in_person_kyc(member)`, `public.check_kyc_in_person(member, photo_path, date_of_birth, aadhaar_last4, pan, consent)` | console (KYC review), through the `kyc-in-person` Edge Function | A check in person while no vendor is live (#246): members with no check or one the app started, never the reviewer's own or one they added or changed; a photo path per check; the same gate, as method `manual`; emits `kyc.completed` on verifying |
 | `public.confirm_academy_payment(booking, utr)` | console (cage) | A cashier confirms the UTR found in the bank (it must be the booking's, and never their own booking): bank in, Academy fees (`venue.academy`) out of the ledger; emits `academy.booked` |
 | `public.reject_academy_payment(booking, utr)` | console (cage) | A cashier turns down a UTR not found in the bank: the booking is unpaid again and its UTR freed |
 | `public.create_academy_batch(...)`, `public.book_academy_corporate(..., request_id)`, `public.record_academy_payment(booking, utr)`, `public.cancel_academy_booking(booking)` | console | Batches; a company's heads at the corporate fee per head, once per request id; the UTR of a payment the payer could not give in the app; cancelling a booking with no payment given |

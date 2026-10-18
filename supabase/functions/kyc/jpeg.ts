@@ -50,3 +50,18 @@ export function cleanJpeg(bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffe
   parts.push(bytes.subarray(at));
   return joined(parts);
 }
+
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+
+/**
+ * A KYC photo from a request: a base64 JPEG of at most 2 MB, without its metadata, or null. The
+ * member's selfie (kyc) and the photo staff take at the club (kyc-in-person) both come this way.
+ */
+export function jpegFromBase64(image: string | null): Uint8Array<ArrayBuffer> | null {
+  if (image === null || image.length > Math.ceil(MAX_PHOTO_BYTES / 3) * 4) return null;
+  try {
+    return cleanJpeg(Uint8Array.from(atob(image), (char) => char.charCodeAt(0)));
+  } catch {
+    return null;
+  }
+}

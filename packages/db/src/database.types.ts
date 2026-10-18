@@ -157,14 +157,14 @@ isOneToOne: false
                   ]
                 },"consent": {
                   Row: {
-                    "created_at": string,"granted_at": string,"id": string,"member_id": string,"purpose": string,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
+                    "created_at": string,"granted_at": string,"id": string,"member_id": string,"purpose": string,"recorded_by_staff_id": string | null,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"granted_at"?: string,"id"?: string,"member_id": string,"purpose": string,"updated_at"?: string,"venue_id": string,"withdrawn_at"?: string | null
+                    "created_at"?: string,"granted_at"?: string,"id"?: string,"member_id": string,"purpose": string,"recorded_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string,"withdrawn_at"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"granted_at"?: string,"id"?: string,"member_id"?: string,"purpose"?: string,"updated_at"?: string,"venue_id"?: string,"withdrawn_at"?: string | null
+                    "created_at"?: string,"granted_at"?: string,"id"?: string,"member_id"?: string,"purpose"?: string,"recorded_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string,"withdrawn_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -173,6 +173,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "consent_recorded_by_staff_id_fkey"
+      columns: ["recorded_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
     }
                   ]
                 },"control_state": {
@@ -293,14 +299,14 @@ isOneToOne: false
                   ]
                 },"kyc_review": {
                   Row: {
-                    "created_at": string,"decision": string,"entered_date_of_birth": boolean,"entered_pan": boolean,"id": string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"decision": string,"entered_date_of_birth": boolean,"entered_pan": boolean,"id": string,"member_id": string,"method": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decision": string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id": string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decision": string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id": string,"method"?: string,"outcome": string,"reason": string,"reviewed_by_staff_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decision"?: string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id"?: string,"outcome"?: string,"reason"?: string,"reviewed_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decision"?: string,"entered_date_of_birth"?: boolean,"entered_pan"?: boolean,"id"?: string,"member_id"?: string,"method"?: string,"outcome"?: string,"reason"?: string,"reviewed_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -905,6 +911,9 @@ isOneToOne: false
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
                            },
+"authorize_in_person_kyc":
+{ Args: { "p_member_id": string }; Returns: string
+                           },
 "authorize_kyc_image":
 { Args: { "p_name": string }; Returns: undefined
                            },
@@ -919,6 +928,9 @@ isOneToOne: false
                            },
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
+                           },
+"check_kyc_in_person":
+{ Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
                            },
 "claim_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
@@ -945,6 +957,11 @@ isOneToOne: false
                            },
 "has_my_consent":
 { Args: { "p_purpose": string }; Returns: boolean
+                           },
+"kyc_in_person_candidates":
+{ Args: { "p_search": string,"p_venue_id": string }; Returns: {
+              "full_name": string,"member_id": string,"phone_last4": string,"status": string
+            }[]
                            },
 "kyc_review_queue":
 { Args: { "p_venue_id": string }; Returns: {
