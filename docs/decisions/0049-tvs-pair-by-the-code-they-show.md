@@ -16,7 +16,7 @@ Limits: `start_tv_pairing` refuses after thirty requests from one address in ten
 
 `device-pair` takes JSON only. A web page elsewhere could otherwise make its visitors' browsers use up the limits with plain-text POSTs, which need no CORS preflight.
 
-A TV paired by mistake shows up on the console's list, where it can be unpaired. It reads only its own screen and the public views; the venue's dealer downs are for dealer tablets only.
+A TV paired by mistake shows up on the console's list, where it can be unpaired. It reads its own screen, the public views and, while it shows the waitlist board, waiting players' first names and initials (#65, decision 0051); the venue's dealer downs are for dealer tablets only.
 
 Unpairing is revoking the device, as for a tablet. The TV reads `my_tv_screen` every few seconds. Once that returns nothing, it signs itself out and shows a new code. A TV holds nothing but its session.
 

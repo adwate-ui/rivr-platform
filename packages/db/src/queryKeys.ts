@@ -67,4 +67,8 @@ export const queryKeys = {
   tabletHighHands: (userId: string) => ['user', userId, 'tablet-high-hands'] as const,
   /** A venue's high hands, for the console. */
   highHands: (userId: string, venueId: string) => ['user', userId, 'high-hands', venueId] as const,
+  /** The signed-in TV's waitlist board (#65). */
+  tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
+  /** The signed-in TV's jackpot and tonight's high hand (#65). */
+  tvJackpot: (userId: string) => ['user', userId, 'tv-jackpot'] as const,
 };

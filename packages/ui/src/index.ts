@@ -56,6 +56,8 @@ export * from './PlayerShell/index.ts';
 export * from './ConsoleShell/index.ts';
 export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
+export * from './TvJackpotBoard/index.ts';
+export * from './TvWaitlistBoard/index.ts';
 export * from './WebShell/index.ts';
 export * from './DriverShell/index.ts';
 export * from './StepScreen/index.ts';

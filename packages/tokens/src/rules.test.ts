@@ -35,9 +35,13 @@ describe('the design inventory', () => {
     expect(tokenValue('color.hairline')).toBe(`${String(tokenValue('color.gold'))}40`);
   });
 
-  it('uses the suggested type scale', () => {
+  it('uses the suggested type scale, and the TV scale beside it', () => {
     const sizes = resolvedTokens().filter((token) => token.path.startsWith('font.size.'));
-    expect(sizes.map((token) => px(token.value))).toEqual([12, 13, 14, 16, 18, 20, 24, 28, 36, 44, 56, 96]);
+    const suggested = [12, 13, 14, 16, 18, 20, 24, 28, 36, 44, 56, 96];
+    // The prototype's TV, read across a room (design inventory, decision 0052).
+    const tv = [48, 88, 280];
+    expect(sizes.map((token) => px(token.value))).toEqual([...suggested, ...tv].sort((a, b) => a - b));
+    expect(INVENTORY).toContain('TV scale: 48, 88, 280.');
   });
 
   it('sets the ₹ sign in Tiro Devanagari Hindi and Noto Sans Devanagari, after the Latin faces that lack it', () => {

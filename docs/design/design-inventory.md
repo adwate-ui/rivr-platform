@@ -19,6 +19,8 @@
 
 Type sizes used in the prototype, to normalise into a scale: 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28, 30, 34, 36, 40, 44, 56, 96 px. Suggested scale: 12, 13, 14, 16, 18, 20, 24, 28, 36, 44, 56, 96.
 
+The prototype's TV (1920 by 1080, read across a room) adds larger sizes: 48 for a name on a board, 88 for a board's title and tonight's high hand, 280 for the jackpot figure (decision 0052). TV scale: 48, 88, 280.
+
 Both faces are SIL OFL; install them from `@fontsource` packages rather than copying files from the prototype.
 
 ## Screens in the prototype

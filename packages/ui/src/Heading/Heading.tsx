@@ -4,10 +4,11 @@ import { cx } from '../internal/classes.ts';
 /**
  * `display` is set in the display face (Bodoni Moda) for TV
  * titles and the wordmark lockup; it is never smaller than 20 px. `poster` is the display face at its
- * largest: the hero of a social post with no figure, and the pairing code a TV shows across the room. `step` is the title of a step of sign-in or KYC.
+ * largest: the hero of a social post with no figure, and the pairing code a TV shows across the room.
+ * `tvTitle` is a TV board's title and tonight's high hand. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'step' | 'title' | 'section' | 'subsection';
+export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'step' | 'title' | 'section' | 'subsection';
 
 export interface HeadingProps {
   children: ReactNode;
@@ -24,6 +25,7 @@ export interface HeadingProps {
 const VARIANT: Record<HeadingVariant, string> = {
   display: 'font-display text-56 leading-tight font-regular',
   poster: 'font-display text-96 leading-tight font-regular',
+  tvTitle: 'font-display text-88 leading-tight font-medium',
   step: 'font-text text-28 leading-snug font-medium',
   title: 'font-text text-24 leading-snug font-medium',
   section: 'font-text text-20 leading-snug font-semibold',

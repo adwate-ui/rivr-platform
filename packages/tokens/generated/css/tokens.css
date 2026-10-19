@@ -28,8 +28,11 @@
   --rivr-font-size-28: 28px;
   --rivr-font-size-36: 36px;
   --rivr-font-size-44: 44px;
+  --rivr-font-size-48: 48px; /** A player's name on the TV's waitlist board. */
   --rivr-font-size-56: 56px;
+  --rivr-font-size-88: 88px; /** A TV board's title, and tonight's high hand. */
   --rivr-font-size-96: 96px;
+  --rivr-font-size-280: 280px; /** The TV's jackpot figure, the largest thing on any screen. */
   --rivr-font-weight-regular: 400;
   --rivr-font-weight-medium: 500;
   --rivr-font-weight-semibold: 600;
