@@ -1,6 +1,6 @@
 import type { Attribution, SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { HeroBlock, TextBlock, WebShell } from '@rivr/ui';
+import { CareersBlock, FaqBlock, HeroBlock, MapBlock, RulesBlock, TextBlock, WebShell } from '@rivr/ui';
 import { playerHref, siteHref } from '../links.ts';
 
 interface SitePageProps {
@@ -21,6 +21,14 @@ function Block({ block, playerUrl, attribution }: { block: SiteBlock } & Omit<Si
     }
     case 'text':
       return <TextBlock heading={block.content.heading} body={block.content.body} />;
+    case 'rules':
+      return <RulesBlock heading={block.content.heading} rules={block.content.rules} />;
+    case 'faq':
+      return <FaqBlock heading={block.content.heading} questions={block.content.questions} />;
+    case 'careers':
+      return <CareersBlock heading={block.content.heading} roles={block.content.roles} apply={block.content.apply} />;
+    case 'map':
+      return <MapBlock heading={block.content.heading} address={block.content.address} hours={block.content.hours} directionsUrl={block.content.directionsUrl} />;
   }
 }
 

@@ -59,6 +59,10 @@ export const ui = {
   web: {
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
+    /** CareersBlock with no roles open. */
+    noOpenings: 'No openings right now.',
+    /** MapBlock's link to directions in a maps app. */
+    directions: 'Get directions',
   },
   /** KycPhoto, in place of a member's photo that is not there. */
   photo: {

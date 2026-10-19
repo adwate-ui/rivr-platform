@@ -1,6 +1,6 @@
 -- The website's content (#9): anyone reads the published pages of real venues and their blocks in
 -- order, through the public views; never a draft, never the practice venue, never the tables. Website
--- editors read the tables. 107 Ishita (marketing), 201 Arjun (member). Content from seed 40_site.sql.
+-- editors read the tables. 107 Ishita (marketing), 201 Arjun (member). Content from seeds 40_site.sql and 41_site_pages.sql.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -8,7 +8,9 @@ select no_plan();
 set local role anon;
 select results_eq(
   $$ select venue_slug, slug, title, nav_position from public.public_site_page order by venue_slug, slug $$,
-  $$ values ('gurugram'::text, 'academy'::text, 'RIVR Academy'::text, 1), ('gurugram', 'home', 'RIVR Poker Club', null) $$,
+  $$ values ('gurugram'::text, 'academy'::text, 'RIVR Academy'::text, 1), ('gurugram', 'home', 'RIVR Poker Club', null),
+            ('gurugram', 'house-rules', 'House rules', 3), ('gurugram', 'questions', 'Questions', 4),
+            ('gurugram', 'responsible-play', 'Responsible play', 6), ('gurugram', 'visit', 'Visit', 5) $$,
   'anyone reads the club''s published pages: not the draft, not the practice venue''s');
 select results_eq(
   $$ select position, kind from public.public_site_block where venue_slug = 'gurugram' and page_slug = 'home' order by position $$,
