@@ -182,7 +182,6 @@ export const tokens = {
   "motion": {
     "duration": {
       "state": "200ms",
-      "reveal": "600ms",
       "stagger": "120ms"
     },
     "easing": {

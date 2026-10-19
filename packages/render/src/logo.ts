@@ -15,7 +15,7 @@ export const LOGO_VIDEOS: readonly LogoVideo[] = [
 ];
 
 /**
- * Half a second of green, the mark rising in (about 1.2 s), then the mark held: four seconds, a
+ * Half a second of green, the mark rising in (0.8 s), then the mark held: four seconds, a
  * length Instagram accepts as a reel and the TV can loop between slides.
  */
 export const LOGO_TIMING: VideoTiming = { fps: 30, durationMs: 4000, leadMs: 500 };

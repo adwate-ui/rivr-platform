@@ -87,6 +87,14 @@ async function seekAnimations(page: Page, ms: number): Promise<void> {
   }, ms);
 }
 
+/** Draws a template with every animation held at `atMs` from its start: one frame of its video, as a PNG. */
+export function renderFrameToPng<Name extends TemplateName>(request: RenderRequest<Name>, atMs: number): Promise<Buffer> {
+  return withDrawnPage(request, async (page) => {
+    await seekAnimations(page, atMs);
+    return page.screenshot({ type: 'png' });
+  });
+}
+
 /**
  * Draws a template's CSS animations to an H.264 MP4 of exactly `width` by `height` pixels: each frame
  * is the page captured with its animations held at that frame's time, encoded in Chromium (WebCodecs).

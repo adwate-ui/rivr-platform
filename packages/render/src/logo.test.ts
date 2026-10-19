@@ -1,7 +1,8 @@
 import { ALL_FORMATS, BufferSource, EncodedPacketSink, Input } from 'mediabunny';
 import { describe, expect, it } from 'vitest';
 import { LOGO_TIMING, LOGO_VIDEOS } from './logo.ts';
-import { renderToMp4 } from './render.ts';
+import { renderFrameToPng, renderToMp4 } from './render.ts';
+import { allowedDifference, differentPixels } from './test/png.ts';
 
 /** The video track of an MP4, read back with Mediabunny's demuxer: codec, size, frames and length. */
 async function readVideo(mp4: Buffer) {
@@ -23,6 +24,20 @@ describe('renderToMp4', () => {
     );
     expect(mp4.toString('latin1', 4, 8)).toBe('ftyp');
     expect(await readVideo(mp4)).toEqual({ codec: 'avc', width: 360, height: 640, frames: 15, seconds: 1.5 });
+  });
+});
+
+describe('renderFrameToPng', () => {
+  const animated = { template: 'brand.art', props: { art: 'lockup', isAnimated: true }, width: 360, height: 640 } as const;
+
+  it('holds the animation where asked: nothing at the start, half the mark midway, all of it once every tile is in', async () => {
+    const frame = (ms: number) => renderFrameToPng(animated, ms);
+    const [start, midway, done, later] = await Promise.all([frame(0), frame(400), frame(5 * 120 + 200), frame(3000)]);
+    const allowed = allowedDifference(360, 640);
+    // Five tiles a stagger apart, then the tagline, each rising in 200 ms: in by 800 ms, then still.
+    expect(await differentPixels(done, later)).toBeLessThanOrEqual(allowed);
+    expect(await differentPixels(midway, later)).toBeGreaterThan(10 * allowed);
+    expect(await differentPixels(start, later)).toBeGreaterThan(await differentPixels(midway, later));
   });
 });
 

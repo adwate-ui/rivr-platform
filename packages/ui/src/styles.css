@@ -46,18 +46,19 @@
     }
 
     [data-reveal] {
-      animation: none;
+      animation: none !important;
     }
   }
 }
 
 /*
- * The logo animation (Wordmark `isAnimated`): each tile rises into place in turn, then the tagline.
+ * The logo animation (Wordmark `isAnimated`): each tile rises into place in turn, then the tagline,
+ * each in the state duration with ease-out, one stagger after the last.
  * Only position and opacity move; the mark itself never changes. `data-reveal` is the step, from 0.
  */
 @layer components {
   [data-reveal] {
-    animation: rivr-reveal var(--rivr-motion-duration-reveal) var(--rivr-motion-easing-out) both;
+    animation: rivr-reveal var(--rivr-motion-duration-state) var(--rivr-motion-easing-out) both;
   }
 
   [data-reveal='1'] {
