@@ -11,7 +11,7 @@ function PairingCode({ pairing }: { pairing: TvPairing }) {
     <Stack gap={6}>
       <Text variant="tvBody">{t('display.pairing.intro')}</Text>
       <Heading level={2} variant="poster">{pairing.code.code}</Heading>
-      <Text variant="tvLabel" tone="muted">{t('display.pairing.changes', { time: formatTime(new Date(pairing.code.expiresAt)) })}</Text>
+      <Text variant="tvBody" tone="muted">{t('display.pairing.changes', { time: formatTime(new Date(pairing.code.expiresAt)) })}</Text>
     </Stack>
   );
 }

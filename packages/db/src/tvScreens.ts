@@ -1,7 +1,9 @@
 import type { TvMode } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toDeviceSession } from './parse/deviceSession.ts';
+import { useRef } from 'react';
+import type { RivrClient } from './client.ts';
+import { toDeviceSession, type DeviceSession } from './parse/deviceSession.ts';
 import { functionErrorCode } from './parse/kycFailure.ts';
 import { toTvCode, type TvCode } from './parse/tvCode.ts';
 import { useRivrData } from './provider.tsx';
@@ -42,9 +44,20 @@ const ASK_AGAIN = 60_000;
 // unpaired on the console reaches the TV without a reload.
 const SCREEN_CHECK = 10_000;
 
+/** device-pair's answer to a TV asking with its secret: the TV's session once its code is claimed, else null (after `onExpired` once the secret is no longer good). */
+async function askWithSecret(client: RivrClient, secret: string, onExpired: () => void): Promise<DeviceSession | null> {
+  const { data, error } = await client.functions.invoke('device-pair', { body: { tv: 'check', secret } });
+  if (!error) return toDeviceSession(data);
+  if ((await functionErrorCode(error)) === 'expired') onExpired();
+  return null;
+}
+
 /** Asks device-pair whether the code was typed in: signs the TV in once it was; a new code once this one is no longer good. */
 function useClaimCheck(code: TvCode | null, onExpired: () => void) {
   const { client } = useRivrData();
+  // device-pair hands a code's session over once, so a session the TV could not keep (a dropped
+  // connection, say) is held here and tried again rather than asked for again.
+  const pending = useRef<DeviceSession | null>(null);
   useQuery({
     queryKey: queryKeys.tvClaim(code?.code ?? 'none'),
     enabled: code !== null,
@@ -52,15 +65,11 @@ function useClaimCheck(code: TvCode | null, onExpired: () => void) {
     refetchInterval: CLAIM_CHECK,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<'waiting' | 'paired'> => {
-      if (code === null) return 'waiting';
-      const { data, error } = await client.functions.invoke('device-pair', { body: { tv: 'check', secret: code.secret } });
-      if (error) {
-        if ((await functionErrorCode(error)) === 'expired') onExpired();
-        return 'waiting';
-      }
-      const session = toDeviceSession(data);
+      const session = pending.current ?? (code === null ? null : await askWithSecret(client, code.secret, onExpired));
       if (session === null) return 'waiting';
-      await client.auth.setSession(session);
+      pending.current = session;
+      if ((await client.auth.setSession(session)).error) return 'waiting';
+      pending.current = null;
       return 'paired';
     },
   });
@@ -88,7 +97,8 @@ export function useTvPairing(): TvPairing {
       return code === null ? err('unavailable') : ok(code);
     },
   });
-  useClaimCheck(request.data?.ok ? request.data.value : null, () => void request.refetch());
+  // Every ask with the old secret says it ran out until the new code arrives: one request for it at a time.
+  useClaimCheck(request.data?.ok ? request.data.value : null, () => void request.refetch({ cancelRefetch: false }));
   if (request.data === undefined) return { status: 'loading' };
   return request.data.ok ? { status: 'code', code: request.data.value } : { status: request.data.error };
 }

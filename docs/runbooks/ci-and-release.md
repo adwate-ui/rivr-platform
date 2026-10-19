@@ -32,6 +32,7 @@ Variables are plain and visible, so they hold only non-secret values (Settings â
 | `PROD_SUPABASE_URL`, `PROD_SUPABASE_PUBLISHABLE_KEY` | production builds |
 | `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,DRIVER,WEB}_URL` | the release's end-to-end run against staging |
 | `PROD_TABLET_URL`, `PROD_DRIVER_URL` | the hosted bundle the APK shells load |
+| `PROD_DISPLAY_URL` | the hosted TV app, so `device-pair` answers TVs asking for a pairing code (#49) |
 
 Auth and API on staging and production, in the Supabase dashboard:
 

@@ -112,7 +112,7 @@ export const dealerSignIn = {
 export const tvs = {
   title: 'TVs',
   notAllowed: 'Your role does not include TVs. Ask an admin if you need it.',
-  empty: 'No TVs yet. Open the display app on a TV and type in the code it shows.',
+  empty: 'No TVs yet: type in the code a TV shows to pair it.',
   code: 'Code on the TV',
   codeHint: 'The six digits a TV that is not paired shows.',
   name: 'TV name',
@@ -126,7 +126,7 @@ export const tvs = {
   invalidName: 'Give the TV a name.',
   /** After pairing: the TV picks up its login and mode on its next ask, within seconds. */
   pairedNow: '{name} is paired. It shows its mode within a few seconds.',
-  wrongCode: 'No TV is showing that code. Check the TV: its code changes every 15 minutes.',
+  wrongCode: 'No TV is showing that code. Check the code on the TV and type it again.',
   /** The TV has signed in. */
   paired: 'Paired',
   /** Paired on the console, but the TV has not picked up its login yet. */
@@ -144,7 +144,7 @@ export const tvs = {
 
 /** A TV before it is paired (#49): the code staff type into the console. */
 export const tvPairing = {
-  title: 'Pair this screen',
+  title: 'Screen pairing',
   intro: 'On the console, open TVs and type in this code.',
   /** `{time}` (IST) is when the code runs out and a new one shows. */
   changes: 'The code changes at {time}.',

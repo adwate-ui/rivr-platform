@@ -19,7 +19,7 @@ test.describe('TV pairing', () => {
     const tv = await browser.newPage();
     await tv.setViewportSize(VIEWPORT.display);
     await tv.goto(appUrl('display'));
-    await expect(tv.getByRole('heading', { name: 'Pair this screen' })).toBeVisible();
+    await expect(tv.getByRole('heading', { name: 'Screen pairing' })).toBeVisible();
     const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
     await expect(shown).toBeVisible();
     const code = (await shown.textContent()) ?? '';
@@ -31,7 +31,7 @@ test.describe('TV pairing', () => {
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
-    await expect(floor.getByText('No TV is showing that code. Check the TV: its code changes every 15 minutes.')).toBeVisible();
+    await expect(floor.getByText('No TV is showing that code. Check the code on the TV and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText(`${name} is paired. It shows its mode within a few seconds.`)).toBeVisible();
@@ -41,7 +41,8 @@ test.describe('TV pairing', () => {
     await expect(tv.getByText(name, { exact: true })).toBeVisible();
     // The console's list asks again every ten seconds, so the TV shows as paired on its own.
     const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
-    await expect(floor.locator('div').filter({ has: modes }).getByText('Paired', { exact: true }).first()).toBeVisible({ timeout: 15_000 });
+    // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
+    await expect(modes.locator('xpath=../..').getByText('Paired', { exact: true })).toBeVisible({ timeout: 15_000 });
 
     await modes.getByRole('button', { name: 'Jackpot and high hand', exact: true }).click();
     await expect(modes.getByRole('button', { name: 'Jackpot and high hand', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -53,7 +54,7 @@ test.describe('TV pairing', () => {
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);
-    await expect(tv.getByRole('heading', { name: 'Pair this screen' })).toBeVisible({ timeout: 15_000 });
+    await expect(tv.getByRole('heading', { name: 'Screen pairing' })).toBeVisible({ timeout: 15_000 });
     await expect(tv.getByRole('heading', { level: 2, name: /^\d{6}$/ })).toBeVisible();
   });
 });

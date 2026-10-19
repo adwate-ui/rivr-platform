@@ -57,6 +57,20 @@ describe('An unpaired TV', () => {
     expect(asks(calls, 'start')).toHaveLength(1);
   });
 
+  it('signs in as itself with the session it is handed once its code is typed in', async () => {
+    const part = (value: object) => btoa(JSON.stringify(value)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const token = `${part({ alg: 'HS256', typ: 'JWT' })}.${part({ sub: 'tv-login', aud: 'authenticated', role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.c2ln`;
+    const { calls, wrapper } = renderTvs(null, {
+      'device-pair:start': { body: CODE },
+      'device-pair:check': { body: { access_token: token, refresh_token: 'tv-refresh' } },
+      '/auth/v1/user': { body: { id: 'tv-login', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-19T00:00:00Z' } },
+      '/rpc/my_tv_screen': { body: [] },
+    });
+    const { result } = renderHook(() => ({ pairing: useTvPairing(), auth: useAuthStatus() }), { wrapper });
+    await waitFor(() => expect(result.current.auth).toBe('signed-in'));
+    expect(asks(calls, 'check')).toHaveLength(1);
+  });
+
   it('asks for a new code once its secret is no longer good', async () => {
     const { calls, wrapper } = renderTvs(null, { 'device-pair:start': { body: CODE }, 'device-pair:check': { status: 400, body: { error: 'expired' } } });
     renderHook(() => useTvPairing(), { wrapper });

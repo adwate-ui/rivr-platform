@@ -10,14 +10,14 @@ import { Heading, Stack, Text } from '@rivr/ui';
 export function ModeScreen() {
   const screen = useMyTvScreen();
   if (screen.data === undefined) {
-    return screen.isError ? <Text variant="tvBody" tone="muted">{t('display.screen.unavailable')}</Text> : null;
+    return <Text variant="tvBody" tone="muted">{t(screen.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
   // Null while an unpaired TV signs itself out; the code follows.
   if (screen.data === null) return null;
   return (
     <Stack gap={4}>
       <Heading level={1} variant="display">{t(`tv.modes.${screen.data.mode}`)}</Heading>
-      <Text variant="tvLabel" tone="muted">{screen.data.name}</Text>
+      <Text variant="tvBody" tone="muted">{screen.data.name}</Text>
     </Stack>
   );
 }

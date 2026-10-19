@@ -16,7 +16,7 @@ describe('the TV display', () => {
         <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ['/'] }))} />
       </RivrDataProvider>,
     );
-    expect(await screen.findByRole('heading', { name: 'Pair this screen' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Screen pairing' })).toBeDefined();
     expect(await screen.findByText('RIVR cannot be reached. This screen tries again in a minute.')).toBeDefined();
   });
 });
