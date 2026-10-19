@@ -4,7 +4,7 @@ import { frameRoute } from './routes/frame.tsx';
 import { kycReturnRoute, kycRoute } from './routes/kyc.tsx';
 import { learnRoute } from './routes/learn.tsx';
 import { academyPaymentRoute, academyRoute } from './routes/academy.tsx';
-import { limitsRoute, profileRoute } from './routes/profile.tsx';
+import { profileRoute } from './routes/profile.tsx';
 import { rewardsRoute } from './routes/rewards.tsx';
 import { rootRoute } from './routes/root.tsx';
 import { sessionsRoute } from './routes/sessions.tsx';
@@ -17,7 +17,7 @@ const routeTree = rootRoute.addChildren([
   signUpRoute,
   kycRoute,
   kycReturnRoute,
-  frameRoute.addChildren([tonightRoute, sessionsRoute, balanceRoute, rewardsRoute, learnRoute, academyRoute, academyPaymentRoute, profileRoute, limitsRoute]),
+  frameRoute.addChildren([tonightRoute, sessionsRoute, balanceRoute, rewardsRoute, learnRoute, academyRoute, academyPaymentRoute, profileRoute]),
 ]);
 
 /** The player app's router; tests pass a memory history. */

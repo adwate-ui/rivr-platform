@@ -1,0 +1,30 @@
+import { SESSION_REMINDERS, useRestrictionActions, type Restrictions } from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { ChoiceChips, Heading, Stack, Text } from '@rivr/ui';
+import { BreakSection } from './BreakSection.tsx';
+
+const NONE = 'none';
+
+/** Limits (#56), as in the prototype: the session reminder (after how many hours seated, or never) and Self-exclusion. */
+export function LimitsSection({ restrictions }: { restrictions: Restrictions }) {
+  const { setReminder } = useRestrictionActions();
+  const options = [
+    { value: NONE, label: t('player.profile.reminderNone') },
+    ...SESSION_REMINDERS.map((hours) => ({ value: String(hours), label: t('player.profile.reminderHours', { hours }) })),
+  ];
+  const selected = [restrictions.sessionReminder === null ? NONE : String(restrictions.sessionReminder)];
+  // One is always chosen: pressing the chosen one again keeps it.
+  const choose = ([value]: string[]) => {
+    if (value === undefined) return;
+    setReminder.mutate(SESSION_REMINDERS.find((hours) => String(hours) === value) ?? null);
+  };
+  return (
+    <Stack gap={3}>
+      <Heading level={2}>{t('player.profile.limits')}</Heading>
+      <ChoiceChips label={t('player.profile.sessionReminder')} options={options} selected={selected} mode="one"
+        isDisabled={setReminder.isPending} onChange={choose} />
+      {setReminder.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}
+      <BreakSection restrictions={restrictions} />
+    </Stack>
+  );
+}

@@ -751,6 +751,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"member_limit": {
+                  Row: {
+                    "created_at": string,"member_id": string,"session_reminder_hours": number | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"member_id": string,"session_reminder_hours"?: number | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"member_id"?: string,"session_reminder_hours"?: number | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_limit_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"member_preference": {
                   Row: {
                     "big_blind": number | null,"created_at": string,"games": (string)[],"member_id": string,"small_blind": number | null,"updated_at": string,"venue_id": string
@@ -856,6 +876,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"self_exclusion": {
+                  Row: {
+                    "created_at": string,"ends_at": string,"id": string,"member_id": string,"reason": string | null,"set_by_staff_id": string | null,"starts_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"ends_at": string,"id"?: string,"member_id": string,"reason"?: string | null,"set_by_staff_id"?: string | null,"starts_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"ends_at"?: string,"id"?: string,"member_id"?: string,"reason"?: string | null,"set_by_staff_id"?: string | null,"starts_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "self_exclusion_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "self_exclusion_set_by_staff_id_venue_id_fkey"
+      columns: ["set_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
                   ]
                 },"setting": {
                   Row: {
@@ -1522,6 +1568,11 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
+"my_restrictions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "break_until": string,"session_reminder_hours": number
+            }[]
+                           },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
               "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"venue_id": string
@@ -1591,8 +1642,14 @@ isOneToOne: false
 "set_dealer_pin":
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: undefined
                            },
+"set_member_break":
+{ Args: { "p_days": number,"p_member_id": string,"p_reason": string }; Returns: string
+                           },
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
+                           },
+"set_session_reminder":
+{ Args: { "p_hours"?: number }; Returns: undefined
                            },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
@@ -1627,6 +1684,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"rate_basis_points": number
             }[]
+                           },
+"take_break":
+{ Args: { "p_days": number }; Returns: string
                            },
 "tv_jackpot":
 { Args: Record<PropertyKey, never>; Returns: {

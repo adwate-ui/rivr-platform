@@ -44,6 +44,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000210', '+919000000210', 'Dev Malhotra'),
   ('00000000-0000-4000-8000-000000000211', '+919000000211', 'Ishaan Verma'),
   ('00000000-0000-4000-8000-000000000212', '+919000000212', 'Vihaan Kapoor'),
+  ('00000000-0000-4000-8000-000000000213', '+919000000213', 'Mihir Shah'),
   ('00000000-0000-4000-8000-000000000301', '+919000000301', 'Asha Verma'),
   ('00000000-0000-4000-8000-000000000302', '+919000000302', 'Rajat Singh');
 
@@ -112,7 +113,9 @@ from (values
   -- The Waitlist flow's own member, who has finished the identity check (55_waitlist.sql).
   ('00000000-0000-4000-8000-000000000211'::uuid, 'Member', null, null),
   -- A black card at 100/200 whom the Waitlist flow's floor adds by number (#40); never signs in.
-  ('00000000-0000-4000-8000-000000000212'::uuid, 'Black card', 10000::bigint, 20000::bigint)
+  ('00000000-0000-4000-8000-000000000212'::uuid, 'Black card', 10000::bigint, 20000::bigint),
+  -- The Self-exclusion flow's own member, who has finished the identity check (55_waitlist.sql); a break cannot be undone.
+  ('00000000-0000-4000-8000-000000000213'::uuid, 'Member', null, null)
 ) as m (person_id, tier_name, small_blind, big_blind)
 join seed_person p on p.id = m.person_id
 on conflict (id) do nothing;

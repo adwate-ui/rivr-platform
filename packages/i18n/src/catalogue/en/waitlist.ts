@@ -2,6 +2,9 @@
 
 /** Home's Tonight: each table with how many wait, Join, and the member's own places. */
 export const tonight = {
+  /** While a break runs (#56): `{until}` is when it ends, Wed 17 Feb, 00:10. */
+  breakActive: 'Break active until {until}. Tables are closed to you until then.',
+  onBreak: 'Break active. Tables are closed to you until it ends.',
   title: 'Tonight',
   empty: 'No tables are running.',
   /** How many wait for a table's game and stake. */
@@ -64,6 +67,7 @@ export const waitlist = {
   add: 'Add to the list',
   noMember: 'No member has that number. Sign them up first.',
   kycNeeded: 'This member has not finished their identity check.',
+  onBreak: 'This member is on a break from play. Tables are closed to them until it ends.',
   stopped: 'This member is frozen.',
   paused: 'The venue is frozen. The waitlist changes again once it is released.',
   invalid: 'Enter a 10-digit mobile number.',

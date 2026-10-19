@@ -56,7 +56,7 @@ export const FEATURES = [
   core('core.sign_in', 'Sign-in', 'Mobile number and one-time code.', ['player:sign-in']),
   core('core.kyc', 'KYC', 'Identity verification.', ['player:kyc']),
   core('core.profile', 'Profile', 'KYC status, preferences.', ['player:profile']),
-  core('core.limits', 'Limits and self-exclusion', 'Member-set limits, cool-off and self-exclusion.', ['player:profile/limits']),
+  core('core.limits', 'Limits and self-exclusion', 'Member-set limits, cool-off and self-exclusion.', ['player:profile']),
   core('core.notification_settings', 'Notification settings', 'Choosing which notifications to receive.', ['player:profile/notifications']),
   core('core.membership_card', 'Membership card', 'The digital card with its rotating QR.', ['player:card']),
   core('core.balance_view', 'Balance', 'Cash, bonus, markers and movements.', ['player:balance']),

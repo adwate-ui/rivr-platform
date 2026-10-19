@@ -62,7 +62,8 @@ for (const story of storiesInIndex()) {
   test(story.id, async ({ page }) => {
     await page.setViewportSize(viewportFor(story));
     await page.goto(`${ORIGIN}/iframe.html?id=${story.id}&viewMode=story`);
-    await page.locator('body.sb-show-main, body.sb-show-errordisplay').waitFor();
+    // Attached, not visible: a story that is only a fixed overlay, such as ChoiceSheet, leaves the body no height.
+    await page.locator('body.sb-show-main, body.sb-show-errordisplay').waitFor({ state: 'attached' });
     await expect(page.locator('body.sb-show-errordisplay'), 'the story threw while rendering').toHaveCount(0);
     await page.evaluate(() => document.fonts.ready);
     await expect(page).toHaveScreenshot(`${story.id}.png`, { fullPage: true });

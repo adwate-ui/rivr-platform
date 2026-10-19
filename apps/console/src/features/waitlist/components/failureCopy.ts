@@ -5,6 +5,7 @@ import type { MessageKey } from '@rivr/i18n';
 export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   not_open: 'console.waitlist.notOpen',
   kyc_needed: 'console.waitlist.kycNeeded',
+  on_break: 'console.waitlist.onBreak',
   stopped: 'console.waitlist.stopped',
   paused: 'console.waitlist.paused',
   no_member: 'console.waitlist.noMember',

@@ -11,7 +11,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatNumber(n)` | `18,420`. |
 | `formatStakes(small, big)` | Blinds in paise to `100/200`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
-| `formatDate(date)`, `formatWeekday(date)` | `15 Nov 2026`, `Sunday`, in IST. |
+| `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40`, in IST. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
 | `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |
 | `en` | The catalogue itself, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not this. |

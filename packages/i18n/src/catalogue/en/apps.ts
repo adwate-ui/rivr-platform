@@ -89,11 +89,20 @@ export const playerApp = {
     saveFailed: 'Not saved. Try again.',
     /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
     academyBookings: 'Your Academy bookings',
-    responsiblePlay: 'Responsible play',
-    responsiblePlayHint: 'Set limits or take a break.',
-    limits: 'Limits and self-exclusion',
+    /** Limits and self-exclusion (#56), as in the prototype's Profile. */
+    limits: 'Limits',
+    sessionReminder: 'Session reminder',
+    reminderNone: 'None',
+    reminderHours: '{hours}h',
+    selfExclusion: 'Self-exclusion',
+    takeBreak: 'Take a break',
+    breakIntro: 'Waitlists and buy-ins close for the period you choose. It cannot be shortened.',
+    break1: '24 hours',
+    break7: '7 days',
+    break30: '30 days',
+    /** `{until}` is when a break would end: Wed 17 Feb, 00:10. */
+    breakUntil: 'Until {until}',
   },
-  limits: { title: 'Limits and self-exclusion', empty: 'Ask at the front desk to set limits or take a break.' },
   /** Joining the club after the first code: the name on the player's Aadhaar. */
   signUp: {
     title: 'Your name',
