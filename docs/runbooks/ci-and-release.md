@@ -56,6 +56,12 @@ Auth and API on staging and production, in the Supabase dashboard:
      - In Meta's dashboard, approve the authentication template `sign_in_code` in English, under the language code `en` (RIVR is English only, decision 0027).
      - Set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` as function secrets. Use a system user's token scoped to `whatsapp_business_messaging` for this one business account; every function in the project can read the secrets.
      - Until a channel is set, every sign-in except the test numbers is refused.
+  7. SMS through MSG91 (#181), for numbers not on WhatsApp and for every second code within ten minutes:
+     - Register the sign-in template on the DLT portal under RIVR's entity and header, with the code as its one variable, then create an MSG91 OTP template on it.
+     - In MSG91, create an auth key for this function alone, and turn off IP security on it, or the calls fail: Supabase Edge Functions have no fixed address.
+     - Set a low-balance alert and a daily credit cap in MSG91: each code to a number that asks again costs a message.
+     - Set `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` as function secrets. To rotate the key, create the new one, set it as the secret, then delete the old one in MSG91.
+     - Check it: on staging, request a code for a number not on WhatsApp, then tap "Send by SMS"; the SMS arrives.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
   - CAPTCHA on code requests (#182). Without it, anyone can use up the project-wide hourly code limit with requests to random numbers, which locks every member out of sign-in. In this order, staging first:
     1. In Cloudflare, add a Turnstile widget (Managed mode) with the exact hostnames: the player and console Pages projects (`rivr-player.pages.dev`, `rivr-console.pages.dev` and their staging projects; each also covers its preview subdomains) and the production domains. Never a bare `pages.dev`, which would let every Pages site use the key. Note the site key and secret.

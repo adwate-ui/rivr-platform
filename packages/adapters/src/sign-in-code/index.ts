@@ -1,2 +1,10 @@
-export { SIGN_IN_CODE_TEMPLATE, sendSignInCode, type SignInCodeChannels, type SignInCodeSent } from './send.ts';
-export { handleSendSmsHook, hookError, type HookReply } from './hook.ts';
+export {
+  FALLBACK_RESERVE_MS,
+  SEND_BUDGET_MS,
+  SIGN_IN_CODE_TEMPLATE,
+  sendSignInCode,
+  type SignInCodeChannels,
+  type SignInCodeSent,
+  type SignInCodeToSend,
+} from './send.ts';
+export { handleSendSmsHook, hookError, type HookReply, type NoteSignInCodeSend } from './hook.ts';

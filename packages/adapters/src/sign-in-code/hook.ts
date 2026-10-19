@@ -1,6 +1,6 @@
-import { sendSmsHookSchema } from '@rivr/contracts';
+import { sendSmsHookSchema, type IndianMobile } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
-import { sendSignInCode, type SignInCodeChannels } from './send.ts';
+import { SEND_BUDGET_MS, sendSignInCode, type SignInCodeChannels } from './send.ts';
 
 /** What the Edge Function answers Auth: HTTP 200, with an empty body or an error for the app. */
 export interface HookReply {
@@ -29,13 +29,24 @@ function replyTo(failure: AdapterFailure): HookReply {
 }
 
 /**
+ * Notes that a code is going to `to`, and says whether one already went there in the last ten
+ * minutes. Kept as a keyed hash of the number and the time only, never the code (#181).
+ */
+export type NoteSignInCodeSend = (to: IndianMobile) => Promise<boolean>;
+
+/**
  * Answers Supabase Auth's Send SMS hook once its signature is checked: sends the code through the
  * live channels and replies the way Auth expects. Named after Supabase's hook, though the code goes
- * by WhatsApp first. The code is never logged or stored (decision 0025).
+ * by WhatsApp first. A second code to a number within ten minutes goes by SMS first: Meta accepts a
+ * code for a number not on WhatsApp and reports the failure only later (error 131026), so the member
+ * asking again is the sign the first never arrived. The code is never logged or stored (decision 0025).
  */
-export async function handleSendSmsHook(payload: unknown, channels: SignInCodeChannels): Promise<HookReply> {
+export async function handleSendSmsHook(payload: unknown, channels: SignInCodeChannels, noteSend?: NoteSignInCodeSend): Promise<HookReply> {
+  // Counted from the call, so noting the send comes out of the same 5 seconds Auth waits.
+  const deadline = Date.now() + SEND_BUDGET_MS;
   const hook = sendSmsHookSchema.safeParse(payload);
   if (!hook.success) return hookError(400, 'The hook payload is not a sign-in code for an Indian mobile.');
-  const sent = await sendSignInCode(channels, hook.data);
+  const preferSms = noteSend ? await noteSend(hook.data.to) : false;
+  const sent = await sendSignInCode(channels, { ...hook.data, preferSms, deadline });
   return sent.ok ? { status: 200, body: {} } : replyTo(sent.error);
 }

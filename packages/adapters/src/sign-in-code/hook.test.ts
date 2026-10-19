@@ -18,6 +18,34 @@ describe('handleSendSmsHook', () => {
     expect(whatsapp.calls[0]?.params).toEqual(['482913']);
   });
 
+  it('sends a second code within ten minutes by SMS first: the first may never have reached WhatsApp', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const smsOtp = createFakeSmsOtp();
+    const noted: string[] = [];
+    const noteSend = async (to: string) => {
+      noted.push(to);
+      return noted.length > 1;
+    };
+
+    await handleSendSmsHook(payload, { whatsapp, smsOtp }, noteSend);
+    expect([whatsapp.calls.length, smsOtp.calls.length]).toEqual([1, 0]);
+    expect(await handleSendSmsHook(payload, { whatsapp, smsOtp }, noteSend)).toEqual({ status: 200, body: {} });
+    expect([whatsapp.calls.length, smsOtp.calls.length]).toEqual([1, 1]);
+    expect(smsOtp.calls[0]).toEqual({ to: '+919000000201', code: '482913' });
+    expect(noted).toEqual(['+919000000201', '+919000000201']);
+  });
+
+  it('falls back to WhatsApp when the SMS for a second code fails, and to WhatsApp alone without SMS', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const smsOtp = createFakeSmsOtp();
+    smsOtp.failNext({ code: 'unavailable' });
+    const again = async () => true;
+
+    expect(await handleSendSmsHook(payload, { whatsapp, smsOtp }, again)).toEqual({ status: 200, body: {} });
+    expect(await handleSendSmsHook(payload, { whatsapp }, again)).toEqual({ status: 200, body: {} });
+    expect(whatsapp.calls).toHaveLength(2);
+  });
+
   it('refuses a payload that is not a code for an Indian mobile', async () => {
     const notIndian = { user: { id: 'u1' }, sms: { otp: '482913', phone: '14155550100' } };
 
