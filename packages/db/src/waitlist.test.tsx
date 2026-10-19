@@ -80,7 +80,7 @@ describe('Waitlist data', () => {
       '/rpc/waitlist_board': {
         body: [{
           entry_id: 'e4', table_type_id: 'hi', member_id: ISHAAN, full_name: 'Ishaan Verma', joined_at: '2026-10-19T14:00:00+00:00',
-          place: 4, added_by_floor: true,
+          place: 4, added_by_floor: true, priority_reason: 'Black card',
         }],
       },
     });
@@ -90,7 +90,7 @@ describe('Waitlist data', () => {
     }]));
     await waitFor(() => expect(result.current.board.data).toEqual([{
       entryId: 'e4', tableTypeId: 'hi', memberId: ISHAAN, fullName: 'Ishaan Verma', joinedAt: '2026-10-19T14:00:00+00:00',
-      place: 4, addedByFloor: true,
+      place: 4, addedByFloor: true, priorityReason: 'Black card',
     }]));
   });
 

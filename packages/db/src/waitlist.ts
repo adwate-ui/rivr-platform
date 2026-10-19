@@ -46,6 +46,8 @@ export interface WaitlistBoardEntry {
   readonly joinedAt: string;
   readonly place: number;
   readonly addedByFloor: boolean;
+  /** Why the place is ahead of join time: the tier's name, "Black card"; null in join-time order. */
+  readonly priorityReason: string | null;
 }
 
 /** Why joining, adding or leaving did not go through: `stopped` is the member frozen, `paused` the whole venue. */
@@ -141,7 +143,7 @@ export function useWaitlistBoard(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
-        place: row.place, addedByFloor: row.added_by_floor,
+        place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason,
       }));
     },
   });

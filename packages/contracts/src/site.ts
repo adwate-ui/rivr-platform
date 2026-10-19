@@ -1,14 +1,15 @@
 import { z } from 'zod';
 
 /** Where a website link may hand a visitor to the player app, and the path there. */
-export const PLAYER_DESTINATIONS = { 'sign-up': '/sign-in', academy: '/academy' } as const;
+export const PLAYER_DESTINATIONS = { 'sign-up': '/sign-in', academy: '/academy', waitlist: '/' } as const;
 
 /** A destination in the player app a website block can link to. */
 export type PlayerDestination = keyof typeof PLAYER_DESTINATIONS;
 
 const actionSchema = z.object({
   label: z.string().trim().min(1).max(40),
-  to: z.enum(['sign-up', 'academy']),
+  // Home is where a member joins a waitlist (#38).
+  to: z.enum(['sign-up', 'academy', 'waitlist']),
 });
 
 const headingSchema = z.string().trim().max(80).optional();
@@ -73,6 +74,8 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   // Live blocks are placed, not typed: their rows come from the public views.
   z.object({ kind: z.literal('games'), content: z.object({ heading: headingSchema }) }),
   z.object({ kind: z.literal('calendar'), content: z.object({ heading: headingSchema }) }),
+  // Large links into the player app, as a link-in-bio page leads with (#39).
+  z.object({ kind: z.literal('links'), content: z.object({ heading: headingSchema, links: z.array(actionSchema).min(1).max(6) }) }),
 ]);
 
 /** A website block the website can show. */

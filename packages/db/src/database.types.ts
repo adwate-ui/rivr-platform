@@ -1042,6 +1042,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_waitlist_length": {
+                  Row: {
+                    "table_type_code": string | null,"venue_slug": string | null,"waiting": number | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"venue_config_detail": {
                   Row: {
                     "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"staff_ip_allowlist": (unknown)[] | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
@@ -1209,7 +1217,7 @@ isOneToOne: false
                            },
 "waitlist_board":
 { Args: { "p_venue_id": string }; Returns: {
-              "added_by_floor": boolean,"entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"place": number,"table_type_id": string
+              "added_by_floor": boolean,"entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"place": number,"priority_reason": string,"table_type_id": string
             }[]
                            },
 "waitlist_lengths":
