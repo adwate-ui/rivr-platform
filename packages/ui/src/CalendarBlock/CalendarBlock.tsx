@@ -24,7 +24,7 @@ function when(at: Date): string {
 function money(tournament: CalendarBlockTournament): string {
   const buyIn = t('ui.web.buyIn', { amount: formatMoney(tournament.buyIn) });
   if (tournament.guarantee === null) return buyIn;
-  return `${buyIn} · ${t('ui.web.guaranteed', { amount: formatMoney(tournament.guarantee) })}`;
+  return t('ui.web.pair', { first: buyIn, second: t('ui.web.guaranteed', { amount: formatMoney(tournament.guarantee) }) });
 }
 
 /** A website block of the coming tournaments, live from the schedule: when, the buy-in and any guarantee. */

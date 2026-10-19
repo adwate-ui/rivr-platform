@@ -47,7 +47,7 @@ export function GamesBlock({ heading, games }: GamesBlockProps) {
               <Stakes smallBlind={game.smallBlind} bigBlind={game.bigBlind} tone="muted" />
             </Inline>
             <Text tone="muted">
-              {game.straddle === null ? buyIn(game) : `${buyIn(game)} · ${t('ui.web.straddle', { amount: formatMoney(game.straddle) })}`}
+              {game.straddle === null ? buyIn(game) : t('ui.web.pair', { first: buyIn(game), second: t('ui.web.straddle', { amount: formatMoney(game.straddle) }) })}
             </Text>
             <Text variant="small" tone={game.tablesOpen === 0 ? 'muted' : 'default'}>{running(game.tablesOpen)}</Text>
           </Stack>

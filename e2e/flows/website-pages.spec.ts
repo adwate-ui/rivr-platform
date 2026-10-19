@@ -36,7 +36,8 @@ test.describe('Website', () => {
     await expect(page.getByText('NLH 50/100', { exact: true })).toBeVisible();
     await expect(page.getByText('Buy-in ₹5,000', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Tournaments' })).toBeVisible();
-    // The seeded RIVR Sunday leaves the calendar once it has started; then the calendar says it is empty.
-    await expect(page.getByText('RIVR Sunday').or(page.getByText('No tournaments on the calendar yet.'))).toBeVisible();
+    // The seed puts the Weeknight Turbo a week from each seeding, so it is always coming.
+    await expect(page.getByText('Weeknight Turbo', { exact: true })).toBeVisible();
+    await expect(page.getByText('Buy-in ₹3,000', { exact: true })).toBeVisible();
   });
 });

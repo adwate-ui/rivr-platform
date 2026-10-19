@@ -74,6 +74,8 @@ export const ui = {
     /** A tournament's start in IST: `Sunday 15 Nov 2026, 16:00`. */
     when: '{weekday} {date}, {time}',
     guaranteed: '{amount} guaranteed',
+    /** Two facts on one line: `Buy-in ₹20,000 · ₹500 straddle`. */
+    pair: '{first} · {second}',
     noTournaments: 'No tournaments on the calendar yet.',
   },
   /** KycPhoto, in place of a member's photo that is not there. */

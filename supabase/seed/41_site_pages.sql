@@ -53,10 +53,13 @@ insert into public.site_block (venue_id, page_id, position, kind, content) value
   }$$)
 on conflict (page_id, position) do nothing;
 
--- The careers draft gets its block shape, so the page is ready when the owner publishes it.
-update public.site_block set kind = 'careers', content = $${
-  "heading": "Careers",
-  "roles": [],
-  "apply": "Dealers and floor staff: openings soon."
-}$$
+-- The careers draft gets its hero (the page's one h1) and its roles block, so the page is ready when
+-- the owner publishes it.
+update public.site_block set kind = 'hero', content = '{"heading": "Careers", "text": "Work at RIVR."}'
 where page_id = '00000000-0000-4000-8000-0000000005a3' and position = 1;
+insert into public.site_block (venue_id, page_id, position, kind, content) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005a3', 2, 'careers', $${
+    "roles": [],
+    "apply": "Dealers and floor staff: openings soon."
+  }$$)
+on conflict (page_id, position) do nothing;

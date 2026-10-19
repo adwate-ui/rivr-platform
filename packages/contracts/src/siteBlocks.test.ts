@@ -26,5 +26,11 @@ describe('the website\'s information blocks (#35)', () => {
     expect(map('http://www.google.com/maps')).toBe(false);
     expect(map('https://evil.example/maps')).toBe(false);
     expect(map('javascript:alert(1)')).toBe(false);
+    // Google, but not a maps page: its redirects and search could send a visitor anywhere.
+    expect(map('https://www.google.com/url?q=https://evil.example/')).toBe(false);
+    expect(map('https://maps.google.com/url?q=https://evil.example/')).toBe(false);
+    expect(map('https://www.google.com/search?q=rivr')).toBe(false);
+    expect(map('https://evil.example@www.google.com/maps')).toBe(false);
+    expect(map('https://www.google.com/maps/place/Glaza')).toBe(true);
   });
 });

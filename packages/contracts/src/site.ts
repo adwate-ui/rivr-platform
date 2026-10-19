@@ -13,8 +13,17 @@ const actionSchema = z.object({
 
 const headingSchema = z.string().trim().max(80).optional();
 
-/** Directions only from Google Maps, so a block can never send a visitor anywhere else. */
-const directionsSchema = z.url({ protocol: /^https$/, hostname: /^(www\.google\.com|maps\.google\.com|maps\.app\.goo\.gl)$/ });
+/**
+ * Directions only to a Google Maps page over HTTPS: a maps.app.goo.gl short link, or a /maps path on
+ * Google, never Google's redirects or search, and never an address with a user name in it.
+ */
+const directionsSchema = z
+  .url({ protocol: /^https$/, hostname: /^(www\.google\.com|maps\.google\.com|maps\.app\.goo\.gl)$/ })
+  .refine((value) => {
+    const url = new URL(value);
+    const isMapsPage = url.hostname === 'maps.app.goo.gl' || url.pathname === '/maps' || url.pathname.startsWith('/maps/');
+    return isMapsPage && url.username === '' && url.password === '';
+  });
 
 /**
  * One block of a website page, by kind, as `site_block.content` holds it (#9, #35). An optional field
