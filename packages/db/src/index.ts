@@ -84,6 +84,10 @@ export {
 export { useCreditActions, useCreditLines, useCreditRoom, type CreditFailure, type CreditLine, type CreditRoom } from './credit.ts';
 export { useMarkerActions, useOpenMarkers, type MarkerFailure, type MarkerOrder, type OpenMarker } from './markers.ts';
 export {
+  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,
+  type MemberRecord, type MemberRow, type TierChange, type VenueTier,
+} from './members.ts';
+export {
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,

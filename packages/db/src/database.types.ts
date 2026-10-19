@@ -1025,6 +1025,44 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"member_tier_change": {
+                  Row: {
+                    "changed_by_staff_id": string | null,"created_at": string,"ends_at": string | null,"from_tier_id": string,"id": string,"is_expiry": boolean,"member_id": string,"reason": string,"to_tier_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_by_staff_id"?: string | null,"created_at"?: string,"ends_at"?: string | null,"from_tier_id": string,"id"?: string,"is_expiry"?: boolean,"member_id": string,"reason": string,"to_tier_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "changed_by_staff_id"?: string | null,"created_at"?: string,"ends_at"?: string | null,"from_tier_id"?: string,"id"?: string,"is_expiry"?: boolean,"member_id"?: string,"reason"?: string,"to_tier_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_tier_change_changed_by_staff_id_venue_id_fkey"
+      columns: ["changed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "member_tier_change_from_tier_id_venue_id_fkey"
+      columns: ["from_tier_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tier"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "member_tier_change_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "member_tier_change_to_tier_id_venue_id_fkey"
+      columns: ["to_tier_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tier"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"notification_preference": {
                   Row: {
                     "created_at": string,"is_on": boolean,"member_id": string,"push_type": string,"updated_at": string,"venue_id": string
@@ -1958,6 +1996,21 @@ isOneToOne: false
 "log_hand":
 { Args: { "p_idempotency_key": string,"p_played_at": string,"p_pot": number,"p_variant": Database["public"]['Enums']["hand_variant"] }; Returns: string
                            },
+"member_early_departures":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "created_at": string,"early_departure_id": string,"reason": string,"shortfall_seconds": number,"staff_name": string
+            }[]
+                           },
+"member_record":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "early_departures": number,"full_name": string,"is_in_room": boolean,"is_kyc_complete": boolean,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"photo_path": string,"qualifying_big_blind": number,"qualifying_small_blind": number,"tier_id": string,"tier_name": string,"tier_until": string,"visits": number
+            }[]
+                           },
+"member_search":
+{ Args: { "p_query": string,"p_venue_id": string }; Returns: {
+              "full_name": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"tier_name": string,"visits": number
+            }[]
+                           },
 "message_recipient":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
@@ -2076,6 +2129,9 @@ isOneToOne: false
                            },
 "set_member_break":
 { Args: { "p_days": number,"p_member_id": string,"p_reason": string }; Returns: string
+                           },
+"set_member_tier":
+{ Args: { "p_member_id": string,"p_reason": string,"p_tier_id": string,"p_until"?: string,"p_venue_id": string }; Returns: string
                            },
 "set_must_move":
 { Args: { "p_main_table_id"?: string,"p_table_id": string }; Returns: undefined
