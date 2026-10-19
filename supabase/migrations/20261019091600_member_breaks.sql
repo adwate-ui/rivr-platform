@@ -94,9 +94,12 @@ set search_path = ''
 as $$
 declare
   v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id);
-  v_until timestamptz := (select r.break_until from private.member_restrictions(p_member_id, now()) r);
+  v_until timestamptz;
   v_entry public.waitlist_entry;
 begin
+  -- One at a time per member with put_on_waitlist, so a join never lands after the break took the places.
+  perform 1 from public.member m where m.id = p_member_id for update;
+  v_until := (select r.break_until from private.member_restrictions(p_member_id, now()) r);
   if v_until >= p_ends_at then return v_until; end if;
   insert into public.self_exclusion (venue_id, member_id, ends_at, set_by_staff_id, reason)
   values (v_venue_id, p_member_id, p_ends_at, p_staff_id, nullif(trim(p_reason), ''));
@@ -243,6 +246,8 @@ begin
     raise exception 'No such game at this venue' using errcode = '22023';
   end if;
   perform private.assert_writable(v_venue_id, null, p_member_id);
+  -- One at a time per member with start_break (#56).
+  perform 1 from public.member m where m.id = p_member_id for update;
   if not private.is_kyc_complete(p_member_id) then
     raise exception 'Finish the identity check to join a waitlist' using errcode = 'RVKYC';
   end if;

@@ -64,17 +64,23 @@ select throws_ok($$ select public.set_member_break('00000000-0000-4000-8000-0000
 
 -- Who sees breaks: the member their own, staff who read members the venue's.
 select is((select count(*)::integer from public.self_exclusion), 1, 'a member sees only their own break');
+select is((select count(*)::integer from public.member_limit), 1, 'and only their own limits');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is_empty($$ select * from public.self_exclusion $$, 'another member sees none');
+select is_empty($$ select * from public.member_limit $$, 'nor their limits');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select count(*)::integer from public.self_exclusion), 2, 'the floor sees the venue''s breaks');
+select is((select count(*)::integer from public.member_limit), 1, 'and the venue''s limits');
+select throws_ok($$ update public.member_limit set session_reminder_hours = 8 $$, '42501', null, 'but changes no one''s limits');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.self_exclusion $$, 'a dealer sees none');
+select is_empty($$ select * from public.member_limit $$, 'nor any limits');
 reset role;
 update public.staff set is_active = false
 where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select * from public.self_exclusion $$, 'staff at the practice venue only see none of the club''s');
+select is_empty($$ select * from public.member_limit $$, 'nor its limits');
 reset role;
 set local role anon;
 select throws_ok($$ select public.take_break(1) $$, '42501', null, 'nobody signed out takes a break');

@@ -1,6 +1,6 @@
 import { BREAK_DAYS, useRestrictionActions, type BreakDays, type Restrictions } from '@rivr/db';
 import { formatDayTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceSheet, Heading, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceSheet, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 const BREAK_LABEL: Readonly<Record<BreakDays, MessageKey>> = {
@@ -12,9 +12,9 @@ const BREAK_LABEL: Readonly<Record<BreakDays, MessageKey>> = {
 const DAY_MS = 86_400_000;
 
 /**
- * Self-exclusion (#56), as in the prototype: Take a break opens a sheet of 24 hours, 7 days or 30
- * days, each saying when it would end. Once taken, the section says when the break ends; it cannot be
- * shortened, so there is nothing to undo.
+ * Self-exclusion (#56), a row under Limits as in the prototype: Take a break opens a sheet of 24
+ * hours, 7 days or 30 days, each saying when it would end. During a break the row says until when;
+ * Take a break stays, to make it longer, since a break is never shortened.
  */
 export function BreakSection({ restrictions }: { restrictions: Restrictions }) {
   const { takeBreak } = useRestrictionActions();
@@ -30,11 +30,12 @@ export function BreakSection({ restrictions }: { restrictions: Restrictions }) {
     setOpenedAt(null);
   };
   return (
-    <Stack gap={3} align="start">
-      <Heading level={2}>{t('player.profile.selfExclusion')}</Heading>
-      {restrictions.breakUntil === null ? (
-        <Button variant="secondary" onClick={() => setOpenedAt(Date.now())}>{t('player.profile.takeBreak')}</Button>
-      ) : (
+    <Stack gap={2}>
+      <Inline justify="between" align="center">
+        <Text variant="label">{t('player.profile.selfExclusion')}</Text>
+        <Button variant="text" onClick={() => setOpenedAt(Date.now())}>{t('player.profile.takeBreak')}</Button>
+      </Inline>
+      {restrictions.breakUntil === null ? null : (
         <Text>{t('player.tonight.breakActive', { until: formatDayTime(new Date(restrictions.breakUntil)) })}</Text>
       )}
       {takeBreak.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}

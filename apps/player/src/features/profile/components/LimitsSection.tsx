@@ -1,10 +1,11 @@
 import { SESSION_REMINDERS, useRestrictionActions, type Restrictions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, Heading, Stack, Text } from '@rivr/ui';
+import { BreakSection } from './BreakSection.tsx';
 
 const NONE = 'none';
 
-/** The session reminder (#56): after how many hours seated the app reminds the member, or never. */
+/** Limits (#56), as in the prototype: the session reminder (after how many hours seated, or never) and Self-exclusion. */
 export function LimitsSection({ restrictions }: { restrictions: Restrictions }) {
   const { setReminder } = useRestrictionActions();
   const options = [
@@ -23,6 +24,7 @@ export function LimitsSection({ restrictions }: { restrictions: Restrictions }) 
       <ChoiceChips label={t('player.profile.sessionReminder')} options={options} selected={selected} mode="one"
         isDisabled={setReminder.isPending} onChange={choose} />
       {setReminder.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}
+      <BreakSection restrictions={restrictions} />
     </Stack>
   );
 }

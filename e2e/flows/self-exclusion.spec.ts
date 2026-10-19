@@ -38,7 +38,8 @@ test.describe('Self-exclusion', () => {
     await sheet.getByRole('button', { name: /^7 days/ }).click();
     await expect(sheet).toHaveCount(0);
     await expect(page.getByText(new RegExp(`^Break active until ${UNTIL}\\. Tables are closed to you until then\\.$`))).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Take a break' })).toHaveCount(0);
+    // Take a break stays, to make the break longer: it is never shortened.
+    await expect(page.getByRole('button', { name: 'Take a break' })).toBeVisible();
 
     await page.getByRole('link', { name: 'Home' }).click();
     await expect(page.getByText(/^Break active until /)).toBeVisible();
