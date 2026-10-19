@@ -43,6 +43,8 @@ export const queryKeys = {
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
+  /** A venue's table types with their rake now and the changes to come. */
+  tableTypeRake: (userId: string, venueId: string) => ['user', userId, 'table-type-rake', venueId] as const,
   /** The dealers who can sign in on this tablet. */
   tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
   /** The down at this tablet's table. */
