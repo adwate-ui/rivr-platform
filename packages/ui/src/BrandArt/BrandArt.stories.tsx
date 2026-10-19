@@ -20,3 +20,6 @@ export const Maskable: Story = { args: { art: 'maskable' } };
 export const Adaptive: Story = { args: { art: 'adaptive' } };
 
 export const Lockup: Story = { args: { art: 'lockup' } };
+
+/** The logo animation, as @rivr/render draws it to MP4. Screenshots show its last frame: the lockup. */
+export const AnimatedLockup: Story = { args: { art: 'lockup', isAnimated: true } };

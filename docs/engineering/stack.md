@@ -25,7 +25,7 @@ Read by Lane 0 when setting up the repository, and by anyone changing tooling.
 - **Fonts:** Bodoni Moda and Instrument Sans from `@fontsource`.
 - **Backend:** Supabase in Mumbai: Postgres, row-level security, Realtime, Edge Functions (Deno), pg_cron, Storage. Projects: `rivr-staging`, `rivr-prod`.
 - **Offline:** IndexedDB queue through one shared package.
-- **Graphics:** `@rivr/render` renders `@rivr/ui` components in headless Chromium (Playwright) to PNG and PDF, and with Remotion to MP4, so TV slides, social cards, receipts and the membership card use the same CSS as the apps. Satori is not used; it supports only a subset of CSS and would drift from the apps.
+- **Graphics:** `@rivr/render` renders `@rivr/ui` components in headless Chromium (Playwright) to PNG and PDF, and to MP4 by encoding the frames in Chromium (WebCodecs; `docs/decisions/0039-video-without-remotion.md`), so TV slides, social cards, receipts and the membership card use the same CSS as the apps. Satori is not used; it supports only a subset of CSS and would drift from the apps.
 - **Testing:** Vitest, fast-check, Stryker, Testing Library, Playwright, pgTAP.
 - **Component workshop:** Storybook for `@rivr/ui`.
 - **Hosting:** Cloudflare Pages for `player`, `console`, `display` and the `tablet` and `driver` bundles; the `web` site on a Cloudflare Worker (`docs/decisions/0021-website-on-a-cloudflare-worker.md`). A preview deployment per PR.

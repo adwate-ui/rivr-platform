@@ -59,6 +59,8 @@ describe('visual rules', () => {
 
   it('moves in 200 ms with ease-out', () => {
     expect(tokenValue('motion.duration.state')).toBe('200ms');
+    expect(tokenValue('motion.duration.reveal')).toBe('600ms');
+    expect(tokenValue('motion.duration.stagger')).toBe('120ms');
     expect(tokenValue('motion.easing.out')).toEqual([0, 0, 0.58, 1]);
   });
 

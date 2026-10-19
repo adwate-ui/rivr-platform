@@ -44,5 +44,46 @@
     ::after {
       transition-duration: 0s !important;
     }
+
+    [data-reveal] {
+      animation: none;
+    }
+  }
+}
+
+/*
+ * The logo animation (Wordmark `isAnimated`): each tile rises into place in turn, then the tagline.
+ * Only position and opacity move; the mark itself never changes. `data-reveal` is the step, from 0.
+ */
+@layer components {
+  [data-reveal] {
+    animation: rivr-reveal var(--rivr-motion-duration-reveal) var(--rivr-motion-easing-out) both;
+  }
+
+  [data-reveal='1'] {
+    animation-delay: var(--rivr-motion-duration-stagger);
+  }
+
+  [data-reveal='2'] {
+    animation-delay: calc(2 * var(--rivr-motion-duration-stagger));
+  }
+
+  [data-reveal='3'] {
+    animation-delay: calc(3 * var(--rivr-motion-duration-stagger));
+  }
+
+  [data-reveal='4'] {
+    animation-delay: calc(4 * var(--rivr-motion-duration-stagger));
+  }
+
+  [data-reveal='5'] {
+    animation-delay: calc(5 * var(--rivr-motion-duration-stagger));
+  }
+}
+
+@keyframes rivr-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rivr-space-4));
   }
 }

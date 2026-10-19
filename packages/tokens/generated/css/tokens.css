@@ -95,6 +95,8 @@
   --rivr-brand-adaptive: 140px; /** An Android adaptive icon's foreground: the card inside the safe zone, 66 of 108, with room to spare. */
   --rivr-brand-lockup: 400px; /** A splash screen or cover: the wordmark and tagline. */
   --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
+  --rivr-motion-duration-reveal: 600ms; /** The logo animation: one tile of the wordmark rising into place. */
+  --rivr-motion-duration-stagger: 120ms; /** The logo animation: the wait between one tile and the next. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
   --rivr-icon-size-sm: 16px;
   --rivr-icon-size-md: 20px;
