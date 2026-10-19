@@ -46,7 +46,7 @@ select is((select count(distinct venue_slug)::int from public.public_waitlist_le
 select columns_are('public', 'public_waitlist_length', array['venue_slug', 'table_type_code', 'waiting'],
   'the view holds a venue, a game and a count, never a member');
 reset role;
-update public.waitlist_entry set status = 'left', left_at = now()
+update public.waitlist_entry set status = 'left', left_at = now(), left_reason = 'left'
 where member_id = '00000000-0000-4000-8000-000000000204' and status = 'waiting';
 set local role anon;
 select is((select waiting from public.public_waitlist_length where table_type_code = 'nlh_100_200'), 2,

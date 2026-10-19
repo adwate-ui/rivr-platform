@@ -30,3 +30,9 @@ from public.tier t
 join (values ('Black card', '{"weight": 2, "only_at_qualifying_stake": true}'::jsonb),
              ('Founders'' Circle', '{"weight": 1, "only_at_qualifying_stake": false}'::jsonb)) as w (name, value) on w.name = t.name
 on conflict (venue_id, key, subject, effective_from) do nothing;
+
+-- The 20-minute hold for a called seat and a step-away (#63).
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'waitlist.hold_minutes', '', '{"minutes": 20}', '-infinity', 'Seed'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+on conflict (venue_id, key, subject, effective_from) do nothing;

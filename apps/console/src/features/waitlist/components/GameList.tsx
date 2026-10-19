@@ -1,30 +1,19 @@
-import { useFloorWaitlistActions, type FloorTable, type WaitlistBoardEntry, type WaitlistFailure } from '@rivr/db';
-import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Stack, Stakes, Text } from '@rivr/ui';
-import { useState } from 'react';
+import type { FloorTable, WaitlistBoardEntry } from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { Heading, Inline, Stack, Stakes, Text } from '@rivr/ui';
 import { AddMemberForm } from './AddMemberForm.tsx';
-import { FAILURE_COPY } from './failureCopy.ts';
-
-/** One place: number, name and when they joined, and why it is ahead of join time when it is. */
-function entryLine(entry: WaitlistBoardEntry): string {
-  const line = { place: entry.place, name: entry.fullName, time: formatTime(new Date(entry.joinedAt)) };
-  return entry.priorityReason === null ? t('console.waitlist.entry', line) : t('console.waitlist.entryWithReason', { ...line, reason: entry.priorityReason });
-}
+import { EntryRow } from './EntryRow.tsx';
 
 interface GameListProps {
   venueId: string;
   game: FloorTable;
+  /** The game's open tables, to call a member to. */
+  tables: readonly FloorTable[];
   entries: readonly WaitlistBoardEntry[];
 }
 
-/** One game and stake's list, in order, with Remove on each place and a way to add a member by their number. */
-export function GameList({ venueId, game, entries }: GameListProps) {
-  const { remove } = useFloorWaitlistActions(venueId);
-  const [failure, setFailure] = useState<WaitlistFailure | null>(null);
-  const removePlace = async (entryId: string) => {
-    const removed = await remove.mutateAsync(entryId);
-    setFailure(removed.ok ? null : removed.error);
-  };
+/** One game and stake's list, in order, each place with the floor's actions, and a way to add a member by their number. */
+export function GameList({ venueId, game, tables, entries }: GameListProps) {
   return (
     <Stack gap={4}>
       <Inline gap={3} align="baseline">
@@ -33,19 +22,8 @@ export function GameList({ venueId, game, entries }: GameListProps) {
       </Inline>
       {entries.length === 0 ? <Text tone="muted">{t('console.waitlist.empty')}</Text> : null}
       <Stack gap={3} divided>
-        {entries.map((entry) => (
-          <Inline key={entry.entryId} gap={4} align="center" justify="between">
-            <Stack gap={1}>
-              <Text>{entryLine(entry)}</Text>
-              {entry.addedByFloor ? <Text variant="small" tone="muted">{t('console.waitlist.addedByFloor')}</Text> : null}
-            </Stack>
-            <Button variant="secondary" isLoading={remove.isPending} onClick={() => void removePlace(entry.entryId)}>
-              {t('console.waitlist.remove', { name: entry.fullName })}
-            </Button>
-          </Inline>
-        ))}
+        {entries.map((entry) => <EntryRow key={entry.entryId} venueId={venueId} entry={entry} tables={tables} />)}
       </Stack>
-      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
       <AddMemberForm venueId={venueId} tableTypeId={game.tableTypeId} />
     </Stack>
   );
