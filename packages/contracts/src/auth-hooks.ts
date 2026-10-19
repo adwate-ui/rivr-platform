@@ -11,12 +11,20 @@ export const signInCodeSchema = z.string().regex(/^\d{6}$/);
  * The number comes from `sms.phone`, the number Auth is checking, never `user.phone`: during a
  * phone change `user.phone` is still the old number, and sending the new number's code there would
  * let someone confirm a number they do not hold.
+ *
+ * A device's own login (#41, `app_metadata.device_id`) gets no code at all: it signs in only by its
+ * password, and a code would let someone move its number onto their own phone.
  */
 export const sendSmsHookSchema = z
   .object({
     sms: z.object({ otp: signInCodeSchema, phone: z.string() }),
+    user: z.object({ app_metadata: z.object({ device_id: z.string().optional() }).optional() }).optional(),
   })
-  .transform(({ sms }, context) => {
+  .transform(({ sms, user }, context) => {
+    if (user?.app_metadata?.device_id !== undefined) {
+      context.addIssue({ code: 'custom', message: 'A device signs in by its password, never by a code', path: ['user'] });
+      return z.NEVER;
+    }
     // Auth sends the number without the plus; dropping a plus first means either form parses.
     const to = indianMobileSchema.safeParse(`+${sms.phone.replace(/^\+/, '')}`);
     if (!to.success) {

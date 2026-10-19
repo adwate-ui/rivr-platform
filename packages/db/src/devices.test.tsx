@@ -80,10 +80,27 @@ describe('Dealer tablets', () => {
       '/rpc/start_device_pairing': { body: [{ code: '048213', expires_at: '2026-10-19T21:45:00+05:30' }] },
     });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.staff.add.mutateAsync({ name: ' Tablet C ', staffId: 's1' }); });
+    await act(async () => { outcome = await result.current.staff.add.mutateAsync({ name: ' Tablet C ' }); });
     expect(outcome).toEqual({ ok: true, value: { deviceId: 'd9', code: '048213', expiresAt: '2026-10-19T21:45:00+05:30' } });
-    expect(calls.find((call) => call.url.includes('/rest/v1/device'))?.body)
-      .toEqual({ venue_id: VENUE, kind: 'dealer_tablet', name: 'Tablet C', enrolled_by_staff_id: 's1' });
+    expect(calls.find((call) => call.url.includes('/rest/v1/device'))?.body).toEqual({ venue_id: VENUE, kind: 'dealer_tablet', name: 'Tablet C' });
+  });
+
+  it('says a tablet added during a freeze, or whose pairing did not start, is added with no code', async () => {
+    const frozen = renderDevices({ ...EMPTY, '/rest/v1/device': { status: 400, body: { code: 'RVFRZ', message: 'venue_frozen' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await frozen.result.current.staff.add.mutateAsync({ name: 'Tablet C' }); });
+    expect(outcome).toEqual({ ok: false, error: 'paused' });
+    cleanup();
+    const dropped = renderDevices({ ...EMPTY, '/rest/v1/device': { body: { id: 'd9' } }, '/rpc/start_device_pairing': { status: 503, body: null } });
+    await act(async () => { outcome = await dropped.result.current.staff.add.mutateAsync({ name: 'Tablet C' }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+  });
+
+  it('says when too many wrong codes were sent from here', async () => {
+    const { result } = renderDevices({ ...EMPTY, '/functions/v1/device-pair': { status: 429, body: { error: 'too_many' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.pair.mutateAsync('123456'); });
+    expect(outcome).toEqual({ ok: false, error: 'too_many' });
   });
 
   it('says when the role does not allow it', async () => {

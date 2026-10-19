@@ -32,4 +32,12 @@ describe('the Send SMS hook payload', () => {
   it('refuses a payload that does not say which number to send to', () => {
     expect(sendSmsHookSchema.safeParse({ ...payload, sms: { otp: '482913' } }).success).toBe(false);
   });
+
+  it('sends no code for a device\'s own login, so its number never moves to a phone (#41)', () => {
+    const deviceChange = {
+      user: { ...payload.user, phone: '999123456789012', app_metadata: { provider: 'phone', device_id: '00000000-0000-4000-8000-00000000d001' } },
+      sms: { otp: '482913', phone: '919822222222' },
+    };
+    expect(sendSmsHookSchema.safeParse(deviceChange).success).toBe(false);
+  });
 });

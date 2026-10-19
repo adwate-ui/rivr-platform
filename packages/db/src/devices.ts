@@ -30,8 +30,11 @@ export interface PairingCode {
   readonly expiresAt: string;
 }
 
-/** Why pairing did not go through: a code that is wrong, used or expired, or anything else. */
-export type PairFailure = 'wrong_code' | 'unavailable';
+/**
+ * Why pairing did not go through: a code that is wrong, used or expired; too many wrong codes from
+ * here (wait ten minutes); or anything else.
+ */
+export type PairFailure = 'wrong_code' | 'too_many' | 'unavailable';
 
 /** Why a staff action on a tablet did not go through: `paused` is the venue frozen. */
 export type DeviceFailure = 'not_allowed' | 'paused' | 'invalid' | 'unavailable';
@@ -71,6 +74,7 @@ export function usePairDevice() {
       const { data, error } = await client.functions.invoke('device-pair', { body: { code } });
       if (error) {
         const refusal = await functionErrorCode(error);
+        if (refusal === 'too_many') return err('too_many');
         return err(refusal === 'wrong_code' || refusal === 'invalid' ? 'wrong_code' : 'unavailable');
       }
       const session = deviceSessionSchema.safeParse(data);
@@ -104,9 +108,10 @@ export function useDealerTablets(venueId: string) {
 }
 
 /**
- * What staff with devices.manage do with dealer tablets: `add` one, which also starts pairing it;
- * `pair` one again; fix one to a table (`assign`); `revoke` a lost one, with the reason. Each resolves
- * to a Result and reloads the list.
+ * What staff with devices.manage do with dealer tablets: `add` one, which also starts pairing it (ok
+ * with no code when it was added but pairing did not start: New pairing code pairs it); `pair` one
+ * again; fix one to a table (`assign`); `revoke` a lost one, with the reason. The database records who
+ * added it. Each resolves to a Result and reloads the list.
  */
 export function useDeviceActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -121,10 +126,11 @@ export function useDeviceActions(venueId: string) {
     return settle<PairingCode | null>(row ? { deviceId, code: row.code, expiresAt: row.expires_at } : null, error);
   };
   const add = useMutation({
-    mutationFn: async ({ name, staffId }: { name: string; staffId: string }) => {
-      const { data, error } = await client.from('device')
-        .insert({ venue_id: venueId, kind: 'dealer_tablet', name: name.trim(), enrolled_by_staff_id: staffId }).select('id').single();
-      return data && !error ? startPairing(data.id) : settle<PairingCode | null>(null, error);
+    mutationFn: async ({ name }: { name: string }): Promise<Result<PairingCode | null, DeviceFailure>> => {
+      const { data, error } = await client.from('device').insert({ venue_id: venueId, kind: 'dealer_tablet', name: name.trim() }).select('id').single();
+      if (error || !data) return settle<PairingCode | null>(null, error);
+      const paired = await startPairing(data.id);
+      return paired.ok ? paired : ok(null);
     },
   });
   const pair = useMutation({ mutationFn: startPairing });
