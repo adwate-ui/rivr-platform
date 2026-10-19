@@ -46,7 +46,7 @@ export {
   type DevicePairRequest,
   type TvMode,
 } from './devices.ts';
-export { HAND_VARIANTS, handEntrySchema } from './hands.ts';
+export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { rakeChangeSchema } from './rake.ts';
 export { badBeatSchema, jackpotReversalSchema } from './jackpot.ts';
 export {

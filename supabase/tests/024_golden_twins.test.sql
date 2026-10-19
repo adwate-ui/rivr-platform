@@ -113,5 +113,22 @@ select results_eq(
      from golden.golden_case where file = 'settings.json' order by position $$,
   'private.setting_at gives the rule in force at every moment in the golden file');
 
+-- A down's variance: private.down_variance and @rivr/domain downVariance (packages/testing/golden/variance.json).
+create function pg_temp.signed_paise(p_amount text) returns bigint language sql immutable as $$
+  select case when left(p_amount, 1) = '-' then -pg_temp.paise(substr(p_amount, 2)) else pg_temp.paise(p_amount) end;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'variance.json'), 'the down variance cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'variance.json' and operation <> 'variance' $$,
+  'every operation in variance.json is proved here');
+select results_eq(
+  $$ select description, v.variance_paise, v.is_alert
+     from golden.golden_case
+     cross join lateral private.down_variance(pg_temp.paise(inputs ->> 'dropBox'), pg_temp.paise(inputs ->> 'logged'),
+                                              case when inputs ->> 'threshold' = '' then null else pg_temp.paise(inputs ->> 'threshold') end) v
+     where file = 'variance.json' order by position $$,
+  $$ select description, pg_temp.signed_paise(expected ->> 'variance'), expected ->> 'alert' = 'yes'
+     from golden.golden_case where file = 'variance.json' order by position $$,
+  'private.down_variance gives every variance and alert in the golden file');
+
 select * from finish();
 rollback;

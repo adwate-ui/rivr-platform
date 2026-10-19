@@ -105,17 +105,17 @@ export {
   useVenueDealers,
   type CurrentDown,
   type DealerPinFailure,
+  type DownCount,
   type DealerSignInFailure,
   type TabletDealer,
   type VenueDealer,
 } from './dealerDowns.ts';
+export { useHandQueue, type HandQueueState, type QueuedClaim, type QueuedHand } from './handQueue.ts';
 export {
   useDownHands,
-  useLogHand,
   useTableRules,
   type DownHand,
   type HandVariant,
-  type LogHandFailure,
   type TableRules,
 } from './hands.ts';
 export {
@@ -135,12 +135,10 @@ export {
   type JackpotFailure,
 } from './jackpots.ts';
 export {
-  useClaimHighHand,
   useHighHandActions,
   useHighHands,
   useTabletHighHands,
   type HighHand,
-  type HighHandClaimFailure,
   type HighHandFailure,
   type TabletHighHand,
 } from './highHands.ts';

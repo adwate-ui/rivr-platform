@@ -1,7 +1,9 @@
-import { useAuthStatus, useControlState, useCurrentDown, useDownActions, useMyDevice, type MyDevice } from '@rivr/db';
+import { useAuthStatus, useControlState, useCurrentDown, useMyDevice, type DownCount, type MyDevice } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, KillSwitchBanner, Screen, TabletShell, Text } from '@rivr/ui';
+import { Button, KillSwitchBanner, Screen, Stack, TabletShell, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
+import { DownCountLine, EndDownForm } from './EndDownForm.tsx';
+import { HandQueueBanner } from './HandQueueBanner.tsx';
 
 interface FrameProps {
   children: ReactNode;
@@ -20,15 +22,18 @@ interface TableFrameProps {
 
 /**
  * A paired tablet. Not yet fixed to a table, its screens say so. Fixed to one: between downs,
- * dealer sign-in; during a down, the tablet's screens with who is dealing, since when, and End of
- * down in the header. A failed check keeps what was known; a failed End of down says so, so the
- * dealer does not walk away from a down still open.
+ * dealer sign-in, under what the last down closed with; during a down, the tablet's screens with
+ * who is dealing, since when, and End of down in the header, which asks for the drop-box count
+ * (#44). A failed check keeps what was known; a failed End of down says so, so the dealer does not
+ * walk away from a down still open.
  */
 function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
   const down = useCurrentDown(device.tableId);
-  const { end } = useDownActions();
-  const [isEndFailed, setIsEndFailed] = useState(false);
-  const endDown = async () => setIsEndFailed(!(await end.mutateAsync()).ok);
+  // End of down belongs to the down it was opened for: once that down is over (ended here, by the
+  // 30-second check, or by an answer lost after the database closed it), the next dealer starts on
+  // hand entry.
+  const [endingDownId, setEndingDownId] = useState<string | null>(null);
+  const [lastCount, setLastCount] = useState<DownCount | null>(null);
   const title = t('tablet.title');
   // A tablet's table id and name are null together: not yet fixed to a table.
   if (device.tableId === null || device.tableName === null) {
@@ -39,15 +44,30 @@ function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
   if (down.data === undefined) {
     return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="error" onRetry={() => void down.refetch()} /></TabletShell>;
   }
-  if (down.data === null) return <TabletShell tableName={tableName} banner={banner}>{signIn}</TabletShell>;
+  if (down.data === null) {
+    return (
+      <TabletShell tableName={tableName} banner={banner}>
+        <Stack gap={6}>{lastCount === null ? null : <DownCountLine count={lastCount} />}{signIn}</Stack>
+      </TabletShell>
+    );
+  }
+  const current = down.data;
+  const isEnding = endingDownId === current.downId;
   const actions = (
     <>
-      <Text variant="small">{t('tablet.dealerSignIn.down', { name: down.data.fullName, time: formatTime(new Date(down.data.startedAt)) })}</Text>
-      <Button variant="secondary" isLoading={end.isPending} onClick={() => void endDown()}>{t('tablet.dealerSignIn.endDown')}</Button>
-      {isEndFailed ? <ErrorMessage>{t('tablet.dealerSignIn.endDownFailed')}</ErrorMessage> : null}
+      <Text variant="small">{t('tablet.dealerSignIn.down', { name: current.fullName, time: formatTime(new Date(current.startedAt)) })}</Text>
+      <Button variant="secondary" isDisabled={isEnding} onClick={() => setEndingDownId(current.downId)}>{t('tablet.dealerSignIn.endDown')}</Button>
     </>
   );
-  return <TabletShell tableName={tableName} actions={actions} banner={banner}>{children}</TabletShell>;
+  const ended = (count: DownCount) => {
+    setLastCount(count);
+    setEndingDownId(null);
+  };
+  return (
+    <TabletShell tableName={tableName} actions={actions} banner={banner}>
+      {isEnding ? <EndDownForm onEnded={ended} onCancel={() => setEndingDownId(null)} /> : children}
+    </TabletShell>
+  );
 }
 
 /**
@@ -59,7 +79,7 @@ export function Frame({ children, unpaired, signIn }: FrameProps) {
   const { isVenueFrozen } = useControlState();
   const authStatus = useAuthStatus();
   const device = useMyDevice();
-  const banner = isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null;
+  const banner = <>{isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}<HandQueueBanner /></>;
   const title = t('tablet.title');
   if (authStatus === 'loading' || (authStatus === 'signed-in' && device.isPending)) {
     return <TabletShell tableName={title} banner={banner}><Screen title={title} status="loading" /></TabletShell>;

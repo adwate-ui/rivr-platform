@@ -66,10 +66,8 @@ export const handEntry = {
   noHands: 'No hands yet this down.',
   /** One of the last hands, beside its pot: `{time}` (IST) and the game. */
   hand: '{time} · {variant}',
-  noDealer: 'No dealer is signed in on this tablet. End the down and sign in again.',
-  paused: 'The venue is frozen. Hands are logged again once it is released.',
-  invalid: 'That hand was refused. Check the pot and the game. If both are right, ask a floor manager to check the table\'s rake and the tablet\'s clock.',
-  unavailable: 'The hand was not logged. Check the connection and press Log hand again.',
+  /** A hand still on the tablet, waiting to reach the database (#43). */
+  queuedHand: '{time} · {variant} · queued',
 };
 
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
@@ -161,8 +159,41 @@ export const tvScreen = {
 /** The console's device screens, spread into its catalogue. */
 export const consoleDevices = { tablets, dealerPins, tvs };
 
+/** End of down on the tablet (#44): the drop-box count, and what the down closed with. */
+export const endOfDown = {
+  title: 'End of down',
+  intro: 'Count the drop box and enter what it holds. An empty box is nothing entered.',
+  /** The keypad's name. */
+  count: 'Drop box',
+  close: 'Close the down',
+  /** `{amount}` is the count typed, which is not whole ₹50 chips (or is above ₹1 crore). */
+  notChips: 'A count is whole ₹50 chips, up to ₹1 crore. {amount} is not.',
+  /** Above the next dealer's sign-in: the count, the rake and drops logged in the down, and the count less logged. */
+  summary: 'Last down: drop box {box}, logged {logged}, variance {variance}.',
+  /** While hands wait on the tablet (#43): the down's count must include them. */
+  queuedOne: 'Reconnect to send 1 queued hand before hand-over.',
+  queued: 'Reconnect to send {count} queued hands before hand-over.',
+};
+
+/** The tablet's queue of hands (#43), in its slim banner. */
+export const queue = {
+  queuedOne: 'Offline. 1 hand queued.',
+  queued: 'Offline. {count} hands queued.',
+  sendingOne: 'Sending 1 hand.',
+  sending: 'Sending {count} hands.',
+  /** Back online, once every hand held offline has reached the database, until the next hand is logged. */
+  sentOne: '1 queued hand sent to the floor.',
+  sent: '{count} queued hands sent to the floor.',
+  refusedOne: '1 hand was refused. Call a floor supervisor.',
+  refused: '{count} hands were refused. Call a floor supervisor.',
+  /** A claim the database refused for good, its hand logged: promotions off, a seat the table does not have, or another claim on the hand. */
+  claimRefused: 'The high-hand claim for seat {seat} was refused. Ask the floor.',
+  /** Clears the refusals once the floor has dealt with them. */
+  seen: 'Seen by the floor',
+};
+
 /** The tablet's pairing, sign-in and hand entry copy, spread into its catalogue. */
-export const tabletDevices = { pairing, handEntry, dealerSignIn };
+export const tabletDevices = { pairing, handEntry, dealerSignIn, endOfDown, queue };
 
 /** The TV's pairing and screen copy, spread into the display app's catalogue. */
 export const displayDevices = { pairing: tvPairing, screen: tvScreen };

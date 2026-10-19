@@ -1,4 +1,4 @@
-import type { HighHandCategory, HighHandRank } from '@rivr/contracts';
+import type { HighHandCategory } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -34,18 +34,9 @@ export interface HighHand {
   readonly reason: string | null;
 }
 
-/**
- * Why a claim did not go through on the tablet: `not_paying` is a hand the club does not pay now,
- * `no_seat` a seat the table does not have, `no_dealer` a dealer who may no longer deal.
- */
-export type HighHandClaimFailure = 'not_paying' | 'no_seat' | 'no_dealer' | 'already_claimed' | 'paused' | 'switched_off' | 'unavailable';
-
 /** Why the floor's decision did not go through: `changed` is a payout that moved since it was shown. */
 export type HighHandFailure = 'not_allowed' | 'decided' | 'changed' | 'paused' | 'switched_off' | 'invalid' | 'unavailable';
 
-const CLAIM_FAILURE_BY_CODE: Readonly<Record<string, HighHandClaimFailure>> = {
-  '22023': 'not_paying', RVSEA: 'no_seat', RVDWN: 'no_dealer', '23505': 'already_claimed', RVFRZ: 'paused', RVKIL: 'switched_off',
-};
 const FAILURE_BY_CODE: Readonly<Record<string, HighHandFailure>> = {
   '42501': 'not_allowed', RVDUP: 'decided', RVSTL: 'changed', RVFRZ: 'paused', RVKIL: 'switched_off', '22023': 'invalid',
 };
@@ -67,21 +58,6 @@ export function useTabletHighHands() {
         .order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
       return data.map((row) => ({ claimId: row.id, handId: row.hand_id, category: row.category, seat: row.seat, status: row.status }));
-    },
-  });
-}
-
-/** The dealer claims a high hand for a hand of the down: a Result with the claim's id. */
-export function useClaimHighHand() {
-  const { client, userId } = useRivrData();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (claim: { handId: string; seat: number; category: HighHandCategory; rank: HighHandRank | null }): Promise<Result<string, HighHandClaimFailure>> => {
-      const { data, error } = await client.rpc('claim_high_hand', {
-        p_hand_id: claim.handId, p_seat: claim.seat, p_category: claim.category, p_rank: claim.rank ?? '',
-      });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tabletHighHands(userId ?? 'signed-out') });
-      return error ? err(CLAIM_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
     },
   });
 }

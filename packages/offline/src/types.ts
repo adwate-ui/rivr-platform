@@ -60,6 +60,8 @@ export interface OfflineQueue<Payload> {
   parked(): Promise<readonly ParkedWrite<Payload>[]>;
   /** Forgets a parked write once a person has dealt with it. */
   discardParked(idempotencyKey: string): Promise<void>;
+  /** The writes waiting, oldest first: what a screen lists as queued. */
+  pending(): Promise<readonly QueuedWrite<Payload>[]>;
   /** How many writes are waiting. */
   pendingCount(): Promise<number>;
   /** Calls `listener` with the waiting count once it is read, then whenever it changes. Returns an unsubscribe. */

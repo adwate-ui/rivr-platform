@@ -1,5 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
+import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -15,6 +17,13 @@ export interface VenueDealer {
 export interface TabletDealer {
   readonly staffId: string;
   readonly fullName: string;
+}
+
+/** A down ended with its drop-box count (#44): the count, the rake and drops its hands logged, and the count less logged. */
+export interface DownCount {
+  readonly dropBox: Paise;
+  readonly logged: Paise;
+  readonly variance: Paise;
 }
 
 /** The down at this tablet's table: who is dealing, since when. */
@@ -104,7 +113,8 @@ export function useCurrentDown(tableId: string | null) {
 
 /**
  * On the tablet: `signIn` a dealer with their PIN, which starts their down and ends the one before;
- * `end` the down, stamping its off time. Both reload the current down.
+ * `end` the down with the drop-box count, which gives the variance against what its hands logged.
+ * Both reload the current down.
  */
 export function useDownActions() {
   const { client, userId } = useRivrData();
@@ -123,10 +133,12 @@ export function useDownActions() {
     },
   });
   const end = useMutation({
-    mutationFn: async (): Promise<Result<null, 'unavailable'>> => {
-      const { error } = await client.rpc('end_down');
+    mutationFn: async (dropBox: Paise): Promise<Result<DownCount, 'unavailable'>> => {
+      const { data, error } = await client.rpc('end_down', { p_drop_box_paise: Number(dropBox) });
       await reload();
-      return error ? err('unavailable') : ok(null);
+      const row = data?.[0];
+      return error || row === undefined ? err('unavailable')
+        : ok({ dropBox, logged: toPaise(row.logged_paise), variance: toPaise(row.variance_paise) });
     },
   });
   return { signIn, end };

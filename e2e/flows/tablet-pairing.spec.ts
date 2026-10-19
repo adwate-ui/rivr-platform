@@ -70,7 +70,10 @@ test.describe('Dealer tablet', () => {
     await tablet.getByRole('button', { name: 'Sign in' }).click();
     await expect(tablet.getByText(new RegExp(`^${DEALER} · down since \\d{2}:\\d{2}$`))).toBeVisible();
     await expect(tablet.getByRole('button', { name: 'Log hand' })).toBeVisible();
+    // No hands logged and an empty drop box: the down closes even.
     await tablet.getByRole('button', { name: 'End of down' }).click();
+    await tablet.getByRole('button', { name: 'Close the down' }).click();
+    await expect(tablet.getByText('Last down: drop box ₹0, logged ₹0, variance ₹0.')).toBeVisible();
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
     await floor.getByRole('link', { name: 'Tablets' }).click();

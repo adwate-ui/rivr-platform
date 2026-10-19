@@ -54,3 +54,10 @@ select v.venue_id, 'high_hand.payouts', '',
        '{"royal_flush": 2500000, "straight_flush": 1000000, "four_of_a_kind": 200000}', '-infinity', 'Seed'
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 on conflict (venue_id, key, subject, effective_from) do nothing;
+
+-- A down's drop-box count may differ from what its hands logged by up to ₹500 either way before the
+-- floor and the owner are alerted (#44).
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'dealer.variance_threshold', '', '{"threshold_paise": 50000}', '-infinity', 'Seed'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+on conflict (venue_id, key, subject, effective_from) do nothing;
