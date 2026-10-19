@@ -15,6 +15,8 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 test.describe('Call time', () => {
   test('a player seated in the Private Room sees two hours of call time; cashing out before it needs an admin to let her go', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'seats a member and cashes her out, so the local stack only');
+    // Three people sign in (the floor, the player and the cashier), each waiting for a code: more than the default 30 s on CI.
+    test.setTimeout(90_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000128');
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
