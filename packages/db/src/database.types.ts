@@ -1245,6 +1245,32 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"visit": {
+                  Row: {
+                    "close_reason": string | null,"closed_at": string | null,"created_at": string,"id": string,"member_id": string,"opened_at": string,"opened_by_staff_id": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"opened_at"?: string,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"opened_at"?: string,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "visit_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "visit_opened_by_staff_id_venue_id_fkey"
+      columns: ["opened_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"waitlist_entry": {
                   Row: {
                     "added_by_staff_id": string | null,"away_used": string,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
@@ -1443,6 +1469,12 @@ isOneToOne: false
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
+"check_in":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
+                           },
+"check_in_by_phone":
+{ Args: { "p_phone": string,"p_venue_id": string }; Returns: string
+                           },
 "check_kyc_in_person":
 { Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
                            },
@@ -1482,6 +1514,11 @@ isOneToOne: false
 "dealer_sign_in":
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: {
               "down_id": string,"refusal": string,"tries_left": number
+            }[]
+                           },
+"door_board":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"is_in_room": boolean,"member_id": string,"since": string,"tier_name": string
             }[]
                            },
 "down_hands":

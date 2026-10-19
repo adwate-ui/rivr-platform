@@ -31,7 +31,7 @@ export {
 } from './identity.ts';
 export { upiVpaSchema, utrSchema, type UpiVpa, type Utr } from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';
-export { floorWaitlistAddSchema } from './waitlist.ts';
+export { doorCheckInSchema, floorWaitlistAddSchema } from './waitlist.ts';
 export {
   dealerPinEntrySchema,
   dealerPinSchema,

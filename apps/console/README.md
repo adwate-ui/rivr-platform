@@ -28,6 +28,7 @@ src/
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
     waitlist/         the floor's waitlists: add, call, seat, skip, remove (/waitlist)
+    check-in/         the door: members expected and in the room, check in from the list or by mobile number (/check-in)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
