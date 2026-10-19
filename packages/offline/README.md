@@ -9,7 +9,7 @@ The one outbox for writes made offline, kept in IndexedDB so they survive a relo
 | `createOfflineQueue({ name, send, indexedDB?, retry?, schedule? })` | Opens the queue in the IndexedDB database `name`. `send` delivers one write and resolves `'sent'`, `'retry'` or `'rejected'`; a throw counts as `'retry'`. |
 | `queue.enqueue(payload, idempotencyKey)` | Keeps the write, then starts sending. A key already queued is ignored, so a double tap lands once. |
 | `queue.flush()` | Sends oldest first and stops at the first `'retry'`, so order is kept. A `'rejected'` write is parked and the writes behind it carry on. Resolves `{ sent, parked, pending }`. |
-| `queue.pendingCount()` | How many writes wait. |
+| `queue.pending()`, `queue.pendingCount()` | The writes waiting, oldest first (the tablet lists them as queued), and how many. |
 | `queue.parked()` | The writes the server refused for good, oldest first, each with `rejectedAt`, for the app to show a supervisor. |
 | `queue.discardParked(idempotencyKey)` | Forgets a parked write once a person has dealt with it. |
 | `queue.subscribe(listener)` | Calls `listener(pending)` once the count is read, then on every change; returns an unsubscribe. |
@@ -19,7 +19,7 @@ The one outbox for writes made offline, kept in IndexedDB so they survive a relo
 
 After a `'retry'` the queue retries on its own with the backoff, and starts over at the first delay once the queue empties.
 
-`'retry'` is for anything that may succeed later: offline, a timeout, a server error. `'rejected'` is for a refusal that never will: a check violation, a venue freeze, a hand for a closed table. Retrying those would block every hand behind them, so they are parked instead.
+`'retry'` is for anything that may succeed later: offline, a timeout, a server error. `'rejected'` is for a refusal that never will: a check violation, a hand for a closed table. Retrying those would block every hand behind them, so they are parked instead. A venue freeze is a `'retry'`: it lifts, and every hand behind it would be refused the same way meanwhile.
 
 ## Usage
 

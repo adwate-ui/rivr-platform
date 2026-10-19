@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useClaimHighHand, useHighHandActions, useHighHands, useTabletHighHands } from './highHands.ts';
+import { useHighHandActions, useHighHands, useTabletHighHands } from './highHands.ts';
 import { toPaise } from './parse/hands.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -28,7 +28,7 @@ function renderHighHands(replies: Record<string, { status?: number; body: unknow
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ mine: useTabletHighHands(), claim: useClaimHighHand(), list: useHighHands(VENUE), floor: useHighHandActions(VENUE) }),
+    () => ({ mine: useTabletHighHands(), list: useHighHands(VENUE), floor: useHighHandActions(VENUE) }),
     { wrapper },
   );
   return { result, calls };
@@ -43,18 +43,6 @@ const ROW = {
 afterEach(cleanup);
 
 describe('High hands', () => {
-  it('claims a straight flush at seat 4 for a hand, and says when that hand does not pay', async () => {
-    const paid = renderHighHands({ ...EMPTY, '/rpc/claim_high_hand': { body: 'c1' } });
-    let outcome: unknown;
-    await act(async () => { outcome = await paid.result.current.claim.mutateAsync({ handId: 'h1', seat: 4, category: 'straight_flush', rank: null }); });
-    expect(outcome).toEqual({ ok: true, value: 'c1' });
-    expect(paid.calls.find((call) => call.url.includes('claim_high_hand'))?.body).toEqual({ p_hand_id: 'h1', p_seat: 4, p_category: 'straight_flush', p_rank: '' });
-    cleanup();
-    const unpaid = renderHighHands({ ...EMPTY, '/rpc/claim_high_hand': { status: 400, body: { code: '22023', message: 'That high hand pays nothing here' } } });
-    await act(async () => { outcome = await unpaid.result.current.claim.mutateAsync({ handId: 'h2', seat: 2, category: 'four_of_a_kind', rank: 'Q' }); });
-    expect(outcome).toEqual({ ok: false, error: 'not_paying' });
-  });
-
   it('lists the tablet\'s claims and the venue\'s high hands with what each pays', async () => {
     const { result } = renderHighHands({
       '/rest/v1/high_hand_claim': { body: [{ id: 'c1', hand_id: 'h1', category: 'straight_flush', seat: 4, status: 'claimed' }] },

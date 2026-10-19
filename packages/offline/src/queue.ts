@@ -50,6 +50,11 @@ class Outbox<Payload> implements OfflineQueue<Payload> {
     return pass;
   }
 
+  async pending(): Promise<readonly QueuedWrite<Payload>[]> {
+    const waiting = await this.#store.waiting();
+    return waiting.map(({ idempotencyKey, payload, enqueuedAt }) => ({ idempotencyKey, payload, enqueuedAt }));
+  }
+
   pendingCount(): Promise<number> {
     return this.#store.count();
   }

@@ -11,20 +11,9 @@ const highHand = {
   pickRank: 'Pick the rank of the four of a kind.',
   /** After the hand is logged with its claim, as in the prototype. */
   sent: 'High hand sent to the floor.',
-  /** The hand is logged, but its claim is not: the reason follows. */
-  notSent: 'The hand is logged, but its high-hand claim is not.',
-  sendAgain: 'Send the claim again',
   waiting: 'High hand claimed, waiting for the floor',
   approved: 'High hand approved',
   rejected: 'High hand not approved',
-  /** Also when the hand is no longer in the down on this tablet (the tablet moved, or the down ended). */
-  notPaying: 'This claim cannot be sent: the club does not pay that hand now, or the hand is no longer in this down. Ask the floor.',
-  noSeat: 'This table has no seat {seat}. Check the seat.',
-  noDealer: 'The dealer of this down cannot deal now. End the down and sign in again.',
-  alreadyClaimed: 'This hand already has a different high-hand claim.',
-  paused: 'The venue is frozen. High hands are claimed again once it is released.',
-  switchedOff: 'High hands are switched off for now. Ask the floor.',
-  unavailable: 'Check the connection and send the claim again.',
 };
 
 /** The console's High hands screen, for staff who approve jackpots or read the ledger. */

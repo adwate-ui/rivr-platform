@@ -1,6 +1,6 @@
 # tablet
 
-The dealer tablet: hand entry (seats, pot, Log hand), rake and jackpot drop, buy-in requests and the down's drop box. It must keep working offline: writes go through `@rivr/offline`, and a refused write is parked for a supervisor.
+The dealer tablet: hand entry (seats, pot, Log hand), rake and jackpot drop, buy-in requests and the down's drop box. It must keep working offline: hands and their high-hand claims go through `useHandQueue` (`@rivr/offline`), so Log hand confirms at once and the hand arrives in order once the connection is back; a slim banner says how many are queued ("Offline. 3 hands queued."), and a hand refused for good is set aside and counted there for a supervisor (#43).
 
 ## Run it
 

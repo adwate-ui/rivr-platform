@@ -3,6 +3,7 @@ import { formatTime, t } from '@rivr/i18n';
 import { Button, KillSwitchBanner, Screen, Stack, TabletShell, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { DownCountLine, EndDownForm } from './EndDownForm.tsx';
+import { HandQueueBanner } from './HandQueueBanner.tsx';
 
 interface FrameProps {
   children: ReactNode;
@@ -78,7 +79,7 @@ export function Frame({ children, unpaired, signIn }: FrameProps) {
   const { isVenueFrozen } = useControlState();
   const authStatus = useAuthStatus();
   const device = useMyDevice();
-  const banner = isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null;
+  const banner = <>{isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}<HandQueueBanner /></>;
   const title = t('tablet.title');
   if (authStatus === 'loading' || (authStatus === 'signed-in' && device.isPending)) {
     return <TabletShell tableName={title} banner={banner}><Screen title={title} status="loading" /></TabletShell>;

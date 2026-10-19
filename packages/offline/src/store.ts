@@ -14,6 +14,8 @@ export interface OutboxStore<Payload> {
   /** Stores a write; false when its key is already queued. */
   add(write: QueuedWrite<Payload>): Promise<boolean>;
   oldest(): Promise<StoredWrite<Payload> | undefined>;
+  /** Every waiting write, oldest first. */
+  waiting(): Promise<StoredWrite<Payload>[]>;
   remove(sequence: number): Promise<void>;
   /** Moves a write from the queue to the parked list in one transaction. */
   park(write: StoredWrite<Payload>, rejectedAt: Date): Promise<void>;
@@ -83,6 +85,10 @@ export function openOutboxStore<Payload>(factory: IDBFactory, name: string): Out
     async oldest() {
       const [first]: unknown[] = await result((await store('readonly')).getAll(null, 1));
       return first === undefined ? undefined : toStoredWrite<Payload>(first);
+    },
+    async waiting() {
+      const records: unknown[] = await result((await store('readonly')).getAll());
+      return records.map((record) => toStoredWrite<Payload>(record));
     },
     async remove(sequence) {
       const writes = await store('readwrite');
