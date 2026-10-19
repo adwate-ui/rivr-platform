@@ -45,6 +45,8 @@ export const queryKeys = {
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
   /** A venue's table types with their rake now and the changes to come. */
   tableTypeRake: (userId: string, venueId: string) => ['user', userId, 'table-type-rake', venueId] as const,
+  /** A venue's jackpot: pools, payout rule and history. */
+  jackpot: (userId: string, venueId: string) => ['user', userId, 'jackpot', venueId] as const,
   /** The dealers who can sign in on this tablet. */
   tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
   /** The down at this tablet's table. */

@@ -3,6 +3,7 @@
  * build screens; a large area moves into its own namespace file.
  */
 import { consoleDevices, tabletDevices } from './devices.ts';
+import { consoleJackpots } from './jackpots.ts';
 import { consoleRake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { consoleKycReview } from './kycReview.ts';
@@ -145,6 +146,7 @@ export const consoleApp = {
   waitlist,
   ...consoleDevices,
   ...consoleRake,
+  ...consoleJackpots,
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',
