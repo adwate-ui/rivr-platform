@@ -29,6 +29,7 @@ function SeatLine({ number, player, heldFor }: { number: number; player: SeatedP
       <Text>{player.fullName}</Text>
       <Text tone="muted">{player.tierName}</Text>
       {player.mustMoveOrder === null ? null : <Text variant="small" tone="muted">{t('console.liveFloor.mustMove', { order: player.mustMoveOrder })}</Text>}
+      {player.isAway ? <Text variant="small" tone="muted">{t('console.liveFloor.away')}</Text> : null}
     </Inline>
   );
 }

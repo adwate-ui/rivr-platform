@@ -15,6 +15,8 @@ export interface SeatedPlayer {
   readonly startedAt: string;
   /** At a must-move table, the order its players move up in (1 first); null elsewhere. */
   readonly mustMoveOrder: number | null;
+  /** Away from the table, the seat kept (#59). */
+  readonly isAway: boolean;
 }
 
 /** A seat held for a member called from the waitlist (#63): nobody else is seated there. */
@@ -51,7 +53,7 @@ export function useFloorSeats(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         sessionId: row.session_id, tableId: row.table_id, seat: row.seat, memberId: row.member_id, fullName: row.full_name,
-        tierName: row.tier_name, startedAt: row.started_at, mustMoveOrder: row.must_move_order,
+        tierName: row.tier_name, startedAt: row.started_at, mustMoveOrder: row.must_move_order, isAway: row.away_since !== null,
       }));
     },
   });

@@ -1011,14 +1011,14 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"member_id": string,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_since": string | null,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"member_id": string,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id": string,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_since"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id": string,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id"?: string,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_since"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id"?: string,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -1725,7 +1725,7 @@ isOneToOne: false
                            },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "full_name": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
+              "away_since": string,"full_name": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
             }[]
                            },
 "give_consent":
@@ -1896,6 +1896,9 @@ isOneToOne: false
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
                            },
+"set_seat_away":
+{ Args: { "p_is_away": boolean,"p_session_id": string }; Returns: undefined
+                           },
 "set_session_reminder":
 { Args: { "p_hours"?: number }; Returns: undefined
                            },
@@ -1934,6 +1937,11 @@ isOneToOne: false
 "tablet_rake_rules":
 { Args: Record<PropertyKey, never>; Returns: {
               "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"rate_basis_points": number
+            }[]
+                           },
+"tablet_seats":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "away_since": string,"full_name": string,"member_id": string,"minimum_paise": number,"pending_buy_in_paise": number,"seat": number,"session_id": string
             }[]
                            },
 "take_break":

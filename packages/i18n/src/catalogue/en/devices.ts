@@ -175,6 +175,27 @@ export const endOfDown = {
   queued: 'Reconnect to send {count} queued hands before hand-over.',
 };
 
+/** The table's seats on the tablet (#59), as in the prototype. */
+export const seats = {
+  /** The ring, read out. */
+  ring: 'Seats at {table}',
+  title: 'Seat {seat} · {name}',
+  open: 'Seat {seat} is open.',
+  buyIn: 'Buy-in',
+  requestBuyIn: 'Request buy-in',
+  /** While a request for the seat waits at the cage: `{amount}` is how much. */
+  withCage: 'Buy-in {amount} with the cage.',
+  pending: 'A buy-in for this seat is already with the cage.',
+  away: 'Away',
+  back: 'Back',
+  isAway: 'Away from the table. The seat is kept.',
+  left: 'Player left',
+  notAllowed: 'This tablet changes only its own table.',
+  invalid: 'That player is no longer at the table.',
+  paused: 'The venue is frozen. Seats change again once it is released.',
+  unavailable: 'That did not go through. Check the connection and try again.',
+};
+
 /** The tablet's queue of hands (#43), in its slim banner. */
 export const queue = {
   queuedOne: 'Offline. 1 hand queued.',
@@ -193,7 +214,7 @@ export const queue = {
 };
 
 /** The tablet's pairing, sign-in and hand entry copy, spread into its catalogue. */
-export const tabletDevices = { pairing, handEntry, dealerSignIn, endOfDown, queue };
+export const tabletDevices = { pairing, handEntry, dealerSignIn, endOfDown, queue, seats };
 
 /** The TV's pairing and screen copy, spread into the display app's catalogue. */
 export const displayDevices = { pairing: tvPairing, screen: tvScreen };

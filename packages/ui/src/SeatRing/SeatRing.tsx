@@ -1,7 +1,13 @@
+import { t } from '@rivr/i18n';
+import type { KeyboardEvent } from 'react';
+import { cx } from '../internal/classes.ts';
+
 /** One seat at the table: its number, and the initials of who sits there, or null when it is open. */
 export interface RingSeat {
   readonly number: number;
   readonly initials: string | null;
+  /** Who sits there, for a seat a screen reader can choose. */
+  readonly name?: string;
 }
 
 export interface SeatRingProps {
@@ -13,6 +19,10 @@ export interface SeatRingProps {
   label: string;
   /** A closed table is dimmed. */
   isClosed?: boolean;
+  /** Makes each seat a button, with its number under it, as on the dealer tablet (#59). */
+  onSelectSeat?: (seat: number) => void;
+  /** The seat chosen, ringed. */
+  selectedSeat?: number | null;
 }
 
 const CENTRE = { x: 120, y: 75 };
@@ -24,29 +34,48 @@ function seatPosition(index: number, count: number): { x: number; y: number } {
   return { x: CENTRE.x + SEAT_ORBIT.x * Math.cos(angle), y: CENTRE.y + SEAT_ORBIT.y * Math.sin(angle) };
 }
 
+function seatName(seat: RingSeat): string {
+  return seat.initials === null ? t('ui.seatRing.open', { number: seat.number }) : t('ui.seatRing.taken', { number: seat.number, name: seat.name ?? seat.initials });
+}
+
+/** One seat: a circle with initials or its number; on the tablet, a button with "Seat N" under it. */
+function Seat({ seat, at, isSelected, onSelect }: { seat: RingSeat; at: { x: number; y: number }; isSelected: boolean; onSelect?: ((seat: number) => void) | undefined }) {
+  const isTaken = seat.initials !== null;
+  const press = (event: KeyboardEvent) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onSelect?.(seat.number);
+  };
+  const ring = isSelected ? 'stroke-gold' : isTaken ? 'stroke-cream' : 'stroke-hairline';
+  const button = onSelect ? { role: 'button', tabIndex: 0, 'aria-label': seatName(seat), 'aria-pressed': isSelected, onClick: () => onSelect(seat.number), onKeyDown: press } : {};
+  return (
+    <g {...button} className={onSelect ? 'cursor-pointer focus-visible:outline-2 focus-visible:outline-focus' : undefined}>
+      <circle cx={at.x} cy={at.y} r={11} strokeWidth={isSelected ? 2 : 1} className={cx(isTaken ? 'fill-cream' : 'fill-green', ring)} />
+      <text x={at.x} y={at.y} textAnchor="middle" dominantBaseline="central"
+        className={isTaken ? 'fill-on-cream font-text text-12 font-semibold' : 'fill-content-muted font-text text-12'}>
+        {seat.initials ?? seat.number}
+      </text>
+      {onSelect ? <text x={at.x} y={at.y + 19} textAnchor="middle" className="fill-content-muted font-text text-12">{t('ui.seatRing.seat', { number: seat.number })}</text> : null}
+    </g>
+  );
+}
+
 /**
  * A table seen from above, as on the console's live floor: the felt with its name and stakes, and
- * every seat around it, with the initials of who sits there or the seat number when it is open.
+ * every seat around it, with the initials of who sits there or the seat number when it is open. With
+ * `onSelectSeat`, as on the dealer tablet, each seat is a button to choose.
  */
-export function SeatRing({ name, stakes, seats, label, isClosed }: SeatRingProps) {
+export function SeatRing({ name, stakes, seats, label, isClosed, onSelectSeat, selectedSeat = null }: SeatRingProps) {
+  const isChoosing = onSelectSeat !== undefined;
   return (
-    <svg viewBox="0 0 240 150" role="img" aria-label={label} className={isClosed ? 'w-full opacity-muted' : 'w-full'}>
+    <svg viewBox={isChoosing ? '0 -4 240 170' : '0 0 240 150'} role={isChoosing ? 'group' : 'img'} aria-label={label}
+      className={isClosed ? 'w-full opacity-muted' : 'w-full'}>
       <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={74} ry={44} className="fill-green-black stroke-hairline" />
       <text x={CENTRE.x} y={CENTRE.y - 4} textAnchor="middle" className="fill-content font-text text-14 font-medium">{name}</text>
       <text x={CENTRE.x} y={CENTRE.y + 13} textAnchor="middle" className="fill-content-muted font-text text-12">{stakes}</text>
-      {seats.map((seat, index) => {
-        const at = seatPosition(index, seats.length);
-        const isTaken = seat.initials !== null;
-        return (
-          <g key={seat.number}>
-            <circle cx={at.x} cy={at.y} r={11} className={isTaken ? 'fill-cream stroke-cream' : 'fill-green stroke-hairline'} />
-            <text x={at.x} y={at.y} textAnchor="middle" dominantBaseline="central"
-              className={isTaken ? 'fill-on-cream font-text text-12 font-semibold' : 'fill-content-muted font-text text-12'}>
-              {seat.initials ?? seat.number}
-            </text>
-          </g>
-        );
-      })}
+      {seats.map((seat, index) => (
+        <Seat key={seat.number} seat={seat} at={seatPosition(index, seats.length)} isSelected={seat.number === selectedSeat} onSelect={onSelectSeat} />
+      ))}
     </svg>
   );
 }
