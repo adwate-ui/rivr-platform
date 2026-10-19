@@ -71,12 +71,12 @@ select results_eq($$ select mode from public.tv_screen where device_id = (select
 select ok(exists (select 1 from public.audit_log where action = 'device.paired' and entity_id = (select device_id::text from bar_tv)),
   'pairing a TV is in the audit log');
 
--- The TV picks up its login, once.
+-- The TV picks up its login: once, then again only if that sign-in failed, and only soon after the claim.
 set local role service_role;
-select results_eq($$ select device_id, refusal from public.check_tv_pairing((select secret from bar)) $$,
-  $$ select device_id, null::text from bar_tv $$, 'the TV''s next ask names its device');
-select results_eq($$ select refusal from public.check_tv_pairing((select secret from bar)) $$, $$ values ('expired'::text) $$,
-  'and only that once');
+select results_eq($$ select device_id, previous_user_id, refusal from public.check_tv_pairing((select secret from bar)) $$,
+  $$ select device_id, null::uuid, null::text from bar_tv $$, 'the TV''s next ask names its device, which has no login yet');
+select results_eq($$ select refusal from public.check_tv_pairing((select secret from bar)) $$, $$ values ('waiting'::text) $$,
+  'an ask while device-pair signs it in waits');
 select results_eq($$ select refusal from public.check_tv_pairing((select secret from door)) $$, $$ values ('waiting'::text) $$,
   'another TV still waits');
 reset role;
@@ -86,12 +86,32 @@ select '00000000-0000-4000-8000-00000000e101', '00000000-0000-0000-0000-00000000
 set local role service_role;
 select ok(public.link_device_login((select device_id from bar_tv), '00000000-0000-4000-8000-00000000e101'), 'device-pair links its login');
 reset role;
+update private.tv_pairing set delivered_at = now() - interval '31 seconds' where secret_hash = private.pairing_hash((select secret from bar));
+set local role service_role;
+select results_eq($$ select device_id, previous_user_id from public.check_tv_pairing((select secret from bar)) $$,
+  $$ select device_id, '00000000-0000-4000-8000-00000000e101'::uuid from bar_tv $$,
+  'thirty seconds on, an ask names the device again with the login to replace, in case that sign-in failed');
+reset role;
+update private.tv_pairing set claimed_at = now() - interval '15 minutes', delivered_at = null
+where secret_hash = private.pairing_hash((select secret from bar));
+set local role service_role;
+select results_eq($$ select device_id, refusal from public.check_tv_pairing((select secret from bar)) $$,
+  $$ values (null::uuid, 'expired'::text) $$, 'fifteen minutes after the claim, the secret signs nothing in');
+reset role;
 
--- What the TV and others see.
+-- What the TV and others see: its own screen, and not the venue's dealer downs.
+insert into public.device (id, venue_id, kind, name)
+values ('00000000-0000-4000-8000-00000000d101', '00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet T');
+insert into public.dealer_down (venue_id, table_id, staff_id, device_id)
+select t.venue_id, t.id, s.id, '00000000-0000-4000-8000-00000000d101'
+from public.game_table t
+join public.staff s on s.venue_id = t.venue_id and s.user_id = '00000000-0000-4000-8000-000000000106'
+where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Table 1';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e101');
 select results_eq($$ select device_id, name, mode from public.my_tv_screen() $$,
   $$ select device_id, 'Bar TV'::text, 'waitlist'::public.tv_mode from bar_tv $$, 'the TV knows its name and mode');
 select results_eq($$ select count(*)::int from public.tv_screen $$, $$ values (1) $$, 'and sees only its own screen');
+select is_empty($$ select * from public.dealer_down $$, 'a TV sees none of the venue''s dealer downs, which are for its tablets');
 select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'jackpot') $$, '42501', null, 'a TV cannot change its mode');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is_empty($$ select * from public.tv_screen $$, 'a member sees no TV screens');
@@ -102,9 +122,6 @@ select is_empty($$ select * from public.my_tv_screen() $$, 'nor is staff');
 -- Changing what it shows.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'jackpot') $$, '42501', null, 'a dealer cannot change a TV''s mode');
-reset role;
-insert into public.device (id, venue_id, kind, name)
-values ('00000000-0000-4000-8000-00000000d101', '00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet T');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.set_tv_mode('00000000-0000-4000-8000-00000000d101', 'jackpot') $$, '22023', null,
   'a tablet has no display mode');
@@ -163,9 +180,17 @@ select results_eq($$ select refusal from public.start_tv_pairing('203.0.113.10')
   'the thirty-first is refused');
 select results_eq($$ select refusal from public.start_tv_pairing('198.51.100.20') $$, $$ values (null::text) $$,
   'another address still gets a code');
+select results_eq(format('select refusal from public.start_tv_pairing(%L)', '2001:db8:1:2::' || n), $$ values (null::text) $$,
+  'an IPv6 /64 makes up to thirty requests, whatever its last half') from generate_series(1, 30) as n;
+select results_eq($$ select refusal from public.start_tv_pairing('2001:db8:1:2:ffff::9') $$, $$ values ('too_many'::text) $$,
+  'so changing the last half does not get round the limit');
+select results_eq($$ select refusal from public.start_tv_pairing('2001:db8:1:3::1') $$, $$ values (null::text) $$,
+  'the next /64 counts apart');
 reset role;
+select is(private.pairing_client(' 203.0.113.10 '), '203.0.113.10', 'an IPv4 address counts by itself');
+select is(private.pairing_client('not:an address'), 'not:an address', 'and anything else as it came');
 insert into private.tv_pairing (code_hash, secret_hash, client, expires_at)
-select 'filler-' || n, 'filler-' || n, 'filler-' || n, now() + interval '15 minutes' from generate_series(1, 167) as n;
+select 'filler-' || n, 'filler-' || n, 'filler-' || n, now() + interval '15 minutes' from generate_series(1, 136) as n;
 set local role service_role;
 select results_eq($$ select refusal from public.start_tv_pairing('192.0.2.30') $$, $$ values ('too_many'::text) $$,
   'two hundred requests in ten minutes, and every address waits');

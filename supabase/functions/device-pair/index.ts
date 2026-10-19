@@ -16,7 +16,8 @@ const AS_SERVER = { apikey: serviceRoleKey, authorization: `Bearer ${serviceRole
 
 // Only the device apps call this: the tablet's Android shell (https://localhost under Capacitor), a
 // local preview, and the hosted tablet and TV bundles the shells load, which the deploy names in
-// DEVICE_APP_ORIGINS (comma-separated). A web page elsewhere cannot make its visitors' browsers send codes.
+// DEVICE_APP_ORIGINS (comma-separated). With JSON required (below), a web page elsewhere cannot make
+// its visitors' browsers send codes or ask for them.
 const DEVICE_ORIGIN = /^(https:\/\/localhost|capacitor:\/\/localhost|http:\/\/(localhost|127\.0\.0\.1):\d+)$/;
 const HOSTED_ORIGINS = (Deno.env.get('DEVICE_APP_ORIGINS') ?? '').split(',').flatMap((address) => {
   try {
@@ -94,16 +95,25 @@ async function sessionOf(login: { phone: string; password: string }): Promise<ob
   return { access_token: field(session, 'access_token'), refresh_token: field(session, 'refresh_token') };
 }
 
+/**
+ * Gives the device a new login, removes the one it had before (the database names it in `row`), and
+ * signs the new one in: the session, or null when the device was revoked in the meantime.
+ */
+async function newSession(deviceId: string, row: unknown): Promise<object | null> {
+  const login = await linkNewLogin(deviceId);
+  if (login === null) return null;
+  const previousUserId = field(row, 'previous_user_id');
+  if (typeof previousUserId === 'string') await removeLogin(previousUserId);
+  return await sessionOf(login);
+}
+
 /** A tablet: redeems the code and signs the tablet in. */
 async function pair(code: string, client: string): Promise<Outcome> {
   const row = await rpc('redeem_device_pairing', { p_code: code, p_client: client });
   const deviceId = field(row, 'device_id');
   if (typeof deviceId !== 'string') return { refusal: field(row, 'refusal') === 'too_many' ? 'too_many' : 'wrong_code' };
-  const login = await linkNewLogin(deviceId);
-  if (login === null) return { refusal: 'wrong_code' };
-  const previousUserId = field(row, 'previous_user_id');
-  if (typeof previousUserId === 'string') await removeLogin(previousUserId);
-  return { reply: await sessionOf(login) };
+  const session = await newSession(deviceId, row);
+  return session === null ? { refusal: 'wrong_code' } : { reply: session };
 }
 
 /** A TV: a code to show, the secret to ask with, and when they run out. */
@@ -121,8 +131,8 @@ async function checkTv(secret: string): Promise<Outcome> {
   const deviceId = field(row, 'device_id');
   if (typeof deviceId !== 'string') return field(row, 'refusal') === 'waiting' ? { reply: { waiting: true } } : { refusal: 'expired' };
   // Null when the TV was unpaired in the meantime: it starts again with a new code.
-  const login = await linkNewLogin(deviceId);
-  return login === null ? { refusal: 'expired' } : { reply: await sessionOf(login) };
+  const session = await newSession(deviceId, row);
+  return session === null ? { refusal: 'expired' } : { reply: session };
 }
 
 function handle(input: DevicePairRequest, client: string): Promise<Outcome> {
@@ -145,6 +155,11 @@ Deno.serve(async (request) => {
   const headers = cors(request);
   if (request.method === 'OPTIONS') return new Response(null, { headers });
   if (request.method !== 'POST') return Response.json({ error: 'POST only' }, { status: 405, headers });
+  // JSON only: a page elsewhere can send its visitors' browsers a plain-text POST without asking
+  // first, but a JSON one needs the preflight above, which other origins fail.
+  if (!(request.headers.get('content-type') ?? '').startsWith('application/json')) {
+    return Response.json({ error: 'invalid' }, { status: 415, headers });
+  }
   const input = devicePairRequestSchema.safeParse(await request.json().catch(() => null));
   if (!input.success) return Response.json({ error: 'invalid' }, { status: 400, headers });
   try {

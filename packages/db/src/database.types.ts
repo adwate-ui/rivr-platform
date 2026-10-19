@@ -1321,7 +1321,7 @@ isOneToOne: false
                            },
 "check_tv_pairing":
 { Args: { "p_secret": string }; Returns: {
-              "device_id": string,"refusal": string
+              "device_id": string,"previous_user_id": string,"refusal": string
             }[]
                            },
 "claim_academy_payment":
