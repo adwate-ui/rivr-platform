@@ -16,7 +16,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 | Key | Import | Interface | What it does |
 |---|---|---|---|
 | `kyc` | `@rivr/adapters/kyc` | `KycAdapter` | DigiLocker pull (masked Aadhaar, PAN, a stable Aadhaar reference), PAN verification fallback, selfie liveness, face match, and the face search for duplicates (`enrolFace`) |
-| `smsOtp` | `@rivr/adapters/sms-otp` | `SmsOtpAdapter` | Sign-in codes by SMS |
+| `smsOtp` | `@rivr/adapters/sms-otp` | `SmsOtpAdapter` | Sign-in codes by SMS; live: `createMsg91SmsOtp({ authKey, templateId })` on a DLT template, the key as a header, a refusal inside HTTP 200 read from `type` |
 | `whatsapp` | `@rivr/adapters/whatsapp` | `WhatsAppAdapter` | Utility, authentication and marketing templates; marketing needs `optedInAt` |
 | `upiPayouts` | `@rivr/adapters/upi-payouts` | `UpiPayoutAdapter` | Withdrawals; one payout per idempotency key |
 | `push` | `@rivr/adapters/push` | `PushAdapter` | Web push; `subscription_gone` means delete the subscription |
@@ -59,11 +59,11 @@ The one exception to "outbox consumers only": Auth waits for the code to go out,
 
 1. The app asks Auth for a code (`signInWithOtp`). Auth generates it.
 2. Auth posts it to the Send SMS hook set in `supabase/config.template.toml` (`[auth.hook.send_sms]`), signed with the hook secret.
-3. `supabase/functions/auth-send-code` checks the signature, then calls `handleSendSmsHook(payload, channels)`.
+3. `supabase/functions/auth-send-code` checks the signature, then calls `handleSendSmsHook(payload, channels, noteSend)`. `noteSend` records the send in the database (`note_sign_in_code_send`: an HMAC of the number under a Vault key, and the time) and says whether a code went to the number in the last ten minutes.
 4. `handleSendSmsHook` parses the payload with `sendSmsHookSchema` (`@rivr/contracts`) and calls `sendSignInCode`.
-5. `sendSignInCode({ whatsapp, smsOtp }, { to, code })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS. A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in.
+5. `sendSignInCode({ whatsapp, smsOtp }, { to, code, preferSms })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS; for a second code within ten minutes (`preferSms`), SMS first, since Meta accepts a code for a number not on WhatsApp and fails it only later (#181). A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in.
 
-No SMS vendor is chosen yet, so `smsOtp` is never passed and codes go by WhatsApp alone until one is.
+SMS goes through MSG91 once `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` are set as function secrets (runbook `ci-and-release.md`); until then codes go by WhatsApp alone.
 
 The hook secret, `SEND_SMS_HOOK_SECRET`, is made per checkout in the gitignored `supabase/.hook-secret` (`scripts/lib/supabase-config.mjs`). On staging and production it is generated in the Supabase dashboard and set as a function secret (`docs/runbooks/ci-and-release.md`).
 

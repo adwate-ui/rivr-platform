@@ -905,44 +905,6 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
-                },"waitlist_entry": {
-                  Row: {
-                    "added_by_staff_id": string | null,"created_at": string,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"member_id": string,"status": string,"table_type_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "added_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"member_id": string,"status"?: string,"table_type_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "added_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"member_id"?: string,"status"?: string,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "waitlist_entry_added_by_staff_id_fkey"
-      columns: ["added_by_staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "waitlist_entry_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "waitlist_entry_table_type_id_venue_id_fkey"
-      columns: ["table_type_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "table_type"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "waitlist_entry_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
                 }
           }
           Views: {
@@ -1027,9 +989,6 @@ isOneToOne: false
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
                            },
-"add_to_waitlist":
-{ Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
-                           },
 "authorize_in_person_kyc":
 { Args: { "p_member_id": string }; Returns: string
                            },
@@ -1077,9 +1036,6 @@ isOneToOne: false
 "has_my_consent":
 { Args: { "p_purpose": string }; Returns: boolean
                            },
-"join_waitlist":
-{ Args: { "p_idempotency_key": string,"p_table_type_id": string }; Returns: string
-                           },
 "kyc_in_person_candidates":
 { Args: { "p_search": string,"p_venue_id": string }; Returns: {
               "full_name": string,"member_id": string,"phone_last4": string,"status": string
@@ -1095,9 +1051,6 @@ isOneToOne: false
               "full_name": string,"is_practice": boolean,"member_id": string,"venue_id": string
             }[]
                            },
-"leave_waitlist":
-{ Args: { "p_entry_id": string }; Returns: undefined
-                           },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -1111,10 +1064,8 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
-"my_waitlist":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"entry_id": string,"joined_at": string,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
-            }[]
+"note_sign_in_code_send":
+{ Args: { "p_phone": string }; Returns: boolean
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
@@ -1161,16 +1112,6 @@ isOneToOne: false
 "staff_academy_batches":
 { Args: { "p_venue_id": string }; Returns: {
               "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
-            }[]
-                           },
-"waitlist_board":
-{ Args: { "p_venue_id": string }; Returns: {
-              "added_by_floor": boolean,"entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"place": number,"table_type_id": string
-            }[]
-                           },
-"waitlist_lengths":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "table_type_id": string,"waiting": number
             }[]
                            },
 "withdraw_consent":

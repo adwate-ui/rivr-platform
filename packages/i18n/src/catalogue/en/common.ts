@@ -28,8 +28,9 @@ export const common = {
     codePlaceholder: '6 digits',
     submit: 'Verify',
     changeNumber: 'Change number',
-    resend: 'Send again',
-    resendIn: 'Send again in {seconds} s',
+    /** A second code goes by SMS: the first may not have reached WhatsApp (#181). */
+    resend: 'Send by SMS',
+    resendIn: 'Send by SMS in {seconds} s',
     phoneInvalid: 'Enter a 10-digit mobile number.',
     codeInvalid: 'Enter the 6-digit code.',
     codeRejected: 'Code wrong or expired. Check it, or request a new one.',

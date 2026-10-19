@@ -21,25 +21,31 @@ export interface SignInCodeSent {
   readonly messageId: string;
 }
 
+/** Sends by one channel, or null when that channel is not configured. */
+function sendBy(channels: SignInCodeChannels, channel: SignInCodeSent['channel'], to: IndianMobile, code: string) {
+  if (channel === 'whatsapp') {
+    return channels.whatsapp?.sendTemplate({ category: 'authentication', to, template: SIGN_IN_CODE_TEMPLATE, params: [code] }) ?? null;
+  }
+  return channels.smsOtp?.sendOtp({ to, code }) ?? null;
+}
+
 /**
  * Sends a sign-in code: the WhatsApp authentication template first, SMS when WhatsApp fails or is
- * not configured (scope-v1, module 1). With no channel configured it fails closed with
- * `not_configured`: a fake must never report a code as sent to a real person.
+ * not configured (scope-v1, module 1). `preferSms` turns the order round, for a second code within
+ * ten minutes (#181). With no channel configured it fails closed with `not_configured`: a fake must
+ * never report a code as sent to a real person.
  */
 export async function sendSignInCode(
   channels: SignInCodeChannels,
-  { to, code }: { readonly to: IndianMobile; readonly code: string },
+  { to, code, preferSms = false }: { readonly to: IndianMobile; readonly code: string; readonly preferSms?: boolean },
 ): Promise<Result<SignInCodeSent, AdapterFailure>> {
+  const order: SignInCodeSent['channel'][] = preferSms ? ['sms', 'whatsapp'] : ['whatsapp', 'sms'];
   // Stays not_configured if no channel is tried; otherwise the last channel's failure is reported.
   let lastFailure: AdapterFailure = { code: 'not_configured' };
-  if (channels.whatsapp) {
-    const sent = await channels.whatsapp.sendTemplate({ category: 'authentication', to, template: SIGN_IN_CODE_TEMPLATE, params: [code] });
-    if (sent.ok) return ok({ channel: 'whatsapp', messageId: sent.value.messageId });
-    lastFailure = sent.error;
-  }
-  if (channels.smsOtp) {
-    const sent = await channels.smsOtp.sendOtp({ to, code });
-    if (sent.ok) return ok({ channel: 'sms', messageId: sent.value.messageId });
+  for (const channel of order) {
+    const sent = await sendBy(channels, channel, to, code);
+    if (sent === null) continue;
+    if (sent.ok) return ok({ channel, messageId: sent.value.messageId });
     lastFailure = sent.error;
   }
   return err(lastFailure);
