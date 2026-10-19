@@ -47,6 +47,8 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000132', '+919000000132', 'Farah Siddiqui'),
   ('00000000-0000-4000-8000-000000000133', '+919000000133', 'Sunita Rao'),
   ('00000000-0000-4000-8000-000000000134', '+919000000134', 'Kavya Menon'),
+  ('00000000-0000-4000-8000-000000000135', '+919000000135', 'Neha Kulkarni'),
+  ('00000000-0000-4000-8000-000000000136', '+919000000136', 'Arvind Rao'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -127,6 +129,9 @@ from (values
   ('00000000-0000-4000-8000-000000000133'::uuid, 'Membership manager', 'admin'),
   -- The Feature overrides flow's own super admin, who takes a feature away from one member (#61).
   ('00000000-0000-4000-8000-000000000134'::uuid, 'Duty manager', 'super_admin'),
+  -- The Kill switch flow's own two super admins: one freezes the venue, the second releases it (#27).
+  ('00000000-0000-4000-8000-000000000135'::uuid, 'Duty manager', 'super_admin'),
+  ('00000000-0000-4000-8000-000000000136'::uuid, 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id
