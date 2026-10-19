@@ -46,3 +46,11 @@ select v.venue_id, 'jackpot.payout', '',
        '{"pool_basis_points": 10000, "loser_basis_points": 5000, "winner_basis_points": 2500, "table_basis_points": 2500}', '-infinity', 'Seed'
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 on conflict (venue_id, key, subject, effective_from) do nothing;
+
+-- High hands as the design prompt's promotion pays them: royal flush ₹25,000, straight flush ₹10,000,
+-- four of a kind ₹2,000 (#47).
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'high_hand.payouts', '',
+       '{"royal_flush": 2500000, "straight_flush": 1000000, "four_of_a_kind": 200000}', '-infinity', 'Seed'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+on conflict (venue_id, key, subject, effective_from) do nothing;
