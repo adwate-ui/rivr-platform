@@ -3,7 +3,9 @@
  * build screens; a large area moves into its own namespace file.
  */
 import { consoleDevices, tabletDevices } from './devices.ts';
+import { consoleRake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
+import { consoleKycReview } from './kycReview.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
@@ -142,6 +144,7 @@ export const consoleApp = {
   liveFloor: { title: 'Live floor', empty: 'No tables are running.' },
   waitlist,
   ...consoleDevices,
+  ...consoleRake,
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',
@@ -211,57 +214,7 @@ export const consoleApp = {
     stopped: 'The venue or this member is frozen. Try again once it is released.',
     unavailable: 'Could not save this. Check the connection and try again.',
   },
-  /** The KYC review queue (#31). `{name}` is the member's; scores are 0 to 100. */
-  kycReview: {
-    title: 'KYC review',
-    notAllowed: 'Your role does not include KYC review. Ask an admin if you need it.',
-    empty: 'No checks waiting for review.',
-    waiting: 'Checks to review',
-    others: 'Stopped and refused checks',
-    photoOf: 'KYC photo of {name}',
-    /** Why a check waits for a reviewer. */
-    waitPanAlone: 'A PAN alone, with no DigiLocker record. Check the PAN card and the person.',
-    waitNothingKept: 'DigiLocker gave another name or face, so nothing was kept. Check the original Aadhaar and PAN card.',
-    waitNoDateOfBirth: 'DigiLocker gave no date of birth. Check the original document.',
-    waitClash: 'Another check holds the same PAN, Aadhaar or face.',
-    /** `{date}` and `{time}` are when the check began to wait. */
-    since: 'In the queue since {date}, {time}',
-    vendorReference: 'Vendor reference',
-    panFor: '{name}\'s PAN from the original card',
-    digilocker: 'DigiLocker',
-    panAlone: 'PAN alone',
-    needsPan: 'Waiting for the member to give a PAN.',
-    dateOfBirth: 'Date of birth',
-    notKept: 'Not kept. Check the original document.',
-    aadhaar: 'Aadhaar',
-    pan: 'PAN',
-    address: 'Address',
-    none: 'None',
-    scores: 'Liveness {liveness}, face match {match}',
-    clashes: 'Same PAN, Aadhaar or face as: {names}',
-    underEighteen: 'Refused: under 18.',
-    duplicateFace: 'Refused: the face of a verified member.',
-    duplicatePan: 'Refused: the PAN of a verified member.',
-    duplicateAadhaar: 'Refused: the Aadhaar of a verified member.',
-    staffRejected: 'Rejected by a reviewer.',
-    reasonFor: 'Reason for {name}',
-    reasonHint: 'What you saw, in your words. Never type document numbers.',
-    dateOfBirthFor: 'Date of birth on {name}\'s original document',
-    approve: 'Approve',
-    reject: 'Reject',
-    reasonInvalid: 'Give a reason of 3 to 500 characters with no document numbers, and a real date of birth or PAN if you enter one.',
-  },
-  /** Why a KYC decision did not go through. */
-  kycReviewFailures: {
-    notAllowed: 'Your role does not allow this, and nobody decides their own check. Ask another reviewer.',
-    decided: 'This check was already decided. The list now shows where it stands.',
-    needsDateOfBirth: 'Enter the date of birth on the original document to approve.',
-    needsPan: 'Enter the PAN from the original PAN card to approve.',
-    invalid: 'Check the reason, the date of birth and the PAN.',
-    paused: 'KYC sign-up is switched off for now, so approvals wait. You can still reject.',
-    stopped: 'The venue or this member is frozen. Try again once it is released.',
-    unavailable: 'Could not save this. Check the connection and try again.',
-  },
+  ...consoleKycReview,
   kycInPerson,
   kycInPersonFailures,
 } as const;

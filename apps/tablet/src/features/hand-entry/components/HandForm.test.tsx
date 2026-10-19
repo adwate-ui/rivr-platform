@@ -83,10 +83,12 @@ describe('logging a hand on the tablet', () => {
     expect(new Set(sent.map((hand) => hand.p_idempotency_key)).size).toBe(3);
   });
 
-  it('keeps the chosen game when it is pressed again', async () => {
+  it('keeps the chosen game when it is pressed again, and shows the next hand as Hold\'em once one is logged', async () => {
     const sent = renderForm(['hand-1']);
     press('PLO', 'PLO', '4', '8', '000', 'Log hand');
     await waitFor(() => expect(sent).toHaveLength(1));
     expect(sent[0]?.p_variant).toBe('plo');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Hold\'em' }).getAttribute('aria-pressed')).toBe('true'));
+    expect(screen.getByRole('button', { name: 'PLO' }).getAttribute('aria-pressed')).toBe('false');
   });
 });

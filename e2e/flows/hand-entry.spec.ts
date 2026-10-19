@@ -104,6 +104,9 @@ test.describe('Hand entry', () => {
     await tablet.getByRole('button', { name: 'Log hand' }).click();
     await expect(tablet.getByText('Hands this down: 1')).toBeVisible();
     await expect(tablet.getByText(/^\d{2}:\d{2} · PLO$/)).toBeVisible();
+    // The next hand starts as Hold'em, and the chips say so.
+    await expect(tablet.getByRole('button', { name: 'Hold\'em', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(tablet.getByRole('button', { name: 'PLO', exact: true })).toHaveAttribute('aria-pressed', 'false');
     await revoke(floor, name);
   });
 });

@@ -30,6 +30,7 @@ src/
     waitlist/         the floor's waitlists: add, call, seat, skip, remove (/waitlist)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
+    tables/           each table type's rake now and changes from a time, scheduled and withdrawn (/rake)
 ```
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.

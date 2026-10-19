@@ -1,0 +1,48 @@
+{
+  "rule": "settings",
+  "about": "Effective-dated rules (scope-v1 module 3 acceptance; .claude/rules/money.md): a rule such as a table type's rake cap changes from a moment on, and every moment takes the rule in force then, the newest one whose start is not after it. A rule in force since the venue opened starts at the beginning of time. The changes still to come are those that start after the moment, soonest first. So a hand played before a change keeps the rule it was played under. Times are India time (IST); history entries are separated by |, each a start and the cap from then.",
+  "cases": [
+    {
+      "description": "A second before the first change: the opening ₹6,000 cap, and ₹7,000 next at 10:00.",
+      "operation": "lookup",
+      "inputs": { "history": "since opening = ₹6,000 | 2026-10-20 10:00 IST = ₹7,000 | 2026-10-20 13:00 IST = ₹5,000", "at": "2026-10-20 09:59:59 IST" },
+      "expected": { "cap": "₹6,000", "next": "2026-10-20 10:00 IST" }
+    },
+    {
+      "description": "At the change, to the second: ₹7,000, and ₹5,000 next at 13:00.",
+      "operation": "lookup",
+      "inputs": { "history": "since opening = ₹6,000 | 2026-10-20 10:00 IST = ₹7,000 | 2026-10-20 13:00 IST = ₹5,000", "at": "2026-10-20 10:00:00 IST" },
+      "expected": { "cap": "₹7,000", "next": "2026-10-20 13:00 IST" }
+    },
+    {
+      "description": "A second before the second change: still ₹7,000.",
+      "operation": "lookup",
+      "inputs": { "history": "since opening = ₹6,000 | 2026-10-20 10:00 IST = ₹7,000 | 2026-10-20 13:00 IST = ₹5,000", "at": "2026-10-20 12:59:59 IST" },
+      "expected": { "cap": "₹7,000", "next": "2026-10-20 13:00 IST" }
+    },
+    {
+      "description": "At the second change: ₹5,000, with nothing to come.",
+      "operation": "lookup",
+      "inputs": { "history": "since opening = ₹6,000 | 2026-10-20 10:00 IST = ₹7,000 | 2026-10-20 13:00 IST = ₹5,000", "at": "2026-10-20 13:00:00 IST" },
+      "expected": { "cap": "₹5,000", "next": "none" }
+    },
+    {
+      "description": "A year on: still ₹5,000.",
+      "operation": "lookup",
+      "inputs": { "history": "since opening = ₹6,000 | 2026-10-20 10:00 IST = ₹7,000 | 2026-10-20 13:00 IST = ₹5,000", "at": "2027-10-20 13:00:00 IST" },
+      "expected": { "cap": "₹5,000", "next": "none" }
+    },
+    {
+      "description": "The history in any order gives the same answer: the newest start that is not after the moment.",
+      "operation": "lookup",
+      "inputs": { "history": "2026-10-20 13:00 IST = ₹5,000 | since opening = ₹6,000 | 2026-10-20 10:00 IST = ₹7,000", "at": "2026-10-20 11:30:00 IST" },
+      "expected": { "cap": "₹7,000", "next": "2026-10-20 13:00 IST" }
+    },
+    {
+      "description": "No rule yet in force: no cap until the first one starts.",
+      "operation": "lookup",
+      "inputs": { "history": "2026-10-20 10:00 IST = ₹7,000", "at": "2026-10-20 09:00:00 IST" },
+      "expected": { "cap": "none", "next": "2026-10-20 10:00 IST" }
+    }
+  ]
+}

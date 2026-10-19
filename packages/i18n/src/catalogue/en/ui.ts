@@ -37,6 +37,7 @@ export const ui = {
       liveFloor: 'Live floor',
       waitlist: 'Waitlist',
       tablets: 'Tablets',
+      rake: 'Rake',
       dealerPins: 'Dealer PINs',
       checkIn: 'Check-in',
       tournaments: 'Tournaments',
