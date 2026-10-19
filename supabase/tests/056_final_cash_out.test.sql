@@ -16,6 +16,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'session', public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 2'),
   7, '9000000217');
 reset role;
+-- Call time at the cage is 057's: none here.
+update public.seat_session set call_time_minutes = 0 where member_id = '00000000-0000-4000-8000-000000000217' and ended_at is null;
 insert into ids select 'visit', private.current_visit('00000000-0000-4000-8000-000000000217');
 select isnt((select id from ids where name = 'visit'), null, 'seating Neel opened his visit');
 
@@ -64,6 +66,8 @@ select is((select is_final from public.cage_transaction where idempotency_key = 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'again', public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 2'),
   7, '9000000217');
+reset role;
+update public.seat_session set call_time_minutes = 0 where id = (select id from ids where name = 'again');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select results_eq($$ select to_member_paise, is_visit_closed from public.cage_cash_out('00000000-0000-4000-8000-000000000001',
   '00000000-0000-4000-8000-000000000217', 2000000, 'wallet', '00000000-0000-4000-8000-0000000c7601', true) $$, $$ values (2000000::bigint, false) $$,

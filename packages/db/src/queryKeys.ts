@@ -40,6 +40,7 @@ export const queryKeys = {
   waitlistBoard: (userId: string, venueId: string) => ['user', userId, 'waitlist-board', venueId] as const,
   floorSeats: (userId: string, venueId: string) => ['user', userId, 'floor-seats', venueId] as const,
   heldSeats: (userId: string, venueId: string) => ['user', userId, 'held-seats', venueId] as const,
+  leftOwingCallTime: (userId: string, venueId: string) => ['user', userId, 'left-owing-call-time', venueId] as const,
   floorNight: (userId: string, venueId: string) => ['user', userId, 'floor-night', venueId] as const,
   tableHands: (userId: string, tableId: string) => ['user', userId, 'table-hands', tableId] as const,
   tabletSeats: (userId: string) => ['user', userId, 'tablet-seats'] as const,

@@ -13,5 +13,6 @@ export const SEAT_FAILURE_COPY: Readonly<Record<SeatFailure, MessageKey>> = {
   stopped: 'console.liveFloor.stopped',
   paused: 'console.liveFloor.paused',
   invalid: 'console.liveFloor.invalid',
+  call_time_done: 'console.liveFloor.callTimeDone',
   unavailable: 'console.liveFloor.unavailable',
 };

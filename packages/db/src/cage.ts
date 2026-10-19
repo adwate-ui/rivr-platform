@@ -19,6 +19,10 @@ export interface CageMember {
   /** Where they sit, with the table's minimum buy-in; null when not seated. */
   readonly seat: { readonly tableName: string; readonly number: number; readonly minimum: Paise } | null;
   readonly breakUntil: string | null;
+  /** Whole seconds of call time still owed on their seat this visit (#79); 0 with none. */
+  readonly callTimeOwed: number;
+  /** An admin let them leave before call time (#79), so the cash-out goes through. */
+  readonly isLetGoEarly: boolean;
 }
 
 /** A buy-in the table asked the cage for, waiting (flow 3). */
@@ -35,13 +39,14 @@ export interface BuyInRequest {
 
 /**
  * Why a buy-in or cash-out did not go through; `moved` is a request from a seat the player has since left, `not_in_room` a
- * cash-out for a member not checked in.
+ * cash-out for a member not checked in, `call_time_owed` one before their call time without an admin's say-so (#79).
  */
 export type CageFailure = 'not_allowed' | 'no_member' | 'stopped' | 'paused' | 'kyc_needed' | 'on_break' | 'not_seated'
-  | 'not_chips' | 'below_minimum' | 'wallet_short' | 'utr_used' | 'moved' | 'not_in_room' | 'invalid' | 'unavailable';
+  | 'not_chips' | 'below_minimum' | 'wallet_short' | 'utr_used' | 'moved' | 'not_in_room' | 'call_time_owed' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, CageFailure>> = {
   '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVOUT: 'not_in_room',
+  RVCTS: 'call_time_owed',
   RVNST: 'not_seated', RVCHP: 'not_chips', RVMIN: 'below_minimum', RVSHT: 'wallet_short', RVUTR: 'utr_used', RVSTL: 'moved', '22023': 'invalid',
 };
 
@@ -60,6 +65,7 @@ export function useCageMembers(venueId: string, query: string) {
       return data.map((row) => ({
         memberId: row.member_id, fullName: row.full_name, tierName: row.tier_name, isKycComplete: row.is_kyc_complete, photoPath: row.photo_path,
         wallet: toPaise(row.wallet_paise), bonus: toPaise(row.bonus_paise), markers: toPaise(row.markers_paise), breakUntil: row.break_until,
+        callTimeOwed: row.call_time_owed_seconds, isLetGoEarly: row.is_let_go_early,
         seat: row.table_name === null || row.seat === null || row.minimum_paise === null ? null
           : { tableName: row.table_name, number: row.seat, minimum: toPaise(row.minimum_paise) },
       }));

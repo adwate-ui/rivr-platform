@@ -86,6 +86,10 @@ export const cage = {
   /** Under the cash-out done line: `{amount}` is what the chips paid off. */
   cashedOutSettled: 'Markers settled: {amount}.',
   notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',
+  /** Call time still owed at the cage (#79). `{time}`: 1 h 12 min. */
+  callTimeOwed: 'Call time not complete: {time} short. An admin lets them leave early on the Live floor.',
+  callTimeLetGo: 'Call time {time} short. An admin has let them leave early.',
+  callTimeOwedBlock: 'Call time is not complete. An admin lets them leave early, with a reason, on the Live floor.',
   /** A final cash-out is the member leaving the club (#76). */
   final: 'Final cash-out',
   finalHint: 'They are leaving: ends their seat and closes their visit.',

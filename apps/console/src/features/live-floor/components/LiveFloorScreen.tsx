@@ -2,8 +2,9 @@ import {
   useFloorNight, useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorNight, type FloorTable, type HeldSeat, type SeatedPlayer,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Screen } from '@rivr/ui';
+import { Grid, Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
+import { LeftOwingCallTime } from './LeftOwingCallTime.tsx';
 import { RoomPlan } from './RoomPlan.tsx';
 import { TableDetail } from './TableDetail.tsx';
 
@@ -12,7 +13,7 @@ import { TableDetail } from './TableDetail.tsx';
  * seen from above, room by room, with who sits where, its rake, dealer and hands per hour; and the
  * chosen table beside, with its night so far, its seats and its recent hands. The floor
  * (waitlist.manage) seats, moves and lets players leave; floor managers open and close tables and set
- * must-move tables.
+ * must-move tables; admins let a player leave before call time, seated or gone from their seat (#79).
  */
 export function LiveFloorScreen() {
   const staff = useStaffVenue();
@@ -43,7 +44,10 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
   return (
     <Screen title={title}>
       <Grid columns={2} gap={8}>
-        <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} chosenId={chosen.id} onChoose={setChosenId} />
+        <Stack gap={8}>
+          <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} chosenId={chosen.id} onChoose={setChosenId} />
+          {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
+        </Stack>
         <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
           seats={data.seats.filter((seat) => seat.tableId === chosen.id)} held={data.held.filter((seat) => seat.tableId === chosen.id)}
           night={data.night.tables.find((figures) => figures.tableId === chosen.id)} />
