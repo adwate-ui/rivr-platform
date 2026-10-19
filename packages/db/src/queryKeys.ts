@@ -41,4 +41,10 @@ export const queryKeys = {
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
+  /** A venue's dealers whose PIN the signed-in manager may set. */
+  venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
+  /** The dealers who can sign in on this tablet. */
+  tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
+  /** The down at this tablet's table. */
+  currentDown: (userId: string) => ['user', userId, 'current-down'] as const,
 };

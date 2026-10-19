@@ -269,6 +269,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"dealer_down": {
+                  Row: {
+                    "created_at": string,"device_id": string,"ended_at": string | null,"id": string,"staff_id": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"device_id": string,"ended_at"?: string | null,"id"?: string,"staff_id": string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"device_id"?: string,"ended_at"?: string | null,"id"?: string,"staff_id"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dealer_down_device_id_venue_id_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "dealer_down_staff_id_venue_id_fkey"
+      columns: ["staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "dealer_down_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"device": {
                   Row: {
                     "auth_user_id": string | null,"created_at": string,"enrolled_at": string,"enrolled_by_staff_id": string | null,"id": string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at": string | null,"name": string,"revoked_at": string | null,"revoked_reason": string | null,"updated_at": string,"venue_id": string
@@ -801,14 +833,14 @@ isOneToOne: false
                   ]
                 },"staff_credential": {
                   Row: {
-                    "created_at": string,"pin_hash": string,"staff_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"failed_attempts": number,"locked_until": string | null,"pin_hash": string,"staff_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"pin_hash": string,"staff_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"failed_attempts"?: number,"locked_until"?: string | null,"pin_hash": string,"staff_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"pin_hash"?: string,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"failed_attempts"?: number,"locked_until"?: string | null,"pin_hash"?: string,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1188,6 +1220,19 @@ isOneToOne: false
 "create_academy_batch":
 { Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
                            },
+"current_down":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "down_id": string,"full_name": string,"staff_id": string,"started_at": string
+            }[]
+                           },
+"dealer_sign_in":
+{ Args: { "p_pin": string,"p_staff_id": string }; Returns: {
+              "down_id": string,"refusal": string,"tries_left": number
+            }[]
+                           },
+"end_down":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
@@ -1296,6 +1341,9 @@ isOneToOne: false
 "seat_from_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
+"set_dealer_pin":
+{ Args: { "p_pin": string,"p_staff_id": string }; Returns: undefined
+                           },
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
                            },
@@ -1314,6 +1362,16 @@ isOneToOne: false
                            },
 "step_away":
 { Args: { "p_entry_id": string,"p_is_away": boolean }; Returns: undefined
+                           },
+"tablet_dealers":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "full_name": string,"staff_id": string
+            }[]
+                           },
+"venue_dealers":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
+            }[]
                            },
 "waitlist_board":
 { Args: { "p_venue_id": string }; Returns: {

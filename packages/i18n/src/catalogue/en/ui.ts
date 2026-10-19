@@ -84,6 +84,12 @@ export const ui = {
     missing: 'No photo',
     failed: 'The photo could not load. Reload the page, or check the member at the desk.',
   },
+  /** The dealer tablet's PIN pad (#41). */
+  pinPad: {
+    delete: 'Delete',
+    /** Read out instead of the dots: never the digits themselves. */
+    entered: '{count} of {length} digits entered',
+  },
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
     member: 'The club is paused. Staff will assist you.',

@@ -76,6 +76,18 @@ export {
   type PairFailure,
   type PairingCode,
 } from './devices.ts';
+export {
+  useCurrentDown,
+  useDownActions,
+  useSetDealerPin,
+  useTabletDealers,
+  useVenueDealers,
+  type CurrentDown,
+  type DealerPinFailure,
+  type DealerSignInFailure,
+  type TabletDealer,
+  type VenueDealer,
+} from './dealerDowns.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
