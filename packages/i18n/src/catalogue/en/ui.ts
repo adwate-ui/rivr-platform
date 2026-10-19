@@ -113,6 +113,8 @@ export const ui = {
   signaturePad: { clear: 'Clear' },
   /** A seated player's call time (#78): `{time}` is what is left, as in "1 h 12 min". */
   callTime: { left: 'Call time {time} left', paused: 'Call time paused, {time} left', done: 'Call time done' },
+  /** A console table's filter matching no row (#30): `{query}` is what was typed. */
+  dataTable: { noMatch: 'Nothing matches {query}.' },
   /** The offer to add the player app to the home screen, on a member's second visit. */
   installOffer: {
     title: 'RIVR on your home screen',

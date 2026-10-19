@@ -1,0 +1,194 @@
+import { t } from '@rivr/i18n';
+import { tokens } from '@rivr/tokens';
+import { useMemo, useState, type ReactNode } from 'react';
+import { Button } from '../Button/Button.tsx';
+import { Icon } from '../Icon/Icon.tsx';
+import { Input } from '../Input/Input.tsx';
+import { cx } from '../internal/classes.ts';
+import { Text } from '../Text/Text.tsx';
+
+/** One column: its header, what each row shows in it, and the value it sorts by (no sorting without one). */
+export interface DataTableColumn<Row> {
+  readonly key: string;
+  readonly header: string;
+  readonly cell: (row: Row) => ReactNode;
+  readonly sortValue?: (row: Row) => string | number | bigint;
+  /** Figures and money line up at the end. */
+  readonly align?: 'start' | 'end';
+}
+
+/** Which column the rows are sorted by, and which way. */
+export interface DataTableSort {
+  readonly key: string;
+  readonly direction: 'ascending' | 'descending';
+}
+
+/** The rows, or one of the states every list has. */
+export type DataTableState<Row> =
+  | { status?: 'ready'; rows: readonly Row[]; /** When there are no rows at all, for example "No markers outstanding." */ emptyText: string }
+  | { status: 'loading' }
+  | { status: 'error'; /** What happened, then what to do. Defaults to the shared load error. */ errorText?: string; onRetry?: () => void };
+
+export type DataTableProps<Row> = DataTableState<Row> & {
+  /** What the table lists, read as its name: "Open markers". */
+  label: string;
+  columns: readonly DataTableColumn<Row>[];
+  rowKey: (row: Row) => string;
+  /** A filter box above the table: a row stays when `text` gives something containing what is typed, case aside. */
+  filter?: { readonly label: string; readonly text: (row: Row) => string };
+  initialSort?: DataTableSort;
+  /** Beside the filter box, given the rows as shown (filtered and sorted): #102's export hangs here. */
+  toolbar?: (rows: readonly Row[]) => ReactNode;
+};
+
+/** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */
+export const VIRTUAL_FROM = 200;
+const ROW_HEIGHT = tokens.space[12];
+const ROWS_IN_VIEW = 12;
+// Rows drawn beyond each edge of the view, so a quick scroll shows no gap.
+const OVERSCAN = 6;
+const GRID = 'grid grid-flow-col auto-cols-fr items-center gap-4 px-3';
+// One collator for every comparison: making one per comparison is slow on thousands of rows.
+const COLLATOR = new Intl.Collator('en-IN', { sensitivity: 'base', numeric: true });
+const NO_ROWS: readonly never[] = [];
+// A scrolling body and the header above it keep the same room for a scrollbar, so their columns line up.
+const GUTTER = { scrollbarGutter: 'stable' } as const;
+
+function compare(a: string | number | bigint, b: string | number | bigint): number {
+  if (typeof a === 'string' && typeof b === 'string') return COLLATOR.compare(a, b);
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+}
+
+interface View<Row> {
+  readonly columns: readonly DataTableColumn<Row>[];
+  readonly sort: DataTableSort | null;
+  readonly text: ((row: Row) => string) | undefined;
+  readonly query: string;
+}
+
+/** The rows to show: those matching the filter, in the chosen order. */
+function shown<Row>(rows: readonly Row[], { columns, sort, text, query }: View<Row>): readonly Row[] {
+  const needle = query.trim().toLowerCase();
+  const matching = text === undefined || needle === '' ? rows : rows.filter((row) => text(row).toLowerCase().includes(needle));
+  const value = columns.find((column) => column.key === sort?.key)?.sortValue;
+  if (sort === null || value === undefined) return matching;
+  const sign = sort.direction === 'ascending' ? 1 : -1;
+  return [...matching].sort((a, b) => sign * compare(value(a), value(b)));
+}
+
+function HeaderCell<Row>({ column, sort, onSort }: { column: DataTableColumn<Row>; sort: DataTableSort | null; onSort: (key: string) => void }) {
+  const direction = sort?.key === column.key ? sort.direction : undefined;
+  const align = column.align === 'end' ? 'justify-end' : 'justify-start';
+  if (column.sortValue === undefined) {
+    return <div role="columnheader" className={cx('flex min-w-0', align)}><Text variant="small" tone="muted">{column.header}</Text></div>;
+  }
+  return (
+    <div role="columnheader" aria-sort={direction ?? 'none'} className={cx('flex min-w-0', align)}>
+      <button type="button" onClick={() => onSort(column.key)}
+        className="flex min-h-touch items-center gap-1 font-text text-14 text-content-muted transition-colors hover:text-content focus-visible:text-content">
+        {column.header}
+        {direction === undefined ? null : <Icon name={direction === 'ascending' ? 'chevronUp' : 'chevronDown'} size="sm" />}
+      </button>
+    </div>
+  );
+}
+
+function BodyRow<Row>({ row, columns, index, offset }: { row: Row; columns: readonly DataTableColumn<Row>[]; index: number; offset?: number }) {
+  return (
+    <div role="row" aria-rowindex={index + 2} className={cx(GRID, 'h-12 border-b border-hairline', offset === undefined ? '' : 'absolute inset-x-0 top-0')}
+      style={offset === undefined ? undefined : { transform: `translateY(${offset}px)` }}>
+      {columns.map((column) => (
+        // Rows are one height, so a cell keeps to one line: long text ends in an ellipsis.
+        <div key={column.key} role="cell"
+          className={cx('min-w-0 truncate font-text text-16 text-content', column.align === 'end' ? 'text-end' : 'text-start')}>
+          {column.cell(row)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Past VIRTUAL_FROM rows: a scrolling body of a fixed height, which takes keyboard focus so arrow keys
+ * scroll it. Rows are all one height, so the rows in view, and a few either side, follow from how far
+ * it is scrolled; only those are drawn.
+ */
+function VirtualBody<Row>({ rows, columns, rowKey }: { rows: readonly Row[]; columns: readonly DataTableColumn<Row>[]; rowKey: (row: Row) => string }) {
+  const [scrolled, setScrolled] = useState(0);
+  const first = Math.max(0, Math.floor(scrolled / ROW_HEIGHT) - OVERSCAN);
+  const last = Math.min(rows.length, Math.ceil(scrolled / ROW_HEIGHT) + ROWS_IN_VIEW + OVERSCAN);
+  return (
+    <div role="rowgroup" tabIndex={0} className="overflow-y-auto focus-visible:outline-2 focus-visible:outline-focus"
+      style={{ ...GUTTER, height: ROW_HEIGHT * ROWS_IN_VIEW }} onScroll={(event) => setScrolled(event.currentTarget.scrollTop)}>
+      <div className="relative w-full" style={{ height: rows.length * ROW_HEIGHT }}>
+        {rows.slice(first, last).map((row, index) => (
+          <BodyRow key={rowKey(row)} row={row} columns={columns} index={first + index} offset={(first + index) * ROW_HEIGHT} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Table<Row>({ props, visible, sort, query, onSort }: { props: DataTableProps<Row>; visible: readonly Row[]; sort: DataTableSort | null; query: string; onSort: (key: string) => void }) {
+  const isVirtual = visible.length > VIRTUAL_FROM;
+  return (
+    <div role="table" aria-label={props.label} aria-rowcount={visible.length + 1} className="flex flex-col">
+      <div role="rowgroup" style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
+        <div role="row" aria-rowindex={1} className={cx(GRID, 'border-b border-hairline')}>
+          {props.columns.map((column) => <HeaderCell key={column.key} column={column} sort={sort} onSort={onSort} />)}
+        </div>
+      </div>
+      {isVirtual
+        // A new order or filter starts from the top.
+        ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${query}`} rows={visible} columns={props.columns} rowKey={props.rowKey} />
+        : <div role="rowgroup">{visible.map((row, index) => <BodyRow key={props.rowKey(row)} row={row} columns={props.columns} index={index} />)}</div>}
+    </div>
+  );
+}
+
+/** What stands in for the rows: loading, the error with a retry, or why there are none (announced as the filter changes). */
+function Instead<Row>({ props, query }: { props: DataTableProps<Row>; query: string }) {
+  if (props.status === 'loading') return <div role="status" className="px-3 py-4"><Text tone="muted">{t('common.loading')}</Text></div>;
+  if (props.status === 'error') {
+    return (
+      <div role="alert" className="flex flex-col items-start gap-3 px-3 py-4">
+        <Text>{props.errorText ?? t('common.loadFailed')}</Text>
+        {props.onRetry ? <Button onClick={props.onRetry}>{t('common.retry')}</Button> : null}
+      </div>
+    );
+  }
+  const text = props.rows.length === 0 ? props.emptyText : t('ui.dataTable.noMatch', { query: query.trim() });
+  return <div role="status" className="px-3 py-4"><Text tone="muted">{text}</Text></div>;
+}
+
+/**
+ * A table of records for the console (`.claude/rules/ui.md`, "Data"): headers that sort, an optional
+ * filter box, and the loading, empty and error states. Past 200 rows only the rows in view are drawn,
+ * so thousands of rows scroll smoothly. Export (#102) hangs on `toolbar`.
+ */
+export function DataTable<Row>(props: DataTableProps<Row>) {
+  const [sort, setSort] = useState<DataTableSort | null>(props.initialSort ?? null);
+  const [query, setQuery] = useState('');
+  const source = props.status === 'loading' || props.status === 'error' ? NO_ROWS : props.rows;
+  const text = props.filter?.text;
+  const visible = useMemo(() => shown(source, { columns: props.columns, sort, text, query }), [source, props.columns, sort, text, query]);
+  const onSort = (key: string) => setSort((current) =>
+    current?.key === key && current.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' });
+  const hasBar = props.filter !== undefined || props.toolbar !== undefined;
+  return (
+    <div className="flex flex-col gap-4">
+      {hasBar ? (
+        <div className="flex items-end gap-4">
+          {props.filter === undefined ? null : (
+            <div className="min-w-0 flex-1">
+              <Input type="search" label={props.filter.label} value={query} onChange={(event) => setQuery(event.target.value)} autoComplete="off" />
+            </div>
+          )}
+          {props.toolbar?.(visible)}
+        </div>
+      ) : null}
+      {visible.length === 0 ? <Instead props={props} query={query} /> : <Table props={props} visible={visible} sort={sort} query={query} onSort={onSort} />}
+    </div>
+  );
+}
