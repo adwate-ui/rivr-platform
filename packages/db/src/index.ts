@@ -87,6 +87,7 @@ export {
   type TvPairing,
   type VenueTv,
 } from './tvScreens.ts';
+export { useTvJackpot, useTvWaitlistBoard, type TvJackpot, type TvPlace, type TvStake } from './tvBoards.ts';
 export {
   useCurrentDown,
   useDownActions,

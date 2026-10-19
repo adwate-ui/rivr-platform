@@ -1139,6 +1139,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tv_signal": {
+                  Row: {
+                    "board": string,"created_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "board": string,"created_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "board"?: string,"created_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tv_signal_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"venue": {
                   Row: {
                     "created_at": string,"id": string,"is_practice": boolean,"name": string,"slug": string,"time_zone": string,"updated_at": string
@@ -1598,6 +1618,16 @@ isOneToOne: false
 "tablet_rake_rules":
 { Args: Record<PropertyKey, never>; Returns: {
               "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"rate_basis_points": number
+            }[]
+                           },
+"tv_jackpot":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "high_hand_category": Database["public"]['Enums']["high_hand_category"],"high_hand_payout_paise": number,"high_hand_played_at": string,"high_hand_rank": string,"high_hand_table_name": string,"main_paise": number
+            }[]
+                           },
+"tv_waitlist_board":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "big_blind_paise": number,"call_table_name": string,"display_name": string,"is_away": boolean,"open_tables": number,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
             }[]
                            },
 "venue_dealers":
