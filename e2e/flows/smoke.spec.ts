@@ -26,9 +26,9 @@ test.describe('smoke: every surface starts', () => {
     await expect(page.getByRole('heading', { name: 'Tablet pairing' })).toBeVisible();
   });
 
-  test('a TV says it is not paired', async ({ page }) => {
+  test('a TV that is not paired asks to be paired', async ({ page }) => {
     await open(page, 'display');
-    await expect(page.getByText('This screen is not paired.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Screen pairing' })).toBeVisible();
   });
 
   test('the driver app opens on pickups', async ({ page }) => {
