@@ -19,6 +19,8 @@ export interface PotTake {
   readonly rake: Paise;
   readonly drop: Paise;
   readonly pull: Paise;
+  /** The rate's share of the pot was more than the cap, so the cap set the rake (a hand records it). */
+  readonly isCapApplied: boolean;
 }
 
 /**
@@ -28,7 +30,8 @@ export interface PotTake {
  * A negative pot is a bug in the caller: shareOf refuses it with a RangeError.
  */
 export function potTake(pot: Paise, rules: RakeRules): PotTake {
-  const rake = roundDownToChip(min(shareOf(pot, rules.rateBasisPoints), rules.cap));
+  const share = shareOf(pot, rules.rateBasisPoints);
+  const rake = roundDownToChip(min(share, rules.cap));
   const drop = rules.isJackpotLive && pot > rules.dropAbove ? roundDownToChip(rules.drop) : ZERO;
-  return { rake, drop, pull: add(rake, drop) };
+  return { rake, drop, pull: add(rake, drop), isCapApplied: share > rules.cap };
 }

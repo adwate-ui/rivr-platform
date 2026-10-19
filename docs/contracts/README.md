@@ -49,7 +49,7 @@ Account codes posted to by each lane. Lane A owns the chart and adds accounts by
 | `member.points` | liability, points | every member | D (earning, redemption through `private.credit_points` and `private.debit_points`) |
 | `member.receivable` | asset | every member | A (markers) |
 | `venue.cash_drawer`, `venue.bank` | asset | bootstrap | A |
-| `venue.chips_outstanding` | liability, players' money | bootstrap | A (buy-ins, cash-outs) |
+| `venue.chips_outstanding` | liability, players' money | bootstrap | A (buy-ins, cash-outs), B (rake and drops leave play, through `private.post_hand`) |
 | `venue.rake` | revenue | bootstrap | B (hands, through `private.post_hand`) |
 | `venue.jackpot.main`, `.season`, `.freeroll` | liability, players' money | bootstrap | B (drops and payouts) |
 | `venue.bonus_expense` | expense | bootstrap | A, D |

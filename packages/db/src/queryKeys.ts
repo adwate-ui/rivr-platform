@@ -47,4 +47,8 @@ export const queryKeys = {
   tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
   /** The down at this tablet's table. */
   currentDown: (userId: string, tableId: string) => ['user', userId, 'current-down', tableId] as const,
+  /** The tablet's table rules now: rake, drop, variations. */
+  tableRules: (userId: string) => ['user', userId, 'table-rules'] as const,
+  /** The hands of the open down on the tablet. */
+  downHands: (userId: string) => ['user', userId, 'down-hands'] as const,
 };

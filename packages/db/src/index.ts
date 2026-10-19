@@ -88,6 +88,15 @@ export {
   type TabletDealer,
   type VenueDealer,
 } from './dealerDowns.ts';
+export {
+  useDownHands,
+  useLogHand,
+  useTableRules,
+  type DownHand,
+  type HandVariant,
+  type LogHandFailure,
+  type TableRules,
+} from './hands.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
