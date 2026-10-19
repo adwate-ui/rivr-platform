@@ -53,8 +53,8 @@ const academyPrice = {
 // A ₹50 chip, in paise: rake caps and jackpot drops are whole chips (additions, "Chips").
 const CHIP_PAISE = 5_000;
 
-const rakeRules = {
-  key: 'rake.rules',
+const rakeConfig = {
+  key: 'rake.config',
   description: 'Rake per table type: the rate of the pot in basis points (500 is 5%) and the cap in paise, in whole ₹50 chips (scope-v1 module 3).',
   scope: 'table_type',
   value: z.strictObject({
@@ -74,7 +74,7 @@ const jackpotDrop = {
 } as const satisfies SettingDefinition;
 
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeRules, jackpotDrop] as const;
+export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

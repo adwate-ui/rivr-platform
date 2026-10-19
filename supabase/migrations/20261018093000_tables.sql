@@ -1,10 +1,10 @@
 -- Table types and tables (#34, scope-v1 module 3, additions "Six tables in the seed"). A table type
 -- carries the game, the blinds, the buy-in range and any compulsory straddle; its rake (rate and cap)
--- lives in the effective-dated setting rake.rules, with the type's code as the subject, so a hand
+-- lives in the effective-dated setting rake.config, with the type's code as the subject, so a hand
 -- uses the rule in force when it was logged. The jackpot drop is the venue's setting jackpot.drop.
 
 insert into public.setting_key (key, description, scope, value_schema) values
-  ('rake.rules',
+  ('rake.config',
    'Rake per table type: the rate of the pot in basis points (500 is 5%) and the cap in paise, in whole ₹50 chips (scope-v1 module 3).',
    'table_type',
    '{"type":"object","properties":{"rate_basis_points":{"type":"integer","minimum":0,"maximum":1000},"cap_paise":{"type":"integer","minimum":0,"maximum":10000000,"multipleOf":5000}},"required":["rate_basis_points","cap_paise"],"additionalProperties":false}'),
@@ -16,7 +16,7 @@ insert into public.setting_key (key, description, scope, value_schema) values
 create table public.table_type (
   id uuid primary key default gen_random_uuid(),
   venue_id uuid not null references public.venue (id),
-  -- The subject of its effective-dated settings (rake.rules, call_time.minutes): 'nlh_100_200'.
+  -- The subject of its effective-dated settings (rake.config, call_time.minutes): 'nlh_100_200'.
   code text not null check (code ~ '^[a-z0-9_]{2,40}$'),
   name text not null check (length(trim(name)) between 1 and 60),
   game text not null check (game in ('NLH', 'PLO')),
@@ -34,7 +34,7 @@ create table public.table_type (
   unique (id, venue_id)
 );
 
-comment on table public.table_type is 'A kind of table: game, blinds, buy-in range and straddle. Its rake is the setting rake.rules.';
+comment on table public.table_type is 'A kind of table: game, blinds, buy-in range and straddle. Its rake is the setting rake.config.';
 
 create table public.game_table (
   id uuid primary key default gen_random_uuid(),

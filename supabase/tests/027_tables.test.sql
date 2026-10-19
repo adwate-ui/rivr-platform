@@ -30,7 +30,7 @@ select results_eq(
 
 -- Rake lives in effective-dated settings.
 select results_eq(
-  $$ select r.code, private.setting_at('00000000-0000-4000-8000-000000000001', 'rake.rules', r.code, now())
+  $$ select r.code, private.setting_at('00000000-0000-4000-8000-000000000001', 'rake.config', r.code, now())
      from (values ('nlh_50_100'), ('nlh_100_200'), ('private_room')) as r (code) $$,
   $$ values ('nlh_50_100'::text, '{"rate_basis_points": 500, "cap_paise": 300000}'::jsonb),
             ('nlh_100_200', '{"rate_basis_points": 500, "cap_paise": 600000}'),
@@ -39,14 +39,14 @@ select results_eq(
 select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'jackpot.drop', '', now()),
   '{"drop_paise": 10000, "above_paise": 500000}'::jsonb, 'and the jackpot drop is ₹100 above ₹5,000');
 select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from)
-                    values ('00000000-0000-4000-8000-000000000001', 'rake.rules', 'nlh_50_100',
+                    values ('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_50_100',
                             '{"rate_basis_points": 500, "cap_paise": 299950}', now() + interval '1 day') $$,
   '23514', null, 'a cap that is not a whole number of ₹50 chips is refused');
 select lives_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from)
-                   values ('00000000-0000-4000-8000-000000000001', 'rake.rules', 'nlh_50_100',
+                   values ('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_50_100',
                            '{"rate_basis_points": 500, "cap_paise": 350000}', now() + interval '1 day') $$,
   'a new cap takes effect from a future time');
-select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'rake.rules', 'nlh_50_100', now()) ->> 'cap_paise', '300000',
+select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_50_100', now()) ->> 'cap_paise', '300000',
   'and until then the old cap is in force');
 
 -- Who sees and changes what.

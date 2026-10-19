@@ -6,7 +6,7 @@ Tables and table types, seating, the waitlist and its priority, call time, the d
 
 | Table | Purpose |
 |---|---|
-| `table_type` | Game, blinds, buy-in range, straddle; its `code` is the subject of the effective-dated settings `rake.rules` (rate and cap) and `call_time.minutes`; the jackpot drop is the venue's `jackpot.drop` (#34) |
+| `table_type` | Game, blinds, buy-in range, straddle; its `code` is the subject of the effective-dated settings `rake.config` (rate and cap) and `call_time.minutes`; the jackpot drop is the venue's `jackpot.drop` (#34) |
 | `game_table` | The six tables: name, type, open or closed |
 | `seat_session` | A member in a seat: start, end, table moves and breaks (drives call time and hours) |
 | `waitlist_entry` | Per stake and game: joined at, priority reason, hold expiry, called, seated, skipped |

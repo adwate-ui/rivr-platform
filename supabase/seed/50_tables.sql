@@ -29,7 +29,7 @@ join public.table_type tt on tt.code = t.code
 on conflict (venue_id, name) do nothing;
 
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-select v.venue_id, 'rake.rules', r.code, jsonb_build_object('rate_basis_points', 500, 'cap_paise', r.cap), '-infinity', 'Seed'
+select v.venue_id, 'rake.config', r.code, jsonb_build_object('rate_basis_points', 500, 'cap_paise', r.cap), '-infinity', 'Seed'
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 cross join (values ('nlh_50_100', 300000), ('nlh_100_200', 600000), ('private_room', 1200000)) as r (code, cap)
 on conflict (venue_id, key, subject, effective_from) do nothing;
