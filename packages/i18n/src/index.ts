@@ -1,6 +1,10 @@
 export type { MessageKey, MessageParams } from './catalogue/types.ts';
 export { en } from './catalogue/en/index.ts';
-export { t, type Translate } from './translate.ts';
+// Each app registers its own copy at start (registerMessages), so it ships no other app's (#344).
+export { consoleApp, displayApp, driverApp, playerApp, tabletApp, webApp } from './catalogue/en/apps.ts';
+export { social } from './catalogue/en/social.ts';
+export { tv } from './catalogue/en/tv.ts';
+export { registerMessages, t, type Translate } from './translate.ts';
 export { formatMoney, formatNumber, formatStakes } from './format/money.ts';
 export { formatDate, formatDayTime, formatDuration, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';

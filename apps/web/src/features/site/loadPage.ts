@@ -1,3 +1,4 @@
+import '../../messages.ts';
 import { attributionFrom, type Attribution } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
 import { createRivrClient } from '@rivr/db';

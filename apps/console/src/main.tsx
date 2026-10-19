@@ -1,3 +1,4 @@
+import './messages.ts';
 import '@rivr/ui/styles.css';
 import { createRivrClient, RivrDataProvider, StaffVenueProvider } from '@rivr/db';
 import { RouterProvider } from '@tanstack/react-router';
