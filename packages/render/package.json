@@ -10,12 +10,14 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "build": "vite build",
-    "render:brand-kit": "tsx scripts/render-brand-kit.ts"
+    "render:brand-kit": "tsx scripts/render-brand-kit.ts",
+    "render:logo": "tsx scripts/render-logo.ts"
   },
   "dependencies": {
     "@rivr/i18n": "workspace:*",
     "@rivr/tokens": "workspace:*",
     "@rivr/ui": "workspace:*",
+    "mediabunny": "1.61.3",
     "playwright": "1.64.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

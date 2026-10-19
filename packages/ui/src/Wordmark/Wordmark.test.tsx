@@ -17,6 +17,17 @@ describe('Wordmark', () => {
     expect(tiles[4]).toHaveClass('bg-alert');
   });
 
+  it('animated, numbers the steps each part rises at: the letters, the card, then the tagline', () => {
+    const { container } = renderIn(<Wordmark size="lg" withTagline isAnimated />);
+    const steps = [...container.querySelectorAll('[data-reveal]')].map((part) => part.getAttribute('data-reveal'));
+    expect(steps).toEqual(['0', '1', '2', '3', '4', '5']);
+  });
+
+  it('is still unless animated', () => {
+    const { container } = renderIn(<Wordmark size="lg" withTagline />);
+    expect(container.querySelector('[data-reveal]')).toBeNull();
+  });
+
   it('adds the letter-spaced tagline when asked', () => {
     renderIn(<Wordmark size="lg" withTagline />);
     expect(screen.getByRole('img', { name: 'RIVR Poker Club' })).toHaveTextContent('Poker club');
