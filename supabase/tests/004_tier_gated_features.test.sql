@@ -48,8 +48,8 @@ select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'cab.reque
 -- The super_admin grants Learn back to Kabir alone.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
-insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'learn.library', true, 'Academy instructor');
+-- Overrides are set through set_feature_override (#61), never written directly.
+select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'learn.library', true, 'Academy instructor');
 reset role;
 select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'learn.library'), 'an override grants the feature to that member');
 select ok(not private.has_feature('00000000-0000-4000-8000-000000000203', 'learn.library'), 'and to no other Member');

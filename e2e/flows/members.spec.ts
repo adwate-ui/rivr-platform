@@ -24,6 +24,8 @@ test.describe('Members', () => {
     await expect(page.getByText(/^Member \d+ · Black card · KYC incomplete/)).toBeVisible();
     await expect(page.getByText('Qualifies at 100/200')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Early departures' })).toBeVisible();
+    // Feature overrides are for super admins alone (#61).
+    await expect(page.getByRole('heading', { name: 'Feature overrides' })).toHaveCount(0);
 
     await search.fill('9000000202');
     await page.getByRole('button', { name: 'Open Kabir Sethi' }).click();

@@ -949,14 +949,14 @@ isOneToOne: false
                   ]
                 },"member_feature_override": {
                   Row: {
-                    "created_at": string,"created_by_staff_id": string | null,"ends_at": string | null,"feature_key": string,"id": string,"is_granted": boolean,"member_id": string,"reason": string,"revoked_at": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"created_by_staff_id": string | null,"ends_at": string | null,"feature_key": string,"id": string,"is_granted": boolean,"lift_reason": string | null,"lifted_by_staff_id": string | null,"member_id": string,"reason": string,"revoked_at": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string | null,"feature_key": string,"id"?: string,"is_granted": boolean,"member_id": string,"reason": string,"revoked_at"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string | null,"feature_key": string,"id"?: string,"is_granted": boolean,"lift_reason"?: string | null,"lifted_by_staff_id"?: string | null,"member_id": string,"reason": string,"revoked_at"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string | null,"feature_key"?: string,"id"?: string,"is_granted"?: boolean,"member_id"?: string,"reason"?: string,"revoked_at"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string | null,"feature_key"?: string,"id"?: string,"is_granted"?: boolean,"lift_reason"?: string | null,"lifted_by_staff_id"?: string | null,"member_id"?: string,"reason"?: string,"revoked_at"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -971,6 +971,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "feature"
       referencedColumns: ["key"]
+    },{
+      foreignKeyName: "member_feature_override_lifted_by_staff_id_fkey"
+      columns: ["lifted_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "member_feature_override_member_id_venue_id_fkey"
       columns: ["member_id","venue_id"]
@@ -1987,6 +1993,9 @@ isOneToOne: false
 "let_leave_early":
 { Args: { "p_member_id": string,"p_reason": string,"p_venue_id": string }; Returns: string
                            },
+"lift_feature_override":
+{ Args: { "p_override_id": string,"p_reason": string,"p_venue_id": string }; Returns: undefined
+                           },
 "link_device_login":
 { Args: { "p_device_id": string,"p_user_id": string }; Returns: boolean
                            },
@@ -1999,6 +2008,11 @@ isOneToOne: false
 "member_early_departures":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "created_at": string,"early_departure_id": string,"reason": string,"shortfall_seconds": number,"staff_name": string
+            }[]
+                           },
+"member_feature_overrides":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "created_at": string,"feature_key": string,"feature_name": string,"is_granted": boolean,"lift_reason": string,"lifted_by": string,"override_id": string,"reason": string,"staff_name": string,"standing": string,"until": string
             }[]
                            },
 "member_record":
@@ -2126,6 +2140,9 @@ isOneToOne: false
                            },
 "set_dealer_pin":
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: undefined
+                           },
+"set_feature_override":
+{ Args: { "p_feature_key": string,"p_is_granted": boolean,"p_member_id": string,"p_reason": string,"p_until"?: string,"p_venue_id": string }; Returns: string
                            },
 "set_member_break":
 { Args: { "p_days": number,"p_member_id": string,"p_reason": string }; Returns: string

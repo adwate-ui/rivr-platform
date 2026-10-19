@@ -2,7 +2,15 @@ import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { formatDate, formatStakes, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, KycPhoto, Stack, Text } from '@rivr/ui';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
+import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { TierForm } from './TierForm.tsx';
+
+/** What the staff member may do on a record: change the tier, see the KYC photo, override features (super admins). */
+export interface RecordAccess {
+  readonly manage: boolean;
+  readonly seePhoto: boolean;
+  readonly override: boolean;
+}
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
 function statusLine(record: MemberRecord): string {
@@ -19,13 +27,13 @@ function visitsLine(record: MemberRecord): string {
   return record.visits === 1 ? t('console.members.visitsOne', { date }) : t('console.members.visitsLine', { count: record.visits, date });
 }
 
-function Record({ venueId, record, canManage, canSeePhoto }: { venueId: string; record: MemberRecord; canManage: boolean; canSeePhoto: boolean }) {
+function Record({ venueId, record, can }: { venueId: string; record: MemberRecord; can: RecordAccess }) {
   // KYC photos are for KYC reviewers and the cage (authorize_kyc_image); other staff see none rather than an error.
-  const photo = useKycImageUrl(canSeePhoto ? record.photoPath : null);
+  const photo = useKycImageUrl(can.seePhoto ? record.photoPath : null);
   return (
     <Stack gap={6}>
       <Inline gap={4} align="center">
-        {canSeePhoto ? (
+        {can.seePhoto ? (
           <KycPhoto alt={t('console.cage.photoOf', { name: record.fullName })} src={photo.data ?? null}
             status={record.photoPath === null ? 'missing' : photo.isError ? 'error' : photo.data ? 'ready' : 'loading'} />
         ) : null}
@@ -42,13 +50,17 @@ function Record({ venueId, record, canManage, canSeePhoto }: { venueId: string; 
         <Text>{visitsLine(record)}</Text>
       </Stack>
       <EarlyDepartures venueId={venueId} memberId={record.memberId} />
-      {canManage ? <TierForm venueId={venueId} record={record} /> : null}
+      {can.manage ? <TierForm venueId={venueId} record={record} /> : null}
+      {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
     </Stack>
   );
 }
 
-/** The member record (#60): KYC photo, tier and qualifying stake, visits and early departures; a tier change for members.manage. */
-export function MemberRecordPanel({ venueId, memberId, canManage, canSeePhoto }: { venueId: string; memberId: string; canManage: boolean; canSeePhoto: boolean }) {
+/**
+ * The member record (#60): KYC photo, tier and qualifying stake, visits and early departures; a tier change for members.manage,
+ * and feature overrides for super admins (#61).
+ */
+export function MemberRecordPanel({ venueId, memberId, can }: { venueId: string; memberId: string; can: RecordAccess }) {
   const record = useMemberRecord(venueId, memberId);
   if (record.isError) {
     return (
@@ -60,5 +72,5 @@ export function MemberRecordPanel({ venueId, memberId, canManage, canSeePhoto }:
   }
   if (record.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
   if (record.data === null) return <ErrorMessage>{t('console.members.failures.noMember')}</ErrorMessage>;
-  return <Record venueId={venueId} record={record.data} canManage={canManage} canSeePhoto={canSeePhoto} />;
+  return <Record venueId={venueId} record={record.data} can={can} />;
 }

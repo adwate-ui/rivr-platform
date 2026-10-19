@@ -46,6 +46,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000131', '+919000000131', 'Lakshmi Iyer'),
   ('00000000-0000-4000-8000-000000000132', '+919000000132', 'Farah Siddiqui'),
   ('00000000-0000-4000-8000-000000000133', '+919000000133', 'Sunita Rao'),
+  ('00000000-0000-4000-8000-000000000134', '+919000000134', 'Kavya Menon'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -124,6 +125,8 @@ from (values
   ('00000000-0000-4000-8000-000000000132'::uuid, 'Cashier', 'cashier'),
   -- The Members flow's own membership manager, who changes a tier (#60).
   ('00000000-0000-4000-8000-000000000133'::uuid, 'Membership manager', 'admin'),
+  -- The Feature overrides flow's own super admin, who takes a feature away from one member (#61).
+  ('00000000-0000-4000-8000-000000000134'::uuid, 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id

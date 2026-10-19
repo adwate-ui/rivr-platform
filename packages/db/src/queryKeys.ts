@@ -55,6 +55,8 @@ export const queryKeys = {
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,
   memberEarlyDepartures: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-early-departures', venueId, memberId] as const,
   venueTiers: (userId: string, venueId: string) => ['user', userId, 'venue-tiers', venueId] as const,
+  memberFeatureOverrides: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-feature-overrides', venueId, memberId] as const,
+  gateableFeatures: (userId: string) => ['user', userId, 'gateable-features'] as const,
   /** The signed-in dealer tablet and its table. */
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */
