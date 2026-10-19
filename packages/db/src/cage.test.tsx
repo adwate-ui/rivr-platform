@@ -33,15 +33,15 @@ function renderCage(replies: Record<string, { status?: number; body: unknown }>)
 afterEach(cleanup);
 
 describe('Cash-out', () => {
-  it('cashes out once per request id, to cash or the wallet', async () => {
-    const { result, calls } = renderCage({ cage_cash_out: { body: [{ cage_transaction_id: 't1', markers_settled_paise: 1_000_000, to_member_paise: 2_000_000 }] } });
+  it('cashes out once per request id, to cash or the wallet, closing the visit when final', async () => {
+    const { result, calls } = renderCage({ cage_cash_out: { body: [{ cage_transaction_id: 't1', markers_settled_paise: 1_000_000, to_member_paise: 2_000_000, is_visit_closed: true }] } });
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(3_000_000n), to: 'wallet', requestId: 'r1' });
+      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(3_000_000n), to: 'wallet', isFinal: true, requestId: 'r1' });
     });
-    expect(outcome).toEqual({ ok: true, value: { cageTransactionId: 't1', settled: 1_000_000n, toMember: 2_000_000n } });
+    expect(outcome).toEqual({ ok: true, value: { cageTransactionId: 't1', settled: 1_000_000n, toMember: 2_000_000n, isVisitClosed: true } });
     expect(calls.find((call) => call.rpc === 'cage_cash_out')?.body).toEqual({
-      p_venue_id: VENUE, p_member_id: 'm1', p_amount_paise: 3000000, p_to: 'wallet', p_idempotency_key: 'r1',
+      p_venue_id: VENUE, p_member_id: 'm1', p_amount_paise: 3000000, p_to: 'wallet', p_idempotency_key: 'r1', p_is_final: true,
     });
   });
 
@@ -49,7 +49,7 @@ describe('Cash-out', () => {
     const { result } = renderCage({ cage_cash_out: { status: 400, body: { code: 'RVOUT', message: 'not checked in' } } });
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', requestId: 'r2' });
+      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r2' });
     });
     expect(outcome).toEqual({ ok: false, error: 'not_in_room' });
   });
@@ -58,7 +58,7 @@ describe('Cash-out', () => {
     const { result } = renderCage({ cage_cash_out: { body: [] } });
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', requestId: 'r3' });
+      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r3' });
     });
     expect(outcome).toEqual({ ok: false, error: 'unavailable' });
   });
