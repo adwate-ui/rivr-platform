@@ -4,7 +4,7 @@ import { formatDate, formatMoney, formatNumber, formatTime, t, type MessageKey }
 const FAILURE_COPY: Readonly<Record<RakeChangeFailure, MessageKey>> = {
   not_allowed: 'console.rake.notAllowedAction',
   invalid: 'console.rake.refused',
-  in_force: 'console.rake.inForce',
+  too_soon: 'console.rake.tooSoon',
   unavailable: 'console.rake.unavailable',
 };
 

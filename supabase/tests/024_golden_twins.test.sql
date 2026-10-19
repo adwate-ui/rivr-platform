@@ -58,5 +58,31 @@ select results_eq(
      from golden.golden_case where file = 'rake.json' order by position $$,
   'private.pot_take gives every rake, drop, pull and cap applied in the golden file');
 
+-- Effective-dated rules: private.setting_at and @rivr/domain ruleAt (packages/testing/golden/settings.json).
+-- Each case's history becomes rake.config rows under its own subject, written as a migration writes
+-- them, with nobody signed in.
+create function pg_temp.ist(p_text text) returns timestamptz language sql immutable as $$
+  select replace(p_text, ' IST', '+05:30')::timestamptz;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'settings.json'), 'the effective-dated rule cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'settings.json' and operation <> 'lookup' $$,
+  'every operation in settings.json is proved here');
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select '00000000-0000-4000-8000-000000000001', 'rake.config', 'golden_' || c.position,
+       jsonb_build_object('rate_basis_points', 500, 'cap_paise', pg_temp.paise(split_part(e.entry, ' = ', 2))),
+       case when split_part(e.entry, ' = ', 1) = 'since opening' then '-infinity'::timestamptz else pg_temp.ist(split_part(e.entry, ' = ', 1)) end,
+       'Golden case'
+from golden.golden_case c
+cross join lateral unnest(string_to_array(c.inputs ->> 'history', ' | ')) as e (entry)
+where c.file = 'settings.json';
+select results_eq(
+  $$ select description,
+            (private.setting_at('00000000-0000-4000-8000-000000000001', 'rake.config', 'golden_' || position, pg_temp.ist(inputs ->> 'at'))
+               ->> 'cap_paise')::bigint
+     from golden.golden_case where file = 'settings.json' order by position $$,
+  $$ select description, case when expected ->> 'cap' = 'none' then null else pg_temp.paise(expected ->> 'cap') end
+     from golden.golden_case where file = 'settings.json' order by position $$,
+  'private.setting_at gives the rule in force at every moment in the golden file');
+
 select * from finish();
 rollback;

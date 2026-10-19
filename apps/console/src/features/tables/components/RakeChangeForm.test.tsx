@@ -40,20 +40,20 @@ describe('scheduling a rake change', () => {
     fireEvent.click(screen.getByRole('button', { name: 'NLH 100/200' }));
     fill('Rate (%)', '5');
     fill('Cap (₹)', '7000');
-    fill('From', '2026-10-20');
+    fill('From', '2099-01-01');
     fill('At (IST)', '10:00');
     fill('Why it changes', 'Weekend cap');
     fireEvent.click(screen.getByRole('button', { name: 'Schedule the change' }));
     expect(await screen.findByText('Change scheduled.')).toBeDefined();
     expect(inserted).toEqual([{
-      venue_id: 'v1', key: 'rake.config', subject: 'nlh_100_200', effective_from: '2026-10-20T10:00:00+05:30', reason: 'Weekend cap',
+      venue_id: 'v1', key: 'rake.config', subject: 'nlh_100_200', effective_from: '2099-01-01T10:00:00+05:30', reason: 'Weekend cap',
       value: { rate_basis_points: 500, cap_paise: 700000 },
     }]);
     await waitFor(() => expect(screen.getByRole('button', { name: 'NLH 100/200' }).getAttribute('aria-pressed')).toBe('false'));
     expect(screen.getByLabelText('Cap (₹)')).toHaveProperty('value', '');
   });
 
-  it('asks for a table type and whole chips before sending, and says when the change is refused', async () => {
+  it('asks for a table type and whole chips before sending, and sends no change for a time already past', async () => {
     const inserted = renderForm(400);
     fill('Cap (₹)', '7010');
     fireEvent.click(screen.getByRole('button', { name: 'Schedule the change' }));
@@ -67,6 +67,7 @@ describe('scheduling a rake change', () => {
     fill('At (IST)', '10:00');
     fill('Why it changes', 'Too late');
     fireEvent.click(screen.getByRole('button', { name: 'Schedule the change' }));
-    expect(await screen.findByText(/^That change was refused\./)).toBeDefined();
+    expect(await screen.findByText(/^That is too close to now: a hand may already be played under it\./)).toBeDefined();
+    expect(inserted).toEqual([]);
   });
 });

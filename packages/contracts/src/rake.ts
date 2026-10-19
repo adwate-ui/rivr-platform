@@ -7,8 +7,9 @@ const MOST_CAP_PAISE = 10_000_000;
 /**
  * A rake change as the console schedules it (#37): the table type, the rate in percent (up to two
  * decimals, at most 10%), the cap in whole rupees (whole ₹50 chips), the IST date and 24-hour time
- * it takes effect from, and why. Out come the rake.config values and the time with India's offset;
- * the database checks the value again, and that the time is not past.
+ * it takes effect from, and why. Out come the rate in basis points, the cap still in rupees (the
+ * console makes it paise with @rivr/domain's fromRupees) and the time with India's offset; the
+ * database checks the value again.
  */
 export const rakeChangeSchema = z
   .object({
@@ -25,7 +26,7 @@ export const rakeChangeSchema = z
   .transform(({ tableTypeCode, ratePercent, cap, on, at, reason }) => ({
     tableTypeCode,
     rateBasisPoints: Math.round(Number(ratePercent) * 100),
-    capPaise: Number(cap) * 100,
+    cap,
     effectiveFrom: `${on}T${at}:00+05:30`,
     reason,
   }));

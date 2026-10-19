@@ -4,9 +4,9 @@ import { rakeChangeSchema } from './rake.ts';
 const CHANGE = { tableTypeCode: 'nlh_100_200', ratePercent: '5', cap: '7000', on: '2026-10-20', at: '10:00', reason: ' Weekend cap ' };
 
 describe('a rake change as the console schedules it (#37)', () => {
-  it('gives the rake.config values and the time in India', () => {
+  it('gives the rate in basis points, the cap in rupees and the time in India', () => {
     expect(rakeChangeSchema.parse(CHANGE)).toEqual({
-      tableTypeCode: 'nlh_100_200', rateBasisPoints: 500, capPaise: 700000, effectiveFrom: '2026-10-20T10:00:00+05:30', reason: 'Weekend cap',
+      tableTypeCode: 'nlh_100_200', rateBasisPoints: 500, cap: '7000', effectiveFrom: '2026-10-20T10:00:00+05:30', reason: 'Weekend cap',
     });
     expect(rakeChangeSchema.parse({ ...CHANGE, ratePercent: '4.75' }).rateBasisPoints).toBe(475);
   });

@@ -1,3 +1,4 @@
+import { fromPaise } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -10,6 +11,8 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ADMIN = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
+const HOUR = 3_600_000;
+const inHours = (hours: number) => new Date(Date.now() + hours * HOUR).toISOString();
 
 /** A fake API: each method and table, as `GET /setting`, answers with its reply; returns the requests made. */
 function renderRake(replies: Record<string, { status?: number; body: unknown }>) {
@@ -31,19 +34,25 @@ function renderRake(replies: Record<string, { status?: number; body: unknown }>)
 }
 
 const TYPES = [{ id: 't2', code: 'nlh_100_200', name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000 }];
-const HOUR = 3_600_000;
 const SETTINGS = [
-  { id: 's3', subject: 'nlh_100_200', value: { rate_basis_points: 500, cap_paise: 500000 }, effective_from: new Date(Date.now() + 3 * HOUR).toISOString(), reason: 'Quiet nights' },
-  { id: 's2', subject: 'nlh_100_200', value: { rate_basis_points: 500, cap_paise: 700000 }, effective_from: new Date(Date.now() + HOUR).toISOString(), reason: 'Weekend cap' },
+  { id: 's3', subject: 'nlh_100_200', value: { rate_basis_points: 500, cap_paise: 500000 }, effective_from: inHours(3), reason: 'Quiet nights' },
   { id: 's1', subject: 'nlh_100_200', value: { rate_basis_points: 500, cap_paise: 600000 }, effective_from: '-infinity', reason: 'Seed' },
+  { id: 's2', subject: 'nlh_100_200', value: { rate_basis_points: 500, cap_paise: 700000 }, effective_from: inHours(1), reason: 'Weekend cap' },
   { id: 'x1', subject: 'private_room', value: { rate_basis_points: 500, cap_paise: 1200000 }, effective_from: '-infinity', reason: 'Seed' },
 ];
 const READS = { 'GET /table_type': { body: TYPES }, 'GET /setting': { body: SETTINGS } };
+const CHANGE = { tableTypeCode: 'nlh_100_200', rateBasisPoints: 500, cap: fromPaise(700000n), reason: 'Weekend cap' };
 
 afterEach(cleanup);
 
+async function outcomeOf(run: () => Promise<unknown>) {
+  let outcome: unknown;
+  await act(async () => { outcome = await run(); });
+  return outcome;
+}
+
 describe('rake by table type (#37)', () => {
-  it('gives each table type the rule in force now and the changes to come, soonest first', async () => {
+  it('gives each table type the rule in force now and the changes to come, soonest first, from rows in any order', async () => {
     const { result } = renderRake(READS);
     await waitFor(() => expect(result.current.rake.data).toHaveLength(1));
     const [type] = result.current.rake.data ?? [];
@@ -53,27 +62,35 @@ describe('rake by table type (#37)', () => {
 
   it('schedules a change as a rake.config row, and says when the role may not', async () => {
     const { result, calls } = renderRake({ ...READS, 'POST /setting': { status: 403, body: { code: '42501', message: 'rls' } } });
-    let outcome: unknown;
-    await act(async () => {
-      outcome = await result.current.actions.schedule.mutateAsync({
-        tableTypeCode: 'nlh_100_200', rateBasisPoints: 500, capPaise: 700000, effectiveFrom: '2026-10-20T10:00:00+05:30', reason: 'Weekend cap',
-      });
-    });
-    expect(outcome).toEqual({ ok: false, error: 'not_allowed' });
+    const effectiveFrom = inHours(2);
+    expect(await outcomeOf(() => result.current.actions.schedule.mutateAsync({ ...CHANGE, effectiveFrom }))).toEqual({ ok: false, error: 'not_allowed' });
     expect(calls.find((call) => call.method === 'POST')?.body).toEqual({
-      venue_id: VENUE, key: 'rake.config', subject: 'nlh_100_200', effective_from: '2026-10-20T10:00:00+05:30', reason: 'Weekend cap',
+      venue_id: VENUE, key: 'rake.config', subject: 'nlh_100_200', effective_from: effectiveFrom, reason: 'Weekend cap',
       value: { rate_basis_points: 500, cap_paise: 700000 },
     });
   });
 
-  it('withdraws a change not yet in force, and says when the change is already in force', async () => {
-    const withdrawn = renderRake({ ...READS, 'DELETE /setting': { body: [{ id: 's2' }] } });
-    let outcome: unknown;
-    await act(async () => { outcome = await withdrawn.result.current.actions.withdraw.mutateAsync('s2'); });
-    expect(outcome).toEqual({ ok: true, value: null });
+  it('schedules nothing a minute away or less, where a tablet may already have played under it', async () => {
+    const { result, calls } = renderRake(READS);
+    const soon = new Date(Date.now() + 50_000).toISOString();
+    expect(await outcomeOf(() => result.current.actions.schedule.mutateAsync({ ...CHANGE, effectiveFrom: soon }))).toEqual({ ok: false, error: 'too_soon' });
+    expect(calls.filter((call) => call.method === 'POST')).toEqual([]);
+  });
+
+  it('withdraws a change more than a minute away, and keeps one closer', async () => {
+    const withdrawn = renderRake({ ...READS, 'GET /setting': { body: { effective_from: inHours(1) } }, 'DELETE /setting': { body: [{ id: 's2' }] } });
+    expect(await outcomeOf(() => withdrawn.result.current.actions.withdraw.mutateAsync('s2'))).toEqual({ ok: true, value: null });
     cleanup();
-    const inForce = renderRake({ ...READS, 'DELETE /setting': { body: [] } });
-    await act(async () => { outcome = await inForce.result.current.actions.withdraw.mutateAsync('s1'); });
-    expect(outcome).toEqual({ ok: false, error: 'in_force' });
+    const close = renderRake({ ...READS, 'GET /setting': { body: { effective_from: new Date(Date.now() + 30_000).toISOString() } } });
+    expect(await outcomeOf(() => close.result.current.actions.withdraw.mutateAsync('s2'))).toEqual({ ok: false, error: 'too_soon' });
+    expect(close.calls.filter((call) => call.method === 'DELETE')).toEqual([]);
+  });
+
+  it('counts a change already withdrawn as done, and a refused delete as not allowed', async () => {
+    const gone = renderRake({ ...READS, 'GET /setting': { body: null } });
+    expect(await outcomeOf(() => gone.result.current.actions.withdraw.mutateAsync('s2'))).toEqual({ ok: true, value: null });
+    cleanup();
+    const refused = renderRake({ ...READS, 'GET /setting': { body: { effective_from: inHours(1) } }, 'DELETE /setting': { body: [] } });
+    expect(await outcomeOf(() => refused.result.current.actions.withdraw.mutateAsync('s2'))).toEqual({ ok: false, error: 'not_allowed' });
   });
 });

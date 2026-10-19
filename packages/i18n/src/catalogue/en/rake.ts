@@ -11,14 +11,14 @@ export const rake = {
   withdraw: 'Withdraw the change from {date}, {time}',
   noChanges: 'No changes to come.',
   /** The form. */
-  change: 'Change rake',
-  changeHint: 'Hands played before the time keep the rule in force when they were played.',
+  change: 'Rake change',
   tableType: 'Table type',
   rate: 'Rate (%)',
   rateHint: 'Of the pot, up to 10%. For example 5.',
   cap: 'Cap (₹)',
   capHint: 'Whole ₹50 chips.',
   on: 'From',
+  onHint: 'Hands played before then keep the rule they were played under.',
   at: 'At (IST)',
   atHint: '24-hour time, for example 18:00.',
   reason: 'Why it changes',
@@ -27,11 +27,13 @@ export const rake = {
   chooseTableType: 'Choose a table type.',
   invalidRate: 'Give a rate up to 10%, with at most two decimals.',
   invalidCap: 'Give a cap in whole ₹50 chips, up to ₹1,00,000.',
-  invalidWhen: 'Give a date and a 24-hour time.',
+  invalidOn: 'Give the date it takes effect.',
+  invalidAt: 'Give a 24-hour time, for example 18:00.',
   invalidReason: 'Say why the rake changes.',
   notAllowedAction: 'Your role does not allow this.',
-  refused: 'That change was refused. A change takes effect from now or later, and once at each time for a table type.',
-  inForce: 'That change is already in force, so it stays. Schedule another to replace it.',
+  refused: 'That change was refused. Choose a time that has no change yet for this table type.',
+  /** Scheduling or withdrawing a change a minute away or less: a tablet may already have played a hand under it. */
+  tooSoon: 'That is too close to now: a hand may already be played under it. Choose a time at least two minutes away, or leave the change in place.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };
 

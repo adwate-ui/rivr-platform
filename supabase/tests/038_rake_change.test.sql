@@ -17,7 +17,9 @@ create function pg_temp.cap_at(p_at timestamptz) returns bigint language sql as 
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
--- The golden cases: the seed's ₹6,000 cap, ₹7,000 from an hour on, ₹5,000 from three hours on.
+-- An admin's two changes, through row-level security as the console sends them: the seed's ₹6,000
+-- cap, ₹7,000 from an hour on, ₹5,000 from three hours on. (The lookup itself is proved on
+-- packages/testing/golden/settings.json in 024.)
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into public.setting (venue_id, key, subject, value, effective_from, reason) values
   ('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_100_200', '{"rate_basis_points": 500, "cap_paise": 700000}',
@@ -69,8 +71,9 @@ select lives_ok($$ insert into public.setting (venue_id, key, subject, value, ef
   'though she changes the practice venue''s');
 reset role;
 
--- Hands before the change keep the old rule: Pema's down began two hours ago, and the admin lowers
--- the cap to ₹3,000 from now (a minute's grace for the console's clock).
+-- Hands before the change keep the old rule: Pema's down began two hours ago, and a change to a
+-- ₹3,000 cap, scheduled earlier, took effect half an hour ago (written as a migration writes it,
+-- with nobody signed in, since the console schedules only more than a minute ahead).
 insert into auth.users (id, instance_id, aud, role, phone) values
   ('00000000-0000-4000-8000-00000000e001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000000001');
 insert into public.device (id, venue_id, kind, name, auth_user_id) values
@@ -83,10 +86,10 @@ select a.venue_id, a.table_id, s.id, a.device_id, now() - interval '2 hours'
 from public.tablet_assignment a
 join public.staff s on s.user_id = '00000000-0000-4000-8000-000000000106' and s.venue_id = a.venue_id
 where a.device_id = '00000000-0000-4000-8000-00000000d001';
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason) values
   ('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_100_200', '{"rate_basis_points": 500, "cap_paise": 300000}',
-   now() - interval '30 seconds', 'Lower cap from now');
+   now() - interval '30 minutes', 'Lower cap');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 create temporary table hands on commit drop as
 select public.log_hand(14000000, 'holdem', now() - interval '1 hour', 'cap-change-before') as hand_id, 'before' as played

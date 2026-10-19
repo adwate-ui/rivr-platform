@@ -13,8 +13,8 @@ describe('what the Rake screen says', () => {
 
   it('says why a change did not go through', () => {
     expect(rakeFailureText('not_allowed')).toBe('Your role does not allow this.');
-    expect(rakeFailureText('invalid')).toMatch(/^That change was refused\. A change takes effect from now or later/);
-    expect(rakeFailureText('in_force')).toBe('That change is already in force, so it stays. Schedule another to replace it.');
+    expect(rakeFailureText('invalid')).toBe('That change was refused. Choose a time that has no change yet for this table type.');
+    expect(rakeFailureText('too_soon')).toMatch(/^That is too close to now: a hand may already be played under it\./);
     expect(rakeFailureText('unavailable')).toBe('That did not go through. Check the connection and try again.');
   });
 });
