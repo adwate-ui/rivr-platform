@@ -69,4 +69,22 @@ export const cage = {
   markerNotSetUp: 'Credit is not set up at this venue yet. Ask a super admin.',
   markerSwitchedOff: 'Credit is switched off. Ask a super admin.',
   markerInvalid: 'That request id was used for another marker. Try again.',
+  /** A cash-out: chips handed back settle open markers first (#75). */
+  cashOutTitle: 'Cash-out',
+  payTo: 'Pay to',
+  toCash: 'Cash',
+  toWallet: 'Wallet',
+  cashOutAmount: 'Chips handed back',
+  settlesMarkers: 'Settles markers',
+  inCash: 'In cash',
+  toTheWallet: 'To the wallet',
+  cashOut: 'Cash out',
+  /** After a cash-out: `{amount}` is what the cashier hands over, or what went to the wallet. */
+  cashedOutCash: 'Cash-out done. Hand over {amount} in cash.',
+  cashedOutWallet: 'Cash-out done. {amount} to the wallet.',
+  cashedOutAllSettled: 'Cash-out done. The chips all went to markers, so nothing is handed over.',
+  /** Under the cash-out done line: `{amount}` is what the chips paid off. */
+  cashedOutSettled: 'Markers settled: {amount}.',
+  notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',
+  cashOutInvalid: 'That request id was used for another cage transaction. Try again.',
 };

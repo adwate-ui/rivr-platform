@@ -1,0 +1,48 @@
+{
+  "rule": "cash-out",
+  "about": "A cash-out at the cage (scope-v1 module 5; design prompt flow 8): chips handed back, in whole ₹50 chips above nothing, first settle the member's open markers, oldest first, each as far as the chips go; what is left goes to the member, in cash or to their wallet. A member with an open marker never takes chips' worth in cash before it is settled. Markers are listed oldest first, separated by |; nothing is rounded.",
+  "cases": [
+    {
+      "description": "Flow 8: ₹1,20,000 of chips with an open ₹50,000 marker: the marker settles, ₹70,000 to Arjun.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹1,20,000", "markers": "₹50,000" },
+      "expected": { "settled": "₹50,000", "toMember": "₹70,000" }
+    },
+    {
+      "description": "No markers: every chip to the member.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹35,000", "markers": "" },
+      "expected": { "settled": "", "toMember": "₹35,000" }
+    },
+    {
+      "description": "Less than the marker: ₹30,000 settles part of ₹50,000, nothing to the member.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹30,000", "markers": "₹50,000" },
+      "expected": { "settled": "₹30,000", "toMember": "₹0" }
+    },
+    {
+      "description": "Exactly the marker: it settles, nothing to the member.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹50,000", "markers": "₹50,000" },
+      "expected": { "settled": "₹50,000", "toMember": "₹0" }
+    },
+    {
+      "description": "Two markers, oldest first: ₹60,000 settles ₹50,000 and ₹10,000 of the next ₹20,000.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹60,000", "markers": "₹50,000 | ₹20,000" },
+      "expected": { "settled": "₹50,000 | ₹10,000", "toMember": "₹0" }
+    },
+    {
+      "description": "Two markers and more: ₹1,00,000 settles both, ₹30,000 to the member.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹1,00,000", "markers": "₹50,000 | ₹20,000" },
+      "expected": { "settled": "₹50,000 | ₹20,000", "toMember": "₹30,000" }
+    },
+    {
+      "description": "₹10,020 is not whole ₹50 chips: refused.",
+      "operation": "cash_out",
+      "inputs": { "chips": "₹10,020", "markers": "" },
+      "expected": { "settled": "not_chips", "toMember": "not_chips" }
+    }
+  ]
+}

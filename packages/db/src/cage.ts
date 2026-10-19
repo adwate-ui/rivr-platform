@@ -33,12 +33,15 @@ export interface BuyInRequest {
   readonly photoPath: string | null;
 }
 
-/** Why a buy-in did not go through; `moved` is a request from a seat the player has since left. */
+/**
+ * Why a buy-in or cash-out did not go through; `moved` is a request from a seat the player has since left, `not_in_room` a
+ * cash-out for a member not checked in.
+ */
 export type CageFailure = 'not_allowed' | 'no_member' | 'stopped' | 'paused' | 'kyc_needed' | 'on_break' | 'not_seated'
-  | 'not_chips' | 'below_minimum' | 'wallet_short' | 'utr_used' | 'moved' | 'invalid' | 'unavailable';
+  | 'not_chips' | 'below_minimum' | 'wallet_short' | 'utr_used' | 'moved' | 'not_in_room' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, CageFailure>> = {
-  '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVBRK: 'on_break',
+  '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVOUT: 'not_in_room',
   RVNST: 'not_seated', RVCHP: 'not_chips', RVMIN: 'below_minimum', RVSHT: 'wallet_short', RVUTR: 'utr_used', RVSTL: 'moved', '22023': 'invalid',
 };
 
@@ -92,7 +95,25 @@ export interface BuyInOrder {
   readonly buyInRequestId: string | null;
 }
 
-/** `buyIn` issues chips and `decline` turns a request down; each is a Result and reloads the cage. */
+/** A cash-out to make (#75): chips handed back, to cash or the wallet, once per request id. */
+export interface CashOutOrder {
+  readonly memberId: string;
+  readonly amount: Paise;
+  readonly to: 'cash' | 'wallet';
+  readonly requestId: string;
+}
+
+/** What a cash-out came to (#75): what it settled on markers, and what the member got in cash or to the wallet. */
+export interface CashOutDone {
+  readonly cageTransactionId: string;
+  readonly settled: Paise;
+  readonly toMember: Paise;
+}
+
+/**
+ * `buyIn` issues chips, `decline` turns a request down, and `cashOut` takes chips back, settling open
+ * markers first (#75); each is a Result and reloads the cage.
+ */
 export function useCageActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -115,5 +136,17 @@ export function useCageActions(venueId: string) {
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
-  return { buyIn, decline };
+  const cashOut = useMutation({
+    mutationFn: async (order: CashOutOrder): Promise<Result<CashOutDone, CageFailure>> => {
+      const { data, error } = await client.rpc('cage_cash_out', {
+        p_venue_id: venueId, p_member_id: order.memberId, p_amount_paise: Number(order.amount), p_to: order.to, p_idempotency_key: order.requestId,
+      });
+      await reload();
+      if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
+      const row = data[0];
+      return row === undefined ? err('unavailable')
+        : ok({ cageTransactionId: row.cage_transaction_id, settled: toPaise(row.markers_settled_paise), toMember: toPaise(row.to_member_paise) });
+    },
+  });
+  return { buyIn, decline, cashOut };
 }

@@ -48,7 +48,7 @@ export {
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { rakeChangeSchema } from './rake.ts';
-export { BUY_IN_METHODS, cageBuyInSchema, type BuyInMethodKey } from './cage.ts';
+export { BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, type BuyInMethodKey } from './cage.ts';
 export { creditLimitSchema, markerIssueSchema } from './credit.ts';
 export { badBeatSchema, jackpotReversalSchema } from './jackpot.ts';
 export {
