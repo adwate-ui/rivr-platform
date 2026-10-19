@@ -51,6 +51,10 @@ export const queryKeys = {
   creditRoom: (userId: string, venueId: string) => ['user', userId, 'credit-room', venueId] as const,
   openMarkers: (userId: string, venueId: string) => ['user', userId, 'open-markers', venueId] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
+  memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
+  memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,
+  memberEarlyDepartures: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-early-departures', venueId, memberId] as const,
+  venueTiers: (userId: string, venueId: string) => ['user', userId, 'venue-tiers', venueId] as const,
   /** The signed-in dealer tablet and its table. */
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */

@@ -4,6 +4,7 @@
  */
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
+import { members } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
 import { dealerPins, dealerSignIn, endOfDown, handEntry, pairing, queue, seats, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHand, highHands } from './highHands.ts';
@@ -157,6 +158,7 @@ export const consoleApp = {
   checkIn,
   cage,
   markers,
+  members,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   waitlist,

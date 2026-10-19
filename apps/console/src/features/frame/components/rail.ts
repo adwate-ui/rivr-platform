@@ -42,7 +42,10 @@ const RAIL: readonly RailGroup[] = [
   {
     id: 'players',
     label: 'ui.consoleRail.groups.players',
-    entries: [{ id: 'kycReview', label: 'ui.consoleRail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] }],
+    entries: [
+      { id: 'members', label: 'ui.consoleRail.items.members', href: '/members', anyOf: ['members.read'] },
+      { id: 'kycReview', label: 'ui.consoleRail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] },
+    ],
   },
   {
     id: 'growth',

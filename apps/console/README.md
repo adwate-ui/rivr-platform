@@ -31,6 +31,7 @@ src/
     check-in/         the door: members expected and in the room, check in from the list or by mobile number (/check-in)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
+    members/          a member found by name, mobile or number; the record, early departures and a tier change (/members)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
