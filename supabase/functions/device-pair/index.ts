@@ -11,14 +11,23 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const AS_SERVER = { apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}`, 'content-type': 'application/json' };
 
-// Only the device apps call this: the tablet's Android shell (https://localhost under Capacitor), and
-// a local preview. A web page elsewhere cannot make its visitors' browsers send codes.
+// Only the device apps call this: the tablet's Android shell (https://localhost under Capacitor), a
+// local preview, and the hosted tablet and TV bundles the shells load, which the deploy names in
+// DEVICE_APP_ORIGINS (comma-separated). A web page elsewhere cannot make its visitors' browsers send codes.
 const DEVICE_ORIGIN = /^(https:\/\/localhost|capacitor:\/\/localhost|http:\/\/(localhost|127\.0\.0\.1):\d+)$/;
+const HOSTED_ORIGINS = (Deno.env.get('DEVICE_APP_ORIGINS') ?? '').split(',').flatMap((address) => {
+  try {
+    return [new URL(address.trim()).origin];
+  } catch {
+    return [];
+  }
+});
 
 function cors(request: Request): Record<string, string> {
   const origin = request.headers.get('origin') ?? '';
+  const isDevice = DEVICE_ORIGIN.test(origin) || HOSTED_ORIGINS.includes(origin);
   return {
-    'access-control-allow-origin': DEVICE_ORIGIN.test(origin) ? origin : 'https://localhost',
+    'access-control-allow-origin': isDevice ? origin : 'https://localhost',
     'access-control-allow-headers': 'authorization, apikey, content-type, x-client-info',
     'access-control-allow-methods': 'POST, OPTIONS',
     vary: 'origin',

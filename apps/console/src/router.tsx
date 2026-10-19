@@ -6,10 +6,11 @@ import { kycReviewRoute } from './routes/kyc-review.tsx';
 import { waitlistRoute } from './routes/waitlist.tsx';
 import { rootRoute } from './routes/root.tsx';
 import { signInRoute } from './routes/sign-in.tsx';
+import { tabletsRoute } from './routes/tablets.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  frameRoute.addChildren([homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute]),
+  frameRoute.addChildren([homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, tabletsRoute]),
 ]);
 
 /** The console app's router; tests pass a memory history. */
