@@ -70,5 +70,18 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.visit $$, 'staff at the practice venue only see none of the club''s');
 reset role;
 
+-- A frozen member, and anyone while the venue is frozen, is refused with the reason.
+insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)
+select '00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000203', 'Dispute', s.id
+from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.check_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000203') $$, 'RVMBR', null,
+  'a frozen member is refused at the door');
+reset role;
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.check_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000204') $$, 'RVFRZ', null,
+  'and nobody is checked in while the venue is frozen');
+
 select * from finish();
 rollback;

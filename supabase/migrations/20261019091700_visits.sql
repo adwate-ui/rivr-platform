@@ -65,12 +65,12 @@ begin
   if not exists (select 1 from public.member m where m.id = p_member_id and m.venue_id = p_venue_id) then
     raise exception 'No such member at this venue' using errcode = 'RVNOM';
   end if;
+  -- One at a time per member: two taps open one visit, and a break that starts meanwhile is seen.
+  perform 1 from public.member m where m.id = p_member_id for update;
   perform private.assert_writable(p_venue_id, null, p_member_id);
   if (select r.break_until from private.member_restrictions(p_member_id, now()) r) is not null then
     raise exception 'On a break: the member cannot be checked in until it ends' using errcode = 'RVBRK';
   end if;
-  -- One at a time per member, so two taps open one visit.
-  perform 1 from public.member m where m.id = p_member_id for update;
   v_id := private.current_visit(p_member_id);
   if v_id is not null then return v_id; end if;
   insert into public.visit (venue_id, member_id, opened_by_staff_id)
