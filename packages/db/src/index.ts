@@ -54,6 +54,17 @@ export {
   type PushChoice,
   type Stake,
 } from './preferences.ts';
+export {
+  useFloorTables,
+  useFloorWaitlistActions,
+  useMyWaitlist,
+  useWaitlistActions,
+  useWaitlistBoard,
+  type FloorTable,
+  type WaitlistBoardEntry,
+  type WaitlistFailure,
+  type WaitlistPlace,
+} from './waitlist.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';

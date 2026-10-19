@@ -1,5 +1,6 @@
 -- Staff (one per role, two super admins and two cashiers for dual control, and a second admin so
--- each KYC flow signs in its own reviewer: Auth sends one code a minute to a number) and members.
+-- each KYC flow signs in its own reviewer, and a second host for the Waitlist flow: Auth sends one
+-- code a minute to a number) and members.
 -- Everyone signs in by phone. Local stacks accept code 123456 for these numbers
 -- (supabase/config.template.toml, [auth.sms.test_otp]); no password is stored anywhere.
 
@@ -20,12 +21,14 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000108', '+919000000108', 'Karan Gill'),
   ('00000000-0000-4000-8000-000000000109', '+919000000109', 'Nikhil Bansal'),
   ('00000000-0000-4000-8000-000000000110', '+919000000110', 'Rhea Kulkarni'),
+  ('00000000-0000-4000-8000-000000000111', '+919000000111', 'Zoya Sheikh'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
   ('00000000-0000-4000-8000-000000000204', '+919000000204', 'Rohan Bhatia'),
   ('00000000-0000-4000-8000-000000000209', '+919000000209', 'Tara Menon'),
   ('00000000-0000-4000-8000-000000000210', '+919000000210', 'Dev Malhotra'),
+  ('00000000-0000-4000-8000-000000000211', '+919000000211', 'Ishaan Verma'),
   ('00000000-0000-4000-8000-000000000301', '+919000000301', 'Asha Verma'),
   ('00000000-0000-4000-8000-000000000302', '+919000000302', 'Rajat Singh');
 
@@ -58,6 +61,7 @@ from (values
   ('00000000-0000-4000-8000-000000000106'::uuid, 'Dealer', 'dealer'),
   ('00000000-0000-4000-8000-000000000107'::uuid, 'Marketing manager', 'marketing'),
   ('00000000-0000-4000-8000-000000000108'::uuid, 'Host', 'host'),
+  ('00000000-0000-4000-8000-000000000111'::uuid, 'Host', 'host'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id
@@ -77,7 +81,9 @@ from (values
   -- The Profile flow's own member: Auth sends one code a minute to a number, so each flow signs in as its own.
   ('00000000-0000-4000-8000-000000000209'::uuid, 'Member', null, null),
   -- The Academy booking flow's own member.
-  ('00000000-0000-4000-8000-000000000210'::uuid, 'Member', null, null)
+  ('00000000-0000-4000-8000-000000000210'::uuid, 'Member', null, null),
+  -- The Waitlist flow's own member, who has finished the identity check (55_waitlist.sql).
+  ('00000000-0000-4000-8000-000000000211'::uuid, 'Member', null, null)
 ) as m (person_id, tier_name, small_blind, big_blind)
 join seed_person p on p.id = m.person_id
 on conflict (id) do nothing;

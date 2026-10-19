@@ -3,9 +3,10 @@
  * build screens; a large area moves into its own namespace file.
  */
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
+import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
-  tonight: { title: 'Tonight', empty: 'No tables are running.' },
+  tonight,
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
   balance: { title: 'Balance', empty: 'No movements yet.' },
   rewards: { title: 'Rewards', empty: 'No rewards yet.' },
@@ -138,6 +139,7 @@ export const consoleApp = {
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   liveFloor: { title: 'Live floor', empty: 'No tables are running.' },
+  waitlist,
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',

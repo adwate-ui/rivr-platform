@@ -21,7 +21,10 @@ const RAIL: readonly RailGroup[] = [
   {
     id: 'floor',
     label: 'ui.consoleRail.groups.floor',
-    entries: [{ id: 'liveFloor', label: 'ui.consoleRail.items.liveFloor', href: '/', anyOf: [] }],
+    entries: [
+      { id: 'liveFloor', label: 'ui.consoleRail.items.liveFloor', href: '/', anyOf: [] },
+      { id: 'waitlist', label: 'ui.consoleRail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
+    ],
   },
   {
     id: 'money',
