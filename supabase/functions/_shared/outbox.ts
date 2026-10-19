@@ -12,8 +12,11 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const AS_SERVER = { apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}`, 'content-type': 'application/json' };
 
-async function rpc(name: string, args: object): Promise<unknown> {
-  const answer = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, { method: 'POST', headers: AS_SERVER, body: JSON.stringify(args) });
+/** Calls a database function with the service role; throws when it fails, so a delivery is tried again. */
+export async function rpc(name: string, args: object): Promise<unknown> {
+  const answer = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
+    method: 'POST', headers: AS_SERVER, body: JSON.stringify(args), signal: AbortSignal.timeout(5_000),
+  });
   if (!answer.ok) throw new Error(`${name} failed (${answer.status})`);
   return answer.status === 204 ? null : await answer.json();
 }

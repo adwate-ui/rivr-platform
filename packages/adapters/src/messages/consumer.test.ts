@@ -1,18 +1,20 @@
 import { indianMobileSchema } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
 import type { ClaimedDelivery } from '../outbox/index.ts';
-import { createFakeWhatsApp } from './fake.ts';
+import { createFakeWhatsApp } from '../whatsapp/fake.ts';
 import { createWhatsAppConsumer, type FindRecipient } from './consumer.ts';
 
 const MEMBER = '00000000-0000-4000-8000-000000000211';
 const phone = indianMobileSchema.parse('+919000000211');
-const findRecipient: FindRecipient = async (memberId) => (memberId === MEMBER ? { phone, marketingOptedInAt: null } : null);
+const VENUE = 'v1';
+const findRecipient: FindRecipient = async (venueId, memberId) =>
+  (venueId === VENUE && memberId === MEMBER ? { phone, marketingOptedInAt: null } : null);
 
 // Ten minutes before the hold in these calls runs out.
 const now = () => new Date('2026-11-15T18:50:00Z');
 
 function delivery(eventType: string, payload: unknown): ClaimedDelivery {
-  return { deliveryId: 'd1', eventId: 'e1', venueId: 'v1', eventType, payload, attempts: 1 };
+  return { deliveryId: 'd1', eventId: 'e1', venueId: VENUE, eventType, payload, attempts: 1 };
 }
 
 describe('the WhatsApp consumer', () => {
@@ -52,11 +54,19 @@ describe('the WhatsApp consumer', () => {
     expect(whatsapp.calls).toEqual([]);
   });
 
-  it('drops a seat call claimed after its hold ran out', async () => {
+  it('handles a seat call claimed after its hold ran out without sending it, and without failing it', async () => {
     const whatsapp = createFakeWhatsApp();
     const late = createWhatsAppConsumer({ whatsapp, findRecipient, now: () => new Date('2026-11-15T19:00:00Z') });
     const called = { member_id: MEMBER, table_name: 'Table 3', seat: 9, hold_until: '2026-11-15T19:00:00+00:00' };
-    expect(await late.deliver(delivery('waitlist.called', called))).toEqual({ ok: false, error: { code: 'rejected', reason: 'the hold has expired' } });
+    expect(await late.deliver(delivery('waitlist.called', called))).toEqual({ ok: true, value: null });
+    expect(whatsapp.calls).toEqual([]);
+  });
+
+  it('finds the member only at the event\'s venue', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    const called = { member_id: MEMBER, table_name: 'Table 3', seat: 9, hold_until: '2026-11-15T19:00:00+00:00' };
+    expect(await consumer.deliver({ ...delivery('waitlist.called', called), venueId: 'elsewhere' })).toMatchObject({ ok: false, error: { code: 'rejected' } });
     expect(whatsapp.calls).toEqual([]);
   });
 

@@ -1138,7 +1138,7 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "message_recipient":
-{ Args: { "p_member_id": string }; Returns: {
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
             }[]
                            },

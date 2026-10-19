@@ -1,8 +1,8 @@
-import { err, receiptReadySchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
+import { err, ok, receiptReadySchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
 import { formatMoney, formatTime } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
-import type { WhatsAppAdapter, WhatsAppMessage } from './types.ts';
+import type { WhatsAppAdapter, WhatsAppMessage } from '../whatsapp/types.ts';
 
 /** Who a message goes to: the member's number, and when they opted in to marketing, if they did. */
 export interface MessageRecipient {
@@ -10,22 +10,28 @@ export interface MessageRecipient {
   readonly marketingOptedInAt: Date | null;
 }
 
-/** Finds a member's number when a message is sent; null for a member who is no longer there. */
-export type FindRecipient = (memberId: string) => Promise<MessageRecipient | null>;
+/** Finds a member of the event's venue when a message is sent; null for one who is not there (or a practice member). */
+export type FindRecipient = (venueId: string, memberId: string) => Promise<MessageRecipient | null>;
 
 /** The events the WhatsApp consumer sends a message for. */
 export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready'] as const;
 
 const rejected = (reason: string) => err<AdapterFailure>({ code: 'rejected', reason });
 
-/** The template message for a delivery, or why there is none. Neither the number nor the payload is ever logged. */
-async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date): Promise<Result<WhatsAppMessage, AdapterFailure>> {
+/** Nothing to send, and nothing wrong: a seat call whose hold ran out before it was claimed. */
+const HANDLED = null;
+
+/**
+ * The template message for a delivery, null when it needs none, or why it cannot be sent. Neither the
+ * number nor the payload is ever logged.
+ */
+async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
   if (delivery.eventType === 'waitlist.called') {
     const called = waitlistCalledSchema.safeParse(delivery.payload);
     if (!called.success) return rejected('waitlist.called payload is not a seat call');
-    // A call claimed after its hold ran out would send the member to a seat that is gone.
-    if (new Date(called.data.hold_until) <= now) return rejected('the hold has expired');
-    const recipient = await findRecipient(called.data.member_id);
+    // A call claimed after its hold ran out would send the member to a seat that is gone: handled, unsent.
+    if (new Date(called.data.hold_until) <= now) return ok(HANDLED);
+    const recipient = await findRecipient(delivery.venueId, called.data.member_id);
     if (!recipient) return rejected('the member is no longer there');
     const { table_name: table, seat, hold_until: holdUntil } = called.data;
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'seat_ready', params: [table, String(seat), formatTime(new Date(holdUntil))] } };
@@ -33,7 +39,7 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
   if (delivery.eventType === 'receipt.ready') {
     const receipt = receiptReadySchema.safeParse(delivery.payload);
     if (!receipt.success) return rejected('receipt.ready payload is not a receipt');
-    const recipient = await findRecipient(receipt.data.member_id);
+    const recipient = await findRecipient(delivery.venueId, receipt.data.member_id);
     if (!recipient) return rejected('the member is no longer there');
     const amount = formatMoney(BigInt(receipt.data.amount_paise));
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'receipt_ready', params: [amount], urlButton: receipt.data.link } };
@@ -59,7 +65,8 @@ export function createWhatsAppConsumer({ whatsapp, findRecipient, now = () => ne
     isMessaging: true,
     async deliver(delivery) {
       const message = await messageFor(delivery, findRecipient, now());
-      return message.ok ? whatsapp.sendTemplate(message.value) : message;
+      if (!message.ok) return message;
+      return message.value === HANDLED ? ok(HANDLED) : whatsapp.sendTemplate(message.value);
     },
   };
 }

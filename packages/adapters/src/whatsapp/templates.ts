@@ -22,7 +22,8 @@ export const WHATSAPP_TEMPLATES = {
   },
   promotion: {
     category: 'marketing',
-    body: '{{1}} Reply STOP to stop these messages.',
+    // Meta refuses a body that is mostly a parameter. Opting out is the member's Profile, until #154 reads replies.
+    body: 'News from RIVR Poker Club: {{1}} To stop these messages, turn them off in Profile in the RIVR app.',
     urlButton: false,
   },
 } as const;

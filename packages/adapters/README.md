@@ -42,7 +42,7 @@ Every fake records its calls (`fake.calls`) and fails on demand (`fake.failNext(
 import { createAdapters } from '@rivr/adapters';
 
 const adapters = createAdapters({ isPracticeVenue: venue.isPractice, live: liveAdaptersFromVault() });
-const sent = await adapters.whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: ['Table 3', '6'] });
+const sent = await adapters.whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: ['Table 3', '9', '00:30'] });
 if (!sent.ok && sent.error.code !== 'rejected') return retryLater();
 ```
 
@@ -92,4 +92,4 @@ Implement the same interface in the vendor's folder (`live.ts`), with `fetch` on
 
 `runConsumer(store, consumer)` runs one consumer once (#12). It claims the consumer's batch, hands each delivery to its one adapter, and finishes each as delivered, or as failed with a backoff that doubles from a minute (`backoffSeconds`, at most six hours). A delivery the vendor rejected fails at once; any other fails for good after `MAX_ATTEMPTS` (ten) attempts. A delivery that fails for good alerts the owner (`private.raise_alert`), at most once an hour per consumer. A consumer Edge Function is one line over `supabase/functions/_shared/outbox.ts`: `Deno.serve(serveConsumer({ name, eventTypes, isMessaging, deliver }))`. Practice-venue events never reach a consumer.
 
-`createWhatsAppConsumer({ whatsapp, findRecipient })` is the WhatsApp consumer (#62, `supabase/functions/whatsapp`): the seat call for `waitlist.called` (`seat_ready`: table, seat, hold expiry in IST; dropped once the hold has run out) and the receipt notice for `receipt.ready`. A messaging consumer, so a messaging stop holds it. Payloads name the member; `findRecipient` reads the number and marketing opt-in at send time (`message_recipient`, service role only), so no outbox row holds a phone.
+`createWhatsAppConsumer({ whatsapp, findRecipient })` (`@rivr/adapters/messages`, kept off the main entry because it formats with `@rivr/i18n`) is the WhatsApp consumer (#62, `supabase/functions/whatsapp`): the seat call for `waitlist.called` (`seat_ready`: table, seat, hold expiry in IST; handled unsent once the hold has run out) and the receipt notice for `receipt.ready`. A messaging consumer, so a messaging stop holds it. Payloads name the member; `findRecipient(venueId, memberId)` reads the number and marketing opt-in at send time, for the event's venue and never a practice member (`message_recipient`, service role only), so no outbox row holds a phone. The live adapter refuses a marketing template sent as anything but marketing, and a link suffix that is not a plain path. `scripts/ci/check-function-imports.mjs` (in `pnpm verify`) fails when a function reaches a bare import its `deno.json` does not map.

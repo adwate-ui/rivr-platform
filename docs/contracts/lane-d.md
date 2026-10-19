@@ -17,7 +17,6 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `channel_metric` | Daily follower counts per channel |
 | `wall_post` | Tagged Instagram posts and their moderation |
 | `feedback_survey`, `feedback_ticket`, `review_request` | Visit feedback (3 or below opens a ticket for the General Manager); review request after the third visit, sent regardless of score |
-| `message_template` | WhatsApp utility and marketing templates (English) |
 | `host_queue_item` | Lapsed players with churn reasons and offers |
 
 ## Functions offered to other lanes
@@ -34,7 +33,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 ## Events
 
 - Emits: `promotion.published`, `promotion.granted`, `points.earned`, `reward.redeemed`, `winner_card.rendered`, `post.published`, `lead.created`, `feedback.received`.
-- Consumes (as outbox consumers): `hand.logged`, `high_hand.approved`, `jackpot.paid`, `tournament.finished` (winner cards, League); `visit.closed` (feedback survey, review request on the third visit, Meta repeat visit); `member.signed_up`, `kyc.completed`, `academy.booked`, `cage.buy_in`, `tournament.entered` (Meta Conversions API and Google offline conversions, with consent); `waitlist.called` (WhatsApp seat call); `promotion.published` (publishing, WhatsApp marketing to opted-in members); `alert.raised` (alert WhatsApp).
+- Consumes (as outbox consumers): `hand.logged`, `high_hand.approved`, `jackpot.paid`, `tournament.finished` (winner cards, League); `visit.closed` (feedback survey, review request on the third visit, Meta repeat visit); `member.signed_up`, `kyc.completed`, `academy.booked`, `cage.buy_in`, `tournament.entered` (Meta Conversions API and Google offline conversions, with consent); `waitlist.called` (WhatsApp seat call, `waitlistCalledSchema`: member, table name, seat, hold until); `receipt.ready` (WhatsApp receipt notice, `receiptReadySchema`, from lane A's receipts); templates are `WHATSAPP_TEMPLATES` in `@rivr/adapters/whatsapp` (decision 0043), not a table; `promotion.published` (publishing, WhatsApp marketing to opted-in members); `alert.raised` (alert WhatsApp).
 
 ## Uses from other lanes
 

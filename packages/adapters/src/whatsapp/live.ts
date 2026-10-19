@@ -1,6 +1,7 @@
-import { err, ok, type Result } from '@rivr/contracts';
+import { err, linkSuffixSchema, ok, type Result } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
 import { errorCodeFrom, messageIdFrom } from './parse/reply.ts';
+import { WHATSAPP_TEMPLATES } from './templates.ts';
 import type { WhatsAppAdapter, WhatsAppMessage } from './types.ts';
 
 /** The Graph API version the requests name. Meta supports each version for about two years. */
@@ -75,6 +76,18 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
+/**
+ * Why a message must not go: a marketing template sent as anything but marketing, which would reach a
+ * member without their opt-in (Meta fixes a template's category when it approves it), or a link
+ * suffix that could add a query or a host. Null when it may go.
+ */
+function refusal(message: WhatsAppMessage): string | null {
+  const known = Object.entries(WHATSAPP_TEMPLATES).find(([name]) => name === message.template)?.[1];
+  if (known?.category === 'marketing' && message.category !== 'marketing') return 'a marketing template needs the member\'s opt-in';
+  if (message.urlButton !== undefined && !linkSuffixSchema.safeParse(message.urlButton).success) return 'the link suffix is not a plain path';
+  return null;
+}
+
 /** WhatsApp through Meta's Cloud API directly (scope-v1, decision S-D3). Runs under Deno and Node. */
 export function createWhatsAppCloudApi({
   phoneNumberId,
@@ -85,6 +98,8 @@ export function createWhatsAppCloudApi({
   const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`;
   return {
     async sendTemplate(message): Promise<Result<{ readonly messageId: string }, AdapterFailure>> {
+      const refused = refusal(message);
+      if (refused !== null) return err({ code: 'rejected', reason: refused });
       let response: Response;
       try {
         response = await fetch(url, {
