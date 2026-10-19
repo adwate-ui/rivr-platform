@@ -34,4 +34,10 @@ export const Closed: Story = { args: { name: 'Table 4', stakes: '100/200', seats
 
 export const TenSeats: Story = { args: { name: 'Table 6', stakes: '25/50', seats: seats(10, { 1: 'AB', 10: 'YZ' }), label: 'Table 6, 2 of 10 seats taken' } };
 
+/** On the dealer tablet: each seat a button with its number under it, seat 8 chosen (#59). */
+export const Selectable: Story = {
+  args: { name: 'Table 3', stakes: '100/200', selectedSeat: 8, onSelectSeat: () => undefined, label: 'Table 3',
+    seats: seats(9, { 1: 'VR', 2: 'DM', 3: 'IC', 4: 'MI', 5: 'TA', 6: 'SJ', 7: 'AK', 8: 'FQ' }) },
+};
+
 export const LongText: Story = { args: { name: 'Private Room', stakes: '100/200 · ₹500 straddle', label: 'Private Room, 6 of 9 seats taken' } };

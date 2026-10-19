@@ -121,8 +121,8 @@ select throws_ok($$ select public.begin_kyc_vendor_call('00000000-0000-4000-8000
   'nor pass the gate themselves');
 select throws_ok($$ update public.kyc_record set status = 'verified' $$, '42501', null, 'nor change it directly');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select is((select count(*)::int from public.kyc_record), 8,
-  'a KYC reviewer sees the records of the venues they work at (seeded staff: both; three seeded records)');
+select is((select count(*)::int from public.kyc_record), 9,
+  'a KYC reviewer sees the records of the venues they work at (seeded staff: both; four seeded records)');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000108", "role": "authenticated"}';
 select is((select count(*)::int from public.kyc_record), 0, 'a host sees none');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000ea", "role": "authenticated"}';

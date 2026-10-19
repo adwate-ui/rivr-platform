@@ -137,7 +137,7 @@ insert into ids select 'again', public.seat_member((select id from public.game_t
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.cage_queue('00000000-0000-4000-8000-000000000001') $$, 'his request from seat 1 leaves the queue');
 select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'wallet', gen_random_uuid(), null, (select id from ids where name = 'pending')) $$,
-  'RVSTL', null, 'and is not paid to the seat he sits in now');
+  '22023', null, 'and, withdrawn when he left (#59), is not paid to the seat he sits in now');
 
 -- Frozen: the member is served nothing; while the venue is frozen the cage neither issues nor declines.
 reset role;

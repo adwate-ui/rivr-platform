@@ -11,8 +11,8 @@ from (values
 join public.table_type tt on tt.code = 'nlh_100_200' and tt.venue_id = '00000000-0000-4000-8000-000000000001'
 on conflict (venue_id, idempotency_key) do nothing;
 
--- Ishaan Verma, Vihaan Kapoor (a black card) and Mihir Shah have finished the identity check, so the
--- Waitlist and Self-exclusion flows and a demo can put them on a list.
+-- Ishaan Verma, Vihaan Kapoor (a black card), Mihir Shah and Yash Gupta have finished the identity
+-- check, so the Waitlist, Self-exclusion and Seat events flows and a demo can put them on a list or a seat.
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'verified', 'digilocker',
    '1994-08-21', 'ABCPV2111K',
@@ -22,7 +22,10 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
    '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000212/selfie.jpg', now()),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 'verified', 'digilocker',
    '1991-11-03', 'ABCPS2133M',
-   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000213/selfie.jpg', now())
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000213/selfie.jpg', now()),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'verified', 'digilocker',
+   '1996-05-30', 'ABCPG2144N',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000214/selfie.jpg', now())
 on conflict do nothing;
 
 -- Waitlist priority (#40): the black card first on the list for its qualifying stake, then Founders'

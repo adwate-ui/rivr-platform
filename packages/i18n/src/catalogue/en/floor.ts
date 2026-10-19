@@ -37,6 +37,8 @@ export const liveFloor = {
   heldMark: 'H',
   /** At a must-move table: the player's turn to move up, 1 first. */
   mustMove: 'Must move {order}',
+  /** A player away from the table, the seat kept (#59). */
+  away: 'Away',
   move: 'Move',
   moveName: 'Move {name}',
   moveTitle: 'Move {name}',
