@@ -37,6 +37,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000122', '+919000000122', 'Ishaan Grover'),
   ('00000000-0000-4000-8000-000000000123', '+919000000123', 'Nandini Rao'),
   ('00000000-0000-4000-8000-000000000124', '+919000000124', 'Sunita Pillai'),
+  ('00000000-0000-4000-8000-000000000125', '+919000000125', 'Kiran Bhat'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -93,6 +94,8 @@ from (values
   ('00000000-0000-4000-8000-000000000111'::uuid, 'Host', 'host'),
   -- The Check-in flow's own front desk (#72).
   ('00000000-0000-4000-8000-000000000124'::uuid, 'Front desk', 'host'),
+  -- The Seating flow's own floor manager (#77).
+  ('00000000-0000-4000-8000-000000000125'::uuid, 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id

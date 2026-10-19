@@ -2,6 +2,7 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
+import { checkIn, liveFloor } from './floor.ts';
 import { consoleDevices, displayDevices, tabletDevices } from './devices.ts';
 import { consoleHighHands, tabletHighHands } from './highHands.ts';
 import { consoleJackpots } from './jackpots.ts';
@@ -150,29 +151,11 @@ export const playerApp = {
 } as const;
 
 export const consoleApp = {
+  liveFloor,
+  checkIn,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
-  liveFloor: { title: 'Live floor', empty: 'No tables are running.' },
   waitlist,
-  /** The door's Check-in (#72), as in the prototype. */
-  checkIn: {
-    title: 'Check-in',
-    expected: 'Expected',
-    inRoom: 'In the room',
-    checkIn: 'Check in',
-    /** Check in's name for a screen reader, beside one expected member. */
-    checkInMember: 'Check in {name}',
-    phone: 'Mobile number',
-    noneExpected: 'No one expected.',
-    noneInRoom: 'No one in the room yet.',
-    notAllowed: 'Your role does not check members in. The front desk, floor managers and admins do.',
-    invalid: 'Enter a 10-digit mobile number.',
-    noMember: 'No member has that number. Sign them up first.',
-    onBreak: 'This member is on a break from play. They cannot be checked in until it ends.',
-    stopped: 'This member is frozen. Ask a manager.',
-    paused: 'The venue is frozen. Members are checked in again once it is released.',
-    unavailable: 'That did not go through. Check the connection and try again.',
-  },
   ...consoleDevices,
   ...consoleRake,
   ...consoleJackpots,

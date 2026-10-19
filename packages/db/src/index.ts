@@ -64,6 +64,7 @@ export {
   type SessionReminder,
 } from './restrictions.ts';
 export { useCheckInActions, useDoorBoard, type CheckInFailure, type DoorMember } from './visits.ts';
+export { useFloorSeats, useHeldSeats, useSeatActions, type HeldSeat, type SeatedPlayer, type SeatFailure } from './seats.ts';
 export {
   useFloorTables,
   useFloorWaitlistActions,

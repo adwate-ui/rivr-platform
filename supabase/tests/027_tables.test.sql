@@ -64,14 +64,14 @@ select is_empty($$ select * from public.game_table where venue_id <> '00000000-0
   'staff of another venue see none of these tables');
 select is_empty($$ select * from public.table_type where venue_id <> '00000000-0000-4000-8000-0000000000f1' $$,
   'nor their table types');
+-- Tables open and close through set_table_open (#77), which keeps a table with players open.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';
-update public.game_table set is_open = true where name = 'Table 4';
-reset role;
-select is((select is_open from public.game_table where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001'), false,
-  'a dealer cannot open a table');
-set local role authenticated;
+select throws_ok($$ select public.set_table_open((select id from public.game_table where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001'), true) $$,
+  '42501', null, 'a dealer cannot open a table');
+select throws_ok($$ update public.game_table set is_open = true where name = 'Table 4' $$, '42501', null, 'nor by changing the row');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-update public.game_table set is_open = true where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001';
+select lives_ok($$ select public.set_table_open((select id from public.game_table where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001'), true) $$,
+  'a floor manager opens Table 4');
 reset role;
 select is((select is_open from public.game_table where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001'), true,
   'a floor manager opens Table 4');
