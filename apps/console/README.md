@@ -33,6 +33,7 @@ src/
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
     tables/           each table type's rake now and changes from a time, scheduled and withdrawn (/rake)
     jackpots/         the jackpot's pools and payout rule, paying a bad beat in chips, and reversing a payout (/jackpots)
+    high-hands/       high hands claimed on the tablets: approve and pay in chips, or reject; the history (/high-hands)
 ```
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.

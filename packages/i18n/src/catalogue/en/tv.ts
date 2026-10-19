@@ -16,4 +16,15 @@ export const tv = {
     social_wall: 'Social wall',
     spin_wheel: 'Spin wheel',
   },
+  /** The high hands the club pays (#47), on the TV, the tablet and the console. */
+  highHand: {
+    four_of_a_kind: 'Four of a kind',
+    straight_flush: 'Straight flush',
+    royal_flush: 'Royal flush',
+  },
+  /** The rank of a four of a kind, as the tablet keeps it. */
+  ranks: {
+    A: 'Aces', K: 'Kings', Q: 'Queens', J: 'Jacks', T: 'Tens', '9': 'Nines', '8': 'Eights',
+    '7': 'Sevens', '6': 'Sixes', '5': 'Fives', '4': 'Fours', '3': 'Threes', '2': 'Twos',
+  },
 } as const;

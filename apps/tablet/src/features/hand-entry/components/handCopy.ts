@@ -1,4 +1,4 @@
-import type { HandVariant, LogHandFailure } from '@rivr/db';
+import type { HandVariant, HighHandClaimFailure, LogHandFailure, TabletHighHand } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 
 const VARIANT_COPY: Readonly<Record<HandVariant, MessageKey>> = {
@@ -28,4 +28,30 @@ export function variantOptions(hasVariation: boolean): { value: HandVariant; lab
 /** What the tablet says when a hand was not logged, and what to do. */
 export function logFailureText(failure: LogHandFailure): string {
   return t(FAILURE_COPY[failure]);
+}
+
+const CLAIM_FAILURE_COPY: Readonly<Record<HighHandClaimFailure, MessageKey>> = {
+  not_paying: 'tablet.highHand.notPaying',
+  no_seat: 'tablet.highHand.noSeat',
+  no_dealer: 'tablet.highHand.noDealer',
+  already_claimed: 'tablet.highHand.alreadyClaimed',
+  paused: 'tablet.highHand.paused',
+  switched_off: 'tablet.highHand.switchedOff',
+  unavailable: 'tablet.highHand.unavailable',
+};
+
+const CLAIM_STATUS_COPY: Readonly<Record<TabletHighHand['status'], MessageKey>> = {
+  claimed: 'tablet.highHand.waiting',
+  approved: 'tablet.highHand.approved',
+  rejected: 'tablet.highHand.rejected',
+};
+
+/** What the tablet says when a high-hand claim at `seat` did not go through. */
+export function highHandFailureText(failure: HighHandClaimFailure, seat: number): string {
+  return t(CLAIM_FAILURE_COPY[failure], { seat });
+}
+
+/** A hand's high-hand claim as its row shows it: waiting for the floor, approved or not. */
+export function claimStatusText(status: TabletHighHand['status']): string {
+  return t(CLAIM_STATUS_COPY[status]);
 }

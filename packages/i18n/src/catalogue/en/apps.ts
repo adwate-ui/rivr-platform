@@ -3,6 +3,7 @@
  * build screens; a large area moves into its own namespace file.
  */
 import { consoleDevices, displayDevices, tabletDevices } from './devices.ts';
+import { consoleHighHands, tabletHighHands } from './highHands.ts';
 import { consoleJackpots } from './jackpots.ts';
 import { consoleRake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
@@ -147,6 +148,7 @@ export const consoleApp = {
   ...consoleDevices,
   ...consoleRake,
   ...consoleJackpots,
+  ...consoleHighHands,
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',
@@ -226,6 +228,7 @@ export const tabletApp = {
   unassignedTable: 'Not assigned',
   title: 'Dealer tablet',
   ...tabletDevices,
+  ...tabletHighHands,
 } as const;
 
 export const displayApp = {
