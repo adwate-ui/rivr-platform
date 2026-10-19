@@ -20,14 +20,22 @@ select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-0000
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
 select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000203', 'no') $$,
   '22023', null, 'a super admin gives a reason');
-select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000203', 'Her PAN is ABCPN1234D, not a duplicate') $$,
-  '22023', null, 'with no document number in it');
+select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000203', 'Her PAN is ABCPN 1234 D, not a duplicate') $$,
+  '22023', null, 'with no document number in it, however it is spaced');
+select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000203', 'Aadhaar ends ४३२१, not hers') $$,
+  '22023', null, 'nor any digit, Devanagari included: the audit log keeps the reason for good');
 select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000204', 'Not the same face') $$,
   'RVKYC', null, 'only a check done in person is reopened: a vendor''s refusal stands');
 select lives_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000203', 'The date of birth was typed wrong at the desk') $$,
   'a super admin reopens a refused check done in person');
+select is_empty($$ select * from public.kyc_in_person_candidates('00000000-0000-4000-8000-000000000001', 'naina') $$,
+  'whoever reopened it never does the check that follows');
+select throws_ok($$ select public.authorize_in_person_kyc('00000000-0000-4000-8000-000000000203') $$,
+  '42501', null, 'not even by calling it directly');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
 select results_eq($$ select full_name from public.kyc_in_person_candidates('00000000-0000-4000-8000-000000000001', 'naina') $$,
-  $$ values ('Naina Kapoor'::text) $$, 'and the member can be checked in person again');
+  $$ values ('Naina Kapoor'::text) $$, 'another reviewer can check the member in person again');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
 select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000203', 'Again') $$,
   'RVKYC', null, 'a check is reopened only while refused');
 reset role;
@@ -46,12 +54,26 @@ insert into public.member (id, venue_id, user_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000002f9', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000101',
         'Vikram Rao', '+919000000101');
 insert into public.kyc_record (venue_id, member_id, status, method, refusal, date_of_birth, photo_path) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000002f9', 'refused', 'manual', 'under_18', '2012-01-01',
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000002f9', 'refused', 'manual', 'duplicate_pan', '1980-01-01',
    '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000002f9/in-person-00000000-0000-4000-8000-0000000000a2.jpg');
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
 select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-0000000002f9', 'My own check') $$,
   '42501', null, 'a super admin never reopens their own check');
+reset role;
+
+-- Only a duplicate is reopened: under 18 stands.
+reset role;
+select set_config('request.jwt.claims', '', true);
+insert into public.member (id, venue_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000002fa', '00000000-0000-4000-8000-000000000001', 'Young Person', '+919000000298');
+insert into public.kyc_record (venue_id, member_id, status, method, refusal, date_of_birth, photo_path) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000002fa', 'refused', 'manual', 'under_18', '2012-01-01',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000002fa/in-person-00000000-0000-4000-8000-0000000000a3.jpg');
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}';
+select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-0000000002fa', 'Date of birth typed wrong') $$,
+  'RVKYC', null, 'a check refused for being under 18 is never reopened');
 reset role;
 
 select * from finish();

@@ -22,7 +22,7 @@ export const kycInPerson = {
   needsReview: '{name} goes to review: another check holds the same PAN, Aadhaar or face. It is in the list below.',
   /** A super admin reopens a refused check done in person (#267). */
   reopenFor: 'Reason for reopening {name}\'s check',
-  reopenHint: 'What was wrong, in your words. Never type document numbers. They can then be checked in person again.',
+  reopenHint: 'What was wrong, in words only: no numbers or dates. Another reviewer can then check them in person again.',
   reopen: 'Reopen the check',
 } as const;
 
