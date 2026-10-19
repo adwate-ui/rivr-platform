@@ -44,6 +44,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000129', '+919000000129', 'Meera Chopra'),
   ('00000000-0000-4000-8000-000000000130', '+919000000130', 'Devika Sharma'),
   ('00000000-0000-4000-8000-000000000131', '+919000000131', 'Lakshmi Iyer'),
+  ('00000000-0000-4000-8000-000000000132', '+919000000132', 'Farah Siddiqui'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -118,6 +119,8 @@ from (values
   ('00000000-0000-4000-8000-000000000130'::uuid, 'Duty manager', 'super_admin'),
   -- The Markers flow's own duty manager, who seats a member, gives credit and issues a marker (#74).
   ('00000000-0000-4000-8000-000000000131'::uuid, 'Duty manager', 'super_admin'),
+  -- The Call time flow's own cashier, who is refused a cash-out before call time (#79).
+  ('00000000-0000-4000-8000-000000000132'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id

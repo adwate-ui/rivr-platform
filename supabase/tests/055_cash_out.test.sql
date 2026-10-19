@@ -22,6 +22,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000217', 10000000, 'A regular'), 'active', 'Neel has ₹1,00,000 of credit');
 select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 2'), 7, '9000000217'),
   null, 'and sits at Table 2');
+reset role;
+-- Call time at the cage is 057's: none here.
+update public.seat_session set call_time_minutes = 0 where member_id = '00000000-0000-4000-8000-000000000217' and ended_at is null;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 insert into ids select 'older', public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217', 5000000, 'M10 40 L 60 20', gen_random_uuid());
 reset role;

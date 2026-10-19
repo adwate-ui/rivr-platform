@@ -2,6 +2,7 @@ import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type
 import { t } from '@rivr/i18n';
 import { Button, CallTimeTimer, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { EarlyLeaveForm } from './EarlyLeaveForm.tsx';
 import { MoveForm } from './MoveForm.tsx';
 import { RecentHands } from './RecentHands.tsx';
 import { SEAT_FAILURE_COPY } from './seatCopy.ts';
@@ -39,19 +40,42 @@ function SeatLine({ number, player, heldFor, isOpen }: { number: number; player:
   );
 }
 
+interface SeatButtonsProps {
+  player: SeatedPlayer;
+  canLetGoEarly: boolean;
+  onMove: () => void;
+  onLeave: () => void;
+  onLeaveEarly: () => void;
+}
+
+/** The floor's buttons on a seated player's row: move, leave, and for admins, leave early while call time is owed (#79). */
+function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly }: SeatButtonsProps) {
+  return (
+    <Inline gap={2}>
+      <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
+      <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })} onClick={onLeave}>{t('console.liveFloor.leave')}</Button>
+      {canLetGoEarly && (player.callTimeLeft ?? 0) > 0 ? (
+        <Button variant="text" aria-label={t('console.liveFloor.leaveEarlyName', { name: player.fullName })} onClick={onLeaveEarly}>
+          {t('console.liveFloor.leaveEarly')}
+        </Button>
+      ) : null}
+    </Inline>
+  );
+}
+
 /**
  * The chosen table (#77, #81): its rules and night so far, its seats and its recent hands. The floor
- * seats a player, moves one (the same session, so call time runs on) or lets one leave; floor
- * managers open or close the table and set it to feed a main table.
+ * seats a player, moves one (the same session, so call time runs on) or lets one leave; admins let one
+ * leave before call time, with a reason (#79); floor managers open or close the table and set it to
+ * feed a main table.
  */
 export function TableDetail({ venueId, table, tables, seats, held, permissions, night }: TableDetailProps) {
   const { leave } = useSeatActions(venueId);
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
+  const [leavingEarly, setLeavingEarly] = useState<SeatedPlayer | null>(null);
   const [failure, setFailure] = useState<SeatFailure | null>(null);
   const isFloor = permissions.includes('waitlist.manage');
   const report = (outcome: { ok: true } | { ok: false; error: SeatFailure }) => setFailure(outcome.ok ? null : outcome.error);
-  const moveLabel = t('console.liveFloor.move');
-  const leaveLabel = t('console.liveFloor.leave');
   return (
     <Stack gap={4}>
       <TableHeader table={table} night={night} />
@@ -64,17 +88,18 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
             <Inline key={index} justify="between" align="center">
               <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
               {isFloor && player !== undefined ? (
-                <Inline gap={2}>
-                  <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={() => setMoving(player)}>{moveLabel}</Button>
-                  <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })}
-                    onClick={() => void leave.mutateAsync(player.sessionId).then(report)}>{leaveLabel}</Button>
-                </Inline>
+                <SeatButtons player={player} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => setMoving(player)}
+                  onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => setLeavingEarly(player)} />
               ) : null}
             </Inline>
           );
         })}
       </Stack>
       {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
+      {leavingEarly === null ? null : (
+        <EarlyLeaveForm key={leavingEarly.sessionId} venueId={venueId} onDone={report} onCancel={() => setLeavingEarly(null)}
+          member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />
+      )}
       {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
       <RecentHands tableId={table.id} />
     </Stack>
