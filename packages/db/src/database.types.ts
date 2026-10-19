@@ -927,14 +927,14 @@ isOneToOne: true
                   ]
                 },"waitlist_entry": {
                   Row: {
-                    "added_by_staff_id": string | null,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "added_by_staff_id": string | null,"away_used": string,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "added_by_staff_id"?: string | null,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id": string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "added_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id": string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "added_by_staff_id"?: string | null,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id"?: string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "added_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id"?: string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {

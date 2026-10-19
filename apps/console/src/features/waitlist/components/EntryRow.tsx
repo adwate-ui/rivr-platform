@@ -3,7 +3,7 @@ import { formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CallForm } from './CallForm.tsx';
-import { FAILURE_COPY } from './failureCopy.ts';
+import { ENTRY_FAILURE_COPY } from './failureCopy.ts';
 
 const at = (iso: string) => formatTime(new Date(iso));
 
@@ -21,18 +21,55 @@ function standing(entry: WaitlistBoardEntry): string | null {
   return entry.awayUntil === null ? null : t('console.waitlist.away', { time: at(entry.awayUntil) });
 }
 
-/** One place on a list with the floor's actions: Call, then Seat; Skip and Back; Remove. */
-export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: WaitlistBoardEntry; tables: readonly FloorTable[] }) {
+type Outcome = Promise<{ ok: true } | { ok: false; error: WaitlistFailure }>;
+
+interface EntryActionsProps {
+  venueId: string;
+  entry: WaitlistBoardEntry;
+  onCall: () => void;
+  act: (done: Outcome) => Promise<void>;
+}
+
+/**
+ * The floor's actions on one place: Call, then Seat; Skip and Back; Remove. Skip on a called member
+ * ends the call, keeps their place as away, and calls the next name to the seat.
+ */
+function EntryActions({ venueId, entry, onCall, act }: EntryActionsProps) {
   const { remove } = useFloorWaitlistActions(venueId);
   const { seat, away } = useWaitlistCallActions();
+  const name = entry.fullName;
+  const skip = (
+    <Button variant="text" onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: true }))}>{t('console.waitlist.skip', { name })}</Button>
+  );
+  return (
+    <Inline gap={2} wrap>
+      {entry.holdUntil !== null ? (
+        <>
+          <Button variant="secondary" isLoading={seat.isPending} onClick={() => void act(seat.mutateAsync(entry.entryId))}>{t('console.waitlist.seat', { name })}</Button>
+          {skip}
+        </>
+      ) : entry.awayUntil !== null ? (
+        <Button variant="secondary" onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: false }))}>{t('console.waitlist.back', { name })}</Button>
+      ) : (
+        <>
+          <Button variant="secondary" onClick={onCall}>{t('console.waitlist.call', { name })}</Button>
+          {skip}
+        </>
+      )}
+      <Button variant="text" isLoading={remove.isPending} onClick={() => void act(remove.mutateAsync(entry.entryId))}>{t('console.waitlist.remove', { name })}</Button>
+    </Inline>
+  );
+}
+
+/** One place on a list: who and where they stand, the floor's actions, and the call form when calling. */
+export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: WaitlistBoardEntry; tables: readonly FloorTable[] }) {
   const [isCalling, setIsCalling] = useState(false);
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
-  const act = async (done: Promise<{ ok: true } | { ok: false; error: WaitlistFailure }>) => {
+  const act = async (done: Outcome) => {
     const outcome = await done;
     setFailure(outcome.ok ? null : outcome.error);
   };
   const state = standing(entry);
-  const name = entry.fullName;
   return (
     <Stack gap={3}>
       <Inline gap={4} align="center" justify="between" wrap>
@@ -41,22 +78,10 @@ export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: W
           {state === null ? null : <Text variant="small">{state}</Text>}
           {entry.addedByFloor ? <Text variant="small" tone="muted">{t('console.waitlist.addedByFloor')}</Text> : null}
         </Stack>
-        <Inline gap={2} wrap>
-          {entry.holdUntil !== null ? (
-            <Button variant="secondary" isLoading={seat.isPending} onClick={() => void act(seat.mutateAsync(entry.entryId))}>{t('console.waitlist.seat', { name })}</Button>
-          ) : entry.awayUntil !== null ? (
-            <Button variant="secondary" onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: false }))}>{t('console.waitlist.back', { name })}</Button>
-          ) : (
-            <>
-              <Button variant="secondary" onClick={() => setIsCalling(true)}>{t('console.waitlist.call', { name })}</Button>
-              <Button variant="text" onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: true }))}>{t('console.waitlist.skip', { name })}</Button>
-            </>
-          )}
-          <Button variant="text" isLoading={remove.isPending} onClick={() => void act(remove.mutateAsync(entry.entryId))}>{t('console.waitlist.remove', { name })}</Button>
-        </Inline>
+        <EntryActions venueId={venueId} entry={entry} onCall={() => setIsCalling(true)} act={act} />
       </Inline>
-      {isCalling ? <CallForm entryId={entry.entryId} name={name} tables={tables} onDone={() => setIsCalling(false)} /> : null}
-      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
+      {isCalling ? <CallForm entryId={entry.entryId} name={entry.fullName} tables={tables} onDone={() => setIsCalling(false)} /> : null}
+      {failure === null ? null : <ErrorMessage>{t(ENTRY_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
 }

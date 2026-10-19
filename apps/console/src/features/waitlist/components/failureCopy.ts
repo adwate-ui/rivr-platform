@@ -10,4 +10,10 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   no_member: 'console.waitlist.noMember',
   invalid: 'console.waitlist.invalid',
   unavailable: 'console.waitlist.unavailable',
+  seat_held: 'console.waitlist.seatHeld',
+  too_late: 'console.waitlist.tooLate',
+  no_time_away: 'console.waitlist.noTimeAway',
 };
+
+/** The same for Call, Seat, Skip and Back, where a refused request means the place or table changed. */
+export const ENTRY_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = { ...FAILURE_COPY, invalid: 'console.waitlist.changed' };

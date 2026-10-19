@@ -2,7 +2,7 @@ import { useWaitlistCallActions, type FloorTable, type WaitlistFailure } from '@
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
-import { FAILURE_COPY } from './failureCopy.ts';
+import { ENTRY_FAILURE_COPY } from './failureCopy.ts';
 
 interface CallFormProps {
   entryId: string;
@@ -17,15 +17,16 @@ export function CallForm({ entryId, name, tables, onDone }: CallFormProps) {
   const { call } = useWaitlistCallActions();
   const [tableIds, setTableIds] = useState<string[]>(tables.length === 1 && tables[0] ? [tables[0].id] : []);
   const [seat, setSeat] = useState('');
-  const [failure, setFailure] = useState<WaitlistFailure | null>(null);
+  // 'choose' when no table or no seat at it is chosen; else why the call did not go through.
+  const [failure, setFailure] = useState<WaitlistFailure | 'choose' | null>(null);
   const callNow = async () => {
-    const tableId = tableIds[0];
+    const table = tables.find((candidate) => candidate.id === tableIds[0]);
     const seatNumber = Number(seat);
-    if (!tableId || !Number.isInteger(seatNumber) || seatNumber < 1) {
-      setFailure('invalid');
+    if (!table || !Number.isInteger(seatNumber) || seatNumber < 1 || seatNumber > table.seats) {
+      setFailure('choose');
       return;
     }
-    const called = await call.mutateAsync({ entryId, tableId, seat: seatNumber });
+    const called = await call.mutateAsync({ entryId, tableId: table.id, seat: seatNumber });
     if (called.ok) onDone();
     else setFailure(called.error);
   };
@@ -38,7 +39,7 @@ export function CallForm({ entryId, name, tables, onDone }: CallFormProps) {
         <Button variant="secondary" isLoading={call.isPending} onClick={() => void callNow()}>{t('console.waitlist.callConfirm')}</Button>
         <Button variant="text" onClick={onDone}>{t('common.cancel')}</Button>
       </Inline>
-      {failure === null ? null : <ErrorMessage>{t(failure === 'invalid' ? 'console.waitlist.invalidCall' : FAILURE_COPY[failure])}</ErrorMessage>}
+      {failure === null ? null : <ErrorMessage>{t(failure === 'choose' ? 'console.waitlist.invalidCall' : ENTRY_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
 }
