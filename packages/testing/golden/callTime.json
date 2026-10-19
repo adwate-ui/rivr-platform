@@ -1,0 +1,72 @@
+{
+  "rule": "call time",
+  "about": "The minimum time a player plays after being seated before leaving the game (features, \"Call time\"; decision 0057). The clock starts at seating and runs on across table moves and seat changes, which keep the same seat session. Time marked away from the table does not count: time away that is over is given in whole seconds, and time away now pauses the clock until the player is back. The minutes are the table type's call_time.minutes in force at seating, fixed for the session; none set is no call time. The time left is in whole seconds, never below zero: after leaving it is the shortfall at the moment they left. Call time is complete when nothing is left.",
+  "cases": [
+    {
+      "description": "Seated at 20:00 in the Private Room (120 minutes): at 21:00, an hour is left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-15T21:00:00+05:30" },
+      "expected": { "secondsLeft": "3600", "complete": "no" }
+    },
+    {
+      "description": "Moved from Table 2 to Table 3 at 20:40: the same session, so at 21:30 half an hour is left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-15T21:30:00+05:30" },
+      "expected": { "secondsLeft": "1800", "complete": "no" }
+    },
+    {
+      "description": "Away from 21:00 to 21:20: those 20 minutes do not count, so at 22:00 20 minutes are left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "1200", "awaySince": "", "left": "", "at": "2026-11-15T22:00:00+05:30" },
+      "expected": { "secondsLeft": "1200", "complete": "no" }
+    },
+    {
+      "description": "Away 10 minutes earlier, and away again since 21:30: at 21:50 the clock stands at 80 minutes played, 40 left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "600", "awaySince": "2026-11-15T21:30:00+05:30", "left": "", "at": "2026-11-15T21:50:00+05:30" },
+      "expected": { "secondsLeft": "2400", "complete": "no" }
+    },
+    {
+      "description": "Exactly two hours at the table: complete, nothing left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-15T22:00:00+05:30" },
+      "expected": { "secondsLeft": "0", "complete": "yes" }
+    },
+    {
+      "description": "One second short of a 60-minute call time: one second left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "60", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-15T20:59:59+05:30" },
+      "expected": { "secondsLeft": "1", "complete": "no" }
+    },
+    {
+      "description": "Long after: never below zero.",
+      "operation": "call_time",
+      "inputs": { "minutes": "60", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-16T02:00:00+05:30" },
+      "expected": { "secondsLeft": "0", "complete": "yes" }
+    },
+    {
+      "description": "A table with no call time set: complete from the moment of seating.",
+      "operation": "call_time",
+      "inputs": { "minutes": "0", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-15T20:00:00+05:30" },
+      "expected": { "secondsLeft": "0", "complete": "yes" }
+    },
+    {
+      "description": "Left at 21:15 after 75 minutes of 120: the shortfall stays 45 minutes, however late it is read.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "2026-11-15T21:15:00+05:30", "at": "2026-11-15T23:00:00+05:30" },
+      "expected": { "secondsLeft": "2700", "complete": "no" }
+    },
+    {
+      "description": "Away since 21:00 and gone at 21:30: the half hour away does not count, so an hour is short.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T20:00:00+05:30", "awaySeconds": "0", "awaySince": "2026-11-15T21:00:00+05:30", "left": "2026-11-15T21:30:00+05:30", "at": "2026-11-15T22:00:00+05:30" },
+      "expected": { "secondsLeft": "3600", "complete": "no" }
+    },
+    {
+      "description": "Across midnight: seated at 23:30 for 120 minutes, at 00:45 the next day 45 minutes are left.",
+      "operation": "call_time",
+      "inputs": { "minutes": "120", "seated": "2026-11-15T23:30:00+05:30", "awaySeconds": "0", "awaySince": "", "left": "", "at": "2026-11-16T00:45:00+05:30" },
+      "expected": { "secondsLeft": "2700", "complete": "no" }
+    }
+  ]
+}

@@ -29,6 +29,15 @@ export function formatDayTime(at: Date): string {
   return `${DAY.format(at)}, ${formatTime(at)}`;
 }
 
+/** A time still to run, in whole minutes rounded up: `1 h 12 min`, `2 h`, `45 min`, `1 min`. */
+export function formatDuration(seconds: number): string {
+  const minutes = Math.ceil(Math.max(0, seconds) / 60);
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
 /** The IST day of the week: `Sunday`, as in "expires Sunday". */
 export function formatWeekday(at: Date): string {
   return WEEKDAY.format(at);

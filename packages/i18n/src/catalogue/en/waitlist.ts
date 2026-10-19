@@ -4,6 +4,8 @@
 export const tonight = {
   /** While a break runs (#56): `{until}` is when it ends, Wed 17 Feb, 00:10. */
   breakActive: 'Break active until {until}. Tables are closed to you until then.',
+  /** Seated tonight (#78), with the call time left beneath. */
+  seated: 'Seated at {table}, seat {seat}.',
   onBreak: 'Break active. Tables are closed to you until it ends.',
   title: 'Tonight',
   empty: 'No tables are running.',

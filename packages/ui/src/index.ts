@@ -39,6 +39,7 @@ export * from './Input/index.ts';
 export * from './KycPhoto/index.ts';
 export * from './FloorRow/index.ts';
 export * from './SeatRing/index.ts';
+export * from './CallTimeTimer/index.ts';
 
 // Tier-gated features and the kill switch
 export * from './FeatureGate/index.ts';
