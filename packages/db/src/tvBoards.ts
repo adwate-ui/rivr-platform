@@ -43,23 +43,32 @@ export interface TvJackpot {
 // Realtime tells the TV when a board changes; it also asks again every half minute, in case a
 // signal is missed while the connection drops.
 const BOARD_CHECK = 30_000;
+// However many signals arrive, the board is read again at most once every two seconds.
+const SIGNAL_SETTLE = 2_000;
 
-/** Reads a board again whenever its venue's signal moves (tv_signal, through Realtime). */
-function useBoardSignal(board: 'waitlist' | 'jackpot') {
+/**
+ * Reads a board again when the database broadcasts on the venue's private topic (tv:<venue id>,
+ * decision 0051) that it changed: once, two seconds after the first signal, however many follow.
+ */
+function useBoardSignal(board: 'waitlist' | 'jackpot', venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (userId === null) return undefined;
     const key = board === 'waitlist' ? queryKeys.tvWaitlistBoard(userId) : queryKeys.tvJackpot(userId);
-    const channel = client.channel(`tv-${board}-${userId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tv_signal', filter: `board=eq.${board}` }, () => {
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const readAgain = () => {
+      pending ??= setTimeout(() => {
+        pending = null;
         void queryClient.invalidateQueries({ queryKey: key });
-      })
-      .subscribe();
+      }, SIGNAL_SETTLE);
+    };
+    const channel = client.channel(`tv:${venueId}`, { config: { private: true } }).on('broadcast', { event: board }, readAgain).subscribe();
     return () => {
+      if (pending !== null) clearTimeout(pending);
       void client.removeChannel(channel);
     };
-  }, [client, queryClient, userId, board]);
+  }, [client, queryClient, userId, board, venueId]);
 }
 
 interface BoardRow {
@@ -111,10 +120,10 @@ export function toTvJackpot(row: JackpotRow): TvJackpot {
   return { main: toPaise(row.main_paise), highHand };
 }
 
-/** The signed-in TV's waitlist board, live. */
-export function useTvWaitlistBoard() {
+/** The signed-in TV's waitlist board at its venue, live. */
+export function useTvWaitlistBoard(venueId: string) {
   const { client, userId } = useRivrData();
-  useBoardSignal('waitlist');
+  useBoardSignal('waitlist', venueId);
   return useQuery({
     queryKey: queryKeys.tvWaitlistBoard(userId ?? 'signed-out'),
     enabled: userId !== null,
@@ -127,10 +136,10 @@ export function useTvWaitlistBoard() {
   });
 }
 
-/** The signed-in TV's jackpot and tonight's high hand, live. */
-export function useTvJackpot() {
+/** The signed-in TV's jackpot and tonight's high hand at its venue, live. */
+export function useTvJackpot(venueId: string) {
   const { client, userId } = useRivrData();
-  useBoardSignal('jackpot');
+  useBoardSignal('jackpot', venueId);
   return useQuery({
     queryKey: queryKeys.tvJackpot(userId ?? 'signed-out'),
     enabled: userId !== null,

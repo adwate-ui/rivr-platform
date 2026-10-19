@@ -1139,26 +1139,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"tv_signal": {
-                  Row: {
-                    "board": string,"created_at": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "board": string,"created_at"?: string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "board"?: string,"created_at"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "tv_signal_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"venue": {
                   Row: {
                     "created_at": string,"id": string,"is_practice": boolean,"name": string,"slug": string,"time_zone": string,"updated_at": string
