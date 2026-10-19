@@ -21,9 +21,9 @@ test.describe('smoke: every surface starts', () => {
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
   });
 
-  test('the dealer tablet opens on hand entry', async ({ page }) => {
+  test('a dealer tablet that is not paired asks for its pairing code', async ({ page }) => {
     await open(page, 'tablet');
-    await expect(page.getByRole('heading', { name: 'Hand entry' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pair this tablet' })).toBeVisible();
   });
 
   test('a TV says it is not paired', async ({ page }) => {

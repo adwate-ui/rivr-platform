@@ -40,6 +40,8 @@ const DEVICE_FAILURE_BY_CODE: Readonly<Record<string, DeviceFailure>> = { '42501
 
 // The tablet asks again every half minute, so a table fixed on the console reaches it without a restart.
 const TABLE_CHECK = 30_000;
+// The console's list asks again every ten seconds, so a tablet shows as paired soon after its code is entered.
+const PAIRING_CHECK = 10_000;
 
 /** The signed-in device; null for anyone who is not one, or a device since revoked. */
 export function useMyDevice() {
@@ -85,6 +87,7 @@ export function useDealerTablets(venueId: string) {
   return useQuery({
     queryKey: queryKeys.dealerTablets(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
+    refetchInterval: PAIRING_CHECK,
     queryFn: async (): Promise<DealerTablet[]> => {
       const [devices, assignments] = await Promise.all([
         client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'dealer_tablet').is('revoked_at', null).order('name'),

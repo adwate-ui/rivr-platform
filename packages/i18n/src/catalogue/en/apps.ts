@@ -2,6 +2,7 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
+import { handEntry, pairing, tablets } from './devices.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
@@ -140,6 +141,7 @@ export const consoleApp = {
   title: 'Console',
   liveFloor: { title: 'Live floor', empty: 'No tables are running.' },
   waitlist,
+  tablets,
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',
@@ -267,7 +269,8 @@ export const consoleApp = {
 export const tabletApp = {
   /** The table name in the header before the tablet is assigned to a table. */
   unassignedTable: 'Not assigned',
-  handEntry: { title: 'Hand entry', empty: 'This tablet is not assigned to a table.' },
+  pairing,
+  handEntry,
 } as const;
 
 export const displayApp = {
