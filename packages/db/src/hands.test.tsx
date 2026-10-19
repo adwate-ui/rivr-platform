@@ -11,8 +11,8 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const TABLET = '00000000-0000-4000-8000-00000000e001';
 
-/** A fake API: each path answers with its reply. */
-function renderHands(replies: Record<string, { status?: number; body: unknown }>) {
+/** A fake API: each path answers with its reply. The tablet is fixed to `ids.table`, during `ids.down`. */
+function renderHands(replies: Record<string, { status?: number; body: unknown }>, ids: { table: string | null; down: string | null } = { table: 'table-3', down: 'down-1' }) {
   const calls: { url: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
@@ -26,7 +26,7 @@ function renderHands(replies: Record<string, { status?: number; body: unknown }>
     auth: { storage: sessionStorageFor(TABLET), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ rules: useTableRules('table-3'), hands: useDownHands('down-1'), log: useLogHand() }), { wrapper });
+  const { result } = renderHook(() => ({ rules: useTableRules(ids.table), hands: useDownHands(ids.down), log: useLogHand() }), { wrapper });
   return { result, calls };
 }
 
@@ -67,5 +67,17 @@ describe('Hand entry data', () => {
     const noDealer = renderHands({ ...EMPTY, '/rpc/log_hand': { status: 400, body: { code: 'RVDWN', message: 'no dealer' } } });
     await act(async () => { outcome = await noDealer.result.current.log.mutateAsync({ pot: fromPaise(4800000n), variant: 'holdem', playedAt, requestId: 'r-2' }); });
     expect(outcome).toEqual({ ok: false, error: 'no_dealer' });
+    cleanup();
+    const frozen = renderHands({ ...EMPTY, '/rpc/log_hand': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } } });
+    await act(async () => { outcome = await frozen.result.current.log.mutateAsync({ pot: fromPaise(4800000n), variant: 'holdem', playedAt, requestId: 'r-3' }); });
+    expect(outcome).toEqual({ ok: false, error: 'paused' });
+  });
+
+  it('asks for nothing until the tablet is fixed to a table and a down is open', async () => {
+    const { result, calls } = renderHands(EMPTY, { table: null, down: null });
+    await waitFor(() => expect(result.current.rules.fetchStatus).toBe('idle'));
+    expect(result.current.rules.isPending).toBe(true);
+    expect(result.current.hands.fetchStatus).toBe('idle');
+    expect(calls.filter((call) => call.url.includes('/rpc/'))).toEqual([]);
   });
 });

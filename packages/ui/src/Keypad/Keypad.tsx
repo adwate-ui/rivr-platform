@@ -19,7 +19,7 @@ export interface KeypadProps {
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '000', '0', 'delete'] as const;
 
 const KEY =
-  'min-h-touch h-16 rounded-md border border-hairline bg-raised font-text leading-snug text-content ' +
+  'min-h-touch py-2 rounded-md border border-hairline bg-raised font-text leading-snug text-content ' +
   'select-none transition-colors active:bg-surface disabled:cursor-not-allowed disabled:opacity-disabled';
 
 /**

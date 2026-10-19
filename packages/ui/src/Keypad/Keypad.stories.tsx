@@ -15,8 +15,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Entered: Story = { args: { value: '48000' } };
-
 export const Logging: Story = { args: { value: '48000', isDisabled: true } };
 
 export const LongText: Story = { args: { label: 'Final pot at the end of the hand, in whole rupees, before the rake is pulled' } };

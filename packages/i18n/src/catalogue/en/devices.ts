@@ -68,7 +68,7 @@ export const handEntry = {
   hand: '{time} · {variant}',
   noDealer: 'No dealer is signed in on this tablet. End the down and sign in again.',
   paused: 'The venue is frozen. Hands are logged again once it is released.',
-  invalid: 'That hand was refused. Check the pot is whole ₹50 chips, up to ₹1 crore, and the game is one this table plays.',
+  invalid: 'That hand was refused. Check the pot and the game. If both are right, ask a floor manager to check the table\'s rake and the tablet\'s clock.',
   unavailable: 'The hand was not logged. Check the connection and press Log hand again.',
 };
 
