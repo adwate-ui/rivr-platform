@@ -37,4 +37,8 @@ export const queryKeys = {
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
   /** A venue's waitlists, as the floor sees them. */
   waitlistBoard: (userId: string, venueId: string) => ['user', userId, 'waitlist-board', venueId] as const,
+  /** The signed-in dealer tablet and its table. */
+  myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
+  /** A venue's dealer tablets, for staff who manage devices. */
+  dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
 };

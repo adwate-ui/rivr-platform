@@ -36,6 +36,7 @@ export const ui = {
     items: {
       liveFloor: 'Live floor',
       waitlist: 'Waitlist',
+      tablets: 'Tablets',
       checkIn: 'Check-in',
       tournaments: 'Tournaments',
       cage: 'Cage',

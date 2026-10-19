@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@rivr/contracts": "../../../packages/contracts/src/index.ts",
+    "zod": "npm:zod@^4.6.7"
+  }
+}

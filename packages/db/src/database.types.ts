@@ -295,6 +295,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"device_pairing": {
+                  Row: {
+                    "code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"id": string,"redeemed_at": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code_hash": string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id": string,"expires_at": string,"id"?: string,"redeemed_at"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "code_hash"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id"?: string,"expires_at"?: string,"id"?: string,"redeemed_at"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "device_pairing_created_by_staff_id_fkey"
+      columns: ["created_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "device_pairing_device_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "device_pairing_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"feature": {
                   Row: {
                     "created_at": string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens": (string)[],"updated_at": string
@@ -813,6 +845,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tablet_assignment": {
+                  Row: {
+                    "assigned_by_staff_id": string | null,"created_at": string,"device_id": string,"table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assigned_by_staff_id"?: string | null,"created_at"?: string,"device_id": string,"table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "assigned_by_staff_id"?: string | null,"created_at"?: string,"device_id"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tablet_assignment_assigned_by_staff_id_fkey"
+      columns: ["assigned_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tablet_assignment_device_id_venue_id_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tablet_assignment_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"tier": {
                   Row: {
                     "created_at": string,"id": string,"is_retired": boolean,"name": string,"rank": number,"updated_at": string,"venue_id": string
@@ -1080,6 +1144,9 @@ isOneToOne: false
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
                            },
+"assign_tablet":
+{ Args: { "p_device_id": string,"p_table_id": string }; Returns: undefined
+                           },
 "authorize_in_person_kyc":
 { Args: { "p_member_id": string }; Returns: string
                            },
@@ -1151,6 +1218,9 @@ isOneToOne: false
 "leave_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
+"link_device_login":
+{ Args: { "p_device_id": string,"p_user_id": string }; Returns: boolean
+                           },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -1162,6 +1232,11 @@ isOneToOne: false
 "my_academy_bookings":
 { Args: Record<PropertyKey, never>; Returns: {
               "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"hold_until": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
+            }[]
+                           },
+"my_device":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "device_id": string,"kind": Database["public"]['Enums']["device_kind"],"name": string,"table_id": string,"table_name": string,"venue_id": string
             }[]
                            },
 "my_feature_access":
@@ -1198,6 +1273,11 @@ isOneToOne: false
 "record_kyc_started":
 { Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
                            },
+"redeem_device_pairing":
+{ Args: { "p_client": string,"p_code": string }; Returns: {
+              "device_id": string,"previous_user_id": string,"refusal": string
+            }[]
+                           },
 "reject_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
@@ -1225,6 +1305,11 @@ isOneToOne: false
 "staff_academy_batches":
 { Args: { "p_venue_id": string }; Returns: {
               "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
+            }[]
+                           },
+"start_device_pairing":
+{ Args: { "p_device_id": string }; Returns: {
+              "code": string,"expires_at": string
             }[]
                            },
 "step_away":
