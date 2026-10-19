@@ -401,17 +401,23 @@ isOneToOne: false
                   ]
                 },"game_table": {
                   Row: {
-                    "created_at": string,"id": string,"is_open": boolean,"name": string,"position": number,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"name": string,"position": number,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name": string,"position": number,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"name"?: string,"position"?: number,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "game_table_must_move_fkey"
+      columns: ["must_move_to_table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "game_table_table_type_id_venue_id_fkey"
       columns: ["table_type_id","venue_id"]
 isOneToOne: false
@@ -876,6 +882,82 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"seat_move": {
+                  Row: {
+                    "created_at": string,"from_seat": number,"from_table_id": string,"id": string,"moved_by_staff_id": string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"from_seat": number,"from_table_id": string,"id"?: string,"moved_by_staff_id"?: string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"from_seat"?: number,"from_table_id"?: string,"id"?: string,"moved_by_staff_id"?: string | null,"session_id"?: string,"to_seat"?: number,"to_table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "seat_move_from_table_id_venue_id_fkey"
+      columns: ["from_table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_move_moved_by_staff_id_venue_id_fkey"
+      columns: ["moved_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_move_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "seat_move_to_table_id_venue_id_fkey"
+      columns: ["to_table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"seat_session": {
+                  Row: {
+                    "created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"member_id": string,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id": string,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id"?: string,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "seat_session_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_session_seated_by_staff_id_venue_id_fkey"
+      columns: ["seated_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_session_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_session_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"self_exclusion": {
                   Row: {
@@ -1531,8 +1613,16 @@ isOneToOne: false
               "logged_paise": number,"variance_paise": number
             }[]
                            },
+"end_seat":
+{ Args: { "p_reason": string,"p_session_id": string }; Returns: undefined
+                           },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
+                           },
+"floor_seats":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
+            }[]
                            },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
@@ -1589,6 +1679,9 @@ isOneToOne: false
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
             }[]
+                           },
+"move_seat":
+{ Args: { "p_seat": number,"p_session_id": string,"p_table_id": string }; Returns: undefined
                            },
 "my_academy_bookings":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -1676,17 +1769,26 @@ isOneToOne: false
 "seat_from_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
+"seat_member":
+{ Args: { "p_phone": string,"p_seat": number,"p_table_id": string }; Returns: string
+                           },
 "set_dealer_pin":
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: undefined
                            },
 "set_member_break":
 { Args: { "p_days": number,"p_member_id": string,"p_reason": string }; Returns: string
                            },
+"set_must_move":
+{ Args: { "p_main_table_id"?: string,"p_table_id": string }; Returns: undefined
+                           },
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
                            },
 "set_session_reminder":
 { Args: { "p_hours"?: number }; Returns: undefined
+                           },
+"set_table_open":
+{ Args: { "p_is_open": boolean,"p_table_id": string }; Returns: undefined
                            },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined

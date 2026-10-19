@@ -6,3 +6,6 @@ export const floorWaitlistAddSchema = z.object({ phone: indianMobileSchema });
 
 /** The door's check-in by mobile number (#72). */
 export const doorCheckInSchema = z.object({ phone: indianMobileSchema });
+
+/** The floor seats a player by mobile number (#77). */
+export const seatPlayerSchema = z.object({ phone: indianMobileSchema });

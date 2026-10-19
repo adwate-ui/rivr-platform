@@ -14,6 +14,7 @@ Tables and table types, seating, the waitlist and its priority, call time, the d
 | `early_departure` | A cash-out or check-out before call time, with the admin override and reason |
 | `dealer_down` | A dealer's shift at one table: on and off times |
 | `down_count` | A down's drop-box count, what its hands logged and the variance; staff who read the ledger see it (#44) |
+| `seat_session`, `seat_move` | A member's play from seating to leaving, inside a visit, across seat moves (each move kept); a table's must-move link (`game_table.must_move_to_table_id`) (#77) |
 | `tablet_assignment` | Which dealer tablet (lane 0 `device`) is fixed to which table: one each way (#41) |
 | `device_pairing` | A dealer tablet's six-digit pairing codes, by hash, for ten minutes; read and written only by the functions below (#41) |
 | `hand` | Every hand: table, dealer, variant, pot, rake, cap applied, jackpot drop, high-hand claim, camera reference, idempotency key |
@@ -31,6 +32,8 @@ Tables and table types, seating, the waitlist and its priority, call time, the d
 
 | Function | Used by | What it does |
 |---|---|---|
+| `public.seat_member(table, seat, phone)`, `public.move_seat(session, table, seat)`, `public.end_seat(session, reason)`, `public.floor_seats(venue)` | console (live floor) | The floor (`waitlist.manage`) seats a member at an open table's free seat, inside their open visit (one opens if they came straight to the table), refusing no identity check (`RVKYC`), a break (`RVBRK`), a taken seat (`RVOCC`) or a player already seated (`RVSTD`); moves keep the session, so call time runs on; seating from the waitlist starts or moves the session; emits `seat.taken`, `seat.moved`, `seat.left`. The seat map for staff with `members.read`, with each must-move player's turn (#77) |
+| `public.set_table_open(table, open)`, `public.set_must_move(table, main?)` | console (live floor) | Floor managers (`floor.manage`) open and close a table, closing only an empty one, and make a table feed a main table of its game (#77) |
 | `public.join_waitlist(table_type, idempotency_key)` | player app (C screens) | Joins the list for a table type (one game and stake) at the member's venue; refuses without KYC (`RVKYC`) or while frozen (`RVFRZ`, `RVMBR`), and on a break (`RVBRK`, #56); feature `waitlist.join`; emits `waitlist.joined`. Places are ordered by priority (the tier's weight in `waitlist.priority_weights` in force when the member joined; the black card's only at its qualifying stake), then join time (#40) |
 | `public.add_to_waitlist(table_type, phone, idempotency_key)` | console | The floor (`waitlist.manage`) adds a member found by mobile number (`RVNOM` when none); same refusals as joining |
 | `public.start_device_pairing(device)`, `public.assign_tablet(device, table)` | console | Staff with `devices.manage` start pairing a dealer tablet, or pair it again (a six-digit code for ten minutes, shown once), and fix a dealer tablet to one of the venue's tables, freeing the tablet that had it. Staff add a tablet and revoke one through lane 0's `device` table grants; a trigger records who added it, holds an enrolment during a freeze, and on revoking unlinks the login and frees the table for good (#41, decision 0045) |
