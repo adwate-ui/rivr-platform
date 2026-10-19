@@ -1,7 +1,7 @@
 /** High hands (#47): the dealer's claim on the tablet, and the console's High hands screen. */
 
 /** On the tablet: the High hand switch on hand entry, which sends a claim to the floor with the hand. */
-const highHand = {
+export const highHand = {
   toggle: 'High hand',
   toggleHint: 'Sends a claim to the floor with this hand.',
   category: 'Type of hand',
@@ -17,7 +17,7 @@ const highHand = {
 };
 
 /** The console's High hands screen, for staff who approve jackpots or read the ledger. */
-const highHands = {
+export const highHands = {
   title: 'High hands',
   notAllowed: 'Your role does not include high hands. Ask an admin if you need it.',
   empty: 'No high hands claimed yet.',
@@ -43,9 +43,3 @@ const highHands = {
   invalid: 'That claim cannot be paid now. Check the list.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };
-
-/** The tablet's high-hand copy, spread into its catalogue. */
-export const tabletHighHands = { highHand };
-
-/** The console's High hands screen, spread into its catalogue. */
-export const consoleHighHands = { highHands };
