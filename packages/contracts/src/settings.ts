@@ -50,8 +50,31 @@ const academyPrice = {
   }),
 } as const satisfies SettingDefinition;
 
+// A ₹50 chip, in paise: rake caps and jackpot drops are whole chips (additions, "Chips").
+const CHIP_PAISE = 5_000;
+
+const rakeRules = {
+  key: 'rake.rules',
+  description: 'Rake per table type: the rate of the pot in basis points (500 is 5%) and the cap in paise, in whole ₹50 chips (scope-v1 module 3).',
+  scope: 'table_type',
+  value: z.strictObject({
+    rate_basis_points: z.int().min(0).max(1_000),
+    cap_paise: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
+  }),
+} as const satisfies SettingDefinition;
+
+const jackpotDrop = {
+  key: 'jackpot.drop',
+  description: 'The bad-beat jackpot drop while the jackpot is live: paise from every pot above the threshold, in whole ₹50 chips (scope-v1 module 4).',
+  scope: 'venue',
+  value: z.strictObject({
+    drop_paise: z.int().min(0).max(100_000).multipleOf(CHIP_PAISE),
+    above_paise: z.int().min(0).max(100_000_000).multipleOf(CHIP_PAISE),
+  }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice] as const;
+export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeRules, jackpotDrop] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];
