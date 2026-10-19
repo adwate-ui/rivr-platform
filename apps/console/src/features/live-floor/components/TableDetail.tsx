@@ -1,11 +1,13 @@
-import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure } from '@rivr/db';
+import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure, type TableNight } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, CallTimeTimer, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, CallTimeTimer, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { MoveForm } from './MoveForm.tsx';
+import { RecentHands } from './RecentHands.tsx';
 import { SEAT_FAILURE_COPY } from './seatCopy.ts';
 import { SeatForm } from './SeatForm.tsx';
 import { TableControls } from './TableControls.tsx';
+import { TableHeader } from './TableHeader.tsx';
 
 interface TableDetailProps {
   venueId: string;
@@ -14,13 +16,15 @@ interface TableDetailProps {
   seats: readonly SeatedPlayer[];
   held: readonly HeldSeat[];
   permissions: readonly string[];
-  stakes: string;
+  /** The table's night so far; undefined until it is read. */
+  night: TableNight | undefined;
 }
 
 /** One seat's row, as in the prototype: who sits there and their tier, their must-move turn, away, their call time left (#78), held for a waitlist call, or Open. */
-function SeatLine({ number, player, heldFor }: { number: number; player: SeatedPlayer | undefined; heldFor: HeldSeat | undefined }) {
+function SeatLine({ number, player, heldFor, isOpen }: { number: number; player: SeatedPlayer | undefined; heldFor: HeldSeat | undefined; isOpen: boolean }) {
   if (player === undefined) {
-    const state = heldFor === undefined ? t('console.liveFloor.seatOpen') : t('console.liveFloor.heldFor', { name: heldFor.fullName });
+    const free = isOpen ? t('console.liveFloor.seatOpen') : t('console.liveFloor.seatFree');
+    const state = heldFor === undefined ? free : t('console.liveFloor.heldFor', { name: heldFor.fullName });
     return <Inline gap={4}><Text tone="muted">{number}</Text><Text tone="muted">{state}</Text></Inline>;
   }
   return (
@@ -36,10 +40,11 @@ function SeatLine({ number, player, heldFor }: { number: number; player: SeatedP
 }
 
 /**
- * The chosen table's seats (#77): the floor seats a player, moves one (the same session, so call
- * time runs on) or lets one leave; floor managers open or close the table and set it to feed a main table.
+ * The chosen table (#77, #81): its rules and night so far, its seats and its recent hands. The floor
+ * seats a player, moves one (the same session, so call time runs on) or lets one leave; floor
+ * managers open or close the table and set it to feed a main table.
  */
-export function TableDetail({ venueId, table, tables, seats, held, permissions, stakes }: TableDetailProps) {
+export function TableDetail({ venueId, table, tables, seats, held, permissions, night }: TableDetailProps) {
   const { leave } = useSeatActions(venueId);
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
   const [failure, setFailure] = useState<SeatFailure | null>(null);
@@ -49,7 +54,7 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
   const leaveLabel = t('console.liveFloor.leave');
   return (
     <Stack gap={4}>
-      <Stack gap={1}><Heading level={2}>{table.name}</Heading><Text tone="muted">{stakes}</Text></Stack>
+      <TableHeader table={table} night={night} />
       {permissions.includes('floor.manage') ? <TableControls venueId={venueId} table={table} tables={tables} isEmpty={seats.length === 0} onResult={report} /> : null}
       {failure === null ? null : <ErrorMessage>{t(SEAT_FAILURE_COPY[failure])}</ErrorMessage>}
       <Stack gap={2} divided>
@@ -57,7 +62,7 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
           const player = seats.find((seat) => seat.seat === index + 1);
           return (
             <Inline key={index} justify="between" align="center">
-              <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} />
+              <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
               {isFloor && player !== undefined ? (
                 <Inline gap={2}>
                   <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={() => setMoving(player)}>{moveLabel}</Button>
@@ -71,6 +76,7 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
       </Stack>
       {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
       {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
+      <RecentHands tableId={table.id} />
     </Stack>
   );
 }

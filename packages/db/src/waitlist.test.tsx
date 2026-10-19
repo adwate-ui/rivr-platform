@@ -64,7 +64,7 @@ describe('Waitlist data', () => {
     // A table whose game the person cannot read is left out.
     await waitFor(() => expect(result.current.tables.data).toEqual([{
       id: 't2', venueId: VENUE, name: 'Table 2', isOpen: true, seats: 9, tableTypeId: 'hi', tableTypeName: 'NLH 100/200',
-      smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n, straddle: null, waiting: 3, mustMoveToTableId: null,
+      smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n, straddle: null, waiting: 3, mustMoveToTableId: null, room: 'main',
     }]));
   });
 

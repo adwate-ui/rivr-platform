@@ -15,7 +15,7 @@ test.describe('Call time', () => {
     test.skip(isRemoteTarget(), 'seats a member, so the local stack only');
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000128');
-    await floor.getByRole('group', { name: 'Table' }).first().getByRole('button', { name: 'Private Room', exact: true }).click();
+    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
     await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Mobile number' }).fill('9000000215');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();

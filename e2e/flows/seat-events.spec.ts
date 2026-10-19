@@ -18,7 +18,7 @@ test.describe('Seat events', () => {
     test.setTimeout(90_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000127');
-    await floor.getByRole('group', { name: 'Table' }).first().getByRole('button', { name: 'Table 3', exact: true }).click();
+    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '9', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Mobile number' }).fill('9000000214');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();

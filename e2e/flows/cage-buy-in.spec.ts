@@ -13,7 +13,7 @@ test.describe('Cage buy-in', () => {
   test('a cashier issues chips for cash to a seated member; the wallet and the table minimum hold', async ({ page }) => {
     test.skip(isRemoteTarget(), 'seats a member and issues chips, so the local stack only');
     await signInToConsole(page, '9000000126');
-    await page.getByRole('group', { name: 'Table' }).first().getByRole('button', { name: 'Table 1', exact: true }).click();
+    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 1', exact: true }).click();
     await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '3', exact: true }).click();
     await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000212');
     await page.getByRole('button', { name: 'Seat', exact: true }).click();

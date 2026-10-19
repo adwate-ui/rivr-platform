@@ -20,17 +20,43 @@ export const checkIn = {
   unavailable: 'That did not go through. Check the connection and try again.',
 };
 
-/** The live floor (#77): the seat map, seating and moves, as in the prototype. */
+/** The live floor (#77, #81): the room plan, the seat map, seating and moves, as in the prototype. */
 export const liveFloor = {
   title: 'Live floor',
   empty: 'No tables are running.',
   table: 'Table',
+  /** The tables, room by room, read out as one part of the screen. */
+  roomPlan: 'Room plan',
+  rakeTonight: 'Rake tonight',
+  seatedCount: '{count} seated',
+  mainRoom: 'Main room',
+  privateRoom: 'Private Room',
+  /** Under a table's ring: hands in the last hour. */
+  handsPerHour: '{count} hands/hr',
+  noPace: '-',
+  noDealer: 'No dealer',
+  dealer: 'Dealer · {name}',
+  /** Under the chosen table's name: `100/200 · buy-in ₹10,000 · rake 5%, cap ₹6,000`. */
+  tableLine: '{stakes} · buy-in {buyIn} · rake {rate}%, cap {cap}',
+  tableLineNoRake: '{stakes} · buy-in {buyIn}',
+  hands: 'Hands',
+  perHour: 'Per hour',
+  recentHands: 'Recent hands',
+  noHands: 'No hands yet tonight.',
+  handNumber: '#{number}',
+  /** A recent hand: `₹18,400 · Hold'em`. */
+  handPot: '{pot} · {variant}',
+  holdem: 'Hold\'em',
+  plo: 'PLO',
+  bombPot: 'Bomb pot',
   /** Under a table's seat ring. */
   seatsTaken: '{taken} of {seats}',
   ringLabel: '{name}, {taken} of {seats} seats taken',
   ringClosed: '{name}, closed',
   closed: 'Closed',
-  seatOpen: 'Open',
+  seatOpen: 'Open · call the waitlist',
+  /** An empty seat at a closed table. */
+  seatFree: 'Open',
   /** A seat held for a member called from the waitlist (#63). */
   heldFor: 'Held for {name}',
   /** The same seat on a table's ring. */

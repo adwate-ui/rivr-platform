@@ -489,14 +489,14 @@ isOneToOne: false
                   ]
                 },"game_table": {
                   Row: {
-                    "created_at": string,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"room": string,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name": string,"position": number,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name": string,"position": number,"room"?: string,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"room"?: string,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1728,6 +1728,11 @@ isOneToOne: false
               "away_since": string,"call_time_left": number,"full_name": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
             }[]
                            },
+"floor_tonight":
+{ Args: { "p_venue_id": string }; Returns: {
+              "dealer_name": string,"hands": number,"hands_last_hour": number,"rake_basis_points": number,"rake_cap_paise": number,"rake_paise": number,"table_id": string,"venue_rake_paise": number
+            }[]
+                           },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
@@ -1933,6 +1938,11 @@ isOneToOne: false
                            },
 "step_away":
 { Args: { "p_entry_id": string,"p_is_away": boolean }; Returns: undefined
+                           },
+"table_hands":
+{ Args: { "p_limit": number,"p_table_id": string }; Returns: {
+              "hand_id": string,"number": number,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
+            }[]
                            },
 "tablet_dealers":
 { Args: Record<PropertyKey, never>; Returns: {
