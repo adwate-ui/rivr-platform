@@ -57,11 +57,11 @@ Auth and API on staging and production, in the Supabase dashboard:
      - Set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` as function secrets. Use a system user's token scoped to `whatsapp_business_messaging` for this one business account; every function in the project can read the secrets.
      - Until a channel is set, every sign-in except the test numbers is refused.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
-  - CAPTCHA on code requests (#182). Without it, anyone can use up the project-wide hourly code limit with requests to random numbers, which locks every member out of sign-in:
-    1. In Cloudflare, add a Turnstile widget (Managed mode) for the player and console domains (`*.pages.dev` and the production domains). Note its site key and secret.
-    2. In Supabase, under Authentication → Attack Protection, turn CAPTCHA protection on with the provider Turnstile and the secret.
-    3. In GitHub, set the variables `STAGING_TURNSTILE_SITE_KEY` and `PROD_TURNSTILE_SITE_KEY` to the site key. The next deploy builds them into the sign-in steps.
-    4. Do it on staging first, and check that a sign-in still works.
+  - CAPTCHA on code requests (#182). Without it, anyone can use up the project-wide hourly code limit with requests to random numbers, which locks every member out of sign-in. In this order, staging first:
+    1. In Cloudflare, add a Turnstile widget (Managed mode) with the exact hostnames: the player and console Pages projects (`rivr-player.pages.dev`, `rivr-console.pages.dev` and their staging projects; each also covers its preview subdomains) and the production domains. Never a bare `pages.dev`, which would let every Pages site use the key. Note the site key and secret.
+    2. In GitHub, set the variables `STAGING_TURNSTILE_SITE_KEY` and `PROD_TURNSTILE_SITE_KEY` to the site key, and run the deploy. Check that the sign-in steps load the widget. Auth ignores the token while its CAPTCHA is off, so sign-in keeps working.
+    3. Only then, in Supabase under Authentication → Attack Protection, turn CAPTCHA protection on with the provider Turnstile and the secret.
+    4. Check that a sign-in still works.
   - The hourly code limit: under Authentication → Rate Limits, set "SMS messages" for launch day, for example 300 an hour on production (about 150 members and staff signing in twice). When Auth refuses codes for this limit (`over_sms_send_rate_limit`), the sign-in screen raises one `auth.sms_rate_limit` alert for the owner dashboard, at most every 15 minutes (`sign-in-alert`).
 
 Outbox consumers (#215, decision 0038), on staging and production, once:
