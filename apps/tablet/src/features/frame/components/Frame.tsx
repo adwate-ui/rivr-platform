@@ -19,12 +19,13 @@ export function Frame({ children, unpaired }: FrameProps) {
   const authStatus = useAuthStatus();
   const device = useMyDevice();
   const banner = isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null;
-  const title = t('tablet.handEntry.title');
+  const title = t('tablet.title');
   if (authStatus === 'loading' || (authStatus === 'signed-in' && device.isPending)) {
-    return <TabletShell tableName="" banner={banner}><Screen title={title} status="loading" /></TabletShell>;
+    return <TabletShell tableName={title} banner={banner}><Screen title={title} status="loading" /></TabletShell>;
   }
-  if (device.isError) {
-    return <TabletShell tableName="" banner={banner}><Screen title={title} status="error" onRetry={() => void device.refetch()} /></TabletShell>;
+  // A failed check every 30 seconds keeps what was known: a dealer mid-hand keeps their screen.
+  if (device.isError && device.data === undefined) {
+    return <TabletShell tableName={title} banner={banner}><Screen title={title} status="error" onRetry={() => void device.refetch()} /></TabletShell>;
   }
   if (authStatus === 'signed-out' || !device.data) {
     return <TabletShell tableName={t('tablet.pairing.notPaired')} banner={banner}>{unpaired}</TabletShell>;

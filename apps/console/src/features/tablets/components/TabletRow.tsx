@@ -1,7 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { deviceRevokeSchema } from '@rivr/contracts';
 import { useDeviceActions, type DealerTablet, type DeviceFailure, type FloorTable, type PairingCode } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
 import { DEVICE_FAILURE_COPY } from './failureCopy.ts';
 
 type Outcome = { ok: true } | { ok: false; error: DeviceFailure };
@@ -9,20 +13,17 @@ type Outcome = { ok: true } | { ok: false; error: DeviceFailure };
 /** Revokes a lost or replaced tablet, with the reason: its session is nobody from then on. */
 function RevokeForm({ venueId, tablet, onDone }: { venueId: string; tablet: DealerTablet; onDone: (outcome: Outcome | null) => void }) {
   const { revoke } = useDeviceActions(venueId);
-  const [reason, setReason] = useState('');
-  const [isMissing, setIsMissing] = useState(false);
-  const revokeNow = async () => {
-    if (reason.trim() === '') {
-      setIsMissing(true);
-      return;
-    }
-    onDone(await revoke.mutateAsync({ deviceId: tablet.deviceId, reason }));
-  };
+  const [resolver] = useState(() => zodResolver(deviceRevokeSchema));
+  const form = useForm<z.input<typeof deviceRevokeSchema>, unknown, z.output<typeof deviceRevokeSchema>>({
+    resolver, defaultValues: { reason: '' },
+  });
+  const submit = form.handleSubmit(async ({ reason }) => onDone(await revoke.mutateAsync({ deviceId: tablet.deviceId, reason })));
+  const reasonField = form.register('reason');
   return (
     <Inline gap={3} align="end">
-      <Input label={t('console.tablets.revokeReason')} value={reason} onChange={(event) => setReason(event.target.value)} autoComplete="off"
-        error={isMissing ? t('console.tablets.invalidReason') : undefined} />
-      <Button variant="danger" isLoading={revoke.isPending} onClick={() => void revokeNow()}>{t('console.tablets.revokeConfirm')}</Button>
+      <Input {...reasonField} label={t('console.tablets.revokeReason')} autoComplete="off"
+        error={form.formState.errors.reason ? t('console.tablets.invalidReason') : undefined} />
+      <Button variant="danger" isLoading={revoke.isPending} onClick={() => void submit()}>{t('console.tablets.revokeConfirm')}</Button>
       <Button variant="text" onClick={() => onDone(null)}>{t('common.cancel')}</Button>
     </Inline>
   );
@@ -67,7 +68,7 @@ export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowPr
         </Inline>
       </Inline>
       <ChoiceChips label={t('console.tablets.table', { name })} mode="one" selected={tablet.tableId === null ? [] : [tablet.tableId]}
-        onChange={(ids) => void fixTo(ids[0])} options={tables.map((table) => ({ value: table.id, label: table.name }))} />
+        isDisabled={assign.isPending} onChange={(ids) => void fixTo(ids[0])} options={tables.map((table) => ({ value: table.id, label: table.name }))} />
       {isRevoking ? (
         <RevokeForm venueId={venueId} tablet={tablet} onDone={(outcome) => {
           setIsRevoking(false);

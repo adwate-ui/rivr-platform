@@ -13,10 +13,10 @@ export function TabletsScreen() {
   if (!staff.venue.permissions.includes('devices.manage')) {
     return <Screen title={t('console.tablets.title')} status="error" errorText={t('console.tablets.notAllowed')} />;
   }
-  return <TabletList venueId={staff.venue.venueId} staffId={staff.venue.staffId} />;
+  return <TabletList venueId={staff.venue.venueId} />;
 }
 
-function TabletList({ venueId, staffId }: { venueId: string; staffId: string }) {
+function TabletList({ venueId }: { venueId: string }) {
   const tablets = useDealerTablets(venueId);
   const tables = useFloorTables();
   // Codes given out on this screen, by tablet: shown once, never read back.
@@ -24,7 +24,8 @@ function TabletList({ venueId, staffId }: { venueId: string; staffId: string }) 
   const showCode = (code: PairingCode) => setCodes((before) => ({ ...before, [code.deviceId]: code }));
   const title = t('console.tablets.title');
   if (tablets.isPending || tables.isPending) return <Screen title={title} status="loading" />;
-  if (tablets.isError || tables.isError) {
+  // A failed refresh keeps what was known, so a code being read out or a name half typed stays put.
+  if (tablets.data === undefined || tables.data === undefined) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([tablets.refetch(), tables.refetch()])} />;
   }
   const venueTables = tables.data.filter((table) => table.venueId === venueId);
@@ -39,7 +40,7 @@ function TabletList({ venueId, staffId }: { venueId: string; staffId: string }) 
             ))}
           </Stack>
         )}
-        <AddTabletForm venueId={venueId} staffId={staffId} onCode={showCode} />
+        <AddTabletForm venueId={venueId} onCode={showCode} />
       </Stack>
     </Screen>
   );

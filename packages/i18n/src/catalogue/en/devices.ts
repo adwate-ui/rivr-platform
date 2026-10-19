@@ -8,6 +8,8 @@ export const tablets = {
   name: 'Tablet name',
   nameHint: 'For example, Table 3 tablet.',
   add: 'Add and pair',
+  /** The tablet was added, but its pairing code could not be made. */
+  addedWithoutCode: 'Tablet added, but no code was made. Press New pairing code on its row.',
   /** The tablet has signed in with its code. */
   paired: 'Paired',
   notPaired: 'Not paired',
@@ -35,6 +37,7 @@ export const pairing = {
   code: 'Pairing code',
   pair: 'Pair',
   wrongCode: 'That code is not right or has run out. Ask for a new one.',
+  tooMany: 'Too many wrong codes. Wait ten minutes, then ask for a new code.',
   unavailable: 'Pairing did not go through. Check the connection and try again.',
 };
 

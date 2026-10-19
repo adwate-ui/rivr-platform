@@ -32,7 +32,14 @@ export {
 export { upiVpaSchema, utrSchema, type UpiVpa, type Utr } from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';
 export { floorWaitlistAddSchema } from './waitlist.ts';
-export { devicePairSchema, deviceSessionSchema, pairingCodeSchema, type DeviceSession } from './devices.ts';
+export {
+  dealerTabletAddSchema,
+  devicePairSchema,
+  deviceRevokeSchema,
+  deviceSessionSchema,
+  pairingCodeSchema,
+  type DeviceSession,
+} from './devices.ts';
 export { linkSuffixSchema, receiptReadySchema, waitlistCalledSchema, type ReceiptReady, type WaitlistCalled } from './messaging.ts';
 export { kycInPersonSchema, kycReviewSchema, type KycInPerson } from './kycReview.ts';
 export { sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';

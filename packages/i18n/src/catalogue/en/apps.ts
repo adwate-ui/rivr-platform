@@ -269,6 +269,7 @@ export const consoleApp = {
 export const tabletApp = {
   /** The table name in the header before the tablet is assigned to a table. */
   unassignedTable: 'Not assigned',
+  title: 'Dealer tablet',
   pairing,
   handEntry,
 } as const;
