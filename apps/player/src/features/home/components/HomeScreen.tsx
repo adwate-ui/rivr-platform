@@ -1,7 +1,31 @@
+import { useFeature, useFloorTables, useMyWaitlist } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen } from '@rivr/ui';
+import { FeatureGate, Screen, Stack } from '@rivr/ui';
+import { FloorList } from './FloorList.tsx';
+import { YourWaitlist } from './YourWaitlist.tsx';
 
-/** Home: tonight's floor. Lane C builds it out, composing lanes B and D's features. */
+/**
+ * Home: tonight's floor (design prompt, "Home"). The member's waitlist places first, then each table
+ * with its stakes and how many wait, and Join (#38). The floor shows with feature floor.live_view.
+ */
 export function HomeScreen() {
-  return <Screen title={t('player.tonight.title')} status="empty" emptyText={t('player.tonight.empty')} />;
+  const liveView = useFeature('floor.live_view');
+  const tables = useFloorTables();
+  const places = useMyWaitlist();
+  const title = t('player.tonight.title');
+  if (tables.isPending || places.isPending) return <Screen title={title} status="loading" />;
+  if (tables.isError || places.isError) {
+    return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />;
+  }
+  if (tables.data.length === 0 && places.data.length === 0) return <Screen title={title} status="empty" emptyText={t('player.tonight.empty')} />;
+  return (
+    <Screen title={title}>
+      <Stack gap={8}>
+        <YourWaitlist places={places.data} />
+        <FeatureGate access={liveView}>
+          <FloorList tables={tables.data} places={places.data} />
+        </FeatureGate>
+      </Stack>
+    </Screen>
+  );
 }

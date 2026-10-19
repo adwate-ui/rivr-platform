@@ -31,4 +31,10 @@ export const queryKeys = {
   staffVenues: (userId: string) => ['user', userId, 'staff-venues'] as const,
   /** A signed URL for one KYC image. */
   kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
+  /** Tonight's tables and each game's waitlist length, as a member or staff sees them. */
+  floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
+  /** The signed-in member's waitlist places. */
+  myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
+  /** A venue's waitlists, as the floor sees them. */
+  waitlistBoard: (userId: string, venueId: string) => ['user', userId, 'waitlist-board', venueId] as const,
 };
