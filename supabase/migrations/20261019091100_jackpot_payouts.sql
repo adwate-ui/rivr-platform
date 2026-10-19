@@ -146,11 +146,11 @@ $$;
 
 -- Staff with jackpots.approve pay a bad beat at a table: the loser, the winner and the other players
 -- dealt in, by mobile number (+91…), under the jackpot.payout rule in force. One payout or reversal
--- at a time per venue, worked out on the pool as it stands; a replay of the same request is the same
--- payout. Not while the venue is frozen, promotions are switched off (question #300) or any of the
+-- at a time per venue, worked out on the pool as it stands, and paid only if it is the total the
+-- console showed (`RVSTL` if the pool moved); a replay of the same request is the same payout. Not while the venue is frozen, promotions are switched off (question #300) or any of the
 -- players is frozen.
 create function private.pay_bad_beat(p_venue_id uuid, p_table_id uuid, p_loser_phone text, p_winner_phone text,
-                                     p_table_phones text[], p_idempotency_key text)
+                                     p_table_phones text[], p_expected_total bigint, p_idempotency_key text)
 returns uuid
 language plpgsql
 volatile
@@ -192,6 +192,11 @@ begin
     (v_rule ->> 'table_basis_points')::numeric::integer, cardinality(v_players) - 2);
   if v_paid.total = 0 then
     raise exception 'The pool pays nothing yet' using errcode = '22023';
+  end if;
+  -- The floor hands out the chips the console showed: if drops or another payout moved the pool
+  -- since, nothing is paid and the console shows the new amounts.
+  if p_expected_total is distinct from v_paid.total then
+    raise exception 'The jackpot has changed since the amounts were shown' using errcode = 'RVSTL';
   end if;
   insert into public.jackpot_event (venue_id, kind, table_id, loser_member_id, winner_member_id, table_member_ids, pool_paise,
                                     loser_paise, winner_paise, each_at_table_paise, total_paise, rule, staff_id, idempotency_key)
@@ -312,13 +317,13 @@ $$;
 
 revoke execute on function private.members_by_phone(uuid, text[]), private.assert_read_committed(), private.main_pool(uuid),
   private.replayed_jackpot_event(uuid, text, public.jackpot_event_kind, uuid, uuid[], uuid) from public, anon, authenticated;
-grant execute on function private.pay_bad_beat(uuid, uuid, text, text, text[], text), private.reverse_jackpot_event(uuid, text, text),
+grant execute on function private.pay_bad_beat(uuid, uuid, text, text, text[], bigint, text), private.reverse_jackpot_event(uuid, text, text),
   private.jackpot_pools(uuid), private.jackpot_history(uuid) to authenticated;
 
 create function public.pay_bad_beat(p_venue_id uuid, p_table_id uuid, p_loser_phone text, p_winner_phone text,
-                                    p_table_phones text[], p_idempotency_key text)
+                                    p_table_phones text[], p_expected_total bigint, p_idempotency_key text)
 returns uuid language sql volatile security invoker set search_path = ''
-as $$ select private.pay_bad_beat(p_venue_id, p_table_id, p_loser_phone, p_winner_phone, p_table_phones, p_idempotency_key); $$;
+as $$ select private.pay_bad_beat(p_venue_id, p_table_id, p_loser_phone, p_winner_phone, p_table_phones, p_expected_total, p_idempotency_key); $$;
 
 create function public.reverse_jackpot_event(p_event_id uuid, p_reason text, p_idempotency_key text)
 returns uuid language sql volatile security invoker set search_path = ''
@@ -336,7 +341,7 @@ returns table (event_id uuid, kind public.jackpot_event_kind, reverses_id uuid, 
 language sql stable security invoker set search_path = ''
 as $$ select * from private.jackpot_history(p_venue_id); $$;
 
-revoke execute on function public.pay_bad_beat(uuid, uuid, text, text, text[], text), public.reverse_jackpot_event(uuid, text, text),
+revoke execute on function public.pay_bad_beat(uuid, uuid, text, text, text[], bigint, text), public.reverse_jackpot_event(uuid, text, text),
   public.jackpot_pools(uuid), public.jackpot_history(uuid) from public, anon;
-grant execute on function public.pay_bad_beat(uuid, uuid, text, text, text[], text), public.reverse_jackpot_event(uuid, text, text),
+grant execute on function public.pay_bad_beat(uuid, uuid, text, text, text[], bigint, text), public.reverse_jackpot_event(uuid, text, text),
   public.jackpot_pools(uuid), public.jackpot_history(uuid) to authenticated;

@@ -1406,7 +1406,7 @@ isOneToOne: false
 { Args: { "p_phone": string }; Returns: boolean
                            },
 "pay_bad_beat":
-{ Args: { "p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
+{ Args: { "p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
