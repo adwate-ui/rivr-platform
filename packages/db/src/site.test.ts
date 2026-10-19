@@ -68,6 +68,14 @@ describe('fetchSitePage', () => {
     ]);
   });
 
+  it('is unavailable when the waitlist counts cannot be read', async () => {
+    const { client } = siteClient(PAGES, LIVE_BLOCKS, {
+      public_table_status: { body: TABLES }, public_waitlist_length: { status: 500, body: { message: 'down' } },
+      public_tournament_calendar: { body: CALENDAR },
+    });
+    expect(await fetchSitePage(client, 'home')).toEqual(err('unavailable'));
+  });
+
   it('is unavailable when a live view the page needs cannot be read', async () => {
     const { client } = siteClient(PAGES, LIVE_BLOCKS, {
       public_table_status: { body: TABLES }, public_waitlist_length: { body: [] },

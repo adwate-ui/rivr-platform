@@ -18,7 +18,8 @@ test.describe('Link-in-bio', () => {
 
     await expect(page.getByRole('heading', { level: 2, name: 'Tonight\'s games' })).toBeVisible();
     await expect(page.getByText('NLH 100/200', { exact: true })).toBeVisible();
-    await expect(page.getByText(/^\d+ tables? running( · \d+ waiting)?$/).first()).toBeVisible();
+    // The seed keeps three waiting for 100/200; the website reads the count from public_waitlist_length.
+    await expect(page.getByText(/^\d+ tables? running · \d+ waiting$/)).toBeVisible();
     await expect(page.getByRole('link', { name: 'Get directions' })).toBeVisible();
     // The site's links wrap under the wordmark: nothing is wider than the phone.
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(VIEWPORT.player.width);

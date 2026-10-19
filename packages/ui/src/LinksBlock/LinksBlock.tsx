@@ -18,7 +18,7 @@ export function LinksBlock({ heading, links }: LinksBlockProps) {
     <section className="mx-auto flex w-full max-w-phone flex-col gap-3 px-6 py-6">
       {heading ? <Heading level={2}>{heading}</Heading> : null}
       {links.map((link, position) => (
-        <Button key={link.href} variant={position === 0 ? 'primary' : 'secondary'} size="large" href={link.href} fullWidth>
+        <Button key={`${String(position)}-${link.href}`} variant={position === 0 ? 'primary' : 'secondary'} size="large" href={link.href} fullWidth>
           {link.label}
         </Button>
       ))}

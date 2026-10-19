@@ -31,8 +31,7 @@ function buyIn(game: GamesBlockGame): string {
 }
 
 function running({ tablesOpen, waiting = 0 }: GamesBlockGame): string {
-  if (tablesOpen === 0) return t('ui.web.notRunning');
-  const tables = tablesOpen === 1 ? t('ui.web.oneTable') : t('ui.web.tables', { count: tablesOpen });
+  const tables = tablesOpen === 0 ? t('ui.web.notRunning') : tablesOpen === 1 ? t('ui.web.oneTable') : t('ui.web.tables', { count: tablesOpen });
   return waiting === 0 ? tables : t('ui.web.pair', { first: tables, second: t('ui.web.waiting', { count: waiting }) });
 }
 
