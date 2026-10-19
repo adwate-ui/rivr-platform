@@ -69,6 +69,13 @@ enable_signup = false
 enable_confirmations = true
 
 # Local limits. Staging and production set theirs in the dashboard (docs/runbooks/ci-and-release.md).
+[auth.captcha]
+# Cloudflare Turnstile on every code request (#182). Off locally, where there is no site key; staging
+# and production turn it on in the dashboard with the secret (runbook, "Auth and API").
+enabled = false
+provider = "turnstile"
+secret = ""
+
 [auth.rate_limit]
 email_sent = 2
 sms_sent = 30
@@ -153,6 +160,11 @@ PLAYER_APP_URL = "http://127.0.0.1:{{BLOCK}}40"
 # this function as a service, not as a person, so it is off here; the function's own signature
 # check is the guard.
 [functions.auth-send-code]
+verify_jwt = false
+
+# Called signed out, when Auth refuses a code for the project's hourly limit (#182). It raises at
+# most one alert every 15 minutes and takes nothing from the caller.
+[functions.sign-in-alert]
 verify_jwt = false
 
 [analytics]

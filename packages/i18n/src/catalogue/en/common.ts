@@ -34,6 +34,8 @@ export const common = {
     codeInvalid: 'Enter the 6-digit code.',
     codeRejected: 'Code wrong or expired. Check it, or request a new one.',
     tooManyRequests: 'Too many attempts. Wait a minute, then try again.',
+    /** The security check (Cloudflare Turnstile) did not finish or failed (#182). */
+    notChecked: 'The security check did not finish. Wait a moment, then send again.',
     unavailable: 'Sign-in is not available right now. Try again in a few minutes.',
     signOut: 'Sign out',
     /** Sign-in opened while someone is still signed in on this device, such as a bookmark on a shared computer. */

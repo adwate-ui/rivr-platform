@@ -5,5 +5,6 @@ import type { MessageKey } from '@rivr/i18n';
 export const FAILURE_COPY: Readonly<Record<SignInFailure, MessageKey>> = {
   code_rejected: 'common.signIn.codeRejected',
   too_many_requests: 'common.signIn.tooManyRequests',
+  not_checked: 'common.signIn.notChecked',
   unavailable: 'common.signIn.unavailable',
 };
