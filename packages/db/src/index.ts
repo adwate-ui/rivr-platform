@@ -66,6 +66,15 @@ export {
 export { useCheckInActions, useDoorBoard, type CheckInFailure, type DoorMember } from './visits.ts';
 export { useFloorSeats, useHeldSeats, useSeatActions, type HeldSeat, type SeatedPlayer, type SeatFailure } from './seats.ts';
 export {
+  useCageActions,
+  useCageMembers,
+  useCageQueue,
+  type BuyInOrder,
+  type BuyInRequest,
+  type CageFailure,
+  type CageMember,
+} from './cage.ts';
+export {
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,

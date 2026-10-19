@@ -40,6 +40,8 @@ export const queryKeys = {
   waitlistBoard: (userId: string, venueId: string) => ['user', userId, 'waitlist-board', venueId] as const,
   floorSeats: (userId: string, venueId: string) => ['user', userId, 'floor-seats', venueId] as const,
   heldSeats: (userId: string, venueId: string) => ['user', userId, 'held-seats', venueId] as const,
+  cageMembers: (userId: string, venueId: string, query: string) => ['user', userId, 'cage-members', venueId, query] as const,
+  cageQueue: (userId: string, venueId: string) => ['user', userId, 'cage-queue', venueId] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
   /** The signed-in dealer tablet and its table. */
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
