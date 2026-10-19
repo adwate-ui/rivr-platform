@@ -9,6 +9,11 @@
       "dependsOn": [
         "^build"
       ],
+      "env": [
+        "RIVR_PORT_BLOCK",
+        "VITE_*",
+        "PUBLIC_*"
+      ],
       "outputs": [
         "dist/**"
       ]
