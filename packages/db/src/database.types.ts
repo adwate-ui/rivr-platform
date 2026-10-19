@@ -1204,7 +1204,7 @@ isOneToOne: false
                            },
 "waitlist_board":
 { Args: { "p_venue_id": string }; Returns: {
-              "added_by_floor": boolean,"entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"place": number,"table_type_id": string
+              "added_by_floor": boolean,"entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"place": number,"priority_reason": string,"table_type_id": string
             }[]
                            },
 "waitlist_lengths":

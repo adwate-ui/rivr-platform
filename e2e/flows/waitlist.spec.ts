@@ -1,7 +1,9 @@
 /**
- * Waitlist (#38): a member joins the 100/200 list from Home and sees their place; the floor sees
+ * Waitlist (#38, #40): a member joins the 100/200 list from Home and sees their place; the floor sees
  * them on the console's Waitlist and removes them, and the member can join again. The floor then
- * adds the member to the 50/100 list by their number, and the member sees that place too.
+ * adds the member to the 50/100 list by their number, and the member sees that place too. A black
+ * card the floor adds goes first on the 100/200 list, the stake it qualifies at, and by join time on
+ * 50/100 (Vihaan Kapoor, seeded with a finished check; never signs in).
  * Ishaan Verma (member, identity check finished) and Zoya Sheikh (host) are this flow's own people:
  * Auth sends one code a minute to a number.
  */
@@ -39,7 +41,7 @@ async function leaveEveryList(page: Page) {
 }
 
 test.describe('Waitlist', () => {
-  test('a member joins from Home; the floor sees and removes them, then adds them by number', async ({ browser }) => {
+  test('a member joins from Home; the floor removes and adds them; Black card at another stake queues by join time', async ({ browser }) => {
     const player = await browser.newPage();
     await signInToPlayer(player, '9000000211');
     await leaveEveryList(player);
@@ -70,6 +72,17 @@ test.describe('Waitlist', () => {
     await lower.getByRole('button', { name: 'Add to the list' }).click();
     await expect(lower.getByText(new RegExp(`^1\\. ${MEMBER} · `))).toBeVisible();
     await expect(lower.getByText('Added by the floor')).toBeVisible();
+
+    // A black card at 100/200 goes first on that list, with the reason, and by join time on 50/100 (#40).
+    await higher.getByRole('textbox', { name: 'Mobile number' }).fill('9000000212');
+    await higher.getByRole('button', { name: 'Add to the list' }).click();
+    await expect(higher.getByText(/^1\. Vihaan Kapoor · \d{2}:\d{2} · Black card$/)).toBeVisible();
+    await lower.getByRole('textbox', { name: 'Mobile number' }).fill('9000000212');
+    await lower.getByRole('button', { name: 'Add to the list' }).click();
+    await expect(lower.getByText(/^2\. Vihaan Kapoor · \d{2}:\d{2}$/)).toBeVisible();
+    await higher.getByRole('button', { name: 'Remove Vihaan Kapoor' }).click();
+    await lower.getByRole('button', { name: 'Remove Vihaan Kapoor' }).click();
+    await expect(host.getByText(/Vihaan Kapoor/)).toHaveCount(0);
 
     await player.reload();
     await expect(tableDetail(player, 'Table 1').getByText(/· You are number 1$/)).toBeVisible();

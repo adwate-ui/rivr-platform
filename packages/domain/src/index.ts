@@ -4,3 +4,4 @@ export * from './ledger/index.ts';
 export * from './identity/index.ts';
 export * from './academy/index.ts';
 export * from './rake/index.ts';
+export * from './waitlist/index.ts';
