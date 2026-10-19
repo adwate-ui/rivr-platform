@@ -1,8 +1,8 @@
 /**
- * Dealer tablet pairing (#41): the general manager (Meera Iyer, who manages devices) adds a tablet on
- * the console and reads out its code; the tablet signs in as itself with it, and the console shows it
- * paired; she fixes it to Table 3, which the tablet then shows; and once revoked, the tablet asks to
- * be paired again. Meera signs in nowhere else close by (Auth sends one code a minute to a number).
+ * Dealer tablet pairing (#41): the deputy general manager (Kunal Desai, this flow's own sign-in: Auth
+ * sends one code a minute to a number) adds a tablet on the console and reads out its code; the
+ * tablet signs in as itself with it, and the console shows it paired; he fixes it to Table 3, which
+ * the tablet then shows; and once revoked, the tablet asks to be paired again.
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
@@ -14,7 +14,7 @@ test.describe('Dealer tablet', () => {
     // Five digits always, so no earlier run's tablet name is a prefix of this one.
     const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
-    await signInToConsole(floor, '9000000102');
+    await signInToConsole(floor, '9000000112');
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('button', { name: 'Add and pair' }).click();
