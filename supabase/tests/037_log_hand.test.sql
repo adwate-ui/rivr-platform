@@ -137,21 +137,46 @@ select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select throws_ok($$ select public.log_hand(4800000, 'plo', now(), 'hand-plo-request') $$, '22023', null, 'Table 1 takes no PLO');
 reset role;
 
--- A down ends when its dealer may no longer log hands; a down left open for them logs none.
+-- A dealer who may no longer log hands logs none, though her down is still open.
 update public.staff set is_active = false
 where user_id = '00000000-0000-4000-8000-000000000106' and venue_id = '00000000-0000-4000-8000-000000000001';
-select is(pg_temp.open_downs(), 0, 'making Pema inactive ends her down');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select throws_ok($$ select public.log_hand(4800000, 'holdem', now(), 'hand-inactive-request') $$, 'RVDWN', null,
+  'an inactive dealer logs no hand');
+reset role;
 update public.staff set is_active = true
 where user_id = '00000000-0000-4000-8000-000000000106' and venue_id = '00000000-0000-4000-8000-000000000001';
-select pg_temp.start_down();
 insert into public.control_state (venue_id, level, staff_id, reason)
 select venue_id, 'access_revoke'::public.control_level, staff_id, 'Test' from public.dealer_down where ended_at is null;
-select is(pg_temp.open_downs(), 0, 'so does revoking her access');
-select pg_temp.start_down();
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select throws_ok($$ select public.log_hand(4800000, 'holdem', now(), 'hand-revoked-request') $$, 'RVDWN', null,
-  'and a down left open for her logs no hand');
+  'nor one whose access is revoked');
 reset role;
+
+-- A hand lands only on a down begun on the tablet that logs it; revoking a tablet ends its down.
+update public.dealer_down set ended_at = now() where ended_at is null;
+insert into public.device (id, venue_id, kind, name) values
+  ('00000000-0000-4000-8000-00000000d002', '00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet B');
+insert into public.dealer_down (venue_id, table_id, staff_id, device_id)
+select a.venue_id, a.table_id, s.id, '00000000-0000-4000-8000-00000000d002'
+from public.tablet_assignment a
+join public.staff s on s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = a.venue_id
+where a.device_id = '00000000-0000-4000-8000-00000000d001';
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select throws_ok($$ select public.log_hand(4800000, 'holdem', now(), 'hand-other-tablet-request') $$, 'RVDWN', null,
+  'a down at this table begun on another tablet takes no hand from this one');
+reset role;
+update public.dealer_down set ended_at = now() where ended_at is null;
+insert into public.tablet_assignment (device_id, venue_id, table_id)
+select '00000000-0000-4000-8000-00000000d002', venue_id, id from public.game_table
+where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 5';
+insert into public.dealer_down (venue_id, table_id, staff_id, device_id)
+select a.venue_id, a.table_id, s.id, a.device_id
+from public.tablet_assignment a
+join public.staff s on s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = a.venue_id
+where a.device_id = '00000000-0000-4000-8000-00000000d002';
+update public.device set revoked_at = now(), revoked_reason = 'Test' where id = '00000000-0000-4000-8000-00000000d002';
+select is(pg_temp.open_downs(), 0, 'revoking Tablet B ends the down begun on it');
 
 -- Between downs, no hand; a freeze, no hand, but a replay is still the hand logged.
 select pg_temp.fix_tablet_to('Table 3');
