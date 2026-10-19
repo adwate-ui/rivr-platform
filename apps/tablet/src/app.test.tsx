@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import { createRivrClient, RivrDataProvider } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { cleanup, render, screen } from '@testing-library/react';

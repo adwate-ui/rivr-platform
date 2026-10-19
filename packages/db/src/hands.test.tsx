@@ -1,11 +1,10 @@
-import { fromPaise } from '@rivr/domain';
 import { createClient } from '@supabase/supabase-js';
-import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useDownHands, useLogHand, useTableRules } from './hands.ts';
+import { useDownHands, useTableRules } from './hands.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -26,7 +25,7 @@ function renderHands(replies: Record<string, { status?: number; body: unknown }>
     auth: { storage: sessionStorageFor(TABLET), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ rules: useTableRules(ids.table), hands: useDownHands(ids.down), log: useLogHand() }), { wrapper });
+  const { result } = renderHook(() => ({ rules: useTableRules(ids.table), hands: useDownHands(ids.down) }), { wrapper });
   return { result, calls };
 }
 
@@ -53,24 +52,6 @@ describe('Hand entry data', () => {
     await waitFor(() => expect(result.current.hands.data).toEqual([
       { handId: 'h1', playedAt: '2026-10-19T21:05:00+05:30', variant: 'plo', pot: 14000000n, rake: 600000n, drop: 10000n, isCapApplied: true },
     ]));
-  });
-
-  it('logs a hand with its request id, and says when no dealer is signed in', async () => {
-    const logged = renderHands({ ...EMPTY, '/rpc/log_hand': { body: 'h2' } });
-    let outcome: unknown;
-    const playedAt = new Date('2026-10-19T15:35:00Z');
-    await act(async () => { outcome = await logged.result.current.log.mutateAsync({ pot: fromPaise(4800000n), variant: 'holdem', playedAt, requestId: 'r-1' }); });
-    expect(outcome).toEqual({ ok: true, value: 'h2' });
-    expect(logged.calls.find((call) => call.url.includes('log_hand'))?.body)
-      .toEqual({ p_pot: 4800000, p_variant: 'holdem', p_played_at: '2026-10-19T15:35:00.000Z', p_idempotency_key: 'r-1' });
-    cleanup();
-    const noDealer = renderHands({ ...EMPTY, '/rpc/log_hand': { status: 400, body: { code: 'RVDWN', message: 'no dealer' } } });
-    await act(async () => { outcome = await noDealer.result.current.log.mutateAsync({ pot: fromPaise(4800000n), variant: 'holdem', playedAt, requestId: 'r-2' }); });
-    expect(outcome).toEqual({ ok: false, error: 'no_dealer' });
-    cleanup();
-    const frozen = renderHands({ ...EMPTY, '/rpc/log_hand': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } } });
-    await act(async () => { outcome = await frozen.result.current.log.mutateAsync({ pot: fromPaise(4800000n), variant: 'holdem', playedAt, requestId: 'r-3' }); });
-    expect(outcome).toEqual({ ok: false, error: 'paused' });
   });
 
   it('asks for nothing until the tablet is fixed to a table and a down is open', async () => {

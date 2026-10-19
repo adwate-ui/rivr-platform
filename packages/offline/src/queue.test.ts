@@ -113,6 +113,7 @@ describe('offline queue', () => {
     await queue.enqueue(hand(300_000n), 'hand-3');
     expect(await queue.flush()).toEqual({ sent: 0, parked: 0, pending: 2 });
     expect(server.attempts).not.toContain('hand-3');
+    expect((await queue.pending()).map((write) => write.idempotencyKey)).toEqual(['hand-2', 'hand-3']);
 
     server.failing.clear();
     expect(await queue.flush()).toEqual({ sent: 2, parked: 0, pending: 0 });
