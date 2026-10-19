@@ -27,18 +27,19 @@ export function WebShell({ children, links, homeHref = '/', footer, onNavigate }
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       <header className="border-b border-hairline">
-        <div className="mx-auto flex h-header max-w-console items-center justify-between gap-6 px-6">
+        {/* On a phone the links wrap under the wordmark rather than widening the page. */}
+        <div className="mx-auto flex min-h-header max-w-console flex-wrap items-center justify-between gap-x-6 px-6 py-2">
           <a href={homeHref} onClick={(event) => routeClick(event, homeHref, onNavigate)} className="flex rounded-sm">
             <Wordmark />
           </a>
           <nav aria-label={t('ui.web.navigation')}>
-            <ul className="flex items-center gap-6">
+            <ul className="flex flex-wrap items-center gap-x-6">
               {links.map((link) => (
                 <li key={link.href}>
                   <a
                     href={link.href}
                     onClick={(event) => routeClick(event, link.href, onNavigate)}
-                    className="flex min-h-touch items-center font-text text-14 text-content-muted transition-colors hover:text-content"
+                    className="flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content"
                   >
                     {link.label}
                   </a>
