@@ -27,6 +27,9 @@ src/
     kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason, and checks in person (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
+    waitlist/         the floor's waitlists: add, call, seat, skip, remove (/waitlist)
+    tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
+    dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
 ```
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.
@@ -35,7 +38,7 @@ Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every re
 
 ## Who builds what
 
-Every lane adds console features: lane A the cage, markers, treasury, end of day, withdrawals, expenses, reports, owner dashboard and admin; lane B the live floor, waitlist, dealer tablets, tables, tournaments, jackpots, high hands, TV screens, dealers, SOPs, incidents, F&B and pot data; lane C KYC review, members, Academy, website, Learn sources and cab; lane D promotions, rewards, League, social, creators, host queue, growth funnel and feedback (`docs/contracts/`).
+Every lane adds console features: lane A the cage, markers, treasury, end of day, withdrawals, expenses, reports, owner dashboard and admin; lane B the live floor, waitlist, dealer tablets and their PINs, tables, tournaments, jackpots, high hands, TV screens, dealers, SOPs, incidents, F&B and pot data; lane C KYC review, members, Academy, website, Learn sources and cab; lane D promotions, rewards, League, social, creators, host queue, growth funnel and feedback (`docs/contracts/`).
 
 ## Budgets
 

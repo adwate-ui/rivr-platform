@@ -42,6 +42,11 @@ const RAIL: readonly RailGroup[] = [
     label: 'ui.consoleRail.groups.growth',
     entries: [{ id: 'academy', label: 'ui.consoleRail.items.academy', href: '/academy', anyOf: ['members.manage'] }],
   },
+  {
+    id: 'team',
+    label: 'ui.consoleRail.groups.team',
+    entries: [{ id: 'dealerPins', label: 'ui.consoleRail.items.dealerPins', href: '/dealer-pins', anyOf: ['staff.manage'] }],
+  },
 ];
 
 /** The rail for a staff member: the screens their role allows, with no empty group. */

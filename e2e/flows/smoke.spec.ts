@@ -23,7 +23,7 @@ test.describe('smoke: every surface starts', () => {
 
   test('a dealer tablet that is not paired asks for its pairing code', async ({ page }) => {
     await open(page, 'tablet');
-    await expect(page.getByRole('heading', { name: 'Pair this tablet' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tablet pairing' })).toBeVisible();
   });
 
   test('a TV says it is not paired', async ({ page }) => {

@@ -27,7 +27,7 @@ function renderDowns(replies: Record<string, { status?: number; body: unknown }>
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ dealers: useVenueDealers(VENUE), setPin: useSetDealerPin(VENUE), down: useCurrentDown(true), actions: useDownActions() }),
+    () => ({ dealers: useVenueDealers(VENUE), setPin: useSetDealerPin(VENUE), down: useCurrentDown('t3'), actions: useDownActions() }),
     { wrapper },
   );
   return { result, calls };

@@ -39,6 +39,7 @@ src/
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: the table it is fixed to, the kill-switch banner, not found
     pairing/          the pairing code, until the tablet is signed in as itself
+    dealer-sign-in/   between downs: the dealer's name and PIN, which starts their down
     hand-entry/       hand entry (#42)
 ```
 

@@ -1,20 +1,61 @@
-import { useAuthStatus, useControlState, useMyDevice } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { KillSwitchBanner, Screen, TabletShell } from '@rivr/ui';
-import type { ReactNode } from 'react';
+import { useAuthStatus, useControlState, useCurrentDown, useDownActions, useMyDevice, type MyDevice } from '@rivr/db';
+import { formatTime, t } from '@rivr/i18n';
+import { Button, ErrorMessage, KillSwitchBanner, Screen, TabletShell, Text } from '@rivr/ui';
+import { useState, type ReactNode } from 'react';
 
 interface FrameProps {
   children: ReactNode;
   /** What the tablet shows until it is paired, or once its pairing is revoked. */
   unpaired: ReactNode;
+  /** What a tablet fixed to a table shows between downs: dealer sign-in. */
+  signIn: ReactNode;
+}
+
+interface TableFrameProps {
+  device: MyDevice;
+  banner: ReactNode;
+  signIn: ReactNode;
+  children: ReactNode;
+}
+
+/**
+ * A paired tablet. Not yet fixed to a table, its screens say so. Fixed to one: between downs,
+ * dealer sign-in; during a down, the tablet's screens with who is dealing, since when, and End of
+ * down in the header. A failed check keeps what was known; a failed End of down says so, so the
+ * dealer does not walk away from a down still open.
+ */
+function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
+  const down = useCurrentDown(device.tableId);
+  const { end } = useDownActions();
+  const [isEndFailed, setIsEndFailed] = useState(false);
+  const endDown = async () => setIsEndFailed(!(await end.mutateAsync()).ok);
+  const title = t('tablet.title');
+  // A tablet's table id and name are null together: not yet fixed to a table.
+  if (device.tableId === null || device.tableName === null) {
+    return <TabletShell tableName={t('tablet.unassignedTable')} banner={banner}>{children}</TabletShell>;
+  }
+  const tableName = device.tableName;
+  if (down.isPending) return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="loading" /></TabletShell>;
+  if (down.data === undefined) {
+    return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="error" onRetry={() => void down.refetch()} /></TabletShell>;
+  }
+  if (down.data === null) return <TabletShell tableName={tableName} banner={banner}>{signIn}</TabletShell>;
+  const actions = (
+    <>
+      <Text variant="small">{t('tablet.dealerSignIn.down', { name: down.data.fullName, time: formatTime(new Date(down.data.startedAt)) })}</Text>
+      <Button variant="secondary" isLoading={end.isPending} onClick={() => void endDown()}>{t('tablet.dealerSignIn.endDown')}</Button>
+      {isEndFailed ? <ErrorMessage>{t('tablet.dealerSignIn.endDownFailed')}</ErrorMessage> : null}
+    </>
+  );
+  return <TabletShell tableName={tableName} actions={actions} banner={banner}>{children}</TabletShell>;
 }
 
 /**
  * The dealer tablet's frame: the table it is fixed to (#41) and the kill-switch banner. A tablet
- * that is not signed in as a paired device shows `unpaired` instead of its screens. Lane B adds the
- * offline banner from @rivr/offline.
+ * that is not signed in as a paired device shows `unpaired` instead of its screens; one fixed to a
+ * table asks a dealer to sign in between downs. Lane B adds the offline banner from @rivr/offline.
  */
-export function Frame({ children, unpaired }: FrameProps) {
+export function Frame({ children, unpaired, signIn }: FrameProps) {
   const { isVenueFrozen } = useControlState();
   const authStatus = useAuthStatus();
   const device = useMyDevice();
@@ -30,9 +71,5 @@ export function Frame({ children, unpaired }: FrameProps) {
   if (authStatus === 'signed-out' || !device.data) {
     return <TabletShell tableName={t('tablet.pairing.notPaired')} banner={banner}>{unpaired}</TabletShell>;
   }
-  return (
-    <TabletShell tableName={device.data.tableName ?? t('tablet.unassignedTable')} banner={banner}>
-      {children}
-    </TabletShell>
-  );
+  return <TableFrame device={device.data} banner={banner} signIn={signIn}>{children}</TableFrame>;
 }
