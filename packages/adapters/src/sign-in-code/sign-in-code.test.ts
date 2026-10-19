@@ -1,5 +1,5 @@
 import { indianMobileSchema } from '@rivr/contracts';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFakeSmsOtp, type FakeSmsOtp } from '../sms-otp/index.ts';
 import { createFakeWhatsApp, type FakeWhatsApp } from '../whatsapp/index.ts';
 import { SIGN_IN_CODE_TEMPLATE, sendSignInCode } from './index.ts';
@@ -48,18 +48,37 @@ describe('sendSignInCode', () => {
     const hangingWhatsApp = { sendTemplate: () => new Promise<never>(() => undefined) };
     const hangingSms = { sendOtp: () => new Promise<never>(() => undefined) };
 
-    it('gives up on a silent WhatsApp in time for SMS to go out before the deadline', async () => {
+    // On a fake clock, so the deadline is kept by the timers the send sets and not by how busy the
+    // machine running the tests is (#304).
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Sends, lets `ms` of fake time pass, and says what came back and how long after the start it did. */
+    async function sendOver(ms: number, channels: Parameters<typeof sendSignInCode>[0], preferSms = false) {
       const started = Date.now();
-      const sent = await sendSignInCode({ whatsapp: hangingWhatsApp, smsOtp }, { to, code, deadline: started + 1_300 });
+      let endedAfter = Number.POSITIVE_INFINITY;
+      const sending = sendSignInCode(channels, { to, code, preferSms, deadline: started + 1_300 }).then((sent) => {
+        endedAfter = Date.now() - started;
+        return sent;
+      });
+      await vi.advanceTimersByTimeAsync(ms);
+      return { sent: await sending, endedAfter };
+    }
+
+    it('gives up on a silent WhatsApp in time for SMS to go out before the deadline', async () => {
+      const { sent, endedAfter } = await sendOver(1_300, { whatsapp: hangingWhatsApp, smsOtp });
       expect(sent).toEqual({ ok: true, value: { channel: 'sms', messageId: 'fake-sms-1' } });
-      expect(Date.now() - started).toBeLessThan(1_300);
+      expect(endedAfter).toBeLessThan(1_300);
     });
 
     it('fails as unavailable, never late, when every channel is silent', async () => {
-      const started = Date.now();
-      const sent = await sendSignInCode({ whatsapp: hangingWhatsApp, smsOtp: hangingSms }, { to, code, preferSms: true, deadline: started + 1_300 });
+      const { sent, endedAfter } = await sendOver(1_400, { whatsapp: hangingWhatsApp, smsOtp: hangingSms }, true);
       expect(sent).toEqual({ ok: false, error: { code: 'unavailable' } });
-      expect(Date.now() - started).toBeLessThan(1_400);
+      expect(endedAfter).toBeLessThan(1_400);
     });
 
     it('tries no channel once the deadline has passed', async () => {
