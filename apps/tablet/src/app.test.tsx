@@ -16,7 +16,7 @@ describe('the dealer tablet', () => {
         <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ['/'] }))} />
       </RivrDataProvider>,
     );
-    expect(await screen.findByRole('heading', { name: 'Pair this tablet' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Tablet pairing' })).toBeDefined();
     expect(screen.getByText('Not paired')).toBeDefined();
     expect(screen.getByRole('textbox', { name: 'Pairing code' })).toBeDefined();
     expect(screen.queryByRole('heading', { name: 'Hand entry' })).toBeNull();

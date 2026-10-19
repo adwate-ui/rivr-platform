@@ -38,6 +38,8 @@ const PIN_FAILURE_BY_CODE: Readonly<Record<string, DealerPinFailure>> = { '42501
 // The tablet asks again every half minute, so a down ended elsewhere (the dealer signing in at
 // another table) reaches it without a restart.
 const DOWN_CHECK = 30_000;
+// And for the dealers every 15 seconds: a PIN set on the console reaches a locked tablet, which cannot be reloaded.
+const DEALERS_CHECK = 15_000;
 
 /** The venue's dealers whose PIN the signed-in manager may set, by name. */
 export function useVenueDealers(venueId: string) {
@@ -53,7 +55,7 @@ export function useVenueDealers(venueId: string) {
   });
 }
 
-/** Sets a dealer's four-digit PIN, which also unlocks a locked one; reloads the list. */
+/** Sets a dealer's four-digit PIN, which also clears a lock; reloads the list. */
 export function useSetDealerPin(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -66,12 +68,13 @@ export function useSetDealerPin(venueId: string) {
   });
 }
 
-/** The dealers who can sign in on this tablet. */
+/** The dealers who can sign in on this tablet, asked again every 15 seconds. */
 export function useTabletDealers() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.tabletDealers(userId ?? 'signed-out'),
     enabled: userId !== null,
+    refetchInterval: DEALERS_CHECK,
     queryFn: async (): Promise<TabletDealer[]> => {
       const { data, error } = await client.rpc('tablet_dealers');
       if (error) throw error;
@@ -80,12 +83,15 @@ export function useTabletDealers() {
   });
 }
 
-/** The down at this tablet's table; null between downs. Asked only once the tablet is fixed to a table. */
-export function useCurrentDown(isFixedToTable: boolean) {
+/**
+ * The down at this tablet's table; null between downs. Asked only once the tablet is fixed to a
+ * table, and kept by table, so a tablet moved to another table never shows the old table's down.
+ */
+export function useCurrentDown(tableId: string | null) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: queryKeys.currentDown(userId ?? 'signed-out'),
-    enabled: userId !== null && isFixedToTable,
+    queryKey: queryKeys.currentDown(userId ?? 'signed-out', tableId ?? 'no-table'),
+    enabled: userId !== null && tableId !== null,
     refetchInterval: DOWN_CHECK,
     queryFn: async (): Promise<CurrentDown | null> => {
       const { data, error } = await client.rpc('current_down');
@@ -103,7 +109,8 @@ export function useCurrentDown(isFixedToTable: boolean) {
 export function useDownActions() {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
-  const reload = () => queryClient.invalidateQueries({ queryKey: queryKeys.currentDown(userId ?? 'signed-out') });
+  // Every table's current down: the prefix of currentDown's key.
+  const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out', 'current-down'] });
   const signIn = useMutation({
     mutationFn: async ({ staffId, pin }: { staffId: string; pin: string }): Promise<Result<null, DealerSignInFailure>> => {
       const { data, error } = await client.rpc('dealer_sign_in', { p_staff_id: staffId, p_pin: pin });

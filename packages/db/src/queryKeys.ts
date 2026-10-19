@@ -46,5 +46,5 @@ export const queryKeys = {
   /** The dealers who can sign in on this tablet. */
   tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
   /** The down at this tablet's table. */
-  currentDown: (userId: string) => ['user', userId, 'current-down'] as const,
+  currentDown: (userId: string, tableId: string) => ['user', userId, 'current-down', tableId] as const,
 };
