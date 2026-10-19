@@ -47,6 +47,11 @@ jobs:
         name: Edge Functions
         run: pnpm supabase functions deploy --project-ref "$PROJECT_REF"
       - if: env.HAS_SUPABASE == 'true'
+        name: Device app origins for device-pair (#41)
+        env:
+          ORIGINS: ${{ vars.STAGING_TABLET_URL }},${{ vars.STAGING_DISPLAY_URL }}
+        run: pnpm supabase secrets set "DEVICE_APP_ORIGINS=$ORIGINS" --project-ref "$PROJECT_REF"
+      - if: env.HAS_SUPABASE == 'true'
         name: Auth settings (sessions only from a code, #187)
         run: node scripts/ci/check-auth-config.mjs --warn
 
