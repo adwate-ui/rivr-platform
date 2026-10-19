@@ -73,6 +73,16 @@ const jackpotDrop = {
   }),
 } as const satisfies SettingDefinition;
 
+const jackpotShares = {
+  key: 'jackpot.shares',
+  description: 'The season and freeroll pools\' shares of every jackpot drop, in basis points (2000 is 20%), up to 50% each; the main pool takes the rest (additions, "Jackpot sub-pools").',
+  scope: 'venue',
+  value: z.strictObject({
+    season_basis_points: z.int().min(0).max(5_000),
+    freeroll_basis_points: z.int().min(0).max(5_000),
+  }),
+} as const satisfies SettingDefinition;
+
 const waitlistPriorityWeights = {
   key: 'waitlist.priority_weights',
   description: "A tier's waitlist priority: its weight (higher goes first; 0 or unset is none) and whether it counts only on the list for the member's qualifying stake, as the black card's does (scope-v1 module 2).",
@@ -91,7 +101,9 @@ const waitlistHoldMinutes = {
 } as const satisfies SettingDefinition;
 
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, waitlistPriorityWeights, waitlistHoldMinutes] as const;
+export const SETTINGS = [
+  callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, waitlistPriorityWeights, waitlistHoldMinutes,
+] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

@@ -17,7 +17,7 @@ Tables and table types, seating, the waitlist and its priority, call time, the d
 | `device_pairing` | A dealer tablet's or TV's six-digit pairing codes, by hash, for ten minutes; read and written only by the functions below (#41) |
 | `hand` | Every hand: table, dealer, variant, pot, rake, cap applied, jackpot drop, high-hand claim, camera reference, idempotency key |
 | `high_hand_claim` | Claims from the tablet, floor approval, payout |
-| `jackpot_pool`, `jackpot_rule`, `jackpot_event` | Bad-beat main, season and freeroll pools; shares of the drop; qualifying rules; payouts and adjustments |
+| `jackpot_event` | Bad-beat payouts and their reversing adjustments (#48 part 2). The pools themselves are the ledger accounts `venue.jackpot.main`, `.season` and `.freeroll`; their shares of the drop are the setting `jackpot.shares` and the payout rule `jackpot.payout` (decision 0048) |
 | `tv_pairing`, `tv_screen` | Six-digit pairing, assigned display mode, remote unpair |
 | `tournament_template`, `blind_structure`, `tournament`, `tournament_level`, `tournament_entry`, `tournament_seat`, `payout_structure`, `tournament_deal` | Every tournament format, the server-side clock, entries and re-entries, alternates, seating and balancing, bust-outs, payouts, ICM and chip-chop |
 | `camera`, `cctv_reference` | Camera ids and playback links on hands, cage transactions and incidents |
@@ -63,4 +63,4 @@ Tablet app: all of it. TV app: all modes (waitlist board, call-time board, jackp
 
 ## Settings keys added
 
-`rake.config` (percent and cap by table type; the console's Rake screen schedules a change from a time and withdraws one not yet in force, #37), `jackpot.drop` (amount, minimum pot), `jackpot.shares` (main, season, freeroll), `waitlist.priority_weights`, `waitlist.hold_minutes`, `high_hand.payouts`, `tournament.late_registration_level` (per template), `dealer.variance_threshold`, `call_time.minutes` (lane 0 key, values by table type).
+`rake.config` (percent and cap by table type; the console's Rake screen schedules a change from a time and withdraws one not yet in force, #37), `jackpot.drop` (amount, minimum pot), `jackpot.shares` (season and freeroll, up to 50% each; the main pool takes the rest), `waitlist.priority_weights`, `waitlist.hold_minutes`, `high_hand.payouts`, `tournament.late_registration_level` (per template), `dealer.variance_threshold`, `call_time.minutes` (lane 0 key, values by table type).

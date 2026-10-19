@@ -1134,6 +1134,14 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"public_jackpot": {
+                  Row: {
+                    "freeroll_paise": number | null,"main_paise": number | null,"season_paise": number | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_site_block": {
                   Row: {
                     "content": Json | null,"kind": string | null,"page_slug": string | null,"position": number | null,"venue_slug": string | null

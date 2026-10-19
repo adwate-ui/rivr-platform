@@ -58,6 +58,35 @@ select results_eq(
      from golden.golden_case where file = 'rake.json' order by position $$,
   'private.pot_take gives every rake, drop, pull and cap applied in the golden file');
 
+-- The jackpot's pools: private.split_drop and private.bad_beat_payout, and @rivr/domain splitDrop and
+-- badBeatPayout (packages/testing/golden/jackpot.json).
+create function pg_temp.basis_points(p_share text) returns integer language sql immutable as $$
+  select (replace(p_share, '%', '')::numeric * 100)::integer;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'jackpot.json'), 'the jackpot cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'jackpot.json' and operation not in ('split', 'payout') $$,
+  'every operation in jackpot.json is proved here');
+select results_eq(
+  $$ select description, s.main, s.season, s.freeroll
+     from golden.golden_case
+     cross join lateral private.split_drop(pg_temp.paise(inputs ->> 'drop'), pg_temp.basis_points(inputs ->> 'seasonShare'),
+                                           pg_temp.basis_points(inputs ->> 'freerollShare')) s
+     where file = 'jackpot.json' and operation = 'split' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'main'), pg_temp.paise(expected ->> 'season'), pg_temp.paise(expected ->> 'freeroll')
+     from golden.golden_case where file = 'jackpot.json' and operation = 'split' order by position $$,
+  'private.split_drop gives every split in the golden file');
+select results_eq(
+  $$ select description, p.loser, p.winner, p.each_at_table, p.total
+     from golden.golden_case
+     cross join lateral private.bad_beat_payout(pg_temp.paise(inputs ->> 'pool'), pg_temp.basis_points(inputs ->> 'poolShare'),
+                                                pg_temp.basis_points(inputs ->> 'loserShare'), pg_temp.basis_points(inputs ->> 'winnerShare'),
+                                                pg_temp.basis_points(inputs ->> 'tableShare'), (inputs ->> 'others')::integer) p
+     where file = 'jackpot.json' and operation = 'payout' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'loser'), pg_temp.paise(expected ->> 'winner'),
+            pg_temp.paise(expected ->> 'eachAtTable'), pg_temp.paise(expected ->> 'total')
+     from golden.golden_case where file = 'jackpot.json' and operation = 'payout' order by position $$,
+  'private.bad_beat_payout gives every payout in the golden file');
+
 -- Effective-dated rules: private.setting_at and @rivr/domain ruleAt (packages/testing/golden/settings.json).
 -- Each case's history becomes rake.config rows under its own subject, written as a migration writes
 -- them, with nobody signed in.
