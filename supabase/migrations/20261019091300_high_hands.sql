@@ -1,5 +1,5 @@
 -- High hands (#47; scope-v1 module 8, design prompt flow 6). A dealer claims a high hand on the
--- tablet for a hand of the down: the category, the seat, and the rank that makes it. The floor
+-- tablet for a hand of the down: the category, the seat, and for four of a kind its rank. The floor
 -- approves or rejects it on the console. Approval pays the high_hand.payouts amount for the category,
 -- as it stood when the hand was played, in chips at the table: chips in play are credited and the
 -- club's high-hand cost debited, because the club funds high hands as a promotion and they are not
@@ -89,8 +89,10 @@ create table public.high_hand_claim (
   table_id uuid not null,
   seat smallint not null check (seat between 1 and 10),
   category public.high_hand_category not null,
-  -- The rank that makes it, as the dealer chose it, for example Queens; shown on the TV.
-  detail text check (detail is null or length(trim(detail)) between 1 and 40),
+  -- The rank of a four of a kind (Q for Queens), from a fixed list, as the TV and app show it; none
+  -- for the other hands. Never free text: it reaches public_high_hand.
+  rank text check (rank in ('A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2')),
+  check ((category = 'four_of_a_kind') = (rank is not null)),
   status public.high_hand_status not null default 'claimed',
   -- The dealer of the down, and the tablet.
   dealer_staff_id uuid not null,
@@ -139,13 +141,17 @@ $$;
 
 create trigger high_hand_claim_guard before update or delete on public.high_hand_claim
   for each row execute function private.guard_high_hand_claim();
+create trigger high_hand_claim_no_truncate before truncate on public.high_hand_claim
+  for each statement execute function private.refuse_change();
 
 alter table public.high_hand_claim enable row level security;
 grant select on public.high_hand_claim to authenticated;
 
-create policy "staff and the claiming tablet see high hands" on public.high_hand_claim
+-- As for jackpot events: staff who pay jackpots or read the ledger, and the tablet its own claims.
+create policy "staff who pay jackpots or read the ledger, and the claiming tablet, see high hands" on public.high_hand_claim
   for select to authenticated
-  using (venue_id in (select private.staff_venues()) or device_id = (select private.current_device_id()));
+  using (venue_id in (select private.venues_where('jackpots.approve')) or venue_id in (select private.venues_where('ledger.read'))
+         or device_id = (select private.current_device_id()));
 
 -- What a high hand of this category pays at the venue under the rule in force at p_at: 0 when no
 -- rule is set or it pays nothing.
@@ -159,11 +165,35 @@ as $$
   select coalesce((private.setting_at(p_venue_id, 'high_hand.payouts', '', p_at) ->> p_category::text)::numeric::bigint, 0);
 $$;
 
--- The dealer claims a high hand on the tablet, for a hand of the down open on it: the category, the
--- seat and the rank. Only a category that pays is claimed. A replay of the same claim is that claim;
--- a different claim for a hand already claimed is 23505. Not while the venue is frozen or promotions
--- are switched off.
-create function private.claim_high_hand(p_hand_id uuid, p_seat integer, p_category public.high_hand_category, p_detail text)
+-- The claim already made for a hand, when it is this claim; null when the hand has none. A
+-- different claim for the hand is 23505.
+create function private.replayed_high_hand_claim(p_hand_id uuid, p_seat integer, p_category public.high_hand_category, p_rank text)
+returns uuid
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_claim public.high_hand_claim;
+begin
+  select * into v_claim from public.high_hand_claim c where c.hand_id = p_hand_id;
+  if v_claim.id is null then
+    return null;
+  end if;
+  if (v_claim.seat::integer, v_claim.category, v_claim.rank) is not distinct from (p_seat, p_category, p_rank) then
+    return v_claim.id;
+  end if;
+  raise exception 'That hand already has a different high-hand claim' using errcode = '23505';
+end;
+$$;
+
+-- The dealer claims a high hand on the tablet, for a hand of the down open on it, while the down's
+-- dealer may still log hands (RVDWN otherwise): the category, a seat the table has (RVSEA
+-- otherwise), and for four of a kind its rank. Only a category that pays is claimed. A replay of the
+-- same claim is that claim, also when two land at once; a different claim for a hand already
+-- claimed is 23505. Not while the venue is frozen or promotions are switched off.
+create function private.claim_high_hand(p_hand_id uuid, p_seat integer, p_category public.high_hand_category, p_rank text)
 returns uuid
 language plpgsql
 volatile
@@ -173,7 +203,9 @@ as $$
 declare
   v_tablet record;
   v_hand public.hand;
+  v_rank text := nullif(trim(p_rank), '');
   v_claim public.high_hand_claim;
+  v_claim_id uuid;
 begin
   select * into v_tablet from private.my_tablet_table();
   select h.* into v_hand
@@ -182,20 +214,28 @@ begin
   if v_hand.id is null then
     raise exception 'That hand is not from the down on this tablet' using errcode = '22023';
   end if;
-  select * into v_claim from public.high_hand_claim c where c.hand_id = p_hand_id;
-  if v_claim.id is not null then
-    if (v_claim.seat, v_claim.category, v_claim.detail) is not distinct from (p_seat, p_category, nullif(trim(p_detail), '')) then
-      return v_claim.id;
-    end if;
-    raise exception 'That hand already has a different high-hand claim' using errcode = '23505';
+  v_claim_id := private.replayed_high_hand_claim(p_hand_id, p_seat, p_category, v_rank);
+  if v_claim_id is not null then
+    return v_claim_id;
+  end if;
+  if not private.is_dealer_at(v_hand.staff_id, v_hand.venue_id) then
+    raise exception 'Sign a dealer in before claiming a high hand' using errcode = 'RVDWN';
   end if;
   perform private.assert_writable(v_hand.venue_id, 'promotions');
+  if p_seat > (select t.seats from public.game_table t where t.id = v_hand.table_id) then
+    raise exception 'That table has no such seat' using errcode = 'RVSEA';
+  end if;
   if private.high_hand_payout(v_hand.venue_id, p_category, v_hand.played_at) = 0 then
     raise exception 'That high hand pays nothing here' using errcode = '22023';
   end if;
-  insert into public.high_hand_claim (venue_id, hand_id, table_id, seat, category, detail, dealer_staff_id, device_id)
-  values (v_hand.venue_id, v_hand.id, v_hand.table_id, p_seat, p_category, nullif(trim(p_detail), ''), v_hand.staff_id, v_hand.device_id)
+  insert into public.high_hand_claim (venue_id, hand_id, table_id, seat, category, rank, dealer_staff_id, device_id)
+  values (v_hand.venue_id, v_hand.id, v_hand.table_id, p_seat, p_category, v_rank, v_hand.staff_id, v_hand.device_id)
+  on conflict (hand_id) do nothing
   returning * into v_claim;
+  -- Another claim for the hand landed at the same moment: the same one is a replay.
+  if v_claim.id is null then
+    return private.replayed_high_hand_claim(p_hand_id, p_seat, p_category, v_rank);
+  end if;
   perform private.emit(v_hand.venue_id, 'high_hand.claimed',
     jsonb_build_object('claim_id', v_claim.id, 'table_id', v_claim.table_id, 'seat', v_claim.seat, 'category', v_claim.category),
     'high_hand.claimed:' || v_claim.id);
@@ -203,7 +243,7 @@ begin
 end;
 $$;
 
--- Staff with jackpots.approve approve a claim: it pays what the console showed (RVSTL if the payout
+-- Staff with jackpots.approve, other than the dealer of the hand, approve a claim: it pays what the console showed (RVSTL if the payout
 -- changed since), in chips at the table, and high_hand.approved goes out. Approving it again is the
 -- same approval; a claim already rejected is RVDUP. Not while the venue is frozen or promotions are
 -- switched off.
@@ -222,6 +262,9 @@ begin
   select * into v_claim from public.high_hand_claim c where c.id = p_claim_id for update;
   if v_claim.id is null or not private.has_permission(v_claim.venue_id, 'jackpots.approve') then
     raise exception 'Only staff who approve jackpots decide a high hand' using errcode = '42501';
+  end if;
+  if private.current_staff_id(v_claim.venue_id) = v_claim.dealer_staff_id then
+    raise exception 'The dealer of the hand does not decide its claim' using errcode = '42501';
   end if;
   if v_claim.status = 'approved' and v_claim.payout_paise = p_expected_paise then
     return v_claim.payout_paise;
@@ -251,13 +294,13 @@ begin
     'promotions', 'High hand paid in chips');
   perform private.emit(v_claim.venue_id, 'high_hand.approved',
     jsonb_build_object('claim_id', v_claim.id, 'table_id', v_claim.table_id, 'seat', v_claim.seat, 'category', v_claim.category,
-                       'detail', v_claim.detail, 'payout_paise', v_payout, 'played_at', v_played_at),
+                       'rank', v_claim.rank, 'payout_paise', v_payout, 'played_at', v_played_at),
     'high_hand.approved:' || v_claim.id);
   return v_payout;
 end;
 $$;
 
--- Staff with jackpots.approve reject a claim, with the reason. Rejecting it again is the same; a
+-- Staff with jackpots.approve, other than the dealer of the hand, reject a claim, with the reason. Rejecting it again is the same; a
 -- claim already approved is RVDUP. Not while the venue is frozen.
 create function private.reject_high_hand(p_claim_id uuid, p_reason text)
 returns void
@@ -272,6 +315,9 @@ begin
   select * into v_claim from public.high_hand_claim c where c.id = p_claim_id for update;
   if v_claim.id is null or not private.has_permission(v_claim.venue_id, 'jackpots.approve') then
     raise exception 'Only staff who approve jackpots decide a high hand' using errcode = '42501';
+  end if;
+  if private.current_staff_id(v_claim.venue_id) = v_claim.dealer_staff_id then
+    raise exception 'The dealer of the hand does not decide its claim' using errcode = '42501';
   end if;
   if v_claim.status = 'rejected' then
     return;
@@ -289,7 +335,7 @@ $$;
 -- The venue's high hands for the console, latest first, with what a waiting claim would pay now:
 -- for staff who approve jackpots or read the ledger, at the practice venue too. 42501 otherwise.
 create function private.high_hands(p_venue_id uuid)
-returns table (claim_id uuid, status public.high_hand_status, category public.high_hand_category, detail text, seat smallint,
+returns table (claim_id uuid, status public.high_hand_status, category public.high_hand_category, rank text, seat smallint,
                table_name text, played_at timestamptz, payout_paise bigint, dealer_name text, decided_by_name text,
                decided_at timestamptz, reason text)
 language plpgsql
@@ -302,7 +348,7 @@ begin
     raise exception 'Only staff who approve jackpots or read the ledger see high hands' using errcode = '42501';
   end if;
   return query
-  select c.id, c.status, c.category, c.detail, c.seat, t.name, h.played_at,
+  select c.id, c.status, c.category, c.rank, c.seat, t.name, h.played_at,
          coalesce(c.payout_paise, case when c.status = 'claimed' then private.high_hand_payout(c.venue_id, c.category, h.played_at) end),
          dealer.full_name, decider.full_name, c.decided_at, c.reason
   from public.high_hand_claim c
@@ -329,13 +375,13 @@ $$;
 -- Tonight's best high hand at each venue, for the TVs, the app and the website: the highest
 -- category approved for a hand played tonight, the latest of those. No names; never the practice venue.
 create function private.public_high_hand_rows()
-returns table (venue_slug text, category public.high_hand_category, detail text, table_name text, played_at timestamptz, payout_paise bigint)
+returns table (venue_slug text, category public.high_hand_category, rank text, table_name text, played_at timestamptz, payout_paise bigint)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select distinct on (v.id) v.slug, c.category, c.detail, t.name, h.played_at, c.payout_paise
+  select distinct on (v.id) v.slug, c.category, c.rank, t.name, h.played_at, c.payout_paise
   from public.high_hand_claim c
   join public.venue v on v.id = c.venue_id and not v.is_practice
   join public.hand h on h.id = c.hand_id
@@ -347,11 +393,12 @@ $$;
 create view public.public_high_hand
 with (security_invoker = true)
 as
-select venue_slug, category, detail, table_name, played_at, payout_paise from private.public_high_hand_rows();
+select venue_slug, category, rank, table_name, played_at, payout_paise from private.public_high_hand_rows();
 
 grant select on public.public_high_hand to anon, authenticated;
 
 revoke execute on function private.guard_high_hand_claim(), private.high_hand_payout(uuid, public.high_hand_category, timestamptz),
+  private.replayed_high_hand_claim(uuid, integer, public.high_hand_category, text),
   private.claim_high_hand(uuid, integer, public.high_hand_category, text), private.approve_high_hand(uuid, bigint),
   private.reject_high_hand(uuid, text), private.high_hands(uuid), private.tonight_began(timestamptz), private.public_high_hand_rows()
   from public, anon, authenticated;
@@ -359,10 +406,10 @@ grant execute on function private.claim_high_hand(uuid, integer, public.high_han
   private.reject_high_hand(uuid, text), private.high_hands(uuid) to authenticated;
 grant execute on function private.public_high_hand_rows() to anon, authenticated;
 
-create function public.claim_high_hand(p_hand_id uuid, p_seat integer, p_category public.high_hand_category, p_detail text)
+create function public.claim_high_hand(p_hand_id uuid, p_seat integer, p_category public.high_hand_category, p_rank text)
 returns uuid
 language sql volatile security invoker set search_path = ''
-as $$ select private.claim_high_hand(p_hand_id, p_seat, p_category, p_detail); $$;
+as $$ select private.claim_high_hand(p_hand_id, p_seat, p_category, p_rank); $$;
 
 create function public.approve_high_hand(p_claim_id uuid, p_expected_paise bigint)
 returns bigint
@@ -375,7 +422,7 @@ language sql volatile security invoker set search_path = ''
 as $$ select private.reject_high_hand(p_claim_id, p_reason); $$;
 
 create function public.high_hands(p_venue_id uuid)
-returns table (claim_id uuid, status public.high_hand_status, category public.high_hand_category, detail text, seat smallint,
+returns table (claim_id uuid, status public.high_hand_status, category public.high_hand_category, rank text, seat smallint,
                table_name text, played_at timestamptz, payout_paise bigint, dealer_name text, decided_by_name text,
                decided_at timestamptz, reason text)
 language sql stable security invoker set search_path = ''

@@ -439,14 +439,14 @@ isOneToOne: false
                   ]
                 },"high_hand_claim": {
                   Row: {
-                    "category": Database["public"]['Enums']["high_hand_category"],"created_at": string,"dealer_staff_id": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"device_id": string,"hand_id": string,"id": string,"payout_paise": number | null,"reason": string | null,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at": string,"venue_id": string
+                    "category": Database["public"]['Enums']["high_hand_category"],"created_at": string,"dealer_staff_id": string,"decided_at": string | null,"decided_by_staff_id": string | null,"device_id": string,"hand_id": string,"id": string,"payout_paise": number | null,"rank": string | null,"reason": string | null,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": Database["public"]['Enums']["high_hand_category"],"created_at"?: string,"dealer_staff_id": string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"device_id": string,"hand_id": string,"id"?: string,"payout_paise"?: number | null,"reason"?: string | null,"seat": number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at"?: string,"venue_id": string
+                    "category": Database["public"]['Enums']["high_hand_category"],"created_at"?: string,"dealer_staff_id": string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"device_id": string,"hand_id": string,"id"?: string,"payout_paise"?: number | null,"rank"?: string | null,"reason"?: string | null,"seat": number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "category"?: Database["public"]['Enums']["high_hand_category"],"created_at"?: string,"dealer_staff_id"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"device_id"?: string,"hand_id"?: string,"id"?: string,"payout_paise"?: number | null,"reason"?: string | null,"seat"?: number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "category"?: Database["public"]['Enums']["high_hand_category"],"created_at"?: string,"dealer_staff_id"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"device_id"?: string,"hand_id"?: string,"id"?: string,"payout_paise"?: number | null,"rank"?: string | null,"reason"?: string | null,"seat"?: number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1250,7 +1250,7 @@ isOneToOne: false
                   ]
                 },"public_high_hand": {
                   Row: {
-                    "category": Database["public"]['Enums']["high_hand_category"] | null,"detail": string | null,"payout_paise": number | null,"played_at": string | null,"table_name": string | null,"venue_slug": string | null
+                    "category": Database["public"]['Enums']["high_hand_category"] | null,"payout_paise": number | null,"played_at": string | null,"rank": string | null,"table_name": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -1383,7 +1383,7 @@ isOneToOne: false
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
 "claim_high_hand":
-{ Args: { "p_category": Database["public"]['Enums']["high_hand_category"],"p_detail": string,"p_hand_id": string,"p_seat": number }; Returns: string
+{ Args: { "p_category": Database["public"]['Enums']["high_hand_category"],"p_hand_id": string,"p_rank": string,"p_seat": number }; Returns: string
                            },
 "claim_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: boolean
@@ -1431,7 +1431,7 @@ isOneToOne: false
                            },
 "high_hands":
 { Args: { "p_venue_id": string }; Returns: {
-              "category": Database["public"]['Enums']["high_hand_category"],"claim_id": string,"dealer_name": string,"decided_at": string,"decided_by_name": string,"detail": string,"payout_paise": number,"played_at": string,"reason": string,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_name": string
+              "category": Database["public"]['Enums']["high_hand_category"],"claim_id": string,"dealer_name": string,"decided_at": string,"decided_by_name": string,"payout_paise": number,"played_at": string,"rank": string,"reason": string,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_name": string
             }[]
                            },
 "jackpot_history":

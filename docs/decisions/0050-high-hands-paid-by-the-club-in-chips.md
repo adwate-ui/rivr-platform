@@ -12,9 +12,16 @@ The design prompt lists high hands among the promotions the club runs: royal flu
 - Question #313 asks the owner to confirm the club funds them.
 
 **The claim.**
-- One claim per hand, for a hand of the down open on the tablet: the category, the seat and the rank (for example Queens).
+- One claim per hand, for a hand of the down open on the tablet, while its dealer may still deal.
+- It names the category, a seat the table has, and for four of a kind its rank.
+- The rank comes from a fixed list (A to 2), never free text, because it reaches the public view and the TV.
 - A category that pays nothing is not claimed.
-- The floor's decision (approve, or reject with a reason) is final; a mistake would be put right by an adjustment, not an edit.
+
+**The decision.**
+- The floor's decision (approve, or reject with a reason) is final.
+- Nobody decides a claim on a hand they dealt: a duty manager covering a down does not approve their own claim.
+- Only staff who approve jackpots or read the ledger see the claims; the tablet sees its own.
+- A mistake has no correction yet. Question #315 asks how one is put right.
 - Not while the venue is frozen, and no payout while promotions are switched off.
 
 **Tonight.** The TV and the app show tonight's best: the highest category approved for a hand played since 06:00 IST, and the latest of those. 06:00 is long after the last table closes, so a night's play stays one night.
