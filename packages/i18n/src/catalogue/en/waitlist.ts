@@ -67,7 +67,7 @@ export const waitlist = {
   add: 'Add to the list',
   noMember: 'No member has that number. Sign them up first.',
   kycNeeded: 'This member has not finished their identity check.',
-  onBreak: 'This member is on a break from play. Tables are closed to them until it ends.'
+  onBreak: 'This member is on a break from play. Tables are closed to them until it ends.',
   stopped: 'This member is frozen.',
   paused: 'The venue is frozen. The waitlist changes again once it is released.',
   invalid: 'Enter a 10-digit mobile number.',
