@@ -511,6 +511,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"early_departure": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"overridden_by_staff_id": string,"reason": string,"session_id": string,"shortfall_seconds": number,"updated_at": string,"venue_id": string,"visit_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"overridden_by_staff_id": string,"reason": string,"session_id": string,"shortfall_seconds": number,"updated_at"?: string,"venue_id": string,"visit_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"overridden_by_staff_id"?: string,"reason"?: string,"session_id"?: string,"shortfall_seconds"?: number,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "early_departure_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "early_departure_overridden_by_staff_id_venue_id_fkey"
+      columns: ["overridden_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "early_departure_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: true
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "early_departure_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"feature": {
                   Row: {
                     "created_at": string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens": (string)[],"updated_at": string
@@ -1745,7 +1783,7 @@ isOneToOne: false
                            },
 "cage_members":
 { Args: { "p_query": string,"p_venue_id": string }; Returns: {
-              "bonus_paise": number,"break_until": string,"full_name": string,"is_kyc_complete": boolean,"markers_paise": number,"member_id": string,"minimum_paise": number,"photo_path": string,"seat": number,"table_name": string,"tier_name": string,"wallet_paise": number
+              "bonus_paise": number,"break_until": string,"call_time_owed_seconds": number,"full_name": string,"is_kyc_complete": boolean,"is_let_go_early": boolean,"markers_paise": number,"member_id": string,"minimum_paise": number,"photo_path": string,"seat": number,"table_name": string,"tier_name": string,"wallet_paise": number
             }[]
                            },
 "cage_queue":
@@ -1902,6 +1940,14 @@ isOneToOne: false
                            },
 "leave_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
+                           },
+"left_owing_call_time":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"member_id": string,"owed_seconds": number,"table_name": string
+            }[]
+                           },
+"let_leave_early":
+{ Args: { "p_member_id": string,"p_reason": string,"p_venue_id": string }; Returns: string
                            },
 "link_device_login":
 { Args: { "p_device_id": string,"p_user_id": string }; Returns: boolean

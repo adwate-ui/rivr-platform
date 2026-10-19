@@ -31,13 +31,15 @@ export interface HeldSeat {
 /**
  * Why a seating change did not go through: not the floor, the seat taken or held for a waitlist call,
  * the player already seated, no finished identity check, on a break, no member with that number, the
- * member or venue frozen, a table closed or a seat it does not have (`invalid`), or anything else.
+ * member or venue frozen, a table closed or a seat it does not have (`invalid`), no call time owed to let a player leave
+ * early (`call_time_done`, #79), or anything else.
  */
-export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid' | 'unavailable';
+export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid'
+  | 'call_time_done' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
   '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
-  RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid',
+  RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid', RVCTD: 'call_time_done',
 };
 
 // The seat map changes as the floor seats, moves and calls players.
@@ -77,10 +79,35 @@ export function useHeldSeats(venueId: string) {
   });
 }
 
+/** A member in the room who left their seat before its call time, with no early departure yet (#79). */
+export interface LeftOwing {
+  readonly memberId: string;
+  readonly fullName: string;
+  readonly tableName: string;
+  /** Whole seconds of call time still owed on that seat. */
+  readonly owed: number;
+}
+
+/** Members who left a seat before its call time and have not been let go early, for admins (`call_time.override`) on the Live floor. */
+export function useLeftOwingCallTime(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.leftOwingCallTime(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    refetchInterval: LIVE,
+    queryFn: async (): Promise<LeftOwing[]> => {
+      const { data, error } = await client.rpc('left_owing_call_time', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({ memberId: row.member_id, fullName: row.full_name, tableName: row.table_name, owed: row.owed_seconds }));
+    },
+  });
+}
+
 /**
  * The floor's seating: `seat` a member by mobile number, `move` a player (the same session, so call
  * time runs on), `leave`; floor managers `setOpen` a table (closing only an empty one) and
- * `setMustMove` (a table feeding a main table of its game, or null). Each is a Result and reloads the floor.
+ * `setMustMove` (a table feeding a main table of its game, or null); admins `letLeaveEarly` a member who still owes call
+ * time, with a reason (#79). Each is a Result and reloads the floor.
  */
 export function useSeatActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -89,6 +116,7 @@ export function useSeatActions(venueId: string) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.floorSeats(userId ?? 'signed-out', venueId) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.heldSeats(userId ?? 'signed-out', venueId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.leftOwingCallTime(userId ?? 'signed-out', venueId) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.floorTables(userId ?? 'signed-out') }),
     ]);
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
@@ -112,5 +140,9 @@ export function useSeatActions(venueId: string) {
     mutationFn: async ({ tableId, mainTableId }: { tableId: string; mainTableId: string | null }) =>
       settle((await client.rpc('set_must_move', mainTableId === null ? { p_table_id: tableId } : { p_table_id: tableId, p_main_table_id: mainTableId })).error),
   });
-  return { seat, move, leave, setOpen, setMustMove };
+  const letLeaveEarly = useMutation({
+    mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) =>
+      settle((await client.rpc('let_leave_early', { p_venue_id: venueId, p_member_id: memberId, p_reason: reason })).error),
+  });
+  return { seat, move, leave, setOpen, setMustMove, letLeaveEarly };
 }

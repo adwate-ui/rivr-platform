@@ -73,6 +73,13 @@ test.describe('Markers', () => {
     // to his wallet; the room's exposure drops by ₹50,000.
     const exposure = page.getByText(/^₹[\d,]+ of ₹[\d,]+$/);
     const before = rupees(await exposure.textContent());
+    // He still owes call time at Table 2 (#79), so the duty manager lets him go first.
+    await page.getByRole('link', { name: 'Live floor' }).click();
+    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 2', exact: true }).click();
+    await page.getByRole('button', { name: 'Let Neel Bose leave early' }).click();
+    await page.getByRole('textbox', { name: 'Why they leave early' }).fill('Settling his marker');
+    await page.getByRole('button', { name: 'Let leave early' }).click();
+    await expect(page.getByText('Early departure recorded. The cage can cash them out.')).toBeVisible();
     await page.getByRole('link', { name: 'Cage' }).click();
     await page.getByRole('textbox', { name: 'Search members' }).fill('Neel');
     await page.getByRole('button', { name: 'Neel Bose' }).click();

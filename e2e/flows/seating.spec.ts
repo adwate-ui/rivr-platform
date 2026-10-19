@@ -2,7 +2,8 @@
  * Seating (#77; scope-v1 module 2; the prototype's live floor). Kiran Bhat, this flow's own floor
  * manager (Auth sends one code a minute to a number), seats Ishaan Verma at Table 5, seat 1 by his
  * mobile number: Table 5's ring shows him and its count reads 1 of 9. She moves him to seat 2, the
- * same session so his call time runs on, and he leaves; empty, Table 5 closes and opens again.
+ * same session so his call time runs on, and he leaves before it is complete: he is listed as left
+ * before call time until she lets him leave early (#79). Empty, Table 5 closes and opens again.
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -31,6 +32,14 @@ test.describe('Seating', () => {
 
     await page.getByRole('button', { name: 'Ishaan Verma leaves' }).click();
     await expect(page.getByRole('img', { name: 'Table 5, 0 of 9 seats taken' })).toBeVisible();
+    // He left before Table 5's call time (#79): she lets him leave early, so the cage can cash him out.
+    await expect(page.getByRole('heading', { name: 'Left before call time' })).toBeVisible();
+    await page.getByRole('button', { name: 'Let Ishaan Verma leave early' }).click();
+    await page.getByRole('textbox', { name: 'Why they leave early' }).fill('Called away');
+    await page.getByRole('button', { name: 'Let leave early' }).click();
+    await expect(page.getByText('Early departure recorded. The cage can cash them out.')).toBeVisible();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Let Ishaan Verma leave early' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Close table' }).click();
     await expect(page.getByRole('img', { name: 'Table 5, closed' })).toBeVisible();
     await page.getByRole('button', { name: 'Open table' }).click();

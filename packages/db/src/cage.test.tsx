@@ -1,9 +1,9 @@
 import { fromPaise } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
-import { act, cleanup, renderHook } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useCageActions } from './cage.ts';
+import { useCageActions, useCageMembers } from './cage.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -26,18 +26,29 @@ function renderCage(replies: Record<string, { status?: number; body: unknown }>)
     auth: { storage: sessionStorageFor(STAFF), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => useCageActions(VENUE), { wrapper });
+  const { result } = renderHook(() => ({ actions: useCageActions(VENUE), members: useCageMembers(VENUE, 'Yash') }), { wrapper });
   return { result, calls };
 }
 
 afterEach(cleanup);
+
+describe('Cage members', () => {
+  it('gives the call time a member still owes, and whether an admin let them go early', async () => {
+    const { result } = renderCage({ cage_members: { body: [{
+      member_id: 'm1', full_name: 'Yash Gupta', tier_name: 'Member', is_kyc_complete: true, photo_path: null, wallet_paise: 0, bonus_paise: 0,
+      markers_paise: 0, table_name: 'Private Room', seat: 1, minimum_paise: 1_000_000, break_until: null, call_time_owed_seconds: 5400,
+      is_let_go_early: true,
+    }] } });
+    await waitFor(() => expect(result.current.members.data?.[0]).toMatchObject({ callTimeOwed: 5400, isLetGoEarly: true }));
+  });
+});
 
 describe('Cash-out', () => {
   it('cashes out once per request id, to cash or the wallet, closing the visit when final', async () => {
     const { result, calls } = renderCage({ cage_cash_out: { body: [{ cage_transaction_id: 't1', markers_settled_paise: 1_000_000, to_member_paise: 2_000_000, is_visit_closed: true }] } });
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(3_000_000n), to: 'wallet', isFinal: true, requestId: 'r1' });
+      outcome = await result.current.actions.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(3_000_000n), to: 'wallet', isFinal: true, requestId: 'r1' });
     });
     expect(outcome).toEqual({ ok: true, value: { cageTransactionId: 't1', settled: 1_000_000n, toMember: 2_000_000n, isVisitClosed: true } });
     expect(calls.find((call) => call.rpc === 'cage_cash_out')?.body).toEqual({
@@ -49,7 +60,7 @@ describe('Cash-out', () => {
     const { result } = renderCage({ cage_cash_out: { status: 400, body: { code: 'RVOUT', message: 'not checked in' } } });
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r2' });
+      outcome = await result.current.actions.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r2' });
     });
     expect(outcome).toEqual({ ok: false, error: 'not_in_room' });
   });
@@ -58,7 +69,7 @@ describe('Cash-out', () => {
     const { result } = renderCage({ cage_cash_out: { body: [] } });
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r3' });
+      outcome = await result.current.actions.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r3' });
     });
     expect(outcome).toEqual({ ok: false, error: 'unavailable' });
   });
