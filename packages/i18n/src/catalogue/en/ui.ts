@@ -63,6 +63,18 @@ export const ui = {
     noOpenings: 'No openings right now.',
     /** MapBlock's link to directions in a maps app. */
     directions: 'Get directions',
+    /** GamesBlock and CalendarBlock: `{amount}` is formatted money. */
+    buyIn: 'Buy-in {amount}',
+    buyInRange: 'Buy-in {min} to {max}',
+    straddle: '{amount} straddle',
+    notRunning: 'Not running now',
+    oneTable: '1 table running',
+    tables: '{count} tables running',
+    noGames: 'No games are set up yet.',
+    /** A tournament's start in IST: `Sunday 15 Nov 2026, 16:00`. */
+    when: '{weekday} {date}, {time}',
+    guaranteed: '{amount} guaranteed',
+    noTournaments: 'No tournaments on the calendar yet.',
   },
   /** KycPhoto, in place of a member's photo that is not there. */
   photo: {

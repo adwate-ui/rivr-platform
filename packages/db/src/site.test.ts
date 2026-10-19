@@ -37,6 +37,8 @@ describe('fetchSitePage', () => {
         { kind: 'text', content: { body: 'Cash games every night.' } },
       ],
       navigation: [{ slug: 'academy', title: 'RIVR Academy' }, { slug: 'faq', title: 'FAQ' }],
+      games: [],
+      tournaments: [],
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
   });

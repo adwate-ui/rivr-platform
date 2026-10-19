@@ -1,6 +1,6 @@
 import type { Attribution, SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { CareersBlock, FaqBlock, HeroBlock, MapBlock, RulesBlock, TextBlock, WebShell } from '@rivr/ui';
+import { CalendarBlock, CareersBlock, FaqBlock, GamesBlock, HeroBlock, MapBlock, RulesBlock, TextBlock, WebShell } from '@rivr/ui';
 import { playerHref, siteHref } from '../links.ts';
 
 interface SitePageProps {
@@ -11,16 +11,9 @@ interface SitePageProps {
   attribution: Attribution | null;
 }
 
-/** One block of a page, as its kind draws it. */
-function Block({ block, playerUrl, attribution }: { block: SiteBlock } & Omit<SitePageProps, 'page'>) {
+/** A block of the club's information: rules, questions, careers or how to find it. */
+function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq' | 'careers' | 'map' }> }) {
   switch (block.kind) {
-    case 'hero': {
-      const { action } = block.content;
-      const href = action ? playerHref(playerUrl, action.to, attribution) : undefined;
-      return <HeroBlock heading={block.content.heading} text={block.content.text} action={action && href ? { label: action.label, href } : undefined} />;
-    }
-    case 'text':
-      return <TextBlock heading={block.content.heading} body={block.content.body} />;
     case 'rules':
       return <RulesBlock heading={block.content.heading} rules={block.content.rules} />;
     case 'faq':
@@ -32,13 +25,32 @@ function Block({ block, playerUrl, attribution }: { block: SiteBlock } & Omit<Si
   }
 }
 
+/** One block of a page, as its kind draws it; the live ones from the rows the page loaded. */
+function Block({ block, page, playerUrl, attribution }: { block: SiteBlock } & SitePageProps) {
+  switch (block.kind) {
+    case 'hero': {
+      const { action } = block.content;
+      const href = action ? playerHref(playerUrl, action.to, attribution) : undefined;
+      return <HeroBlock heading={block.content.heading} text={block.content.text} action={action && href ? { label: action.label, href } : undefined} />;
+    }
+    case 'text':
+      return <TextBlock heading={block.content.heading} body={block.content.body} />;
+    case 'games':
+      return <GamesBlock heading={block.content.heading} games={page.games} />;
+    case 'calendar':
+      return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} />;
+    default:
+      return <InfoBlock block={block} />;
+  }
+}
+
 /** A page of the website: the navigation, and the page's blocks in order. */
 export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   const links = page.navigation.map((link) => ({ label: link.title, href: siteHref(link.slug, attribution) }));
   return (
     <WebShell links={links} homeHref={siteHref('home', attribution)}>
       {page.blocks.map((block, position) => (
-        <Block key={`${String(position)}-${block.kind}`} block={block} playerUrl={playerUrl} attribution={attribution} />
+        <Block key={`${String(position)}-${block.kind}`} block={block} page={page} playerUrl={playerUrl} attribution={attribution} />
       ))}
     </WebShell>
   );

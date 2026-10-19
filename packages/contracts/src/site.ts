@@ -61,6 +61,9 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
       directionsUrl: directionsSchema,
     }),
   }),
+  // Live blocks are placed, not typed: their rows come from the public views.
+  z.object({ kind: z.literal('games'), content: z.object({ heading: headingSchema }) }),
+  z.object({ kind: z.literal('calendar'), content: z.object({ heading: headingSchema }) }),
 ]);
 
 /** A website block the website can show. */
