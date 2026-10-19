@@ -141,7 +141,7 @@ enabled = true
 uri = "http://host.docker.internal:{{BLOCK}}21/functions/v1/auth-send-code"
 secrets = "{{SEND_SMS_HOOK_SECRET}}"
 
-# Tokens only for code sign-ins (#187): no session from a password, ever.
+# Tokens only for code sign-ins (#187); a paired device's own login by its password alone (#41).
 [auth.hook.custom_access_token]
 enabled = true
 uri = "pg-functions://postgres/private/require_code_sign_in"
@@ -171,6 +171,10 @@ verify_jwt = false
 
 # The WhatsApp outbox consumer: pg_cron calls it with the scheduler's secret, not a person's token (#62).
 [functions.whatsapp]
+verify_jwt = false
+
+# A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
+[functions.device-pair]
 verify_jwt = false
 
 [analytics]
