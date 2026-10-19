@@ -15,6 +15,14 @@ export const tonight = {
   /** One of the member's places: `{place}` on the list, joined at `{time}` (IST). */
   place: 'Number {place} · Joined {time}',
   leave: 'Leave',
+  /** The seat call (#63), as the WhatsApp message says it: `{time}` is when the hold runs out, IST. */
+  seatReady: 'Your seat is ready. {table}, seat {seat}. Hold expires {time}.',
+  stepAway: 'Step away',
+  back: "I'm back",
+  /** A member who stepped away: `{time}` is when their place goes. */
+  away: 'Stepped away. Your place is kept until {time}.',
+  tooLate: 'You were away too long, so your place has gone. Join again if you still want to play.',
+  noTimeAway: 'You have used all your time away for this place.',
   kycNeeded: 'Finish your identity check in Profile to join a waitlist.',
   notOpen: 'Joining a waitlist from the app is not open to you. Ask at the front desk.',
   stopped: 'Your account is paused. Speak to the front desk.',
@@ -34,6 +42,24 @@ export const waitlist = {
   entryWithReason: '{place}. {name} · {time} · {reason}',
   addedByFloor: 'Added by the floor',
   remove: 'Remove {name}',
+  /** Call-down (#63). */
+  call: 'Call {name}',
+  callTable: 'Table for {name}',
+  callSeat: 'Seat',
+  callConfirm: 'Call to this seat',
+  invalidCall: 'Choose an open table, and a seat at it.',
+  seatHeld: 'That seat is held for someone already called. Choose another seat.',
+  tooLate: 'The hold has run out. The place goes to the next name within a minute.',
+  noTimeAway: 'This member has used all their time away for this place.',
+  /** Call, Seat, Skip or Back refused because someone else changed the place or the table first. */
+  changed: 'That place or table has just changed. Check the list and try again.',
+  seat: 'Seat {name}',
+  skip: 'Skip {name}',
+  back: '{name} is back',
+  /** A called place: `{time}` is when the hold runs out. */
+  called: 'Called to {table}, seat {seat} · hold until {time}',
+  /** A place stepped away or skipped: `{time}` is when it goes. */
+  away: 'Away · place kept until {time}',
   phone: 'Mobile number',
   add: 'Add to the list',
   noMember: 'No member has that number. Sign them up first.',

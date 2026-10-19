@@ -83,8 +83,15 @@ const waitlistPriorityWeights = {
   }),
 } as const satisfies SettingDefinition;
 
+const waitlistHoldMinutes = {
+  key: 'waitlist.hold_minutes',
+  description: 'How long a called seat is held, and how long a member who steps away keeps their place, in minutes (scope-v1 module 2).',
+  scope: 'venue',
+  value: z.strictObject({ minutes: z.int().min(1).max(120) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, waitlistPriorityWeights] as const;
+export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, waitlistPriorityWeights, waitlistHoldMinutes] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

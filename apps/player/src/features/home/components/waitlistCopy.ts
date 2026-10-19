@@ -10,4 +10,8 @@ export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>
   no_member: 'player.tonight.unavailable',
   invalid: 'player.tonight.unavailable',
   unavailable: 'player.tonight.unavailable',
+  // The floor's refusal; a member never calls anyone.
+  seat_held: 'player.tonight.unavailable',
+  too_late: 'player.tonight.tooLate',
+  no_time_away: 'player.tonight.noTimeAway',
 };
