@@ -17,7 +17,9 @@ export function HomeScreen() {
   if (tables.isError || places.isError) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />;
   }
-  if (tables.data.length === 0 && places.data.length === 0) return <Screen title={title} status="empty" emptyText={t('player.tonight.empty')} />;
+  // Without the live floor the member reads no tables: the gate below says so, not the empty state.
+  const isEmpty = liveView.state === 'enabled' && tables.data.length === 0 && places.data.length === 0;
+  if (isEmpty) return <Screen title={title} status="empty" emptyText={t('player.tonight.empty')} />;
   return (
     <Screen title={title}>
       <Stack gap={8}>
