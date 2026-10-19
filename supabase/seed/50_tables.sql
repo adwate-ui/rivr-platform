@@ -6,7 +6,7 @@
 
 insert into public.table_type (venue_id, code, name, game, has_variation, small_blind_paise, big_blind_paise,
                                buy_in_min_paise, buy_in_max_paise, straddle_paise)
-select v.venue_id, t.code, t.name, 'NLH', t.has_variation, t.small_blind, t.big_blind, t.buy_in, t.buy_in, t.straddle
+select v.venue_id, t.code, t.name, 'nlh', t.has_variation, t.small_blind, t.big_blind, t.buy_in, t.buy_in, t.straddle
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 cross join (values
   ('nlh_50_100', 'NLH 50/100', false, 5000::bigint, 10000::bigint, 500000::bigint, null::bigint),

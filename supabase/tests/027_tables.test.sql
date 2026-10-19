@@ -62,6 +62,8 @@ select is((select count(*)::integer from public.game_table), 12, 'a cashier at b
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000f2", "role": "authenticated"}';
 select is_empty($$ select * from public.game_table where venue_id <> '00000000-0000-4000-8000-0000000000f1' $$,
   'staff of another venue see none of these tables');
+select is_empty($$ select * from public.table_type where venue_id <> '00000000-0000-4000-8000-0000000000f1' $$,
+  'nor their table types');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';
 update public.game_table set is_open = true where name = 'Table 4';
 reset role;
@@ -73,6 +75,31 @@ update public.game_table set is_open = true where name = 'Table 4' and venue_id 
 reset role;
 select is((select is_open from public.game_table where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001'), true,
   'a floor manager opens Table 4');
+
+-- A floor manager adds and changes tables and types, but never a type's code, which keys its rake.
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
+select lives_ok($$ insert into public.table_type (venue_id, code, name, game, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise)
+                   values ('00000000-0000-4000-8000-000000000001', 'plo_100_200', 'PLO 100/200', 'plo', 10000, 20000, 1000000, 1000000) $$,
+  'a floor manager adds a table type');
+select lives_ok($$ insert into public.game_table (venue_id, table_type_id, name, position)
+                   select venue_id, id, 'Table 6', 7 from public.table_type
+                   where code = 'plo_100_200' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'and a table of it');
+select lives_ok($$ update public.table_type set buy_in_max_paise = 1500000
+                   where code = 'nlh_100_200' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'and changes a buy-in range');
+select throws_ok($$ update public.table_type set code = 'renamed' where code = 'nlh_50_100' $$, '42501', null,
+  'but never a type''s code, which would drop its rake');
+select throws_ok($$ update public.game_table set table_type_id = table_type_id where name = 'Table 1' $$, '42501', null,
+  'nor a table''s type');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000f2", "role": "authenticated"}';
+select throws_ok($$ insert into public.game_table (venue_id, table_type_id, name, position)
+                    values ('00000000-0000-4000-8000-000000000001',
+                            (select id from public.table_type where code = 'nlh_50_100' and venue_id = '00000000-0000-4000-8000-000000000001'),
+                            'Table 8', 8) $$,
+  '42501', null, 'staff of another venue add no table here');
+reset role;
 
 select * from finish();
 rollback;

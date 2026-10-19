@@ -19,7 +19,8 @@ create table public.table_type (
   -- The subject of its effective-dated settings (rake.config, call_time.minutes): 'nlh_100_200'.
   code text not null check (code ~ '^[a-z0-9_]{2,40}$'),
   name text not null check (length(trim(name)) between 1 and 60),
-  game text not null check (game in ('NLH', 'PLO')),
+  -- As member_preference.games has them.
+  game text not null check (game in ('nlh', 'plo')),
   -- The variation button: Texas, PLO or a bomb pot, chosen per hand (scope-v1 module 3).
   has_variation boolean not null default false,
   small_blind_paise bigint not null check (small_blind_paise > 0 and small_blind_paise % 5000 = 0),
@@ -70,7 +71,12 @@ create trigger game_table_audit after insert or update or delete on public.game_
 
 alter table public.table_type enable row level security;
 alter table public.game_table enable row level security;
-grant select, insert, update on public.table_type, public.game_table to authenticated;
+grant select, insert on public.table_type, public.game_table to authenticated;
+-- Never the code (the subject of the type's settings, so renaming it would drop its rake), the venue or
+-- a table's type: only what the floor may change.
+grant update (name, has_variation, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise, straddle_paise)
+  on public.table_type to authenticated;
+grant update (name, position, seats, is_open) on public.game_table to authenticated;
 
 create policy "staff and members see the venue's table types" on public.table_type
   for select to authenticated
