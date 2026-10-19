@@ -51,6 +51,7 @@ export const ui = {
       hostQueue: 'Host queue',
       promotions: 'Promotions',
       jackpots: 'Jackpots',
+      highHands: 'High hands',
       rewards: 'Rewards',
       academy: 'Academy',
       academyPayments: 'Academy payments',

@@ -124,6 +124,16 @@ export {
   type JackpotEvent,
   type JackpotFailure,
 } from './jackpots.ts';
+export {
+  useClaimHighHand,
+  useHighHandActions,
+  useHighHands,
+  useTabletHighHands,
+  type HighHand,
+  type HighHandClaimFailure,
+  type HighHandFailure,
+  type TabletHighHand,
+} from './highHands.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
