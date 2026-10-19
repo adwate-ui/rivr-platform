@@ -1064,6 +1064,9 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
+"raise_sms_limit_alert":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "record_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },

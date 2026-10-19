@@ -20,8 +20,15 @@ export function useSignIn() {
   const queryClient = useQueryClient();
 
   const requestCode = useMutation({
-    mutationFn: async ({ phone }: { phone: IndianMobile }): Promise<SignInResult> => {
-      const { error } = await client.auth.signInWithOtp({ phone });
+    mutationFn: async ({ phone, captchaToken }: { phone: IndianMobile; captchaToken?: string | undefined }): Promise<SignInResult> => {
+      // The CAPTCHA token, where Auth asks for one (#182); without one Auth sends no code.
+      const { error } = await client.auth.signInWithOtp({ phone, ...(captchaToken ? { options: { captchaToken } } : {}) });
+      // The whole project's hourly code limit is used up: every member is locked out of sign-in. Auth
+      // gives the same code for one number asking again within the minute, which says to wait.
+      if (error?.code === 'over_sms_send_rate_limit' && !/request this after/i.test(error.message)) {
+        // Tell the owner dashboard; the function raises one alert at most every 15 minutes.
+        void client.functions.invoke('sign-in-alert').catch(() => undefined);
+      }
       return error ? err(toSignInFailure(error)) : ok(null);
     },
   });
