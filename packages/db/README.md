@@ -43,7 +43,7 @@ The only code that talks to Supabase. It holds the typed client, the generated d
 | `toFeatureAccess`, `toFeatureAccessMap`, `HIDDEN`, `FeatureAccess`, `FeatureAccessRow` | The parser behind `useFeature`, the "not known yet" value, and their types. |
 | `toControlState`, `NOTHING_ENGAGED`, `ControlState`, `KillableFeature` | The parser behind `useControlState`, the "nothing engaged" value, and their types. |
 | `toSignInFailure`, `SignInFailure`, `SignInResult` | The parser behind `useSignIn`'s failures (Auth's error to `code_rejected`, `too_many_requests` or `unavailable`), and the types. |
-| `fetchSitePage(client, slug)`, `SitePage`, `SiteLink` (from `@rivr/db/site`) | For the website's server: a published page of the club's website from the public views, with its readable blocks in order and the navigation, or null for a draft or no such page, as a Result: `unavailable` when the database cannot be read (decision 0036). A subpath, so Zod stays out of the other apps. |
+| `fetchSitePage(client, slug)`, `SitePage`, `SiteLink` (from `@rivr/db/site`) | For the website's server: a published page of the club's website from the public views, with its readable blocks in order and the navigation, and, when its blocks need them, the club's games (`SiteGame`, from `public_table_status`) and coming tournaments (`SiteTournament`, from `public_tournament_calendar`), or null for a draft or no such page, as a Result: `unavailable` when the database cannot be read (decision 0036). A subpath, so Zod stays out of the other apps. |
 
 ## Usage
 
