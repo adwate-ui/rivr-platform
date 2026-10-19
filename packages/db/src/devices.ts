@@ -1,6 +1,6 @@
-import { deviceSessionSchema } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toDeviceSession } from './parse/deviceSession.ts';
 import { functionErrorCode } from './parse/kycFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -77,9 +77,9 @@ export function usePairDevice() {
         if (refusal === 'too_many') return err('too_many');
         return err(refusal === 'wrong_code' || refusal === 'invalid' ? 'wrong_code' : 'unavailable');
       }
-      const session = deviceSessionSchema.safeParse(data);
-      if (!session.success) return err('unavailable');
-      const { error: refused } = await client.auth.setSession(session.data);
+      const session = toDeviceSession(data);
+      if (session === null) return err('unavailable');
+      const { error: refused } = await client.auth.setSession(session);
       return refused ? err('unavailable') : ok(null);
     },
   });

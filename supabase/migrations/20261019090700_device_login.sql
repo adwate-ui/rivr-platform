@@ -96,8 +96,8 @@ create trigger device_pairing_touch_updated_at before update on public.device_pa
   for each row execute function private.touch_updated_at();
 alter table public.device_pairing enable row level security;
 
--- Wrong codes sent to device-pair, by the address they came from, for its limits. Not personal data
--- beyond the address, and kept only for the window the limits look at.
+-- Wrong codes sent to device-pair, by the address they came from, for its limits (ten minutes). Not
+-- personal data beyond the address; each redemption deletes rows older than a day.
 create table private.device_pairing_miss (
   id bigint generated always as identity primary key,
   client text not null,
@@ -246,7 +246,8 @@ begin
 end;
 $$;
 
--- An alert for the owner when wrong pairing codes hit the limits: at most one every 15 minutes.
+-- An alert for the owner when wrong pairing codes hit the limits: at most one every 15 minutes,
+-- through raise_alert, so it reaches the alert WhatsApp number as well as the dashboard.
 create function private.raise_pairing_alert()
 returns void
 language plpgsql
@@ -260,8 +261,7 @@ begin
                                    and a.kind = 'devices.pairing_guessed' and a.raised_at > now() - interval '15 minutes') then
     return;
   end if;
-  insert into public.alert (venue_id, kind, detail)
-  values (v_venue_id, 'devices.pairing_guessed',
+  perform private.raise_alert(v_venue_id, 'devices.pairing_guessed',
           jsonb_build_object('note', 'Many wrong pairing codes: pairing a tablet or TV is paused for up to ten minutes.'));
 end;
 $$;
