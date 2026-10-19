@@ -95,19 +95,24 @@ export interface BuyInOrder {
   readonly buyInRequestId: string | null;
 }
 
-/** A cash-out to make (#75): chips handed back, to cash or the wallet, once per request id. */
+/**
+ * A cash-out to make (#75): chips handed back, to cash or the wallet, once per request id. A final one is the member
+ * leaving: it ends their seat and closes their visit (#76).
+ */
 export interface CashOutOrder {
   readonly memberId: string;
   readonly amount: Paise;
   readonly to: 'cash' | 'wallet';
+  readonly isFinal: boolean;
   readonly requestId: string;
 }
 
-/** What a cash-out came to (#75): what it settled on markers, and what the member got in cash or to the wallet. */
+/** What a cash-out came to (#75): what it settled on markers, what the member got, and whether their visit is closed (#76). */
 export interface CashOutDone {
   readonly cageTransactionId: string;
   readonly settled: Paise;
   readonly toMember: Paise;
+  readonly isVisitClosed: boolean;
 }
 
 /**
@@ -140,12 +145,15 @@ export function useCageActions(venueId: string) {
     mutationFn: async (order: CashOutOrder): Promise<Result<CashOutDone, CageFailure>> => {
       const { data, error } = await client.rpc('cage_cash_out', {
         p_venue_id: venueId, p_member_id: order.memberId, p_amount_paise: Number(order.amount), p_to: order.to, p_idempotency_key: order.requestId,
+        p_is_final: order.isFinal,
       });
       await reload();
       if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
       const row = data[0];
-      return row === undefined ? err('unavailable')
-        : ok({ cageTransactionId: row.cage_transaction_id, settled: toPaise(row.markers_settled_paise), toMember: toPaise(row.to_member_paise) });
+      return row === undefined ? err('unavailable') : ok({
+        cageTransactionId: row.cage_transaction_id, settled: toPaise(row.markers_settled_paise), toMember: toPaise(row.to_member_paise),
+        isVisitClosed: row.is_visit_closed,
+      });
     },
   });
   return { buyIn, decline, cashOut };

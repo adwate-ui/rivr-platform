@@ -213,14 +213,14 @@ isOneToOne: false
                   ]
                 },"cage_transaction": {
                   Row: {
-                    "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string | null,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"is_final": boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string | null,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"buy_in_request_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount_paise": number,"buy_in_request_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"is_final"?: boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"is_final"?: boolean,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1739,8 +1739,8 @@ isOneToOne: false
 { Args: { "p_amount_paise": number,"p_buy_in_request_id"?: string,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr"?: string,"p_venue_id": string }; Returns: string
                            },
 "cage_cash_out":
-{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_member_id": string,"p_to": string,"p_venue_id": string }; Returns: {
-              "cage_transaction_id": string,"markers_settled_paise": number,"to_member_paise": number
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_is_final"?: boolean,"p_member_id": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "cage_transaction_id": string,"is_visit_closed": boolean,"markers_settled_paise": number,"to_member_paise": number
             }[]
                            },
 "cage_members":

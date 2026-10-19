@@ -4,8 +4,11 @@ import { utrSchema } from './payments.ts';
 /** Where a cash-out goes (#75), once open markers are settled. */
 export const CASH_OUT_TO = ['cash', 'wallet'] as const;
 
-/** The cage's cash-out form (#75): the chips in whole rupees (the domain then checks ₹50 chips) and where they go. */
-export const cashOutSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/), to: z.enum(CASH_OUT_TO) });
+/**
+ * The cage's cash-out form (#75): the chips in whole rupees (the domain then checks ₹50 chips), where they go, and
+ * whether it is final, the member leaving the club (#76).
+ */
+export const cashOutSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/), to: z.enum(CASH_OUT_TO), isFinal: z.boolean() });
 
 /** How a cashier takes a buy-in (#57). */
 export const BUY_IN_METHODS = ['cash', 'upi', 'wallet'] as const;

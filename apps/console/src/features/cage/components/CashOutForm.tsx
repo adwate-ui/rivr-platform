@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CASH_OUT_TO, cashOutSchema } from '@rivr/contracts';
 import { useCageActions, type CageFailure, type CageMember, type CashOutDone } from '@rivr/db';
-import { cashOut } from '@rivr/domain/cage';
+import { cashOut, type CashOutSplit } from '@rivr/domain/cage';
 import { fromRupees, isPositive, ZERO } from '@rivr/domain/money';
 import { formatMoney, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Money, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Money, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
@@ -26,11 +26,24 @@ function failureCopy(failure: CageFailure): MessageKey {
   return failure === 'invalid' ? 'console.cage.cashOutInvalid' : CAGE_FAILURE_COPY[failure];
 }
 
+/** The split as it is typed: what settles markers, and what the member gets. */
+function CashOutSplitLines({ split, to }: { split: CashOutSplit; to: CashOutTo }) {
+  return (
+    <Stack gap={2} divided>
+      {split.settled.length === 0 ? null : (
+        <Inline justify="between"><Text>{t('console.cage.settlesMarkers')}</Text><Money paise={split.settled[0] ?? ZERO} /></Inline>
+      )}
+      <Inline justify="between"><Text>{to === 'wallet' ? t('console.cage.toTheWallet') : t('console.cage.inCash')}</Text><Money paise={split.toMember} /></Inline>
+    </Stack>
+  );
+}
+
 function CashOutDoneLines({ done, to }: { done: CashOutDone; to: CashOutTo }) {
   return (
     <Stack gap={1}>
       <Text>{doneLine(done, to)}</Text>
       {isPositive(done.settled) ? <Text tone="muted">{t('console.cage.cashedOutSettled', { amount: formatMoney(done.settled) })}</Text> : null}
+      {done.isVisitClosed ? <Text tone="muted">{t('console.cage.visitClosed')}</Text> : null}
     </Stack>
   );
 }
@@ -39,20 +52,22 @@ function CashOutDoneLines({ done, to }: { done: CashOutDone; to: CashOutTo }) {
  * A cash-out (#75; design prompt flow 8): the chips handed back first settle the member's open markers,
  * then the rest goes to them in cash or to their wallet. @rivr/domain cashOut shows the split as it is
  * typed; the database settles the markers oldest first and says what to hand over. Once per request id.
+ * A final cash-out is the member leaving: it ends their seat and closes their visit (#76). Only a new
+ * amount makes a new request: a retry with Final or Pay to changed is refused, so chips are never paid twice.
  */
 export function CashOutForm({ venueId, member }: { venueId: string; member: CageMember }) {
   const { cashOut: take } = useCageActions(venueId);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [outcome, setOutcome] = useState<{ failure: CageFailure | null; done: { result: CashOutDone; to: CashOutTo } | null }>({ failure: null, done: null });
   const [resolver] = useState(() => zodResolver(cashOutSchema));
-  const form = useForm<z.input<typeof cashOutSchema>, unknown, z.output<typeof cashOutSchema>>({ resolver, defaultValues: { amount: '', to: 'cash' } });
+  const form = useForm<z.input<typeof cashOutSchema>, unknown, z.output<typeof cashOutSchema>>({ resolver, defaultValues: { amount: '', to: 'cash', isFinal: false } });
   const [typed, to] = useWatch({ control: form.control, name: ['amount', 'to'] });
   const chips = /^[1-9]\d{0,7}$/.test(typed.trim()) ? fromRupees(BigInt(typed.trim())) : ZERO;
   const split = cashOut(chips, isPositive(member.markers) ? [member.markers] : []);
   const submit = form.handleSubmit(async (values) => {
-    const done = await take.mutateAsync({ memberId: member.memberId, amount: fromRupees(BigInt(values.amount)), to: values.to, requestId });
+    const done = await take.mutateAsync({ memberId: member.memberId, amount: fromRupees(BigInt(values.amount)), to: values.to, isFinal: values.isFinal, requestId });
     setOutcome(done.ok ? { failure: null, done: { result: done.value, to: values.to } } : { failure: done.error, done: null });
-    if (done.ok) { form.reset({ amount: '', to: values.to }); setRequestId(crypto.randomUUID()); }
+    if (done.ok) { form.reset({ amount: '', to: values.to, isFinal: false }); setRequestId(crypto.randomUUID()); }
   });
   const amount = form.register('amount', { onChange: () => setRequestId(crypto.randomUUID()) });
   return (
@@ -64,14 +79,11 @@ export function CashOutForm({ venueId, member }: { venueId: string; member: Cage
       )} />
       <Input {...amount} label={t('console.cage.cashOutAmount')} prefix={t('console.cage.rupee')} inputMode="numeric" autoComplete="off"
         error={form.formState.errors.amount ? t('console.cage.invalidAmount') : undefined} />
-      {split.ok ? (
-        <Stack gap={2} divided>
-          {split.value.settled.length === 0 ? null : (
-            <Inline justify="between"><Text>{t('console.cage.settlesMarkers')}</Text><Money paise={split.value.settled[0] ?? ZERO} /></Inline>
-          )}
-          <Inline justify="between"><Text>{to === 'wallet' ? t('console.cage.toTheWallet') : t('console.cage.inCash')}</Text><Money paise={split.value.toMember} /></Inline>
-        </Stack>
-      ) : null}
+      {split.ok ? <CashOutSplitLines split={split.value} to={to} /> : null}
+      <Controller control={form.control} name="isFinal" render={({ field }) => (
+        <Switch label={t('console.cage.final')} hint={t('console.cage.finalHint')} isOn={field.value}
+          onChange={field.onChange} />
+      )} />
       <Button variant="secondary" isDisabled={typed.trim() === ''} isLoading={take.isPending} onClick={() => void submit()}>{t('console.cage.cashOut')}</Button>
       {outcome.failure === null ? null : <ErrorMessage>{t(failureCopy(outcome.failure), { amount: formatMoney(chips) })}</ErrorMessage>}
       {outcome.done === null ? null : <CashOutDoneLines done={outcome.done.result} to={outcome.done.to} />}

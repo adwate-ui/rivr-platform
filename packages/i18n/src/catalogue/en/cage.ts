@@ -86,5 +86,10 @@ export const cage = {
   /** Under the cash-out done line: `{amount}` is what the chips paid off. */
   cashedOutSettled: 'Markers settled: {amount}.',
   notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',
-  cashOutInvalid: 'That request id was used for another cage transaction. Try again.',
+  /** A final cash-out is the member leaving the club (#76). */
+  final: 'Final cash-out',
+  finalHint: 'They are leaving: ends their seat and closes their visit.',
+  visitClosed: 'Visit closed.',
+  /** The same request again with other details: the first may have gone through, so nothing is paid twice. */
+  cashOutInvalid: 'This cash-out may already have gone through with other details. Check the member\'s balance and markers before cashing out again.',
 };
