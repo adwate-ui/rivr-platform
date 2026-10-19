@@ -45,6 +45,13 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `potTake(pot, rules)`, `RakeRules`, `PotTake` | What the dealer takes from a pot: rake at the table type's rate, no more than its cap, rounded down to ₹50 chips; while the bad-beat jackpot is live, the drop (₹100) from a pot above `dropAbove` (₹5,000, not at it); and the pull, both together. A ₹48,000 pot gives rake ₹2,400, drop ₹100, pull ₹2,500. Golden cases in `packages/testing/golden/rake.json`. |
 
+### `@rivr/domain/jackpot`
+
+| Export | What it does |
+|---|---|
+| `splitDrop(drop, shares)`, `DropShares`, `PoolSplit` | A jackpot drop split between the pools (#48): season and freeroll take their shares (basis points) rounded down to the paisa, the main pool the rest, so the parts add up to the drop. ₹100 at 20% and 10% gives ₹70, ₹20, ₹10. |
+| `badBeatPayout(pool, rule, others)`, `PayoutRule`, `BadBeatPayout` | What a bad beat pays in chips: the rule's share of the main pool, split between loser, winner and the `others` dealt in; each part rounded down to ₹50, the table's part shared equally; what rounds away stays in the pool (decision 0048, question #300). Golden cases for both in `packages/testing/golden/jackpot.json`, which `private.split_drop` and `private.bad_beat_payout` are proved on too. |
+
 ### `@rivr/domain/waitlist`
 
 | Export | What it does |
