@@ -164,7 +164,10 @@ begin
   where c.staff_id = p_staff_id and c.venue_id = v_tablet.o_venue_id and private.is_dealer_at(c.staff_id, c.venue_id)
   for update;
   if v_credential.staff_id is null then
-    return query select null::uuid, 'wrong_pin', null::integer;
+    -- No PIN (or not a dealer here): the same answer, after the same bcrypt work, as a first wrong
+    -- PIN, so the tablet cannot be used to find out who has one.
+    perform extensions.crypt(coalesce(p_pin, ''), extensions.gen_salt('bf', 8));
+    return query select null::uuid, 'wrong_pin', 4;
     return;
   end if;
   if v_credential.locked_until > now() then
@@ -190,7 +193,8 @@ begin
 end;
 $$;
 
--- End of down on the tablet: the off time is stamped, and the tablet asks for the next dealer.
+-- End of down on the tablet: the off time is stamped, and the tablet asks for the next dealer. Also
+-- while the venue is frozen: it closes a record and moves no money, seat or hand (decision 0046).
 create function private.end_down()
 returns void
 language plpgsql
