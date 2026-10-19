@@ -58,7 +58,7 @@ as $$
 declare
   v_left bigint := p_chips_paise;
   v_owed bigint;
-  v_settled bigint[] := '{}';
+  v_settled bigint[] := '{}'::bigint[];
 begin
   if p_chips_paise is null or p_chips_paise <= 0 or p_chips_paise % 5000 <> 0 then
     return query select null::bigint[], null::bigint;
