@@ -3,6 +3,7 @@
  * build screens; a large area moves into its own namespace file.
  */
 import { cage } from './cage.ts';
+import { markers } from './credit.ts';
 import { checkIn, liveFloor } from './floor.ts';
 import { consoleDevices, displayDevices, tabletDevices } from './devices.ts';
 import { consoleHighHands, tabletHighHands } from './highHands.ts';
@@ -155,6 +156,7 @@ export const consoleApp = {
   liveFloor,
   checkIn,
   cage,
+  markers,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   waitlist,

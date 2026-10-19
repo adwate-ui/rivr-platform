@@ -133,9 +133,21 @@ const waitlistHoldMinutes = {
   value: z.strictObject({ minutes: z.int().min(1).max(120) }),
 } as const satisfies SettingDefinition;
 
+const creditConfig = {
+  key: 'credit.config',
+  description: 'Credit lines: a limit above the approval threshold waits for a super admin; a member needs the minimum visits before any limit; open markers across the room stay within the exposure cap. Paise in whole ₹50 chips (scope-v1 module 5).',
+  scope: 'venue',
+  value: z.strictObject({
+    approval_threshold_paise: z.int().min(0).max(100_000_000).multipleOf(CHIP_PAISE),
+    minimum_visits: z.int().min(0).max(100),
+    exposure_cap_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE),
+  }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
+  creditConfig,
 ] as const;
 
 /** A setting key declared in code. */

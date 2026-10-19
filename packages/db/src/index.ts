@@ -77,6 +77,7 @@ export {
   type CageFailure,
   type CageMember,
 } from './cage.ts';
+export { useCreditActions, useCreditLines, useCreditRoom, type CreditFailure, type CreditLine, type CreditRoom } from './credit.ts';
 export {
   useFloorTables,
   useFloorWaitlistActions,

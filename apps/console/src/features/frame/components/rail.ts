@@ -35,6 +35,7 @@ const RAIL: readonly RailGroup[] = [
     label: 'ui.consoleRail.groups.money',
     entries: [
       { id: 'cage', label: 'ui.consoleRail.items.cage', href: '/cage', anyOf: ['cage.transact'] },
+      { id: 'markers', label: 'ui.consoleRail.items.markers', href: '/markers', anyOf: ['markers.manage_limits', 'markers.issue', 'ledger.read'] },
       { id: 'academyPayments', label: 'ui.consoleRail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'] },
     ],
   },
