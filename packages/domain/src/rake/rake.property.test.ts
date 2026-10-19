@@ -28,6 +28,16 @@ describe('rake properties', () => {
     );
   });
 
+  it('says the cap applied exactly when the rate of the pot is more than the cap, and then the rake is the cap in chips', () => {
+    fc.assert(
+      fc.property(pot, rules, (amount, rule) => {
+        const take = potTake(amount, rule);
+        expect(take.isCapApplied).toBe(shareOf(amount, rule.rateBasisPoints) > rule.cap);
+        if (take.isCapApplied) expect(take.rake).toBe(rule.cap - (rule.cap % CHIP));
+      }),
+    );
+  });
+
   it('pulls the rake and the drop together, never more than the pot', () => {
     fc.assert(
       fc.property(pot, rules, (amount, rule) => {
@@ -59,7 +69,7 @@ describe('rake properties', () => {
   it('takes nothing from an empty pot', () => {
     fc.assert(
       fc.property(rules, (rule) => {
-        expect(potTake(fromRupees(0n), rule)).toEqual({ rake: 0n, drop: 0n, pull: 0n });
+        expect(potTake(fromRupees(0n), rule)).toEqual({ rake: 0n, drop: 0n, pull: 0n, isCapApplied: false });
       }),
     );
   });

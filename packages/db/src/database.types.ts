@@ -399,6 +399,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"hand": {
+                  Row: {
+                    "created_at": string,"device_id": string,"down_id": string,"drop_paise": number,"id": string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at": string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"device_id": string,"down_id": string,"drop_paise": number,"id"?: string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at"?: string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"device_id"?: string,"down_id"?: string,"drop_paise"?: number,"id"?: string,"idempotency_key"?: string,"is_cap_applied"?: boolean,"played_at"?: string,"pot_paise"?: number,"rake_paise"?: number,"staff_id"?: string,"table_id"?: string,"updated_at"?: string,"variant"?: Database["public"]['Enums']["hand_variant"],"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "hand_device_id_venue_id_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "hand_down_id_fkey"
+      columns: ["down_id"]
+isOneToOne: false
+      referencedRelation: "dealer_down"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "hand_staff_id_venue_id_fkey"
+      columns: ["staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "hand_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"kyc_record": {
                   Row: {
                     "aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
@@ -1230,6 +1268,11 @@ isOneToOne: false
               "down_id": string,"refusal": string,"tries_left": number
             }[]
                            },
+"down_hands":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "drop_paise": number,"hand_id": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
+            }[]
+                           },
 "end_down":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -1268,6 +1311,9 @@ isOneToOne: false
                            },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"log_hand":
+{ Args: { "p_idempotency_key": string,"p_played_at": string,"p_pot": number,"p_variant": Database["public"]['Enums']["hand_variant"] }; Returns: string
                            },
 "message_recipient":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
@@ -1368,6 +1414,11 @@ isOneToOne: false
               "full_name": string,"staff_id": string
             }[]
                            },
+"tablet_rake_rules":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"rate_basis_points": number
+            }[]
+                           },
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
@@ -1388,7 +1439,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"
+            "control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1508,7 +1559,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"]
+            "control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"]
           }
         }
 } as const

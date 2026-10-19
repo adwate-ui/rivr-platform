@@ -42,5 +42,21 @@ select results_eq(
      from golden.golden_case where file = 'waitlist.json' order by position $$,
   'private.priority_weight gives every weight in the golden file, and the tier is the reason only with a weight');
 
+-- Rake, drop and pull: private.pot_take and @rivr/domain potTake (packages/testing/golden/rake.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'rake.json'), 'the rake cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'rake.json' and operation <> 'rake' $$,
+  'every operation in rake.json is proved here');
+select results_eq(
+  $$ select description, t.rake, t.drop_paise, t.pull, t.is_cap_applied
+     from golden.golden_case
+     cross join lateral private.pot_take(pg_temp.paise(inputs ->> 'pot'), replace(inputs ->> 'rate', '%', '')::integer * 100,
+                                         pg_temp.paise(inputs ->> 'cap'), (inputs ->> 'jackpotLive') = 'yes',
+                                         pg_temp.paise(inputs ->> 'drop'), pg_temp.paise(inputs ->> 'dropAbove')) t
+     where file = 'rake.json' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'rake'), pg_temp.paise(expected ->> 'drop'), pg_temp.paise(expected ->> 'pull'),
+            (expected ->> 'capApplied') = 'yes'
+     from golden.golden_case where file = 'rake.json' order by position $$,
+  'private.pot_take gives every rake, drop, pull and cap applied in the golden file');
+
 select * from finish();
 rollback;

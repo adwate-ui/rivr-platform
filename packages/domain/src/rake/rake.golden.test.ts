@@ -39,10 +39,13 @@ describe('Rake golden fixtures (packages/testing/golden/rake.json)', () => {
   });
 
   it.each(casesFor(golden, 'rake'))('%s', (_description, goldenCase) => {
+    const capApplied = goldenExpected(goldenCase, 'capApplied');
+    if (capApplied !== 'yes' && capApplied !== 'no') throw new Error(`Golden capApplied "${capApplied}" is neither yes nor no`);
     expect(potTake(amount(goldenInput(goldenCase, 'pot')), rulesOf(goldenCase))).toEqual({
       rake: amount(goldenExpected(goldenCase, 'rake')),
       drop: amount(goldenExpected(goldenCase, 'drop')),
       pull: amount(goldenExpected(goldenCase, 'pull')),
+      isCapApplied: capApplied === 'yes',
     });
   });
 });
