@@ -1,6 +1,6 @@
 import { HIGH_HAND_RANKS } from '@rivr/contracts';
 import type { HighHand, HighHandFailure } from '@rivr/db';
-import { formatMoney, formatTime, t, type MessageKey } from '@rivr/i18n';
+import { formatDate, formatMoney, formatTime, t, type MessageKey } from '@rivr/i18n';
 
 /** What the High hands screen says when approving or rejecting did not go through. */
 export const HIGH_HAND_FAILURE_COPY: Readonly<Record<HighHandFailure, MessageKey>> = {
@@ -13,13 +13,13 @@ export const HIGH_HAND_FAILURE_COPY: Readonly<Record<HighHandFailure, MessageKey
   unavailable: 'console.highHands.unavailable',
 };
 
-/** A claim in one line: the hand (with the rank of a four of a kind), the seat, the table, when, and the dealer. */
+/** A claim in one line: the hand (with the rank of a four of a kind), the seat, the table, the day and time, and the dealer. */
 export function claimText(hand: HighHand): string {
   const known = HIGH_HAND_RANKS.find((rank) => rank === hand.rank);
   const rank = known === undefined ? '' : ` ${t(`tv.ranks.${known}`)}`;
   return t('console.highHands.claim', {
     category: `${t(`tv.highHand.${hand.category}`)}${rank}`, seat: hand.seat, table: hand.tableName,
-    time: formatTime(new Date(hand.playedAt)), dealer: hand.dealerName,
+    time: `${formatDate(new Date(hand.playedAt))}, ${formatTime(new Date(hand.playedAt))}`, dealer: hand.dealerName,
   });
 }
 

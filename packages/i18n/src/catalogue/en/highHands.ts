@@ -17,7 +17,8 @@ const highHand = {
   waiting: 'High hand claimed, waiting for the floor',
   approved: 'High hand approved',
   rejected: 'High hand not approved',
-  notPaying: 'The club does not pay that hand now. Ask the floor.',
+  /** Also when the hand is no longer in the down on this tablet (the tablet moved, or the down ended). */
+  notPaying: 'This claim cannot be sent: the club does not pay that hand now, or the hand is no longer in this down. Ask the floor.',
   noSeat: 'This table has no seat {seat}. Check the seat.',
   noDealer: 'The dealer of this down cannot deal now. End the down and sign in again.',
   alreadyClaimed: 'This hand already has a different high-hand claim.',
@@ -33,7 +34,7 @@ const highHands = {
   empty: 'No high hands claimed yet.',
   waiting: 'Waiting for approval',
   history: 'History',
-  /** A claim: `{category}` is the hand's name, `{time}` when it was played (IST). */
+  /** A claim: `{category}` is the hand's name, `{time}` the day and time it was played (IST). */
   claim: '{category}, seat {seat}, {table} · {time} · dealt by {dealer}',
   pays: 'Pays {amount}',
   paysNothing: 'Pays nothing under the high-hand payouts now. Reject it, or ask an admin to set a payout.',
@@ -48,7 +49,7 @@ const highHands = {
   notAllowedAction: 'You cannot decide this claim. Ask a manager who did not deal the hand.',
   decided: 'Someone has just decided this claim. Check the list.',
   changed: 'The payout for this hand has just changed. Check the amount and approve again.',
-  paused: 'The venue is frozen. High hands are paid again once it is released.',
+  paused: 'The venue is frozen. High hands are decided again once it is released.',
   switchedOff: 'Promotions are switched off, so no high hand is paid for now.',
   invalid: 'That claim cannot be paid now. Check the list.',
   unavailable: 'That did not go through. Check the connection and try again.',

@@ -33,9 +33,11 @@ test.describe('High hands', () => {
 
     await floor.getByRole('link', { name: 'High hands' }).click();
     await expect(floor.getByRole('heading', { name: 'Waiting for approval' })).toBeVisible();
-    await expect(floor.getByText(/^Straight flush, seat 4, Table 3 · \d{2}:\d{2} · dealt by Pema Lepcha$/).first()).toBeVisible();
+    await expect(floor.getByText(/^Straight flush, seat 4, Table 3 · .+, \d{2}:\d{2} · dealt by Pema Lepcha$/).first()).toBeVisible();
+    const paid = floor.getByText('Paid ₹10,000, approved by Kavya Reddy', { exact: true });
+    const before = await paid.count();
     await floor.getByRole('button', { name: 'Approve ₹10,000' }).first().click();
-    await expect(floor.getByText('Paid ₹10,000, approved by Kavya Reddy').first()).toBeVisible();
+    await expect(paid).toHaveCount(before + 1);
 
     // The tablet asks again every fifteen seconds.
     await expect(tablet.getByText('High hand approved')).toBeVisible({ timeout: 20_000 });

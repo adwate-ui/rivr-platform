@@ -62,8 +62,9 @@ export function ClaimRow({ venueId, hand, canDecide }: { venueId: string; hand: 
       </Inline>
       {isRejecting ? (
         <RejectForm venueId={venueId} claimId={hand.claimId} onDone={(outcome) => {
-          setIsRejecting(false);
           if (outcome !== null) settle(outcome);
+          // A reject that did not go through keeps the form, and the reason typed in it.
+          if (outcome === null || outcome.ok) setIsRejecting(false);
         }} />
       ) : null}
       {failure === null ? null : <ErrorMessage>{t(HIGH_HAND_FAILURE_COPY[failure])}</ErrorMessage>}
