@@ -1069,6 +1069,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tv_screen": {
+                  Row: {
+                    "created_at": string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"set_by_staff_id": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"device_id"?: string,"mode"?: Database["public"]['Enums']["tv_mode"],"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tv_screen_device_id_venue_id_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tv_screen_set_by_staff_id_fkey"
+      columns: ["set_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"venue": {
                   Row: {
                     "created_at": string,"id": string,"is_practice": boolean,"name": string,"slug": string,"time_zone": string,"updated_at": string
@@ -1293,6 +1319,11 @@ isOneToOne: false
 "check_kyc_in_person":
 { Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
                            },
+"check_tv_pairing":
+{ Args: { "p_secret": string }; Returns: {
+              "device_id": string,"refusal": string
+            }[]
+                           },
 "claim_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
@@ -1303,6 +1334,9 @@ isOneToOne: false
 { Args: { "p_consumer": string,"p_event_types": (string)[],"p_is_messaging"?: boolean,"p_limit"?: number }; Returns: {
               "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
             }[]
+                           },
+"claim_tv_pairing":
+{ Args: { "p_code": string,"p_mode": Database["public"]['Enums']["tv_mode"],"p_name": string,"p_venue_id": string }; Returns: string
                            },
 "confirm_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: string
@@ -1397,6 +1431,11 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
+"my_tv_screen":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"venue_id": string
+            }[]
+                           },
 "my_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
               "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"entry_id": string,"hold_until": string,"joined_at": string,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
@@ -1461,6 +1500,9 @@ isOneToOne: false
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
                            },
+"set_tv_mode":
+{ Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
+                           },
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
                            },
@@ -1472,6 +1514,11 @@ isOneToOne: false
 "start_device_pairing":
 { Args: { "p_device_id": string }; Returns: {
               "code": string,"expires_at": string
+            }[]
+                           },
+"start_tv_pairing":
+{ Args: { "p_client": string }; Returns: {
+              "code": string,"expires_at": string,"refusal": string,"secret": string
             }[]
                            },
 "step_away":
@@ -1507,7 +1554,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"
+            "control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1627,7 +1674,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"]
+            "control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
           }
         }
 } as const

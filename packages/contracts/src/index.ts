@@ -36,9 +36,15 @@ export {
   dealerPinEntrySchema,
   dealerPinSchema,
   dealerTabletAddSchema,
+  devicePairRequestSchema,
   devicePairSchema,
   deviceRevokeSchema,
   pairingCodeSchema,
+  TV_MODES,
+  tvPairingSchema,
+  tvPairSchema,
+  type DevicePairRequest,
+  type TvMode,
 } from './devices.ts';
 export { HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { rakeChangeSchema } from './rake.ts';
