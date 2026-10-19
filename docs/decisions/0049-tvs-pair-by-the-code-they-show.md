@@ -8,7 +8,7 @@ How a TV pairs:
 1. A TV that is not paired asks `device-pair` for a code (`start_tv_pairing`) and shows it. The reply also carries a 64-character secret that only the TV holds, in memory.
 2. Staff with `devices.manage` type the code into the console with a name and a display mode (`claim_tv_pairing`). That enrols the TV as a device with its `tv_screen`.
 3. The TV asks `device-pair` every few seconds with its secret (`check_tv_pairing`). The first ask after the claim gets the device's own login, exactly as a tablet gets one.
-4. If that sign-in fails, an ask 30 seconds later gets a new login, which replaces the old one. Fifteen minutes after the claim, the secret gets nothing.
+4. If that sign-in fails, an ask 30 seconds later gets a new login, which replaces the old one. Once the TV has signed in, or fifteen minutes after the claim, the secret gets nothing, so it cannot swap out a working TV's login.
 
 A request belongs to no venue until it is claimed, because the TV does not know where it is. So `private.tv_pairing` has no `venue_id`, like `private.device_pairing_miss`. No client role can read it, and only the service role and the security-definer functions write it.
 

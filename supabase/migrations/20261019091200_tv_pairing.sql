@@ -72,6 +72,10 @@ immutable
 set search_path = ''
 as $$
 begin
+  -- An IPv4 address written the IPv6 way counts as the IPv4 address it is.
+  if trim(p_client) ~* '^::ffff:[0-9.]+$' then
+    return substr(trim(p_client), 8);
+  end if;
   if p_client like '%:%' then
     return network(set_masklen(trim(p_client)::inet, 64))::text;
   end if;
@@ -155,10 +159,11 @@ $$;
 
 -- device-pair asks on a TV's behalf with its secret (the service role only). Once the code is
 -- claimed: the device, and the login device-pair made for it before (to remove), for device-pair to
--- sign it in; then `waiting` for thirty seconds while it does, and the device again after that, in
--- case that sign-in failed. All of that only for fifteen minutes after the claim, so a secret seen
--- later signs nothing in. `waiting` while the code is live and unclaimed; `expired` for a secret
--- that is unknown, run out, or claimed too long ago. One ask at a time per secret.
+-- sign it in; then `waiting` for thirty seconds while it does, and the device again after that if
+-- the login it was given never signed in. All of that only for fifteen minutes after the claim, so
+-- a secret seen later signs nothing in, and once the TV has signed in the secret is spent: it cannot
+-- swap out a working TV's login. `waiting` while the code is live and unclaimed; `expired` for a
+-- secret that is unknown, run out, spent or claimed too long ago. One ask at a time per secret.
 create function private.check_tv_pairing(p_secret text)
 returns table (device_id uuid, previous_user_id uuid, refusal text)
 language plpgsql
@@ -171,7 +176,10 @@ declare
 begin
   select p.* into v_pairing from private.tv_pairing p where p.secret_hash = private.pairing_hash(coalesce(p_secret, '')) for update;
   if v_pairing.id is null or (v_pairing.claimed_at is null and v_pairing.expires_at <= now())
-     or v_pairing.claimed_at <= now() - interval '15 minutes' then
+     or v_pairing.claimed_at <= now() - interval '15 minutes'
+     or (v_pairing.delivered_at is not null
+         and exists (select 1 from public.device d join auth.users u on u.id = d.auth_user_id
+                     where d.id = v_pairing.device_id and u.last_sign_in_at is not null)) then
     return query select null::uuid, null::uuid, 'expired'::text;
     return;
   end if;

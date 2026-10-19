@@ -90,13 +90,20 @@ update private.tv_pairing set delivered_at = now() - interval '31 seconds' where
 set local role service_role;
 select results_eq($$ select device_id, previous_user_id from public.check_tv_pairing((select secret from bar)) $$,
   $$ select device_id, '00000000-0000-4000-8000-00000000e101'::uuid from bar_tv $$,
-  'thirty seconds on, an ask names the device again with the login to replace, in case that sign-in failed');
+  'thirty seconds on, an ask names the device again with the login to replace, as that login never signed in');
 reset role;
 update private.tv_pairing set claimed_at = now() - interval '15 minutes', delivered_at = null
 where secret_hash = private.pairing_hash((select secret from bar));
 set local role service_role;
 select results_eq($$ select device_id, refusal from public.check_tv_pairing((select secret from bar)) $$,
   $$ values (null::uuid, 'expired'::text) $$, 'fifteen minutes after the claim, the secret signs nothing in');
+reset role;
+update private.tv_pairing set claimed_at = now(), delivered_at = now() - interval '31 seconds'
+where secret_hash = private.pairing_hash((select secret from bar));
+update auth.users set last_sign_in_at = now() where id = '00000000-0000-4000-8000-00000000e101';
+set local role service_role;
+select results_eq($$ select device_id, refusal from public.check_tv_pairing((select secret from bar)) $$,
+  $$ values (null::uuid, 'expired'::text) $$, 'and once the TV has signed in, the secret is spent: it cannot swap out a working TV''s login');
 reset role;
 
 -- What the TV and others see: its own screen, and not the venue's dealer downs.
@@ -188,6 +195,7 @@ select results_eq($$ select refusal from public.start_tv_pairing('2001:db8:1:3::
   'the next /64 counts apart');
 reset role;
 select is(private.pairing_client(' 203.0.113.10 '), '203.0.113.10', 'an IPv4 address counts by itself');
+select is(private.pairing_client('::ffff:203.0.113.10'), '203.0.113.10', 'even written the IPv6 way');
 select is(private.pairing_client('not:an address'), 'not:an address', 'and anything else as it came');
 insert into private.tv_pairing (code_hash, secret_hash, client, expires_at)
 select 'filler-' || n, 'filler-' || n, 'filler-' || n, now() + interval '15 minutes' from generate_series(1, 136) as n;
