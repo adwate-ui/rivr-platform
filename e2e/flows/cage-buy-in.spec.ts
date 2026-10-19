@@ -24,7 +24,7 @@ test.describe('Cage buy-in', () => {
     await page.getByRole('button', { name: 'Vihaan Kapoor' }).click();
     await expect(page.getByText(/KYC verified · Table 1, seat 3$/)).toBeVisible();
 
-    const amount = page.getByRole('textbox', { name: 'Amount' });
+    const amount = page.getByRole('textbox', { name: 'Amount', exact: true });
     await amount.fill('5000');
     await page.getByRole('button', { name: 'Issue chips' }).click();
     await expect(page.getByText('₹5,000 of chips issued.')).toBeVisible();

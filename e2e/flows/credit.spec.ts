@@ -43,6 +43,8 @@ test.describe('Credit', () => {
     await expect(owner.getByText(/waiting for approval/)).toHaveCount(0);
 
     await setLimit(owner, '9000000216', '0', 'End of the test run');
-    await expect(owner.getByText('No member has credit yet.')).toBeVisible();
+    // Kunal's line closes; Arjun Mehta's (seed) stays.
+    await expect(owner.getByText('Kunal Mehra', { exact: true })).toHaveCount(0);
+    await expect(owner.getByText('Arjun Mehta', { exact: true }).first()).toBeVisible();
   });
 });

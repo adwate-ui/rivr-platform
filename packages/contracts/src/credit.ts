@@ -10,3 +10,6 @@ export const creditLimitSchema = z.object({
   limit: z.string().trim().regex(/^(0|[1-9]\d{0,7})$/),
   reason: z.string().trim().min(1).max(200),
 });
+
+/** The cage's marker form (#74): the amount in whole rupees (the database then checks ₹50 chips, the limit and the room's cap). */
+export const markerIssueSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/) });

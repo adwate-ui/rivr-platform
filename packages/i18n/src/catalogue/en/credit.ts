@@ -6,6 +6,15 @@ export const markers = {
   /** Under the room's exposure: `₹60,000 of ₹25,00,000`. */
   exposureOf: '{exposure} of {cap}',
   rules: 'Limits above {threshold} wait for a super admin. A member needs {visits} visits before any credit.',
+  /** Open markers, oldest first (#74). */
+  open: 'Outstanding',
+  noOpen: 'No markers outstanding.',
+  /** A marker's age: `14 days old · due 15 Nov 2026`. */
+  age: '{days} days old · due {due}',
+  ageOne: '1 day old · due {due}',
+  ageToday: 'Issued today · due {due}',
+  pastDue: 'Past due: {days} days old, due {due}',
+  ofLimit: 'Marker of {amount} · limit {limit}',
   lines: 'Credit lines',
   noLines: 'No member has credit yet.',
   /** A member's line: their limit and their open markers. */

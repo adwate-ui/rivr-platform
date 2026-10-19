@@ -109,6 +109,8 @@ export const ui = {
   offlineBanner: 'Offline. What you see may be out of date.',
   /** A table's seats on the dealer tablet (#59): each a button, read out with who sits there. */
   seatRing: { seat: 'Seat {number}', open: 'Seat {number}, open', taken: 'Seat {number}, {name}' },
+  /** The pad a member signs on at the cage (#74). */
+  signaturePad: { clear: 'Clear' },
   /** A seated player's call time (#78): `{time}` is what is left, as in "1 h 12 min". */
   callTime: { left: 'Call time {time} left', paused: 'Call time paused, {time} left', done: 'Call time done' },
   /** The offer to add the player app to the home screen, on a member's second visit. */

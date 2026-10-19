@@ -51,4 +51,22 @@ export const cage = {
   moved: 'The player is no longer in the seat that asked. Decline the request.',
   invalid: 'That request is not waiting for this member and amount.',
   unavailable: 'That did not go through. Check the connection and try again.',
+  /** A marker: chips on credit, signed for at the cage (#74). */
+  markerTitle: 'Marker',
+  markerAmount: 'Marker amount',
+  signatureOf: 'Signature of {name}',
+  /** Above the pad once an amount is typed: what the member signs for. */
+  signatureFor: 'Signature of {name} for {amount}',
+  issueMarker: 'Issue marker',
+  /** After a marker is issued: `{amount}` is how much. */
+  markerIssued: '{amount} issued on a marker.',
+  markerNotAllowed: 'Your role does not issue markers. Cashiers and duty managers do.',
+  markerAboveLimit: 'That takes this member above their credit limit.',
+  markerAboveExposure: 'That takes the room above its credit exposure cap. Ask a super admin.',
+  markerPastDue: 'A marker of theirs is past due. No new credit until it is settled.',
+  markerNotChips: 'A marker is whole ₹50 chips.',
+  markerUnsigned: 'The member signs for a marker.',
+  markerNotSetUp: 'Credit is not set up at this venue yet. Ask a super admin.',
+  markerSwitchedOff: 'Credit is switched off. Ask a super admin.',
+  markerInvalid: 'That request id was used for another marker. Try again.',
 };

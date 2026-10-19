@@ -16,7 +16,7 @@ export default {
   // switches lower the line count, so the coverage threshold would fail every run.
   commandRunner: { command: 'npx vitest run --bail=1 --reporter=dot --coverage.enabled=false' },
   coverageAnalysis: 'off',
-  mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/cage/**/*.ts', 'src/callTime/**/*.ts', 'src/credit/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
+  mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/cage/**/*.ts', 'src/callTime/**/*.ts', 'src/credit/**/*.ts', 'src/markers/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
   thresholds: { high: 95, low: 85, break: 80 },
   reporters: ['clear-text', 'progress', 'html', 'json'],
   htmlReporter: { fileName: 'reports/mutation/index.html' },

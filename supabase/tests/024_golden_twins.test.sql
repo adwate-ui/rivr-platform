@@ -166,5 +166,17 @@ select results_eq(
   $$ select description, expected ->> 'result' from golden.golden_case where file = 'credit.json' order by position $$,
   'private.credit_limit_check gives every limit in the golden file');
 
+-- A marker: private.marker_check and @rivr/domain markerCheck (packages/testing/golden/markers.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'markers.json'), 'the marker cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'markers.json' and operation <> 'issue' $$,
+  'every operation in markers.json is proved here');
+select results_eq(
+  $$ select description, private.marker_check(pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'outstanding'),
+                                             pg_temp.paise(inputs ->> 'limit'), pg_temp.paise(inputs ->> 'exposure'),
+                                             pg_temp.paise(inputs ->> 'cap'), inputs ->> 'pastDue' = 'yes')
+     from golden.golden_case where file = 'markers.json' order by position $$,
+  $$ select description, expected ->> 'result' from golden.golden_case where file = 'markers.json' order by position $$,
+  'private.marker_check gives every marker in the golden file');
+
 select * from finish();
 rollback;

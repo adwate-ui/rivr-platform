@@ -144,10 +144,17 @@ const creditConfig = {
   }),
 } as const satisfies SettingDefinition;
 
+const markersDueDays = {
+  key: 'markers.due_days',
+  description: 'How many days after it is issued a marker falls due; a member with a marker past due gets no new credit (scope-v1 module 5).',
+  scope: 'venue',
+  value: z.strictObject({ days: z.int().min(1).max(90) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig,
+  creditConfig, markersDueDays,
 ] as const;
 
 /** A setting key declared in code. */

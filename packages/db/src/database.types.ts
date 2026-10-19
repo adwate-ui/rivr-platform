@@ -819,6 +819,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"marker": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"due_at": string,"id": string,"idempotency_key": string,"issued_at": string,"issued_by_staff_id": string | null,"ledger_transaction_id": string,"member_id": string,"outstanding_paise": number,"session_id": string | null,"settled_at": string | null,"signature_svg": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"due_at": string,"id"?: string,"idempotency_key": string,"issued_at"?: string,"issued_by_staff_id"?: string | null,"ledger_transaction_id": string,"member_id": string,"outstanding_paise": number,"session_id"?: string | null,"settled_at"?: string | null,"signature_svg": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"due_at"?: string,"id"?: string,"idempotency_key"?: string,"issued_at"?: string,"issued_by_staff_id"?: string | null,"ledger_transaction_id"?: string,"member_id"?: string,"outstanding_paise"?: number,"session_id"?: string | null,"settled_at"?: string | null,"signature_svg"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "marker_issued_by_staff_id_venue_id_fkey"
+      columns: ["issued_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "marker_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "marker_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "marker_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"member": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"member_number": number,"phone": string,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
@@ -1800,6 +1838,9 @@ isOneToOne: false
               "category": Database["public"]['Enums']["high_hand_category"],"claim_id": string,"dealer_name": string,"decided_at": string,"decided_by_name": string,"payout_paise": number,"played_at": string,"rank": string,"reason": string,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_name": string
             }[]
                            },
+"issue_marker":
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_member_id": string,"p_signature_svg": string,"p_venue_id": string }; Returns: string
+                           },
 "jackpot_history":
 { Args: { "p_venue_id": string }; Returns: {
               "created_at": string,"each_at_table_paise": number,"event_id": string,"is_reversed": boolean,"kind": Database["public"]['Enums']["jackpot_event_kind"],"loser_name": string,"loser_paise": number,"others": number,"reason": string,"reverses_id": string,"table_name": string,"total_paise": number,"winner_name": string,"winner_paise": number
@@ -1885,6 +1926,11 @@ isOneToOne: false
                            },
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
+                           },
+"open_markers":
+{ Args: { "p_venue_id": string }; Returns: {
+              "age_days": number,"amount_paise": number,"due_at": string,"full_name": string,"is_past_due": boolean,"issued_at": string,"limit_paise": number,"marker_id": string,"member_id": string,"outstanding_paise": number
+            }[]
                            },
 "pay_bad_beat":
 { Args: { "p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string

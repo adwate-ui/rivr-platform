@@ -70,6 +70,12 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `creditLimit(limit, threshold, bySuperAdmin)`, `CreditLimitState` | A credit limit as the floor sets it (#73): whole ₹50 chips (`not_chips` otherwise), 0 closing the line; in force at once up to the venue's approval threshold, or when a super admin sets it, otherwise waiting for one. The database's `private.credit_limit_check` is proved equal by `packages/testing/golden/credit.json`. |
 
+### `@rivr/domain/markers`
+
+| Export | What it does |
+|---|---|
+| `markerCheck(amount, terms)`, `MarkerTerms`, `MarkerRefusal` | A marker at the cage (#74, additions flow 19): whole ₹50 chips above nothing, refused while a marker of the member's is past due, above their credit limit, or above the room's exposure cap (exactly at either is allowed). The database's `private.marker_check` is proved equal by `packages/testing/golden/markers.json`. |
+
 ### `@rivr/domain/callTime`
 
 | Export | What it does |
