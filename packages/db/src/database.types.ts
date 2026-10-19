@@ -271,14 +271,14 @@ isOneToOne: false
                   ]
                 },"dealer_down": {
                   Row: {
-                    "created_at": string,"device_id": string,"drop_box_paise": number | null,"ended_at": string | null,"id": string,"logged_paise": number | null,"staff_id": string,"started_at": string,"table_id": string,"updated_at": string,"variance_paise": number | null,"venue_id": string
+                    "created_at": string,"device_id": string,"ended_at": string | null,"id": string,"staff_id": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"device_id": string,"drop_box_paise"?: number | null,"ended_at"?: string | null,"id"?: string,"logged_paise"?: number | null,"staff_id": string,"started_at"?: string,"table_id": string,"updated_at"?: string,"variance_paise"?: number | null,"venue_id": string
+                    "created_at"?: string,"device_id": string,"ended_at"?: string | null,"id"?: string,"staff_id": string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"device_id"?: string,"drop_box_paise"?: number | null,"ended_at"?: string | null,"id"?: string,"logged_paise"?: number | null,"staff_id"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"variance_paise"?: number | null,"venue_id"?: string
+                    "created_at"?: string,"device_id"?: string,"ended_at"?: string | null,"id"?: string,"staff_id"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -353,6 +353,32 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "device_pairing_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"down_count": {
+                  Row: {
+                    "created_at": string,"down_id": string,"drop_box_paise": number,"logged_paise": number,"updated_at": string,"variance_paise": number,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"down_id": string,"drop_box_paise": number,"logged_paise": number,"updated_at"?: string,"variance_paise": number,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"down_id"?: string,"drop_box_paise"?: number,"logged_paise"?: number,"updated_at"?: string,"variance_paise"?: number,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "down_count_down_id_fkey"
+      columns: ["down_id"]
+isOneToOne: true
+      referencedRelation: "dealer_down"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "down_count_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"

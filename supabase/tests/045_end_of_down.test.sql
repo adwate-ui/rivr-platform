@@ -1,7 +1,9 @@
 -- End of down (#44): on a tablet fixed to Table 3 during Pema's down, the dealer ends the down with
--- the drop-box count; the down keeps the count, the rake and drops its hands logged, and the
--- variance; a variance beyond dealer.variance_threshold (seeded at ₹500) either way raises an alert;
--- the next dealer can sign in. Flow 4's ₹48,000 hand logs rake ₹2,400 and a ₹100 drop: ₹2,500.
+-- the drop-box count; the down's count keeps it, the rake and drops its hands logged, and the
+-- variance; a variance beyond dealer.variance_threshold (seeded at ₹500) either way raises an alert,
+-- and with no threshold set any variance does; a down with hands that closes without a count raises
+-- one too; counts are seen only by staff who read the ledger; the next dealer can sign in. Flow 4's
+-- ₹48,000 hand logs rake ₹2,400 and a ₹100 drop: ₹2,500.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -36,9 +38,11 @@ select results_eq($$ select logged_paise, variance_paise from public.end_down(23
 select is_empty($$ select * from public.current_down() $$, 'the down is over, and the next dealer signs in');
 select throws_ok($$ select * from public.end_down(0) $$, 'RVDWN', null, 'with no down open there is nothing to end');
 reset role;
-select results_eq($$ select drop_box_paise, logged_paise, variance_paise, ended_at is not null from public.dealer_down $$,
-  $$ values (230000::bigint, 250000::bigint, -20000::bigint, true) $$, 'the down keeps the count, the logged amount and the variance');
+select results_eq($$ select c.drop_box_paise, c.logged_paise, c.variance_paise, d.ended_at is not null
+                     from public.down_count c join public.dealer_down d on d.id = c.down_id $$,
+  $$ values (230000::bigint, 250000::bigint, -20000::bigint, true) $$, 'the down''s count keeps the box, the logged amount and the variance');
 select is((select count(*)::int from public.alert where kind = 'dealer.variance'), 0, '₹200 is within the ₹500 threshold: no alert');
+select throws_ok($$ update public.down_count set drop_box_paise = 250000 $$, null, null, 'a count is never changed');
 
 -- A down beyond the threshold, either way.
 select pg_temp.start_down();
@@ -65,6 +69,43 @@ select throws_ok($$ select * from public.end_down(0) $$, '42501', null, 'staff d
 reset role;
 set local role anon;
 select throws_ok($$ select * from public.end_down(0) $$, '42501', null, 'nor does anyone signed out');
+reset role;
+
+-- With no threshold set, any variance raises an alert: the safest reading.
+delete from public.setting where key = 'dealer.variance_threshold';
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select results_eq($$ select variance_paise from public.end_down(5000) $$, $$ values (5000::bigint) $$, 'one ₹50 chip over');
+reset role;
+select is((select count(*)::int from public.alert where kind = 'dealer.variance'), 2, 'with no threshold set, even ₹50 raises an alert');
+
+-- A down with hands that closes without a count, as dealer sign-in elsewhere closes it, raises an alert.
+select pg_temp.start_down();
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select lives_ok($$ select public.log_hand(4800000, 'holdem', now(), 'end-of-down-hand-3') $$, 'a ₹48,000 hand in a down never counted');
+reset role;
+update public.dealer_down set ended_at = now() where ended_at is null;
+select results_eq($$ select (detail ->> 'logged_paise')::bigint from public.alert where kind = 'dealer.uncounted' $$,
+  $$ values (250000::bigint) $$, 'the floor and the owner are told to count that box by hand');
+select pg_temp.start_down();
+update public.dealer_down set ended_at = now() where ended_at is null;
+select is((select count(*)::int from public.alert where kind = 'dealer.uncounted'), 1, 'a down with no hands has nothing to count');
+
+-- Who sees counts: staff who read the ledger, at their own venue.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is((select count(*)::int from public.down_count), 4, 'an admin, who reads the ledger, sees the venue''s down counts');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is_empty($$ select * from public.down_count $$, 'a dealer, who does not read the ledger, sees none, not even her own');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select is_empty($$ select * from public.down_count $$, 'nor does the tablet, which gets its own back from end_down');
+select throws_ok($$ insert into public.down_count (down_id, venue_id, drop_box_paise, logged_paise, variance_paise)
+                    select id, venue_id, 0, 0, 0 from public.dealer_down limit 1 $$, '42501', null, 'nor writes one');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
+select is_empty($$ select * from public.down_count $$, 'nor does a member');
+reset role;
+update public.staff set is_active = false
+where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is_empty($$ select * from public.down_count $$, 'staff at the practice venue only see none of the club''s counts');
 reset role;
 
 select * from finish();

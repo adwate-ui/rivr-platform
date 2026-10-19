@@ -28,7 +28,10 @@ interface TableFrameProps {
  */
 function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
   const down = useCurrentDown(device.tableId);
-  const [isEnding, setIsEnding] = useState(false);
+  // End of down belongs to the down it was opened for: once that down is over (ended here, by the
+  // 30-second check, or by an answer lost after the database closed it), the next dealer starts on
+  // hand entry.
+  const [endingDownId, setEndingDownId] = useState<string | null>(null);
   const [lastCount, setLastCount] = useState<DownCount | null>(null);
   const title = t('tablet.title');
   // A tablet's table id and name are null together: not yet fixed to a table.
@@ -47,19 +50,21 @@ function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
       </TabletShell>
     );
   }
+  const current = down.data;
+  const isEnding = endingDownId === current.downId;
   const actions = (
     <>
-      <Text variant="small">{t('tablet.dealerSignIn.down', { name: down.data.fullName, time: formatTime(new Date(down.data.startedAt)) })}</Text>
-      <Button variant="secondary" isDisabled={isEnding} onClick={() => setIsEnding(true)}>{t('tablet.dealerSignIn.endDown')}</Button>
+      <Text variant="small">{t('tablet.dealerSignIn.down', { name: current.fullName, time: formatTime(new Date(current.startedAt)) })}</Text>
+      <Button variant="secondary" isDisabled={isEnding} onClick={() => setEndingDownId(current.downId)}>{t('tablet.dealerSignIn.endDown')}</Button>
     </>
   );
   const ended = (count: DownCount) => {
     setLastCount(count);
-    setIsEnding(false);
+    setEndingDownId(null);
   };
   return (
     <TabletShell tableName={tableName} actions={actions} banner={banner}>
-      {isEnding ? <EndDownForm onEnded={ended} onCancel={() => setIsEnding(false)} /> : children}
+      {isEnding ? <EndDownForm onEnded={ended} onCancel={() => setEndingDownId(null)} /> : children}
     </TabletShell>
   );
 }

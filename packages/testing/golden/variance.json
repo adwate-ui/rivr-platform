@@ -1,0 +1,54 @@
+{
+  "rule": "down variance",
+  "about": "A dealer's down at its end (scope-v1 module 4): the variance is the drop-box count less the rake and jackpot drops logged in the down's hands, below zero when the box is short. An alert is raised when the variance is beyond the venue's dealer.variance_threshold either way; exactly at the threshold is no alert. With no threshold set, any variance raises one. Counts, rake and drops are whole ₹50 chips, so nothing is rounded.",
+  "cases": [
+    {
+      "description": "₹2,300 counted against ₹2,500 logged is ₹200 short, within ₹500: no alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹2,300", "logged": "₹2,500", "threshold": "₹500" },
+      "expected": { "variance": "-₹200", "alert": "no" }
+    },
+    {
+      "description": "Exactly at the threshold: ₹3,000 against ₹2,500 is ₹500 over, no alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹3,000", "logged": "₹2,500", "threshold": "₹500" },
+      "expected": { "variance": "₹500", "alert": "no" }
+    },
+    {
+      "description": "One chip beyond: ₹3,050 against ₹2,500 is ₹550 over: an alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹3,050", "logged": "₹2,500", "threshold": "₹500" },
+      "expected": { "variance": "₹550", "alert": "yes" }
+    },
+    {
+      "description": "₹3,200 against ₹2,500 is ₹700 over: an alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹3,200", "logged": "₹2,500", "threshold": "₹500" },
+      "expected": { "variance": "₹700", "alert": "yes" }
+    },
+    {
+      "description": "Short by as much is an alert too: ₹1,800 against ₹2,500 is ₹700 short.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹1,800", "logged": "₹2,500", "threshold": "₹500" },
+      "expected": { "variance": "-₹700", "alert": "yes" }
+    },
+    {
+      "description": "An empty box after a down with no hands balances: ₹0, no alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹0", "logged": "₹0", "threshold": "₹500" },
+      "expected": { "variance": "₹0", "alert": "no" }
+    },
+    {
+      "description": "With no threshold set, one chip over is an alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹2,550", "logged": "₹2,500", "threshold": "" },
+      "expected": { "variance": "₹50", "alert": "yes" }
+    },
+    {
+      "description": "With no threshold set, a down that balances is no alert.",
+      "operation": "variance",
+      "inputs": { "dropBox": "₹2,500", "logged": "₹2,500", "threshold": "" },
+      "expected": { "variance": "₹0", "alert": "no" }
+    }
+  ]
+}
