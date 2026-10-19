@@ -15,9 +15,15 @@
       "expected": { "weight": "0", "reason": "" }
     },
     {
-      "description": "Same big blind, other small blind: 100/250 is not the 100/200 the card qualifies at.",
+      "description": "Same small blind, other big blind: 100/250 is not the 100/200 the card qualifies at.",
       "operation": "priority",
       "inputs": { "list": "100/250", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "100/200" },
+      "expected": { "weight": "0", "reason": "" }
+    },
+    {
+      "description": "Same big blind, other small blind: 50/200 is not the 100/200 the card qualifies at.",
+      "operation": "priority",
+      "inputs": { "list": "50/200", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "100/200" },
       "expected": { "weight": "0", "reason": "" }
     },
     {

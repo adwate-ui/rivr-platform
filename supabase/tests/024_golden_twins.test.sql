@@ -31,13 +31,16 @@ select ok((select count(*) > 0 from golden.golden_case where file = 'waitlist.js
 select is_empty($$ select operation from golden.golden_case where file = 'waitlist.json' and operation <> 'priority' $$,
   'every operation in waitlist.json is proved here');
 select results_eq(
-  $$ select description,
-            private.priority_weight(nullif(inputs ->> 'weight', '')::integer, (inputs ->> 'onlyAtQualifyingStake') = 'yes',
-                                    pg_temp.blind(inputs ->> 'qualifyingStake', 1), pg_temp.blind(inputs ->> 'qualifyingStake', 2),
-                                    pg_temp.blind(inputs ->> 'list', 1), pg_temp.blind(inputs ->> 'list', 2))
+  $$ select description, w.weight, case when w.weight > 0 then inputs ->> 'tier' end
+     from golden.golden_case
+     cross join lateral (
+       select private.priority_weight(nullif(inputs ->> 'weight', '')::integer, (inputs ->> 'onlyAtQualifyingStake') = 'yes',
+                                      pg_temp.blind(inputs ->> 'qualifyingStake', 1), pg_temp.blind(inputs ->> 'qualifyingStake', 2),
+                                      pg_temp.blind(inputs ->> 'list', 1), pg_temp.blind(inputs ->> 'list', 2)) as weight) w
+     where file = 'waitlist.json' order by position $$,
+  $$ select description, (expected ->> 'weight')::integer, nullif(expected ->> 'reason', '')
      from golden.golden_case where file = 'waitlist.json' order by position $$,
-  $$ select description, (expected ->> 'weight')::integer from golden.golden_case where file = 'waitlist.json' order by position $$,
-  'private.priority_weight gives every weight in the golden file');
+  'private.priority_weight gives every weight in the golden file, and the tier is the reason only with a weight');
 
 select * from finish();
 rollback;

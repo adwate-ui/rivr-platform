@@ -1,6 +1,7 @@
 -- Waitlist priority (#40, scope-v1 module 2, decision S-D11): a scoring rule, never a manual
 -- override. A tier's weight lives in the effective-dated setting waitlist.priority_weights, with the
--- tier's id as the subject, so an admin can tune it without a release. The black card's counts only
+-- tier's id as the subject, so an admin can tune it without a release. A place keeps the weight in
+-- force when the member joined, as every effective-dated rule applies at its own time. The black card's counts only
 -- on the list for the member's qualifying stake; elsewhere they queue by join time. Every list orders
 -- by weight, highest first, then join time. @rivr/domain/waitlist is the rule's twin; both are proved
 -- against packages/testing/golden/waitlist.json (decision 0037).
@@ -28,9 +29,9 @@ as $$
   end;
 $$;
 
--- A member's priority on the list for a table type now: the weight, and the tier's name as the reason
--- when there is one.
-create function private.place_priority(p_member_id uuid, p_table_type_id uuid)
+-- A member's priority on the list for a table type, under the weights in force at `p_joined_at`: the
+-- weight, and the tier's name as the reason when there is one.
+create function private.place_priority(p_member_id uuid, p_table_type_id uuid, p_joined_at timestamptz)
 returns table (weight integer, reason text)
 language sql
 stable
@@ -41,7 +42,7 @@ as $$
   from public.member m
   join public.tier t on t.id = m.tier_id
   join public.table_type tt on tt.id = p_table_type_id
-  cross join lateral (select private.setting_at(m.venue_id, 'waitlist.priority_weights', t.id::text, now()) as value) s
+  cross join lateral (select private.setting_at(m.venue_id, 'waitlist.priority_weights', t.id::text, p_joined_at) as value) s
   cross join lateral (
     select private.priority_weight((s.value ->> 'weight')::integer, (s.value ->> 'only_at_qualifying_stake')::boolean,
                                    m.qualifying_small_blind, m.qualifying_big_blind, tt.small_blind_paise, tt.big_blind_paise) as weight
@@ -49,7 +50,7 @@ as $$
   where m.id = p_member_id;
 $$;
 
-revoke execute on function private.priority_weight(integer, boolean, bigint, bigint, bigint, bigint), private.place_priority(uuid, uuid)
+revoke execute on function private.priority_weight(integer, boolean, bigint, bigint, bigint, bigint), private.place_priority(uuid, uuid, timestamptz)
   from public, anon, authenticated;
 
 -- The waiting places on the given lists, each with its priority and its place: weight, then join time.
@@ -65,7 +66,7 @@ as $$
          row_number() over (partition by e.table_type_id order by coalesce(p.weight, 0) desc, e.joined_at, e.id)::integer,
          p.reason
   from public.waitlist_entry e
-  left join lateral private.place_priority(e.member_id, e.table_type_id) p on true
+  left join lateral private.place_priority(e.member_id, e.table_type_id, e.joined_at) p on true
   where e.status = 'waiting' and e.table_type_id = any (p_table_type_ids);
 $$;
 

@@ -56,6 +56,13 @@ test.describe('Waitlist', () => {
     const host = await browser.newPage();
     await signInToConsole(host, '9000000111');
     await host.getByRole('link', { name: 'Waitlist' }).click();
+    // A run stopped early may have left the black card on a list: take him off first.
+    const leftOver = host.getByRole('button', { name: 'Remove Vihaan Kapoor' });
+    while (await leftOver.count() > 0) {
+      const before = await leftOver.count();
+      await leftOver.first().click();
+      await expect(leftOver).toHaveCount(before - 1);
+    }
     // Staff work at both venues: the console lists only the selected venue's games.
     await expect(host.getByRole('heading', { name: 'NLH 100/200' })).toHaveCount(1);
     const higher = gameList(host, 'NLH 100/200');

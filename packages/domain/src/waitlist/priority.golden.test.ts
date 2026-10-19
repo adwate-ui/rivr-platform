@@ -1,6 +1,7 @@
 import { assertOperations, casesFor, goldenExpected, goldenInput, readGolden, type GoldenCase } from '@rivr/testing';
 import waitlistJson from '@rivr/testing/golden/waitlist.json';
 import { describe, expect, it } from 'vitest';
+import { fromPaise } from '../money/index.ts';
 import { priorityOn, type PriorityInput, type Stake } from './priority.ts';
 
 const golden = readGolden(waitlistJson);
@@ -9,7 +10,7 @@ const golden = readGolden(waitlistJson);
 function stake(text: string): Stake {
   const match = /^(\d+)\/(\d+)$/.exec(text);
   if (!match?.[1] || !match[2]) throw new Error(`Golden stake "${text}" is not small/big blinds`);
-  return { smallBlind: BigInt(match[1]) * 100n, bigBlind: BigInt(match[2]) * 100n };
+  return { smallBlind: fromPaise(BigInt(match[1]) * 100n), bigBlind: fromPaise(BigInt(match[2]) * 100n) };
 }
 
 function inputOf(goldenCase: GoldenCase): PriorityInput {
