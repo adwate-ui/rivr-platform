@@ -20,6 +20,7 @@ The design prompt lists high hands among the promotions the club runs: royal flu
 **The decision.**
 - The floor's decision (approve, or reject with a reason) is final.
 - Nobody decides a claim on a hand they dealt: a duty manager covering a down does not approve their own claim.
+  The check compares staff records. A super admin could add a dealer record of their own and approve its claim; super admins are fully trusted, and every step is in the audit log, so that risk is accepted.
 - Only staff who approve jackpots or read the ledger see the claims; the tablet sees its own.
 - A mistake has no correction yet. Question #315 asks how one is put right.
 - Not while the venue is frozen, and no payout while promotions are switched off.
