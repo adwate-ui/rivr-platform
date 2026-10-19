@@ -155,5 +155,16 @@ select results_eq(
   $$ select description, (expected ->> 'secondsLeft')::integer from golden.golden_case where file = 'callTime.json' order by position $$,
   'private.call_time_left gives every time left in the golden file');
 
+-- A credit limit: private.credit_limit_check and @rivr/domain creditLimit (packages/testing/golden/credit.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'credit.json'), 'the credit limit cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'credit.json' and operation <> 'limit' $$,
+  'every operation in credit.json is proved here');
+select results_eq(
+  $$ select description, private.credit_limit_check(pg_temp.paise(inputs ->> 'limit'), pg_temp.paise(inputs ->> 'threshold'),
+                                                     pg_temp.paise(inputs ->> 'current'))
+     from golden.golden_case where file = 'credit.json' order by position $$,
+  $$ select description, expected ->> 'result' from golden.golden_case where file = 'credit.json' order by position $$,
+  'private.credit_limit_check gives every limit in the golden file');
+
 select * from finish();
 rollback;

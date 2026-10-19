@@ -42,6 +42,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000127', '+919000000127', 'Tanvi Joshi'),
   ('00000000-0000-4000-8000-000000000128', '+919000000128', 'Harish Kumar'),
   ('00000000-0000-4000-8000-000000000129', '+919000000129', 'Meera Chopra'),
+  ('00000000-0000-4000-8000-000000000130', '+919000000130', 'Devika Sharma'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -53,6 +54,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000213', '+919000000213', 'Mihir Shah'),
   ('00000000-0000-4000-8000-000000000214', '+919000000214', 'Yash Gupta'),
   ('00000000-0000-4000-8000-000000000215', '+919000000215', 'Ritika Das'),
+  ('00000000-0000-4000-8000-000000000216', '+919000000216', 'Kunal Mehra'),
   ('00000000-0000-4000-8000-000000000301', '+919000000301', 'Asha Verma'),
   ('00000000-0000-4000-8000-000000000302', '+919000000302', 'Rajat Singh');
 
@@ -110,6 +112,8 @@ from (values
   ('00000000-0000-4000-8000-000000000128'::uuid, 'Floor manager', 'admin'),
   -- The Live floor flow's own floor manager (#81).
   ('00000000-0000-4000-8000-000000000129'::uuid, 'Floor manager', 'admin'),
+  -- The Credit flow's own duty manager, who approves limits above the threshold (#73).
+  ('00000000-0000-4000-8000-000000000130'::uuid, 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id
@@ -139,7 +143,9 @@ from (values
   -- The Seat events flow's player at Table 3 (55_waitlist.sql has his identity check); never signs in.
   ('00000000-0000-4000-8000-000000000214'::uuid, 'Member', null, null),
   -- The Call time flow's own member, seated in the Private Room, who reads Home (55_waitlist.sql has her identity check).
-  ('00000000-0000-4000-8000-000000000215'::uuid, 'Member', null, null)
+  ('00000000-0000-4000-8000-000000000215'::uuid, 'Member', null, null),
+  -- A regular with three past visits whom the Credit flow gives a limit (60_credit.sql); never signs in.
+  ('00000000-0000-4000-8000-000000000216'::uuid, 'Member', null, null)
 ) as m (person_id, tier_name, small_blind, big_blind)
 join seed_person p on p.id = m.person_id
 on conflict (id) do nothing;

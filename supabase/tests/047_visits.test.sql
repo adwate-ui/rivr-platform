@@ -59,7 +59,8 @@ select is((select count(*)::integer from public.visit), 1, 'Kabir sees his own v
 select pg_temp.as_person('00000000-0000-4000-8000-000000000203');
 select is_empty($$ select * from public.visit $$, 'Naina sees none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select count(*)::integer from public.visit), 2, 'a cashier sees the venue''s visits');
+-- The two opened here, and Kunal Mehra's three past visits (seed, #73).
+select is((select count(*)::integer from public.visit), 5, 'a cashier sees the venue''s visits');
 select throws_ok($$ update public.visit set closed_at = now(), close_reason = 'door' $$, '42501', null, 'but changes none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.visit $$, 'a dealer sees none');

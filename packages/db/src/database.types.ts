@@ -357,6 +357,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"credit_line": {
+                  Row: {
+                    "approved_by_staff_id": string | null,"created_at": string,"id": string,"limit_paise": number,"member_id": string,"proposal_reason": string | null,"proposed_at": string | null,"proposed_by_staff_id": string | null,"proposed_limit_paise": number | null,"reason": string | null,"set_by_staff_id": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approved_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"limit_paise"?: number,"member_id": string,"proposal_reason"?: string | null,"proposed_at"?: string | null,"proposed_by_staff_id"?: string | null,"proposed_limit_paise"?: number | null,"reason"?: string | null,"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "approved_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"limit_paise"?: number,"member_id"?: string,"proposal_reason"?: string | null,"proposed_at"?: string | null,"proposed_by_staff_id"?: string | null,"proposed_limit_paise"?: number | null,"reason"?: string | null,"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "credit_line_approved_by_staff_id_venue_id_fkey"
+      columns: ["approved_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "credit_line_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "credit_line_proposed_by_staff_id_venue_id_fkey"
+      columns: ["proposed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "credit_line_set_by_staff_id_venue_id_fkey"
+      columns: ["set_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"dealer_down": {
                   Row: {
                     "created_at": string,"device_id": string,"ended_at": string | null,"id": string,"staff_id": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string
@@ -1689,6 +1727,16 @@ isOneToOne: false
 "create_academy_batch":
 { Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
                            },
+"credit_lines":
+{ Args: { "p_venue_id": string }; Returns: {
+              "approval_threshold_paise": number,"exposure_cap_paise": number,"exposure_paise": number,"full_name": string,"limit_paise": number,"line_id": string,"member_id": string,"outstanding_paise": number,"proposal_reason": string,"proposed_by": string,"proposed_limit_paise": number
+            }[]
+                           },
+"credit_room":
+{ Args: { "p_venue_id": string }; Returns: {
+              "approval_threshold_paise": number,"exposure_cap_paise": number,"exposure_paise": number,"minimum_visits": number
+            }[]
+                           },
 "current_down":
 { Args: Record<PropertyKey, never>; Returns: {
               "down_id": string,"full_name": string,"staff_id": string,"started_at": string
@@ -1698,6 +1746,9 @@ isOneToOne: false
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: {
               "down_id": string,"refusal": string,"tries_left": number
             }[]
+                           },
+"decide_credit_limit":
+{ Args: { "p_expected_limit_paise": number,"p_is_approved": boolean,"p_line_id": string }; Returns: undefined
                            },
 "decline_buy_in_request":
 { Args: { "p_request_id": string }; Returns: undefined
@@ -1893,6 +1944,9 @@ isOneToOne: false
                            },
 "seat_member":
 { Args: { "p_phone": string,"p_seat": number,"p_table_id": string }; Returns: string
+                           },
+"set_credit_limit":
+{ Args: { "p_limit_paise": number,"p_phone": string,"p_reason": string,"p_venue_id": string }; Returns: string
                            },
 "set_dealer_pin":
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: undefined

@@ -14,12 +14,13 @@ import { rakeRoute } from './routes/rake.tsx';
 import { jackpotsRoute } from './routes/jackpots.tsx';
 import { tvsRoute } from './routes/tvs.tsx';
 import { highHandsRoute } from './routes/high-hands.tsx';
+import { markersRoute } from './routes/markers.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
-    highHandsRoute,
+    highHandsRoute, markersRoute,
   ]),
 ]);
 

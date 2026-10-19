@@ -1,0 +1,48 @@
+{
+  "rule": "credit limit",
+  "about": "A member's credit line (scope-v1 module 5, \"Credit lines to players\"): the floor sets a limit in whole ₹50 chips, or nothing to close the line. A limit no higher than the venue's approval threshold, or no higher than the limit in force (a cut), is in force at once. A raise above the threshold waits for a super admin other than the one who asked, whoever asks (money.md: a second approver above configured limits). A limit that is not whole chips is refused. KYC, the visit history and the room exposure cap are checked by the database.",
+  "cases": [
+    {
+      "description": "₹50,000 for a new line, with a ₹1,00,000 threshold: in force at once.",
+      "operation": "limit",
+      "inputs": { "limit": "₹50,000", "threshold": "₹1,00,000", "current": "₹0" },
+      "expected": { "result": "active" }
+    },
+    {
+      "description": "Exactly at the threshold: in force at once.",
+      "operation": "limit",
+      "inputs": { "limit": "₹1,00,000", "threshold": "₹1,00,000", "current": "₹50,000" },
+      "expected": { "result": "active" }
+    },
+    {
+      "description": "One chip above: it waits for a super admin.",
+      "operation": "limit",
+      "inputs": { "limit": "₹1,00,050", "threshold": "₹1,00,000", "current": "₹0" },
+      "expected": { "result": "needs_approval" }
+    },
+    {
+      "description": "₹5,00,000, even asked by a super admin: it waits for another.",
+      "operation": "limit",
+      "inputs": { "limit": "₹5,00,000", "threshold": "₹1,00,000", "current": "₹2,00,000" },
+      "expected": { "result": "needs_approval" }
+    },
+    {
+      "description": "A cut from ₹5,00,000 to ₹2,00,000 is in force at once, above the threshold or not.",
+      "operation": "limit",
+      "inputs": { "limit": "₹2,00,000", "threshold": "₹1,00,000", "current": "₹5,00,000" },
+      "expected": { "result": "active" }
+    },
+    {
+      "description": "Nothing: the line is closed at once.",
+      "operation": "limit",
+      "inputs": { "limit": "₹0", "threshold": "₹1,00,000", "current": "₹2,00,000" },
+      "expected": { "result": "active" }
+    },
+    {
+      "description": "₹50,020 is not whole ₹50 chips: refused.",
+      "operation": "limit",
+      "inputs": { "limit": "₹50,020", "threshold": "₹1,00,000", "current": "₹0" },
+      "expected": { "result": "not_chips" }
+    }
+  ]
+}
