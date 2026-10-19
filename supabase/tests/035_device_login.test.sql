@@ -43,14 +43,15 @@ select is((select s.user_id from public.device d join public.staff s on s.id = d
            where d.name = 'Tablet E'), '00000000-0000-4000-8000-000000000103'::uuid,
   'a tablet is recorded as added by whoever added it, not by whom the console says');
 
--- Pairing: staff with devices.manage, for a tablet or a TV.
+-- Pairing: staff with devices.manage, for a dealer tablet.
 select pg_temp.as_staff('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d001') $$, '42501', null,
   'a dealer cannot start pairing a tablet');
 select pg_temp.as_staff('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d003') $$, '22023', null,
   'a cage computer is not paired: it has no login of its own');
-select lives_ok($$ select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d004') $$, 'a TV is paired the same way');
+select throws_ok($$ select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d004') $$, '22023', null,
+  'nor is a TV: it pairs by the code it shows (#49)');
 create temporary table first_code on commit drop as select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d001');
 create temporary table second_code on commit drop as select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d001');
 grant select on first_code, second_code to service_role;
@@ -149,7 +150,7 @@ select results_eq($$ select device_id from public.redeem_device_pairing((select 
 reset role;
 insert into private.device_pairing_miss (client) select 'guess-' || n from generate_series(1, 45) as n;
 select pg_temp.as_staff('00000000-0000-4000-8000-000000000103');
-create temporary table late_code on commit drop as select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d004');
+create temporary table late_code on commit drop as select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d001');
 grant select on late_code to service_role;
 reset role;
 set local role service_role;
@@ -160,7 +161,7 @@ select ok(exists (select 1 from public.alert where kind = 'devices.pairing_guess
 delete from private.device_pairing_miss;
 
 -- Expired and revoked.
-update public.device_pairing set expires_at = now() - interval '1 second' where device_id = '00000000-0000-4000-8000-00000000d004' and redeemed_at is null;
+update public.device_pairing set expires_at = now() - interval '1 second' where device_id = '00000000-0000-4000-8000-00000000d001' and redeemed_at is null;
 set local role service_role;
 select results_eq($$ select refusal from public.redeem_device_pairing((select code from late_code), '198.51.100.9') $$, $$ values ('wrong_code'::text) $$,
   'an expired code is refused');
@@ -203,7 +204,7 @@ reset role;
 -- A venue freeze, last: a control is never deleted.
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 select pg_temp.as_staff('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select * from public.start_device_pairing('00000000-0000-4000-8000-00000000d004') $$, 'RVFRZ', null, 'no pairing while the venue is frozen');
+select throws_ok($$ select * from public.start_device_pairing((select id from public.device where name = 'Tablet E')) $$, 'RVFRZ', null, 'no pairing while the venue is frozen');
 select throws_ok($$ insert into public.device (venue_id, kind, name) values ('00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet F') $$,
   'RVFRZ', null, 'nor a tablet added');
 select throws_ok(format('select public.assign_tablet(%L, %L)', (select id from public.device where name = 'Tablet E'),
