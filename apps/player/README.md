@@ -44,4 +44,4 @@ The build writes the manifest and a service worker (`vite-plugin-pwa`, `vite.con
 
 ## Budgets
 
-Initial JavaScript under 200 KB gzipped, checked in CI by `scripts/check-bundle.mjs`. With the service worker's registration it is about 178 KB.
+Initial JavaScript under 200 KB gzipped, checked in CI by `scripts/check-bundle.mjs`. With the service worker's registration it is about 192 KB (October 2026). The player ships only its own copy (`src/messages.ts`); keep it that way, as every other app's copy would cost several KB.

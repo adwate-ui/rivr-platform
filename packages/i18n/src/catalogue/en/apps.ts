@@ -5,12 +5,12 @@
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
 import { checkIn, liveFloor } from './floor.ts';
-import { consoleDevices, displayDevices, tabletDevices } from './devices.ts';
-import { consoleHighHands, tabletHighHands } from './highHands.ts';
-import { consoleJackpots } from './jackpots.ts';
-import { consoleRake } from './rake.ts';
+import { dealerPins, dealerSignIn, endOfDown, handEntry, pairing, queue, seats, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { highHand, highHands } from './highHands.ts';
+import { jackpots } from './jackpots.ts';
+import { rake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
-import { consoleKycReview } from './kycReview.ts';
+import { kycReview, kycReviewFailures } from './kycReview.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
@@ -160,10 +160,14 @@ export const consoleApp = {
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   waitlist,
-  ...consoleDevices,
-  ...consoleRake,
-  ...consoleJackpots,
-  ...consoleHighHands,
+  // Each member named, never spread: a spread can run a getter, so the bundler would keep this whole
+  // object, and the console's copy would ship in the player (#344).
+  tablets,
+  dealerPins,
+  tvs,
+  rake,
+  jackpots,
+  highHands,
   /** Someone signed in who is not active staff at any venue. */
   notStaff: {
     title: 'Staff only',
@@ -233,7 +237,8 @@ export const consoleApp = {
     stopped: 'The venue or this member is frozen. Try again once it is released.',
     unavailable: 'Could not save this. Check the connection and try again.',
   },
-  ...consoleKycReview,
+  kycReview,
+  kycReviewFailures,
   kycInPerson,
   kycInPersonFailures,
 } as const;
@@ -242,12 +247,18 @@ export const tabletApp = {
   /** The table name in the header before the tablet is assigned to a table. */
   unassignedTable: 'Not assigned',
   title: 'Dealer tablet',
-  ...tabletDevices,
-  ...tabletHighHands,
+  pairing,
+  handEntry,
+  dealerSignIn,
+  endOfDown,
+  queue,
+  seats,
+  highHand,
 } as const;
 
 export const displayApp = {
-  ...displayDevices,
+  pairing: tvPairing,
+  screen: tvScreen,
 } as const;
 
 export const driverApp = {

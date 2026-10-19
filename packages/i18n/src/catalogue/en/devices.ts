@@ -156,9 +156,6 @@ export const tvScreen = {
   unavailable: 'RIVR cannot be reached. This screen tries again in a few seconds.',
 };
 
-/** The console's device screens, spread into its catalogue. */
-export const consoleDevices = { tablets, dealerPins, tvs };
-
 /** End of down on the tablet (#44): the drop-box count, and what the down closed with. */
 export const endOfDown = {
   title: 'End of down',
@@ -212,9 +209,3 @@ export const queue = {
   /** Clears the refusals once the floor has dealt with them. */
   seen: 'Seen by the floor',
 };
-
-/** The tablet's pairing, sign-in and hand entry copy, spread into its catalogue. */
-export const tabletDevices = { pairing, handEntry, dealerSignIn, endOfDown, queue, seats };
-
-/** The TV's pairing and screen copy, spread into the display app's catalogue. */
-export const displayDevices = { pairing: tvPairing, screen: tvScreen };

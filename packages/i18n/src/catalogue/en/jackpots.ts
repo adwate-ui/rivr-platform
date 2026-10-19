@@ -51,5 +51,3 @@ export const jackpots = {
   alreadyReversed: 'That payout is already reversed.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };
-
-export const consoleJackpots = { jackpots };
