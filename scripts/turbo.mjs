@@ -7,7 +7,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { localBinary, worktreeRoot } from '@rivr/config/worktree';
+import { localBinary, portBlock, worktreeRoot } from '@rivr/config/worktree';
 
 const root = worktreeRoot();
 const SCOPED_PACKAGES = new Set(
@@ -30,6 +30,11 @@ function expandArgs(args) {
   });
   return [...expanded, ...rest];
 }
+
+// An app's build embeds this worktree's local Supabase (its port block), so the build's cache key
+// must know the block: otherwise two worktrees with the same source share one build, and one
+// lane's apps talk to another lane's database.
+process.env.RIVR_PORT_BLOCK ??= String(portBlock(root));
 
 const result = spawnSync(localBinary('turbo', root), expandArgs(process.argv.slice(2)), { stdio: 'inherit', cwd: root });
 if (result.error) process.stderr.write(`turbo did not start: ${result.error.message}\n`);
