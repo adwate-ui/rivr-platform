@@ -1152,6 +1152,9 @@ isOneToOne: false
               "big_blind_paise": number,"entry_id": string,"joined_at": string,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
             }[]
                            },
+"note_sign_in_code_send":
+{ Args: { "p_phone": string }; Returns: boolean
+                           },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },

@@ -42,4 +42,29 @@ describe('sendSignInCode', () => {
   it('fails closed with no channel configured, so a code is never "sent" by nobody', async () => {
     expect(await sendSignInCode({}, { to, code })).toEqual({ ok: false, error: { code: 'not_configured' } });
   });
+
+  describe('within Auth\'s 5 seconds', () => {
+    // Channels that never answer, as a vendor having an outage.
+    const hangingWhatsApp = { sendTemplate: () => new Promise<never>(() => undefined) };
+    const hangingSms = { sendOtp: () => new Promise<never>(() => undefined) };
+
+    it('gives up on a silent WhatsApp in time for SMS to go out before the deadline', async () => {
+      const started = Date.now();
+      const sent = await sendSignInCode({ whatsapp: hangingWhatsApp, smsOtp }, { to, code, deadline: started + 1_300 });
+      expect(sent).toEqual({ ok: true, value: { channel: 'sms', messageId: 'fake-sms-1' } });
+      expect(Date.now() - started).toBeLessThan(1_300);
+    });
+
+    it('fails as unavailable, never late, when every channel is silent', async () => {
+      const started = Date.now();
+      const sent = await sendSignInCode({ whatsapp: hangingWhatsApp, smsOtp: hangingSms }, { to, code, preferSms: true, deadline: started + 1_300 });
+      expect(sent).toEqual({ ok: false, error: { code: 'unavailable' } });
+      expect(Date.now() - started).toBeLessThan(1_400);
+    });
+
+    it('tries no channel once the deadline has passed', async () => {
+      expect(await sendSignInCode({ whatsapp, smsOtp }, { to, code, deadline: Date.now() - 1 })).toEqual({ ok: false, error: { code: 'unavailable' } });
+      expect(whatsapp.calls).toEqual([]);
+    });
+  });
 });
