@@ -11,3 +11,8 @@ export const dealerTabletAddSchema = z.object({ name: z.string().trim().min(1).m
 
 /** Staff revoke a device, and say why. */
 export const deviceRevokeSchema = z.object({ reason: z.string().trim().min(1).max(200) });
+
+/** A dealer's PIN, as the console sets it (#41): four digits, not one digit four times. */
+export const dealerPinSchema = z.object({
+  pin: z.string().regex(/^\d{4}$/).refine((pin) => !/^(\d)\1{3}$/.test(pin)),
+});
