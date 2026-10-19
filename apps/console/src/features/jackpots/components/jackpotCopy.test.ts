@@ -1,7 +1,7 @@
 import type { JackpotEvent } from '@rivr/db';
 import { fromPaise } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
-import { eventText, jackpotFailureText, previewText, ruleText } from './jackpotCopy.ts';
+import { eventText, jackpotFailureText, payoutName, previewText, ruleText } from './jackpotCopy.ts';
 
 const PAYOUT: JackpotEvent = {
   eventId: 'e1', kind: 'payout', isReversed: false, tableName: 'Table 3', loserName: 'Arjun Mehta', winnerName: 'Kabir Sethi', others: 4,
@@ -24,6 +24,11 @@ describe('what the Jackpots screen says', () => {
   it('lists a payout and its reversal with the IST time', () => {
     expect(eventText(PAYOUT)).toBe('19 Oct 2026, 22:00 · Table 3 · Arjun Mehta lost to Kabir Sethi · ₹3,42,550');
     expect(eventText({ ...PAYOUT, kind: 'reversal', reason: 'Wrong table' })).toBe('19 Oct 2026, 22:00 · Reversed: Wrong table · ₹3,42,550 back to the jackpot');
+    expect(eventText({ ...PAYOUT, loserName: null, winnerName: null })).toBe('19 Oct 2026, 22:00 · Table 3 · bad beat paid · ₹3,42,550');
+  });
+
+  it('names a payout by its time, table and amount, so each reversal field and button is its own', () => {
+    expect(payoutName(PAYOUT)).toBe('19 Oct 2026, 22:00 at Table 3, ₹3,42,550');
   });
 
   it('says why a payout did not go through', () => {

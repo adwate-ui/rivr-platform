@@ -1,3 +1,4 @@
+import { fromPaise } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -48,26 +49,35 @@ describe('the jackpot on the console (#48)', () => {
     expect(result.current.jackpot.data?.events[0]).toMatchObject({ eventId: 'e1', kind: 'payout', loserName: 'Arjun Mehta', total: 34255000n, isReversed: false });
   });
 
-  it('gives no rule when none is set', async () => {
-    const { result } = renderJackpot({ ...READS, '/rpc/jackpot_pools': { body: [{ ...POOLS[0], payout_rule: null }] } });
-    await waitFor(() => expect(result.current.jackpot.data).toBeDefined());
-    expect(result.current.jackpot.data?.rule).toBeNull();
+  it('gives no rule when none is set, or when the one set does not split 100%', async () => {
+    const unset = renderJackpot({ ...READS, '/rpc/jackpot_pools': { body: [{ ...POOLS[0], payout_rule: null }] } });
+    await waitFor(() => expect(unset.result.current.jackpot.data).toBeDefined());
+    expect(unset.result.current.jackpot.data?.rule).toBeNull();
+    cleanup();
+    const overSplit = { pool_basis_points: 10000, loser_basis_points: 5000, winner_basis_points: 5000, table_basis_points: 5000 };
+    const bad = renderJackpot({ ...READS, '/rpc/jackpot_pools': { body: [{ ...POOLS[0], payout_rule: overSplit }] } });
+    await waitFor(() => expect(bad.result.current.jackpot.data).toBeDefined());
+    expect(bad.result.current.jackpot.data?.rule).toBeNull();
   });
 
   it('pays a bad beat with its request id, and says why one is refused', async () => {
     const paid = renderJackpot({ ...READS, '/rpc/pay_bad_beat': { body: 'e2' } });
-    const beat = { tableId: 't3', loserPhone: '+919000000201', winnerPhone: '+919000000202', otherPhones: ['+919000000203'], requestId: 'r-1' };
+    const beat = {
+      tableId: 't3', loserPhone: '+919000000201', winnerPhone: '+919000000202', otherPhones: ['+919000000203'], expectedTotal: fromPaise(34255000n), requestId: 'r-1',
+    };
     let outcome: unknown;
     await act(async () => { outcome = await paid.result.current.actions.pay.mutateAsync(beat); });
     expect(outcome).toEqual({ ok: true, value: 'e2' });
     expect(paid.calls.find((call) => call.path === '/rpc/pay_bad_beat')?.body).toEqual({
       p_venue_id: VENUE, p_table_id: 't3', p_loser_phone: '+919000000201', p_winner_phone: '+919000000202',
-      p_table_phones: ['+919000000203'], p_idempotency_key: 'r-1',
+      p_table_phones: ['+919000000203'], p_expected_total: 34255000, p_idempotency_key: 'r-1',
     });
-    cleanup();
-    const stranger = renderJackpot({ ...READS, '/rpc/pay_bad_beat': { status: 400, body: { code: 'RVNMB', message: 'not a member' } } });
-    await act(async () => { outcome = await stranger.result.current.actions.pay.mutateAsync(beat); });
-    expect(outcome).toEqual({ ok: false, error: 'not_member' });
+    for (const [code, failure] of [['RVNMB', 'not_member'], ['RVMBR', 'frozen_member'], ['RVSTL', 'changed'], ['23505', 'invalid']] as const) {
+      cleanup();
+      const refused = renderJackpot({ ...READS, '/rpc/pay_bad_beat': { status: 400, body: { code, message: 'refused' } } });
+      await act(async () => { outcome = await refused.result.current.actions.pay.mutateAsync(beat); });
+      expect(outcome).toEqual({ ok: false, error: failure });
+    }
   });
 
   it('reverses a payout once', async () => {

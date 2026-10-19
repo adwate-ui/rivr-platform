@@ -35,14 +35,17 @@ export interface JackpotEvent {
 
 /**
  * Why a payout or a reversal did not go through: the role does not pay jackpots; a player is not a
- * member here; the details were refused (a table elsewhere, a player twice, no payout rule, a pool
- * too small to pay a chip); the venue frozen; promotions switched off; the payout already reversed;
- * or anything else.
+ * member here, or is frozen; the details were refused (a table elsewhere, a player twice, no payout
+ * rule, a pool too small to pay a chip, or a request already used for another payout); the jackpot
+ * changed since the amounts were shown; the venue frozen; promotions switched off; the payout
+ * already reversed; or anything else.
  */
-export type JackpotFailure = 'not_allowed' | 'not_member' | 'invalid' | 'paused' | 'switched_off' | 'already_reversed' | 'unavailable';
+export type JackpotFailure =
+  | 'not_allowed' | 'not_member' | 'frozen_member' | 'invalid' | 'changed' | 'paused' | 'switched_off' | 'already_reversed' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, JackpotFailure>> = {
-  '42501': 'not_allowed', RVNMB: 'not_member', '22023': 'invalid', RVFRZ: 'paused', RVKIL: 'switched_off', RVDUP: 'already_reversed',
+  '42501': 'not_allowed', RVNMB: 'not_member', RVMBR: 'frozen_member', '22023': 'invalid', '23505': 'invalid', RVSTL: 'changed',
+  RVFRZ: 'paused', RVKIL: 'switched_off', RVDUP: 'already_reversed',
 };
 
 // The pools move with every hand, so the screen asks again every half minute.
@@ -79,12 +82,16 @@ export function useJackpot(venueId: string) {
   });
 }
 
-/** A bad beat to pay: the table, and the players by mobile number (+91…). */
+/**
+ * A bad beat to pay: the table, the players by mobile number (+91…), and the total the console
+ * showed, which the database pays only if the pool still gives it.
+ */
 export interface BadBeat {
   readonly tableId: string;
   readonly loserPhone: string;
   readonly winnerPhone: string;
   readonly otherPhones: readonly string[];
+  readonly expectedTotal: Paise;
   readonly requestId: string;
 }
 
@@ -100,7 +107,7 @@ export function useJackpotActions(venueId: string) {
     mutationFn: async (beat: BadBeat): Promise<Result<string, JackpotFailure>> => {
       const { data, error } = await client.rpc('pay_bad_beat', {
         p_venue_id: venueId, p_table_id: beat.tableId, p_loser_phone: beat.loserPhone, p_winner_phone: beat.winnerPhone,
-        p_table_phones: [...beat.otherPhones], p_idempotency_key: beat.requestId,
+        p_table_phones: [...beat.otherPhones], p_expected_total: Number(beat.expectedTotal), p_idempotency_key: beat.requestId,
       });
       await reload();
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);

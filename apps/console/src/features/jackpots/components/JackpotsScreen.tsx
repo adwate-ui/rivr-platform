@@ -2,7 +2,7 @@ import { useJackpot, useStaffVenue, type Jackpot } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Grid, Heading, Money, Screen, Stack, Text } from '@rivr/ui';
 import { BadBeatForm } from './BadBeatForm.tsx';
-import { eventText, ruleText } from './jackpotCopy.ts';
+import { eventText, previewText, ruleText } from './jackpotCopy.ts';
 import { ReverseForm } from './ReverseForm.tsx';
 
 /** One pool under its name. */
@@ -25,6 +25,7 @@ function History({ venueId, jackpot, canPay }: { venueId: string; jackpot: Jackp
           {jackpot.events.map((event) => (
             <Stack key={event.eventId} gap={2}>
               <Text>{eventText(event)}</Text>
+              {event.kind === 'payout' ? <Text variant="small" tone="muted">{previewText(event, event.others)}</Text> : null}
               {event.isReversed ? <Text variant="small" tone="muted">{t('console.jackpots.wasReversed')}</Text> : null}
               {canPay && event.kind === 'payout' && !event.isReversed ? <ReverseForm venueId={venueId} payout={event} /> : null}
             </Stack>

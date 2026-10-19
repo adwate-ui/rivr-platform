@@ -5,7 +5,9 @@ import { formatDate, formatMoney, formatNumber, formatTime, t, type MessageKey }
 const FAILURE_COPY: Readonly<Record<JackpotFailure, MessageKey>> = {
   not_allowed: 'console.jackpots.notAllowedAction',
   not_member: 'console.jackpots.notMember',
+  frozen_member: 'console.jackpots.frozenMember',
   invalid: 'console.jackpots.refused',
+  changed: 'console.jackpots.changed',
   paused: 'console.jackpots.paused',
   switched_off: 'console.jackpots.switchedOff',
   already_reversed: 'console.jackpots.alreadyReversed',
@@ -33,14 +35,19 @@ export function whenText(event: JackpotEvent): string {
   return `${formatDate(at)}, ${formatTime(at)}`;
 }
 
+/** A payout named by its time, table and amount: what its reversal's field and button say. */
+export function payoutName(event: JackpotEvent): string {
+  return t('console.jackpots.payoutName', { when: whenText(event), table: event.tableName ?? '', total: formatMoney(event.total) });
+}
+
 /** A payout or a reversal as the history lists it. */
 export function eventText(event: JackpotEvent): string {
   if (event.kind === 'reversal') {
     return t('console.jackpots.reversedLine', { when: whenText(event), reason: event.reason ?? '', total: formatMoney(event.total) });
   }
-  return t('console.jackpots.paidLine', {
-    when: whenText(event), table: event.tableName ?? '', loser: event.loserName ?? '', winner: event.winnerName ?? '', total: formatMoney(event.total),
-  });
+  const facts = { when: whenText(event), table: event.tableName ?? '', total: formatMoney(event.total) };
+  if (event.loserName === null || event.winnerName === null) return t('console.jackpots.paidLineNoNames', facts);
+  return t('console.jackpots.paidLine', { ...facts, loser: event.loserName, winner: event.winnerName });
 }
 
 /** Why a payout or a reversal did not go through. */
