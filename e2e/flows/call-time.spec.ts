@@ -2,7 +2,7 @@
  * Call time (#78, #79; features "Call time"; additions flow 13). Harish Kumar, this flow's own floor
  * manager (Auth sends one code a minute to a number), seats Ritika Das in the Private Room, where call
  * time is two hours: the live floor shows it beside her name, and Ritika's Home says where she sits and
- * the time left. Then flow 13: she cashes out before her call time. The cashier, Dev Arora (105), sees the
+ * the time left. Then flow 13: she cashes out before her call time. The flow's own cashier, Farah Siddiqui (132), sees the
  * shortfall and the cash-out is refused; Harish, an admin, lets her leave early with a reason; the final
  * cash-out then goes through and ends her seat, so the next run finds it open. The clock across moves,
  * away time, the completed event and the shortfall are proved in supabase/tests/051_call_time.test.sql,
@@ -15,8 +15,6 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 test.describe('Call time', () => {
   test('a player seated in the Private Room sees two hours of call time; cashing out before it needs an admin to let her go', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'seats a member and cashes her out, so the local stack only');
-    // Three people sign in (the floor, the player and the cashier), each waiting for a code: more than the default 30 s on CI.
-    test.setTimeout(90_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000128');
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
@@ -33,7 +31,7 @@ test.describe('Call time', () => {
 
     // Flow 13: the cashier sees the shortfall, and the cash-out is refused.
     const cage = await browser.newPage();
-    await signInToConsole(cage, '9000000105');
+    await signInToConsole(cage, '9000000132');
     await cage.getByRole('link', { name: 'Cage' }).click();
     await cage.getByRole('textbox', { name: 'Search members' }).fill('Ritika');
     await cage.getByRole('button', { name: 'Ritika Das' }).click();
