@@ -1088,6 +1088,9 @@ isOneToOne: false
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
                            },
+"reopen_kyc_check":
+{ Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
+                           },
 "review_kyc":
 { Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string
                            },
