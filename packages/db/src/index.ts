@@ -101,7 +101,7 @@ export {
   type TabletDealer,
   type VenueDealer,
 } from './dealerDowns.ts';
-export { useHandQueue, type HandQueueState, type QueuedHand } from './handQueue.ts';
+export { useHandQueue, type HandQueueState, type QueuedClaim, type QueuedHand } from './handQueue.ts';
 export {
   useDownHands,
   useTableRules,

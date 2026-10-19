@@ -72,6 +72,17 @@ describe('logging a hand on the tablet', () => {
     expect(sent[0]).toMatchObject({ p_pot: 4800000, p_variant: 'holdem' });
   });
 
+  it('logs one hand for a double tap on Log hand', async () => {
+    const sent = renderForm(['hand-1', 'hand-2']);
+    press('4', '8', '000');
+    const log = screen.getByRole('button', { name: 'Log hand' });
+    fireEvent.click(log);
+    fireEvent.click(log);
+    await waitFor(() => expect(sent).toHaveLength(1));
+    await waitFor(() => expect(screen.queryByText('₹48,000')).toBeNull());
+    expect(sent).toHaveLength(1);
+  });
+
   it('keeps logging while the venue is frozen, and the hands arrive in the order they were played', async () => {
     const sent = renderForm(['frozen', 'hand-1', 'hand-2']);
     press('4', '8', '000', 'Log hand');

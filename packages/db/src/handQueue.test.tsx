@@ -46,19 +46,31 @@ afterEach(() => {
 });
 
 describe('the tablet\'s queue of hands', () => {
-  it('sends hands oldest first, each with its key, and a claim straight after its hand', async () => {
+  it('sends hands oldest first, each with its key, and a claim once its hand is logged', async () => {
     const { result, calls } = renderQueue({ log_hand: [{ value: 'h1' }, { value: 'h2' }], claim_high_hand: [{ value: 'c1' }] });
     await act(async () => {
       await result.current.log(CLAIMED, 'r-1');
       await result.current.log(HAND, 'r-2');
     });
     await waitFor(() => expect(calls).toHaveLength(3));
-    expect(calls).toEqual([
+    expect(calls.filter((call) => call.rpc === 'log_hand')).toEqual([
       { rpc: 'log_hand', body: { p_pot: 2000000, p_variant: 'holdem', p_played_at: '2026-10-19T15:35:00.000Z', p_idempotency_key: 'r-1' } },
-      { rpc: 'claim_high_hand', body: { p_hand_id: 'h1', p_seat: 4, p_category: 'straight_flush', p_rank: '' } },
       { rpc: 'log_hand', body: { p_pot: 4800000, p_variant: 'holdem', p_played_at: '2026-10-19T15:35:00.000Z', p_idempotency_key: 'r-2' } },
     ]);
-    await waitFor(() => expect(result.current).toMatchObject({ pending: 0, refused: 0 }));
+    expect(calls.slice(1)).toContainEqual({ rpc: 'claim_high_hand', body: { p_hand_id: 'h1', p_seat: 4, p_category: 'straight_flush', p_rank: '' } });
+    await waitFor(() => expect(result.current).toMatchObject({ pending: 0, refusedHands: 0, refusedClaims: [] }));
+  });
+
+  it('sets aside a claim the floor cannot take, never its hand or the hands after it, until the floor has seen it', async () => {
+    const { result, calls } = renderQueue({ log_hand: [{ value: 'h1' }, { value: 'h2' }], claim_high_hand: [{ code: 'RVKIL' }] });
+    await act(async () => {
+      await result.current.log(CLAIMED, 'r-1');
+      await result.current.log(HAND, 'r-2');
+    });
+    await waitFor(() => expect(result.current).toMatchObject({ pending: 0, refusedHands: 0, refusedClaims: [{ handId: 'h1', seat: 4 }] }));
+    expect(calls.filter((call) => call.rpc === 'log_hand').map((call) => call.body['p_idempotency_key'])).toEqual(['r-1', 'r-2']);
+    await act(async () => { await result.current.clearRefused(); });
+    expect(result.current.refusedClaims).toEqual([]);
   });
 
   it('holds hands while offline and sends them in order, once each, when the connection is back', async () => {
@@ -76,22 +88,23 @@ describe('the tablet\'s queue of hands', () => {
   });
 
   it('says how many hands held offline reached the floor, and nothing for a hand logged online', () => {
-    const empty = { queued: [], refused: 0, held: 0, sent: null };
-    const offline = nextQueueState(nextQueueState(empty, [HAND], 0, false), [HAND, HAND], 0, false);
+    const contents = (queued: QueuedHand[]) => ({ queued, claimsWaiting: 0, refusedHands: 0, refusedClaims: [] });
+    const empty = { ...contents([]), held: 0, sent: null };
+    const offline = nextQueueState(nextQueueState(empty, contents([HAND]), false), contents([HAND, HAND]), false);
     expect(offline).toMatchObject({ held: 2, sent: null });
-    const sending = nextQueueState(offline, [HAND], 0, true);
+    const sending = nextQueueState(offline, contents([HAND]), true);
     expect(sending).toMatchObject({ held: 2, sent: null });
-    const landed = nextQueueState(sending, [], 0, true);
+    const landed = nextQueueState(sending, contents([]), true);
     expect(landed).toMatchObject({ held: 0, sent: 2 });
-    expect(nextQueueState(landed, [HAND], 0, true)).toMatchObject({ sent: null });
-    expect(nextQueueState(nextQueueState(empty, [HAND], 0, true), [], 0, true)).toMatchObject({ held: 0, sent: null });
+    expect(nextQueueState(landed, contents([HAND]), true)).toMatchObject({ sent: null });
+    expect(nextQueueState(nextQueueState(empty, contents([HAND]), true), contents([]), true)).toMatchObject({ held: 0, sent: null });
   });
 
   it('sends the hands it kept through a reload as soon as the tablet opens again', async () => {
     const indexedDB = new IDBFactory();
     // Before the power cut: a hand kept on the tablet, not yet sent.
-    const before = createOfflineQueue<QueuedHand>({ name: 'tablet-hands', indexedDB, send: async () => 'retry' });
-    await before.enqueue(HAND, 'r-1');
+    const before = createOfflineQueue<{ hand: QueuedHand }>({ name: 'tablet-hands', indexedDB, send: async () => 'retry' });
+    await before.enqueue({ hand: HAND }, 'r-1');
     await before.flush();
     before.close();
     const { result, calls } = renderQueue({ log_hand: [{ value: 'h1' }] }, { isDown: false }, indexedDB);
@@ -107,7 +120,7 @@ describe('the tablet\'s queue of hands', () => {
     });
     await waitFor(() => expect(calls.length).toBeGreaterThanOrEqual(2));
     expect(new Set(calls.map((call) => call.body['p_idempotency_key']))).toEqual(new Set(['r-1']));
-    await waitFor(() => expect(result.current).toMatchObject({ pending: 2, refused: 0 }));
+    await waitFor(() => expect(result.current).toMatchObject({ pending: 2, refusedHands: 0 }));
   });
 
   it('sets aside a hand refused for good, and the next one goes', async () => {
@@ -116,7 +129,7 @@ describe('the tablet\'s queue of hands', () => {
       await result.current.log(HAND, 'r-1');
       await result.current.log(HAND, 'r-2');
     });
-    await waitFor(() => expect(result.current).toMatchObject({ pending: 0, refused: 1 }));
+    await waitFor(() => expect(result.current).toMatchObject({ pending: 0, refusedHands: 1 }));
     expect(calls.map((call) => call.body['p_idempotency_key'])).toEqual(['r-1', 'r-2']);
   });
 });

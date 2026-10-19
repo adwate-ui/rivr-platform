@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { handEntrySchema } from '@rivr/contracts';
 import { useHandQueue } from '@rivr/db';
 import { fromRupees, ZERO } from '@rivr/domain/money';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import type { useHighHandClaim } from './useHighHandClaim.ts';
@@ -11,7 +11,7 @@ import type { useHighHandClaim } from './useHighHandClaim.ts';
  * The pot and game being entered, and Log hand. The tablet confirms a hand at once: its queue keeps
  * it and sends it, now or once the connection is back, oldest first and once each (#43), so hands
  * keep logging offline. A high-hand claim turned on goes with its hand; one not complete stops the
- * hand being logged until it is.
+ * hand being logged until it is. A second tap while a hand is being kept is ignored: one tap, one hand.
  */
 export function useHandEntryForm(highHand: ReturnType<typeof useHighHandClaim>) {
   const queue = useHandQueue();
@@ -19,7 +19,17 @@ export function useHandEntryForm(highHand: ReturnType<typeof useHighHandClaim>) 
   const form = useForm<z.input<typeof handEntrySchema>, unknown, z.output<typeof handEntrySchema>>({ resolver, defaultValues: { pot: '', variant: 'holdem' } });
   const typed = useWatch({ control: form.control, name: 'pot' });
   const pot = typed === '' ? ZERO : fromRupees(BigInt(typed));
+  const isLogging = useRef(false);
   const submit = async () => {
+    if (isLogging.current) return;
+    isLogging.current = true;
+    try {
+      await logHand();
+    } finally {
+      isLogging.current = false;
+    }
+  };
+  const logHand = async () => {
     const claim = await highHand.ready();
     if (claim === false) return;
     await form.handleSubmit(async (values) => {

@@ -186,6 +186,10 @@ export const queue = {
   sent: '{count} queued hands sent to the floor.',
   refusedOne: '1 hand was refused. Call a floor supervisor.',
   refused: '{count} hands were refused. Call a floor supervisor.',
+  /** A claim the database refused for good, its hand logged: promotions off, a seat the table does not have, or another claim on the hand. */
+  claimRefused: 'The high-hand claim for seat {seat} was refused. Ask the floor.',
+  /** Clears the refusals once the floor has dealt with them. */
+  seen: 'Seen by the floor',
 };
 
 /** The tablet's pairing, sign-in and hand entry copy, spread into its catalogue. */

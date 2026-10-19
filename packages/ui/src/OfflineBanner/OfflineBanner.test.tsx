@@ -25,6 +25,14 @@ describe('OfflineBanner', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
+  it('says what it is given offline, and online only an online message', () => {
+    renderIn(<OfflineBanner message="Offline. 2 hands queued." onlineMessage="Sending 2 hands." />);
+    act(() => goOnline(false));
+    expect(screen.getByRole('status')).toHaveTextContent('Offline. 2 hands queued.');
+    act(() => goOnline(true));
+    expect(screen.getByRole('status')).toHaveTextContent('Sending 2 hands.');
+  });
+
   it('has no accessibility violations', async () => {
     goOnline(false);
     const { container } = renderIn(<OfflineBanner />);
