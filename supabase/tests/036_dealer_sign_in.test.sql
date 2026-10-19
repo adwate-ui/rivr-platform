@@ -110,7 +110,7 @@ select results_eq($$ select t.name from public.dealer_down d join public.game_ta
 
 -- End of down.
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e002');
-select lives_ok($$ select public.end_down() $$, 'End of down');
+select lives_ok($$ select * from public.end_down(0) $$, 'End of down');
 select is_empty($$ select * from public.current_down() $$, 'leaves the table without a dealer');
 select is((select count(*)::integer from public.dealer_down where ended_at is null), 0, 'and every down here has its off time');
 
@@ -134,7 +134,7 @@ select a.venue_id, a.table_id, pg_temp.pema(), a.device_id from public.tablet_as
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select throws_ok($$ select * from public.dealer_sign_in(pg_temp.pema(), '6402') $$, 'RVFRZ', null, 'no down starts while the venue is frozen');
-select lives_ok($$ select public.end_down() $$, 'but a down can end: it moves no money, seat or hand');
+select lives_ok($$ select * from public.end_down(0) $$, 'but a down can end: it moves no money, seat or hand');
 select is_empty($$ select * from public.current_down() $$, 'and it has');
 reset role;
 set local role anon;

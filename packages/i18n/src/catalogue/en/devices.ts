@@ -161,8 +161,21 @@ export const tvScreen = {
 /** The console's device screens, spread into its catalogue. */
 export const consoleDevices = { tablets, dealerPins, tvs };
 
+/** End of down on the tablet (#44): the drop-box count, and what the down closed with. */
+export const endOfDown = {
+  title: 'End of down',
+  intro: 'Count the drop box and enter what it holds. An empty box is nothing entered.',
+  /** The keypad's name. */
+  count: 'Drop box',
+  close: 'Close the down',
+  /** `{amount}` is the count typed, which is not whole ₹50 chips (or is above ₹1 crore). */
+  notChips: 'A count is whole ₹50 chips, up to ₹1 crore. {amount} is not.',
+  /** Above the next dealer's sign-in: the count, the rake and drops logged in the down, and the count less logged. */
+  summary: 'Last down: drop box {box}, logged {logged}, variance {variance}.',
+};
+
 /** The tablet's pairing, sign-in and hand entry copy, spread into its catalogue. */
-export const tabletDevices = { pairing, handEntry, dealerSignIn };
+export const tabletDevices = { pairing, handEntry, dealerSignIn, endOfDown };
 
 /** The TV's pairing and screen copy, spread into the display app's catalogue. */
 export const displayDevices = { pairing: tvPairing, screen: tvScreen };

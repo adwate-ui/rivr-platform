@@ -96,6 +96,7 @@ export {
   useVenueDealers,
   type CurrentDown,
   type DealerPinFailure,
+  type DownCount,
   type DealerSignInFailure,
   type TabletDealer,
   type VenueDealer,

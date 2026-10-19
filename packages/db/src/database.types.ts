@@ -359,6 +359,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"down_count": {
+                  Row: {
+                    "created_at": string,"down_id": string,"drop_box_paise": number,"logged_paise": number,"updated_at": string,"variance_paise": number,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"down_id": string,"drop_box_paise": number,"logged_paise": number,"updated_at"?: string,"variance_paise": number,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"down_id"?: string,"drop_box_paise"?: number,"logged_paise"?: number,"updated_at"?: string,"variance_paise"?: number,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "down_count_down_id_fkey"
+      columns: ["down_id"]
+isOneToOne: true
+      referencedRelation: "dealer_down"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "down_count_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"feature": {
                   Row: {
                     "created_at": string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens": (string)[],"updated_at": string
@@ -1418,7 +1444,9 @@ isOneToOne: false
             }[]
                            },
 "end_down":
-{ Args: Record<PropertyKey, never>; Returns: undefined
+{ Args: { "p_drop_box_paise": number }; Returns: {
+              "logged_paise": number,"variance_paise": number
+            }[]
                            },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
