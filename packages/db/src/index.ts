@@ -63,6 +63,7 @@ export {
   type Restrictions,
   type SessionReminder,
 } from './restrictions.ts';
+export { useCheckInActions, useDoorBoard, type CheckInFailure, type DoorMember } from './visits.ts';
 export {
   useFloorTables,
   useFloorWaitlistActions,
