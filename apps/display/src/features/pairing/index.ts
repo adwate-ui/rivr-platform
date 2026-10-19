@@ -1,1 +1,1 @@
-export { UnpairedScreen } from './components/UnpairedScreen.tsx';
+export { PairingScreen } from './components/PairingScreen.tsx';

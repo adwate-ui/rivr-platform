@@ -1,6 +1,6 @@
 import { createRoute } from '@tanstack/react-router';
-import { UnpairedScreen } from '../features/pairing/index.ts';
+import { ModeScreen } from '../features/modes/index.ts';
 import { rootRoute } from './root.tsx';
 
-/** A TV opens on pairing until it has a mode. */
-export const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: UnpairedScreen });
+/** A paired TV shows the mode the console gave it (#49). */
+export const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: ModeScreen });

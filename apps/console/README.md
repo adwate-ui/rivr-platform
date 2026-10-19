@@ -29,6 +29,7 @@ src/
                       /academy); the payments the cage checks against the bank (/academy/payments)
     waitlist/         the floor's waitlists: add, call, seat, skip, remove (/waitlist)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
+    tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
     tables/           each table type's rake now and changes from a time, scheduled and withdrawn (/rake)
     jackpots/         the jackpot's pools and payout rule, paying a bad beat in chips, and reversing a payout (/jackpots)
