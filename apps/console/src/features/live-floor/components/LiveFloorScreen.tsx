@@ -1,14 +1,18 @@
-import { useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorTable } from '@rivr/db';
-import { formatStakes, t } from '@rivr/i18n';
-import { ChoiceChips, Grid, Screen, Stack } from '@rivr/ui';
+import {
+  useFloorNight, useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorNight, type FloorTable, type HeldSeat, type SeatedPlayer,
+} from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { Grid, Screen } from '@rivr/ui';
 import { useState } from 'react';
-import { TableCard } from './TableCard.tsx';
+import { RoomPlan } from './RoomPlan.tsx';
 import { TableDetail } from './TableDetail.tsx';
 
 /**
- * Live floor (#77, the prototype's console): every table seen from above with who sits where, and
- * the chosen table's seats beside them. The floor (waitlist.manage) seats, moves and lets players
- * leave; floor managers open and close tables and set must-move tables. Rake and hands follow (#81).
+ * Live floor (#77, #81; the prototype's console): rake tonight and how many are seated; every table
+ * seen from above, room by room, with who sits where, its rake, dealer and hands per hour; and the
+ * chosen table beside, with its night so far, its seats and its recent hands. The floor
+ * (waitlist.manage) seats, moves and lets players leave; floor managers open and close tables and set
+ * must-move tables.
  */
 export function LiveFloorScreen() {
   const staff = useStaffVenue();
@@ -17,41 +21,32 @@ export function LiveFloorScreen() {
   return <Floor venueId={staff.venue.venueId} permissions={staff.venue.permissions} />;
 }
 
+/** The floor's four reads once every one has arrived; null until then. */
+function loaded(tables: FloorTable[] | undefined, seats: SeatedPlayer[] | undefined, held: HeldSeat[] | undefined, night: FloorNight | undefined) {
+  if (tables === undefined || seats === undefined || held === undefined || night === undefined) return null;
+  return { tables, seats, held, night };
+}
+
 function Floor({ venueId, permissions }: { venueId: string; permissions: readonly string[] }) {
-  const tables = useFloorTables();
-  const seats = useFloorSeats(venueId);
-  const held = useHeldSeats(venueId);
+  const reads = { tables: useFloorTables(), seats: useFloorSeats(venueId), held: useHeldSeats(venueId), night: useFloorNight(venueId) };
   const [chosenId, setChosenId] = useState<string | null>(null);
   const title = t('console.liveFloor.title');
-  if (tables.isPending || seats.isPending || held.isPending) return <Screen title={title} status="loading" />;
-  if (tables.isError || seats.isError || held.isError) {
-    return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), seats.refetch(), held.refetch()])} />;
+  const data = loaded(reads.tables.data, reads.seats.data, reads.held.data, reads.night.data);
+  if (data === null) {
+    const all = Object.values(reads);
+    if (all.some((read) => read.isError)) return <Screen title={title} status="error" onRetry={() => void Promise.all(all.map((read) => read.refetch()))} />;
+    return <Screen title={title} status="loading" />;
   }
-  const here: FloorTable[] = tables.data.filter((table) => table.venueId === venueId);
-  if (here.length === 0) return <Screen title={title} status="empty" emptyText={t('console.liveFloor.empty')} />;
+  const here = data.tables.filter((table) => table.venueId === venueId);
   const chosen = here.find((table) => table.id === chosenId) ?? here[0];
-  const options = here.map((table) => ({ value: table.id, label: table.name }));
+  if (chosen === undefined) return <Screen title={title} status="empty" emptyText={t('console.liveFloor.empty')} />;
   return (
     <Screen title={title}>
       <Grid columns={2} gap={8}>
-        {/* In a Stack, so the cards keep their own height beside the taller seat list. */}
-        <Stack gap={4}>
-          <Grid columns={2} gap={4}>
-            {here.map((table) => (
-              <TableCard key={table.id} table={table} seats={seats.data.filter((seat) => seat.tableId === table.id)}
-                held={held.data.filter((seat) => seat.tableId === table.id)} />
-            ))}
-          </Grid>
-        </Stack>
-        {chosen === undefined ? null : (
-          <Stack gap={6}>
-            <ChoiceChips label={t('console.liveFloor.table')} mode="one" options={options} selected={[chosen.id]}
-              onChange={([id]) => { if (id !== undefined) setChosenId(id); }} />
-            <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
-              seats={seats.data.filter((seat) => seat.tableId === chosen.id)} held={held.data.filter((seat) => seat.tableId === chosen.id)}
-              stakes={formatStakes(chosen.smallBlind, chosen.bigBlind)} />
-          </Stack>
-        )}
+        <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} chosenId={chosen.id} onChoose={setChosenId} />
+        <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
+          seats={data.seats.filter((seat) => seat.tableId === chosen.id)} held={data.held.filter((seat) => seat.tableId === chosen.id)}
+          night={data.night.tables.find((figures) => figures.tableId === chosen.id)} />
       </Grid>
     </Screen>
   );

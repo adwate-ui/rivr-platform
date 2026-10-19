@@ -13,7 +13,7 @@ test.describe('Seating', () => {
     test.skip(isRemoteTarget(), 'seats a member and closes a table, so the local stack only');
     await signInToConsole(page, '9000000125');
     await expect(page.getByRole('heading', { name: 'Live floor', level: 1 })).toBeVisible();
-    await page.getByRole('group', { name: 'Table' }).first().getByRole('button', { name: 'Table 5', exact: true }).click();
+    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 5', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Table 5', level: 2 })).toBeVisible();
 
     await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();

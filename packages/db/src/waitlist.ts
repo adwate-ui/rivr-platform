@@ -25,6 +25,8 @@ export interface FloorTable {
   readonly waiting: number;
   /** The main table a must-move table feeds (#77); null for a table of its own. */
   readonly mustMoveToTableId: string | null;
+  /** The room it stands in, as the live floor groups tables (#81). */
+  readonly room: 'main' | 'private';
 }
 
 /** One of the signed-in member's waitlist places. */
@@ -93,7 +95,7 @@ export function useFloorTables() {
     refetchInterval: LIVE,
     queryFn: async (): Promise<FloorTable[]> => {
       const [tables, types, lengths] = await Promise.all([
-        client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id').order('position'),
+        client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room').order('position'),
         client.from('table_type').select('id, name, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise'),
         client.rpc('waitlist_lengths'),
       ]);
@@ -108,7 +110,7 @@ export function useFloorTables() {
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
           smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(type.buy_in_min_paise),
           straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(type.id) ?? 0,
-          mustMoveToTableId: table.must_move_to_table_id ?? null,
+          mustMoveToTableId: table.must_move_to_table_id ?? null, room: table.room === 'private' ? 'private' : 'main',
         }];
       });
     },

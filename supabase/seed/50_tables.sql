@@ -15,16 +15,16 @@ cross join (values
 ) as t (code, name, has_variation, small_blind, big_blind, buy_in, straddle)
 on conflict (venue_id, code) do nothing;
 
-insert into public.game_table (venue_id, table_type_id, name, position, is_open)
-select tt.venue_id, tt.id, t.name, t.position, t.is_open
+insert into public.game_table (venue_id, table_type_id, name, position, is_open, room)
+select tt.venue_id, tt.id, t.name, t.position, t.is_open, t.room
 from (values
-  ('Table 1', 1, 'nlh_50_100', true),
-  ('Table 2', 2, 'nlh_100_200', true),
-  ('Table 3', 3, 'nlh_100_200', true),
-  ('Table 4', 4, 'nlh_100_200', false),
-  ('Table 5', 5, 'nlh_100_200', true),
-  ('Private Room', 6, 'private_room', true)
-) as t (name, position, code, is_open)
+  ('Table 1', 1, 'nlh_50_100', true, 'main'),
+  ('Table 2', 2, 'nlh_100_200', true, 'main'),
+  ('Table 3', 3, 'nlh_100_200', true, 'main'),
+  ('Table 4', 4, 'nlh_100_200', false, 'main'),
+  ('Table 5', 5, 'nlh_100_200', true, 'main'),
+  ('Private Room', 6, 'private_room', true, 'private')
+) as t (name, position, code, is_open, room)
 join public.table_type tt on tt.code = t.code
 on conflict (venue_id, name) do nothing;
 
