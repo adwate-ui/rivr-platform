@@ -35,6 +35,12 @@ export interface WaitlistPlace {
   readonly joinedAt: string;
   /** 1 is next. */
   readonly place: number;
+  /** While the member is called (#63): the table and seat, and when the hold runs out; null otherwise. */
+  readonly callTableName: string | null;
+  readonly callSeat: number | null;
+  readonly holdUntil: string | null;
+  /** While the member has stepped away: when their place goes; null otherwise. */
+  readonly awayUntil: string | null;
 }
 
 /** One place on a list, as the floor sees it. */
@@ -48,6 +54,12 @@ export interface WaitlistBoardEntry {
   readonly addedByFloor: boolean;
   /** Why the place is ahead of join time: the tier's name, "Black card"; null in join-time order. */
   readonly priorityReason: string | null;
+  /** While called (#63): the table and seat, and when the hold runs out. */
+  readonly callTableName: string | null;
+  readonly callSeat: number | null;
+  readonly holdUntil: string | null;
+  /** While away (Skip, or the member stepped away): when the place goes. */
+  readonly awayUntil: string | null;
 }
 
 /** Why joining, adding or leaving did not go through: `stopped` is the member frozen, `paused` the whole venue. */
@@ -56,6 +68,11 @@ export type WaitlistFailure = 'not_open' | 'kyc_needed' | 'stopped' | 'paused' |
 const FAILURE_BY_CODE: Readonly<Record<string, WaitlistFailure>> = {
   '42501': 'not_open', RVKYC: 'kyc_needed', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
 };
+
+/** The failure a refused waitlist call stands for. */
+export function failureOf(error: { code: string }): WaitlistFailure {
+  return FAILURE_BY_CODE[error.code] ?? 'unavailable';
+}
 
 /** Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length. */
 export function useFloorTables() {
@@ -99,14 +116,15 @@ export function useMyWaitlist() {
       if (error) throw error;
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise),
-        bigBlind: BigInt(row.big_blind_paise), joinedAt: row.joined_at, place: row.place,
+        bigBlind: BigInt(row.big_blind_paise), joinedAt: row.joined_at, place: row.place, callTableName: row.call_table_name,
+        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,
       }));
     },
   });
 }
 
 /**
- * Joining a list from the app (`join_waitlist`, feature waitlist.join) and leaving it. `join` takes
+ * Joining a list from the app (`join_waitlist`, feature waitlist.join), stepping away and back, and leaving it. `join` takes
  * the request id of the tap, so a retried tap joins once. Each resolves to a Result; both reload the
  * floor and the member's places.
  */
@@ -128,7 +146,14 @@ export function useWaitlistActions() {
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
-  return { join, leave };
+  const stepAway = useMutation({
+    mutationFn: async ({ entryId, isAway }: { entryId: string; isAway: boolean }): Promise<Result<null, WaitlistFailure>> => {
+      const { error } = await client.rpc('step_away', { p_entry_id: entryId, p_is_away: isAway });
+      await reload();
+      return error ? err(failureOf(error)) : ok(null);
+    },
+  });
+  return { join, leave, stepAway };
 }
 
 /** The venue's lists for the floor (`waitlist_board`, waitlist.manage): each place in order, with names. */
@@ -143,7 +168,8 @@ export function useWaitlistBoard(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
-        place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason,
+        place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason, callTableName: row.call_table_name,
+        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,
       }));
     },
   });

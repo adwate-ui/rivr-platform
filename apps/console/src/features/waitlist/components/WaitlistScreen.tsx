@@ -35,6 +35,7 @@ function Board({ venueId }: { venueId: string }) {
       <Stack gap={10}>
         {games.map((game) => (
           <GameList key={game.tableTypeId} venueId={venueId} game={game}
+            tables={tables.data.filter((table) => table.venueId === venueId && table.tableTypeId === game.tableTypeId && table.isOpen)}
             entries={board.data.filter((entry) => entry.tableTypeId === game.tableTypeId)} />
         ))}
       </Stack>
