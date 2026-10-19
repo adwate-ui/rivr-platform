@@ -7,7 +7,8 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: '.',
-  testMatch: 'stories.spec.ts',
+  // The screenshots, and the @perf checks that need a real browser (perf.spec.ts).
+  testMatch: ['stories.spec.ts', 'perf.spec.ts'],
   outputDir: './test-results',
   snapshotPathTemplate: '{testDir}/baselines/{arg}{ext}',
   fullyParallel: true,
