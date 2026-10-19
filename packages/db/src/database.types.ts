@@ -271,14 +271,14 @@ isOneToOne: false
                   ]
                 },"dealer_down": {
                   Row: {
-                    "created_at": string,"device_id": string,"ended_at": string | null,"id": string,"staff_id": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"device_id": string,"drop_box_paise": number | null,"ended_at": string | null,"id": string,"logged_paise": number | null,"staff_id": string,"started_at": string,"table_id": string,"updated_at": string,"variance_paise": number | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"device_id": string,"ended_at"?: string | null,"id"?: string,"staff_id": string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"device_id": string,"drop_box_paise"?: number | null,"ended_at"?: string | null,"id"?: string,"logged_paise"?: number | null,"staff_id": string,"started_at"?: string,"table_id": string,"updated_at"?: string,"variance_paise"?: number | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"device_id"?: string,"ended_at"?: string | null,"id"?: string,"staff_id"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"device_id"?: string,"drop_box_paise"?: number | null,"ended_at"?: string | null,"id"?: string,"logged_paise"?: number | null,"staff_id"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"variance_paise"?: number | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1418,7 +1418,9 @@ isOneToOne: false
             }[]
                            },
 "end_down":
-{ Args: Record<PropertyKey, never>; Returns: undefined
+{ Args: { "p_drop_box_paise": number }; Returns: {
+              "logged_paise": number,"variance_paise": number
+            }[]
                            },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
