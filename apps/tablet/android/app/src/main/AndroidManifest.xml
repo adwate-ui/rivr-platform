@@ -24,14 +24,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- The home screen on a provisioned tablet, so it opens again after a restart (#41). -->
+        </activity>
+
+        <!-- The home screen on a provisioned tablet only, so it opens again after a restart (#41): off
+             until the app, as device owner, switches it on, so no other device offers it as a home app. -->
+        <activity-alias
+            android:name=".DealerHome"
+            android:targetActivity=".MainActivity"
+            android:enabled="false"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
-        </activity>
+        </activity-alias>
 
         <!-- Device owner, set once per tablet over adb (docs/runbooks/dealer-tablet.md), for kiosk mode (#41). -->
         <receiver
