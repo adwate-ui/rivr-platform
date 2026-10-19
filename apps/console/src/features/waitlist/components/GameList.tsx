@@ -1,16 +1,9 @@
 import { useFloorWaitlistActions, type FloorTable, type WaitlistBoardEntry, type WaitlistFailure } from '@rivr/db';
-import { formatTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, Stakes, Text } from '@rivr/ui';
+import { formatTime, t } from '@rivr/i18n';
+import { Button, ErrorMessage, Heading, Inline, Stack, Stakes, Text } from '@rivr/ui';
 import { useState } from 'react';
-
-const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
-  not_open: 'console.waitlist.notOpen',
-  kyc_needed: 'console.waitlist.kycNeeded',
-  stopped: 'console.waitlist.stopped',
-  no_member: 'console.waitlist.noMember',
-  invalid: 'console.waitlist.invalid',
-  unavailable: 'console.waitlist.unavailable',
-};
+import { AddMemberForm } from './AddMemberForm.tsx';
+import { FAILURE_COPY } from './failureCopy.ts';
 
 interface GameListProps {
   venueId: string;
@@ -21,6 +14,11 @@ interface GameListProps {
 /** One game and stake's list, in order, with Remove on each place and a way to add a member by their number. */
 export function GameList({ venueId, game, entries }: GameListProps) {
   const { remove } = useFloorWaitlistActions(venueId);
+  const [failure, setFailure] = useState<WaitlistFailure | null>(null);
+  const removePlace = async (entryId: string) => {
+    const removed = await remove.mutateAsync(entryId);
+    setFailure(removed.ok ? null : removed.error);
+  };
   return (
     <Stack gap={4}>
       <Inline gap={3} align="baseline">
@@ -35,39 +33,14 @@ export function GameList({ venueId, game, entries }: GameListProps) {
               <Text>{t('console.waitlist.entry', { place: entry.place, name: entry.fullName, time: formatTime(new Date(entry.joinedAt)) })}</Text>
               {entry.addedByFloor ? <Text variant="small" tone="muted">{t('console.waitlist.addedByFloor')}</Text> : null}
             </Stack>
-            <Button variant="secondary" isLoading={remove.isPending} onClick={() => void remove.mutateAsync(entry.entryId)}>
+            <Button variant="secondary" isLoading={remove.isPending} onClick={() => void removePlace(entry.entryId)}>
               {t('console.waitlist.remove', { name: entry.fullName })}
             </Button>
           </Inline>
         ))}
       </Stack>
-      <AddMember venueId={venueId} tableTypeId={game.tableTypeId} />
-    </Stack>
-  );
-}
-
-/** Adds a member to this list by their mobile number. */
-function AddMember({ venueId, tableTypeId }: { venueId: string; tableTypeId: string }) {
-  const { add } = useFloorWaitlistActions(venueId);
-  const [phone, setPhone] = useState('');
-  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
-  const [failure, setFailure] = useState<WaitlistFailure | null>(null);
-  const submit = async () => {
-    const added = await add.mutateAsync({ tableTypeId, phone, requestId });
-    setFailure(added.ok ? null : added.error);
-    if (added.ok) {
-      setPhone('');
-      setRequestId(crypto.randomUUID());
-    }
-  };
-  return (
-    <Stack gap={2}>
-      <Inline gap={3} align="end">
-        <Input label={t('console.waitlist.phone')} prefix="+91" type="tel" inputMode="tel" value={phone}
-          onChange={(event) => setPhone(event.target.value)} autoComplete="off" />
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.waitlist.add')}</Button>
-      </Inline>
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
+      <AddMemberForm venueId={venueId} tableTypeId={game.tableTypeId} />
     </Stack>
   );
 }

@@ -62,9 +62,16 @@ as $$
 declare
   v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id);
   v_id uuid;
+  v_replay public.waitlist_entry;
 begin
-  select e.id into v_id from public.waitlist_entry e where e.venue_id = v_venue_id and e.idempotency_key = p_idempotency_key;
-  if v_id is not null then return v_id; end if;
+  -- A request id replays only the place it made: the same member, on the same list.
+  select * into v_replay from public.waitlist_entry e where e.venue_id = v_venue_id and e.idempotency_key = p_idempotency_key;
+  if v_replay.id is not null then
+    if v_replay.member_id <> p_member_id or v_replay.table_type_id <> p_table_type_id then
+      raise exception 'That request id was used for another place' using errcode = '22023';
+    end if;
+    return v_replay.id;
+  end if;
   if not exists (select 1 from public.table_type t where t.id = p_table_type_id and t.venue_id = v_venue_id) then
     raise exception 'No such game at this venue' using errcode = '22023';
   end if;
@@ -125,7 +132,8 @@ begin
 end;
 $$;
 
--- Leaving: a member their own place, or the floor anyone's.
+-- Leaving: a member their own place, or the floor anyone's. A member may leave while the venue is
+-- frozen, since leaving only gives up a claim (decision 0040); the floor's removal waits for the release.
 create function private.leave_waitlist(p_entry_id uuid)
 returns void
 language plpgsql
@@ -134,11 +142,17 @@ set search_path = ''
 as $$
 declare
   v_entry public.waitlist_entry;
+  v_member_id uuid := private.current_member_id();
 begin
   select * into v_entry from public.waitlist_entry e where e.id = p_entry_id for update;
-  if v_entry.id is null or not (v_entry.member_id = private.current_member_id()
-                                or private.has_permission(v_entry.venue_id, 'waitlist.manage')) then
+  if v_entry.id is null then
     raise exception 'Only the member or the floor takes a place off a waitlist' using errcode = '42501';
+  end if;
+  if v_member_id is null or v_entry.member_id <> v_member_id then
+    if not private.has_permission(v_entry.venue_id, 'waitlist.manage') then
+      raise exception 'Only the member or the floor takes a place off a waitlist' using errcode = '42501';
+    end if;
+    perform private.assert_writable(v_entry.venue_id);
   end if;
   if v_entry.status <> 'waiting' then return; end if;
   update public.waitlist_entry set status = 'left', left_at = now() where id = v_entry.id;
@@ -162,7 +176,8 @@ as $$
   order by e.joined_at;
 $$;
 
--- How many wait on each list at the member's venue: lengths, never names.
+-- How many wait on each list at the member's venue (feature floor.live_view), or at the venues a
+-- staff member works at: lengths, never names.
 create function private.waitlist_lengths()
 returns table (table_type_id uuid, waiting integer)
 language sql
@@ -172,7 +187,8 @@ set search_path = ''
 as $$
   select t.id, (select count(*)::integer from public.waitlist_entry e where e.table_type_id = t.id and e.status = 'waiting')
   from public.table_type t
-  where t.venue_id = private.current_member_venue_id() or t.venue_id in (select private.staff_venues());
+  where (t.venue_id = private.current_member_venue_id() and private.has_feature(private.current_member_id(), 'floor.live_view'))
+     or t.venue_id in (select private.staff_venues());
 $$;
 
 -- The venue's lists for the floor: each place in order, with the member's name.
@@ -192,10 +208,25 @@ as $$
   order by e.table_type_id, e.joined_at, e.id;
 $$;
 
-grant execute on function private.put_on_waitlist(uuid, uuid, uuid, uuid) to authenticated;
 grant execute on function private.join_waitlist(uuid, uuid), private.add_to_waitlist(uuid, text, uuid),
   private.leave_waitlist(uuid), private.my_waitlist(), private.waitlist_lengths(), private.waitlist_board(uuid) to authenticated;
 revoke execute on function private.put_on_waitlist(uuid, uuid, uuid, uuid) from authenticated;
+
+-- A member reads tonight's tables only with floor.live_view, as waitlist_lengths gives the lengths
+-- (the policies #34 added checked the venue alone).
+drop policy "staff and members see the venue's table types" on public.table_type;
+create policy "staff and members see the venue's table types" on public.table_type
+  for select to authenticated
+  using (venue_id in (select private.staff_venues())
+         or (venue_id = (select private.current_member_venue_id())
+             and (select private.has_feature(private.current_member_id(), 'floor.live_view'))));
+
+drop policy "staff and members see the venue's tables" on public.game_table;
+create policy "staff and members see the venue's tables" on public.game_table
+  for select to authenticated
+  using (venue_id in (select private.staff_venues())
+         or (venue_id = (select private.current_member_venue_id())
+             and (select private.has_feature(private.current_member_id(), 'floor.live_view'))));
 
 -- Signed-in callers reach them only through these invoker wrappers.
 create function public.join_waitlist(p_table_type_id uuid, p_idempotency_key uuid)

@@ -28,10 +28,12 @@ function Board({ venueId }: { venueId: string }) {
   if (tables.isError || board.isError) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), board.refetch()])} />;
   }
+  const games = gamesOf(tables.data, venueId);
+  if (games.length === 0) return <Screen title={title} status="empty" emptyText={t('console.waitlist.noGames')} />;
   return (
     <Screen title={title}>
       <Stack gap={10}>
-        {gamesOf(tables.data, venueId).map((game) => (
+        {games.map((game) => (
           <GameList key={game.tableTypeId} venueId={venueId} game={game}
             entries={board.data.filter((entry) => entry.tableTypeId === game.tableTypeId)} />
         ))}

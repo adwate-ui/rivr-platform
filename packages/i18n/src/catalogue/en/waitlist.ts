@@ -26,6 +26,8 @@ export const waitlist = {
   title: 'Waitlist',
   notAllowed: 'Your role does not include the waitlist. Ask an admin if you need it.',
   empty: 'No one is waiting.',
+  /** The venue has no tables set up, so no lists. */
+  noGames: 'No games are set up at this venue yet.',
   /** One place: `{place}` on the list, `{name}`, joined at `{time}` (IST). */
   entry: '{place}. {name} · {time}',
   addedByFloor: 'Added by the floor',
@@ -34,8 +36,9 @@ export const waitlist = {
   add: 'Add to the list',
   noMember: 'No member has that number. Sign them up first.',
   kycNeeded: 'This member has not finished their identity check.',
-  stopped: 'The venue or this member is frozen.',
+  stopped: 'This member is frozen.',
+  paused: 'The venue is frozen. The waitlist changes again once it is released.',
   invalid: 'Enter a 10-digit mobile number.',
-  notOpen: 'Your role does not allow this.',
+  notOpen: 'Your role does not allow this, or that place is not on this venue\'s lists.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };

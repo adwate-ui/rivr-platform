@@ -48,11 +48,11 @@ export interface WaitlistBoardEntry {
   readonly addedByFloor: boolean;
 }
 
-/** Why joining, adding or leaving did not go through. */
-export type WaitlistFailure = 'not_open' | 'kyc_needed' | 'stopped' | 'no_member' | 'invalid' | 'unavailable';
+/** Why joining, adding or leaving did not go through: `stopped` is the member frozen, `paused` the whole venue. */
+export type WaitlistFailure = 'not_open' | 'kyc_needed' | 'stopped' | 'paused' | 'no_member' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, WaitlistFailure>> = {
-  '42501': 'not_open', RVKYC: 'kyc_needed', RVMBR: 'stopped', RVFRZ: 'stopped', RVNOM: 'no_member', '22023': 'invalid',
+  '42501': 'not_open', RVKYC: 'kyc_needed', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
 };
 
 /** Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length. */
