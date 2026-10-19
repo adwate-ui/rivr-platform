@@ -20,6 +20,10 @@ export const kycInPerson = {
   verified: '{name} is verified and can take a seat.',
   refused: '{name} was refused. The refused checks below say why.',
   needsReview: '{name} goes to review: another check holds the same PAN, Aadhaar or face. It is in the list below.',
+  /** A super admin reopens a refused check done in person (#267). */
+  reopenFor: 'Reason for reopening {name}\'s check',
+  reopenHint: 'What was wrong, in your words. Never type document numbers. They can then be checked in person again.',
+  reopen: 'Reopen the check',
 } as const;
 
 /** Why a check in person did not go through. */
