@@ -26,7 +26,7 @@ function renderHands(replies: Record<string, { status?: number; body: unknown }>
     auth: { storage: sessionStorageFor(TABLET), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ rules: useTableRules(), hands: useDownHands(), log: useLogHand() }), { wrapper });
+  const { result } = renderHook(() => ({ rules: useTableRules('table-3'), hands: useDownHands('down-1'), log: useLogHand() }), { wrapper });
   return { result, calls };
 }
 

@@ -35,12 +35,20 @@ export type LogHandFailure = 'no_dealer' | 'paused' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, LogHandFailure>> = { RVDWN: 'no_dealer', RVFRZ: 'paused', '22023': 'invalid' };
 
-/** The rules for the tablet's table now, so it shows the rake, drop and pull as the pot is typed. */
-export function useTableRules() {
+// A rule change takes effect from its own time, so the tablet asks again every minute: the take it
+// shows is the one the hand is logged with.
+const RULES_CHECK = 60_000;
+
+/**
+ * The rules for the tablet's table now, so it shows the rake, drop and pull as the pot is typed.
+ * Kept by table, so a tablet moved to another table never shows the old table's rules.
+ */
+export function useTableRules(tableId: string | null) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: queryKeys.tableRules(userId ?? 'signed-out'),
-    enabled: userId !== null,
+    queryKey: queryKeys.tableRules(userId ?? 'signed-out', tableId ?? 'no-table'),
+    enabled: userId !== null && tableId !== null,
+    refetchInterval: RULES_CHECK,
     queryFn: async (): Promise<TableRules | null> => {
       const { data, error } = await client.rpc('tablet_rake_rules');
       if (error) throw error;
@@ -50,12 +58,15 @@ export function useTableRules() {
   });
 }
 
-/** The hands of the open down on this tablet, latest first. */
-export function useDownHands() {
+/**
+ * The hands of the open down on this tablet, latest first. Kept by down (from useCurrentDown), so
+ * the next dealer's down never shows the last one's hands; nothing is asked between downs.
+ */
+export function useDownHands(downId: string | null) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: queryKeys.downHands(userId ?? 'signed-out'),
-    enabled: userId !== null,
+    queryKey: queryKeys.downHands(userId ?? 'signed-out', downId ?? 'no-down'),
+    enabled: userId !== null && downId !== null,
     queryFn: async (): Promise<DownHand[]> => {
       const { data, error } = await client.rpc('down_hands');
       if (error) throw error;
@@ -79,7 +90,8 @@ export function useLogHand() {
       const { data, error } = await client.rpc('log_hand', {
         p_pot: Number(hand.pot), p_variant: hand.variant, p_played_at: hand.playedAt.toISOString(), p_idempotency_key: hand.requestId,
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.downHands(userId ?? 'signed-out') });
+      // Every down's hands: the prefix of downHands' key.
+      await queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out', 'down-hands'] });
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
     },
   });

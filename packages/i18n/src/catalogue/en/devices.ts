@@ -41,12 +41,35 @@ export const pairing = {
   unavailable: 'Pairing did not go through. Check the connection and try again.',
 };
 
-/** The tablet's Hand entry screen, until #42 builds it. */
+/** The tablet's Hand entry screen (#42): during a down, the dealer types the pot and logs the hand. */
 export const handEntry = {
   title: 'Hand entry',
   empty: 'This tablet is not assigned to a table. Ask a floor manager to fix it to one on the console.',
-  /** A dealer is signed in; the keypad and Log hand come with #42. */
-  ready: 'Hands for this down are logged here.',
+  noRake: 'No rake is set for this table\'s game. Ask a floor manager to set one on the console.',
+  pot: 'Pot',
+  /** The pot keypad's name. */
+  enterPot: 'Enter the pot',
+  rake: 'Rake',
+  drop: 'Jackpot drop',
+  pull: 'Pull',
+  /** Under the rake when the cap set it: `{amount}` is the cap. */
+  capped: 'Capped at {amount}',
+  variant: 'Game',
+  holdem: 'Hold\'em',
+  plo: 'PLO',
+  bombPot: 'Bomb pot',
+  /** `{amount}` is the pot typed, which is not whole ₹50 chips (or is above ₹1 crore). */
+  notChips: 'A pot is whole ₹50 chips, up to ₹1 crore. {amount} is not.',
+  log: 'Log hand',
+  handsThisDown: 'Hands this down: {count}',
+  lastHands: 'Last hands',
+  noHands: 'No hands yet this down.',
+  /** One of the last hands, beside its pot: `{time}` (IST) and the game. */
+  hand: '{time} · {variant}',
+  noDealer: 'No dealer is signed in on this tablet. End the down and sign in again.',
+  paused: 'The venue is frozen. Hands are logged again once it is released.',
+  invalid: 'That hand was refused. Check the pot is whole ₹50 chips, up to ₹1 crore, and the game is one this table plays.',
+  unavailable: 'The hand was not logged. Check the connection and press Log hand again.',
 };
 
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
