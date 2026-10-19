@@ -11,6 +11,8 @@ export interface SiteGame {
   readonly straddle: bigint | null;
   /** Its tables open now. */
   readonly tablesOpen: number;
+  /** Members waiting for it. */
+  readonly waiting: number;
 }
 
 /** A coming tournament, for the website's calendar block. */
@@ -37,27 +39,33 @@ function gameOf(row: TableRow): SiteGame | null {
   if (name === null || small === null || big === null || min === null || max === null) return null;
   return {
     name, smallBlind: BigInt(small), bigBlind: BigInt(big), buyInMin: BigInt(min), buyInMax: BigInt(max),
-    straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), tablesOpen: 0,
+    straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), tablesOpen: 0, waiting: 0,
   };
 }
 
 /** Each game once, in the floor order of its first table, with how many of its tables are open. */
-export function gamesFrom(rows: readonly TableRow[]): SiteGame[] {
+export function gamesFrom(rows: readonly TableRow[]): (SiteGame & { readonly code: string })[] {
   const games = new Map<string, SiteGame>();
   for (const row of rows) {
     const game = row.table_type_code === null ? null : (games.get(row.table_type_code) ?? gameOf(row));
     if (row.table_type_code === null || game === null) continue;
     games.set(row.table_type_code, { ...game, tablesOpen: game.tablesOpen + (row.is_open ? 1 : 0) });
   }
-  return [...games.values()];
+  return [...games].map(([code, game]) => ({ ...game, code }));
 }
 
-/** The club's games and stakes from the public view (`public_table_status`), live. */
+/** The club's games and stakes and how many wait for each, from the public views, live. */
 export async function fetchSiteGames(client: RivrClient): Promise<Result<SiteGame[], 'unavailable'>> {
-  const { data, error } = await client.from('public_table_status')
-    .select('table_type_code, table_type_name, is_open, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise, straddle_paise')
-    .order('table_position');
-  return error ? err('unavailable') : ok(gamesFrom(data));
+  const [tables, lengths] = await Promise.all([
+    client.from('public_table_status')
+      .select('table_type_code, table_type_name, is_open, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise, straddle_paise')
+      .order('table_position'),
+    client.from('public_waitlist_length').select('table_type_code, waiting'),
+  ]);
+  if (tables.error || lengths.error) return err('unavailable');
+  const waiting = new Map(lengths.data.map((row) => [row.table_type_code, row.waiting ?? 0]));
+  const codes = gamesFrom(tables.data);
+  return ok(codes.map(({ code, ...game }) => ({ ...game, waiting: waiting.get(code) ?? 0 })));
 }
 
 /** The club's coming tournaments from the public view (`public_tournament_calendar`), soonest first. */

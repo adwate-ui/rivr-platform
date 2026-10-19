@@ -44,7 +44,7 @@ describe('fetchSitePage', () => {
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
     // A page without live blocks reads no live view.
-    expect(urls.filter((url) => url.includes('/public_table_status') || url.includes('/public_tournament_calendar'))).toEqual([]);
+    expect(urls.filter((url) => ['/public_table_status', '/public_waitlist_length', '/public_tournament_calendar'].some((view) => url.includes(view)))).toEqual([]);
   });
 
   const LIVE_BLOCKS = [{ kind: 'games', content: { heading: 'Games and stakes' } }, { kind: 'calendar', content: {} }];
@@ -55,19 +55,31 @@ describe('fetchSitePage', () => {
   const CALENDAR = [{ name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00+00:00', buy_in_paise: 1000000, guarantee_paise: 50000000 }];
 
   it('reads the games and the calendar from the live views when the page has their blocks', async () => {
-    const { client } = siteClient(PAGES, LIVE_BLOCKS, { public_table_status: { body: TABLES }, public_tournament_calendar: { body: CALENDAR } });
+    const { client } = siteClient(PAGES, LIVE_BLOCKS, {
+      public_table_status: { body: TABLES }, public_waitlist_length: { body: [{ table_type_code: 'nlh_50_100', waiting: 2 }] },
+      public_tournament_calendar: { body: CALENDAR },
+    });
     const page = await fetchSitePage(client, 'home');
     expect(page.ok && page.value?.games).toEqual([
-      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1 },
+      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1, waiting: 2 },
     ]);
     expect(page.ok && page.value?.tournaments).toEqual([
       { name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n },
     ]);
   });
 
+  it('is unavailable when the waitlist counts cannot be read', async () => {
+    const { client } = siteClient(PAGES, LIVE_BLOCKS, {
+      public_table_status: { body: TABLES }, public_waitlist_length: { status: 500, body: { message: 'down' } },
+      public_tournament_calendar: { body: CALENDAR },
+    });
+    expect(await fetchSitePage(client, 'home')).toEqual(err('unavailable'));
+  });
+
   it('is unavailable when a live view the page needs cannot be read', async () => {
     const { client } = siteClient(PAGES, LIVE_BLOCKS, {
-      public_table_status: { body: TABLES }, public_tournament_calendar: { status: 500, body: { message: 'down' } },
+      public_table_status: { body: TABLES }, public_waitlist_length: { body: [] },
+      public_tournament_calendar: { status: 500, body: { message: 'down' } },
     });
     expect(await fetchSitePage(client, 'home')).toEqual(err('unavailable'));
   });

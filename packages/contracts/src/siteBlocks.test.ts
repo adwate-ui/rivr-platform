@@ -5,7 +5,7 @@ const DIRECTIONS = 'https://www.google.com/maps/search/?api=1&query=Glaza%2C%20M
 
 describe('the website\'s information blocks (#35)', () => {
   it('lists every kind the database allows', () => {
-    expect(SITE_BLOCK_KINDS).toEqual(['hero', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar']);
+    expect(SITE_BLOCK_KINDS).toEqual(['hero', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar', 'links']);
   });
 
   it('reads house rules, questions, careers and a map', () => {
@@ -18,6 +18,14 @@ describe('the website\'s information blocks (#35)', () => {
   it('leaves out a block with nothing in it', () => {
     expect(siteBlockSchema.safeParse({ kind: 'rules', content: { rules: [] } }).success).toBe(false);
     expect(siteBlockSchema.safeParse({ kind: 'faq', content: { questions: [{ question: ' ', answer: 'x' }] } }).success).toBe(false);
+  });
+
+  it('reads a links block of named player-app destinations, one to six, never a raw address (#39)', () => {
+    const links = (items: unknown[]) => siteBlockSchema.safeParse({ kind: 'links', content: { links: items } }).success;
+    expect(links([{ label: 'Join the waitlist', to: 'waitlist' }, { label: 'Book RIVR Academy', to: 'academy' }])).toBe(true);
+    expect(links([{ label: 'Win big', to: 'https://evil.example/' }])).toBe(false);
+    expect(links([])).toBe(false);
+    expect(links(Array.from({ length: 7 }, () => ({ label: 'Join RIVR', to: 'sign-up' })))).toBe(false);
   });
 
   it('sends a visitor for directions only to Google Maps, over HTTPS', () => {

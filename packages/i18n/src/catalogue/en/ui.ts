@@ -70,6 +70,7 @@ export const ui = {
     notRunning: 'Not running now',
     oneTable: '1 table running',
     tables: '{count} tables running',
+    waiting: '{count} waiting',
     noGames: 'No games are set up yet.',
     /** A tournament's start in IST: `Sunday 15 Nov 2026, 16:00`. */
     when: '{weekday} {date}, {time}',

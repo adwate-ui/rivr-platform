@@ -67,6 +67,7 @@ export * from './CareersBlock/index.ts';
 export * from './MapBlock/index.ts';
 export * from './GamesBlock/index.ts';
 export * from './CalendarBlock/index.ts';
+export * from './LinksBlock/index.ts';
 
 // Social cards and brand art, drawn by @rivr/render
 export * from './SocialCard/index.ts';
