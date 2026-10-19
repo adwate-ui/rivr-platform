@@ -77,6 +77,17 @@ export {
   type PairingCode,
 } from './devices.ts';
 export {
+  useMyTvScreen,
+  useTvActions,
+  useTvPairing,
+  useVenueTvs,
+  type MyTvScreen,
+  type TvCode,
+  type TvFailure,
+  type TvPairing,
+  type VenueTv,
+} from './tvScreens.ts';
+export {
   useCurrentDown,
   useDownActions,
   useSetDealerPin,
