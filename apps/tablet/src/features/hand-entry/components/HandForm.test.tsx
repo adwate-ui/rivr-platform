@@ -1,6 +1,6 @@
 import { createRivrClient, RivrDataProvider, type TableRules } from '@rivr/db';
 import { fromPaise } from '@rivr/domain/money';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { HandForm } from './HandForm.tsx';
@@ -18,12 +18,17 @@ type SentHand = z.infer<typeof sentHandSchema>;
 
 /**
  * The form on a fake API. log_hand answers from `answers` in turn: a hand's id, `lost` (the
- * connection drops, so the tablet cannot tell whether it was logged) or `frozen`. Returns what was sent.
+ * connection drops, so the tablet cannot tell whether it was logged) or `frozen`. Returns what was
+ * sent; `claims` gets what claim_high_hand was sent, which answers with a claim's id.
  */
-function renderForm(answers: string[]) {
+function renderForm(answers: string[], claims: unknown[] = []) {
   const sent: SentHand[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : String(input);
+    if (url.includes('/rpc/claim_high_hand')) {
+      claims.push(JSON.parse(String(init?.body)));
+      return Response.json('claim-1');
+    }
     if (!url.includes('/rpc/log_hand')) return Response.json(null);
     sent.push(sentHandSchema.parse(JSON.parse(String(init?.body))));
     const answer = answers.shift();
@@ -81,6 +86,38 @@ describe('logging a hand on the tablet', () => {
     await waitFor(() => expect(sent).toHaveLength(3));
     expect(sent[1]?.p_pot).toBe(4805000);
     expect(new Set(sent.map((hand) => hand.p_idempotency_key)).size).toBe(3);
+  });
+
+  it('flow 6: logs the hand and sends its high-hand claim to the floor with it', async () => {
+    const claims: unknown[] = [];
+    const sent = renderForm(['hand-1'], claims);
+    // The pot first: once the claim is open, the seats share the keypad's names.
+    press('2', '0', '000');
+    fireEvent.click(screen.getByRole('switch', { name: 'High hand' }));
+    fireEvent.click(within(screen.getByRole('group', { name: 'Type of hand' })).getByRole('button', { name: 'Straight flush' }));
+    fireEvent.click(within(screen.getByRole('group', { name: 'Seat' })).getByRole('button', { name: '4' }));
+    press('Log hand');
+    expect(await screen.findByText('High hand sent to the floor.')).toBeDefined();
+    expect(sent).toHaveLength(1);
+    expect(claims).toEqual([{ p_hand_id: 'hand-1', p_seat: 4, p_category: 'straight_flush', p_rank: '' }]);
+    expect(screen.getByRole('switch', { name: 'High hand' }).getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('logs nothing until the claim is complete: a four of a kind needs its rank', async () => {
+    const claims: unknown[] = [];
+    const sent = renderForm(['hand-1'], claims);
+    press('2', '0', '000');
+    fireEvent.click(screen.getByRole('switch', { name: 'High hand' }));
+    press('Log hand');
+    expect(await screen.findByText('Pick the type of hand and the seat.')).toBeDefined();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Type of hand' })).getByRole('button', { name: 'Four of a kind' }));
+    fireEvent.click(within(screen.getByRole('group', { name: 'Seat' })).getByRole('button', { name: '2' }));
+    press('Log hand');
+    expect(await screen.findByText('Pick the rank of the four of a kind.')).toBeDefined();
+    expect(sent).toEqual([]);
+    fireEvent.click(within(screen.getByRole('group', { name: 'Rank' })).getByRole('button', { name: 'Queens' }));
+    press('Log hand');
+    await waitFor(() => expect(claims).toEqual([{ p_hand_id: 'hand-1', p_seat: 2, p_category: 'four_of_a_kind', p_rank: 'Q' }]));
   });
 
   it('keeps the chosen game when it is pressed again, and shows the next hand as Hold\'em once one is logged', async () => {

@@ -25,6 +25,12 @@ The design prompt lists high hands among the promotions the club runs: royal flu
 - A mistake has no correction yet. Question #315 asks how one is put right.
 - Not while the venue is frozen, and no payout while promotions are switched off.
 
+**On the tablet and the console (#316).**
+- The claim goes with the hand, as in the prototype: the High hand switch on hand entry opens the type of hand, the seat and a four of a kind's rank, and Log hand sends both.
+- If the hand is logged but its claim is not, the tablet says so and offers Send again.
+- The floor sees each claim with its seat, not the player, because seats are not linked to members yet (#77).
+- The prompt that reaches the floor on any console screen is #317; until then, the High hands screen lists waiting claims.
+
 **Tonight.** The TV and the app show tonight's best: the highest category approved for a hand played since 06:00 IST, and the latest of those. 06:00 is long after the last table closes, so a night's play stays one night.
 
 Rejected:

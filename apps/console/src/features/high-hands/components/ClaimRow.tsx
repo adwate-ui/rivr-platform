@@ -52,7 +52,7 @@ export function ClaimRow({ venueId, hand, canDecide }: { venueId: string; hand: 
         {canDecide ? (
           <Inline gap={2}>
             {payout === null ? null : (
-              <Button variant="primary" isLoading={approve.isPending} onClick={() => void pay()}>
+              <Button variant="secondary" isLoading={approve.isPending} onClick={() => void pay()}>
                 {t('console.highHands.approve', { amount: formatMoney(payout) })}
               </Button>
             )}

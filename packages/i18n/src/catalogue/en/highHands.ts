@@ -1,16 +1,19 @@
 /** High hands (#47): the dealer's claim on the tablet, and the console's High hands screen. */
 
-/** On the tablet: claiming a high hand for a hand of the down. */
+/** On the tablet: the High hand switch on hand entry, which sends a claim to the floor with the hand. */
 const highHand = {
-  /** On a hand's row: `{time}` (IST) names the hand. */
-  claim: 'High hand for the {time} hand',
-  title: 'High hand',
-  category: 'Hand',
+  toggle: 'High hand',
+  toggleHint: 'Sends a claim to the floor with this hand.',
+  category: 'Type of hand',
   seat: 'Seat',
-  rank: 'Four of',
-  submit: 'Claim',
-  /** After claiming: `{category}` is the hand's name, for example Straight flush. */
-  claimed: 'High hand claimed: {category}, seat {seat}. The floor approves it on the console.',
+  rank: 'Rank',
+  pickTypeAndSeat: 'Pick the type of hand and the seat.',
+  pickRank: 'Pick the rank of the four of a kind.',
+  /** After the hand is logged with its claim, as in the prototype. */
+  sent: 'High hand sent to the floor.',
+  /** The hand is logged, but its claim is not: the reason follows. */
+  notSent: 'The hand is logged, but its high-hand claim is not.',
+  sendAgain: 'Send the claim again',
   waiting: 'High hand claimed, waiting for the floor',
   approved: 'High hand approved',
   rejected: 'High hand not approved',
@@ -20,7 +23,7 @@ const highHand = {
   alreadyClaimed: 'This hand already has a different high-hand claim.',
   paused: 'The venue is frozen. High hands are claimed again once it is released.',
   switchedOff: 'High hands are switched off for now. Ask the floor.',
-  unavailable: 'The claim did not go through. Check the connection and press Claim again.',
+  unavailable: 'Check the connection and send the claim again.',
 };
 
 /** The console's High hands screen, for staff who approve jackpots or read the ledger. */
@@ -42,7 +45,7 @@ const highHands = {
   approvedBy: 'Paid {amount}, approved by {name}',
   rejectedBy: 'Rejected by {name}: {reason}',
   /** Also the answer when the staff member dealt the hand themselves. */
-  notAllowedAction: 'Your role does not allow this, or you dealt this hand: someone else decides it.',
+  notAllowedAction: 'You cannot decide this claim. Ask a manager who did not deal the hand.',
   decided: 'Someone has just decided this claim. Check the list.',
   changed: 'The payout for this hand has just changed. Check the amount and approve again.',
   paused: 'The venue is frozen. High hands are paid again once it is released.',

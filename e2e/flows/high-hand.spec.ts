@@ -2,7 +2,7 @@
  * High hands (#47; design prompt flow 6), signed in once on the console as a duty manager (Kavya
  * Reddy, this flow's own sign-in: Auth sends one code a minute to a number), with Pema Lepcha
  * dealing on a tablet at Table 3:
- * - Pema logs a hand and claims a high hand on it: straight flush, seat 4;
+ * - Pema logs a hand with a high-hand claim: straight flush, seat 4, and it goes to the floor;
  * - the floor sees it waiting on the console's High hands screen and approves ₹10,000;
  * - the tablet shows it approved, and the history records who paid it.
  * The ledger (₹10,000 of chips into play at the club's cost) and tonight's best for the TV
@@ -21,15 +21,14 @@ test.describe('High hands', () => {
     await signInToConsole(floor, '9000000118');
     const { tablet, name } = await tabletAtTable3(browser, floor);
     await dealerSignsIn(tablet);
+    // The pot first: once the claim is open, the seats share the keypad's names.
     await press(tablet, ['2', '0', '000']);
-    await tablet.getByRole('button', { name: 'Log hand' }).click();
-    await expect(tablet.getByText('Hands this down: 1')).toBeVisible();
-
-    await tablet.getByRole('button', { name: /^High hand for the \d{2}:\d{2} hand$/ }).click();
-    await tablet.getByRole('group', { name: 'Hand' }).getByRole('button', { name: 'Straight flush', exact: true }).click();
+    await tablet.getByRole('switch', { name: 'High hand' }).click();
+    await tablet.getByRole('group', { name: 'Type of hand' }).getByRole('button', { name: 'Straight flush', exact: true }).click();
     await tablet.getByRole('group', { name: 'Seat' }).getByRole('button', { name: '4', exact: true }).click();
-    await tablet.getByRole('button', { name: 'Claim', exact: true }).click();
-    await expect(tablet.getByText('High hand claimed: Straight flush, seat 4. The floor approves it on the console.')).toBeVisible();
+    await tablet.getByRole('button', { name: 'Log hand' }).click();
+    await expect(tablet.getByText('High hand sent to the floor.')).toBeVisible();
+    await expect(tablet.getByText('Hands this down: 1')).toBeVisible();
     await expect(tablet.getByText('High hand claimed, waiting for the floor')).toBeVisible();
 
     await floor.getByRole('link', { name: 'High hands' }).click();
