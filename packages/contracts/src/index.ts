@@ -42,6 +42,7 @@ export {
 } from './devices.ts';
 export { HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { rakeChangeSchema } from './rake.ts';
+export { badBeatSchema, jackpotReversalSchema } from './jackpot.ts';
 export { linkSuffixSchema, receiptReadySchema, waitlistCalledSchema, type ReceiptReady, type WaitlistCalled } from './messaging.ts';
 export { kycInPersonSchema, kycReviewSchema, type KycInPerson } from './kycReview.ts';
 export { sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';

@@ -105,6 +105,14 @@ export {
   type RakeSetting,
   type TableTypeRake,
 } from './rakeSettings.ts';
+export {
+  useJackpot,
+  useJackpotActions,
+  type BadBeat,
+  type Jackpot,
+  type JackpotEvent,
+  type JackpotFailure,
+} from './jackpots.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
