@@ -9,10 +9,13 @@ import { signInRoute } from './routes/sign-in.tsx';
 import { tabletsRoute } from './routes/tablets.tsx';
 import { dealerPinsRoute } from './routes/dealer-pins.tsx';
 import { rakeRoute } from './routes/rake.tsx';
+import { jackpotsRoute } from './routes/jackpots.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
-  frameRoute.addChildren([homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, tabletsRoute, dealerPinsRoute, rakeRoute]),
+  frameRoute.addChildren([
+    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, tabletsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
+  ]),
 ]);
 
 /** The console app's router; tests pass a memory history. */
