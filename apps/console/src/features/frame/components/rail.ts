@@ -44,6 +44,7 @@ const RAIL: readonly RailGroup[] = [
     label: 'ui.consoleRail.groups.growth',
     entries: [
       { id: 'jackpots', label: 'ui.consoleRail.items.jackpots', href: '/jackpots', anyOf: ['jackpots.approve', 'ledger.read'] },
+      { id: 'highHands', label: 'ui.consoleRail.items.highHands', href: '/high-hands', anyOf: ['jackpots.approve', 'ledger.read'] },
       { id: 'academy', label: 'ui.consoleRail.items.academy', href: '/academy', anyOf: ['members.manage'] },
     ],
   },
