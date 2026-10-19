@@ -12,9 +12,12 @@ describe('jackpot rules a caller can get wrong', () => {
     expect(splitDrop(fromPaise(10_000n), { season: 5_000n, freeroll: 5_000n })).toEqual({ main: 0n, season: 5_000n, freeroll: 5_000n });
   });
 
-  it('refuses a payout split that is not 100%, and a count of others that is not one', () => {
+  it('refuses a payout split that is not 100%, a share outside 0% to 100%, and a count of others that is not one', () => {
     expect(() => badBeatPayout(fromPaise(100_000n), { ...RULE, table: 2_499n }, 3)).toThrow(RangeError);
     expect(() => badBeatPayout(fromPaise(100_000n), { ...RULE, table: 2_501n }, 3)).toThrow(RangeError);
+    // Adds up to 100%, but a negative table share with nobody else dealt in would pay more than the pool.
+    expect(() => badBeatPayout(fromPaise(34_270_000n), { poolShare: 7_602n, loser: 5_000n, winner: 8_469n, table: -3_469n }, 0)).toThrow(RangeError);
+    expect(() => badBeatPayout(fromPaise(100_000n), { ...RULE, poolShare: 10_001n }, 3)).toThrow(RangeError);
     expect(() => badBeatPayout(fromPaise(100_000n), RULE, -1)).toThrow(RangeError);
     expect(() => badBeatPayout(fromPaise(100_000n), RULE, 1.5)).toThrow(RangeError);
   });

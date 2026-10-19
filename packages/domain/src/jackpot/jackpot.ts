@@ -50,11 +50,13 @@ export function splitDrop(drop: Paise, shares: DropShares): PoolSplit {
  * share of the pool, split between the loser, the winner and the `others` dealt in. The loser's and
  * winner's parts round down to whole ₹50 chips; the table's part is shared equally and each share
  * rounds down to ₹50. What rounds away, and the table's part when nobody else was dealt in, stays in
- * the pool. A split that is not 100%, or a count of others below nought, is a bug in the caller.
+ * the pool. A share outside 0% to 100%, a split that is not 100% together, or a count of others below
+ * nought is a bug in the caller, refused as private.bad_beat_payout refuses it.
  */
 export function badBeatPayout(pool: Paise, rule: PayoutRule, others: number): BadBeatPayout {
-  if (rule.loser + rule.winner + rule.table !== WHOLE_IN_BASIS_POINTS) {
-    throw new RangeError(`A payout splits 100% between loser, winner and table, not ${rule.loser + rule.winner + rule.table} basis points`);
+  const shares = [rule.poolShare, rule.loser, rule.winner, rule.table];
+  if (shares.some((share) => share < 0n || share > WHOLE_IN_BASIS_POINTS) || rule.loser + rule.winner + rule.table !== WHOLE_IN_BASIS_POINTS) {
+    throw new RangeError(`A payout pays 0% to 100% of the pool, split 100% between loser, winner and table, not ${shares.join(', ')} basis points`);
   }
   if (!Number.isInteger(others) || others < 0) throw new RangeError(`The other players dealt in are a count, not ${others}`);
   const paid = shareOf(pool, rule.poolShare);

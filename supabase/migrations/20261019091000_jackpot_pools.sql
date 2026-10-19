@@ -84,10 +84,15 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_shares jsonb := private.setting_at(p_venue_id, 'jackpot.shares', '', (select h.played_at from public.hand h where h.id = p_hand_id));
+  v_played_at timestamptz := (select h.played_at from public.hand h where h.id = p_hand_id and h.venue_id = p_venue_id);
+  v_shares jsonb;
   v_split record;
   v_legs jsonb;
 begin
+  if v_played_at is null then
+    raise exception 'No such hand at this venue' using errcode = '22023';
+  end if;
+  v_shares := private.setting_at(p_venue_id, 'jackpot.shares', '', v_played_at);
   if p_rake > 0 then
     perform private.post_ledger_transaction(p_venue_id, 'hand_rake', 'hand:' || p_hand_id || ':rake',
       jsonb_build_array(
@@ -98,8 +103,9 @@ begin
       null, 'Rake from a hand');
   end if;
   if p_drop > 0 then
-    select * into v_split from private.split_drop(p_drop, coalesce((v_shares ->> 'season_basis_points')::integer, 0),
-                                                   coalesce((v_shares ->> 'freeroll_basis_points')::integer, 0));
+    -- Through numeric: JSON Schema counts 2000.0 as an integer, which a plain cast refuses.
+    select * into v_split from private.split_drop(p_drop, coalesce((v_shares ->> 'season_basis_points')::numeric::integer, 0),
+                                                   coalesce((v_shares ->> 'freeroll_basis_points')::numeric::integer, 0));
     select jsonb_agg(jsonb_build_object('account_id', a.id, 'amount', l.amount::text)) into v_legs
     from (values ('venue.chips_outstanding', p_drop), ('venue.jackpot.main', -v_split.main),
                  ('venue.jackpot.season', -v_split.season), ('venue.jackpot.freeroll', -v_split.freeroll)) as l (code, amount)
@@ -109,6 +115,26 @@ begin
       null, 'Jackpot drop from a hand');
   end if;
 end;
+$$;
+
+-- #42's rules lookup, read through numeric as post_hand now is: a setting such as
+-- {"cap_paise": 600000.0} passes its schema (a whole number) and must not stop every hand.
+create or replace function private.rake_rules_at(p_table_id uuid, p_at timestamptz)
+returns table (rate_basis_points integer, cap_paise bigint, is_jackpot_live boolean, drop_paise bigint,
+               drop_above_paise bigint, has_variation boolean)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (rake.config ->> 'rate_basis_points')::numeric::integer, (rake.config ->> 'cap_paise')::numeric::bigint,
+         coalesce((jackpot.config ->> 'drop_paise')::numeric::bigint, 0) > 0, coalesce((jackpot.config ->> 'drop_paise')::numeric::bigint, 0),
+         coalesce((jackpot.config ->> 'above_paise')::numeric::bigint, 0), tt.has_variation
+  from public.game_table t
+  join public.table_type tt on tt.id = t.table_type_id
+  cross join lateral (select private.setting_at(t.venue_id, 'rake.config', tt.code, p_at) as config) rake
+  cross join lateral (select private.setting_at(t.venue_id, 'jackpot.drop', '', p_at) as config) jackpot
+  where t.id = p_table_id and rake.config is not null;
 $$;
 
 -- The club's jackpot pools, as the TVs and the player app show them: the ledger's balances of the

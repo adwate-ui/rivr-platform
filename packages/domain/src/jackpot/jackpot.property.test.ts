@@ -27,12 +27,13 @@ describe('jackpot properties', () => {
     );
   });
 
-  it('pays whole chips, never more than the rule\'s share of the pool, and leaves no whole chip of any part behind', () => {
+  it('pays whole chips adding up to the total, never more than the rule\'s share of the pool, and leaves no whole chip of any part behind', () => {
     fc.assert(
       fc.property(pool, rule, others, (amount, payout, count) => {
         const paid = shareOf(amount, payout.poolShare);
         const result = badBeatPayout(amount, payout, count);
         expect([result.loser, result.winner, result.eachAtTable].every(isChipMultiple)).toBe(true);
+        expect(result.total).toBe(result.loser + result.winner + result.eachAtTable * BigInt(count));
         expect(result.total <= paid).toBe(true);
         expect(result.loser + CHIP > shareOf(paid, payout.loser)).toBe(true);
         expect(result.winner + CHIP > shareOf(paid, payout.winner)).toBe(true);
@@ -41,7 +42,9 @@ describe('jackpot properties', () => {
     );
   });
 
-  it('keeps the main pool equal to every drop\'s main part less every payout, and never below nought', () => {
+  // The pool on the TV is the ledger's balance (039_jackpot_pools proves public_jackpot equals it);
+  // here, any run of drops and payouts never pays out more than the pool holds at that moment.
+  it('never pays out more than the main pool holds, whatever drops and payouts come in whatever order', () => {
     const event = fc.oneof(
       fc.record({ kind: fc.constant('drop' as const), amount: drop, share: shares }),
       fc.record({ kind: fc.constant('payout' as const), payout: rule, count: others }),
@@ -49,21 +52,27 @@ describe('jackpot properties', () => {
     fc.assert(
       fc.property(pool, fc.array(event, { maxLength: 40 }), (seed, events) => {
         let balance: Paise = seed;
-        let dropped = 0n;
-        let paidOut = 0n;
         for (const next of events) {
           if (next.kind === 'drop') {
-            const { main } = splitDrop(next.amount, next.share);
-            balance = fromPaise(balance + main);
-            dropped += main;
+            balance = fromPaise(balance + splitDrop(next.amount, next.share).main);
           } else {
             const { total } = badBeatPayout(balance, next.payout, next.count);
+            expect(total <= balance).toBe(true);
             balance = fromPaise(balance - total);
-            paidOut += total;
           }
-          expect(balance >= 0n).toBe(true);
         }
-        expect(balance).toBe(seed + dropped - paidOut);
+      }),
+    );
+  });
+
+  it('refuses every payout rule with a share outside 0% to 100% or a split that is not 100%', () => {
+    const anyShare = fc.bigInt({ min: -20_000n, max: 20_000n });
+    fc.assert(
+      fc.property(pool, fc.record({ poolShare: anyShare, loser: anyShare, winner: anyShare, table: anyShare }), others, (amount, payout, count) => {
+        const shares = [payout.poolShare, payout.loser, payout.winner, payout.table];
+        const isValid = shares.every((share) => share >= 0n && share <= 10_000n) && payout.loser + payout.winner + payout.table === 10_000n;
+        fc.pre(!isValid);
+        expect(() => badBeatPayout(amount, payout, count)).toThrow(RangeError);
       }),
     );
   });
