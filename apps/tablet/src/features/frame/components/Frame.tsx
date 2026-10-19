@@ -1,7 +1,7 @@
-import { useAuthStatus, useControlState, useCurrentDown, useDownActions, useMyDevice } from '@rivr/db';
+import { useAuthStatus, useControlState, useCurrentDown, useDownActions, useMyDevice, type MyDevice } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, KillSwitchBanner, Screen, TabletShell, Text } from '@rivr/ui';
-import type { ReactNode } from 'react';
+import { Button, ErrorMessage, KillSwitchBanner, Screen, TabletShell, Text } from '@rivr/ui';
+import { useState, type ReactNode } from 'react';
 
 interface FrameProps {
   children: ReactNode;
@@ -11,21 +11,30 @@ interface FrameProps {
   signIn: ReactNode;
 }
 
-interface DownFrameProps {
-  tableName: string;
+interface TableFrameProps {
+  device: MyDevice;
   banner: ReactNode;
   signIn: ReactNode;
   children: ReactNode;
 }
 
 /**
- * A tablet fixed to a table: between downs, dealer sign-in; during a down, the tablet's screens with
- * who is dealing, since when, and End of down in the header. A failed check keeps what was known.
+ * A paired tablet. Not yet fixed to a table, its screens say so. Fixed to one: between downs,
+ * dealer sign-in; during a down, the tablet's screens with who is dealing, since when, and End of
+ * down in the header. A failed check keeps what was known; a failed End of down says so, so the
+ * dealer does not walk away from a down still open.
  */
-function DownFrame({ tableName, banner, signIn, children }: DownFrameProps) {
-  const down = useCurrentDown(true);
+function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
+  const down = useCurrentDown(device.tableId);
   const { end } = useDownActions();
+  const [isEndFailed, setIsEndFailed] = useState(false);
+  const endDown = async () => setIsEndFailed(!(await end.mutateAsync()).ok);
   const title = t('tablet.title');
+  // A tablet's table id and name are null together: not yet fixed to a table.
+  if (device.tableId === null || device.tableName === null) {
+    return <TabletShell tableName={t('tablet.unassignedTable')} banner={banner}>{children}</TabletShell>;
+  }
+  const tableName = device.tableName;
   if (down.isPending) return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="loading" /></TabletShell>;
   if (down.data === undefined) {
     return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="error" onRetry={() => void down.refetch()} /></TabletShell>;
@@ -34,7 +43,8 @@ function DownFrame({ tableName, banner, signIn, children }: DownFrameProps) {
   const actions = (
     <>
       <Text variant="small">{t('tablet.dealerSignIn.down', { name: down.data.fullName, time: formatTime(new Date(down.data.startedAt)) })}</Text>
-      <Button variant="secondary" isLoading={end.isPending} onClick={() => void end.mutateAsync()}>{t('tablet.dealerSignIn.endDown')}</Button>
+      <Button variant="secondary" isLoading={end.isPending} onClick={() => void endDown()}>{t('tablet.dealerSignIn.endDown')}</Button>
+      {isEndFailed ? <ErrorMessage>{t('tablet.dealerSignIn.endDownFailed')}</ErrorMessage> : null}
     </>
   );
   return <TabletShell tableName={tableName} actions={actions} banner={banner}>{children}</TabletShell>;
@@ -61,9 +71,5 @@ export function Frame({ children, unpaired, signIn }: FrameProps) {
   if (authStatus === 'signed-out' || !device.data) {
     return <TabletShell tableName={t('tablet.pairing.notPaired')} banner={banner}>{unpaired}</TabletShell>;
   }
-  // A tablet's table id and name are null together: not yet fixed to a table.
-  if (device.data.tableName === null) {
-    return <TabletShell tableName={t('tablet.unassignedTable')} banner={banner}>{children}</TabletShell>;
-  }
-  return <DownFrame tableName={device.data.tableName} banner={banner} signIn={signIn}>{children}</DownFrame>;
+  return <TableFrame device={device.data} banner={banner} signIn={signIn}>{children}</TableFrame>;
 }

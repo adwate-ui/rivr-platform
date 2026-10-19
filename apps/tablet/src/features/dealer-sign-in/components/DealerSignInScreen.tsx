@@ -1,34 +1,32 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { dealerPinEntrySchema } from '@rivr/contracts';
 import { useDownActions, useTabletDealers, type DealerSignInFailure, type TabletDealer } from '@rivr/db';
-import { t, type MessageKey } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, PinPad, Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
-
-const REFUSAL_COPY: Readonly<Record<Exclude<DealerSignInFailure['reason'], 'wrong_pin'>, MessageKey>> = {
-  locked: 'tablet.dealerSignIn.locked',
-  paused: 'tablet.dealerSignIn.paused',
-  unavailable: 'tablet.dealerSignIn.unavailable',
-};
-
-function failureText(failure: DealerSignInFailure): string {
-  if (failure.reason !== 'wrong_pin') return t(REFUSAL_COPY[failure.reason]);
-  return failure.triesLeft === 1 ? t('tablet.dealerSignIn.wrongPinLast') : t('tablet.dealerSignIn.wrongPin', { count: failure.triesLeft });
-}
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import type { z } from 'zod';
+import { signInFailureText } from './signInCopy.ts';
 
 /** The chosen dealer's PIN pad and Sign in: the right PIN starts their down at this table. */
 function DealerPin({ dealer }: { dealer: TabletDealer }) {
   const { signIn } = useDownActions();
-  const [pin, setPin] = useState('');
   const [failure, setFailure] = useState<DealerSignInFailure | null>(null);
-  const signInNow = async () => {
+  const [resolver] = useState(() => zodResolver(dealerPinEntrySchema));
+  const form = useForm<z.input<typeof dealerPinEntrySchema>, unknown, z.output<typeof dealerPinEntrySchema>>({ resolver, defaultValues: { pin: '' } });
+  const submit = form.handleSubmit(async ({ pin }) => {
     const signedIn = await signIn.mutateAsync({ staffId: dealer.staffId, pin });
-    setPin('');
+    form.reset();
     setFailure(signedIn.ok ? null : signedIn.error);
-  };
+  });
+  const isComplete = useWatch({ control: form.control, name: 'pin' }).length === 4;
   return (
     <Stack gap={4}>
-      <PinPad label={t('tablet.dealerSignIn.pinFor', { name: dealer.fullName })} value={pin} onChange={setPin}
-        isDisabled={signIn.isPending} error={failure === null ? undefined : failureText(failure)} />
-      <Button variant="primary" isLoading={signIn.isPending} isDisabled={pin.length !== 4} onClick={() => void signInNow()}>
+      <Controller control={form.control} name="pin" render={({ field }) => (
+        <PinPad label={t('tablet.dealerSignIn.pinFor', { name: dealer.fullName })} value={field.value} onChange={field.onChange}
+          isDisabled={signIn.isPending} error={failure === null ? undefined : signInFailureText(failure)} />
+      )} />
+      <Button variant="primary" isLoading={signIn.isPending} isDisabled={!isComplete} onClick={() => void submit()}>
         {t('tablet.dealerSignIn.signIn')}
       </Button>
     </Stack>
@@ -37,7 +35,8 @@ function DealerPin({ dealer }: { dealer: TabletDealer }) {
 
 /**
  * Between downs (#41): the dealer picks their name and enters their PIN, as in the prototype's
- * dealer sign-in. Only dealers with a PIN at this venue are listed.
+ * dealer sign-in. Only dealers with a PIN at this venue are listed; the list refreshes by itself,
+ * so a PIN set on the console appears without touching the locked tablet.
  */
 export function DealerSignInScreen() {
   const dealers = useTabletDealers();

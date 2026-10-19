@@ -16,3 +16,6 @@ export const deviceRevokeSchema = z.object({ reason: z.string().trim().min(1).ma
 export const dealerPinSchema = z.object({
   pin: z.string().regex(/^\d{4}$/).refine((pin) => !/^(\d)\1{3}$/.test(pin)),
 });
+
+/** A PIN as a dealer enters it on the tablet: four digits, which the database checks. */
+export const dealerPinEntrySchema = z.object({ pin: z.string().regex(/^\d{4}$/) });

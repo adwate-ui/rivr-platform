@@ -30,7 +30,7 @@ export const tablets = {
 
 /** The tablet before it is paired: a floor manager reads out a code from the console. */
 export const pairing = {
-  title: 'Pair this tablet',
+  title: 'Tablet pairing',
   /** In the header until the tablet is paired. */
   notPaired: 'Not paired',
   intro: 'A floor manager adds this tablet on the console and reads out a six-digit code. Enter it here.',
@@ -56,8 +56,8 @@ export const dealerPins = {
   empty: 'No dealers whose PIN you can set. Only staff whose role includes everything a dealer does, such as the owner or the general manager, set one.',
   hasPin: 'PIN set',
   noPin: 'No PIN yet',
-  /** Five wrong PINs on a tablet lock a dealer's PIN: `{time}` is when it unlocks (IST). */
-  locked: 'Locked until {time} after five wrong PINs. A new PIN unlocks it.',
+  /** Five wrong PINs on a tablet lock a dealer's PIN: `{time}` is when the lock ends (IST). */
+  locked: 'Locked until {time} after five wrong PINs. A new PIN clears the lock.',
   pin: 'New PIN for {name}',
   pinHint: 'Four digits, not all the same. Tell the dealer in person.',
   save: 'Save PIN for {name}',
@@ -69,11 +69,11 @@ export const dealerPins = {
 
 /** The tablet between downs: the dealer picks their name and enters their PIN. */
 export const dealerSignIn = {
-  title: 'Sign in to deal',
+  title: 'Dealer sign-in',
   who: 'Who is dealing?',
   pinFor: 'PIN for {name}',
   signIn: 'Sign in',
-  noDealers: 'No dealers have a PIN yet. The owner or general manager sets them on the console.',
+  noDealers: 'No dealers have a PIN yet. The owner or general manager sets them on the console, and they appear here.',
   wrongPin: 'That PIN is not right. {count} tries left before it locks.',
   wrongPinLast: 'That PIN is not right. One try left before it locks.',
   locked: 'Too many wrong PINs. This PIN is locked for 15 minutes, or until the owner or general manager sets a new one.',
@@ -82,6 +82,7 @@ export const dealerSignIn = {
   /** In the header during a down: who is dealing, since when (IST). */
   down: '{name} · down since {time}',
   endDown: 'End of down',
+  endDownFailed: 'End of down did not go through. Check the connection and press it again.',
 };
 
 /** The console's device screens, spread into its catalogue. */

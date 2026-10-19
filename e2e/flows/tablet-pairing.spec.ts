@@ -36,7 +36,7 @@ test.describe('Dealer tablet', () => {
     const tablet = await browser.newPage();
     await tablet.setViewportSize(VIEWPORT.tablet);
     await tablet.goto(appUrl('tablet'));
-    await expect(tablet.getByRole('heading', { name: 'Pair this tablet' })).toBeVisible();
+    await expect(tablet.getByRole('heading', { name: 'Tablet pairing' })).toBeVisible();
     await tablet.getByRole('textbox', { name: 'Pairing code' }).fill('000000');
     await tablet.getByRole('button', { name: 'Pair' }).click();
     await expect(tablet.getByText('That code is not right or has run out. Ask for a new one.')).toBeVisible();
@@ -51,15 +51,18 @@ test.describe('Dealer tablet', () => {
     await table.getByRole('button', { name: 'Table 3', exact: true }).click();
     await expect(table.getByRole('button', { name: 'Table 3', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
+    await tablet.reload();
+    await expect(tablet.getByText('Table 3', { exact: true })).toBeVisible();
+    await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
+
+    // The PIN is set while the tablet waits on sign-in: its list asks again every 15 seconds, no reload.
     await floor.getByRole('link', { name: 'Dealer PINs' }).click();
     await floor.getByLabel(`New PIN for ${DEALER}`).fill('2741');
     await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
     await expect(floor.getByText(`PIN saved for ${DEALER}.`)).toBeVisible();
-
-    await tablet.reload();
-    await expect(tablet.getByText('Table 3', { exact: true })).toBeVisible();
-    await expect(tablet.getByRole('heading', { name: 'Sign in to deal' })).toBeVisible();
-    await tablet.getByRole('group', { name: 'Who is dealing?' }).getByRole('button', { name: DEALER }).click();
+    const dealerChip = tablet.getByRole('group', { name: 'Who is dealing?' }).getByRole('button', { name: DEALER });
+    await expect(dealerChip).toBeVisible({ timeout: 20_000 });
+    await dealerChip.click();
     await pressPin(tablet, '2740');
     await tablet.getByRole('button', { name: 'Sign in' }).click();
     await expect(tablet.getByText('That PIN is not right. 4 tries left before it locks.')).toBeVisible();
@@ -68,7 +71,7 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByText(new RegExp(`^${DEALER} · down since \\d{2}:\\d{2}$`))).toBeVisible();
     await expect(tablet.getByText('Hands for this down are logged here.')).toBeVisible();
     await tablet.getByRole('button', { name: 'End of down' }).click();
-    await expect(tablet.getByRole('heading', { name: 'Sign in to deal' })).toBeVisible();
+    await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('button', { name: `Revoke ${name}`, exact: true }).click();
@@ -76,6 +79,6 @@ test.describe('Dealer tablet', () => {
     await floor.getByRole('button', { name: 'Revoke the tablet' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);
     await tablet.reload();
-    await expect(tablet.getByRole('heading', { name: 'Pair this tablet' })).toBeVisible();
+    await expect(tablet.getByRole('heading', { name: 'Tablet pairing' })).toBeVisible();
   });
 });
