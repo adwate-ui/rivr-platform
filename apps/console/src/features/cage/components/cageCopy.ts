@@ -15,6 +15,7 @@ export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
   wallet_short: 'console.cage.walletShort',
   utr_used: 'console.cage.utrUsed',
   moved: 'console.cage.moved',
+  not_in_room: 'console.cage.notInRoom',
   invalid: 'console.cage.invalid',
   unavailable: 'console.cage.unavailable',
 };

@@ -76,6 +76,14 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `markerCheck(amount, terms)`, `MarkerTerms`, `MarkerRefusal` | A marker at the cage (#74, additions flow 19): whole ₹50 chips above nothing, refused while a marker of the member's is past due, above their credit limit, or above the room's exposure cap (exactly at either is allowed). The database's `private.marker_check` is proved equal by `packages/testing/golden/markers.json`. |
 
+### `@rivr/domain/cage`
+
+| Export | What it does |
+|---|---|
+| `buyIn(method, amount, minimum, walletCash)`, `BuyInMethod`, `BuyInSource`, `BuyInRefusal` | A buy-in at the cage (#57, design prompt flow 3): whole ₹50 chips above nothing, at least the table's minimum, and from the wallet no more than its cash. Gives the account the chips are paid from (cash drawer, bank or wallet). The database's `private.buy_in_check` is proved equal by `packages/testing/golden/cage.json`. |
+| `walletAfter(method, amount, walletCash)` | The wallet cash a wallet buy-in leaves, for the cage's preview; null when it is not from the wallet or the wallet cannot cover it. |
+| `cashOut(chips, outstanding)`, `CashOutSplit` | A cash-out (#75, design prompt flow 8): whole ₹50 chips handed back first settle the member's open markers, oldest first, each as far as the chips go; the rest goes to the member. ₹1,20,000 with a ₹50,000 marker settles it and leaves ₹70,000. The database's `private.cash_out_split` is proved equal by `packages/testing/golden/cashOut.json`. |
+
 ### `@rivr/domain/callTime`
 
 | Export | What it does |

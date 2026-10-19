@@ -178,5 +178,24 @@ select results_eq(
   $$ select description, expected ->> 'result' from golden.golden_case where file = 'markers.json' order by position $$,
   'private.marker_check gives every marker in the golden file');
 
+-- A cash-out: private.cash_out_split and @rivr/domain cashOut (packages/testing/golden/cashOut.json).
+create function pg_temp.paise_list(p_text text) returns bigint[] language sql immutable as $$
+  select coalesce(array_agg(pg_temp.paise(trim(part)) order by n), '{}') from unnest(string_to_array(nullif(p_text, ''), '|')) with ordinality as u (part, n);
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'cashOut.json'), 'the cash-out cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'cashOut.json' and operation <> 'cash_out' $$,
+  'every operation in cashOut.json is proved here');
+select results_eq(
+  $$ select description, coalesce(s.settled_paise::text, 'not_chips'), coalesce(s.to_member_paise::text, 'not_chips')
+     from golden.golden_case
+     cross join lateral private.cash_out_split(pg_temp.paise(inputs ->> 'chips'), pg_temp.paise_list(inputs ->> 'markers')) s
+     where file = 'cashOut.json' order by position $$,
+  $$ select description,
+            case when expected ->> 'settled' = 'not_chips' then 'not_chips' else pg_temp.paise_list(expected ->> 'settled')::text end,
+            case when expected ->> 'toMember' = 'not_chips' then 'not_chips' when expected ->> 'toMember' = '₹0' then '0'
+                 else pg_temp.paise(expected ->> 'toMember')::text end
+     from golden.golden_case where file = 'cashOut.json' order by position $$,
+  'private.cash_out_split gives every cash-out in the golden file');
+
 select * from finish();
 rollback;

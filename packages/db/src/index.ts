@@ -73,6 +73,8 @@ export {
   useCageMembers,
   useCageQueue,
   type BuyInOrder,
+  type CashOutDone,
+  type CashOutOrder,
   type BuyInRequest,
   type CageFailure,
   type CageMember,

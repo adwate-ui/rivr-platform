@@ -213,14 +213,14 @@ isOneToOne: false
                   ]
                 },"cage_transaction": {
                   Row: {
-                    "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string | null,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"buy_in_request_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount_paise": number,"buy_in_request_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -854,6 +854,32 @@ isOneToOne: false
       columns: ["session_id"]
 isOneToOne: false
       referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"marker_settlement": {
+                  Row: {
+                    "amount_paise": number,"cage_transaction_id": string,"created_at": string,"id": string,"marker_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"cage_transaction_id": string,"created_at"?: string,"id"?: string,"marker_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"cage_transaction_id"?: string,"created_at"?: string,"id"?: string,"marker_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "marker_settlement_cage_transaction_id_fkey"
+      columns: ["cage_transaction_id"]
+isOneToOne: false
+      referencedRelation: "cage_transaction"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "marker_settlement_marker_id_fkey"
+      columns: ["marker_id"]
+isOneToOne: false
+      referencedRelation: "marker"
       referencedColumns: ["id"]
     }
                   ]
@@ -1711,6 +1737,11 @@ isOneToOne: false
                            },
 "cage_buy_in":
 { Args: { "p_amount_paise": number,"p_buy_in_request_id"?: string,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr"?: string,"p_venue_id": string }; Returns: string
+                           },
+"cage_cash_out":
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_member_id": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "cage_transaction_id": string,"markers_settled_paise": number,"to_member_paise": number
+            }[]
                            },
 "cage_members":
 { Args: { "p_query": string,"p_venue_id": string }; Returns: {
