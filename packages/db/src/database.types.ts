@@ -297,14 +297,14 @@ isOneToOne: false
                   ]
                 },"device_pairing": {
                   Row: {
-                    "code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"failed_attempts": number,"id": string,"redeemed_at": string | null,"updated_at": string,"venue_id": string
+                    "code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"id": string,"redeemed_at": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "code_hash": string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id": string,"expires_at": string,"failed_attempts"?: number,"id"?: string,"redeemed_at"?: string | null,"updated_at"?: string,"venue_id": string
+                    "code_hash": string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id": string,"expires_at": string,"id"?: string,"redeemed_at"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "code_hash"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id"?: string,"expires_at"?: string,"failed_attempts"?: number,"id"?: string,"redeemed_at"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "code_hash"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id"?: string,"expires_at"?: string,"id"?: string,"redeemed_at"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1274,8 +1274,8 @@ isOneToOne: false
 { Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
                            },
 "redeem_device_pairing":
-{ Args: { "p_code": string }; Returns: {
-              "device_id": string,"previous_user_id": string
+{ Args: { "p_client": string,"p_code": string }; Returns: {
+              "device_id": string,"previous_user_id": string,"refusal": string
             }[]
                            },
 "reject_academy_payment":

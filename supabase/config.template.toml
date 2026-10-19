@@ -141,7 +141,7 @@ enabled = true
 uri = "http://host.docker.internal:{{BLOCK}}21/functions/v1/auth-send-code"
 secrets = "{{SEND_SMS_HOOK_SECRET}}"
 
-# Tokens only for code sign-ins (#187): no session from a password, ever.
+# Tokens only for code sign-ins (#187); a paired device's own login by its password alone (#41).
 [auth.hook.custom_access_token]
 enabled = true
 uri = "pg-functions://postgres/private/require_code_sign_in"
