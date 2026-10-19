@@ -1,4 +1,4 @@
-/** Tonight's tables and the waitlist (#38): Home in the player app, and the console's Waitlist. */
+/** Tonight's tables and the waitlist: Home in the player app, and the console's Waitlist. */
 
 /** Home's Tonight: each table with how many wait, Join, and the member's own places. */
 export const tonight = {
