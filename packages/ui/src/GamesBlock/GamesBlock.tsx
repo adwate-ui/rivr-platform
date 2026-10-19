@@ -16,6 +16,8 @@ export interface GamesBlockGame {
   readonly straddle: bigint | null;
   /** Its tables open now. */
   readonly tablesOpen: number;
+  /** Members waiting for it; shown when any are. */
+  readonly waiting?: number | undefined;
 }
 
 export interface GamesBlockProps {
@@ -28,9 +30,9 @@ function buyIn(game: GamesBlockGame): string {
   return t('ui.web.buyInRange', { min: formatMoney(game.buyInMin), max: formatMoney(game.buyInMax) });
 }
 
-function running(tablesOpen: number): string {
-  if (tablesOpen === 0) return t('ui.web.notRunning');
-  return tablesOpen === 1 ? t('ui.web.oneTable') : t('ui.web.tables', { count: tablesOpen });
+function running({ tablesOpen, waiting = 0 }: GamesBlockGame): string {
+  const tables = tablesOpen === 0 ? t('ui.web.notRunning') : tablesOpen === 1 ? t('ui.web.oneTable') : t('ui.web.tables', { count: tablesOpen });
+  return waiting === 0 ? tables : t('ui.web.pair', { first: tables, second: t('ui.web.waiting', { count: waiting }) });
 }
 
 /** A website block of the games and stakes the club runs, live from the floor: buy-in and tables running. */
@@ -49,7 +51,7 @@ export function GamesBlock({ heading, games }: GamesBlockProps) {
             <Text tone="muted">
               {game.straddle === null ? buyIn(game) : t('ui.web.pair', { first: buyIn(game), second: t('ui.web.straddle', { amount: formatMoney(game.straddle) }) })}
             </Text>
-            <Text variant="small" tone={game.tablesOpen === 0 ? 'muted' : 'default'}>{running(game.tablesOpen)}</Text>
+            <Text variant="small" tone={game.tablesOpen === 0 ? 'muted' : 'default'}>{running(game)}</Text>
           </Stack>
         ))}
       </Stack>

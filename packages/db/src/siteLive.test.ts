@@ -15,9 +15,9 @@ describe('gamesFrom', () => {
       row('nlh_100_200', 'NLH 100/200', false, 10000),
       row('nlh_100_200', 'NLH 100/200', true, 10000),
     ];
-    expect(gamesFrom(rows).map((game) => [game.name, game.tablesOpen, game.bigBlind])).toEqual([
-      ['NLH 50/100', 1, 10000n],
-      ['NLH 100/200', 2, 20000n],
+    expect(gamesFrom(rows).map((game) => [game.code, game.tablesOpen, game.bigBlind])).toEqual([
+      ['nlh_50_100', 1, 10000n],
+      ['nlh_100_200', 2, 20000n],
     ]);
   });
 

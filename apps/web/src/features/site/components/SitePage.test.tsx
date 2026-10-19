@@ -41,11 +41,11 @@ describe('a website page', () => {
     const live = {
       ...PAGE,
       blocks: [{ kind: 'games' as const, content: { heading: 'Games and stakes' } }, { kind: 'calendar' as const, content: {} }],
-      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1 }],
+      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1, waiting: 3 }],
       tournaments: [{ name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n }],
     };
     render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
-    expect(screen.getByText('1 table running')).toBeDefined();
+    expect(screen.getByText('1 table running · 3 waiting')).toBeDefined();
     expect(screen.getByText('Sunday 15 Nov 2026, 16:00')).toBeDefined();
   });
 });

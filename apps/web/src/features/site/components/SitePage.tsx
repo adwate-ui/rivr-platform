@@ -1,6 +1,6 @@
 import type { Attribution, SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { CalendarBlock, CareersBlock, FaqBlock, GamesBlock, HeroBlock, MapBlock, RulesBlock, TextBlock, WebShell } from '@rivr/ui';
+import { CalendarBlock, CareersBlock, FaqBlock, GamesBlock, HeroBlock, LinksBlock, MapBlock, RulesBlock, TextBlock, WebShell } from '@rivr/ui';
 import { playerHref, siteHref } from '../links.ts';
 
 interface SitePageProps {
@@ -39,6 +39,10 @@ function Block({ block, page, playerUrl, attribution }: { block: SiteBlock } & S
       return <GamesBlock heading={block.content.heading} games={page.games} />;
     case 'calendar':
       return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} />;
+    case 'links': {
+      const links = block.content.links.map((link) => ({ label: link.label, href: playerHref(playerUrl, link.to, attribution) }));
+      return <LinksBlock heading={block.content.heading} links={links} />;
+    }
     default:
       return <InfoBlock block={block} />;
   }
