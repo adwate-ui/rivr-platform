@@ -36,7 +36,7 @@ function signIn({ expired = false } = {}) {
 // Nothing listens at this address: signed out, nothing is fetched, and a sign-in request fails.
 const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 
-/** A client whose API answers Kabir's member record, and nothing else; created after the fake fetch. */
+/** A client whose API answers Kabir's member record and an empty list to all else; created after the fake fetch. */
 function clientWithKabir() {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
@@ -109,8 +109,8 @@ describe('the install offer', () => {
 describe('the player app', () => {
   it('says it is offline above the screen while the phone has no connection', async () => {
     signIn();
-    renderAt('/');
-    await screen.findByRole('heading', { name: 'Tonight' });
+    renderAt('/', clientWithKabir());
+    await screen.findByText('No tables are running.');
     expect(screen.queryByText('Offline. What you see may be out of date.')).toBeNull();
     act(() => goOnline(false));
     expect(screen.getByRole('status').textContent).toBe('Offline. What you see may be out of date.');
@@ -118,9 +118,9 @@ describe('the player app', () => {
 
   it('opens on Tonight inside the frame', async () => {
     signIn();
-    renderAt('/');
+    renderAt('/', clientWithKabir());
     expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
-    expect(screen.getByText('No tables are running.')).toBeDefined();
+    expect(await screen.findByText('No tables are running.')).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeDefined();
   });
 
