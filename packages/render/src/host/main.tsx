@@ -6,6 +6,7 @@ import '@rivr/ui/styles.css';
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { parseHostJob } from '../parse/job.ts';
+import { createVideoRecorder } from './video.ts';
 
 /** Sets `data-render-ready` after the first commit, once the fonts the layout asked for are in. */
 function SignalReady() {
@@ -20,6 +21,8 @@ function SignalReady() {
 }
 
 const element = parseHostJob(window.location.search);
+// renderToMp4 hands the page its frames to encode.
+window.rivrVideo = createVideoRecorder();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('The render host page has no #root element.');

@@ -57,8 +57,9 @@ describe('visual rules', () => {
     expect(resolvedTokens().filter((token) => token.type === 'shadow').map((token) => token.path)).toEqual(['shadow.modal']);
   });
 
-  it('moves in 200 ms with ease-out', () => {
+  it('moves in 200 ms with ease-out; the logo animation only staggers its tiles', () => {
     expect(tokenValue('motion.duration.state')).toBe('200ms');
+    expect(tokenValue('motion.duration.stagger')).toBe('120ms');
     expect(tokenValue('motion.easing.out')).toEqual([0, 0, 0.58, 1]);
   });
 
