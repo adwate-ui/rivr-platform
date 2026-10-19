@@ -63,4 +63,4 @@ Tablet app: all of it. TV app: all modes (waitlist board, call-time board, jackp
 
 ## Settings keys added
 
-`rake.config` (percent and cap by table type), `jackpot.drop` (amount, minimum pot), `jackpot.shares` (main, season, freeroll), `waitlist.priority_weights`, `waitlist.hold_minutes`, `high_hand.payouts`, `tournament.late_registration_level` (per template), `dealer.variance_threshold`, `call_time.minutes` (lane 0 key, values by table type).
+`rake.config` (percent and cap by table type; the console's Rake screen schedules a change from a time and withdraws one not yet in force, #37), `jackpot.drop` (amount, minimum pot), `jackpot.shares` (main, season, freeroll), `waitlist.priority_weights`, `waitlist.hold_minutes`, `high_hand.payouts`, `tournament.late_registration_level` (per template), `dealer.variance_threshold`, `call_time.minutes` (lane 0 key, values by table type).
