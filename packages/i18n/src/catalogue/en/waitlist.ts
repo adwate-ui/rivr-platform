@@ -30,6 +30,8 @@ export const waitlist = {
   noGames: 'No games are set up at this venue yet.',
   /** One place: `{place}` on the list, `{name}`, joined at `{time}` (IST). */
   entry: '{place}. {name} · {time}',
+  /** A place ahead of join time (#40): `{reason}` is the tier, "Black card". */
+  entryWithReason: '{place}. {name} · {time} · {reason}',
   addedByFloor: 'Added by the floor',
   remove: 'Remove {name}',
   phone: 'Mobile number',

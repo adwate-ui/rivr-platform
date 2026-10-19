@@ -73,8 +73,18 @@ const jackpotDrop = {
   }),
 } as const satisfies SettingDefinition;
 
+const waitlistPriorityWeights = {
+  key: 'waitlist.priority_weights',
+  description: "A tier's waitlist priority: its weight (higher goes first; 0 or unset is none) and whether it counts only on the list for the member's qualifying stake, as the black card's does (scope-v1 module 2).",
+  scope: 'tier',
+  value: z.strictObject({
+    weight: z.int().min(0).max(100),
+    only_at_qualifying_stake: z.boolean(),
+  }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
-export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop] as const;
+export const SETTINGS = [callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, waitlistPriorityWeights] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

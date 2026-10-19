@@ -17,6 +17,12 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000203', 'verified', 'digilocker', '1990-04-12', 'ABCPN1234D',
    '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000203/selfie.jpg', now());
 
+-- Priority is #40's (032_waitlist_priority): here every list is in join-time order, so Arjun, a
+-- black card at 100/200, queues like anyone else.
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select venue_id, 'waitlist.priority_weights', id::text, '{"weight": 0, "only_at_qualifying_stake": true}', now(), 'Test'
+from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Black card';
+
 -- A member joins from the app.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';

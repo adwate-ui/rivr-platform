@@ -1,0 +1,54 @@
+{
+  "rule": "waitlist priority",
+  "about": "A member's priority on one waitlist (scope-v1 module 2, decision S-D11; design prompt flows 1 and 2). A tier's weight comes from the setting waitlist.priority_weights. The black card's weight counts only on the list for the member's qualifying stake; on any other list they queue by join time with no marker. Founders' Circle counts on every list. A list is ordered by weight, highest first, then join time.",
+  "cases": [
+    {
+      "description": "Design prompt flow 1: a black card qualifying at 100/200 joins the 100/200 list and goes first, reason Black card.",
+      "operation": "priority",
+      "inputs": { "list": "100/200", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "100/200" },
+      "expected": { "weight": "2", "reason": "Black card" }
+    },
+    {
+      "description": "Design prompt flow 2: the same black card on the 50/100 list queues by join time, no marker.",
+      "operation": "priority",
+      "inputs": { "list": "50/100", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "100/200" },
+      "expected": { "weight": "0", "reason": "" }
+    },
+    {
+      "description": "Same small blind, other big blind: 100/250 is not the 100/200 the card qualifies at.",
+      "operation": "priority",
+      "inputs": { "list": "100/250", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "100/200" },
+      "expected": { "weight": "0", "reason": "" }
+    },
+    {
+      "description": "Same big blind, other small blind: 50/200 is not the 100/200 the card qualifies at.",
+      "operation": "priority",
+      "inputs": { "list": "50/200", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "100/200" },
+      "expected": { "weight": "0", "reason": "" }
+    },
+    {
+      "description": "A black card with no qualifying stake recorded has no priority anywhere.",
+      "operation": "priority",
+      "inputs": { "list": "100/200", "tier": "Black card", "weight": "2", "onlyAtQualifyingStake": "yes", "qualifyingStake": "" },
+      "expected": { "weight": "0", "reason": "" }
+    },
+    {
+      "description": "Founders' Circle counts on every list, behind a black card at its stake.",
+      "operation": "priority",
+      "inputs": { "list": "50/100", "tier": "Founders' Circle", "weight": "1", "onlyAtQualifyingStake": "no", "qualifyingStake": "" },
+      "expected": { "weight": "1", "reason": "Founders' Circle" }
+    },
+    {
+      "description": "A tier without a weight in the setting queues by join time.",
+      "operation": "priority",
+      "inputs": { "list": "100/200", "tier": "Member", "weight": "", "onlyAtQualifyingStake": "", "qualifyingStake": "" },
+      "expected": { "weight": "0", "reason": "" }
+    },
+    {
+      "description": "A weight set to 0 in the setting turns the tier's priority off.",
+      "operation": "priority",
+      "inputs": { "list": "50/100", "tier": "Founders' Circle", "weight": "0", "onlyAtQualifyingStake": "no", "qualifyingStake": "" },
+      "expected": { "weight": "0", "reason": "" }
+    }
+  ]
+}

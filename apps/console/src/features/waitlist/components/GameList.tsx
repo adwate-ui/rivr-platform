@@ -5,6 +5,12 @@ import { useState } from 'react';
 import { AddMemberForm } from './AddMemberForm.tsx';
 import { FAILURE_COPY } from './failureCopy.ts';
 
+/** One place: number, name and when they joined, and why it is ahead of join time when it is. */
+function entryLine(entry: WaitlistBoardEntry): string {
+  const line = { place: entry.place, name: entry.fullName, time: formatTime(new Date(entry.joinedAt)) };
+  return entry.priorityReason === null ? t('console.waitlist.entry', line) : t('console.waitlist.entryWithReason', { ...line, reason: entry.priorityReason });
+}
+
 interface GameListProps {
   venueId: string;
   game: FloorTable;
@@ -30,7 +36,7 @@ export function GameList({ venueId, game, entries }: GameListProps) {
         {entries.map((entry) => (
           <Inline key={entry.entryId} gap={4} align="center" justify="between">
             <Stack gap={1}>
-              <Text>{t('console.waitlist.entry', { place: entry.place, name: entry.fullName, time: formatTime(new Date(entry.joinedAt)) })}</Text>
+              <Text>{entryLine(entry)}</Text>
               {entry.addedByFloor ? <Text variant="small" tone="muted">{t('console.waitlist.addedByFloor')}</Text> : null}
             </Stack>
             <Button variant="secondary" isLoading={remove.isPending} onClick={() => void removePlace(entry.entryId)}>

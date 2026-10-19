@@ -23,5 +23,24 @@ select results_eq(
   $$ select description, pg_temp.paise(expected ->> 'result') from golden.golden_case where file = 'academy.json' order by position $$,
   'private.academy_fee gives every Academy fee in the golden file');
 
+-- Waitlist priority: private.priority_weight and @rivr/domain priorityOn (packages/testing/golden/waitlist.json).
+create function pg_temp.blind(p_stake text, p_part integer) returns bigint language sql immutable as $$
+  select case when coalesce(p_stake, '') = '' then null else split_part(p_stake, '/', p_part)::bigint * 100 end;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'waitlist.json'), 'the waitlist priority cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'waitlist.json' and operation <> 'priority' $$,
+  'every operation in waitlist.json is proved here');
+select results_eq(
+  $$ select description, w.weight, case when w.weight > 0 then inputs ->> 'tier' end
+     from golden.golden_case
+     cross join lateral (
+       select private.priority_weight(nullif(inputs ->> 'weight', '')::integer, (inputs ->> 'onlyAtQualifyingStake') = 'yes',
+                                      pg_temp.blind(inputs ->> 'qualifyingStake', 1), pg_temp.blind(inputs ->> 'qualifyingStake', 2),
+                                      pg_temp.blind(inputs ->> 'list', 1), pg_temp.blind(inputs ->> 'list', 2)) as weight) w
+     where file = 'waitlist.json' order by position $$,
+  $$ select description, (expected ->> 'weight')::integer, nullif(expected ->> 'reason', '')
+     from golden.golden_case where file = 'waitlist.json' order by position $$,
+  'private.priority_weight gives every weight in the golden file, and the tier is the reason only with a weight');
+
 select * from finish();
 rollback;
