@@ -34,6 +34,11 @@ select is((select place from public.my_waitlist()), 2, 'and is second: behind th
 -- On 50/100, after Naina, the black card queues by join time.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000203", "role": "authenticated"}';
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'Naina joins 50/100 first');
+-- now() is the same all through a test's transaction: give Naina's join its own earlier minute.
+reset role;
+update public.waitlist_entry set joined_at = now() - interval '1 minute'
+where member_id = '00000000-0000-4000-8000-000000000203' and table_type_id = pg_temp.type_id('nlh_50_100');
+set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'then the black card');
 select is((select place from public.my_waitlist() where table_type_name = 'NLH 50/100'), 2, 'who is second there, by join time');

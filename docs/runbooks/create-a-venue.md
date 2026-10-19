@@ -24,3 +24,19 @@ Production is never seeded. The real venue, and any later room, is created once 
 5. Everything else (GSTIN, UPI payee and VPA, bank details, logo, the IP allowlist, staff, the tier matrix) is set from the console. The UPI payee and VPA must be set before the first Academy booking: they are where players pay.
 
 The practice venue is created the same way with `is_practice = true`.
+
+## Waitlist priority (#40)
+
+Production is never seeded, so set the waitlist priority weights for a new venue until the console's Settings screen (#33) does it. In the SQL editor, with the venue's id:
+
+```sql
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select t.venue_id, 'waitlist.priority_weights', t.id::text, w.value, now(), 'Launch weights'
+from public.tier t
+join (values ('Black card', '{"weight": 2, "only_at_qualifying_stake": true}'::jsonb),
+             ('Founders'' Circle', '{"weight": 1, "only_at_qualifying_stake": false}'::jsonb)) as w (name, value) on w.name = t.name
+where t.venue_id = '<venue id>';
+```
+
+Without them every list is in join-time order.
+
