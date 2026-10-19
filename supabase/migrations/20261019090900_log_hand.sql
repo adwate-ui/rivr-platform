@@ -251,43 +251,32 @@ as $$
   order by h.played_at desc, h.created_at desc;
 $$;
 
--- A down ends when its dealer may no longer log hands (access revoked, or made inactive) or its
--- tablet leaves the table (moved, freed or revoked): the tablet then asks for a dealer, and no hand
--- lands on a down that is not that dealer's on that tablet. Also while the venue is frozen, as End
--- of down is (decision 0046).
-create function private.end_stale_downs()
+-- A down ends when its tablet leaves the table (moved, freed or revoked): the tablet then asks for a
+-- dealer, and no hand lands on a down begun on another tablet. Also while the venue is frozen, as
+-- End of down is (decision 0046). Never before the down began, though the down began after this
+-- transaction did. A dealer who may no longer log hands keeps an open down until End of down, but
+-- log_hand refuses it.
+create function private.end_tablet_downs()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
 begin
-  if tg_table_name = 'tablet_assignment' then
-    if tg_op = 'DELETE' or old.table_id <> new.table_id then
-      update public.dealer_down d set ended_at = now()
-      where d.ended_at is null and (d.device_id = old.device_id or d.table_id = old.table_id);
-    end if;
-  elsif tg_table_name = 'staff' then
-    update public.dealer_down d set ended_at = now() where d.ended_at is null and d.staff_id = new.id;
-  else
-    -- An access revoke, of a person or a device.
-    update public.dealer_down d set ended_at = now()
-    where d.ended_at is null and (d.staff_id = new.staff_id or d.device_id = new.device_id);
+  if tg_op = 'DELETE' or old.table_id <> new.table_id then
+    update public.dealer_down d set ended_at = greatest(now(), d.started_at)
+    where d.ended_at is null and (d.device_id = old.device_id or d.table_id = old.table_id);
   end if;
   return null;
 end;
 $$;
 
 create trigger tablet_assignment_end_downs after update or delete on public.tablet_assignment
-  for each row execute function private.end_stale_downs();
-create trigger staff_end_downs after update of is_active on public.staff
-  for each row when (old.is_active and not new.is_active) execute function private.end_stale_downs();
-create trigger control_state_end_downs after insert on public.control_state
-  for each row when (new.level = 'access_revoke') execute function private.end_stale_downs();
+  for each row execute function private.end_tablet_downs();
 
 revoke execute on function private.pot_take(bigint, integer, bigint, boolean, bigint, bigint), private.rake_rules_at(uuid, timestamptz),
   private.post_hand(uuid, uuid, bigint, bigint),
-  private.replayed_hand(uuid, uuid, text, bigint, public.hand_variant, timestamptz), private.end_stale_downs()
+  private.replayed_hand(uuid, uuid, text, bigint, public.hand_variant, timestamptz), private.end_tablet_downs()
   from public, anon, authenticated;
 grant execute on function private.tablet_rake_rules(), private.log_hand(bigint, public.hand_variant, timestamptz, text),
   private.down_hands() to authenticated;
