@@ -1,6 +1,6 @@
 -- Staff (one per role, two super admins and two cashiers for dual control, and a second admin so
--- each KYC flow signs in its own reviewer, and a second host for the Waitlist flow: Auth sends one
--- code a minute to a number) and members.
+-- each KYC flow signs in its own reviewer, a second host for the Waitlist flow and a third super
+-- admin for the Dealer tablet flow: Auth sends one code a minute to a number) and members.
 -- Everyone signs in by phone. Local stacks accept code 123456 for these numbers
 -- (supabase/config.template.toml, [auth.sms.test_otp]); no password is stored anywhere.
 
@@ -22,6 +22,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000109', '+919000000109', 'Nikhil Bansal'),
   ('00000000-0000-4000-8000-000000000110', '+919000000110', 'Rhea Kulkarni'),
   ('00000000-0000-4000-8000-000000000111', '+919000000111', 'Zoya Sheikh'),
+  ('00000000-0000-4000-8000-000000000112', '+919000000112', 'Kunal Desai'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -55,6 +56,7 @@ select v.venue_id, p.id, p.full_name, s.job_title, s.role::public.staff_role, p.
 from (values
   ('00000000-0000-4000-8000-000000000101'::uuid, 'Owner', 'super_admin'),
   ('00000000-0000-4000-8000-000000000102'::uuid, 'General manager', 'super_admin'),
+  ('00000000-0000-4000-8000-000000000112'::uuid, 'Deputy general manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000103'::uuid, 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-000000000110'::uuid, 'Membership manager', 'admin'),
   ('00000000-0000-4000-8000-000000000104'::uuid, 'Cashier', 'cashier'),

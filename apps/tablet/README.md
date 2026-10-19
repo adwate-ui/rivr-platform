@@ -9,7 +9,9 @@ pnpm db:start                 # this worktree's local Supabase, seeded
 pnpm dev --filter tablet
 ```
 
-The dev server listens on this worktree's port block (`tablet` is port `<block>42`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them. Sign in with a seed phone number and code `123456` (`supabase/seed/10_people.sql`).
+The dev server listens on this worktree's port block (`tablet` is port `<block>42`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them.
+
+The tablet signs in as itself, never as a person (#41, decision 0045). To pair it locally, sign in to the console as a floor manager (`9000000103`, code `123456`), open Tablets, add one and type its six-digit code on the tablet. Fix it to a table on the same screen. A revoked tablet asks to be paired again.
 
 `pnpm test --filter tablet` runs the app's tests; `pnpm e2e --grep "<flow>"` runs a flow across apps.
 
@@ -25,6 +27,8 @@ cd apps/tablet/android && ./gradlew assembleDebug
 
 The release workflow builds the signed APK from a `release-*` tag (`docs/runbooks/ci-and-release.md`). Colours come from `@rivr/tokens`' generated Android resources.
 
+At the club each tablet runs in kiosk mode (Android lock task, #41): provisioned as the device owner over adb, the app locks the tablet to itself, is its home screen and keeps the screen on (`docs/runbooks/dealer-tablet.md`). On a device that is not provisioned, such as a developer's phone, it runs as a normal app.
+
 ## Structure
 
 ```
@@ -33,7 +37,9 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell: navigation, the kill-switch banner, not found
+    frame/            the app's shell: the table it is fixed to, the kill-switch banner, not found
+    pairing/          the pairing code, until the tablet is signed in as itself
+    hand-entry/       hand entry (#42)
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).
