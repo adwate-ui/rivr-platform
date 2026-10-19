@@ -1,6 +1,6 @@
 import { sendSmsHookSchema, type IndianMobile } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
-import { sendSignInCode, type SignInCodeChannels } from './send.ts';
+import { SEND_BUDGET_MS, sendSignInCode, type SignInCodeChannels } from './send.ts';
 
 /** What the Edge Function answers Auth: HTTP 200, with an empty body or an error for the app. */
 export interface HookReply {
@@ -42,9 +42,11 @@ export type NoteSignInCodeSend = (to: IndianMobile) => Promise<boolean>;
  * asking again is the sign the first never arrived. The code is never logged or stored (decision 0025).
  */
 export async function handleSendSmsHook(payload: unknown, channels: SignInCodeChannels, noteSend?: NoteSignInCodeSend): Promise<HookReply> {
+  // Counted from the call, so noting the send comes out of the same 5 seconds Auth waits.
+  const deadline = Date.now() + SEND_BUDGET_MS;
   const hook = sendSmsHookSchema.safeParse(payload);
   if (!hook.success) return hookError(400, 'The hook payload is not a sign-in code for an Indian mobile.');
   const preferSms = noteSend ? await noteSend(hook.data.to) : false;
-  const sent = await sendSignInCode(channels, { ...hook.data, preferSms });
+  const sent = await sendSignInCode(channels, { ...hook.data, preferSms, deadline });
   return sent.ok ? { status: 200, body: {} } : replyTo(sent.error);
 }

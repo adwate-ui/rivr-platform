@@ -12,7 +12,7 @@ export interface Msg91Options {
   readonly templateId: string;
   /** For tests; the platform's fetch by default. */
   readonly fetch?: typeof globalThis.fetch;
-  /** How long to wait for MSG91 before giving up as unavailable; inside Auth's 5 seconds. */
+  /** How long to wait for MSG91 before giving up as unavailable. The sign-in hook also bounds it by its own deadline. */
   readonly timeoutMs?: number;
 }
 

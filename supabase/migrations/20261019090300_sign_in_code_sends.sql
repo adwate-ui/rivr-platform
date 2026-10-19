@@ -12,6 +12,11 @@ create table private.sign_in_code_send (
 
 comment on table private.sign_in_code_send is 'When a sign-in code last went to a number, by a keyed hash of the number only.';
 
+-- No venue and no policies (decision 0042): a sign-in belongs to no venue, and only the function
+-- below, running as its owner, ever reads or writes it.
+alter table private.sign_in_code_send enable row level security;
+revoke all on table private.sign_in_code_send from public, anon, authenticated, service_role;
+
 -- Notes a code going to `p_phone` now, and says whether one went there in the last ten minutes.
 -- Rows older than a day are dropped as it goes: nothing older is ever asked about.
 create function private.note_sign_in_code_send(p_phone text)

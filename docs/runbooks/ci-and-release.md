@@ -58,8 +58,9 @@ Auth and API on staging and production, in the Supabase dashboard:
      - Until a channel is set, every sign-in except the test numbers is refused.
   7. SMS through MSG91 (#181), for numbers not on WhatsApp and for every second code within ten minutes:
      - Register the sign-in template on the DLT portal under RIVR's entity and header, with the code as its one variable, then create an MSG91 OTP template on it.
-     - In MSG91, turn off IP security on the auth key used here, or the calls fail: Supabase Edge Functions have no fixed address.
-     - Set `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` as function secrets.
+     - In MSG91, create an auth key for this function alone, and turn off IP security on it, or the calls fail: Supabase Edge Functions have no fixed address.
+     - Set a low-balance alert and a daily credit cap in MSG91: each code to a number that asks again costs a message.
+     - Set `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` as function secrets. To rotate the key, create the new one, set it as the secret, then delete the old one in MSG91.
      - Check it: on staging, request a code for a number not on WhatsApp, then tap "Send by SMS"; the SMS arrives.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
   - CAPTCHA on code requests (#182). Without it, anyone can use up the project-wide hourly code limit with requests to random numbers, which locks every member out of sign-in. In this order, staging first:

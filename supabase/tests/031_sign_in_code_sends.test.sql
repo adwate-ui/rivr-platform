@@ -11,6 +11,10 @@ select is(public.note_sign_in_code_send('+919000000202'), false, 'another number
 reset role;
 
 select is((select count(*)::int from private.sign_in_code_send), 2, 'one row per number');
+select ok((select relrowsecurity from pg_class where oid = 'private.sign_in_code_send'::regclass), 'with row-level security on');
+set local role service_role;
+select throws_ok($$ select * from private.sign_in_code_send $$, '42501', null, 'which even the service role reads only through the function');
+reset role;
 select is_empty($$ select * from private.sign_in_code_send where phone_hash like '%9000000201%' $$,
   'the number is never stored, only a keyed hash');
 update private.sign_in_code_send set sent_at = now() - interval '11 minutes';
