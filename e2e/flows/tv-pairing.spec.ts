@@ -2,9 +2,11 @@
  * TV pairing (#49), end to end, signed in once on the console as a floor supervisor (Naveen Rao,
  * this flow's own sign-in: Auth sends one code a minute to a number):
  * - a TV that is not paired shows a six-digit code; a code no TV shows is refused on the console;
- * - he types the TV's code in with a name and the waitlist board, and the TV shows it under its name;
- * - he puts the jackpot on it, which the TV shows without a reload, and again within five seconds of one;
+ * - he types the TV's code in with a name and the tournament clock (a mode still to be built, so the
+ *   TV shows its name and its name only), and the TV shows it;
+ * - he puts promotions on it, which the TV shows without a reload, and again within five seconds of one;
  * - once unpaired, the TV shows a new code.
+ * The waitlist and jackpot boards themselves are the "TV boards" flow.
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
@@ -33,22 +35,23 @@ test.describe('TV pairing', () => {
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText('No TV is showing that code. Check the code on the TV and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
+    await floor.getByRole('group', { name: 'What it shows' }).getByRole('button', { name: 'Tournament clock', exact: true }).click();
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText(`${name} is paired. It shows its mode within a few seconds.`)).toBeVisible();
 
     // The TV asks every three seconds whether its code was typed in.
-    await expect(tv.getByRole('heading', { name: 'Waitlist board' })).toBeVisible({ timeout: 15_000 });
+    await expect(tv.getByRole('heading', { name: 'Tournament clock' })).toBeVisible({ timeout: 15_000 });
     await expect(tv.getByText(name, { exact: true })).toBeVisible();
     // The console's list asks again every ten seconds, so the TV shows as paired on its own.
     const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
     await expect(modes.locator('xpath=../..').getByText('Paired', { exact: true })).toBeVisible({ timeout: 15_000 });
 
-    await modes.getByRole('button', { name: 'Jackpot and high hand', exact: true }).click();
-    await expect(modes.getByRole('button', { name: 'Jackpot and high hand', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    await expect(tv.getByRole('heading', { name: 'Jackpot and high hand' })).toBeVisible({ timeout: 15_000 });
+    await modes.getByRole('button', { name: 'Promotions', exact: true }).click();
+    await expect(modes.getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(tv.getByRole('heading', { name: 'Promotions' })).toBeVisible({ timeout: 15_000 });
     await tv.reload();
-    await expect(tv.getByRole('heading', { name: 'Jackpot and high hand' })).toBeVisible({ timeout: 5_000 });
+    await expect(tv.getByRole('heading', { name: 'Promotions' })).toBeVisible({ timeout: 5_000 });
 
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');

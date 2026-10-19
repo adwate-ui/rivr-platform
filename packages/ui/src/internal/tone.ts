@@ -12,8 +12,11 @@ export const TONE: Record<TextTone, string> = {
   inherit: '',
 };
 
-/** Sizes for a figure (money, a count, a time, stakes). `display` and `jackpot` use the display face. */
-export type FigureSize = 'small' | 'body' | 'lead' | 'title' | 'display' | 'jackpot';
+/**
+ * Sizes for a figure (money, a count, a time, stakes). `display`, `jackpot` and `tvJackpot` use the
+ * display face; `tvJackpot` is the TV's jackpot figure, the largest on any screen.
+ */
+export type FigureSize = 'small' | 'body' | 'lead' | 'title' | 'display' | 'jackpot' | 'tvJackpot';
 
 const FIGURE_SIZE: Record<FigureSize, string> = {
   small: 'text-14',
@@ -22,6 +25,7 @@ const FIGURE_SIZE: Record<FigureSize, string> = {
   title: 'text-28 leading-tight font-semibold',
   display: 'font-display text-56 leading-tight',
   jackpot: 'font-display text-96 leading-tight',
+  tvJackpot: 'font-display text-280 leading-tight font-medium',
 };
 
 /** Classes for a figure: tabular digits that never wrap, at a size and in a tone. */

@@ -49,8 +49,11 @@
   --text-28: var(--rivr-font-size-28);
   --text-36: var(--rivr-font-size-36);
   --text-44: var(--rivr-font-size-44);
+  --text-48: var(--rivr-font-size-48);
   --text-56: var(--rivr-font-size-56);
+  --text-88: var(--rivr-font-size-88);
   --text-96: var(--rivr-font-size-96);
+  --text-280: var(--rivr-font-size-280);
   --font-weight-regular: var(--rivr-font-weight-regular);
   --font-weight-medium: var(--rivr-font-weight-medium);
   --font-weight-semibold: var(--rivr-font-weight-semibold);
