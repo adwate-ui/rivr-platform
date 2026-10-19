@@ -167,6 +167,94 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"buy_in_request": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"requested_by_device_id": string | null,"requested_by_staff_id": string | null,"session_id": string,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"member_id": string,"requested_by_device_id"?: string | null,"requested_by_staff_id"?: string | null,"session_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"requested_by_device_id"?: string | null,"requested_by_staff_id"?: string | null,"session_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "buy_in_request_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "buy_in_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "buy_in_request_requested_by_device_id_venue_id_fkey"
+      columns: ["requested_by_device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "buy_in_request_requested_by_staff_id_venue_id_fkey"
+      columns: ["requested_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "buy_in_request_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"cage_transaction": {
+                  Row: {
+                    "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string,"updated_at": string,"utr": string | null,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"buy_in_request_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cage_transaction_buy_in_request_id_fkey"
+      columns: ["buy_in_request_id"]
+isOneToOne: true
+      referencedRelation: "buy_in_request"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cage_transaction_cashier_staff_id_venue_id_fkey"
+      columns: ["cashier_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cage_transaction_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cage_transaction_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cage_transaction_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"chip_denomination": {
                   Row: {
                     "created_at": string,"id": string,"is_active": boolean,"name": string,"updated_at": string,"value_paise": number,"venue_id": string
@@ -1545,6 +1633,19 @@ isOneToOne: false
 "book_academy_corporate":
 { Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
                            },
+"cage_buy_in":
+{ Args: { "p_amount_paise": number,"p_buy_in_request_id"?: string,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr"?: string,"p_venue_id": string }; Returns: string
+                           },
+"cage_members":
+{ Args: { "p_query": string,"p_venue_id": string }; Returns: {
+              "bonus_paise": number,"break_until": string,"full_name": string,"is_kyc_complete": boolean,"markers_paise": number,"member_id": string,"minimum_paise": number,"photo_path": string,"seat": number,"table_name": string,"tier_name": string,"wallet_paise": number
+            }[]
+                           },
+"cage_queue":
+{ Args: { "p_venue_id": string }; Returns: {
+              "amount_paise": number,"full_name": string,"member_id": string,"photo_path": string,"request_id": string,"requested_at": string,"seat": number,"table_name": string
+            }[]
+                           },
 "call_from_waitlist":
 { Args: { "p_entry_id": string,"p_seat": number,"p_table_id": string }; Returns: undefined
                            },
@@ -1597,6 +1698,9 @@ isOneToOne: false
 { Args: { "p_pin": string,"p_staff_id": string }; Returns: {
               "down_id": string,"refusal": string,"tries_left": number
             }[]
+                           },
+"decline_buy_in_request":
+{ Args: { "p_request_id": string }; Returns: undefined
                            },
 "door_board":
 { Args: { "p_venue_id": string }; Returns: {
@@ -1761,6 +1865,9 @@ isOneToOne: false
                            },
 "reopen_kyc_check":
 { Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
+                           },
+"request_buy_in":
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string
                            },
 "reverse_jackpot_event":
 { Args: { "p_event_id": string,"p_idempotency_key": string,"p_reason": string }; Returns: string

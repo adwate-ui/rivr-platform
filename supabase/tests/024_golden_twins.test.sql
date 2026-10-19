@@ -130,5 +130,18 @@ select results_eq(
      from golden.golden_case where file = 'variance.json' order by position $$,
   'private.down_variance gives every variance and alert in the golden file');
 
+-- A buy-in at the cage: private.buy_in_check and @rivr/domain buyIn (packages/testing/golden/cage.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'cage.json'), 'the cage buy-in cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'cage.json' and operation <> 'buy_in' $$,
+  'every operation in cage.json is proved here');
+select results_eq(
+  $$ select description, c.result, c.debit
+     from golden.golden_case
+     cross join lateral private.buy_in_check(inputs ->> 'method', pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'minimum'),
+                                             pg_temp.paise(inputs ->> 'wallet')) c
+     where file = 'cage.json' order by position $$,
+  $$ select description, expected ->> 'result', expected ->> 'debit' from golden.golden_case where file = 'cage.json' order by position $$,
+  'private.buy_in_check gives every buy-in in the golden file');
+
 select * from finish();
 rollback;

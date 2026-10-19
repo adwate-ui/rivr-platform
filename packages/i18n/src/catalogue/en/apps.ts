@@ -2,6 +2,7 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
+import { cage } from './cage.ts';
 import { checkIn, liveFloor } from './floor.ts';
 import { consoleDevices, displayDevices, tabletDevices } from './devices.ts';
 import { consoleHighHands, tabletHighHands } from './highHands.ts';
@@ -153,6 +154,7 @@ export const playerApp = {
 export const consoleApp = {
   liveFloor,
   checkIn,
+  cage,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   waitlist,

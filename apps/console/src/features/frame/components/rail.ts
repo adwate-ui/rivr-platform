@@ -33,7 +33,10 @@ const RAIL: readonly RailGroup[] = [
   {
     id: 'money',
     label: 'ui.consoleRail.groups.money',
-    entries: [{ id: 'academyPayments', label: 'ui.consoleRail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'] }],
+    entries: [
+      { id: 'cage', label: 'ui.consoleRail.items.cage', href: '/cage', anyOf: ['cage.transact'] },
+      { id: 'academyPayments', label: 'ui.consoleRail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'] },
+    ],
   },
   {
     id: 'players',

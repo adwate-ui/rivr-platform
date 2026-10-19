@@ -43,7 +43,7 @@ select throws_ok(
 -- Pema, a dealer: no member access.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';
 select is((select count(*) from public.member)::int, 0, 'a dealer sees no members');
-select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, 25,
+select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, 26,
   'a dealer sees her colleagues');
 select throws_ok($$ select bank_account_number from public.venue_config $$, '42501', null,
   'a dealer cannot read the bank details');
