@@ -87,12 +87,15 @@ const jackpotPayout = {
   key: 'jackpot.payout',
   description: 'How a bad beat pays, in basis points: the share of the main pool paid, and its split between the loser, the winner and the other players dealt in, which together make 100% (scope-v1 module 8).',
   scope: 'venue',
-  value: z.strictObject({
-    pool_basis_points: z.int().min(0).max(10_000),
-    loser_basis_points: z.int().min(0).max(10_000),
-    winner_basis_points: z.int().min(0).max(10_000),
-    table_basis_points: z.int().min(0).max(10_000),
-  }),
+  // The database's schema cannot add the split up; pay_bad_beat refuses a rule whose split is not 100%.
+  value: z
+    .strictObject({
+      pool_basis_points: z.int().min(0).max(10_000),
+      loser_basis_points: z.int().min(0).max(10_000),
+      winner_basis_points: z.int().min(0).max(10_000),
+      table_basis_points: z.int().min(0).max(10_000),
+    })
+    .refine((rule) => rule.loser_basis_points + rule.winner_basis_points + rule.table_basis_points === 10_000),
 } as const satisfies SettingDefinition;
 
 const waitlistPriorityWeights = {

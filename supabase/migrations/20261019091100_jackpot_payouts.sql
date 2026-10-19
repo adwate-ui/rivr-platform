@@ -30,6 +30,7 @@ create table public.jackpot_event (
   winner_paise bigint not null check (winner_paise >= 0 and winner_paise % 5000 = 0),
   each_at_table_paise bigint not null check (each_at_table_paise >= 0 and each_at_table_paise % 5000 = 0),
   total_paise bigint not null check (total_paise > 0 and total_paise <= pool_paise),
+  check (total_paise = loser_paise + winner_paise + each_at_table_paise * cardinality(table_member_ids)),
   -- The jackpot.payout rule it was paid under.
   rule jsonb not null,
   reason text check (reason is null or length(trim(reason)) between 3 and 300),
@@ -90,22 +91,19 @@ begin
 end;
 $$;
 
--- Posts a payout (p_sign 1) or its reversal (-1): the main pool debited and chips in play credited,
--- or the other way round. One balanced transaction, keyed by the event.
-create function private.post_jackpot_event(p_venue_id uuid, p_event_id uuid, p_total bigint, p_sign integer)
+-- The payout and the reversal take the venue's lock and work out the pool as it stands, which holds
+-- only when every statement reads what is committed then (read committed, as the API runs).
+create function private.assert_read_committed()
 returns void
-language sql
-security definer
+language plpgsql
+stable
 set search_path = ''
 as $$
-  select private.post_ledger_transaction(p_venue_id, case when p_sign = 1 then 'jackpot_payout' else 'jackpot_reversal' end,
-    'jackpot:' || p_event_id,
-    jsonb_build_array(
-      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = p_venue_id and a.code = 'venue.jackpot.main'),
-                         'amount', (p_sign * p_total)::text),
-      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = p_venue_id and a.code = 'venue.chips_outstanding'),
-                         'amount', (-p_sign * p_total)::text)),
-    null, case when p_sign = 1 then 'Bad-beat jackpot paid in chips' else 'Bad-beat jackpot payout reversed' end);
+begin
+  if current_setting('transaction_isolation') <> 'read committed' then
+    raise exception 'Jackpot payouts run at read committed' using errcode = '25001';
+  end if;
+end;
 $$;
 
 -- The venue's main pool now, as the ledger holds it.
@@ -119,10 +117,38 @@ as $$
   select coalesce((select b.natural_balance from public.ledger_balance b where b.venue_id = p_venue_id and b.code = 'venue.jackpot.main'), 0)::bigint;
 $$;
 
+-- The event an earlier send of the same request made, if any; refused if the key made anything
+-- else. A payout matches on its table and players; a reversal on the payout it reverses.
+create function private.replayed_jackpot_event(p_venue_id uuid, p_idempotency_key text, p_kind public.jackpot_event_kind,
+                                               p_table_id uuid, p_players uuid[], p_reverses_id uuid)
+returns uuid
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_event public.jackpot_event;
+begin
+  select * into v_event from public.jackpot_event e where e.venue_id = p_venue_id and e.idempotency_key = p_idempotency_key;
+  if v_event.id is null then
+    return null;
+  end if;
+  if v_event.kind is distinct from p_kind
+     or (p_kind = 'payout' and (v_event.table_id, array[v_event.loser_member_id, v_event.winner_member_id] || v_event.table_member_ids)
+                               is distinct from (p_table_id, p_players))
+     or (p_kind = 'reversal' and v_event.reverses_id is distinct from p_reverses_id) then
+    raise exception 'That request was a different payout or reversal' using errcode = '23505';
+  end if;
+  return v_event.id;
+end;
+$$;
+
 -- Staff with jackpots.approve pay a bad beat at a table: the loser, the winner and the other players
--- dealt in, by mobile number (+91…), under the jackpot.payout rule in force. One payout at a time per
--- venue, worked out on the pool as it stands. A replay of the same request is the same payout. Not
--- while the venue is frozen or promotions are switched off (question #300).
+-- dealt in, by mobile number (+91…), under the jackpot.payout rule in force. One payout or reversal
+-- at a time per venue, worked out on the pool as it stands; a replay of the same request is the same
+-- payout. Not while the venue is frozen, promotions are switched off (question #300) or any of the
+-- players is frozen.
 create function private.pay_bad_beat(p_venue_id uuid, p_table_id uuid, p_loser_phone text, p_winner_phone text,
                                      p_table_phones text[], p_idempotency_key text)
 returns uuid
@@ -141,15 +167,18 @@ begin
   if not private.has_permission(p_venue_id, 'jackpots.approve') then
     raise exception 'Only staff who approve jackpots pay one' using errcode = '42501';
   end if;
-  select e.id into v_event_id from public.jackpot_event e where e.venue_id = p_venue_id and e.idempotency_key = p_idempotency_key;
-  if v_event_id is not null then
-    return v_event_id;
-  end if;
-  perform private.assert_writable(p_venue_id, 'promotions');
+  perform private.assert_read_committed();
+  perform pg_advisory_xact_lock(hashtextextended('jackpot:' || p_venue_id, 0));
   if not exists (select 1 from public.game_table t where t.id = p_table_id and t.venue_id = p_venue_id) then
     raise exception 'That table is not at this venue' using errcode = '22023';
   end if;
   v_players := private.members_by_phone(p_venue_id, array[p_loser_phone, p_winner_phone] || coalesce(p_table_phones, '{}'));
+  v_event_id := private.replayed_jackpot_event(p_venue_id, p_idempotency_key, 'payout', p_table_id, v_players, null);
+  if v_event_id is not null then
+    return v_event_id;
+  end if;
+  perform private.assert_writable(p_venue_id, 'promotions');
+  perform private.assert_writable(p_venue_id, 'promotions', player) from unnest(v_players) as player;
   if (select count(distinct player) from unnest(v_players) as player) <> cardinality(v_players) then
     raise exception 'The loser, the winner and each other player are different members' using errcode = '22023';
   end if;
@@ -157,7 +186,6 @@ begin
   if v_rule is null then
     raise exception 'No payout rule is set' using errcode = '22023';
   end if;
-  perform pg_advisory_xact_lock(hashtextextended('jackpot:' || p_venue_id, 0));
   v_pool := private.main_pool(p_venue_id);
   select * into v_paid from private.bad_beat_payout(v_pool, (v_rule ->> 'pool_basis_points')::numeric::integer,
     (v_rule ->> 'loser_basis_points')::numeric::integer, (v_rule ->> 'winner_basis_points')::numeric::integer,
@@ -170,7 +198,14 @@ begin
   values (p_venue_id, 'payout', p_table_id, v_players[1], v_players[2], v_players[3:], v_pool, v_paid.loser, v_paid.winner,
           v_paid.each_at_table, v_paid.total, v_rule, private.current_staff_id(p_venue_id), p_idempotency_key)
   returning id into v_event_id;
-  perform private.post_jackpot_event(p_venue_id, v_event_id, v_paid.total, 1);
+  -- Chips into play from the main pool: one balanced transaction, keyed by the event.
+  perform private.post_ledger_transaction(p_venue_id, 'jackpot_payout', 'jackpot:' || v_event_id,
+    jsonb_build_array(
+      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = p_venue_id and a.code = 'venue.jackpot.main'),
+                         'amount', v_paid.total::text),
+      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = p_venue_id and a.code = 'venue.chips_outstanding'),
+                         'amount', (-v_paid.total)::text)),
+    'promotions', 'Bad-beat jackpot paid in chips');
   perform private.emit(p_venue_id, 'jackpot.paid',
     jsonb_build_object('event_id', v_event_id, 'table_id', p_table_id, 'loser_member_id', v_players[1], 'winner_member_id', v_players[2],
                        'total_paise', v_paid.total),
@@ -180,8 +215,9 @@ end;
 $$;
 
 -- Staff with jackpots.approve reverse a payout made in error, with a reason: the same amounts post
--- back from chips in play to the main pool. A payout is reversed at most once; a replay is the same
--- reversal. Not while the venue is frozen.
+-- back from chips in play to the main pool, and jackpot.reversed goes out (so a winner card can be
+-- taken down). A payout is reversed at most once; a replay is the same reversal. Not while the venue
+-- is frozen.
 create function private.reverse_jackpot_event(p_event_id uuid, p_reason text, p_idempotency_key text)
 returns uuid
 language plpgsql
@@ -197,7 +233,9 @@ begin
   if v_payout.id is null or not private.has_permission(v_payout.venue_id, 'jackpots.approve') then
     raise exception 'Only staff who approve jackpots reverse a payout' using errcode = '42501';
   end if;
-  select e.id into v_reversal_id from public.jackpot_event e where e.venue_id = v_payout.venue_id and e.idempotency_key = p_idempotency_key;
+  perform private.assert_read_committed();
+  perform pg_advisory_xact_lock(hashtextextended('jackpot:' || v_payout.venue_id, 0));
+  v_reversal_id := private.replayed_jackpot_event(v_payout.venue_id, p_idempotency_key, 'reversal', null, null, v_payout.id);
   if v_reversal_id is not null then
     return v_reversal_id;
   end if;
@@ -208,13 +246,19 @@ begin
   if exists (select 1 from public.jackpot_event e where e.reverses_id = v_payout.id) then
     raise exception 'That payout is already reversed' using errcode = 'RVDUP';
   end if;
-  insert into public.jackpot_event (venue_id, kind, reverses_id, table_id, pool_paise, loser_paise, winner_paise, each_at_table_paise,
-                                    total_paise, rule, reason, staff_id, idempotency_key)
-  values (v_payout.venue_id, 'reversal', v_payout.id, v_payout.table_id, v_payout.pool_paise, v_payout.loser_paise,
-          v_payout.winner_paise, v_payout.each_at_table_paise, v_payout.total_paise, v_payout.rule, trim(p_reason),
-          private.current_staff_id(v_payout.venue_id), p_idempotency_key)
+  insert into public.jackpot_event (venue_id, kind, reverses_id, table_id, loser_member_id, winner_member_id, table_member_ids, pool_paise,
+                                    loser_paise, winner_paise, each_at_table_paise, total_paise, rule, reason, staff_id, idempotency_key)
+  values (v_payout.venue_id, 'reversal', v_payout.id, v_payout.table_id, v_payout.loser_member_id, v_payout.winner_member_id,
+          v_payout.table_member_ids, v_payout.pool_paise, v_payout.loser_paise, v_payout.winner_paise, v_payout.each_at_table_paise,
+          v_payout.total_paise, v_payout.rule, trim(p_reason), private.current_staff_id(v_payout.venue_id), p_idempotency_key)
   returning id into v_reversal_id;
-  perform private.post_jackpot_event(v_payout.venue_id, v_reversal_id, v_payout.total_paise, -1);
+  -- The ledger's own reversal: the payout's transaction posted back, linked to it, at most once.
+  perform private.reverse_ledger_transaction(
+    (select t.id from public.ledger_transaction t where t.venue_id = v_payout.venue_id and t.idempotency_key = 'jackpot:' || v_payout.id),
+    'jackpot:' || v_reversal_id, trim(p_reason));
+  perform private.emit(v_payout.venue_id, 'jackpot.reversed',
+    jsonb_build_object('event_id', v_reversal_id, 'payout_event_id', v_payout.id, 'total_paise', v_payout.total_paise),
+    'jackpot.reversed:' || v_reversal_id);
   return v_reversal_id;
 end;
 $$;
@@ -242,7 +286,8 @@ begin
 end;
 $$;
 
--- The venue's payouts and reversals, latest first, with the players' names and the table's.
+-- The venue's payouts and reversals, latest first, with the table's name, and the players' names for
+-- staff who may read members (the cashier; not the investor's owner_view, who reads the ledger).
 create function private.jackpot_history(p_venue_id uuid)
 returns table (event_id uuid, kind public.jackpot_event_kind, reverses_id uuid, is_reversed boolean, table_name text,
                loser_name text, winner_name text, others integer, loser_paise bigint, winner_paise bigint,
@@ -253,7 +298,8 @@ security definer
 set search_path = ''
 as $$
   select e.id, e.kind, e.reverses_id, exists (select 1 from public.jackpot_event r where r.reverses_id = e.id), t.name,
-         l.full_name, w.full_name, cardinality(e.table_member_ids), e.loser_paise, e.winner_paise, e.each_at_table_paise,
+         case when private.has_permission(p_venue_id, 'members.read') then l.full_name end,
+         case when private.has_permission(p_venue_id, 'members.read') then w.full_name end, cardinality(e.table_member_ids), e.loser_paise, e.winner_paise, e.each_at_table_paise,
          e.total_paise, e.reason, e.created_at
   from public.jackpot_event e
   left join public.game_table t on t.id = e.table_id
@@ -264,8 +310,8 @@ as $$
   order by e.created_at desc, e.id;
 $$;
 
-revoke execute on function private.members_by_phone(uuid, text[]), private.post_jackpot_event(uuid, uuid, bigint, integer),
-  private.main_pool(uuid) from public, anon, authenticated;
+revoke execute on function private.members_by_phone(uuid, text[]), private.assert_read_committed(), private.main_pool(uuid),
+  private.replayed_jackpot_event(uuid, text, public.jackpot_event_kind, uuid, uuid[], uuid) from public, anon, authenticated;
 grant execute on function private.pay_bad_beat(uuid, uuid, text, text, text[], text), private.reverse_jackpot_event(uuid, text, text),
   private.jackpot_pools(uuid), private.jackpot_history(uuid) to authenticated;
 
