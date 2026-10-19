@@ -38,3 +38,11 @@ insert into public.setting (venue_id, key, subject, value, effective_from, reaso
 select v.venue_id, 'jackpot.drop', '', '{"drop_paise": 10000, "above_paise": 500000}', '-infinity', 'Seed'
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 on conflict (venue_id, key, subject, effective_from) do nothing;
+
+-- A bad beat pays the whole main pool: half to the loser, a quarter to the winner, a quarter shared
+-- by the others dealt in (question #300 asks the owner for the real rule; production is never seeded).
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'jackpot.payout', '',
+       '{"pool_basis_points": 10000, "loser_basis_points": 5000, "winner_basis_points": 2500, "table_basis_points": 2500}', '-infinity', 'Seed'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+on conflict (venue_id, key, subject, effective_from) do nothing;
