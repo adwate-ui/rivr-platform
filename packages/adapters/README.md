@@ -17,7 +17,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 |---|---|---|---|
 | `kyc` | `@rivr/adapters/kyc` | `KycAdapter` | DigiLocker pull (masked Aadhaar, PAN, a stable Aadhaar reference), PAN verification fallback, selfie liveness, face match, and the face search for duplicates (`enrolFace`) |
 | `smsOtp` | `@rivr/adapters/sms-otp` | `SmsOtpAdapter` | Sign-in codes by SMS; live: `createMsg91SmsOtp({ authKey, templateId })` on a DLT template, the key as a header, a refusal inside HTTP 200 read from `type` |
-| `whatsapp` | `@rivr/adapters/whatsapp` | `WhatsAppAdapter` | Utility, authentication and marketing templates; marketing needs `optedInAt` |
+| `whatsapp` | `@rivr/adapters/whatsapp` | `WhatsAppAdapter` | Utility, authentication and marketing templates; marketing needs `optedInAt`; `urlButton` for a template whose button opens a link (a payment link, a receipt). `WHATSAPP_TEMPLATES` lists every template as submitted to Meta (decision 0043) |
 | `upiPayouts` | `@rivr/adapters/upi-payouts` | `UpiPayoutAdapter` | Withdrawals; one payout per idempotency key |
 | `push` | `@rivr/adapters/push` | `PushAdapter` | Web push; `subscription_gone` means delete the subscription |
 | `socialPublishing` | `@rivr/adapters/social-publishing` | `SocialPublishing` | One `SocialPublishingTarget` per channel; `published` or `download_and_post` |
@@ -91,3 +91,5 @@ Implement the same interface in the vendor's folder (`live.ts`), with `fetch` on
 ## Outbox consumers
 
 `runConsumer(store, consumer)` runs one consumer once (#12). It claims the consumer's batch, hands each delivery to its one adapter, and finishes each as delivered, or as failed with a backoff that doubles from a minute (`backoffSeconds`, at most six hours). A delivery the vendor rejected fails at once; any other fails for good after `MAX_ATTEMPTS` (ten) attempts. A delivery that fails for good alerts the owner (`private.raise_alert`), at most once an hour per consumer. A consumer Edge Function is one line over `supabase/functions/_shared/outbox.ts`: `Deno.serve(serveConsumer({ name, eventTypes, isMessaging, deliver }))`. Practice-venue events never reach a consumer.
+
+`createWhatsAppConsumer({ whatsapp, findRecipient })` is the WhatsApp consumer (#62, `supabase/functions/whatsapp`): the seat call for `waitlist.called` (`seat_ready`: table, seat, hold expiry in IST; dropped once the hold has run out) and the receipt notice for `receipt.ready`. A messaging consumer, so a messaging stop holds it. Payloads name the member; `findRecipient` reads the number and marketing opt-in at send time (`message_recipient`, service role only), so no outbox row holds a phone.

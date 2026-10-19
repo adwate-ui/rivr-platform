@@ -47,6 +47,23 @@ describe('WhatsApp Cloud API', () => {
     });
   });
 
+  it('sends a link button\'s suffix with a utility template that has one, as a payment link', async () => {
+    const { fetch, requests } = fakeFetch(200, accepted);
+    const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
+
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Academy'], urlButton: 'pay/k1' });
+
+    expect(sentBody(requests)).toMatchObject({
+      template: {
+        name: 'payment_link',
+        components: [
+          { type: 'body', parameters: [{ type: 'text', text: '₹2,000' }, { type: 'text', text: 'RIVR Academy' }] },
+          { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: 'pay/k1' }] },
+        ],
+      },
+    });
+  });
+
   it('sends a utility template with its body parameters and no button', async () => {
     const { fetch, requests } = fakeFetch(200, accepted);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });

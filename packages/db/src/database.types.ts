@@ -1137,6 +1137,11 @@ isOneToOne: false
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"message_recipient":
+{ Args: { "p_member_id": string }; Returns: {
+              "marketing_opted_in_at": string,"phone": string
+            }[]
+                           },
 "my_academy_bookings":
 { Args: Record<PropertyKey, never>; Returns: {
               "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"hold_until": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string

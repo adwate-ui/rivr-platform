@@ -32,10 +32,16 @@ type Component =
   | { readonly type: 'body'; readonly parameters: readonly { type: 'text'; text: string }[] }
   | { readonly type: 'button'; readonly sub_type: 'url'; readonly index: '0'; readonly parameters: readonly { type: 'text'; text: string }[] };
 
-/** The template's parts: its body parameters, and for an authentication template the copy-code button. */
+/**
+ * The template's parts: its body parameters, and a button's: the copy-code button of an authentication
+ * template, or a link button's suffix (a payment link or a receipt, #62).
+ */
 function components(message: WhatsAppMessage): Component[] {
   const body: Component = { type: 'body', parameters: message.params.map((text) => ({ type: 'text', text })) };
-  if (message.category !== 'authentication') return [body];
+  if (message.category !== 'authentication') {
+    if (message.urlButton === undefined) return [body];
+    return [body, { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: message.urlButton }] }];
+  }
   // Meta requires an authentication template's code twice: in the body, and as the copy-code button's parameter.
   const code = message.params[0] ?? '';
   return [body, { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: code }] }];

@@ -169,6 +169,10 @@ verify_jwt = false
 [functions.sign-in-alert]
 verify_jwt = false
 
+# The WhatsApp outbox consumer: pg_cron calls it with the scheduler's secret, not a person's token (#62).
+[functions.whatsapp]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = {{BLOCK}}27
