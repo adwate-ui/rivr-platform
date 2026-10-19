@@ -1,0 +1,66 @@
+{
+  "rule": "marker issue",
+  "about": "A marker at the cage (scope-v1 module 5; additions flow 19): chips on credit, in whole ₹50 chips above nothing. It is refused while one of the member's markers is past its due date, when it would take what the member owes (their receivable) above their credit limit, or when it would take the room's open markers above the venue's exposure cap. Exactly at the limit or the cap is allowed. Checked in that order: whole chips, past due, then the limit, then the cap.",
+  "cases": [
+    {
+      "description": "Flow 19: ₹50,000 with ₹50,000 owed against a ₹2,00,000 limit: issued.",
+      "operation": "issue",
+      "inputs": { "amount": "₹50,000", "outstanding": "₹50,000", "limit": "₹2,00,000", "exposure": "₹50,000", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "ok" }
+    },
+    {
+      "description": "Up to the limit exactly: ₹1,50,000 more with ₹50,000 owed against ₹2,00,000.",
+      "operation": "issue",
+      "inputs": { "amount": "₹1,50,000", "outstanding": "₹50,000", "limit": "₹2,00,000", "exposure": "₹50,000", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "ok" }
+    },
+    {
+      "description": "Flow 19: one chip above the limit is refused.",
+      "operation": "issue",
+      "inputs": { "amount": "₹1,50,050", "outstanding": "₹50,000", "limit": "₹2,00,000", "exposure": "₹50,000", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "above_limit" }
+    },
+    {
+      "description": "No credit line: any marker is above its limit of nothing.",
+      "operation": "issue",
+      "inputs": { "amount": "₹10,000", "outstanding": "₹0", "limit": "₹0", "exposure": "₹0", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "above_limit" }
+    },
+    {
+      "description": "Within the member's limit but past the room's cap: refused.",
+      "operation": "issue",
+      "inputs": { "amount": "₹50,000", "outstanding": "₹0", "limit": "₹2,00,000", "exposure": "₹24,60,000", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "above_exposure" }
+    },
+    {
+      "description": "Above both the limit and the cap: the limit is said first.",
+      "operation": "issue",
+      "inputs": { "amount": "₹3,00,000", "outstanding": "₹0", "limit": "₹2,00,000", "exposure": "₹24,60,000", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "above_limit" }
+    },
+    {
+      "description": "Up to the room's cap exactly: issued.",
+      "operation": "issue",
+      "inputs": { "amount": "₹40,000", "outstanding": "₹0", "limit": "₹2,00,000", "exposure": "₹24,60,000", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "ok" }
+    },
+    {
+      "description": "A marker past due blocks new credit, even well within the limit.",
+      "operation": "issue",
+      "inputs": { "amount": "₹10,000", "outstanding": "₹50,000", "limit": "₹2,00,000", "exposure": "₹50,000", "cap": "₹25,00,000", "pastDue": "yes" },
+      "expected": { "result": "past_due" }
+    },
+    {
+      "description": "₹10,020 is not whole ₹50 chips, said before a marker past due.",
+      "operation": "issue",
+      "inputs": { "amount": "₹10,020", "outstanding": "₹0", "limit": "₹2,00,000", "exposure": "₹0", "cap": "₹25,00,000", "pastDue": "yes" },
+      "expected": { "result": "not_chips" }
+    },
+    {
+      "description": "Nothing is not a marker.",
+      "operation": "issue",
+      "inputs": { "amount": "₹0", "outstanding": "₹0", "limit": "₹2,00,000", "exposure": "₹0", "cap": "₹25,00,000", "pastDue": "no" },
+      "expected": { "result": "not_chips" }
+    }
+  ]
+}

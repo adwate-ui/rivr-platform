@@ -23,13 +23,13 @@ grant execute on function pg_temp.as_person(text), pg_temp.line(), pg_temp.staff
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000216', 5000000, 'A regular'), 'active',
   'the floor manager gives Kunal ₹50,000 of credit');
-select results_eq($$ select full_name, limit_paise, proposed_limit_paise from public.credit_lines('00000000-0000-4000-8000-000000000001') $$,
+select results_eq($$ select full_name, limit_paise, proposed_limit_paise from public.credit_lines('00000000-0000-4000-8000-000000000001') where full_name = 'Kunal Mehra' $$,
   $$ values ('Kunal Mehra'::text, 5000000::bigint, null::bigint) $$, 'in force at once');
 
 -- A raise above it waits for a super admin, who approves the amount they saw.
 select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000216', 20000000, 'Plays 100/200 weekly'), 'needs_approval',
   '₹2,00,000 is above the threshold');
-select results_eq($$ select limit_paise, proposed_limit_paise, proposed_by from public.credit_lines('00000000-0000-4000-8000-000000000001') $$,
+select results_eq($$ select limit_paise, proposed_limit_paise, proposed_by from public.credit_lines('00000000-0000-4000-8000-000000000001') where full_name = 'Kunal Mehra' $$,
   $$ values (5000000::bigint, 20000000::bigint, 'Aditya Malhotra'::text) $$, 'it waits beside the ₹50,000 in force');
 select throws_ok($$ select public.decide_credit_limit((pg_temp.line()).id, true, 20000000) $$, '42501', null, 'the floor manager cannot approve it');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
@@ -102,11 +102,11 @@ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', '
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select exposure_paise, exposure_cap_paise, approval_threshold_paise, minimum_visits from public.credit_room('00000000-0000-4000-8000-000000000001') $$,
   $$ values (6000000::bigint, 250000000::bigint, 10000000::bigint, 3) $$, 'Arjun''s ₹50,000 and Kunal''s ₹10,000 open across the room, against ₹25,00,000');
-select is((select outstanding_paise from public.credit_lines('00000000-0000-4000-8000-000000000001')), 1000000::bigint, 'Kunal''s, on his line');
+select is((select outstanding_paise from public.credit_lines('00000000-0000-4000-8000-000000000001') where full_name = 'Kunal Mehra'), 1000000::bigint, 'Kunal''s, on his line');
 
 -- Who sees credit: staff who set limits, issue markers or read the ledger, at their venue.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select count(*)::integer from public.credit_line), 1, 'a cashier sees the credit lines');
+select is((select count(*)::integer from public.credit_line), 2, 'a cashier sees the credit lines, Kunal''s and Arjun''s (seed)');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select id from public.credit_line $$, 'a dealer does not');
 select is_empty($$ select * from public.credit_lines('00000000-0000-4000-8000-000000000001') $$, 'nor through the screen''s read');
@@ -128,7 +128,7 @@ update public.staff set is_active = true where user_id in ('00000000-0000-4000-8
 -- Closing a line; a frozen member; credit switched off; a frozen venue.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000216', 0, 'Closed at his request'), 'active', 'a line closes at once');
-select is_empty($$ select * from public.credit_lines('00000000-0000-4000-8000-000000000001') $$, 'and leaves the list');
+select is_empty($$ select * from public.credit_lines('00000000-0000-4000-8000-000000000001') where full_name = 'Kunal Mehra' $$, 'and leaves the list');
 select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000216', 20000000, 'Reopened'), 'needs_approval', 'a raise waits again');
 reset role;
 insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)

@@ -19,10 +19,10 @@ export function CageScreen() {
   if (!staff.venue.permissions.includes('cage.transact')) {
     return <Screen title={title} status="error" errorText={t('console.cage.notAllowed')} />;
   }
-  return <Cage title={title} venueId={staff.venue.venueId} />;
+  return <Cage title={title} venueId={staff.venue.venueId} canIssueMarkers={staff.venue.permissions.includes('markers.issue')} />;
 }
 
-function Cage({ title, venueId }: { title: string; venueId: string }) {
+function Cage({ title, venueId, canIssueMarkers }: { title: string; venueId: string; canIssueMarkers: boolean }) {
   // The member chosen, by id and the search that found them, so a buy-in's reload shows their new wallet.
   const [chosen, setChosen] = useState<{ memberId: string; query: string } | null>(null);
   const found = useCageMembers(venueId, chosen?.query ?? '');
@@ -35,7 +35,7 @@ function Cage({ title, venueId }: { title: string; venueId: string }) {
           <CageQueue venueId={venueId} />
         </Stack>
         {member === undefined ? <Text tone="muted">{t('console.cage.choose')}</Text>
-          : <MemberPanel key={member.memberId} venueId={venueId} member={member} />}
+          : <MemberPanel key={member.memberId} venueId={venueId} member={member} canIssueMarkers={canIssueMarkers} />}
       </Grid>
     </Screen>
   );

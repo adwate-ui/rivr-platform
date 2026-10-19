@@ -2,9 +2,10 @@ import { useKycImageUrl, type CageMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Grid, Heading, Inline, KycPhoto, Money, Stack, Text } from '@rivr/ui';
 import { BuyInForm } from './BuyInForm.tsx';
+import { MarkerForm } from './MarkerForm.tsx';
 
-/** The chosen member, as in the prototype: KYC photo, name, tier, KYC and seat; wallet cash, bonus and markers; the buy-in. */
-export function MemberPanel({ venueId, member }: { venueId: string; member: CageMember }) {
+/** The chosen member, as in the prototype: KYC photo, name, tier, KYC and seat; wallet cash, bonus and markers; the buy-in, and a marker (#74). */
+export function MemberPanel({ venueId, member, canIssueMarkers }: { venueId: string; member: CageMember; canIssueMarkers: boolean }) {
   const photo = useKycImageUrl(member.photoPath);
   const seat = member.seat === null ? t('console.cage.notSeated') : t('console.cage.seatLine', { table: member.seat.tableName, seat: member.seat.number });
   const status = [member.tierName, member.isKycComplete ? t('console.cage.kycVerified') : t('console.cage.kycIncomplete'), seat].join(' · ');
@@ -32,6 +33,7 @@ export function MemberPanel({ venueId, member }: { venueId: string; member: Cage
         ))}
       </Grid>
       <BuyInForm venueId={venueId} member={member} />
+      {canIssueMarkers ? <MarkerForm venueId={venueId} member={member} /> : null}
     </Stack>
   );
 }

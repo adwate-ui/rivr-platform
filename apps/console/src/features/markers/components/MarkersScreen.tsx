@@ -3,6 +3,7 @@ import { useCreditRoom, useStaffVenue } from '@rivr/db';
 import { formatMoney, formatNumber, t } from '@rivr/i18n';
 import { Grid, Money, Screen, Stack, Text } from '@rivr/ui';
 import { CreditLines } from './CreditLines.tsx';
+import { OpenMarkers } from './OpenMarkers.tsx';
 import { SetLimitForm } from './SetLimitForm.tsx';
 
 // As the database's reads allow: staff who set limits, issue markers or read the ledger.
@@ -41,6 +42,7 @@ function Markers({ title, venueId, canSet, isSuperAdmin }: { title: string; venu
               <Text variant="small" tone="muted">{t('console.markers.rules', { threshold: formatMoney(room.data.threshold), visits: formatNumber(room.data.minimumVisits) })}</Text>
             </Stack>
           )}
+          <OpenMarkers venueId={venueId} />
           <CreditLines venueId={venueId} isSuperAdmin={isSuperAdmin} />
         </Stack>
         {canSet && room.data !== null ? <SetLimitForm venueId={venueId} threshold={room.data.threshold} /> : null}
