@@ -86,6 +86,10 @@ export const ui = {
     missing: 'No photo',
     failed: 'The photo could not load. Reload the page, or check the member at the desk.',
   },
+  /** The dealer tablet's pot keypad (#42). */
+  keypad: {
+    delete: 'Delete',
+  },
   /** The dealer tablet's PIN pad (#41). */
   pinPad: {
     delete: 'Delete',

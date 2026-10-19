@@ -1,10 +1,31 @@
-import { useMyDevice } from '@rivr/db';
+import { useCurrentDown, useMyDevice, useTableRules } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen } from '@rivr/ui';
+import { Grid, Screen } from '@rivr/ui';
+import { HandForm } from './HandForm.tsx';
+import { LastHands } from './LastHands.tsx';
 
-/** Hand entry: the seat ring, the pot keypad and Log hand. Lane B builds it out (#42). */
+/**
+ * Hand entry (#42), during a dealer's down (the frame asks for sign-in between downs), as in the
+ * prototype: the down's last hands beside the pot keypad, the game, the rake, drop and pull as the
+ * pot is typed, and Log hand. A new down starts with an empty keypad.
+ */
 export function HandEntryScreen() {
   const device = useMyDevice();
-  const isFixed = device.data?.tableId != null;
-  return <Screen title={t('tablet.handEntry.title')} status="empty" emptyText={t(isFixed ? 'tablet.handEntry.ready' : 'tablet.handEntry.empty')} />;
+  const tableId = device.data?.tableId ?? null;
+  const down = useCurrentDown(tableId);
+  const rules = useTableRules(tableId);
+  const title = t('tablet.handEntry.title');
+  if (tableId === null) return <Screen title={title} status="empty" emptyText={t('tablet.handEntry.empty')} />;
+  if (rules.isPending) return <Screen title={title} status="loading" />;
+  if (rules.data === undefined) return <Screen title={title} status="error" onRetry={() => void rules.refetch()} />;
+  if (rules.data === null) return <Screen title={title} status="empty" emptyText={t('tablet.handEntry.noRake')} />;
+  const downId = down.data?.downId ?? null;
+  return (
+    <Screen title={title}>
+      <Grid columns={2} gap={8}>
+        <LastHands downId={downId} />
+        <HandForm key={downId} rules={rules.data} />
+      </Grid>
+    </Screen>
+  );
 }

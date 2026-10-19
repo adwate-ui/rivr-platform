@@ -40,7 +40,8 @@ src/
     frame/            the app's shell: the table it is fixed to, the kill-switch banner, not found
     pairing/          the pairing code, until the tablet is signed in as itself
     dealer-sign-in/   between downs: the dealer's name and PIN, which starts their down
-    hand-entry/       hand entry (#42)
+    hand-entry/       during a down (#42): the pot keypad, the game, the rake, drop and pull as the pot is
+                      typed (@rivr/domain potTake on the table's rules), Log hand, and the down's last hands
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

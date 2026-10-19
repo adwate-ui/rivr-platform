@@ -50,8 +50,8 @@ const academyPrice = {
   }),
 } as const satisfies SettingDefinition;
 
-// A ₹50 chip, in paise: rake caps and jackpot drops are whole chips (additions, "Chips").
-const CHIP_PAISE = 5_000;
+/** A ₹50 chip, in paise: rake caps, jackpot drops and pots are whole chips (additions, "Chips"). */
+export const CHIP_PAISE = 5_000;
 
 const rakeConfig = {
   key: 'rake.config',

@@ -69,7 +69,7 @@ test.describe('Dealer tablet', () => {
     await pressPin(tablet, '2741');
     await tablet.getByRole('button', { name: 'Sign in' }).click();
     await expect(tablet.getByText(new RegExp(`^${DEALER} · down since \\d{2}:\\d{2}$`))).toBeVisible();
-    await expect(tablet.getByText('Hands for this down are logged here.')).toBeVisible();
+    await expect(tablet.getByRole('button', { name: 'Log hand' })).toBeVisible();
     await tablet.getByRole('button', { name: 'End of down' }).click();
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 

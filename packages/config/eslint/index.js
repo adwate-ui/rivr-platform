@@ -28,6 +28,8 @@ const IGNORES = [
   'supabase/.temp/**',
   // Generated files: edit the source (tokens.json, the migrations) and regenerate.
   'packages/tokens/generated/**',
+  // Where the tokens build writes before it moves into generated/: lint, run beside it, must not walk it.
+  '**/generated.next/**',
   'packages/db/src/database.types.ts',
 ];
 
