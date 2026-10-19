@@ -98,6 +98,17 @@ const jackpotPayout = {
     .refine((rule) => rule.loser_basis_points + rule.winner_basis_points + rule.table_basis_points === 10_000),
 } as const satisfies SettingDefinition;
 
+const highHandPayouts = {
+  key: 'high_hand.payouts',
+  description: 'What each high hand pays, in paise, in whole ₹50 chips: royal flush, straight flush and four of a kind; 0 pays nothing (scope-v1 module 8).',
+  scope: 'venue',
+  value: z.strictObject({
+    royal_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
+    straight_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
+    four_of_a_kind: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
+  }),
+} as const satisfies SettingDefinition;
+
 const waitlistPriorityWeights = {
   key: 'waitlist.priority_weights',
   description: "A tier's waitlist priority: its weight (higher goes first; 0 or unset is none) and whether it counts only on the list for the member's qualifying stake, as the black card's does (scope-v1 module 2).",
@@ -117,7 +128,7 @@ const waitlistHoldMinutes = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, waitlistPriorityWeights, waitlistHoldMinutes,
 ] as const;
 
 /** A setting key declared in code. */
