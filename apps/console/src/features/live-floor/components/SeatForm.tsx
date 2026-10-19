@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { seatPlayerSchema } from '@rivr/contracts';
-import { useSeatActions, type FloorTable, type SeatedPlayer, type SeatFailure } from '@rivr/db';
+import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
@@ -11,13 +11,15 @@ interface SeatFormProps {
   venueId: string;
   table: FloorTable;
   seats: readonly SeatedPlayer[];
+  held: readonly HeldSeat[];
   onResult: (outcome: { ok: true } | { ok: false; error: SeatFailure }) => void;
 }
 
-/** Seats a player found by mobile number in one of the table's open seats; seating starts their session. */
-export function SeatForm({ venueId, table, seats, onResult }: SeatFormProps) {
+/** Seats a player found by mobile number in one of the table's open seats (not one held for a waitlist call); seating starts their session. */
+export function SeatForm({ venueId, table, seats, held, onResult }: SeatFormProps) {
   const { seat } = useSeatActions(venueId);
-  const open = Array.from({ length: table.seats }, (_, index) => index + 1).filter((number) => !seats.some((taken) => taken.seat === number));
+  const open = Array.from({ length: table.seats }, (_, index) => index + 1)
+    .filter((number) => !seats.some((taken) => taken.seat === number) && !held.some((kept) => kept.seat === number));
   const [chosen, setChosen] = useState<number | null>(null);
   const [resolver] = useState(() => zodResolver(seatPlayerSchema));
   const form = useForm<z.input<typeof seatPlayerSchema>, unknown, z.output<typeof seatPlayerSchema>>({ resolver, defaultValues: { phone: '' } });

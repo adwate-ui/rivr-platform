@@ -12,6 +12,7 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   invalid: 'console.waitlist.invalid',
   unavailable: 'console.waitlist.unavailable',
   seat_held: 'console.waitlist.seatHeld',
+  seat_taken: 'console.waitlist.seatTaken',
   too_late: 'console.waitlist.tooLate',
   no_time_away: 'console.waitlist.noTimeAway',
 };

@@ -1,4 +1,4 @@
-import { useSeatActions, type FloorTable, type SeatedPlayer, type SeatFailure } from '@rivr/db';
+import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -12,14 +12,16 @@ interface TableDetailProps {
   table: FloorTable;
   tables: readonly FloorTable[];
   seats: readonly SeatedPlayer[];
+  held: readonly HeldSeat[];
   permissions: readonly string[];
   stakes: string;
 }
 
-/** One seat's row, as in the prototype: who sits there and their tier, their must-move turn, or Open. */
-function SeatLine({ number, player }: { number: number; player: SeatedPlayer | undefined }) {
+/** One seat's row, as in the prototype: who sits there and their tier, their must-move turn, held for a waitlist call, or Open. */
+function SeatLine({ number, player, heldFor }: { number: number; player: SeatedPlayer | undefined; heldFor: HeldSeat | undefined }) {
   if (player === undefined) {
-    return <Inline gap={4}><Text tone="muted">{number}</Text><Text tone="muted">{t('console.liveFloor.seatOpen')}</Text></Inline>;
+    const state = heldFor === undefined ? t('console.liveFloor.seatOpen') : t('console.liveFloor.heldFor', { name: heldFor.fullName });
+    return <Inline gap={4}><Text tone="muted">{number}</Text><Text tone="muted">{state}</Text></Inline>;
   }
   return (
     <Inline gap={4} align="center">
@@ -35,7 +37,7 @@ function SeatLine({ number, player }: { number: number; player: SeatedPlayer | u
  * The chosen table's seats (#77): the floor seats a player, moves one (the same session, so call
  * time runs on) or lets one leave; floor managers open or close the table and set it to feed a main table.
  */
-export function TableDetail({ venueId, table, tables, seats, permissions, stakes }: TableDetailProps) {
+export function TableDetail({ venueId, table, tables, seats, held, permissions, stakes }: TableDetailProps) {
   const { leave } = useSeatActions(venueId);
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
   const [failure, setFailure] = useState<SeatFailure | null>(null);
@@ -53,7 +55,7 @@ export function TableDetail({ venueId, table, tables, seats, permissions, stakes
           const player = seats.find((seat) => seat.seat === index + 1);
           return (
             <Inline key={index} justify="between" align="center">
-              <SeatLine number={index + 1} player={player} />
+              <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} />
               {isFloor && player !== undefined ? (
                 <Inline gap={2}>
                   <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={() => setMoving(player)}>{moveLabel}</Button>
@@ -66,7 +68,7 @@ export function TableDetail({ venueId, table, tables, seats, permissions, stakes
         })}
       </Stack>
       {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
-      {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} onResult={report} /> : null}
+      {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
     </Stack>
   );
 }

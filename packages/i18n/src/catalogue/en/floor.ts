@@ -31,6 +31,10 @@ export const liveFloor = {
   ringClosed: '{name}, closed',
   closed: 'Closed',
   seatOpen: 'Open',
+  /** A seat held for a member called from the waitlist (#63). */
+  heldFor: 'Held for {name}',
+  /** The same seat on a table's ring. */
+  heldMark: 'H',
   /** At a must-move table: the player's turn to move up, 1 first. */
   mustMove: 'Must move {order}',
   move: 'Move',
@@ -49,6 +53,7 @@ export const liveFloor = {
   ownTable: 'None',
   notAllowed: 'Your role does not seat players or change tables.',
   occupied: 'Someone sits in that seat.',
+  held: 'That seat is held for a member called from the waitlist.',
   seated: 'This player is already seated. Move them instead; a table with players stays open.',
   kycNeeded: 'This member has not finished their identity check.',
   onBreak: 'This member is on a break from play. They cannot be seated until it ends.',

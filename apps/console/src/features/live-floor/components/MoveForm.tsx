@@ -1,4 +1,4 @@
-import { useFloorSeats, useSeatActions, type FloorTable, type SeatedPlayer, type SeatFailure } from '@rivr/db';
+import { useFloorSeats, useHeldSeats, useSeatActions, type FloorTable, type SeatedPlayer, type SeatFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, Heading, Inline, Stack } from '@rivr/ui';
 import { useState } from 'react';
@@ -11,16 +11,17 @@ interface MoveFormProps {
   onCancel: () => void;
 }
 
-/** Moves a player to an open seat at an open table: the same session, so their call time runs on. */
+/** Moves a player to an open seat at an open table (not one held for a waitlist call): the same session, so their call time runs on. */
 export function MoveForm({ venueId, player, tables, onDone, onCancel }: MoveFormProps) {
   const { move } = useSeatActions(venueId);
   const seats = useFloorSeats(venueId);
+  const held = useHeldSeats(venueId);
   const [tableId, setTableId] = useState<string | null>(null);
   const [seat, setSeat] = useState<number | null>(null);
   const open = tables.filter((table) => table.isOpen);
   const target = open.find((table) => table.id === tableId);
-  const free = target === undefined ? [] : Array.from({ length: target.seats }, (_, index) => index + 1)
-    .filter((number) => !(seats.data ?? []).some((taken) => taken.tableId === target.id && taken.seat === number));
+  const unavailable = [...(seats.data ?? []), ...(held.data ?? [])].filter((taken) => taken.tableId === tableId).map((taken) => taken.seat);
+  const free = target === undefined ? [] : Array.from({ length: target.seats }, (_, index) => index + 1).filter((number) => !unavailable.includes(number));
   const submit = async () => {
     if (tableId === null || seat === null) return;
     onDone(await move.mutateAsync({ sessionId: player.sessionId, tableId, seat }));

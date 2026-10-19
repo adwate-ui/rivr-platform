@@ -17,15 +17,22 @@ export interface SeatedPlayer {
   readonly mustMoveOrder: number | null;
 }
 
+/** A seat held for a member called from the waitlist (#63): nobody else is seated there. */
+export interface HeldSeat {
+  readonly tableId: string;
+  readonly seat: number;
+  readonly fullName: string;
+}
+
 /**
- * Why a seating change did not go through: not the floor, the seat taken, the player already seated,
- * no finished identity check, on a break, no member with that number, the member or venue frozen, a
- * table closed or a seat it does not have (`invalid`), or anything else.
+ * Why a seating change did not go through: not the floor, the seat taken or held for a waitlist call,
+ * the player already seated, no finished identity check, on a break, no member with that number, the
+ * member or venue frozen, a table closed or a seat it does not have (`invalid`), or anything else.
  */
-export type SeatFailure = 'not_allowed' | 'occupied' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid' | 'unavailable';
+export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
-  '42501': 'not_allowed', RVOCC: 'occupied', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
+  '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
   RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid',
 };
 
@@ -50,6 +57,21 @@ export function useFloorSeats(venueId: string) {
   });
 }
 
+/** The venue's seats held for waitlist calls, for staff who read members. */
+export function useHeldSeats(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.heldSeats(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    refetchInterval: LIVE,
+    queryFn: async (): Promise<HeldSeat[]> => {
+      const { data, error } = await client.rpc('held_seats', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({ tableId: row.table_id, seat: row.seat, fullName: row.full_name }));
+    },
+  });
+}
+
 /**
  * The floor's seating: `seat` a member by mobile number, `move` a player (the same session, so call
  * time runs on), `leave`; floor managers `setOpen` a table (closing only an empty one) and
@@ -61,6 +83,7 @@ export function useSeatActions(venueId: string) {
   const settle = async (error: { code: string } | null): Promise<Result<null, SeatFailure>> => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.floorSeats(userId ?? 'signed-out', venueId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.heldSeats(userId ?? 'signed-out', venueId) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.floorTables(userId ?? 'signed-out') }),
     ]);
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);

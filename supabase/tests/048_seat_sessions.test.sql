@@ -88,5 +88,71 @@ reset role;
 select is((select count(*)::integer from public.outbox_event where event_type = 'seat.taken'), 3, 'seat.taken for each seating');
 select is((select count(*)::integer from public.outbox_event where event_type = 'seat.moved'), 1, 'seat.moved for the move');
 
+-- A seat held for a waitlist call and a taken seat know about each other (#63). Rohan finishes his
+-- identity check here; Vihaan sits at Table 1 and joins the 100/200 list.
+reset role;
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000204', 'verified', 'digilocker', '1993-04-12', 'ABCPB2044B', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000204/selfie.jpg', now());
+create temp table vihaan (name text primary key, id uuid);
+grant select, insert on vihaan to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+insert into vihaan select 'session', public.seat_member(pg_temp.t('Table 1'), 2, '9000000212');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
+insert into vihaan select 'entry', public.join_waitlist((select table_type_id from public.game_table where id = pg_temp.t('Table 3')), gen_random_uuid());
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.call_from_waitlist((select id from vihaan where name = 'entry'), pg_temp.t('Table 3'), 7) $$, 'RVOCC', null,
+  'no call goes to a seat someone sits in');
+select lives_ok($$ select public.call_from_waitlist((select id from vihaan where name = 'entry'), pg_temp.t('Table 3'), 8) $$,
+  'Vihaan is called to Table 3, seat 8');
+select throws_ok($$ select public.seat_member(pg_temp.t('Table 3'), 8, '9000000204') $$, 'RVHLD', null, 'nobody else is seated in the seat held for him');
+select throws_ok($$ select public.move_seat(s.id, pg_temp.t('Table 3'), 8) from public.seat_session s
+                    where s.member_id = '00000000-0000-4000-8000-000000000211' and s.ended_at is null $$, 'RVHLD', null, 'nor moved into it');
+select results_eq($$ select table_id, seat, full_name from public.held_seats('00000000-0000-4000-8000-000000000001') $$,
+  $$ values (pg_temp.t('Table 3'), 8, 'Vihaan Kapoor'::text) $$, 'the live floor sees the seat held for him');
+reset role;
+select lives_ok($$ select private.roll_call_on(e) from public.waitlist_entry e where e.id = (select id from entry) $$,
+  'a call to seat 7 that ended rolls on');
+select is_empty($$ select 1 from public.waitlist_entry e where e.call_table_id = pg_temp.t('Table 3') and e.call_seat = 7 and e.status = 'waiting' $$,
+  'and calls nobody, since Ishaan sits there');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.seat_from_waitlist((select id from vihaan where name = 'entry')) $$, 'seated from the waitlist, Vihaan leaves Table 1');
+select results_eq($$ select id, table_id, seat from public.seat_session where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null $$,
+  $$ select (select id from vihaan where name = 'session'), pg_temp.t('Table 3'), 8 $$, 'in the same session, for the seat he was called to');
+
+-- A table others feed feeds none itself.
+select lives_ok($$ select public.set_must_move(pg_temp.t('Table 5'), pg_temp.t('Table 3')) $$, 'Table 5 feeds Table 3');
+select throws_ok($$ select public.set_must_move(pg_temp.t('Table 3'), pg_temp.t('Table 2')) $$, '22023', null, 'so Table 3 feeds no other table');
+
+-- Seat moves are read as sessions are; the floor of another venue sees and changes nothing here.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select is((select count(*)::integer from public.seat_move), 2, 'a cashier sees the venue''s seat moves');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is_empty($$ select * from public.seat_move $$, 'a dealer does not');
+reset role;
+update public.staff set is_active = false where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.seat_member(pg_temp.t('Table 3'), 1, '9000000204') $$, '42501', null,
+  'the floor of the practice venue alone seats no one at the club');
+select throws_ok($$ select public.move_seat((select id from vihaan where name = 'session'), pg_temp.t('Table 3'), 9) $$, '42501', null, 'moves no one');
+select throws_ok($$ select public.end_seat((select id from vihaan where name = 'session'), 'left') $$, '42501', null, 'lets no one leave');
+select is_empty($$ select * from public.floor_seats('00000000-0000-4000-8000-000000000001') $$, 'and sees neither the club''s seat map');
+select is_empty($$ select * from public.seat_session where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'its sessions');
+select is_empty($$ select * from public.seat_move where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'nor its moves');
+reset role;
+update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
+
+-- A frozen member is not seated; while the venue is frozen, nothing on the floor changes.
+insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)
+select '00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000204', 'Dispute', s.id from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.seat_member(pg_temp.t('Table 3'), 1, '9000000204') $$, 'RVMBR', null, 'a frozen member is not seated');
+reset role;
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.move_seat((select id from vihaan where name = 'session'), pg_temp.t('Table 3'), 9) $$, 'RVFRZ', null,
+  'while the venue is frozen nobody moves');
+select throws_ok($$ select public.set_must_move(pg_temp.t('Table 5'), null) $$, 'RVFRZ', null, 'and no must-move link changes');
+reset role;
+
 select * from finish();
 rollback;

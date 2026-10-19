@@ -70,11 +70,13 @@ export type WaitlistFailure =
   // A break from play (#56).
   | 'on_break'
   // The call-down (#63): the seat is held for another call; the hold or the time away ran out; no time away is left.
-  | 'seat_held' | 'too_late' | 'no_time_away';
+  | 'seat_held' | 'too_late' | 'no_time_away'
+  // Seat sessions (#77): someone sits in the seat called to.
+  | 'seat_taken';
 
 const FAILURE_BY_CODE: Readonly<Record<string, WaitlistFailure>> = {
   '42501': 'not_open', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
-  RVHLD: 'seat_held', RVLAT: 'too_late', RVAWY: 'no_time_away',
+  RVHLD: 'seat_held', RVLAT: 'too_late', RVAWY: 'no_time_away', RVOCC: 'seat_taken', RVSTD: 'invalid',
 };
 
 /** The failure a refused waitlist call stands for. */

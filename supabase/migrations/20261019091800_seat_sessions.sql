@@ -108,8 +108,23 @@ begin
 end;
 $$;
 
+-- Whether a seat is held for a waitlist call (#63) of a member other than this one.
+create function private.is_seat_held(p_table_id uuid, p_seat integer, p_member_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.waitlist_entry e
+                 where e.call_table_id = p_table_id and e.call_seat = p_seat and e.status = 'waiting'
+                   and e.called_at is not null and e.member_id <> p_member_id);
+$$;
+
 -- Starts a seat session at an open table's free seat, inside the member's open visit (opened now if
--- they came straight to the table). Shared by the floor's Seat and seating from the waitlist.
+-- they came straight to the table). Shared by the floor's Seat and seating from the waitlist. The
+-- table is locked first, so a close waits for the seating (and sees it), and a seat held for another
+-- member's waitlist call is not given away.
 create function private.start_seat_session(p_member_id uuid, p_table_id uuid, p_seat integer)
 returns uuid
 language plpgsql
@@ -121,6 +136,7 @@ declare
   v_visit uuid;
   v_id uuid;
 begin
+  select * into v_table from public.game_table t where t.id = v_table.id for no key update;
   if not v_table.is_open or p_seat is null or p_seat not between 1 and v_table.seats
      or not exists (select 1 from public.member m where m.id = p_member_id and m.venue_id = v_table.venue_id) then
     raise exception 'Seat a member of this venue at an open table, in a seat it has' using errcode = '22023';
@@ -135,6 +151,9 @@ begin
   perform 1 from public.member m where m.id = p_member_id for update;
   if exists (select 1 from public.seat_session s where s.member_id = p_member_id and s.ended_at is null) then
     raise exception 'Already seated: move the player instead' using errcode = 'RVSTD';
+  end if;
+  if private.is_seat_held(v_table.id, p_seat, p_member_id) then
+    raise exception 'That seat is held for a member called from the waitlist' using errcode = 'RVHLD';
   end if;
   v_visit := private.current_visit(p_member_id);
   if v_visit is null then
@@ -177,7 +196,8 @@ begin
 end;
 $$;
 
--- Moves a player to a free seat at an open table: the same session, so call time keeps running.
+-- Moves a player to a free seat at an open table: the same session, so call time keeps running. As
+-- when seating, the table is locked first and a seat held for another member's call is refused.
 create function private.move_seat(p_session_id uuid, p_table_id uuid, p_seat integer)
 returns void
 language plpgsql
@@ -189,11 +209,15 @@ declare
   v_to public.game_table := private.floor_table(p_table_id);
 begin
   select * into v_session from public.seat_session s where s.id = p_session_id and s.ended_at is null for update;
+  select * into v_to from public.game_table t where t.id = v_to.id for no key update;
   if v_session.id is null or v_session.venue_id <> v_to.venue_id or not v_to.is_open or p_seat is null or p_seat not between 1 and v_to.seats
      or (v_session.table_id = v_to.id and v_session.seat = p_seat) then
     raise exception 'Move a seated player to another seat at an open table' using errcode = '22023';
   end if;
   perform private.assert_writable(v_to.venue_id, null, v_session.member_id);
+  if private.is_seat_held(v_to.id, p_seat, v_session.member_id) then
+    raise exception 'That seat is held for a member called from the waitlist' using errcode = 'RVHLD';
+  end if;
   begin
     update public.seat_session
     set table_id = v_to.id, seat = p_seat, seated_here_at = case when table_id = v_to.id then seated_here_at else now() end
@@ -260,6 +284,8 @@ end;
 $$;
 
 -- Makes a table a must-move table feeding a main table of the same game, or a table of its own (null).
+-- Both tables are locked in id order, so two managers cannot link them both ways at once; a table
+-- others feed is a main table and feeds none itself.
 create function private.set_must_move(p_table_id uuid, p_main_table_id uuid default null)
 returns void
 language plpgsql
@@ -269,14 +295,17 @@ as $$
 declare
   v_table public.game_table;
 begin
+  perform 1 from public.game_table t where t.id in (p_table_id, p_main_table_id) order by t.id for no key update;
   select * into v_table from public.game_table t where t.id = p_table_id;
   if v_table.id is null or not private.has_permission(v_table.venue_id, 'floor.manage') then
     raise exception 'Only floor managers set must-move tables' using errcode = '42501';
   end if;
-  if p_main_table_id is not null and not exists (
+  perform private.assert_writable(v_table.venue_id);
+  if p_main_table_id is not null and (not exists (
        select 1 from public.game_table m
        where m.id = p_main_table_id and m.id <> v_table.id and m.venue_id = v_table.venue_id
-         and m.table_type_id = v_table.table_type_id and m.must_move_to_table_id is null) then
+         and m.table_type_id = v_table.table_type_id and m.must_move_to_table_id is null)
+     or exists (select 1 from public.game_table f where f.must_move_to_table_id = v_table.id)) then
     raise exception 'A must-move table feeds a main table of the same game' using errcode = '22023';
   end if;
   update public.game_table set must_move_to_table_id = p_main_table_id where id = v_table.id;
@@ -342,7 +371,103 @@ begin
 end;
 $$;
 
+-- A call (#63) goes only to a free seat: the floor's Call is refused, and the roll-on stops, when
+-- someone sits there. The table is locked as seating locks it.
+create or replace function private.put_call(p_entry_id uuid, p_table_id uuid, p_seat integer)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_entry public.waitlist_entry;
+  v_table public.game_table;
+begin
+  select * into v_entry from public.waitlist_entry e where e.id = p_entry_id for update;
+  select * into v_table from public.game_table t where t.id = p_table_id for no key update;
+  if v_entry.status is distinct from 'waiting' or v_entry.called_at is not null or v_entry.stepped_away_at is not null
+     or v_table.id is null or v_table.table_type_id <> v_entry.table_type_id or not v_table.is_open
+     or p_seat is null or p_seat not between 1 and v_table.seats then
+    raise exception 'Call a waiting member to an open table of their game, and a seat at it' using errcode = '22023';
+  end if;
+  perform private.assert_writable(v_entry.venue_id, null, v_entry.member_id);
+  -- Nobody reaches a seat without a finished identity check (scope-v1 module 1).
+  if not private.is_kyc_complete(v_entry.member_id) then
+    raise exception 'Finish the identity check to take a seat' using errcode = 'RVKYC';
+  end if;
+  if exists (select 1 from public.waitlist_entry e
+             where e.call_table_id = v_table.id and e.call_seat = p_seat and e.status = 'waiting' and e.called_at is not null) then
+    raise exception 'That seat is held for someone already called' using errcode = 'RVHLD';
+  end if;
+  if exists (select 1 from public.seat_session s where s.table_id = v_table.id and s.seat = p_seat and s.ended_at is null) then
+    raise exception 'Someone sits in that seat' using errcode = 'RVOCC';
+  end if;
+  begin
+    update public.waitlist_entry
+    set called_at = now(), hold_until = now() + private.waitlist_hold(v_entry.venue_id, now()), call_table_id = v_table.id, call_seat = p_seat
+    where id = v_entry.id
+    returning * into v_entry;
+  exception when unique_violation then
+    -- Another call took the seat at the same moment.
+    raise exception 'That seat is held for someone already called' using errcode = 'RVHLD';
+  end;
+  perform private.emit(v_entry.venue_id, 'waitlist.called',
+                       jsonb_build_object('entry_id', v_entry.id, 'member_id', v_entry.member_id, 'table_name', v_table.name,
+                                          'seat', p_seat, 'hold_until', v_entry.hold_until),
+                       'waitlist.called:' || v_entry.id || ':' || v_entry.called_at);
+end;
+$$;
+
+create or replace function private.roll_call_on(p_ended public.waitlist_entry)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_next record;
+begin
+  for v_next in
+    select r.entry_id
+    from private.ranked_waitlist(array[p_ended.table_type_id]) r
+    join public.waitlist_entry e on e.id = r.entry_id
+    where e.called_at is null and e.stepped_away_at is null
+    order by r.place
+  loop
+    begin
+      perform private.put_call(v_next.entry_id, p_ended.call_table_id, p_ended.call_seat);
+      return;
+    exception when sqlstate 'RVFRZ' or sqlstate 'RVHLD' or sqlstate 'RVOCC' then
+      -- The venue frozen, or the seat held for another call or taken since: nobody is called to it.
+      return;
+    when sqlstate 'RVMBR' or sqlstate 'RVKYC' or sqlstate '22023' then
+      -- A frozen member, one without a finished check, or a table closed since the call: try the next.
+      continue;
+    end;
+  end loop;
+end;
+$$;
+
+-- Seats held for a waitlist call, so the live floor shows them and seats no one else there.
+create function private.held_seats(p_venue_id uuid)
+returns table (table_id uuid, seat integer, full_name text, hold_until timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select e.call_table_id, e.call_seat, m.full_name, e.hold_until
+  from public.waitlist_entry e
+  join public.member m on m.id = e.member_id
+  where e.venue_id = p_venue_id and e.status = 'waiting' and e.called_at is not null
+    and private.has_permission(p_venue_id, 'members.read')
+  order by e.call_table_id, e.call_seat;
+$$;
+
 revoke execute on function private.floor_table(uuid), private.start_seat_session(uuid, uuid, integer) from public, anon, authenticated;
+revoke execute on function private.is_seat_held(uuid, integer, uuid) from public, anon, authenticated;
+revoke execute on function private.held_seats(uuid) from public, anon;
+grant execute on function private.held_seats(uuid) to authenticated;
 revoke execute on function private.seat_member(uuid, integer, text), private.move_seat(uuid, uuid, integer), private.end_seat(uuid, text),
   private.set_table_open(uuid, boolean), private.set_must_move(uuid, uuid), private.floor_seats(uuid) from public, anon;
 grant execute on function private.seat_member(uuid, integer, text), private.move_seat(uuid, uuid, integer), private.end_seat(uuid, text),
@@ -368,6 +493,13 @@ returns table (session_id uuid, table_id uuid, seat integer, member_id uuid, ful
                started_at timestamptz, must_move_order integer)
 language sql stable security invoker set search_path = ''
 as $$ select * from private.floor_seats(p_venue_id); $$;
+
+create function public.held_seats(p_venue_id uuid)
+returns table (table_id uuid, seat integer, full_name text, hold_until timestamptz)
+language sql stable security invoker set search_path = ''
+as $$ select * from private.held_seats(p_venue_id); $$;
+revoke execute on function public.held_seats(uuid) from public, anon;
+grant execute on function public.held_seats(uuid) to authenticated;
 
 revoke execute on function public.seat_member(uuid, integer, text), public.move_seat(uuid, uuid, integer), public.end_seat(uuid, text),
   public.set_table_open(uuid, boolean), public.set_must_move(uuid, uuid), public.floor_seats(uuid) from public, anon;

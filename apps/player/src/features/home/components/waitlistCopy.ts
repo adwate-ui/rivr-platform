@@ -13,6 +13,7 @@ export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>
   unavailable: 'player.tonight.unavailable',
   // The floor's refusal; a member never calls anyone.
   seat_held: 'player.tonight.unavailable',
+  seat_taken: 'player.tonight.unavailable',
   too_late: 'player.tonight.tooLate',
   no_time_away: 'player.tonight.noTimeAway',
 };

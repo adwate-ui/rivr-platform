@@ -52,6 +52,7 @@ export const waitlist = {
   callConfirm: 'Call to this seat',
   invalidCall: 'Choose an open table, and a seat at it.',
   seatHeld: 'That seat is held for someone already called. Choose another seat.',
+  seatTaken: 'Someone sits in that seat. Choose another seat.',
   tooLate: 'The hold has run out. The place goes to the next name within a minute.',
   noTimeAway: 'This member has used all their time away for this place.',
   /** Call, Seat, Skip or Back refused because someone else changed the place or the table first. */

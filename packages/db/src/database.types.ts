@@ -1630,6 +1630,11 @@ isOneToOne: false
 "has_my_consent":
 { Args: { "p_purpose": string }; Returns: boolean
                            },
+"held_seats":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"hold_until": string,"seat": number,"table_id": string
+            }[]
+                           },
 "high_hands":
 { Args: { "p_venue_id": string }; Returns: {
               "category": Database["public"]['Enums']["high_hand_category"],"claim_id": string,"dealer_name": string,"decided_at": string,"decided_by_name": string,"payout_paise": number,"played_at": string,"rank": string,"reason": string,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_name": string
