@@ -40,6 +40,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000125', '+919000000125', 'Kiran Bhat'),
   ('00000000-0000-4000-8000-000000000126', '+919000000126', 'Aisha Khan'),
   ('00000000-0000-4000-8000-000000000127', '+919000000127', 'Tanvi Joshi'),
+  ('00000000-0000-4000-8000-000000000128', '+919000000128', 'Harish Kumar'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -50,6 +51,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000212', '+919000000212', 'Vihaan Kapoor'),
   ('00000000-0000-4000-8000-000000000213', '+919000000213', 'Mihir Shah'),
   ('00000000-0000-4000-8000-000000000214', '+919000000214', 'Yash Gupta'),
+  ('00000000-0000-4000-8000-000000000215', '+919000000215', 'Ritika Das'),
   ('00000000-0000-4000-8000-000000000301', '+919000000301', 'Asha Verma'),
   ('00000000-0000-4000-8000-000000000302', '+919000000302', 'Rajat Singh');
 
@@ -103,6 +105,8 @@ from (values
   ('00000000-0000-4000-8000-000000000126'::uuid, 'Duty manager', 'super_admin'),
   -- The Seat events flow's own duty manager, who seats a player and pairs Table 3's tablet (#59).
   ('00000000-0000-4000-8000-000000000127'::uuid, 'Duty manager', 'super_admin'),
+  -- The Call time flow's own floor manager (#78).
+  ('00000000-0000-4000-8000-000000000128'::uuid, 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id
@@ -130,7 +134,9 @@ from (values
   -- The Self-exclusion flow's own member, who has finished the identity check (55_waitlist.sql); a break cannot be undone.
   ('00000000-0000-4000-8000-000000000213'::uuid, 'Member', null, null),
   -- The Seat events flow's player at Table 3 (55_waitlist.sql has his identity check); never signs in.
-  ('00000000-0000-4000-8000-000000000214'::uuid, 'Member', null, null)
+  ('00000000-0000-4000-8000-000000000214'::uuid, 'Member', null, null),
+  -- The Call time flow's own member, seated in the Private Room, who reads Home (55_waitlist.sql has her identity check).
+  ('00000000-0000-4000-8000-000000000215'::uuid, 'Member', null, null)
 ) as m (person_id, tier_name, small_blind, big_blind)
 join seed_person p on p.id = m.person_id
 on conflict (id) do nothing;

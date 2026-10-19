@@ -1,6 +1,6 @@
 import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, CallTimeTimer, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { MoveForm } from './MoveForm.tsx';
 import { SEAT_FAILURE_COPY } from './seatCopy.ts';
@@ -17,7 +17,7 @@ interface TableDetailProps {
   stakes: string;
 }
 
-/** One seat's row, as in the prototype: who sits there and their tier, their must-move turn, held for a waitlist call, or Open. */
+/** One seat's row, as in the prototype: who sits there and their tier, their must-move turn, away, their call time left (#78), held for a waitlist call, or Open. */
 function SeatLine({ number, player, heldFor }: { number: number; player: SeatedPlayer | undefined; heldFor: HeldSeat | undefined }) {
   if (player === undefined) {
     const state = heldFor === undefined ? t('console.liveFloor.seatOpen') : t('console.liveFloor.heldFor', { name: heldFor.fullName });
@@ -30,6 +30,7 @@ function SeatLine({ number, player, heldFor }: { number: number; player: SeatedP
       <Text tone="muted">{player.tierName}</Text>
       {player.mustMoveOrder === null ? null : <Text variant="small" tone="muted">{t('console.liveFloor.mustMove', { order: player.mustMoveOrder })}</Text>}
       {player.isAway ? <Text variant="small" tone="muted">{t('console.liveFloor.away')}</Text> : null}
+      {player.callTimeLeft === null ? null : <CallTimeTimer secondsLeft={player.callTimeLeft} isPaused={player.isAway} />}
     </Inline>
   );
 }

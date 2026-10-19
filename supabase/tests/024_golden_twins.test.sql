@@ -143,5 +143,17 @@ select results_eq(
   $$ select description, expected ->> 'result', expected ->> 'debit' from golden.golden_case where file = 'cage.json' order by position $$,
   'private.buy_in_check gives every buy-in in the golden file');
 
+-- Call time: private.call_time_left and @rivr/domain callTime (packages/testing/golden/callTime.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'callTime.json'), 'the call time cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'callTime.json' and operation <> 'call_time' $$,
+  'every operation in callTime.json is proved here');
+select results_eq(
+  $$ select description, private.call_time_left((inputs ->> 'minutes')::integer, (inputs ->> 'seated')::timestamptz,
+                                                 (inputs ->> 'awaySeconds')::integer, nullif(inputs ->> 'awaySince', '')::timestamptz,
+                                                 nullif(inputs ->> 'left', '')::timestamptz, (inputs ->> 'at')::timestamptz)
+     from golden.golden_case where file = 'callTime.json' order by position $$,
+  $$ select description, (expected ->> 'secondsLeft')::integer from golden.golden_case where file = 'callTime.json' order by position $$,
+  'private.call_time_left gives every time left in the golden file');
+
 select * from finish();
 rollback;

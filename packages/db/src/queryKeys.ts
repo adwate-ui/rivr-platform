@@ -41,6 +41,7 @@ export const queryKeys = {
   floorSeats: (userId: string, venueId: string) => ['user', userId, 'floor-seats', venueId] as const,
   heldSeats: (userId: string, venueId: string) => ['user', userId, 'held-seats', venueId] as const,
   tabletSeats: (userId: string) => ['user', userId, 'tablet-seats'] as const,
+  mySeat: (userId: string) => ['user', userId, 'my-seat'] as const,
   cageMembers: (userId: string, venueId: string, query: string) => ['user', userId, 'cage-members', venueId, query] as const,
   cageQueue: (userId: string, venueId: string) => ['user', userId, 'cage-queue', venueId] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,

@@ -28,6 +28,8 @@ test.describe('Seat events', () => {
     await dealerSignsIn(tablet);
     await tablet.getByRole('button', { name: 'Seat 9, Yash Gupta' }).click();
     await expect(tablet.getByRole('heading', { name: 'Seat 9 · Yash Gupta' })).toBeVisible();
+    // An hour of call time at 100/200 (#78).
+    await expect(tablet.getByText('Call time 1 h left')).toBeVisible();
     await tablet.getByRole('button', { name: 'Request buy-in' }).click();
     await expect(tablet.getByText('Buy-in ₹10,000 with the cage.')).toBeVisible();
     await expect(tablet.getByRole('button', { name: 'Request buy-in' })).toBeDisabled();
@@ -39,6 +41,7 @@ test.describe('Seat events', () => {
 
     await tablet.getByRole('button', { name: 'Away', exact: true }).click();
     await expect(tablet.getByText('Away from the table. The seat is kept.')).toBeVisible();
+    await expect(tablet.getByText(/^Call time paused, /)).toBeVisible();
     await tablet.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(tablet.getByText('Away from the table. The seat is kept.')).toHaveCount(0);
     await tablet.getByRole('button', { name: 'Player left' }).click();

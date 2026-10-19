@@ -78,7 +78,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.seat_member(pg_temp.t('Table 3'), 1, '9000000212') $$, '42501', null, 'a dealer does not seat players');
 select throws_ok($$ select public.set_table_open(pg_temp.t('Table 2'), true) $$, '42501', null, 'nor opens tables');
 select is_empty($$ select * from public.floor_seats('00000000-0000-4000-8000-000000000001') $$, 'nor sees the seat map');
-select is_empty($$ select * from public.seat_session $$, 'nor the sessions');
+select is_empty($$ select id from public.seat_session $$, 'nor the sessions');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is((select count(*)::integer from public.floor_seats('00000000-0000-4000-8000-000000000001')), 1, 'a cashier sees who sits where');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
@@ -136,7 +136,7 @@ select throws_ok($$ select public.seat_member(pg_temp.t('Table 3'), 1, '90000002
 select throws_ok($$ select public.move_seat((select id from vihaan where name = 'session'), pg_temp.t('Table 3'), 9) $$, '42501', null, 'moves no one');
 select throws_ok($$ select public.end_seat((select id from vihaan where name = 'session'), 'left') $$, '42501', null, 'lets no one leave');
 select is_empty($$ select * from public.floor_seats('00000000-0000-4000-8000-000000000001') $$, 'and sees neither the club''s seat map');
-select is_empty($$ select * from public.seat_session where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'its sessions');
+select is_empty($$ select id from public.seat_session where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'its sessions');
 select is_empty($$ select * from public.seat_move where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'nor its moves');
 reset role;
 update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';

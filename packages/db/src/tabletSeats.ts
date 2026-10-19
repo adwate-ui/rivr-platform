@@ -11,6 +11,8 @@ export interface TabletPlayer {
   readonly fullName: string;
   readonly isAway: boolean;
   readonly pendingBuyIn: Paise | null;
+  /** Whole seconds of call time left (#78); null where the table's type has none. */
+  readonly callTimeLeft: number | null;
 }
 
 /** A seat at the tablet's table (#59): who sits there (null when open), and the table's minimum buy-in. */
@@ -44,7 +46,7 @@ export function useTabletSeats() {
         seat: row.seat, minimum: toPaise(row.minimum_paise),
         player: row.session_id === null || row.full_name === null ? null : {
           sessionId: row.session_id, fullName: row.full_name, isAway: row.away_since !== null,
-          pendingBuyIn: row.pending_buy_in_paise === null ? null : toPaise(row.pending_buy_in_paise),
+          pendingBuyIn: row.pending_buy_in_paise === null ? null : toPaise(row.pending_buy_in_paise), callTimeLeft: row.call_time_left,
         },
       }));
     },

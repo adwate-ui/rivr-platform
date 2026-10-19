@@ -1,7 +1,7 @@
 import { useSeatEvents, type SeatEventFailure, type TabletPlayer, type TabletSeat } from '@rivr/db';
 import { times, type Paise } from '@rivr/domain/money';
 import { formatMoney, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, CallTimeTimer, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<SeatEventFailure, MessageKey>> = {
@@ -40,6 +40,7 @@ export function SeatPanel({ seat, player, onLeft }: SeatPanelProps) {
     <Stack gap={3}>
       <Heading level={2}>{t('tablet.seats.title', { seat: seat.seat, name: player.fullName })}</Heading>
       {player.isAway ? <Text tone="muted">{t('tablet.seats.isAway')}</Text> : null}
+      {player.callTimeLeft === null ? null : <CallTimeTimer secondsLeft={player.callTimeLeft} isPaused={player.isAway} />}
       <Inline gap={3} align="end" wrap>
         <ChoiceChips label={t('tablet.seats.buyIn')} mode="one" selected={[String(amount)]}
           options={amounts.map((option) => ({ value: String(option), label: formatMoney(option) }))}
