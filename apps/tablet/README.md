@@ -27,6 +27,8 @@ cd apps/tablet/android && ./gradlew assembleDebug
 
 The release workflow builds the signed APK from a `release-*` tag (`docs/runbooks/ci-and-release.md`). Colours come from `@rivr/tokens`' generated Android resources.
 
+At the club each tablet runs in kiosk mode (Android lock task, #41): provisioned as the device owner over adb, the app locks the tablet to itself, is its home screen and keeps the screen on (`docs/runbooks/dealer-tablet.md`). On a device that is not provisioned, such as a developer's phone, it runs as a normal app.
+
 ## Structure
 
 ```
