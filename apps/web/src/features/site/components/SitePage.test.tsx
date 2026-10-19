@@ -13,6 +13,8 @@ const PAGE = {
     { kind: 'text' as const, content: { heading: "A members' club", body: 'Cash games every night.' } },
   ],
   navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
+  games: [],
+  tournaments: [],
 };
 
 describe('a website page', () => {
@@ -33,5 +35,17 @@ describe('a website page', () => {
   it('joins the player app\'s address however it was written', () => {
     render(<SitePage page={PAGE} playerUrl="https://player.invalid/" attribution={null} />);
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in');
+  });
+
+  it('draws the live blocks from the rows the page loaded', () => {
+    const live = {
+      ...PAGE,
+      blocks: [{ kind: 'games' as const, content: { heading: 'Games and stakes' } }, { kind: 'calendar' as const, content: {} }],
+      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1 }],
+      tournaments: [{ name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n }],
+    };
+    render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
+    expect(screen.getByText('1 table running')).toBeDefined();
+    expect(screen.getByText('Sunday 15 Nov 2026, 16:00')).toBeDefined();
   });
 });

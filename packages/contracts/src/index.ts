@@ -1,7 +1,7 @@
 export { err, ok, type Err, type Ok, type Result } from './result.ts';
 export { ATTRIBUTION_PARAMS, attributionFrom, attributionSearch, type Attribution, type AttributionField } from './attribution.ts';
 export { returnPathFrom, returnSearchFrom, type ReturnSearch } from './returnPath.ts';
-export { PLAYER_DESTINATIONS, siteBlockSchema, type PlayerDestination, type SiteBlock } from './site.ts';
+export { PLAYER_DESTINATIONS, SITE_BLOCK_KINDS, siteBlockSchema, type PlayerDestination, type SiteBlock } from './site.ts';
 export {
   deviceIdSchema,
   idempotencyKeySchema,

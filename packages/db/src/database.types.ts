@@ -871,6 +871,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tournament": {
+                  Row: {
+                    "buy_in_paise": number,"created_at": string,"guarantee_paise": number | null,"id": string,"is_published": boolean,"name": string,"starts_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "buy_in_paise": number,"created_at"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"name": string,"starts_at": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "buy_in_paise"?: number,"created_at"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"name"?: string,"starts_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tournament_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"venue": {
                   Row: {
                     "created_at": string,"id": string,"is_practice": boolean,"name": string,"slug": string,"time_zone": string,"updated_at": string
@@ -985,6 +1005,22 @@ isOneToOne: false
                 },"public_site_page": {
                   Row: {
                     "description": string | null,"nav_position": number | null,"slug": string | null,"title": string | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                },"public_table_status": {
+                  Row: {
+                    "big_blind_paise": number | null,"buy_in_max_paise": number | null,"buy_in_min_paise": number | null,"game": string | null,"is_open": boolean | null,"small_blind_paise": number | null,"straddle_paise": number | null,"table_name": string | null,"table_position": number | null,"table_type_code": string | null,"table_type_name": string | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                },"public_tournament_calendar": {
+                  Row: {
+                    "buy_in_paise": number | null,"guarantee_paise": number | null,"name": string | null,"starts_at": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [
