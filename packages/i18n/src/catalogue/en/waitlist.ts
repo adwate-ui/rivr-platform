@@ -2,6 +2,9 @@
 
 /** Home's Tonight: each table with how many wait, Join, and the member's own places. */
 export const tonight = {
+  /** While a break runs (#56): `{until}` is when it ends, Wed 17 Feb, 00:10. */
+  breakActive: 'Break active until {until}. Tables are closed to you until then.',
+  onBreak: 'Break active. Tables are closed to you until it ends.',
   title: 'Tonight',
   empty: 'No tables are running.',
   /** How many wait for a table's game and stake. */

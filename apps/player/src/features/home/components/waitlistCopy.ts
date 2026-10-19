@@ -5,6 +5,7 @@ import type { MessageKey } from '@rivr/i18n';
 export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   not_open: 'player.tonight.notOpen',
   kyc_needed: 'player.tonight.kycNeeded',
+  on_break: 'player.tonight.onBreak',
   stopped: 'player.tonight.stopped',
   paused: 'ui.killSwitch.member',
   no_member: 'player.tonight.unavailable',

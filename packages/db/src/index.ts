@@ -55,6 +55,15 @@ export {
   type Stake,
 } from './preferences.ts';
 export {
+  BREAK_DAYS,
+  SESSION_REMINDERS,
+  useRestrictionActions,
+  useRestrictions,
+  type BreakDays,
+  type Restrictions,
+  type SessionReminder,
+} from './restrictions.ts';
+export {
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,

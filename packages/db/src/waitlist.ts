@@ -65,11 +65,13 @@ export interface WaitlistBoardEntry {
 /** Why joining, adding or leaving did not go through: `stopped` is the member frozen, `paused` the whole venue. */
 export type WaitlistFailure =
   | 'not_open' | 'kyc_needed' | 'stopped' | 'paused' | 'no_member' | 'invalid' | 'unavailable'
+  // A break from play (#56).
+  | 'on_break'
   // The call-down (#63): the seat is held for another call; the hold or the time away ran out; no time away is left.
   | 'seat_held' | 'too_late' | 'no_time_away';
 
 const FAILURE_BY_CODE: Readonly<Record<string, WaitlistFailure>> = {
-  '42501': 'not_open', RVKYC: 'kyc_needed', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
+  '42501': 'not_open', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
   RVHLD: 'seat_held', RVLAT: 'too_late', RVAWY: 'no_time_away',
 };
 

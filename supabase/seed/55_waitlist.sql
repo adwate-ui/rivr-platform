@@ -11,15 +11,18 @@ from (values
 join public.table_type tt on tt.code = 'nlh_100_200' and tt.venue_id = '00000000-0000-4000-8000-000000000001'
 on conflict (venue_id, idempotency_key) do nothing;
 
--- Ishaan Verma and Vihaan Kapoor (a black card) have finished the identity check, so the Waitlist
--- flow and a demo can put them on a list.
+-- Ishaan Verma, Vihaan Kapoor (a black card) and Mihir Shah have finished the identity check, so the
+-- Waitlist and Self-exclusion flows and a demo can put them on a list.
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'verified', 'digilocker',
    '1994-08-21', 'ABCPV2111K',
    '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg', now()),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', 'verified', 'digilocker',
    '1988-02-14', 'ABCPK2122L',
-   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000212/selfie.jpg', now())
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000212/selfie.jpg', now()),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 'verified', 'digilocker',
+   '1991-11-03', 'ABCPS2133M',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000213/selfie.jpg', now())
 on conflict do nothing;
 
 -- Waitlist priority (#40): the black card first on the list for its qualifying stake, then Founders'

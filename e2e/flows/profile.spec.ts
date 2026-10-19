@@ -1,6 +1,6 @@
 /**
  * Profile (#7): behind the member's initial, the identity check, the games for waitlist alerts,
- * notifications and promotions, the way to limits and self-exclusion, and sign out (#207). Choices
+ * notifications and promotions, the session reminder and Take a break (#56), and sign out (#207). Choices
  * survive a reload.
  * Each run flips a choice and checks it held, so runs after the first still prove something. Tara
  * Menon is this flow's own member: Auth sends one code a minute to a number, so no other flow signs
@@ -37,11 +37,11 @@ test.describe('Profile', () => {
     await expect(promotions).toHaveAttribute('aria-checked', promotionsOn);
     await expect(seatCalls).toHaveAttribute('aria-checked', seatCallsOn);
 
-    await page.getByRole('button', { name: 'Limits and self-exclusion' }).click();
-    await expect(page.getByRole('heading', { name: 'Limits and self-exclusion' })).toBeVisible();
+    // Limits and a break sit on Profile itself, as in the prototype (#56; the Self-exclusion flow takes one).
+    await expect(page.getByRole('group', { name: 'Session reminder' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Take a break' })).toBeVisible();
 
     // Profile ends with sign out (#207): back to sign-in, and Profile, opened by its address, is out of reach.
-    await page.goBack();
     await page.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
     // Signing out starts afresh: the next person to sign in on this phone lands on Tonight (#233).

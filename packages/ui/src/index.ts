@@ -31,6 +31,7 @@ export * from './Button/index.ts';
 export * from './CameraButton/index.ts';
 export * from './Captcha/index.ts';
 export * from './ChoiceChips/index.ts';
+export * from './ChoiceSheet/index.ts';
 export * from './Switch/index.ts';
 export * from './Input/index.ts';
 

@@ -9,7 +9,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `kyc_record` | Vendor reference, masked Aadhaar, PAN, date of birth, address, KYC photo path (private bucket), liveness and face-match results, status |
 | `kyc_review` | A KYC reviewer's decision on a check: approve or reject, the reason, whether they entered the date of birth or the PAN, where the check ended, who, and whether it was a vendor's check or `manual`, in person (decision 0035, #246) |
 | `consent` | DPDP consent per purpose (marketing, KYC, analytics events), with time and withdrawal, and the staff member who recorded one given in person |
-| `member_limit`, `self_exclusion` | Player-set and floor-set limits, cool-off and self-exclusion |
+| `member_limit`, `self_exclusion` | The member's session reminder; breaks taken by the member or set by the floor, never changed or shortened (#56) |
 | `visit` | Check-in and check-out: opened by QR or phone at the door, closed at the door or on final cash-out |
 | `membership_card` | Rotating QR secret per member |
 | `push_subscription`, `notification_preference` | Web push endpoints; which push types a member wants |
@@ -26,7 +26,9 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | Function | Used by | What it does |
 |---|---|---|
 | `private.is_kyc_complete(member)` | A, B | KYC verified and at least the venue's minimum age (`kyc.minimum_age`, never below 18); duplicate identities never pass |
-| `private.member_restrictions(member, at)` | A, B | Limits, cool-off and self-exclusion in force |
+| `private.member_restrictions(member, at)` | A, B | `break_until` (the end of the break running then, null for none) and `session_reminder_hours`; the waitlist, the door and the cage refuse a member on a break (#56) |
+| `public.take_break(days)`, `public.set_session_reminder(hours?)`, `public.my_restrictions()` | player app | The member takes a break of 1, 7 or 30 days (off every waitlist; a shorter one while a longer runs changes nothing); sets a 4, 6 or 8-hour session reminder, or none; reads both (#56) |
+| `public.set_member_break(member, days, reason)` | console | Staff with `members.manage` set a break of 1 day to 10 years, with a reason (#56; the member record, #60) |
 | `public.check_in(venue, card_code)`, `public.check_out(venue, card_code)` | door screen | Opens or closes a visit; refuses an excluded member; check-out before call time follows lane B's rule; emits `visit.opened` / `visit.closed` |
 | `public.book_academy(batch)`, `public.claim_academy_payment(booking, utr)`, `public.academy_payment_details(booking)` | player app | A seat in an open Academy batch at the `academy.price` fee; the member's UPI payment and UTR (#8); after the hold, a UTR given stays until the cage checks it (#222) |
 | `public.academy_open_batches()`, `public.my_academy_bookings()` | player app | The batches the member can book, with seats left and the fee; the member's own seats, with the UTR given, the last one the cage turned down and `hold_until` while unpaid, and a seat the cage cancelled that way (decision 0033, #247, #222) |
@@ -44,7 +46,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 
 ## Events
 
-- Emits: `member.signed_up` (`member_id`, and `referral_code`, `creator_code`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` when the link had them), `kyc.completed`, `visit.opened`, `visit.closed`, `academy.booked`, `academy.graduated`, `learn.session_completed`, `learn.principle_mastered`, `share_card.rendered`, `cab.requested`, `site.published`.
+- Emits: `member.signed_up` (`member_id`, and `referral_code`, `creator_code`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` when the link had them), `kyc.completed`, `visit.opened`, `visit.closed`, `member.break_started` (`member_id`, `ends_at`), `academy.booked`, `academy.graduated`, `learn.session_completed`, `learn.principle_mastered`, `share_card.rendered`, `cab.requested`, `site.published`.
 - Consumes: `seat.taken`, `waitlist.called`, `call_time.completed`, `withdrawal.sent`, `tournament.starting`, `promotion.published` (push through the `push` adapter); `site.published` (Cloudflare cache purge through the adapter).
 
 ## Uses from other lanes
