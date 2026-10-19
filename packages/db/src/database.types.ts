@@ -309,6 +309,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"game_table": {
+                  Row: {
+                    "created_at": string,"id": string,"is_open": boolean,"name": string,"position": number,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"name": string,"position": number,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"name"?: string,"position"?: number,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "game_table_table_type_id_venue_id_fkey"
+      columns: ["table_type_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "table_type"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "game_table_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"kyc_record": {
                   Row: {
                     "aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
@@ -767,6 +793,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"table_type": {
+                  Row: {
+                    "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at": string,"game": string,"has_variation": boolean,"id": string,"name": string,"small_blind_paise": number,"straddle_paise": number | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at"?: string,"game": string,"has_variation"?: boolean,"id"?: string,"name": string,"small_blind_paise": number,"straddle_paise"?: number | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "big_blind_paise"?: number,"buy_in_max_paise"?: number,"buy_in_min_paise"?: number,"code"?: string,"created_at"?: string,"game"?: string,"has_variation"?: boolean,"id"?: string,"name"?: string,"small_blind_paise"?: number,"straddle_paise"?: number | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "table_type_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tier": {
                   Row: {
                     "created_at": string,"id": string,"is_retired": boolean,"name": string,"rank": number,"updated_at": string,"venue_id": string
@@ -1044,6 +1090,9 @@ isOneToOne: false
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
+                           },
+"reopen_kyc_check":
+{ Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
                            },
 "review_kyc":
 { Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string

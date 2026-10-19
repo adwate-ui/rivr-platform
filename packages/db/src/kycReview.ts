@@ -111,7 +111,20 @@ export function useKycReviewActions(venueId: string) {
       return ok(data === 'verified' ? 'verified' : 'refused');
     },
   });
-  return { review };
+  // A super admin reopens a refused check done in person, with the reason (#267), so the member can
+  // be checked in person again.
+  const reopen = useMutation({
+    mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }): Promise<Result<'reopened', KycReviewFailure>> => {
+      const { error } = await client.rpc('reopen_kyc_check', { p_member_id: memberId, p_reason: reason });
+      const user = userId ?? 'signed-out';
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.kycReview(user, venueId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.kycInPersonSearches(user, venueId) }),
+      ]);
+      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok('reopened');
+    },
+  });
+  return { review, reopen };
 }
 
 /** A member a KYC reviewer may check in person: no check yet (`status` null), or one the app started and never finished. */

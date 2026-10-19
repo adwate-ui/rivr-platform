@@ -68,3 +68,8 @@ export function checkDetails(check: KycCheck): readonly { label: string; value: 
     { label: t('console.kycReview.vendorReference'), value: check.vendorReference ?? none },
   ];
 }
+
+/** Whether a super admin may reopen this check: a refused one done in person (#267). */
+export function mayReopen(check: KycCheck, isSuperAdmin: boolean): boolean {
+  return isSuperAdmin && check.status === 'refused' && check.method === 'manual';
+}
