@@ -45,7 +45,7 @@ Auth and API on staging and production, in the Supabase dashboard:
   1. Make sure the `auth-send-code` function is deployed: the staging deploy does it, or a release does for production.
   2. Under Authentication → Hooks, add a **Send SMS** hook of type HTTPS pointing to `https://<project-ref>.supabase.co/functions/v1/auth-send-code`, and generate its secret.
   3. Under Edge Functions → Secrets, set `SEND_SMS_HOOK_SECRET` to that same secret.
-  4. Add the access-token hook (#187). It refuses every session not started by a code; without it, a password set on a number before its owner's first sign-in opens that account.
+  4. Add the access-token hook (#187). It refuses every session not started by a code, except a paired dealer tablet's or TV's own login (#41, decision 0045); without it, a password set on a number before its owner's first sign-in opens that account.
      - First make sure a deploy has applied migration `20261018091200_code_sign_in_only.sql`. A hook pointing at a function that does not exist fails every sign-in and every refresh.
      - Under Authentication → Hooks, add a **Customize Access Token (JWT) Claims** hook of type Postgres, schema `private`, function `require_code_sign_in`. If the dashboard does not offer the `private` schema, set it through the Management API (`hook_custom_access_token_uri` = `pg-functions://postgres/private/require_code_sign_in`).
      - Check it: sign in with a test number (staging) and refresh the session.

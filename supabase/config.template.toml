@@ -173,6 +173,10 @@ verify_jwt = false
 [functions.whatsapp]
 verify_jwt = false
 
+# A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
+[functions.device-pair]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = {{BLOCK}}27
