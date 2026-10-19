@@ -6,6 +6,8 @@ interface TemplateMessage {
   /** The approved template's name, `seat_ready`. Every template is in English (decision 0027). */
   readonly template: string;
   readonly params: readonly string[];
+  /** For a template whose button opens a link: the part after the template's base address, as a payment link's. */
+  readonly urlButton?: string;
 }
 
 /**

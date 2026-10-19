@@ -47,6 +47,35 @@ describe('WhatsApp Cloud API', () => {
     });
   });
 
+  it('sends a link button\'s suffix with a utility template that has one, as a payment link', async () => {
+    const { fetch, requests } = fakeFetch(200, accepted);
+    const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
+
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Academy'], urlButton: 'pay/k1' });
+
+    expect(sentBody(requests)).toMatchObject({
+      template: {
+        name: 'payment_link',
+        components: [
+          { type: 'body', parameters: [{ type: 'text', text: '₹2,000' }, { type: 'text', text: 'RIVR Academy' }] },
+          { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: 'pay/k1' }] },
+        ],
+      },
+    });
+  });
+
+  it('refuses a marketing template sent without an opt-in, and a link suffix that could add a query', async () => {
+    const { fetch, requests } = fakeFetch(200, accepted);
+    const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
+
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'promotion', params: ['Buy-in bonus Tuesday'] })).toEqual({
+      ok: false, error: { code: 'rejected', reason: 'a marketing template needs the member\'s opt-in' },
+    });
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Academy'], urlButton: 'pay?x=1' }))
+      .toEqual({ ok: false, error: { code: 'rejected', reason: 'the link suffix is not a plain path' } });
+    expect(requests).toEqual([]);
+  });
+
   it('sends a utility template with its body parameters and no button', async () => {
     const { fetch, requests } = fakeFetch(200, accepted);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
