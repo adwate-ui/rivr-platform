@@ -1,3 +1,4 @@
+import '../../../messages.ts';
 import type { Attribution } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
 import { HeroBlock, WebShell } from '@rivr/ui';

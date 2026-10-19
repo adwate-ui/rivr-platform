@@ -46,7 +46,7 @@ const png = await renderToPng({
 
 Build the host first: `pnpm --filter @rivr/render build` (Turborepo builds `@rivr/ui` before it). The tests build it themselves and compare the sample slide with `baselines/tv-bad-beat-jackpot.png`; after a deliberate design change, run `RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test` and review the new PNG. Bigint props survive the trip to the page (`src/job.ts`).
 
-Adding a template: a component in `src/templates/` that composes `@rivr/ui` and takes plain props, registered in `src/templates/index.ts`, with copy in the `@rivr/i18n` namespace of its surface (`tv` for TV slides, `social` for posts). Tests compare with a baseline through `src/test/png.ts`.
+Adding a template: a component in `src/templates/` that composes `@rivr/ui` and takes plain props, registered in `src/templates/index.ts`, with copy in the `@rivr/i18n` namespace of its surface (`tv` for TV slides, `social` for posts). Those two are registered in `src/messages.ts`; a template reading another namespace adds it there, or `t` shows its keys. Tests compare with a baseline through `src/test/png.ts`.
 
 ## Must not
 

@@ -3,6 +3,7 @@
  * marks the body ready once the page is drawn and its webfonts have loaded.
  */
 import '@rivr/ui/styles.css';
+import '../messages.ts';
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { parseHostJob } from '../parse/job.ts';

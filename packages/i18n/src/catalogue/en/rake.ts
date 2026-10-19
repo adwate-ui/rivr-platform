@@ -36,5 +36,3 @@ export const rake = {
   tooSoon: 'That is too close to now: a hand may already be played under it. Choose a time at least two minutes away, or leave the change in place.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };
-
-export const consoleRake = { rake };
