@@ -108,8 +108,61 @@ export const dealerSignIn = {
   endDownFailed: 'End of down did not go through. Check the connection and press it again.',
 };
 
+/** The console's TVs screen (#49): pair a TV by the code it shows, change what it shows, unpair it. */
+export const tvs = {
+  title: 'TVs',
+  notAllowed: 'Your role does not include TVs. Ask an admin if you need it.',
+  empty: 'No TVs yet: type in the code a TV shows to pair it.',
+  code: 'Code on the TV',
+  codeHint: 'The six digits a TV that is not paired shows.',
+  name: 'TV name',
+  nameHint: 'For example, Bar TV.',
+  mode: 'What it shows',
+  /** Above the form: the venue the TV joins, the one the console is on. */
+  venue: 'A TV paired here joins {venue}.',
+  practiceVenue: 'A TV paired here joins {venue}, the practice venue: it shows training figures, not the club\'s.',
+  pair: 'Pair the TV',
+  invalidCode: 'Type the six digits the TV shows.',
+  invalidName: 'Give the TV a name.',
+  /** After pairing: the TV picks up its login and mode on its next ask, within seconds. */
+  pairedNow: '{name} is paired. It shows its mode within a few seconds.',
+  wrongCode: 'No TV is showing that code. Check the code on the TV and type it again.',
+  /** The TV has signed in. */
+  paired: 'Paired',
+  /** Paired on the console, but the TV has not picked up its login yet. */
+  waiting: 'Waiting for the TV',
+  modeFor: 'What {name} shows',
+  unpair: 'Unpair {name}',
+  unpairReason: 'Why it is unpaired',
+  unpairConfirm: 'Unpair the TV',
+  invalidReason: 'Say why the TV is unpaired.',
+  notAllowedAction: 'Your role does not allow this.',
+  paused: 'The venue is frozen. TVs change again once it is released.',
+  changed: 'That TV has just changed. Check the list and try again.',
+  unavailable: 'That did not go through. Check the connection and try again.',
+};
+
+/** A TV before it is paired (#49): the code staff type into the console. */
+export const tvPairing = {
+  title: 'Screen pairing',
+  intro: 'On the console, open TVs and type in this code.',
+  /** `{time}` (IST) is when the code runs out and a new one shows. */
+  changes: 'The code changes at {time}.',
+  loading: 'Getting a code.',
+  tooMany: 'Too many screens asked for a code. This one asks again in a minute.',
+  unavailable: 'RIVR cannot be reached. This screen tries again in a minute.',
+};
+
+/** A paired TV that cannot read what it shows. */
+export const tvScreen = {
+  unavailable: 'RIVR cannot be reached. This screen tries again in a few seconds.',
+};
+
 /** The console's device screens, spread into its catalogue. */
-export const consoleDevices = { tablets, dealerPins };
+export const consoleDevices = { tablets, dealerPins, tvs };
 
 /** The tablet's pairing, sign-in and hand entry copy, spread into its catalogue. */
 export const tabletDevices = { pairing, handEntry, dealerSignIn };
+
+/** The TV's pairing and screen copy, spread into the display app's catalogue. */
+export const displayDevices = { pairing: tvPairing, screen: tvScreen };

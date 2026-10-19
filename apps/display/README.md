@@ -21,7 +21,9 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell: navigation, the kill-switch banner, not found
+    frame/            the app's shell: navigation, the kill-switch banner, not found; the pairing code until the TV is paired
+    pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
+    modes/            a paired TV shows the mode the console gave it, under its name
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

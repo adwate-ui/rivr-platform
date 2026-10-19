@@ -4,7 +4,7 @@ import { cx } from '../internal/classes.ts';
 /**
  * `display` is set in the display face (Bodoni Moda) for TV
  * titles and the wordmark lockup; it is never smaller than 20 px. `poster` is the display face at its
- * largest, the hero of a social post with no figure. `step` is the title of a step of sign-in or KYC.
+ * largest: the hero of a social post with no figure, and the pairing code a TV shows across the room. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
 export type HeadingVariant = 'display' | 'poster' | 'step' | 'title' | 'section' | 'subsection';

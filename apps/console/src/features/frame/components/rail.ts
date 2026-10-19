@@ -25,6 +25,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'liveFloor', label: 'ui.consoleRail.items.liveFloor', href: '/', anyOf: [] },
       { id: 'waitlist', label: 'ui.consoleRail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
       { id: 'tablets', label: 'ui.consoleRail.items.tablets', href: '/tablets', anyOf: ['devices.manage'] },
+      { id: 'tvs', label: 'ui.consoleRail.items.tvs', href: '/tvs', anyOf: ['devices.manage'] },
       { id: 'rake', label: 'ui.consoleRail.items.rake', href: '/rake', anyOf: ['settings.manage'] },
     ],
   },

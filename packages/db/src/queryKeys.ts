@@ -55,4 +55,12 @@ export const queryKeys = {
   tableRules: (userId: string, tableId: string) => ['user', userId, 'table-rules', tableId] as const,
   /** The hands of the open down on the tablet, kept by down. */
   downHands: (userId: string, downId: string) => ['user', userId, 'down-hands', downId] as const,
+  /** An unpaired TV's code (#49): signed out, so it belongs to no one. */
+  tvCode: () => ['tv-code'] as const,
+  /** Whether staff have typed in that code yet. */
+  tvClaim: (code: string) => ['tv-code', code, 'claim'] as const,
+  /** The signed-in TV's name and mode. */
+  myTvScreen: (userId: string) => ['user', userId, 'my-tv-screen'] as const,
+  /** A venue's TVs, for staff who manage devices. */
+  venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
 };

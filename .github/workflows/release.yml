@@ -95,7 +95,7 @@ jobs:
         run: pnpm supabase functions deploy --project-ref "$PROJECT_REF"
       - name: Device app origins for device-pair (#41)
         env:
-          ORIGINS: ${{ vars.PROD_TABLET_URL }}
+          ORIGINS: ${{ vars.PROD_TABLET_URL }},${{ vars.PROD_DISPLAY_URL }}
         run: pnpm supabase secrets set "DEVICE_APP_ORIGINS=$ORIGINS" --project-ref "$PROJECT_REF"
       - name: Auth settings (sessions only from a code, #187)
         run: node scripts/ci/check-auth-config.mjs

@@ -10,11 +10,12 @@ import { tabletsRoute } from './routes/tablets.tsx';
 import { dealerPinsRoute } from './routes/dealer-pins.tsx';
 import { rakeRoute } from './routes/rake.tsx';
 import { jackpotsRoute } from './routes/jackpots.tsx';
+import { tvsRoute } from './routes/tvs.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
-    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, tabletsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
+    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, tabletsRoute, tvsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
   ]),
 ]);
 

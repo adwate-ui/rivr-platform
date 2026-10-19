@@ -2,7 +2,7 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
-import { consoleDevices, tabletDevices } from './devices.ts';
+import { consoleDevices, displayDevices, tabletDevices } from './devices.ts';
 import { consoleJackpots } from './jackpots.ts';
 import { consoleRake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
@@ -229,7 +229,7 @@ export const tabletApp = {
 } as const;
 
 export const displayApp = {
-  unpaired: 'This screen is not paired.',
+  ...displayDevices,
 } as const;
 
 export const driverApp = {
