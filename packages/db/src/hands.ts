@@ -27,8 +27,9 @@ export interface DownHand {
 }
 
 /**
- * Why a hand was not logged: no dealer signed in, the venue frozen, a pot that is not whole ₹50
- * chips (or a variant the table does not play), or anything else.
+ * Why a hand was not logged: no dealer signed in on this tablet (or one who may no longer log
+ * hands), the venue frozen, a pot that is not whole ₹50 chips up to ₹1 crore (or a variant the
+ * table does not play, or a time outside the down), or anything else.
  */
 export type LogHandFailure = 'no_dealer' | 'paused' | 'invalid' | 'unavailable';
 
@@ -49,7 +50,7 @@ export function useTableRules() {
   });
 }
 
-/** The hands of the current down at the tablet's table, latest first. */
+/** The hands of the open down on this tablet, latest first. */
 export function useDownHands() {
   const { client, userId } = useRivrData();
   return useQuery({
