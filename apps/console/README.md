@@ -33,7 +33,8 @@ src/
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
     withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)
     treasury/         what the venue holds, the chips in play, and the cage's shift: its float and its chips
-                      counted by denomination (/treasury)
+                      counted by denomination (/treasury); End of day, its close against the ledger and an
+                      anomaly's reason from a manager (/end-of-day)
     members/          a member found by name, mobile or number; the record, early departures and a tier change (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)

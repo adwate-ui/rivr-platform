@@ -32,9 +32,13 @@ function featuresInMigrations(): Map<string, boolean> {
   return new Map(rows.map(([, key, gateable]) => [key ?? '', gateable === 'true']));
 }
 
+// A role's permissions may be granted over several migrations: each later block adds to the earlier.
 function permissionsInMigrations(): Map<string, string[]> {
-  const blocks = [...sql.matchAll(/select '([a-z_]+)', permission\s+from unnest\(array\[([\s\S]*?)\]\)/g)];
-  return new Map(blocks.map(([, role, list]) => [role ?? '', [...(list ?? '').matchAll(/'([a-z_.]+)'/g)].map(([, p]) => p ?? '').sort()]));
+  const granted = new Map<string, string[]>();
+  for (const [, role = '', list = ''] of sql.matchAll(/select '([a-z_]+)', permission\s+from unnest\(array\[([\s\S]*?)\]\)/g)) {
+    granted.set(role, [...(granted.get(role) ?? []), ...[...list.matchAll(/'([a-z_.]+)'/g)].map(([, p]) => p ?? '')].sort());
+  }
+  return granted;
 }
 
 function settingKeysInMigrations(): Map<string, { scope: string; schema: unknown }> {

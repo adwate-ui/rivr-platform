@@ -130,6 +130,23 @@ select results_eq(
      from golden.golden_case where file = 'variance.json' order by position $$,
   'private.down_variance gives every variance and alert in the golden file');
 
+-- A shift's close: private.shift_close and @rivr/domain shiftClose (packages/testing/golden/eod.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'eod.json'), 'the shift close cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'eod.json' and operation <> 'close' $$,
+  'every operation in eod.json is proved here');
+select results_eq(
+  $$ select description, v.cash_paise, v.chips_paise, v.receipts_paise, v.markers_paise, v.is_anomaly
+     from golden.golden_case
+     cross join lateral private.shift_close(pg_temp.paise(inputs ->> 'countedCash'), pg_temp.paise(inputs ->> 'expectedCash'),
+       pg_temp.paise(inputs ->> 'countedChips'), pg_temp.paise(inputs ->> 'expectedChips'),
+       pg_temp.paise(inputs ->> 'countedReceipts'), pg_temp.paise(inputs ->> 'expectedReceipts'),
+       pg_temp.paise(inputs ->> 'countedMarkers'), pg_temp.paise(inputs ->> 'expectedMarkers')) v
+     where file = 'eod.json' order by position $$,
+  $$ select description, pg_temp.signed_paise(expected ->> 'cash'), pg_temp.signed_paise(expected ->> 'chips'),
+            pg_temp.signed_paise(expected ->> 'receipts'), pg_temp.signed_paise(expected ->> 'markers'), expected ->> 'anomaly' = 'yes'
+     from golden.golden_case where file = 'eod.json' order by position $$,
+  'private.shift_close gives every variance and anomaly in the golden file');
+
 -- A buy-in at the cage: private.buy_in_check and @rivr/domain buyIn (packages/testing/golden/cage.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'cage.json'), 'the cage buy-in cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'cage.json' and operation <> 'buy_in' $$,

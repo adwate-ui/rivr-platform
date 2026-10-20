@@ -36,5 +36,17 @@ const chipQuantitySchema = z.string().trim().regex(/^(0|[1-9]\d{0,5})$/);
 /** A count of the chips in the cage (#24): how many of each of the venue's chips, in their order. */
 export const chipCountSchema = z.object({ quantities: z.array(chipQuantitySchema).min(1) });
 
+/** Whole rupees from nothing up, as typed. */
+const wholeRupeesSchema = z.string().trim().regex(/^(0|[1-9]\d{0,8})$/);
+
 /** Opening the cage's shift (#24): the float counted into the drawer, in whole rupees, and the chips counted. */
-export const openShiftSchema = chipCountSchema.extend({ float: z.string().trim().regex(/^(0|[1-9]\d{0,8})$/) });
+export const openShiftSchema = chipCountSchema.extend({ float: wholeRupeesSchema });
+
+/**
+ * Closing the cage's shift (#45): the cash counted in the drawer, the UPI and bank receipts the statement
+ * shows, and the signed markers held, in whole rupees, with the chips counted.
+ */
+export const closeShiftSchema = chipCountSchema.extend({ cash: wholeRupeesSchema, receipts: wholeRupeesSchema, markers: wholeRupeesSchema });
+
+/** Why a close's variance happened, from the reviewer (#45): 3 to 500 characters. */
+export const eodReviewSchema = z.object({ reason: z.string().trim().min(3).max(500) });

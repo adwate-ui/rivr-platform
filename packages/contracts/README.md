@@ -30,6 +30,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `creditLimitSchema` | The floor's credit limit form (#73): mobile number, the limit in whole rupees (0 closes the line), and why. |
 | `markerIssueSchema` | The cage's marker form (#74): the amount in whole rupees. |
 | `chipCountSchema`, `openShiftSchema` | The Treasury's forms (#24): how many of each of the venue's chips, a whole number from 0, and for opening the cage's shift the float in whole rupees. |
+| `closeShiftSchema`, `eodReviewSchema` | End of day (#45): the cash, receipts and markers in whole rupees with the chips counted, and a reviewer's reason for a variance, 3 to 500 characters. |
 | `cashOutSchema`, `CASH_OUT_TO` | The cage's cash-out form (#75): the chips in whole rupees, to cash or the wallet, and whether it is final (#76). |
 | `HIGH_HAND_CATEGORIES`, `HIGH_HAND_RANKS`, `highHandClaimSchema`, `highHandRejectSchema` | High hands (#47): the hands the club pays, lowest first; a four of a kind's rank, A to 2; a claim as the tablet sends it (the category, a seat from 1 to 10, and a rank for a four of a kind only); and a rejection's reason, 3 to 300 characters. |
 | `badBeatSchema`, `jackpotReversalSchema` | A bad beat as the console records it (#48): the table, the loser's and winner's mobile numbers and the others dealt in (commas or lines, at most nine), each a different player, as `+91…`; and a reversal's reason, 3 to 300 characters. |

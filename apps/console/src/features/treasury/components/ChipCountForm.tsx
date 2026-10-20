@@ -10,12 +10,12 @@ import type { z } from 'zod';
 import { TREASURY_FAILURE_COPY } from './treasuryCopy.ts';
 
 /** The typed counts, chip by chip, as the database takes them. */
-function countsOf(lines: readonly ChipCountLine[], quantities: readonly string[]): ChipCount[] {
+export function countsOf(lines: readonly ChipCountLine[], quantities: readonly string[]): ChipCount[] {
   return lines.map((line, index) => ({ value: line.value, quantity: Number(quantities[index] ?? '0') }));
 }
 
 /** One field per chip, smallest first: how many the cashier counted. */
-function ChipFields({ lines, field, errors }: {
+export function ChipFields({ lines, field, errors }: {
   lines: readonly ChipCountLine[];
   field: (index: number) => UseFormRegisterReturn;
   errors: FieldErrors<{ quantities: string[] }>['quantities'];
