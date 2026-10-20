@@ -1,0 +1,432 @@
+{
+  "rule": "promotions",
+  "about": "The promotions engine (scope-v1 module 7; #83). A rule applies when every condition it names holds for the member at that moment (its facts); a rule with no conditions always applies. Days and times are the club's: its day runs from 06:00 to 06:00 IST, so 02:00 on Wednesday is still Tuesday night, and a window runs from its start up to, not including, its end. First N counts the promotion's grants already given that club day (at the member's table, or anywhere). A new player has no visit before this one; a lapsed one's last visit was at least that many days ago; visits in the month are the visits closed this calendar month. Hours played and the hand (a high hand or a bad beat) come with the event. A reward is what the rule gives: a bonus share of the buy-in rounded down to whole ₹50 chips, then held to its cap; points a fixed number or the extra of a multiplier on the points earned, rounded down; a bonus or points of nothing is not given. Its rupee cost counts against the promotion's budget (₹0 for a cab, a spin, a ticket or a message). Of the promotions that apply to one event, in priority order, each is given while its count budget, rupee budget and per-player limit allow; one that does not stack is given only alone, and once it is given nothing else is. Facts, effects and candidates are written as the database holds them, amounts in paise.",
+  "cases": [
+    {
+      "description": "No conditions: the rule applies to anyone, any time.",
+      "operation": "applies",
+      "inputs": { "conditions": "{}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Tuesdays: 21:00 on Tuesday 17 November is Tuesday.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [2]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Tuesdays: 02:00 on Wednesday morning is still Tuesday night at the club.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [2]}", "facts": "{\"at\": \"2026-11-18T02:00:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Tuesdays: at 06:00 on Wednesday the club's Wednesday has begun.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [2]}", "facts": "{\"at\": \"2026-11-18T06:00:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Weekends: Sunday is day 7.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [6, 7]}", "facts": "{\"at\": \"2026-11-15T23:00:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Thursday 14:00 to 20:00 (flow 7): at 14:00 the window has opened.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}", "facts": "{\"at\": \"2026-11-19T14:00:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Thursday 14:00 to 20:00: 19:59 is inside.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}", "facts": "{\"at\": \"2026-11-19T19:59:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Thursday 14:00 to 20:00: at 20:00 the window has closed.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}", "facts": "{\"at\": \"2026-11-19T20:00:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Thursday 14:00 to 20:00: 13:59 is before it.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}", "facts": "{\"at\": \"2026-11-19T13:59:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "A late window, 22:00 to 04:00 on Saturday night: 03:59 on Sunday morning is inside.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [6], \"from\": \"22:00\", \"until\": \"04:00\"}", "facts": "{\"at\": \"2026-11-15T03:59:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "A late window, 22:00 to 04:00: at 04:00 it has closed.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"from\": \"22:00\", \"until\": \"04:00\"}", "facts": "{\"at\": \"2026-11-15T04:00:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Until 06:00 is the end of the club's day: 05:59 is inside.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"from\": \"18:00\", \"until\": \"06:00\"}", "facts": "{\"at\": \"2026-11-18T05:59:00+05:30\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Black card only: a black-card member.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"tier_ids\": [\"black\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"black\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Founders' Circle only: a black-card member is not in it.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"tier_ids\": [\"founders\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"black\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "At 100/200: a player at an NLH 100/200 table.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"stakes\": [\"nlh_100_200\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_100_200\", \"table_id\": \"table-3\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "At 100/200: a member at no table is at no stake.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"stakes\": [\"nlh_100_200\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Table 3 only: a player at Table 5.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"table_ids\": [\"table-3\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_25_50\", \"table_id\": \"table-5\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "First five per table (flow 3): four given at Table 3 today, so this is the fifth.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [2], \"first_n\": {\"count\": 5, \"per\": \"table\"}}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"table_id\": \"table-3\", \"granted_today\": 9, \"granted_today_at_table\": 4}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "First five per table: five given at Table 3 today, so the sixth gets nothing.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [2], \"first_n\": {\"count\": 5, \"per\": \"table\"}}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"table_id\": \"table-3\", \"granted_today\": 5, \"granted_today_at_table\": 5}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "First five per table: a member at no table is never among them.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"first_n\": {\"count\": 5, \"per\": \"table\"}}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "First ten a day: nine given today, wherever.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"first_n\": {\"count\": 10, \"per\": \"day\"}}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"granted_today\": 9, \"granted_today_at_table\": 0}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "First ten a day: ten given today.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"first_n\": {\"count\": 10, \"per\": \"day\"}}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"granted_today\": 10, \"granted_today_at_table\": 1}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "New players: no visit before this one.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"new_player\": true}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"days_since_last_visit\": null}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "New players: someone who came three days ago is not new.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"new_player\": true}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"days_since_last_visit\": 3}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Lapsed 30 days: last here exactly 30 days ago.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"lapsed_days\": 30}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"days_since_last_visit\": 30}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Lapsed 30 days: last here 29 days ago is not lapsed.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"lapsed_days\": 30}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"days_since_last_visit\": 29}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Lapsed 30 days: a new player has not lapsed.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"lapsed_days\": 30}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"days_since_last_visit\": null}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Four visits a month (the cab): Arjun has five visits behind him this month.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"min_visits_in_month\": 4}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"visits_in_month\": 5}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Four visits a month: exactly four.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"min_visits_in_month\": 4}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"visits_in_month\": 4}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Four visits a month: three are not enough.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"min_visits_in_month\": 4}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"visits_in_month\": 3}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Call time completed: the player has played it.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"call_time_complete\": true}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"call_time_complete\": true}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Call time completed: still owed.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"call_time_complete\": true}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"call_time_complete\": false}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Two hours in: two and a half hours played.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"min_hours\": 2}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"hours_played\": 2.5}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Two hours in: an hour and a half is not enough.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"min_hours\": 2}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"hours_played\": 1.5}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "A royal flush or a straight flush: a royal flush.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"hands\": [\"royal_flush\", \"straight_flush\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"hand\": \"royal_flush\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "A royal flush or a straight flush: a bad beat is neither.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"hands\": [\"royal_flush\", \"straight_flush\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"hand\": \"bad_beat\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "A royal flush: an event with no hand is not one.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"hands\": [\"royal_flush\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Every condition must hold: a black card at 100/200 on Tuesday, but at Table 5 not Table 3.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"days\": [2], \"tier_ids\": [\"black\"], \"stakes\": [\"nlh_100_200\"], \"table_ids\": [\"table-3\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"black\", \"stake\": \"nlh_100_200\", \"table_id\": \"table-5\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
+      "description": "Buy-in bonus Tuesday (flow 3): 20% of a ₹10,000 buy-in is ₹2,000.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"expires_days\": 7}", "amount": "₹10,000", "points": "0" },
+      "expected": { "reward": "₹2,000" }
+    },
+    {
+      "description": "20% of ₹10,050 is ₹2,010, rounded down to ₹2,000 in whole ₹50 chips.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"expires_days\": 7}", "amount": "₹10,050", "points": "0" },
+      "expected": { "reward": "₹2,000" }
+    },
+    {
+      "description": "20% of ₹12,250 is ₹2,450, already whole chips.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"expires_days\": 7}", "amount": "₹12,250", "points": "0" },
+      "expected": { "reward": "₹2,450" }
+    },
+    {
+      "description": "5% of ₹2,400 is ₹120, rounded down to ₹100.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 500, \"expires_days\": 30}", "amount": "₹2,400", "points": "0" },
+      "expected": { "reward": "₹100" }
+    },
+    {
+      "description": "At the cap: 20% of ₹50,000 is ₹10,000, held to the ₹5,000 cap.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"cap_paise\": 500000, \"expires_days\": 7}", "amount": "₹50,000", "points": "0" },
+      "expected": { "reward": "₹5,000" }
+    },
+    {
+      "description": "Below the cap the share stands: 20% of ₹20,000 under a ₹5,000 cap.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"cap_paise\": 500000, \"expires_days\": 7}", "amount": "₹20,000", "points": "0" },
+      "expected": { "reward": "₹4,000" }
+    },
+    {
+      "description": "20% of ₹200 is ₹40, less than a chip: nothing is given.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"expires_days\": 7}", "amount": "₹200", "points": "0" },
+      "expected": { "reward": "nothing" }
+    },
+    {
+      "description": "A share of nothing (a check-in has no amount) is nothing.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"percent_bps\": 2000, \"expires_days\": 7}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "nothing" }
+    },
+    {
+      "description": "Graduate first buy-in: a fixed ₹1,000, whatever the buy-in.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"bonus\", \"amount_paise\": 100000, \"expires_days\": 30}", "amount": "₹5,000", "points": "0" },
+      "expected": { "reward": "₹1,000" }
+    },
+    {
+      "description": "A fixed 500 points.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"points\", \"points\": 500}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "500 points" }
+    },
+    {
+      "description": "Double points (flow 7): 120 points earned bring 120 more.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"points\", \"multiplier_percent\": 200}", "amount": "₹0", "points": "120" },
+      "expected": { "reward": "120 points" }
+    },
+    {
+      "description": "Points and a half: 3 points earned bring 1.5 more, rounded down to 1.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"points\", \"multiplier_percent\": 150}", "amount": "₹0", "points": "3" },
+      "expected": { "reward": "1 points" }
+    },
+    {
+      "description": "Points and a half on 1 point earned rounds down to nothing: nothing is given.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"points\", \"multiplier_percent\": 150}", "amount": "₹0", "points": "1" },
+      "expected": { "reward": "nothing" }
+    },
+    {
+      "description": "Cab eligibility costs nothing from the rupee budget.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"cab_eligibility\"}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "₹0" }
+    },
+    {
+      "description": "A spin is given; what it wins comes from the wheel.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"spin\"}", "amount": "₹10,000", "points": "0" },
+      "expected": { "reward": "₹0" }
+    },
+    {
+      "description": "A freeroll ticket.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"freeroll_ticket\", \"tournament\": \"Sunday freeroll\"}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "₹0" }
+    },
+    {
+      "description": "A message.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"message\", \"text\": \"Ladies' Night is on: your first drink is ours.\"}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "₹0" }
+    },
+    {
+      "description": "A physical prize costs its value.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"physical_prize\", \"prize\": \"RIVR hoodie\", \"value_paise\": 300000}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "₹3,000" }
+    },
+    {
+      "description": "A physical prize with no value given costs ₹0.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"physical_prize\", \"prize\": \"Signed deck\"}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "₹0" }
+    },
+    {
+      "description": "A jackpot payout costs its amount.",
+      "operation": "reward",
+      "inputs": { "effect": "{\"kind\": \"jackpot_payout\", \"pool\": \"season\", \"amount_paise\": 2500000}", "amount": "₹0", "points": "0" },
+      "expected": { "reward": "₹25,000" }
+    },
+    {
+      "description": "Nothing applies: nothing is given.",
+      "operation": "select",
+      "inputs": { "candidates": "[]" },
+      "expected": { "given": "none" }
+    },
+    {
+      "description": "Two that stack, with no limits: both are given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}, {\"promotion\": \"Double points\", \"stacks\": true, \"cost_paise\": 0}]" },
+      "expected": { "given": "Tuesday bonus | Double points" }
+    },
+    {
+      "description": "One that does not stack, first in priority: given alone.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Graduate first buy-in\", \"stacks\": false, \"cost_paise\": 100000}, {\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}]" },
+      "expected": { "given": "Graduate first buy-in" }
+    },
+    {
+      "description": "One that does not stack, after one already given: skipped, and a later one that stacks is still given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}, {\"promotion\": \"Graduate first buy-in\", \"stacks\": false, \"cost_paise\": 100000}, {\"promotion\": \"Double points\", \"stacks\": true, \"cost_paise\": 0}]" },
+      "expected": { "given": "Tuesday bonus | Double points" }
+    },
+    {
+      "description": "One that does not stack but is over its budget: skipped, so the next is given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Graduate first buy-in\", \"stacks\": false, \"cost_paise\": 100000, \"budget_left_paise\": 50000}, {\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}]" },
+      "expected": { "given": "Tuesday bonus" }
+    },
+    {
+      "description": "Exactly the rupee budget left: given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000, \"budget_left_paise\": 200000}]" },
+      "expected": { "given": "Tuesday bonus" }
+    },
+    {
+      "description": "₹50 short of the bonus left in the budget: not given, never part of it.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000, \"budget_left_paise\": 195000}]" },
+      "expected": { "given": "none" }
+    },
+    {
+      "description": "A rupee budget spent does not stop what costs nothing.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Cab for regulars\", \"stacks\": true, \"cost_paise\": 0, \"budget_left_paise\": 0}]" },
+      "expected": { "given": "Cab for regulars" }
+    },
+    {
+      "description": "The last grant the count budget allows: given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000, \"grants_left\": 1}]" },
+      "expected": { "given": "Tuesday bonus" }
+    },
+    {
+      "description": "The count budget used up: not given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000, \"grants_left\": 0}]" },
+      "expected": { "given": "none" }
+    },
+    {
+      "description": "The player has had as many as the per-player limit allows: not given.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000, \"player_left\": 0}, {\"promotion\": \"Double points\", \"stacks\": true, \"cost_paise\": 0, \"player_left\": 2}]" },
+      "expected": { "given": "Double points" }
+    },
+    {
+      "description": "Already given for this event, one that does not stack: nothing more.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Ladies' Night\", \"stacks\": false, \"cost_paise\": 0, \"is_given\": true}, {\"promotion\": \"Double points\", \"stacks\": true, \"cost_paise\": 0}]" },
+      "expected": { "given": "none" }
+    },
+    {
+      "description": "Already given for this event, one that stacks: another that stacks is given, one that does not is not.",
+      "operation": "select",
+      "inputs": { "candidates": "[{\"promotion\": \"Double points\", \"stacks\": true, \"cost_paise\": 0, \"is_given\": true}, {\"promotion\": \"Ladies' Night\", \"stacks\": false, \"cost_paise\": 0}, {\"promotion\": \"Spin at ten\", \"stacks\": true, \"cost_paise\": 0}]" },
+      "expected": { "given": "Spin at ten" }
+    }
+  ]
+}
