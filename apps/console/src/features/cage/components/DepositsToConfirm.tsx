@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { bankAmountSchema } from '@rivr/contracts';
-import { useDepositDecisions, useStaffVenue, useWaitingDeposits, type DepositFailure, type WaitingDeposit } from '@rivr/db';
+import { useDepositDecisions, useKycImageUrl, useStaffVenue, useWaitingDeposits, type DepositFailure, type WaitingDeposit } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { formatDayTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -31,7 +31,7 @@ function secondLine(deposit: WaitingDeposit): string | null {
 }
 
 /**
- * One waiting deposit: whose, its UTR and when, and the UPI account it came from, to find in the bank
+ * One waiting deposit: whose, with their KYC photo (#58), its UTR and when, and the UPI account it came from, to find in the bank
  * statement; the amount the bank shows, then Confirm received; Not found; and, from the threshold up,
  * Approve as second approver (#20).
  */
@@ -44,14 +44,18 @@ function DepositRow({ venueId, deposit, canSecond }: { venueId: string; deposit:
   const confirmIt = form.handleSubmit(async ({ amount }) => settle(await confirm.mutateAsync({ depositId: deposit.depositId, bankAmount: fromRupees(BigInt(amount)) })));
   const amount = form.register('amount');
   const second = secondLine(deposit);
+  const photo = useKycImageUrl(deposit.photoPath);
   return (
     <Stack gap={2}>
-      <Stack gap={1}>
-        <Text weight="medium">{deposit.fullName}</Text>
-        <Text variant="small" tone="muted">{t('console.cage.depositLine', { utr: deposit.utr, time: formatDayTime(new Date(deposit.requestedAt)) })}</Text>
-        <Text variant="small">{t('console.cage.depositFrom', { vpa: deposit.fromVpa ?? '', bank: deposit.fromBank })}</Text>
-        {second === null ? null : <Text variant="small" tone="muted">{second}</Text>}
-      </Stack>
+      <Inline gap={4} align="start">
+        <KycPhoto alt={t('console.cage.photoOf', { name: deposit.fullName })} src={photo.data ?? null} status={kycPhotoStatus(deposit.photoPath, photo)} />
+        <Stack gap={1}>
+          <Text weight="medium">{deposit.fullName}</Text>
+          <Text variant="small" tone="muted">{t('console.cage.depositLine', { utr: deposit.utr, time: formatDayTime(new Date(deposit.requestedAt)) })}</Text>
+          <Text variant="small">{t('console.cage.depositFrom', { vpa: deposit.fromVpa ?? '', bank: deposit.fromBank })}</Text>
+          {second === null ? null : <Text variant="small" tone="muted">{second}</Text>}
+        </Stack>
+      </Inline>
       <Inline gap={3} align="end" wrap>
         <Input {...amount} label={t('console.cage.amountInBank')} prefix={t('console.cage.rupee')} inputMode="numeric" maxLength={8} autoComplete="off"
           error={form.formState.errors.amount ? t('console.cage.amountInBankInvalid') : undefined} />

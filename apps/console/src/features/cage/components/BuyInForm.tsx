@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { BuyInPreview } from './BuyInPreview.tsx';
+import { kycBlockOf } from './cageCopy.ts';
 
 const METHOD_LABEL: Readonly<Record<(typeof BUY_IN_METHODS)[number], MessageKey>> = {
   cash: 'console.cage.cash', upi: 'console.cage.upi', wallet: 'console.cage.fromWallet', bonus: 'console.cage.fromBonus',
@@ -17,7 +18,7 @@ const WHOLE_RUPEES = /^[1-9]\d{0,7}$/;
 
 /** Why the cage cannot issue chips to this member at all, as the prototype says it; null when it can. */
 function blockOf(member: CageMember): string | null {
-  if (!member.isKycComplete) return t('console.cage.kycBlock');
+  if (!member.isKycComplete) return kycBlockOf(member);
   if (member.breakUntil !== null) return t('console.cage.breakBlock', { until: formatDayTime(new Date(member.breakUntil)) });
   return member.seat === null ? t('console.cage.notSeatedBlock') : null;
 }

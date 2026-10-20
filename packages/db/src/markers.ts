@@ -24,11 +24,11 @@ export interface OpenMarker {
  * chips, unsigned, credit not set up or switched off, and the cage's own (frozen, KYC, a break, not seated).
  */
 export type MarkerFailure = 'not_allowed' | 'above_limit' | 'above_exposure' | 'past_due' | 'not_chips' | 'unsigned' | 'not_set_up'
-  | 'switched_off' | 'stopped' | 'paused' | 'kyc_needed' | 'on_break' | 'not_seated' | 'invalid' | 'unavailable';
+  | 'switched_off' | 'stopped' | 'paused' | 'kyc_needed' | 'under_age' | 'duplicate' | 'on_break' | 'not_seated' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, MarkerFailure>> = {
   '42501': 'not_allowed', RVLIM: 'above_limit', RVEXP: 'above_exposure', RVDUE: 'past_due', RVCHP: 'not_chips', RVSIG: 'unsigned',
-  RVCFG: 'not_set_up', RVKIL: 'switched_off', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVBRK: 'on_break',
+  RVCFG: 'not_set_up', RVKIL: 'switched_off', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVAGE: 'under_age', RVDUP: 'duplicate', RVBRK: 'on_break',
   RVNST: 'not_seated', '22023': 'invalid',
 };
 

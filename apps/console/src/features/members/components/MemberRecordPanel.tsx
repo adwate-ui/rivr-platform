@@ -1,6 +1,6 @@
 import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { formatDate, formatStakes, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, KycPhoto, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Text } from '@rivr/ui';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
 import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { TierForm } from './TierForm.tsx';
@@ -34,8 +34,7 @@ function Record({ venueId, record, can }: { venueId: string; record: MemberRecor
     <Stack gap={6}>
       <Inline gap={4} align="center">
         {can.seePhoto ? (
-          <KycPhoto alt={t('console.cage.photoOf', { name: record.fullName })} src={photo.data ?? null}
-            status={record.photoPath === null ? 'missing' : photo.isError ? 'error' : photo.data ? 'ready' : 'loading'} />
+          <KycPhoto alt={t('console.cage.photoOf', { name: record.fullName })} src={photo.data ?? null} status={kycPhotoStatus(record.photoPath, photo)} />
         ) : null}
         <Stack gap={1}>
           <Heading level={2}>{record.fullName}</Heading>

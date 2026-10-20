@@ -35,11 +35,20 @@ afterEach(cleanup);
 describe('Cage members', () => {
   it('gives the call time a member still owes, and whether an admin let them go early', async () => {
     const { result } = renderCage({ cage_members: { body: [{
-      member_id: 'm1', full_name: 'Yash Gupta', tier_name: 'Member', is_kyc_complete: true, photo_path: null, wallet_paise: 0, bonus_paise: 0,
-      markers_paise: 0, table_name: 'Private Room', seat: 1, minimum_paise: 1_000_000, break_until: null, call_time_owed_seconds: 5400,
+      member_id: 'm1', full_name: 'Yash Gupta', tier_name: 'Member', is_kyc_complete: true, kyc_refusal: null, photo_path: null, wallet_paise: 0,
+      bonus_paise: 0, markers_paise: 0, table_name: 'Private Room', seat: 1, minimum_paise: 1_000_000, break_until: null, call_time_owed_seconds: 5400,
       is_let_go_early: true,
     }] } });
-    await waitFor(() => expect(result.current.members.data?.[0]).toMatchObject({ callTimeOwed: 5400, isLetGoEarly: true }));
+    await waitFor(() => expect(result.current.members.data?.[0]).toMatchObject({ callTimeOwed: 5400, isLetGoEarly: true, kycRefusal: null }));
+  });
+
+  it('gives the reason a member\'s identity check failed (#58)', async () => {
+    const { result } = renderCage({ cage_members: { body: [{
+      member_id: 'm2', full_name: 'Naina Kapoor', tier_name: 'Member', is_kyc_complete: false, kyc_refusal: 'duplicate_pan', photo_path: null,
+      wallet_paise: 0, bonus_paise: 0, markers_paise: 0, table_name: null, seat: null, minimum_paise: null, break_until: null,
+      call_time_owed_seconds: 0, is_let_go_early: false,
+    }] } });
+    await waitFor(() => expect(result.current.members.data?.[0]).toMatchObject({ isKycComplete: false, kycRefusal: 'duplicate_pan' }));
   });
 });
 
@@ -63,6 +72,15 @@ describe('Cash-out', () => {
       outcome = await result.current.actions.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r2' });
     });
     expect(outcome).toEqual({ ok: false, error: 'not_in_room' });
+  });
+
+  it.each([['RVAGE', 'under_age'], ['RVDUP', 'duplicate'], ['RVKYC', 'kyc_needed']])('refuses %s as %s (#58)', async (code, failure) => {
+    const { result } = renderCage({ cage_cash_out: { status: 400, body: { code, message: 'identity' } } });
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.actions.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(1_000_000n), to: 'cash', isFinal: false, requestId: 'r4' });
+    });
+    expect(outcome).toEqual({ ok: false, error: failure });
   });
 
   it('treats an empty answer as unavailable', async () => {

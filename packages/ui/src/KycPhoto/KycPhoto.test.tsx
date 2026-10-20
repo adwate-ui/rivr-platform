@@ -1,9 +1,18 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { KycPhoto } from './KycPhoto.tsx';
+import { KycPhoto, kycPhotoStatus } from './KycPhoto.tsx';
 
 const SRC = 'https://storage.invalid/kyc/selfie.jpg';
+
+describe('kycPhotoStatus', () => {
+  it('is missing with no stored photo, an error when its address could not be had, then ready or loading', () => {
+    expect(kycPhotoStatus(null, { isError: false, data: SRC })).toBe('missing');
+    expect(kycPhotoStatus('v/m/selfie.jpg', { isError: true })).toBe('error');
+    expect(kycPhotoStatus('v/m/selfie.jpg', { isError: false, data: SRC })).toBe('ready');
+    expect(kycPhotoStatus('v/m/selfie.jpg', { isError: false })).toBe('loading');
+  });
+});
 
 describe('KycPhoto', () => {
   it('shows the photo, named for screen readers', () => {

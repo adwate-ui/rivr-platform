@@ -26,7 +26,7 @@ export const kycReview = {
   none: 'None',
   scores: 'Liveness {liveness}, face match {match}',
   clashes: 'Same PAN, Aadhaar or face as: {names}',
-  underEighteen: 'Refused: under 18.',
+  underEighteen: 'Refused: under the minimum age.',
   duplicateFace: 'Refused: the face of a verified member.',
   duplicatePan: 'Refused: the PAN of a verified member.',
   duplicateAadhaar: 'Refused: the Aadhaar of a verified member.',

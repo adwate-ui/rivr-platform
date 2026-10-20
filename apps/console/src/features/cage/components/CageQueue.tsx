@@ -1,6 +1,6 @@
 import { useCageActions, useCageQueue, useKycImageUrl, type BuyInRequest, type CageFailure } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, KycPhoto, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CAGE_FAILURE_COPY } from './cageCopy.ts';
 
@@ -16,8 +16,7 @@ function RequestRow({ venueId, request, onResult }: { venueId: string; request: 
   return (
     <Inline gap={4} align="start" justify="between">
       <Inline gap={3} align="start">
-        <KycPhoto alt={t('console.cage.photoOf', { name: request.fullName })} src={photo.data ?? null}
-          status={request.photoPath === null ? 'missing' : photo.isError ? 'error' : photo.data ? 'ready' : 'loading'} />
+        <KycPhoto alt={t('console.cage.photoOf', { name: request.fullName })} src={photo.data ?? null} status={kycPhotoStatus(request.photoPath, photo)} />
         <Stack gap={1}>
           <Text weight="medium">{request.fullName}</Text>
           <Text variant="small" tone="muted">{t('console.cage.requestLine', { table: request.tableName, seat: request.seat, time: formatTime(new Date(request.requestedAt)) })}</Text>

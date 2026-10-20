@@ -1,6 +1,6 @@
 import { useKycImageUrl, type CageMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Heading, Inline, KycPhoto, Money, Stack, Text } from '@rivr/ui';
+import { Grid, Heading, Inline, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
 import { BuyInForm } from './BuyInForm.tsx';
 import { CallTimeOwed } from './CallTimeOwed.tsx';
 import { CashOutForm } from './CashOutForm.tsx';
@@ -22,8 +22,7 @@ export function MemberPanel({ venueId, member, canIssueMarkers }: { venueId: str
   return (
     <Stack gap={6}>
       <Inline gap={4} align="center">
-        <KycPhoto alt={t('console.cage.photoOf', { name: member.fullName })} src={photo.data ?? null}
-          status={member.photoPath === null ? 'missing' : photo.isError ? 'error' : photo.data ? 'ready' : 'loading'} />
+        <KycPhoto alt={t('console.cage.photoOf', { name: member.fullName })} src={photo.data ?? null} status={kycPhotoStatus(member.photoPath, photo)} />
         <Stack gap={1}>
           <Heading level={2}>{member.fullName}</Heading>
           <Text variant="small" tone="muted">{status}</Text>
