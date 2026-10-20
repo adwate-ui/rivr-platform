@@ -1,5 +1,5 @@
-import type { CageFailure, PayoutAccountFailure } from '@rivr/db';
-import type { MessageKey } from '@rivr/i18n';
+import type { CageFailure, CageMember, KycRefusal, PayoutAccountFailure } from '@rivr/db';
+import { t, type MessageKey } from '@rivr/i18n';
 
 /** Why chips were not issued, for the cashier. */
 export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
@@ -8,6 +8,8 @@ export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
   stopped: 'console.cage.stopped',
   paused: 'console.cage.paused',
   kyc_needed: 'console.cage.kycBlock',
+  under_age: 'console.cage.underAgeBlock',
+  duplicate: 'console.cage.duplicateBlock',
   on_break: 'console.cage.onBreak',
   not_seated: 'console.cage.notSeatedBlock',
   not_chips: 'console.cage.notChips',
@@ -32,3 +34,17 @@ export const PAYOUT_FAILURE_COPY: Readonly<Record<PayoutAccountFailure, MessageK
   paused: 'console.cage.payoutPaused',
   unavailable: 'console.cage.payoutUnavailable',
 };
+
+/** Why a member's identity check failed, in the KYC review's words (#58). */
+const KYC_REFUSAL_COPY: Readonly<Record<KycRefusal, MessageKey>> = {
+  under_18: 'console.kycReview.underEighteen',
+  duplicate_pan: 'console.kycReview.duplicatePan',
+  duplicate_aadhaar: 'console.kycReview.duplicateAadhaar',
+  duplicate_face: 'console.kycReview.duplicateFace',
+  staff_rejected: 'console.kycReview.staffRejected',
+};
+
+/** What the cage says of a member whose identity check is not complete: the reason it failed, or that it is not finished. */
+export function kycBlockOf(member: CageMember): string {
+  return t(member.kycRefusal === null ? 'console.cage.kycBlock' : KYC_REFUSAL_COPY[member.kycRefusal]);
+}

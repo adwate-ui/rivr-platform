@@ -1998,7 +1998,7 @@ isOneToOne: false
                            },
 "cage_members":
 { Args: { "p_query": string,"p_venue_id": string }; Returns: {
-              "bonus_paise": number,"break_until": string,"call_time_owed_seconds": number,"full_name": string,"is_kyc_complete": boolean,"is_let_go_early": boolean,"markers_paise": number,"member_id": string,"minimum_paise": number,"photo_path": string,"seat": number,"table_name": string,"tier_name": string,"wallet_paise": number
+              "bonus_paise": number,"break_until": string,"call_time_owed_seconds": number,"full_name": string,"is_kyc_complete": boolean,"is_let_go_early": boolean,"kyc_refusal": string,"markers_paise": number,"member_id": string,"minimum_paise": number,"photo_path": string,"seat": number,"table_name": string,"tier_name": string,"wallet_paise": number
             }[]
                            },
 "cage_queue":
@@ -2471,12 +2471,12 @@ isOneToOne: false
                            },
 "waiting_deposits":
 { Args: { "p_venue_id": string }; Returns: {
-              "approved_by": (string)[],"from_bank": string,"from_vpa": string,"full_name": string,"member_id": string,"needs_second": boolean,"request_id": string,"requested_at": string,"utr": string
+              "approved_by": (string)[],"from_bank": string,"from_vpa": string,"full_name": string,"member_id": string,"needs_second": boolean,"photo_path": string,"request_id": string,"requested_at": string,"utr": string
             }[]
                            },
 "waiting_withdrawals":
 { Args: { "p_venue_id": string }; Returns: {
-              "account_number": string,"amount_paise": number,"approved_by": (string)[],"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"needs_second": boolean,"request_id": string,"requested_at": string,"vpa": string
+              "account_number": string,"amount_paise": number,"approved_by": (string)[],"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"needs_second": boolean,"photo_path": string,"request_id": string,"requested_at": string,"vpa": string
             }[]
                            },
 "waitlist_board":

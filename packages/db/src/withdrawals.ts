@@ -87,6 +87,8 @@ export interface WaitingWithdrawal {
   readonly withdrawalId: string;
   readonly memberId: string;
   readonly fullName: string;
+  /** The member's KYC photo in the private bucket (#58). */
+  readonly photoPath: string | null;
   readonly amount: Paise;
   readonly kind: PayoutKind;
   readonly bankName: string;
@@ -110,7 +112,7 @@ export function useWaitingWithdrawals(venueId: string) {
       const { data, error } = await client.rpc('waiting_withdrawals', { p_venue_id: venueId });
       if (error) throw error;
       return data.map((row) => ({
-        withdrawalId: row.request_id, memberId: row.member_id, fullName: row.full_name, amount: toPaise(row.amount_paise), kind: kindOf(row.kind),
+        withdrawalId: row.request_id, memberId: row.member_id, fullName: row.full_name, photoPath: row.photo_path, amount: toPaise(row.amount_paise), kind: kindOf(row.kind),
         bankName: row.bank_name, vpa: row.vpa, accountNumber: row.account_number, ifsc: row.ifsc, holderName: row.holder_name,
         requestedAt: row.requested_at, needsSecond: row.needs_second, approvedBy: row.approved_by,
       }));

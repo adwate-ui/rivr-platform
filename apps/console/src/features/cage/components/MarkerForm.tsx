@@ -20,6 +20,8 @@ const FAILURE_COPY: Readonly<Record<MarkerFailure, MessageKey>> = {
   stopped: 'console.cage.stopped',
   paused: 'console.cage.paused',
   kyc_needed: 'console.cage.kycBlock',
+  under_age: 'console.cage.underAgeBlock',
+  duplicate: 'console.cage.duplicateBlock',
   on_break: 'console.cage.onBreak',
   not_seated: 'console.cage.notSeatedBlock',
   invalid: 'console.cage.markerInvalid',

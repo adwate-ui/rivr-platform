@@ -11,6 +11,13 @@ export interface KycPhotoProps {
   status?: 'ready' | 'loading' | 'missing' | 'error';
 }
 
+/** A photo's state from its stored path and the fetch of its address: none kept, could not be had, shown, or still loading. */
+export function kycPhotoStatus(path: string | null, address: { isError: boolean; data?: string | null | undefined }): NonNullable<KycPhotoProps['status']> {
+  if (path === null) return 'missing';
+  if (address.isError) return 'error';
+  return address.data ? 'ready' : 'loading';
+}
+
 /**
  * A member's KYC photo at a fixed portrait size beside their details: in the review queue, and at the
  * cage (A-003). Shows in words when it is loading, missing or could not load.

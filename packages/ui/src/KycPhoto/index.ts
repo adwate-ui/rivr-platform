@@ -1,1 +1,1 @@
-export { KycPhoto, type KycPhotoProps } from './KycPhoto.tsx';
+export { KycPhoto, kycPhotoStatus, type KycPhotoProps } from './KycPhoto.tsx';

@@ -7,7 +7,6 @@ export const cage = {
   noMatch: 'No member matches.',
   queue: 'Queue',
   queueEmpty: 'No requests waiting.',
-  /** Payout accounts waiting for the cage (#19): verify one against the member's KYC, or turn it down with a reason. */
   /** UPI deposits waiting for the cage (#29): confirm each against the bank statement, by its UTR. */
   depositsToConfirm: 'Deposits to confirm',
   depositsEmpty: 'None waiting.',
@@ -19,7 +18,9 @@ export const cage = {
   depositNotFound: 'Not found',
   depositNotAllowed: 'Only the cage confirms deposits, never its own.',
   depositAmountMismatch: 'The bank shows another amount. Turn it down as not found.',
-  depositNotWaiting: 'That deposit is no longer waiting.',  payoutsToVerify: 'Payout accounts to verify',
+  depositNotWaiting: 'That deposit is no longer waiting.',
+  /** Payout accounts waiting for the cage (#19): verify one against the member's KYC, or turn it down with a reason. */
+  payoutsToVerify: 'Payout accounts to verify',
   payoutsEmpty: 'None waiting.',
   payoutUpi: 'UPI {vpa} · {bank}',
   payoutBank: '{bank} · {number} · {ifsc} · {holder}',
@@ -35,7 +36,8 @@ export const cage = {
   payoutNotAllowed: 'Only the cage verifies payout accounts.',
   payoutStopped: 'This member is frozen. Nothing changes until the freeze is released.',
   payoutPaused: 'The venue is frozen. Nothing changes until it is released.',
-  payoutUnavailable: 'Could not save. Check the connection and try again.',  /** A KYC photo's description, read out. */
+  payoutUnavailable: 'Could not save. Check the connection and try again.',
+  /** A KYC photo's description, read out. */
   photoOf: 'KYC photo of {name}',
   /** A request in the queue: where the player sits, and when the table asked. */
   requestLine: 'Buy-in · {table}, seat {seat} · {time}',
@@ -66,6 +68,9 @@ export const cage = {
   /** After chips are issued: `{amount}` is how much. */
   issued: '{amount} of chips issued.',
   kycBlock: 'KYC incomplete. No chips, credit or cash-out until it is approved.',
+  /** A cage write refused for the reason a member's identity check failed (#58). */
+  underAgeBlock: 'Refused: under the venue\'s minimum age. No chips, credit or cash-out.',
+  duplicateBlock: 'Refused: the identity of another verified member. Ask a KYC reviewer to look at the check.',
   /** `{until}` is when the break ends: Wed 17 Feb, 00:10. */
   breakBlock: 'Self-excluded until {until}. No buy-ins or credit.',
   notSeatedBlock: 'Not seated. Chips are issued to a seat.',

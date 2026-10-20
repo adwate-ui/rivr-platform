@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reasonForMemberSchema, utrEntrySchema } from '@rivr/contracts';
-import { useWithdrawalDecisions, type WaitingWithdrawal, type WithdrawalFailure } from '@rivr/db';
+import { useKycImageUrl, useWithdrawalDecisions, type WaitingWithdrawal, type WithdrawalFailure } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -52,7 +52,7 @@ export interface WithdrawalRowProps {
 }
 
 /**
- * One waiting withdrawal (design prompt flow 9): whose, how much, to which account and when; the second
+ * One waiting withdrawal (design prompt flow 9): whose, with their KYC photo (#58), how much, to which account and when; the second
  * approver's state; and, by role, Approve as second approver, the UTR with Approve and send, or Decline.
  */
 export function WithdrawalRow({ venueId, withdrawal, canDecide, canSecond, onSent }: WithdrawalRowProps) {
@@ -62,10 +62,12 @@ export function WithdrawalRow({ venueId, withdrawal, canDecide, canSecond, onSen
   const settle = (done: Done, then?: () => void) => { setFailure(done.ok ? null : done.error); if (done.ok) then?.(); };
   const second = secondLine(withdrawal);
   const id = withdrawal.withdrawalId;
+  const photo = useKycImageUrl(withdrawal.photoPath);
   return (
     <Stack gap={3}>
       <Inline gap={4} align="start" justify="between">
-        <Stack gap={1}>
+        <KycPhoto alt={t('console.cage.photoOf', { name: withdrawal.fullName })} src={photo.data ?? null} status={kycPhotoStatus(withdrawal.photoPath, photo)} />
+        <Stack gap={1} grow>
           <Text weight="medium">{withdrawal.fullName}</Text>
           <Text>{accountLine(withdrawal)}</Text>
           <Text variant="small" tone="muted">{t('console.withdrawals.requested', { time: formatDayTime(new Date(withdrawal.requestedAt)) })}</Text>

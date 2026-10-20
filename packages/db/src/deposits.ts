@@ -104,6 +104,8 @@ export interface WaitingDeposit {
   readonly depositId: string;
   readonly memberId: string;
   readonly fullName: string;
+  /** The member's KYC photo in the private bucket (#58). */
+  readonly photoPath: string | null;
   readonly utr: string;
   readonly fromVpa: string | null;
   readonly fromBank: string;
@@ -123,7 +125,7 @@ export function useWaitingDeposits(venueId: string) {
       const { data, error } = await client.rpc('waiting_deposits', { p_venue_id: venueId });
       if (error) throw error;
       return data.map((row) => ({
-        depositId: row.request_id, memberId: row.member_id, fullName: row.full_name, utr: row.utr, fromVpa: row.from_vpa, fromBank: row.from_bank,
+        depositId: row.request_id, memberId: row.member_id, fullName: row.full_name, photoPath: row.photo_path, utr: row.utr, fromVpa: row.from_vpa, fromBank: row.from_bank,
         requestedAt: row.requested_at, needsSecond: row.needs_second, approvedBy: row.approved_by,
       }));
     },

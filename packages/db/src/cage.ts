@@ -4,7 +4,11 @@ import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
+import type { KycRefusal } from './kycReview.ts';
 import { queryKeys } from './queryKeys.ts';
+
+// Why a member's identity check fails, as the KYC review names it (#58).
+const KYC_REFUSALS: readonly KycRefusal[] = ['under_18', 'duplicate_pan', 'duplicate_aadhaar', 'duplicate_face', 'staff_rejected'];
 
 /** A member as the cage sees them (#57): KYC, wallet cash, bonus, markers, where they sit and the table's minimum. */
 export interface CageMember {
@@ -12,6 +16,8 @@ export interface CageMember {
   readonly fullName: string;
   readonly tierName: string;
   readonly isKycComplete: boolean;
+  /** Why their identity check fails, when it fails for a reason (#58); null otherwise. */
+  readonly kycRefusal: KycRefusal | null;
   readonly photoPath: string | null;
   readonly wallet: Paise;
   readonly bonus: Paise;
@@ -41,11 +47,12 @@ export interface BuyInRequest {
  * Why a buy-in or cash-out did not go through; `moved` is a request from a seat the player has since left, `not_in_room` a
  * cash-out for a member not checked in, `call_time_owed` one before their call time without an admin's say-so (#79).
  */
-export type CageFailure = 'not_allowed' | 'no_member' | 'stopped' | 'paused' | 'kyc_needed' | 'on_break' | 'not_seated'
+export type CageFailure = 'not_allowed' | 'no_member' | 'stopped' | 'paused' | 'kyc_needed' | 'under_age' | 'duplicate' | 'on_break' | 'not_seated'
   | 'not_chips' | 'below_minimum' | 'wallet_short' | 'bonus_short' | 'utr_used' | 'moved' | 'not_in_room' | 'call_time_owed' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, CageFailure>> = {
-  '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVOUT: 'not_in_room',
+  '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVAGE: 'under_age', RVDUP: 'duplicate', RVBRK: 'on_break',
+  RVOUT: 'not_in_room',
   RVCTS: 'call_time_owed',
   RVNST: 'not_seated', RVCHP: 'not_chips', RVMIN: 'below_minimum', RVSHT: 'wallet_short', RVBON: 'bonus_short', RVUTR: 'utr_used', RVSTL: 'moved', '22023': 'invalid',
 };
@@ -63,7 +70,8 @@ export function useCageMembers(venueId: string, query: string) {
       const { data, error } = await client.rpc('cage_members', { p_venue_id: venueId, p_query: query.trim() });
       if (error) throw error;
       return data.map((row) => ({
-        memberId: row.member_id, fullName: row.full_name, tierName: row.tier_name, isKycComplete: row.is_kyc_complete, photoPath: row.photo_path,
+        memberId: row.member_id, fullName: row.full_name, tierName: row.tier_name, isKycComplete: row.is_kyc_complete,
+        kycRefusal: KYC_REFUSALS.find((reason) => reason === row.kyc_refusal) ?? null, photoPath: row.photo_path,
         wallet: toPaise(row.wallet_paise), bonus: toPaise(row.bonus_paise), markers: toPaise(row.markers_paise), breakUntil: row.break_until,
         callTimeOwed: row.call_time_owed_seconds, isLetGoEarly: row.is_let_go_early,
         seat: row.table_name === null || row.seat === null || row.minimum_paise === null ? null
