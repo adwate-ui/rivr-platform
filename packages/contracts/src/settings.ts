@@ -192,10 +192,24 @@ const gstConfig = {
   }),
 } as const satisfies SettingDefinition;
 
+const pointsPerHour = {
+  key: 'points.per_hour',
+  description: 'Points a member earns for each hour played, per table type, so by stake (#89, decision 0161); none set earns none.',
+  scope: 'table_type',
+  value: z.strictObject({ points: z.int().min(0).max(10_000) }),
+} as const satisfies SettingDefinition;
+
+const pointsRewardsRakeShare = {
+  key: 'points.rewards_rake_share',
+  description: 'RIVR Rewards (#89, decision 0161): the share of a member\'s rake, in basis points (500 is 5%), earned as points at one a rupee; none set earns none.',
+  scope: 'venue',
+  value: z.strictObject({ basis_points: z.int().min(0).max(10_000) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig,
+  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, pointsPerHour, pointsRewardsRakeShare,
 ] as const;
 
 /** A setting key declared in code. */

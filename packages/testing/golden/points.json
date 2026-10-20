@@ -1,0 +1,132 @@
+{
+  "rule": "points earned",
+  "about": "Points (#89; scope-v1 module 9; question #395, decision 0161). A member earns points for a visit when it closes, on two schemes at once. Hours by stake: each table type's points an hour (points.per_hour) for the seconds played there, rounded down to a whole point. Time played is the call-time clock's: seating to leaving, less time away; a session that moved tables shares its played time among them in proportion to the time at each, rounded down to the second. RIVR Rewards: each hand's rake is shared equally among the members seated at its table, rounded down to the paisa; the member earns a share (points.rewards_rake_share, 500 basis points is 5%) of their rake for the visit as points, one a rupee, rounded down. Points never convert to cash.",
+  "cases": [
+    {
+      "description": "Three hours at 100/200, ten points an hour: 30 points.",
+      "operation": "time",
+      "inputs": { "seconds": "10800", "perHour": "10" },
+      "expected": { "points": "30" }
+    },
+    {
+      "description": "Two hours 59 minutes at ten an hour is 29.83 points: rounded down to 29.",
+      "operation": "time",
+      "inputs": { "seconds": "10740", "perHour": "10" },
+      "expected": { "points": "29" }
+    },
+    {
+      "description": "Exactly six minutes at ten an hour: one whole point.",
+      "operation": "time",
+      "inputs": { "seconds": "360", "perHour": "10" },
+      "expected": { "points": "1" }
+    },
+    {
+      "description": "A second short of six minutes at ten an hour: no point yet.",
+      "operation": "time",
+      "inputs": { "seconds": "359", "perHour": "10" },
+      "expected": { "points": "0" }
+    },
+    {
+      "description": "Four hours 50 minutes in the Private Room at twenty an hour is 96.67 points: 96.",
+      "operation": "time",
+      "inputs": { "seconds": "17400", "perHour": "20" },
+      "expected": { "points": "96" }
+    },
+    {
+      "description": "A table type with no rate earns nothing, however long the session.",
+      "operation": "time",
+      "inputs": { "seconds": "10800", "perHour": "0" },
+      "expected": { "points": "0" }
+    },
+    {
+      "description": "No time played: nothing.",
+      "operation": "time",
+      "inputs": { "seconds": "0", "perHour": "10" },
+      "expected": { "points": "0" }
+    },
+    {
+      "description": "No move: two hours at one table with 20 minutes away is 100 minutes played there.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "7200", "sessionSeconds": "7200", "playedSeconds": "6000" },
+      "expected": { "seconds": "6000" }
+    },
+    {
+      "description": "Moved after an hour of a three-hour session with 30 minutes away: the first table gets a third of the 2 h 30 min played, 50 minutes.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "3600", "sessionSeconds": "10800", "playedSeconds": "9000" },
+      "expected": { "seconds": "3000" }
+    },
+    {
+      "description": "The same session's second table gets the other two thirds, 100 minutes: the two add up to the time played.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "7200", "sessionSeconds": "10800", "playedSeconds": "9000" },
+      "expected": { "seconds": "6000" }
+    },
+    {
+      "description": "A third of 2,000 seconds is 666.67: rounded down to 666 (the other table's 1,333.33 to 1,333, a second lost).",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "1000", "sessionSeconds": "3000", "playedSeconds": "2000" },
+      "expected": { "seconds": "666" }
+    },
+    {
+      "description": "A session that ended as it began: nothing played anywhere.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "0", "sessionSeconds": "0", "playedSeconds": "0" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "₹300 of rake among six seated: ₹50 each.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹300", "seated": "6" },
+      "expected": { "share": "₹50" }
+    },
+    {
+      "description": "₹350 among nine is ₹38.888...: rounded down to ₹38.88.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹350", "seated": "9" },
+      "expected": { "share": "₹38.88" }
+    },
+    {
+      "description": "Heads up in the Private Room at the ₹12,000 cap, one member seated: all of it.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹12,000", "seated": "1" },
+      "expected": { "share": "₹12,000" }
+    },
+    {
+      "description": "A hand with no rake: nothing to share.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹0", "seated": "9" },
+      "expected": { "share": "₹0" }
+    },
+    {
+      "description": "A visit's rake share of ₹612.40 at 5%: ₹30.62, so 30 points.",
+      "operation": "rake_points",
+      "inputs": { "share": "₹612.40", "rate": "500" },
+      "expected": { "points": "30" }
+    },
+    {
+      "description": "₹20 of rake at 5% is exactly ₹1: one point.",
+      "operation": "rake_points",
+      "inputs": { "share": "₹20", "rate": "500" },
+      "expected": { "points": "1" }
+    },
+    {
+      "description": "A paisa short, ₹19.99 at 5%: no point.",
+      "operation": "rake_points",
+      "inputs": { "share": "₹19.99", "rate": "500" },
+      "expected": { "points": "0" }
+    },
+    {
+      "description": "A big night, ₹1,00,000 of rake at 5%: 5,000 points.",
+      "operation": "rake_points",
+      "inputs": { "share": "₹1,00,000", "rate": "500" },
+      "expected": { "points": "5000" }
+    },
+    {
+      "description": "No rake share: no points.",
+      "operation": "rake_points",
+      "inputs": { "share": "₹0", "rate": "500" },
+      "expected": { "points": "0" }
+    }
+  ]
+}
