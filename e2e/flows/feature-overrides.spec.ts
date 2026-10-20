@@ -27,7 +27,8 @@ test.describe('Feature overrides', () => {
 
     const player = await browser.newPage();
     await signInToPlayer(player, '9000000202');
-    await expect(player.getByRole('link', { name: 'Learn' })).toHaveAccessibleDescription(/ only\.$/);
+    // Taken from him alone: his notice names no tier as the way in, not even his own (#353).
+    await expect(player.getByRole('link', { name: 'Learn' })).toHaveAccessibleDescription('Not available on your account. Ask the club.');
 
     await admin.getByRole('button', { name: 'Lift the override of Learn library' }).click();
     await admin.getByRole('textbox', { name: 'Why it is lifted' }).fill('Sorted out with the owner');
@@ -35,6 +36,6 @@ test.describe('Feature overrides', () => {
     await expect(admin.getByText('Override lifted.')).toBeVisible();
     await expect(admin.getByText('Lifted by Kavya Menon: Sorted out with the owner')).toBeVisible();
     await player.reload();
-    await expect(player.getByRole('link', { name: 'Learn' })).not.toHaveAccessibleDescription(/ only\.$/);
+    await expect(player.getByRole('link', { name: 'Learn' })).not.toHaveAttribute('aria-describedby');
   });
 });
