@@ -292,5 +292,31 @@ select results_eq(
   $$ select description, expected ->> 'result' from golden.golden_case where file = 'wallet.json' order by position $$,
   'private.withdrawal_check gives every withdrawal in the golden file');
 
+-- Promotions: private.promotion_applies, private.promotion_reward and private.promotions_to_give, and
+-- @rivr/domain promotionApplies, promotionReward and promotionsToGive (packages/testing/golden/promotions.json).
+-- Conditions, facts, effects and candidates are the JSON the database holds.
+select ok((select count(*) > 0 from golden.golden_case where file = 'promotions.json'), 'the promotion cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'promotions.json' and operation not in ('applies', 'reward', 'select') $$,
+  'every operation in promotions.json is proved here');
+select results_eq(
+  $$ select description, case when private.promotion_applies((inputs ->> 'conditions')::jsonb, (inputs ->> 'facts')::jsonb) then 'yes' else 'no' end
+     from golden.golden_case where file = 'promotions.json' and operation = 'applies' order by position $$,
+  $$ select description, expected ->> 'applies' from golden.golden_case where file = 'promotions.json' and operation = 'applies' order by position $$,
+  'private.promotion_applies decides every rule in the golden file');
+select results_eq(
+  $$ select description, coalesce((select case when r.points > 0 then r.points || ' points' else r.cost_paise::text end
+                                   from private.promotion_reward((inputs ->> 'effect')::jsonb, pg_temp.paise(inputs ->> 'amount'), (inputs ->> 'points')::bigint) r),
+                                  'nothing')
+     from golden.golden_case where file = 'promotions.json' and operation = 'reward' order by position $$,
+  $$ select description, case when expected ->> 'reward' = 'nothing' or expected ->> 'reward' like '% points' then expected ->> 'reward'
+                              else pg_temp.paise(expected ->> 'reward')::text end
+     from golden.golden_case where file = 'promotions.json' and operation = 'reward' order by position $$,
+  'private.promotion_reward gives every reward in the golden file');
+select results_eq(
+  $$ select description, coalesce(nullif(array_to_string(private.promotions_to_give((inputs ->> 'candidates')::jsonb), ' | '), ''), 'none')
+     from golden.golden_case where file = 'promotions.json' and operation = 'select' order by position $$,
+  $$ select description, expected ->> 'given' from golden.golden_case where file = 'promotions.json' and operation = 'select' order by position $$,
+  'private.promotions_to_give gives every selection in the golden file');
+
 select * from finish();
 rollback;

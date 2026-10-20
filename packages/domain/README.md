@@ -125,6 +125,16 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `gstIncluded(inclusive, rate)`, `GstSplit` | GST taken out of an amount that includes it (#23, decision 0071): equal CGST and SGST halves, each rounded to the nearest paisa (a half up), and the taxable value as what is left, so the three add up to the amount. Throws on a negative amount or a rate outside 0 to 10,000 basis points (bugs). The database's `private.gst_included` is proved equal by `packages/testing/golden/gst.json`. |
 | `igstIncluded(inclusive, rate)`, `IgstSplit` | IGST taken out of an amount that includes it, for a buyer registered in another state (#380, decision 0102): the whole tax at the full rate, rounded once to the nearest paisa (a half up), and the taxable value as the rest. Same refusals as `gstIncluded`. The database's `private.igst_included` is proved equal on the same golden file. |
 
+### `@rivr/domain/promotions`
+
+| Export | What it does |
+|---|---|
+| `promotionApplies(conditions, facts)`, `PromotionFacts` | Whether a promotion rule applies (#83, decision 0140): every condition it names holds (tier, stake, table, day, time window, first N per table or day, new or lapsed, visits this month, call time completed, hours played, the hand). Days and windows are the club's, 06:00 to 06:00 IST. |
+| `promotionReward(effect, { amount, points })`, `PromotionReward` | What an effect gives: its rupee cost against the budget, and points. A bonus share is rounded down to whole ₹50 chips, then held to its cap; double points on 120 earned is 120 more; a bonus or points of nothing is `null`. |
+| `promotionsToGive(candidates)`, `PromotionCandidate` | Of the promotions that apply to one event, in priority order, which to give: each while its count budget, rupee budget and per-player limit allow, never part of one; one that does not stack only alone. |
+
+The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`; `private.evaluate_promotions` puts them together.
+
 ## Usage
 
 ```ts
