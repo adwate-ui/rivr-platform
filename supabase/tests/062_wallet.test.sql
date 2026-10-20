@@ -6,6 +6,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's live promotions (57_promotions.sql) back to drafts: on a Tuesday its bonus would be on the statement too (#88).
+update public.promotion set status = 'draft' where status = 'live';
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -36,10 +39,10 @@ select public.seat_member((select id from public.game_table where venue_id = '00
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'wallet', gen_random_uuid());
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select results_eq($$ select kind, account, amount, table_name, bonus_reason from public.my_wallet_movement order by kind, amount $$,
-  $$ values ('bonus'::text, 'bonus'::text, 100000::bigint, null::text, 'Referral'::text), ('bonus', 'bonus', 200000, null, 'Buy-in bonus Tuesday'),
-            ('buy_in', 'cash', -1000000, 'Table 3', null), ('deposit', 'cash', 2000000, null, null) $$,
-  'Ishaan''s deposit, his bonus with its reason, his buy-in at Table 3 as less cash, and the seed''s Tuesday bonus on it (#88)');
+select results_eq($$ select kind, account, amount, table_name, bonus_reason from public.my_wallet_movement order by kind $$,
+  $$ values ('bonus'::text, 'bonus'::text, 100000::bigint, null::text, 'Referral'::text), ('buy_in', 'cash', -1000000, 'Table 3', null),
+            ('deposit', 'cash', 2000000, null, null) $$,
+  'Ishaan''s deposit, his bonus with its reason, and his buy-in at Table 3 as less cash');
 select results_eq($$ select cash_paise, points, credit_limit_paise from public.my_wallet() $$,
   $$ values (1000000::bigint, 0::bigint, null::bigint) $$, 'he holds ₹10,000 of cash, no points and no credit line');
 reset role;
