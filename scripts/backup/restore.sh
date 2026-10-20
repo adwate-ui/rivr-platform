@@ -8,14 +8,26 @@
 # - loads into empty tables, which restore nothing. Some of the platform's own tables, such as Storage's
 #   newer ones, refuse even an empty load.
 #
-# Usage: scripts/backup/restore.sh [--no-cron] <unpacked backup folder> <database URL>   (needs psql 17)
+# With --files, and STORAGE_S3_* naming the new project's Storage (its S3 endpoint and an access key), the
+# files the backup holds then go back into its buckets with the same paths, so each record still finds its
+# file: a KYC selfie stays where its kyc_record points (#386). The buckets themselves come back with the
+# data. Files are written only when asked, so a shell that still holds another project's key never
+# writes there by accident.
+#
+# Usage: [STORAGE_S3_ENDPOINT=... STORAGE_S3_ACCESS_KEY_ID=... STORAGE_S3_SECRET_ACCESS_KEY=... STORAGE_S3_REGION=...]
+#        scripts/backup/restore.sh [--no-cron] [--files] <unpacked backup folder> <database URL>   (needs psql 17, and the AWS CLI for files)
 set -euo pipefail
 
 with_cron=true
-if [[ "${1:-}" == "--no-cron" ]]; then
-  with_cron=false
+with_files=false
+while [[ "${1:-}" == --* ]]; do
+  case "$1" in
+    --no-cron) with_cron=false ;;
+    --files) with_files=true ;;
+    *) echo "Unknown option $1"; exit 1 ;;
+  esac
   shift
-fi
+done
 backup="$1"
 url="$2"
 work="$(mktemp -d)"
@@ -37,6 +49,18 @@ psql --single-transaction --quiet --variable ON_ERROR_STOP=1 \
   --file "$work/roles.sql" --file "$backup/schema.sql" \
   --command 'SET session_replication_role = replica' --file "$work/data.sql" \
   --dbname "$url" > /dev/null
+if ! $with_files; then
+  [[ -d "$backup/storage" ]] && echo "The backup's Storage files were left out (no --files). The runbook's restore says how to copy them on their own."
+elif [[ -d "$backup/storage" ]]; then
+  : "${STORAGE_S3_ENDPOINT:?the new project's Storage S3 endpoint}"
+  export AWS_ACCESS_KEY_ID="${STORAGE_S3_ACCESS_KEY_ID:?the S3 access key for Storage}" AWS_SECRET_ACCESS_KEY="${STORAGE_S3_SECRET_ACCESS_KEY:?its secret}"
+  export AWS_DEFAULT_REGION="${STORAGE_S3_REGION:-auto}" AWS_REQUEST_CHECKSUM_CALCULATION=when_required AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+  for bucket in "$backup"/storage/*/; do
+    [[ -d "$bucket" ]] || continue
+    # A file over one the restored records already name is written again: S3's put replaces.
+    aws s3 cp "$bucket" "s3://$(basename "$bucket")" --recursive --no-progress --only-show-errors --endpoint-url "$STORAGE_S3_ENDPOINT"
+  done
+fi
 if $with_cron; then
   psql --quiet --variable ON_ERROR_STOP=1 --file "$backup/cron.sql" --dbname "$url" > /dev/null
 fi

@@ -1,6 +1,6 @@
 # Backups and restore
 
-Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scripted restore drill is #26.
+Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scripted restore drill is #26. Storage's files are in the backup since #386 (decision 0108).
 
 ## What is kept
 
@@ -17,19 +17,20 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
 - `roles.sql`, `schema.sql` and `data.sql`: Supabase's logical dump, which includes auth's users;
 - `cron.sql`: the cron jobs, which no dump holds;
 - `csv/`: every table in `public` as CSV;
-- `manifest.csv`: each table's row count. The CSVs and the counts come from one snapshot. The dump files were taken a few seconds earlier, each on its own.
+- `manifest.csv`: each table's row count. The CSVs and the counts come from one snapshot. The dump files were taken a few seconds earlier, each on its own;
+- `storage/<bucket>/`: every file in Supabase Storage, KYC selfies and media alike, at the path it has there, and `storage.csv` listing each with its size (#386, decision 0108). The provider's own backups don't copy these.
 
 **Who reads the database.** The read-only role `rivr_backup`. It reads every table, past row-level security, and can't change anything.
 
+**Who reads Storage.** An S3 access key for the project's Storage, made for the backup alone. Supabase's Storage keys can't be limited to reading: a key can read, write and delete every bucket's files, and make and remove buckets (never the database). Supabase's other S3 sign-in, a user's session under row-level security, could be read-only, but only through a read policy on the `kyc` bucket, which the KYC migration forbids because read access can make signed links that last years. The least access that works is therefore a key used by nothing else, held only in the `backup-<target>` environment, which only `main` can use, so a change must be merged to reach it. Revoke it in Storage → S3 Connection if it may have leaked, and make a new one each year. A night copies at least as many files as Storage's records name, or fails.
+
 **Encryption.** The file is encrypted with [age](https://age-encryption.org) to the backup key. CI holds only the public half. Without the private key, which lives offline with the owner, the file is unreadable.
 
-**Not included:**
-- the Vault's secrets (see "Keep the KYC reference key" below);
-- Storage objects (KYC images, media), which the provider's backups don't copy either. Whether they should is open in question #382.
+**Not included:** the Vault's secrets (see "Keep the KYC reference key" below).
 
 **Retention.** It comes from the buckets' lifecycle rules (below), not from the workflow. A night whose job fails leaves the earlier nights in place.
 
-**Personal data.** Backups hold members' personal data for up to 400 days. A restore brings back members erased since that night, so re-apply those erasures from the audit log before anyone uses the restored data.
+**Personal data.** Backups hold members' personal data, KYC photos included, for up to 400 days: nightly copies 35 days, monthly 400 (the owner's answer to #382). A restore brings back members erased since that night, so re-apply those erasures from the audit log before anyone uses the restored data. The website's privacy notice says both. The local and staging seed has the page (`supabase/seed/41_site_pages.sql`); production is never seeded, and the console can't make a page yet, so #406 tracks putting it on the production website before launch. What backs the promise to re-apply erasures is question #407.
 
 ## Setting it up (once, by the owner)
 
@@ -54,14 +55,17 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
 
    - Use the Session pooler connection string (Connect → Session pooler) with the user changed to `rivr_backup.<project-ref>` and that password. That is `BACKUP_DB_URL`.
    - Never use `postgres` there: that would let any change merged to `main` write to production.
+   - **Storage's key.** In each project, Storage → S3 Connection: turn the connection on if it is off, note the endpoint and region, and create a new access key named `nightly-backup`. Note its ID and secret.
 6. **Each environment's settings** (Settings → Environments):
    - Secrets:
      - `BACKUP_DB_URL`, from step 5;
-     - `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY`: that target's own token.
+     - `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY`: that target's own token;
+     - `STORAGE_S3_ACCESS_KEY_ID` and `STORAGE_S3_SECRET_ACCESS_KEY`: that project's `nightly-backup` Storage key, from step 5.
    - Variables:
      - `BACKUP_S3_ENDPOINT`: the R2 endpoint;
      - `BACKUP_BUCKET`: that target's bucket;
-     - `BACKUP_AGE_RECIPIENT`: the `age1...` public key.
+     - `BACKUP_AGE_RECIPIENT`: the `age1...` public key;
+     - `STORAGE_S3_ENDPOINT` and `STORAGE_S3_REGION`: that project's Storage S3 endpoint and region.
 7. **PITR.** In the Supabase dashboard for production, turn on Point in Time Recovery (Add-ons, 7 days).
 8. **First run.** In Actions → nightly-backup → Run workflow, check that both targets upload a file. Then run the restore drill on it, `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt`, and add the result to the drill log below.
 
@@ -85,8 +89,11 @@ You need, on the computer you restore from:
 2. **Decrypt and unpack:** `age -d -i rivr-backup-key.txt rivr-production-20261120.tar.gz.age | tar -xz`. This makes a folder, `rivr-production-20261120`. Note its full path (`realpath rivr-production-20261120`).
 3. **Create a new Supabase project** in Mumbai to restore into, and take its Session pooler connection string for `postgres`.
    - Never restore over production. To put a backup back into production, use PITR or the provider's backup ("Restoring production in place").
-4. **Load it** from the checkout of this repository: `bash scripts/backup/restore.sh <the unpacked folder's full path> "<new project's connection string>"`.
-   - It loads as Supabase's guide does: roles, schema, then data with triggers off, in one transaction. Then the cron jobs.
+4. **Load it** from the checkout of this repository. First make an S3 access key for the new project's Storage (Storage → S3 Connection) and give it as `STORAGE_S3_ENDPOINT`, `STORAGE_S3_REGION`, `STORAGE_S3_ACCESS_KEY_ID` and `STORAGE_S3_SECRET_ACCESS_KEY`. Then run `bash scripts/backup/restore.sh --files <the unpacked folder's full path> "<new project's connection string>"`.
+   - It loads as Supabase's guide does: roles, schema, then data with triggers off, in one transaction. Then the files, then the cron jobs.
+   - The data brings back the buckets and the files' records. The files then go back into the same buckets at the same paths, so each record still finds its file: a member's KYC selfie is where their `kyc_record` points.
+   - Files are written only with `--files`, so a shell that still holds a key never writes to another project by accident. Once the restore is checked, revoke that Storage key and `unset STORAGE_S3_ENDPOINT STORAGE_S3_ACCESS_KEY_ID STORAGE_S3_SECRET_ACCESS_KEY`.
+   - If the files step stops partway, the database is already loaded: don't run the script again. Copy each bucket's files on their own with the same key, `aws s3 cp <folder>/storage/<bucket> s3://<bucket> --recursive --endpoint-url "$STORAGE_S3_ENDPOINT"`, then load the cron jobs with `psql "<connection string>" -f <folder>/cron.sql`.
    - It leaves out the few lines a new project refuses: parameter grants to the platform's own roles, and loads into empty tables.
    - The restore drill runs the same script.
 5. **Put the Vault back.** In the new project's Vault, add:
@@ -98,6 +105,7 @@ You need, on the computer you restore from:
    - Compare each table's row count with `manifest.csv`. Tables a per-minute job writes to may differ by the rows written in the seconds between the dump and the export.
    - `select jobname from cron.job` lists every job in `cron.sql`.
    - A test member can sign in.
+   - The number of files in each bucket matches `storage.csv`, and a member's KYC photo opens on the KYC review screen.
    - The CSVs in `csv/` are there to read without restoring.
 
 ## The restore drill

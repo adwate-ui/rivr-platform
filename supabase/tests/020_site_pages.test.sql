@@ -10,7 +10,7 @@ select results_eq(
   $$ select venue_slug, slug, title, nav_position from public.public_site_page order by venue_slug, slug $$,
   $$ values ('gurugram'::text, 'academy'::text, 'RIVR Academy'::text, 1), ('gurugram', 'home', 'RIVR Poker Club', null),
             ('gurugram', 'house-rules', 'House rules', 3), ('gurugram', 'links', 'RIVR Poker Club', null),
-            ('gurugram', 'questions', 'Questions', 4),
+            ('gurugram', 'privacy', 'Privacy', 7), ('gurugram', 'questions', 'Questions', 4),
             ('gurugram', 'responsible-play', 'Responsible play', 6), ('gurugram', 'visit', 'Visit', 5) $$,
   'anyone reads the club''s published pages: not the draft, not the practice venue''s');
 select results_eq(

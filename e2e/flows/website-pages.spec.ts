@@ -1,13 +1,14 @@
 /**
  * Website pages (#35): the club's information pages are in the navigation and draw their blocks:
  * house rules as a numbered list, questions that open to their answers, how to find the club with a
- * link to directions, and responsible play; the front page shows the games and the calendar, live.
+ * link to directions, responsible play, and the privacy notice with its backups (#386); the front page
+ * shows the games and the calendar, live.
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
 
 test.describe('Website', () => {
-  test('the information pages: house rules, questions, visit and responsible play', async ({ page }) => {
+  test('the information pages: house rules, questions, visit, responsible play and privacy', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
     const site = page.getByRole('navigation', { name: 'Site' });
@@ -27,6 +28,12 @@ test.describe('Website', () => {
 
     await site.getByRole('link', { name: 'Responsible play' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Responsible play' })).toBeVisible();
+
+    // The privacy notice says how long backups keep personal data, and that erasures outlast a restore (#386).
+    await site.getByRole('link', { name: 'Privacy' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
+    await expect(page.getByText(/Personal data can be in a backup for up to 400 days\./)).toBeVisible();
+    await expect(page.getByText(/every erasure made since it was taken is made again/)).toBeVisible();
   });
 
   test('the front page shows the games and stakes and the tournament calendar, live from the club', async ({ page }) => {

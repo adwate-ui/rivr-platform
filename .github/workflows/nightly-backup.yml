@@ -4,8 +4,9 @@
 # bucket outside Supabase. The provider's daily backups and point-in-time recovery come on top.
 # docs/runbooks/backups-and-restore.md has the setup, the retention and the restore.
 # Each target uses its own environment, which only main can use. It holds only the backup's settings:
-# the read-only rivr_backup role's database URL, and a token for that target's bucket alone. A target
-# without them skips with a notice.
+# the read-only rivr_backup role's database URL, a token for that target's bucket alone, and an S3
+# access key for that project's Storage, to copy every file (#386; Supabase has no read-only Storage
+# key, so the runbook says why this one is held). A target without them skips with a notice.
 name: nightly-backup
 
 on:
@@ -35,7 +36,7 @@ jobs:
     timeout-minutes: 60
     environment: backup-${{ matrix.target }}
     env:
-      HAS_BACKUP: ${{ secrets.BACKUP_DB_URL != '' && secrets.BACKUP_S3_ACCESS_KEY_ID != '' && secrets.BACKUP_S3_SECRET_ACCESS_KEY != '' && vars.BACKUP_S3_ENDPOINT != '' && vars.BACKUP_BUCKET != '' && vars.BACKUP_AGE_RECIPIENT != '' }}
+      HAS_BACKUP: ${{ secrets.BACKUP_DB_URL != '' && secrets.BACKUP_S3_ACCESS_KEY_ID != '' && secrets.BACKUP_S3_SECRET_ACCESS_KEY != '' && vars.BACKUP_S3_ENDPOINT != '' && vars.BACKUP_BUCKET != '' && vars.BACKUP_AGE_RECIPIENT != '' && secrets.STORAGE_S3_ACCESS_KEY_ID != '' && secrets.STORAGE_S3_SECRET_ACCESS_KEY != '' && vars.STORAGE_S3_ENDPOINT != '' && vars.STORAGE_S3_REGION != '' }}
       TARGET: ${{ matrix.target }}
     steps:
       - if: env.HAS_BACKUP != 'true'
@@ -51,10 +52,14 @@ jobs:
           sudo apt-get install -y -qq age postgresql-client-17
           echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
       - if: env.HAS_BACKUP == 'true'
-        name: Dump, export and encrypt
+        name: Dump, export, copy Storage's files and encrypt
         env:
           BACKUP_DB_URL: ${{ secrets.BACKUP_DB_URL }}
           BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+          STORAGE_S3_ENDPOINT: ${{ vars.STORAGE_S3_ENDPOINT }}
+          STORAGE_S3_REGION: ${{ vars.STORAGE_S3_REGION }}
+          STORAGE_S3_ACCESS_KEY_ID: ${{ secrets.STORAGE_S3_ACCESS_KEY_ID }}
+          STORAGE_S3_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_S3_SECRET_ACCESS_KEY }}
         run: bash scripts/backup/nightly-backup.sh "$RUNNER_TEMP/backup" "rivr-${TARGET}-$(TZ=Asia/Kolkata date +%Y%m%d)"
       - if: env.HAS_BACKUP == 'true'
         name: Upload to the backup bucket
