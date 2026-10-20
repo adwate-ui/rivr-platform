@@ -162,18 +162,28 @@ select results_eq(
      from golden.golden_case where file = 'tds.json' order by position $$,
   'private.tds_amount gives every rate, amount due and amount withheld in the golden file');
 
--- GST included in an amount: private.gst_included and @rivr/domain gstIncluded (packages/testing/golden/gst.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'gst.json'), 'the GST cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'gst.json' and operation <> 'gst_included' $$,
+-- GST included in an amount: private.gst_included and @rivr/domain gstIncluded, and for a buyer from another
+-- state private.igst_included and igstIncluded (packages/testing/golden/gst.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'gst.json' and operation = 'gst_included'), 'the GST cases are loaded');
+select ok((select count(*) > 0 from golden.golden_case where file = 'gst.json' and operation = 'igst_included'), 'and the IGST cases');
+select is_empty($$ select operation from golden.golden_case where file = 'gst.json' and operation not in ('gst_included', 'igst_included') $$,
   'every operation in gst.json is proved here');
 select results_eq(
   $$ select description, g.taxable_paise, g.cgst_paise, g.sgst_paise
      from golden.golden_case
      cross join lateral private.gst_included(pg_temp.paise(inputs ->> 'inclusive'), (inputs ->> 'rate')::integer) g
-     where file = 'gst.json' order by position $$,
+     where file = 'gst.json' and operation = 'gst_included' order by position $$,
   $$ select description, pg_temp.paise(expected ->> 'taxable'), pg_temp.paise(expected ->> 'cgst'), pg_temp.paise(expected ->> 'sgst')
-     from golden.golden_case where file = 'gst.json' order by position $$,
+     from golden.golden_case where file = 'gst.json' and operation = 'gst_included' order by position $$,
   'private.gst_included gives every taxable value and CGST and SGST half in the golden file');
+select results_eq(
+  $$ select description, g.taxable_paise, g.igst_paise
+     from golden.golden_case
+     cross join lateral private.igst_included(pg_temp.paise(inputs ->> 'inclusive'), (inputs ->> 'rate')::integer) g
+     where file = 'gst.json' and operation = 'igst_included' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'taxable'), pg_temp.paise(expected ->> 'igst')
+     from golden.golden_case where file = 'gst.json' and operation = 'igst_included' order by position $$,
+  'private.igst_included gives every taxable value and IGST in the golden file');
 
 -- A buy-in at the cage: private.buy_in_check and @rivr/domain buyIn (packages/testing/golden/cage.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'cage.json'), 'the cage buy-in cases are loaded');

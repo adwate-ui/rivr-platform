@@ -1,1 +1,1 @@
-export { gstIncluded, type GstSplit } from './gst.ts';
+export { gstIncluded, igstIncluded, type GstSplit, type IgstSplit } from './gst.ts';

@@ -1,6 +1,7 @@
 -- GST invoices (#23, decision 0071, question #378): gst.config's rate and basis, effective-dated, with a
 -- placeholder at every venue; invoices numbered per venue and series without gaps, with the venue's
--- prefix, from 1 each financial year; the practice venue's never tax invoices. 201 Arjun is a member of
+-- prefix, from 1 each financial year; IGST for a buyer from another state (#380, decision 0102); the
+-- practice venue's never tax invoices. 201 Arjun is a member of
 -- the club, 301 Asha of the practice venue; 104 is a cashier (ledger.read), 108 a host.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -70,9 +71,21 @@ select private.issue_invoice('00000000-0000-4000-8000-000000000001', 'S', 'booki
 select results_eq($$ select number, member_id, buyer_name, buyer_gstin from public.invoice where source = 'booking:4' $$,
   $$ values ('RIVR/S' || pg_temp.yy() || '/3', null::uuid, 'Acme Pvt Ltd'::text, '06AAACA1234B1Z2'::text) $$,
   'a company buys under its own name and GSTIN, number 3');
-select throws_ok($$ select private.issue_invoice('00000000-0000-4000-8000-000000000001', 'S', 'booking:11', 150000, 1800, 'Academy seats', null,
-                                                 'Delhi Pvt Ltd', '07AAACD1234B1Z2') $$,
-  'RVGST', 'A buyer registered in another state is charged IGST, which is not built yet', 'a company from another state waits for IGST');
+-- A company from another state (07, Delhi; the club is 06, Haryana) is charged IGST, at the full rate (#380).
+select private.issue_invoice('00000000-0000-4000-8000-000000000001', 'S', 'booking:11', 200000, 1800, 'Academy seats', null,
+                             'Delhi Pvt Ltd', '07AAACD1234B1Z2');
+select results_eq($$ select number, taxable_paise, cgst_paise, sgst_paise, igst_paise, total_paise from public.invoice where source = 'booking:11' $$,
+  $$ values ('RIVR/S' || pg_temp.yy() || '/4', 169492::bigint, 0::bigint, 0::bigint, 30508::bigint, 200000::bigint) $$,
+  'a company from another state is charged IGST only, adding up to the amount, number 4 in the series');
+select is((select igst_paise from public.invoice where source = 'booking:4'), 0::bigint, 'a company from the club''s own state is charged none');
+select throws_ok($$ insert into public.invoice (venue_id, series_id, financial_year, sequence, number, source, is_tax_invoice, supplier_legal_name,
+                                                supplier_gstin, supplier_address, buyer_name, description, rate_basis_points, taxable_paise,
+                                                cgst_paise, sgst_paise, igst_paise, total_paise)
+                    select venue_id, series_id, financial_year, 99, 'RIVR/S00/99', 'x', true, 'x', supplier_gstin, 'x', 'x', 'x', 1800, 100,
+                           10, 10, 10, 130
+                    from public.invoice where source = 'booking:4' $$,
+  '23514', 'new row for relation "invoice" violates check constraint "invoice_one_kind_of_gst"',
+  'an invoice is never charged IGST as well as CGST and SGST');
 insert into public.invoice_series (venue_id, code, name) values ('00000000-0000-4000-8000-000000000001', 'A', 'Academy');
 select is((private.issue_invoice('00000000-0000-4000-8000-000000000001', 'A', 'booking:5', 200000, 1800, 'Academy seat',
                                  '00000000-0000-4000-8000-000000000201')).number,
@@ -80,9 +93,9 @@ select is((private.issue_invoice('00000000-0000-4000-8000-000000000001', 'A', 'b
 insert into public.invoice_counter (series_id, venue_id, financial_year, last_number)
 select s.id, s.venue_id, private.financial_year(s.venue_id, now()) - 1, 41 from public.invoice_series s
 where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.code = 'S';
-select is((pg_temp.issue('booking:6', 5000)).number, 'RIVR/S' || pg_temp.yy() || '/4', 'and each financial year on its own');
+select is((pg_temp.issue('booking:6', 5000)).number, 'RIVR/S' || pg_temp.yy() || '/5', 'and each financial year on its own');
 select is((select count(*)::integer from public.outbox_event e join public.invoice i on e.payload ->> 'invoice_id' = i.id::text
-           where e.event_type = 'invoice.issued' and i.venue_id = '00000000-0000-4000-8000-000000000001'), 5,
+           where e.event_type = 'invoice.issued' and i.venue_id = '00000000-0000-4000-8000-000000000001'), 6,
   'each invoice is announced once');
 
 update public.venue_config set legal_name = 'RIVR Gaming Pvt Ltd' where venue_id = '00000000-0000-4000-8000-000000000001';
@@ -103,6 +116,11 @@ select private.issue_invoice('00000000-0000-4000-8000-000000000002', 'S', 'pract
 select results_eq($$ select number, is_tax_invoice, supplier_gstin from public.invoice where source = 'practice:1' $$,
   $$ values ('PRAC/S' || pg_temp.yy() || '/1', false, null::text) $$,
   'the practice venue''s invoice is in its own numbering, not a tax invoice, and carries no GSTIN');
+select private.issue_invoice('00000000-0000-4000-8000-000000000002', 'S', 'practice:2', 200000, 1800, 'Academy seats', null,
+                             'Delhi Pvt Ltd', '07AAACD1234B1Z2');
+select results_eq($$ select is_tax_invoice, supplier_gstin, cgst_paise, igst_paise from public.invoice where source = 'practice:2' $$,
+  $$ values (false, null::text, 0::bigint, 30508::bigint) $$,
+  'a trainee''s invoice to a company from another state shows IGST as the club''s would, and is still not a tax invoice');
 -- And one at the test venue, where none of the club's staff work.
 update public.venue_config set gstin = '07AABCT1234Q1Z5' where venue_id = '00000000-0000-4000-8000-0000000007a1';
 select is((private.issue_invoice('00000000-0000-4000-8000-0000000007a1', 'S', 'other:1', 100000, 1800, 'Club services', null, 'Someone')).number,
@@ -117,7 +135,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select results_eq($$ select source from public.invoice order by source $$,
   $$ values ('booking:1'::text), ('booking:3'), ('booking:5'), ('booking:6') $$, 'Arjun sees his own invoices only');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select count(*)::integer from public.invoice where venue_id = '00000000-0000-4000-8000-000000000001'), 5,
+select is((select count(*)::integer from public.invoice where venue_id = '00000000-0000-4000-8000-000000000001'), 6,
   'a cashier sees the club''s invoices');
 select is_empty($$ select * from public.invoice where venue_id = '00000000-0000-4000-8000-0000000007a1' $$, 'not another venue''s');
 select is((select count(*)::integer from public.invoice_series where venue_id = '00000000-0000-4000-8000-000000000001'), 2, 'and the club''s series');

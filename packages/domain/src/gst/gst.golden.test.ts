@@ -3,7 +3,7 @@ import gstJson from '@rivr/testing/golden/gst.json';
 import { describe, expect, it } from 'vitest';
 import type { Paise } from '../money/index.ts';
 import { parseRupees } from '../money/parse-rupees.ts';
-import { gstIncluded } from './gst.ts';
+import { gstIncluded, igstIncluded } from './gst.ts';
 
 const golden = readGolden(gstJson);
 
@@ -16,12 +16,18 @@ function amount(text: string): Paise {
 
 describe('GST golden fixtures (packages/testing/golden/gst.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['gst_included'])).not.toThrow();
+    expect(() => assertOperations(golden, ['gst_included', 'igst_included'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'gst_included'))('%s', (_description, goldenCase) => {
     const split = gstIncluded(amount(goldenInput(goldenCase, 'inclusive')), BigInt(goldenInput(goldenCase, 'rate')));
     const expected = (name: string) => amount(goldenExpected(goldenCase, name));
     expect(split).toEqual({ taxable: expected('taxable'), cgst: expected('cgst'), sgst: expected('sgst') });
+  });
+
+  it.each(casesFor(golden, 'igst_included'))('%s', (_description, goldenCase) => {
+    const split = igstIncluded(amount(goldenInput(goldenCase, 'inclusive')), BigInt(goldenInput(goldenCase, 'rate')));
+    const expected = (name: string) => amount(goldenExpected(goldenCase, name));
+    expect(split).toEqual({ taxable: expected('taxable'), igst: expected('igst') });
   });
 });
