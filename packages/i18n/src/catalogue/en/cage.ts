@@ -24,6 +24,8 @@ export const cage = {
   cash: 'Cash',
   upi: 'UPI',
   fromWallet: 'Wallet',
+  /** A buy-in from the member's bonus in force (#17). */
+  fromBonus: 'Bonus',
   amount: 'Amount',
   rupee: '₹',
   utr: 'UTR',
@@ -47,6 +49,7 @@ export const cage = {
   notChips: '{amount} is not whole ₹50 chips.',
   belowMinimum: '{amount} is below the table\'s minimum buy-in.',
   walletShort: 'The wallet holds less than {amount}. Take cash at the cage or decline.',
+  bonusShort: 'The bonus in force is less than {amount}. Take cash, UPI or the wallet instead.',
   utrUsed: 'That UTR already paid for another buy-in. Check the bank record.',
   moved: 'The player is no longer in the seat that asked. Decline the request.',
   invalid: 'That request is not waiting for this member and amount.',

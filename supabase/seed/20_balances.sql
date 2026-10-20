@@ -32,6 +32,13 @@ begin
     pg_temp.seed_account(gurugram, 'venue.opening_balance'), pg_temp.seed_account(gurugram, 'member.cash', arjun), 18500000);
   perform pg_temp.seed_post(gurugram, 'seed:arjun:bonus',
     pg_temp.seed_account(gurugram, 'venue.bonus_expense'), pg_temp.seed_account(gurugram, 'member.bonus', arjun), 400000);
+  -- His bonus is one grant, ending with Sunday's club day (06:00 on Monday): "expires Sunday".
+  insert into public.bonus_grant (venue_id, member_id, amount_paise, remaining_paise, expires_at, reason, idempotency_key, ledger_transaction_id)
+  select gurugram, arjun, 400000, 400000,
+         (date_trunc('week', now() at time zone 'Asia/Kolkata') + interval '7 days 6 hours') at time zone 'Asia/Kolkata',
+         'Buy-in bonus Tuesday', 'seed:arjun:bonus', t.id
+  from public.ledger_transaction t where t.venue_id = gurugram and t.idempotency_key = 'seed:arjun:bonus'
+  on conflict (venue_id, idempotency_key) do nothing;
   perform pg_temp.seed_post(gurugram, 'seed:arjun:marker',
     pg_temp.seed_account(gurugram, 'member.receivable', arjun), pg_temp.seed_account(gurugram, 'venue.opening_balance'), 5000000);
   perform pg_temp.seed_post(gurugram, 'seed:arjun:points',

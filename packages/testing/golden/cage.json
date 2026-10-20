@@ -1,54 +1,171 @@
 {
   "rule": "cage buy-in",
-  "about": "A buy-in at the cage (scope-v1 module 5; design prompt flow 3): chips for a seated player, paid in cash, by UPI or from the member's wallet cash. The amount is whole ₹50 chips, above nothing, and at least the table's minimum buy-in. A wallet buy-in needs that much wallet cash. It posts the cash drawer (cash), the bank (UPI) or the member's wallet (wallet) against chips outstanding. Nothing is rounded: an amount that is not whole chips is refused.",
+  "about": "A buy-in at the cage (scope-v1 module 5; design prompt flow 3): chips for a seated player, paid in cash, by UPI, from the member's wallet cash, or from their bonus in force (#17). The amount is whole ₹50 chips, above nothing, and at least the table's minimum buy-in. A wallet buy-in needs that much wallet cash; a bonus buy-in, that much bonus in force. It posts the cash drawer (cash), the bank (UPI) the member's wallet (wallet) or their bonus (bonus) against chips outstanding. Nothing is rounded: an amount that is not whole chips is refused.",
   "cases": [
     {
       "description": "₹10,000 in cash at a ₹10,000 table: the cash drawer against chips outstanding.",
       "operation": "buy_in",
-      "inputs": { "method": "cash", "amount": "₹10,000", "minimum": "₹10,000", "wallet": "₹0" },
-      "expected": { "result": "ok", "debit": "cash_drawer" }
+      "inputs": {
+        "method": "cash",
+        "amount": "₹10,000",
+        "minimum": "₹10,000",
+        "wallet": "₹0",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "ok",
+        "debit": "cash_drawer"
+      }
     },
     {
       "description": "₹20,000 by UPI at a ₹10,000 table: the bank.",
       "operation": "buy_in",
-      "inputs": { "method": "upi", "amount": "₹20,000", "minimum": "₹10,000", "wallet": "₹0" },
-      "expected": { "result": "ok", "debit": "bank" }
+      "inputs": {
+        "method": "upi",
+        "amount": "₹20,000",
+        "minimum": "₹10,000",
+        "wallet": "₹0",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "ok",
+        "debit": "bank"
+      }
     },
     {
       "description": "Flow 3: ₹10,000 from Arjun's wallet of ₹1,85,000: the member's wallet.",
       "operation": "buy_in",
-      "inputs": { "method": "wallet", "amount": "₹10,000", "minimum": "₹10,000", "wallet": "₹1,85,000" },
-      "expected": { "result": "ok", "debit": "member_cash" }
+      "inputs": {
+        "method": "wallet",
+        "amount": "₹10,000",
+        "minimum": "₹10,000",
+        "wallet": "₹1,85,000",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "ok",
+        "debit": "member_cash"
+      }
     },
     {
       "description": "A wallet buy-in of exactly the whole wallet goes through.",
       "operation": "buy_in",
-      "inputs": { "method": "wallet", "amount": "₹5,000", "minimum": "₹5,000", "wallet": "₹5,000" },
-      "expected": { "result": "ok", "debit": "member_cash" }
+      "inputs": {
+        "method": "wallet",
+        "amount": "₹5,000",
+        "minimum": "₹5,000",
+        "wallet": "₹5,000",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "ok",
+        "debit": "member_cash"
+      }
     },
     {
       "description": "₹50 short in the wallet is refused.",
       "operation": "buy_in",
-      "inputs": { "method": "wallet", "amount": "₹5,000", "minimum": "₹5,000", "wallet": "₹4,950" },
-      "expected": { "result": "wallet_short", "debit": "" }
+      "inputs": {
+        "method": "wallet",
+        "amount": "₹5,000",
+        "minimum": "₹5,000",
+        "wallet": "₹4,950",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "wallet_short",
+        "debit": ""
+      }
     },
     {
       "description": "₹9,950 at a ₹10,000 table is one chip below the minimum.",
       "operation": "buy_in",
-      "inputs": { "method": "cash", "amount": "₹9,950", "minimum": "₹10,000", "wallet": "₹0" },
-      "expected": { "result": "below_minimum", "debit": "" }
+      "inputs": {
+        "method": "cash",
+        "amount": "₹9,950",
+        "minimum": "₹10,000",
+        "wallet": "₹0",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "below_minimum",
+        "debit": ""
+      }
     },
     {
       "description": "₹10,020 is not whole ₹50 chips.",
       "operation": "buy_in",
-      "inputs": { "method": "cash", "amount": "₹10,020", "minimum": "₹10,000", "wallet": "₹0" },
-      "expected": { "result": "not_chips", "debit": "" }
+      "inputs": {
+        "method": "cash",
+        "amount": "₹10,020",
+        "minimum": "₹10,000",
+        "wallet": "₹0",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "not_chips",
+        "debit": ""
+      }
     },
     {
       "description": "Nothing is not a buy-in, even at a table with no minimum.",
       "operation": "buy_in",
-      "inputs": { "method": "cash", "amount": "₹0", "minimum": "₹0", "wallet": "₹0" },
-      "expected": { "result": "not_chips", "debit": "" }
+      "inputs": {
+        "method": "cash",
+        "amount": "₹0",
+        "minimum": "₹0",
+        "wallet": "₹0",
+        "bonus": "₹0"
+      },
+      "expected": {
+        "result": "not_chips",
+        "debit": ""
+      }
+    },
+    {
+      "description": "₹10,000 from a ₹12,000 bonus at a ₹10,000 table: the member's bonus against chips outstanding.",
+      "operation": "buy_in",
+      "inputs": {
+        "method": "bonus",
+        "amount": "₹10,000",
+        "minimum": "₹10,000",
+        "wallet": "₹0",
+        "bonus": "₹12,000"
+      },
+      "expected": {
+        "result": "ok",
+        "debit": "member_bonus"
+      }
+    },
+    {
+      "description": "A bonus buy-in above the bonus in force is refused, whatever the wallet holds.",
+      "operation": "buy_in",
+      "inputs": {
+        "method": "bonus",
+        "amount": "₹10,000",
+        "minimum": "₹5,000",
+        "wallet": "₹1,85,000",
+        "bonus": "₹4,000"
+      },
+      "expected": {
+        "result": "bonus_short",
+        "debit": ""
+      }
+    },
+    {
+      "description": "A bonus buy-in is held to the table's minimum like any other: ₹4,000 at a ₹10,000 table is refused.",
+      "operation": "buy_in",
+      "inputs": {
+        "method": "bonus",
+        "amount": "₹4,000",
+        "minimum": "₹10,000",
+        "wallet": "₹0",
+        "bonus": "₹4,000"
+      },
+      "expected": {
+        "result": "below_minimum",
+        "debit": ""
+      }
     }
   ]
 }

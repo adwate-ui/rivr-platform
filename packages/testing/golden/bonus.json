@@ -1,0 +1,84 @@
+{
+  "rule": "bonus",
+  "about": "A bonus balance (scope-v1 module 5; #17): each grant has an amount and an end. Bonus is playable, not withdrawable: it buys chips, in whole ₹50 chips above nothing, drawn from the grants in force, the soonest to end first (in the order listed when two end together), each as far as it goes; more than the bonus in force is refused. A grant is in force before its end, never at it: at its end its remainder expires and is reversed. Grants are listed as amount @ end, separated by |; what each grant gives, or what expires of it, is listed in the same order. Nothing is rounded.",
+  "cases": [
+    {
+      "description": "₹2,000 from Arjun's ₹4,000 bonus expiring Sunday: half of it, ₹2,000 left.",
+      "operation": "spend",
+      "inputs": { "amount": "₹2,000", "at": "2026-11-15T20:00:00+05:30", "grants": "₹4,000 @ 2026-11-23T06:00:00+05:30" },
+      "expected": { "taken": "₹2,000" }
+    },
+    {
+      "description": "Partial use across two grants: the one ending first goes first, then the rest from the later one.",
+      "operation": "spend",
+      "inputs": { "amount": "₹5,000", "at": "2026-11-15T20:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30 | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "taken": "₹3,000 | ₹2,000" }
+    },
+    {
+      "description": "At its end a grant is no longer in force: the ₹2,000 ending now gives nothing, the rest comes from the later one.",
+      "operation": "spend",
+      "inputs": { "amount": "₹1,000", "at": "2026-11-20T06:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30 | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "taken": "₹1,000 | ₹0" }
+    },
+    {
+      "description": "A second before its end a grant is still in force, and goes first.",
+      "operation": "spend",
+      "inputs": { "amount": "₹1,000", "at": "2026-11-20T05:59:59+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30 | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "taken": "₹0 | ₹1,000" }
+    },
+    {
+      "description": "Two grants ending together: the one listed first goes first.",
+      "operation": "spend",
+      "inputs": { "amount": "₹3,000", "at": "2026-11-15T20:00:00+05:30", "grants": "₹2,000 @ 2026-11-23T06:00:00+05:30 | ₹2,000 @ 2026-11-23T06:00:00+05:30" },
+      "expected": { "taken": "₹2,000 | ₹1,000" }
+    },
+    {
+      "description": "Exactly all the bonus in force: every grant to nothing.",
+      "operation": "spend",
+      "inputs": { "amount": "₹6,000", "at": "2026-11-15T20:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30 | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "taken": "₹4,000 | ₹2,000" }
+    },
+    {
+      "description": "More than the bonus in force is refused: an expired grant does not count.",
+      "operation": "spend",
+      "inputs": { "amount": "₹5,000", "at": "2026-11-25T20:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30 | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "taken": "bonus_short" }
+    },
+    {
+      "description": "Not whole ₹50 chips: refused.",
+      "operation": "spend",
+      "inputs": { "amount": "₹1,020", "at": "2026-11-15T20:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30" },
+      "expected": { "taken": "not_chips" }
+    },
+    {
+      "description": "Nothing is not a spend.",
+      "operation": "spend",
+      "inputs": { "amount": "₹0", "at": "2026-11-15T20:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30" },
+      "expected": { "taken": "not_chips" }
+    },
+    {
+      "description": "No bonus at all: any spend is refused.",
+      "operation": "spend",
+      "inputs": { "amount": "₹500", "at": "2026-11-15T20:00:00+05:30", "grants": "" },
+      "expected": { "taken": "bonus_short" }
+    },
+    {
+      "description": "At its end, a grant's remainder expires; one still in force does not.",
+      "operation": "expire",
+      "inputs": { "at": "2026-11-20T06:00:00+05:30", "grants": "₹4,000 @ 2026-11-30T06:00:00+05:30 | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "expired": "₹0 | ₹2,000" }
+    },
+    {
+      "description": "A second before its end, nothing expires.",
+      "operation": "expire",
+      "inputs": { "at": "2026-11-20T05:59:59+05:30", "grants": "₹2,000 @ 2026-11-20T06:00:00+05:30" },
+      "expected": { "expired": "₹0" }
+    },
+    {
+      "description": "A grant used up expires nothing.",
+      "operation": "expire",
+      "inputs": { "at": "2026-11-25T06:00:00+05:30", "grants": "₹0 @ 2026-11-20T06:00:00+05:30 | ₹1,500 @ 2026-11-21T06:00:00+05:30" },
+      "expected": { "expired": "₹0 | ₹1,500" }
+    }
+  ]
+}

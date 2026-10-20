@@ -14,9 +14,10 @@ function amount(text: string): Paise {
   return parsed.value;
 }
 
+
 function methodOf(goldenCase: GoldenCase): BuyInMethod {
   const method = goldenInput(goldenCase, 'method');
-  if (method !== 'cash' && method !== 'upi' && method !== 'wallet') throw new Error(`Golden method "${method}" is not cash, upi or wallet`);
+  if (method !== 'cash' && method !== 'upi' && method !== 'wallet' && method !== 'bonus') throw new Error(`Golden method "${method}" is not cash, upi, wallet or bonus`);
   return method;
 }
 
@@ -27,7 +28,7 @@ describe('Cage buy-in golden fixtures (packages/testing/golden/cage.json)', () =
 
   it.each(casesFor(golden, 'buy_in'))('%s', (_description, goldenCase) => {
     const result = buyIn(methodOf(goldenCase), amount(goldenInput(goldenCase, 'amount')), amount(goldenInput(goldenCase, 'minimum')),
-      amount(goldenInput(goldenCase, 'wallet')));
+      { wallet: amount(goldenInput(goldenCase, 'wallet')), bonus: amount(goldenInput(goldenCase, 'bonus')) });
     const expected = goldenExpected(goldenCase, 'result');
     expect(result).toEqual(expected === 'ok' ? { ok: true, value: goldenExpected(goldenCase, 'debit') } : { ok: false, error: expected });
   });

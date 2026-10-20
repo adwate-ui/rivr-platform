@@ -82,7 +82,7 @@ select throws_ok(
        'test-reverse-2', 'Again') $$,
   '23505', null, 'a transaction is reversed at most once');
 select throws_ok(
-  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'seed:arjun:bonus'),
+  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'seed:arjun:points'),
        'seed:arjun:cash', 'Key belongs to another transaction') $$,
   '23505', null, 'a reversal cannot reuse another transaction''s key');
 
@@ -101,8 +101,8 @@ select throws_ok(
        'withdrawals') $$,
   'RVKIL', null, 'a switched-off feature''s postings are refused');
 
--- Purge (lane A) deletes whole transactions. Each function ends by turning purge off and
--- deferring the checks again, so the tests after it run as normal.
+-- Purge (lane A) deletes whole transactions, here the seeded jackpot's (no record refers to it).
+-- Each function ends by turning purge off and deferring the checks again, so the tests after it run as normal.
 create function pg_temp.purge(p_statements text)
 returns void language plpgsql as $$
 begin
@@ -118,11 +118,11 @@ select throws_ok(
   '42501', null, 'purge never edits an entry');
 select throws_ok(
   $$ select pg_temp.purge('delete from public.ledger_entry where id = (select min(e.id) from public.ledger_entry e
-       join public.ledger_transaction t on t.id = e.transaction_id where t.idempotency_key = ''seed:arjun:bonus'')') $$,
+       join public.ledger_transaction t on t.id = e.transaction_id where t.idempotency_key = ''seed:jackpot:main'')') $$,
   '23514', null, 'purge cannot leave one side of a transaction');
 select lives_ok(
-  $$ select pg_temp.purge('delete from public.ledger_entry where transaction_id = (select id from public.ledger_transaction where idempotency_key = ''seed:arjun:bonus'');
-       delete from public.ledger_transaction where idempotency_key = ''seed:arjun:bonus''') $$,
+  $$ select pg_temp.purge('delete from public.ledger_entry where transaction_id = (select id from public.ledger_transaction where idempotency_key = ''seed:jackpot:main'');
+       delete from public.ledger_transaction where idempotency_key = ''seed:jackpot:main''') $$,
   'purge removes a whole transaction');
 
 select throws_ok(

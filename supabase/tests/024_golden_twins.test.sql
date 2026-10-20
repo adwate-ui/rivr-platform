@@ -138,7 +138,7 @@ select results_eq(
   $$ select description, c.result, c.debit
      from golden.golden_case
      cross join lateral private.buy_in_check(inputs ->> 'method', pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'minimum'),
-                                             pg_temp.paise(inputs ->> 'wallet')) c
+                                             pg_temp.paise(inputs ->> 'wallet'), pg_temp.paise(inputs ->> 'bonus')) c
      where file = 'cage.json' order by position $$,
   $$ select description, expected ->> 'result', expected ->> 'debit' from golden.golden_case where file = 'cage.json' order by position $$,
   'private.buy_in_check gives every buy-in in the golden file');
@@ -196,6 +196,36 @@ select results_eq(
                  else pg_temp.paise(expected ->> 'toMember')::text end
      from golden.golden_case where file = 'cashOut.json' order by position $$,
   'private.cash_out_split gives every cash-out in the golden file');
+
+-- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
+-- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...".
+create function pg_temp.grant_amounts(p_text text) returns bigint[] language sql immutable as $$
+  select pg_temp.paise_list(regexp_replace(coalesce(p_text, ''), '\s*@[^|]*', '', 'g'));
+$$;
+create function pg_temp.grant_ends(p_text text) returns timestamptz[] language sql immutable as $$
+  select coalesce(array_agg(trim(split_part(part, '@', 2))::timestamptz order by n), '{}')
+  from unnest(string_to_array(nullif(p_text, ''), '|')) with ordinality as u (part, n);
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'bonus.json'), 'the bonus cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'bonus.json' and operation not in ('spend', 'expire') $$,
+  'every operation in bonus.json is proved here');
+select results_eq(
+  $$ select description, case when d.result = 'ok' then d.taken::text else d.result end
+     from golden.golden_case
+     cross join lateral private.bonus_draws(pg_temp.paise(inputs ->> 'amount'), pg_temp.grant_amounts(inputs ->> 'grants'),
+                                            pg_temp.grant_ends(inputs ->> 'grants'), (inputs ->> 'at')::timestamptz) d
+     where file = 'bonus.json' and operation = 'spend' order by position $$,
+  $$ select description, case when expected ->> 'taken' in ('not_chips', 'bonus_short') then expected ->> 'taken'
+                              else pg_temp.paise_list(expected ->> 'taken')::text end
+     from golden.golden_case where file = 'bonus.json' and operation = 'spend' order by position $$,
+  'private.bonus_draws gives every spend of bonus in the golden file');
+select results_eq(
+  $$ select description, private.bonus_expiring(pg_temp.grant_amounts(inputs ->> 'grants'), pg_temp.grant_ends(inputs ->> 'grants'),
+                                                (inputs ->> 'at')::timestamptz)
+     from golden.golden_case where file = 'bonus.json' and operation = 'expire' order by position $$,
+  $$ select description, pg_temp.paise_list(expected ->> 'expired')
+     from golden.golden_case where file = 'bonus.json' and operation = 'expire' order by position $$,
+  'private.bonus_expiring gives every expiry in the golden file');
 
 select * from finish();
 rollback;
