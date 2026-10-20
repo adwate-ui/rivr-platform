@@ -33,4 +33,14 @@ export const Empty: Story = { args: { paise: 0n, tone: 'muted' } };
 
 export const Negative: Story = { args: { paise: -1_250_000n } };
 
+/** A movement on Balance: a gain in gold with its plus sign, a loss with its minus sign. */
+export const Signed: Story = {
+  render: () => (
+    <Stack gap={2}>
+      <Money paise={4_650_000n} signed tone="player" />
+      <Money paise={-2_000_000n} signed />
+    </Stack>
+  ),
+};
+
 export const LongText: Story = { args: { paise: 1_234_567_850n, size: 'title' } };

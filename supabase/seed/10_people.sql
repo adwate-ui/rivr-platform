@@ -62,6 +62,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000215', '+919000000215', 'Ritika Das'),
   ('00000000-0000-4000-8000-000000000216', '+919000000216', 'Kunal Mehra'),
   ('00000000-0000-4000-8000-000000000217', '+919000000217', 'Neel Bose'),
+  ('00000000-0000-4000-8000-000000000218', '+919000000218', 'Meera Iyer'),
   ('00000000-0000-4000-8000-000000000301', '+919000000301', 'Asha Verma'),
   ('00000000-0000-4000-8000-000000000302', '+919000000302', 'Rajat Singh');
 
@@ -165,7 +166,9 @@ from (values
   -- A regular with three past visits whom the Credit flow gives a limit (60_credit.sql); never signs in.
   ('00000000-0000-4000-8000-000000000216'::uuid, 'Member', null, null),
   -- A regular whom the Markers flow seats and gives a marker (55_waitlist.sql, 60_credit.sql); never signs in.
-  ('00000000-0000-4000-8000-000000000217'::uuid, 'Member', null, null)
+  ('00000000-0000-4000-8000-000000000217'::uuid, 'Member', null, null),
+  -- The KYC flow's own member at the club, with no identity check yet (Arjun Mehta is the Balance flow's, #18).
+  ('00000000-0000-4000-8000-000000000218'::uuid, 'Member', null, null)
 ) as m (person_id, tier_name, small_blind, big_blind)
 join seed_person p on p.id = m.person_id
 on conflict (id) do nothing;

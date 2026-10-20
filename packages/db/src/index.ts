@@ -68,6 +68,10 @@ export {
 } from './restrictions.ts';
 export { useCheckInActions, useDoorBoard, type CheckInFailure, type DoorMember } from './visits.ts';
 export {
+  MOVEMENT_ACCOUNTS, MOVEMENT_KINDS, useWallet, useWalletMovements, type Movement, type MovementAccount, type MovementKind, type Wallet,
+  type WalletBonus, type WalletMarker,
+} from './wallet.ts';
+export {
   useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
 export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer, type TabletSeat } from './tabletSeats.ts';

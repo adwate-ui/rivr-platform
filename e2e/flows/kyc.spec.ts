@@ -52,7 +52,7 @@ test.describe('KYC', () => {
   });
 
   test('a real venue without a KYC vendor fails closed', async ({ page }) => {
-    await signInToPlayer(page, '9000000201');
+    await signInToPlayer(page, '9000000218');
     await takeSelfie(page);
     await expect(page.getByText('Identity checks are not open yet. Staff will check your documents at the club.')).toBeVisible();
   });

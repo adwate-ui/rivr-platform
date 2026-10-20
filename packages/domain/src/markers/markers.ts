@@ -1,5 +1,5 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { add, compare, isChipMultiple, isPositive, type Paise } from '../money/index.ts';
+import { add, compare, isChipMultiple, isPositive, max, subtract, sum, ZERO, type Paise } from '../money/index.ts';
 
 /** What a marker is checked against: the member's open markers and limit, the room's open markers and cap, and whether one of theirs is past due. */
 export interface MarkerTerms {
@@ -25,4 +25,13 @@ export function markerCheck(amount: Paise, terms: MarkerTerms): Result<null, Mar
   if (compare(add(terms.outstanding, amount), terms.limit) > 0) return err('above_limit');
   if (compare(add(terms.exposure, amount), terms.cap) > 0) return err('above_exposure');
   return ok(null);
+}
+
+/**
+ * What is left of a member's credit limit (#18, Balance: "Limit ₹2,00,000 · available ₹1,50,000"): the
+ * limit less what their open markers still owe, never below nothing. A marker of exactly that is
+ * within the limit by markerCheck.
+ */
+export function creditAvailable(limit: Paise, outstanding: readonly Paise[]): Paise {
+  return max(ZERO, subtract(limit, sum(outstanding)));
 }

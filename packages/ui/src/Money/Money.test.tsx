@@ -29,4 +29,17 @@ describe('Money', () => {
     expect(screen.getByText('−₹1,000')).toBeInTheDocument();
     expect(screen.getByText('₹1,20,000.50')).toBeInTheDocument();
   });
+
+  it('writes a gain with a plus sign when signed, and nothing or a loss as ever', () => {
+    renderIn(
+      <>
+        <Money paise={4_650_000n} signed />
+        <Money paise={-2_000_000n} signed />
+        <Money paise={0n} signed />
+      </>,
+    );
+    expect(screen.getByText('+₹46,500')).toBeInTheDocument();
+    expect(screen.getByText('−₹20,000')).toBeInTheDocument();
+    expect(screen.getByText('₹0')).toBeInTheDocument();
+  });
 });

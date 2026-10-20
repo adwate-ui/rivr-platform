@@ -19,4 +19,11 @@ describe('Time', () => {
     renderIn(<Time at={OPENING_NIGHT} tone="muted" size="lead" />);
     expect(screen.getByText('02:40')).toHaveClass('text-content-muted', 'text-18');
   });
+
+  it('shows the IST day for a date, which never wraps', () => {
+    renderIn(<Time at={OPENING_NIGHT} show="day" />);
+    const day = screen.getByText('15 Nov');
+    expect(day.tagName).toBe('TIME');
+    expect(day).toHaveClass('whitespace-nowrap');
+  });
 });

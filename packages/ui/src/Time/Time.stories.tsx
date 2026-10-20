@@ -17,6 +17,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A movement's date on Balance. */
+export const Day: Story = { args: { show: 'day', tone: 'muted', size: 'small' } };
+
 export const HoldExpires: Story = {
   render: () => (
     <Inline gap={2} align="baseline">
