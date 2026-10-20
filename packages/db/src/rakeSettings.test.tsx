@@ -93,4 +93,13 @@ describe('rake by table type (#37)', () => {
     const refused = renderRake({ ...READS, 'GET /setting': { body: { effective_from: inHours(1) } }, 'DELETE /setting': { body: [] } });
     expect(await outcomeOf(() => refused.result.current.actions.withdraw.mutateAsync('s2'))).toEqual({ ok: false, error: 'not_allowed' });
   });
+
+  it('says too soon when the database\'s own minute refuses, its clock being ahead of this one', async () => {
+    const scheduled = renderRake({ ...READS, 'POST /setting': { status: 400, body: { code: 'RVMIN', message: 'a minute' } } });
+    expect(await outcomeOf(() => scheduled.result.current.actions.schedule.mutateAsync({ ...CHANGE, effectiveFrom: inHours(0.03) })))
+      .toEqual({ ok: false, error: 'too_soon' });
+    cleanup();
+    const kept = renderRake({ ...READS, 'GET /setting': { body: { effective_from: inHours(0.03) } }, 'DELETE /setting': { body: [] } });
+    expect(await outcomeOf(() => kept.result.current.actions.withdraw.mutateAsync('s2'))).toEqual({ ok: false, error: 'too_soon' });
+  });
 });

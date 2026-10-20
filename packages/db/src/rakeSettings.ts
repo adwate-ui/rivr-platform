@@ -36,11 +36,15 @@ export interface RakeChange {
  */
 export type RakeChangeFailure = 'not_allowed' | 'invalid' | 'too_soon' | 'unavailable';
 
-const FAILURE_BY_CODE: Readonly<Record<string, RakeChangeFailure>> = { '42501': 'not_allowed', '23514': 'invalid', '23505': 'invalid' };
+// RVMIN: the database's own minute (#323), on its clock, which this device's may not match.
+const FAILURE_BY_CODE: Readonly<Record<string, RakeChangeFailure>> = { '42501': 'not_allowed', '23514': 'invalid', '23505': 'invalid', RVMIN: 'too_soon' };
 
 // A tablet logs a hand with its own clock, up to a minute ahead of the server's (log_hand), so a
 // change is scheduled, and withdrawn, only while it is more than a minute away.
 const CLOCK_GRACE = 60_000;
+
+// Clocks disagree, so a change this close that the database kept was within its minute (#323).
+const CLOCK_DOUBT = 5 * 60_000;
 
 // A change comes into force on its own, so the screen asks again every minute.
 const RAKE_CHECK = 60_000;
@@ -107,7 +111,8 @@ export function useRakeChangeActions(venueId: string) {
       const { data, error } = await client.from('setting').delete().eq('id', settingId).select('id');
       await reload();
       if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
-      return data.length === 1 ? ok(null) : err('not_allowed');
+      if (data.length === 1) return ok(null);
+      return err(Date.parse(found.data.effective_from) <= Date.now() + CLOCK_DOUBT ? 'too_soon' : 'not_allowed');
     },
   });
   return { schedule, withdraw };
