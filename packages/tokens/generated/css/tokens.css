@@ -64,7 +64,9 @@
   --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
   --rivr-size-photo: 160px; /** A KYC photo beside its member's details, such as in the review queue. */
+  --rivr-size-receipt: 576px; /** A thermal receipt: 80 mm paper at 203 dpi, one CSS pixel to each printer dot. */
   --rivr-aspect-portrait: 3 / 4; /** A KYC photo: the selfie is taken 3:4. */
+  --rivr-aspect-card: 85.6 / 54; /** The membership card: an ID-1 card, 85.6 by 54 mm. */
   --rivr-radius-sm: 3px;
   --rivr-radius-md: 4px;
   --rivr-radius-lg: 6px;
@@ -93,6 +95,10 @@
   --rivr-viewport-feed-height: 1350px;
   --rivr-viewport-story-width: 1080px;
   --rivr-viewport-story-height: 1920px;
+  --rivr-viewport-card-width: 342px;
+  --rivr-viewport-card-height: 216px;
+  --rivr-viewport-a4-width: 794px;
+  --rivr-viewport-a4-height: 1123px;
   --rivr-brand-icon: 96px; /** An app icon: the red card fills its middle. */
   --rivr-brand-maskable: 112px; /** A maskable PWA icon: the card inside the safe circle, 80% of the width. */
   --rivr-brand-adaptive: 140px; /** An Android adaptive icon's foreground: the card inside the safe zone, 66 of 108, with room to spare. */
@@ -118,6 +124,7 @@
   --rivr-color-focus: var(--rivr-color-cream); /** Keyboard focus ring. */
   --rivr-color-chart-1: var(--rivr-color-gold);
   --rivr-color-chart-2: var(--rivr-color-cream);
+  --rivr-size-card: var(--rivr-viewport-card-width); /** The membership card at its widest. */
   --rivr-breakpoint-phone: var(--rivr-viewport-phone-width);
   --rivr-breakpoint-tablet: var(--rivr-viewport-tablet-width);
   --rivr-breakpoint-console: var(--rivr-viewport-console-width);

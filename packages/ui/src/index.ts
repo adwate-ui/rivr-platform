@@ -84,3 +84,9 @@ export * from './LinksBlock/index.ts';
 // Social cards and brand art, drawn by @rivr/render
 export * from './SocialCard/index.ts';
 export * from './BrandArt/index.ts';
+
+// The membership card, receipts and A4 documents, drawn by @rivr/render
+export * from './MembershipCard/index.ts';
+export * from './Receipt/index.ts';
+export * from './DocumentPage/index.ts';
+export * from './DocumentTable/index.ts';

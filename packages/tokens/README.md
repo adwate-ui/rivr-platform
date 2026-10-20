@@ -1,6 +1,6 @@
 # @rivr/tokens
 
-The single source of every design value in RIVR: colours, typefaces, the type scale, weights, line heights, letter spacing, spacing, radius, borders, the one shadow, opacity, layers, breakpoints and device sizes (including the social feed and story formats), the brand art stages (`brand`: the square each icon, splash and cover is drawn on before it is scaled), motion, icon sizes and the chart palette. `tokens.json` (W3C Design Tokens format) is the only file a person edits; Style Dictionary generates everything else.
+The single source of every design value in RIVR: colours, typefaces, the type scale, weights, line heights, letter spacing, spacing, radius, borders, the one shadow, opacity, layers, breakpoints and device sizes (including the social feed and story formats, the membership card, A4 and the thermal receipt's width), the brand art stages (`brand`: the square each icon, splash and cover is drawn on before it is scaled), motion, icon sizes and the chart palette. `tokens.json` (W3C Design Tokens format) is the only file a person edits; Style Dictionary generates everything else.
 
 ## Public API
 

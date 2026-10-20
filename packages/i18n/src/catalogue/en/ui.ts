@@ -127,4 +127,8 @@ export const ui = {
     install: 'Install',
     notNow: 'Not now',
   },
+  /** The digital membership card (#67): `{number}` is the membership number. */
+  membershipCard: { label: 'Membership card', number: 'No. {number}' },
+  /** Printed matter, receipts and A4 documents: the club's registration beneath its address. */
+  paper: { gstin: 'GSTIN {gstin}' },
 } as const;
