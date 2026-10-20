@@ -29,6 +29,8 @@ export const queryKeys = {
   waitingDeposits: (userId: string, venueId: string) => ['user', userId, 'waiting-deposits', venueId] as const,
   /** The venue's Treasury and the cage's chip count (#24): refreshed together after a shift opens or a count. */
   treasury: (userId: string, venueId: string) => ['user', userId, 'treasury', venueId] as const,
+  /** The venue's end-of-day closes (#45). */
+  eodCloses: (userId: string, venueId: string) => ['user', userId, 'eod-closes', venueId] as const,
   /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
   academy: (userId: string) => ['user', userId, 'academy'] as const,
   academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,

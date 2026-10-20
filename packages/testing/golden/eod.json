@@ -1,0 +1,78 @@
+{
+  "rule": "shift close",
+  "about": "A cage shift's end-of-day close (scope-v1 module 5, #45): for each of cash in the drawer, chips in the cage, UPI and bank receipts, and signed markers held, the variance is what was counted less what the ledger expects, below zero when short. A shift closes to zero variance; any variance, however small and either way, makes the close an anomaly that needs a reviewed reason. There is no threshold, and variances never offset one another. Nothing is rounded.",
+  "cases": [
+    {
+      "description": "Everything as the ledger expects: no variance, no anomaly.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,48,000", "expectedCash": "₹12,48,000", "countedChips": "₹6,40,000", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹45,000", "expectedReceipts": "₹45,000", "countedMarkers": "₹50,000", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "₹0", "chips": "₹0", "receipts": "₹0", "markers": "₹0", "anomaly": "no" }
+    },
+    {
+      "description": "The drawer ₹500 short: an anomaly.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,47,500", "expectedCash": "₹12,48,000", "countedChips": "₹6,40,000", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹45,000", "expectedReceipts": "₹45,000", "countedMarkers": "₹50,000", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "-₹500", "chips": "₹0", "receipts": "₹0", "markers": "₹0", "anomaly": "yes" }
+    },
+    {
+      "description": "One ₹50 chip too many in the cage, the smallest variance chips can show: an anomaly.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,48,000", "expectedCash": "₹12,48,000", "countedChips": "₹6,40,050", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹45,000", "expectedReceipts": "₹45,000", "countedMarkers": "₹50,000", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "₹0", "chips": "₹50", "receipts": "₹0", "markers": "₹0", "anomaly": "yes" }
+    },
+    {
+      "description": "A UPI buy-in of ₹5,000 missing from the bank statement: an anomaly.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,48,000", "expectedCash": "₹12,48,000", "countedChips": "₹6,40,000", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹40,000", "expectedReceipts": "₹45,000", "countedMarkers": "₹50,000", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "₹0", "chips": "₹0", "receipts": "-₹5,000", "markers": "₹0", "anomaly": "yes" }
+    },
+    {
+      "description": "A signed marker missing from the cage: ₹50,000 short of the ledger's markers, an anomaly.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,48,000", "expectedCash": "₹12,48,000", "countedChips": "₹6,40,000", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹45,000", "expectedReceipts": "₹45,000", "countedMarkers": "₹0", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "₹0", "chips": "₹0", "receipts": "₹0", "markers": "-₹50,000", "anomaly": "yes" }
+    },
+    {
+      "description": "Variances never offset: ₹1,000 over in cash and ₹1,000 short in chips is still an anomaly.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,49,000", "expectedCash": "₹12,48,000", "countedChips": "₹6,39,000", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹45,000", "expectedReceipts": "₹45,000", "countedMarkers": "₹50,000", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "₹1,000", "chips": "-₹1,000", "receipts": "₹0", "markers": "₹0", "anomaly": "yes" }
+    },
+    {
+      "description": "A bank receipt fifty paise over is an anomaly too: nothing is rounded away.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹12,48,000", "expectedCash": "₹12,48,000", "countedChips": "₹6,40,000", "expectedChips": "₹6,40,000",
+        "countedReceipts": "₹45,000.50", "expectedReceipts": "₹45,000", "countedMarkers": "₹50,000", "expectedMarkers": "₹50,000"
+      },
+      "expected": { "cash": "₹0", "chips": "₹0", "receipts": "₹0.50", "markers": "₹0", "anomaly": "yes" }
+    },
+    {
+      "description": "A shift with nothing in it and nothing expected closes clean.",
+      "operation": "close",
+      "inputs": {
+        "countedCash": "₹0", "expectedCash": "₹0", "countedChips": "₹0", "expectedChips": "₹0",
+        "countedReceipts": "₹0", "expectedReceipts": "₹0", "countedMarkers": "₹0", "expectedMarkers": "₹0"
+      },
+      "expected": { "cash": "₹0", "chips": "₹0", "receipts": "₹0", "markers": "₹0", "anomaly": "no" }
+    }
+  ]
+}

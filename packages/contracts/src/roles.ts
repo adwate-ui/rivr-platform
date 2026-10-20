@@ -31,6 +31,7 @@ export const PERMISSIONS = [
   'markers.manage_limits',
   'withdrawals.approve',
   'ledger.read',
+  'eod.review', // give the reason for an end-of-day variance (#45), never on a shift one opened or closed
   'tournaments.manage',
   'promotions.manage',
   'jackpots.approve', // high hands and jackpot payouts
@@ -63,7 +64,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   admin: [
     ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'members.read', 'members.manage',
     'kyc.review', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
-    'markers.manage_limits', 'ledger.read', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
+    'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'reports.read', 'exports.table', 'sops.manage', 'aml.review',
   ],
   cashier: [
