@@ -7,7 +7,24 @@ export const cage = {
   noMatch: 'No member matches.',
   queue: 'Queue',
   queueEmpty: 'No requests waiting.',
-  /** A KYC photo's description, read out. */
+  /** Payout accounts waiting for the cage (#19): verify one against the member's KYC, or turn it down with a reason. */
+  payoutsToVerify: 'Payout accounts to verify',
+  payoutsEmpty: 'None waiting.',
+  payoutUpi: 'UPI {vpa} · {bank}',
+  payoutBank: '{bank} · {number} · {ifsc} · {holder}',
+  payoutAdded: 'Added {time} · {phone}',
+  verifyPayout: 'Verify',
+  rejectPayout: 'Turn down',
+  rejectReason: 'Why it is turned down',
+  rejectReasonInvalid: 'Say why in 3 to 200 characters. The member reads it.',
+  confirmReject: 'Turn down',
+  payoutTooMany: 'That member has three payout accounts.',
+  payoutAlreadyAdded: 'That account is added already.',
+  payoutInvalid: 'That account is no longer waiting, or the reason is missing.',
+  payoutNotAllowed: 'Only the cage verifies payout accounts.',
+  payoutStopped: 'This member is frozen. Nothing changes until the freeze is released.',
+  payoutPaused: 'The venue is frozen. Nothing changes until it is released.',
+  payoutUnavailable: 'Could not save. Check the connection and try again.',  /** A KYC photo's description, read out. */
   photoOf: 'KYC photo of {name}',
   /** A request in the queue: where the player sits, and when the table asked. */
   requestLine: 'Buy-in · {table}, seat {seat} · {time}',

@@ -51,3 +51,10 @@ begin
     pg_temp.seed_account(practice, 'venue.opening_balance'), pg_temp.seed_account(practice, 'member.cash', asha), 5000000);
 end;
 $$;
+
+-- Arjun's payout account (design prompt: "HDFC Bank, UPI verified"), verified by the cashier (#19).
+insert into public.payout_account (venue_id, member_id, kind, bank_name, vpa, status, decided_at, decided_by_staff_id)
+select s.venue_id, '00000000-0000-4000-8000-000000000201', 'upi', 'HDFC Bank', 'arjun.mehta@hdfcbank', 'verified', now() - interval '30 days', s.id
+from public.staff s
+where s.user_id = '00000000-0000-4000-8000-000000000104' and s.venue_id = '00000000-0000-4000-8000-000000000001'
+on conflict do nothing;

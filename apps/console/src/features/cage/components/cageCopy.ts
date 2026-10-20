@@ -1,4 +1,4 @@
-import type { CageFailure } from '@rivr/db';
+import type { CageFailure, PayoutAccountFailure } from '@rivr/db';
 import type { MessageKey } from '@rivr/i18n';
 
 /** Why chips were not issued, for the cashier. */
@@ -20,4 +20,15 @@ export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
   call_time_owed: 'console.cage.callTimeOwedBlock',
   invalid: 'console.cage.invalid',
   unavailable: 'console.cage.unavailable',
+};
+
+/** Why a decision on a payout account was refused, for the cashier. */
+export const PAYOUT_FAILURE_COPY: Readonly<Record<PayoutAccountFailure, MessageKey>> = {
+  too_many: 'console.cage.payoutTooMany',
+  already_added: 'console.cage.payoutAlreadyAdded',
+  invalid: 'console.cage.payoutInvalid',
+  not_allowed: 'console.cage.payoutNotAllowed',
+  stopped: 'console.cage.payoutStopped',
+  paused: 'console.cage.payoutPaused',
+  unavailable: 'console.cage.payoutUnavailable',
 };
