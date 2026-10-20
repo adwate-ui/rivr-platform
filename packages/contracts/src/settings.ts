@@ -158,9 +158,28 @@ const cageSecondApproverThreshold = {
   value: z.strictObject({ threshold_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE) }),
 } as const satisfies SettingDefinition;
 
-/** Every setting key declared in code. */export const SETTINGS = [
+/** How a TDS period runs: one visit, the venue's calendar day, or the financial year from 1 April. */
+export const TDS_BASES = ['session', 'day', 'financial_year'] as const;
+
+const tdsConfig = {
+  key: 'tds.config',
+  description: 'TDS on winnings (scope-v1 module 5, "TDS engine"): the switch (while off, every cash-out still records shadow TDS), the section, the rate in basis points (3000 is 30%), the threshold the period\'s net winnings must exceed, the basis (per session, day or financial year), and whether a PAN must be on record, with the rate for a member without one.',
+  scope: 'venue',
+  value: z.strictObject({
+    enabled: z.boolean(),
+    section: z.string().regex(/^[0-9]{3}[A-Z]{0,2}$/),
+    rate_basis_points: z.int().min(0).max(10_000),
+    threshold_paise: z.int().min(0).max(10_000_000_000),
+    basis: z.enum(TDS_BASES),
+    pan_required: z.boolean(),
+    no_pan_rate_basis_points: z.int().min(0).max(10_000),
+  }),
+} as const satisfies SettingDefinition;
+
+/** Every setting key declared in code. */
+export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold,
+  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig,
 ] as const;
 
 /** A setting key declared in code. */

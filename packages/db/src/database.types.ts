@@ -1717,6 +1717,38 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"tds_withholding": {
+                  Row: {
+                    "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id": string,"created_at": string,"due_paise": number,"has_pan": boolean,"id": string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"updated_at": string,"venue_id": string,"winnings_paise": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id": string,"created_at"?: string,"due_paise": number,"has_pan": boolean,"id"?: string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"updated_at"?: string,"venue_id": string,"winnings_paise": number
+                  }
+                  Update: {
+                    "already_paise"?: number,"amount_paise"?: number,"basis"?: string,"cage_transaction_id"?: string,"created_at"?: string,"due_paise"?: number,"has_pan"?: boolean,"id"?: string,"is_shadow"?: boolean,"member_id"?: string,"period_start"?: string,"rate_basis_points"?: number,"section"?: string,"updated_at"?: string,"venue_id"?: string,"winnings_paise"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tds_withholding_cage_transaction_id_fkey"
+      columns: ["cage_transaction_id"]
+isOneToOne: true
+      referencedRelation: "cage_transaction"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tds_withholding_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tds_withholding_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tier": {
                   Row: {
                     "created_at": string,"id": string,"is_retired": boolean,"name": string,"rank": number,"updated_at": string,"venue_id": string
@@ -2133,7 +2165,7 @@ isOneToOne: false
                            },
 "cage_cash_out":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_is_final"?: boolean,"p_member_id": string,"p_to": string,"p_venue_id": string }; Returns: {
-              "cage_transaction_id": string,"is_visit_closed": boolean,"markers_settled_paise": number,"to_member_paise": number
+              "cage_transaction_id": string,"is_visit_closed": boolean,"markers_settled_paise": number,"tds_paise": number,"to_member_paise": number
             }[]
                            },
 "cage_members":

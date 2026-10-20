@@ -16,7 +16,7 @@ const TO_LABEL: Readonly<Record<CashOutTo, MessageKey>> = { cash: 'console.cage.
 
 /** What the cashier does once a cash-out goes through: hand over cash, see it reach the wallet, or nothing. */
 function doneLine(done: CashOutDone, to: CashOutTo): string {
-  if (!isPositive(done.toMember)) return t('console.cage.cashedOutAllSettled');
+  if (!isPositive(done.toMember)) return t(isPositive(done.tds) ? 'console.cage.cashedOutAllTds' : 'console.cage.cashedOutAllSettled');
   const amount = formatMoney(done.toMember);
   return to === 'wallet' ? t('console.cage.cashedOutWallet', { amount }) : t('console.cage.cashedOutCash', { amount });
 }
@@ -43,6 +43,7 @@ function CashOutDoneLines({ done, to }: { done: CashOutDone; to: CashOutTo }) {
     <Stack gap={1}>
       <Text>{doneLine(done, to)}</Text>
       {isPositive(done.settled) ? <Text tone="muted">{t('console.cage.cashedOutSettled', { amount: formatMoney(done.settled) })}</Text> : null}
+      {isPositive(done.tds) ? <Text tone="muted">{t('console.cage.cashedOutTds', { amount: formatMoney(done.tds) })}</Text> : null}
       {done.isVisitClosed ? <Text tone="muted">{t('console.cage.visitClosed')}</Text> : null}
     </Stack>
   );
@@ -51,7 +52,8 @@ function CashOutDoneLines({ done, to }: { done: CashOutDone; to: CashOutTo }) {
 /**
  * A cash-out (#75; design prompt flow 8): the chips handed back first settle the member's open markers,
  * then the rest goes to them in cash or to their wallet. @rivr/domain cashOut shows the split as it is
- * typed; the database settles the markers oldest first and says what to hand over. Once per request id.
+ * typed; the database settles the markers oldest first, withholds any TDS due (#22), and says what to hand over and
+ * what was withheld. Once per request id.
  * A final cash-out is the member leaving: it ends their seat and closes their visit (#76). Only a new
  * amount makes a new request: a retry with Final or Pay to changed is refused, so chips are never paid twice.
  */

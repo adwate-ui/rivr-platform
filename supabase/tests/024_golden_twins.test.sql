@@ -147,6 +147,21 @@ select results_eq(
      from golden.golden_case where file = 'eod.json' order by position $$,
   'private.shift_close gives every variance and anomaly in the golden file');
 
+-- TDS on a cash-out: private.tds_amount and @rivr/domain tdsOnCashOut (packages/testing/golden/tds.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'tds.json'), 'the TDS cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tds.json' and operation <> 'tds' $$,
+  'every operation in tds.json is proved here');
+select results_eq(
+  $$ select description, t.rate_basis_points, t.due_paise, t.amount_paise
+     from golden.golden_case
+     cross join lateral private.tds_amount(pg_temp.signed_paise(inputs ->> 'winnings'), pg_temp.paise(inputs ->> 'already'), pg_temp.paise(inputs ->> 'payout'),
+       inputs ->> 'hasPan' = 'yes', (inputs ->> 'rate')::integer, pg_temp.paise(inputs ->> 'threshold'), inputs ->> 'panRequired' = 'yes',
+       (inputs ->> 'noPanRate')::integer) t
+     where file = 'tds.json' order by position $$,
+  $$ select description, (expected ->> 'rate')::integer, pg_temp.paise(expected ->> 'due'), pg_temp.paise(expected ->> 'amount')
+     from golden.golden_case where file = 'tds.json' order by position $$,
+  'private.tds_amount gives every rate, amount due and amount withheld in the golden file');
+
 -- A buy-in at the cage: private.buy_in_check and @rivr/domain buyIn (packages/testing/golden/cage.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'cage.json'), 'the cage buy-in cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'cage.json' and operation <> 'buy_in' $$,

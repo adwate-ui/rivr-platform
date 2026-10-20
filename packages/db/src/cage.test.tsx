@@ -53,13 +53,15 @@ describe('Cage members', () => {
 });
 
 describe('Cash-out', () => {
-  it('cashes out once per request id, to cash or the wallet, closing the visit when final', async () => {
-    const { result, calls } = renderCage({ cage_cash_out: { body: [{ cage_transaction_id: 't1', markers_settled_paise: 1_000_000, to_member_paise: 2_000_000, is_visit_closed: true }] } });
+  it('cashes out once per request id, to cash or the wallet, closing the visit when final, with the TDS withheld', async () => {
+    const { result, calls } = renderCage({ cage_cash_out: { body: [{
+      cage_transaction_id: 't1', markers_settled_paise: 1_000_000, to_member_paise: 1_400_000, tds_paise: 600_000, is_visit_closed: true,
+    }] } });
     let outcome: unknown;
     await act(async () => {
       outcome = await result.current.actions.cashOut.mutateAsync({ memberId: 'm1', amount: fromPaise(3_000_000n), to: 'wallet', isFinal: true, requestId: 'r1' });
     });
-    expect(outcome).toEqual({ ok: true, value: { cageTransactionId: 't1', settled: 1_000_000n, toMember: 2_000_000n, isVisitClosed: true } });
+    expect(outcome).toEqual({ ok: true, value: { cageTransactionId: 't1', settled: 1_000_000n, toMember: 1_400_000n, tds: 600_000n, isVisitClosed: true } });
     expect(calls.find((call) => call.rpc === 'cage_cash_out')?.body).toEqual({
       p_venue_id: VENUE, p_member_id: 'm1', p_amount_paise: 3000000, p_to: 'wallet', p_idempotency_key: 'r1', p_is_final: true,
     });
