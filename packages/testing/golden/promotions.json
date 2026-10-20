@@ -195,6 +195,18 @@
       "expected": { "applies": "no" }
     },
     {
+      "description": "Graduate first buy-in (template): an Academy graduate.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"tier_ids\": [\"graduate\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"graduate\"}" },
+      "expected": { "applies": "yes" }
+    },
+    {
+      "description": "Graduate first buy-in (template): a member who has not graduated.",
+      "operation": "applies",
+      "inputs": { "conditions": "{\"tier_ids\": [\"graduate\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"member\"}" },
+      "expected": { "applies": "no" }
+    },
+    {
       "description": "Two hours in: two and a half hours played.",
       "operation": "applies",
       "inputs": { "conditions": "{\"min_hours\": 2}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"hours_played\": 2.5}" },

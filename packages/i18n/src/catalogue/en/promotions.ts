@@ -8,6 +8,9 @@ export const promotions = {
   paused: 'Paused',
   pause: 'Pause',
   resume: 'Resume',
+  /** Every scheme in the deck, ready to publish as it stands (#85). */
+  templates: 'Templates',
+  publishTemplate: 'Publish template',
   newPromotion: 'New promotion',
   when: 'When',
   days: 'Days',

@@ -206,7 +206,8 @@ export {
   type TabletHighHand,
 } from './highHands.ts';
 export {
-  usePromotionActions, usePromotions, usePromotionStakes, type ConsolePromotion, type PromotionFailure, type PromotionStake, type PromotionToPublish,
+  usePromotionActions, usePromotions, usePromotionStakes, usePromotionTemplates, type ConsolePromotion, type PromotionFailure, type PromotionStake,
+  type PromotionToPublish,
 } from './promotions.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';
 export {

@@ -1655,14 +1655,14 @@ isOneToOne: false
                   ]
                 },"promotion": {
                   Row: {
-                    "created_at": string,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3033,6 +3033,9 @@ isOneToOne: false
                            },
 "publish_promotion":
 { Args: { "p_promotion": Json,"p_venue_id": string }; Returns: string
+                           },
+"publish_promotion_template":
+{ Args: { "p_promotion_id": string }; Returns: undefined
                            },
 "publish_sop_version":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_sop_id": string }; Returns: number

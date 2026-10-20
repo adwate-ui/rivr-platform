@@ -26,7 +26,7 @@ test.describe('Promotions', () => {
     await expect(page.getByRole('article', { name: 'Double points' })).toContainText(RUNS);
     await expect(page.getByRole('group', { name: 'TV slide' })).toContainText(RUNS);
 
-    await page.getByRole('button', { name: 'Publish' }).click();
+    await page.getByRole('button', { name: 'Publish', exact: true }).click();
     await expect(page.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
     const running = page.getByText(RUNS, { exact: true }).first();
     await expect(running).toBeVisible();

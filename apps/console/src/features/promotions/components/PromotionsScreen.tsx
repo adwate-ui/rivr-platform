@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
 import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
 import { RunningList } from './RunningList.tsx';
+import { TemplatesList } from './TemplatesList.tsx';
 
 // The bonus cap starts at ₹5,000 a buy-in, which the floor may change (question #415).
 const START: PromotionBuilder = { days: [], from: null, until: null, stake: null, reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000 };
@@ -71,6 +72,7 @@ function PromotionsBody({ venueId }: { venueId: string }) {
     <Screen title={title}>
       <Stack gap={10}>
         <RunningList venueId={venueId} />
+        <TemplatesList venueId={venueId} />
         <Builder venueId={venueId} stakes={stakes.data} />
       </Stack>
     </Screen>
