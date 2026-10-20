@@ -1,7 +1,8 @@
-import { formatList, t } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { useId } from 'react';
 import type { FeatureAccess } from '../FeatureGate/FeatureGate.tsx';
 import { Icon } from '../Icon/Icon.tsx';
+import { lockedLine } from '../LockedNotice/LockedNotice.tsx';
 import { cx } from '../internal/classes.ts';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 
@@ -11,7 +12,7 @@ export type PlayerTab = 'home' | 'sessions' | 'balance' | 'rewards' | 'learn';
 export interface BottomNavItem {
   tab: PlayerTab;
   href: string;
-  /** From `useFeature`: a hidden tab is left out, a locked tab shows a lock and names the tiers. */
+  /** From `useFeature`: a hidden tab is left out, a locked tab shows a lock and names the tiers, or says none is the way in. */
   access: FeatureAccess;
 }
 
@@ -66,7 +67,7 @@ function TabLink({ item, isCurrent, onNavigate }: TabLinkProps) {
       </a>
       {tiers ? (
         <span id={lockedId} className="sr-only">
-          {t('common.featureLocked', { tiers: formatList(tiers) })}
+          {lockedLine(tiers)}
         </span>
       ) : null}
     </>

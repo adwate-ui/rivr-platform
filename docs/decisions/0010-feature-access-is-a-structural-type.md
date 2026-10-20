@@ -10,6 +10,6 @@ Decision: `@rivr/ui` defines and exports
 type FeatureAccess = { state: 'enabled' } | { state: 'locked'; tiers: readonly string[] } | { state: 'hidden' };
 ```
 
-`@rivr/db`'s `useFeature()` returns a value of the same shape. TypeScript compares object types by structure, so the hook's result passes straight into `<FeatureGate access={...}>` without either package importing the other. `tiers` holds the tier names in rank order; `LockedNotice` joins them with `formatList` into `common.featureLocked` ("Black card only.").
+`@rivr/db`'s `useFeature()` returns a value of the same shape. TypeScript compares object types by structure, so the hook's result passes straight into `<FeatureGate access={...}>` without either package importing the other. `tiers` holds the tier names in rank order; `LockedNotice` joins them with `formatList` into `common.featureLocked` ("Black card only."). With none to name, because an override took the feature from this member alone (#353) or no tier has it, it says `common.featureUnavailable` ("Not available on your account. Ask the club.").
 
 Consequences: the shape is a contract between two packages written in two places. A change to it is a change to both, in one PR; `@rivr/db`'s tests should pass a `useFeature()` result to `FeatureGate` so the typecheck catches drift.

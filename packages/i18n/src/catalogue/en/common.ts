@@ -13,6 +13,8 @@ export const common = {
   notFound: 'This page does not exist.',
   /** LockedNotice: a feature this member's tier does not have. `{tiers}` is a formatted list. */
   featureLocked: '{tiers} only.',
+  /** LockedNotice: a feature taken from this member alone by the club (#353), so no tier is the way in. */
+  featureUnavailable: 'Not available on your account. Ask the club.',
   /**
    * Sign-in by mobile number, then the six-digit code sent to it: members in the player app, staff
    * in the console. `{phone}` is `+91 98765 43210`.

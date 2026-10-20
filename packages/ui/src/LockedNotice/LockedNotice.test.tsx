@@ -14,6 +14,12 @@ describe('LockedNotice', () => {
     expect(screen.getByText('Founders’ Circle and Black card only.')).toBeInTheDocument();
   });
 
+  it('names no tier for a feature taken from this member alone, and says it is not on their account', () => {
+    renderIn(<LockedNotice tiers={[]} />);
+    expect(screen.getByText('Not available on your account. Ask the club.')).toBeInTheDocument();
+    expect(screen.queryByText(/only\.$/)).not.toBeInTheDocument();
+  });
+
   it('shows the lock icon without announcing it', () => {
     const { container } = renderIn(<LockedNotice tiers={['Black card']} />);
     expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
