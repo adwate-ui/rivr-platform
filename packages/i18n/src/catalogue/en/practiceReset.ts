@@ -4,7 +4,7 @@ export const practiceReset = {
   notAllowed: 'Only a super admin resets the practice venue.',
   /** At the club: the reset is for the practice venue only (the owner's decision on #104). */
   notPractice: 'Switch on Practice venue at the foot of the rail to reset it. The club is never reset.',
-  intro: 'Reset to seed brings the practice venue back to how it was seeded: members, visits, seats, hands, the cage, the ledger, promotions and tournaments. Staff, devices, settings, tables, SOPs, quizzes and every certification attempt stay. The audit log keeps the reset.',
+  intro: 'Reset to seed brings the practice venue back to how it was seeded: members, visits, seats, hands, the cage, the ledger, promotions and tournaments. Staff, devices, settings, tables, SOPs, quizzes, every certification attempt, contacts, drills and kill-switch controls stay. The audit log keeps the reset.',
   /** The dry run's table. */
   tableLabel: 'Tables a reset reloads',
   table: 'Table',
@@ -25,6 +25,7 @@ export const practiceResetFailures = {
   noSeed: 'This venue has no seed to reset to. Ask for one to be captured first.',
   wrongName: 'Type the venue\'s name exactly as the rail shows it.',
   paused: 'The venue is frozen. Release it, then reset.',
-  busy: 'The venue\'s tables are busy. Try again in a minute.',
+  tooSoon: 'The practice venue was reset a moment ago. Wait five minutes, then reset again.',
+  held: 'A kill-switch control at the practice venue names a member. Release it, then reset.',
   unavailable: 'The reset did not go through. Check the connection and try again.',
 };

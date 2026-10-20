@@ -8,7 +8,8 @@ describe('practiceResetFailureOf', () => {
     expect(practiceResetFailureOf({ code: 'RVSED' })).toBe('no_seed');
     expect(practiceResetFailureOf({ code: 'RVNAM' })).toBe('wrong_name');
     expect(practiceResetFailureOf({ code: 'RVFRZ' })).toBe('paused');
-    expect(practiceResetFailureOf({ code: '55P03' })).toBe('busy');
+    expect(practiceResetFailureOf({ code: 'RVRAT' })).toBe('too_soon');
+    expect(practiceResetFailureOf({ code: '23503' })).toBe('held');
   });
 
   it('calls anything else unavailable', () => {

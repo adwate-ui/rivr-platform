@@ -22,10 +22,16 @@ insert into public.setting (venue_id, key, subject, value, effective_from, reaso
 values ('00000000-0000-4000-8000-000000000002', 'gst.config', '', (select value from public.setting
         where venue_id = '00000000-0000-4000-8000-000000000002' and key = 'gst.config' order by effective_from desc limit 1), now(), 'Set in training');
 create temporary table before as select
+  pg_sequence_last_value(pg_get_serial_sequence('public.ledger_entry', 'id')::regclass) as ledger_sequence,
   (select count(*) from public.setting where venue_id = '00000000-0000-4000-8000-000000000002') as practice_settings,
   (select count(*) from public.tournament where venue_id = '00000000-0000-4000-8000-000000000001') as club_tournaments,
   (select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000002') as practice_staff;
 grant select on before to authenticated;
+
+-- What resets is a decision for each venue table: a new one fails here until it is listed or kept.
+select set_eq($$ select private.practice_reset_tables() $$,
+  $$ select unnest(array['academy_batch', 'academy_booking', 'academy_utr_rejection', 'alert', 'bonus_grant', 'buy_in_request', 'cage_shift', 'cage_transaction', 'chip_inventory_count', 'chip_inventory_line', 'consent', 'credit_line', 'dealer_down', 'deposit_request', 'down_count', 'early_departure', 'eod_close', 'hand', 'high_hand_claim', 'incident', 'invoice', 'invoice_counter', 'jackpot_event', 'kyc_record', 'kyc_review', 'ledger_account', 'ledger_entry', 'ledger_transaction', 'marker', 'marker_settlement', 'member', 'member_feature_override', 'member_limit', 'member_preference', 'member_tier_change', 'membership_card', 'notification_preference', 'outbox_delivery', 'outbox_event', 'payout_account', 'points_earning', 'promotion', 'promotion_budget', 'promotion_grant', 'promotion_rule', 'seat_move', 'seat_session', 'second_approval', 'self_exclusion', 'sign_up_attribution', 'tds_withholding', 'tournament', 'visit', 'waitlist_entry', 'withdrawal_request']) $$,
+  'the reset reloads these tables, and keeps every other venue table');
 
 -- Only a super admin, and only at the practice venue.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
@@ -65,6 +71,17 @@ select is_empty($$ select 1 from public.ledger_entry e where e.venue_id = '00000
                    group by e.transaction_id having sum(e.amount) <> 0 $$, 'the practice ledger balances');
 select is((select count(*)::integer from public.audit_log where venue_id = '00000000-0000-4000-8000-000000000002' and action = 'practice.reset'
            and actor_user_id = '00000000-0000-4000-8000-000000000101'), 1, 'the audit log keeps the reset, by whom');
+
+select is(pg_sequence_last_value(pg_get_serial_sequence('public.ledger_entry', 'id')::regclass), (select ledger_sequence from before),
+  'a shared sequence never goes back');
+select ok(not coalesce(private.purging('00000000-0000-4000-8000-000000000002'), false), 'the purge ends with the reset');
+select throws_ok($$ delete from public.ledger_entry where venue_id = '00000000-0000-4000-8000-000000000002' $$, '42501', null,
+  'and the ledger is append-only again');
+
+select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select * from public.reset_practice_venue('00000000-0000-4000-8000-000000000002', 'RIVR Practice') $$, 'RVRAT', null,
+  'a second reset waits five minutes');
+reset role;
 
 select ok(not has_function_privilege('anon', 'public.reset_practice_venue(uuid, text)', 'execute')
           and not has_function_privilege('anon', 'public.practice_reset_preview(uuid)', 'execute'), 'nobody signed out can call them');

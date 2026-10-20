@@ -62,6 +62,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000172', '+919000000172', 'Deepak Menon'),
   ('00000000-0000-4000-8000-000000000173', '+919000000173', 'Bhavna Rawat'),
   ('00000000-0000-4000-8000-000000000174', '+919000000174', 'Sameer Kohli'),
+  ('00000000-0000-4000-8000-000000000177', '+919000000177', 'Farhan Siddiqui'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -146,6 +147,8 @@ from (values
   -- The Kill switch flow's own two super admins: one freezes the venue, the second releases it (#27).
   ('00000000-0000-4000-8000-000000000135'::uuid, 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000136'::uuid, 'Duty manager', 'super_admin'),
+  -- The Purge flow's own super admin, who resets the practice venue to its seed (#104).
+  ('00000000-0000-4000-8000-000000000177'::uuid, 'Duty manager', 'super_admin'),
   -- The Withdrawal flow's own cashier, who sends it with its UTR, and floor manager, its second approver (#21; flow 9).
   ('00000000-0000-4000-8000-000000000137'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000138'::uuid, 'Floor manager', 'admin'),

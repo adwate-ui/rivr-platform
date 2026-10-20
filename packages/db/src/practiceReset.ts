@@ -11,12 +11,13 @@ export interface PracticeResetRow {
 }
 
 /** Why a reset to seed did not go through. */
-export type PracticeResetFailure = 'not_allowed' | 'not_practice' | 'no_seed' | 'wrong_name' | 'paused' | 'busy' | 'unavailable';
+export type PracticeResetFailure = 'not_allowed' | 'not_practice' | 'no_seed' | 'wrong_name' | 'paused' | 'too_soon' | 'held' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PracticeResetFailure>> = {
   '42501': 'not_allowed', RVPRA: 'not_practice', RVSED: 'no_seed', RVNAM: 'wrong_name', RVFRZ: 'paused', RVKIL: 'paused',
-  // lock_not_available: the venue's tables were busy for longer than the reset waits.
-  '55P03': 'busy',
+  RVRAT: 'too_soon',
+  // foreign_key_violation: a kill-switch control, which a reset keeps, names a member the reset removes.
+  '23503': 'held',
 };
 
 /** The failure a refused preview or reset stands for. */

@@ -9,7 +9,8 @@ const FAILURE_COPY: Readonly<Record<PracticeResetFailure, MessageKey>> = {
   no_seed: 'console.practiceResetFailures.noSeed',
   wrong_name: 'console.practiceResetFailures.wrongName',
   paused: 'console.practiceResetFailures.paused',
-  busy: 'console.practiceResetFailures.busy',
+  too_soon: 'console.practiceResetFailures.tooSoon',
+  held: 'console.practiceResetFailures.held',
   unavailable: 'console.practiceResetFailures.unavailable',
 };
 
