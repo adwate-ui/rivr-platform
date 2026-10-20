@@ -1,4 +1,3 @@
-import { CHIP_PAISE } from '@rivr/contracts/settings';
 import type { Json } from '../database.types.ts';
 
 /**
@@ -25,10 +24,15 @@ interface SchemaProperty {
   readonly enum?: readonly string[];
 }
 
-// A field held in whole ₹50 chips is money whatever its name (high_hand.payouts).
+// A field held in whole ₹50 chips is money whatever its name (high_hand.payouts): its schema's multipleOf
+// is @rivr/contracts' CHIP_PAISE. Named here, as a number the schema carries, because importing that module
+// (or @rivr/domain/money, which reads the contracts) would put Zod and every schema in the player's first
+// load, over its budget.
+const CHIP_MULTIPLE = 5_000;
+
 function toField(name: string, property: SchemaProperty): SettingField {
   if (property.type === 'integer') {
-    const isMoney = name.endsWith('_paise') || property.multipleOf === CHIP_PAISE;
+    const isMoney = name.endsWith('_paise') || property.multipleOf === CHIP_MULTIPLE;
     return { kind: 'integer', name, min: property.minimum ?? null, max: property.maximum ?? null, isMoney };
   }
   if (property.type === 'boolean') return { kind: 'boolean', name };
