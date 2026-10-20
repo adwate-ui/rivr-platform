@@ -14,7 +14,7 @@ Test helpers for every package: the design prompt's seed as typed fixtures, fact
 | `readGolden(json)`, `casesFor(file, operation)`, `assertOperations(file, operations)`, `goldenInput(case, name)`, `goldenExpected(case, name)` | Load and walk a golden file from `golden/`, imported as `@rivr/testing/golden/<rule>.json`. |
 | `Seed*` types, `Stakes`, `Tier`, `GoldenFile`, `GoldenCase` | Types. |
 
-The seed clock is Tuesday 17 Nov 2026 00:10 IST, the Tuesday after the launch. All people are fictional.
+The seed clock is Tuesday 17 Nov 2026 00:10 IST, the Tuesday after the launch. All people are fictional. The SQL seed in `supabase/seed/` holds the same floor in both venues, each time that many minutes before the moment a stack is reset (`56_floor.sql`, decision 0120); `supabase/tests/080_floor_seed.test.sql` checks it.
 
 ## Usage
 

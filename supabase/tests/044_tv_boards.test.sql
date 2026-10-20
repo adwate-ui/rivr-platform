@@ -2,7 +2,8 @@
 -- first name and initial, in the floor's order, every stake) and its jackpot with tonight's high
 -- hand; nobody else reads them; the database broadcasts on the venue's private topic when what a
 -- board shows changes, and only the venue's TVs may hear it. The seed has Kabir Sethi, Naina Kapoor
--- and Rohan Bhatia waiting for 100/200, nobody for 50/100, and a main pool of ₹3,42,600.
+-- and Rohan Bhatia waiting for 100/200, nobody for 50/100, and a main pool of ₹3,42,600, in both venues,
+-- and tonight's high hand (56_floor.sql).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -16,6 +17,14 @@ create function pg_temp.signals(p_topic text, p_event text) returns integer lang
   select count(*)::integer from realtime.messages m where m.topic = p_topic and m.event = p_event and m.inserted_at >= now();
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated, anon;
+
+-- The seed's high hand (56_floor.sql), where it was played after 06:00 IST today, and the practice venue's stakes.
+create temp table seed_high_hand on commit drop as
+select h.venue_id, c.category from public.high_hand_claim c join public.hand h on h.id = c.hand_id
+where h.idempotency_key = 'seed:high-hand' and h.played_at >= private.tonight_began(now());
+create temp table practice_types on commit drop as
+select id from public.table_type where venue_id = '00000000-0000-4000-8000-000000000002';
+grant select on seed_high_hand, practice_types to authenticated;
 
 -- A paired TV at the club and one at the practice venue, both on the waitlist board, and a tablet.
 insert into auth.users (id, instance_id, aud, role, phone) values
@@ -53,10 +62,13 @@ select ok(not exists (select 1 from public.tv_waitlist_board() b where b.display
 select is((select count(distinct table_type_id)::int from public.tv_waitlist_board()), (select count(*)::int from stakes),
   'every stake at the venue, and only that venue''s');
 select results_eq($$ select main_paise, high_hand_category from public.tv_jackpot() $$,
-  $$ values (34260000::bigint, null::public.high_hand_category) $$, 'the jackpot is ₹3,42,600, with no high hand yet tonight');
+  $$ select 34260000::bigint, (select category from seed_high_hand where venue_id = '00000000-0000-4000-8000-000000000001') $$,
+  'the jackpot is ₹3,42,600, with the seed''s high hand when it was played tonight');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e202');
-select is_empty($$ select * from public.tv_waitlist_board() where place is not null $$, 'the practice TV shows the practice venue''s empty lists');
-select results_eq($$ select main_paise from public.tv_jackpot() $$, $$ values (0::bigint) $$, 'and the practice venue''s own jackpot');
+select results_eq($$ select display_name from public.tv_waitlist_board() where place is not null order by place $$,
+  $$ values ('Kabir S.'::text), ('Naina K.'), ('Rohan B.') $$, 'the practice TV shows the practice venue''s own list');
+select is_empty($$ select * from public.tv_waitlist_board() where table_type_id not in (select id from practice_types) $$, 'and none of the club''s');
+select results_eq($$ select main_paise from public.tv_jackpot() $$, $$ values (34260000::bigint) $$, 'and the practice venue''s own jackpot');
 reset role;
 update public.tv_screen set mode = 'jackpot' where device_id = '00000000-0000-4000-8000-00000000d201';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e201');
@@ -64,6 +76,19 @@ select is_empty($$ select * from public.tv_waitlist_board() $$, 'a TV showing th
 select results_eq($$ select main_paise from public.tv_jackpot() $$, $$ values (34260000::bigint) $$, 'only its jackpot');
 reset role;
 update public.tv_screen set mode = 'waitlist' where device_id = '00000000-0000-4000-8000-00000000d201';
+
+-- A venue with nothing on its floor yet: an empty jackpot and no high hand tonight. Operations create venues signed out.
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000f4', 'New room', 'new-room', false, 'New room', 'Elsewhere', 'NEW');
+insert into auth.users (id, instance_id, aud, role, phone) values
+  ('00000000-0000-4000-8000-00000000e204', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000000204');
+insert into public.device (id, venue_id, kind, name, auth_user_id) values
+  ('00000000-0000-4000-8000-00000000d204', '00000000-0000-4000-8000-0000000000f4', 'tv', 'New TV', '00000000-0000-4000-8000-00000000e204');
+insert into public.tv_screen (device_id, venue_id, mode) values ('00000000-0000-4000-8000-00000000d204', '00000000-0000-4000-8000-0000000000f4', 'jackpot');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e204');
+select results_eq($$ select main_paise, high_hand_category from public.tv_jackpot() $$, $$ values (0::bigint, null::public.high_hand_category) $$,
+  'a new venue''s TV shows an empty jackpot, with no high hand yet tonight');
+reset role;
 
 -- Nobody else reads the boards.
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e203');

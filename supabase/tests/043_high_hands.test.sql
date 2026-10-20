@@ -9,6 +9,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
+-- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
+delete from public.tablet_assignment;
+
 -- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
 delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
 
@@ -82,7 +86,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select throws_ok($$ select public.claim_high_hand((select hand_id from hands where n = 7), 9, 'straight_flush', null) $$, 'RVSEA', null,
   'at a seat the table has: Table 3 has eight');
 reset role;
-select results_eq($$ select c.table_id, s.user_id from public.high_hand_claim c join public.staff s on s.id = c.dealer_staff_id $$,
+select results_eq($$ select c.table_id, s.user_id from public.high_hand_claim c join public.staff s on s.id = c.dealer_staff_id
+                     where c.device_id = '00000000-0000-4000-8000-00000000d001' $$,
   $$ select t.id, '00000000-0000-4000-8000-000000000106'::uuid from public.game_table t
      where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Table 3' $$,
   'the claim is Table 3''s, by Pema, the dealer of the down');
@@ -100,7 +105,8 @@ select is_empty($$ select * from public.high_hand_claim $$, 'nor marketing');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e002');
 select is_empty($$ select * from public.high_hand_claim $$, 'nor another tablet');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select results_eq($$ select status, category, table_name, payout_paise, dealer_name from public.high_hands('00000000-0000-4000-8000-000000000001') $$,
+select results_eq($$ select status, category, table_name, payout_paise, dealer_name from public.high_hands('00000000-0000-4000-8000-000000000001')
+                     where table_name = 'Table 3' $$,
   $$ values ('claimed'::public.high_hand_status, 'straight_flush'::public.high_hand_category, 'Table 3'::text, 1000000::bigint, 'Pema Lepcha'::text) $$,
   'the floor sees the claim with what it pays now: ₹10,000');
 select throws_ok($$ update public.high_hand_claim set status = 'approved' $$, '42501', null, 'and changes it only through approval');
