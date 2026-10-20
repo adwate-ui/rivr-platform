@@ -1,5 +1,5 @@
 /**
- * Purge (#104; additions flow 16): Farhan Siddiqui, this flow's own super admin (Auth sends one code a minute
+ * Purge (#104; additions flow 16): Aarav Saxena, this flow's own super admin (Auth sends one code a minute
  * to a number), runs reset to seed on the practice venue. The
  * dry run lists each table's rows now and in the seed; a name not typed exactly is refused; typed exactly,
  * the venue is back to its seed and every table matches it. The club is never reset (the owner's decision
