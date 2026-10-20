@@ -67,6 +67,7 @@ export const queryKeys = {
   /** Tonight's tables and each game's waitlist length, as a member or staff sees them. */
   floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
   myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
+  practiceResetPreview: (userId: string, venueId: string) => ['user', userId, 'practice-reset-preview', venueId] as const,
   /** The signed-in member's waitlist places. */
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
   /** A venue's waitlists, as the floor sees them. */

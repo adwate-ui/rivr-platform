@@ -65,6 +65,7 @@ export const ui = {
       incidents: 'Incidents',
       reports: 'Reports',
       killSwitch: 'Kill switch',
+      practiceReset: 'Practice reset',
       tiers: 'Tiers',
     },
   },
