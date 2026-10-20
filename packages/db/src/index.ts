@@ -229,4 +229,6 @@ export {
 } from './settings.ts';
 export {
   useChipDenominations, useVenueConfig, useVenueConfigActions, type ChipDenomination, type VenueConfig, type VenueConfigFailure,
+  useVenueIssuer,
+  type VenueIssuer,
 } from './venueConfig.ts';

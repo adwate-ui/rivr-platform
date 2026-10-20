@@ -1,10 +1,9 @@
 import { documents, registerMessages } from '@rivr/i18n';
-import { InvoiceDocument } from '@rivr/ui';
+import { InvoiceDocument, ThermalReceipt } from '@rivr/ui';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { CASH_OUT, INVOICE, STATEMENT } from '../../test/paper.ts';
 import { StatementDocument } from './StatementDocument.tsx';
-import { ThermalReceipt } from './ThermalReceipt.tsx';
 
 registerMessages({ documents });
 

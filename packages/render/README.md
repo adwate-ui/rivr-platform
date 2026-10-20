@@ -29,7 +29,7 @@ Templates:
 | `social.highHandCard` | feed or story | `hand`, `playerName`, `tableName`, `bonusPaise`, `at` (ISO), `venue` |
 | `brand.art` | any | `art`: `icon`, `maskable`, `adaptive` or `lockup` (`BrandArt`, drawn on a fixed stage and scaled to the request); `isAnimated` with `lockup` for the logo animation |
 | `card.membership` | `tokens.viewport.card` (342 × 216) at `scale: 3` | `name`, `tier`, `memberNumber`. The QR square is empty: the QR rotates, so the app draws it live (#71) |
-| `receipt.thermal` | `tokens.size.receipt` (576) wide, no height | `issuer` (`legalName`, `address`, `gstin`), `isPractice` (says "Practice receipt"), `title`, `at` (ISO), `lines` (`label` and an amount in paise or words), `total`, `reference` |
+| `receipt.thermal` | `tokens.size.receipt` (576) wide, no height (`@rivr/ui`'s `ThermalReceipt`, which the cage prints too, #69) | `issuer` (`legalName`, `address`, `gstin`), `isPractice` (says "Practice receipt"), `title`, `at` (ISO), `lines` (`label` and an amount in paise or words), `total`, `reference` |
 | `document.invoice` | `tokens.viewport.a4` (794 × 1123) | `invoice`: a `StoredInvoice` (`@rivr/ui`'s `InvoiceDocument`), its amounts and supplier exactly as stored |
 | `document.statement` | `tokens.viewport.a4` | `issuer`, `holder`, `from` and `to` (ISO dates), `openingPaise`, `movements` (`at`, `description`, `amountPaise`, `balancePaise`), `closingPaise` |
 

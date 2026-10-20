@@ -88,3 +88,29 @@
     transform: translateY(var(--rivr-space-4));
   }
 }
+
+/*
+ * While a PrintSheet is on the page (#69), printing shows it alone: the rest of the page takes no paper, and the
+ * sheet starts at the paper's top-left corner with no page margin. A receipt is drawn one CSS pixel to each printer
+ * dot, and the browser prints 96 CSS pixels to the inch, so the sheet shrinks to its printed width.
+ */
+@page receipt {
+  margin: 0;
+}
+
+@media print {
+  body:has([data-print-sheet]) {
+    page: receipt;
+  }
+
+  body:has([data-print-sheet]) :not([data-print-sheet], [data-print-sheet] *, :has([data-print-sheet])) {
+    display: none;
+  }
+
+  [data-print-sheet] {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    zoom: var(--rivr-print-receipt-scale);
+  }
+}

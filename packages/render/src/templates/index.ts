@@ -1,9 +1,8 @@
-import { BrandArt, InvoiceDocument } from '@rivr/ui';
+import { BrandArt, InvoiceDocument, ThermalReceipt } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { BadBeatJackpotSlide } from './BadBeatJackpotSlide.tsx';
 import { MembershipCardImage } from './paper/MembershipCardImage.tsx';
 import { StatementDocument } from './paper/StatementDocument.tsx';
-import { ThermalReceipt } from './paper/ThermalReceipt.tsx';
 import { HighHandCard } from './social/HighHandCard.tsx';
 import { PromoCard } from './social/PromoCard.tsx';
 import { TournamentPoster } from './social/TournamentPoster.tsx';

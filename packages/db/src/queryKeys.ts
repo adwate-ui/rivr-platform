@@ -94,6 +94,7 @@ export const queryKeys = {
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
+  venueIssuer: (userId: string, venueId: string) => ['user', userId, 'venue-issuer', venueId] as const,
   computers: (userId: string, venueId: string) => ['user', userId, 'computers', venueId] as const,
   thisComputer: (userId: string, venueId: string) => ['user', userId, 'this-computer', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */

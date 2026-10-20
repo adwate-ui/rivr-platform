@@ -2,13 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CASH_OUT_TO, cashOutSchema } from '@rivr/contracts';
 import { useCageActions, type CageFailure, type CageMember, type CashOutDone } from '@rivr/db';
 import { cashOut, type CashOutSplit } from '@rivr/domain/cage';
-import { fromRupees, isPositive, ZERO } from '@rivr/domain/money';
+import { fromRupees, isPositive, ZERO, type Paise } from '@rivr/domain/money';
 import { formatMoney, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Money, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { CAGE_FAILURE_COPY } from './cageCopy.ts';
+import { CageReceipt } from './CageReceipt.tsx';
 
 type CashOutTo = (typeof CASH_OUT_TO)[number];
 
@@ -38,6 +39,18 @@ function CashOutSplitLines({ split, to }: { split: CashOutSplit; to: CashOutTo }
   );
 }
 
+/** The cash-out's receipt (#69): the chips handed back, what settled markers and was withheld, and what was paid. */
+function CashOutReceipt({ venueId, member, chips, done, to }: { venueId: string; member: CageMember; chips: Paise; done: CashOutDone; to: CashOutTo }) {
+  const lines = [
+    { label: t('console.cage.receiptMember'), value: member.fullName },
+    { label: t('console.cage.receiptChipsBack'), value: chips },
+    ...(isPositive(done.settled) ? [{ label: t('console.cage.receiptSettled'), value: done.settled }] : []),
+    ...(isPositive(done.tds) ? [{ label: t('console.cage.receiptTds'), value: done.tds }] : []),
+  ];
+  const total = { label: to === 'wallet' ? t('console.cage.toTheWallet') : t('console.cage.receiptPaidCash'), paise: done.toMember };
+  return <CageReceipt venueId={venueId} title={t('console.cage.receiptCashOut')} lines={lines} total={total} transactionId={done.cageTransactionId} />;
+}
+
 function CashOutDoneLines({ done, to }: { done: CashOutDone; to: CashOutTo }) {
   return (
     <Stack gap={1}>
@@ -60,15 +73,16 @@ function CashOutDoneLines({ done, to }: { done: CashOutDone; to: CashOutTo }) {
 export function CashOutForm({ venueId, member }: { venueId: string; member: CageMember }) {
   const { cashOut: take } = useCageActions(venueId);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
-  const [outcome, setOutcome] = useState<{ failure: CageFailure | null; done: { result: CashOutDone; to: CashOutTo } | null }>({ failure: null, done: null });
+  const [outcome, setOutcome] = useState<{ failure: CageFailure | null; done: { result: CashOutDone; to: CashOutTo; chips: Paise } | null }>({ failure: null, done: null });
   const [resolver] = useState(() => zodResolver(cashOutSchema));
   const form = useForm<z.input<typeof cashOutSchema>, unknown, z.output<typeof cashOutSchema>>({ resolver, defaultValues: { amount: '', to: 'cash', isFinal: false } });
   const [typed, to] = useWatch({ control: form.control, name: ['amount', 'to'] });
   const chips = /^[1-9]\d{0,7}$/.test(typed.trim()) ? fromRupees(BigInt(typed.trim())) : ZERO;
   const split = cashOut(chips, isPositive(member.markers) ? [member.markers] : []);
   const submit = form.handleSubmit(async (values) => {
-    const done = await take.mutateAsync({ memberId: member.memberId, amount: fromRupees(BigInt(values.amount)), to: values.to, isFinal: values.isFinal, requestId });
-    setOutcome(done.ok ? { failure: null, done: { result: done.value, to: values.to } } : { failure: done.error, done: null });
+    const handedBack = fromRupees(BigInt(values.amount));
+    const done = await take.mutateAsync({ memberId: member.memberId, amount: handedBack, to: values.to, isFinal: values.isFinal, requestId });
+    setOutcome(done.ok ? { failure: null, done: { result: done.value, to: values.to, chips: handedBack } } : { failure: done.error, done: null });
     if (done.ok) { form.reset({ amount: '', to: values.to, isFinal: false }); setRequestId(crypto.randomUUID()); }
   });
   const amount = form.register('amount', { onChange: () => setRequestId(crypto.randomUUID()) });
@@ -89,6 +103,7 @@ export function CashOutForm({ venueId, member }: { venueId: string; member: Cage
       <Button variant="secondary" isDisabled={typed.trim() === ''} isLoading={take.isPending} onClick={() => void submit()}>{t('console.cage.cashOut')}</Button>
       {outcome.failure === null ? null : <ErrorMessage>{t(failureCopy(outcome.failure), { amount: formatMoney(chips) })}</ErrorMessage>}
       {outcome.done === null ? null : <CashOutDoneLines done={outcome.done.result} to={outcome.done.to} />}
+      {outcome.done === null ? null : <CashOutReceipt key={outcome.done.result.cageTransactionId} venueId={venueId} member={member} chips={outcome.done.chips} done={outcome.done.result} to={outcome.done.to} />}
     </Stack>
   );
 }
