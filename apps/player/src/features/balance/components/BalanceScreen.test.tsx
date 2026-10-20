@@ -8,17 +8,21 @@ afterEach(() => {
   cleanup();
   localStorage.clear();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 const ARJUN = '00000000-0000-4000-8000-000000000201';
 const WALLET = [{ member_id: ARJUN, cash_paise: 18_500_000, points: 18_420, credit_limit_paise: 20_000_000 }];
-const MARKER = { id: 'm1', outstanding_paise: 5_000_000, issued_at: '2026-10-06T12:00:00+00:00', due_at: '2026-11-05T12:00:00+00:00' };
+const DAY = 24 * 60 * 60 * 1000;
+const daysFromNow = (days: number) => new Date(Date.now() + days * DAY).toISOString();
+// A marker issued a fortnight ago, due in a fortnight: not past due, whatever day the tests run.
+const MARKER = { id: 'm1', outstanding_paise: 5_000_000, issued_at: daysFromNow(-14), due_at: daysFromNow(16) };
 const PAYOUT = {
   id: 'p1', kind: 'upi', bank_name: 'HDFC Bank', vpa: 'arjun.mehta@hdfcbank', account_number: null, ifsc: null, holder_name: null, status: 'verified',
   reject_reason: null,
 };
 /** What each table answers. */
-const TABLES: Readonly<Record<string, unknown>> = { marker: [MARKER], 'rpc/my_payout_accounts': [PAYOUT] };
+const TABLES: Readonly<Record<string, unknown>> = { 'rpc/my_payout_accounts': [PAYOUT] };
 
 /** How my_wallet answers: Arjun's row, a failure, or never. */
 function walletAnswer(wallet: 'arjun' | 'fails' | 'never'): Promise<Response> | Response {
@@ -35,6 +39,8 @@ interface Api {
   /** How my_wallet answers: Arjun's row, a failure, or never (still loading). */
   wallet?: 'arjun' | 'fails' | 'never';
   movements?: unknown[];
+  /** The member's open markers: one due in a fortnight unless given. */
+  markers?: unknown[];
 }
 
 /** Arjun signed in, and a fake API for his Balance; `answer` changes how my_wallet answers from then on, and `added` keeps each account added. */
@@ -45,6 +51,7 @@ function renderBalance(api: Api) {
   }));
   let wallet = api.wallet ?? 'arjun';
   const added: unknown[] = [];
+  const tables: Readonly<Record<string, unknown>> = { ...TABLES, marker: api.markers ?? [MARKER] };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/my_wallet')) return walletAnswer(wallet);
@@ -53,7 +60,7 @@ function renderBalance(api: Api) {
       return Response.json('p2');
     }
     if (url.includes('/my_wallet_movement')) return Response.json(api.movements ?? []);
-    return Response.json(TABLES[url.split('/rest/v1/')[1]?.split('?')[0] ?? ''] ?? []);
+    return Response.json(tables[url.split('/rest/v1/')[1]?.split('?')[0] ?? ''] ?? []);
   });
   // No retries, so a failure shows at once.
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -78,6 +85,16 @@ describe('Balance', () => {
     expect(screen.getByText('18,420 points')).toBeDefined();
     expect(screen.getByText('Limit ₹2,00,000 · available ₹1,50,000')).toBeDefined();
     expect(screen.getByText('No movements yet.')).toBeDefined();
+  });
+
+  it('says a marker past its due date is overdue, and that no new credit is given until it is settled', async () => {
+    // The clock pinned past the due date, so the day the tests run changes nothing.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-20T12:00:00Z'));
+    renderBalance({ markers: [{ ...MARKER, issued_at: '2026-10-06T12:00:00Z', due_at: '2026-11-05T12:00:00Z' }] });
+    expect(await screen.findByText('Issued 6 Oct · overdue since 5 Nov')).toBeDefined();
+    expect(screen.getByText('Limit ₹2,00,000 · no new credit until overdue markers are settled')).toBeDefined();
+    expect(screen.queryByText(/available/)).toBeNull();
   });
 
   it('says it could not load, and loads on Try again', async () => {

@@ -22,7 +22,7 @@ async function seesBalance(page: Page) {
   await expect(page.getByText(/^₹4,000 bonus · expires Sunday 23:59$/)).toBeVisible();
   await expect(page.getByText('18,420 points', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Markers' })).toBeVisible();
-  await expect(page.getByText(/^Issued \d{1,2} [A-Z][a-z]{2} · due \d{1,2} [A-Z][a-z]{2}$/)).toBeVisible();
+  await expect(page.getByText(/^Issued \d{1,2} [A-Z][a-z]{2,3} · due \d{1,2} [A-Z][a-z]{2,3}$/)).toBeVisible();
   await expect(page.getByText('₹50,000', { exact: true })).toBeVisible();
   await expect(page.getByText('Limit ₹2,00,000 · available ₹1,50,000', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Movements' })).toBeVisible();

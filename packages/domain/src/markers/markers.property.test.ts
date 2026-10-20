@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { CHIP, fromPaise, fromRupees, isChipMultiple } from '../money/index.ts';
-import { creditAvailable, markerCheck } from './markers.ts';
+import { creditAvailable, isPastDue, markerCheck } from './markers.ts';
 
 const chips = fc.bigInt({ min: 0n, max: 2_000_000n }).map((count) => fromPaise(count * 5_000n));
 const anyPaise = fc.bigInt({ min: -1n, max: 100_000_000n }).map(fromPaise);
@@ -46,5 +46,20 @@ describe('creditAvailable', () => {
     expect(creditAvailable(fromRupees(200_000n), [])).toBe(fromRupees(200_000n));
     expect(creditAvailable(fromRupees(50_000n), [fromRupees(50_000n)])).toBe(fromPaise(0n));
     expect(creditAvailable(fromRupees(20_000n), [fromRupees(50_000n)])).toBe(fromPaise(0n));
+  });
+});
+
+describe('isPastDue', () => {
+  it('is past due once the due time has gone by, and not at it or before', () => {
+    const due = new Date('2026-11-05T12:00:00Z');
+    expect(isPastDue(due, new Date('2026-11-05T12:00:00.001Z'))).toBe(true);
+    expect(isPastDue(due, new Date('2026-11-05T12:00:00Z'))).toBe(false);
+    expect(isPastDue(due, new Date('2026-10-20T12:00:00Z'))).toBe(false);
+  });
+
+  it('agrees with the order of the two moments', () => {
+    fc.assert(fc.property(fc.date({ noInvalidDate: true }), fc.date({ noInvalidDate: true }), (due, at) => {
+      expect(isPastDue(due, at)).toBe(due.getTime() < at.getTime());
+    }));
   });
 });

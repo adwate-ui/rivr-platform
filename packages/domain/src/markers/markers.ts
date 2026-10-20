@@ -35,3 +35,11 @@ export function markerCheck(amount: Paise, terms: MarkerTerms): Result<null, Mar
 export function creditAvailable(limit: Paise, outstanding: readonly Paise[]): Paise {
   return max(ZERO, subtract(limit, sum(outstanding)));
 }
+
+/**
+ * Whether an open marker is past due at a moment: its due time has gone by. While one is, the member
+ * gets no new credit (#74, #55), as the database's private.has_past_due_marker has it.
+ */
+export function isPastDue(dueAt: Date, at: Date): boolean {
+  return dueAt.getTime() < at.getTime();
+}

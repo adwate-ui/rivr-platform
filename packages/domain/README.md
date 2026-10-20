@@ -76,6 +76,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `markerCheck(amount, terms)`, `MarkerTerms`, `MarkerRefusal` | A marker at the cage (#74, additions flow 19): whole ₹50 chips above nothing, refused while a marker of the member's is past due, above their credit limit, or above the room's exposure cap (exactly at either is allowed). The database's `private.marker_check` is proved equal by `packages/testing/golden/markers.json`. |
 | `creditAvailable(limit, outstanding)` | What is left of a member's credit limit (#18, Balance: "Limit ₹2,00,000 · available ₹1,50,000"): the limit less what their open markers still owe, never below nothing. A marker of exactly that passes `markerCheck`'s limit (property-tested). |
+| `isPastDue(dueAt, at)` | Whether an open marker's due time has gone by at a moment (#55): exactly at it is not yet past due, as `private.has_past_due_marker` has it. While one is, Balance says no new credit is given and Withdraw is blocked. |
 
 ### `@rivr/domain/cage`
 
