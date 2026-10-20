@@ -22,10 +22,13 @@ async function openSops(page: Page, number: string) {
 async function acknowledge(page: Page, title: string) {
   await page.getByRole('button', { name: `Read ${title}` }).click();
   await expect(page.getByRole('heading', { name: title })).toBeVisible();
-  // An earlier run on the same database may have acknowledged this version already.
+  // An earlier run on the same database may have acknowledged this version already: wait for either.
   const button = page.getByRole('button', { name: 'Acknowledge' });
+  const acknowledged = page.getByText(/^You acknowledged this version on \d{1,2} [A-Z][a-z]{2,3} \d{4}\.$/);
+  await expect(button.or(acknowledged)).toBeVisible();
   if (await button.isVisible()) await button.click();
-  await expect(page.getByText(/^You acknowledged this version on \d{1,2} [A-Z][a-z]{2,3} \d{4}\.$/)).toBeVisible();
+  // The acknowledgement reloads the library: slow on a busy machine.
+  await expect(acknowledged).toBeVisible({ timeout: 15_000 });
   await page.getByRole('button', { name: 'Back to SOPs' }).click();
 }
 

@@ -19,16 +19,17 @@ select private.bootstrap_venue('00000000-0000-4000-8000-0000000000f2', 'Elsewher
 insert into public.staff (venue_id, user_id, full_name, job_title, role)
 values ('00000000-0000-4000-8000-0000000000f2', '00000000-0000-4000-8000-000000000202', 'Kabir Sethi', 'Dealer', 'dealer');
 
--- The training set.
+-- The training set (its fallback runbooks are 083_fallback_runbooks's).
 select results_eq(
   $$ select v.slug, s.title, sv.version, sv.owner, sv.effective_on = (now() at time zone 'Asia/Kolkata')::date
      from public.sop s join public.venue v on v.id = s.venue_id join public.sop_version sv on sv.sop_id = s.id
-     where v.slug = 'gurugram' order by s.title $$,
+     where v.slug = 'gurugram' and s.title not like 'Fallback: %' order by s.title $$,
   $$ values ('gurugram', 'Anti-money laundering', 1, 'General manager', true), ('gurugram', 'Cage', 1, 'Duty manager', true),
             ('gurugram', 'Dealer certification', 1, 'Floor manager', true), ('gurugram', 'Table-side food and drink', 1, 'Floor manager', true),
             ('gurugram', 'Women''s safety', 1, 'General manager', true) $$,
   'the club has the training set, each at version 1 with its owner, in force from the day it was loaded');
-select results_eq($$ select v.slug, count(*)::integer from public.sop s join public.venue v on v.id = s.venue_id group by v.slug order by v.slug $$,
+select results_eq($$ select v.slug, count(*)::integer from public.sop s join public.venue v on v.id = s.venue_id
+                     where s.title not like 'Fallback: %' group by v.slug order by v.slug $$,
   $$ values ('elsewhere', 5), ('gurugram', 5), ('practice', 5) $$, 'and so do the practice venue and a venue made later');
 select results_eq(
   $$ select s.title, sv.ack_roles::text from public.sop s join public.sop_version sv on sv.sop_id = s.id
