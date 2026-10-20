@@ -56,5 +56,6 @@ Account codes posted to by each lane. Lane A owns the chart and adds accounts by
 | `venue.points_issued` | expense, points | bootstrap | D |
 | `venue.opening_balance`, `venue.points_opening_balance` | equity | bootstrap | seed and A (opening balances) |
 | `venue.tds_payable` | liability, the government's | bootstrap (#22) | A (TDS withheld at cash-outs); B (prize TDS, through A's functions) |
+| `venue.gst_payable` | liability, the government's | made on first use (#249) | C (GST on Academy fees) |
 
 Lane A adds the GST payable, tournament prize pool, fee revenue, overlay expense, expense and payment-account accounts in its migrations.

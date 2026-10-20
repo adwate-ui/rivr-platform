@@ -38,14 +38,14 @@ export interface StaffAcademyBooking {
 /** Why a staff step on the Academy did not go through, as the console tells it. */
 export type AcademyStaffFailure =
   | 'not_allowed' | 'no_member' | 'invalid' | 'full' | 'closed' | 'no_fee' | 'no_payment' | 'utr_mismatch' | 'utr_used'
-  | 'stopped' | 'no_shift' | 'unavailable';
+  | 'stopped' | 'no_shift' | 'no_gst' | 'unavailable';
 
 // Not a database code: the contact's number matched no member of the venue.
 const NO_MEMBER = 'no-member';
 
 const FAILURE_BY_CODE: Readonly<Record<string, AcademyStaffFailure>> = {
   '42501': 'not_allowed', [NO_MEMBER]: 'no_member', '22023': 'invalid', RVFUL: 'full', RVBAT: 'closed', RVPRC: 'no_fee',
-  RVPAY: 'no_payment', RVUTM: 'utr_mismatch', RVUTR: 'utr_used', RVFRZ: 'stopped', RVMBR: 'stopped', RVKIL: 'stopped', RVNSH: 'no_shift',
+  RVPAY: 'no_payment', RVUTM: 'utr_mismatch', RVUTR: 'utr_used', RVFRZ: 'stopped', RVMBR: 'stopped', RVKIL: 'stopped', RVNSH: 'no_shift', RVGST: 'no_gst',
 };
 
 const STATUSES = ['awaiting_payment', 'payment_claimed', 'paid'] as const;

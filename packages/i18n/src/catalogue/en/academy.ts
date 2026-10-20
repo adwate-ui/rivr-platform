@@ -60,5 +60,7 @@ export const academyFailures = {
   utrMismatch: 'The payer changed the UTR on this booking. Look for the new one.',
   utrUsed: 'This UTR is already on another booking. Check it with the payer.',
   stopped: 'The venue or this member is frozen. Try again once it is released.',
+  /** No invoice can be issued (#249): the venue's GSTIN or the Academy's GST rate (academy.gst) is missing. */
+  noGst: 'No invoice can be issued: the venue\'s GSTIN or the Academy\'s GST rate is not set. Ask an admin to set it, then confirm again.',
   unavailable: 'Could not save this. Check the connection and try again.',
 } as const;

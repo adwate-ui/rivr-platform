@@ -1,6 +1,6 @@
 -- Academy fees on GST invoices (#249; the owner's answers to #217 and #412; decision 0114). The fee includes
--- GST. When the cage confirms a booking's payment, the booking gets an invoice in the venue's services series
--- (S) at the GST rate in force (gst.config): to the member, or to the company under its GSTIN for a corporate
+-- GST. When the cage confirms a booking's payment, the booking gets an invoice in the Academy's own
+-- series (A) at the Academy's GST rate in force (academy.gst, question #431): to the member, or to the company under its GSTIN for a corporate
 -- booking, with IGST when that GSTIN is another state's (#380). The ledger splits the fee as the invoice does:
 -- bank in, Academy revenue at the taxable value, GST payable at the tax. The member reads the invoice in the
 -- app and saves it as a PDF. A practice booking gets a practice invoice, whose invoice.issued never leaves.
@@ -11,6 +11,35 @@ alter table public.academy_booking
   add constraint academy_booking_gstin_only_corporate check (company_gstin is null or kind = 'corporate'),
   add constraint academy_booking_invoice_once_paid check (invoice_id is null or status = 'paid');
 create index academy_booking_invoice_idx on public.academy_booking (invoice_id);
+
+-- The Academy's GST rate, apart from the rake's (decision 0071): 18% for every venue until the owner sets it
+-- (question #431). A venue without one confirms no Academy payment.
+insert into public.setting_key (key, description, scope, value_schema) values
+  ('academy.gst',
+   'GST on the Academy''s fees (decision 0114): the rate in basis points (1800 is 18%), taken out of the fee, kept apart from gst.config, the rake''s, as training may be taxed differently (question 431).',
+   'venue',
+   '{"type":"object","properties":{"rate_basis_points":{"type":"integer","minimum":0,"maximum":10000}},"required":["rate_basis_points"],"additionalProperties":false}');
+
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.id, 'academy.gst', '', '{"rate_basis_points": 1800}', '-infinity', 'A placeholder until the owner sets the Academy''s GST (question #431)'
+from public.venue v
+on conflict (venue_id, key, subject, effective_from) do nothing;
+
+-- A venue made later starts on the same placeholder, as it does on gst.config's.
+create function private.academy_gst_placeholder()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+  values (new.id, 'academy.gst', '', '{"rate_basis_points": 1800}', '-infinity', 'A placeholder until the owner sets the Academy''s GST (question #431)');
+  return null;
+end;
+$$;
+create trigger venue_academy_gst_placeholder after insert on public.venue
+  for each row execute function private.academy_gst_placeholder();
 
 -- GST charged and owed to the government, made on first use, as the Academy fees account is.
 create function private.gst_payable_account(p_venue_id uuid)
@@ -98,6 +127,7 @@ as $$
 declare
   v_booking public.academy_booking;
   v_invoice public.invoice;
+  v_rate integer;
   v_entries jsonb;
   v_transaction_id uuid;
 begin
@@ -129,8 +159,14 @@ begin
     raise exception 'The UTR found in the bank is not the one on this booking' using errcode = 'RVUTM';
   end if;
   perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
-  v_invoice := private.issue_invoice(v_booking.venue_id, 'S', 'academy:' || v_booking.id, v_booking.amount,
-    (private.setting_at(v_booking.venue_id, 'gst.config', '', now()) ->> 'rate_basis_points')::integer,
+  v_rate := (private.setting_at(v_booking.venue_id, 'academy.gst', '', now()) ->> 'rate_basis_points')::integer;
+  if v_rate is null then
+    raise exception 'The Academy''s GST rate is not set' using errcode = 'RVGST';
+  end if;
+  -- The Academy's own series (#378, reading 5), made on first use, as its accounts are.
+  insert into public.invoice_series (venue_id, code, name) values (v_booking.venue_id, 'A', 'Academy')
+  on conflict (venue_id, code) do nothing;
+  v_invoice := private.issue_invoice(v_booking.venue_id, 'A', 'academy:' || v_booking.id, v_booking.amount, v_rate,
     'Poker Academy, ' || (select b.name from public.academy_batch b where b.id = v_booking.batch_id)
       || case when v_booking.seats > 1 then ', ' || v_booking.seats || ' heads' else '' end,
     v_booking.member_id, v_booking.company_name, v_booking.company_gstin);
@@ -186,3 +222,24 @@ revoke execute on function private.book_academy_corporate(uuid, uuid, text, inte
   private.my_academy_invoice(uuid), public.my_academy_invoice(uuid) from public, anon;
 grant execute on function private.book_academy_corporate(uuid, uuid, text, integer, uuid, text), public.book_academy_corporate(uuid, uuid, text, integer, uuid, text),
   private.my_academy_invoice(uuid), public.my_academy_invoice(uuid) to authenticated;
+
+-- A member's seats, as before, and a company's booking once paid, to its contact, who opens its invoice from
+-- it (#249). Unpaid, a company's booking is the staff's to settle, so it does not show.
+create or replace function private.my_academy_bookings()
+returns table (
+  id uuid, batch_id uuid, batch_name text, starts_on date, ends_on date, status text, amount bigint, utr text,
+  turned_down_utr text, hold_until timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select k.id, k.batch_id, b.name, b.starts_on, b.ends_on, k.status, k.amount, k.utr, k.turned_down_utr,
+         case when k.status = 'awaiting_payment' then k.created_at + private.academy_seat_hold() end
+  from public.academy_booking k join public.academy_batch b on b.id = k.batch_id
+  where k.member_id = private.current_member_id()
+    and ((k.kind = 'individual' and (k.status <> 'cancelled' or k.turned_down_utr is not null))
+         or (k.kind = 'corporate' and k.status = 'paid'))
+  order by b.starts_on, b.name;
+$$;

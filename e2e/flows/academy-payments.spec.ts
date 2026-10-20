@@ -47,7 +47,7 @@ test.describe('Academy payments', () => {
     await admin.getByRole('textbox', { name: 'Contact mobile number', exact: true }).fill('9000000301');
     await admin.getByRole('textbox', { name: 'Company', exact: true }).fill(`Acme ${run}`);
     await admin.getByRole('textbox', { name: 'Heads', exact: true }).fill('2');
-    await admin.getByRole('textbox', { name: 'Company GSTIN, if it has one', exact: true }).fill('06AAAAA0000A1Z5');
+    await admin.getByRole('textbox', { name: 'Company GSTIN, if it has one', exact: true }).fill('06AAAAA0000A1Z6');
     await admin.getByRole('button', { name: 'Book', exact: true }).click();
     await expect(admin.getByText(payer, { exact: true })).toBeVisible();
     await expect(batch.getByText('2 of 10 seats booked')).toBeVisible();
@@ -85,8 +85,13 @@ test.describe('Academy payments', () => {
       .getByRole('button', { name: 'Invoice' }).last().click();
     await expect(contact.getByText('Practice invoice, not a tax invoice')).toBeVisible();
     await expect(contact.getByText(`Acme ${run}`)).toBeVisible();
-    await expect(contact.getByText('06AAAAA0000A1Z5')).toBeVisible();
+    await expect(contact.getByText('06AAAAA0000A1Z6')).toBeVisible();
     await expect(contact.getByText('₹3,000')).toBeVisible();
     await expect(contact.getByRole('button', { name: 'Save as PDF' })).toBeVisible();
+    // On a small phone it fits the screen, and Back returns to the Academy.
+    await contact.setViewportSize({ width: 375, height: 812 });
+    await expect.poll(() => contact.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+    await contact.getByRole('button', { name: 'Back' }).click();
+    await expect(contact.getByRole('heading', { name: batchName }).first()).toBeVisible();
   });
 });

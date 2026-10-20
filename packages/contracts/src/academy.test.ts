@@ -20,7 +20,7 @@ describe('companyBookingSchema', () => {
       contactPhone: '+919000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: '',
     });
     expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 101, companyGstin: '' }).success).toBe(false);
-    expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: '06AAAAA0000A1Z5' }).success).toBe(true);
+    expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: '06AAAAA0000A1Z6' }).success).toBe(true);
     expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: 'not a gstin' }).success).toBe(false);
   });
 });

@@ -30,6 +30,8 @@ export interface InvoiceDocumentProps {
   invoice: StoredInvoice;
   /** Offers Save as PDF above the page (the browser's own print), left off the page itself (#249). */
   onSave?: () => void;
+  /** Offers Back beside it, also left off the page: where the invoice was opened from (#249). */
+  onBack?: () => void;
 }
 
 /** A rate in basis points as the invoice prints it: 900 is `9%`, 250 is `2.5%`. */
@@ -64,12 +66,17 @@ function detailsOf(invoice: StoredInvoice): DocumentDetail[] {
  * the line and its totals exactly as stored. @rivr/render draws it to PDF; the player app shows it and the member
  * saves it as a PDF. Its copy is the `documents` namespace, which the caller registers.
  */
-export function InvoiceDocument({ invoice, onSave }: InvoiceDocumentProps) {
+export function InvoiceDocument({ invoice, onSave, onBack }: InvoiceDocumentProps) {
   const title = invoice.isTaxInvoice ? t('documents.invoice.taxInvoice') : t('documents.invoice.practice');
   const issuer = { legalName: invoice.supplier.legalName, address: invoice.supplier.address, gstin: invoice.supplier.gstin ?? undefined };
   return (
     <div className="flex flex-col gap-4">
-      {onSave ? <div className="print:hidden"><Button onClick={onSave}>{t('documents.invoice.save')}</Button></div> : null}
+      {onSave || onBack ? (
+        <div className="flex gap-2 print:hidden">
+          {onBack ? <Button variant="text" onClick={onBack}>{t('documents.invoice.back')}</Button> : null}
+          {onSave ? <Button onClick={onSave}>{t('documents.invoice.save')}</Button> : null}
+        </div>
+      ) : null}
       <DocumentPage issuer={issuer} title={title} details={detailsOf(invoice)} note={t('documents.computerGenerated')}>
         <DocumentTable
           caption={t('documents.invoice.caption')}

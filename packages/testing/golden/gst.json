@@ -97,6 +97,18 @@
       "operation": "igst_included",
       "inputs": { "inclusive": "₹0", "rate": "1800" },
       "expected": { "taxable": "₹0", "igst": "₹0" }
+    },
+    {
+      "description": "A company's three heads at ₹1,500 (#249): ₹4,500 at 18%, each half ₹343.220..., so ₹343.22, and ₹3,813.56 is taxable.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹4,500", "rate": "1800" },
+      "expected": { "taxable": "₹3,813.56", "cgst": "₹343.22", "sgst": "₹343.22" }
+    },
+    {
+      "description": "IGST: a company in another state books two heads at ₹1,500 (#249): ₹3,000 at 18% is ₹457.627..., so ₹457.63, and ₹2,542.37 is taxable.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹3,000", "rate": "1800" },
+      "expected": { "taxable": "₹2,542.37", "igst": "₹457.63" }
     }
   ]
 }

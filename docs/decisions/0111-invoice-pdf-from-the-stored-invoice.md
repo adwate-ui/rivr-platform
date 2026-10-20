@@ -4,7 +4,7 @@ Date: 2026-10-20 · Task: #68 (tech plan item 20)
 
 `@rivr/render`'s `renderInvoicePdf(invoice)` draws a stored invoice with the `document.invoice` template (`DocumentPage` and `DocumentTable` from `@rivr/ui`) as a one-page A4 PDF.
 
-`storedInvoiceFromRow` reads the invoice row (#23, #379, #380), and `invoiceDocumentProps` maps it and nothing else:
+`storedInvoiceFromRow` reads the invoice row (#23, #379, #380), and `InvoiceDocument` (in `@rivr/ui` since #249) draws it and nothing else:
 - the supplier's legal name, GSTIN and address as they stood when the invoice was issued;
 - the number in the venue's series, which carries the venue's prefix;
 - the buyer, and their GSTIN for a company;

@@ -41,9 +41,14 @@ describe('InvoiceDocument', () => {
     expect(screen.queryByText(/^CGST/)).toBeNull();
   });
 
-  it('offers Save as PDF when asked, from the keyboard too', async () => {
+  it('offers Back and Save as PDF when asked, from the keyboard too', async () => {
     const onSave = vi.fn();
-    const { container } = render(<InvoiceDocument invoice={STORED} onSave={onSave} />);
+    const onBack = vi.fn();
+    const { container } = render(<InvoiceDocument invoice={STORED} onSave={onSave} onBack={onBack} />);
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Back' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(onBack).toHaveBeenCalledOnce();
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'Save as PDF' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');

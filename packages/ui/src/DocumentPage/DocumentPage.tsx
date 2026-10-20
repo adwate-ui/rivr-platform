@@ -37,19 +37,19 @@ export interface DocumentPageProps {
 export function DocumentPage({ issuer, title, details, children, note }: DocumentPageProps) {
   return (
     <article aria-label={title} className="flex min-h-dvh w-full flex-col gap-10 bg-cream p-16 font-text text-14 leading-normal text-on-cream">
-      <header className="flex items-start justify-between gap-8 border-b border-on-cream pb-6">
-        <div className="flex flex-col gap-1 text-16">
+      <header className="flex flex-wrap items-start justify-between gap-8 border-b border-on-cream pb-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-1 text-16">
           <p className="font-semibold">{issuer.legalName}</p>
           <p>{issuer.address}</p>
           {issuer.gstin ? <p>{t('ui.paper.gstin', { gstin: issuer.gstin })}</p> : null}
         </div>
-        <h1 className="shrink-0 font-display text-36 leading-tight">{title}</h1>
+        <h1 className="font-display text-36 leading-tight">{title}</h1>
       </header>
       <dl className="grid grid-cols-2 gap-x-8 gap-y-4">
         {details.map((detail) => (
           <div key={detail.label} className="flex flex-col gap-1">
             <dt className="text-12 font-medium uppercase tracking-wide">{detail.label}</dt>
-            <dd className="text-16">{detail.value}</dd>
+            <dd className="text-16 wrap-anywhere">{detail.value}</dd>
           </div>
         ))}
       </dl>
