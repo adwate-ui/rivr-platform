@@ -66,6 +66,7 @@ export const queryKeys = {
   kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
   /** Tonight's tables and each game's waitlist length, as a member or staff sees them. */
   floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
+  myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
   /** The signed-in member's waitlist places. */
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
   /** A venue's waitlists, as the floor sees them. */

@@ -223,6 +223,7 @@ export { queryKeys } from './queryKeys.ts';
 export { HIDDEN, toFeatureAccess, toFeatureAccessMap, type FeatureAccess, type FeatureAccessRow } from './parse/featureAccess.ts';
 export { NOTHING_ENGAGED, toControlState, type ControlState, type KillableFeature } from './parse/controlState.ts';
 export { useWaitlistCallActions } from './waitlistCalls.ts';
+export { useMyTonight, type MyTonight, type NextTournament } from './tonight.ts';
 export {
   useSettingActions, useVenueSettings, type SettingChange, type SettingEntry, type SettingFailure, type SettingField, type SettingSubjectRules,
   type SettingValue, type VenueSetting, type VenueSettings,

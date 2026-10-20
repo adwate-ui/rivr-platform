@@ -12,6 +12,20 @@ export const tonight = {
   /** How many wait for a table's game and stake. */
   waiting: '{count} waiting',
   noWait: 'No wait',
+  /** A table's open seats, before how many wait (#87). */
+  seatsOpen: '{count} seats open',
+  oneSeatOpen: '1 seat open',
+  full: 'Full',
+  /** Above the tables while the member's identity check is not done (#87). */
+  kycIncomplete: 'KYC incomplete. Finish it to join a table.',
+  finishKyc: 'Finish identity check',
+  /** The bad-beat jackpot at the member's venue (#87). */
+  jackpot: 'Bad-beat jackpot',
+  nextTournament: 'Next tournament',
+  /** When it starts, IST, and its buy-in: `Sun 15 Nov, 16:00 · Buy-in ₹10,000`. */
+  tournamentWhen: '{date}, {time} · Buy-in {buyIn}',
+  /** The prize pool the club guarantees. */
+  guaranteed: '{amount} guaranteed',
   closed: 'Closed',
   join: 'Join',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */

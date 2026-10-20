@@ -6,7 +6,7 @@ import { RoomPlan } from './RoomPlan.tsx';
 
 const TABLE: Omit<FloorTable, 'id' | 'name' | 'room' | 'isOpen'> = {
   venueId: 'v1', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n,
-  straddle: null, waiting: 0, mustMoveToTableId: null,
+  straddle: null, waiting: 0, openSeats: null, mustMoveToTableId: null,
 };
 const TABLES: FloorTable[] = [
   { ...TABLE, id: 't3', name: 'Table 3', room: 'main', isOpen: true },
