@@ -1173,6 +1173,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"payout_account": {
+                  Row: {
+                    "account_number": string | null,"bank_name": string,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"holder_name": string | null,"id": string,"ifsc": string | null,"kind": string,"member_id": string,"reject_reason": string | null,"removed_at": string | null,"status": string,"updated_at": string,"venue_id": string,"vpa": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_number"?: string | null,"bank_name": string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind": string,"member_id": string,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id": string,"vpa"?: string | null
+                  }
+                  Update: {
+                    "account_number"?: string | null,"bank_name"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind"?: string,"member_id"?: string,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string,"vpa"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payout_account_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "payout_account_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"role_permission": {
                   Row: {
                     "created_at": string,"permission": string,"role": Database["public"]['Enums']["staff_role"],"updated_at": string
@@ -1853,6 +1879,9 @@ isOneToOne: false
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
                            },
+"add_payout_account":
+{ Args: { "p_account_number"?: string,"p_bank_name": string,"p_holder_name"?: string,"p_ifsc"?: string,"p_kind": string,"p_vpa"?: string }; Returns: string
+                           },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
                            },
@@ -1960,6 +1989,9 @@ isOneToOne: false
                            },
 "decide_credit_limit":
 { Args: { "p_expected_limit_paise": number,"p_is_approved": boolean,"p_line_id": string }; Returns: undefined
+                           },
+"decide_payout_account":
+{ Args: { "p_account_id": string,"p_is_verified": boolean,"p_reason"?: string }; Returns: undefined
                            },
 "decline_buy_in_request":
 { Args: { "p_request_id": string }; Returns: undefined
@@ -2116,6 +2148,11 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
+"my_payout_accounts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "account_number": string,"bank_name": string,"holder_name": string,"id": string,"ifsc": string,"kind": string,"reject_reason": string,"status": string,"vpa": string
+            }[]
+                           },
 "my_restrictions":
 { Args: Record<PropertyKey, never>; Returns: {
               "break_until": string,"session_reminder_hours": number
@@ -2151,6 +2188,11 @@ isOneToOne: false
                            },
 "pay_bad_beat":
 { Args: { "p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
+                           },
+"payout_accounts_to_verify":
+{ Args: { "p_venue_id": string }; Returns: {
+              "account_id": string,"account_number": string,"added_at": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"phone": string,"vpa": string
+            }[]
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
@@ -2189,6 +2231,9 @@ isOneToOne: false
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
+                           },
+"remove_payout_account":
+{ Args: { "p_account_id": string }; Returns: undefined
                            },
 "reopen_kyc_check":
 { Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
