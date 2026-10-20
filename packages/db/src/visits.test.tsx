@@ -6,7 +6,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useCheckInActions, useDoorBoard } from './visits.ts';
+import { useCheckInActions, useCheckOutActions, useDoorBoard } from './visits.ts';
 
 const STAFF = '00000000-0000-4000-8000-000000000124';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -25,7 +25,7 @@ function renderDoor(replies: Record<string, { status?: number; body: unknown }>)
     auth: { storage: sessionStorageFor(STAFF), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ board: useDoorBoard(VENUE), actions: useCheckInActions(VENUE) }), { wrapper });
+  const { result } = renderHook(() => ({ board: useDoorBoard(VENUE), actions: useCheckInActions(VENUE), out: useCheckOutActions(VENUE) }), { wrapper });
   return { result, calls };
 }
 
@@ -61,5 +61,28 @@ describe('The door', () => {
     const old = renderDoor({ door_board: { body: [] }, check_in_by_card: { status: 400, body: { code: 'RVCRD', message: 'not current' } } });
     await act(async () => { outcome = await old.result.current.actions.checkInByCard.mutateAsync('card.58931233.mac'); });
     expect(outcome).toEqual({ ok: false, error: 'card_not_current' });
+  });
+
+  it('checks a member out by mobile number, resolving to the closed visit', async () => {
+    const { result, calls } = renderDoor({ door_board: { body: [] }, check_out_by_phone: { body: 'v1' } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.out.checkOutByPhone.mutateAsync('9000000213'); });
+    expect(outcome).toEqual({ ok: true, value: 'v1' });
+    expect(calls.find((call) => call.rpc === 'check_out_by_phone')?.body).toEqual({ p_venue_id: VENUE, p_phone: '9000000213' });
+  });
+
+  it('says how much call time a member still owes when the door refuses them', async () => {
+    const { result } = renderDoor({ door_board: { body: [] },
+      check_out: { status: 400, body: { code: 'RVCTS', message: 'Call time not complete', details: '3540', hint: null } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.out.checkOut.mutateAsync('m1'); });
+    expect(outcome).toEqual({ ok: false, error: { reason: 'call_time_owed', owedSeconds: 3540 } });
+  });
+
+  it('says a member still seated is sent to the floor or the cage first', async () => {
+    const { result } = renderDoor({ door_board: { body: [] }, check_out: { status: 400, body: { code: 'RVSTD', message: 'Still seated', details: null } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.out.checkOut.mutateAsync('m1'); });
+    expect(outcome).toEqual({ ok: false, error: { reason: 'seated', owedSeconds: 0 } });
   });
 });

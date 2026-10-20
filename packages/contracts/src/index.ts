@@ -58,6 +58,10 @@ export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,
 } from './cage.ts';
 export { creditLimitSchema, markerIssueSchema } from './credit.ts';
+export {
+  PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionConditionsSchema, promotionEffectSchema, type PromotionConditions, type PromotionEffect,
+  type PromotionEffectKind, type PromotionTrigger,
+} from './promotions.ts';
 export { CONTROL_LEVELS, engageControlSchema, KILLABLE_FEATURES } from './killSwitch.ts';
 export { badBeatSchema, jackpotReversalSchema } from './jackpot.ts';
 export {

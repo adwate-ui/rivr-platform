@@ -48,7 +48,8 @@ echo "workflows from outside contributors need approval"
 #   staging     main only; staging Supabase and Cloudflare
 #   production  release-* tags only, and the repository owner approves each release
 #   e2e-staging release-* tags only; the staging test numbers' sign-in code for the release's e2e run
-#   backup-staging, backup-production  main only; the nightly backup's database URL and bucket keys (#25)
+#   backup-staging, backup-production  main only; the nightly backup's database URL and bucket keys (#25), and the
+#                                      project's Storage S3 key, to copy its files (#386)
 owner_id="$(gh api "users/${repo%%/*}" --jq .id)"
 environment() {
   gh api --method PUT "repos/$repo/environments/$1" --input - >/dev/null

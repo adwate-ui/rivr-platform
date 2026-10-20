@@ -1519,6 +1519,110 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"promotion": {
+                  Row: {
+                    "created_at": string,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"stacks": boolean,"starts_at": string,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"promotion_budget": {
+                  Row: {
+                    "cap_count": number | null,"cap_paise": number | null,"created_at": string,"id": string,"promotion_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cap_count"?: number | null,"cap_paise"?: number | null,"created_at"?: string,"id"?: string,"promotion_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "cap_count"?: number | null,"cap_paise"?: number | null,"created_at"?: string,"id"?: string,"promotion_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_budget_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"promotion_grant": {
+                  Row: {
+                    "bonus_grant_id": string | null,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"points": number,"promotion_id": string,"promotion_rule_id": string,"source_key": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bonus_grant_id"?: string | null,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"points": number,"promotion_id": string,"promotion_rule_id": string,"source_key": string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "bonus_grant_id"?: string | null,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"points"?: number,"promotion_id"?: string,"promotion_rule_id"?: string,"source_key"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_grant_bonus_grant_id_fkey"
+      columns: ["bonus_grant_id"]
+isOneToOne: false
+      referencedRelation: "bonus_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "promotion_grant_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_grant_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_grant_promotion_rule_id_venue_id_fkey"
+      columns: ["promotion_rule_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion_rule"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_grant_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"promotion_rule": {
+                  Row: {
+                    "conditions": NonNullable<Json>,"created_at": string,"effect": NonNullable<Json>,"id": string,"position": number,"promotion_id": string,"trigger": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "conditions"?: NonNullable<Json>,"created_at"?: string,"effect": NonNullable<Json>,"id"?: string,"position"?: number,"promotion_id": string,"trigger": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "conditions"?: NonNullable<Json>,"created_at"?: string,"effect"?: NonNullable<Json>,"id"?: string,"position"?: number,"promotion_id"?: string,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_rule_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"quiz": {
                   Row: {
                     "answer_key": (number)[],"created_at": string,"id": string,"pass_percent": number,"questions": NonNullable<Json>,"role": Database["public"]['Enums']["staff_role"],"title": string,"updated_at": string,"venue_id": string
@@ -2467,6 +2571,12 @@ isOneToOne: false
                            },
 "check_kyc_in_person":
 { Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
+                           },
+"check_out":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
+                           },
+"check_out_by_phone":
+{ Args: { "p_phone": string,"p_venue_id": string }; Returns: string
                            },
 "check_tv_pairing":
 { Args: { "p_secret": string }; Returns: {

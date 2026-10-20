@@ -22,7 +22,7 @@ select throws_ok(
 set local role anon;
 select results_eq(
   $$ select slug from public.public_site_page where nav_position is not null order by nav_position $$,
-  $$ values ('academy'::text), ('house-rules'), ('questions'), ('visit'), ('responsible-play') $$,
+  $$ values ('academy'::text), ('house-rules'), ('questions'), ('visit'), ('responsible-play'), ('privacy') $$,
   'anyone sees the published pages in the navigation, in order; careers stays a draft');
 select results_eq(
   $$ select kind from public.public_site_block where page_slug = 'house-rules' order by position $$,
