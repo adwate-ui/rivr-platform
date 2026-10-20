@@ -5,6 +5,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
+delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);

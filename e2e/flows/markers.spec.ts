@@ -4,9 +4,8 @@
  * him ₹50,000 of credit, and at the cage issues ₹50,000 on a marker he signs on the pad; ₹10,000 more
  * is refused, above his limit. The Markers screen shows his marker outstanding, with its age, beside
  * Arjun Mehta's (seed). Then design prompt flow 8 (#75) at its own figures, with Neel, who is in the
- * room and has finished his identity check (the seed's Arjun has not): he cashes out ₹1,20,000 of
- * chips; his ₹50,000 marker settles first, ₹70,000 goes to his wallet, and the room's exposure drops by
- * ₹50,000. He leaves the table at the end. Past due, the room's cap and freezes are proved in
+ * room and has finished his identity check: he cashes out ₹1,20,000 of chips; his ₹50,000 marker
+ * settles first, ₹70,000 goes to his wallet, and the room's exposure drops by ₹50,000. He leaves the table at the end. Past due, the room's cap and freezes are proved in
  * supabase/tests/054_markers.test.sql; a cash-out's ledger lines in 055_cash_out.test.sql.
  */
 import { expect, test, type Page } from '@playwright/test';

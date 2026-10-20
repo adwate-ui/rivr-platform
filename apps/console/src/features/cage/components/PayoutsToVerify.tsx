@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { rejectPayoutSchema } from '@rivr/contracts';
+import { reasonForMemberSchema } from '@rivr/contracts';
 import { usePayoutAccountDecisions, usePayoutAccountsToVerify, type PayoutAccountToVerify } from '@rivr/db';
 import { formatDayTime, formatMobile, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
@@ -16,8 +16,8 @@ function lineOf(account: PayoutAccountToVerify): string {
 
 /** Turning an account down: the reason the member will read, then Turn down. */
 function RejectForm({ onReject, isSaving }: { onReject: (reason: string) => void; isSaving: boolean }) {
-  const [resolver] = useState(() => zodResolver(rejectPayoutSchema));
-  const form = useForm<z.input<typeof rejectPayoutSchema>, unknown, z.output<typeof rejectPayoutSchema>>({ resolver, defaultValues: { reason: '' } });
+  const [resolver] = useState(() => zodResolver(reasonForMemberSchema));
+  const form = useForm<z.input<typeof reasonForMemberSchema>, unknown, z.output<typeof reasonForMemberSchema>>({ resolver, defaultValues: { reason: '' } });
   const reason = form.register('reason');
   return (
     <Stack gap={2}>

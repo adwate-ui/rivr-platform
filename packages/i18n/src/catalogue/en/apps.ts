@@ -13,7 +13,7 @@ import { jackpots } from './jackpots.ts';
 import { rake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
-import { balance } from './wallet.ts';
+import { balance, withdrawals } from './wallet.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
@@ -160,6 +160,7 @@ export const consoleApp = {
   checkIn,
   cage,
   markers,
+  withdrawals,
   members,
   killSwitch,
   /** The heading while the console finds the staff member's venue, or fails to. */

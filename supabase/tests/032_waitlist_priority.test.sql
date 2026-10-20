@@ -7,6 +7,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
+delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
+
 create function pg_temp.type_id(p_code text) returns uuid language sql as $$
   select id from public.table_type where code = p_code and venue_id = '00000000-0000-4000-8000-000000000001';
 $$;

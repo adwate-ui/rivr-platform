@@ -20,7 +20,8 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `utrSchema`, `Utr` | Twelve-digit bank reference, `412908771204`. |
 | `ifscSchema`, `Ifsc`, `bankAccountNumberSchema` | An IFSC in capitals, `HDFC0001234`; a bank account number of 9 to 18 digits. |
 | `payoutAccountSchema`, `PayoutAccountInput`, `PAYOUT_KINDS` | A payout account as the member adds it on Balance (#19): the bank's name, and a UPI address or a bank account number, IFSC and holder's name; only the chosen kind's fields are checked, and they come out written as banks write them. |
-| `rejectPayoutSchema` | Why the cage turns a payout account down: 3 to 200 characters, shown to the member. |
+| `reasonForMemberSchema` | Why the cage turns something down, a payout account (#19) or a withdrawal (#21): 3 to 200 characters, shown to the member. |
+| `withdrawalSchema`, `sendWithdrawalSchema` | A withdrawal as the member asks for it (whole rupees, to a verified payout account), and the UTR the cage sends it with (#21). |
 | `academyBatchSchema` | A new Academy batch from the console: name, first and last day (in order), 1 to 500 seats as typed in a field. |
 | `companyBookingSchema` | A company's Academy booking: the contact's mobile number, the company, 1 to 100 heads as typed in a field. |
 | `pairingCodeSchema`, `devicePairSchema`, `dealerTabletAddSchema`, `deviceRevokeSchema` | A dealer tablet's six-digit pairing code, as the tablet sends it to device-pair; a tablet's name and a revocation's reason from the console (#41). |

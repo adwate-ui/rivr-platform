@@ -20,6 +20,9 @@ export const queryKeys = {
   /** The signed-in member's payout accounts (#19), and the venue's waiting for the cage. */
   payoutAccounts: (userId: string) => ['user', userId, 'payout-accounts'] as const,
   payoutAccountsToVerify: (userId: string, venueId: string) => ['user', userId, 'payout-accounts-to-verify', venueId] as const,
+  /** The signed-in member's withdrawals (#21), and the venue's waiting for the cage. */
+  withdrawals: (userId: string) => ['user', userId, 'withdrawals'] as const,
+  waitingWithdrawals: (userId: string, venueId: string) => ['user', userId, 'waiting-withdrawals', venueId] as const,
   /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
   academy: (userId: string) => ['user', userId, 'academy'] as const,
   academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,

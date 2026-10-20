@@ -1,9 +1,11 @@
 import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Balance: the member's money at the club. Loaded when first opened, so it does not count against the initial JavaScript budget. */
-export const balanceRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: '/balance',
-  component: lazyRouteComponent(() => import('../features/balance/index.ts'), 'BalanceScreen'),
-});
+// Loaded when first opened, so Balance does not count against the initial JavaScript budget.
+const balance = () => import('../features/balance/index.ts');
+
+/** Balance: the member's money at the club. */
+export const balanceRoute = createRoute({ getParentRoute: () => frameRoute, path: '/balance', component: lazyRouteComponent(balance, 'BalanceScreen') });
+
+/** Withdraw (#21): wallet cash to one of the member's verified payout accounts. */
+export const withdrawRoute = createRoute({ getParentRoute: () => frameRoute, path: '/balance/withdraw', component: lazyRouteComponent(balance, 'WithdrawScreen') });

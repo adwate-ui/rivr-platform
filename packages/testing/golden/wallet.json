@@ -1,0 +1,48 @@
+{
+  "rule": "withdrawal",
+  "about": "A withdrawal from the member's wallet (#21; scope-v1 module 5; design prompt flow 9): whole rupees above nothing, and no more than the wallet's cash. Bonus and points are never withdrawn. Nothing is rounded: an amount with paise is refused.",
+  "cases": [
+    {
+      "description": "Arjun withdraws ₹1,00,000 of his ₹1,85,000 (flow 9).",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹1,00,000", "cash": "₹1,85,000" },
+      "expected": { "result": "ok" }
+    },
+    {
+      "description": "All of the wallet's cash, exactly.",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹1,85,000", "cash": "₹1,85,000" },
+      "expected": { "result": "ok" }
+    },
+    {
+      "description": "A rupee more than the wallet holds is refused.",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹1,85,001", "cash": "₹1,85,000" },
+      "expected": { "result": "wallet_short" }
+    },
+    {
+      "description": "Any whole rupees, not only ₹50 chips.",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹1,234", "cash": "₹1,85,000" },
+      "expected": { "result": "ok" }
+    },
+    {
+      "description": "Paise are refused: a withdrawal is whole rupees.",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹1,000.50", "cash": "₹1,85,000" },
+      "expected": { "result": "not_rupees" }
+    },
+    {
+      "description": "Nothing is not a withdrawal.",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹0", "cash": "₹1,85,000" },
+      "expected": { "result": "not_rupees" }
+    },
+    {
+      "description": "An empty wallet: any withdrawal is short.",
+      "operation": "withdraw",
+      "inputs": { "amount": "₹1", "cash": "₹0" },
+      "expected": { "result": "wallet_short" }
+    }
+  ]
+}

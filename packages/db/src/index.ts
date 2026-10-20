@@ -72,6 +72,10 @@ export {
   type PayoutAccountFailure, type PayoutAccountToVerify, type PayoutDecision, type PayoutStatus,
 } from './payoutAccounts.ts';
 export {
+  useWaitingWithdrawals, useWithdrawalActions, useWithdrawalDecisions, useWithdrawals, type WaitingWithdrawal, type Withdrawal, type WithdrawalFailure,
+  type WithdrawalOrder, type WithdrawalStatus,
+} from './withdrawals.ts';
+export {
   MOVEMENT_ACCOUNTS, MOVEMENT_KINDS, useWallet, useWalletMovements, type Movement, type MovementAccount, type MovementKind, type Wallet,
   type WalletBonus, type WalletMarker,
 } from './wallet.ts';

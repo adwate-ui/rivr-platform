@@ -80,7 +80,8 @@ async function memberOpens(path: string, visit: number) {
   signIn();
   localStorage.setItem('rivr-visits', String(visit));
   renderAt(path, clientWithKabir());
-  await screen.findByRole('navigation', { name: 'Main' });
+  // A screen loads its module when first opened; Balance's, with its forms, can take CI's runner over a second.
+  await screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
 }
 
 describe('the install offer', () => {
