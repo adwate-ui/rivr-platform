@@ -7,6 +7,6 @@ export { social } from './catalogue/en/social.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
 export { formatMoney, formatNumber, formatStakes } from './format/money.ts';
-export { formatDate, formatDayMonth, formatDayTime, formatDuration, formatTime, formatWeekday } from './format/time.ts';
+export { formatCountdown, formatDate, formatDayMonth, formatDayTime, formatDuration, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
 export { formatMobile } from './format/phone.ts';

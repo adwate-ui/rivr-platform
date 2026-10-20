@@ -38,6 +38,26 @@ export const tv = {
     /** Under the hand: the table, when (IST) and what it paid. */
     highHandLine: '{table} · {time} · {amount}',
   },
+  /** The tournament clock (#64). Blinds, antes and stacks are chips, written with formatNumber. */
+  tournamentClock: {
+    level: 'Level {level}',
+    ante: 'Ante {ante}',
+    next: 'Next {blinds}',
+    nextWithAnte: 'Next {blinds} ante {ante}',
+    paused: 'Paused',
+    players: 'Players',
+    entries: 'Entries',
+    average: 'Average',
+    pool: 'Pool',
+    payouts: 'Payouts',
+    noPayouts: 'Payouts are set when registration closes.',
+  },
+  /** A promotion slide in the TV's rotation (#64). */
+  promotion: {
+    label: 'Promotion',
+    /** The pager, for a screen reader: "Promotion 2 of 3". */
+    pager: 'Promotion {current} of {count}',
+  },
   /** The high hands the club pays (#47), on the TV, the tablet and the console. */
   highHand: {
     four_of_a_kind: 'Four of a kind',
