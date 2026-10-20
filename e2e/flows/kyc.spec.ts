@@ -55,6 +55,7 @@ test.describe('KYC', () => {
     await signInToPlayer(page, '9000000218');
     // Home holds Join until the check is done (#87).
     await expect(page.getByText('KYC incomplete. Finish it to join a table.')).toBeVisible();
+    await expect(page.getByText('Table 1', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Join' })).toHaveCount(0);
     await takeSelfie(page);
     await expect(page.getByText('Identity checks are not open yet. Staff will check your documents at the club.')).toBeVisible();

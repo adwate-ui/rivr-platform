@@ -1,7 +1,7 @@
 -- Home's tonight (#87; scope-v1 "Player app"; design prompt "Home"; decision 0116). Each table's open
--- seats: its seats less those sat in and those held for a called member, on the same terms as the
+-- seats: its seats less those sat in or held for a called member, each once, on the same terms as the
 -- waitlist lengths (a member of the venue with the live floor, or its staff). And the member's own:
--- whether their identity check is done, which Join needs; the bad-beat jackpot, with the live floor; and
+-- whether their identity check is done, which Join needs; the bad-beat jackpot (lane B's main_pool), with the live floor; and
 -- the next published tournament at their venue, with tournament registration. A member reads their own
 -- venue's only, so a practice member reads the practice venue's.
 
@@ -12,10 +12,12 @@ stable
 security definer
 set search_path = ''
 as $$
-  select t.id, greatest(t.seats
-    - (select count(*)::integer from public.seat_session s where s.table_id = t.id and s.ended_at is null)
-    - (select count(*)::integer from public.waitlist_entry e
-       where e.call_table_id = t.id and e.status = 'waiting' and e.called_at is not null), 0)
+  -- A seat counts once: the floor may seat a called member in the seat held for them before their place closes.
+  select t.id, greatest(t.seats - (select count(*)::integer from (
+    select s.seat from public.seat_session s where s.table_id = t.id and s.ended_at is null
+    union
+    select e.call_seat from public.waitlist_entry e where e.call_table_id = t.id and e.status = 'waiting' and e.called_at is not null
+  ) taken), 0)
   from public.game_table t
   where (t.venue_id = private.current_member_venue_id() and private.has_feature(private.current_member_id(), 'floor.live_view'))
      or t.venue_id in (select private.staff_venues());
@@ -30,10 +32,7 @@ security definer
 set search_path = ''
 as $$
   select private.is_kyc_complete(me.member_id),
-         case when private.has_feature(me.member_id, 'floor.live_view') then
-           coalesce((select b.natural_balance from public.ledger_balance b
-                     where b.venue_id = me.venue_id and b.code = 'venue.jackpot.main'), 0)::bigint
-         end,
+         case when private.has_feature(me.member_id, 'floor.live_view') then private.main_pool(me.venue_id) end,
          n.name, n.starts_at, n.buy_in_paise, n.guarantee_paise
   from (select private.current_member_id() as member_id, private.current_member_venue_id() as venue_id) me
   left join lateral (

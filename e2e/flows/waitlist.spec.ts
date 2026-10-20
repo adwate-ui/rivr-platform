@@ -112,6 +112,7 @@ test.describe('Waitlist', () => {
     await expect(tableDetail(player, 'Table 2').getByText(/^(\d+ seats? open|Full) · /)).toBeVisible();
     await expect(player.getByText('Bad-beat jackpot')).toBeVisible();
     await expect(player.getByText('Next tournament')).toBeVisible();
+    await expect(player.getByText('Weeknight Turbo')).toBeVisible();
     await joinButton(player, 'Table 2').click();
     await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
 

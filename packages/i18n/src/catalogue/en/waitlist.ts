@@ -23,7 +23,7 @@ export const tonight = {
   jackpot: 'Bad-beat jackpot',
   nextTournament: 'Next tournament',
   /** When it starts, IST, and its buy-in: `Sun 15 Nov, 16:00 · Buy-in ₹10,000`. */
-  tournamentWhen: '{date}, {time} · Buy-in {buyIn}',
+  tournamentWhen: '{when} · Buy-in {buyIn}',
   /** The prize pool the club guarantees. */
   guaranteed: '{amount} guaranteed',
   closed: 'Closed',
