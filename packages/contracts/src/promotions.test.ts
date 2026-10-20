@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { promotionConditionsSchema, promotionEffectSchema } from './promotions.ts';
+import { promotionBuilderSchema, promotionConditionsSchema, promotionEffectSchema } from './promotions.ts';
 
 describe('promotion schemas (#83)', () => {
   it('takes no conditions, or any of them together', () => {
@@ -34,6 +34,18 @@ describe('promotion schemas (#83)', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', amount_paise: 100_000, percent_bps: 2000, expires_days: 7 }).success).toBe(false);
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', amount_paise: 102_000, expires_days: 7 }).success).toBe(false);
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', percent_bps: 2000 }).success).toBe(false);
+  });
+
+  it('takes the builder\'s four blocks, a window whole and within the club day (#84)', () => {
+    const flow7 = { days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000 };
+    expect(promotionBuilderSchema.safeParse(flow7).success).toBe(true);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, days: [], from: null, until: null, stake: null }).success).toBe(true);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, until: null }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, from: '22:00', until: '08:00' }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, reward: 'free_lunch' }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: 5020 }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: 0 }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: Number.NaN }).success).toBe(false);
   });
 
   it('gives points, items and messages by kind', () => {

@@ -132,6 +132,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `promotionApplies(conditions, facts)`, `PromotionFacts` | Whether a promotion rule applies (#83, decision 0140): every condition it names holds (tier, stake, table, day, time window, first N per table or day, new or lapsed, visits this month, call time completed, hours played, the hand). Days and windows are the club's, 06:00 to 06:00 IST. |
 | `promotionReward(effect, { amount, points })`, `PromotionReward` | What an effect gives: its rupee cost against the budget, and points. A bonus share is rounded down to whole ₹50 chips, then held to its cap; double points on 120 earned is 120 more; a bonus or points of nothing is `null`. |
 | `promotionsToGive(candidates)`, `PromotionCandidate` | Of the promotions that apply to one event, in priority order, which to give: each while its count budget, rupee budget and per-player limit allow, never part of one; one that does not stack only alone. |
+| `promotionDraft(choices)`, `PromotionDraft` | The builder's four blocks as one rule (#84): double or triple points on hours played, or 10% of a buy-in as bonus for a week; days, an IST window and a stake as conditions, only those chosen; "First 50 members" the first 50 grants a club day, "Once per member" one grant each over the promotion. |
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`; `private.evaluate_promotions` puts them together.
 
