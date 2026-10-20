@@ -14,6 +14,7 @@ import { rake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
 import { balance, withdrawals } from './wallet.ts';
+import { treasury, treasuryFailures } from './treasury.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
@@ -161,6 +162,8 @@ export const consoleApp = {
   cage,
   markers,
   withdrawals,
+  treasury,
+  treasuryFailures,
   members,
   killSwitch,
   /** The heading while the console finds the staff member's venue, or fails to. */

@@ -29,3 +29,12 @@ export const cageBuyInSchema = z
       context.addIssue({ code: 'custom', path: ['utr'], message: 'A UPI buy-in needs its 12-digit UTR' });
     }
   });
+
+/** How many of one chip, as typed: a whole number from 0 (#24). */
+const chipQuantitySchema = z.string().trim().regex(/^(0|[1-9]\d{0,5})$/);
+
+/** A count of the chips in the cage (#24): how many of each of the venue's chips, in their order. */
+export const chipCountSchema = z.object({ quantities: z.array(chipQuantitySchema).min(1) });
+
+/** Opening the cage's shift (#24): the float counted into the drawer, in whole rupees, and the chips counted. */
+export const openShiftSchema = chipCountSchema.extend({ float: z.string().trim().regex(/^(0|[1-9]\d{0,8})$/) });

@@ -52,6 +52,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000137', '+919000000137', 'Imran Siddiqui'),
   ('00000000-0000-4000-8000-000000000138', '+919000000138', 'Devika Rana'),
   ('00000000-0000-4000-8000-000000000139', '+919000000139', 'Farah Khan'),
+  ('00000000-0000-4000-8000-000000000140', '+919000000140', 'Rohit Chauhan'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -141,6 +142,8 @@ from (values
   ('00000000-0000-4000-8000-000000000138'::uuid, 'Floor manager', 'admin'),
   -- The Deposit flow's own cashier, who confirms a member's UPI deposit against the bank (#29).
   ('00000000-0000-4000-8000-000000000139'::uuid, 'Cashier', 'cashier'),
+  -- The Treasury flow's own cashier, who opens the cage's shift and counts its chips (#24).
+  ('00000000-0000-4000-8000-000000000140'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id

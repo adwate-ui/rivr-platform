@@ -243,6 +243,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"cage_shift": {
+                  Row: {
+                    "closed_at": string | null,"closed_by_staff_id": string | null,"created_at": string,"float_paise": number,"id": string,"idempotency_key": string,"opened_at": string,"opened_by_staff_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"float_paise": number,"id"?: string,"idempotency_key": string,"opened_at"?: string,"opened_by_staff_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"float_paise"?: number,"id"?: string,"idempotency_key"?: string,"opened_at"?: string,"opened_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cage_shift_closed_by_staff_id_venue_id_fkey"
+      columns: ["closed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cage_shift_opened_by_staff_id_venue_id_fkey"
+      columns: ["opened_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cage_shift_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"cage_transaction": {
                   Row: {
                     "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"is_final": boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string | null,"updated_at": string,"utr": string | null,"venue_id": string
@@ -305,6 +337,70 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "venue"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"chip_inventory_count": {
+                  Row: {
+                    "counted_at": string,"counted_by_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"shift_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "counted_at"?: string,"counted_by_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"shift_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "counted_at"?: string,"counted_by_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"shift_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chip_inventory_count_counted_by_staff_id_venue_id_fkey"
+      columns: ["counted_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "chip_inventory_count_shift_id_venue_id_fkey"
+      columns: ["shift_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "cage_shift"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "chip_inventory_count_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"chip_inventory_line": {
+                  Row: {
+                    "count_id": string,"created_at": string,"quantity": number,"updated_at": string,"value_paise": number,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "count_id": string,"created_at"?: string,"quantity": number,"updated_at"?: string,"value_paise": number,"venue_id": string
+                  }
+                  Update: {
+                    "count_id"?: string,"created_at"?: string,"quantity"?: number,"updated_at"?: string,"value_paise"?: number,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chip_inventory_line_count_id_venue_id_fkey"
+      columns: ["count_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "chip_inventory_count"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "chip_inventory_line_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "chip_inventory_line_venue_id_value_paise_fkey"
+      columns: ["venue_id","value_paise"]
+isOneToOne: false
+      referencedRelation: "chip_denomination"
+      referencedColumns: ["venue_id","value_paise"]
     }
                   ]
                 },"consent": {
@@ -2026,6 +2122,11 @@ isOneToOne: false
               "device_id": string,"previous_user_id": string,"refusal": string
             }[]
                            },
+"chip_inventory":
+{ Args: { "p_venue_id": string }; Returns: {
+              "counted_at": string,"counted_by": string,"in_cage_paise": number,"line_paise": number,"name": string,"quantity": number,"value_paise": number
+            }[]
+                           },
 "claim_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
@@ -2048,6 +2149,9 @@ isOneToOne: false
                            },
 "confirm_deposit":
 { Args: { "p_bank_amount_paise": number,"p_request_id": string }; Returns: undefined
+                           },
+"count_chips":
+{ Args: { "p_counts": Json,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
                            },
 "create_academy_batch":
 { Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
@@ -2284,6 +2388,9 @@ isOneToOne: false
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
                            },
+"open_cage_shift":
+{ Args: { "p_counts": Json,"p_float_paise": number,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
+                           },
 "open_markers":
 { Args: { "p_venue_id": string }; Returns: {
               "age_days": number,"amount_paise": number,"due_at": string,"full_name": string,"is_past_due": boolean,"issued_at": string,"limit_paise": number,"marker_id": string,"member_id": string,"outstanding_paise": number
@@ -2453,6 +2560,11 @@ isOneToOne: false
                            },
 "take_break":
 { Args: { "p_days": number }; Returns: string
+                           },
+"treasury":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bonus_paise": number,"chips_in_play_paise": number,"float_paise": number,"jackpots_paise": number,"markers_paise": number,"opened_at": string,"opened_by": string,"shift_id": string,"wallets_paise": number,"withdrawals_pending_paise": number
+            }[]
                            },
 "tv_jackpot":
 { Args: Record<PropertyKey, never>; Returns: {
