@@ -105,10 +105,13 @@ export const tokens = {
     "bottomNav": 64,
     "header": 56,
     "text": 640,
-    "photo": 160
+    "photo": 160,
+    "card": 342,
+    "receipt": 576
   },
   "aspect": {
-    "portrait": "3 / 4"
+    "portrait": "3 / 4",
+    "card": "85.6 / 54"
   },
   "radius": {
     "sm": 3,
@@ -168,6 +171,14 @@ export const tokens = {
     "story": {
       "width": 1080,
       "height": 1920
+    },
+    "card": {
+      "width": 342,
+      "height": 216
+    },
+    "a4": {
+      "width": 794,
+      "height": 1123
     }
   },
   "brand": {

@@ -13,7 +13,16 @@ const ORIGIN = 'https://render.rivr.test';
 export interface RenderRequest<Name extends TemplateName> {
   template: Name;
   props: TemplateProps<Name>;
-  /** Width and height in CSS pixels; the image has exactly this many pixels. */
+  /** Width and height in CSS pixels; the image has exactly this many pixels, times `scale`. */
+  width: number;
+  /** Left out, the page is as tall as what it draws, as a receipt is. */
+  height?: number | undefined;
+  /** Device pixels to each CSS pixel, 1 unless set: the membership card is drawn at 3 for a sharp image. */
+  scale?: number | undefined;
+}
+
+/** The size a page was drawn at, in CSS pixels. */
+interface DrawnSize {
   width: number;
   height: number;
 }
@@ -30,36 +39,54 @@ async function waitUntilDrawn(page: Page): Promise<void> {
   await Promise.race([page.locator('body[data-render-ready="true"]').waitFor(), failed]);
 }
 
-/** Opens the template in headless Chromium at the requested size and hands the page to `capture`. */
-async function withDrawnPage<Name extends TemplateName, Result>(request: RenderRequest<Name>, capture: (page: Page) => Promise<Result>): Promise<Result> {
+/**
+ * Without a requested height, makes the page exactly as tall as what it drew. With one, refuses a template
+ * that drew more than fits, such as a statement too long for one A4 page, rather than cut its end off.
+ */
+async function fitHeight(page: Page, width: number, height: number | undefined): Promise<DrawnSize> {
+  const drawn = await page.evaluate(() => document.documentElement.scrollHeight);
+  if (height === undefined) {
+    await page.setViewportSize({ width, height: drawn });
+    return { width, height: drawn };
+  }
+  if (drawn > height) throw new Error(`The template drew ${String(drawn)} px, more than the ${String(height)} px page.`);
+  return { width, height };
+}
+
+/** Opens the template in headless Chromium at the requested size and hands the page, and its size, to `capture`. */
+async function withDrawnPage<Name extends TemplateName, Result>(
+  request: RenderRequest<Name>,
+  capture: (page: Page, size: DrawnSize) => Promise<Result>,
+): Promise<Result> {
   if (!existsSync(new URL('index.html', HOST_DIR))) {
     throw new Error('The render host is not built. Run `pnpm --filter @rivr/render build`.');
   }
   const browser = await chromium.launch();
   try {
-    const page = await browser.newPage({ viewport: { width: request.width, height: request.height }, deviceScaleFactor: 1 });
+    const viewport = { width: request.width, height: request.height ?? 1 };
+    const page = await browser.newPage({ viewport, deviceScaleFactor: request.scale ?? 1 });
     await page.route(`${ORIGIN}/**`, serveHostFile);
     const job = encodeJob({ template: request.template, props: request.props });
     await page.goto(`${ORIGIN}/index.html?job=${encodeURIComponent(job)}`);
     await waitUntilDrawn(page);
-    return await capture(page);
+    return await capture(page, await fitHeight(page, request.width, request.height));
   } finally {
     await browser.close();
   }
 }
 
-/** Draws a template to a PNG of exactly `width` by `height` pixels. */
+/** Draws a template to a PNG of exactly `width` by `height` pixels, times `scale`. */
 export function renderToPng<Name extends TemplateName>(request: RenderRequest<Name>): Promise<Buffer> {
   return withDrawnPage(request, (page) => page.screenshot({ type: 'png' }));
 }
 
 /** Draws a template to a one-page PDF of `width` by `height` CSS pixels, backgrounds included. */
 export function renderToPdf<Name extends TemplateName>(request: RenderRequest<Name>): Promise<Buffer> {
-  return withDrawnPage(request, async (page) => {
+  return withDrawnPage(request, async (page, size) => {
     await page.emulateMedia({ media: 'screen' });
     return page.pdf({
-      width: `${request.width}px`,
-      height: `${request.height}px`,
+      width: `${size.width}px`,
+      height: `${size.height}px`,
       printBackground: true,
       margin: { top: '0', right: '0', bottom: '0', left: '0' },
       pageRanges: '1',
@@ -100,8 +127,8 @@ export function renderFrameToPng<Name extends TemplateName>(request: RenderReque
  * is the page captured with its animations held at that frame's time, encoded in Chromium (WebCodecs).
  */
 export function renderToMp4<Name extends TemplateName>(request: RenderRequest<Name>, timing: VideoTiming): Promise<Buffer> {
-  return withDrawnPage(request, async (page) => {
-    await page.evaluate(({ width, height, fps }) => window.rivrVideo?.start(width, height, fps), { ...request, fps: timing.fps });
+  return withDrawnPage(request, async (page, size) => {
+    await page.evaluate(({ width, height, fps }) => window.rivrVideo?.start(width, height, fps), { ...size, fps: timing.fps });
     const frames = Math.round((timing.durationMs * timing.fps) / 1000);
     for (let frame = 0; frame < frames; frame += 1) {
       await seekAnimations(page, Math.max(0, (frame * 1000) / timing.fps - timing.leadMs));

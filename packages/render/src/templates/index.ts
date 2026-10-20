@@ -1,6 +1,10 @@
 import { BrandArt } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { BadBeatJackpotSlide } from './BadBeatJackpotSlide.tsx';
+import { InvoiceDocument } from './paper/InvoiceDocument.tsx';
+import { MembershipCardImage } from './paper/MembershipCardImage.tsx';
+import { StatementDocument } from './paper/StatementDocument.tsx';
+import { ThermalReceipt } from './paper/ThermalReceipt.tsx';
 import { HighHandCard } from './social/HighHandCard.tsx';
 import { PromoCard } from './social/PromoCard.tsx';
 import { TournamentPoster } from './social/TournamentPoster.tsx';
@@ -18,6 +22,11 @@ export const templates = {
   'social.highHandCard': HighHandCard,
   // Icons, splash screens, profile images and covers: the brand kit (src/brandKit.ts).
   'brand.art': BrandArt,
+  // The membership card, the thermal receipt, and A4 invoices and statements.
+  'card.membership': MembershipCardImage,
+  'receipt.thermal': ThermalReceipt,
+  'document.invoice': InvoiceDocument,
+  'document.statement': StatementDocument,
 };
 
 export type TemplateName = keyof typeof templates;

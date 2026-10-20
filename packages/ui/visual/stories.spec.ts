@@ -15,6 +15,7 @@ const DEVICE_VIEWPORTS = {
   'viewport-tv': tokens.viewport.tv,
   'viewport-feed': tokens.viewport.feed,
   'viewport-story': tokens.viewport.story,
+  'viewport-a4': tokens.viewport.a4,
 };
 type DeviceTag = keyof typeof DEVICE_VIEWPORTS;
 
