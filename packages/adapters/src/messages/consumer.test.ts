@@ -78,18 +78,26 @@ describe('the WhatsApp consumer', () => {
     expect(await consumer.deliver(delivery('waitlist.called', called))).toEqual({ ok: false, error: { code: 'unavailable' } });
   });
 
-  it('sends a promotion offer as the marketing template, with the member\'s opt-in, and nothing once they opted out (#86)', async () => {
+  it('sends a promotion offer as the marketing template, with the member\'s opt-in, and nothing once they opted out or it stopped running (#86)', async () => {
     const optedIn = new Date('2026-10-01T10:00:00Z');
     const whatsapp = createFakeWhatsApp();
-    const consumer = createWhatsAppConsumer({ whatsapp, now, findRecipient: async () => ({ phone, marketingOptedInAt: optedIn }) });
+    const asked: (string | undefined)[] = [];
+    const consumer = createWhatsAppConsumer({ whatsapp, now, findRecipient: async (_venueId, _memberId, offeredPromotionId) => {
+      asked.push(offeredPromotionId);
+      return { phone, marketingOptedInAt: optedIn };
+    } });
     const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: MEMBER, title: 'Double points', detail: null, runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' };
 
     expect((await consumer.deliver(delivery('promotion.offered', offer))).ok).toBe(true);
     expect(whatsapp.calls).toEqual([{ category: 'marketing', optedInAt: optedIn, to: phone, template: 'promotion', params: ['Double points · NLH 100/200 · Thursday, 14:00 to 20:00.'] }]);
+    // The member is found for the offer's own promotion, so one no longer running finds nobody.
+    expect(asked).toEqual([offer.promotion_id]);
 
     const withdrawn = createWhatsAppConsumer({ whatsapp, findRecipient, now });
     expect(await withdrawn.deliver(delivery('promotion.offered', offer))).toEqual({ ok: true, value: null });
     expect(await withdrawn.deliver(delivery('promotion.offered', { ...offer, title: '' }))).toMatchObject({ ok: false });
+    const stopped = createWhatsAppConsumer({ whatsapp, now, findRecipient: async () => null });
+    expect(await stopped.deliver(delivery('promotion.offered', offer))).toEqual({ ok: true, value: null });
     expect(whatsapp.calls).toHaveLength(1);
   });
 });

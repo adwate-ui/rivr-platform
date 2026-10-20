@@ -10,8 +10,12 @@ export interface MessageRecipient {
   readonly marketingOptedInAt: Date | null;
 }
 
-/** Finds a member of the event's venue when a message is sent; null for one who is not there (or a practice member). */
-export type FindRecipient = (venueId: string, memberId: string) => Promise<MessageRecipient | null>;
+/**
+ * Finds a member of the event's venue when a message is sent; null for one who is not there (or a
+ * practice member). For a promotion offer, the promotion: null too once it no longer runs, the member's
+ * tier lost promotions.feed or marketing sends are switched off.
+ */
+export type FindRecipient = (venueId: string, memberId: string, offeredPromotionId?: string) => Promise<MessageRecipient | null>;
 
 /** The events the WhatsApp consumer sends a message for. */
 export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered'] as const;
@@ -23,12 +27,12 @@ const HANDLED = null;
 
 /**
  * A published promotion offered to one member (#86): its card in the marketing template, only while the
- * member's marketing opt-in stands. Opted out since it was offered: nothing to send, and nothing wrong.
+ * promotion runs and the member's marketing opt-in stands. Otherwise nothing to send, and nothing wrong.
  */
 async function offerMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
   const offer = promotionOfferedSchema.safeParse(delivery.payload);
   if (!offer.success) return rejected('promotion.offered payload is not an offer');
-  const recipient = await findRecipient(delivery.venueId, offer.data.member_id);
+  const recipient = await findRecipient(delivery.venueId, offer.data.member_id, offer.data.promotion_id);
   if (!recipient || recipient.marketingOptedInAt === null) return ok(HANDLED);
   const card = [offer.data.title, offer.data.detail, offer.data.runs].filter((part) => part !== null).join(' · ');
   return ok({ category: 'marketing', optedInAt: recipient.marketingOptedInAt, to: recipient.phone, template: 'promotion', params: [`${card}.`] });
@@ -62,8 +66,8 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
 }
 
 /**
- * The WhatsApp outbox consumer (#62): the seat call when a member is called from the waitlist, and
- * the receipt-ready notice. A messaging consumer, so a messaging stop holds every send; practice-venue
+ * The WhatsApp outbox consumer (#62, #86): the seat call when a member is called from the waitlist,
+ * the receipt-ready notice, and a published promotion offered to a member who opted in to marketing. A messaging consumer, so a messaging stop holds every send; practice-venue
  * events never reach it. Utility messages need no opt-in; a marketing message needs the member's
  * opt-in, which the message type itself requires.
  */

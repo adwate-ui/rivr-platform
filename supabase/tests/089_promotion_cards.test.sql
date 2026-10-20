@@ -1,5 +1,6 @@
--- Promotion cards (#86): Home's with feature promotions.feed, the website's never the practice venue,
--- and the WhatsApp offer to members who opted in to marketing, once. 107 Ishita (marketing) publishes;
+-- Promotion cards (#86): Home's with feature promotions.feed, a TV's its own venue's, the website's
+-- never the practice venue, and the WhatsApp offer to members who opted in to marketing, once, sent
+-- only while it runs and marketing sends are on. 107 Ishita (marketing) publishes;
 -- 212 Vihaan has opted in to marketing, 211 Ishaan has not.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -51,6 +52,21 @@ select results_eq($$ select venue_slug, title from public.public_promotion_cards
   'the website reads the club''s card, and never the practice venue''s');
 reset role;
 
+-- A paired TV: its own venue's cards, the practice venue's for training; a member reads none through it.
+insert into auth.users (id, instance_id, aud, role, phone) values
+  ('00000000-0000-4000-8000-00000000e861', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000000861'),
+  ('00000000-0000-4000-8000-00000000e862', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000000862');
+insert into public.device (id, venue_id, kind, name, auth_user_id) values
+  ('00000000-0000-4000-8000-00000000d861', '00000000-0000-4000-8000-000000000001', 'tv', 'Promotions TV', '00000000-0000-4000-8000-00000000e861'),
+  ('00000000-0000-4000-8000-00000000d862', '00000000-0000-4000-8000-000000000002', 'tv', 'Practice promotions TV', '00000000-0000-4000-8000-00000000e862');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e861');
+select results_eq($$ select title from public.tv_promotions() $$, $$ values ('Double points'::text) $$, 'a TV at the club reads the club''s card');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e862');
+select results_eq($$ select title from public.tv_promotions() $$, $$ values ('Practice points'::text) $$, 'the practice venue''s TV reads its own');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
+select is_empty($$ select * from public.tv_promotions() $$, 'and a member reads none as a TV');
+reset role;
+
 -- WhatsApp: offered once to each member who opted in to marketing.
 select is(pg_temp.offers((select id from ids where name = 'flow7')), '212', 'publishing offers it to Vihaan, who opted in, and not to Ishaan');
 select results_eq($$ select payload ->> 'title', payload ->> 'runs' from public.outbox_event where event_type = 'promotion.offered'
@@ -69,6 +85,47 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
 select is(pg_temp.offers((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral')), '212',
   'a published template is offered too');
 select is((select count(*)::integer from private.promotion_cards('00000000-0000-4000-8000-000000000001')), 2, 'and both cards are live');
+
+-- At send time, the WhatsApp consumer finds the member only while the offer may still be sent.
+create temp table templates as select template_key, id from public.promotion
+where venue_id = '00000000-0000-4000-8000-000000000001' and template_key is not null;
+grant select on templates to authenticated;
+select is((select count(*)::integer from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
+  (select id from templates where template_key = 'referral'))), 1, 'at send time, Vihaan is found for a running offer');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select public.set_promotion_live((select id from ids where name = 'flow7'), false);
+reset role;
+select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
+  (select id from ids where name = 'flow7')) $$, 'paused, an offer still waiting is not sent');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
+select throws_ok($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
+  (select id from templates where template_key = 'referral')) $$, '42501', null, 'and only the WhatsApp consumer may look');
+reset role;
+
+-- Ishaan opts in, but his tier has no promotions.feed: neither offered nor found.
+insert into public.consent (venue_id, member_id, purpose)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'marketing');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select public.publish_promotion_template((select id from templates where template_key = 'tuesday_bonus'));
+reset role;
+select is(pg_temp.offers((select id from templates where template_key = 'tuesday_bonus')), '212', 'a member without promotions.feed is not offered it');
+select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
+  (select id from templates where template_key = 'tuesday_bonus')) $$, 'nor found at send time');
+
+-- Marketing sends switched off: a waiting offer is not sent, and a new promotion is offered to nobody.
+insert into public.control_state (venue_id, level, feature, reason)
+values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'marketing_sends', 'Test');
+select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
+  (select id from templates where template_key = 'tuesday_bonus')) $$, 'with marketing sends switched off, a waiting offer is not sent');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select public.publish_promotion_template((select id from templates where template_key = 'graduate_first_buy_in'));
+reset role;
+select is(pg_temp.offers((select id from templates where template_key = 'graduate_first_buy_in')), 'none', 'and a new one is offered to nobody');
+
+-- A frozen venue refuses a promotion put live straight into the table, as publish_promotion does.
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select throws_ok($$ insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Straight in', 'live') $$,
+  'RVFRZ', null, 'a frozen venue refuses a promotion put live straight into the table');
 
 select * from finish();
 rollback;

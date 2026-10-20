@@ -16,8 +16,11 @@ unchanged.
 
 **WhatsApp marketing.** When a promotion is first published, a builder's going live or a template's
 draft going live, the database offers it once to each member of the venue who has opted in to
-marketing. The offer is one `promotion.offered` event each (member and card), so a retry sends to
-one member, never to all again. Resuming a paused promotion offers nothing. The WhatsApp consumer
-sends the approved `promotion` marketing template only while the member's opt-in stands. A messaging
-stop holds it, and practice-venue events never reach it. This event is lane D's own, added to the
-contract's `promotion.published` for the per-member send.
+marketing and whose tier has `promotions.feed`, unless marketing sends are switched off. Going live
+that way is a write, so a frozen venue or switched-off promotions refuse it, even straight into the
+table. The offer is one `promotion.offered` event per member, like `waitlist.called`, so a retry
+sends to one member, never to all again. Resuming a paused promotion offers nothing. At send time the
+WhatsApp consumer finds the member through `offer_recipient`, only while the promotion still runs,
+their tier keeps the feature, marketing sends are on and their opt-in stands; otherwise the offer is
+handled unsent. A messaging stop holds it, and practice-venue events never reach it. The lane D
+contract lists the event beside `promotion.published`, which stays the publishing event.

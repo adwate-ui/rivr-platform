@@ -2935,6 +2935,11 @@ isOneToOne: false
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
                            },
+"offer_recipient":
+{ Args: { "p_member_id": string,"p_promotion_id": string,"p_venue_id": string }; Returns: {
+              "marketing_opted_in_at": string,"phone": string
+            }[]
+                           },
 "open_cage_shift":
 { Args: { "p_counts": Json,"p_float_paise": number,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
                            },

@@ -33,8 +33,8 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 
 ## Events
 
-- Emits: `promotion.published`, `promotion.granted`, `points.earned`, `reward.redeemed`, `winner_card.rendered`, `post.published`, `lead.created`, `feedback.received`.
-- Consumes (as outbox consumers): `hand.logged`, `high_hand.approved`, `jackpot.paid`, `tournament.finished` (winner cards, League); `visit.closed` (feedback survey, review request on the third visit, Meta repeat visit); `member.signed_up`, `kyc.completed`, `academy.booked`, `cage.buy_in`, `tournament.entered` (Meta Conversions API and Google offline conversions, with consent); `waitlist.called` (WhatsApp seat call, `waitlistCalledSchema`: member, table name, seat, hold until); `receipt.ready` (WhatsApp receipt notice, `receiptReadySchema`, from lane A's receipts); templates are `WHATSAPP_TEMPLATES` in `@rivr/adapters/whatsapp` (decision 0043), not a table; `promotion.published` (publishing, WhatsApp marketing to opted-in members); `alert.raised` (alert WhatsApp).
+- Emits: `promotion.published`, `promotion.offered` (one per member who opted in to marketing, `promotionOfferedSchema`, decision 0143), `promotion.granted`, `points.earned`, `reward.redeemed`, `winner_card.rendered`, `post.published`, `lead.created`, `feedback.received`.
+- Consumes (as outbox consumers): `hand.logged`, `high_hand.approved`, `jackpot.paid`, `tournament.finished` (winner cards, League); `visit.closed` (feedback survey, review request on the third visit, Meta repeat visit); `member.signed_up`, `kyc.completed`, `academy.booked`, `cage.buy_in`, `tournament.entered` (Meta Conversions API and Google offline conversions, with consent); `waitlist.called` (WhatsApp seat call, `waitlistCalledSchema`: member, table name, seat, hold until); `receipt.ready` (WhatsApp receipt notice, `receiptReadySchema`, from lane A's receipts); templates are `WHATSAPP_TEMPLATES` in `@rivr/adapters/whatsapp` (decision 0043), not a table; `promotion.published` (publishing); `promotion.offered` (WhatsApp marketing to an opted-in member, sent only while the promotion runs); `alert.raised` (alert WhatsApp).
 
 ## Uses from other lanes
 

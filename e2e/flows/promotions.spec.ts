@@ -27,6 +27,7 @@ async function publishFlow7(floor: Page) {
   await floor.getByRole('button', { name: 'Publish', exact: true }).click();
   await expect(floor.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
   await expect(floor.getByText(RUNS, { exact: true }).first()).toBeVisible();
+  await expect(floor.getByText('Live', { exact: true }).first()).toBeVisible();
 }
 
 /** Pairs a TV on the console's TVs screen by the code it shows, and sets it to Promotions. */

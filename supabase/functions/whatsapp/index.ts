@@ -13,9 +13,15 @@ const accessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN') ?? '';
 
 const recipientRows = z.array(z.object({ phone: z.string(), marketing_opted_in_at: z.string().nullable() }));
 
-/** The member's number and marketing opt-in at the event's venue, through the service role only. */
-const findRecipient: FindRecipient = async (venueId, memberId) => {
-  const row = recipientRows.parse(await rpc('message_recipient', { p_venue_id: venueId, p_member_id: memberId }))[0];
+/**
+ * The member's number and marketing opt-in at the event's venue, through the service role only; for a
+ * promotion offer, only while the promotion still runs and may be offered to them (offer_recipient).
+ */
+const findRecipient: FindRecipient = async (venueId, memberId, offeredPromotionId) => {
+  const found = offeredPromotionId === undefined
+    ? await rpc('message_recipient', { p_venue_id: venueId, p_member_id: memberId })
+    : await rpc('offer_recipient', { p_venue_id: venueId, p_member_id: memberId, p_promotion_id: offeredPromotionId });
+  const row = recipientRows.parse(found)[0];
   const phone = indianMobileSchema.safeParse(row?.phone);
   if (!row || !phone.success) return null;
   return { phone: phone.data, marketingOptedInAt: row.marketing_opted_in_at === null ? null : new Date(row.marketing_opted_in_at) };

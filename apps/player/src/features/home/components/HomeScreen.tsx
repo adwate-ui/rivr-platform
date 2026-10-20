@@ -1,9 +1,9 @@
 import { useFeature, useFloorTables, useMyWaitlist } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { FeatureGate, Screen, Stack } from '@rivr/ui';
-import { HomePromotions } from '../../promotions/index.ts';
 import { BreakNotice } from './BreakNotice.tsx';
 import { FloorList } from './FloorList.tsx';
+import { HomePromotions } from './HomePromotions.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
 import { YourWaitlist } from './YourWaitlist.tsx';
 
