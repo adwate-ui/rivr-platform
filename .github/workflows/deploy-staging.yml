@@ -44,6 +44,10 @@ jobs:
           pnpm supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
           # --include-all: a migration merged after a later-dated one reached staging (#208's 20261018091600 after
           # d624885) is applied rather than refused; staging stopped deploying at it on 18 Oct.
+          # The seed files are idempotent and meant to run on every deploy, but db push runs a seed file
+          # once and, when it changes, only records its new hash. Named for this deploy, every file is new,
+          # so all run, in their order.
+          for f in supabase/seed/*.sql; do mv "$f" "${f%.sql}.${GITHUB_SHA::7}.sql"; done
           pnpm supabase db push --include-all --include-seed --password "$SUPABASE_DB_PASSWORD"
       - if: env.HAS_SUPABASE == 'true'
         name: Edge Functions
