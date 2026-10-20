@@ -1,0 +1,78 @@
+# Nightly backups (#25; tech plan item 27; features "Backups and exports"; decision 0072).
+# Each night, for staging and production, scripts/backup/nightly-backup.sh writes a logical dump and
+# a CSV export of every table, encrypted to the backup key, and this job uploads it to the backup
+# bucket outside Supabase. The provider's daily backups and point-in-time recovery come on top.
+# docs/runbooks/backups-and-restore.md has the setup, the retention and the restore.
+# Each target uses its own environment, which only main can use. It holds only the backup's settings:
+# the read-only rivr_backup role's database URL, and a token for that target's bucket alone. A target
+# without them skips with a notice.
+name: nightly-backup
+
+on:
+  schedule:
+    # 02:30 UTC is 08:00 IST, after the club's business day has closed.
+    - cron: '30 2 * * *'
+  # "Run workflow" takes a backup now, for example to check the setup.
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  backup:
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [staging, production]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: backup-${{ matrix.target }}
+    env:
+      HAS_BACKUP: ${{ secrets.BACKUP_DB_URL != '' && secrets.BACKUP_S3_ACCESS_KEY_ID != '' && secrets.BACKUP_S3_SECRET_ACCESS_KEY != '' && vars.BACKUP_S3_ENDPOINT != '' && vars.BACKUP_BUCKET != '' && vars.BACKUP_AGE_RECIPIENT != '' }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - if: env.HAS_BACKUP != 'true'
+        run: echo "::notice::Backup settings for ${TARGET} are not set; skipping its backup. See docs/runbooks/backups-and-restore.md."
+      - if: env.HAS_BACKUP == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - if: env.HAS_BACKUP == 'true'
+        uses: ./.github/actions/setup
+      - if: env.HAS_BACKUP == 'true'
+        name: Install age and the Postgres 17 client (pg_dump must be at least the server's version)
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq age postgresql-client-17
+          echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
+      - if: env.HAS_BACKUP == 'true'
+        name: Dump, export and encrypt
+        env:
+          BACKUP_DB_URL: ${{ secrets.BACKUP_DB_URL }}
+          BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+        run: bash scripts/backup/nightly-backup.sh "$RUNNER_TEMP/backup" "rivr-${TARGET}-$(TZ=Asia/Kolkata date +%Y%m%d)"
+      - if: env.HAS_BACKUP == 'true'
+        name: Upload to the backup bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          # S3-compatible stores such as Cloudflare R2 take checksums only where S3 requires them.
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
+          BUCKET: ${{ vars.BACKUP_BUCKET }}
+        run: |
+          day="$(TZ=Asia/Kolkata date +%F)"
+          month="$(TZ=Asia/Kolkata date +%Y-%m)"
+          aws s3 cp "$RUNNER_TEMP/backup/" "s3://${BUCKET}/${TARGET}/nightly/${day}/" --recursive --no-progress --endpoint-url "$ENDPOINT"
+          # The month's first good night is also kept as its monthly backup, which lives longer: the 1st,
+          # or the next night that runs if the 1st's failed.
+          if [ -z "$(aws s3 ls "s3://${BUCKET}/${TARGET}/monthly/${month}/" --endpoint-url "$ENDPOINT" || true)" ]; then
+            aws s3 cp "$RUNNER_TEMP/backup/" "s3://${BUCKET}/${TARGET}/monthly/${month}/" --recursive --no-progress --endpoint-url "$ENDPOINT"
+          fi

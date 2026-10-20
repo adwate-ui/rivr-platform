@@ -4,7 +4,8 @@ All workflows run on GitHub-hosted runners (`docs/decisions/0001-hosted-ci-runne
 
 | Workflow | When | What |
 |---|---|---|
-| `ci.yml` | Every PR and push to `main` | Four required jobs. `verify` runs `pnpm verify:all`. `e2e` runs the Playwright flows against a seeded local stack. `budgets` checks player initial JavaScript is under 200 KB gzipped. `security` runs `supabase db lint`, the Supabase security advisors, `pnpm audit` and gitleaks. |
+| `ci.yml` | Every PR and push to `main` | Four required jobs. `verify` runs `pnpm verify:all`. `e2e` runs the Playwright flows against a seeded local stack. `budgets` checks player initial JavaScript is under 200 KB gzipped. `security` runs `supabase db lint`, the Supabase security advisors, the nightly backup against the local stack as its read-only role (`scripts/backup/check-backup.sh`), `pnpm audit` and gitleaks. |
+| `nightly-backup.yml` | 08:00 IST daily, or by hand | For staging and production: an encrypted logical dump and CSV export to the target's R2 bucket. Skips until its environment is set up. See `docs/runbooks/backups-and-restore.md`. |
 | `preview.yml` | Every PR from this repository | Builds every web surface against staging data and deploys a Cloudflare Pages preview per app (`pr-<n>` branch of `rivr-<app>-staging`). |
 | `deploy-staging.yml` | Every merge to `main` | Migrations and seed, Edge Functions, every web surface and Storybook to staging. |
 | `release.yml` | A tag `release-YYYYMMDD-N` | End-to-end suite against staging, then the same commit to production (migrations without seed, Edge Functions, Pages), plus signed tablet and driver APKs attached to the GitHub release. |
@@ -20,6 +21,7 @@ Secrets live in GitHub environments (Settings → Environments), never at reposi
 | `preview` | pull requests from this repository | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for the **staging** Cloudflare account. Never the production token: any branch can run this job. |
 | `staging` | `main` only | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD`, and the staging `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` |
 | `e2e-staging` | `release-*` tags only | `E2E_SIGN_IN_CODE`: the private code staging's test numbers take, so the release's sign-in flow can sign in. Without it that flow fails. |
+| `backup-staging`, `backup-production` | `main` only (the nightly backup, #25) | `BACKUP_DB_URL` (the read-only `rivr_backup` role, never `postgres`), plus `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY` for that target's own bucket. Variables: `BACKUP_S3_ENDPOINT`, `BACKUP_BUCKET` and `BACKUP_AGE_RECIPIENT`. See `docs/runbooks/backups-and-restore.md`. |
 | `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` and `SENTRY_DSN` when Sentry is wired in |
 
 Staging and production use separate Cloudflare accounts, or at least tokens scoped to their own projects, so a preview token can never deploy production.
