@@ -1,4 +1,4 @@
-import { useFeature, useFloorTables, useMyTonight, useMyWaitlist } from '@rivr/db';
+import { useFeature, useFloorTables, useMyWaitlist } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { FeatureGate, Screen, Stack } from '@rivr/ui';
 import { BreakNotice } from './BreakNotice.tsx';
@@ -20,7 +20,6 @@ export function HomeScreen() {
   const liveView = useFeature('floor.live_view');
   const tables = useFloorTables();
   const places = useMyWaitlist();
-  const tonight = useMyTonight();
   const title = t('player.tonight.title');
   if (tables.isPending || places.isPending) return <Screen title={title} status="loading" />;
   if (tables.isError || places.isError) {
@@ -35,9 +34,9 @@ export function HomeScreen() {
         <BreakNotice />
         <SeatNotice />
         <YourWaitlist places={places.data} />
-        {tonight.data ? <TonightHighlights tonight={tonight.data} /> : null}
+        <TonightHighlights />
         <FeatureGate access={liveView}>
-          <FloorList tables={tables.data} places={places.data} isKycComplete={tonight.data?.isKycComplete ?? true} />
+          <FloorList tables={tables.data} places={places.data} />
         </FeatureGate>
         <HomePromotions />
       </Stack>

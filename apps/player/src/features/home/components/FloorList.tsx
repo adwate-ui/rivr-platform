@@ -1,4 +1,4 @@
-import { useFeature, useWaitlistActions, type FloorTable, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
+import { useFeature, useMyTonight, useWaitlistActions, type FloorTable, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, FloorRow, LockedNotice, Stack, type FeatureAccess } from '@rivr/ui';
 import { useState } from 'react';
@@ -39,8 +39,10 @@ function useRequestIds() {
  * (waitlist.join) and is not on its list. Where the member's tier lacks Join, one locked notice says
  * which tiers have it; until their identity check is done, Join waits for it (#87).
  */
-export function FloorList({ tables, places, isKycComplete }: { tables: readonly FloorTable[]; places: readonly WaitlistPlace[]; isKycComplete: boolean }) {
+export function FloorList({ tables, places }: { tables: readonly FloorTable[]; places: readonly WaitlistPlace[] }) {
   const joinAccess = useFeature('waitlist.join');
+  // Until it is known, Join shows: the database refuses it without a finished check anyway.
+  const isKycComplete = useMyTonight().data?.isKycComplete ?? true;
   const { join } = useWaitlistActions();
   const requests = useRequestIds();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);

@@ -1,14 +1,17 @@
-import { useFeature, type MyTonight } from '@rivr/db';
+import { useFeature, useMyTonight } from '@rivr/db';
 import { formatDate, formatMoney, formatTime, t } from '@rivr/i18n';
 import { FeatureGate, Grid, Money, Stack, Text } from '@rivr/ui';
 
 /**
  * The bad-beat jackpot, with the live floor, and the next tournament at the member's venue, with
- * tournament registration (#87, decision 0116), side by side above tonight's tables.
+ * tournament registration (#87, decision 0116), side by side above tonight's tables. Nothing shows
+ * while they load or if they cannot be read: Home's tables matter more, and the next read brings them.
  */
-export function TonightHighlights({ tonight }: { tonight: MyTonight }) {
+export function TonightHighlights() {
   const liveView = useFeature('floor.live_view');
   const tournaments = useFeature('tournaments.register');
+  const tonight = useMyTonight().data;
+  if (!tonight) return null;
   const next = tonight.nextTournament;
   const startsAt = next ? new Date(next.startsAt) : null;
   return (

@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Database } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -23,7 +22,15 @@ export interface MyTonight {
   readonly nextTournament: NextTournament | null;
 }
 
-type TonightRow = Database['public']['Functions']['my_tonight']['Returns'][number];
+/** A `my_tonight` row as the database gives it: the generated types call every column non-null, and these are not. */
+interface TonightRow {
+  is_kyc_complete: boolean;
+  jackpot_paise: number | null;
+  tournament_name: string | null;
+  tournament_starts_at: string | null;
+  tournament_buy_in_paise: number | null;
+  tournament_guarantee_paise: number | null;
+}
 
 /** One row of `my_tonight` as Home reads it. */
 export function toMyTonight(row: TonightRow): MyTonight {
