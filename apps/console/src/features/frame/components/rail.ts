@@ -66,6 +66,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'staff', label: 'ui.consoleRail.items.staff', href: '/staff', anyOf: ['staff.manage'] },
       { id: 'dealerPins', label: 'ui.consoleRail.items.dealerPins', href: '/dealer-pins', anyOf: ['staff.manage'] },
       { id: 'certification', label: 'ui.consoleRail.items.certification', href: '/certification', anyOf: [] },
+      { id: 'sops', label: 'ui.consoleRail.items.sops', href: '/sops', anyOf: ['sops.acknowledge', 'sops.manage'] },
       { id: 'killSwitch', label: 'ui.consoleRail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
     ],
   },

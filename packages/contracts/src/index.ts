@@ -52,6 +52,7 @@ export {
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { quizAnswersSchema } from './training.ts';
+export { sopSchema, sopVersionSchema } from './sops.ts';
 export { rakeChangeSchema } from './rake.ts';
 export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,

@@ -60,6 +60,8 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000170', '+919000000170', 'Manoj Thapa'),
   ('00000000-0000-4000-8000-000000000171', '+919000000171', 'Swati Agarwal'),
   ('00000000-0000-4000-8000-000000000172', '+919000000172', 'Deepak Menon'),
+  ('00000000-0000-4000-8000-000000000173', '+919000000173', 'Bhavna Rawat'),
+  ('00000000-0000-4000-8000-000000000174', '+919000000174', 'Sameer Kohli'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -162,6 +164,9 @@ from (values
   ('00000000-0000-4000-8000-000000000170'::uuid, 'Dealer', 'dealer'),
   ('00000000-0000-4000-8000-000000000171'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000172'::uuid, 'Floor manager', 'admin'),
+  -- The SOP library flow's own dealer, who acknowledges, and floor manager, who publishes a version (#51).
+  ('00000000-0000-4000-8000-000000000173'::uuid, 'Dealer', 'dealer'),
+  ('00000000-0000-4000-8000-000000000174'::uuid, 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id

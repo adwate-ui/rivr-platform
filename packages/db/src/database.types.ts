@@ -1743,6 +1743,78 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"sop": {
+                  Row: {
+                    "created_at": string,"id": string,"title": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"title": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"title"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sop_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"sop_ack": {
+                  Row: {
+                    "acknowledged_at": string,"created_at": string,"id": string,"sop_version_id": string,"staff_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "acknowledged_at"?: string,"created_at"?: string,"id"?: string,"sop_version_id": string,"staff_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "acknowledged_at"?: string,"created_at"?: string,"id"?: string,"sop_version_id"?: string,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sop_ack_sop_version_id_venue_id_fkey"
+      columns: ["sop_version_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "sop_version"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "sop_ack_staff_id_venue_id_fkey"
+      columns: ["staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"sop_version": {
+                  Row: {
+                    "ack_roles": (Database["public"]['Enums']["staff_role"])[],"body": string,"created_at": string,"effective_on": string,"id": string,"owner": string,"published_by_staff_id": string | null,"sop_id": string,"updated_at": string,"venue_id": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ack_roles": (Database["public"]['Enums']["staff_role"])[],"body": string,"created_at"?: string,"effective_on": string,"id"?: string,"owner": string,"published_by_staff_id"?: string | null,"sop_id": string,"updated_at"?: string,"venue_id": string,"version": number
+                  }
+                  Update: {
+                    "ack_roles"?: (Database["public"]['Enums']["staff_role"])[],"body"?: string,"created_at"?: string,"effective_on"?: string,"id"?: string,"owner"?: string,"published_by_staff_id"?: string | null,"sop_id"?: string,"updated_at"?: string,"venue_id"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sop_version_published_by_staff_id_venue_id_fkey"
+      columns: ["published_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "sop_version_sop_id_venue_id_fkey"
+      columns: ["sop_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "sop"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"staff": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"is_active": boolean,"job_title": string,"phone": string | null,"role": Database["public"]['Enums']["staff_role"],"updated_at": string,"user_id": string | null,"venue_id": string
@@ -2257,8 +2329,14 @@ isOneToOne: false
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
                            },
+"acknowledge_sop":
+{ Args: { "p_version_id": string }; Returns: string
+                           },
 "add_payout_account":
 { Args: { "p_account_number"?: string,"p_bank_name": string,"p_holder_name"?: string,"p_ifsc"?: string,"p_kind": string,"p_vpa"?: string }; Returns: string
+                           },
+"add_sop":
+{ Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_title": string,"p_venue_id": string }; Returns: string
                            },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
@@ -2617,6 +2695,9 @@ isOneToOne: false
               "account_id": string,"account_number": string,"added_at": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"phone": string,"vpa": string
             }[]
                            },
+"publish_sop_version":
+{ Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_sop_id": string }; Returns: number
+                           },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -2738,6 +2819,16 @@ isOneToOne: false
                            },
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
+                           },
+"sop_acknowledgements":
+{ Args: { "p_version_id": string }; Returns: {
+              "acknowledged_at": string,"full_name": string,"role": Database["public"]['Enums']["staff_role"],"staff_id": string
+            }[]
+                           },
+"sop_library":
+{ Args: { "p_venue_id": string }; Returns: {
+              "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"next_ack_roles": (Database["public"]['Enums']["staff_role"])[],"next_body": string,"next_effective_on": string,"next_owner": string,"next_version": number,"next_version_id": string,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string
+            }[]
                            },
 "staff_academy_batches":
 { Args: { "p_venue_id": string }; Returns: {

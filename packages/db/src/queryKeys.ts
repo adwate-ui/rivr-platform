@@ -111,6 +111,10 @@ export const queryKeys = {
   /** A venue's certification quizzes, and the attempts at them the signed-in staff member may see (#50): all, or one person's, under it. */
   quizzes: (userId: string, venueId: string) => ['user', userId, 'quizzes', venueId] as const,
   quizAttempts: (userId: string, venueId: string) => ['user', userId, 'quiz-attempts', venueId] as const,
+  /** A venue's SOP library (#51), and who has acknowledged each version, for SOP managers. */
+  sops: (userId: string, venueId: string) => ['user', userId, 'sops', venueId] as const,
+  sopAcknowledgementsAll: (userId: string) => ['user', userId, 'sop-acknowledgements'] as const,
+  sopAcknowledgements: (userId: string, versionId: string) => ['user', userId, 'sop-acknowledgements', versionId] as const,
   /** The signed-in TV's waitlist board (#65). */
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
   /** The signed-in TV's jackpot and tonight's high hand (#65). */
