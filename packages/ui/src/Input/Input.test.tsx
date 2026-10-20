@@ -22,6 +22,13 @@ describe('Input', () => {
     expect(screen.getByRole('textbox', { name: 'UTR' })).toHaveValue('412908771204');
   });
 
+  it('hands its keys on, as a scanner that types a code and Enter needs', async () => {
+    const keys: string[] = [];
+    renderIn(<Input label="Membership card" onKeyDown={(event) => keys.push(event.key)} />);
+    await userEvent.type(screen.getByRole('textbox', { name: 'Membership card' }), 'ab{Enter}');
+    expect(keys).toEqual(['a', 'b', 'Enter']);
+  });
+
   it('is reached with Tab', async () => {
     renderIn(<Input label="Amount" />);
     await userEvent.tab();

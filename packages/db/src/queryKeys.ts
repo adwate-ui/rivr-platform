@@ -13,6 +13,8 @@ export const queryKeys = {
   venueConfig: (userId: string, venueId: string) => ['user', userId, 'venue-config', venueId] as const,
   /** A venue's chip denominations (#33). */
   chipDenominations: (userId: string, venueId: string) => ['user', userId, 'chip-denominations', venueId] as const,
+  /** The signed-in member's membership card and its door code for now (#71). */
+  membershipCard: (userId: string) => ['user', userId, 'membership-card'] as const,
   /** Every feature's state for the signed-in member. */
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
   /** Kill-switch controls the signed-in person can see. */

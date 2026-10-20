@@ -40,7 +40,8 @@ export function MembershipCard({ name, tier, memberNumber, qr }: MembershipCardP
           </Text>
         </div>
       </div>
-      <div className="flex aspect-square min-w-0 flex-1 items-center justify-center rounded-md bg-cream p-2">{qr}</div>
+      {/* The cream around the QR is its quiet zone: about three modules, so a scanner finds its edges. */}
+      <div className="flex aspect-square min-w-0 flex-1 items-center justify-center rounded-md bg-cream p-3">{qr}</div>
     </article>
   );
 }

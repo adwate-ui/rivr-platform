@@ -28,6 +28,8 @@ export const playerApp = {
   balance,
   rewards: { title: 'Rewards', empty: 'No rewards yet.' },
   learn: { title: 'Learn', empty: 'No sources yet.' },
+  /** The digital membership card (#71): the QR the door scans changes every few seconds. */
+  card: { title: 'Membership card', qr: 'Your door code', hint: 'Show this at the door. The code changes every few seconds.' },
   /** RIVR Academy: batches, booking a seat, paying by UPI with the UTR. */
   academy: {
     title: 'RIVR Academy',
@@ -108,6 +110,9 @@ export const playerApp = {
     nameOnTvsHint: 'Your first name and initial on the waitlist board. Off, the board shows your place instead, such as Player 2.',
     /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
     academyBookings: 'Your Academy bookings',
+    /** The way to the membership card (#71). */
+    card: 'Membership card',
+    showCard: 'Show card',
     /** Limits and self-exclusion (#56), as in the prototype's Profile. */
     limits: 'Limits',
     sessionReminder: 'Session reminder',

@@ -2,6 +2,7 @@ import { usePreferences, useRestrictions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { AcademySection } from './AcademySection.tsx';
+import { CardSection } from './CardSection.tsx';
 import { GamesSection } from './GamesSection.tsx';
 import { IdentitySection } from './IdentitySection.tsx';
 import { LimitsSection } from './LimitsSection.tsx';
@@ -13,7 +14,8 @@ import { SignOutSection } from './SignOutSection.tsx';
  * Profile, behind the member's initial (design prompt, "Profile"): the identity check, the games for
  * waitlist alerts, the session reminder and a break from play (#56), notifications and promotions, the
  * way to any Academy seats, and sign out, in the prototype's order. Privacy (their name on the TVs,
- * #326) is not in the prototype and comes after notifications.
+ * #326) is not in the prototype and comes after notifications; the membership card (#71) is not either,
+ * and comes first, as the member opens it at the door.
  */
 export function ProfileScreen() {
   const preferences = usePreferences();
@@ -35,6 +37,7 @@ export function ProfileScreen() {
   return (
     <Screen title={title}>
       <Stack gap={8}>
+        <CardSection />
         <IdentitySection />
         <GamesSection preferences={preferences.data} />
         <LimitsSection restrictions={restrictions.data} />

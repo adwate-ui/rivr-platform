@@ -87,7 +87,8 @@ export * from './LinksBlock/index.ts';
 export * from './SocialCard/index.ts';
 export * from './BrandArt/index.ts';
 
-// The membership card, receipts and A4 documents, drawn by @rivr/render
+// The membership card, receipts and A4 documents, drawn by @rivr/render. QrCode, for the card's door code,
+// is `@rivr/ui/qr-code`, so its encoder loads only with the card and not in the player's first load.
 export * from './MembershipCard/index.ts';
 export * from './Receipt/index.ts';
 export * from './DocumentPage/index.ts';

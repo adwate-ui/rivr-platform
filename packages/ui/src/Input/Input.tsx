@@ -13,6 +13,7 @@ type NativeInputProps = Pick<
   | 'defaultValue'
   | 'onChange'
   | 'onBlur'
+  | 'onKeyDown'
   | 'autoComplete'
   | 'autoFocus'
   | 'inputMode'

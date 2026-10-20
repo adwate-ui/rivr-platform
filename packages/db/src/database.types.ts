@@ -1363,6 +1363,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"membership_card": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "membership_card_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"notification_preference": {
                   Row: {
                     "created_at": string,"is_on": boolean,"member_id": string,"push_type": string,"updated_at": string,"venue_id": string
@@ -2439,6 +2459,9 @@ isOneToOne: false
 "check_in":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
                            },
+"check_in_by_card":
+{ Args: { "p_code": string,"p_venue_id": string }; Returns: string
+                           },
 "check_in_by_phone":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: string
                            },
@@ -2684,6 +2707,11 @@ isOneToOne: false
 "my_feature_access":
 { Args: Record<PropertyKey, never>; Returns: {
               "feature_key": string,"state": string,"tiers": (string)[]
+            }[]
+                           },
+"my_membership_card":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "code": string,"full_name": string,"member_number": number,"ms_left": number,"tier_name": string
             }[]
                            },
 "my_payout_accounts":

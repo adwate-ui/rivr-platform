@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { CHECK_IN_FAILURE_COPY } from './checkInCopy.ts';
 
-/** Checks a member in by their mobile number; the membership QR scans here once it exists (#71). */
+/** Checks a member in by their mobile number, when they do not have their card to hand. */
 export function PhoneCheckIn({ venueId }: { venueId: string }) {
   const { checkInByPhone } = useCheckInActions(venueId);
   const [failure, setFailure] = useState<CheckInFailure | null>(null);

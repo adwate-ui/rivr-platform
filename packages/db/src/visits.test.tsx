@@ -50,4 +50,16 @@ describe('The door', () => {
     expect(outcome).toEqual({ ok: false, error: 'on_break' });
     expect(calls.find((call) => call.rpc === 'check_in_by_phone')?.body).toEqual({ p_venue_id: VENUE, p_phone: '9000000213' });
   });
+
+  it('checks a member in by the code on their card, and says when the code is no longer current (#71)', async () => {
+    const { result, calls } = renderDoor({ door_board: { body: [] }, check_in_by_card: { body: 'visit-1' } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.actions.checkInByCard.mutateAsync('card.58931234.mac'); });
+    expect(outcome).toEqual({ ok: true, value: 'visit-1' });
+    expect(calls.find((call) => call.rpc === 'check_in_by_card')?.body).toEqual({ p_venue_id: VENUE, p_code: 'card.58931234.mac' });
+
+    const old = renderDoor({ door_board: { body: [] }, check_in_by_card: { status: 400, body: { code: 'RVCRD', message: 'not current' } } });
+    await act(async () => { outcome = await old.result.current.actions.checkInByCard.mutateAsync('card.58931233.mac'); });
+    expect(outcome).toEqual({ ok: false, error: 'card_not_current' });
+  });
 });
