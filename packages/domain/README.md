@@ -112,6 +112,12 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `tdsOnCashOut(cashOut, rule)`, `TdsCashOut`, `TdsRule`, `Tds` | TDS on a cash-out (#22, decision 0068): nothing until the period's net winnings exceed the threshold, then the rate (the no-PAN rate for a member without a PAN where one is required) on all of them, rounded down to the rupee; the cash-out bears that less what the period already recorded, never below nothing and never more than it pays after markers. The database's `private.tds_amount` is proved equal by `packages/testing/golden/tds.json`. |
 
+### `@rivr/domain/gst`
+
+| Export | What it does |
+|---|---|
+| `gstIncluded(inclusive, rate)`, `GstSplit` | GST taken out of an amount that includes it (#23, decision 0071): equal CGST and SGST halves, each rounded to the nearest paisa (a half up), and the taxable value as what is left, so the three add up to the amount. Throws on a negative amount or a rate outside 0 to 10,000 basis points (bugs). The database's `private.gst_included` is proved equal by `packages/testing/golden/gst.json`. |
+
 ## Usage
 
 ```ts
