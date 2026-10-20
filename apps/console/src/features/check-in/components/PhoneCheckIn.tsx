@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { doorCheckInSchema } from '@rivr/contracts';
-import { useCheckInActions, useCheckOutActions, type CheckInFailure, type CheckOutFailure } from '@rivr/db';
+import { useCheckInActions, useCheckOutActions, type CheckInFailure, type CheckOutRefusal } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import { CHECK_IN_FAILURE_COPY, CHECK_OUT_FAILURE_COPY } from './checkInCopy.ts';
+import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 
-type Outcome = { in: CheckInFailure } | { out: CheckOutFailure } | 'checked_out' | null;
+type Outcome = { in: CheckInFailure } | { out: CheckOutRefusal } | 'checked_out' | null;
 
 /**
  * Checks a member in, or out as they leave (#82), by their mobile number; the membership QR scans here
@@ -41,7 +41,7 @@ export function PhoneCheckIn({ venueId }: { venueId: string }) {
       </Inline>
       {form.formState.errors.phone ? <ErrorMessage>{t('console.checkIn.invalid')}</ErrorMessage> : null}
       {outcome === 'checked_out' ? <Text variant="small">{t('console.checkIn.checkedOut')}</Text> : null}
-      {isFailure ? <ErrorMessage>{'in' in outcome ? t(CHECK_IN_FAILURE_COPY[outcome.in]) : t(CHECK_OUT_FAILURE_COPY[outcome.out])}</ErrorMessage> : null}
+      {isFailure ? <ErrorMessage>{'in' in outcome ? t(CHECK_IN_FAILURE_COPY[outcome.in]) : checkOutRefusalText(outcome.out)}</ErrorMessage> : null}
     </Stack>
   );
 }

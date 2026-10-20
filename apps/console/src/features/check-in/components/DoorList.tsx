@@ -1,8 +1,8 @@
-import { useCheckInActions, useCheckOutActions, type CheckInFailure, type CheckOutFailure, type DoorMember } from '@rivr/db';
+import { useCheckInActions, useCheckOutActions, type CheckInFailure, type CheckOutRefusal, type DoorMember } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { CHECK_IN_FAILURE_COPY, CHECK_OUT_FAILURE_COPY } from './checkInCopy.ts';
+import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 
 interface DoorListProps {
   venueId: string;
@@ -47,7 +47,7 @@ function ExpectedRow({ member, isBusy, onCheckIn }: { member: DoorMember; isBusy
 export function DoorList({ venueId, title, members, emptyText }: DoorListProps) {
   const { checkIn } = useCheckInActions(venueId);
   const { checkOut } = useCheckOutActions(venueId);
-  const [failure, setFailure] = useState<{ in: CheckInFailure } | { out: CheckOutFailure } | null>(null);
+  const [failure, setFailure] = useState<{ in: CheckInFailure } | { out: CheckOutRefusal } | null>(null);
   const admit = async (memberId: string) => {
     const opened = await checkIn.mutateAsync(memberId);
     setFailure(opened.ok ? null : { in: opened.error });
@@ -60,7 +60,7 @@ export function DoorList({ venueId, title, members, emptyText }: DoorListProps) 
   return (
     <Stack gap={3} divided>
       <Heading level={2}>{title}</Heading>
-      {failure === null ? null : <ErrorMessage>{'in' in failure ? t(CHECK_IN_FAILURE_COPY[failure.in]) : t(CHECK_OUT_FAILURE_COPY[failure.out])}</ErrorMessage>}
+      {failure === null ? null : <ErrorMessage>{'in' in failure ? t(CHECK_IN_FAILURE_COPY[failure.in]) : checkOutRefusalText(failure.out)}</ErrorMessage>}
       {members.length === 0 ? <Text tone="muted">{emptyText}</Text> : null}
       {members.map((member) => member.isInRoom
         ? <InRoomRow key={member.memberId} member={member} isBusy={checkOut.isPending} onCheckOut={() => void release(member.memberId)} />

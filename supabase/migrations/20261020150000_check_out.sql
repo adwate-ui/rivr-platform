@@ -2,8 +2,10 @@
 -- front desk scans the membership card, or types the number, as a member leaves: the visit closes (close
 -- reason door), which earns its points (#89) and fixes its hours. Before call time the call-time rule
 -- applies, as at the cage (#79): a member who owes call time, on their seat or the last one they left
--- this visit, is refused (RVCTS) until an admin lets them leave early. A member still seated leaves the
--- seat as they go. Refusals: 42501 not the front desk, RVNOM no such member, RVOUT not checked in.
+-- this visit, is refused (RVCTS, with the seconds owed as the detail) until an admin lets them leave
+-- early. A member still seated is refused (RVSTD): their chips are on the table, so the floor ends the
+-- seat or the cage cashes them out first (question #410). Refusals: 42501 not the front desk, RVNOM no
+-- such member, RVFRZ/RVMBR the venue or the member frozen, RVOUT not checked in.
 
 create function private.check_out(p_venue_id uuid, p_member_id uuid)
 returns uuid
@@ -13,7 +15,6 @@ set search_path = ''
 as $$
 declare
   v_owed record;
-  v_session public.seat_session;
   v_visit uuid;
 begin
   if p_venue_id is null or not private.has_permission(p_venue_id, 'waitlist.manage') then
@@ -24,22 +25,19 @@ begin
   end if;
   -- One at a time per member, with the cage's cash-out (which takes the same lock).
   perform 1 from public.member m where m.id = p_member_id for update;
+  -- A close is a write (decision 0161), refused while the venue or the member is frozen.
+  perform private.assert_writable(p_venue_id, null, p_member_id);
   v_visit := private.current_visit(p_member_id);
   if v_visit is null then
     raise exception 'Not checked in: there is no visit to close' using errcode = 'RVOUT';
   end if;
+  if exists (select 1 from public.seat_session s where s.member_id = p_member_id and s.ended_at is null) then
+    raise exception 'Still seated: the floor ends the seat, or the cage cashes out, first' using errcode = 'RVSTD';
+  end if;
   select * into v_owed from private.call_time_owed(p_member_id, now());
   if coalesce(v_owed.o_seconds, 0) > 0 and not exists (select 1 from public.early_departure e where e.session_id = v_owed.o_session_id) then
-    raise exception 'Call time not complete: % seconds owed', v_owed.o_seconds using errcode = 'RVCTS';
-  end if;
-  -- A member who walks out from a seat leaves it, and a buy-in they asked for is withdrawn.
-  select * into v_session from public.seat_session s where s.member_id = p_member_id and s.ended_at is null for update;
-  if v_session.id is not null then
-    update public.seat_session set ended_at = now(), end_reason = 'left', away_since = null where id = v_session.id;
-    update public.buy_in_request set status = 'withdrawn', decided_at = now() where session_id = v_session.id and status = 'waiting';
-    perform private.emit(v_session.venue_id, 'seat.left',
-                         jsonb_build_object('session_id', v_session.id, 'member_id', p_member_id, 'table_id', v_session.table_id,
-                                            'seat', v_session.seat, 'reason', 'left'), 'seat.left:' || v_session.id);
+    raise exception 'Call time not complete: % seconds owed', v_owed.o_seconds
+      using errcode = 'RVCTS', detail = v_owed.o_seconds::text;
   end if;
   return private.close_visit(p_member_id, now(), 'door');
 end;
