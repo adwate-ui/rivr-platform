@@ -1263,6 +1263,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"second_approval": {
+                  Row: {
+                    "amount_paise": number,"approved_at": string,"approved_by_staff_id": string,"created_at": string,"id": string,"subject": string,"subject_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"approved_at"?: string,"approved_by_staff_id": string,"created_at"?: string,"id"?: string,"subject": string,"subject_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"approved_at"?: string,"approved_by_staff_id"?: string,"created_at"?: string,"id"?: string,"subject"?: string,"subject_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "second_approval_approved_by_staff_id_venue_id_fkey"
+      columns: ["approved_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"self_exclusion": {
                   Row: {
                     "created_at": string,"ends_at": string,"id": string,"member_id": string,"reason": string | null,"set_by_staff_id": string | null,"starts_at": string,"updated_at": string,"venue_id": string

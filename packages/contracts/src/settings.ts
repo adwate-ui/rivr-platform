@@ -151,10 +151,16 @@ const markersDueDays = {
   value: z.strictObject({ days: z.int().min(1).max(90) }),
 } as const satisfies SettingDefinition;
 
-/** Every setting key declared in code. */
-export const SETTINGS = [
+const cageSecondApproverThreshold = {
+  key: 'cage.second_approver_threshold',
+  description: 'Dual control: a withdrawal of this amount or more is paid only once a second approver, a different staff member holding cage.second_approve, has approved it. Paise in whole ₹50 chips (scope-v1 module 5; decision 0063).',
+  scope: 'venue',
+  value: z.strictObject({ threshold_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE) }),
+} as const satisfies SettingDefinition;
+
+/** Every setting key declared in code. */export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays,
+  creditConfig, markersDueDays, cageSecondApproverThreshold,
 ] as const;
 
 /** A setting key declared in code. */
