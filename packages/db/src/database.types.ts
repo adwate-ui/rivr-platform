@@ -3070,6 +3070,11 @@ isOneToOne: false
               "account_id": string,"account_number": string,"added_at": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"phone": string,"vpa": string
             }[]
                            },
+"practice_reset_preview":
+{ Args: { "p_venue_id": string }; Returns: {
+              "current_rows": number,"seed_rows": number,"table_name": string
+            }[]
+                           },
 "publish_promotion":
 { Args: { "p_promotion": Json,"p_venue_id": string }; Returns: string
                            },
@@ -3134,6 +3139,11 @@ isOneToOne: false
                            },
 "request_withdrawal":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string }; Returns: string
+                           },
+"reset_practice_venue":
+{ Args: { "p_venue_id": string,"p_venue_name": string }; Returns: {
+              "deleted_rows": number,"restored_rows": number,"table_name": string
+            }[]
                            },
 "reverse_high_hand":
 { Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined

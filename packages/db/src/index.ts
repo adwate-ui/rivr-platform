@@ -225,6 +225,9 @@ export { NOTHING_ENGAGED, toControlState, type ControlState, type KillableFeatur
 export { useWaitlistCallActions } from './waitlistCalls.ts';
 export { useMyTonight, type MyTonight, type NextTournament } from './tonight.ts';
 export {
+  practiceResetFailureOf, usePracticeReset, usePracticeResetPreview, type PracticeResetFailure, type PracticeResetRow,
+} from './practiceReset.ts';
+export {
   useSettingActions, useVenueSettings, type SettingChange, type SettingEntry, type SettingFailure, type SettingField, type SettingSubjectRules,
   type SettingValue, type VenueSetting, type VenueSettings,
 } from './settings.ts';

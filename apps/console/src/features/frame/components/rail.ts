@@ -72,6 +72,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'sops', label: 'ui.consoleRail.items.sops', href: '/sops', anyOf: ['sops.acknowledge', 'sops.manage'] },
       { id: 'incidents', label: 'ui.consoleRail.items.incidents', href: '/incidents', anyOf: ['incidents.log', 'sops.manage'] },
       { id: 'killSwitch', label: 'ui.consoleRail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
+      { id: 'practiceReset', label: 'ui.consoleRail.items.practiceReset', href: '/practice-reset', anyOf: ['purge.run'] },
       { id: 'settings', label: 'ui.consoleRail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
     ],
   },
