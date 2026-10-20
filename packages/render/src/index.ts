@@ -4,3 +4,4 @@
  */
 export { renderFrameToPng, renderToMp4, renderToPdf, renderToPng, type RenderRequest, type VideoTiming } from './render.ts';
 export { templates, type TemplateName, type TemplateProps } from './templates/index.ts';
+export { invoiceDocumentProps, renderInvoicePdf, type StoredInvoice } from './invoice.ts';
