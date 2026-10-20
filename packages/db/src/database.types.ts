@@ -1643,7 +1643,7 @@ isOneToOne: false
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by_staff_id"?: string | null,"effective_from": string,"id"?: string,"key": string,"reason"?: string | null,"subject"?: string,"updated_at"?: string,"value": NonNullable<Json>,"venue_id": string
+                    "created_at"?: string,"created_by_staff_id"?: string | null,"effective_from"?: string,"id"?: string,"key": string,"reason"?: string | null,"subject"?: string,"updated_at"?: string,"value": NonNullable<Json>,"venue_id": string
                   }
                   Update: {
                     "created_at"?: string,"created_by_staff_id"?: string | null,"effective_from"?: string,"id"?: string,"key"?: string,"reason"?: string | null,"subject"?: string,"updated_at"?: string,"value"?: NonNullable<Json>,"venue_id"?: string

@@ -1,4 +1,4 @@
-# 0074: The restore drill restores into a scratch local stack, with the runbook's own script
+# 0105: The restore drill restores into a scratch local stack, with the runbook's own script
 
 Date: 2026-10-20 · Task: #26
 

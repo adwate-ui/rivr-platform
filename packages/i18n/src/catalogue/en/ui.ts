@@ -35,6 +35,7 @@ export const ui = {
     },
     items: {
       liveFloor: 'Live floor',
+      settings: 'Settings',
       waitlist: 'Waitlist',
       tablets: 'Tablets',
       tvs: 'TVs',

@@ -7,6 +7,12 @@ export const queryKeys = {
   personal: ['user'] as const,
   /** The signed-in member's name and initial. */
   member: (userId: string) => ['user', userId, 'member'] as const,
+  /** Every setting key with its values at a venue, for the Settings screen (#33). */
+  venueSettings: (userId: string, venueId: string) => ['user', userId, 'venue-settings', venueId] as const,
+  /** A venue's configuration, for a super admin (#33). */
+  venueConfig: (userId: string, venueId: string) => ['user', userId, 'venue-config', venueId] as const,
+  /** A venue's chip denominations (#33). */
+  chipDenominations: (userId: string, venueId: string) => ['user', userId, 'chip-denominations', venueId] as const,
   /** Every feature's state for the signed-in member. */
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
   /** Kill-switch controls the signed-in person can see. */

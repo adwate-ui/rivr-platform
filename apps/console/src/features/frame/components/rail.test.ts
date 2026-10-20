@@ -22,6 +22,13 @@ describe('the console rail and who may open each screen', () => {
     expect(isAllowedAt(ROLE_PERMISSIONS.host, '/academy/payments')).toBe(false);
   });
 
+  it('gives Settings to setting managers and super admins, and keeps cashiers and dealers out of it (#33)', () => {
+    expect(items(ROLE_PERMISSIONS.admin)).toContain('/settings');
+    expect(isAllowedAt(ROLE_PERMISSIONS.super_admin, '/settings')).toBe(true);
+    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings')).toBe(false);
+    expect(isAllowedAt(ROLE_PERMISSIONS.dealer, '/settings')).toBe(false);
+  });
+
   it('gives staff managers the Staff screen, and leaves screens with no rail entry open to all staff', () => {
     expect(items(ROLE_PERMISSIONS.admin)).toContain('/staff');
     expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/staff')).toBe(true);
