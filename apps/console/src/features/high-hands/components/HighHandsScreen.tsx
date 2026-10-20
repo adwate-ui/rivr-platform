@@ -1,8 +1,8 @@
 import { useHighHands, useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Heading, Screen, Stack, Text } from '@rivr/ui';
+import { Heading, Screen, Stack } from '@rivr/ui';
 import { ClaimRow } from './ClaimRow.tsx';
-import { claimText, decisionText } from './highHandCopy.ts';
+import { HistoryRow } from './HistoryRow.tsx';
 
 /**
  * High hands (#47; flow 6): claims from the tablets waiting for the floor, which staff who approve
@@ -43,12 +43,7 @@ function HighHandList({ venueId, canDecide }: { venueId: string; canDecide: bool
           <Stack gap={4}>
             <Heading level={2}>{t('console.highHands.history')}</Heading>
             <Stack gap={3} divided>
-              {decided.map((hand) => (
-                <Stack key={hand.claimId} gap={1}>
-                  <Text>{claimText(hand)}</Text>
-                  <Text variant="small" tone="muted">{decisionText(hand)}</Text>
-                </Stack>
-              ))}
+              {decided.map((hand) => <HistoryRow key={hand.claimId} venueId={venueId} hand={hand} canDecide={canDecide} />)}
             </Stack>
           </Stack>
         )}

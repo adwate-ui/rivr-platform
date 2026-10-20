@@ -13,6 +13,7 @@ function HandRow({ hand, claim }: { hand: DownHand; claim: TabletHighHand | unde
       <Stack gap={1}>
         <Text>{t('tablet.handEntry.hand', { time: formatTime(new Date(hand.playedAt)), variant: variantText(hand.variant) })}</Text>
         {claim === undefined ? null : <Text variant="small" tone="muted">{claimStatusText(claim.status)}</Text>}
+        {claim?.isCorrected ? <Text variant="small" tone="muted">{t('tablet.highHand.corrected')}</Text> : null}
       </Stack>
       <Money paise={hand.pot} />
     </Inline>
