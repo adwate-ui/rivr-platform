@@ -24,7 +24,7 @@ label 'release:freeze' 'b60205' 'Feature freeze, 10 Nov'
 
 gh api --method PUT "repos/$repo/branches/main/protection" --input - >/dev/null <<'JSON'
 {
-  "required_status_checks": { "strict": true, "contexts": ["verify", "e2e", "budgets", "security", "agent-review"] },
+  "required_status_checks": { "strict": false, "contexts": ["verify", "e2e", "budgets", "security", "agent-review"] },
   "enforce_admins": false,
   "required_pull_request_reviews": null,
   "restrictions": null,

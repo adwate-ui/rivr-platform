@@ -81,6 +81,7 @@ export {
 } from './channels.ts';
 export {
   FEATURES,
+  TAB_FEATURES,
   type FeatureDefinition,
   type FeatureKey,
   type LearnSourceFeatureKey,

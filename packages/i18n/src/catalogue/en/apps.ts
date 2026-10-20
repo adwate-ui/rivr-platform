@@ -5,7 +5,7 @@
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
-import { members } from './members.ts';
+import { members, tiers } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
 import { dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
@@ -178,6 +178,7 @@ export const consoleApp = {
   endOfDay,
   endOfDayFailures,
   members,
+  tiers,
   killSwitch,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',

@@ -48,6 +48,14 @@ export const LongText: Story = {
   },
 };
 
+/** In a table cell under its column's header: the label is for screen readers only. */
+export const LabelVisuallyHidden: Story = {
+  render: () => (
+    <ChoiceChips label="Learn library for Member" selected={['locked']} onChange={() => undefined} isLabelVisuallyHidden
+      options={[{ value: 'on', label: 'On' }, { value: 'locked', label: 'Locked' }, { value: 'hidden', label: 'Hidden' }]} />
+  ),
+};
+
 export const Interactive: Story = {
   render: function Render() {
     const [games, setGames] = useState<string[]>(['nlh']);

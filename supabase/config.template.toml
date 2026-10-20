@@ -160,6 +160,10 @@ max_frequency = "60s"
 919000000218 = "123456"
 919000000301 = "123456"
 919000000302 = "123456"
+# Lane A's people from supabase/seed/11_people_a.sql (staff 150 to 169, members 250 to 269).
+919000000152 = "123456"
+919000000250 = "123456"
+919000000251 = "123456"
 # Not seeded: the code-only sign-in flow signs this number up with a password (e2e, #187).
 919000000901 = "123456"
 # Not seeded: the Attribution flow signs this number up (#10).

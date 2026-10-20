@@ -19,6 +19,11 @@ export interface ChoiceChipsProps<Value extends string> {
   mode?: 'one' | 'many';
   /** Dims the chips and ignores presses, for example while a change is saved. */
   isDisabled?: boolean;
+  /**
+   * Keeps the label for screen readers only, where the screen already shows it once for many groups:
+   * a table cell under its column's header, for example.
+   */
+  isLabelVisuallyHidden?: boolean;
 }
 
 const CHIP =
@@ -26,7 +31,9 @@ const CHIP =
   'disabled:cursor-not-allowed disabled:opacity-disabled';
 
 /** A preference picked from a few choices, such as games or stakes: a row of chips that wraps. */
-export function ChoiceChips<Value extends string>({ label, options, selected, onChange, mode = 'many', isDisabled }: ChoiceChipsProps<Value>) {
+export function ChoiceChips<Value extends string>({
+  label, options, selected, onChange, mode = 'many', isDisabled, isLabelVisuallyHidden = false,
+}: ChoiceChipsProps<Value>) {
   const labelId = useId();
   const press = (value: Value) => {
     const isOn = selected.includes(value);
@@ -35,9 +42,13 @@ export function ChoiceChips<Value extends string>({ label, options, selected, on
   };
   return (
     <Stack gap={2}>
-      <Text id={labelId} variant="label">
-        {label}
-      </Text>
+      {isLabelVisuallyHidden ? (
+        <span id={labelId} className="sr-only">{label}</span>
+      ) : (
+        <Text id={labelId} variant="label">
+          {label}
+        </Text>
+      )}
       <div role="group" aria-labelledby={labelId} className="flex flex-wrap gap-2">
         {options.map((option) => {
           const isOn = selected.includes(option.value);

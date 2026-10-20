@@ -59,6 +59,14 @@ describe('ChoiceChips', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('keeps a visually hidden label as the group\'s name for screen readers', async () => {
+    const { container } = renderIn(<ChoiceChips label="Learn library for Member" options={GAMES} selected={[]} onChange={() => undefined} isLabelVisuallyHidden />);
+
+    expect(screen.getByRole('group', { name: 'Learn library for Member' })).toBeInTheDocument();
+    expect(screen.getByText('Learn library for Member')).toHaveClass('sr-only');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<ChoiceChips label="Games" options={GAMES} selected={['nlh']} onChange={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
