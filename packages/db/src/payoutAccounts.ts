@@ -1,4 +1,5 @@
-import { PAYOUT_KINDS, type PayoutAccountInput, type PayoutKind } from '@rivr/contracts/payments';
+// Types only: the schemas' module brings zod, and this package is in the player's first download.
+import type { PayoutAccountInput, PayoutKind } from '@rivr/contracts/payments';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -45,7 +46,7 @@ interface AccountRow {
   reject_reason: string | null;
 }
 
-const kindOf = (kind: string): PayoutKind => PAYOUT_KINDS.find((known) => known === kind) ?? 'upi';
+const kindOf = (kind: string): PayoutKind => (kind === 'bank' ? 'bank' : 'upi');
 
 function accountOf(row: AccountRow): PayoutAccount {
   return {
