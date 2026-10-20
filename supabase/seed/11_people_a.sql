@@ -11,6 +11,10 @@ create temporary table seed_person_a (
 insert into seed_person_a (id, phone, full_name) values
   -- The Tiers flow's own super admin, who takes Learn from the Member tier and gives it back to one member (#32, flow 21).
   ('00000000-0000-4000-8000-000000000152', '+919000000152', 'Rohini Das'),
+  -- The Settings flow's own admin, super admin and cashier (#33).
+  ('00000000-0000-4000-8000-000000000153', '+919000000153', 'Imran Qureshi'),
+  ('00000000-0000-4000-8000-000000000154', '+919000000154', 'Leela Menon'),
+  ('00000000-0000-4000-8000-000000000155', '+919000000155', 'Tara Bose'),
   -- The Tiers flow's own members: one at Member, one with a black card (#32, flow 21).
   ('00000000-0000-4000-8000-000000000250', '+919000000250', 'Aarav Joshi'),
   ('00000000-0000-4000-8000-000000000251', '+919000000251', 'Kiara Shah');
@@ -35,6 +39,16 @@ select v.venue_id, p.id, p.full_name, 'Duty manager', 'super_admin', p.phone
 from seed_person_a p
 cross join (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 where p.id = '00000000-0000-4000-8000-000000000152'
+on conflict (venue_id, user_id) do nothing;
+
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, s.job_title, s.role::public.staff_role, p.phone
+from (values
+  ('00000000-0000-4000-8000-000000000153'::uuid, 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-000000000154'::uuid, 'General manager', 'super_admin'),
+  ('00000000-0000-4000-8000-000000000155'::uuid, 'Cashier', 'cashier')
+) as s (person_id, job_title, role)
+join seed_person_a p on p.id = s.person_id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
