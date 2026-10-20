@@ -9,6 +9,7 @@ export {
 export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 // The website's reads are at @rivr/db/site, so the apps' bundles never carry their schemas.
 export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
+export { useStaffActions, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember } from './venueStaff.ts';
 export {
   useStaffAcademyActions,
   useStaffAcademyBatches,

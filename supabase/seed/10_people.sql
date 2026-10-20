@@ -55,6 +55,8 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000140', '+919000000140', 'Rohit Chauhan'),
   ('00000000-0000-4000-8000-000000000141', '+919000000141', 'Pooja Nair'),
   ('00000000-0000-4000-8000-000000000142', '+919000000142', 'Rahul Verma'),
+  ('00000000-0000-4000-8000-000000000150', '+919000000150', 'Ayesha Thomas'),
+  ('00000000-0000-4000-8000-000000000151', '+919000000151', 'Manoj Pillai'),
   ('00000000-0000-4000-8000-000000000170', '+919000000170', 'Manoj Thapa'),
   ('00000000-0000-4000-8000-000000000171', '+919000000171', 'Swati Agarwal'),
   ('00000000-0000-4000-8000-000000000172', '+919000000172', 'Deepak Menon'),
@@ -152,6 +154,10 @@ from (values
   -- The End of day flow's own cashier, who closes a shift short, and floor manager, who gives the reason (#45).
   ('00000000-0000-4000-8000-000000000141'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000142'::uuid, 'Floor manager', 'admin'),
+  -- The Staff flow's own floor manager, who adds and changes a staff member, and cashier, who is kept
+  -- out of admin screens (#28).
+  ('00000000-0000-4000-8000-000000000150'::uuid, 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-000000000151'::uuid, 'Cashier', 'cashier'),
   -- The Certification flow's own dealer and cashier, who take their quizzes, and floor manager, who reads the attempts (#50).
   ('00000000-0000-4000-8000-000000000170'::uuid, 'Dealer', 'dealer'),
   ('00000000-0000-4000-8000-000000000171'::uuid, 'Cashier', 'cashier'),

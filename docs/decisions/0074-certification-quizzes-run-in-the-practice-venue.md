@@ -1,4 +1,4 @@
-# 0073 Certification quizzes run in the practice venue, on the console, marked by the database
+# 0074 Certification quizzes run in the practice venue, on the console, marked by the database
 
 Date: 20 Oct 2026. Task #50.
 

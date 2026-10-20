@@ -63,6 +63,7 @@ const RAIL: readonly RailGroup[] = [
     id: 'team',
     label: 'ui.consoleRail.groups.team',
     entries: [
+      { id: 'staff', label: 'ui.consoleRail.items.staff', href: '/staff', anyOf: ['staff.manage'] },
       { id: 'dealerPins', label: 'ui.consoleRail.items.dealerPins', href: '/dealer-pins', anyOf: ['staff.manage'] },
       { id: 'certification', label: 'ui.consoleRail.items.certification', href: '/certification', anyOf: [] },
       { id: 'killSwitch', label: 'ui.consoleRail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
@@ -70,14 +71,32 @@ const RAIL: readonly RailGroup[] = [
   },
 ];
 
+const isAllowed = (entry: RailEntry, permissions: readonly Permission[]) =>
+  entry.anyOf.length === 0 || entry.anyOf.some((permission) => permissions.includes(permission));
+
 /** The rail for a staff member: the screens their role allows, with no empty group. */
 export function railFor(permissions: readonly Permission[]): SideNavSection[] {
-  const allowed = (entry: RailEntry) => entry.anyOf.length === 0 || entry.anyOf.some((permission) => permissions.includes(permission));
   return RAIL.map((group) => ({
     id: group.id,
     label: t(group.label),
-    items: group.entries.filter(allowed).map((entry) => ({ id: entry.id, label: t(entry.label), href: entry.href })),
+    items: group.entries.filter((entry) => isAllowed(entry, permissions)).map((entry) => ({ id: entry.id, label: t(entry.label), href: entry.href })),
   })).filter((section) => section.items.length > 0);
+}
+
+/**
+ * Whether a staff member may open the screen at `pathname` (#28): the rail entry it belongs to (its own,
+ * or the closest one above it, so /academy/payments is the Academy payments entry) must be one their role
+ * allows. A screen opened by address is held to the same rule as the rail, so a cashier who types an
+ * admin screen's address gets a refusal, not the screen. Screens with no rail entry are open to all staff.
+ */
+export function isAllowedAt(permissions: readonly Permission[], pathname: string): boolean {
+  // The router matches addresses whatever their case, so /RAKE is the Rake screen too.
+  const path = pathname.toLowerCase();
+  const entries = RAIL.flatMap((group) => group.entries)
+    .filter((entry) => entry.href !== '/' && (path === entry.href || path.startsWith(`${entry.href}/`)))
+    .sort((a, b) => b.href.length - a.href.length);
+  const entry = entries[0];
+  return entry === undefined || isAllowed(entry, permissions);
 }
 
 /** The rail item for the screen at `pathname`, if the rail has one. */

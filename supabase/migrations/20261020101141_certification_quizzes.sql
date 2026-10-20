@@ -2,7 +2,7 @@
 -- the same apps, and the dealer and cashier certification quizzes run there. A quiz is a few questions,
 -- each with its choices; the right answers stay in the database, which marks an attempt and records it
 -- against the staff record of whoever took it. A score at or above the quiz's pass mark is a pass. The
--- questions are this system's own procedures, written for it (decision 0073). Neither table is in the
+-- questions are this system's own procedures, written for it (decision 0074). Neither table is in the
 -- audit log, which would keep the answers where readers of the audit log could see them: quizzes change
 -- only by migration, and an attempt is itself the record of who took it when.
 

@@ -27,6 +27,12 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `balanceOf(account, lines)` | A balance is always a sum of lines, never a stored number. |
 | `reverse(lines)` | The correcting entry. Lines are never edited. |
 
+### `@rivr/domain/staff`
+
+| Export | What it does |
+|---|---|
+| `grantableRoles(permissions)` | The roles a staff member may give (#28, decision 0073), as `private.can_grant_role` decides: every role for a super admin (`venue.configure`), otherwise only roles whose every permission they hold. An admin gives admin or host. |
+
 ### `@rivr/domain/identity`
 
 | Export | What it does |

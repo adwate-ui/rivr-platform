@@ -92,6 +92,7 @@ export {
   type Permission,
   type StaffRole,
 } from './roles.ts';
+export { jobTitleSchema, staffAddSchema, staffJobTitleSchema, type StaffAdd } from './staff.ts';
 export {
   GST_BASES,
   SETTINGS,
