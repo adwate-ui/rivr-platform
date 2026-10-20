@@ -62,7 +62,24 @@ export function usePreferences() {
 }
 
 /**
- * Changes to the member's own choices: `saveGames` (with the stake kept as it is),
+ * The stakes the member's club runs, from its table types, smallest first and each once (#206): what a
+ * member chooses waitlist alerts for. Whatever their tier, as Profile is core (my_stakes).
+ */
+export function useStakes() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.stakes(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<Stake[]> => {
+      const { data, error } = await client.rpc('my_stakes');
+      if (error) throw error;
+      return data.map((row) => ({ smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise) }));
+    },
+  });
+}
+
+/**
+ * Changes to the member's own choices: `saveGames` (with the stake kept as it is, or a new one: null for any),
  * `setNotification` and `setMarketing` (the marketing consent, given or withdrawn). Each resolves
  * to a Result and reloads the choices, so a change that failed shows its old state again.
  */

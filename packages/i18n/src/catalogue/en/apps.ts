@@ -80,6 +80,9 @@ export const playerApp = {
     alerts: 'Waitlist alerts',
     alertsHint: 'We tell you when a seat opens in these games.',
     games: 'Games',
+    /** The stake for waitlist alerts (#206): one of the club's, or any. */
+    stake: 'Stake',
+    anyStake: 'Any',
     nlh: 'NLH',
     plo: 'PLO',
     tournaments: 'Tournaments',

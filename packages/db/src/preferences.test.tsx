@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { usePreferenceActions, usePreferences } from './preferences.ts';
+import { usePreferenceActions, usePreferences, useStakes } from './preferences.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -17,6 +17,7 @@ function renderPreferences(tables: Record<string, unknown>) {
     const url = input instanceof Request ? input.url : String(input);
     calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     if (url.includes('/rest/v1/rpc/has_my_consent')) return Response.json(tables.has_my_consent ?? false);
+    if (url.includes('/rest/v1/rpc/my_stakes')) return Response.json(tables.my_stakes ?? []);
     if (url.includes('/rest/v1/rpc/')) return new Response(null, { status: 204 });
     const table = Object.keys(tables).find((name) => url.includes(`/rest/v1/${name}?`));
     return Response.json(table ? tables[table] : null);
@@ -26,7 +27,7 @@ function renderPreferences(tables: Record<string, unknown>) {
     auth: { storage: sessionStorageFor(KABIR), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ preferences: usePreferences(), actions: usePreferenceActions() }), { wrapper });
+  const { result } = renderHook(() => ({ preferences: usePreferences(), actions: usePreferenceActions(), stakes: useStakes() }), { wrapper });
   return { result, calls };
 }
 
@@ -80,11 +81,29 @@ describe('usePreferenceActions', () => {
     await act(() => result.current.actions.setMarketing.mutateAsync(true));
     await act(() => result.current.actions.setMarketing.mutateAsync(false));
 
-    const rpcs = calls.filter((call) => call.url.includes('/rpc/') && !call.url.includes('/rpc/has_my_consent')).map((call) => [call.url.split('/rpc/')[1], call.body]);
+    // The reads Profile asks for alongside (consent, stakes) are not changes.
+    const reads = ['/rpc/has_my_consent', '/rpc/my_stakes'];
+    const rpcs = calls.filter((call) => call.url.includes('/rpc/') && !reads.some((read) => call.url.includes(read)))
+      .map((call) => [call.url.split('/rpc/')[1], call.body]);
     expect(rpcs).toEqual([
       ['set_my_notification', { p_push_type: 'push.seat_ready', p_is_on: false }],
       ['give_consent', { p_purpose: 'marketing' }],
       ['withdraw_consent', { p_purpose: 'marketing' }],
     ]);
+  });
+});
+
+describe('useStakes', () => {
+  it('gives the stakes the member\'s club runs, as my_stakes orders them', async () => {
+    const { result } = renderPreferences({
+      my_stakes: [{ small_blind_paise: 5000, big_blind_paise: 10000 }, { small_blind_paise: 10000, big_blind_paise: 20000 }],
+    });
+    await waitFor(() => expect(result.current.stakes.data).toEqual([{ smallBlind: 5000n, bigBlind: 10000n }, { smallBlind: 10000n, bigBlind: 20000n }]));
+  });
+
+  it('saves any stake as no blinds', async () => {
+    const { result, calls } = renderPreferences({});
+    await act(() => result.current.actions.saveGames.mutateAsync({ games: ['nlh'], stake: null }));
+    expect(calls.find((call) => call.url.includes('/rpc/save_my_preferences'))?.body).toEqual({ p_games: ['nlh'] });
   });
 });
