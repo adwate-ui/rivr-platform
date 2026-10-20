@@ -18,7 +18,7 @@ $$;
 create function pg_temp.hash(p_token text) returns text language sql as $$
   select encode(extensions.digest(p_token, 'sha256'), 'hex');
 $$;
-grant execute on function pg_temp.at(text, text, text), pg_temp.may(text, text) to authenticated;
+grant execute on function pg_temp.at(text, text, text), pg_temp.may(text, text), pg_temp.hash(text) to authenticated;
 
 -- The club's cage computer and the office's admin console, as a device manager enrols them.
 insert into public.device (id, venue_id, kind, name, token_hash) values
@@ -57,8 +57,13 @@ select ok(not pg_temp.may('settings.manage'), 'nor from a computer not enrolled'
 select results_eq($$ select kind::text, name, is_enforced, is_on_staff_network from public.this_computer('00000000-0000-4000-8000-000000000001') $$,
   $$ values (null::text, null::text, true, true) $$, 'this computer: not enrolled, at a venue that enforces, on its network');
 
--- Policies hold the rule too: a device manager at a computer not enrolled adds nothing.
+-- Policies and write functions hold the rule too: a cashier at a computer not enrolled issues no chips,
+-- and a device manager there adds nothing.
 set local role authenticated;
+select pg_temp.at('00000000-0000-4000-8000-000000000104', '203.0.113.9', null);
+select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'cash', gen_random_uuid()) $$,
+  '42501', null, 'a cashier at a computer not enrolled issues no chips');
+select pg_temp.at('00000000-0000-4000-8000-000000000101', '203.0.113.9', null);
 select throws_ok($$ select * from public.add_computer('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2') $$,
   '42501', null, 'a device manager at a computer not enrolled adds no computer');
 select throws_ok($$ insert into public.device (venue_id, kind, name) values ('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2') $$,

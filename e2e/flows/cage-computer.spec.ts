@@ -4,10 +4,10 @@
  * the cage; on that computer Omar Siddiqui, its second, enrols it with its code. Leela gives the club its
  * cage and admin networks (the local stack's private ranges), and from then on both are enforced. At the
  * enrolled cage Omar seats Naveen Iyer and issues ₹5,000 of chips; the same session, its token taken
- * away, is refused, and the cage says why. Leela clears the networks at the end, so the flows after this
- * one run unenforced. An address outside the networks, a revoked computer, wrong codes, networks that
- * would shut the console out and the practice venue are in supabase/tests/085_cage_computers.test.sql;
- * the idle lock in useIdleLock.test.ts.
+ * away, is refused: the cage says why and cannot find him. Leela clears the networks at the end, so the
+ * flows after this one run unenforced. A refused buy-in, an address outside the networks, a revoked
+ * computer, wrong codes, networks that would shut the console out and the practice venue are in
+ * supabase/tests/085_cage_computers.test.sql; the idle lock in useIdleLock.test.ts.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -20,7 +20,7 @@ const NETWORKS = '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16';
 async function addComputer(page: Page, name: string, as: 'Add as the cage' | 'Add as an admin console'): Promise<string> {
   await page.getByRole('textbox', { name: 'Computer name' }).fill(name);
   await page.getByRole('button', { name: as }).click();
-  const shown = page.getByText(/^Code \d{6}, until/);
+  const shown = page.getByText(new RegExp(`^Code \\d{6} for ${name}, until`));
   await expect(shown).toBeVisible();
   return /Code (\d{6})/.exec((await shown.textContent()) ?? '')?.[1] ?? '';
 }
@@ -68,13 +68,13 @@ test.describe('Cage computer', () => {
       await cage.getByRole('button', { name: 'Issue chips' }).click();
       await expect(cage.getByText('₹5,000 of chips issued.')).toBeVisible();
 
-      // The same session, the token gone: the next call is refused, and after a reload the cage says why.
+      // The same session, the token gone: the cage says why, and is refused from its first call, so it
+      // cannot even find him (a refused buy-in itself is in pgTAP 085).
       await cage.evaluate(() => globalThis.localStorage.removeItem('rivr-computer'));
-      await cage.getByRole('textbox', { name: 'Amount', exact: true }).fill('5000');
-      await cage.getByRole('button', { name: 'Issue chips' }).click();
-      await expect(cage.getByText(/^The cage refused this/)).toBeVisible();
       await cage.reload();
       await expect(cage.getByText(/^This computer is not enrolled as the cage/)).toBeVisible();
+      await cage.getByRole('textbox', { name: 'Search members' }).fill('Naveen');
+      await expect(cage.getByText('No member matches.')).toBeVisible();
     } finally {
       await setNetworks(office, '');
     }

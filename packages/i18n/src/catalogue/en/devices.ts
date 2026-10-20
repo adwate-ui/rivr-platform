@@ -224,8 +224,8 @@ export const computers = {
   tooMany: 'Too many wrong codes. Wait ten minutes, then try again.',
   /** A computer added on Computers whose code has not been entered on it yet. */
   waiting: 'Waiting for its code',
-  /** After adding a computer: `{code}` is six digits, `{time}` when it stops working. */
-  code: 'Code {code}, until {time}. Enter it on that computer, on Computers.',
+  /** After adding a computer: `{code}` is six digits, `{name}` the computer's, `{time}` when it stops working. */
+  code: 'Code {code} for {name}, until {time}. Enter it on that computer, on Computers.',
   /** Shown while the venue has no cage and admin networks (Settings), so nothing is enforced. */
   notEnforced: 'Not enforced yet: the club has no cage and admin networks, so the cage and admin screens work from any computer. Add the networks in Settings.',
   offNetwork: 'This computer is not on the cage and admin networks, so the cage and admin screens refuse it here.',
