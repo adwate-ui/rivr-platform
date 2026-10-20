@@ -88,6 +88,10 @@ export {
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export {
+  useFeatureOverrideActions, useGateableFeatures, useMemberFeatureOverrides, type FeatureOverride, type GateableFeature, type OverrideFailure,
+  type OverrideOrder,
+} from './featureOverrides.ts';
+export {
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,

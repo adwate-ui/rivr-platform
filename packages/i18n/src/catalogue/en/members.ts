@@ -42,6 +42,44 @@ export const members = {
   untilHint: 'Leave it empty to keep the tier. The morning after this day, they go back.',
   save: 'Change tier',
   saved: 'Tier changed.',
+  /** Feature overrides (#61), for super admins only: one feature granted or taken away for one member. */
+  overrides: {
+    title: 'Feature overrides',
+    none: 'No overrides.',
+    feature: 'Feature',
+    kind: 'Override',
+    grant: 'Grant',
+    takeAway: 'Take away',
+    granted: 'granted',
+    takenAway: 'taken away',
+    /** One override: `{feature}`, granted or taken away (`{what}`), why, and the super admin. */
+    line: '{feature} {what} · {reason} · by {name}',
+    /** With its last day, `{date}`: 22 Nov 2026. */
+    lineUntil: '{feature} {what} until {date} · {reason} · by {name}',
+    ended: 'Ended',
+    replaced: 'Replaced',
+    /** Lifted early: by whom, and why. */
+    liftedBy: 'Lifted by {name}: {reason}',
+    liftReason: 'Why it is lifted',
+    reason: 'Why the override',
+    until: 'Override\'s last day (optional)',
+    untilHint: 'Leave it empty to keep it. It ends the morning after this day.',
+    lift: 'Lift',
+    liftName: 'Lift the override of {feature}',
+    newOverride: 'New override',
+    save: 'Save override',
+    saved: 'Override saved.',
+    lifted: 'Override lifted.',
+    featuresUnavailable: 'The features did not load.',
+    failures: {
+      notAllowed: 'Only a super admin overrides a feature.',
+      noMember: 'That member is not at this venue.',
+      invalid: 'Choose a feature, give a reason of 3 to 500 characters, and a last day still to come.',
+      paused: 'The venue is frozen. Overrides change again once it is released.',
+      notInForce: 'That override has already ended or been replaced.',
+      unavailable: 'That did not go through. Check the connection and try again.',
+    },
+  },
   /** Why a tier change did not go through. */
   failures: {
     notAllowed: 'Your role does not change tiers. Ask a membership manager.',
