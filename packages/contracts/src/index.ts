@@ -30,8 +30,8 @@ export {
   type Pan,
 } from './identity.ts';
 export {
-  bankAccountNumberSchema, ifscSchema, PAYOUT_KINDS, payoutAccountSchema, reasonForMemberSchema, sendWithdrawalSchema, upiVpaSchema, utrSchema,
-  withdrawalSchema, type Ifsc, type PayoutAccountInput, type PayoutKind,
+  bankAccountNumberSchema, ifscSchema, PAYOUT_KINDS, payoutAccountSchema, reasonForMemberSchema, upiVpaSchema, utrEntrySchema, utrSchema,
+  bankAmountSchema, depositSchema, withdrawalSchema, type Ifsc, type PayoutAccountInput, type PayoutKind,
   type UpiVpa, type Utr,
 } from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';

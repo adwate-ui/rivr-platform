@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Grid, Screen, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CageQueue } from './CageQueue.tsx';
+import { DepositsToConfirm } from './DepositsToConfirm.tsx';
 import { MemberPanel } from './MemberPanel.tsx';
 import { MemberSearch } from './MemberSearch.tsx';
 import { PayoutsToVerify } from './PayoutsToVerify.tsx';
@@ -10,7 +11,7 @@ import { PayoutsToVerify } from './PayoutsToVerify.tsx';
 /**
  * The cage (#57), as in the prototype: find a member, or take a buy-in the table asked for from the
  * queue, beside the member's KYC photo, balances and where they sit, and the buy-in itself; and verify
- * the payout accounts members add (#19).
+ * the payout accounts members add (#19); and confirm members' UPI deposits against the bank (#29).
  * Cash-out and markers join with #75 and #74.
  */
 export function CageScreen() {
@@ -35,6 +36,7 @@ function Cage({ title, venueId, canIssueMarkers }: { title: string; venueId: str
         <Stack gap={8}>
           <MemberSearch venueId={venueId} onChoose={(picked, query) => setChosen({ memberId: picked.memberId, query })} />
           <CageQueue venueId={venueId} />
+          <DepositsToConfirm venueId={venueId} />
           <PayoutsToVerify venueId={venueId} />
         </Stack>
         {member === undefined ? <Text tone="muted">{t('console.cage.choose')}</Text>

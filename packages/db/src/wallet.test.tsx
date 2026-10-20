@@ -63,7 +63,7 @@ describe('Wallet', () => {
 
 describe('Wallet movements', () => {
   const row = (id: number, kind: string, account: string, amount: number) => ({
-    id, at: '2026-10-20T15:00:00+00:00', kind, account, amount, table_name: null, bonus_reason: null, bank_name: null,
+    id, at: '2026-10-20T15:00:00+00:00', kind, account, amount, table_name: null, bonus_reason: null, bank_name: null, utr: null,
   });
 
   it('gives the newest lines, newest first, asking one more to know whether earlier ones remain', async () => {
@@ -72,8 +72,8 @@ describe('Wallet movements', () => {
     });
     await waitFor(() => expect(result.current.movements.data?.hasEarlier).toBe(true));
     expect(result.current.movements.data?.movements).toEqual([
-      { id: '3', at: '2026-10-20T15:00:00+00:00', kind: 'buy_in', account: 'cash', amount: -1_000_000n, tableName: null, bonusReason: null, bankName: null },
-      { id: '2', at: '2026-10-20T15:00:00+00:00', kind: 'other', account: 'bonus', amount: 100_000n, tableName: null, bonusReason: null, bankName: null },
+      { id: '3', at: '2026-10-20T15:00:00+00:00', kind: 'buy_in', account: 'cash', amount: -1_000_000n, tableName: null, bonusReason: null, bankName: null, utr: null },
+      { id: '2', at: '2026-10-20T15:00:00+00:00', kind: 'other', account: 'bonus', amount: 100_000n, tableName: null, bonusReason: null, bankName: null, utr: null },
     ]);
     const asked = urls.find((url) => url.includes('/my_wallet_movement')) ?? '';
     expect(asked).toContain('order=at.desc,id.desc');

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { reasonForMemberSchema, sendWithdrawalSchema } from '@rivr/contracts';
+import { reasonForMemberSchema, utrEntrySchema } from '@rivr/contracts';
 import { useWithdrawalDecisions, type WaitingWithdrawal, type WithdrawalFailure } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Input, Money, Stack, Text } from '@rivr/ui';
@@ -12,8 +12,8 @@ type Done = { ok: true; value: null } | { ok: false; error: WithdrawalFailure };
 
 /** Sending: the bank's UTR, then Approve and send. */
 function SendForm({ onSend, isSaving }: { onSend: (utr: string) => void; isSaving: boolean }) {
-  const [resolver] = useState(() => zodResolver(sendWithdrawalSchema));
-  const form = useForm<z.input<typeof sendWithdrawalSchema>, unknown, z.output<typeof sendWithdrawalSchema>>({ resolver, defaultValues: { utr: '' } });
+  const [resolver] = useState(() => zodResolver(utrEntrySchema));
+  const form = useForm<z.input<typeof utrEntrySchema>, unknown, z.output<typeof utrEntrySchema>>({ resolver, defaultValues: { utr: '' } });
   const utr = form.register('utr');
   return (
     <Inline gap={3} align="end">

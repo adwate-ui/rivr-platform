@@ -459,6 +459,44 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"deposit_request": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string | null,"member_id": string,"payout_account_id": string,"status": string,"updated_at": string,"utr": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id"?: string | null,"member_id": string,"payout_account_id": string,"status"?: string,"updated_at"?: string,"utr": string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"payout_account_id"?: string,"status"?: string,"updated_at"?: string,"utr"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "deposit_request_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "deposit_request_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "deposit_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "deposit_request_payout_account_id_fkey"
+      columns: ["payout_account_id"]
+isOneToOne: false
+      referencedRelation: "payout_account"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"device": {
                   Row: {
                     "auth_user_id": string | null,"created_at": string,"enrolled_at": string,"enrolled_by_staff_id": string | null,"id": string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at": string | null,"name": string,"revoked_at": string | null,"revoked_reason": string | null,"updated_at": string,"venue_id": string
@@ -1824,7 +1862,7 @@ isOneToOne: false
                   ]
                 },"my_wallet_movement": {
                   Row: {
-                    "account": string | null,"amount": number | null,"at": string | null,"bank_name": string | null,"bonus_reason": string | null,"id": number | null,"kind": string | null,"table_name": string | null
+                    "account": string | null,"amount": number | null,"at": string | null,"bank_name": string | null,"bonus_reason": string | null,"id": number | null,"kind": string | null,"table_name": string | null,"utr": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -2008,6 +2046,9 @@ isOneToOne: false
 "confirm_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: string
                            },
+"confirm_deposit":
+{ Args: { "p_bank_amount_paise": number,"p_request_id": string }; Returns: undefined
+                           },
 "create_academy_batch":
 { Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
                            },
@@ -2042,6 +2083,11 @@ isOneToOne: false
                            },
 "decline_withdrawal":
 { Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
+                           },
+"deposit_details":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "upi_payee_name": string,"upi_vpa": string
+            }[]
                            },
 "door_board":
 { Args: { "p_venue_id": string }; Returns: {
@@ -2185,6 +2231,11 @@ isOneToOne: false
               "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"hold_until": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
             }[]
                            },
+"my_deposits":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "amount_paise": number,"decided_at": string,"id": string,"requested_at": string,"status": string,"utr": string
+            }[]
+                           },
 "my_device":
 { Args: Record<PropertyKey, never>; Returns: {
               "device_id": string,"kind": Database["public"]['Enums']["device_kind"],"name": string,"table_id": string,"table_name": string,"venue_id": string
@@ -2275,6 +2326,9 @@ isOneToOne: false
 "reject_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
+"reject_deposit":
+{ Args: { "p_request_id": string }; Returns: undefined
+                           },
 "reject_high_hand":
 { Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined
                            },
@@ -2293,6 +2347,9 @@ isOneToOne: false
 "request_buy_in":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string
                            },
+"request_deposit":
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string,"p_utr": string }; Returns: string
+                           },
 "request_withdrawal":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string }; Returns: string
                            },
@@ -2310,6 +2367,9 @@ isOneToOne: false
                            },
 "seat_member":
 { Args: { "p_phone": string,"p_seat": number,"p_table_id": string }; Returns: string
+                           },
+"second_approve_deposit":
+{ Args: { "p_request_id": string }; Returns: string
                            },
 "second_approve_withdrawal":
 { Args: { "p_request_id": string }; Returns: string
@@ -2407,6 +2467,11 @@ isOneToOne: false
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
+            }[]
+                           },
+"waiting_deposits":
+{ Args: { "p_venue_id": string }; Returns: {
+              "approved_by": (string)[],"from_bank": string,"from_vpa": string,"full_name": string,"member_id": string,"needs_second": boolean,"request_id": string,"requested_at": string,"utr": string
             }[]
                            },
 "waiting_withdrawals":

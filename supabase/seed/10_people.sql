@@ -51,6 +51,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000136', '+919000000136', 'Arvind Rao'),
   ('00000000-0000-4000-8000-000000000137', '+919000000137', 'Imran Siddiqui'),
   ('00000000-0000-4000-8000-000000000138', '+919000000138', 'Devika Rana'),
+  ('00000000-0000-4000-8000-000000000139', '+919000000139', 'Farah Khan'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -138,6 +139,8 @@ from (values
   -- The Withdrawal flow's own cashier, who sends it with its UTR, and floor manager, its second approver (#21; flow 9).
   ('00000000-0000-4000-8000-000000000137'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000138'::uuid, 'Floor manager', 'admin'),
+  -- The Deposit flow's own cashier, who confirms a member's UPI deposit against the bank (#29).
+  ('00000000-0000-4000-8000-000000000139'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id
@@ -160,7 +163,7 @@ from (values
   ('00000000-0000-4000-8000-000000000210'::uuid, 'Member', null, null),
   -- The Waitlist flow's own member, who has finished the identity check (55_waitlist.sql).
   ('00000000-0000-4000-8000-000000000211'::uuid, 'Member', null, null),
-  -- A black card at 100/200 whom the Waitlist flow's floor adds by number (#40); never signs in.
+  -- A black card at 100/200 whom the Waitlist flow's floor adds by number (#40), and the Deposit flow's own member (#29).
   ('00000000-0000-4000-8000-000000000212'::uuid, 'Black card', 10000::bigint, 20000::bigint),
   -- The Self-exclusion flow's own member, who has finished the identity check (55_waitlist.sql); a break cannot be undone.
   ('00000000-0000-4000-8000-000000000213'::uuid, 'Member', null, null),

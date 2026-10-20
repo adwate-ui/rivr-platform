@@ -66,5 +66,11 @@ export const reasonForMemberSchema = z.object({ reason: z.string().trim().min(3)
 /** A withdrawal as the member asks for it on Balance (#21): whole rupees, to one of their verified payout accounts. */
 export const withdrawalSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/), payoutAccountId: z.string().min(1) });
 
-/** The bank's UTR the cage enters when it sends a withdrawal. */
-export const sendWithdrawalSchema = z.object({ utr: utrSchema });
+/** A UTR as staff type it: the cage sending a withdrawal (#21), or confirming a deposit against the bank (#29). */
+export const utrEntrySchema = z.object({ utr: utrSchema });
+
+/** A UPI deposit as the member enters it on Balance (#29): the amount paid in whole rupees, its UTR, and the verified UPI account it came from. */
+export const depositSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/), utr: utrSchema, payoutAccountId: z.string().min(1) });
+
+/** The amount the bank statement shows for a deposit, in whole rupees, as the cashier types it (#29, decision 0064). */
+export const bankAmountSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/) });
