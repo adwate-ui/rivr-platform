@@ -7,6 +7,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's live promotions (57_promotions.sql) back to drafts: only the test's own are weighed.
+update public.promotion set status = 'draft' where status = 'live';
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
