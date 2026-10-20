@@ -110,6 +110,9 @@ export const tokens = {
     "receipt": 576,
     "chart": 192
   },
+  "print": {
+    "receiptScale": 0.4729
+  },
   "aspect": {
     "portrait": "3 / 4",
     "card": "85.6 / 54"

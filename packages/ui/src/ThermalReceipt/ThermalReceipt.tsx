@@ -1,5 +1,6 @@
 import { formatDate, formatTime, t } from '@rivr/i18n';
-import { Receipt, type Issuer, type ReceiptLine } from '@rivr/ui';
+import type { Issuer } from '../DocumentPage/DocumentPage.tsx';
+import { Receipt, type ReceiptLine } from '../Receipt/Receipt.tsx';
 
 export interface ThermalReceiptProps {
   /** The club, from venue configuration. */
@@ -18,7 +19,11 @@ export interface ThermalReceiptProps {
   reference: string;
 }
 
-/** A thermal receipt at printer width, `tokens.size.receipt`, as tall as its lines. */
+/**
+ * A thermal receipt at printer width, `tokens.size.receipt`, as tall as its lines (#67, #69): dated in IST, and at
+ * the practice venue saying it is a practice one. @rivr/render draws it; the cage prints it from the browser. Its
+ * copy is the `documents` namespace, which the caller registers.
+ */
 export function ThermalReceipt({ issuer, isPractice, title, at, lines, total, reference }: ThermalReceiptProps) {
   const moment = new Date(at);
   return (

@@ -89,6 +89,13 @@ test.describe('Markers', () => {
     await page.getByRole('button', { name: 'Cash out' }).click();
     await expect(page.getByText('Cash-out done. ₹70,000 to the wallet.')).toBeVisible();
     await expect(page.getByText('Markers settled: ₹50,000.')).toBeVisible();
+    // Its receipt (#69) says what the cash-out settled; the printer dialog is the browser's own, so it is left out.
+    await page.evaluate(() => { globalThis.print = () => undefined; });
+    await page.getByRole('button', { name: 'Print receipt' }).click();
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.getByText('Markers settled', { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Receipt [0-9A-F]{8}$/)).toBeVisible();
+    await page.emulateMedia({ media: 'screen' });
     await page.getByRole('link', { name: 'Markers' }).click();
     await expect(page.getByText('Arjun Mehta', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Marker of ₹50,000 · limit ₹50,000')).toHaveCount(0);
