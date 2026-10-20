@@ -62,6 +62,10 @@ reset role;
 select ok(exists (select 1 from public.audit_log a where a.entity = 'high_hand_claim' and a.entity_id = (select claim_id from claims)::text
                   and a.action = 'update' and a.before ->> 'category' = 'four_of_a_kind' and a.after ->> 'category' = 'straight_flush'),
   'and the audit log keeps the dealer''s claim');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select is(public.claim_high_hand((select hand_id from hands where n = 1), 4, 'four_of_a_kind', 'Q'), (select claim_id from claims),
+  'the tablet sending the dealer''s claim again, its answer lost, gets the same claim');
+reset role;
 
 -- Paid as corrected, then reversed.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -94,6 +98,9 @@ reset role;
 select ok((select claim_id from claims where name = 'again') <> (select claim_id from claims where name = 'first'),
   'the reversed hand is claimed again, as a new claim');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.correct_high_hand((select claim_id from claims where name = 'again'), 4, 'straight_flush', null);
+select is((select corrected_at from public.high_hand_claim where id = (select claim_id from claims where name = 'again')), null,
+  'saving a claim as it stands corrects nothing');
 select throws_ok($$ select public.reverse_high_hand((select claim_id from claims where name = 'again'), 'Not yet decided') $$, '22023', null,
   'a claim still waiting is rejected, not reversed');
 select public.reject_high_hand((select claim_id from claims where name = 'second'), 'Not a four of a kind');

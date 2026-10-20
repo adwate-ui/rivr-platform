@@ -49,8 +49,8 @@ test.describe('High hands', () => {
     await floor.getByRole('button', { name: 'Correct', exact: true }).first().click();
     await floor.getByRole('group', { name: 'Hand' }).getByRole('button', { name: 'Straight flush', exact: true }).click();
     await floor.getByRole('button', { name: 'Save the correction' }).click();
-    const corrected = floor.getByText('Corrected by Kavya Reddy from Four of a kind Queens, seat 4', { exact: true });
-    await expect(corrected).toBeVisible();
+    // The latest claim is first, waiting or decided: this one, whatever earlier runs left in the history.
+    await expect(floor.getByText('Corrected by Kavya Reddy from Four of a kind Queens, seat 4', { exact: true }).first()).toBeVisible();
     await expect(floor.getByText(/^Straight flush, seat 4, Table 3 · .+ · dealt by Pema Lepcha$/).first()).toBeVisible();
     const paid = floor.getByText('Paid ₹10,000, approved by Kavya Reddy', { exact: true });
     const paidBefore = await paid.count();
@@ -65,8 +65,10 @@ test.describe('High hands', () => {
     await floor.getByRole('link', { name: 'High hands' }).click();
     await floor.getByRole('button', { name: 'Reverse', exact: true }).first().click();
     await floor.getByRole('textbox', { name: 'Why it is reversed' }).fill('The board was misread');
+    const reversed = floor.getByText('Reversed by Kavya Reddy: The board was misread', { exact: true });
+    const reversedBefore = await reversed.count();
     await floor.getByRole('button', { name: 'Reverse the claim' }).click();
-    await expect(floor.getByText('Reversed by Kavya Reddy: The board was misread', { exact: true })).toBeVisible();
+    await expect(reversed).toHaveCount(reversedBefore + 1);
     expect(await chipsInPlay(floor)).toBe(before);
     await expect(tablet.getByText('High hand reversed by the floor')).toBeVisible({ timeout: 20_000 });
     await revoke(floor, name);

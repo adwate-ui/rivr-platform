@@ -48,16 +48,18 @@ begin
   if old.status = 'claimed' then
     return new;
   end if;
+  -- Only the reversal's own columns change: everything else stays as decided.
   if old.status in ('approved', 'rejected') and new.status = 'reversed'
-     and (new.hand_id, new.seat, new.category, new.rank, new.payout_paise, new.decided_by_staff_id, new.decided_at, new.reason)
-         is not distinct from (old.hand_id, old.seat, old.category, old.rank, old.payout_paise, old.decided_by_staff_id, old.decided_at, old.reason) then
+     and to_jsonb(new) - '{status,reversed_by_staff_id,reversed_at,reversed_reason,updated_at}'::text[]
+         = to_jsonb(old) - '{status,reversed_by_staff_id,reversed_at,reversed_reason,updated_at}'::text[] then
     return new;
   end if;
   raise exception 'A decided high hand is final, but for its reversal' using errcode = '22023';
 end;
 $$;
 
--- As in the high-hands migration, but a reversed claim is not the hand's claim.
+-- As in the high-hands migration, but a reversed claim is not the hand's claim, and the dealer's claim as
+-- sent is still that claim after the floor corrects it (a tablet sends it again when an answer was lost).
 create or replace function private.replayed_high_hand_claim(p_hand_id uuid, p_seat integer, p_category public.high_hand_category, p_rank text)
 returns uuid
 language plpgsql
@@ -72,7 +74,9 @@ begin
   if v_claim.id is null then
     return null;
   end if;
-  if (v_claim.seat::integer, v_claim.category, v_claim.rank) is not distinct from (p_seat, p_category, p_rank) then
+  if (v_claim.seat::integer, v_claim.category, v_claim.rank) is not distinct from (p_seat, p_category, p_rank)
+     or (v_claim.corrected_at is not null
+         and (v_claim.original_seat::integer, v_claim.original_category, v_claim.original_rank) is not distinct from (p_seat, p_category, p_rank)) then
     return v_claim.id;
   end if;
   raise exception 'That hand already has a different high-hand claim' using errcode = '23505';
@@ -160,6 +164,10 @@ begin
   if p_category is null
      or private.high_hand_payout(v_claim.venue_id, p_category, (select h.played_at from public.hand h where h.id = v_claim.hand_id)) = 0 then
     raise exception 'That high hand pays nothing here' using errcode = '22023';
+  end if;
+  -- Saving the claim as it stands corrects nothing, and records nothing.
+  if (v_claim.seat::integer, v_claim.category, v_claim.rank) is not distinct from (p_seat, p_category, nullif(trim(p_rank), '')) then
+    return;
   end if;
   update public.high_hand_claim c
   set seat = p_seat, category = p_category, rank = nullif(trim(p_rank), ''),

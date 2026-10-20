@@ -11,3 +11,7 @@ Date: 2026-10-20 · Task: #324 (the owner's answer to question #315; decision 00
 - The hand may then be claimed again: a hand has one live claim (a partial unique index), not one claim ever.
 
 The enum value has a migration of its own, because Postgres can't use a new enum value in the migration that adds it.
+
+**What's left open.**
+- **Replays.** The dealer's claim as sent stays that claim after a correction, so a tablet that resends it after a lost answer gets the same claim. A resend after the claim was reversed claims the hand anew.
+- **Claiming again.** The database lets the dealer claim the hand again while the down is open. No screen offers it yet: the tablet claims only with a newly logged hand. Question #420 asks whether one should.

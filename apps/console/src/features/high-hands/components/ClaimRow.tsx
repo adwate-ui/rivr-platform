@@ -1,8 +1,11 @@
-import { HIGH_HAND_CATEGORIES, HIGH_HAND_RANKS, highHandClaimSchema, type HighHandCategory, type HighHandRank } from '@rivr/contracts';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { HIGH_HAND_CATEGORIES, HIGH_HAND_RANKS, highHandClaimSchema } from '@rivr/contracts';
 import { useHighHandActions, type HighHand, type HighHandFailure } from '@rivr/db';
 import { formatMoney, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import type { z } from 'zod';
 import { claimText, correctionText, HIGH_HAND_FAILURE_COPY } from './highHandCopy.ts';
 import { ReasonForm } from './ReasonForm.tsx';
 
@@ -14,27 +17,34 @@ const RANKS = HIGH_HAND_RANKS.map((value) => ({ value, label: t(`tv.ranks.${valu
 /** Corrects a waiting claim's hand, rank and seat before the floor decides it (#324); the dealer's claim is kept. */
 function CorrectForm({ venueId, hand, onDone }: { venueId: string; hand: HighHand; onDone: (outcome: Outcome | null) => void }) {
   const { correct } = useHighHandActions(venueId);
-  const [category, setCategory] = useState<HighHandCategory>(hand.category);
-  const [rank, setRank] = useState<HighHandRank | null>(HIGH_HAND_RANKS.find((known) => known === hand.rank) ?? null);
-  const [seat, setSeat] = useState(String(hand.seat));
-  const [isInvalid, setIsInvalid] = useState(false);
-  const save = async () => {
-    const claim = highHandClaimSchema.safeParse({ category, seat: Number(seat), rank: category === 'four_of_a_kind' ? rank : null });
-    setIsInvalid(!claim.success);
-    if (claim.success) onDone(await correct.mutateAsync({ claimId: hand.claimId, ...claim.data }));
-  };
+  const [resolver] = useState(() => zodResolver(highHandClaimSchema));
+  const form = useForm<z.input<typeof highHandClaimSchema>, unknown, z.output<typeof highHandClaimSchema>>({
+    resolver, defaultValues: { category: hand.category, rank: HIGH_HAND_RANKS.find((known) => known === hand.rank) ?? null, seat: hand.seat },
+  });
+  const submit = form.handleSubmit(async (claim) => onDone(await correct.mutateAsync({ claimId: hand.claimId, ...claim })));
+  const seatField = form.register('seat', { valueAsNumber: true });
+  const isInvalid = form.formState.errors.seat !== undefined || form.formState.errors.rank !== undefined;
+  const category = useWatch({ control: form.control, name: 'category' });
   return (
     <Stack gap={3}>
-      <ChoiceChips label={t('console.highHands.correctHand')} mode="one" options={HANDS} selected={[category]}
-        onChange={([picked]) => { if (picked) setCategory(picked); }} />
+      <Controller control={form.control} name="category" render={({ field }) => (
+        <ChoiceChips label={t('console.highHands.correctHand')} mode="one" options={HANDS} selected={[field.value]} onChange={([picked]) => {
+          if (picked === undefined) return;
+          field.onChange(picked);
+          // Only a four of a kind has a rank.
+          if (picked !== 'four_of_a_kind') form.setValue('rank', null);
+        }} />
+      )} />
       {category === 'four_of_a_kind' ? (
-        <ChoiceChips label={t('console.highHands.correctRank')} mode="one" options={RANKS} selected={rank === null ? [] : [rank]}
-          onChange={([picked]) => setRank(picked ?? null)} />
+        <Controller control={form.control} name="rank" render={({ field }) => (
+          <ChoiceChips label={t('console.highHands.correctRank')} mode="one" options={RANKS} selected={field.value === null ? [] : [field.value]}
+            onChange={([picked]) => field.onChange(picked ?? null)} />
+        )} />
       ) : null}
       <Inline gap={3} align="end">
-        <Input label={t('console.highHands.correctSeat')} inputMode="numeric" autoComplete="off" value={seat}
-          onChange={(event) => setSeat(event.target.value)} error={isInvalid ? t('console.highHands.invalidCorrection') : undefined} />
-        <Button variant="secondary" isLoading={correct.isPending} onClick={() => void save()}>{t('console.highHands.correctConfirm')}</Button>
+        <Input {...seatField} label={t('console.highHands.correctSeat')} inputMode="numeric" autoComplete="off"
+          error={isInvalid ? t('console.highHands.invalidCorrection') : undefined} />
+        <Button variant="secondary" isLoading={correct.isPending} onClick={() => void submit()}>{t('console.highHands.correctConfirm')}</Button>
         <Button variant="text" onClick={() => onDone(null)}>{t('common.cancel')}</Button>
       </Inline>
     </Stack>
