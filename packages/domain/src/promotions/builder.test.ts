@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { promotionDraft } from './builder.ts';
 import { promotionApplies } from './promotions.ts';
 
-const FLOW_7: PromotionBuilder = { days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none' };
+const FLOW_7: PromotionBuilder = {
+  days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5_000,
+};
 const FACTS = {
   tierId: null, tableId: 'table-2', visitsInMonth: 0, daysSinceLastVisit: null, isCallTimeComplete: false, grantedToday: 0,
   grantedTodayAtTable: 0, hoursPlayed: 1, hand: null,
@@ -30,10 +32,11 @@ describe('promotions builder (#84)', () => {
     expect(promotionDraft({ ...FLOW_7, days: [], from: null, until: null, stake: null }).rule.conditions).toEqual({});
   });
 
-  it('gives triple points, or 10% of a buy-in as bonus for a week', () => {
+  it('gives triple points, or 10% of a buy-in as bonus for a week, at most the cap a buy-in (question 415)', () => {
     expect(promotionDraft({ ...FLOW_7, reward: 'triple_points' }).rule.effect).toEqual({ kind: 'points', multiplier_percent: 300 });
     const bonus = promotionDraft({ ...FLOW_7, reward: 'buy_in_bonus' }).rule;
-    expect([bonus.trigger, bonus.effect]).toEqual(['buy_in', { kind: 'bonus', percent_bps: 1000, expires_days: 7 }]);
+    expect([bonus.trigger, bonus.effect]).toEqual(['buy_in', { kind: 'bonus', percent_bps: 1000, cap_paise: 500_000, expires_days: 7 }]);
+    expect(promotionDraft({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2_000 }).rule.effect).toMatchObject({ cap_paise: 200_000 });
   });
 
   it('limits to the first 50 members a club day, one each, or once for each member', () => {

@@ -1,7 +1,8 @@
 import { PROMOTION_BUILDER_LIMITS, PROMOTION_BUILDER_REWARDS, type PromotionBuilder } from '@rivr/contracts';
 import type { PromotionStake } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, Heading, Inline, Stack } from '@rivr/ui';
+import { ChoiceChips, Heading, Inline, Input, Stack } from '@rivr/ui';
+import { useState } from 'react';
 import { dayName, stakeLabel } from './promotionCopy.ts';
 
 const DAYS = ['1', '2', '3', '4', '5', '6', '7'] as const;
@@ -35,6 +36,30 @@ function WhenBlock({ choices, onChange, isDisabled }: Omit<BlocksProps, 'stakes'
   );
 }
 
+/** The reward, and for the buy-in bonus the most it gives on one buy-in, in rupees (question #415). */
+function RewardBlock({ choices, onChange, isDisabled }: Omit<BlocksProps, 'stakes'>) {
+  return (
+    <Stack gap={4}>
+      <ChoiceChips label={t('console.promotions.reward')} mode="one" selected={[choices.reward]} isDisabled={isDisabled}
+        options={PROMOTION_BUILDER_REWARDS.map((reward) => ({ value: reward, label: t(`console.promotions.rewards.${reward}`) }))}
+        onChange={(picked) => onChange({ ...choices, reward: PROMOTION_BUILDER_REWARDS.find((reward) => reward === picked[0]) ?? choices.reward })} />
+      {choices.reward === 'buy_in_bonus' ? <CapInput choices={choices} onChange={onChange} isDisabled={isDisabled} /> : null}
+    </Stack>
+  );
+}
+
+/** The cap as typed, kept as text so a half-typed amount stays on screen; Publish checks it. */
+function CapInput({ choices, onChange, isDisabled }: Omit<BlocksProps, 'stakes'>) {
+  const [text, setText] = useState(String(choices.bonus_cap_rupees));
+  return (
+    <Input label={t('console.promotions.bonusCap')} inputMode="numeric" value={text} disabled={isDisabled}
+      onChange={(event) => {
+        setText(event.target.value);
+        onChange({ ...choices, bonus_cap_rupees: Number(event.target.value.replaceAll(',', '')) });
+      }} />
+  );
+}
+
 /**
  * The builder's four blocks only, as in the prototype (#84): When (days and an IST window), Who (a
  * stake or all), Reward and Limits, each a row of chips.
@@ -46,9 +71,7 @@ export function BuilderBlocks({ choices, stakes, onChange, isDisabled }: BlocksP
       <WhenBlock choices={choices} onChange={onChange} isDisabled={isDisabled} />
       <ChoiceChips label={t('console.promotions.who')} mode="one" options={stakeOptions} selected={[choices.stake ?? EVERY_STAKE]} isDisabled={isDisabled}
         onChange={(picked) => onChange({ ...choices, stake: first(picked) === EVERY_STAKE ? null : first(picked) })} />
-      <ChoiceChips label={t('console.promotions.reward')} mode="one" selected={[choices.reward]} isDisabled={isDisabled}
-        options={PROMOTION_BUILDER_REWARDS.map((reward) => ({ value: reward, label: t(`console.promotions.rewards.${reward}`) }))}
-        onChange={(picked) => onChange({ ...choices, reward: PROMOTION_BUILDER_REWARDS.find((reward) => reward === picked[0]) ?? choices.reward })} />
+      <RewardBlock choices={choices} onChange={onChange} isDisabled={isDisabled} />
       <ChoiceChips label={t('console.promotions.limits')} mode="one" selected={[choices.limit]} isDisabled={isDisabled}
         options={PROMOTION_BUILDER_LIMITS.map((limit) => ({ value: limit, label: t(`console.promotions.limitOptions.${limit}`) }))}
         onChange={(picked) => onChange({ ...choices, limit: PROMOTION_BUILDER_LIMITS.find((limit) => limit === picked[0]) ?? choices.limit })} />

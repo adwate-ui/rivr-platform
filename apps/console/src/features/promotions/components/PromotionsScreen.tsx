@@ -5,23 +5,24 @@ import { t } from '@rivr/i18n';
 import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TvPromotionSlide } from '@rivr/ui';
 import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
-import { rewardTitle, runsText } from './promotionCopy.ts';
+import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
 import { RunningList } from './RunningList.tsx';
 
-const START: PromotionBuilder = { days: [], from: null, until: null, stake: null, reward: 'double_points', limit: 'none' };
+// The bonus cap starts at ₹5,000 a buy-in, which the floor may change (question #415).
+const START: PromotionBuilder = { days: [], from: null, until: null, stake: null, reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000 };
 
 /** The player card and the TV slide, as the choices so far would publish them. */
-function Previews({ title, runs }: { title: string; runs: string }) {
+function Previews({ title, detail, runs }: { title: string; detail: string | undefined; runs: string }) {
   return (
     <Stack gap={6}>
       <Stack gap={2}>
         <Text variant="label" tone="muted">{t('console.promotions.playerApp')}</Text>
-        <PromotionCard title={title} runs={runs} />
+        <PromotionCard title={title} detail={detail} runs={runs} />
       </Stack>
       <Stack gap={2}>
         <Text variant="label" tone="muted">{t('console.promotions.tvSlide')}</Text>
         <DisplayPreview label={t('console.promotions.tvSlide')}>
-          <TvPromotionSlide label={t('console.promotions.slideLabel')} title={title} when={runs} />
+          <TvPromotionSlide label={t('console.promotions.slideLabel')} title={title} detail={detail} when={runs} />
         </DisplayPreview>
       </Stack>
     </Stack>
@@ -33,10 +34,15 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
   const [choices, setChoices] = useState(START);
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
   const title = rewardTitle(choices);
+  const detail = rewardDetail(choices);
   const runs = runsText(choices, stakes);
   const submit = async () => {
-    if (!promotionBuilderSchema.safeParse(choices).success) return setOutcome({ ok: false, text: t('console.promotions.failures.invalid') });
-    const result = await publish.mutateAsync({ name: title, runs, draft: promotionDraft(choices) });
+    const checked = promotionBuilderSchema.safeParse(choices);
+    if (!checked.success) {
+      const isCap = checked.error.issues.some((issue) => issue.path[0] === 'bonus_cap_rupees');
+      return setOutcome({ ok: false, text: t(isCap ? 'console.promotions.failures.invalidCap' : 'console.promotions.failures.invalid') });
+    }
+    const result = await publish.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices) });
     if (result.ok) setChoices(START);
     setOutcome(result.ok ? { ok: true, text: t('console.promotions.published', { name: title }) } : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
   };
@@ -51,7 +57,7 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
         </Inline>
         {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
       </Stack>
-      <Previews title={title} runs={runs} />
+      <Previews title={title} detail={detail} runs={runs} />
     </Grid>
   );
 }

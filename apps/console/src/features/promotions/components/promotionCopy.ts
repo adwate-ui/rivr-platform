@@ -1,6 +1,6 @@
 import type { PromotionBuilder } from '@rivr/contracts';
 import type { PromotionStake } from '@rivr/db';
-import { formatList, t } from '@rivr/i18n';
+import { formatList, formatMoney, t } from '@rivr/i18n';
 
 /** The days of the week in ISO order: Monday is day 1. */
 export const WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
@@ -33,6 +33,12 @@ export function runsText(choices: PromotionBuilder, stakes: readonly PromotionSt
   const when = choices.from === null || choices.until === null ? days : t('console.promotions.dayWindow', { days, from: choices.from, until: choices.until });
   if (choices.limit === 'none') return t('console.promotions.runs', { who, when });
   return t('console.promotions.runsWithLimit', { who, when, limit: t(`console.promotions.limitOptions.${choices.limit}`) });
+}
+
+/** What the buy-in bonus gives, on its card: "Up to ₹5,000 a buy-in" (#415); the points rewards need none. */
+export function rewardDetail(choices: PromotionBuilder): string | undefined {
+  if (choices.reward !== 'buy_in_bonus') return undefined;
+  return t('console.promotions.bonusDetail', { cap: formatMoney(BigInt(choices.bonus_cap_rupees) * 100n) });
 }
 
 /** The promotion's name: what it gives, "Double points". */

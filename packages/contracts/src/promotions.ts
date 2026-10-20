@@ -99,6 +99,8 @@ export const promotionBuilderSchema = z
     stake: z.string().regex(/^[a-z0-9_]{2,40}$/).nullable(),
     reward: z.enum(PROMOTION_BUILDER_REWARDS),
     limit: z.enum(PROMOTION_BUILDER_LIMITS),
+    // The most a 10% buy-in bonus gives on one buy-in, in whole rupees of ₹50 chips (question #415).
+    bonus_cap_rupees: z.int().min(50).max(100_000).multipleOf(50),
   })
   .refine(({ from, until }) => (from === null || until === null ? from === until : clubMinute(from) < (clubMinute(until) || 24 * 60)), {
     path: ['until'],

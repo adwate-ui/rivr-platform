@@ -7,7 +7,9 @@ end times are 20:00, 02:00, 04:00 and 06:00: the prototype's 08:00 would run pas
 day turns over (decision 0140). **Who** is every stake or one table type, named as the club names it
 ("NLH 100/200", "Private Room"): two types share 100/200 blinds, so blinds alone cannot tell them apart.
 **Reward** is double or triple points on hours played (the points earned, multiplied), or 10% of a
-buy-in as bonus that expires in a week, with no cap or budget until #415 says otherwise. **Limits** is
+buy-in as bonus that expires in a week, at most a cap on each buy-in that the floor sets, ₹5,000
+unless changed, in whole ₹50 chips, and no budget (the owner's answer to #415); the card says "Up to
+₹5,000 a buy-in". **Limits** is
 none, the first 50 members a club day (one grant each), or once per member over the promotion; the
 card states the limit, as players must know it.
 

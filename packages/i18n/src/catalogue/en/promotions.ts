@@ -27,6 +27,10 @@ export const promotions = {
   /** With a limit, which players must know: "NLH 100/200 · Thursday, 14:00 to 20:00 · Once per member". */
   runsWithLimit: '{who} · {when} · {limit}',
   rewards: { double_points: 'Double points', triple_points: 'Triple points', buy_in_bonus: '10% buy-in bonus' },
+  /** The 10% buy-in bonus's cap, which the floor sets (question #415). */
+  bonusCap: 'Most per buy-in, in rupees',
+  /** What the bonus gives, on its card: "Up to ₹5,000 a buy-in". */
+  bonusDetail: 'Up to {cap} a buy-in',
   limitOptions: { none: 'None', first_50: 'First 50 members a day', once_per_member: 'Once per member' },
   playerApp: 'Player app',
   tvSlide: 'TV slide',
@@ -37,6 +41,7 @@ export const promotions = {
   published: '{name} is live.',
   failures: {
     invalid: 'Choose both times, the start before the end, within the night (it ends at 06:00).',
+    invalidCap: 'The most per buy-in is whole rupees in ₹50 chips, from ₹50 to ₹1,00,000.',
     not_allowed: 'Only staff who manage promotions publish one.',
     switched_off: 'Promotions are switched off.',
     paused: 'The club is frozen. Nothing changes until it is released.',

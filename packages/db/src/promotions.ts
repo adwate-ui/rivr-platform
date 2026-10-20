@@ -25,6 +25,8 @@ export interface PromotionStake {
 export interface PromotionToPublish {
   readonly name: string;
   readonly runs: string;
+  /** What it gives, when the name does not say it all: "Up to ₹5,000 a buy-in". */
+  readonly detail?: string | undefined;
   readonly draft: PromotionDraft;
 }
 
@@ -74,9 +76,9 @@ export function usePromotionActions(venueId: string) {
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
   const publish = useMutation({
-    mutationFn: async ({ name, runs, draft }: PromotionToPublish) => {
+    mutationFn: async ({ name, detail, runs, draft }: PromotionToPublish) => {
       const perPlayer = draft.perPlayer === null ? {} : { per_player_limit: draft.perPlayer.limit, per_player_period: draft.perPlayer.period };
-      const { data, error } = await client.rpc('publish_promotion', { p_venue_id: venueId, p_promotion: { name, runs, rule: draft.rule, ...perPlayer } });
+      const { data, error } = await client.rpc('publish_promotion', { p_venue_id: venueId, p_promotion: { name, detail, runs, rule: draft.rule, ...perPlayer } });
       return settle(data, error);
     },
   });
