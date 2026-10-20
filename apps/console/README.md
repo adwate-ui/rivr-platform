@@ -46,7 +46,7 @@ src/
     high-hands/       high hands claimed on the tablets: approve and pay in chips, or reject; the history (/high-hands)
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
-    promotions/       what is running, paused and resumed in place, and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
+    promotions/       what is running, paused and resumed in place; the deck's templates, each published as it stands; and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
 ```
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.

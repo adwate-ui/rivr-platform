@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { PromotionDraft } from '@rivr/domain/promotions';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { usePromotionActions, usePromotions, usePromotionStakes } from './promotions.ts';
+import { usePromotionActions, usePromotions, usePromotionStakes, usePromotionTemplates } from './promotions.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -33,7 +33,7 @@ function renderPromotions(replies: Record<string, { status?: number; body: unkno
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ list: usePromotions(VENUE), stakes: usePromotionStakes(VENUE), actions: usePromotionActions(VENUE) }),
+    () => ({ list: usePromotions(VENUE), stakes: usePromotionStakes(VENUE), templates: usePromotionTemplates(VENUE), actions: usePromotionActions(VENUE) }),
     { wrapper },
   );
   return { result, calls };
@@ -86,5 +86,21 @@ describe('Promotions (#84)', () => {
       refused = await other.current.actions.publish.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
     });
     expect(refused).toEqual({ ok: false, error: 'not_allowed' });
+  });
+
+  it('lists the draft templates and publishes one as it stands (#85)', async () => {
+    const { result, calls } = renderPromotions({
+      '/rpc/publish_promotion_template': { body: null },
+      '/rest/v1/promotion': { body: [{ id: 't1', name: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }] },
+      '/rest/v1/': { body: [] },
+    });
+    await waitFor(() => expect(result.current.templates.data).toEqual([{ id: 't1', name: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', isLive: false }]));
+    expect(calls.find((call) => call.url.includes('status=eq.draft'))?.url).toContain('template_key=not.is.null');
+    let published: unknown;
+    await act(async () => {
+      published = await result.current.actions.publishTemplate.mutateAsync('t1');
+    });
+    expect(published).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.url.includes('publish_promotion_template'))?.body).toEqual({ p_promotion_id: 't1' });
   });
 });

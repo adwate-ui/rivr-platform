@@ -52,6 +52,21 @@ export function usePromotions(venueId: string) {
   });
 }
 
+/** The venue's draft templates, every scheme in the deck not yet published (#85), by name. */
+export function usePromotionTemplates(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.promotionTemplates(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<ConsolePromotion[]> => {
+      const { data, error } = await client.from('promotion').select('id, name, detail, runs').eq('venue_id', venueId).eq('status', 'draft')
+        .not('template_key', 'is', null).order('name');
+      if (error) throw error;
+      return data.map((row) => ({ id: row.id, name: row.name, detail: row.detail, runs: row.runs, isLive: false }));
+    },
+  });
+}
+
 /** The venue's table types, lowest blinds first, for the builder's Who block. */
 export function usePromotionStakes(venueId: string) {
   const { client, userId } = useRivrData();
@@ -73,6 +88,7 @@ export function usePromotionActions(venueId: string) {
   const queryClient = useQueryClient();
   const settle = async <T>(value: T, error: { code: string } | null): Promise<Result<T, PromotionFailure>> => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.promotions(userId ?? 'signed-out', venueId) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.promotionTemplates(userId ?? 'signed-out', venueId) });
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
   const publish = useMutation({
@@ -88,5 +104,11 @@ export function usePromotionActions(venueId: string) {
       return settle(null, error);
     },
   });
-  return { publish, setLive };
+  const publishTemplate = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await client.rpc('publish_promotion_template', { p_promotion_id: id });
+      return settle(null, error);
+    },
+  });
+  return { publish, setLive, publishTemplate };
 }
