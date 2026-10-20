@@ -313,13 +313,13 @@ $$;
 create function private.promotions_to_give(p_candidates jsonb)
 returns text[]
 language plpgsql
-immutable
+stable
 set search_path = ''
 as $$
 declare
-  v_given jsonb := coalesce((select jsonb_agg(c) from jsonb_array_elements(p_candidates) c where (c ->> 'is_given')::boolean), '[]');
+  v_given jsonb := coalesce((select jsonb_agg(c) from jsonb_array_elements(p_candidates) c where (c ->> 'is_given')::boolean), '[]'::jsonb);
   v_candidate jsonb;
-  v_chosen text[] := '{}';
+  v_chosen text[] := '{}'::text[];
 begin
   for v_candidate in select e.c from jsonb_array_elements(p_candidates) with ordinality as e (c, n) order by e.n loop
     exit when exists (select 1 from jsonb_array_elements(v_given) g where not (g ->> 'stacks')::boolean);
@@ -462,7 +462,7 @@ declare
   v_facts jsonb;
   v_promotion public.promotion;
   v_candidate jsonb;
-  v_candidates jsonb := '[]';
+  v_candidates jsonb := '[]'::jsonb;
 begin
   if p_trigger is null or p_trigger <> all (array['buy_in', 'hours_played', 'hand_logged', 'tournament_entry', 'referral', 'check_in',
                                                   'graduation', 'date_window'])
