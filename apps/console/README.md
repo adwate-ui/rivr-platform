@@ -31,6 +31,9 @@ src/
     check-in/         the door: members expected and in the room, check in from the list or by mobile number (/check-in)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
+    withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)
+    treasury/         what the venue holds, the chips in play, and the cage's shift: its float and its chips
+                      counted by denomination (/treasury)
     members/          a member found by name, mobile or number; the record, early departures and a tier change (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)

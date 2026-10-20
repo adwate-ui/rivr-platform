@@ -18,12 +18,13 @@ import { markersRoute } from './routes/markers.tsx';
 import { membersRoute } from './routes/members.tsx';
 import { killSwitchRoute } from './routes/kill-switch.tsx';
 import { withdrawalsRoute } from './routes/withdrawals.tsx';
+import { treasuryRoute } from './routes/treasury.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
-    highHandsRoute, markersRoute, membersRoute, killSwitchRoute, withdrawalsRoute,
+    highHandsRoute, markersRoute, membersRoute, killSwitchRoute, withdrawalsRoute, treasuryRoute,
   ]),
 ]);
 
