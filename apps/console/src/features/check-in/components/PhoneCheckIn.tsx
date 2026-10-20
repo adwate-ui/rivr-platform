@@ -11,8 +11,8 @@ import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 type Outcome = { in: CheckInFailure } | { out: CheckOutRefusal } | 'checked_out' | null;
 
 /**
- * Checks a member in, or out as they leave (#82), by their mobile number; the membership QR scans here
- * once it exists (#71).
+ * Checks a member in, or out as they leave (#82), by their mobile number, when they do not have their
+ * card to hand (#71).
  */
 export function PhoneCheckIn({ venueId }: { venueId: string }) {
   const { checkInByPhone } = useCheckInActions(venueId);

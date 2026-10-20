@@ -206,10 +206,18 @@ const pointsRewardsRakeShare = {
   value: z.strictObject({ basis_points: z.int().min(0).max(10_000) }),
 } as const satisfies SettingDefinition;
 
+const cardQrRotationSeconds = {
+  key: 'card.qr_rotation_seconds',
+  description: 'How often the membership card\'s QR changes, in seconds; a code from before a change no longer checks in (#71). 30 unless set.',
+  scope: 'venue',
+  value: z.strictObject({ seconds: z.int().min(10).max(300) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, pointsPerHour, pointsRewardsRakeShare,
+  cardQrRotationSeconds,
 ] as const;
 
 /** A setting key declared in code. */
