@@ -13,6 +13,19 @@ afterEach(() => {
 const ARJUN = '00000000-0000-4000-8000-000000000201';
 const WALLET = [{ member_id: ARJUN, cash_paise: 18_500_000, points: 18_420, credit_limit_paise: 20_000_000 }];
 const MARKER = { id: 'm1', outstanding_paise: 5_000_000, issued_at: '2026-10-06T12:00:00+00:00', due_at: '2026-11-05T12:00:00+00:00' };
+const PAYOUT = {
+  id: 'p1', kind: 'upi', bank_name: 'HDFC Bank', vpa: 'arjun.mehta@hdfcbank', account_number: null, ifsc: null, holder_name: null, status: 'verified',
+  reject_reason: null,
+};
+/** What each table answers. */
+const TABLES: Readonly<Record<string, unknown>> = { marker: [MARKER], 'rpc/my_payout_accounts': [PAYOUT] };
+
+/** How my_wallet answers: Arjun's row, a failure, or never. */
+function walletAnswer(wallet: 'arjun' | 'fails' | 'never'): Promise<Response> | Response {
+  if (wallet === 'never') return new Promise<Response>(() => undefined);
+  return wallet === 'fails' ? Response.json({ message: 'down' }, { status: 503 }) : Response.json(WALLET);
+}
+
 /** A line of Arjun's at Table 2. */
 const line = (id: number, kind: string, account: string, amount: number) => ({
   id, at: '2026-10-13T16:00:00+00:00', kind, account, amount, table_name: 'Table 2', bonus_reason: null,
@@ -24,22 +37,23 @@ interface Api {
   movements?: unknown[];
 }
 
-/** Arjun signed in, and a fake API for his Balance; `answer` changes how my_wallet answers from then on. */
+/** Arjun signed in, and a fake API for his Balance; `answer` changes how my_wallet answers from then on, and `added` keeps each account added. */
 function renderBalance(api: Api) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: ARJUN, aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   let wallet = api.wallet ?? 'arjun';
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+  const added: unknown[] = [];
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/my_wallet')) {
-      if (wallet === 'never') return new Promise<Response>(() => undefined);
-      return wallet === 'fails' ? Response.json({ message: 'down' }, { status: 503 }) : Response.json(WALLET);
+    if (url.includes('/rpc/my_wallet')) return walletAnswer(wallet);
+    if (url.includes('/rpc/add_payout_account')) {
+      added.push(JSON.parse(String(init?.body)));
+      return Response.json('p2');
     }
-    if (url.includes('/marker')) return Response.json([MARKER]);
     if (url.includes('/my_wallet_movement')) return Response.json(api.movements ?? []);
-    return Response.json([]);
+    return Response.json(TABLES[url.split('/rest/v1/')[1]?.split('?')[0] ?? ''] ?? []);
   });
   // No retries, so a failure shows at once.
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -48,7 +62,7 @@ function renderBalance(api: Api) {
       <BalanceScreen />
     </RivrDataProvider>,
   );
-  return { answer: (next: 'arjun' | 'fails') => { wallet = next; } };
+  return { answer: (next: 'arjun' | 'fails') => { wallet = next; }, added };
 }
 
 describe('Balance', () => {
@@ -84,5 +98,28 @@ describe('Balance', () => {
     expect(screen.getByText('Buy-in · Table 2')).toBeDefined();
     expect(screen.getByText('−₹20,000')).toBeDefined();
     expect(screen.queryByText('No movements yet.')).toBeNull();
+  });
+
+  it('shows Arjun\'s verified HDFC Bank UPI among his payout accounts', async () => {
+    renderBalance({});
+    expect(await screen.findByText('HDFC Bank · UPI arjun.mehta@hdfcbank')).toBeDefined();
+    expect(screen.getByText('Verified')).toBeDefined();
+  });
+
+  it('adds a bank account, saying first what is wrong field by field, then that the cage verifies it', async () => {
+    const api = renderBalance({});
+    fireEvent.click(await screen.findByRole('button', { name: 'Add a payout account' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Bank account' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add account' }));
+    expect(await screen.findByText('Enter the account number: 9 to 18 digits.')).toBeDefined();
+    expect(screen.getByText('Enter the 11-character IFSC, such as HDFC0001234.')).toBeDefined();
+    expect(screen.getByText('Enter the bank\'s name.')).toBeDefined();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Bank' }), { target: { value: 'ICICI Bank' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Account number' }), { target: { value: '001234567890' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'IFSC' }), { target: { value: 'icic0000123' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name on the account' }), { target: { value: 'Arjun Mehta' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add account' }));
+    expect(await screen.findByText('Added. The cage verifies it before you can withdraw to it.')).toBeDefined();
+    expect(api.added).toEqual([{ p_kind: 'bank', p_bank_name: 'ICICI Bank', p_account_number: '001234567890', p_ifsc: 'ICIC0000123', p_holder_name: 'Arjun Mehta' }]);
   });
 });

@@ -29,7 +29,10 @@ export {
   type IndianMobile,
   type Pan,
 } from './identity.ts';
-export { upiVpaSchema, utrSchema, type UpiVpa, type Utr } from './payments.ts';
+export {
+  bankAccountNumberSchema, ifscSchema, PAYOUT_KINDS, payoutAccountSchema, rejectPayoutSchema, upiVpaSchema, utrSchema, type Ifsc, type PayoutAccountInput, type PayoutKind,
+  type UpiVpa, type Utr,
+} from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';
 export { doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema } from './waitlist.ts';
 export {

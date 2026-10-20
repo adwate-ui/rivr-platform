@@ -4,6 +4,7 @@ import { Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { MarkersSection } from './MarkersSection.tsx';
 import { MovementsSection } from './MovementsSection.tsx';
+import { PayoutAccountsSection } from './PayoutAccountsSection.tsx';
 import { WalletSummary } from './WalletSummary.tsx';
 
 const PAGE = 30;
@@ -11,8 +12,8 @@ const PAGE = 30;
 /**
  * Balance (#18; design prompt "Balance"), a core feature never gated, so a member always sees their own
  * money: wallet cash, bonus in force with when it expires, and points together; open markers against
- * the credit limit; and every movement on their accounts, newest first. Withdraw and Deposit come with
- * #21 and #29.
+ * the credit limit; their payout accounts (#19); and every movement on their accounts, newest first.
+ * Withdraw and Deposit come with #21 and #29.
  */
 export function BalanceScreen() {
   const [count, setCount] = useState(PAGE);
@@ -28,6 +29,7 @@ export function BalanceScreen() {
       <Stack gap={8}>
         <WalletSummary wallet={wallet.data} />
         <MarkersSection wallet={wallet.data} />
+        <PayoutAccountsSection />
         <MovementsSection movements={movements.data.movements} hasEarlier={movements.data.hasEarlier}
           isLoadingEarlier={movements.isPlaceholderData} onShowEarlier={() => setCount((shown) => shown + PAGE)} />
       </Stack>
