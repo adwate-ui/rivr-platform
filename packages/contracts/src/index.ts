@@ -54,6 +54,15 @@ export {
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { quizAnswersSchema } from './training.ts';
 export { sopSchema, sopVersionSchema } from './sops.ts';
+export {
+  CONTACT_KINDS,
+  contactSchema,
+  drillScheduleSchema,
+  INCIDENT_SEVERITIES,
+  incidentSchema,
+  type ContactKind,
+  type IncidentSeverity,
+} from './incidents.ts';
 export { rakeChangeSchema } from './rake.ts';
 export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,

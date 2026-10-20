@@ -222,3 +222,4 @@ export {
 export {
   useChipDenominations, useVenueConfig, useVenueConfigActions, type ChipDenomination, type VenueConfig, type VenueConfigFailure,
 } from './venueConfig.ts';
+export { useContacts, useDrills, useIncidentActions, useIncidents, type Contact, type Drill, type Incident, type IncidentFailure } from './incidents.ts';

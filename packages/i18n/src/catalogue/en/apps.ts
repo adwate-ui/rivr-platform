@@ -12,7 +12,7 @@ import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devi
 import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
-import { sops } from './sops.ts';
+import { incidents, sops } from './sops.ts';
 import { rake } from './rake.ts';
 import { notStaff, staff } from './staff.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
@@ -203,6 +203,7 @@ export const consoleApp = {
   certification,
   notStaff,
   sops,
+  incidents,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',
   /** A screen opened by address that the staff member's role does not include. */

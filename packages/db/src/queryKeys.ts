@@ -95,6 +95,9 @@ export const queryKeys = {
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
   computers: (userId: string, venueId: string) => ['user', userId, 'computers', venueId] as const,
   thisComputer: (userId: string, venueId: string) => ['user', userId, 'this-computer', venueId] as const,
+  contacts: (userId: string, venueId: string) => ['user', userId, 'contacts', venueId] as const,
+  incidents: (userId: string, venueId: string) => ['user', userId, 'incidents', venueId] as const,
+  drills: (userId: string, venueId: string) => ['user', userId, 'drills', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
   /** A venue's table types with their rake now and the changes to come. */
