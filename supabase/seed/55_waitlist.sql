@@ -13,8 +13,11 @@ on conflict (venue_id, idempotency_key) do nothing;
 
 -- Ishaan Verma, Vihaan Kapoor (a black card), Mihir Shah, Yash Gupta and Ritika Das have finished the
 -- identity check, so the Waitlist, Self-exclusion, Seat events and Call time flows and a demo can put
--- them on a list or a seat.
+-- them on a list or a seat. Arjun Mehta has too (design prompt), so he can withdraw (#21, flow 9).
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', 'verified', 'digilocker',
+   '1989-06-12', 'ABCPM2011A',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/selfie.jpg', now()),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'verified', 'digilocker',
    '1994-08-21', 'ABCPV2111K',
    '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg', now()),

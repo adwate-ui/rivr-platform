@@ -8,15 +8,17 @@ const KIND_COPY: Readonly<Record<MovementKind, MessageKey>> = {
   marker: 'player.balance.kindMarker',
   bonus: 'player.balance.kindBonus',
   bonus_expiry: 'player.balance.kindBonusExpiry',
+  withdrawal: 'player.balance.kindWithdrawal',
+  withdrawal_return: 'player.balance.kindWithdrawalReturn',
   reversal: 'player.balance.kindReversal',
   opening_balance: 'player.balance.kindOpeningBalance',
   other: 'player.balance.kindOther',
 };
 
-/** A movement's line: what it was, and where it happened or a bonus's reason: "Cash-out · Table 2". */
+/** A movement's line: what it was, and where it happened, a bonus's reason or a withdrawal's bank: "Cash-out · Table 2". */
 export function movementTitle(movement: Movement): string {
   const title = t(KIND_COPY[movement.kind]);
-  const detail = movement.tableName ?? movement.bonusReason;
+  const detail = movement.tableName ?? movement.bonusReason ?? movement.bankName;
   return detail === null ? title : t('player.balance.movementAt', { title, detail });
 }
 

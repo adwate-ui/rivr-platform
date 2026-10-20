@@ -55,6 +55,7 @@ export const ui = {
       rewards: 'Rewards',
       academy: 'Academy',
       academyPayments: 'Academy payments',
+      withdrawals: 'Withdrawals',
       staff: 'Staff',
       dealers: 'Dealers',
       sops: 'SOPs',

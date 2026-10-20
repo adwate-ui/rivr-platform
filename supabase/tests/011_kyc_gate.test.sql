@@ -4,6 +4,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
+delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
+
 -- More members of the club, on the same tier as Kabir.
 insert into public.member (id, venue_id, full_name, phone, tier_id)
 select ('00000000-0000-4000-8000-00000000020' || n)::uuid, m.venue_id, 'Member ' || n, '+91900000020' || n, m.tier_id

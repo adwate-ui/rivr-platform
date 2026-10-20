@@ -60,5 +60,11 @@ export const payoutAccountSchema = z.object({
 }));
 /** A payout account as the member types it. */
 export type PayoutAccountInput = z.infer<typeof payoutAccountSchema>;
-/** Why the cage turns a payout account down: 3 to 200 characters, shown to the member. */
-export const rejectPayoutSchema = z.object({ reason: z.string().trim().min(3).max(200) });
+/** Why the cage turns something down, a payout account (#19) or a withdrawal (#21): 3 to 200 characters, shown to the member. */
+export const reasonForMemberSchema = z.object({ reason: z.string().trim().min(3).max(200) });
+
+/** A withdrawal as the member asks for it on Balance (#21): whole rupees, to one of their verified payout accounts. */
+export const withdrawalSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/), payoutAccountId: z.string().min(1) });
+
+/** The bank's UTR the cage enters when it sends a withdrawal. */
+export const sendWithdrawalSchema = z.object({ utr: utrSchema });

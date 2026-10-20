@@ -1747,6 +1747,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"withdrawal_request": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decline_reason": string | null,"hold_transaction_id": string,"id": string,"idempotency_key": string,"member_id": string,"outcome_transaction_id": string | null,"payout_account_id": string,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decline_reason"?: string | null,"hold_transaction_id": string,"id"?: string,"idempotency_key": string,"member_id": string,"outcome_transaction_id"?: string | null,"payout_account_id": string,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decline_reason"?: string | null,"hold_transaction_id"?: string,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"outcome_transaction_id"?: string | null,"payout_account_id"?: string,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "withdrawal_request_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "withdrawal_request_hold_transaction_id_venue_id_fkey"
+      columns: ["hold_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "withdrawal_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "withdrawal_request_outcome_transaction_id_venue_id_fkey"
+      columns: ["outcome_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "withdrawal_request_payout_account_id_fkey"
+      columns: ["payout_account_id"]
+isOneToOne: false
+      referencedRelation: "payout_account"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -1780,7 +1824,7 @@ isOneToOne: false
                   ]
                 },"my_wallet_movement": {
                   Row: {
-                    "account": string | null,"amount": number | null,"at": string | null,"bonus_reason": string | null,"id": number | null,"kind": string | null,"table_name": string | null
+                    "account": string | null,"amount": number | null,"at": string | null,"bank_name": string | null,"bonus_reason": string | null,"id": number | null,"kind": string | null,"table_name": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -1996,6 +2040,9 @@ isOneToOne: false
 "decline_buy_in_request":
 { Args: { "p_request_id": string }; Returns: undefined
                            },
+"decline_withdrawal":
+{ Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
+                           },
 "door_board":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"is_in_room": boolean,"member_id": string,"since": string,"tier_name": string
@@ -2178,6 +2225,11 @@ isOneToOne: false
               "cash_paise": number,"credit_limit_paise": number,"member_id": string,"points": number
             }[]
                            },
+"my_withdrawals":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "amount_paise": number,"bank_name": string,"decided_at": string,"decline_reason": string,"id": string,"kind": string,"requested_at": string,"status": string,"utr": string
+            }[]
+                           },
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
                            },
@@ -2241,6 +2293,9 @@ isOneToOne: false
 "request_buy_in":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string
                            },
+"request_withdrawal":
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string }; Returns: string
+                           },
 "reverse_jackpot_event":
 { Args: { "p_event_id": string,"p_idempotency_key": string,"p_reason": string }; Returns: string
                            },
@@ -2255,6 +2310,12 @@ isOneToOne: false
                            },
 "seat_member":
 { Args: { "p_phone": string,"p_seat": number,"p_table_id": string }; Returns: string
+                           },
+"second_approve_withdrawal":
+{ Args: { "p_request_id": string }; Returns: string
+                           },
+"send_withdrawal":
+{ Args: { "p_request_id": string,"p_utr": string }; Returns: undefined
                            },
 "set_credit_limit":
 { Args: { "p_limit_paise": number,"p_phone": string,"p_reason": string,"p_venue_id": string }; Returns: string
@@ -2346,6 +2407,11 @@ isOneToOne: false
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
+            }[]
+                           },
+"waiting_withdrawals":
+{ Args: { "p_venue_id": string }; Returns: {
+              "account_number": string,"amount_paise": number,"approved_by": (string)[],"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"needs_second": boolean,"request_id": string,"requested_at": string,"vpa": string
             }[]
                            },
 "waitlist_board":

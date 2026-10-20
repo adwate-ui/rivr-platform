@@ -4,6 +4,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
+delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
+
 -- A verified check for a member born `p_years` years ago today, as the kyc Edge Function would leave it.
 create function pg_temp.verified(p_member uuid, p_years integer) returns void language sql as $$
   insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, photo_path, verified_at)

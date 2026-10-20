@@ -227,5 +227,15 @@ select results_eq(
      from golden.golden_case where file = 'bonus.json' and operation = 'expire' order by position $$,
   'private.bonus_expiring gives every expiry in the golden file');
 
+-- A withdrawal: private.withdrawal_check and @rivr/domain withdrawalCheck (packages/testing/golden/wallet.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'wallet.json'), 'the withdrawal cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'wallet.json' and operation <> 'withdraw' $$,
+  'every operation in wallet.json is proved here');
+select results_eq(
+  $$ select description, private.withdrawal_check(pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'cash'))
+     from golden.golden_case where file = 'wallet.json' order by position $$,
+  $$ select description, expected ->> 'result' from golden.golden_case where file = 'wallet.json' order by position $$,
+  'private.withdrawal_check gives every withdrawal in the golden file');
+
 select * from finish();
 rollback;

@@ -6,6 +6,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
+delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
+
 -- A KYC reviewer who works at the practice venue only (seeded staff work at both).
 insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at)
 values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000ea', 'authenticated', 'authenticated',
