@@ -1,7 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { StaffRole } from '@rivr/contracts/roles';
-import { quizQuestionsSchema, type QuizQuestion } from '@rivr/contracts/training';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toQuizQuestions, type QuizQuestion } from './parse/quizQuestions.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -48,9 +48,12 @@ export function useQuizzes(venueId: string) {
     queryFn: async (): Promise<Quiz[]> => {
       const { data, error } = await client.from('quiz').select('id, role, title, pass_percent, questions').eq('venue_id', venueId).order('role');
       if (error) throw error;
-      return data.map((row) => ({
-        quizId: row.id, role: row.role, title: row.title, passPercent: row.pass_percent, questions: quizQuestionsSchema.parse(row.questions),
-      }));
+      return data.map((row) => {
+        const questions = toQuizQuestions(row.questions);
+        // A quiz not as expected fails the list rather than show half of it.
+        if (questions === null) throw new Error(`Quiz ${row.id} has questions that cannot be read`);
+        return { quizId: row.id, role: row.role, title: row.title, passPercent: row.pass_percent, questions };
+      });
     },
   });
 }
