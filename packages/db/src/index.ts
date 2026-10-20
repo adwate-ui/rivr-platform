@@ -147,6 +147,7 @@ export {
   type PairFailure,
   type PairingCode,
 } from './devices.ts';
+export { useComputerActions, useComputers, useThisComputer, type Computer, type ComputerCode, type ComputerFailure, type ComputerKind, type ThisComputer } from './computers.ts';
 export {
   useMyTvScreen,
   useTvActions,

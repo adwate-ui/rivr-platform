@@ -2,6 +2,8 @@
 export const cage = {
   title: 'Cage',
   notAllowed: 'Your role does not use the cage. Cashiers and duty managers do.',
+  /** A cage call refused (42501): the role, or (#384) a computer not enrolled as the cage. */
+  refused: 'The cage refused this. Only cashiers and duty managers use the cage, and only at a computer enrolled as the cage once the club has networks.',
   choose: 'Find a member, or take a request from the queue.',
   search: 'Search members',
   noMatch: 'No member matches.',
@@ -129,6 +131,8 @@ export const cage = {
   /** The cage takes and pays nothing while no shift is open (#376). */
   noShift: 'The cage has no shift open. Open one on Treasury with the float and the chips, then try again.',
   noShiftBanner: 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Treasury.',
+  /** At a venue that enforces cage computers (#384), when this one is not enrolled as the cage. */
+  notCageComputer: 'This computer is not enrolled as the cage, so the cage takes and pays nothing here. An admin enrols it on Computers.',
   /** Call time still owed at the cage (#79). `{time}`: 1 h 12 min. */
   callTimeOwed: 'Call time not complete: {time} short. An admin lets them leave early on the Live floor.',
   callTimeLetGo: 'Call time {time} short. An admin has let them leave early.',

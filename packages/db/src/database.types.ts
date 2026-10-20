@@ -415,6 +415,38 @@ isOneToOne: false
       referencedColumns: ["venue_id","value_paise"]
     }
                   ]
+                },"computer_enrolment": {
+                  Row: {
+                    "claimed_at": string | null,"code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "claimed_at"?: string | null,"code_hash": string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id": string,"expires_at": string,"id"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "claimed_at"?: string | null,"code_hash"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id"?: string,"expires_at"?: string,"id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "computer_enrolment_created_by_staff_id_fkey"
+      columns: ["created_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "computer_enrolment_device_id_venue_id_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "computer_enrolment_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"consent": {
                   Row: {
                     "created_at": string,"granted_at": string,"id": string,"member_id": string,"purpose": string,"recorded_by_staff_id": string | null,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
@@ -607,14 +639,14 @@ isOneToOne: false
                   ]
                 },"device": {
                   Row: {
-                    "auth_user_id": string | null,"created_at": string,"enrolled_at": string,"enrolled_by_staff_id": string | null,"id": string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at": string | null,"name": string,"revoked_at": string | null,"revoked_reason": string | null,"updated_at": string,"venue_id": string
+                    "auth_user_id": string | null,"created_at": string,"enrolled_at": string,"enrolled_by_staff_id": string | null,"id": string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at": string | null,"name": string,"revoked_at": string | null,"revoked_reason": string | null,"token_hash": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name": string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"updated_at"?: string,"venue_id": string
+                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name": string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"token_hash"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name"?: string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name"?: string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"token_hash"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2506,6 +2538,11 @@ isOneToOne: false
 "acknowledge_sop":
 { Args: { "p_version_id": string }; Returns: string
                            },
+"add_computer":
+{ Args: { "p_kind": Database["public"]['Enums']["device_kind"],"p_name": string,"p_venue_id": string }; Returns: {
+              "code": string,"device_id": string,"expires_at": string
+            }[]
+                           },
 "add_payout_account":
 { Args: { "p_account_number"?: string,"p_bank_name": string,"p_holder_name"?: string,"p_ifsc"?: string,"p_kind": string,"p_vpa"?: string }; Returns: string
                            },
@@ -2590,6 +2627,9 @@ isOneToOne: false
                            },
 "claim_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
+                           },
+"claim_computer":
+{ Args: { "p_code": string,"p_token_hash": string,"p_venue_id": string }; Returns: string
                            },
 "claim_high_hand":
 { Args: { "p_category": Database["public"]['Enums']["high_hand_category"],"p_hand_id": string,"p_rank": string,"p_seat": number }; Returns: string
@@ -3074,6 +3114,11 @@ isOneToOne: false
                            },
 "take_break":
 { Args: { "p_days": number }; Returns: string
+                           },
+"this_computer":
+{ Args: { "p_venue_id": string }; Returns: {
+              "device_id": string,"is_enforced": boolean,"is_on_staff_network": boolean,"kind": Database["public"]['Enums']["device_kind"],"name": string
+            }[]
                            },
 "tier_matrix":
 { Args: { "p_venue_id": string }; Returns: {

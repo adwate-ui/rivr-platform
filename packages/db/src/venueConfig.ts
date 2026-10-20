@@ -36,10 +36,12 @@ export interface ChipDenomination {
  * Why a change did not go through: the role does not configure the venue (super admins only); the
  * database refused a value; a chip of that value is already listed; or anything else.
  */
-export type VenueConfigFailure = 'not_allowed' | 'invalid' | 'taken' | 'unavailable';
+export type VenueConfigFailure = 'not_allowed' | 'off_networks' | 'invalid' | 'taken' | 'unavailable';
 
 // 22P02: a value Postgres cannot read as its type, such as an IPv6 range that is not its network's start.
-const FAILURE_BY_CODE: Readonly<Record<string, VenueConfigFailure>> = { '42501': 'not_allowed', '23514': 'invalid', '22P02': 'invalid', '23505': 'taken' };
+const FAILURE_BY_CODE: Readonly<Record<string, VenueConfigFailure>> = {
+  '42501': 'not_allowed', RVNET: 'off_networks', '23514': 'invalid', '22P02': 'invalid', '23505': 'taken',
+};
 
 /**
  * The venue's configuration for a super admin (`venue_config_detail`, venue.configure); null for anyone

@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Box, Grid, Screen, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CageQueue } from './CageQueue.tsx';
+import { CageComputerBanner } from './CageComputerBanner.tsx';
 import { DepositsToConfirm } from './DepositsToConfirm.tsx';
 import { MemberPanel } from './MemberPanel.tsx';
 import { MemberSearch } from './MemberSearch.tsx';
@@ -37,6 +38,7 @@ function Cage({ title, venueId, canIssueMarkers }: { title: string; venueId: str
       {treasury.data?.shift === null ? (
         <Box surface="alert" padding={3} radius="sm"><Text tone="onAlert">{t('console.cage.noShiftBanner')}</Text></Box>
       ) : null}
+      <CageComputerBanner venueId={venueId} />
       <Grid columns={2} gap={8}>
         <Stack gap={8}>
           <MemberSearch venueId={venueId} onChoose={(picked, query) => setChosen({ memberId: picked.memberId, query })} />

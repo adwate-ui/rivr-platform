@@ -1,6 +1,6 @@
 import { ROLE_PERMISSIONS } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { isAllowedAt, railFor } from './rail.ts';
+import { isAllowedAt, isCageScreen, railFor } from './rail.ts';
 
 const items = (permissions: Parameters<typeof railFor>[0]) => railFor(permissions).flatMap((section) => section.items.map((item) => item.href));
 
@@ -8,7 +8,7 @@ describe('the console rail and who may open each screen', () => {
   it('keeps a cashier out of admin screens, whether from the rail or by address', () => {
     const cashier = ROLE_PERMISSIONS.cashier;
     expect(items(cashier)).not.toEqual(expect.arrayContaining(['/staff']));
-    for (const admin of ['/staff', '/dealer-pins', '/kill-switch', '/rake', '/tablets', '/tvs', '/academy']) {
+    for (const admin of ['/staff', '/dealer-pins', '/kill-switch', '/rake', '/tablets', '/tvs', '/computers', '/academy']) {
       expect(isAllowedAt(cashier, admin)).toBe(false);
     }
     expect(isAllowedAt(cashier, '/cage')).toBe(true);
@@ -20,6 +20,11 @@ describe('the console rail and who may open each screen', () => {
   it('judges a screen below another by its own entry: Academy payments is the cage\'s, the Academy is not', () => {
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/academy/payments')).toBe(true);
     expect(isAllowedAt(ROLE_PERMISSIONS.host, '/academy/payments')).toBe(false);
+  });
+
+  it('knows the cage\'s screens, which lock after ten idle minutes', () => {
+    for (const cage of ['/cage', '/Markers', '/withdrawals', '/academy/payments']) expect(isCageScreen(cage)).toBe(true);
+    for (const other of ['/', '/academy', '/computers', '/settings']) expect(isCageScreen(other)).toBe(false);
   });
 
   it('gives Settings to setting managers and super admins, and keeps cashiers and dealers out of it (#33)', () => {
