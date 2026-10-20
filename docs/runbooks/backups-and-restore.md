@@ -63,7 +63,7 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
      - `BACKUP_BUCKET`: that target's bucket;
      - `BACKUP_AGE_RECIPIENT`: the `age1...` public key.
 7. **PITR.** In the Supabase dashboard for production, turn on Point in Time Recovery (Add-ons, 7 days).
-8. **First run.** In Actions → nightly-backup → Run workflow, check that both targets upload a file. Then do the restore drill (#26) once.
+8. **First run.** In Actions → nightly-backup → Run workflow, check that both targets upload a file. Then run the restore drill on it, `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt`, and add the result to the drill log below.
 
 **Watching it.**
 - Until the settings exist, each target skips with a notice and the workflow stays green. Once they're set, a failed night fails the workflow.
@@ -73,23 +73,22 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
 
 ## Restoring from a nightly backup
 
-You need the backup key, the escrowed `kyc_reference_key`, and `age`, the AWS CLI, and `psql` from Postgres 17 or later on the computer you restore from.
+You need, on the computer you restore from:
+- the backup key and the escrowed `kyc_reference_key`;
+- `age`, the AWS CLI, and `psql` from Postgres 17 or later;
+- a checkout of this repository.
 
 1. **Download** the night's file and its `.sha256`.
    - Give the AWS CLI the target's token: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_DEFAULT_REGION=auto`.
    - Run `aws s3 cp s3://rivr-backups-production/production/nightly/2026-11-20/ . --recursive --endpoint-url <endpoint>`.
    - Then run `sha256sum -c rivr-production-20261120.tar.gz.age.sha256`.
-2. **Decrypt and unpack:** `age -d -i rivr-backup-key.txt rivr-production-20261120.tar.gz.age | tar -xz`, then `cd rivr-production-20261120`.
+2. **Decrypt and unpack:** `age -d -i rivr-backup-key.txt rivr-production-20261120.tar.gz.age | tar -xz`. This makes a folder, `rivr-production-20261120`. Note its full path (`realpath rivr-production-20261120`).
 3. **Create a new Supabase project** in Mumbai to restore into, and take its Session pooler connection string for `postgres`.
    - Never restore over production. To put a backup back into production, use PITR or the provider's backup ("Restoring production in place").
-4. **Load it** as Supabase's guide does: roles, schema, then data with triggers off for the load, in one transaction. Then the cron jobs.
-   ```
-   psql --single-transaction --variable ON_ERROR_STOP=1 \
-     --file roles.sql --file schema.sql \
-     --command 'SET session_replication_role = replica' --file data.sql \
-     --dbname "<new project's connection string>"
-   psql --variable ON_ERROR_STOP=1 --file cron.sql --dbname "<new project's connection string>"
-   ```
+4. **Load it** from the checkout of this repository: `bash scripts/backup/restore.sh <the unpacked folder's full path> "<new project's connection string>"`.
+   - It loads as Supabase's guide does: roles, schema, then data with triggers off, in one transaction. Then the cron jobs.
+   - It leaves out the few lines a new project refuses: parameter grants to the platform's own roles, and loads into empty tables.
+   - The restore drill runs the same script.
 5. **Put the Vault back.** In the new project's Vault, add:
    - `kyc_reference_key`: the escrowed value, exactly;
    - `sign_in_send_key`: a new random value from `openssl rand -hex 32`. It only remembers which numbers got a code in the last ten minutes.
@@ -100,6 +99,32 @@ You need the backup key, the escrowed `kyc_reference_key`, and `age`, the AWS CL
    - `select jobname from cron.job` lists every job in `cron.sql`.
    - A test member can sign in.
    - The CSVs in `csv/` are there to read without restoring.
+
+## The restore drill
+
+`scripts/backup/restore-drill.sh` (#26) proves a backup restores, without touching staging or production.
+- **Where it restores:** a throwaway local Supabase stack, empty like a new project, on the unassigned port block 550. It removes the stack when done, and warns if it couldn't.
+- **How:** with `scripts/backup/restore.sh`.
+- **What it checks**, before any restored cron job runs:
+  - every ledger transaction sums to zero;
+  - each ledger account's total equals the total from the backup's own CSV;
+  - every table's row count matches `manifest.csv`. Ledger tables must match exactly. Others may differ by the few rows written between the dump and the export, but a table that comes back empty, or more than 5 rows or 1% out, fails.
+- **Then:** it restores the cron jobs and checks they're all back.
+- **Output:** PASS or FAIL for each check, then a result.
+
+**Running it:** you need Docker, `age`, `psql` from Postgres 17 or later, the AWS CLI for `--latest`, and `pnpm i` in the checkout.
+- On a target's latest backup:
+  - set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (that target's bucket token), `AWS_DEFAULT_REGION=auto`, `BACKUP_S3_ENDPOINT` and `BACKUP_BUCKET`;
+  - run `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt`.
+- On a file already downloaded: `--archive <file> --key <key>`.
+- On one computer: `--local` backs up the local stack first (`pnpm db:start`), with a throwaway key.
+- `--dry-run` prints the steps without running anything.
+
+**When:** after the backup is first set up, in hardening week (11 to 14 Nov), then monthly. Add each run below.
+
+| Date | Backup | Where it was restored | Result |
+|---|---|---|---|
+| 20 Oct 2026 | The local stack's seed data (`--local`), as the backup job makes it. Staging's and production's are the owner's first run (setup step 8). | Scratch local stack (550) | PASS: every ledger transaction sums to zero; all 10 account totals match the CSV; row counts match for 70 tables; all 6 cron jobs back |
 
 ## Restoring production in place
 
