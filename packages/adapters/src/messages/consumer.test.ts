@@ -18,9 +18,9 @@ function delivery(eventType: string, payload: unknown): ClaimedDelivery {
 }
 
 describe('the WhatsApp consumer', () => {
-  it('is a messaging consumer of the seat call and the receipt notice, so a messaging stop holds it', () => {
+  it('is a messaging consumer of the seat call, the receipt notice and promotion offers, so a messaging stop holds it', () => {
     const consumer = createWhatsAppConsumer({ whatsapp: createFakeWhatsApp(), findRecipient, now });
-    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready']]);
+    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered']]);
   });
 
   it('sends the seat call: the table, the seat and when the hold expires, in IST', async () => {
@@ -76,5 +76,20 @@ describe('the WhatsApp consumer', () => {
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
     const called = { member_id: MEMBER, table_name: 'Table 3', seat: 9, hold_until: '2026-11-15T19:00:00+00:00' };
     expect(await consumer.deliver(delivery('waitlist.called', called))).toEqual({ ok: false, error: { code: 'unavailable' } });
+  });
+
+  it('sends a promotion offer as the marketing template, with the member\'s opt-in, and nothing once they opted out (#86)', async () => {
+    const optedIn = new Date('2026-10-01T10:00:00Z');
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, now, findRecipient: async () => ({ phone, marketingOptedInAt: optedIn }) });
+    const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: MEMBER, title: 'Double points', detail: null, runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' };
+
+    expect((await consumer.deliver(delivery('promotion.offered', offer))).ok).toBe(true);
+    expect(whatsapp.calls).toEqual([{ category: 'marketing', optedInAt: optedIn, to: phone, template: 'promotion', params: ['Double points · NLH 100/200 · Thursday, 14:00 to 20:00.'] }]);
+
+    const withdrawn = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    expect(await withdrawn.deliver(delivery('promotion.offered', offer))).toEqual({ ok: true, value: null });
+    expect(await withdrawn.deliver(delivery('promotion.offered', { ...offer, title: '' }))).toMatchObject({ ok: false });
+    expect(whatsapp.calls).toHaveLength(1);
   });
 });

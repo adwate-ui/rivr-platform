@@ -1,4 +1,4 @@
-import { err, ok, receiptReadySchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
+import { err, ok, promotionOfferedSchema, receiptReadySchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
 import { formatMoney, formatTime } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
@@ -14,12 +14,25 @@ export interface MessageRecipient {
 export type FindRecipient = (venueId: string, memberId: string) => Promise<MessageRecipient | null>;
 
 /** The events the WhatsApp consumer sends a message for. */
-export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready'] as const;
+export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered'] as const;
 
 const rejected = (reason: string) => err<AdapterFailure>({ code: 'rejected', reason });
 
 /** Nothing to send, and nothing wrong: a seat call whose hold ran out before it was claimed. */
 const HANDLED = null;
+
+/**
+ * A published promotion offered to one member (#86): its card in the marketing template, only while the
+ * member's marketing opt-in stands. Opted out since it was offered: nothing to send, and nothing wrong.
+ */
+async function offerMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
+  const offer = promotionOfferedSchema.safeParse(delivery.payload);
+  if (!offer.success) return rejected('promotion.offered payload is not an offer');
+  const recipient = await findRecipient(delivery.venueId, offer.data.member_id);
+  if (!recipient || recipient.marketingOptedInAt === null) return ok(HANDLED);
+  const card = [offer.data.title, offer.data.detail, offer.data.runs].filter((part) => part !== null).join(' · ');
+  return ok({ category: 'marketing', optedInAt: recipient.marketingOptedInAt, to: recipient.phone, template: 'promotion', params: [`${card}.`] });
+}
 
 /**
  * The template message for a delivery, null when it needs none, or why it cannot be sent. Neither the
@@ -44,6 +57,7 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
     const amount = formatMoney(BigInt(receipt.data.amount_paise));
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'receipt_ready', params: [amount], urlButton: receipt.data.link } };
   }
+  if (delivery.eventType === 'promotion.offered') return offerMessage(delivery, findRecipient);
   return rejected(`no WhatsApp message for ${delivery.eventType}`);
 }
 

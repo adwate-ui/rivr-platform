@@ -57,6 +57,8 @@ export const tv = {
     label: 'Promotion',
     /** The pager, for a screen reader: "Promotion 2 of 3". */
     pager: 'Promotion {current} of {count}',
+    /** The Promotions mode with nothing live. */
+    none: 'No promotions running.',
   },
   /** The high hands the club pays (#47), on the TV, the tablet and the console. */
   highHand: {

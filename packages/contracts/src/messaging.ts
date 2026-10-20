@@ -30,3 +30,15 @@ export const receiptReadySchema = z.object({
 export type WaitlistCalled = z.infer<typeof waitlistCalledSchema>;
 /** A receipt.ready payload. */
 export type ReceiptReady = z.infer<typeof receiptReadySchema>;
+
+/** promotion.offered (#86): a published promotion's card, offered to one member who opted in to marketing. */
+export const promotionOfferedSchema = z.object({
+  promotion_id: z.uuid(),
+  member_id: z.uuid(),
+  title: z.string().trim().min(1).max(80),
+  detail: z.string().trim().min(1).max(200).nullable(),
+  runs: z.string().trim().min(1).max(120).nullable(),
+});
+
+/** A promotion.offered payload. */
+export type PromotionOffered = z.infer<typeof promotionOfferedSchema>;

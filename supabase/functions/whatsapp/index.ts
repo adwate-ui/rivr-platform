@@ -1,4 +1,4 @@
-// The WhatsApp outbox consumer (#62): the seat call when a member is called from the waitlist, and
+// The WhatsApp outbox consumer (#62, #86): the seat call when a member is called from the waitlist, a published promotion to members who opted in, and
 // the receipt-ready notice, through Meta's Cloud API. pg_cron runs it every minute (decision 0038);
 // a messaging stop holds every send, and practice-venue events never reach it. The member's number
 // is read from the database at send time, for the event's venue only, and never logged.
