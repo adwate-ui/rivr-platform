@@ -1,11 +1,11 @@
 /**
  * Kill switch (#27; additions flow 15). Neha Kulkarni and Arvind Rao, this flow's own super admins
  * (Auth sends one code a minute to a number). Neha seats Kunal Mehra at Table 3 and pairs its tablet,
- * then freezes the venue with a reason, confirming it: the console, the tablet and a member's app show
- * the banner within seconds, and the tablet's buy-in for Kunal is refused. She asks to release it and
- * cannot alone; Arvind releases it, and the banners go. Kunal leaves and the tablet is revoked at the
- * end; if the flow fails midway the freeze is still released, so later flows find the club open. Every
- * level and every alert are proved in supabase/tests/060_kill_switch.test.sql.
+ * then freezes the venue with a reason, confirming it: the console, the tablet and Yash Gupta's app
+ * (signed in for this flow alone) show the banner within seconds, and the tablet's buy-in for Kunal is
+ * refused. She asks to release it and cannot alone; Arvind releases it, and the banners go. Kunal leaves
+ * and the tablet is revoked at the end; if the flow fails midway the freeze is still released, so later
+ * flows find the club open. Every level and every alert are proved in supabase/tests/060_kill_switch.test.sql.
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -70,7 +70,7 @@ test.describe('Kill switch', () => {
       await expect(tablet.getByText(/^The venue is frozen\./)).toBeVisible();
 
       const member = await browser.newPage();
-      await signInToPlayer(member, '9000000203');
+      await signInToPlayer(member, '9000000214');
       await expect(member.getByText(MEMBER_BANNER)).toBeVisible({ timeout: 15_000 });
 
       const second = await browser.newPage();
