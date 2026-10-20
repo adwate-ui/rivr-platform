@@ -323,7 +323,7 @@ declare
   v_parts text;
   v_counts text;
   v_deleted jsonb;
-  v_restored jsonb := '{}';
+  v_restored jsonb := '{}'::jsonb;
 begin
   perform private.assert_practice_reset(p_venue_id);
   if p_venue_name is distinct from (select v.name from public.venue v where v.id = p_venue_id) then
