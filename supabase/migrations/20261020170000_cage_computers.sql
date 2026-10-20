@@ -20,8 +20,11 @@ create table public.computer_enrolment (
   claimed_at timestamptz,
   created_by_staff_id uuid references public.staff (id),
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   foreign key (device_id, venue_id) references public.device (id, venue_id)
 );
+create trigger computer_enrolment_touch_updated_at before update on public.computer_enrolment
+  for each row execute function private.touch_updated_at();
 create index computer_enrolment_device_idx on public.computer_enrolment (device_id, venue_id);
 create index computer_enrolment_venue_idx on public.computer_enrolment (venue_id);
 create index computer_enrolment_staff_idx on public.computer_enrolment (created_by_staff_id);

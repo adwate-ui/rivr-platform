@@ -417,14 +417,14 @@ isOneToOne: false
                   ]
                 },"computer_enrolment": {
                   Row: {
-                    "claimed_at": string | null,"code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"id": string,"venue_id": string
+                    "claimed_at": string | null,"code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "claimed_at"?: string | null,"code_hash": string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id": string,"expires_at": string,"id"?: string,"venue_id": string
+                    "claimed_at"?: string | null,"code_hash": string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id": string,"expires_at": string,"id"?: string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "claimed_at"?: string | null,"code_hash"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id"?: string,"expires_at"?: string,"id"?: string,"venue_id"?: string
+                    "claimed_at"?: string | null,"code_hash"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"device_id"?: string,"expires_at"?: string,"id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
