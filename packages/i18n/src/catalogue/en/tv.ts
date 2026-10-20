@@ -26,6 +26,8 @@ export const tv = {
     /** Beside a player called to a seat: `{table}` is the table's name. */
     called: 'Called to {table}',
     away: 'Away',
+    /** A member who hid their name on the TVs (#326): `{place}` is their place on the list. */
+    hiddenName: 'Player {place}',
   },
   /** The jackpot with tonight's high hand (#65). */
   jackpot: {

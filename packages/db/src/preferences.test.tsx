@@ -34,9 +34,9 @@ function renderPreferences(tables: Record<string, unknown>) {
 afterEach(cleanup);
 
 describe('usePreferences', () => {
-  it('gives the member their games, stake, notifications turned off and marketing consent', async () => {
+  it('gives the member their games, stake, notifications turned off, marketing consent and name on the TVs', async () => {
     const { result } = renderPreferences({
-      member_preference: { games: ['tournaments', 'nlh'], small_blind: 10000, big_blind: 20000 },
+      member_preference: { games: ['tournaments', 'nlh'], small_blind: 10000, big_blind: 20000, name_on_tvs: false },
       notification_preference: [{ push_type: 'push.seat_ready', is_on: false }, { push_type: 'push.withdrawal_sent', is_on: true }],
       has_my_consent: true,
     });
@@ -47,15 +47,16 @@ describe('usePreferences', () => {
         stake: { smallBlind: 10000n, bigBlind: 20000n },
         notificationsOff: ['push.seat_ready'],
         marketing: true,
+        nameOnTvs: false,
       }),
     );
   });
 
-  it('starts with every notification on, no games, any stake and no marketing', async () => {
+  it('starts with every notification on, no games, any stake, no marketing and the name on the TVs', async () => {
     const { result } = renderPreferences({ member_preference: null, notification_preference: [], has_my_consent: false });
 
     await waitFor(() =>
-      expect(result.current.preferences.data).toEqual({ games: [], stake: null, notificationsOff: [], marketing: false }),
+      expect(result.current.preferences.data).toEqual({ games: [], stake: null, notificationsOff: [], marketing: false, nameOnTvs: true }),
     );
   });
 });
@@ -74,12 +75,13 @@ describe('usePreferenceActions', () => {
     });
   });
 
-  it('turns a notification off, and gives or withdraws the marketing consent', async () => {
+  it('turns a notification off, gives or withdraws the marketing consent, and hides the name on the TVs', async () => {
     const { result, calls } = renderPreferences({});
 
     await act(() => result.current.actions.setNotification.mutateAsync({ type: 'push.seat_ready', isOn: false }));
     await act(() => result.current.actions.setMarketing.mutateAsync(true));
     await act(() => result.current.actions.setMarketing.mutateAsync(false));
+    await act(() => result.current.actions.setNameOnTvs.mutateAsync(false));
 
     // The reads Profile asks for alongside (consent, stakes) are not changes.
     const reads = ['/rpc/has_my_consent', '/rpc/my_stakes'];
@@ -89,6 +91,7 @@ describe('usePreferenceActions', () => {
       ['set_my_notification', { p_push_type: 'push.seat_ready', p_is_on: false }],
       ['give_consent', { p_purpose: 'marketing' }],
       ['withdraw_consent', { p_purpose: 'marketing' }],
+      ['set_my_name_on_tvs', { p_is_on: false }],
     ]);
   });
 });

@@ -1223,14 +1223,14 @@ isOneToOne: false
                   ]
                 },"member_preference": {
                   Row: {
-                    "big_blind": number | null,"created_at": string,"games": (string)[],"member_id": string,"small_blind": number | null,"updated_at": string,"venue_id": string
+                    "big_blind": number | null,"created_at": string,"games": (string)[],"member_id": string,"name_on_tvs": boolean,"small_blind": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id": string,"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
+                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id"?: string,"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2593,6 +2593,9 @@ isOneToOne: false
                            },
 "set_must_move":
 { Args: { "p_main_table_id"?: string,"p_table_id": string }; Returns: undefined
+                           },
+"set_my_name_on_tvs":
+{ Args: { "p_is_on": boolean }; Returns: undefined
                            },
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined

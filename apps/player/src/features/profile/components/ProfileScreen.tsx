@@ -6,12 +6,14 @@ import { GamesSection } from './GamesSection.tsx';
 import { IdentitySection } from './IdentitySection.tsx';
 import { LimitsSection } from './LimitsSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
+import { PrivacySection } from './PrivacySection.tsx';
 import { SignOutSection } from './SignOutSection.tsx';
 
 /**
  * Profile, behind the member's initial (design prompt, "Profile"): the identity check, the games for
  * waitlist alerts, the session reminder and a break from play (#56), notifications and promotions, the
- * way to any Academy seats, and sign out, in the prototype's order.
+ * way to any Academy seats, and sign out, in the prototype's order. Privacy (their name on the TVs,
+ * #326) is not in the prototype and comes after notifications.
  */
 export function ProfileScreen() {
   const preferences = usePreferences();
@@ -37,6 +39,7 @@ export function ProfileScreen() {
         <GamesSection preferences={preferences.data} />
         <LimitsSection restrictions={restrictions.data} />
         <NotificationsSection preferences={preferences.data} />
+        <PrivacySection preferences={preferences.data} />
         <AcademySection />
         <SignOutSection />
       </Stack>

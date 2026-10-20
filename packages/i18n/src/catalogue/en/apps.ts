@@ -98,6 +98,10 @@ export const playerApp = {
     marketing: 'Promotions and offers',
     marketingHint: 'By WhatsApp and app notification. Stop any time.',
     saveFailed: 'Not saved. Try again.',
+    /** Whether the TVs' waitlist board names the member (#326). */
+    privacy: 'Privacy',
+    nameOnTvs: 'Show my name on the club\'s TVs',
+    nameOnTvsHint: 'Your first name and initial on the waitlist board. Off, the board shows your place instead, such as Player 2.',
     /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
     academyBookings: 'Your Academy bookings',
     /** Limits and self-exclusion (#56), as in the prototype's Profile. */

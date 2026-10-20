@@ -14,7 +14,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `member_tier_change` | Every change of a member's tier: from, to, the reason, the staff member, and a last day after which the sweep puts them back (#60); never changed |
 | `membership_card` | Rotating QR secret per member |
 | `push_subscription`, `notification_preference` | Web push endpoints; which push types a member wants |
-| `member_preference` | Games and stake for waitlist alerts: blinds in paise as `table_type` has them, both null for any stake. Profile offers the stakes of `public.my_stakes()`, the member's own club's whatever their tier (#206, decision 0069) |
+| `member_preference` | Games and stake for waitlist alerts: blinds in paise as `table_type` has them, both null for any stake. Profile offers the stakes of `public.my_stakes()`, the member's own club's whatever their tier (#206, decision 0069). `name_on_tvs` (on unless the member turns it off through `public.set_my_name_on_tvs`): off, the TVs' waitlist board gives their place and no name (#326, decision 0070) |
 | `academy_batch`, `academy_booking`, `academy_utr_rejection`, `academy_attendance` | Batches, bookings and payment, the UTRs the cage turned down and by whom, attendance, graduation |
 | `learn_source`, `learn_licence`, `learn_card`, `learn_attempt`, `learn_lesson` | Licensed encodings (private bucket), licences, FSRS cards and attempts per member, Academy lessons |
 | `site_page`, `site_block`, `site_revision`, `site_publish` | Website pages of typed blocks, drafts, scheduled publish, history and rollback (`site_page` and `site_block` from #9, read publicly through `public_site_page` and `public_site_block`, never the practice venue) |
