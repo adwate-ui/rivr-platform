@@ -5,13 +5,16 @@ import { BreakNotice } from './BreakNotice.tsx';
 import { FloorList } from './FloorList.tsx';
 import { HomePromotions } from './HomePromotions.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
+import { TonightHighlights } from './TonightHighlights.tsx';
 import { YourWaitlist } from './YourWaitlist.tsx';
 
 /**
  * Home: tonight's floor (design prompt, "Home"). The member's waitlist places first, then each table
  * with its stakes and how many wait, and Join (#38). The floor shows with feature floor.live_view.
  * During a break (#56), Home says until when tables are closed to the member, as in the prototype.
- * Seated, Home says where, and the call time left (#78). The live promotions page beneath (#86).
+ * Seated, Home says where, and the call time left (#78). The live promotions page beneath (#86). The
+ * jackpot and the next tournament above the tables, each table's open seats, and Join held until the
+ * member's identity check is done (#87); these come quietly, and the database refuses Join without it anyway.
  */
 export function HomeScreen() {
   const liveView = useFeature('floor.live_view');
@@ -31,6 +34,7 @@ export function HomeScreen() {
         <BreakNotice />
         <SeatNotice />
         <YourWaitlist places={places.data} />
+        <TonightHighlights />
         <FeatureGate access={liveView}>
           <FloorList tables={tables.data} places={places.data} />
         </FeatureGate>

@@ -2850,6 +2850,11 @@ isOneToOne: false
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
+"floor_open_seats":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "open_seats": number,"table_id": string
+            }[]
+                           },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
               "away_since": string,"call_time_left": number,"full_name": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
@@ -3014,6 +3019,11 @@ isOneToOne: false
 "my_stakes":
 { Args: Record<PropertyKey, never>; Returns: {
               "big_blind_paise": number,"small_blind_paise": number
+            }[]
+                           },
+"my_tonight":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "is_kyc_complete": boolean,"jackpot_paise": number,"tournament_buy_in_paise": number,"tournament_guarantee_paise": number,"tournament_name": string,"tournament_starts_at": string
             }[]
                            },
 "my_tv_screen":

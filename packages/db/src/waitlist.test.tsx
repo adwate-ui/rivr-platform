@@ -40,6 +40,7 @@ const EMPTY = {
   '/rest/v1/game_table': { body: [] },
   '/rest/v1/table_type': { body: [] },
   '/rpc/waitlist_lengths': { body: [] },
+  '/rpc/floor_open_seats': { body: [] },
   '/rpc/my_waitlist': { body: [] },
   '/rpc/waitlist_board': { body: [] },
 };
@@ -47,7 +48,7 @@ const EMPTY = {
 afterEach(cleanup);
 
 describe('Waitlist data', () => {
-  it('gives tonight\'s tables with how many wait for each game, money in paise as bigint', async () => {
+  it('gives tonight\'s tables with how many wait for each game and each table\'s open seats, money in paise as bigint', async () => {
     const { result } = renderWaitlist({
       ...EMPTY,
       '/rest/v1/game_table': {
@@ -60,11 +61,12 @@ describe('Waitlist data', () => {
         body: [{ id: 'hi', name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
       },
       '/rpc/waitlist_lengths': { body: [{ table_type_id: 'hi', waiting: 3 }] },
+      '/rpc/floor_open_seats': { body: [{ table_id: 't2', open_seats: 4 }] },
     });
     // A table whose game the person cannot read is left out.
     await waitFor(() => expect(result.current.tables.data).toEqual([{
       id: 't2', venueId: VENUE, name: 'Table 2', isOpen: true, seats: 9, tableTypeId: 'hi', tableTypeName: 'NLH 100/200',
-      smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n, straddle: null, waiting: 3, mustMoveToTableId: null, room: 'main',
+      smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n, straddle: null, waiting: 3, openSeats: 4, mustMoveToTableId: null, room: 'main',
     }]));
   });
 

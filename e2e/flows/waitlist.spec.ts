@@ -107,6 +107,12 @@ test.describe('Waitlist', () => {
   });
 
   test('Join and seat: the floor calls the member to a seat they see on Home, then seats them', async () => {
+    // Tonight's floor (#87): each table's open seats and its wait, the jackpot and the next tournament.
+    await player.reload();
+    await expect(tableDetail(player, 'Table 2').getByText(/^(\d+ seats? open|Full) · /)).toBeVisible();
+    await expect(player.getByText('Bad-beat jackpot')).toBeVisible();
+    await expect(player.getByText('Next tournament')).toBeVisible();
+    await expect(player.getByText('Weeknight Turbo')).toBeVisible();
     await joinButton(player, 'Table 2').click();
     await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
 

@@ -23,6 +23,8 @@ export interface FloorTable {
   readonly straddle: bigint | null;
   /** Members waiting for this table's game and stake. */
   readonly waiting: number;
+  /** Seats free tonight: not sat in, nor held for a called member (#87); null where the person may not read them. */
+  readonly openSeats: number | null;
   /** The main table a must-move table feeds (#77); null for a table of its own. */
   readonly mustMoveToTableId: string | null;
   /** The room it stands in, as the live floor groups tables (#81). */
@@ -86,7 +88,7 @@ export function failureOf(error: { code: string }): WaitlistFailure {
   return FAILURE_BY_CODE[error.code] ?? 'unavailable';
 }
 
-/** Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length. */
+/** Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length and each table's open seats. */
 export function useFloorTables() {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -94,22 +96,25 @@ export function useFloorTables() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<FloorTable[]> => {
-      const [tables, types, lengths] = await Promise.all([
+      const [tables, types, lengths, open] = await Promise.all([
         client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room').order('position'),
         client.from('table_type').select('id, name, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise'),
         client.rpc('waitlist_lengths'),
+        client.rpc('floor_open_seats'),
       ]);
       if (tables.error) throw tables.error;
       if (types.error) throw types.error;
       if (lengths.error) throw lengths.error;
+      if (open.error) throw open.error;
       const waiting = new Map(lengths.data.map((row) => [row.table_type_id, row.waiting]));
+      const openSeats = new Map(open.data.map((row) => [row.table_id, row.open_seats]));
       return tables.data.flatMap((table) => {
         const type = types.data.find((candidate) => candidate.id === table.table_type_id);
         if (!type) return [];
         return [{
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
           smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(type.buy_in_min_paise),
-          straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(type.id) ?? 0,
+          straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(type.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
           mustMoveToTableId: table.must_move_to_table_id ?? null, room: table.room === 'private' ? 'private' : 'main',
         }];
       });
