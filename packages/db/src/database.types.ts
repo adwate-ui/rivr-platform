@@ -2766,6 +2766,9 @@ isOneToOne: false
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
                            },
+"schedule_tier_cells":
+{ Args: { "p_cells": Json,"p_effective_from"?: string,"p_venue_id": string }; Returns: number
+                           },
 "seat_from_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
@@ -2875,6 +2878,11 @@ isOneToOne: false
                            },
 "take_break":
 { Args: { "p_days": number }; Returns: string
+                           },
+"tier_matrix":
+{ Args: { "p_venue_id": string }; Returns: {
+              "display_mode": Database["public"]['Enums']["feature_display_mode"],"feature_description": string,"feature_key": string,"feature_name": string,"is_enabled": boolean,"next_cell_id": string,"next_display_mode": Database["public"]['Enums']["feature_display_mode"],"next_from": string,"next_is_enabled": boolean,"shows_as": string,"tier_id": string,"tier_name": string,"tier_rank": number,"tiers_with_it": (string)[]
+            }[]
                            },
 "treasury":
 { Args: { "p_venue_id": string }; Returns: {

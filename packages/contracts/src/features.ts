@@ -71,3 +71,9 @@ export type FeatureKey = (typeof FEATURES)[number]['key'];
 /** The key of a licensed Learn source, added at upload. */
 export type LearnSourceFeatureKey = `learn.source.${string}`;
 
+/**
+ * The player app's tabs a feature gates, for the app's tab bar and the console's preview of a tier (#32):
+ * Sessions and Learn follow their feature; Home, Balance and Rewards always show.
+ */
+export const TAB_FEATURES = { sessions: 'sessions.history', learn: 'learn.library' } as const satisfies Readonly<Record<string, FeatureKey>>;
+

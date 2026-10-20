@@ -11,6 +11,10 @@ export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
 export { useStaffActions, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember } from './venueStaff.ts';
 export {
+  cellKey, useTierActions, useTierMatrix,
+  type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
+} from './tierMatrix.ts';
+export {
   useStaffAcademyActions,
   useStaffAcademyBatches,
   useStaffAcademyBookings,

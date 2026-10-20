@@ -15,6 +15,14 @@ values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000
 insert into public.member (venue_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Member', '+919000000998');
 
+-- The club's staff and members as the seed has them, read before anyone signs in: every lane's seed
+-- file adds people, so the counts below are these, not numbers written here.
+create temp table seed_count as
+select (select count(*)::int from public.staff where venue_id = '00000000-0000-4000-8000-000000000001') as staff,
+       (select count(*)::int from public.member where venue_id = '00000000-0000-4000-8000-000000000001') as members;
+grant select on seed_count to authenticated;
+select ok((select staff > 1 and members > 1 from seed_count), 'the seed has staff and members at the club');
+
 -- Sana, a cashier at Gurugram and the practice venue.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}';
@@ -28,8 +36,8 @@ select is((select count(*) from public.member where venue_id = '00000000-0000-40
   'a cashier sees no member of another venue');
 select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-0000000000e1')::int, 0,
   'a cashier sees no staff of another venue');
-select ok((select count(*) from public.member where venue_id = '00000000-0000-4000-8000-000000000001') = 14,
-  'a cashier (members.read) sees her venue''s members');
+select is((select count(*) from public.member where venue_id = '00000000-0000-4000-8000-000000000001')::int, (select members from seed_count),
+  'a cashier (members.read) sees all her venue''s members');
 select throws_ok(
   $$ select * from public.staff_credential $$, '42501', null,
   'no client can read dealer PIN hashes'
@@ -43,8 +51,8 @@ select throws_ok(
 -- Pema, a dealer: no member access.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';
 select is((select count(*) from public.member)::int, 0, 'a dealer sees no members');
-select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, 49,
-  'a dealer sees her colleagues');
+select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, (select staff from seed_count),
+  'a dealer sees all her colleagues');
 select throws_ok($$ select bank_account_number from public.venue_config $$, '42501', null,
   'a dealer cannot read the bank details');
 select is((select count(*) from public.venue_config)::int, 2, 'but reads what documents show');

@@ -64,6 +64,7 @@ export * from './ConsoleShell/index.ts';
 export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
 export * from './TvJackpotBoard/index.ts';
+export * from './TierMatrix/index.ts';
 export * from './TvWaitlistBoard/index.ts';
 export * from './WebShell/index.ts';
 export * from './DriverShell/index.ts';

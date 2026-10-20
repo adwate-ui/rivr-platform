@@ -1,3 +1,4 @@
+import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
 import { useAuthStatus, useControlState, useFeature, useMember, type AuthStatus } from '@rivr/db';
 import { InstallOffer, KillSwitchBanner, OfflineBanner, PlayerShell, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
@@ -37,8 +38,8 @@ function useReturnSearch(authStatus: AuthStatus): { toSignIn: ReturnSearch; toSi
 export function Frame({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
   const member = useMember();
-  const sessions = useFeature('sessions.history');
-  const learn = useFeature('learn.library');
+  const sessions = useFeature(TAB_FEATURES.sessions);
+  const learn = useFeature(TAB_FEATURES.learn);
   const { isVenueFrozen } = useControlState();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });

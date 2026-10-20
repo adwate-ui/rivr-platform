@@ -62,6 +62,7 @@ export const ui = {
       sops: 'SOPs',
       reports: 'Reports',
       killSwitch: 'Kill switch',
+      tiers: 'Tiers',
     },
   },
   web: {
