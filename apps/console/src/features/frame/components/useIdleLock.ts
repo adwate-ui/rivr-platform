@@ -39,18 +39,30 @@ export function useIdleLock(isCageScreen: boolean, onLock: () => void) {
       return undefined;
     }
     let activeAt = Date.now();
-    const touch = () => {
-      activeAt = Date.now();
-      writeActiveAt(activeAt);
-    };
-    touch();
-    ACTIVITY.forEach((name) => globalThis.addEventListener(name, touch));
-    const timer = globalThis.setInterval(() => {
-      if (Date.now() - activeAt <= IDLE_LIMIT) return;
+    // Another tab's activity counts too, through the stored time.
+    const isIdle = () => Date.now() - Math.max(activeAt, readActiveAt() ?? 0) > IDLE_LIMIT;
+    let isLocked = false;
+    const lock = () => {
+      if (isLocked) return;
+      isLocked = true;
       globalThis.clearInterval(timer);
       writeActiveAt(null);
       onLock();
+    };
+    // A key after the limit (a computer woken from sleep, say) locks rather than counting as activity.
+    const touch = () => {
+      if (isIdle()) {
+        lock();
+        return;
+      }
+      activeAt = Date.now();
+      writeActiveAt(activeAt);
+    };
+    const timer = globalThis.setInterval(() => {
+      if (isIdle()) lock();
     }, CHECK_EVERY);
+    touch();
+    ACTIVITY.forEach((name) => globalThis.addEventListener(name, touch));
     return () => {
       ACTIVITY.forEach((name) => globalThis.removeEventListener(name, touch));
       globalThis.clearInterval(timer);

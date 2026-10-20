@@ -2,11 +2,11 @@ import { useComputers, useStaffVenue, useThisComputer, type ThisComputer } from 
 import { t } from '@rivr/i18n';
 import { Box, Heading, Screen, Stack, Text } from '@rivr/ui';
 import { ComputerRow } from './ComputerRow.tsx';
-import { EnrolForm } from './EnrolForm.tsx';
+import { AddComputerForm, EnrolForm } from './EnrolForm.tsx';
 
 const ENROLLED_AS = { cage: 'console.computers.enrolledAsCage', console: 'console.computers.enrolledAsConsole' } as const;
 
-/** The venue's cage and admin computers (#384), for staff with devices.manage: enrol this one, revoke one. */
+/** The venue's cage and admin computers (#384), for staff with devices.manage: add one, enrol this one, revoke one. */
 export function ComputersScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
@@ -27,6 +27,18 @@ function Notices({ here, canConfigure }: { here: ThisComputer; canConfigure: boo
   return here.isOnStaffNetwork ? null : <Notice text={t('console.computers.offNetwork')} />;
 }
 
+/** This computer: what it is enrolled as or, until it is, the code to enrol it with. One browser, one computer. */
+function ThisComputerSection({ venueId, here }: { venueId: string; here: ThisComputer }) {
+  const mine = here.computer;
+  return (
+    <Stack gap={3}>
+      <Heading level={2}>{t('console.computers.thisComputer')}</Heading>
+      <Text>{mine === null ? t('console.computers.notEnrolled') : t(ENROLLED_AS[mine.kind], { name: mine.name })}</Text>
+      {mine === null ? <EnrolForm venueId={venueId} /> : null}
+    </Stack>
+  );
+}
+
 function Computers({ venueId, canConfigure }: { venueId: string; canConfigure: boolean }) {
   const here = useThisComputer(venueId);
   const computers = useComputers(venueId);
@@ -35,21 +47,20 @@ function Computers({ venueId, canConfigure }: { venueId: string; canConfigure: b
   if (here.data === undefined || computers.data === undefined) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([here.refetch(), computers.refetch()])} />;
   }
-  const mine = here.data.computer;
+  const mineId = here.data.computer?.deviceId ?? null;
   return (
     <Screen title={title}>
       <Stack gap={8}>
         <Notices here={here.data} canConfigure={canConfigure} />
-        <Stack gap={3}>
-          <Heading level={2}>{t('console.computers.thisComputer')}</Heading>
-          <Text>{mine === null ? t('console.computers.notEnrolled') : t(ENROLLED_AS[mine.kind], { name: mine.name })}</Text>
-          <EnrolForm venueId={venueId} />
-        </Stack>
+        <ThisComputerSection venueId={venueId} here={here.data} />
         <Stack gap={4} divided>
           <Heading level={2}>{t('console.computers.enrolled')}</Heading>
           {computers.data.length === 0 ? <Text tone="muted">{t('console.computers.empty')}</Text> : null}
-          {computers.data.map((computer) => <ComputerRow key={computer.deviceId} venueId={venueId} computer={computer} />)}
+          {computers.data.map((computer) => (
+            <ComputerRow key={computer.deviceId} venueId={venueId} computer={computer} isThisOne={computer.deviceId === mineId} />
+          ))}
         </Stack>
+        <AddComputerForm venueId={venueId} />
       </Stack>
     </Screen>
   );

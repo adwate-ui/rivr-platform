@@ -83,7 +83,9 @@ export const settings = {
   saveVenue: 'Save configuration',
   venueSaved: 'Configuration saved.',
   venueFailures: {
-    not_allowed: 'Only a super admin changes the venue configuration or the chips.',
+    not_allowed: 'Only a super admin changes the venue configuration or the chips, and once the club has cage and admin networks, only from an enrolled admin console on them.',
+    /** RVNET (#384): networks that would leave this admin console outside them. */
+    off_networks: 'Save the cage and admin networks from an enrolled admin console on one of them, so no one is shut out.',
     invalid: 'The database refused a value. Check each field.',
     taken: 'There is already a chip of that value. Turn it back on instead.',
     unavailable: 'That did not go through. Check the connection and try again.',

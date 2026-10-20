@@ -28,7 +28,10 @@ insert into public.device (id, venue_id, kind, name, token_hash) values
 select pg_temp.at('00000000-0000-4000-8000-000000000104', null, null);
 select ok(pg_temp.may('cage.transact'), 'with no cage and admin networks, a cashier takes money from any computer');
 
+-- Set as the SQL editor would (no one signed in), the way the owner can always clear them too.
+select set_config('request.jwt.claims', '', true);
 update public.venue_config set staff_ip_allowlist = '{203.0.113.0/24}' where venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.at('00000000-0000-4000-8000-000000000104', null, null);
 select ok(not pg_temp.may('cage.transact'), 'once the club has networks, a cashier at a computer not enrolled is refused');
 select ok(pg_temp.may('members.read'), 'though what needs no computer still works');
 select pg_temp.at('00000000-0000-4000-8000-000000000104', '203.0.113.9', 'not-a-token');
@@ -54,25 +57,56 @@ select ok(not pg_temp.may('settings.manage'), 'nor from a computer not enrolled'
 select results_eq($$ select kind::text, name, is_enforced, is_on_staff_network from public.this_computer('00000000-0000-4000-8000-000000000001') $$,
   $$ values (null::text, null::text, true, true) $$, 'this computer: not enrolled, at a venue that enforces, on its network');
 
--- Policies hold the rule too: a device manager at a computer not enrolled enrols nothing.
+-- Policies hold the rule too: a device manager at a computer not enrolled adds nothing.
 set local role authenticated;
+select throws_ok($$ select * from public.add_computer('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2') $$,
+  '42501', null, 'a device manager at a computer not enrolled adds no computer');
 select throws_ok($$ insert into public.device (venue_id, kind, name) values ('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2') $$,
-  '42501', null, 'a device manager at a computer not enrolled enrols nothing');
+  '42501', null, 'nor any device');
 select pg_temp.at('00000000-0000-4000-8000-000000000101', '203.0.113.9', 'office-token');
 select results_eq($$ select kind::text, name, is_enforced, is_on_staff_network from public.this_computer('00000000-0000-4000-8000-000000000001') $$,
   $$ values ('console'::text, 'Office'::text, true, true) $$, 'this computer: the office''s admin console');
-select lives_ok($$ insert into public.device (venue_id, kind, name, token_hash)
-                   values ('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2', repeat('a', 64)) $$, 'from the admin console, enrols the second cage');
+select ok(private.can_grant_role('00000000-0000-4000-8000-000000000001', 'admin'), 'from it, the owner gives the admin role');
+select pg_temp.at('00000000-0000-4000-8000-000000000103', '203.0.113.9', 'office-token');
+select ok(private.can_grant_role('00000000-0000-4000-8000-000000000001', 'admin'),
+  'and so does an admin, though the admin role holds cage permissions no admin console uses');
+
+-- The admin console adds the second cage, with a code; staff claim it on that computer.
+select pg_temp.at('00000000-0000-4000-8000-000000000101', '203.0.113.9', 'office-token');
+create temporary table issued as select * from public.add_computer('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 2');
+select ok((select code ~ '^[0-9]{6}$' and expires_at > now() from issued), 'from the admin console, the owner adds the second cage and gets its code');
+select pg_temp.at('00000000-0000-4000-8000-000000000106', '203.0.113.9', 'office-token');
+select throws_ok($$ select * from public.add_computer('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 3') $$,
+  '42501', null, 'a dealer adds no computer, even at the admin console');
+select pg_temp.at('00000000-0000-4000-8000-000000000104', '198.51.100.9', null);
+select throws_ok(format('select public.claim_computer(%L, %L, %L)', '00000000-0000-4000-8000-000000000001', (select code from issued), pg_temp.hash('cage-2-token')),
+  '42501', null, 'off the club''s networks, the code is not claimed');
+select pg_temp.at('00000000-0000-4000-8000-000000000104', '203.0.113.9', null);
+select is(public.claim_computer('00000000-0000-4000-8000-000000000001', '000000', pg_temp.hash('cage-2-token')), null::uuid, 'a wrong code claims nothing');
+select is(public.claim_computer('00000000-0000-4000-8000-000000000001', (select code from issued), pg_temp.hash('cage-2-token')),
+  (select device_id from issued), 'on the club''s network the cashier claims the code on the new computer');
+select pg_temp.at('00000000-0000-4000-8000-000000000104', '203.0.113.9', 'cage-2-token');
+select ok(pg_temp.may('cage.transact'), 'which is the cage from then on');
+select is(public.claim_computer('00000000-0000-4000-8000-000000000001', (select code from issued), pg_temp.hash('another-token')), null::uuid,
+  'a code is claimed once');
+select throws_ok($$ select public.claim_computer('00000000-0000-4000-8000-000000000001', '111111', null) from generate_series(1, 4) $$,
+  'RVMAX', null, 'five wrong codes stop the cashier for ten minutes');
+
+-- Networks are saved only from an enrolled admin console on one of them.
+select pg_temp.at('00000000-0000-4000-8000-000000000101', '198.51.100.9', 'office-token');
+select is_empty($$ update public.venue_config set staff_ip_allowlist = '{198.51.100.0/24}' where venue_id = '00000000-0000-4000-8000-000000000001' returning venue_id $$,
+  'off the networks, the owner changes none of the venue''s configuration');
+select pg_temp.at('00000000-0000-4000-8000-000000000101', '203.0.113.9', 'office-token');
+select throws_ok($$ update public.venue_config set staff_ip_allowlist = '{198.51.100.0/24}' where venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'RVNET', null, 'and on them, none that would leave the console outside them');
+select lives_ok($$ update public.venue_config set staff_ip_allowlist = '{203.0.113.0/24, 192.0.2.0/24}' where venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'networks the console stays on are saved');
+reset role;
 select throws_ok($$ insert into public.device (venue_id, kind, name, token_hash) values ('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 3', 'abc') $$,
   '23514', null, 'a token is stored only as its SHA-256 hash');
 select throws_ok($$ insert into public.device (venue_id, kind, name, token_hash)
                    values ('00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet', repeat('b', 64)) $$,
   '23514', null, 'and only for a cage or admin computer');
-select pg_temp.at('00000000-0000-4000-8000-000000000106', '203.0.113.9', 'office-token');
-select throws_ok($$ insert into public.device (venue_id, kind, name, token_hash)
-                   values ('00000000-0000-4000-8000-000000000001', 'cage', 'Cage 4', repeat('c', 64)) $$,
-  '42501', null, 'a dealer enrols no computer, even at the admin console');
-reset role;
 
 -- A revoked computer stops at once.
 update public.device set revoked_at = now(), revoked_reason = 'Stolen' where id = '00000000-0000-4000-8000-0000000c3841';
@@ -80,6 +114,7 @@ select pg_temp.at('00000000-0000-4000-8000-000000000104', '203.0.113.9', 'cage-t
 select ok(not pg_temp.may('cage.transact'), 'a revoked cage computer is refused at once');
 
 -- The practice venue enforces nothing, even with networks.
+select set_config('request.jwt.claims', '', true);
 update public.venue_config set staff_ip_allowlist = '{203.0.113.0/24}' where venue_id = '00000000-0000-4000-8000-000000000002';
 select pg_temp.at('00000000-0000-4000-8000-000000000141', null, null);
 select ok(pg_temp.may('cage.transact', '00000000-0000-4000-8000-000000000002'), 'at the practice venue, a cashier trains from any computer');

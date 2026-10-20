@@ -38,6 +38,7 @@ src/
     members/          a member found by name, mobile or number; the record, early departures and a tier change (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch)
     tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
+    computers/        cage and admin computers: add with a code, enrol this one, revoke (/computers)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
     tables/           each table type's rake now and changes from a time, scheduled and withdrawn (/rake)

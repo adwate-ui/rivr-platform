@@ -35,6 +35,14 @@ describe('the cage idle lock', () => {
     expect(onLock).not.toHaveBeenCalled();
   });
 
+  it('locks on the first key after ten idle minutes, as when a sleeping computer wakes', () => {
+    const onLock = vi.fn();
+    renderHook(() => useIdleLock(true, onLock));
+    vi.setSystemTime(Date.now() + 30 * MINUTE);
+    globalThis.dispatchEvent(new KeyboardEvent('keydown'));
+    expect(onLock).toHaveBeenCalledOnce();
+  });
+
   it('holds across a reload: a cage screen opened after ten idle minutes locks at once', () => {
     // The page before the reload: a reload runs no clean-up, so it stays mounted here.
     renderHook(() => useIdleLock(true, vi.fn()));

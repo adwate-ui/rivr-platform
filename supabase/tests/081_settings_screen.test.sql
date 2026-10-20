@@ -59,7 +59,11 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ insert into public.chip_denomination (venue_id, value_paise, name) values ('00000000-0000-4000-8000-000000000001', 200000, '₹2,000') $$,
   '42501', null, 'a dealer cannot add a chip');
 
--- Vikram, a super admin.
+-- Vikram, a super admin, at the club's enrolled admin console, on the networks he sets (#384).
+reset role;
+insert into public.device (venue_id, kind, name, token_hash)
+values ('00000000-0000-4000-8000-000000000001', 'console', 'Office', encode(extensions.digest('office-token', 'sha256'), 'hex'));
+select set_config('request.headers', '{"x-forwarded-for": "203.0.113.9", "x-rivr-computer": "office-token"}', true);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 update public.venue_config set alert_whatsapp = '+919876543210', staff_ip_allowlist = '{203.0.113.0/24}'
 where venue_id = '00000000-0000-4000-8000-000000000001';

@@ -2,6 +2,8 @@
 export const cage = {
   title: 'Cage',
   notAllowed: 'Your role does not use the cage. Cashiers and duty managers do.',
+  /** A cage call refused (42501): the role, or (#384) a computer not enrolled as the cage. */
+  refused: 'The cage refused this. Only cashiers and duty managers use the cage, and only at a computer enrolled as the cage once the club has networks.',
   choose: 'Find a member, or take a request from the queue.',
   search: 'Search members',
   noMatch: 'No member matches.',

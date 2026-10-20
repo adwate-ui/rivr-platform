@@ -36,8 +36,13 @@ function RevokeForm({ venueId, computer, onDone }: { venueId: string; computer: 
   );
 }
 
-/** One enrolled computer: its name, what it is enrolled as, and Revoke. */
-export function ComputerRow({ venueId, computer }: { venueId: string; computer: Computer }) {
+const KIND = { cage: 'console.computers.cage', console: 'console.computers.console' } as const;
+
+/**
+ * One computer: its name, what it is (or waits to be) enrolled as, and Revoke. The computer in use is
+ * never revoked from itself, so no one shuts out the console they are working at.
+ */
+export function ComputerRow({ venueId, computer, isThisOne }: { venueId: string; computer: Computer; isThisOne: boolean }) {
   const [isRevoking, setIsRevoking] = useState(false);
   const [failure, setFailure] = useState<DeviceFailure | null>(null);
   const done = (outcome: DeviceFailure | null) => {
@@ -49,9 +54,10 @@ export function ComputerRow({ venueId, computer }: { venueId: string; computer: 
       <Inline gap={4} align="center" justify="between" wrap>
         <Stack gap={1}>
           <Text weight="semibold">{computer.name}</Text>
-          <Text variant="small" tone="muted">{t(computer.kind === 'cage' ? 'console.computers.cage' : 'console.computers.console')}</Text>
+          <Text variant="small" tone="muted">{t(KIND[computer.kind])}</Text>
+          {computer.isEnrolled ? null : <Text variant="small" tone="muted">{t('console.computers.waiting')}</Text>}
         </Stack>
-        <Button variant="text" onClick={() => setIsRevoking(true)}>{t('console.computers.revoke', { name: computer.name })}</Button>
+        {isThisOne ? null : <Button variant="text" onClick={() => setIsRevoking(true)}>{t('console.computers.revoke', { name: computer.name })}</Button>}
       </Inline>
       {isRevoking ? <RevokeForm venueId={venueId} computer={computer} onDone={done} /> : null}
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
