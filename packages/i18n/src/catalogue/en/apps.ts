@@ -11,6 +11,7 @@ import { dealerPins, dealerSignIn, endOfDown, handEntry, pairing, queue, seats, 
 import { highHand, highHands } from './highHands.ts';
 import { jackpots } from './jackpots.ts';
 import { rake } from './rake.ts';
+import { notStaff, staff } from './staff.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
 import { balance, withdrawals } from './wallet.ts';
@@ -183,15 +184,12 @@ export const consoleApp = {
   // object, and the console's copy would ship in the player (#344).
   tablets,
   dealerPins,
+  staff,
   tvs,
   rake,
   jackpots,
   highHands,
-  /** Someone signed in who is not active staff at any venue. */
-  notStaff: {
-    title: 'Staff only',
-    body: 'This console is for RIVR staff. A manager can add your number to the staff list.',
-  },
+  notStaff,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',
   /** A screen opened by address that the staff member's role does not include. */
