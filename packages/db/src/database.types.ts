@@ -167,6 +167,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"bonus_grant": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"expired_at": string | null,"expires_at": string,"expiry_transaction_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"expired_at"?: string | null,"expires_at": string,"expiry_transaction_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"expired_at"?: string | null,"expires_at"?: string,"expiry_transaction_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"reason"?: string,"remaining_paise"?: number,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "bonus_grant_expiry_transaction_id_venue_id_fkey"
+      columns: ["expiry_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "bonus_grant_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "bonus_grant_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"buy_in_request": {
                   Row: {
                     "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"requested_by_device_id": string | null,"requested_by_staff_id": string | null,"session_id": string,"status": string,"updated_at": string,"venue_id": string

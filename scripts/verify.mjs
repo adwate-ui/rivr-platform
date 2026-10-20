@@ -13,7 +13,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
 const MODE = process.argv[2] ?? 'changed';
-const MONEY_MODULES = ['money', 'rake', 'jackpot', 'variance', 'cage', 'callTime', 'tds', 'gst', 'markers', 'credit', 'payouts'];
+const MONEY_MODULES = ['money', 'rake', 'jackpot', 'variance', 'cage', 'callTime', 'tds', 'gst', 'markers', 'credit', 'payouts', 'bonus'];
 // Shared tooling can break any package, so a change to it verifies everything.
 const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
 

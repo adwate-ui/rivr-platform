@@ -10,7 +10,9 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { BuyInPreview } from './BuyInPreview.tsx';
 
-const METHOD_LABEL: Readonly<Record<(typeof BUY_IN_METHODS)[number], MessageKey>> = { cash: 'console.cage.cash', upi: 'console.cage.upi', wallet: 'console.cage.fromWallet' };
+const METHOD_LABEL: Readonly<Record<(typeof BUY_IN_METHODS)[number], MessageKey>> = {
+  cash: 'console.cage.cash', upi: 'console.cage.upi', wallet: 'console.cage.fromWallet', bonus: 'console.cage.fromBonus',
+};
 const WHOLE_RUPEES = /^[1-9]\d{0,7}$/;
 
 /** Why the cage cannot issue chips to this member at all, as the prototype says it; null when it can. */
@@ -21,8 +23,8 @@ function blockOf(member: CageMember): string | null {
 }
 
 /**
- * The buy-in: cash, UPI with its UTR, or from the wallet, and the amount; @rivr/domain buyIn says
- * at once why not (not whole chips, below the table's minimum, more than the wallet), the database
+ * The buy-in: cash, UPI with its UTR, from the wallet or from the bonus (#17), and the amount; @rivr/domain
+ * buyIn says at once why not (not whole chips, below the table's minimum, more than the wallet or bonus), the database
  * checks it again; Issue chips, once per request id.
  */
 export function BuyInForm({ venueId, member }: { venueId: string; member: CageMember }) {
@@ -35,7 +37,7 @@ export function BuyInForm({ venueId, member }: { venueId: string; member: CageMe
   const amount = WHOLE_RUPEES.test(typed.trim()) ? fromRupees(BigInt(typed.trim())) : ZERO;
   const block = blockOf(member);
   const submit = form.handleSubmit(async (values) => {
-    const rule = buyIn(values.method, amount, member.seat?.minimum ?? ZERO, member.wallet);
+    const rule = buyIn(values.method, amount, member.seat?.minimum ?? ZERO, { wallet: member.wallet, bonus: member.bonus });
     if (!rule.ok) return setOutcome({ failure: rule.error, issued: null });
     const done = await issue.mutateAsync({ memberId: member.memberId, amount, method: values.method, utr: values.method === 'upi' ? values.utr : null, requestId, buyInRequestId: null });
     setOutcome(done.ok ? { failure: null, issued: formatMoney(amount) } : { failure: done.error, issued: null });

@@ -11,7 +11,7 @@ export const CASH_OUT_TO = ['cash', 'wallet'] as const;
 export const cashOutSchema = z.object({ amount: z.string().trim().regex(/^[1-9]\d{0,7}$/), to: z.enum(CASH_OUT_TO), isFinal: z.boolean() });
 
 /** How a cashier takes a buy-in (#57). */
-export const BUY_IN_METHODS = ['cash', 'upi', 'wallet'] as const;
+export const BUY_IN_METHODS = ['cash', 'upi', 'wallet', 'bonus'] as const;
 export type BuyInMethodKey = (typeof BUY_IN_METHODS)[number];
 
 /**

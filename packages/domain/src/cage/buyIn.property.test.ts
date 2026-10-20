@@ -1,25 +1,27 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { add, fromPaise, isChipMultiple } from '../money/index.ts';
+import { add, fromPaise, isChipMultiple, ZERO } from '../money/index.ts';
 import { buyIn, walletAfter, type BuyInMethod } from './buyIn.ts';
 
 const chips = fc.bigInt({ min: 0n, max: 200_000n }).map((count) => fromPaise(count * 5_000n));
-const methods = fc.constantFrom<BuyInMethod>('cash', 'upi', 'wallet');
+const methods = fc.constantFrom<BuyInMethod>('cash', 'upi', 'wallet', 'bonus');
 
 describe('buyIn properties', () => {
   it('only ever lets through whole ₹50 chips, at least the minimum', () => {
     fc.assert(fc.property(methods, fc.bigInt({ min: -1n, max: 10_000_000n }).map(fromPaise), chips, chips, (method, amount, minimum, wallet) => {
-      if (buyIn(method, amount, minimum, wallet).ok) {
+      if (buyIn(method, amount, minimum, { wallet, bonus: wallet }).ok) {
         expect(isChipMultiple(amount) && amount > 0n && amount >= minimum).toBe(true);
       }
     }));
   });
 
-  it('never takes more from the wallet than it holds, and cash and UPI never look at it', () => {
-    fc.assert(fc.property(chips, chips, chips, (amount, minimum, wallet) => {
-      const fromWallet = buyIn('wallet', amount, minimum, wallet);
-      if (fromWallet.ok) expect(amount <= wallet).toBe(true);
-      expect(buyIn('cash', amount, minimum, wallet)).toEqual(buyIn('cash', amount, minimum, add(wallet, fromPaise(5_000n))));
+  it('never takes more from the wallet or the bonus than it holds, and cash and UPI never look at either', () => {
+    fc.assert(fc.property(chips, chips, chips, chips, (amount, minimum, wallet, bonus) => {
+      if (buyIn('wallet', amount, minimum, { wallet, bonus }).ok) expect(amount <= wallet).toBe(true);
+      if (buyIn('bonus', amount, minimum, { wallet, bonus }).ok) expect(amount <= bonus).toBe(true);
+      const more = { wallet: add(wallet, fromPaise(5_000n)), bonus: add(bonus, fromPaise(5_000n)) };
+      expect(buyIn('cash', amount, minimum, { wallet, bonus })).toEqual(buyIn('cash', amount, minimum, more));
+      expect(buyIn('upi', amount, minimum, { wallet: ZERO, bonus: ZERO })).toEqual(buyIn('upi', amount, minimum, more));
     }));
   });
 
