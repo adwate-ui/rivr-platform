@@ -230,3 +230,4 @@ export {
   useVenueIssuer,
   type VenueIssuer,
 } from './venueConfig.ts';
+export { useContacts, useDrills, useIncidentActions, useIncidents, type Contact, type Drill, type Incident, type IncidentFailure } from './incidents.ts';

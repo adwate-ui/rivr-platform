@@ -1,0 +1,53 @@
+/** Profile, behind the member's initial. */
+export const profile = {
+  title: 'Profile',
+  identity: 'Identity',
+  kycIncomplete: 'KYC incomplete. Finish it to join a table.',
+  kycReview: 'With staff. They finish your check at the club.',
+  kycVerified: 'Verified · DigiLocker and selfie',
+  kycRefused: 'Not verified. Speak to the front desk.',
+  finishKyc: 'Finish identity check',
+  alerts: 'Waitlist alerts',
+  alertsHint: 'We tell you when a seat opens in these games.',
+  games: 'Games',
+  /** The stake for waitlist alerts (#206): one of the club's, or any. */
+  stake: 'Stake',
+  anyStake: 'Any',
+  nlh: 'NLH',
+  plo: 'PLO',
+  tournaments: 'Tournaments',
+  notifications: 'Notifications',
+  seatCalls: 'Seat calls',
+  seatCallsHint: 'When your seat is ready.',
+  callTime: 'Call time',
+  callTimeHint: 'When your call time is complete.',
+  withdrawals: 'Withdrawals',
+  withdrawalsHint: 'When a withdrawal is sent.',
+  tournamentStarts: 'Tournaments',
+  tournamentStartsHint: 'When a tournament you entered is starting.',
+  marketing: 'Promotions and offers',
+  marketingHint: 'By WhatsApp and app notification. Stop any time.',
+  saveFailed: 'Not saved. Try again.',
+  /** Whether the TVs' waitlist board names the member (#326). */
+  privacy: 'Privacy',
+  nameOnTvs: 'Show my name on the club\'s TVs',
+  nameOnTvsHint: 'Your first name and initial on the waitlist board. Off, the board shows your place instead, such as Player 2.',
+  /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
+  academyBookings: 'Your Academy bookings',
+  /** The way to the membership card (#71). */
+  card: 'Membership card',
+  showCard: 'Show card',
+  /** Limits and self-exclusion (#56), as in the prototype's Profile. */
+  limits: 'Limits',
+  sessionReminder: 'Session reminder',
+  reminderNone: 'None',
+  reminderHours: '{hours}h',
+  selfExclusion: 'Self-exclusion',
+  takeBreak: 'Take a break',
+  breakIntro: 'Waitlists and buy-ins close for the period you choose. It cannot be shortened.',
+  break1: '24 hours',
+  break7: '7 days',
+  break30: '30 days',
+  /** `{until}` is when a break would end: Wed 17 Feb, 00:10. */
+  breakUntil: 'Until {until}',
+};

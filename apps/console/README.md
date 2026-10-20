@@ -46,6 +46,7 @@ src/
     high-hands/       high hands claimed on the tablets: approve and pay in chips, or reject; the history (/high-hands)
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
+    incidents/        the incident log, the club's contacts and its drills (/incidents)
     promotions/       what is running, paused and resumed in place; the deck's templates, each published as it stands; and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
 ```
 
