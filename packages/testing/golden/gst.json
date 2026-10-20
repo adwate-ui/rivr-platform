@@ -1,6 +1,6 @@
 {
   "rule": "gst included in an amount",
-  "about": "GST included in an amount (#23; decision 0071). What the club collects already includes GST, so the tax is taken out of it, never added on. Each half of the tax (CGST and SGST, always equal) is the amount times half the rate over one plus the rate, rounded to the nearest paisa, a half paisa up. The taxable value is what is left, so taxable, CGST and SGST always add up to the amount. Rates are in basis points: 1800 is 18%.",
+  "about": "GST included in an amount (#23; decision 0071). What the club collects already includes GST, so the tax is taken out of it, never added on. Each half of the tax (CGST and SGST, always equal) is the amount times half the rate over one plus the rate, rounded to the nearest paisa, a half paisa up. The taxable value is what is left, so taxable, CGST and SGST always add up to the amount. Rates are in basis points: 1800 is 18%. For a buyer registered in another state (igst_included; #380, decision 0102) the tax is IGST, one figure at the full rate: the amount times the rate over one plus the rate, rounded once to the nearest paisa, a half up, with the taxable value the rest.",
   "cases": [
     {
       "description": "An Academy seat of ₹2,000 at 18%: each half is ₹152.542..., so ₹152.54, and ₹1,694.92 is taxable.",
@@ -49,6 +49,54 @@
       "operation": "gst_included",
       "inputs": { "inclusive": "₹0", "rate": "1800" },
       "expected": { "taxable": "₹0", "cgst": "₹0", "sgst": "₹0" }
+    },
+    {
+      "description": "IGST: ₹2,000 from a company in another state at 18% is ₹305.084..., so ₹305.08, and ₹1,694.92 is taxable.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹2,000", "rate": "1800" },
+      "expected": { "taxable": "₹1,694.92", "igst": "₹305.08" }
+    },
+    {
+      "description": "IGST: ₹1,500 at 18% is ₹228.813..., so ₹228.81.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹1,500", "rate": "1800" },
+      "expected": { "taxable": "₹1,271.19", "igst": "₹228.81" }
+    },
+    {
+      "description": "IGST rounds once: ₹1,180.59 at 18% is exactly ₹180.09, a paisa less than CGST and SGST's ₹90.05 each.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹1,180.59", "rate": "1800" },
+      "expected": { "taxable": "₹1,000.50", "igst": "₹180.09" }
+    },
+    {
+      "description": "IGST at exactly half a paisa: ₹1,000.16 at 28% is ₹218.785, rounded up to ₹218.79.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹1,000.16", "rate": "2800" },
+      "expected": { "taxable": "₹781.37", "igst": "₹218.79" }
+    },
+    {
+      "description": "IGST a paisa below: ₹1,000.15 at 28% is ₹218.782..., so ₹218.78.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹1,000.15", "rate": "2800" },
+      "expected": { "taxable": "₹781.37", "igst": "₹218.78" }
+    },
+    {
+      "description": "IGST: ₹1,000 at 28% is exactly ₹218.75, where CGST and SGST each round up to ₹109.38.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹1,000", "rate": "2800" },
+      "expected": { "taxable": "₹781.25", "igst": "₹218.75" }
+    },
+    {
+      "description": "IGST at a rate of nothing: all of ₹1,000 is taxable.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹1,000", "rate": "0" },
+      "expected": { "taxable": "₹1,000", "igst": "₹0" }
+    },
+    {
+      "description": "IGST on nothing collected is nothing.",
+      "operation": "igst_included",
+      "inputs": { "inclusive": "₹0", "rate": "1800" },
+      "expected": { "taxable": "₹0", "igst": "₹0" }
     }
   ]
 }

@@ -20,3 +20,5 @@ invoiced once per business day on a consolidated invoice (#379), and other-state
 (#380). A venue without a GSTIN cannot issue a tax invoice, so the local and staging seed gives the club
 a made-up one. The practice venue's invoices are marked as not tax invoices, and the outbox never offers
 their events.
+
+Amended by decision 0102 (#380): a buyer registered in another state is charged IGST, not refused.
