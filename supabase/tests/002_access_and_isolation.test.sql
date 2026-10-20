@@ -43,7 +43,7 @@ select throws_ok(
 -- Pema, a dealer: no member access.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';
 select is((select count(*) from public.member)::int, 0, 'a dealer sees no members');
-select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, 42,
+select is((select count(*) from public.staff where venue_id = '00000000-0000-4000-8000-000000000001')::int, 44,
   'a dealer sees her colleagues');
 select throws_ok($$ select bank_account_number from public.venue_config $$, '42501', null,
   'a dealer cannot read the bank details');
@@ -66,9 +66,15 @@ select throws_ok(
   'an admin cannot create a super_admin'
 );
 select throws_ok(
-  $$ update public.staff set role = 'super_admin' where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  $$ update public.staff set role = 'super_admin' where user_id = '00000000-0000-4000-8000-000000000115' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
   '42501', null,
-  'an admin cannot promote anyone, herself included, to super_admin'
+  'an admin cannot promote anyone to super_admin'
+);
+-- Herself neither: nobody changes their own role (#28), which is checked first.
+select throws_ok(
+  $$ update public.staff set role = 'super_admin' where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'RVOWN', null,
+  'nor herself'
 );
 -- Row-level security makes these updates match no rows, so the values must be unchanged.
 update public.staff set job_title = 'Changed' where role = 'super_admin';

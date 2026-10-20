@@ -4,7 +4,7 @@ import { ConsoleShell, KillSwitchBanner, Screen } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
-import { railFor, railItemAt } from './rail.ts';
+import { isAllowedAt, railFor, railItemAt } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffFooter } from './StaffFooter.tsx';
 
@@ -44,7 +44,8 @@ function StaffFrame({ staff, children }: { staff: Extract<StaffVenueState, { sta
       banner={isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
       railFooter={<StaffFooter staff={staff} />}
     >
-      {children}
+      {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
+      {isAllowedAt(staff.venue.permissions, pathname) ? children : <Screen title={t('console.title')} status="error" errorText={t('console.notAllowed')} />}
     </ConsoleShell>
   );
 }

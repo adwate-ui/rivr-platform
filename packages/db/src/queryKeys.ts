@@ -49,6 +49,7 @@ export const queryKeys = {
   kycInPersonCandidates: (userId: string, venueId: string, search: string) => ['user', userId, 'kyc-in-person', venueId, search] as const,
   /** The venues where the signed-in person is active staff, with their role. */
   staffVenues: (userId: string) => ['user', userId, 'staff-venues'] as const,
+  venueStaff: (userId: string, venueId: string) => ['user', userId, 'venue-staff', venueId] as const,
   /** A signed URL for one KYC image. */
   kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
   /** Tonight's tables and each game's waitlist length, as a member or staff sees them. */

@@ -55,6 +55,8 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000140', '+919000000140', 'Rohit Chauhan'),
   ('00000000-0000-4000-8000-000000000141', '+919000000141', 'Pooja Nair'),
   ('00000000-0000-4000-8000-000000000142', '+919000000142', 'Rahul Verma'),
+  ('00000000-0000-4000-8000-000000000150', '+919000000150', 'Ayesha Thomas'),
+  ('00000000-0000-4000-8000-000000000151', '+919000000151', 'Manoj Pillai'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -149,6 +151,10 @@ from (values
   -- The End of day flow's own cashier, who closes a shift short, and floor manager, who gives the reason (#45).
   ('00000000-0000-4000-8000-000000000141'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000142'::uuid, 'Floor manager', 'admin'),
+  -- The Staff flow's own floor manager, who adds and changes a staff member, and cashier, who is kept
+  -- out of admin screens (#28).
+  ('00000000-0000-4000-8000-000000000150'::uuid, 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-000000000151'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000109'::uuid, 'Investor', 'owner_view')
 ) as s (person_id, job_title, role)
 join seed_person p on p.id = s.person_id
