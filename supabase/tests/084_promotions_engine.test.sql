@@ -86,7 +86,7 @@ with p as (insert into public.promotion (venue_id, name, status, priority, per_p
 insert into ids select 'points', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, effect)
 values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'points'), 'buy_in', '{"kind": "points", "points": 500}');
-select is((select count(*)::integer from public.promotion), 3, 'marketing adds promotions too, and sees the venue''s');
+select is((select count(*)::integer from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key is null), 3, 'marketing adds promotions too, and sees the venue''s');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Cashier special') $$,
   '42501', null, 'a cashier adds none');
@@ -97,10 +97,10 @@ delete from public.promotion_rule;
 reset role;
 select is((select count(*)::integer from public.promotion where priority = 1000), 0, 'nor changes a promotion');
 select is((select count(*)::integer from public.promotion_budget where cap_paise is null and cap_count is null), 0, 'or a budget');
-select is((select count(*)::integer from public.promotion_rule), 4, 'or removes a rule');
+select is((select count(*)::integer from public.promotion_rule r join public.promotion p on p.id = r.promotion_id where p.template_key is null), 4, 'or removes a rule');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 delete from public.promotion_rule where position = 9;
-select is((select count(*)::integer from public.promotion_rule), 3, 'an admin removes one');
+select is((select count(*)::integer from public.promotion_rule r join public.promotion p on p.id = r.promotion_id where p.template_key is null), 3, 'an admin removes one');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.promotion_rule $$, 'nor does a dealer see a rule');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
@@ -108,14 +108,15 @@ select is_empty($$ select * from public.promotion_budget $$, 'nor a member a bud
 reset role;
 update public.staff set is_active = false where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is_empty($$ select * from public.promotion $$, 'staff of the practice venue alone see none of the club''s promotions');
-select is_empty($$ select * from public.promotion_rule $$, 'rules');
+select is_empty($$ select * from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'staff of the practice venue alone see none of the club''s promotions');
+select is_empty($$ select * from public.promotion_rule where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'rules');
 select is_empty($$ select * from public.promotion_budget $$, 'or budgets');
 select throws_ok($$ insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Practice night') $$,
   '42501', null, 'and add none to it');
 update public.promotion set priority = 1000;
 reset role;
-select is((select count(*)::integer from public.promotion where priority = 1000), 0, 'nor change one');
+select is((select count(*)::integer from public.promotion where priority = 1000 and venue_id = '00000000-0000-4000-8000-000000000001'), 0, 'nor change one');
 update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
 
 -- Seated at Table 3: Ishaan and Kunal, then Neel; Vihaan at Table 3 too.
@@ -136,7 +137,9 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000216', null, 
   (private.tonight_began(now()) at time zone 'Asia/Kolkata')::date::text, 'and tonight''s club day');
 select is(private.promotion_facts('00000000-0000-4000-8000-000000000216', null, now()) -> 'call_time_complete', 'false'::jsonb,
   'Kunal, just seated at 100/200, owes his hour of call time');
-update public.seat_session set started_at = now() - interval '2 hours', seated_here_at = now() - interval '2 hours'
+-- Two hours in, the minute's sweep records his call time complete (#78, #80).
+update public.seat_session set started_at = now() - interval '2 hours', seated_here_at = now() - interval '2 hours',
+  call_time_completed_at = now() - interval '1 hour'
 where member_id = '00000000-0000-4000-8000-000000000216' and ended_at is null;
 select is(private.promotion_facts('00000000-0000-4000-8000-000000000216', null, now()) -> 'call_time_complete', 'true'::jsonb,
   'and two hours in has played it');

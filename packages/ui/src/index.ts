@@ -44,6 +44,7 @@ export * from './SeatRing/index.ts';
 export * from './CallTimeTimer/index.ts';
 export * from './TableCard/index.ts';
 export * from './DataTable/index.ts';
+export * from './Chart/index.ts';
 
 // Tier-gated features and the kill switch
 export * from './FeatureGate/index.ts';
@@ -68,6 +69,8 @@ export * from './TierMatrix/index.ts';
 export * from './TvWaitlistBoard/index.ts';
 export * from './TvTournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
+export * from './DisplayPreview/index.ts';
+export * from './PromotionCard/index.ts';
 export * from './WebShell/index.ts';
 export * from './DriverShell/index.ts';
 export * from './StepScreen/index.ts';

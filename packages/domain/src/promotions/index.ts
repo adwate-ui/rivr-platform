@@ -1,3 +1,4 @@
+export { promotionDraft, type PromotionDraft } from './builder.ts';
 export {
   promotionApplies,
   promotionReward,

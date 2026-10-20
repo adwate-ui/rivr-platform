@@ -23,6 +23,7 @@ import { treasuryRoute } from './routes/treasury.tsx';
 import { endOfDayRoute } from './routes/end-of-day.tsx';
 import { staffRoute } from './routes/staff.tsx';
 import { certificationRoute } from './routes/certification.tsx';
+import { promotionsRoute } from './routes/promotions.tsx';
 import { sopsRoute } from './routes/sops.tsx';
 import { tiersRoute } from './routes/tiers.tsx';
 import { computersRoute } from './routes/computers.tsx';
@@ -35,6 +36,7 @@ const routeTree = rootRoute.addChildren([
     highHandsRoute, markersRoute, membersRoute, killSwitchRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute,
     certificationRoute,
     sopsRoute,
+    promotionsRoute,
     tiersRoute,
   ]),
 ]);
