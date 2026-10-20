@@ -40,6 +40,7 @@ export const ui = {
       tvs: 'TVs',
       rake: 'Rake',
       dealerPins: 'Dealer PINs',
+      certification: 'Certification',
       checkIn: 'Check-in',
       tournaments: 'Tournaments',
       cage: 'Cage',

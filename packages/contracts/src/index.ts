@@ -51,6 +51,7 @@ export {
   type TvMode,
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
+export { quizAnswersSchema, quizQuestionsSchema, type QuizQuestion } from './training.ts';
 export { rakeChangeSchema } from './rake.ts';
 export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,
