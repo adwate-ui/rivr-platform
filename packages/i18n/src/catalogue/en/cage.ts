@@ -119,6 +119,10 @@ export const cage = {
   cashedOutCash: 'Cash-out done. Hand over {amount} in cash.',
   cashedOutWallet: 'Cash-out done. {amount} to the wallet.',
   cashedOutAllSettled: 'Cash-out done. The chips all went to markers, so nothing is handed over.',
+  /** Nothing is handed over because TDS took what was left after markers (#22). */
+  cashedOutAllTds: 'Cash-out done. What was left after markers is all TDS, so nothing is handed over.',
+  /** Under the cash-out done line: {amount} is the TDS withheld for the government (#22). */
+  cashedOutTds: 'TDS withheld: {amount}. Tell the member.',
   /** Under the cash-out done line: `{amount}` is what the chips paid off. */
   cashedOutSettled: 'Markers settled: {amount}.',
   notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',

@@ -1,0 +1,96 @@
+{
+  "rule": "tds on a cash-out",
+  "about": "TDS on a cash-out (scope-v1 module 5, \"TDS engine\"; decision 0068). Winnings are the period's chips cashed out, this cash-out included, less the chips bought in it (session, day or financial year, by the basis in force). Nothing is due until the winnings exceed the threshold; then the rate applies to all of them, rounded down to the rupee. Where a PAN is required and the member has none on record, the no-PAN rate applies instead. The cash-out bears what the period owes less the TDS already recorded in it, withheld or shadow, never below nothing (no refund) and never more than it pays the member after markers. Rates are in basis points: 3000 is 30%.",
+  "cases": [
+    {
+      "description": "Below the threshold: ₹8,000 won against ₹10,000, nothing due.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹8,000", "already": "₹0", "payout": "₹18,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹0", "amount": "₹0" }
+    },
+    {
+      "description": "Exactly at the threshold is not above it: nothing due.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹10,000", "already": "₹0", "payout": "₹20,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹0", "amount": "₹0" }
+    },
+    {
+      "description": "One ₹50 chip above: 30% of ₹10,050 is ₹3,015, on all of it.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹10,050", "already": "₹0", "payout": "₹20,050", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹3,015", "amount": "₹3,015" }
+    },
+    {
+      "description": "₹40,000 won at 30%: ₹12,000.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹50,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹12,000", "amount": "₹12,000" }
+    },
+    {
+      "description": "Rounded down to the rupee: 30% of ₹10,033 is ₹3,009.90, so ₹3,009.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹10,033", "already": "₹0", "payout": "₹20,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹3,009", "amount": "₹3,009" }
+    },
+    {
+      "description": "A later cash-out in the period bears only the rest: ₹60,000 won owes ₹18,000, ₹12,000 is recorded, so ₹6,000.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹60,000", "already": "₹12,000", "payout": "₹20,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹18,000", "amount": "₹6,000" }
+    },
+    {
+      "description": "Never more than the cash-out pays: ₹12,000 due, but ₹5,000 paid once markers are settled.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹5,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹12,000", "amount": "₹5,000" }
+    },
+    {
+      "description": "A cash-out that all goes to markers bears nothing now; the period still owes it.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹0", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹12,000", "amount": "₹0" }
+    },
+    {
+      "description": "Down ₹20,000 in the period: nothing due.",
+      "operation": "tds",
+      "inputs": { "winnings": "-₹20,000", "already": "₹0", "payout": "₹30,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹0", "amount": "₹0" }
+    },
+    {
+      "description": "No refund: back down to ₹20,000 won owes ₹6,000, with ₹12,000 already recorded, so this one bears nothing.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹20,000", "already": "₹12,000", "payout": "₹10,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹6,000", "amount": "₹0" }
+    },
+    {
+      "description": "No PAN where one is required: the no-PAN rate, 40% of ₹40,000, ₹16,000.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹50,000", "hasPan": "no", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "4000" },
+      "expected": { "rate": "4000", "due": "₹16,000", "amount": "₹16,000" }
+    },
+    {
+      "description": "No PAN, but none required: the ordinary rate.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹50,000", "hasPan": "no", "rate": "3000", "threshold": "₹10,000", "panRequired": "no", "noPanRate": "4000" },
+      "expected": { "rate": "3000", "due": "₹12,000", "amount": "₹12,000" }
+    },
+    {
+      "description": "A PAN on record keeps the ordinary rate where one is required.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹50,000", "hasPan": "yes", "rate": "3000", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "4000" },
+      "expected": { "rate": "3000", "due": "₹12,000", "amount": "₹12,000" }
+    },
+    {
+      "description": "A zero rate owes nothing.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹40,000", "already": "₹0", "payout": "₹50,000", "hasPan": "yes", "rate": "0", "threshold": "₹10,000", "panRequired": "yes", "noPanRate": "0" },
+      "expected": { "rate": "0", "due": "₹0", "amount": "₹0" }
+    },
+    {
+      "description": "With no threshold, one ₹50 chip won owes 30%: ₹15.",
+      "operation": "tds",
+      "inputs": { "winnings": "₹50", "already": "₹0", "payout": "₹50", "hasPan": "yes", "rate": "3000", "threshold": "₹0", "panRequired": "yes", "noPanRate": "3000" },
+      "expected": { "rate": "3000", "due": "₹15", "amount": "₹15" }
+    }
+  ]
+}

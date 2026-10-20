@@ -94,6 +94,7 @@ export {
 export {
   SETTINGS,
   SETTING_SCOPES,
+  TDS_BASES,
   settingValueJsonSchema,
   type SettingDefinition,
   type SettingKey,

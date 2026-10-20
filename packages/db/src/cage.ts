@@ -121,11 +121,12 @@ export interface CashOutOrder {
   readonly requestId: string;
 }
 
-/** What a cash-out came to (#75): what it settled on markers, what the member got, and whether their visit is closed (#76). */
+/** What a cash-out came to (#75): what it settled on markers, what the member got, the TDS withheld (#22), and whether their visit is closed (#76). */
 export interface CashOutDone {
   readonly cageTransactionId: string;
   readonly settled: Paise;
   readonly toMember: Paise;
+  readonly tds: Paise;
   readonly isVisitClosed: boolean;
 }
 
@@ -166,7 +167,7 @@ export function useCageActions(venueId: string) {
       const row = data[0];
       return row === undefined ? err('unavailable') : ok({
         cageTransactionId: row.cage_transaction_id, settled: toPaise(row.markers_settled_paise), toMember: toPaise(row.to_member_paise),
-        isVisitClosed: row.is_visit_closed,
+        tds: toPaise(row.tds_paise), isVisitClosed: row.is_visit_closed,
       });
     },
   });
