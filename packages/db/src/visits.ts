@@ -57,3 +57,33 @@ export function useCheckInActions(venueId: string) {
   });
   return { checkIn, checkInByPhone };
 }
+
+/**
+ * Why a member was not checked out: not the front desk, no member with that number here, not checked in,
+ * call time still owed until an admin lets them leave early (#79), or anything else.
+ */
+export type CheckOutFailure = 'not_allowed' | 'no_member' | 'not_in_room' | 'call_time_owed' | 'unavailable';
+
+const CHECK_OUT_FAILURE_BY_CODE: Readonly<Record<string, CheckOutFailure>> = {
+  '42501': 'not_allowed', RVNOM: 'no_member', RVOUT: 'not_in_room', RVCTS: 'call_time_owed',
+};
+
+/**
+ * Checks a member out at the door (#82), from the room list or by mobile number: their visit closes, which
+ * fixes its hours and earns its points. Each resolves to the visit's id and reloads the lists.
+ */
+export function useCheckOutActions(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  const settle = async ({ data, error }: { data: string | null; error: { code: string } | null }): Promise<Result<string, CheckOutFailure>> => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.doorBoard(userId ?? 'signed-out', venueId) });
+    return error || data === null ? err(CHECK_OUT_FAILURE_BY_CODE[error?.code ?? ''] ?? 'unavailable') : ok(data);
+  };
+  const checkOut = useMutation({
+    mutationFn: async (memberId: string) => settle(await client.rpc('check_out', { p_venue_id: venueId, p_member_id: memberId })),
+  });
+  const checkOutByPhone = useMutation({
+    mutationFn: async (phone: string) => settle(await client.rpc('check_out_by_phone', { p_venue_id: venueId, p_phone: phone })),
+  });
+  return { checkOut, checkOutByPhone };
+}

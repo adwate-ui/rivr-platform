@@ -3,8 +3,8 @@
  * this flow's own front desk (Auth sends one code a minute to a number), checks Naina Kapoor in from
  * the expected list (she is on the 100/200 list from the seed) and Rohan Bhatia by his mobile number;
  * both move to In the room, and a number no member has is refused with the reason. A member on a
- * break is refused at the door in supabase/tests/047_visits.test.sql. Check-out comes with #82, so
- * the flow runs on a freshly seeded local stack.
+ * break is refused at the door in supabase/tests/047_visits.test.sql. Check-out is the Check-out flow's
+ * (#82); this one runs on a freshly seeded local stack.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';

@@ -2433,6 +2433,12 @@ isOneToOne: false
 "check_kyc_in_person":
 { Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
                            },
+"check_out":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
+                           },
+"check_out_by_phone":
+{ Args: { "p_phone": string,"p_venue_id": string }; Returns: string
+                           },
 "check_tv_pairing":
 { Args: { "p_secret": string }; Returns: {
               "device_id": string,"previous_user_id": string,"refusal": string
