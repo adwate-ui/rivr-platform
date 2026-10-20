@@ -15,6 +15,9 @@ insert into seed_person_a (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000153', '+919000000153', 'Imran Qureshi'),
   ('00000000-0000-4000-8000-000000000154', '+919000000154', 'Leela Menon'),
   ('00000000-0000-4000-8000-000000000155', '+919000000155', 'Tara Bose'),
+  -- The Check-out flow's own front desk, and the member it checks in and out (#82).
+  ('00000000-0000-4000-8000-000000000158', '+919000000158', 'Deepa Kulkarni'),
+  ('00000000-0000-4000-8000-000000000253', '+919000000253', 'Varun Malhotra'),
   -- The Tiers flow's own members: one at Member, one with a black card (#32, flow 21).
   ('00000000-0000-4000-8000-000000000250', '+919000000250', 'Aarav Joshi'),
   ('00000000-0000-4000-8000-000000000251', '+919000000251', 'Kiara Shah');
@@ -46,7 +49,8 @@ select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, s.job_title, s
 from (values
   ('00000000-0000-4000-8000-000000000153'::uuid, 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-000000000154'::uuid, 'General manager', 'super_admin'),
-  ('00000000-0000-4000-8000-000000000155'::uuid, 'Cashier', 'cashier')
+  ('00000000-0000-4000-8000-000000000155'::uuid, 'Cashier', 'cashier'),
+  ('00000000-0000-4000-8000-000000000158'::uuid, 'Front desk', 'host')
 ) as s (person_id, job_title, role)
 join seed_person_a p on p.id = s.person_id
 on conflict (venue_id, user_id) do nothing;
@@ -56,6 +60,7 @@ select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = m.tier_name)
 from (values
   ('00000000-0000-4000-8000-000000000250'::uuid, 'Member'),
+  ('00000000-0000-4000-8000-000000000253'::uuid, 'Member'),
   ('00000000-0000-4000-8000-000000000251'::uuid, 'Black card')
 ) as m (person_id, tier_name)
 join seed_person_a p on p.id = m.person_id
