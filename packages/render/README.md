@@ -13,6 +13,7 @@ A small Vite page, the render host (`src/host/`), loads `@rivr/ui/styles.css`, m
 | `renderToMp4(request, { fps, durationMs, leadMs })` | An H.264 MP4 of the template's CSS animations: each frame captured with every animation held at its time, after `leadMs` of still frames, encoded in Chromium (WebCodecs) and written by Mediabunny (`docs/decisions/0039`). |
 | `templates`, `TemplateName`, `TemplateProps<Name>` | The template registry; props are type-checked per template. |
 | `RenderRequest<Name>` | The request type. |
+| `renderInvoicePdf(invoice)`, `invoiceDocumentProps(invoice)`, `storedInvoiceFromRow(row)`, `StoredInvoice` | A stored invoice (#68), from its `invoice` row, as a one-page A4 PDF through `document.invoice`, and the props it is drawn from: the supplier, number, buyer and amounts exactly as stored, with CGST and SGST at half the rate each or IGST alone (decision 0111). |
 
 Templates:
 

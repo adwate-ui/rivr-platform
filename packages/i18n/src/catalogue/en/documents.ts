@@ -19,6 +19,12 @@ export const documents = {
     caption: 'What the invoice is for',
     description: 'Description',
     amount: 'Amount',
+    /** Beneath the lines of a stored invoice (#68). `{rate}` is as `9%`. */
+    taxableValue: 'Taxable value',
+    cgst: 'CGST at {rate}',
+    sgst: 'SGST at {rate}',
+    igst: 'IGST at {rate}',
+    total: 'Total',
   },
   statement: {
     title: 'Statement',
