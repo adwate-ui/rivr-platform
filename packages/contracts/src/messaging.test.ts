@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { waitlistCalledSchema } from './messaging.ts';
+import { promotionOfferedSchema, waitlistCalledSchema } from './messaging.ts';
 
 describe('waitlistCalledSchema', () => {
   // As private.put_call builds it (#63): Postgres writes the hold with microseconds and the session's offset.
@@ -19,5 +19,14 @@ describe('waitlistCalledSchema', () => {
 
   it('refuses a seat the tables do not have', () => {
     expect(waitlistCalledSchema.safeParse({ ...emitted, seat: 11 }).success).toBe(false);
+  });
+});
+
+describe('promotionOfferedSchema (#86)', () => {
+  it('reads an offer as the database emits it, a card with or without its detail', () => {
+    const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: '00000000-0000-4000-8000-000000000212', title: 'Double points', detail: null, runs: 'Every day' };
+    expect(promotionOfferedSchema.safeParse(offer).success).toBe(true);
+    expect(promotionOfferedSchema.safeParse({ ...offer, title: ' ' }).success).toBe(false);
+    expect(promotionOfferedSchema.safeParse({ ...offer, member_id: 'not-a-member' }).success).toBe(false);
   });
 });

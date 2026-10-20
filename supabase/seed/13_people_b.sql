@@ -2,17 +2,20 @@
 -- 10_people.sql; every statement is idempotent. Those who sign in take code 123456 locally
 -- (supabase/config.template.toml, [auth.sms.test_otp]).
 
--- The Publish a promotion flow's own marketing manager, at both venues (#84, flow 7).
+-- The Publish a promotion flow's own floor manager, at both venues, who builds and publishes the
+-- promotion and pairs the TV (#84, #86, flow 7), and its own member, who reads it on Home.
 create temporary table lane_b_person (
   id uuid primary key,
   phone text not null,
   full_name text not null,
-  job_title text not null,
-  role public.staff_role not null
+  -- Staff only: a member has none.
+  job_title text,
+  role public.staff_role
 ) on commit drop;
 
 insert into lane_b_person (id, phone, full_name, job_title, role) values
-  ('00000000-0000-4000-8000-000000000180', '+919000000180', 'Tara Bhalla', 'Marketing manager', 'marketing');
+  ('00000000-0000-4000-8000-000000000180', '+919000000180', 'Tara Bhalla', 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-000000000280', '+919000000280', 'Rhea Sood', null, null);
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -33,4 +36,12 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 select v.venue_id, p.id, p.full_name, p.job_title, p.role, p.phone
 from lane_b_person p
 cross join (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+where p.role is not null
 on conflict (venue_id, user_id) do nothing;
+
+insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
+select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
+       (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
+from lane_b_person p
+where p.role is null
+on conflict (id) do nothing;

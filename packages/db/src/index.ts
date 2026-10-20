@@ -160,6 +160,8 @@ export {
   type VenueTv,
 } from './tvScreens.ts';
 export { useTvJackpot, useTvWaitlistBoard, type TvJackpot, type TvPlace, type TvStake } from './tvBoards.ts';
+export { useMyPromotionCards, type PromotionCardData } from './promotionCards.ts';
+export { useTvPromotions } from './tvPromotions.ts';
 export {
   useCurrentDown,
   useDownActions,
