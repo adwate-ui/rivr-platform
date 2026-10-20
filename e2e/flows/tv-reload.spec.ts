@@ -17,7 +17,8 @@ const MODES: readonly { chip: string; rendered: (tv: Page) => Locator }[] = [
   { chip: 'Call-time board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Call-time board' }) },
   { chip: 'Jackpot and high hand', rendered: (tv) => tv.getByText('High hand tonight', { exact: true }) },
   { chip: 'Tournament clock', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Tournament clock' }) },
-  { chip: 'Promotions', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Promotions' }) },
+  // A live promotion's slide, or that none is running (#86).
+  { chip: 'Promotions', rendered: (tv) => tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true })) },
   { chip: 'Rewards ticker', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Rewards ticker' }) },
   { chip: 'League leaderboard', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'League leaderboard' }) },
   { chip: 'Social wall', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Social wall' }) },

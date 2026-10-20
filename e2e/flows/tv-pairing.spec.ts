@@ -49,9 +49,11 @@ test.describe('TV pairing', () => {
 
     await modes.getByRole('button', { name: 'Promotions', exact: true }).click();
     await expect(modes.getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    await expect(tv.getByRole('heading', { name: 'Promotions' })).toBeVisible({ timeout: 15_000 });
+    // Promotions shows a live promotion's slide, or that none is running (#86).
+    const promotions = tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true }));
+    await expect(promotions).toBeVisible({ timeout: 15_000 });
     await tv.reload();
-    await expect(tv.getByRole('heading', { name: 'Promotions' })).toBeVisible({ timeout: 5_000 });
+    await expect(promotions).toBeVisible({ timeout: 5_000 });
 
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
