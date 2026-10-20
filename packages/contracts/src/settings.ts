@@ -67,10 +67,13 @@ const jackpotDrop = {
   key: 'jackpot.drop',
   description: 'The bad-beat jackpot drop while the jackpot is live: paise from every pot above the threshold, in whole ₹50 chips (scope-v1 module 4).',
   scope: 'venue',
-  value: z.strictObject({
-    drop_paise: z.int().min(0).max(100_000).multipleOf(CHIP_PAISE),
-    above_paise: z.int().min(0).max(100_000_000).multipleOf(CHIP_PAISE),
-  }),
+  // The database's schema cannot compare the two; check_setting refuses a threshold below the drop (#296).
+  value: z
+    .strictObject({
+      drop_paise: z.int().min(0).max(100_000).multipleOf(CHIP_PAISE),
+      above_paise: z.int().min(0).max(100_000_000).multipleOf(CHIP_PAISE),
+    })
+    .refine((rule) => rule.above_paise >= rule.drop_paise),
 } as const satisfies SettingDefinition;
 
 const jackpotShares = {
