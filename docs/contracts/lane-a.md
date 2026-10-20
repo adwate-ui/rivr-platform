@@ -66,7 +66,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 
 ## Screens
 
-Console: `features/cage`, `features/markers`, `features/treasury`, `features/end-of-day`, `features/withdrawals`, `features/expenses`, `features/reports`, `features/owner-dashboard`, `features/admin` (the kill switch, #27; exports, purge, devices, staff, rosters, tiers matrix and overrides, venue configuration). Player app: `features/balance` (with lane C's shell). Feature keys: `balance.deposits`; core keys for the balance view and withdrawals.
+Console: `features/cage`, `features/markers`, `features/treasury`, `features/end-of-day`, `features/withdrawals`, `features/expenses`, `features/reports`, `features/owner-dashboard`, `features/admin` (the kill switch, #27; exports, purge, devices, staff, rosters, tiers matrix and overrides), `features/settings` (every effective-dated setting, the venue configuration and the chips, #33). Player app: `features/balance` (with lane C's shell). Feature keys: `balance.deposits`; core keys for the balance view and withdrawals.
 
 ## Settings keys added
 

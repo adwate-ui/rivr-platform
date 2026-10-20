@@ -9,13 +9,20 @@ import { HighHandCard } from './social/HighHandCard.tsx';
 import { PromoCard } from './social/PromoCard.tsx';
 import { TournamentPoster } from './social/TournamentPoster.tsx';
 import { WinnerCard } from './social/WinnerCard.tsx';
+import { PromotionSlide } from './tv/PromotionSlide.tsx';
+import { TournamentClockSlide } from './tv/TournamentClockSlide.tsx';
+import { WaitlistSlide } from './tv/WaitlistSlide.tsx';
 
 /**
  * Every template @rivr/render can draw, by name. A template composes @rivr/ui components and
  * defines no styles of its own.
  */
 export const templates = {
+  // The TV's layouts (#64), as slides.
   'tv.badBeatJackpot': BadBeatJackpotSlide,
+  'tv.waitlist': WaitlistSlide,
+  'tv.tournamentClock': TournamentClockSlide,
+  'tv.promotion': PromotionSlide,
   'social.tournamentPoster': TournamentPoster,
   'social.promoCard': PromoCard,
   'social.winnerCard': WinnerCard,

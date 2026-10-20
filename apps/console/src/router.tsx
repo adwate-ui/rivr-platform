@@ -2,6 +2,7 @@ import { createRouter, type RouterHistory } from '@tanstack/react-router';
 import { academyPaymentsRoute, academyRoute } from './routes/academy.tsx';
 import { frameRoute } from './routes/frame.tsx';
 import { homeRoute } from './routes/home.tsx';
+import { settingsRoute } from './routes/settings.tsx';
 import { kycReviewRoute } from './routes/kyc-review.tsx';
 import { cageRoute } from './routes/cage.tsx';
 import { checkInRoute } from './routes/check-in.tsx';
@@ -28,6 +29,7 @@ import { tiersRoute } from './routes/tiers.tsx';
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
+    settingsRoute,
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, markersRoute, membersRoute, killSwitchRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute,
     certificationRoute,

@@ -90,7 +90,8 @@ reset role;
 
 select results_eq(
   $$ select m.full_name, k.status, k.refusal, k.pan from public.kyc_record k join public.member m on m.id = k.member_id
-     where m.full_name in ('Kabir Sethi', 'Naina Kapoor', 'Rohan Bhatia', 'Tara Menon', 'Dev Malhotra', 'Meher Arora') order by m.full_name $$,
+     where m.full_name in ('Kabir Sethi', 'Naina Kapoor', 'Rohan Bhatia', 'Tara Menon', 'Dev Malhotra', 'Meher Arora')
+       and m.venue_id = '00000000-0000-4000-8000-000000000001' order by m.full_name $$,
   $$ values ('Dev Malhotra'::text, 'verified'::text, null::text, 'ABCPV3333V'::text), ('Kabir Sethi', 'verified', null, 'ABCPK1234K'),
             ('Meher Arora', 'refused', 'staff_rejected', 'ABCPM4444M'), ('Naina Kapoor', 'verified', null, 'ABCPN5555N'),
             ('Rohan Bhatia', 'refused', 'duplicate_pan', 'ABCPD1111D'), ('Tara Menon', 'refused', 'duplicate_face', 'ABCPT2222T') $$,

@@ -69,6 +69,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'certification', label: 'ui.consoleRail.items.certification', href: '/certification', anyOf: [] },
       { id: 'sops', label: 'ui.consoleRail.items.sops', href: '/sops', anyOf: ['sops.acknowledge', 'sops.manage'] },
       { id: 'killSwitch', label: 'ui.consoleRail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
+      { id: 'settings', label: 'ui.consoleRail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
     ],
   },
 ];

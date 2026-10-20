@@ -2,6 +2,7 @@
  * Copy for each app's own screens, one area per app. Lanes add to their app's area as they
  * build screens; a large area moves into its own namespace file.
  */
+import { settings } from './settings.ts';
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
@@ -169,6 +170,7 @@ export const playerApp = {
 
 export const consoleApp = {
   liveFloor,
+  settings,
   checkIn,
   cage,
   markers,

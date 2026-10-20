@@ -1,5 +1,5 @@
 /**
- * End of day (#45), in the practice venue, whose cage no other flow uses. Pooja Nair, this flow's own
+ * End of day (#45), in the practice venue, whose cage only the Paper fallback flow also uses, after this one. Pooja Nair, this flow's own
  * cashier, opens the shift on Treasury with ₹1,00,000 of float and the chips counted, then closes it on
  * End of day with the drawer ₹500 short: the close is an anomaly, and Pooja may not give its reason.
  * Rahul Verma, the floor manager, gives it on his own console, and the close shows it. A clean close,
