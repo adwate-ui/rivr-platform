@@ -947,17 +947,23 @@ isOneToOne: false
                   ]
                 },"high_hand_claim": {
                   Row: {
-                    "category": Database["public"]['Enums']["high_hand_category"],"created_at": string,"dealer_staff_id": string,"decided_at": string | null,"decided_by_staff_id": string | null,"device_id": string,"hand_id": string,"id": string,"payout_paise": number | null,"rank": string | null,"reason": string | null,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at": string,"venue_id": string
+                    "category": Database["public"]['Enums']["high_hand_category"],"corrected_at": string | null,"corrected_by_staff_id": string | null,"created_at": string,"dealer_staff_id": string,"decided_at": string | null,"decided_by_staff_id": string | null,"device_id": string,"hand_id": string,"id": string,"original_category": Database["public"]['Enums']["high_hand_category"] | null,"original_rank": string | null,"original_seat": number | null,"payout_paise": number | null,"rank": string | null,"reason": string | null,"reversed_at": string | null,"reversed_by_staff_id": string | null,"reversed_reason": string | null,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": Database["public"]['Enums']["high_hand_category"],"created_at"?: string,"dealer_staff_id": string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"device_id": string,"hand_id": string,"id"?: string,"payout_paise"?: number | null,"rank"?: string | null,"reason"?: string | null,"seat": number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at"?: string,"venue_id": string
+                    "category": Database["public"]['Enums']["high_hand_category"],"corrected_at"?: string | null,"corrected_by_staff_id"?: string | null,"created_at"?: string,"dealer_staff_id": string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"device_id": string,"hand_id": string,"id"?: string,"original_category"?: Database["public"]['Enums']["high_hand_category"] | null,"original_rank"?: string | null,"original_seat"?: number | null,"payout_paise"?: number | null,"rank"?: string | null,"reason"?: string | null,"reversed_at"?: string | null,"reversed_by_staff_id"?: string | null,"reversed_reason"?: string | null,"seat": number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "category"?: Database["public"]['Enums']["high_hand_category"],"created_at"?: string,"dealer_staff_id"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"device_id"?: string,"hand_id"?: string,"id"?: string,"payout_paise"?: number | null,"rank"?: string | null,"reason"?: string | null,"seat"?: number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "category"?: Database["public"]['Enums']["high_hand_category"],"corrected_at"?: string | null,"corrected_by_staff_id"?: string | null,"created_at"?: string,"dealer_staff_id"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"device_id"?: string,"hand_id"?: string,"id"?: string,"original_category"?: Database["public"]['Enums']["high_hand_category"] | null,"original_rank"?: string | null,"original_seat"?: number | null,"payout_paise"?: number | null,"rank"?: string | null,"reason"?: string | null,"reversed_at"?: string | null,"reversed_by_staff_id"?: string | null,"reversed_reason"?: string | null,"seat"?: number,"status"?: Database["public"]['Enums']["high_hand_status"],"table_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "high_hand_claim_corrected_by_fkey"
+      columns: ["corrected_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "high_hand_claim_dealer_staff_id_venue_id_fkey"
       columns: ["dealer_staff_id","venue_id"]
 isOneToOne: false
@@ -978,9 +984,15 @@ isOneToOne: false
     },{
       foreignKeyName: "high_hand_claim_hand_id_fkey"
       columns: ["hand_id"]
-isOneToOne: true
+isOneToOne: false
       referencedRelation: "hand"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_claim_reversed_by_fkey"
+      columns: ["reversed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "high_hand_claim_table_id_venue_id_fkey"
       columns: ["table_id","venue_id"]
@@ -2744,6 +2756,9 @@ isOneToOne: false
 "confirm_deposit":
 { Args: { "p_bank_amount_paise": number,"p_request_id": string }; Returns: undefined
                            },
+"correct_high_hand":
+{ Args: { "p_category": Database["public"]['Enums']["high_hand_category"],"p_claim_id": string,"p_rank": string,"p_seat": number }; Returns: undefined
+                           },
 "count_chips":
 { Args: { "p_counts": Json,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
                            },
@@ -2844,7 +2859,7 @@ isOneToOne: false
                            },
 "high_hands":
 { Args: { "p_venue_id": string }; Returns: {
-              "category": Database["public"]['Enums']["high_hand_category"],"claim_id": string,"dealer_name": string,"decided_at": string,"decided_by_name": string,"payout_paise": number,"played_at": string,"rank": string,"reason": string,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_name": string
+              "category": Database["public"]['Enums']["high_hand_category"],"claim_id": string,"corrected_by_name": string,"dealer_name": string,"decided_at": string,"decided_by_name": string,"original_category": Database["public"]['Enums']["high_hand_category"],"original_rank": string,"original_seat": number,"payout_paise": number,"played_at": string,"rank": string,"reason": string,"reversed_by_name": string,"reversed_reason": string,"seat": number,"status": Database["public"]['Enums']["high_hand_status"],"table_name": string
             }[]
                            },
 "hold_drill":
@@ -3075,6 +3090,9 @@ isOneToOne: false
 "request_withdrawal":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string }; Returns: string
                            },
+"reverse_high_hand":
+{ Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined
+                           },
 "reverse_jackpot_event":
 { Args: { "p_event_id": string,"p_idempotency_key": string,"p_reason": string }; Returns: string
                            },
@@ -3266,7 +3284,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -3386,7 +3404,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
           }
         }
 } as const

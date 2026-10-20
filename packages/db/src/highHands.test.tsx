@@ -38,6 +38,7 @@ const EMPTY = { '/rest/v1/high_hand_claim': { body: [] }, '/rpc/high_hands': { b
 const ROW = {
   claim_id: 'c1', status: 'claimed', category: 'straight_flush', rank: null, seat: 4, table_name: 'Table 3', played_at: '2026-10-19T22:18:00+05:30',
   payout_paise: 1000000, dealer_name: 'Pema Lepcha', decided_by_name: null, decided_at: null, reason: null,
+  original_category: null, original_rank: null, original_seat: null, corrected_by_name: null, reversed_by_name: null, reversed_reason: null,
 };
 
 afterEach(cleanup);
@@ -45,13 +46,40 @@ afterEach(cleanup);
 describe('High hands', () => {
   it('lists the tablet\'s claims and the venue\'s high hands with what each pays', async () => {
     const { result } = renderHighHands({
-      '/rest/v1/high_hand_claim': { body: [{ id: 'c1', hand_id: 'h1', category: 'straight_flush', seat: 4, status: 'claimed' }] },
+      '/rest/v1/high_hand_claim': { body: [{ id: 'c1', hand_id: 'h1', category: 'straight_flush', seat: 4, status: 'claimed', corrected_at: '2026-10-19T22:20:00+05:30' }] },
       '/rpc/high_hands': { body: [ROW, { ...ROW, claim_id: 'c2', status: 'rejected', payout_paise: null, reason: 'Misread' }] },
     });
-    await waitFor(() => expect(result.current.mine.data).toEqual([{ claimId: 'c1', handId: 'h1', category: 'straight_flush', seat: 4, status: 'claimed' }]));
+    await waitFor(() => expect(result.current.mine.data).toEqual([
+      { claimId: 'c1', handId: 'h1', category: 'straight_flush', seat: 4, status: 'claimed', isCorrected: true },
+    ]));
     await waitFor(() => expect(result.current.list.data?.map((hand) => [hand.claimId, hand.payout, hand.reason])).toEqual([
       ['c1', toPaise(1000000), null], ['c2', null, 'Misread'],
     ]));
+  });
+
+  it('says what the dealer claimed before a correction, and who reversed a claim and why', async () => {
+    const { result } = renderHighHands({
+      '/rest/v1/high_hand_claim': { body: [] },
+      '/rpc/high_hands': { body: [{
+        ...ROW, status: 'reversed', decided_by_name: 'Kavya Reddy', original_category: 'four_of_a_kind', original_rank: 'Q', original_seat: 4,
+        corrected_by_name: 'Kavya Reddy', reversed_by_name: 'Aditya Rao', reversed_reason: 'The board was misread',
+      }] },
+    });
+    await waitFor(() => expect(result.current.list.data?.[0]).toMatchObject({
+      status: 'reversed',
+      original: { category: 'four_of_a_kind', rank: 'Q', seat: 4, byName: 'Kavya Reddy' },
+      reversal: { byName: 'Aditya Rao', reason: 'The board was misread' },
+    }));
+  });
+
+  it('corrects a waiting claim and reverses a decided one', async () => {
+    const { result, calls } = renderHighHands({ ...EMPTY, '/rpc/correct_high_hand': { body: null }, '/rpc/reverse_high_hand': { body: null } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.floor.correct.mutateAsync({ claimId: 'c1', category: 'straight_flush', rank: null, seat: 4 }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.url.includes('correct_high_hand'))?.body).toEqual({ p_claim_id: 'c1', p_seat: 4, p_category: 'straight_flush', p_rank: '' });
+    await act(async () => { outcome = await result.current.floor.reverse.mutateAsync({ claimId: 'c1', reason: ' The board was misread ' }); });
+    expect(calls.find((call) => call.url.includes('reverse_high_hand'))?.body).toEqual({ p_claim_id: 'c1', p_reason: 'The board was misread' });
   });
 
   it('approves at the amount shown, says when it changed, and rejects with the reason', async () => {
