@@ -165,7 +165,9 @@ max_frequency = "60s"
 919000000218 = "123456"
 # Builder B's people from supabase/seed/13_people_b.sql (staff 180 to 189, members 280 to 289).
 919000000180 = "123456"
+919000000181 = "123456"
 919000000280 = "123456"
+919000000281 = "123456"
 919000000301 = "123456"
 919000000302 = "123456"
 # Lane A's people from supabase/seed/11_people_a.sql (staff 150 to 169, members 250 to 269).

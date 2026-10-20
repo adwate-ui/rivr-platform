@@ -14,6 +14,9 @@ create function pg_temp.template(p_key text) returns uuid language sql as $$
 $$;
 grant execute on function pg_temp.template(text) to authenticated;
 
+-- As a venue starts them: the three the seed publishes (57_promotions.sql) back to drafts.
+update public.promotion set status = 'draft' where template_key in ('tuesday_bonus', 'high_hands', 'referral');
+
 select results_eq(
   $$ select template_key, status, (select count(*)::integer from public.promotion_rule r where r.promotion_id = p.id)
      from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and template_key is not null order by template_key $$,
