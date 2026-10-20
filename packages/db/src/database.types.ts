@@ -1732,6 +1732,14 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"my_wallet_movement": {
+                  Row: {
+                    "account": string | null,"amount": number | null,"at": string | null,"bonus_reason": string | null,"id": number | null,"kind": string | null,"table_name": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_high_hand": {
                   Row: {
                     "category": Database["public"]['Enums']["high_hand_category"] | null,"payout_paise": number | null,"played_at": string | null,"rank": string | null,"table_name": string | null,"venue_slug": string | null
@@ -2106,6 +2114,11 @@ isOneToOne: false
 "my_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
               "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"entry_id": string,"hold_until": string,"joined_at": string,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
+            }[]
+                           },
+"my_wallet":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "cash_paise": number,"credit_limit_paise": number,"member_id": string,"points": number
             }[]
                            },
 "note_sign_in_code_send":

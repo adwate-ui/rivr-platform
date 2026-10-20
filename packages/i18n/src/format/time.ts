@@ -14,6 +14,8 @@ const WEEKDAY = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday:
 
 const DAY = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday: 'short', day: 'numeric', month: 'short' });
 
+const DAY_MONTH = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, day: 'numeric', month: 'short' });
+
 /** The 24-hour IST clock time: `02:40`. */
 export function formatTime(at: Date): string {
   return CLOCK.format(at);
@@ -22,6 +24,11 @@ export function formatTime(at: Date): string {
 /** The IST calendar date: `15 Nov 2026`. */
 export function formatDate(at: Date): string {
   return DATE.format(at);
+}
+
+/** The IST day and month, for a date within the year: `13 Feb`, as in a movement or "Issued 2 Feb · due 4 Mar". */
+export function formatDayMonth(at: Date): string {
+  return DAY_MONTH.format(at);
 }
 
 /** The IST day and time within the coming weeks: `Wed 17 Feb, 00:10`, as in "Until Wed 17 Feb, 00:10". */

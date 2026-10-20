@@ -13,12 +13,13 @@ import { jackpots } from './jackpots.ts';
 import { rake } from './rake.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
+import { balance } from './wallet.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
   tonight,
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
-  balance: { title: 'Balance', empty: 'No movements yet.' },
+  balance,
   rewards: { title: 'Rewards', empty: 'No rewards yet.' },
   learn: { title: 'Learn', empty: 'No sources yet.' },
   /** RIVR Academy: batches, booking a seat, paying by UPI with the UTR. */

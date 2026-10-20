@@ -14,6 +14,9 @@ export const queryKeys = {
   /** The signed-in member's games, stake, notification choices and marketing consent. */
   preferences: (userId: string) => ['user', userId, 'preferences'] as const,
   restrictions: (userId: string) => ['user', userId, 'restrictions'] as const,
+  /** The signed-in member's Balance (#18), and their newest movements. */
+  wallet: (userId: string) => ['user', userId, 'wallet'] as const,
+  walletMovements: (userId: string, count: number) => ['user', userId, 'wallet', 'movements', count] as const,
   /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
   academy: (userId: string) => ['user', userId, 'academy'] as const,
   academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,
