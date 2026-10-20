@@ -14,6 +14,8 @@ import { withdrawBlock } from './withdrawBlock.ts';
 
 /** What the member is told when a withdrawal is refused. */
 const FAILURE_COPY: Readonly<Record<WithdrawalFailure, MessageKey>> = {
+  // The cage's own refusal; no member's request meets it.
+  no_shift: 'player.balance.withdrawUnavailable',
   wallet_short: 'player.balance.withdrawInvalid',
   invalid: 'player.balance.withdrawInvalid',
   kyc_needed: 'player.balance.withdrawKycNeeded',

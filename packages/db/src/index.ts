@@ -114,6 +114,7 @@ export {
 export {
   useEodActions, useEodCloses, type CloseFigure, type CloseOrder, type CloseReview, type EodClose, type EodFailure,
 } from './eod.ts';
+export { useShiftOpenings, type ShiftOpening } from './eod.ts';
 export { useMarkerActions, useOpenMarkers, type MarkerFailure, type MarkerOrder, type OpenMarker } from './markers.ts';
 export {
   isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,

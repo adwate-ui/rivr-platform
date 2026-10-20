@@ -1,9 +1,12 @@
-import { useChipInventory, useEodCloses, useStaffVenue, useTreasury, type ChipCountLine, type EodClose, type Treasury } from '@rivr/db';
+import {
+  useChipInventory, useEodCloses, useShiftOpenings, useStaffVenue, useTreasury, type ChipCountLine, type EodClose, type ShiftOpening, type Treasury,
+} from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Heading, Screen, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CloseCard } from './CloseCard.tsx';
 import { CloseShiftForm } from './CloseShiftForm.tsx';
+import { OpeningCard } from './OpeningCard.tsx';
 
 /**
  * End of day (#45; scope-v1 module 5): a cashier closes the cage's shift, counting the drawer and the chips
@@ -25,10 +28,12 @@ function EndOfDay({ title, venueId, canClose }: { title: string; venueId: string
   const treasury = useTreasury(venueId);
   const chips = useChipInventory(venueId);
   const closes = useEodCloses(venueId);
+  const openings = useShiftOpenings(venueId);
   const [notice, setNotice] = useState<string | null>(null);
-  if (treasury.isPending || chips.isPending || closes.isPending) return <Screen title={title} status="loading" />;
-  if (treasury.isError || chips.isError || closes.isError) {
-    return <Screen title={title} status="error" onRetry={() => { void treasury.refetch(); void chips.refetch(); void closes.refetch(); }} />;
+  if (treasury.isPending || chips.isPending || closes.isPending || openings.isPending) return <Screen title={title} status="loading" />;
+  if (treasury.isError || chips.isError || closes.isError || openings.isError) {
+    const retry = () => { void treasury.refetch(); void chips.refetch(); void closes.refetch(); void openings.refetch(); };
+    return <Screen title={title} status="error" onRetry={retry} />;
   }
   return (
     <Screen title={title}>
@@ -36,6 +41,7 @@ function EndOfDay({ title, venueId, canClose }: { title: string; venueId: string
         {notice === null ? null : <Text tone="money">{notice}</Text>}
         <CloseSection venueId={venueId} treasury={treasury.data} lines={chips.data.lines} canClose={canClose}
           onClosed={() => setNotice(t('console.endOfDay.closed'))} />
+        <Openings venueId={venueId} openings={openings.data} />
         <Closes venueId={venueId} closes={closes.data} />
       </Stack>
     </Screen>
@@ -56,6 +62,17 @@ function CloseSection({ venueId, treasury, lines, canClose, onClosed }: {
       {treasury.shift === null ? <Text tone="muted">{t('console.endOfDay.noShift')}</Text> : null}
       {treasury.shift !== null && !canClose ? <Text tone="muted">{t('console.endOfDay.openNotYours')}</Text> : null}
       {treasury.shift !== null && canClose ? <CloseShiftForm key={treasury.shift.shiftId} venueId={venueId} lines={lines} onClosed={onClosed} /> : null}
+    </Stack>
+  );
+}
+
+/** Openings that differed from the last close, newest first; nothing when every opening matched (#376). */
+function Openings({ venueId, openings }: { venueId: string; openings: readonly ShiftOpening[] }) {
+  if (openings.length === 0) return null;
+  return (
+    <Stack gap={6} divided>
+      <Heading level={2}>{t('console.endOfDay.openings')}</Heading>
+      {openings.map((opening) => <OpeningCard key={opening.shiftId} venueId={venueId} opening={opening} />)}
     </Stack>
   );
 }

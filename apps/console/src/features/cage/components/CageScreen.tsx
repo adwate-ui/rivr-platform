@@ -1,6 +1,6 @@
-import { useCageMembers, useStaffVenue } from '@rivr/db';
+import { useCageMembers, useStaffVenue, useTreasury } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Screen, Stack, Text } from '@rivr/ui';
+import { Box, Grid, Screen, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CageQueue } from './CageQueue.tsx';
 import { DepositsToConfirm } from './DepositsToConfirm.tsx';
@@ -30,8 +30,13 @@ function Cage({ title, venueId, canIssueMarkers }: { title: string; venueId: str
   const [chosen, setChosen] = useState<{ memberId: string; query: string } | null>(null);
   const found = useCageMembers(venueId, chosen?.query ?? '');
   const member = found.data?.find((candidate) => candidate.memberId === chosen?.memberId);
+  // The cage takes and pays nothing while no shift is open (#376); the refusal itself is the database's.
+  const treasury = useTreasury(venueId);
   return (
     <Screen title={title}>
+      {treasury.data?.shift === null ? (
+        <Box surface="alert" padding={3} radius="sm"><Text tone="onAlert">{t('console.cage.noShiftBanner')}</Text></Box>
+      ) : null}
       <Grid columns={2} gap={8}>
         <Stack gap={8}>
           <MemberSearch venueId={venueId} onChoose={(picked, query) => setChosen({ memberId: picked.memberId, query })} />

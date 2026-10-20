@@ -5,6 +5,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed opens each venue's cage shift (70_cage_shift.sql); this test closes them and opens its own.
+update public.cage_shift set closed_at = now(), closed_by_staff_id = opened_by_staff_id where closed_at is null;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -45,7 +48,7 @@ select throws_ok($$ select public.open_cage_shift('00000000-0000-4000-8000-00000
 select throws_ok($$ select public.open_cage_shift('00000000-0000-4000-8000-000000000001', 120000000,
   pg_temp.counts(array[1, 1, 1, 1, 1]) || '[{"value_paise": 2500000, "quantity": -1}]'::jsonb, gen_random_uuid()) $$,
   '22023', null, 'none fewer than none');
-select is_empty($$ select * from public.cage_shift $$, 'and a refused opening opens nothing');
+select is_empty($$ select * from public.cage_shift where closed_at is null $$, 'and a refused opening opens nothing');
 
 -- A cashier opens the shift with ₹12,00,000 of float and the chips counted: once per request id, one at a time.
 insert into ids select 'shift', public.open_cage_shift('00000000-0000-4000-8000-000000000001', 120000000,
@@ -79,7 +82,8 @@ select throws_ok($$ select public.open_cage_shift('00000000-0000-4000-8000-00000
   '00000000-0000-4000-8000-0000000c2401') $$, '22023', null, 'and an opening for its own count');
 select results_eq($$ select quantity, in_cage_paise from public.chip_inventory('00000000-0000-4000-8000-000000000001') where value_paise = 500000 $$,
   $$ values (38, 64000000::bigint) $$, 'and the latest count is the one shown');
-select is((select count(*)::integer from public.chip_inventory_count), 2, 'both counts are kept');
+select is((select count(*)::integer from public.chip_inventory_count c join public.cage_shift s on s.id = c.shift_id where s.closed_at is null), 2,
+  'both counts are kept');
 
 -- Chips in play is the ledger's, issued less returned: ₹10,000 of chips to Ishaan, ₹4,000 back from Mihir.
 insert into held select 'chips', chips_in_play_paise from public.treasury('00000000-0000-4000-8000-000000000001');

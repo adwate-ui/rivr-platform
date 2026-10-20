@@ -6,6 +6,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed opens each venue's cage shift (70_cage_shift.sql); this test closes them and opens its own.
+update public.cage_shift set closed_at = now(), closed_by_staff_id = opened_by_staff_id where closed_at is null;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);

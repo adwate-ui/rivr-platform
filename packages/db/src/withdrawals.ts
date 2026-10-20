@@ -28,11 +28,11 @@ export interface Withdrawal {
  * needed, the UTR used already, switched off, frozen, not allowed, or the server unreachable.
  */
 export type WithdrawalFailure = 'wallet_short' | 'invalid' | 'kyc_needed' | 'not_verified' | 'already_waiting' | 'marker_past_due'
-  | 'needs_second' | 'utr_used' | 'switched_off' | 'paused' | 'stopped' | 'not_allowed' | 'unavailable';
+  | 'needs_second' | 'utr_used' | 'switched_off' | 'paused' | 'stopped' | 'not_allowed' | 'no_shift' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, WithdrawalFailure>> = {
   RVSHT: 'wallet_short', '22023': 'invalid', RVKYC: 'kyc_needed', RVPAY: 'not_verified', RVPND: 'already_waiting', RVDUE: 'marker_past_due',
-  RVAPP: 'needs_second', RVUTR: 'utr_used', RVKIL: 'switched_off', RVFRZ: 'paused', RVMBR: 'stopped', '42501': 'not_allowed',
+  RVAPP: 'needs_second', RVUTR: 'utr_used', RVKIL: 'switched_off', RVFRZ: 'paused', RVMBR: 'stopped', '42501': 'not_allowed', RVNSH: 'no_shift',
 };
 
 const failureOf = (code: string): WithdrawalFailure => FAILURE_BY_CODE[code] ?? 'unavailable';

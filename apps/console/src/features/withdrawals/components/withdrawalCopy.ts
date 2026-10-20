@@ -3,6 +3,7 @@ import { t, type MessageKey } from '@rivr/i18n';
 
 /** Why a step on a withdrawal was refused, for the cage. */
 export const WITHDRAWAL_FAILURE_COPY: Readonly<Record<WithdrawalFailure, MessageKey>> = {
+  no_shift: 'console.cage.noShift',
   wallet_short: 'console.withdrawals.invalid',
   invalid: 'console.withdrawals.invalid',
   kyc_needed: 'console.withdrawals.invalid',

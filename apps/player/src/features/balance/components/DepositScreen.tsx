@@ -12,6 +12,8 @@ import type { z } from 'zod';
 
 /** What the member is told when a deposit is refused. */
 const FAILURE_COPY: Readonly<Record<DepositFailure, MessageKey>> = {
+  // The cage's own refusal; no member's request meets it.
+  no_shift: 'player.balance.depositUnavailable',
   not_allowed: 'player.balance.depositNotAllowed',
   invalid: 'player.balance.depositInvalid',
   kyc_needed: 'player.balance.depositKycNeeded',
