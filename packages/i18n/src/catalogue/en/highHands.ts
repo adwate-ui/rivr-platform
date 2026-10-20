@@ -14,6 +14,10 @@ export const highHand = {
   waiting: 'High hand claimed, waiting for the floor',
   approved: 'High hand approved',
   rejected: 'High hand not approved',
+  /** The floor set a decided claim aside (#324); the hand may be claimed again. */
+  reversed: 'High hand reversed by the floor',
+  /** The floor corrected the hand, rank or seat before deciding (#324). */
+  corrected: 'Corrected by the floor',
 };
 
 /** The console's High hands screen, for staff who approve jackpots or read the ledger. */
@@ -34,6 +38,21 @@ export const highHands = {
   invalidReason: 'Say why, in at least three characters.',
   approvedBy: 'Paid {amount}, approved by {name}',
   rejectedBy: 'Rejected by {name}: {reason}',
+  /** Correcting a waiting claim before deciding it (#324): the dealer's claim is kept. */
+  correct: 'Correct',
+  correctHand: 'Hand',
+  correctRank: 'Rank',
+  correctSeat: 'Seat',
+  correctConfirm: 'Save the correction',
+  invalidCorrection: 'Choose the hand, its rank for a four of a kind, and a seat from 1 to 10.',
+  /** `{category}` and `{seat}` are what the dealer claimed. */
+  correctedBy: 'Corrected by {name} from {category}, seat {seat}',
+  noSeat: 'That table has no such seat.',
+  /** Reversing a decided claim (#324): what was paid is posted back, and the hand may be claimed again. */
+  reverse: 'Reverse',
+  reverseReason: 'Why it is reversed',
+  reverseConfirm: 'Reverse the claim',
+  reversedBy: 'Reversed by {name}: {reason}',
   /** Also the answer when the staff member dealt the hand themselves. */
   notAllowedAction: 'You cannot decide this claim. Ask a manager who did not deal the hand.',
   decided: 'Someone has just decided this claim. Check the list.',
