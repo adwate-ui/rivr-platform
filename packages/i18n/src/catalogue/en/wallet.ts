@@ -10,8 +10,12 @@ export const balance = {
   points: '{points} points',
   markers: 'Markers',
   marker: 'Issued {issued} · due {due}',
+  /** A marker past its due date (#55): {due} is when it fell due. */
+  markerOverdue: 'Issued {issued} · overdue since {due}',
   noMarkers: 'No open markers.',
   limit: 'Limit {limit} · available {available}',
+  /** While a marker is overdue, no new credit (#55). */
+  limitBlocked: 'Limit {limit} · no new credit until overdue markers are settled',
   movements: 'Movements',
   showEarlier: 'Show earlier movements',
   /** A movement with where it happened or why: "Cash-out · Table 2", "Bonus · Referral". */

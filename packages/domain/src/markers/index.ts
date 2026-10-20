@@ -1,1 +1,1 @@
-export { creditAvailable, markerCheck, type MarkerRefusal, type MarkerTerms } from './markers.ts';
+export { creditAvailable, isPastDue, markerCheck, type MarkerRefusal, type MarkerTerms } from './markers.ts';

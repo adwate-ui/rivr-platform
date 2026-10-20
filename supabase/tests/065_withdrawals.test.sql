@@ -151,6 +151,14 @@ select throws_ok($$ select public.decline_withdrawal((select id from ids where n
   'nor declined');
 reset role;
 
+-- A member with a marker past due withdraws nothing until it is settled (#55).
+update public.marker set due_at = now() - interval '1 day' where member_id = '00000000-0000-4000-8000-000000000201' and settled_at is null;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
+select throws_ok($$ select public.request_withdrawal(100000, (select id from ids where name = 'hdfc'), gen_random_uuid()) $$, 'RVDUE', null,
+  'none while a marker is past due');
+reset role;
+update public.marker set due_at = now() + interval '16 days' where member_id = '00000000-0000-4000-8000-000000000201' and settled_at is null;
+
 -- Switched off: nothing is asked or sent, but a decline still returns the money; frozen, nothing at all.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 insert into ids select 'late', public.request_withdrawal(500000, (select id from ids where name = 'hdfc'), gen_random_uuid());

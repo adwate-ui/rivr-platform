@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { withdrawalSchema } from '@rivr/contracts';
-import { usePayoutAccounts, useWallet, useWithdrawalActions, type PayoutAccount, type Wallet, type WithdrawalFailure } from '@rivr/db';
+import { usePayoutAccounts, useWallet, useWithdrawalActions, useWithdrawals, type PayoutAccount, type Wallet, type WithdrawalFailure } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { withdrawalCheck } from '@rivr/domain/wallet';
 import { formatMoney, t, type MessageKey } from '@rivr/i18n';
@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { payoutLine } from './payoutCopy.ts';
+import { withdrawBlock } from './withdrawBlock.ts';
 
 /** What the member is told when a withdrawal is refused. */
 const FAILURE_COPY: Readonly<Record<WithdrawalFailure, MessageKey>> = {
@@ -38,8 +39,8 @@ function amountError(typed: string, isInvalid: boolean, cash: Wallet['cash']): s
   return !checked.ok && checked.error === 'wallet_short' ? t('player.balance.withdrawWalletShort', { amount: formatMoney(cash) }) : undefined;
 }
 
-/** The form itself: the amount, the verified account it goes to, and Confirm withdrawal. */
-function WithdrawForm({ wallet, accounts }: { wallet: Wallet; accounts: readonly PayoutAccount[] }) {
+/** The form itself: the amount, the verified account it goes to, and Confirm withdrawal; blocked up front as the prototype has it. */
+function WithdrawForm({ wallet, accounts, block }: { wallet: Wallet; accounts: readonly PayoutAccount[]; block: MessageKey | null }) {
   const { request } = useWithdrawalActions();
   const navigate = useNavigate();
   const [requestId] = useState(() => crypto.randomUUID());
@@ -56,6 +57,7 @@ function WithdrawForm({ wallet, accounts }: { wallet: Wallet; accounts: readonly
   const amountField = form.register('amount');
   return (
     <Stack gap={4}>
+      {block === null ? null : <ErrorMessage>{t(block)}</ErrorMessage>}
       <Input {...amountField} variant="line" label={t('player.balance.amount')} prefix={t('player.balance.rupee')} inputMode="numeric" maxLength={8} autoComplete="off"
         hint={t('player.balance.cashAvailable', { amount: formatMoney(wallet.cash) })} error={tooMuch} />
       <Controller control={form.control} name="payoutAccountId" render={({ field }) => (
@@ -64,7 +66,7 @@ function WithdrawForm({ wallet, accounts }: { wallet: Wallet; accounts: readonly
           onChange={([value]) => field.onChange(value ?? field.value)} />
       )} />
       {request.data?.ok === false ? <ErrorMessage>{t(FAILURE_COPY[request.data.error])}</ErrorMessage> : null}
-      <Button variant="primary" fullWidth isLoading={request.isPending} onClick={() => void send()}>{t('player.balance.confirmWithdrawal')}</Button>
+      <Button variant="primary" fullWidth isDisabled={block !== null} isLoading={request.isPending} onClick={() => void send()}>{t('player.balance.confirmWithdrawal')}</Button>
     </Stack>
   );
 }
@@ -77,7 +79,10 @@ function WithdrawForm({ wallet, accounts }: { wallet: Wallet; accounts: readonly
 export function WithdrawScreen() {
   const wallet = useWallet();
   const accounts = usePayoutAccounts();
+  const withdrawals = useWithdrawals();
   const navigate = useNavigate();
+  // The moment the screen opened: what is overdue now, not as it re-renders.
+  const [now] = useState(() => new Date());
   const title = t('player.balance.withdraw');
   const back = <Button variant="text" onClick={() => void navigate({ to: '/balance' })}>{t('common.back')}</Button>;
   if (wallet.isPending || accounts.isPending) return <Screen title={title} actions={back} status="loading" />;
@@ -87,7 +92,9 @@ export function WithdrawScreen() {
   const verified = accounts.data.filter((account) => account.status === 'verified');
   return (
     <Screen title={title} actions={back}>
-      {verified.length === 0 ? <Text tone="muted">{t('player.balance.noVerifiedAccount')}</Text> : <WithdrawForm wallet={wallet.data} accounts={verified} />}
+      {verified.length === 0 ? <Text tone="muted">{t('player.balance.noVerifiedAccount')}</Text> : (
+        <WithdrawForm wallet={wallet.data} accounts={verified} block={withdrawBlock(wallet.data.markers, withdrawals.data ?? [], now)} />
+      )}
     </Screen>
   );
 }
