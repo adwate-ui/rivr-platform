@@ -49,6 +49,8 @@ jobs:
           # so all run, in their order.
           for f in supabase/seed/*.sql; do mv "$f" "${f%.sql}.${GITHUB_SHA::7}.sql"; done
           pnpm supabase db push --include-all --include-seed --password "$SUPABASE_DB_PASSWORD"
+          # Back to their own names: the steps after read them (check-auth-config.mjs reads 10_people.sql).
+          for f in supabase/seed/*.${GITHUB_SHA::7}.sql; do mv "$f" "${f%.${GITHUB_SHA::7}.sql}.sql"; done
       - if: env.HAS_SUPABASE == 'true'
         name: Edge Functions
         run: pnpm supabase functions deploy --project-ref "$PROJECT_REF"
