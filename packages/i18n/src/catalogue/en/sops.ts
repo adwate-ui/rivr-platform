@@ -66,7 +66,7 @@ export const sops = {
 export const incidents = {
   title: 'Incidents',
   notAllowed: 'Your role does not include incidents. Ask an admin if you need it.',
-  log: 'Log an incident',
+  log: 'New incident',
   severity: 'Severity',
   severities: { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' },
   summary: 'What happened',
@@ -83,8 +83,11 @@ export const incidents = {
   incidentCctv: 'Camera: {cctv}',
   incidentSop: 'SOP: {title}',
   contacts: 'Contacts',
+  noContacts: 'No contacts yet. An SOP manager adds the escalation matrix, vendors and emergency numbers here.',
   contactKinds: { escalation: 'Escalation', vendor: 'Vendors', glaza: 'Glaza', police: 'Police', fire: 'Fire', electricity: 'Electricity (DHBVN)' },
   contactKind: 'Kind of contact',
+  /** The escalation matrix calls 1 first. */
+  contactPosition: 'Call order',
   contactName: 'Name',
   contactRole: 'Role',
   contactPhone: 'Phone',

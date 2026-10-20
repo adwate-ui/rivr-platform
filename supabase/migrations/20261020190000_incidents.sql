@@ -71,15 +71,37 @@ begin
   if tg_op <> 'INSERT' then
     raise exception 'An incident is kept as logged: log a new one to correct it' using errcode = '22023';
   end if;
+  -- When it was logged is the database's; when it happened may be earlier, never later.
+  if new.occurred_at > now() + interval '5 minutes' then
+    raise exception 'An incident is logged after it happens' using errcode = '22023';
+  end if;
   new.logged_by_staff_id := private.current_staff_id(new.venue_id);
+  new.created_at := now();
+  new.updated_at := now();
   return new;
 end;
 $$;
 create trigger incident_guard before insert or update or delete on public.incident for each row execute function private.guard_incident();
 create trigger incident_no_truncate before truncate on public.incident for each statement execute function private.refuse_change();
 
+-- incident.logged goes out for each one (the practice venue's never leave: claim_outbox_deliveries).
+create function private.emit_incident_logged()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.emit(new.venue_id, 'incident.logged',
+    jsonb_build_object('incident_id', new.id, 'severity', new.severity, 'occurred_at', new.occurred_at), 'incident.logged:' || new.id);
+  return null;
+end;
+$$;
+create trigger incident_logged after insert on public.incident for each row execute function private.emit_incident_logged();
+
 alter table public.incident enable row level security;
-grant select, insert on public.incident to authenticated;
+grant select on public.incident to authenticated;
+grant insert (venue_id, occurred_at, severity, summary, cctv_reference, sop_id) on public.incident to authenticated;
 create policy "staff read the incidents they logged, SOP managers and the audit every one" on public.incident
   for select to authenticated
   using (logged_by_staff_id in (select s.id from public.staff s where s.user_id = (select auth.uid()))
@@ -154,6 +176,9 @@ begin
   if v_drill.held_on is not null then
     raise exception 'That drill is already marked held' using errcode = 'RVDUP';
   end if;
+  if v_drill.scheduled_on > private.today_ist() then
+    raise exception 'A drill is held on or after its date' using errcode = '22023';
+  end if;
   perform private.assert_writable(v_drill.venue_id);
   update public.drill d
   set held_on = private.today_ist(), held_by_staff_id = private.current_staff_id(d.venue_id), notes = trim(coalesce(p_notes, ''))
@@ -168,6 +193,7 @@ create function public.hold_drill(p_drill_id uuid, p_notes text)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.hold_drill(p_drill_id, p_notes); $$;
 
+revoke execute on function private.emit_incident_logged() from public, anon, authenticated;
 revoke execute on function private.guard_incident(), private.schedule_drills(uuid, text, date, uuid), private.hold_drill(uuid, text),
   public.schedule_drills(uuid, text, date, uuid), public.hold_drill(uuid, text) from public, anon;
 grant execute on function private.schedule_drills(uuid, text, date, uuid), private.hold_drill(uuid, text),

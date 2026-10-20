@@ -30,16 +30,40 @@ select lives_ok($$ insert into public.contact (venue_id, kind, position, name, r
   'an SOP manager adds a vendor');
 select throws_ok($$ insert into public.contact (venue_id, kind, name, phone) values ('00000000-0000-4000-8000-000000000001', 'vendor', 'X', 'call me') $$,
   '23514', null, 'with a number, not words');
+select results_eq($$ update public.contact set role = 'Card shufflers, both rooms' where name = 'Shuffler service' returning role $$,
+  $$ values ('Card shufflers, both rooms'::text) $$, 'and changes it');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is_empty($$ update public.contact set phone = '+91 90000 00000' where name = 'Shuffler service' returning id $$, 'a dealer changes no contact');
+select is_empty($$ delete from public.contact where name = 'Shuffler service' returning id $$, 'nor removes one');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select results_eq($$ delete from public.contact where name = 'Shuffler service' returning name $$, $$ values ('Shuffler service'::text) $$,
+  'an SOP manager removes it');
+-- Leela, a super admin at the club only, reads nothing of the practice venue's.
+insert into public.contact (venue_id, kind, name, phone) values ('00000000-0000-4000-8000-000000000002', 'police', 'Practice police', '112');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000154');
+select is_empty($$ select * from public.contact where venue_id = '00000000-0000-4000-8000-000000000002' $$, 'staff read only their venues'' contacts');
 
 -- Incidents.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select lives_ok($$ insert into public.incident (venue_id, severity, summary, cctv_reference, sop_id, logged_by_staff_id)
+select throws_ok($$ insert into public.incident (venue_id, severity, summary, logged_by_staff_id)
+                   values ('00000000-0000-4000-8000-000000000001', 'low', 'Someone else logged this', gen_random_uuid()) $$,
+  '42501', null, 'nobody names who logged an incident');
+select throws_ok($$ insert into public.incident (venue_id, severity, summary, created_at)
+                   values ('00000000-0000-4000-8000-000000000001', 'low', 'Logged long ago', '2025-01-01') $$,
+  '42501', null, 'nor when it was logged');
+select throws_ok($$ insert into public.incident (venue_id, severity, summary, occurred_at)
+                   values ('00000000-0000-4000-8000-000000000001', 'low', 'Tomorrow''s incident', now() + interval '1 day') $$,
+  '22023', null, 'and nothing is logged before it happens');
+select lives_ok($$ insert into public.incident (venue_id, severity, summary, cctv_reference, sop_id, occurred_at)
                    values ('00000000-0000-4000-8000-000000000001', 'high', 'A player disputed a pot at Table 3', 'Camera 4, 23:10',
-                           (select id from sops where venue_id = '00000000-0000-4000-8000-000000000001'), gen_random_uuid()) $$,
-  'a dealer logs an incident with its severity, the camera and the SOP it follows');
+                           (select id from sops where venue_id = '00000000-0000-4000-8000-000000000001'), now() - interval '30 minutes') $$,
+  'a dealer logs an incident with its severity, the camera and the SOP it follows, half an hour after it happened');
 select results_eq($$ select i.severity::text, i.cctv_reference, s.user_id from public.incident i join public.staff s on s.id = i.logged_by_staff_id $$,
   $$ values ('high'::text, 'Camera 4, 23:10'::text, '00000000-0000-4000-8000-000000000106'::uuid) $$,
-  'logged by the dealer, whatever id was sent, and the dealer reads it back');
+  'logged by the dealer, who reads it back');
+reset role;
+select is((select count(*)::integer from public.outbox_event where event_type = 'incident.logged'), 1, 'incident.logged goes out');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ update public.incident set severity = 'low' $$, '42501', null, 'nobody signed in changes an incident');
 select throws_ok($$ insert into public.incident (venue_id, severity, summary, sop_id)
                    values ('00000000-0000-4000-8000-000000000001', 'low', 'Wrong SOP', (select id from sops where venue_id = '00000000-0000-4000-8000-000000000002')) $$,
@@ -56,20 +80,32 @@ select throws_ok($$ delete from public.incident $$, '22023', null, 'and never re
 
 -- Drills.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ select public.schedule_drills('00000000-0000-4000-8000-000000000001', 'Outage drill', '2026-11-20') $$,
+select throws_ok($$ select public.schedule_drills('00000000-0000-4000-8000-000000000001', 'Outage drill', current_date) $$,
   '42501', null, 'a dealer schedules no drill');
+reset role;
+create temporary table first on commit drop as select private.today_ist() as day;
+grant select on first to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is(public.schedule_drills('00000000-0000-4000-8000-000000000001', 'Outage drill', '2026-11-20',
-          (select id from sops where venue_id = '00000000-0000-4000-8000-000000000001')), 4, 'an SOP manager schedules a year of drills');
+select is(public.schedule_drills('00000000-0000-4000-8000-000000000001', 'Outage drill', (select day from first),
+          (select id from sops where venue_id = '00000000-0000-4000-8000-000000000001')), 4, 'an SOP manager schedules a year of drills from today');
 select results_eq($$ select scheduled_on from public.drill where title = 'Outage drill' order by scheduled_on $$,
-  $$ values ('2026-11-20'::date), ('2027-02-20'), ('2027-05-20'), ('2027-08-20') $$, 'a quarter apart');
-select lives_ok($$ select public.hold_drill((select id from public.drill where scheduled_on = '2026-11-20'), 'Slips all ticked') $$,
-  'and marks the first held');
-select throws_ok($$ select public.hold_drill((select id from public.drill where scheduled_on = '2026-11-20'), 'Again') $$,
+  $$ select ((select day from first) + make_interval(months => 3 * q))::date from generate_series(0, 3) as q $$, 'a quarter apart');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select throws_ok($$ select public.hold_drill((select id from public.drill where scheduled_on = (select day from first)), 'Done') $$,
+  '42501', null, 'a dealer marks no drill held');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.hold_drill((select id from public.drill where title = 'Outage drill' order by scheduled_on desc limit 1), 'Early') $$,
+  '22023', null, 'a drill is not held before its date');
+select lives_ok($$ select public.hold_drill((select id from public.drill where scheduled_on = (select day from first)), 'Slips all ticked') $$,
+  'today''s is marked held');
+select throws_ok($$ select public.hold_drill((select id from public.drill where scheduled_on = (select day from first)), 'Again') $$,
   'RVDUP', null, 'once');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select results_eq($$ select held_on is not null, notes from public.drill where scheduled_on = '2026-11-20' $$,
+select results_eq($$ select held_on is not null, notes from public.drill where scheduled_on = (select day from first) $$,
   $$ values (true, 'Slips all ticked'::text) $$, 'every staff member reads the drills');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000154');
+select is_empty($$ select * from public.drill where venue_id = '00000000-0000-4000-8000-000000000002' $$,
+  'and only their venues''');
 
 -- Last, since the freeze stays on until the test rolls back.
 reset role;

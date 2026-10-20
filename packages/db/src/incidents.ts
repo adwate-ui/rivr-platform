@@ -110,7 +110,7 @@ export function useIncidentActions(venueId: string) {
       })).error),
   });
   const addContact = useMutation({
-    mutationFn: async (contact: { kind: ContactKind; name: string; role: string; phone: string }) =>
+    mutationFn: async (contact: { kind: ContactKind; position: number; name: string; role: string; phone: string }) =>
       settle(queryKeys.contacts(who, venueId), (await client.from('contact').insert({ venue_id: venueId, ...contact })).error),
   });
   const removeContact = useMutation({

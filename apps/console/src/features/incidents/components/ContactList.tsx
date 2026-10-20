@@ -15,15 +15,18 @@ function AddContactForm({ venueId, onFailure }: { venueId: string; onFailure: (f
   const { addContact } = useIncidentActions(venueId);
   const [resolver] = useState(() => zodResolver(contactSchema));
   const form = useForm<z.input<typeof contactSchema>, unknown, z.output<typeof contactSchema>>({
-    resolver, defaultValues: { kind: 'escalation', name: '', role: '', phone: '' },
+    resolver, defaultValues: { kind: 'escalation', position: 1, name: '', role: '', phone: '' },
   });
   const submit = form.handleSubmit(async (contact) => {
     const added = await addContact.mutateAsync(contact);
     onFailure(added.ok ? null : added.error);
     if (added.ok) form.reset();
   });
-  const fields = { name: form.register('name'), role: form.register('role'), phone: form.register('phone') };
-  const isInvalid = form.formState.errors.name !== undefined || form.formState.errors.phone !== undefined;
+  const fields = {
+    position: form.register('position', { valueAsNumber: true }), name: form.register('name'), role: form.register('role'), phone: form.register('phone'),
+  };
+  const errors = form.formState.errors;
+  const isInvalid = errors.name !== undefined || errors.phone !== undefined || errors.position !== undefined;
   return (
     <Stack gap={3}>
       <Controller control={form.control} name="kind" render={({ field }) => (
@@ -31,6 +34,7 @@ function AddContactForm({ venueId, onFailure }: { venueId: string; onFailure: (f
           onChange={([picked]) => { if (picked) field.onChange(picked); }} />
       )} />
       <Inline gap={3} align="end" wrap>
+        <Input {...fields.position} label={t('console.incidents.contactPosition')} inputMode="numeric" autoComplete="off" />
         <Input {...fields.name} label={t('console.incidents.contactName')} autoComplete="off" />
         <Input {...fields.role} label={t('console.incidents.contactRole')} autoComplete="off" />
         <Input {...fields.phone} label={t('console.incidents.contactPhone')} type="tel" autoComplete="off"
@@ -52,6 +56,7 @@ export function ContactList({ venueId, contacts, canManage }: { venueId: string;
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('console.incidents.contacts')}</Heading>
+      {contacts.length === 0 ? <Text tone="muted">{t('console.incidents.noContacts')}</Text> : null}
       {CONTACT_KINDS.filter((kind) => contacts.some((contact) => contact.kind === kind)).map((kind) => (
         <Stack key={kind} gap={2} divided>
           <Heading level={3}>{t(`console.incidents.contactKinds.${kind}`)}</Heading>
