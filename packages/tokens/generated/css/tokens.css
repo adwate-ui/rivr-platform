@@ -65,6 +65,7 @@
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
   --rivr-size-photo: 160px; /** A KYC photo beside its member's details, such as in the review queue. */
   --rivr-size-receipt: 576px; /** A thermal receipt: 80 mm paper at 203 dpi, one CSS pixel to each printer dot. */
+  --rivr-size-chart: 192px; /** The height of a chart's plot (#90): its width is the container's. */
   --rivr-aspect-portrait: 3 / 4; /** A KYC photo: the selfie is taken 3:4. */
   --rivr-aspect-card: 85.6 / 54; /** The membership card: an ID-1 card, 85.6 by 54 mm. */
   --rivr-radius-sm: 3px;

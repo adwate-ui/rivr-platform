@@ -57,6 +57,14 @@ export const Empty: Story = { args: { series: [] } };
 
 export const Error: Story = { args: { state: 'error' } };
 
+/** On a phone: the words stay their size and the plot narrows; the legend wraps. */
+export const Phone: Story = { tags: ['viewport-phone'], args: { kind: 'bar', title: 'Rake and drop by day' } };
+
+/** A cage variance, short some days and over others: bars run down from the zero line. */
+export const Negative: Story = {
+  args: { kind: 'bar', title: 'Cash variance this week', series: [{ name: 'Variance', values: [-500, 0, 1_500, -2_000, 500, 0, -1_000] }] },
+};
+
 /** Long names wrap in the legend; a month of labels writes every third under the plot. */
 export const LongText: Story = {
   args: {
