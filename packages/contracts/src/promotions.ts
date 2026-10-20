@@ -77,3 +77,30 @@ export const promotionEffectSchema = z.union([
   z.strictObject({ kind: z.literal('spin') }),
 ]);
 export type PromotionEffect = z.infer<typeof promotionEffectSchema>;
+
+/** The builder's rewards (#84), as the prototype offers them: double or triple points on hours played, or 10% of a buy-in as bonus. */
+export const PROMOTION_BUILDER_REWARDS = ['double_points', 'triple_points', 'buy_in_bonus'] as const;
+export type PromotionBuilderReward = (typeof PROMOTION_BUILDER_REWARDS)[number];
+
+/** The builder's limits (#84): none, the first 50 a club day, or once for each member. */
+export const PROMOTION_BUILDER_LIMITS = ['none', 'first_50', 'once_per_member'] as const;
+export type PromotionBuilderLimit = (typeof PROMOTION_BUILDER_LIMITS)[number];
+
+/**
+ * The builder's four blocks as the console's form holds them (#84; design prompt Promotions): When
+ * (club days, none for every day, and an IST window given whole), Who (a table type's code, or null
+ * for every stake), Reward and Limits.
+ */
+export const promotionBuilderSchema = z
+  .strictObject({
+    days: z.array(z.int().min(1).max(7)),
+    from: clockTime.nullable(),
+    until: clockTime.nullable(),
+    stake: z.string().regex(/^[a-z0-9_]{2,40}$/).nullable(),
+    reward: z.enum(PROMOTION_BUILDER_REWARDS),
+    limit: z.enum(PROMOTION_BUILDER_LIMITS),
+  })
+  .refine(({ from, until }) => (from === null || until === null ? from === until : clubMinute(from) < (clubMinute(until) || 24 * 60)), {
+    path: ['until'],
+  });
+export type PromotionBuilder = z.infer<typeof promotionBuilderSchema>;

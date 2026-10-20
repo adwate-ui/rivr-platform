@@ -136,7 +136,9 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000216', null, 
   (private.tonight_began(now()) at time zone 'Asia/Kolkata')::date::text, 'and tonight''s club day');
 select is(private.promotion_facts('00000000-0000-4000-8000-000000000216', null, now()) -> 'call_time_complete', 'false'::jsonb,
   'Kunal, just seated at 100/200, owes his hour of call time');
-update public.seat_session set started_at = now() - interval '2 hours', seated_here_at = now() - interval '2 hours'
+-- Two hours in, the minute's sweep records his call time complete (#78, #80).
+update public.seat_session set started_at = now() - interval '2 hours', seated_here_at = now() - interval '2 hours',
+  call_time_completed_at = now() - interval '1 hour'
 where member_id = '00000000-0000-4000-8000-000000000216' and ended_at is null;
 select is(private.promotion_facts('00000000-0000-4000-8000-000000000216', null, now()) -> 'call_time_complete', 'true'::jsonb,
   'and two hours in has played it');
