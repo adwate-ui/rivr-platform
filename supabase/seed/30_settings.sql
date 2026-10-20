@@ -23,3 +23,10 @@ insert into public.academy_batch (venue_id, name, starts_on, ends_on, seats)
 select v.venue_id, 'Level 1', current_date + 30, current_date + 32, 12
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 where not exists (select 1 from public.academy_batch b where b.venue_id = v.venue_id);
+
+-- Dual control (#20): a withdrawal of ₹1,00,000 or more needs a second approver (design prompt flow 9).
+-- Local and staging; production's is the owner's.
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'cage.second_approver_threshold', '', '{"threshold_paise": 10000000}', '-infinity', 'Seed'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+on conflict (venue_id, key, subject, effective_from) do nothing;
