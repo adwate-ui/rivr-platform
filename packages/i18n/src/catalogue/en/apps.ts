@@ -7,8 +7,9 @@ import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
 import { members } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
-import { dealerPins, dealerSignIn, endOfDown, handEntry, pairing, queue, seats, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
-import { highHand, highHands } from './highHands.ts';
+import { dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { highHands } from './highHands.ts';
+import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
 import { rake } from './rake.ts';
 import { notStaff, staff } from './staff.ts';
@@ -189,6 +190,7 @@ export const consoleApp = {
   rake,
   jackpots,
   highHands,
+  certification,
   notStaff,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',
@@ -260,18 +262,7 @@ export const consoleApp = {
   kycInPersonFailures,
 } as const;
 
-export const tabletApp = {
-  /** The table name in the header before the tablet is assigned to a table. */
-  unassignedTable: 'Not assigned',
-  title: 'Dealer tablet',
-  pairing,
-  handEntry,
-  dealerSignIn,
-  endOfDown,
-  queue,
-  seats,
-  highHand,
-} as const;
+export { tabletApp } from './tablet.ts';
 
 export const displayApp = {
   pairing: tvPairing,

@@ -12,6 +12,8 @@ export interface MyDevice {
   readonly name: string;
   readonly tableId: string | null;
   readonly tableName: string | null;
+  /** The tablet stands in the practice venue, where dealers train (#50). */
+  readonly isPractice: boolean;
 }
 
 /** One of a venue's dealer tablets, as staff who manage devices see it. */
@@ -57,7 +59,9 @@ export function useMyDevice() {
       const { data, error } = await client.rpc('my_device');
       if (error) throw error;
       const row = data[0];
-      return row ? { deviceId: row.device_id, venueId: row.venue_id, name: row.name, tableId: row.table_id, tableName: row.table_name } : null;
+      return row
+        ? { deviceId: row.device_id, venueId: row.venue_id, name: row.name, tableId: row.table_id, tableName: row.table_name, isPractice: row.is_practice }
+        : null;
     },
   });
 }

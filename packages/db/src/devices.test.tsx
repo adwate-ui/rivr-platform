@@ -41,9 +41,13 @@ describe('Dealer tablets', () => {
   it('gives the signed-in tablet and its table, and nothing for anyone who is not a device', async () => {
     const paired = renderDevices({
       ...EMPTY,
-      '/rpc/my_device': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Tablet A', kind: 'dealer_tablet', table_id: 't3', table_name: 'Table 3' }] },
+      '/rpc/my_device': {
+        body: [{ device_id: 'd1', venue_id: VENUE, name: 'Tablet A', kind: 'dealer_tablet', table_id: 't3', table_name: 'Table 3', is_practice: false }],
+      },
     });
-    await waitFor(() => expect(paired.result.current.mine.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Tablet A', tableId: 't3', tableName: 'Table 3' }));
+    await waitFor(() => expect(paired.result.current.mine.data).toEqual({
+      deviceId: 'd1', venueId: VENUE, name: 'Tablet A', tableId: 't3', tableName: 'Table 3', isPractice: false,
+    }));
     cleanup();
     const staff = renderDevices(EMPTY);
     await waitFor(() => expect(staff.result.current.mine.data).toBeNull());
