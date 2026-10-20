@@ -59,7 +59,8 @@ test.describe('High hands', () => {
     // The tablet asks again every fifteen seconds.
     await expect(tablet.getByText('Corrected by the floor')).toBeVisible({ timeout: 20_000 });
     await expect(tablet.getByText('High hand approved')).toBeVisible({ timeout: 20_000 });
-    expect(Math.abs(await chipsInPlay(floor) - before)).toBe(10_000);
+    // Treasury shows what it last read before it reads again, so wait for the figure to settle.
+    await expect.poll(async () => Math.abs(await chipsInPlay(floor) - before)).toBe(10_000);
 
     // The latest decided claim is first in the history: this one.
     await floor.getByRole('link', { name: 'High hands' }).click();
@@ -69,7 +70,7 @@ test.describe('High hands', () => {
     const reversedBefore = await reversed.count();
     await floor.getByRole('button', { name: 'Reverse the claim' }).click();
     await expect(reversed).toHaveCount(reversedBefore + 1);
-    expect(await chipsInPlay(floor)).toBe(before);
+    await expect.poll(() => chipsInPlay(floor)).toBe(before);
     await expect(tablet.getByText('High hand reversed by the floor')).toBeVisible({ timeout: 20_000 });
     await revoke(floor, name);
   });
