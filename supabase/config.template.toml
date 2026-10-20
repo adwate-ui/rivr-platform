@@ -108,6 +108,9 @@ max_frequency = "60s"
 919000000110 = "123456"
 919000000111 = "123456"
 919000000112 = "123456"
+# Worktree A's people from supabase/seed/14_people_c.sql (staff 190 to 199, members 290 to 299).
+919000000190 = "123456"
+919000000290 = "123456"
 919000000113 = "123456"
 919000000114 = "123456"
 919000000115 = "123456"
@@ -177,6 +180,10 @@ max_frequency = "60s"
 919000000156 = "123456"
 919000000157 = "123456"
 919000000252 = "123456"
+# Lane A's Cage computer flow, supabase/seed/11c_people_a_computers.sql (#384).
+919000000159 = "123456"
+919000000160 = "123456"
+919000000254 = "123456"
 # Not seeded: the code-only sign-in flow signs this number up with a password (e2e, #187).
 919000000901 = "123456"
 # Not seeded: the Attribution flow signs this number up (#10).

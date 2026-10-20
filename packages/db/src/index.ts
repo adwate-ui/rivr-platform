@@ -2,6 +2,7 @@ export { createRivrClient, SESSION_STORAGE_KEY, type RivrClient, type RivrClient
 export type { Database } from './database.types.ts';
 export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from './provider.tsx';
 export { useMember, type Member } from './member.ts';
+export { useMembershipCard, type MembershipCardView } from './membershipCard.ts';
 export { useControlState, useFeature, useFeatureStatus, type FeatureStatus } from './hooks.ts';
 export {
   useControlActions, useEngagedControls, type ControlFailure, type ControlLevel, type EngageOrder, type EngagedControl,
@@ -146,6 +147,7 @@ export {
   type PairFailure,
   type PairingCode,
 } from './devices.ts';
+export { useComputerActions, useComputers, useThisComputer, type Computer, type ComputerCode, type ComputerFailure, type ComputerKind, type ThisComputer } from './computers.ts';
 export {
   useMyTvScreen,
   useTvActions,

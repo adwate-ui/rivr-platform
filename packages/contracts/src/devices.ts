@@ -33,6 +33,9 @@ export const tvPairSchema = z.object({
 /** Staff add a dealer tablet by name, on the console. */
 export const dealerTabletAddSchema = z.object({ name: z.string().trim().min(1).max(60) });
 
+/** A cage or admin computer's name as it is enrolled (#384): as a tablet's. */
+export const computerEnrolSchema = dealerTabletAddSchema;
+
 /** Staff revoke a device, and say why. */
 export const deviceRevokeSchema = z.object({ reason: z.string().trim().min(1).max(200) });
 

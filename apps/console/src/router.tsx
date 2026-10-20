@@ -26,12 +26,13 @@ import { certificationRoute } from './routes/certification.tsx';
 import { promotionsRoute } from './routes/promotions.tsx';
 import { sopsRoute } from './routes/sops.tsx';
 import { tiersRoute } from './routes/tiers.tsx';
+import { computersRoute } from './routes/computers.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     settingsRoute,
-    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
+    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, markersRoute, membersRoute, killSwitchRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute,
     certificationRoute,
     sopsRoute,

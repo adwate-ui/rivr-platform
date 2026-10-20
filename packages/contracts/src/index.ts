@@ -35,10 +35,11 @@ export {
   type UpiVpa, type Utr,
 } from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';
-export { doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema } from './waitlist.ts';
+export { doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema } from './waitlist.ts';
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
+  computerEnrolSchema,
   dealerTabletAddSchema,
   devicePairRequestSchema,
   devicePairSchema,

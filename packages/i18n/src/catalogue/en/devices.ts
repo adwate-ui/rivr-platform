@@ -209,3 +209,40 @@ export const queue = {
   /** Clears the refusals once the floor has dealt with them. */
   seen: 'Seen by the floor',
 };
+
+/** The console's Computers screen (#384): enrol this computer as the cage or an admin console, and revoke one. */
+export const computers = {
+  title: 'Computers',
+  notAllowed: 'Your role does not include computers. Ask an admin if you need it.',
+  thisComputer: 'This computer',
+  enrolledAsCage: 'Enrolled as the cage: {name}.',
+  enrolledAsConsole: 'Enrolled as an admin console: {name}.',
+  notEnrolled: 'Not enrolled. Enter the code an admin console gave for this computer.',
+  enrolCode: 'Enrolment code',
+  enrol: 'Enrol this computer',
+  wrongCode: 'That code is wrong, used or expired. Add the computer again for a new one.',
+  tooMany: 'Too many wrong codes. Wait ten minutes, then try again.',
+  /** A computer added on Computers whose code has not been entered on it yet. */
+  waiting: 'Waiting for its code',
+  /** After adding a computer: `{code}` is six digits, `{name}` the computer's, `{time}` when it stops working. */
+  code: 'Code {code} for {name}, until {time}. Enter it on that computer, on Computers.',
+  /** Shown while the venue has no cage and admin networks (Settings), so nothing is enforced. */
+  notEnforced: 'Not enforced yet: the club has no cage and admin networks, so the cage and admin screens work from any computer. Add the networks in Settings.',
+  offNetwork: 'This computer is not on the cage and admin networks, so the cage and admin screens refuse it here.',
+  name: 'Computer name',
+  nameHint: 'For example, Cage 1 or Office.',
+  addCage: 'Add as the cage',
+  addConsole: 'Add as an admin console',
+  enrolled: 'Cage and admin computers',
+  empty: 'No computers are added.',
+  cage: 'Cage',
+  console: 'Admin console',
+  revoke: 'Revoke {name}',
+  revokeReason: 'Why it is revoked',
+  revokeConfirm: 'Revoke',
+  invalidReason: 'Say why, in a few words.',
+  notAllowedAction: 'Not from here. Computers are added at an enrolled admin console, and enrolled on the club\'s networks.',
+  invalid: 'Give the computer a name.',
+  paused: 'The venue is frozen. Computers are enrolled again once it is released.',
+  unavailable: 'That did not go through. Check the connection and try again.',
+};

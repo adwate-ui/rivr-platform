@@ -9,11 +9,16 @@ export const checkIn = {
   /** Check in's name for a screen reader, beside one expected member. */
   checkInMember: 'Check in {name}',
   phone: 'Mobile number',
+  /** The field the door's scanner types the membership card's code into (#71). */
+  card: 'Membership card',
+  checkInByCard: 'Check in by card',
   noneExpected: 'No one expected.',
   noneInRoom: 'No one in the room yet.',
   notAllowed: 'Your role does not check members in or out. The front desk, floor managers and admins do.',
   invalid: 'Enter a 10-digit mobile number.',
   noMember: 'No member has that number. Sign them up first.',
+  cardNotCurrent: 'That card code has changed. Ask the member to show their card again.',
+  cardInvalid: 'No card code. Scan the member\'s card.',
   /** Check-out at the door (#82): the visit closes, with its hours and points. */
   checkOut: 'Check out',
   checkOutMember: 'Check out {name}',

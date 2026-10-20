@@ -77,13 +77,15 @@ export const settings = {
   invoicePrefix: 'Invoice prefix',
   invoicePrefixHint: 'Up to six capital letters, digits or hyphens, as RIVR in RIVR/S26/41.',
   staffIpAllowlist: 'Cage and admin networks',
-  staffIpAllowlistHint: 'Addresses or ranges such as 203.0.113.0/24, separated by commas. Empty allows any network.',
+  staffIpAllowlistHint: 'Addresses or ranges such as 203.0.113.0/24, separated by commas. Once set, the cage and admin screens work only from enrolled computers on these networks. Empty allows any computer.',
   alertWhatsapp: 'Alert WhatsApp number',
   invalidVenueField: 'Check this field.',
   saveVenue: 'Save configuration',
   venueSaved: 'Configuration saved.',
   venueFailures: {
-    not_allowed: 'Only a super admin changes the venue configuration or the chips.',
+    not_allowed: 'Only a super admin changes the venue configuration or the chips, and once the club has cage and admin networks, only from an enrolled admin console on them.',
+    /** RVNET (#384): networks that would leave this admin console outside them. */
+    off_networks: 'Save the cage and admin networks from an enrolled admin console on one of them, so no one is shut out.',
     invalid: 'The database refused a value. Check each field.',
     taken: 'There is already a chip of that value. Turn it back on instead.',
     unavailable: 'That did not go through. Check the connection and try again.',

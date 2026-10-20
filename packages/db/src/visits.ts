@@ -14,13 +14,13 @@ export interface DoorMember {
 }
 
 /**
- * Why a member was not checked in: not the front desk, no member with that number here, on a break
- * from play (#56), the member or the venue frozen, or anything else.
+ * Why a member was not checked in: not the front desk, no member with that number here, a card code that
+ * is not current (#71), on a break from play (#56), the member or the venue frozen, or anything else.
  */
-export type CheckInFailure = 'not_allowed' | 'no_member' | 'on_break' | 'stopped' | 'paused' | 'unavailable';
+export type CheckInFailure = 'not_allowed' | 'no_member' | 'card_not_current' | 'on_break' | 'stopped' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, CheckInFailure>> = {
-  '42501': 'not_allowed', RVNOM: 'no_member', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused',
+  '42501': 'not_allowed', RVNOM: 'no_member', RVCRD: 'card_not_current', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
 // The door's lists change as members arrive and join from the app.
@@ -41,7 +41,10 @@ export function useDoorBoard(venueId: string) {
   });
 }
 
-/** Checks a member in, from the expected list or by mobile number; each resolves to the visit's id and reloads the lists. */
+/**
+ * Checks a member in: from the expected list, by mobile number, or by the code the door's scanner read from
+ * their membership card (#71). Each resolves to the visit's id and reloads the lists.
+ */
 export function useCheckInActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -55,7 +58,10 @@ export function useCheckInActions(venueId: string) {
   const checkInByPhone = useMutation({
     mutationFn: async (phone: string) => settle(await client.rpc('check_in_by_phone', { p_venue_id: venueId, p_phone: phone })),
   });
-  return { checkIn, checkInByPhone };
+  const checkInByCard = useMutation({
+    mutationFn: async (code: string) => settle(await client.rpc('check_in_by_card', { p_venue_id: venueId, p_code: code })),
+  });
+  return { checkIn, checkInByPhone, checkInByCard };
 }
 
 /**

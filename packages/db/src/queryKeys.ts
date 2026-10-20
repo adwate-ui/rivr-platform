@@ -13,6 +13,8 @@ export const queryKeys = {
   venueConfig: (userId: string, venueId: string) => ['user', userId, 'venue-config', venueId] as const,
   /** A venue's chip denominations (#33). */
   chipDenominations: (userId: string, venueId: string) => ['user', userId, 'chip-denominations', venueId] as const,
+  /** The signed-in member's membership card and its door code for now (#71). */
+  membershipCard: (userId: string) => ['user', userId, 'membership-card'] as const,
   /** Every feature's state for the signed-in member. */
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
   /** Kill-switch controls the signed-in person can see. */
@@ -91,6 +93,8 @@ export const queryKeys = {
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
+  computers: (userId: string, venueId: string) => ['user', userId, 'computers', venueId] as const,
+  thisComputer: (userId: string, venueId: string) => ['user', userId, 'this-computer', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
   /** A venue's table types with their rake now and the changes to come. */
