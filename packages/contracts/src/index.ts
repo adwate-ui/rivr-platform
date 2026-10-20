@@ -50,6 +50,7 @@ export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { rakeChangeSchema } from './rake.ts';
 export { BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, type BuyInMethodKey } from './cage.ts';
 export { creditLimitSchema, markerIssueSchema } from './credit.ts';
+export { CONTROL_LEVELS, engageControlSchema, KILLABLE_FEATURES } from './killSwitch.ts';
 export { badBeatSchema, jackpotReversalSchema } from './jackpot.ts';
 export {
   HIGH_HAND_CATEGORIES,

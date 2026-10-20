@@ -39,7 +39,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 | `private.credit_bonus(venue, member, amount, reason, expires_at, idempotency_key)` | D (promotions) | Credits playable, non-withdrawable bonus |
 | `private.tds_for(venue, member, winnings, at)` | B (tournament prizes) | TDS amount in force (or shadow amount) for winnings at a time |
 | `public.request_withdrawal(...)`, `public.approve_withdrawal(...)` | player app (C screens), console (A) | Withdrawals to verified payout accounts; second approver above the configured limit; emits `withdrawal.sent` |
-| `public.engage_control(...)`, `public.release_control(...)` | console (A) | Kill-switch levels; release needs a reason and, for a venue freeze, a second super admin; emits `control.engaged` / `control.released` and an alert |
+| `public.engage_control(venue, level, reason, feature, member, staff)`, `public.release_control(control, reason)`, `public.engaged_controls(venue)` | console (A, Kill switch) | A super admin (`control.engage`) engages any level with a reason of 3 to 500 characters and its target (a feature, a member of the venue, or a staff member other than themselves; engaging again gives the one engaged). A release needs a reason; a venue freeze is asked for by one super admin and released by a second (`awaiting_second`, then `released`; `RVTWO` for the same one). Each engage and release emits `control.engaged` or `control.released`; each, the ask included, raises an owner alert. A freeze, or a revoke, that would leave fewer than two super admins able to release a freeze is refused (`RVLCK`) (#27) |
 | `private.raise_alert(venue, kind, detail)` | all | An owner-dashboard alert, and WhatsApp to the alert number |
 
 ## Events
@@ -55,7 +55,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 
 ## Screens
 
-Console: `features/cage`, `features/markers`, `features/treasury`, `features/end-of-day`, `features/withdrawals`, `features/expenses`, `features/reports`, `features/owner-dashboard`, `features/admin` (kill switch, exports, purge, devices, staff, rosters, tiers matrix and overrides, venue configuration). Player app: `features/balance` (with lane C's shell). Feature keys: `balance.deposits`; core keys for the balance view and withdrawals.
+Console: `features/cage`, `features/markers`, `features/treasury`, `features/end-of-day`, `features/withdrawals`, `features/expenses`, `features/reports`, `features/owner-dashboard`, `features/admin` (the kill switch, #27; exports, purge, devices, staff, rosters, tiers matrix and overrides, venue configuration). Player app: `features/balance` (with lane C's shell). Feature keys: `balance.deposits`; core keys for the balance view and withdrawals.
 
 ## Settings keys added
 

@@ -1922,6 +1922,14 @@ isOneToOne: false
 "end_seat":
 { Args: { "p_reason": string,"p_session_id": string }; Returns: undefined
                            },
+"engage_control":
+{ Args: { "p_feature"?: Database["public"]['Enums']["killable_feature"],"p_level": Database["public"]['Enums']["control_level"],"p_member_id"?: string,"p_reason": string,"p_staff_id"?: string,"p_venue_id": string }; Returns: string
+                           },
+"engaged_controls":
+{ Args: { "p_venue_id": string }; Returns: {
+              "control_id": string,"engaged_at": string,"engaged_by": string,"feature": Database["public"]['Enums']["killable_feature"],"level": Database["public"]['Enums']["control_level"],"member_name": string,"reason": string,"release_asked_by": string,"release_reason": string,"staff_name": string
+            }[]
+                           },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
@@ -2110,6 +2118,9 @@ isOneToOne: false
                            },
 "reject_high_hand":
 { Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined
+                           },
+"release_control":
+{ Args: { "p_control_id": string,"p_reason"?: string }; Returns: string
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined

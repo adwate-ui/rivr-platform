@@ -1,0 +1,61 @@
+/** The console's Kill switch screen (#27; features "Kill switch"), for super admins. */
+export const killSwitch = {
+  title: 'Kill switch',
+  notAllowed: 'Only a super admin uses the kill switch.',
+  engagedTitle: 'Engaged now',
+  noneEngaged: 'Nothing is engaged.',
+  levels: {
+    venue_freeze: 'Venue freeze',
+    feature_kill: 'Feature off',
+    messaging_stop: 'Messaging stop',
+    member_freeze: 'Member freeze',
+    access_revoke: 'Access revoked',
+  },
+  features: {
+    withdrawals: 'Withdrawals',
+    credit: 'Credit',
+    kyc_signup: 'KYC sign-up',
+    marketing_sends: 'Marketing messages',
+    social_publishing: 'Social posts',
+    promotions: 'Promotions',
+    tournament_registration: 'Tournament registration',
+  },
+  /** One engaged control: what it is (`{what}`: Venue freeze, or Feature off: Credit), why, and who engaged it when. */
+  line: '{what} · {reason} · by {name}, {time}',
+  /** `{what}` with its target: `Member freeze: Kabir Sethi`. */
+  withTarget: '{level}: {target}',
+  /** A venue freeze one super admin has asked to release. */
+  releaseAsked: '{name} asked to release it: {reason}. A second super admin releases it.',
+  release: 'Release',
+  releaseName: 'Release {what}',
+  releaseReason: 'Why it is released',
+  released: 'Released.',
+  awaitingSecond: 'Asked. A second super admin releases the venue freeze.',
+  newControl: 'New control',
+  level: 'Level',
+  feature: 'Feature',
+  memberPhone: 'Member\'s mobile number',
+  staffPhone: 'Staff member\'s mobile number',
+  reason: 'Why',
+  reasonHint: 'Kept with it, with your name. The owner is alerted.',
+  engage: 'Engage',
+  /** Before a control is engaged: `{level}` is what, as Venue freeze. */
+  confirm: 'Engage {level} now?',
+  confirmFreeze: 'Every money movement, seating and hand entry stops at once, and it takes two super admins to release it.',
+  confirmOther: 'It takes effect at once, and the owner is alerted.',
+  engageLevel: 'Engage {level}',
+  invalidPhone: 'Enter a 10-digit mobile number.',
+  invalidReason: 'Give a reason of 3 to 500 characters.',
+  chooseTarget: 'Choose a level, and the feature it switches off.',
+  engaged: 'Engaged.',
+  /** Why a control did not change. */
+  failures: {
+    notAllowed: 'Only a super admin uses the kill switch.',
+    invalid: 'Give a reason of 3 to 500 characters, and the feature, member or staff member it needs. You cannot revoke your own access.',
+    noMember: 'No member here has that mobile number.',
+    noStaff: 'No staff member here has that mobile number.',
+    needsSecond: 'You asked to release it. A second super admin releases the venue freeze.',
+    lastEngagers: 'That would leave fewer than two super admins able to release a venue freeze. Add another super admin first.',
+    unavailable: 'That did not go through. Check the connection and try again.',
+  },
+};
