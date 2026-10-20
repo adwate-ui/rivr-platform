@@ -22,6 +22,7 @@ const CLAIM_STATUS_COPY: Readonly<Record<TabletHighHand['status'], MessageKey>> 
   claimed: 'tablet.highHand.waiting',
   approved: 'tablet.highHand.approved',
   rejected: 'tablet.highHand.rejected',
+  reversed: 'tablet.highHand.reversed',
 };
 
 /** A hand's high-hand claim as its row shows it: waiting for the floor, approved or not. */
