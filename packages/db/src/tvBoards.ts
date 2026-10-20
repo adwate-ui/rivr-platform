@@ -47,16 +47,19 @@ const BOARD_CHECK = 30_000;
 // However many signals arrive, the board is read again at most once every two seconds.
 const SIGNAL_SETTLE = 2_000;
 
+// The query each board's signal reads again; promotions is the Promotions rotation's (#86).
+const BOARD_KEYS = { waitlist: queryKeys.tvWaitlistBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions };
+
 /**
  * Reads a board again when the database broadcasts on the venue's private topic (tv:<venue id>,
  * decision 0051) that it changed: once, two seconds after the first signal, however many follow.
  */
-function useBoardSignal(board: 'waitlist' | 'jackpot', venueId: string) {
+export function useBoardSignal(board: keyof typeof BOARD_KEYS, venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (userId === null) return undefined;
-    const key = board === 'waitlist' ? queryKeys.tvWaitlistBoard(userId) : queryKeys.tvJackpot(userId);
+    const key = BOARD_KEYS[board](userId);
     let pending: ReturnType<typeof setTimeout> | null = null;
     const readAgain = () => {
       pending ??= setTimeout(() => {

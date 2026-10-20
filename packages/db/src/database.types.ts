@@ -2560,6 +2560,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_promotion_cards": {
+                  Row: {
+                    "detail": string | null,"runs": string | null,"title": string | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_site_block": {
                   Row: {
                     "content": Json | null,"kind": string | null,"page_slug": string | null,"position": number | null,"venue_slug": string | null
@@ -2977,6 +2985,11 @@ isOneToOne: false
               "account_number": string,"bank_name": string,"holder_name": string,"id": string,"ifsc": string,"kind": string,"reject_reason": string,"status": string,"vpa": string
             }[]
                            },
+"my_promotion_cards":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "detail": string,"promotion_id": string,"runs": string,"title": string
+            }[]
+                           },
 "my_restrictions":
 { Args: Record<PropertyKey, never>; Returns: {
               "break_until": string,"session_reminder_hours": number
@@ -3014,6 +3027,11 @@ isOneToOne: false
                            },
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
+                           },
+"offer_recipient":
+{ Args: { "p_member_id": string,"p_promotion_id": string,"p_venue_id": string }; Returns: {
+              "marketing_opted_in_at": string,"phone": string
+            }[]
                            },
 "open_cage_shift":
 { Args: { "p_counts": Json,"p_float_paise": number,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
@@ -3256,6 +3274,11 @@ isOneToOne: false
 "tv_jackpot":
 { Args: Record<PropertyKey, never>; Returns: {
               "high_hand_category": Database["public"]['Enums']["high_hand_category"],"high_hand_payout_paise": number,"high_hand_played_at": string,"high_hand_rank": string,"high_hand_table_name": string,"main_paise": number
+            }[]
+                           },
+"tv_promotions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "detail": string,"promotion_id": string,"runs": string,"title": string
             }[]
                            },
 "tv_waitlist_board":

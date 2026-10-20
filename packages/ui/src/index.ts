@@ -71,6 +71,7 @@ export * from './TvTournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
 export * from './DisplayPreview/index.ts';
 export * from './PromotionCard/index.ts';
+export * from './PromotionPager/index.ts';
 export * from './WebShell/index.ts';
 export * from './DriverShell/index.ts';
 export * from './StepScreen/index.ts';

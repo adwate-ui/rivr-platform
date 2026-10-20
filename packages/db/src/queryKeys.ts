@@ -139,4 +139,7 @@ export const queryKeys = {
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
   /** The signed-in TV's jackpot and tonight's high hand (#65). */
   tvJackpot: (userId: string) => ['user', userId, 'tv-jackpot'] as const,
+  /** The paired TV's promotions rotation (#86), and the member's Home cards. */
+  tvPromotions: (userId: string) => ['user', userId, 'tv-promotions'] as const,
+  myPromotionCards: (userId: string) => ['user', userId, 'my-promotion-cards'] as const,
 };

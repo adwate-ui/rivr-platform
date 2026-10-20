@@ -14,6 +14,7 @@ import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
 import { incidents, sops } from './sops.ts';
 import { academy, academyFailures, academyPayments } from './academy.ts';
+import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
 import { rake } from './rake.ts';
 import { profile } from './profile.ts';
@@ -27,6 +28,7 @@ import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
   tonight,
+  promotions: playerPromotions,
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
   balance,
   rewards: { title: 'Rewards', empty: 'No rewards yet.' },

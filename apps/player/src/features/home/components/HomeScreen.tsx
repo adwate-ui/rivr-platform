@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { FeatureGate, Screen, Stack } from '@rivr/ui';
 import { BreakNotice } from './BreakNotice.tsx';
 import { FloorList } from './FloorList.tsx';
+import { HomePromotions } from './HomePromotions.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
 import { YourWaitlist } from './YourWaitlist.tsx';
 
@@ -10,7 +11,7 @@ import { YourWaitlist } from './YourWaitlist.tsx';
  * Home: tonight's floor (design prompt, "Home"). The member's waitlist places first, then each table
  * with its stakes and how many wait, and Join (#38). The floor shows with feature floor.live_view.
  * During a break (#56), Home says until when tables are closed to the member, as in the prototype.
- * Seated, Home says where, and the call time left (#78).
+ * Seated, Home says where, and the call time left (#78). The live promotions page beneath (#86).
  */
 export function HomeScreen() {
   const liveView = useFeature('floor.live_view');
@@ -33,6 +34,7 @@ export function HomeScreen() {
         <FeatureGate access={liveView}>
           <FloorList tables={tables.data} places={places.data} />
         </FeatureGate>
+        <HomePromotions />
       </Stack>
     </Screen>
   );
