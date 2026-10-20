@@ -31,11 +31,11 @@ export interface DepositDetails {
  * frozen, or the server unreachable.
  */
 export type DepositFailure = 'not_allowed' | 'invalid' | 'kyc_needed' | 'not_verified' | 'utr_used' | 'too_many' | 'amount_mismatch' | 'needs_second'
-  | 'paused' | 'stopped' | 'unavailable';
+  | 'paused' | 'stopped' | 'no_shift' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, DepositFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVKYC: 'kyc_needed', RVPAY: 'not_verified', RVUTR: 'utr_used', RVMAX: 'too_many', RVAMT: 'amount_mismatch',
-  RVAPP: 'needs_second', RVFRZ: 'paused', RVMBR: 'stopped',
+  RVAPP: 'needs_second', RVFRZ: 'paused', RVMBR: 'stopped', RVNSH: 'no_shift',
 };
 
 const failureOf = (code: string): DepositFailure => FAILURE_BY_CODE[code] ?? 'unavailable';

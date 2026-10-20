@@ -31,6 +31,15 @@ export const endOfDay = {
   reasonFor: 'Reason for the variance',
   reasonInvalid: 'Give the reason in 3 to 500 characters.',
   recordReason: 'Record reason',
+  /** Openings set against the last close (#376). */
+  openings: 'Openings that differ from the last close',
+  /** `{opened}` is when the shift opened, `{name}` who opened it. */
+  openingLine: 'Opened {opened} by {name}',
+  /** `{variance}` is an amount, below zero when the opening found less than the last close counted. */
+  openingCash: 'Float against the last close: {variance}',
+  openingChips: 'Chips against the last close: {variance}',
+  openingWaiting: 'Differs from the last close. A manager who neither opened this shift nor closed the last gives the reason.',
+  reasonForOpening: 'Reason for the difference',
 };
 
 /** Why a close or a review did not go through. */

@@ -1,10 +1,11 @@
 /**
- * End of day (#45), in the practice venue, whose cage only the Paper fallback flow also uses, after this one. Pooja Nair, this flow's own
- * cashier, opens the shift on Treasury with ₹1,00,000 of float and the chips counted, then closes it on
- * End of day with the drawer ₹500 short: the close is an anomaly, and Pooja may not give its reason.
- * Rahul Verma, the floor manager, gives it on his own console, and the close shows it. A clean close,
- * the figures the ledger expects and who sees what are proved in supabase/tests/069. One shift is open at
- * a time, so a local rerun needs `pnpm db:reset` first; CI always starts fresh.
+ * End of day (#45), in the practice venue. Pooja Nair, this flow's own cashier, opened its shift with
+ * ₹1,00,000 of float and the chips counted (the seed's, 70_cage_shift.sql, since the cage takes no money
+ * without one, #376). She closes it on End of day with the drawer ₹500 short: the close is an anomaly, and
+ * Pooja may not give its reason. Rahul Verma, the floor manager, gives it on his own console, and the close
+ * shows it. After this, the Cage shift flow (open-shift.spec.ts) opens the practice cage's next shift, which
+ * the Paper fallback flow then uses. A clean close, the figures the ledger expects and who sees what are
+ * proved in supabase/tests/069. A local rerun needs `pnpm db:reset` first; CI always starts fresh.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -28,16 +29,10 @@ async function countChips(page: Page) {
 
 test.describe('End of day', () => {
   test('End of day: Pooja closes the practice cage ₹500 short, an anomaly whose reason Rahul gives', async ({ browser }) => {
-    test.skip(isRemoteTarget(), 'opens and closes the practice cage\'s shift, so the local stack only');
+    test.skip(isRemoteTarget(), 'closes the practice cage\'s shift, so the local stack only');
     test.setTimeout(120_000);
     const pooja = await browser.newPage();
     await signInToPractice(pooja, '9000000141');
-    await pooja.getByRole('link', { name: 'Treasury' }).click();
-    await pooja.getByRole('textbox', { name: 'Float in the drawer' }).fill('100000');
-    await countChips(pooja);
-    await pooja.getByRole('button', { name: 'Open shift' }).click();
-    await expect(pooja.getByText('Shift opened.')).toBeVisible();
-
     await pooja.getByRole('link', { name: 'End of day' }).click();
     await expect(pooja.getByRole('heading', { name: 'End of day', level: 1 })).toBeVisible();
     await pooja.getByRole('textbox', { name: 'Cash in the drawer' }).fill('99500');

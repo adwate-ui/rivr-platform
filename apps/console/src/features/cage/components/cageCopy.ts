@@ -3,6 +3,7 @@ import { t, type MessageKey } from '@rivr/i18n';
 
 /** Why chips were not issued, for the cashier. */
 export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
+  no_shift: 'console.cage.noShift',
   not_allowed: 'console.cage.notAllowed',
   no_member: 'console.cage.noMember',
   stopped: 'console.cage.stopped',

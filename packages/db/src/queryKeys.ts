@@ -39,6 +39,8 @@ export const queryKeys = {
   treasury: (userId: string, venueId: string) => ['user', userId, 'treasury', venueId] as const,
   /** The venue's end-of-day closes (#45). */
   eodCloses: (userId: string, venueId: string) => ['user', userId, 'eod-closes', venueId] as const,
+  /** A venue's shift openings that differed from the last close (#376). */
+  shiftOpenings: (userId: string, venueId: string) => ['user', userId, 'shift-openings', venueId] as const,
   /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
   academy: (userId: string) => ['user', userId, 'academy'] as const,
   academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,

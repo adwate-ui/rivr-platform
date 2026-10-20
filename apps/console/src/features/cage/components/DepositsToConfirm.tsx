@@ -10,6 +10,7 @@ import type { z } from 'zod';
 
 /** Why a deposit was not confirmed or turned down, for the cashier. */
 const FAILURE_COPY: Readonly<Record<DepositFailure, MessageKey>> = {
+  no_shift: 'console.cage.noShift',
   not_allowed: 'console.cage.depositNotAllowed',
   invalid: 'console.cage.depositNotWaiting',
   kyc_needed: 'console.cage.depositNotWaiting',

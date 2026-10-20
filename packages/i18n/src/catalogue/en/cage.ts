@@ -126,6 +126,9 @@ export const cage = {
   /** Under the cash-out done line: `{amount}` is what the chips paid off. */
   cashedOutSettled: 'Markers settled: {amount}.',
   notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',
+  /** The cage takes and pays nothing while no shift is open (#376). */
+  noShift: 'The cage has no shift open. Open one on Treasury with the float and the chips, then try again.',
+  noShiftBanner: 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Treasury.',
   /** Call time still owed at the cage (#79). `{time}`: 1 h 12 min. */
   callTimeOwed: 'Call time not complete: {time} short. An admin lets them leave early on the Live floor.',
   callTimeLetGo: 'Call time {time} short. An admin has let them leave early.',

@@ -112,7 +112,11 @@ select is(
 );
 select ok((select count(*) from public.audit_log where entity = 'kyc_record') > 0, 'but it records how each check moved');
 
--- Who sees what, and who writes.
+-- Who sees what, and who writes. The records at each venue as they stand, read before anyone signs in:
+-- each lane's seed adds members who have finished the check, so the counts below are these.
+create temp table kyc_seed as
+select venue_id, member_id from public.kyc_record where venue_id in ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002');
+grant select on kyc_seed to authenticated;
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select is((select count(*)::int from public.kyc_record), 1, 'a member sees only their own record');
@@ -124,14 +128,15 @@ select throws_ok($$ select public.begin_kyc_vendor_call('00000000-0000-4000-8000
   'nor pass the gate themselves');
 select throws_ok($$ update public.kyc_record set status = 'verified' $$, '42501', null, 'nor change it directly');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select is((select count(*)::int from public.kyc_record), 14,
-  'a KYC reviewer sees the records of the venues they work at (seeded staff: both; nine seeded records, two of them the practice venue''s)');
+select is((select count(*)::int from public.kyc_record), (select count(*)::int from kyc_seed),
+  'a KYC reviewer sees all the records of the venues they work at (seeded staff: both)');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000108", "role": "authenticated"}';
 select is((select count(*)::int from public.kyc_record), 0, 'a host sees none');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000ea", "role": "authenticated"}';
-select set_eq($$ select member_id from public.kyc_record $$,
-  $$ values ('00000000-0000-4000-8000-000000000302'::uuid), ('00000000-0000-4000-8000-000000000270'), ('00000000-0000-4000-8000-000000000271') $$,
-  'a KYC reviewer of the practice venue sees only its records (two of them seeded, 12_people_d.sql)');
+select results_eq($$ select member_id from public.kyc_record order by member_id $$,
+  $$ select member_id from kyc_seed where venue_id = '00000000-0000-4000-8000-000000000002' order by member_id $$,
+  'a KYC reviewer of the practice venue sees only its records');
+select ok((select count(*) > 0 from kyc_seed where venue_id = '00000000-0000-4000-8000-000000000002'), 'and the practice venue has some');
 reset role;
 
 select * from finish();

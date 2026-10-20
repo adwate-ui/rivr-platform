@@ -79,6 +79,43 @@ function toClose(row: CloseRow): EodClose {
   };
 }
 
+/**
+ * A shift whose opening differed from the last close (#376): the float and chips it opened with against
+ * what that close counted, and the review, null while it waits for a manager's reason.
+ */
+export interface ShiftOpening {
+  readonly shiftId: string;
+  readonly openedAt: string;
+  readonly openedBy: string;
+  readonly float: Paise;
+  readonly lastClosedAt: string;
+  /** Opened less the last close's count: below zero when the opening found less. */
+  readonly cashVariance: Paise;
+  readonly chipsVariance: Paise;
+  /** A manager who neither opened this shift nor closed the last may give the reason. */
+  readonly mayReview: boolean;
+  readonly review: CloseReview | null;
+}
+
+/** Openings that differed from the last close, the latest 14 and every one waiting, newest first, for ledger readers. */
+export function useShiftOpenings(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.shiftOpenings(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<ShiftOpening[]> => {
+      const { data, error } = await client.rpc('shift_openings', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        shiftId: row.shift_id, openedAt: row.opened_at, openedBy: row.opened_by, float: toPaise(row.float_paise), lastClosedAt: row.last_closed_at,
+        cashVariance: toPaise(row.cash_variance_paise), chipsVariance: toPaise(row.chips_variance_paise), mayReview: row.may_review,
+        review: row.reason === null || row.reviewed_by === null || row.reviewed_at === null ? null
+          : { reason: row.reason, reviewedBy: row.reviewed_by, reviewedAt: row.reviewed_at },
+      }));
+    },
+  });
+}
+
 /** The venue's latest closes, newest first, for ledger readers. */
 export function useEodCloses(venueId: string) {
   const { client, userId } = useRivrData();
@@ -95,7 +132,8 @@ export function useEodCloses(venueId: string) {
 
 /**
  * The end of day's steps (#45): `close` the open shift, a Result with the close's id; `review` an
- * anomaly with its reason. Each reloads the closes and the Treasury.
+ * anomaly with its reason; `reviewOpening`, an opening that differed from the last close (#376). Each
+ * reloads the closes, the openings and the Treasury.
  */
 export function useEodActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -103,6 +141,7 @@ export function useEodActions(venueId: string) {
   const reload = () => Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.eodCloses(userId ?? 'signed-out', venueId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.treasury(userId ?? 'signed-out', venueId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.shiftOpenings(userId ?? 'signed-out', venueId) }),
   ]);
   const close = useMutation({
     mutationFn: async (order: CloseOrder): Promise<Result<string, EodFailure>> => {
@@ -121,5 +160,12 @@ export function useEodActions(venueId: string) {
       return error ? err(failureOf(error.code)) : ok(null);
     },
   });
-  return { close, review };
+  const reviewOpening = useMutation({
+    mutationFn: async ({ shiftId, reason }: { shiftId: string; reason: string }): Promise<Result<null, EodFailure>> => {
+      const { error } = await client.rpc('review_shift_opening', { p_shift_id: shiftId, p_reason: reason });
+      await reload();
+      return error ? err(failureOf(error.code)) : ok(null);
+    },
+  });
+  return { close, review, reviewOpening };
 }

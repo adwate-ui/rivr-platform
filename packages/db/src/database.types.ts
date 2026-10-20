@@ -245,14 +245,14 @@ isOneToOne: false
                   ]
                 },"cage_shift": {
                   Row: {
-                    "closed_at": string | null,"closed_by_staff_id": string | null,"created_at": string,"float_paise": number,"id": string,"idempotency_key": string,"opened_after_entry_id": number,"opened_at": string,"opened_by_staff_id": string,"updated_at": string,"venue_id": string
+                    "closed_at": string | null,"closed_by_staff_id": string | null,"created_at": string,"float_paise": number,"id": string,"idempotency_key": string,"last_close_id": string | null,"opened_after_entry_id": number,"opened_at": string,"opened_by_staff_id": string,"opening_cash_variance_paise": number | null,"opening_chips_variance_paise": number | null,"opening_is_anomaly": boolean,"opening_reason": string | null,"opening_reviewed_at": string | null,"opening_reviewed_by_staff_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"float_paise": number,"id"?: string,"idempotency_key": string,"opened_after_entry_id"?: number,"opened_at"?: string,"opened_by_staff_id": string,"updated_at"?: string,"venue_id": string
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"float_paise": number,"id"?: string,"idempotency_key": string,"last_close_id"?: string | null,"opened_after_entry_id"?: number,"opened_at"?: string,"opened_by_staff_id": string,"opening_cash_variance_paise"?: number | null,"opening_chips_variance_paise"?: number | null,"opening_is_anomaly"?: boolean,"opening_reason"?: string | null,"opening_reviewed_at"?: string | null,"opening_reviewed_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"float_paise"?: number,"id"?: string,"idempotency_key"?: string,"opened_after_entry_id"?: number,"opened_at"?: string,"opened_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"float_paise"?: number,"id"?: string,"idempotency_key"?: string,"last_close_id"?: string | null,"opened_after_entry_id"?: number,"opened_at"?: string,"opened_by_staff_id"?: string,"opening_cash_variance_paise"?: number | null,"opening_chips_variance_paise"?: number | null,"opening_is_anomaly"?: boolean,"opening_reason"?: string | null,"opening_reviewed_at"?: string | null,"opening_reviewed_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -262,8 +262,20 @@ isOneToOne: false
       referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
     },{
+      foreignKeyName: "cage_shift_last_close_fk"
+      columns: ["last_close_id"]
+isOneToOne: false
+      referencedRelation: "eod_close"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "cage_shift_opened_by_staff_id_venue_id_fkey"
       columns: ["opened_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cage_shift_opening_reviewer_fk"
+      columns: ["opening_reviewed_by_staff_id","venue_id"]
 isOneToOne: false
       referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
@@ -2801,6 +2813,9 @@ isOneToOne: false
 "review_kyc":
 { Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string
                            },
+"review_shift_opening":
+{ Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined
+                           },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
                            },
@@ -2857,6 +2872,11 @@ isOneToOne: false
                            },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
+                           },
+"shift_openings":
+{ Args: { "p_venue_id": string }; Returns: {
+              "cash_variance_paise": number,"chips_variance_paise": number,"float_paise": number,"last_cash_paise": number,"last_chips_paise": number,"last_closed_at": string,"may_review": boolean,"opened_at": string,"opened_by": string,"reason": string,"reviewed_at": string,"reviewed_by": string,"shift_id": string
+            }[]
                            },
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string

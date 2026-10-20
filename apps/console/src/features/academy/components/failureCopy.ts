@@ -3,6 +3,7 @@ import type { MessageKey } from '@rivr/i18n';
 
 /** What the console says for each way an Academy step can fail. */
 export const FAILURE_COPY: Readonly<Record<AcademyStaffFailure, MessageKey>> = {
+  no_shift: 'console.cage.noShift',
   not_allowed: 'console.academyFailures.notAllowed',
   no_member: 'console.academyFailures.noMember',
   invalid: 'console.academyFailures.invalid',

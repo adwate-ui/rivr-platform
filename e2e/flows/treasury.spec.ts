@@ -1,9 +1,10 @@
 /**
  * Treasury (#24). Rohit Chauhan, this flow's own cashier, opens the Treasury: what the venue holds for
- * players and the chips in play, from the ledger, and no shift open. He opens the cage's shift with
- * ₹12,00,000 of float and the chips counted by denomination (₹6,50,000 in the cage), then counts again
- * after two ₹5,000 chips go out. Who sees what is proved in supabase/tests/068. One shift is open at a
- * time and #45 closes it, so a local rerun needs `pnpm db:reset` first; CI always starts fresh.
+ * players and the chips in play, from the ledger, and the cage's shift he opened with ₹12,00,000 of float
+ * and the chips counted by denomination (₹6,50,000 in the cage). The seed opens it (70_cage_shift.sql),
+ * since the cage takes no money without an open shift (#376); opening one is the Cage shift flow's and
+ * End of day's. He counts again after two ₹5,000 chips go out. Who sees what is proved in
+ * supabase/tests/068. A local rerun needs `pnpm db:reset` first; CI always starts fresh.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -17,20 +18,14 @@ async function countChips(page: Page, quantities: Record<string, string>) {
 }
 
 test.describe('Treasury', () => {
-  test('Treasury: Rohit opens the cage\'s shift with the float and the chips counted, then counts again', async ({ page }) => {
-    test.skip(isRemoteTarget(), 'opens the cage\'s one shift, so the local stack only');
+  test('Treasury: Rohit sees the cage\'s shift with its float and the chips counted, then counts again', async ({ page }) => {
+    test.skip(isRemoteTarget(), 'counts the club cage\'s chips, so the local stack only');
     await signInToConsole(page, '9000000140');
     await page.getByRole('link', { name: 'Treasury' }).click();
     await expect(page.getByRole('heading', { name: 'Treasury', level: 1 })).toBeVisible();
     for (const row of ['Member wallets', 'Withdrawals pending', 'Bonus liability', 'Markers outstanding', 'Jackpots held', 'Chips in play']) {
       await expect(page.getByText(row, { exact: true })).toBeVisible();
     }
-    await expect(page.getByText('No shift open', { exact: true })).toBeVisible();
-
-    await page.getByRole('textbox', { name: 'Float in the drawer' }).fill('1200000');
-    await countChips(page, { '₹50': '400', '₹100': '300', '₹500': '200', '₹1,000': '100', '₹5,000': '40', '₹25,000': '8' });
-    await page.getByRole('button', { name: 'Open shift' }).click();
-    await expect(page.getByText('Shift opened.')).toBeVisible();
     await expect(page.getByText(/^Opened [A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2}, \d{2}:\d{2} by Rohit Chauhan$/)).toBeVisible();
     await expect(page.getByText('₹12,00,000', { exact: true })).toBeVisible();
     await expect(page.getByText('₹6,50,000', { exact: true })).toBeVisible();

@@ -9,6 +9,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 
 const FAILURE_COPY: Readonly<Record<MarkerFailure, MessageKey>> = {
+  no_shift: 'console.cage.noShift',
   not_allowed: 'console.cage.markerNotAllowed',
   above_limit: 'console.cage.markerAboveLimit',
   above_exposure: 'console.cage.markerAboveExposure',
