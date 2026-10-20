@@ -1,5 +1,5 @@
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
-import { balanceRoute, withdrawRoute } from './routes/balance.tsx';
+import { balanceRoute, depositRoute, withdrawRoute } from './routes/balance.tsx';
 import { frameRoute } from './routes/frame.tsx';
 import { kycReturnRoute, kycRoute } from './routes/kyc.tsx';
 import { learnRoute } from './routes/learn.tsx';
@@ -17,7 +17,7 @@ const routeTree = rootRoute.addChildren([
   signUpRoute,
   kycRoute,
   kycReturnRoute,
-  frameRoute.addChildren([tonightRoute, sessionsRoute, balanceRoute, withdrawRoute, rewardsRoute, learnRoute, academyRoute, academyPaymentRoute, profileRoute]),
+  frameRoute.addChildren([tonightRoute, sessionsRoute, balanceRoute, withdrawRoute, depositRoute, rewardsRoute, learnRoute, academyRoute, academyPaymentRoute, profileRoute]),
 ]);
 
 /** The player app's router; tests pass a memory history. */

@@ -76,6 +76,10 @@ export {
   type WithdrawalOrder, type WithdrawalStatus,
 } from './withdrawals.ts';
 export {
+  useDepositActions, useDepositDecisions, useDepositDetails, useDeposits, useWaitingDeposits, type Deposit, type DepositDetails, type DepositFailure,
+  type DepositOrder, type DepositStatus, type WaitingDeposit,
+} from './deposits.ts';
+export {
   MOVEMENT_ACCOUNTS, MOVEMENT_KINDS, useWallet, useWalletMovements, type Movement, type MovementAccount, type MovementKind, type Wallet,
   type WalletBonus, type WalletMarker,
 } from './wallet.ts';

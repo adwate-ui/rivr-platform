@@ -1,8 +1,9 @@
 import { useWallet, useWalletMovements } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Screen, Stack } from '@rivr/ui';
+import { Button, Inline, Screen, Stack } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { DepositStatus } from './DepositStatus.tsx';
 import { MarkersSection } from './MarkersSection.tsx';
 import { MovementsSection } from './MovementsSection.tsx';
 import { PayoutAccountsSection } from './PayoutAccountsSection.tsx';
@@ -15,7 +16,7 @@ const PAGE = 30;
  * Balance (#18; design prompt "Balance"), a core feature never gated, so a member always sees their own
  * money: wallet cash, bonus in force with when it expires, and points together; open markers against
  * the credit limit; their payout accounts (#19); and every movement on their accounts, newest first.
- * Withdraw (#21) opens its own screen, and the latest withdrawal shows here; Deposit comes with #29.
+ * Withdraw (#21) and Deposit (#29) open their own screens, and the latest of each shows here.
  */
 export function BalanceScreen() {
   const [count, setCount] = useState(PAGE);
@@ -33,7 +34,11 @@ export function BalanceScreen() {
         <Stack gap={4}>
           <WalletSummary wallet={wallet.data} />
           <WithdrawalStatus />
-          <Button variant="primary" onClick={() => void navigate({ to: '/balance/withdraw' })}>{t('player.balance.withdraw')}</Button>
+          <DepositStatus />
+          <Inline gap={3}>
+            <Button variant="primary" onClick={() => void navigate({ to: '/balance/withdraw' })}>{t('player.balance.withdraw')}</Button>
+            <Button variant="text" onClick={() => void navigate({ to: '/balance/deposit' })}>{t('player.balance.deposit')}</Button>
+          </Inline>
         </Stack>
         <MarkersSection wallet={wallet.data} />
         <PayoutAccountsSection />

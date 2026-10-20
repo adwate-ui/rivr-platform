@@ -89,7 +89,31 @@ export const balance = {
   withdrawUnavailable: 'Could not send. Check your connection and try again.',
   kindWithdrawal: 'Withdrawal',
   kindWithdrawalReturn: 'Withdrawal returned',
-};
+  /** UPI deposits from Balance (#29; design prompt Deposit). */
+  deposit: 'Deposit',
+  payToUpi: 'Pay to UPI',
+  payeeName: 'Name',
+  depositFrom: 'From',
+  amountPaid: 'Amount paid',
+  utr: 'UTR',
+  submitDeposit: 'Submit',
+  noDepositDetails: 'Deposits are not open yet. Ask at the cage.',
+  noUpiAccount: 'Add a UPI payout account on Balance and wait for the cage to verify it. Then you can deposit from it.',
+  depositNotVerified: 'That UPI account is not verified. Choose a verified one.',
+  depositAmountInvalid: 'Enter the amount paid in whole rupees.',
+  depositUtrInvalid: 'Enter the 12-digit UTR from your bank app.',
+  depositSubmitted: 'Deposit submitted. The cage confirms it against the UTR.',
+  depositReceived: 'Deposit received. {amount} added to cash.',
+  depositNotFound: 'Deposit not found against UTR {utr}. Check the UTR and submit again.',
+  depositNotAllowed: 'Deposits are not open to your tier.',
+  depositInvalid: 'Check the amount and the UTR, then try again.',
+  depositKycNeeded: 'KYC incomplete. Finish it to deposit.',
+  depositUtrUsed: 'UTR already used. Check the number on your bank app.',
+  depositTooMany: 'Three deposits are waiting. Wait for the cage to confirm them.',
+  depositUnavailable: 'Could not submit. Check your connection and try again.',
+  kindDeposit: 'Deposit',
+  /** A deposit's line on Balance: "Deposit · UTR 412908771204". */
+  utrDetail: 'UTR {utr}',};
 
 /** The console's Withdrawals (#21; design prompt flow 9): the cage sends each with its UTR, from the threshold up once a second approver has approved it (#20). */
 export const withdrawals = {

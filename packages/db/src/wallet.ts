@@ -67,8 +67,8 @@ export function useWallet() {
 }
 
 /** What a movement was, by its ledger transaction's kind; any other kind is `other`. */
-export const MOVEMENT_KINDS = ['buy_in', 'cash_out', 'marker', 'bonus', 'bonus_expiry', 'withdrawal', 'withdrawal_return', 'reversal', 'opening_balance',
-  'other'] as const;
+export const MOVEMENT_KINDS = ['buy_in', 'cash_out', 'marker', 'bonus', 'bonus_expiry', 'withdrawal', 'withdrawal_return', 'deposit', 'reversal',
+  'opening_balance', 'other'] as const;
 export type MovementKind = (typeof MOVEMENT_KINDS)[number];
 
 /** Which of the member's money accounts moved: wallet cash, bonus, or what they owe on markers (points history is Rewards', decision 0062). */
@@ -90,6 +90,8 @@ export interface Movement {
   readonly bonusReason: string | null;
   /** The bank a withdrawal's hold or return was for (#21). */
   readonly bankName: string | null;
+  /** A deposit's UTR (#29). */
+  readonly utr: string | null;
 }
 
 interface MovementRow {
@@ -101,6 +103,7 @@ interface MovementRow {
   table_name: string | null;
   bonus_reason: string | null;
   bank_name: string | null;
+  utr: string | null;
 }
 
 function movementOf(row: MovementRow): Movement | null {
@@ -108,7 +111,7 @@ function movementOf(row: MovementRow): Movement | null {
   if (row.id === null || row.at === null || row.amount === null || account === undefined) return null;
   return {
     id: String(row.id), at: row.at, kind: MOVEMENT_KINDS.find((known) => known === row.kind) ?? 'other', account, amount: toPaise(row.amount),
-    tableName: row.table_name, bonusReason: row.bonus_reason, bankName: row.bank_name,
+    tableName: row.table_name, bonusReason: row.bonus_reason, bankName: row.bank_name, utr: row.utr,
   };
 }
 

@@ -23,6 +23,10 @@ export const queryKeys = {
   /** The signed-in member's withdrawals (#21), and the venue's waiting for the cage. */
   withdrawals: (userId: string) => ['user', userId, 'withdrawals'] as const,
   waitingWithdrawals: (userId: string, venueId: string) => ['user', userId, 'waiting-withdrawals', venueId] as const,
+  /** The signed-in member's deposits and where to pay them (#29), and the venue's waiting for the cage. */
+  deposits: (userId: string) => ['user', userId, 'deposits'] as const,
+  depositDetails: (userId: string) => ['user', userId, 'deposits', 'details'] as const,
+  waitingDeposits: (userId: string, venueId: string) => ['user', userId, 'waiting-deposits', venueId] as const,
   /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
   academy: (userId: string) => ['user', userId, 'academy'] as const,
   academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,

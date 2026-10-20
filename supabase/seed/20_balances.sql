@@ -58,3 +58,9 @@ select s.venue_id, '00000000-0000-4000-8000-000000000201', 'upi', 'HDFC Bank', '
 from public.staff s
 where s.user_id = '00000000-0000-4000-8000-000000000104' and s.venue_id = '00000000-0000-4000-8000-000000000001'
 on conflict do nothing;
+-- Vihaan Kapoor's UPI, verified: the Deposit flow's member pays from it (#29).
+insert into public.payout_account (venue_id, member_id, kind, bank_name, vpa, status, decided_at, decided_by_staff_id)
+select s.venue_id, '00000000-0000-4000-8000-000000000212', 'upi', 'Axis Bank', 'vihaan.kapoor@okaxis', 'verified', now() - interval '10 days', s.id
+from public.staff s
+where s.user_id = '00000000-0000-4000-8000-000000000104' and s.venue_id = '00000000-0000-4000-8000-000000000001'
+on conflict do nothing;

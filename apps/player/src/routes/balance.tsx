@@ -9,3 +9,5 @@ export const balanceRoute = createRoute({ getParentRoute: () => frameRoute, path
 
 /** Withdraw (#21): wallet cash to one of the member's verified payout accounts. */
 export const withdrawRoute = createRoute({ getParentRoute: () => frameRoute, path: '/balance/withdraw', component: lazyRouteComponent(balance, 'WithdrawScreen') });
+/** Deposit (#29): the club's UPI, then the amount paid and its UTR. */
+export const depositRoute = createRoute({ getParentRoute: () => frameRoute, path: '/balance/deposit', component: lazyRouteComponent(balance, 'DepositScreen') });
