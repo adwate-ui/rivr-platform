@@ -86,6 +86,7 @@
   --spacing-photo: var(--rivr-size-photo);
   --spacing-card: var(--rivr-size-card);
   --spacing-receipt: var(--rivr-size-receipt);
+  --spacing-chart: var(--rivr-size-chart);
   --aspect-portrait: var(--rivr-aspect-portrait);
   --aspect-card: var(--rivr-aspect-card);
   --radius-sm: var(--rivr-radius-sm);

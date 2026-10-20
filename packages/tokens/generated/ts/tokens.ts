@@ -107,7 +107,8 @@ export const tokens = {
     "text": 640,
     "photo": 160,
     "card": 342,
-    "receipt": 576
+    "receipt": 576,
+    "chart": 192
   },
   "aspect": {
     "portrait": "3 / 4",

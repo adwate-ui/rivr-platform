@@ -69,7 +69,8 @@ export {
 } from './cage.ts';
 export { creditLimitSchema, markerIssueSchema } from './credit.ts';
 export {
-  PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionConditionsSchema, promotionEffectSchema, type PromotionConditions, type PromotionEffect,
+  PROMOTION_BUILDER_LIMITS, PROMOTION_BUILDER_REWARDS, PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionBuilderSchema, promotionConditionsSchema,
+  promotionEffectSchema, type PromotionBuilder, type PromotionBuilderLimit, type PromotionBuilderReward, type PromotionConditions, type PromotionEffect,
   type PromotionEffectKind, type PromotionTrigger,
 } from './promotions.ts';
 export { CONTROL_LEVELS, engageControlSchema, KILLABLE_FEATURES } from './killSwitch.ts';

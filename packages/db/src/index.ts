@@ -205,6 +205,9 @@ export {
   type HighHandFailure,
   type TabletHighHand,
 } from './highHands.ts';
+export {
+  usePromotionActions, usePromotions, usePromotionStakes, type ConsolePromotion, type PromotionFailure, type PromotionStake, type PromotionToPublish,
+} from './promotions.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';
 export {
   useSopAcknowledgements, useSopActions, useSopLibrary, type Sop, type SopAcknowledgement, type SopFailure, type SopVersion, type SopVersionInput,

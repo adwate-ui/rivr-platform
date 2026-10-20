@@ -127,6 +127,9 @@ export const queryKeys = {
   /** A venue's certification quizzes, and the attempts at them the signed-in staff member may see (#50): all, or one person's, under it. */
   quizzes: (userId: string, venueId: string) => ['user', userId, 'quizzes', venueId] as const,
   quizAttempts: (userId: string, venueId: string) => ['user', userId, 'quiz-attempts', venueId] as const,
+  /** A venue's live and paused promotions, and its stakes for the builder (#84). */
+  promotions: (userId: string, venueId: string) => ['user', userId, 'promotions', venueId] as const,
+  promotionStakes: (userId: string, venueId: string) => ['user', userId, 'promotion-stakes', venueId] as const,
   /** A venue's SOP library (#51), and who has acknowledged each version, for SOP managers. */
   sops: (userId: string, venueId: string) => ['user', userId, 'sops', venueId] as const,
   sopAcknowledgementsAll: (userId: string) => ['user', userId, 'sop-acknowledgements'] as const,
