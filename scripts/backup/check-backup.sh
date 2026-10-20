@@ -6,18 +6,33 @@
 # needs no more. It makes a throwaway key and a backup, then decrypts the archive and checks:
 # - the checksum matches;
 # - the dump's three files are there, and cron.sql schedules every cron job;
-# - the manifest lists every public table with the row count the database has.
-# The restore itself is the drill's (#26).
+# - the manifest lists every public table with the row count the database has;
+# - a file put in a Storage bucket is in the archive at its path, byte for byte, and in storage.csv (#386).
+# The restore itself is the drill's (#26). Needs the AWS CLI, as GitHub's runners have.
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
-admin_url="$(pnpm -s supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+status="$(pnpm -s supabase status -o env)"
+setting() { sed -n "s/^$1=\"\(.*\)\"$/\1/p" <<<"$status"; }
+admin_url="$(setting DB_URL)"
 [[ -n "$admin_url" ]] || { echo "The local stack is not running: pnpm db:start"; exit 1; }
+export STORAGE_S3_ENDPOINT="$(setting STORAGE_S3_URL)" STORAGE_S3_ACCESS_KEY_ID="$(setting S3_PROTOCOL_ACCESS_KEY_ID)"
+export STORAGE_S3_SECRET_ACCESS_KEY="$(setting S3_PROTOCOL_ACCESS_KEY_SECRET)" STORAGE_S3_REGION="$(setting S3_PROTOCOL_REGION)"
 work="$(mktemp -d)"
 password="$(openssl rand -hex 16)"
-trap 'psql "$admin_url" -q -c "alter role rivr_backup with nologin password null" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
+probe="backup-check/$(openssl rand -hex 8).jpg"
+storage() {
+  AWS_ACCESS_KEY_ID="$STORAGE_S3_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$STORAGE_S3_SECRET_ACCESS_KEY" AWS_DEFAULT_REGION="$STORAGE_S3_REGION" \
+    aws "$@" --endpoint-url "$STORAGE_S3_ENDPOINT"
+}
+trap 'psql "$admin_url" -q -c "alter role rivr_backup with nologin password null" >/dev/null 2>&1 || true
+      storage s3 rm "s3://kyc/$probe" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
 psql "$admin_url" -q -v ON_ERROR_STOP=1 -c "alter role rivr_backup with login password '$password'"
 backup_url="$(sed -E "s#//[^@]*@#//rivr_backup:${password}@#" <<<"$admin_url")"
+
+# A file in the private KYC bucket, which takes only images, as a selfie would be.
+openssl rand 2048 > "$work/probe.jpg"
+storage s3 cp "$work/probe.jpg" "s3://kyc/$probe" --content-type image/jpeg --only-show-errors
 
 age-keygen -o "$work/key.txt" 2>/dev/null
 BACKUP_DB_URL="$backup_url" BACKUP_AGE_RECIPIENT="$(age-keygen -y "$work/key.txt")" \
@@ -41,4 +56,6 @@ if [[ "$(tail -n +2 "$work/check/manifest.csv")" != "$expected" ]]; then
   diff <(tail -n +2 "$work/check/manifest.csv") <(echo "$expected") || true
   exit 1
 fi
-echo "Backup checked as rivr_backup: $(tail -n +2 "$work/check/manifest.csv" | wc -l) tables, every row count as the database has it, all $jobs cron jobs."
+cmp -s "$work/probe.jpg" "$work/check/storage/kyc/$probe" || { echo "The backup lacks the file put in Storage, or it differs"; exit 1; }
+grep -qxF "kyc/$probe,$(stat -c %s "$work/probe.jpg")" "$work/check/storage.csv" || { echo "storage.csv does not list the file put in Storage"; exit 1; }
+echo "Backup checked as rivr_backup: $(tail -n +2 "$work/check/manifest.csv" | wc -l) tables, every row count as the database has it, all $jobs cron jobs, $(wc -l < "$work/check/storage.csv") Storage files including the one put there."

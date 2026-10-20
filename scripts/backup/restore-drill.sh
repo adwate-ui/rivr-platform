@@ -61,7 +61,9 @@ if $local_backup; then
     admin_url="$(cd "$root" && pnpm -s supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
     [[ -n "$admin_url" ]] || { echo "The local stack is not running: pnpm db:start"; exit 1; }
     age-keygen -o "$key" 2>/dev/null
-    BACKUP_DB_URL="$admin_url" BACKUP_AGE_RECIPIENT="$(age-keygen -y "$key")" bash "$root/scripts/backup/nightly-backup.sh" "$work/in" drill >/dev/null
+    # The database alone: a Storage key left in this shell (from a restore) is never read here (#386).
+    env -u STORAGE_S3_ENDPOINT -u STORAGE_S3_ACCESS_KEY_ID -u STORAGE_S3_SECRET_ACCESS_KEY \
+      BACKUP_DB_URL="$admin_url" BACKUP_AGE_RECIPIENT="$(age-keygen -y "$key")" bash "$root/scripts/backup/nightly-backup.sh" "$work/in" drill >/dev/null
   fi
 elif [[ -n "$latest" ]]; then
   step "Download the latest nightly backup of $latest"

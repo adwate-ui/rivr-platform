@@ -11,7 +11,9 @@ insert into public.site_page (id, venue_id, slug, title, description, nav_positi
   ('00000000-0000-4000-8000-0000000005b3', '00000000-0000-4000-8000-000000000001', 'visit', 'Visit',
    'Upper floor, Glaza, M3M 65th Avenue, Gurugram.', 5, true),
   ('00000000-0000-4000-8000-0000000005b4', '00000000-0000-4000-8000-000000000001', 'responsible-play', 'Responsible play',
-   'Limits, breaks and self-exclusion at RIVR.', 6, true)
+   'Limits, breaks and self-exclusion at RIVR.', 6, true),
+  ('00000000-0000-4000-8000-0000000005b5', '00000000-0000-4000-8000-000000000001', 'privacy', 'Privacy',
+   'The personal data RIVR keeps, and its backups.', 7, true)
 on conflict (id) do nothing;
 
 insert into public.site_block (venue_id, page_id, position, kind, content) values
@@ -50,6 +52,12 @@ insert into public.site_block (venue_id, page_id, position, kind, content) value
    '{"heading": "Responsible play"}'),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005b4', 2, 'text', $${
     "body": "Poker is a game of skill, and you can still lose money at it. Play with money you can afford to lose, and stop when it stops being fun.\n\nSpeak to the front desk to set a limit on your play or to take a break from the club. A break you ask for is kept at the door, the waitlist and the cage until it ends."
+  }$$),
+  -- The privacy notice's backups (#386; the owner's answer to #382): what they hold and for how long.
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005b5', 1, 'hero',
+   '{"heading": "Privacy", "text": "The personal data RIVR keeps, and its backups."}'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005b5', 2, 'text', $${
+    "body": "Backups. Every night RIVR takes an encrypted backup of its records, so the club can recover from a failure. Backups hold personal data, the photos from identity checks included. Each night's backup is kept for 35 days, and one backup a month for 400 days, then deleted. Personal data can be in a backup for up to 400 days.\n\nErasure. When your data is erased at your request, a backup taken before then still holds it until that backup is deleted. If RIVR ever restores a backup, every erasure made since it was taken is made again before the restored records are used."
   }$$)
 on conflict (page_id, position) do nothing;
 
