@@ -25,6 +25,10 @@ export const documents = {
     sgst: 'SGST at {rate}',
     igst: 'IGST at {rate}',
     total: 'Total',
+    /** In the player app, above the invoice (#249): the browser's print saves it as a PDF. */
+    save: 'Save as PDF',
+    /** Beside Save as PDF: back to where the invoice was opened from. */
+    back: 'Back',
   },
   statement: {
     title: 'Statement',

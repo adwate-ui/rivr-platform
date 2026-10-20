@@ -13,7 +13,7 @@ A small Vite page, the render host (`src/host/`), loads `@rivr/ui/styles.css`, m
 | `renderToMp4(request, { fps, durationMs, leadMs })` | An H.264 MP4 of the template's CSS animations: each frame captured with every animation held at its time, after `leadMs` of still frames, encoded in Chromium (WebCodecs) and written by Mediabunny (`docs/decisions/0039`). |
 | `templates`, `TemplateName`, `TemplateProps<Name>` | The template registry; props are type-checked per template. |
 | `RenderRequest<Name>` | The request type. |
-| `renderInvoicePdf(invoice)`, `invoiceDocumentProps(invoice)`, `storedInvoiceFromRow(row)`, `StoredInvoice` | A stored invoice (#68), from its `invoice` row, as a one-page A4 PDF through `document.invoice`, and the props it is drawn from: the supplier, number, buyer and amounts exactly as stored, with CGST and SGST at half the rate each or IGST alone (decision 0111). |
+| `renderInvoicePdf(invoice)`, `storedInvoiceFromRow(row)`, `StoredInvoice` | A stored invoice (#68), read from its `invoice` row, as a one-page A4 PDF through `document.invoice`: `@rivr/ui`'s `InvoiceDocument`, which the player app shows too (#249) (decision 0111). |
 
 Templates:
 
@@ -30,7 +30,7 @@ Templates:
 | `brand.art` | any | `art`: `icon`, `maskable`, `adaptive` or `lockup` (`BrandArt`, drawn on a fixed stage and scaled to the request); `isAnimated` with `lockup` for the logo animation |
 | `card.membership` | `tokens.viewport.card` (342 × 216) at `scale: 3` | `name`, `tier`, `memberNumber`. The QR square is empty: the QR rotates, so the app draws it live (#71) |
 | `receipt.thermal` | `tokens.size.receipt` (576) wide, no height (`@rivr/ui`'s `ThermalReceipt`, which the cage prints too, #69) | `issuer` (`legalName`, `address`, `gstin`), `isPractice` (says "Practice receipt"), `title`, `at` (ISO), `lines` (`label` and an amount in paise or words), `total`, `reference` |
-| `document.invoice` | `tokens.viewport.a4` (794 × 1123) | `issuer`, `isTaxInvoice` (false at the practice venue), `number`, `issuedAt` (ISO), `buyer` (`name`, `gstin`), `lines` (`description`, `amountPaise`), `totals` (each `label` and `paise`, as the invoice holds them) |
+| `document.invoice` | `tokens.viewport.a4` (794 × 1123) | `invoice`: a `StoredInvoice` (`@rivr/ui`'s `InvoiceDocument`), its amounts and supplier exactly as stored |
 | `document.statement` | `tokens.viewport.a4` | `issuer`, `holder`, `from` and `to` (ISO dates), `openingPaise`, `movements` (`at`, `description`, `amountPaise`, `balancePaise`), `closingPaise` |
 
 The brand kit (`docs/brand/README.md`) is `brand.art` at every size in `src/brandKit.ts`. `pnpm --filter @rivr/render render:brand-kit` rebuilds the tokens, `@rivr/ui` and the host, then writes all of it into the repository, 83 files in under a minute. `src/brand.test.ts` compares six of them with `baselines/brand-*.png`.

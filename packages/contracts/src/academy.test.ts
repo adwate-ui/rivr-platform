@@ -16,9 +16,11 @@ describe('academyBatchSchema', () => {
 
 describe('companyBookingSchema', () => {
   it('takes the contact\'s number as typed, and 1 to 100 heads', () => {
-    expect(companyBookingSchema.parse({ contactPhone: '90000 00203', companyName: 'Acme Pvt Ltd', seats: '3' })).toEqual({
-      contactPhone: '+919000000203', companyName: 'Acme Pvt Ltd', seats: 3,
+    expect(companyBookingSchema.parse({ contactPhone: '90000 00203', companyName: 'Acme Pvt Ltd', seats: '3', companyGstin: '' })).toEqual({
+      contactPhone: '+919000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: '',
     });
-    expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 101 }).success).toBe(false);
+    expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 101, companyGstin: '' }).success).toBe(false);
+    expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: '06AAAAA0000A1Z6' }).success).toBe(true);
+    expect(companyBookingSchema.safeParse({ contactPhone: '9000000203', companyName: 'Acme Pvt Ltd', seats: 3, companyGstin: 'not a gstin' }).success).toBe(false);
   });
 });

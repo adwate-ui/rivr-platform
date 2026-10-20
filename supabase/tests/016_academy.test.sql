@@ -76,8 +76,9 @@ select set_config('request.jwt.claims', '', true);
 select results_eq(
   $$ select a.code, a.kind::text, e.amount from public.ledger_entry e join public.ledger_account a on a.id = e.account_id
      where e.transaction_id = pg_temp.id('arjun_paid') order by e.amount desc $$,
-  $$ values ('venue.bank'::text, 'asset'::text, 200000::bigint), ('venue.academy'::text, 'revenue'::text, -200000::bigint) $$,
-  'the ledger takes the fee: bank in, Academy fees as revenue');
+  $$ values ('venue.bank'::text, 'asset'::text, 200000::bigint), ('venue.gst_payable'::text, 'liability'::text, -30508::bigint),
+            ('venue.academy'::text, 'revenue'::text, -169492::bigint) $$,
+  'the ledger takes the fee: bank in, Academy fees as revenue at the taxable value, and the GST in it owed (#249)');
 select results_eq($$ select status, confirmed_by_staff_id is not null from public.academy_booking where id = pg_temp.id('arjun') $$,
   $$ values ('paid'::text, true) $$, 'the booking is paid, by the cashier who confirmed it');
 select results_eq($$ select payload ->> 'amount_paise', payload ->> 'kind' from public.outbox_event where event_type = 'academy.booked' $$,

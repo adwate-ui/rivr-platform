@@ -192,6 +192,13 @@ const gstConfig = {
   }),
 } as const satisfies SettingDefinition;
 
+const academyGst = {
+  key: 'academy.gst',
+  description: 'GST on the Academy\'s fees (decision 0114): the rate in basis points (1800 is 18%), taken out of the fee, kept apart from gst.config, the rake\'s, as training may be taxed differently (question 431).',
+  scope: 'venue',
+  value: z.strictObject({ rate_basis_points: z.int().min(0).max(10_000) }),
+} as const satisfies SettingDefinition;
+
 const pointsPerHour = {
   key: 'points.per_hour',
   description: 'Points a member earns for each hour played, per table type, so by stake (#89, decision 0161); none set earns none.',
@@ -216,7 +223,7 @@ const cardQrRotationSeconds = {
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, pointsPerHour, pointsRewardsRakeShare,
+  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds,
 ] as const;
 

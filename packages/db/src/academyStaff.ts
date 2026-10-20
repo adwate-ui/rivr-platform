@@ -38,14 +38,14 @@ export interface StaffAcademyBooking {
 /** Why a staff step on the Academy did not go through, as the console tells it. */
 export type AcademyStaffFailure =
   | 'not_allowed' | 'no_member' | 'invalid' | 'full' | 'closed' | 'no_fee' | 'no_payment' | 'utr_mismatch' | 'utr_used'
-  | 'stopped' | 'no_shift' | 'unavailable';
+  | 'stopped' | 'no_shift' | 'no_gst' | 'unavailable';
 
 // Not a database code: the contact's number matched no member of the venue.
 const NO_MEMBER = 'no-member';
 
 const FAILURE_BY_CODE: Readonly<Record<string, AcademyStaffFailure>> = {
   '42501': 'not_allowed', [NO_MEMBER]: 'no_member', '22023': 'invalid', RVFUL: 'full', RVBAT: 'closed', RVPRC: 'no_fee',
-  RVPAY: 'no_payment', RVUTM: 'utr_mismatch', RVUTR: 'utr_used', RVFRZ: 'stopped', RVMBR: 'stopped', RVKIL: 'stopped', RVNSH: 'no_shift',
+  RVPAY: 'no_payment', RVUTM: 'utr_mismatch', RVUTR: 'utr_used', RVFRZ: 'stopped', RVMBR: 'stopped', RVKIL: 'stopped', RVNSH: 'no_shift', RVGST: 'no_gst',
 };
 
 const STATUSES = ['awaiting_payment', 'payment_claimed', 'paid'] as const;
@@ -115,6 +115,8 @@ interface CompanyBooking {
   contactPhone: IndianMobile;
   companyName: string;
   seats: number;
+  /** For the company's invoice (#249); empty when it has none. */
+  companyGstin: string;
   requestId: string;
 }
 
@@ -135,7 +137,7 @@ export function useStaffAcademyActions(venueId: string) {
       if (contact.data === null) return { error: { code: NO_MEMBER } };
       return client.rpc('book_academy_corporate', {
         p_batch_id: booking.batchId, p_member_id: contact.data.id, p_company_name: booking.companyName, p_seats: booking.seats,
-        p_request_id: booking.requestId,
+        p_request_id: booking.requestId, p_company_gstin: booking.companyGstin,
       });
     }),
     recordPayment: useStaffAcademyStep(venueId, (client, payment: { bookingId: string; utr: string }) =>

@@ -22,18 +22,20 @@ export const CASH_OUT = {
 };
 
 export const INVOICE = {
-  issuer: ISSUER,
-  isTaxInvoice: true,
-  number: 'RIVR/S26/41',
-  issuedAt: '2026-11-15T13:30:00Z',
-  buyer: { name: 'Northern Gaming Private Limited', gstin: '06BBBBB1111B1Z6' },
-  lines: [{ description: 'Poker Academy, beginners course, 22 Nov 2026', amountPaise: 169_492n }],
-  totals: [
-    { label: 'Taxable value', paise: 169_492n },
-    { label: 'CGST at 9%', paise: 15_254n },
-    { label: 'SGST at 9%', paise: 15_254n },
-    { label: 'Total', paise: 200_000n },
-  ],
+  invoice: {
+    number: 'RIVR/S26/41',
+    isTaxInvoice: true,
+    issuedAt: '2026-11-15T13:30:00Z',
+    supplier: { legalName: ISSUER.legalName, gstin: ISSUER.gstin, address: ISSUER.address },
+    buyer: { name: 'Northern Gaming Private Limited', gstin: '06BBBBB1111B1Z6' },
+    description: 'Poker Academy, beginners course, 22 Nov 2026',
+    rateBasisPoints: 1800,
+    taxablePaise: 169_492n,
+    cgstPaise: 15_254n,
+    sgstPaise: 15_254n,
+    igstPaise: 0n,
+    totalPaise: 200_000n,
+  },
 };
 
 export const STATEMENT = {

@@ -47,14 +47,14 @@ isOneToOne: false
                   ]
                 },"academy_booking": {
                   Row: {
-                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"recorded_by_staff_id": string | null,"request_id": string | null,"seats": number,"status": string,"turned_down_utr": string | null,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_gstin": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"id": string,"invoice_id": string | null,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"recorded_by_staff_id": string | null,"request_id": string | null,"seats": number,"status": string,"turned_down_utr": string | null,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_gstin"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"invoice_id"?: string | null,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_gstin"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"invoice_id"?: string | null,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -68,6 +68,12 @@ isOneToOne: false
       columns: ["confirmed_by_staff_id"]
 isOneToOne: false
       referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "academy_booking_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+      referencedRelation: "invoice"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "academy_booking_ledger_transaction_id_venue_id_fkey"
@@ -2681,7 +2687,7 @@ isOneToOne: false
 { Args: { "p_batch_id": string }; Returns: string
                            },
 "book_academy_corporate":
-{ Args: { "p_batch_id": string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
+{ Args: { "p_batch_id": string,"p_company_gstin"?: string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
                            },
 "cage_buy_in":
 { Args: { "p_amount_paise": number,"p_buy_in_request_id"?: string,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr"?: string,"p_venue_id": string }; Returns: string
@@ -2958,6 +2964,11 @@ isOneToOne: false
 "my_academy_bookings":
 { Args: Record<PropertyKey, never>; Returns: {
               "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"hold_until": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
+            }[]
+                           },
+"my_academy_invoice":
+{ Args: { "p_booking_id": string }; Returns: {
+              "buyer_gstin": string,"buyer_name": string,"cgst_paise": number,"description": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"number": string,"rate_basis_points": number,"sgst_paise": number,"supplier_address": string,"supplier_gstin": string,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number
             }[]
                            },
 "my_deposits":

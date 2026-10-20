@@ -11,10 +11,11 @@ interface BookingCardProps {
   canPay: boolean;
 }
 
-/** One of the member's seats: its batch, what it costs, where it stands, and the way to pay or correct the UTR. */
+/** One of the member's seats: its batch, what it costs, where it stands, the way to pay or correct the UTR, and once paid its invoice. */
 export function BookingCard({ booking, canPay }: BookingCardProps) {
   const navigate = useNavigate();
   const toPayment = () => void navigate({ to: '/academy/$bookingId', params: { bookingId: booking.id } });
+  const toInvoice = () => void navigate({ to: '/academy/$bookingId/invoice', params: { bookingId: booking.id } });
   const hold = holdLine(booking, new Date());
   return (
     <Stack gap={2}>
@@ -28,6 +29,7 @@ export function BookingCard({ booking, canPay }: BookingCardProps) {
           {t('player.academy.pay')}
         </Button>
       ) : null}
+      {booking.status === 'paid' ? <Button variant="secondary" onClick={toInvoice}>{t('player.academy.invoice')}</Button> : null}
       {canPay && booking.status === 'payment_claimed' ? (
         <Button variant="secondary" onClick={toPayment}>
           {t('player.academy.changeUtr')}
