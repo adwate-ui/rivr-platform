@@ -120,7 +120,8 @@ set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", 
 select throws_ok($$ select public.add_to_waitlist((select id from public.table_type where code = 'nlh_50_100'
                                                    and venue_id = '00000000-0000-4000-8000-000000000002'), '9000000301', gen_random_uuid()) $$,
   'RVKYC', null, 'the floor adds a practice member to a practice list only once they finish the check');
-select is_empty($$ select * from public.waitlist_board('00000000-0000-4000-8000-000000000002') $$,
+select is_empty($$ select * from public.waitlist_board('00000000-0000-4000-8000-000000000002') b
+                   where b.member_id in (select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001') $$,
   'and the practice venue''s board holds none of the club''s places');
 
 -- Tier-gated: joining needs waitlist.join; seeing the floor needs floor.live_view.

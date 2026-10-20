@@ -5,6 +5,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
+-- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
+delete from public.tablet_assignment;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -15,7 +19,12 @@ $$;
 grant execute on function pg_temp.as_person(text), pg_temp.t(text) to authenticated;
 -- The night is read as of 23:00 IST tonight, whatever the hour the tests run.
 create temp table clock as select private.tonight_began(now()) + interval '17 hours' as at;
-grant select on clock to authenticated;
+-- The rake of the seed's hand at Table 2 (56_floor.sql), where it falls in the night read.
+create temp table seed_rake as
+select coalesce(sum(h.rake_paise), 0)::bigint as paise from public.hand h cross join clock
+where h.venue_id = '00000000-0000-4000-8000-000000000001' and h.idempotency_key = 'seed:high-hand'
+  and h.played_at >= private.tonight_began(clock.at) and h.played_at <= clock.at;
+grant select on clock, seed_rake to authenticated;
 
 insert into auth.users (id, instance_id, aud, role, phone) values
   ('00000000-0000-4000-8000-00000000e001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000000001');
@@ -45,8 +54,8 @@ select results_eq($$ select hands, hands_last_hour, dealer_name, rake_paise, rak
 select results_eq($$ select hands, dealer_name, rake_paise from private.floor_tonight('00000000-0000-4000-8000-000000000001', (select at from clock))
                      where table_id = pg_temp.t('Table 4') $$,
   $$ values (0, null::text, 0::bigint) $$, 'Table 4: closed, no dealer, nothing tonight');
-select is((select distinct venue_rake_paise from private.floor_tonight('00000000-0000-4000-8000-000000000001', (select at from clock))), 255000::bigint,
-  'the venue''s rake tonight, last night''s hand left out');
+select is((select distinct venue_rake_paise from private.floor_tonight('00000000-0000-4000-8000-000000000001', (select at from clock))),
+  255000::bigint + (select paise from seed_rake), 'the venue''s rake tonight, last night''s hand left out');
 select results_eq($$ select number, variant::text, pot_paise, rake_paise from private.table_hands(pg_temp.t('Table 3'), 2, (select at from clock)) $$,
   $$ values (3, 'holdem'::text, 2680000::bigint, 130000::bigint), (2, 'plo', 720000::bigint, 35000::bigint) $$,
   'the last two hands, latest first, numbered in the night');

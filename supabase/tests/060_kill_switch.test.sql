@@ -5,6 +5,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
+-- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
+delete from public.tablet_assignment;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);

@@ -46,6 +46,9 @@ begin
   -- Bad-beat jackpot ₹3,42,600.
   perform pg_temp.seed_post(gurugram, 'seed:jackpot:main',
     pg_temp.seed_account(gurugram, 'venue.opening_balance'), pg_temp.seed_account(gurugram, 'venue.jackpot.main'), 34260000);
+  -- The practice venue's bad-beat jackpot, ₹3,42,600, as the club's (#54).
+  perform pg_temp.seed_post(practice, 'seed:practice:jackpot:main',
+    pg_temp.seed_account(practice, 'venue.opening_balance'), pg_temp.seed_account(practice, 'venue.jackpot.main'), 34260000);
   -- Practice venue: a trainee member with ₹50,000 to buy in with.
   perform pg_temp.seed_post(practice, 'seed:asha:cash',
     pg_temp.seed_account(practice, 'venue.opening_balance'), pg_temp.seed_account(practice, 'member.cash', asha), 5000000);

@@ -8,6 +8,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
+-- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
+delete from public.tablet_assignment;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -39,7 +43,8 @@ select is_empty($$ select * from public.current_down() $$, 'the down is over, an
 select throws_ok($$ select * from public.end_down(0) $$, 'RVDWN', null, 'with no down open there is nothing to end');
 reset role;
 select results_eq($$ select c.drop_box_paise, c.logged_paise, c.variance_paise, d.ended_at is not null
-                     from public.down_count c join public.dealer_down d on d.id = c.down_id $$,
+                     from public.down_count c join public.dealer_down d on d.id = c.down_id
+                     where d.device_id = '00000000-0000-4000-8000-00000000d001' $$,
   $$ values (230000::bigint, 250000::bigint, -20000::bigint, true) $$, 'the down''s count keeps the box, the logged amount and the variance');
 select is((select count(*)::int from public.alert where kind = 'dealer.variance'), 0, '₹200 is within the ₹500 threshold: no alert');
 select throws_ok($$ update public.down_count set drop_box_paise = 250000 $$, null, null, 'a count is never changed');
@@ -92,7 +97,8 @@ select is((select count(*)::int from public.alert where kind = 'dealer.uncounted
 
 -- Who sees counts: staff who read the ledger, at their own venue.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is((select count(*)::int from public.down_count), 4, 'an admin, who reads the ledger, sees the venue''s down counts');
+select is((select count(*)::int from public.down_count c join public.dealer_down d on d.id = c.down_id
+           where d.device_id = '00000000-0000-4000-8000-00000000d001'), 4, 'an admin, who reads the ledger, sees the venue''s down counts');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.down_count $$, 'a dealer, who does not read the ledger, sees none, not even her own');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
@@ -105,7 +111,8 @@ reset role;
 update public.staff set is_active = false
 where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is_empty($$ select * from public.down_count $$, 'staff at the practice venue only see none of the club''s counts');
+select is_empty($$ select * from public.down_count where venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'staff at the practice venue only see none of the club''s counts');
 reset role;
 
 select * from finish();

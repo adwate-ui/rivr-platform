@@ -6,6 +6,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
+-- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
+delete from public.tablet_assignment;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -79,7 +83,8 @@ select results_eq($$ select full_name, started_at = now() from public.current_do
 select results_eq($$ select refusal from public.dealer_sign_in('00000000-0000-4000-8000-00000000f001', '5820') $$, $$ values (null::text) $$,
   'Tashi takes over the table');
 reset role;
-select results_eq($$ select s.full_name, d.ended_at is not null from public.dealer_down d join public.staff s on s.id = d.staff_id order by s.full_name $$,
+select results_eq($$ select s.full_name, d.ended_at is not null from public.dealer_down d join public.staff s on s.id = d.staff_id
+                     where d.device_id = '00000000-0000-4000-8000-00000000d001' order by s.full_name $$,
   $$ values ('Pema Lepcha'::text, true), ('Tashi Namgyal'::text, false) $$, 'which ends Pema''s down, off time stamped');
 select is((select failed_attempts from public.staff_credential where staff_id = pg_temp.pema()), 0, 'and her right PIN cleared the wrong one');
 

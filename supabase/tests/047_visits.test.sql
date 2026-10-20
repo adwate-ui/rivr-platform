@@ -25,6 +25,10 @@ grant select on first_visit to authenticated;
 select isnt((select id from first_visit), null, 'the front desk checks Kabir in from the expected list');
 select is(public.check_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202'), (select id from first_visit),
   'checking him in again gives the same visit');
+-- now() stands still in a test, so Kabir is put in a minute before Arjun: "earliest first" needs an order.
+reset role;
+update public.visit set opened_at = now() - interval '1 minute' where id = (select id from first_visit);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select isnt(public.check_in_by_phone('00000000-0000-4000-8000-000000000001', '90000 00201'), null, 'and Arjun by his mobile number');
 select results_eq($$ select full_name, is_in_room from public.door_board('00000000-0000-4000-8000-000000000001') $$,
   $$ values ('Naina Kapoor'::text, false), ('Rohan Bhatia', false), ('Kabir Sethi', true), ('Arjun Mehta', true) $$,

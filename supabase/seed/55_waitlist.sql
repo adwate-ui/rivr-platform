@@ -1,14 +1,25 @@
--- The design prompt's waitlist for 100/200: Kabir Sethi, Naina Kapoor, then Rohan Bhatia, joined
--- 15, 9 and 0 minutes before the seed ran. 50/100 is empty (#38).
+-- The design prompt's waitlist for 100/200: Kabir Sethi 23:52, Naina Kapoor 23:58, then Rohan Bhatia 00:07,
+-- with the seed running at the clock, 00:10 (#38, #54). 50/100 is empty.
 
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, joined_at, idempotency_key)
 select tt.venue_id, w.member_id, tt.id, now() - w.ago, w.member_id
 from (values
-  ('00000000-0000-4000-8000-000000000202'::uuid, interval '15 minutes'),
-  ('00000000-0000-4000-8000-000000000203'::uuid, interval '9 minutes'),
-  ('00000000-0000-4000-8000-000000000204'::uuid, interval '0 minutes')
+  ('00000000-0000-4000-8000-000000000202'::uuid, interval '18 minutes'),
+  ('00000000-0000-4000-8000-000000000203'::uuid, interval '12 minutes'),
+  ('00000000-0000-4000-8000-000000000204'::uuid, interval '3 minutes')
 ) as w (member_id, ago)
 join public.table_type tt on tt.code = 'nlh_100_200' and tt.venue_id = '00000000-0000-4000-8000-000000000001'
+on conflict (venue_id, idempotency_key) do nothing;
+
+-- The practice venue's, with its own Kabir, Naina and Rohan (12_people_d.sql, #54).
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, joined_at, idempotency_key)
+select tt.venue_id, w.member_id, tt.id, now() - w.ago, w.member_id
+from (values
+  ('00000000-0000-4000-8000-000000000270'::uuid, interval '18 minutes'),
+  ('00000000-0000-4000-8000-000000000271'::uuid, interval '12 minutes'),
+  ('00000000-0000-4000-8000-000000000272'::uuid, interval '3 minutes')
+) as w (member_id, ago)
+join public.table_type tt on tt.code = 'nlh_100_200' and tt.venue_id = '00000000-0000-4000-8000-000000000002'
 on conflict (venue_id, idempotency_key) do nothing;
 
 -- Ishaan Verma, Vihaan Kapoor (a black card), Mihir Shah, Yash Gupta and Ritika Das have finished the

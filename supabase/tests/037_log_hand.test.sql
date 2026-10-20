@@ -8,6 +8,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
+-- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
+delete from public.tablet_assignment;
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -69,7 +73,8 @@ select is(pg_temp.natural('venue.jackpot.main'), 34270000::bigint, 'to ₹3,42,7
 select is(pg_temp.natural('venue.rake') - (select rake from before_balances), 240000::bigint, 'the house''s rake rises by ₹2,400');
 select is((select chips from before_balances) - pg_temp.natural('venue.chips_outstanding'), 250000::bigint,
   'and ₹2,500 of chips leave play: the pull');
-select is((select count(*)::integer from public.ledger_transaction where idempotency_key like 'hand:%'), 2,
+select is((select count(*)::integer from public.ledger_transaction where idempotency_key like 'hand:%'
+           and split_part(idempotency_key, ':', 2)::uuid in (select h.id from public.hand h where h.device_id = '00000000-0000-4000-8000-00000000d001')), 2,
   'two balanced postings, rake and drop, however often the hand is sent');
 select ok(exists (select 1 from public.outbox_event e join flow4 f on e.payload ->> 'hand_id' = f.hand_id::text where e.event_type = 'hand.logged'),
   'hand.logged goes out');
@@ -99,7 +104,8 @@ reset role;
 
 -- Who sees hands: staff who read the ledger, at their own venue.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is((select count(*)::integer from public.hand), 2, 'an admin, who reads the ledger, sees the venue''s hands');
+select is((select count(*)::integer from public.hand where device_id = '00000000-0000-4000-8000-00000000d001'), 2,
+  'an admin, who reads the ledger, sees the venue''s hands');
 select throws_ok($$ select public.log_hand(4800000, 'holdem', now(), 'hand-staff-request') $$, '42501', null, 'but logs none: only a tablet does');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.hand $$, 'a dealer, who does not read the ledger, sees none');
@@ -110,7 +116,8 @@ reset role;
 update public.staff set is_active = false
 where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is_empty($$ select * from public.hand $$, 'staff at the practice venue only see none of the club''s hands');
+select is_empty($$ select * from public.hand where venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  'staff at the practice venue only see none of the club''s hands');
 reset role;
 
 -- A hand takes the rules in force when it was played: the cap falls to ₹3,000 from half an hour ago.
