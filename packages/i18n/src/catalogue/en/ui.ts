@@ -39,6 +39,7 @@ export const ui = {
       waitlist: 'Waitlist',
       tablets: 'Tablets',
       tvs: 'TVs',
+      computers: 'Computers',
       rake: 'Rake',
       dealerPins: 'Dealer PINs',
       certification: 'Certification',

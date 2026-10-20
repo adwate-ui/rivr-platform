@@ -8,7 +8,7 @@ import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
 import { members, tiers } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
-import { dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
@@ -191,6 +191,7 @@ export const consoleApp = {
   dealerPins,
   staff,
   tvs,
+  computers,
   rake,
   jackpots,
   highHands,

@@ -129,6 +129,8 @@ export const cage = {
   /** The cage takes and pays nothing while no shift is open (#376). */
   noShift: 'The cage has no shift open. Open one on Treasury with the float and the chips, then try again.',
   noShiftBanner: 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Treasury.',
+  /** At a venue that enforces cage computers (#384), when this one is not enrolled as the cage. */
+  notCageComputer: 'This computer is not enrolled as the cage, so the cage takes and pays nothing here. An admin enrols it on Computers.',
   /** Call time still owed at the cage (#79). `{time}`: 1 h 12 min. */
   callTimeOwed: 'Call time not complete: {time} short. An admin lets them leave early on the Live floor.',
   callTimeLetGo: 'Call time {time} short. An admin has let them leave early.',

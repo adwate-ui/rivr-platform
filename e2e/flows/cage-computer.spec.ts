@@ -1,0 +1,73 @@
+/**
+ * Cage computer (#384; scope-v1 module 10; decision 0110). Leela Rao, this flow's own duty manager,
+ * enrols the office computer as an admin console; Omar Siddiqui, its second, enrols the cage's computer as
+ * the cage. Leela then gives the club its cage and admin networks (the local stack's private ranges), and
+ * from then on both are enforced. At the enrolled cage Omar seats Naveen Iyer and issues ₹5,000 of chips;
+ * the same session, its token taken away, is refused: the cage cannot even find him. Leela clears the
+ * networks at the end, so the flows after this one run unenforced. An address outside the networks, a
+ * revoked computer, a refused write and the practice venue are proved in
+ * supabase/tests/085_cage_computers.test.sql; the idle lock in useIdleLock.test.ts.
+ */
+import { expect, test, type Page } from '@playwright/test';
+import { isRemoteTarget } from '../support/apps.ts';
+import { signInToConsole } from '../support/signIn.ts';
+
+// Wherever the local stack's gateway sees the browser from.
+const NETWORKS = '127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16';
+
+async function enrol(page: Page, name: string, as: 'Enrol as the cage' | 'Enrol as an admin console') {
+  await page.getByRole('link', { name: 'Computers' }).click();
+  await page.getByRole('textbox', { name: 'Computer name' }).fill(name);
+  await page.getByRole('button', { name: as }).click();
+  await expect(page.getByText(new RegExp(`^Enrolled as (the cage|an admin console): ${name}\\.$`))).toBeVisible();
+}
+
+async function setNetworks(page: Page, networks: string) {
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Cage and admin networks' }).fill(networks);
+  await page.getByRole('button', { name: 'Save configuration' }).click();
+  await expect(page.getByText('Configuration saved.')).toBeVisible();
+}
+
+async function issueChips(page: Page) {
+  await page.getByRole('link', { name: 'Cage' }).click();
+  await page.getByRole('textbox', { name: 'Search members' }).fill('Naveen');
+  await page.getByRole('button', { name: 'Naveen Iyer' }).click();
+  await page.getByRole('textbox', { name: 'Amount', exact: true }).fill('5000');
+  await page.getByRole('button', { name: 'Issue chips' }).click();
+}
+
+test.describe('Cage computer', () => {
+  test('Cage computer: an enrolled cage takes a buy-in, and the same session without its token is refused', async ({ browser }) => {
+    test.skip(isRemoteTarget(), 'enrols computers and sets the club\'s networks, so the local stack only');
+    test.setTimeout(120_000);
+    const office = await browser.newPage();
+    const cage = await browser.newPage();
+    await signInToConsole(office, '9000000159');
+    await enrol(office, 'Office', 'Enrol as an admin console');
+    await expect(office.getByText(/^Not enforced yet/)).toBeVisible();
+    await signInToConsole(cage, '9000000160');
+    await enrol(cage, 'Cage 1', 'Enrol as the cage');
+    try {
+      await setNetworks(office, NETWORKS);
+
+      await cage.getByRole('link', { name: 'Live floor' }).click();
+      await cage.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 1', exact: true }).click();
+      await cage.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '8', exact: true }).click();
+      await cage.getByRole('textbox', { name: 'Mobile number' }).fill('9000000254');
+      await cage.getByRole('button', { name: 'Seat', exact: true }).click();
+      await expect(cage.getByRole('button', { name: 'Move Naveen Iyer' })).toBeVisible();
+      await issueChips(cage);
+      await expect(cage.getByText('₹5,000 of chips issued.')).toBeVisible();
+
+      await cage.evaluate(() => globalThis.localStorage.removeItem('rivr-computer'));
+      await cage.reload();
+      await expect(cage.getByText(/^This computer is not enrolled as the cage/)).toBeVisible();
+      // Refused from the first call: the cage finds nobody, so it can issue nothing.
+      await cage.getByRole('textbox', { name: 'Search members' }).fill('Naveen');
+      await expect(cage.getByText('No member matches.')).toBeVisible();
+    } finally {
+      await setNetworks(office, '');
+    }
+  });
+});

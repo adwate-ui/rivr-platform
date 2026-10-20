@@ -122,6 +122,9 @@ export function useDeviceActions(venueId: string) {
   const queryClient = useQueryClient();
   const settle = async <T>(value: T, error: { code: string } | null): Promise<Result<T, DeviceFailure>> => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.dealerTablets(userId ?? 'signed-out', venueId) });
+    // Revoke also serves the cage and admin computers (#384).
+    await queryClient.invalidateQueries({ queryKey: queryKeys.computers(userId ?? 'signed-out', venueId) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.thisComputer(userId ?? 'signed-out', venueId) });
     return error ? err(DEVICE_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
   const startPairing = async (deviceId: string) => {

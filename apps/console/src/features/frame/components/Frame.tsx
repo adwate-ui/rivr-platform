@@ -1,12 +1,13 @@
-import { useAuthStatus, useControlState, useStaffVenue, type StaffVenueState } from '@rivr/db';
+import { useAuthStatus, useControlState, useSignOut, useStaffVenue, type StaffVenueState } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ConsoleShell, KillSwitchBanner, Screen } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
-import { isAllowedAt, railFor, railItemAt } from './rail.ts';
+import { isAllowedAt, isCageScreen, railFor, railItemAt } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffFooter } from './StaffFooter.tsx';
+import { useIdleLock } from './useIdleLock.ts';
 
 /**
  * The console's frame for signed-in staff: the rail for their role at the venue the console works
@@ -35,6 +36,9 @@ function StaffFrame({ staff, children }: { staff: Extract<StaffVenueState, { sta
   const { isVenueFrozen } = useControlState(staff.venue.venueId);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const signOut = useSignOut();
+  // Ten idle minutes on a cage screen sign the cashier out (#384).
+  useIdleLock(isCageScreen(pathname), signOut.mutate);
   const sections = railFor(staff.venue.permissions);
   return (
     <ConsoleShell

@@ -175,6 +175,10 @@ max_frequency = "60s"
 919000000156 = "123456"
 919000000157 = "123456"
 919000000252 = "123456"
+# Lane A's Cage computer flow, supabase/seed/11c_people_a_computers.sql (#384).
+919000000159 = "123456"
+919000000160 = "123456"
+919000000254 = "123456"
 # Not seeded: the code-only sign-in flow signs this number up with a password (e2e, #187).
 919000000901 = "123456"
 # Not seeded: the Attribution flow signs this number up (#10).

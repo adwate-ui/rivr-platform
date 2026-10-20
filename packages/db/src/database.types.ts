@@ -607,14 +607,14 @@ isOneToOne: false
                   ]
                 },"device": {
                   Row: {
-                    "auth_user_id": string | null,"created_at": string,"enrolled_at": string,"enrolled_by_staff_id": string | null,"id": string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at": string | null,"name": string,"revoked_at": string | null,"revoked_reason": string | null,"updated_at": string,"venue_id": string
+                    "auth_user_id": string | null,"created_at": string,"enrolled_at": string,"enrolled_by_staff_id": string | null,"id": string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at": string | null,"name": string,"revoked_at": string | null,"revoked_reason": string | null,"token_hash": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name": string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"updated_at"?: string,"venue_id": string
+                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name": string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"token_hash"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name"?: string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "auth_user_id"?: string | null,"created_at"?: string,"enrolled_at"?: string,"enrolled_by_staff_id"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["device_kind"],"last_seen_at"?: string | null,"name"?: string,"revoked_at"?: string | null,"revoked_reason"?: string | null,"token_hash"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3046,6 +3046,11 @@ isOneToOne: false
                            },
 "take_break":
 { Args: { "p_days": number }; Returns: string
+                           },
+"this_computer":
+{ Args: { "p_venue_id": string }; Returns: {
+              "device_id": string,"is_enforced": boolean,"is_on_staff_network": boolean,"kind": Database["public"]['Enums']["device_kind"],"name": string
+            }[]
                            },
 "tier_matrix":
 { Args: { "p_venue_id": string }; Returns: {

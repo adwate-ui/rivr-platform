@@ -209,3 +209,32 @@ export const queue = {
   /** Clears the refusals once the floor has dealt with them. */
   seen: 'Seen by the floor',
 };
+
+/** The console's Computers screen (#384): enrol this computer as the cage or an admin console, and revoke one. */
+export const computers = {
+  title: 'Computers',
+  notAllowed: 'Your role does not include computers. Ask an admin if you need it.',
+  thisComputer: 'This computer',
+  enrolledAsCage: 'Enrolled as the cage: {name}.',
+  enrolledAsConsole: 'Enrolled as an admin console: {name}.',
+  notEnrolled: 'Not enrolled.',
+  /** Shown while the venue has no cage and admin networks (Settings), so nothing is enforced. */
+  notEnforced: 'Not enforced yet: the club has no cage and admin networks, so the cage and admin screens work from any computer. Add the networks in Settings.',
+  offNetwork: 'This computer is not on the cage and admin networks, so the cage and admin screens refuse it here.',
+  name: 'Computer name',
+  nameHint: 'For example, Cage 1 or Office.',
+  enrolCage: 'Enrol as the cage',
+  enrolConsole: 'Enrol as an admin console',
+  enrolled: 'Enrolled computers',
+  empty: 'No computers are enrolled.',
+  cage: 'Cage',
+  console: 'Admin console',
+  revoke: 'Revoke {name}',
+  revokeReason: 'Why it is revoked',
+  revokeConfirm: 'Revoke',
+  invalidReason: 'Say why, in a few words.',
+  notAllowedAction: 'Your role cannot do that here. Admin changes need an enrolled admin console.',
+  invalid: 'Give the computer a name.',
+  paused: 'The venue is frozen. Computers are enrolled again once it is released.',
+  unavailable: 'That did not go through. Check the connection and try again.',
+};

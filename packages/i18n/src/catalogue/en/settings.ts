@@ -77,7 +77,7 @@ export const settings = {
   invoicePrefix: 'Invoice prefix',
   invoicePrefixHint: 'Up to six capital letters, digits or hyphens, as RIVR in RIVR/S26/41.',
   staffIpAllowlist: 'Cage and admin networks',
-  staffIpAllowlistHint: 'Addresses or ranges such as 203.0.113.0/24, separated by commas. Empty allows any network.',
+  staffIpAllowlistHint: 'Addresses or ranges such as 203.0.113.0/24, separated by commas. Once set, the cage and admin screens work only from enrolled computers on these networks. Empty allows any computer.',
   alertWhatsapp: 'Alert WhatsApp number',
   invalidVenueField: 'Check this field.',
   saveVenue: 'Save configuration',

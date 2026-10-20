@@ -27,6 +27,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'checkIn', label: 'ui.consoleRail.items.checkIn', href: '/check-in', anyOf: ['waitlist.manage'] },
       { id: 'tablets', label: 'ui.consoleRail.items.tablets', href: '/tablets', anyOf: ['devices.manage'] },
       { id: 'tvs', label: 'ui.consoleRail.items.tvs', href: '/tvs', anyOf: ['devices.manage'] },
+      { id: 'computers', label: 'ui.consoleRail.items.computers', href: '/computers', anyOf: ['devices.manage'] },
       { id: 'rake', label: 'ui.consoleRail.items.rake', href: '/rake', anyOf: ['settings.manage'] },
     ],
   },
@@ -93,13 +94,22 @@ export function railFor(permissions: readonly Permission[]): SideNavSection[] {
  * admin screen's address gets a refusal, not the screen. Screens with no rail entry are open to all staff.
  */
 export function isAllowedAt(permissions: readonly Permission[], pathname: string): boolean {
+  const found = entryAt(pathname);
+  return found === undefined || isAllowed(found.entry, permissions);
+}
+
+/** True on the cage's screens, the rail's money group: they lock after ten idle minutes (#384). */
+export function isCageScreen(pathname: string): boolean {
+  return entryAt(pathname)?.group.id === 'money';
+}
+
+/** The rail entry the screen at `pathname` belongs to (its own, or the closest one above it), with its group. */
+function entryAt(pathname: string): { entry: RailEntry; group: RailGroup } | undefined {
   // The router matches addresses whatever their case, so /RAKE is the Rake screen too.
   const path = pathname.toLowerCase();
-  const entries = RAIL.flatMap((group) => group.entries)
-    .filter((entry) => entry.href !== '/' && (path === entry.href || path.startsWith(`${entry.href}/`)))
-    .sort((a, b) => b.href.length - a.href.length);
-  const entry = entries[0];
-  return entry === undefined || isAllowed(entry, permissions);
+  return RAIL.flatMap((group) => group.entries.map((entry) => ({ entry, group })))
+    .filter(({ entry }) => entry.href !== '/' && (path === entry.href || path.startsWith(`${entry.href}/`)))
+    .sort((a, b) => b.entry.href.length - a.entry.href.length)[0];
 }
 
 /** The rail item for the screen at `pathname`, if the rail has one. */

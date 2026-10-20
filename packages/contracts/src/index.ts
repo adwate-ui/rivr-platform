@@ -39,6 +39,7 @@ export { doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema } from './w
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
+  computerEnrolSchema,
   dealerTabletAddSchema,
   devicePairRequestSchema,
   devicePairSchema,
