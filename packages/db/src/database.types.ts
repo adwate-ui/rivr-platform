@@ -1449,6 +1449,44 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"points_earning": {
+                  Row: {
+                    "basis": string,"created_at": string,"id": string,"member_id": string,"played_seconds": number | null,"points": number,"rake_share_paise": number | null,"rate": number,"session_id": string | null,"table_id": string | null,"updated_at": string,"venue_id": string,"visit_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "basis": string,"created_at"?: string,"id"?: string,"member_id": string,"played_seconds"?: number | null,"points": number,"rake_share_paise"?: number | null,"rate": number,"session_id"?: string | null,"table_id"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
+                  }
+                  Update: {
+                    "basis"?: string,"created_at"?: string,"id"?: string,"member_id"?: string,"played_seconds"?: number | null,"points"?: number,"rake_share_paise"?: number | null,"rate"?: number,"session_id"?: string | null,"table_id"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "points_earning_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "points_earning_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "points_earning_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "points_earning_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"promotion": {
                   Row: {
                     "created_at": string,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"stacks": boolean,"starts_at": string,"status": string,"updated_at": string,"venue_id": string

@@ -318,5 +318,27 @@ select results_eq(
   $$ select description, expected ->> 'given' from golden.golden_case where file = 'promotions.json' and operation = 'select' order by position $$,
   'private.promotions_to_give gives every selection in the golden file');
 
+-- Points: private.points_for_time, table_played_seconds, rake_share and rake_points, and @rivr/domain's
+-- (packages/testing/golden/points.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'points.json'), 'the points cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'points.json'
+                   and operation not in ('time', 'table_time', 'rake_share', 'rake_points') $$,
+  'every operation in points.json is proved here');
+select results_eq(
+  $$ select description, case operation
+       when 'time' then private.points_for_time((inputs ->> 'seconds')::bigint, (inputs ->> 'perHour')::bigint)
+       when 'table_time' then private.table_played_seconds((inputs ->> 'tableSeconds')::bigint, (inputs ->> 'sessionSeconds')::bigint,
+                                                           (inputs ->> 'playedSeconds')::bigint)
+       when 'rake_share' then private.rake_share(pg_temp.paise(inputs ->> 'rake'), (inputs ->> 'seated')::integer)
+       else private.rake_points(pg_temp.paise(inputs ->> 'share'), (inputs ->> 'rate')::integer) end
+     from golden.golden_case where file = 'points.json' order by position $$,
+  $$ select description, case operation
+       when 'time' then (expected ->> 'points')::bigint
+       when 'table_time' then (expected ->> 'seconds')::bigint
+       when 'rake_share' then pg_temp.paise(expected ->> 'share')
+       else (expected ->> 'points')::bigint end
+     from golden.golden_case where file = 'points.json' order by position $$,
+  'the points rules give every case in the golden file');
+
 select * from finish();
 rollback;

@@ -135,6 +135,17 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`; `private.evaluate_promotions` puts them together.
 
+### `@rivr/domain/points`
+
+Points (#89, decision 0161, question #395), in whole points (bigint); they never convert to cash. Each is proved equal to its `private.` twin by `packages/testing/golden/points.json`.
+
+| Export | What it does |
+|---|---|
+| `pointsForTime(seconds, perHour)` | Hours by stake: a table type's points an hour for the seconds played there, rounded down. 2 h 59 min at 10 an hour is 29. |
+| `tablePlayedSeconds(table, session, played)` | A session that moved tables shares its time played (seating to leaving, less away) among them in proportion to the time at each, rounded down to the second. |
+| `rakeShare(rake, seated)` | RIVR Rewards: a hand's rake split equally among the members seated at its table, rounded down to the paisa. |
+| `rakePoints(share, rate)` | A share (basis points, 500 is 5%) of a member's rake for a visit, as points at one a rupee, rounded down. ₹612.40 at 5% is 30. |
+
 ## Usage
 
 ```ts
