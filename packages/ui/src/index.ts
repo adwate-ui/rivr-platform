@@ -93,3 +93,5 @@ export * from './MembershipCard/index.ts';
 export * from './Receipt/index.ts';
 export * from './DocumentPage/index.ts';
 export * from './DocumentTable/index.ts';
+export * from './PrintSheet/index.ts';
+export * from './ThermalReceipt/index.ts';

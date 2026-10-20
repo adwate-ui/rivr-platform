@@ -3,7 +3,8 @@
  * (Auth sends one code a minute to a number), seats Vihaan Kapoor at Table 1 (NLH 50/100, buy-in
  * ₹5,000), finds him at the cage and issues ₹5,000 of chips for cash; a wallet buy-in is refused for
  * want of wallet cash, ₹4,950 is below the table's minimum and ₹5,020 is not whole chips. The table's request and Approve from
- * wallet (flow 3) are proved in supabase/tests/049_cage_buy_in.test.sql; the tablet's Buy-in is #59.
+ * wallet (flow 3) are proved in supabase/tests/049_cage_buy_in.test.sql; the tablet's Buy-in is #59. The buy-in's
+ * receipt prints from the cage computer, alone on the paper (#69).
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -28,6 +29,14 @@ test.describe('Cage buy-in', () => {
     await amount.fill('5000');
     await page.getByRole('button', { name: 'Issue chips' }).click();
     await expect(page.getByText('₹5,000 of chips issued.')).toBeVisible();
+
+    // Its receipt prints from the cage computer, and only it (#69): on paper, the receipt shows and the cage does not.
+    await expect(page.getByRole('button', { name: 'Print receipt' })).toBeVisible();
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.getByText(/^Receipt [0-9A-F]{8}$/)).toBeVisible();
+    await expect(page.getByText('Chips issued', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Issue chips' })).toBeHidden();
+    await page.emulateMedia({ media: 'screen' });
 
     await page.getByRole('group', { name: 'Pay by' }).getByRole('button', { name: 'Wallet' }).click();
     await amount.fill('5000');

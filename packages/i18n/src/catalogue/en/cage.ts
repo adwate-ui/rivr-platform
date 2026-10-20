@@ -130,6 +130,16 @@ export const cage = {
   notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',
   /** The cage takes and pays nothing while no shift is open (#376). */
   noShift: 'The cage has no shift open. Open one on Treasury with the float and the chips, then try again.',
+  /** A cage transaction's thermal receipt (#69), printed from the cage computer. */
+  printReceipt: 'Print receipt',
+  receiptBuyIn: 'Buy-in',
+  receiptCashOut: 'Cash-out',
+  receiptMember: 'Member',
+  receiptChipsIssued: 'Chips issued',
+  receiptChipsBack: 'Chips handed back',
+  receiptSettled: 'Markers settled',
+  receiptTds: 'TDS withheld',
+  receiptPaidCash: 'Paid in cash',
   noShiftBanner: 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Treasury.',
   /** At a venue that enforces cage computers (#384), when this one is not enrolled as the cage. */
   notCageComputer: 'This computer is not enrolled as the cage, so the cage takes and pays nothing here. An admin enrols it on Computers.',

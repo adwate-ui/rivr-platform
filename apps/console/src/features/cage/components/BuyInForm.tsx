@@ -2,19 +2,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { BUY_IN_METHODS, cageBuyInSchema } from '@rivr/contracts';
 import { useCageActions, type CageFailure, type CageMember } from '@rivr/db';
 import { buyIn } from '@rivr/domain/cage';
-import { fromRupees, ZERO } from '@rivr/domain/money';
+import { fromRupees, ZERO, type Paise } from '@rivr/domain/money';
 import { formatDayTime, formatMoney, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { BuyInPreview } from './BuyInPreview.tsx';
+import { CageReceipt } from './CageReceipt.tsx';
 import { kycBlockOf } from './cageCopy.ts';
 
 const METHOD_LABEL: Readonly<Record<(typeof BUY_IN_METHODS)[number], MessageKey>> = {
   cash: 'console.cage.cash', upi: 'console.cage.upi', wallet: 'console.cage.fromWallet', bonus: 'console.cage.fromBonus',
 };
 const WHOLE_RUPEES = /^[1-9]\d{0,7}$/;
+
+type Issued = { amount: Paise; method: (typeof BUY_IN_METHODS)[number]; transactionId: string };
 
 /** Why the cage cannot issue chips to this member at all, as the prototype says it; null when it can. */
 function blockOf(member: CageMember): string | null {
@@ -30,7 +33,7 @@ function blockOf(member: CageMember): string | null {
  */
 export function BuyInForm({ venueId, member }: { venueId: string; member: CageMember }) {
   const { buyIn: issue } = useCageActions(venueId);
-  const [outcome, setOutcome] = useState<{ failure: CageFailure | null; issued: string | null }>({ failure: null, issued: null });
+  const [outcome, setOutcome] = useState<{ failure: CageFailure | null; issued: Issued | null }>({ failure: null, issued: null });
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [resolver] = useState(() => zodResolver(cageBuyInSchema));
   const form = useForm<z.input<typeof cageBuyInSchema>, unknown, z.output<typeof cageBuyInSchema>>({ resolver, defaultValues: { amount: '', method: 'cash', utr: '' } });
@@ -41,7 +44,7 @@ export function BuyInForm({ venueId, member }: { venueId: string; member: CageMe
     const rule = buyIn(values.method, amount, member.seat?.minimum ?? ZERO, { wallet: member.wallet, bonus: member.bonus });
     if (!rule.ok) return setOutcome({ failure: rule.error, issued: null });
     const done = await issue.mutateAsync({ memberId: member.memberId, amount, method: values.method, utr: values.method === 'upi' ? values.utr : null, requestId, buyInRequestId: null });
-    setOutcome(done.ok ? { failure: null, issued: formatMoney(amount) } : { failure: done.error, issued: null });
+    setOutcome(done.ok ? { failure: null, issued: { amount, method: values.method, transactionId: done.value } } : { failure: done.error, issued: null });
     if (done.ok) { form.reset({ amount: '', method: values.method, utr: '' }); setRequestId(crypto.randomUUID()); }
   });
   const fields = { amount: form.register('amount', { onChange: () => setRequestId(crypto.randomUUID()) }), utr: form.register('utr') };
@@ -57,7 +60,12 @@ export function BuyInForm({ venueId, member }: { venueId: string; member: CageMe
           error={form.formState.errors.amount ? t('console.cage.invalidAmount') : undefined} />
         {method === 'upi' ? <Input {...fields.utr} label={t('console.cage.utr')} inputMode="numeric" autoComplete="off" error={form.formState.errors.utr ? t('console.cage.invalidUtr') : undefined} /> : null}
       </Inline>
-      <BuyInPreview member={member} amount={amount} method={method} failure={outcome.failure} issued={outcome.issued} />
+      <BuyInPreview member={member} amount={amount} method={method} failure={outcome.failure} issued={outcome.issued ? formatMoney(outcome.issued.amount) : null} />
+      {outcome.issued === null ? null : (
+        <CageReceipt venueId={venueId} title={t('console.cage.receiptBuyIn')} transactionId={outcome.issued.transactionId}
+          lines={[{ label: t('console.cage.receiptMember'), value: member.fullName }, { label: t('console.cage.method'), value: t(METHOD_LABEL[outcome.issued.method]) }]}
+          total={{ label: t('console.cage.receiptChipsIssued'), paise: outcome.issued.amount }} />
+      )}
       <Button variant="primary" isDisabled={block !== null || typed === ''} isLoading={issue.isPending} onClick={() => void submit()}>{t('console.cage.issueChips')}</Button>
     </Stack>
   );

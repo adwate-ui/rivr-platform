@@ -1,9 +1,12 @@
+import { documents, registerMessages } from '@rivr/i18n';
+import { ThermalReceipt } from '@rivr/ui';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { CASH_OUT, INVOICE, STATEMENT } from '../../test/paper.ts';
 import { InvoiceDocument } from './InvoiceDocument.tsx';
 import { StatementDocument } from './StatementDocument.tsx';
-import { ThermalReceipt } from './ThermalReceipt.tsx';
+
+registerMessages({ documents });
 
 describe('paper templates', () => {
   it('dates a receipt in IST and gives its reference', () => {

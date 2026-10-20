@@ -88,3 +88,21 @@
     transform: translateY(var(--rivr-space-4));
   }
 }
+
+/* While a PrintSheet is on the page (#69), printing shows it alone, from the paper's top-left corner. */
+@media print {
+  body:has(.rivr-print-sheet) * {
+    visibility: hidden;
+  }
+
+  body:has(.rivr-print-sheet) .rivr-print-sheet,
+  body:has(.rivr-print-sheet) .rivr-print-sheet * {
+    visibility: visible;
+  }
+
+  .rivr-print-sheet {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+  }
+}

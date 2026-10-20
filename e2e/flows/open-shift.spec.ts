@@ -59,6 +59,10 @@ test.describe('Cage shift', () => {
 
     await buyIn(cashier);
     await expect(cashier.getByText('₹5,000 of chips issued.')).toBeVisible();
+    // At the practice venue the printed receipt says it is a practice one (#69).
+    await cashier.emulateMedia({ media: 'print' });
+    await expect(cashier.getByText('Practice receipt. No money changed hands.')).toBeVisible();
+    await cashier.emulateMedia({ media: 'screen' });
     await expect(cashier.getByText(NO_SHIFT)).toHaveCount(0);
   });
 });
