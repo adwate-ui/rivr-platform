@@ -21,12 +21,14 @@ import { withdrawalsRoute } from './routes/withdrawals.tsx';
 import { treasuryRoute } from './routes/treasury.tsx';
 import { endOfDayRoute } from './routes/end-of-day.tsx';
 import { staffRoute } from './routes/staff.tsx';
+import { certificationRoute } from './routes/certification.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, markersRoute, membersRoute, killSwitchRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute,
+    certificationRoute,
   ]),
 ]);
 

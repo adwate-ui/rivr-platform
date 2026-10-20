@@ -1449,6 +1449,58 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"quiz": {
+                  Row: {
+                    "answer_key": (number)[],"created_at": string,"id": string,"pass_percent": number,"questions": NonNullable<Json>,"role": Database["public"]['Enums']["staff_role"],"title": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answer_key": (number)[],"created_at"?: string,"id"?: string,"pass_percent": number,"questions": NonNullable<Json>,"role": Database["public"]['Enums']["staff_role"],"title": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "answer_key"?: (number)[],"created_at"?: string,"id"?: string,"pass_percent"?: number,"questions"?: NonNullable<Json>,"role"?: Database["public"]['Enums']["staff_role"],"title"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "quiz_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"quiz_attempt": {
+                  Row: {
+                    "answers": (number)[],"correct_count": number,"created_at": string,"id": string,"is_passed": boolean,"question_count": number,"quiz_id": string,"staff_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answers": (number)[],"correct_count": number,"created_at"?: string,"id"?: string,"is_passed": boolean,"question_count": number,"quiz_id": string,"staff_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "answers"?: (number)[],"correct_count"?: number,"created_at"?: string,"id"?: string,"is_passed"?: boolean,"question_count"?: number,"quiz_id"?: string,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "quiz_attempt_quiz_id_venue_id_fkey"
+      columns: ["quiz_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "quiz"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "quiz_attempt_staff_id_venue_id_fkey"
+      columns: ["staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "quiz_attempt_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"role_permission": {
                   Row: {
                     "created_at": string,"permission": string,"role": Database["public"]['Enums']["staff_role"],"updated_at": string
@@ -2498,7 +2550,7 @@ isOneToOne: false
                            },
 "my_device":
 { Args: Record<PropertyKey, never>; Returns: {
-              "device_id": string,"kind": Database["public"]['Enums']["device_kind"],"name": string,"table_id": string,"table_name": string,"venue_id": string
+              "device_id": string,"is_practice": boolean,"kind": Database["public"]['Enums']["device_kind"],"name": string,"table_id": string,"table_name": string,"venue_id": string
             }[]
                            },
 "my_feature_access":
@@ -2704,6 +2756,11 @@ isOneToOne: false
                            },
 "step_away":
 { Args: { "p_entry_id": string,"p_is_away": boolean }; Returns: undefined
+                           },
+"submit_quiz":
+{ Args: { "p_answers": (number)[],"p_quiz_id": string }; Returns: {
+              "correct_count": number,"is_passed": boolean,"question_count": number
+            }[]
                            },
 "table_hands":
 { Args: { "p_limit": number,"p_table_id": string }; Returns: {

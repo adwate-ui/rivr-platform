@@ -1,4 +1,4 @@
-/** A dealer tablet at Table 3 with Pema Lepcha dealing, as the hand-entry and high-hand flows need one. */
+/** A dealer tablet at Table 3 with Pema Lepcha dealing, as the hand-entry and high-hand flows need one; or any table's, without a dealer. */
 import { expect, type Browser, type Page } from '@playwright/test';
 import { appUrl, VIEWPORT } from './apps.ts';
 
@@ -15,11 +15,19 @@ export async function press(tablet: Page, keys: string[]) {
  * tablet, pairs it and fixes it to Table 3. Returns the tablet's page and name.
  */
 export async function tabletAtTable3(browser: Browser, floor: Page) {
-  const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
   await floor.getByRole('link', { name: 'Dealer PINs' }).click();
   await floor.getByLabel(`New PIN for ${DEALER}`).fill(PIN);
   await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
   await expect(floor.getByText(`PIN saved for ${DEALER}.`)).toBeVisible();
+  return tabletAt(browser, floor, 'Table 3');
+}
+
+/**
+ * On the console, signed in as staff who manage devices at the venue it works in: adds a tablet,
+ * pairs it and fixes it to `table`. Returns the tablet's page and name.
+ */
+export async function tabletAt(browser: Browser, floor: Page, tableName: string) {
+  const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
   await floor.getByRole('link', { name: 'Tablets' }).click();
   await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
   await floor.getByRole('button', { name: 'Add and pair' }).click();
@@ -34,8 +42,8 @@ export async function tabletAtTable3(browser: Browser, floor: Page) {
   await expect(tablet.getByText('Not assigned', { exact: true })).toBeVisible();
   const table = floor.getByRole('group', { name: `Table for ${name}`, exact: true });
   await expect(floor.locator('div').filter({ has: table }).getByText('Paired', { exact: true }).first()).toBeVisible({ timeout: 15_000 });
-  await table.getByRole('button', { name: 'Table 3', exact: true }).click();
-  await expect(table.getByRole('button', { name: 'Table 3', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await table.getByRole('button', { name: tableName, exact: true }).click();
+  await expect(table.getByRole('button', { name: tableName, exact: true })).toHaveAttribute('aria-pressed', 'true');
   return { tablet, name };
 }
 

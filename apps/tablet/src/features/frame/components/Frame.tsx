@@ -39,7 +39,8 @@ function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
   if (device.tableId === null || device.tableName === null) {
     return <TabletShell tableName={t('tablet.unassignedTable')} banner={banner}>{children}</TabletShell>;
   }
-  const tableName = device.tableName;
+  // A training tablet says so, so nobody takes it for one at a live table (#50).
+  const tableName = device.isPractice ? t('tablet.practiceTable', { table: device.tableName }) : device.tableName;
   if (down.isPending) return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="loading" /></TabletShell>;
   if (down.data === undefined) {
     return <TabletShell tableName={tableName} banner={banner}><Screen title={title} status="error" onRetry={() => void down.refetch()} /></TabletShell>;
