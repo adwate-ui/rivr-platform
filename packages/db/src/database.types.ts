@@ -2449,6 +2449,11 @@ isOneToOne: false
               "call_time_left": number,"has_call_time": boolean,"is_away": boolean,"seat": number,"table_name": string
             }[]
                            },
+"my_stakes":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "big_blind_paise": number,"small_blind_paise": number
+            }[]
+                           },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
               "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"venue_id": string

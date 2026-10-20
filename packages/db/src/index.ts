@@ -52,6 +52,7 @@ export {
   PUSH_CHOICES,
   usePreferenceActions,
   usePreferences,
+  useStakes,
   type Game,
   type Preferences,
   type PushChoice,

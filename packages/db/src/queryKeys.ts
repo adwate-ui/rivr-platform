@@ -13,6 +13,8 @@ export const queryKeys = {
   controlState: (userId: string) => ['user', userId, 'control-state'] as const,
   /** The signed-in member's games, stake, notification choices and marketing consent. */
   preferences: (userId: string) => ['user', userId, 'preferences'] as const,
+  /** The stakes the club runs, for Profile's waitlist alerts (#206). */
+  stakes: (userId: string) => ['user', userId, 'stakes'] as const,
   restrictions: (userId: string) => ['user', userId, 'restrictions'] as const,
   /** The signed-in member's Balance (#18), and their newest movements. */
   wallet: (userId: string) => ['user', userId, 'wallet'] as const,
