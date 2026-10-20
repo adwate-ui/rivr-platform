@@ -18,7 +18,10 @@ Templates:
 
 | Name | Size | Props |
 |---|---|---|
-| `tv.badBeatJackpot` | 1920 × 1080 | `amountPaise: bigint` |
+| `tv.badBeatJackpot` | 1920 × 1080 | The jackpot as the TV shows it (`TvJackpotBoard`): `amountPaise: bigint`, and tonight's high hand `highHand: { title, line }` as the TV words it (absent before one) |
+| `tv.waitlist` | 1920 × 1080 | The waitlist board (`TvWaitlistBoard`): `stakes`, each with its name, the tables open and its places, a player as a first name and initial |
+| `tv.tournamentClock` | 1920 × 1080 | The tournament clock (`TvTournamentClock`): `name`, `level`, `remainingSeconds`, `isPaused`, `blinds` and `next` (`{ small, big, ante }` in chips; `next` absent on the last level), `players`, `entries`, `averageStack` (chips), `poolPaise`, `payoutsPaise` (first place first; empty before they are set) |
+| `tv.promotion` | 1920 × 1080 | A promotion in the TV's rotation (`TvPromotionSlide`): `title`, `detail` and `when` as published, and `position: { current, count }` for the quiet pager (shown only with more than one) |
 | `social.tournamentPoster` | feed or story | `name`, `startsAt` (ISO), `buyInPaise`, `guaranteePaise` (absent for a tournament without one), `venue` |
 | `social.promoCard` | feed or story | `title`, `rewardPaise` (when the reward is an amount), `runs` and `who` (as the promotion builder words them, in IST), `venue` |
 | `social.winnerCard` | feed or story | `playerName` (as the player agreed to be shown), `eventName`, `prizePaise` (as announced, before TDS), `wonAt` (ISO), `venue` |
@@ -50,7 +53,7 @@ const png = await renderToPng({
 });
 ```
 
-Build the host first: `pnpm --filter @rivr/render build` (Turborepo builds `@rivr/ui` before it). The tests build it themselves and compare the sample slide with `baselines/tv-bad-beat-jackpot.png`; after a deliberate design change, run `RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test` and review the new PNG. Bigint props survive the trip to the page (`src/job.ts`).
+Build the host first: `pnpm --filter @rivr/render build` (Turborepo builds `@rivr/ui` before it). The tests build it themselves and compare the sample slide with `baselines/tv-bad-beat-jackpot.png`, and each TV layout with its `baselines/tv-*.png` (`pnpm test --filter render -- tv`); after a deliberate design change, run `RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test` and review the new PNG. Bigint props survive the trip to the page (`src/job.ts`).
 
 Adding a template: a component in `src/templates/` that composes `@rivr/ui` and takes plain props, registered in `src/templates/index.ts`, with copy in the `@rivr/i18n` namespace of its surface (`tv` for TV slides, `social` for posts, `documents` for printed matter). Those three are registered in `src/messages.ts`; a template reading another namespace adds it there, or `t` shows its keys. Tests compare with a baseline through `src/test/png.ts`.
 

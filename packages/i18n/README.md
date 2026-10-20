@@ -13,6 +13,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatNumber(n)` | `18,420`. |
 | `formatStakes(small, big)` | Blinds in paise to `100/200`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
+| `formatCountdown(seconds)` | A clock counting down, whole seconds: `11:29`, `05:00`, `1:15:00` from an hour up. The tournament clock. |
 | `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40`, in IST. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
 | `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |

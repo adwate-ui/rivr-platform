@@ -45,6 +45,15 @@ export function formatDuration(seconds: number): string {
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
+/** A countdown as a clock shows it, in whole seconds rounded down: `11:29`, `05:00`, `1:15:00` from an hour up. */
+export function formatCountdown(seconds: number): string {
+  const whole = Math.floor(Math.max(0, seconds));
+  const two = (value: number) => String(value).padStart(2, '0');
+  const hours = Math.floor(whole / 3600);
+  const clock = `${two(Math.floor((whole % 3600) / 60))}:${two(whole % 60)}`;
+  return hours === 0 ? clock : `${hours}:${clock}`;
+}
+
 /** The IST day of the week: `Sunday`, as in "expires Sunday". */
 export function formatWeekday(at: Date): string {
   return WEEKDAY.format(at);

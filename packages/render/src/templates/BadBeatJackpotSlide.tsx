@@ -1,21 +1,19 @@
 import { t } from '@rivr/i18n';
-import { DisplayShell, Heading, Money, Stack } from '@rivr/ui';
+import { DisplayShell, TvJackpotBoard } from '@rivr/ui';
 
 export interface BadBeatJackpotSlideProps {
   /** The bad-beat jackpot pool in paise. */
   amountPaise: bigint;
+  /** Tonight's best high hand as the TV words it ("Four of a kind, Queens"; "Table 2 · 22:18 · ₹2,000"); absent before one. */
+  highHand?: { title: string; line: string } | undefined;
 }
 
-/** TV slide, 1920 by 1080: the bad-beat jackpot figure large in the display face. */
-export function BadBeatJackpotSlide({ amountPaise }: BadBeatJackpotSlideProps) {
+/** TV slide, 1920 by 1080: the jackpot as the TV shows it (#65), the bad-beat figure large and tonight's high hand beneath. */
+export function BadBeatJackpotSlide({ amountPaise, highHand }: BadBeatJackpotSlideProps) {
   return (
     <DisplayShell>
-      <Stack grow justify="center" gap={8}>
-        <Heading level={1} variant="display">
-          {t('tv.badBeatJackpot.title')}
-        </Heading>
-        <Money paise={amountPaise} size="jackpot" tone="player" />
-      </Stack>
+      <TvJackpotBoard label={t('tv.badBeatJackpot.title')} amount={amountPaise} highHandLabel={t('tv.jackpot.highHandTonight')}
+        highHand={highHand ?? null} noHighHandText={t('tv.jackpot.noHighHand')} />
     </DisplayShell>
   );
 }
