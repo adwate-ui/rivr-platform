@@ -15,7 +15,7 @@ grant update (detail, runs) on public.promotion to authenticated;
 -- Publishes a promotion from the builder: its name and card words, its one rule (trigger, conditions,
 -- effect, checked as promotion_rule checks them) and a per-player limit, live from now. Staff who
 -- manage promotions only; not while the venue is frozen or promotions are switched off.
-create function public.publish_promotion(p_venue_id uuid, p_promotion jsonb)
+create function private.publish_promotion(p_venue_id uuid, p_promotion jsonb)
 returns uuid
 language plpgsql
 security definer
@@ -45,14 +45,12 @@ begin
 end;
 $$;
 
-revoke execute on function public.publish_promotion(uuid, jsonb) from public, anon;
-grant execute on function public.publish_promotion(uuid, jsonb) to authenticated;
 
 
 -- Pauses a live promotion or resumes a paused one: nothing is given while paused. Staff who manage
 -- promotions at its venue; not while the venue is frozen or promotions are switched off. Status
 -- changes only through here, so the kill switch holds.
-create function public.set_promotion_live(p_promotion_id uuid, p_is_live boolean)
+create function private.set_promotion_live(p_promotion_id uuid, p_is_live boolean)
 returns void
 language plpgsql
 security definer
@@ -78,5 +76,18 @@ end;
 $$;
 
 revoke update (status) on public.promotion from authenticated;
-revoke execute on function public.set_promotion_live(uuid, boolean) from public, anon;
-grant execute on function public.set_promotion_live(uuid, boolean) to authenticated;
+revoke execute on function private.publish_promotion(uuid, jsonb), private.set_promotion_live(uuid, boolean) from public, anon;
+grant execute on function private.publish_promotion(uuid, jsonb), private.set_promotion_live(uuid, boolean) to authenticated;
+
+-- The console's calls, as the Supabase advisors accept them: security-invoker wrappers over the
+-- security-definer functions above, which make every check.
+create function public.publish_promotion(p_venue_id uuid, p_promotion jsonb)
+returns uuid language sql volatile security invoker set search_path = ''
+as $$ select private.publish_promotion(p_venue_id, p_promotion); $$;
+
+create function public.set_promotion_live(p_promotion_id uuid, p_is_live boolean)
+returns void language sql volatile security invoker set search_path = ''
+as $$ select private.set_promotion_live(p_promotion_id, p_is_live); $$;
+
+revoke execute on function public.publish_promotion(uuid, jsonb), public.set_promotion_live(uuid, boolean) from public, anon;
+grant execute on function public.publish_promotion(uuid, jsonb), public.set_promotion_live(uuid, boolean) to authenticated;
