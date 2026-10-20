@@ -19,6 +19,14 @@ describe('the TV boards (#65)', () => {
     expect(stakes[1]?.bigBlind).toBe(toPaise(20000));
   });
 
+  // A member may hide their name on the TVs (task 326).
+  it('keeps the place of a member who hid their name, with no name', () => {
+    const stakes = toTvStakes([
+      { table_type_id: 'b', table_type_name: '100/200', ...STAKE, place: 1, display_name: null, call_table_name: null, is_away: false },
+    ]);
+    expect(stakes[0]?.places).toEqual([{ place: 1, name: null, calledTo: null, isAway: false }]);
+  });
+
   it('gives the main pool, and tonight\'s high hand only when there is one', () => {
     const none = { high_hand_category: null, high_hand_rank: null, high_hand_table_name: null, high_hand_played_at: null, high_hand_payout_paise: null };
     expect(toTvJackpot({ main_paise: 34260000, ...none })).toEqual({ main: toPaise(34260000), highHand: null });

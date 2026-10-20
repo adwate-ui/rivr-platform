@@ -16,7 +16,12 @@ function openText(tables: number): string {
 function toBoardStake(stake: TvStake): TvWaitlistStake {
   return {
     id: stake.tableTypeId, stake: stake.name, detail: openText(stake.openTables),
-    places: stake.places.map((place) => ({ id: `${stake.tableTypeId}-${place.place}`, place: String(place.place), name: place.name, status: statusText(place) })),
+    places: stake.places.map((place) => ({
+      id: `${stake.tableTypeId}-${place.place}`, place: String(place.place),
+      // A member who hid their name on the TVs is their place on the list (#326).
+      name: place.name ?? t('tv.waitlist.hiddenName', { place: place.place }),
+      status: statusText(place),
+    })),
   };
 }
 

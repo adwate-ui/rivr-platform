@@ -41,7 +41,7 @@ function renderGames(preferences: Preferences, stakes: unknown[] = STAKES) {
 // The first answer waits on the session being read, which is slow when every package tests at once.
 const FIRST = { timeout: 5000 };
 const chips = (group: HTMLElement) => [...group.querySelectorAll('button')].map((button) => button.textContent);
-const NONE: Preferences = { games: ['nlh'], stake: null, notificationsOff: [], marketing: false };
+const NONE: Preferences = { games: ['nlh'], stake: null, notificationsOff: [], marketing: false, nameOnTvs: true };
 
 describe('Waitlist alerts: the stake', () => {
   it('offers the club\'s stakes and any, with any chosen at first', async () => {

@@ -11,7 +11,8 @@ type HighHandCategory = Database['public']['Enums']['high_hand_category'];
 /** A place on the TV's waitlist board (#65): the player as a first name and initial. */
 export interface TvPlace {
   readonly place: number;
-  readonly name: string;
+  /** Null for a member who hid their name on the TVs (#326): the TV shows their place instead. */
+  readonly name: string | null;
   /** The table the player is called to, if called. */
   readonly calledTo: string | null;
   readonly isAway: boolean;
@@ -96,7 +97,7 @@ export function toTvStakes(rows: readonly BoardRow[]): TvStake[] {
       };
       stakes.push(last);
     }
-    if (row.place !== null && row.display_name !== null) {
+    if (row.place !== null) {
       last.places.push({ place: row.place, name: row.display_name, calledTo: row.call_table_name, isAway: row.is_away === true });
     }
   }

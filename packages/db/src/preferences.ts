@@ -28,6 +28,8 @@ export interface Preferences {
   readonly notificationsOff: readonly PushChoice[];
   /** Marketing consent in force: promotions by WhatsApp and push. */
   readonly marketing: boolean;
+  /** Whether the TVs' waitlist board shows their first name and initial; off, only their place (#326). */
+  readonly nameOnTvs: boolean;
 }
 
 function stakeOf(row: { small_blind: number | null; big_blind: number | null } | null): Stake | null {
@@ -35,7 +37,7 @@ function stakeOf(row: { small_blind: number | null; big_blind: number | null } |
   return { smallBlind: BigInt(row.small_blind), bigBlind: BigInt(row.big_blind) };
 }
 
-/** The signed-in member's games, stake, notification choices and marketing consent. */
+/** The signed-in member's games, stake, notification choices, marketing consent and name on the TVs. */
 export function usePreferences() {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -43,7 +45,7 @@ export function usePreferences() {
     enabled: userId !== null,
     queryFn: async (): Promise<Preferences> => {
       const [saved, choices, consent] = await Promise.all([
-        client.from('member_preference').select('games, small_blind, big_blind').maybeSingle(),
+        client.from('member_preference').select('games, small_blind, big_blind, name_on_tvs').maybeSingle(),
         client.from('notification_preference').select('push_type, is_on'),
         // Their own consent only: a login that is also staff can read every member's consent rows.
         client.rpc('has_my_consent', { p_purpose: 'marketing' }),
@@ -56,6 +58,7 @@ export function usePreferences() {
         stake: stakeOf(saved.data),
         notificationsOff: PUSH_CHOICES.filter((type) => off.includes(type)),
         marketing: consent.data === true,
+        nameOnTvs: saved.data?.name_on_tvs ?? true,
       };
     },
   });
@@ -80,7 +83,7 @@ export function useStakes() {
 
 /**
  * Changes to the member's own choices: `saveGames` (with the stake kept as it is, or a new one: null for any),
- * `setNotification` and `setMarketing` (the marketing consent, given or withdrawn). Each resolves
+ * `setNotification`, `setMarketing` (the marketing consent, given or withdrawn) and `setNameOnTvs`. Each resolves
  * to a Result and reloads the choices, so a change that failed shows its old state again.
  */
 export function usePreferenceActions() {
@@ -106,5 +109,8 @@ export function usePreferenceActions() {
     mutationFn: async (isOn: boolean) =>
       settle(await (isOn ? client.rpc('give_consent', { p_purpose: 'marketing' }) : client.rpc('withdraw_consent', { p_purpose: 'marketing' }))),
   });
-  return { saveGames, setNotification, setMarketing };
+  const setNameOnTvs = useMutation({
+    mutationFn: async (isOn: boolean) => settle(await client.rpc('set_my_name_on_tvs', { p_is_on: isOn })),
+  });
+  return { saveGames, setNotification, setMarketing, setNameOnTvs };
 }
