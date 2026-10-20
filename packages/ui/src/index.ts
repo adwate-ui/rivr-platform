@@ -44,6 +44,7 @@ export * from './SeatRing/index.ts';
 export * from './CallTimeTimer/index.ts';
 export * from './TableCard/index.ts';
 export * from './DataTable/index.ts';
+export * from './Chart/index.ts';
 
 // Tier-gated features and the kill switch
 export * from './FeatureGate/index.ts';
