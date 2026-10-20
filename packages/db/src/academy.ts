@@ -147,3 +147,43 @@ export function useAcademyActions() {
   });
   return { book, claimPayment };
 }
+
+/**
+ * A paid booking's invoice (#249), as issued: the supplier, number, buyer and amounts exactly as stored, for the
+ * member who booked or the company's contact. @rivr/ui's InvoiceDocument shows it; null until the cage confirms.
+ */
+export interface AcademyInvoice {
+  readonly number: string;
+  readonly isTaxInvoice: boolean;
+  readonly issuedAt: string;
+  readonly supplier: { readonly legalName: string; readonly gstin: string | null; readonly address: string };
+  readonly buyer: { readonly name: string; readonly gstin: string | null };
+  readonly description: string;
+  readonly rateBasisPoints: number;
+  readonly taxablePaise: bigint;
+  readonly cgstPaise: bigint;
+  readonly sgstPaise: bigint;
+  readonly igstPaise: bigint;
+  readonly totalPaise: bigint;
+}
+
+/** The signed-in member's invoice for one of their bookings, or null when it has none. */
+export function useAcademyInvoice(bookingId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.academyInvoice(userId ?? 'signed-out', bookingId),
+    enabled: userId !== null && bookingId !== '',
+    queryFn: async (): Promise<AcademyInvoice | null> => {
+      const { data, error } = await client.rpc('my_academy_invoice', { p_booking_id: bookingId });
+      if (error) throw error;
+      const row = data[0];
+      return row ? {
+        number: row.number, isTaxInvoice: row.is_tax_invoice, issuedAt: row.issued_at,
+        supplier: { legalName: row.supplier_legal_name, gstin: row.supplier_gstin, address: row.supplier_address },
+        buyer: { name: row.buyer_name, gstin: row.buyer_gstin }, description: row.description, rateBasisPoints: row.rate_basis_points,
+        taxablePaise: BigInt(row.taxable_paise), cgstPaise: BigInt(row.cgst_paise), sgstPaise: BigInt(row.sgst_paise),
+        igstPaise: BigInt(row.igst_paise), totalPaise: BigInt(row.total_paise),
+      } : null;
+    },
+  });
+}

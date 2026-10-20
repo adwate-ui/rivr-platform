@@ -1,12 +1,14 @@
 /**
- * Academy payments (#8): Academy staff open a batch, book a company's heads on it at the corporate
- * fee and record the UTR the company paid with; a cashier finds that UTR in the bank and confirms
- * it, which pays the booking. In the practice venue, so a staging release run leaves nothing in the
- * club and sends nobody a message. Meera (super admin) and Dev (cashier) are this flow's own staff:
- * Auth sends one code a minute to a number. A new batch each run, so a run never meets an earlier one's.
+ * Academy payments (#8, #249): Academy staff open a batch, book a company's heads on it at the corporate
+ * fee under its GSTIN and record the UTR the company paid with; a cashier finds that UTR in the bank and
+ * confirms it, which pays the booking and issues its invoice, which the company's contact opens in the
+ * app. The ledger's split and tax invoices at the club are in pgTAP 089. In the practice venue, so a
+ * staging release run leaves nothing in the club and sends nobody a message. Meera (super admin) and Dev
+ * (cashier) are this flow's own staff: Auth sends one code a minute to a number. A new batch each run, so a
+ * run never meets an earlier one's.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { signInToConsole } from '../support/signIn.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** An ISO day `days` from today. */
 function inDays(days: number): string {
@@ -45,6 +47,7 @@ test.describe('Academy payments', () => {
     await admin.getByRole('textbox', { name: 'Contact mobile number', exact: true }).fill('9000000301');
     await admin.getByRole('textbox', { name: 'Company', exact: true }).fill(`Acme ${run}`);
     await admin.getByRole('textbox', { name: 'Heads', exact: true }).fill('2');
+    await admin.getByRole('textbox', { name: 'Company GSTIN, if it has one', exact: true }).fill('06AAAAA0000A1Z5');
     await admin.getByRole('button', { name: 'Book', exact: true }).click();
     await expect(admin.getByText(payer, { exact: true })).toBeVisible();
     await expect(batch.getByText('2 of 10 seats booked')).toBeVisible();
@@ -73,5 +76,17 @@ test.describe('Academy payments', () => {
     await expect(admin.getByText(payer, { exact: true })).toBeVisible();
     await expect(admin.getByText(`UTR ${utr}, waiting for the cage.`)).toHaveCount(0);
     await expect(admin.getByRole('textbox', { name: `UTR for ${payer}` })).toHaveCount(0);
+
+    // The company's contact opens its invoice in the app, under the company's GSTIN, to save as a PDF (#249).
+    // A practice booking's invoice is a practice invoice.
+    const contact = await browser.newPage();
+    await signInToPlayer(contact, '9000000301', '/academy');
+    await contact.locator('div').filter({ has: contact.getByRole('heading', { name: batchName }) })
+      .getByRole('button', { name: 'Invoice' }).last().click();
+    await expect(contact.getByText('Practice invoice, not a tax invoice')).toBeVisible();
+    await expect(contact.getByText(`Acme ${run}`)).toBeVisible();
+    await expect(contact.getByText('06AAAAA0000A1Z5')).toBeVisible();
+    await expect(contact.getByText('₹3,000')).toBeVisible();
+    await expect(contact.getByRole('button', { name: 'Save as PDF' })).toBeVisible();
   });
 });

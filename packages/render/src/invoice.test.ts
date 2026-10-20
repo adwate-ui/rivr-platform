@@ -1,6 +1,6 @@
 import { tokens } from '@rivr/tokens';
 import { describe, expect, it } from 'vitest';
-import { invoiceDocumentProps, renderInvoicePdf, storedInvoiceFromRow, type InvoiceRow } from './invoice.ts';
+import { renderInvoicePdf, storedInvoiceFromRow, type InvoiceRow } from './invoice.ts';
 import { renderToPng } from './render.ts';
 import { allowedDifference, differenceFromBaseline, pngSize } from './test/png.ts';
 
@@ -27,35 +27,15 @@ const ROW: InvoiceRow = {
 const STORED = storedInvoiceFromRow(ROW);
 
 describe('a stored invoice', () => {
-  it('shows the supplier and number it was issued with, and its amounts as stored', () => {
-    const props = invoiceDocumentProps(STORED);
-    expect(STORED.totalPaise).toBe(200_000n);
-    expect(props.issuer).toEqual({ legalName: 'RIVR Hospitality LLP', gstin: '06AAAAA0000A1Z5', address: ROW.supplier_address });
-    expect(props.number).toBe('RIVR/S26/41');
-    expect(props.buyer).toEqual({ name: 'Northern Gaming Private Limited', gstin: '06BBBBB1111B1Z6' });
-    expect(props.totals).toEqual([
-      { label: 'Taxable value', paise: 169_492n },
-      { label: 'CGST at 9%', paise: 15_254n },
-      { label: 'SGST at 9%', paise: 15_254n },
-      { label: 'Total', paise: 200_000n },
-    ]);
-  });
-
-  it('shows IGST alone for a company in another state', () => {
-    const props = invoiceDocumentProps(storedInvoiceFromRow({ ...ROW, buyer_gstin: '29CCCCC2222C1Z7', cgst_paise: 0, sgst_paise: 0, igst_paise: 30_508 }));
-    expect(props.totals.map((total) => total.label)).toEqual(['Taxable value', 'IGST at 18%', 'Total']);
-  });
-
-  it('prints a practice invoice as no tax invoice, with no supplier GSTIN, and an odd rate exactly', () => {
-    const props = invoiceDocumentProps(storedInvoiceFromRow({ ...ROW, is_tax_invoice: false, supplier_gstin: null, buyer_gstin: null, rate_basis_points: 500 }));
-    expect(props.isTaxInvoice).toBe(false);
-    expect(props.issuer.gstin).toBeUndefined();
-    expect(props.buyer.gstin).toBeUndefined();
-    expect(props.totals.map((total) => total.label)).toEqual(['Taxable value', 'CGST at 2.5%', 'SGST at 2.5%', 'Total']);
+  it('is read from its row with every amount as bigint paise, as stored', () => {
+    expect(STORED).toMatchObject({
+      number: 'RIVR/S26/41', supplier: { gstin: '06AAAAA0000A1Z5' }, buyer: { gstin: '06BBBBB1111B1Z6' },
+      taxablePaise: 169_492n, cgstPaise: 15_254n, sgstPaise: 15_254n, igstPaise: 0n, totalPaise: 200_000n,
+    });
   });
 
   it('draws as an A4 page that matches its baseline', async () => {
-    const png = await renderToPng({ template: 'document.invoice', props: invoiceDocumentProps(STORED), ...A4 });
+    const png = await renderToPng({ template: 'document.invoice', props: { invoice: STORED }, ...A4 });
     expect(await differenceFromBaseline(png, 'document-invoice-stored')).toBeLessThanOrEqual(allowedDifference(A4.width, A4.height));
     expect(pngSize(png)).toEqual({ chunk: 'IHDR', ...A4 });
   });

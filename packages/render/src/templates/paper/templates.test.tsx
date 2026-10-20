@@ -1,9 +1,12 @@
+import { documents, registerMessages } from '@rivr/i18n';
+import { InvoiceDocument } from '@rivr/ui';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { CASH_OUT, INVOICE, STATEMENT } from '../../test/paper.ts';
-import { InvoiceDocument } from './InvoiceDocument.tsx';
 import { StatementDocument } from './StatementDocument.tsx';
 import { ThermalReceipt } from './ThermalReceipt.tsx';
+
+registerMessages({ documents });
 
 describe('paper templates', () => {
   it('dates a receipt in IST and gives its reference', () => {
@@ -28,7 +31,7 @@ describe('paper templates', () => {
   });
 
   it('never calls a practice invoice a tax invoice, and leaves out a buyer GSTIN the buyer has not', () => {
-    const html = renderToStaticMarkup(<InvoiceDocument {...INVOICE} isTaxInvoice={false} buyer={{ name: 'Arjun Mehta' }} />);
+    const html = renderToStaticMarkup(<InvoiceDocument invoice={{ ...INVOICE.invoice, isTaxInvoice: false, buyer: { name: 'Arjun Mehta', gstin: null } }} />);
     expect(html).toContain('Practice invoice, not a tax invoice');
     expect(html).not.toContain('>Tax invoice<');
     expect(html).not.toContain('Buyer GSTIN');

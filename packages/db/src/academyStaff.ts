@@ -115,6 +115,8 @@ interface CompanyBooking {
   contactPhone: IndianMobile;
   companyName: string;
   seats: number;
+  /** For the company's invoice (#249); empty when it has none. */
+  companyGstin: string;
   requestId: string;
 }
 
@@ -135,7 +137,7 @@ export function useStaffAcademyActions(venueId: string) {
       if (contact.data === null) return { error: { code: NO_MEMBER } };
       return client.rpc('book_academy_corporate', {
         p_batch_id: booking.batchId, p_member_id: contact.data.id, p_company_name: booking.companyName, p_seats: booking.seats,
-        p_request_id: booking.requestId,
+        p_request_id: booking.requestId, p_company_gstin: booking.companyGstin,
       });
     }),
     recordPayment: useStaffAcademyStep(venueId, (client, payment: { bookingId: string; utr: string }) =>

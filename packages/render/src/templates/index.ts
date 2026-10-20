@@ -1,7 +1,6 @@
-import { BrandArt } from '@rivr/ui';
+import { BrandArt, InvoiceDocument } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { BadBeatJackpotSlide } from './BadBeatJackpotSlide.tsx';
-import { InvoiceDocument } from './paper/InvoiceDocument.tsx';
 import { MembershipCardImage } from './paper/MembershipCardImage.tsx';
 import { StatementDocument } from './paper/StatementDocument.tsx';
 import { ThermalReceipt } from './paper/ThermalReceipt.tsx';

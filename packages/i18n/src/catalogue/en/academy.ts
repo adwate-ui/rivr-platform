@@ -28,9 +28,10 @@ export const academy = {
   bookCompany: 'Book for a company',
   contactPhone: 'Contact mobile number',
   companyName: 'Company',
+  companyGstin: 'Company GSTIN, if it has one',
   heads: 'Heads',
   book: 'Book',
-  companyInvalid: 'Give the contact\'s 10-digit number, the company and 1 to 100 heads.',
+  companyInvalid: 'Give the contact\'s 10-digit number, the company, 1 to 100 heads, and its GSTIN only if it has one.',
 } as const;
 
 /** Academy payments the cage checks against the bank. */

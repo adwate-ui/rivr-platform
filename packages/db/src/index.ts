@@ -46,11 +46,13 @@ export {
   useAcademyActions,
   useAcademyBatches,
   useAcademyBookings,
+  useAcademyInvoice,
   useAcademyPayment,
   type AcademyBatch,
   type AcademyBooking,
   type AcademyBookingStatus,
   type AcademyFailure,
+  type AcademyInvoice,
   type AcademyPayment,
 } from './academy.ts';
 export {

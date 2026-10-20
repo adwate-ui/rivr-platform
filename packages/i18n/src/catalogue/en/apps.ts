@@ -38,6 +38,9 @@ export const playerApp = {
   academy: {
     title: 'RIVR Academy',
     seeBatches: 'See batches',
+    /** A paid booking's invoice (#249), saved from its page as a PDF. */
+    invoice: 'Invoice',
+    noInvoice: 'No invoice for this booking yet. It comes once the cage confirms the payment.',
     empty: 'No batches open right now.',
     yourBookings: 'Your bookings',
     openBatches: 'Open batches',
