@@ -48,6 +48,7 @@ echo "workflows from outside contributors need approval"
 #   staging     main only; staging Supabase and Cloudflare
 #   production  release-* tags only, and the repository owner approves each release
 #   e2e-staging release-* tags only; the staging test numbers' sign-in code for the release's e2e run
+#   backup-staging, backup-production  main only; the nightly backup's database URL and bucket keys (#25)
 owner_id="$(gh api "users/${repo%%/*}" --jq .id)"
 environment() {
   gh api --method PUT "repos/$repo/environments/$1" --input - >/dev/null
@@ -69,6 +70,10 @@ JSON
 deploy_only_from production 'release-*' tag
 echo '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}' | environment e2e-staging
 deploy_only_from e2e-staging 'release-*' tag
+for target in staging production; do
+  echo '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}' | environment "backup-$target"
+  deploy_only_from "backup-$target" main branch
+done
 
 # Only repository admins create, move or delete release-* tags.
 if ! gh api "repos/$repo/rulesets" --jq '.[].name' | grep -qx 'release tags'; then

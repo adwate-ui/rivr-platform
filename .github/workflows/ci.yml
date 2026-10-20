@@ -85,6 +85,11 @@ jobs:
         run: pnpm supabase db lint --local --level warning --fail-on warning
       - name: Supabase security advisors
         run: bash scripts/ci/security-advisors.sh
+      - name: Nightly backup against the local stack, as its read-only role (#25)
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq age postgresql-client-17
+          PATH="/usr/lib/postgresql/17/bin:$PATH" bash scripts/backup/check-backup.sh
       - name: Dependency audit
         run: pnpm audit --audit-level high
       - name: Secret scanning
