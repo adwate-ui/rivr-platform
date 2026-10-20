@@ -1,0 +1,54 @@
+{
+  "rule": "gst included in an amount",
+  "about": "GST included in an amount (#23; decision 0071). What the club collects already includes GST, so the tax is taken out of it, never added on. Each half of the tax (CGST and SGST, always equal) is the amount times half the rate over one plus the rate, rounded to the nearest paisa, a half paisa up. The taxable value is what is left, so taxable, CGST and SGST always add up to the amount. Rates are in basis points: 1800 is 18%.",
+  "cases": [
+    {
+      "description": "An Academy seat of ₹2,000 at 18%: each half is ₹152.542..., so ₹152.54, and ₹1,694.92 is taxable.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹2,000", "rate": "1800" },
+      "expected": { "taxable": "₹1,694.92", "cgst": "₹152.54", "sgst": "₹152.54" }
+    },
+    {
+      "description": "A corporate head of ₹1,500 at 18%: each half is ₹114.406..., so ₹114.41.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹1,500", "rate": "1800" },
+      "expected": { "taxable": "₹1,271.18", "cgst": "₹114.41", "sgst": "₹114.41" }
+    },
+    {
+      "description": "Exactly half a paisa at 18%: ₹1,180.59 gives each half ₹90.045, rounded up to ₹90.05.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹1,180.59", "rate": "1800" },
+      "expected": { "taxable": "₹1,000.49", "cgst": "₹90.05", "sgst": "₹90.05" }
+    },
+    {
+      "description": "A paisa below a half-paisa boundary (₹0.59 gives ₹0.045): ₹0.58 gives each half ₹0.0442..., so ₹0.04.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹0.58", "rate": "1800" },
+      "expected": { "taxable": "₹0.50", "cgst": "₹0.04", "sgst": "₹0.04" }
+    },
+    {
+      "description": "₹1,000 at 28%: each half is exactly ₹109.375, rounded up to ₹109.38.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹1,000", "rate": "2800" },
+      "expected": { "taxable": "₹781.24", "cgst": "₹109.38", "sgst": "₹109.38" }
+    },
+    {
+      "description": "₹500 at 40%: each half is ₹71.428..., so ₹71.43.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹500", "rate": "4000" },
+      "expected": { "taxable": "₹357.14", "cgst": "₹71.43", "sgst": "₹71.43" }
+    },
+    {
+      "description": "At a rate of nothing, all of ₹1,000 is taxable.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹1,000", "rate": "0" },
+      "expected": { "taxable": "₹1,000", "cgst": "₹0", "sgst": "₹0" }
+    },
+    {
+      "description": "Nothing collected owes nothing.",
+      "operation": "gst_included",
+      "inputs": { "inclusive": "₹0", "rate": "1800" },
+      "expected": { "taxable": "₹0", "cgst": "₹0", "sgst": "₹0" }
+    }
+  ]
+}

@@ -92,6 +92,7 @@ export {
   type StaffRole,
 } from './roles.ts';
 export {
+  GST_BASES,
   SETTINGS,
   SETTING_SCOPES,
   TDS_BASES,

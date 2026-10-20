@@ -179,10 +179,23 @@ const tdsConfig = {
   }),
 } as const satisfies SettingDefinition;
 
+/** What the club's GST is charged on (tech plan item 20): the rake, or a table fee. */
+export const GST_BASES = ['rake', 'table_fee'] as const;
+
+const gstConfig = {
+  key: 'gst.config',
+  description: 'GST on the club\'s own supply (tech plan item 20; #23, decision 0071): the rate in basis points (1800 is 18%), taken out of what is collected, and the basis it is charged on (the rake or a table fee).',
+  scope: 'venue',
+  value: z.strictObject({
+    rate_basis_points: z.int().min(0).max(10_000),
+    basis: z.enum(GST_BASES),
+  }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig,
+  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig,
 ] as const;
 
 /** A setting key declared in code. */

@@ -887,6 +887,78 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"invoice": {
+                  Row: {
+                    "buyer_gstin": string | null,"buyer_name": string,"cgst_paise": number,"created_at": string,"description": string,"financial_year": number,"id": string,"is_tax_invoice": boolean,"issued_at": string,"member_id": string | null,"number": string,"rate_basis_points": number,"sequence": number,"series_id": string,"sgst_paise": number,"source": string,"supplier_address": string,"supplier_gstin": string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "buyer_gstin"?: string | null,"buyer_name": string,"cgst_paise": number,"created_at"?: string,"description": string,"financial_year": number,"id"?: string,"is_tax_invoice": boolean,"issued_at"?: string,"member_id"?: string | null,"number": string,"rate_basis_points": number,"sequence": number,"series_id": string,"sgst_paise": number,"source": string,"supplier_address": string,"supplier_gstin"?: string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "buyer_gstin"?: string | null,"buyer_name"?: string,"cgst_paise"?: number,"created_at"?: string,"description"?: string,"financial_year"?: number,"id"?: string,"is_tax_invoice"?: boolean,"issued_at"?: string,"member_id"?: string | null,"number"?: string,"rate_basis_points"?: number,"sequence"?: number,"series_id"?: string,"sgst_paise"?: number,"source"?: string,"supplier_address"?: string,"supplier_gstin"?: string | null,"supplier_legal_name"?: string,"taxable_paise"?: number,"total_paise"?: number,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "invoice_series_id_venue_id_fkey"
+      columns: ["series_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "invoice_series"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "invoice_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"invoice_counter": {
+                  Row: {
+                    "created_at": string,"financial_year": number,"last_number": number,"series_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"financial_year": number,"last_number": number,"series_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"financial_year"?: number,"last_number"?: number,"series_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_counter_series_id_venue_id_fkey"
+      columns: ["series_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "invoice_series"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"invoice_series": {
+                  Row: {
+                    "code": string,"created_at": string,"id": string,"name": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"created_at"?: string,"id"?: string,"name": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "code"?: string,"created_at"?: string,"id"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_series_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"jackpot_event": {
                   Row: {
                     "created_at": string,"each_at_table_paise": number,"id": string,"idempotency_key": string,"kind": Database["public"]['Enums']["jackpot_event_kind"],"loser_member_id": string | null,"loser_paise": number,"pool_paise": number,"reason": string | null,"reverses_id": string | null,"rule": NonNullable<Json>,"staff_id": string,"table_id": string | null,"table_member_ids": (string)[],"total_paise": number,"updated_at": string,"venue_id": string,"winner_member_id": string | null,"winner_paise": number
