@@ -8,6 +8,7 @@ describe('PrintSheet', () => {
   it('keeps what it holds off the screen and on the paper', () => {
     render(<PrintSheet><p>Receipt RV-0213-0418</p></PrintSheet>);
     const sheet = screen.getByText('Receipt RV-0213-0418').parentElement;
-    expect(sheet).toHaveClass('rivr-print-sheet', 'hidden', 'print:block');
+    expect(sheet).toHaveAttribute('data-print-sheet');
+    expect(sheet).toHaveClass('hidden', 'print:block');
   });
 });

@@ -140,6 +140,8 @@ export const cage = {
   receiptSettled: 'Markers settled',
   receiptTds: 'TDS withheld',
   receiptPaidCash: 'Paid in cash',
+  /** In place of Print receipt when the club's name and address cannot be read. */
+  receiptUnavailable: 'The receipt cannot print: the club\'s name and address are missing.',
   noShiftBanner: 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Treasury.',
   /** At a venue that enforces cage computers (#384), when this one is not enrolled as the cage. */
   notCageComputer: 'This computer is not enrolled as the cage, so the cage takes and pays nothing here. An admin enrols it on Computers.',

@@ -62,7 +62,7 @@ export function BuyInForm({ venueId, member }: { venueId: string; member: CageMe
       </Inline>
       <BuyInPreview member={member} amount={amount} method={method} failure={outcome.failure} issued={outcome.issued ? formatMoney(outcome.issued.amount) : null} />
       {outcome.issued === null ? null : (
-        <CageReceipt venueId={venueId} title={t('console.cage.receiptBuyIn')} transactionId={outcome.issued.transactionId}
+        <CageReceipt key={outcome.issued.transactionId} venueId={venueId} title={t('console.cage.receiptBuyIn')} transactionId={outcome.issued.transactionId}
           lines={[{ label: t('console.cage.receiptMember'), value: member.fullName }, { label: t('console.cage.method'), value: t(METHOD_LABEL[outcome.issued.method]) }]}
           total={{ label: t('console.cage.receiptChipsIssued'), paise: outcome.issued.amount }} />
       )}

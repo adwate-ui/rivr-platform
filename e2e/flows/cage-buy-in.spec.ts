@@ -31,7 +31,9 @@ test.describe('Cage buy-in', () => {
     await expect(page.getByText('₹5,000 of chips issued.')).toBeVisible();
 
     // Its receipt prints from the cage computer, and only it (#69): on paper, the receipt shows and the cage does not.
-    await expect(page.getByRole('button', { name: 'Print receipt' })).toBeVisible();
+    // The printer dialog is the browser's own, so the flow leaves it out.
+    await page.evaluate(() => { globalThis.print = () => undefined; });
+    await page.getByRole('button', { name: 'Print receipt' }).click();
     await page.emulateMedia({ media: 'print' });
     await expect(page.getByText(/^Receipt [0-9A-F]{8}$/)).toBeVisible();
     await expect(page.getByText('Chips issued', { exact: true })).toBeVisible();
