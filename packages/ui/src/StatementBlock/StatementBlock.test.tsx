@@ -12,10 +12,16 @@ describe('StatementBlock', () => {
     expect(screen.getByRole('link', { name: 'Join RIVR' })).toHaveAttribute('href', '#sign-in');
   });
 
-  it('puts its still behind the lines, as decoration only', () => {
-    const { container } = renderIn(<StatementBlock lines={['Hold your nerve.']} image="/media/room.webp" />);
+  it('puts its still behind the lines, as decoration only, and says what it is', () => {
+    const { container } = renderIn(<StatementBlock lines={['Hold your nerve.']} image="/media/chips.webp" note="Concept visualisation" />);
     expect(container.querySelector('img')).toHaveAttribute('alt', '');
     expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getByText('Concept visualisation')).toBeInTheDocument();
+  });
+
+  it('says nothing about a still it does not have', () => {
+    renderIn(<StatementBlock lines={['Not luck.']} note="Concept visualisation" />);
+    expect(screen.queryByText('Concept visualisation')).toBeNull();
   });
 
   it('has no accessibility violations', async () => {

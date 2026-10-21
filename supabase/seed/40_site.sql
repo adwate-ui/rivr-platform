@@ -42,6 +42,6 @@ insert into public.site_block (venue_id, page_id, position, kind, content) value
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005a1', 6, 'calendar',
    '{"heading": "Tournaments"}'),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005a1', 7, 'statement',
-   '{"eyebrow": "Opens Sunday 15 November", "lines": ["Hold your nerve."], "text": "Upper floor, Glaza, M3M 65th Avenue, Gurugram.", "action": {"label": "Join RIVR", "to": "sign-up"}, "image": "/media/chips.webp"}'),
+   '{"eyebrow": "Opens Sunday 15 November", "lines": ["Hold your nerve."], "text": "Upper floor, Glaza, M3M 65th Avenue, Gurugram.", "action": {"label": "Join RIVR", "to": "sign-up"}, "image": "/media/chips.webp", "note": "Concept visualisation"}'),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005a1', 8, 'map',
    '{"heading": "Find us", "address": "Upper floor, Glaza, M3M 65th Avenue, Gurugram", "directionsUrl": "https://www.google.com/maps/search/?api=1&query=Glaza%2C%20M3M%2065th%20Avenue%2C%20Gurugram"}');

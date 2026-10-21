@@ -3,9 +3,9 @@
  * A video sits over its still, which shows when the visitor asks for less motion (styles.css).
  */
 
-/** Beside media that is not the room itself, as the teaser says it: `Concept visualisation`. */
+/** Beside media that is not the room itself, as the teaser says it: `Concept visualisation`. On its own dark label, so it reads over any footage. */
 export function MediaNote({ children }: { children: string }) {
-  return <span className="absolute bottom-3 end-3 font-text text-12 uppercase tracking-wide text-cream opacity-muted">{children}</span>;
+  return <span className="absolute bottom-3 end-3 rounded-sm bg-green-black px-2 py-1 font-text text-12 uppercase tracking-wide text-cream">{children}</span>;
 }
 
 /** A muted loop of the room, filling its frame, over its first frame. */

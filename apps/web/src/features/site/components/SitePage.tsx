@@ -48,8 +48,8 @@ function MediaBlock({ block, link }: { block: Extract<SiteBlock, { kind: 'hero' 
       return <HeroBlock eyebrow={eyebrow} heading={heading} text={text} action={link(action)} video={video} note={note} />;
     }
     case 'statement': {
-      const { eyebrow, lines, text, action, image } = block.content;
-      return <StatementBlock eyebrow={eyebrow} lines={lines} text={text} action={link(action)} image={image} />;
+      const { eyebrow, lines, text, action, image, note } = block.content;
+      return <StatementBlock eyebrow={eyebrow} lines={lines} text={text} action={link(action)} image={image} note={note} />;
     }
     case 'gallery': {
       const { eyebrow, heading, intro, items, note } = block.content;
@@ -84,7 +84,7 @@ function Block({ block, page, link }: { block: SiteBlock; page: SitePageData; li
 }
 
 /** The footer every page carries: where the club is, how to reach it, and its 18+ line (#441). */
-function Footer() {
+export function Footer() {
   const links = [
     { label: t('web.footer.instagram'), href: 'https://www.instagram.com/rivr.pokerclub/' },
     { label: t('web.footer.email'), href: 'mailto:info@rivrpoker.com' },

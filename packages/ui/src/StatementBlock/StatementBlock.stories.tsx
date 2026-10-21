@@ -25,7 +25,8 @@ export const OverAStill: Story = {
     lines: ['Hold your nerve.'],
     text: 'Upper floor, Glaza, M3M 65th Avenue, Gurugram.',
     action: { label: 'Join RIVR', href: '#sign-in' },
-    image: '/media/room.webp',
+    image: '/media/chips.webp',
+    note: 'Concept visualisation',
   },
 };
 

@@ -17,7 +17,7 @@ The hero takes an eyebrow, a muted room loop and a note.
 **An exception to the UI rules, for the public website only** (`.claude/rules/ui.md`, "Public website"). It may use:
 - cream bands;
 - the club's own photos and video;
-- a dark overlay on them so their words stay legible;
+- a dark overlay on them so their words stay legible, flat or fading to the foot of a photo tile under its caption;
 - a muted looping video in the hero, which shows its still when the visitor asks for reduced motion;
 - one gold filled button per band.
 

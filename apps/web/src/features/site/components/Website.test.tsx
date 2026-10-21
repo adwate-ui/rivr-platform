@@ -15,6 +15,7 @@ describe('the website without a page to show', () => {
     render(<Website view={missing(404)} />);
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'RIVR Poker Club' }).getAttribute('href')).toBe('/?ref=FRIEND1');
+    expect(screen.getByText('Strictly 18+. Poker is a game of skill.')).toBeDefined();
   });
 
   it('says so when the content cannot be read, and the way home keeps the code', () => {

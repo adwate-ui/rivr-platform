@@ -44,6 +44,10 @@ describe('non-text contrast is at least 3:1', () => {
     expect(contrastRatio(hex('color.focus'), hex('color.raised'))).toBeGreaterThanOrEqual(3);
   });
 
+  it('keeps the focus ring visible on the website\'s cream bands, where it is ink', () => {
+    expect(contrastRatio(hex('color.ink'), hex('color.cream'))).toBeGreaterThanOrEqual(3);
+  });
+
   it.each(['1', '2', '3', '4', '5', '6'])('chart colour %s reads on green', (series) => {
     expect(contrastRatio(hex(`color.chart.${series}`), hex('color.surface'))).toBeGreaterThanOrEqual(3);
   });

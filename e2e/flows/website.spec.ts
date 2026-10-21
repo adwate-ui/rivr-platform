@@ -38,6 +38,11 @@ test.describe('Website', () => {
     // On a phone the page fits the screen: nothing scrolls sideways.
     await page.setViewportSize(VIEWPORT.player);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(VIEWPORT.player.width);
+
+    // A visitor who asks for less motion sees the room's still, not the loop.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(page.locator('video[data-web-video]')).toBeHidden();
+    await expect(page.locator('img[src="/media/hero-room.webp"]')).toBeVisible();
   });
 
   test('a draft page is not there, and nor is the front page by another address', async ({ request }) => {

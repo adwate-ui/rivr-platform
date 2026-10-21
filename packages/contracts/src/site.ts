@@ -62,6 +62,7 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
       text: z.string().trim().max(300).optional(),
       action: actionSchema.optional(),
       image: imageSchema.optional(),
+      note: mediaNoteSchema,
     }),
   }),
   // Photo tiles, each with a title and a line: the room and what the club does for its members.
