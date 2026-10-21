@@ -41,3 +41,13 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 - One gold filled button per screen at most.
 - No decorative poker imagery, gradients, glass, glows or shadows beyond a modal's.
 - Do not copy from the prototype: the demo bar, the Claude Design badge, image slots, device-frame radii, placeholder payee details.
+
+## Public website (decision 0118)
+The public website's blocks (`WebBand` and the blocks it holds) are the one exception to the visual standard above. They may use:
+- cream bands with ink text (`color.ink`, `color.inkMuted`);
+- the club's own photos and video from `apps/web/public/media`, never stock or decorative imagery, with a "Concept visualisation" note where the teaser has one;
+- a dark overlay on media so its words stay legible;
+- a muted looping hero video that shows its still under `prefers-reduced-motion`;
+- one gold filled button per band.
+
+Headlines may be short statements. Everything else holds: tokens only, `@rivr/ui` only, radius 6 px at most.

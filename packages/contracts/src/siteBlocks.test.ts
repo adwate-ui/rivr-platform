@@ -5,7 +5,7 @@ const DIRECTIONS = 'https://www.google.com/maps/search/?api=1&query=Glaza%2C%20M
 
 describe('the website\'s information blocks (#35)', () => {
   it('lists every kind the database allows', () => {
-    expect(SITE_BLOCK_KINDS).toEqual(['hero', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar', 'links']);
+    expect(SITE_BLOCK_KINDS).toEqual(['hero', 'statement', 'gallery', 'feature', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar', 'links']);
   });
 
   it('reads house rules, questions, careers and a map', () => {

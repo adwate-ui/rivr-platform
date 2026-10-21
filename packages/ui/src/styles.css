@@ -114,3 +114,21 @@
     zoom: var(--rivr-print-receipt-scale);
   }
 }
+
+/*
+ * The public website's cream bands (decision 0118): text in ink, its eyebrows in green, and a hover that stays
+ * on cream, so every block reads on cream as it does on green.
+ */
+[data-band='cream'] {
+  --rivr-color-content: var(--rivr-color-ink);
+  --rivr-color-content-muted: var(--rivr-color-ink-muted);
+  --rivr-color-accent: var(--rivr-color-green);
+  --rivr-color-raised: var(--rivr-color-cream);
+}
+
+/* A website video stops for a visitor who asks for less motion: its still shows instead (decision 0118). */
+@media (prefers-reduced-motion: reduce) {
+  [data-web-video] {
+    display: none;
+  }
+}

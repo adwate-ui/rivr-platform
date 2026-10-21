@@ -30,6 +30,9 @@ describe('text contrast is at least 4.5:1', () => {
     ['text on the primary action', 'color.onAction', 'color.action'],
     ['text on an alert', 'color.onAlert', 'color.alert'],
     ['ink on a cream tile', 'color.onCream', 'color.cream'],
+    ['muted ink on the website\'s cream bands', 'color.inkMuted', 'color.cream'],
+    ['an accent on green-black', 'color.accent', 'color.raised'],
+    ['an accent on a cream band, in green', 'color.green', 'color.cream'],
   ])('%s', (_name, foreground, background) => {
     expect(contrastRatio(hex(foreground), hex(background))).toBeGreaterThanOrEqual(4.5);
   });

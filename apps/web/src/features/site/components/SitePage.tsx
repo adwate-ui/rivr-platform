@@ -1,6 +1,10 @@
-import type { Attribution, SiteBlock } from '@rivr/contracts';
+import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { CalendarBlock, CareersBlock, FaqBlock, GamesBlock, HeroBlock, LinksBlock, MapBlock, RulesBlock, TextBlock, WebShell } from '@rivr/ui';
+import { t } from '@rivr/i18n';
+import {
+  CalendarBlock, CareersBlock, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, LinksBlock, MapBlock, RulesBlock, StatementBlock,
+  TextBlock, WebBand, WebFooter, WebShell, type WebBandTone,
+} from '@rivr/ui';
 import { playerHref, siteHref } from '../links.ts';
 
 interface SitePageProps {
@@ -10,6 +14,17 @@ interface SitePageProps {
   /** The codes of the link the visitor arrived by, carried on every link. */
   attribution: Attribution | null;
 }
+
+/**
+ * The band each kind of block sits in, so the front page alternates dark, deep green and cream as it reads,
+ * as grandpokerarena.com's does (#441, decision 0118).
+ */
+const BAND: Record<SiteBlock['kind'], WebBandTone> = {
+  hero: 'dark', statement: 'deep', gallery: 'cream', feature: 'dark', games: 'cream', calendar: 'deep', map: 'cream',
+  text: 'deep', rules: 'deep', faq: 'cream', careers: 'deep', links: 'deep',
+};
+
+type Link = (action: { label: string; to: PlayerDestination } | undefined) => { label: string; href: string } | undefined;
 
 /** A block of the club's information: rules, questions, careers or how to find it. */
 function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq' | 'careers' | 'map' }> }) {
@@ -25,36 +40,69 @@ function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq
   }
 }
 
-/** One block of a page, as its kind draws it; the live ones from the rows the page loaded. */
-function Block({ block, page, playerUrl, attribution }: { block: SiteBlock } & SitePageProps) {
+/** A block of the club's own pictures and words: the hero, a statement, a gallery or a feature (#441). */
+function MediaBlock({ block, link }: { block: Extract<SiteBlock, { kind: 'hero' | 'statement' | 'gallery' | 'feature' }>; link: Link }) {
   switch (block.kind) {
     case 'hero': {
-      const { action } = block.content;
-      const href = action ? playerHref(playerUrl, action.to, attribution) : undefined;
-      return <HeroBlock heading={block.content.heading} text={block.content.text} action={action && href ? { label: action.label, href } : undefined} />;
+      const { eyebrow, heading, text, action, video, note } = block.content;
+      return <HeroBlock eyebrow={eyebrow} heading={heading} text={text} action={link(action)} video={video} note={note} />;
     }
+    case 'statement': {
+      const { eyebrow, lines, text, action, image } = block.content;
+      return <StatementBlock eyebrow={eyebrow} lines={lines} text={text} action={link(action)} image={image} />;
+    }
+    case 'gallery': {
+      const { eyebrow, heading, intro, items, note } = block.content;
+      return <GalleryBlock eyebrow={eyebrow} heading={heading} intro={intro} items={items} note={note} />;
+    }
+    case 'feature': {
+      const { eyebrow, heading, text, points, action, image, alt } = block.content;
+      return <FeatureBlock eyebrow={eyebrow} heading={heading} text={text} points={points} action={link(action)} image={image} alt={alt} />;
+    }
+  }
+}
+
+/** One block of a page, as its kind draws it; the live ones from the rows the page loaded. */
+function Block({ block, page, link }: { block: SiteBlock; page: SitePageData; link: Link }) {
+  switch (block.kind) {
+    case 'hero':
+    case 'statement':
+    case 'gallery':
+    case 'feature':
+      return <MediaBlock block={block} link={link} />;
     case 'text':
       return <TextBlock heading={block.content.heading} body={block.content.body} />;
     case 'games':
       return <GamesBlock heading={block.content.heading} games={page.games} />;
     case 'calendar':
       return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} />;
-    case 'links': {
-      const links = block.content.links.map((link) => ({ label: link.label, href: playerHref(playerUrl, link.to, attribution) }));
-      return <LinksBlock heading={block.content.heading} links={links} />;
-    }
+    case 'links':
+      return <LinksBlock heading={block.content.heading} links={block.content.links.map((action) => ({ label: action.label, href: link(action)?.href ?? '' }))} />;
     default:
       return <InfoBlock block={block} />;
   }
 }
 
-/** A page of the website: the navigation, and the page's blocks in order. */
+/** The footer every page carries: where the club is, how to reach it, and its 18+ line (#441). */
+function Footer() {
+  const links = [
+    { label: t('web.footer.instagram'), href: 'https://www.instagram.com/rivr.pokerclub/' },
+    { label: t('web.footer.email'), href: 'mailto:info@rivrpoker.com' },
+  ];
+  return <WebFooter address={t('web.footer.address')} notice={t('web.footer.notice')} links={links} />;
+}
+
+/** A page of the website: the navigation and its one action, the page's blocks in their bands, and the footer. */
 export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   const links = page.navigation.map((link) => ({ label: link.title, href: siteHref(link.slug, attribution) }));
+  const link: Link = (action) => (action ? { label: action.label, href: playerHref(playerUrl, action.to, attribution) } : undefined);
+  const reserve = { label: t('web.reserve'), href: playerHref(playerUrl, 'waitlist', attribution) };
   return (
-    <WebShell links={links} homeHref={siteHref('home', attribution)}>
+    <WebShell links={links} homeHref={siteHref('home', attribution)} action={reserve} footer={<Footer />}>
       {page.blocks.map((block, position) => (
-        <Block key={`${String(position)}-${block.kind}`} block={block} page={page} playerUrl={playerUrl} attribution={attribution} />
+        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]}>
+          <Block block={block} page={page} link={link} />
+        </WebBand>
       ))}
     </WebShell>
   );

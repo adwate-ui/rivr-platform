@@ -5,10 +5,12 @@ import { cx } from '../internal/classes.ts';
  * `display` is set in the display face (Bodoni Moda) for TV
  * titles and the wordmark lockup; it is never smaller than 20 px. `poster` is the display face at its
  * largest: the hero of a social post with no figure, and the pairing code a TV shows across the room.
- * `tvTitle` is a TV board's title and tonight's high hand. `step` is the title of a step of sign-in or KYC.
+ * `tvTitle` is a TV board's title and tonight's high hand. `hero`, `band` and `statement` are the public
+ * website's, set in capitals (decision 0118): its page's opening line, a band's heading, and a line set across
+ * the page. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'step' | 'title' | 'section' | 'subsection';
+export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection';
 
 export interface HeadingProps {
   children: ReactNode;
@@ -26,6 +28,9 @@ const VARIANT: Record<HeadingVariant, string> = {
   display: 'font-display text-56 leading-tight font-regular',
   poster: 'font-display text-96 leading-tight font-regular',
   tvTitle: 'font-display text-88 leading-tight font-medium',
+  hero: 'font-display text-48 leading-tight font-regular uppercase tablet:text-88',
+  band: 'font-display text-36 leading-tight font-regular uppercase tablet:text-56',
+  statement: 'font-display text-48 leading-tight font-regular uppercase tablet:text-96',
   step: 'font-text text-28 leading-snug font-medium',
   title: 'font-text text-24 leading-snug font-medium',
   section: 'font-text text-20 leading-snug font-semibold',

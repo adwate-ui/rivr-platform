@@ -16,8 +16,8 @@ export interface MapBlockProps {
 /** A website block for finding the club: the address, the hours and a link to directions. */
 export function MapBlock({ heading, address, hours, directionsUrl }: MapBlockProps) {
   return (
-    <section className="mx-auto flex max-w-console flex-col items-start gap-4 px-6 py-10">
-      {heading ? <Heading level={2}>{heading}</Heading> : null}
+    <section className="mx-auto flex max-w-console flex-col items-start gap-4 px-6 py-16 tablet:py-24">
+      {heading ? <Heading level={2} variant="band">{heading}</Heading> : null}
       <address className="flex max-w-text flex-col gap-2 not-italic">
         <Text variant="lead">{address}</Text>
         {hours ? <Text tone="muted">{hours}</Text> : null}

@@ -9,7 +9,8 @@
   --rivr-color-cream: #F3EDE0; /** Primary text and the wordmark tiles. */
   --rivr-color-gold: #C9A85C; /** The one primary action per screen, money that belongs to the player, hairlines at 25%. */
   --rivr-color-red: #C4162A; /** Alerts, negatives, the spade card in the mark. Nothing else. */
-  --rivr-color-ink: #141414; /** Text on cream tiles only. */
+  --rivr-color-ink: #141414; /** Text on cream: the wordmark's tiles, and the public website's cream bands (decision 0118). */
+  --rivr-color-ink-muted: #141414B3; /** Ink at 70%. Secondary text on the website's cream bands; at least 4.5:1 on cream. */
   --rivr-color-muted: #F3EDE099; /** Cream at 60%. Secondary text; at least 4.5:1 on green. */
   --rivr-color-hairline: #C9A85C40; /** Gold at 25%. The 1 px rules that separate content. */
   --rivr-color-chart-3: #7FC8A9; /** Mint. */
@@ -68,6 +69,8 @@
   --rivr-size-chart: 192px; /** The height of a chart's plot (#90): its width is the container's. */
   --rivr-print-receipt-scale: 0.4729; /** Shrinks a size.receipt receipt to the 72 mm a 203 dpi printer prints on 80 mm paper: 96 / 203. */
   --rivr-aspect-portrait: 3 / 4; /** A KYC photo: the selfie is taken 3:4. */
+  --rivr-aspect-photo: 4 / 3; /** A photo tile on the public website (#441). */
+  --rivr-aspect-story: 9 / 16; /** A phone screen upright, as the website shows the RIVR app (#441). */
   --rivr-aspect-card: 85.6 / 54; /** The membership card: an ID-1 card, 85.6 by 54 mm. */
   --rivr-radius-sm: 3px;
   --rivr-radius-md: 4px;
@@ -120,6 +123,7 @@
   --rivr-color-on-cream: var(--rivr-color-ink); /** Text on a cream tile. */
   --rivr-color-action: var(--rivr-color-gold); /** Fill of the one primary action on a screen. */
   --rivr-color-on-action: var(--rivr-color-green-black); /** Text on the primary action. */
+  --rivr-color-accent: var(--rivr-color-gold); /** A website eyebrow and its small marks; green on a cream band (decision 0118). */
   --rivr-color-money: var(--rivr-color-gold); /** Money that belongs to the player. */
   --rivr-color-alert: var(--rivr-color-red); /** Alert and danger fills, negative markers. */
   --rivr-color-on-alert: var(--rivr-color-cream); /** Text on an alert fill. */

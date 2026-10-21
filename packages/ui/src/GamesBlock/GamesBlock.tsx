@@ -1,7 +1,5 @@
 import { formatMoney, t } from '@rivr/i18n';
 import { Heading } from '../Heading/Heading.tsx';
-import { Inline } from '../Inline/Inline.tsx';
-import { Stack } from '../Stack/Stack.tsx';
 import { Stakes } from '../Stakes/Stakes.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -35,26 +33,24 @@ function running({ tablesOpen, waiting = 0 }: GamesBlockGame): string {
   return waiting === 0 ? tables : t('ui.web.pair', { first: tables, second: t('ui.web.waiting', { count: waiting }) });
 }
 
-/** A website block of the games and stakes the club runs, live from the floor: buy-in and tables running. */
+/** A website block of the games and stakes the club runs, live from the floor, a card each: buy-in and tables running. */
 export function GamesBlock({ heading, games }: GamesBlockProps) {
   return (
-    <section className="mx-auto flex max-w-console flex-col gap-4 px-6 py-10">
-      {heading ? <Heading level={2}>{heading}</Heading> : null}
+    <section className="mx-auto flex max-w-console flex-col gap-10 px-6 py-16 tablet:py-24">
+      {heading ? <Heading level={2} variant="band">{heading}</Heading> : null}
       {games.length === 0 ? <Text tone="muted">{t('ui.web.noGames')}</Text> : null}
-      <Stack gap={4} divided>
+      <ul className="grid grid-cols-1 gap-4 tablet:grid-cols-3">
         {games.map((game) => (
-          <Stack key={game.name} gap={1}>
-            <Inline gap={3} align="baseline" wrap>
-              <Text weight="medium">{game.name}</Text>
-              <Stakes smallBlind={game.smallBlind} bigBlind={game.bigBlind} tone="muted" />
-            </Inline>
+          <li key={game.name} className="flex flex-col gap-3 rounded-lg border border-hairline p-6">
+            <Stakes smallBlind={game.smallBlind} bigBlind={game.bigBlind} size="display" />
+            <Text weight="medium">{game.name}</Text>
             <Text tone="muted">
               {game.straddle === null ? buyIn(game) : t('ui.web.pair', { first: buyIn(game), second: t('ui.web.straddle', { amount: formatMoney(game.straddle) }) })}
             </Text>
             <Text variant="small" tone={game.tablesOpen === 0 ? 'muted' : 'default'}>{running(game)}</Text>
-          </Stack>
+          </li>
         ))}
-      </Stack>
+      </ul>
     </section>
   );
 }

@@ -14,6 +14,16 @@ const actionSchema = z.object({
 
 const headingSchema = z.string().trim().max(80).optional();
 
+/** A line above a heading, as `The RIVR difference`. */
+const eyebrowSchema = z.string().trim().max(60).optional();
+
+/** The club's own photos and video, served by the website from `apps/web/public/media` (decision 0118). */
+const imageSchema = z.string().regex(/^\/media\/[a-z0-9-]+\.webp$/);
+const videoSchema = z.string().regex(/^\/media\/[a-z0-9-]+\.mp4$/);
+
+/** Said beside media that is not the room itself, as the teaser says it: `Concept visualisation`. */
+const mediaNoteSchema = z.string().trim().max(40).optional();
+
 /**
  * Directions only to a Google Maps page over HTTPS: a maps.app.goo.gl short link, or a /maps path on
  * Google, never Google's redirects or search, and never an address with a user name in it.
@@ -34,9 +44,53 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('hero'),
     content: z.object({
+      eyebrow: eyebrowSchema,
       heading: z.string().trim().min(1).max(80),
       text: z.string().trim().max(300).optional(),
       action: actionSchema.optional(),
+      // A muted loop beside the heading, and its first frame, shown when motion is reduced (#441).
+      video: z.object({ src: videoSchema, poster: imageSchema }).optional(),
+      note: mediaNoteSchema,
+    }),
+  }),
+  // A line or three set large across the page, as the manifesto or the last word before the footer.
+  z.object({
+    kind: z.literal('statement'),
+    content: z.object({
+      eyebrow: eyebrowSchema,
+      lines: z.array(z.string().trim().min(1).max(60)).min(1).max(3),
+      text: z.string().trim().max(300).optional(),
+      action: actionSchema.optional(),
+      image: imageSchema.optional(),
+    }),
+  }),
+  // Photo tiles, each with a title and a line: the room and what the club does for its members.
+  z.object({
+    kind: z.literal('gallery'),
+    content: z.object({
+      eyebrow: eyebrowSchema,
+      heading: headingSchema,
+      intro: z.string().trim().max(300).optional(),
+      items: z.array(z.object({
+        image: imageSchema,
+        alt: z.string().trim().min(1).max(160),
+        title: z.string().trim().min(1).max(60),
+        text: z.string().trim().max(160).optional(),
+      })).min(2).max(8),
+      note: mediaNoteSchema,
+    }),
+  }),
+  // One picture beside its words, as the RIVR app.
+  z.object({
+    kind: z.literal('feature'),
+    content: z.object({
+      eyebrow: eyebrowSchema,
+      heading: z.string().trim().min(1).max(80),
+      text: z.string().trim().max(400).optional(),
+      points: z.array(z.string().trim().min(1).max(40)).max(4).optional(),
+      action: actionSchema.optional(),
+      image: imageSchema,
+      alt: z.string().trim().min(1).max(160),
     }),
   }),
   z.object({

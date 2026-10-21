@@ -39,7 +39,7 @@ test.describe('Website', () => {
   test('the front page shows the games and stakes and the tournament calendar, live from the club', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(appUrl('web'));
-    await expect(page.getByRole('heading', { level: 2, name: 'Games and stakes' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Pick your table.' })).toBeVisible();
     await expect(page.getByText('NLH 50/100', { exact: true })).toBeVisible();
     await expect(page.getByText('Buy-in ₹5,000', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Tournaments' })).toBeVisible();

@@ -18,6 +18,7 @@
   --color-gold: var(--rivr-color-gold);
   --color-red: var(--rivr-color-red);
   --color-ink: var(--rivr-color-ink);
+  --color-ink-muted: var(--rivr-color-ink-muted);
   --color-muted: var(--rivr-color-muted);
   --color-hairline: var(--rivr-color-hairline);
   --color-surface: var(--rivr-color-surface);
@@ -27,6 +28,7 @@
   --color-on-cream: var(--rivr-color-on-cream);
   --color-action: var(--rivr-color-action);
   --color-on-action: var(--rivr-color-on-action);
+  --color-accent: var(--rivr-color-accent);
   --color-money: var(--rivr-color-money);
   --color-alert: var(--rivr-color-alert);
   --color-on-alert: var(--rivr-color-on-alert);
@@ -88,6 +90,8 @@
   --spacing-receipt: var(--rivr-size-receipt);
   --spacing-chart: var(--rivr-size-chart);
   --aspect-portrait: var(--rivr-aspect-portrait);
+  --aspect-photo: var(--rivr-aspect-photo);
+  --aspect-story: var(--rivr-aspect-story);
   --aspect-card: var(--rivr-aspect-card);
   --radius-sm: var(--rivr-radius-sm);
   --radius-md: var(--rivr-radius-md);

@@ -37,6 +37,33 @@ describe('a website page', () => {
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in');
   });
 
+  it('draws the front page\'s blocks in their bands, under the header\'s action and over the footer', () => {
+    const front = {
+      ...PAGE,
+      blocks: [
+        { kind: 'hero' as const, content: {
+          heading: 'Bring your poker face.', action: { label: 'Join RIVR', to: 'sign-up' as const },
+          video: { src: '/media/hero-room.mp4', poster: '/media/hero-room.webp' }, note: 'Concept visualisation',
+        } },
+        { kind: 'statement' as const, content: { lines: ['Not luck.', 'A game of skill.'] } },
+        { kind: 'gallery' as const, content: { heading: 'Built for the long session.', items: [
+          { image: '/media/dealers.webp', alt: 'A dealer deals at a table', title: 'Casino-trained dealers' },
+          { image: '/media/cashier.webp', alt: 'A cashier counts chips', title: 'Instant, secure cashier' },
+        ] } },
+        { kind: 'feature' as const, content: {
+          heading: 'Done waiting for a seat?', image: '/media/app-home.webp', alt: 'The RIVR app', action: { label: 'Join the waitlist', to: 'waitlist' as const },
+        } },
+      ],
+    };
+    const { container } = render(<SitePage page={front} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
+    expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['dark', 'deep', 'cream', 'dark']);
+    expect(screen.getByRole('heading', { level: 1, name: 'Bring your poker face.' })).toBeDefined();
+    expect(screen.getByRole('img', { name: 'A dealer deals at a table' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Join the waitlist' }).getAttribute('href')).toBe('https://player.invalid/?ref=FRIEND1');
+    expect(screen.getByRole('link', { name: 'Reserve a seat' }).getAttribute('href')).toBe('https://player.invalid/?ref=FRIEND1');
+    expect(screen.getByText('Strictly 18+. Poker is a game of skill.')).toBeDefined();
+  });
+
   it('draws the live blocks from the rows the page loaded', () => {
     const live = {
       ...PAGE,
