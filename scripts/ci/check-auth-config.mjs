@@ -4,11 +4,11 @@
  * While phone sign-in is on, a session must come only from a code: the access-token hook on,
  * calling private.require_code_sign_in; phone confirmations on; the email provider off.
  * Test sign-in numbers sign in with a fixed code (#229): production has none, whether phone sign-in
- * is on or not, and staging only the seed's (supabase/seed/10_people.sql).
+ * is on or not, and staging only the seed's (supabase/seed/).
  * `--warn` is staging: a gap is a warning. Otherwise it is production, and a gap fails the release.
  * Needs SUPABASE_ACCESS_TOKEN and PROJECT_REF.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
 const HOOK_URI = 'pg-functions://postgres/private/require_code_sign_in';
 
@@ -43,7 +43,8 @@ function testNumbers(setting) {
 
 /** The seed's phone numbers, as Auth writes them: digits only, no plus sign. */
 function seedNumbers() {
-  const seed = readFileSync(new URL('../../supabase/seed/10_people.sql', import.meta.url), 'utf8');
+  const folder = new URL('../../supabase/seed/', import.meta.url);
+  const seed = readdirSync(folder).filter((name) => name.endsWith('.sql')).map((name) => readFileSync(new URL(name, folder), 'utf8')).join('\n');
   return new Set([...seed.matchAll(/'\+(\d{10,15})'/g)].map((match) => match[1]));
 }
 
