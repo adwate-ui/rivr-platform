@@ -9,6 +9,8 @@ import { mergeConfig } from 'vite';
 const config: StorybookConfig = {
   framework: '@storybook/react-vite',
   stories: ['../src/**/*.mdx', '../src/**/*.stories.tsx'],
+  // The public website's own photos and video, so its blocks' stories show them (decision 0118).
+  staticDirs: [{ from: '../../../apps/web/public/media', to: '/media' }],
   addons: ['@storybook/addon-docs', '@storybook/addon-a11y'],
   core: { disableTelemetry: true, disableWhatsNewNotifications: true },
   viteFinal: (viteConfig) =>

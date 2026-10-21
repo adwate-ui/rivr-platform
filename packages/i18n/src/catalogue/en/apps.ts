@@ -188,8 +188,4 @@ export const driverApp = {
   pickups: { title: 'Pickups', empty: 'No pickups.' },
 } as const;
 
-export const webApp = {
-  /** A website page when its content cannot be read. */
-  unavailableTitle: 'The website is not available',
-  unavailable: 'Try again in a few minutes.',
-} as const;
+export { webApp } from './web.ts';

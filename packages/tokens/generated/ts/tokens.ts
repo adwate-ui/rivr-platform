@@ -11,6 +11,7 @@ export const tokens = {
     "gold": "#C9A85C",
     "red": "#C4162A",
     "ink": "#141414",
+    "inkMuted": "#141414B3",
     "muted": "#F3EDE099",
     "hairline": "#C9A85C40",
     "surface": "#0E3B2C",
@@ -20,6 +21,7 @@ export const tokens = {
     "onCream": "#141414",
     "action": "#C9A85C",
     "onAction": "#0A2A20",
+    "accent": "#C9A85C",
     "money": "#C9A85C",
     "alert": "#C4162A",
     "onAlert": "#F3EDE0",
@@ -115,6 +117,8 @@ export const tokens = {
   },
   "aspect": {
     "portrait": "3 / 4",
+    "photo": "4 / 3",
+    "story": "9 / 16",
     "card": "85.6 / 54"
   },
   "radius": {

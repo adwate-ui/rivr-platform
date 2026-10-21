@@ -1,6 +1,5 @@
 import { formatDate, formatMoney, formatTime, formatWeekday, t } from '@rivr/i18n';
 import { Heading } from '../Heading/Heading.tsx';
-import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
 
 /** One tournament on the calendar. Money in paise; the time in UTC, shown in IST. */
@@ -27,21 +26,21 @@ function money(tournament: CalendarBlockTournament): string {
   return t('ui.web.pair', { first: buyIn, second: t('ui.web.guaranteed', { amount: formatMoney(tournament.guarantee) }) });
 }
 
-/** A website block of the coming tournaments, live from the schedule: when, the buy-in and any guarantee. */
+/** A website block of the coming tournaments, live from the schedule, a card each: when, the buy-in and any guarantee. */
 export function CalendarBlock({ heading, tournaments }: CalendarBlockProps) {
   return (
-    <section className="mx-auto flex max-w-console flex-col gap-4 px-6 py-10">
-      {heading ? <Heading level={2}>{heading}</Heading> : null}
+    <section className="mx-auto flex max-w-console flex-col gap-10 px-6 py-16 tablet:py-24">
+      {heading ? <Heading level={2} variant="band">{heading}</Heading> : null}
       {tournaments.length === 0 ? <Text tone="muted">{t('ui.web.noTournaments')}</Text> : null}
-      <Stack gap={4} divided>
+      <ul className="grid grid-cols-1 gap-4 tablet:grid-cols-2">
         {tournaments.map((tournament) => (
-          <Stack key={`${tournament.name}-${tournament.startsAt.toISOString()}`} gap={1}>
-            <Text weight="medium">{tournament.name}</Text>
+          <li key={`${tournament.name}-${tournament.startsAt.toISOString()}`} className="flex flex-col gap-2 rounded-lg border border-hairline p-6">
+            <Text variant="lead" weight="medium">{tournament.name}</Text>
             <Text>{when(tournament.startsAt)}</Text>
             <Text tone="muted">{money(tournament)}</Text>
-          </Stack>
+          </li>
         ))}
-      </Stack>
+      </ul>
     </section>
   );
 }

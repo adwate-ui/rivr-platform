@@ -15,8 +15,4 @@ insert into public.tournament (id, venue_id, name, starts_at, buy_in_paise, guar
    ((now() at time zone 'Asia/Kolkata')::date + 7 + time '20:00') at time zone 'Asia/Kolkata', 300000, null, true)
 on conflict (id) do update set starts_at = excluded.starts_at;
 
--- The front page shows tonight's games and the calendar, live.
-insert into public.site_block (venue_id, page_id, position, kind, content) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005a1', 3, 'games', '{"heading": "Games and stakes"}'),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005a1', 4, 'calendar', '{"heading": "Tournaments"}')
-on conflict (page_id, position) do nothing;
+-- The front page shows tonight's games and this calendar, live: 40_site.sql places them (#441).

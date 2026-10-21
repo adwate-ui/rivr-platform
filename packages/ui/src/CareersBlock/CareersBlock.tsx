@@ -18,8 +18,8 @@ export interface CareersBlockProps {
 /** A website block of open roles, each with its title and a line or two, then how to apply. */
 export function CareersBlock({ heading, roles, apply }: CareersBlockProps) {
   return (
-    <section className="mx-auto flex max-w-console flex-col gap-6 px-6 py-10">
-      {heading ? <Heading level={2}>{heading}</Heading> : null}
+    <section className="mx-auto flex max-w-console flex-col gap-6 px-6 py-16 tablet:py-24">
+      {heading ? <Heading level={2} variant="band">{heading}</Heading> : null}
       {roles.length === 0 ? <Text tone="muted">{t('ui.web.noOpenings')}</Text> : null}
       {roles.map((role) => (
         <div key={role.title} className="flex max-w-text flex-col gap-2">

@@ -62,11 +62,15 @@ test.beforeEach(async ({ context }) => {
 for (const story of storiesInIndex()) {
   test(story.id, async ({ page }) => {
     await page.setViewportSize(viewportFor(story));
+    // A website story with a video is shot as a visitor who asks for less motion sees it: its still (decision 0118).
+    if (story.tags.includes('reduced-motion')) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(`${ORIGIN}/iframe.html?id=${story.id}&viewMode=story`);
     // Attached, not visible: a story that is only a fixed overlay, such as ChoiceSheet, leaves the body no height.
     await page.locator('body.sb-show-main, body.sb-show-errordisplay').waitFor({ state: 'attached' });
     await expect(page.locator('body.sb-show-errordisplay'), 'the story threw while rendering').toHaveCount(0);
     await page.evaluate(() => document.fonts.ready);
+    // The website's photos load from Storybook's static files before the shot.
+    await page.waitForFunction(() => Array.from(document.images).every((image) => image.complete));
     await expect(page).toHaveScreenshot(`${story.id}.png`, { fullPage: true });
   });
 }

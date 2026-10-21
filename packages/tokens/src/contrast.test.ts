@@ -30,6 +30,9 @@ describe('text contrast is at least 4.5:1', () => {
     ['text on the primary action', 'color.onAction', 'color.action'],
     ['text on an alert', 'color.onAlert', 'color.alert'],
     ['ink on a cream tile', 'color.onCream', 'color.cream'],
+    ['muted ink on the website\'s cream bands', 'color.inkMuted', 'color.cream'],
+    ['an accent on green-black', 'color.accent', 'color.raised'],
+    ['an accent on a cream band, in green', 'color.green', 'color.cream'],
   ])('%s', (_name, foreground, background) => {
     expect(contrastRatio(hex(foreground), hex(background))).toBeGreaterThanOrEqual(4.5);
   });
@@ -39,6 +42,10 @@ describe('non-text contrast is at least 3:1', () => {
   it('keeps the focus ring visible on green and on the gold action', () => {
     expect(contrastRatio(hex('color.focus'), hex('color.surface'))).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(hex('color.focus'), hex('color.raised'))).toBeGreaterThanOrEqual(3);
+  });
+
+  it('keeps the focus ring visible on the website\'s cream bands, where it is ink', () => {
+    expect(contrastRatio(hex('color.ink'), hex('color.cream'))).toBeGreaterThanOrEqual(3);
   });
 
   it.each(['1', '2', '3', '4', '5', '6'])('chart colour %s reads on green', (series) => {

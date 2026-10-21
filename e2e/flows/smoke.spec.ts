@@ -38,6 +38,6 @@ test.describe('smoke: every surface starts', () => {
 
   test('the website names the club', async ({ page }) => {
     await open(page, 'web');
-    await expect(page.getByRole('heading', { name: 'RIVR Poker Club' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'RIVR Poker Club' }).first()).toBeVisible();
   });
 });

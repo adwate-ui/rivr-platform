@@ -1,11 +1,13 @@
 /** Text colour by meaning. `money` is gold: money that belongs to the player. */
-export type TextTone = 'default' | 'muted' | 'money' | 'onCream' | 'onAction' | 'onAlert' | 'inherit';
+export type TextTone = 'default' | 'muted' | 'money' | 'accent' | 'onCream' | 'onAction' | 'onAlert' | 'inherit';
 
 /** The Tailwind class for each tone; shared by Text, Heading and the figure components. */
 export const TONE: Record<TextTone, string> = {
   default: 'text-content',
   muted: 'text-content-muted',
   money: 'text-money',
+  /** A website eyebrow: gold, green on a cream band. */
+  accent: 'text-accent',
   onCream: 'text-on-cream',
   onAction: 'text-on-action',
   onAlert: 'text-on-alert',

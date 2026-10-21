@@ -15,7 +15,7 @@ select results_eq(
   'anyone reads the club''s published pages: not the draft, not the practice venue''s');
 select results_eq(
   $$ select position, kind from public.public_site_block where venue_slug = 'gurugram' and page_slug = 'home' order by position $$,
-  $$ values (1, 'hero'::text), (2, 'text'::text), (3, 'games'), (4, 'calendar') $$,
+  $$ values (1, 'hero'::text), (2, 'statement'::text), (3, 'gallery'), (4, 'feature'), (5, 'games'), (6, 'calendar'), (7, 'statement'), (8, 'map') $$,
   'and their blocks, in order');
 select is_empty($$ select * from public.public_site_block where page_slug = 'careers' or venue_slug = 'practice' $$,
   'never a draft''s blocks or the practice venue''s');

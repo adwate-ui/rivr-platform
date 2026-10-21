@@ -11,6 +11,7 @@
   <color name="rivr_color_gold">#ffc9a85c</color>
   <color name="rivr_color_red">#ffc4162a</color>
   <color name="rivr_color_ink">#ff141414</color>
+  <color name="rivr_color_ink_muted">#b3141414</color>
   <color name="rivr_color_muted">#99f3ede0</color>
   <color name="rivr_color_hairline">#40c9a85c</color>
   <color name="rivr_color_surface">#ff0e3b2c</color>
@@ -20,6 +21,7 @@
   <color name="rivr_color_on_cream">#ff141414</color>
   <color name="rivr_color_action">#ffc9a85c</color>
   <color name="rivr_color_on_action">#ff0a2a20</color>
+  <color name="rivr_color_accent">#ffc9a85c</color>
   <color name="rivr_color_money">#ffc9a85c</color>
   <color name="rivr_color_alert">#ffc4162a</color>
   <color name="rivr_color_on_alert">#fff3ede0</color>
