@@ -159,6 +159,8 @@ select p.id, '00000000-0000-4000-8000-000000000001', case when p.has_app then p.
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = p.tier_name),
        p.small_blind, p.big_blind, now() - make_interval(days => p.joined_days_ago)
 from seed_more_player p
+-- Skipped before the insert, so a rerun takes no member numbers.
+where not exists (select 1 from public.member m where m.id = p.id)
 on conflict do nothing;
 
 -- Identity checks. A check in person keeps the reviewer's photo at a path of its own.

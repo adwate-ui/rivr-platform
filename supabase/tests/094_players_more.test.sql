@@ -32,6 +32,13 @@ select results_eq(
   $$ values ('bonus'::text, 6::bigint), ('cash', 30), ('points', 39) $$,
   'wallet cash, points and bonuses, each a ledger transaction of its own');
 select is((select count(*) from public.bonus_grant g join more_member m on m.id = g.member_id), 6::bigint, 'each bonus a grant');
+select results_eq(
+  $$ select a.code, sum(e.amount)::bigint from public.ledger_entry e
+     join public.ledger_account a on a.id = e.account_id
+     join more_member m on m.id = a.member_id
+     where a.code in ('member.bonus', 'member.cash', 'member.points') group by a.code order by a.code $$,
+  $$ values ('member.bonus'::text, -1400000::bigint), ('member.cash', -124500000), ('member.points', -553590) $$,
+  'credited to the members: ₹14,000 of bonus, ₹12,45,000 of cash and 553,590 points');
 
 select results_eq(
   $$ select a.kind, a.status, count(*) from public.payout_account a join more_member m on m.id = a.member_id group by 1, 2 order by 1, 2 $$,
