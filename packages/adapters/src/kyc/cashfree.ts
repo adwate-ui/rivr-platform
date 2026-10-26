@@ -1,6 +1,5 @@
 import { err, ok, panSchema, type Result } from '@rivr/contracts';
-import type { z } from 'zod';
-import { createCashfreeClient, type CashfreeClient, type CashfreeOptions } from '../shared/cashfree.ts';
+import { createCashfreeClient, parsed, type CashfreeClient, type CashfreeOptions } from '../shared/cashfree.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
 import {
   addressOf, digiLockerAadhaarSchema, digiLockerLinkSchema, digiLockerPanSchema, faceMatchSchema, isoDateOf, livenessSchema, panLiteSchema,
@@ -13,13 +12,6 @@ const UNAVAILABLE: AdapterFailure = { code: 'unavailable' };
 
 /** A fresh id for each call: Cashfree refuses a `verification_id` it has seen. */
 const verificationId = () => `rivr-${crypto.randomUUID()}`;
-
-/** The reply read through its schema, or unavailable when it is not what Cashfree documents. */
-function parsed<T>(schema: z.ZodType<T>, reply: Result<unknown, AdapterFailure>): Result<T, AdapterFailure> {
-  if (!reply.ok) return reply;
-  const read = schema.safeParse(reply.value);
-  return read.success ? ok(read.data) : err(UNAVAILABLE);
-}
 
 /** An image to send: a stored selfie's signed link, or DigiLocker's photo as a `data:` URL. */
 async function imageAt(url: string, doFetch: typeof globalThis.fetch): Promise<Blob | null> {
