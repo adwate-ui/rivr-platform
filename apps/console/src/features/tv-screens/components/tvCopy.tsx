@@ -28,3 +28,25 @@ export function ModeChips({ label, value, onChange, isDisabled = false }: ModeCh
       onChange={(chosen) => { if (chosen[0] !== undefined) onChange(chosen[0]); }} />
   );
 }
+
+// The boards a TV can turn to in between its main one (decision 0163): the ones built so far.
+const ROTATING: readonly TvMode[] = ['waitlist', 'call_time', 'jackpot', 'promotions'];
+
+interface RotationChipsProps {
+  label: string;
+  /** The TV's main mode, which is never in its rotation. */
+  mode: TvMode | null;
+  /** The boards it turns to, in the order they were chosen. */
+  value: readonly TvMode[];
+  onChange: (rotation: TvMode[]) => void;
+  isDisabled?: boolean;
+}
+
+/** One chip per board a TV can turn to after its main one, in the order pressed. */
+export function RotationChips({ label, mode, value, onChange, isDisabled = false }: RotationChipsProps) {
+  return (
+    <ChoiceChips label={label} selected={value} isDisabled={isDisabled} onChange={onChange}
+      options={ROTATING.filter((board) => board !== mode).map((board) => ({ value: board, label: t(`tv.modes.${board}`) }))} />
+  );
+}
+

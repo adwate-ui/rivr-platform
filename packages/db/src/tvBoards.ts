@@ -28,6 +28,28 @@ export interface TvStake {
   readonly places: readonly TvPlace[];
 }
 
+/** A seated player on the TV's call-time board (decision 0163). */
+export interface TvSeated {
+  readonly seat: number;
+  /** A first name and initial; null for a member who hid their name on the TVs (#326). */
+  readonly name: string | null;
+  /** Whole seconds of call time left when the board was read; null where the table's type has none. */
+  readonly callTimeLeft: number | null;
+  /** Away from the table: the clock stands still. */
+  readonly isAway: boolean;
+  /** The floor marked the player leaving: the seat opens once their call time is done. */
+  readonly isLeaving: boolean;
+}
+
+/** A table on the call-time board, with its seated players by seat. */
+export interface TvCallTimeTable {
+  readonly tableId: string;
+  readonly name: string;
+  /** The table's game and stake: "NLH 100/200". */
+  readonly stake: string;
+  readonly seated: readonly TvSeated[];
+}
+
 /** The TV's jackpot: the main pool, and tonight's best high hand (null before one is paid). */
 export interface TvJackpot {
   readonly main: Paise;
@@ -48,7 +70,9 @@ const BOARD_CHECK = 30_000;
 const SIGNAL_SETTLE = 2_000;
 
 // The query each board's signal reads again; promotions is the Promotions rotation's (#86).
-const BOARD_KEYS = { waitlist: queryKeys.tvWaitlistBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions };
+const BOARD_KEYS = {
+  waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions,
+};
 
 /**
  * Reads a board again when the database broadcasts on the venue's private topic (tv:<venue id>,
@@ -107,6 +131,33 @@ export function toTvStakes(rows: readonly BoardRow[]): TvStake[] {
   return stakes.map(({ stake, places }) => ({ ...stake, places }));
 }
 
+interface CallTimeRow {
+  table_id: string;
+  table_name: string;
+  stake_name: string;
+  seat: number;
+  display_name: string | null;
+  call_time_left: number | null;
+  is_away: boolean;
+  leaving_at: string | null;
+}
+
+/** The call-time board's rows, a table at a time in the order they come (the room's), each table's players by seat. */
+export function toTvCallTimeTables(rows: readonly CallTimeRow[]): TvCallTimeTable[] {
+  const tables: { table: Omit<TvCallTimeTable, 'seated'>; seated: TvSeated[] }[] = [];
+  for (const row of rows) {
+    let last = tables.at(-1);
+    if (last?.table.tableId !== row.table_id) {
+      last = { table: { tableId: row.table_id, name: row.table_name, stake: row.stake_name }, seated: [] };
+      tables.push(last);
+    }
+    last.seated.push({
+      seat: row.seat, name: row.display_name, callTimeLeft: row.call_time_left, isAway: row.is_away, isLeaving: row.leaving_at !== null,
+    });
+  }
+  return tables.map(({ table, seated }) => ({ ...table, seated }));
+}
+
 interface JackpotRow {
   main_paise: number;
   high_hand_category: HighHandCategory | null;
@@ -136,6 +187,25 @@ export function useTvWaitlistBoard(venueId: string) {
       const { data, error } = await client.rpc('tv_waitlist_board');
       if (error) throw error;
       return toTvStakes(data);
+    },
+  });
+}
+
+/**
+ * The signed-in TV's call-time board at its venue, live: every seated player by table, with the call
+ * time left when read (the query's `dataUpdatedAt` says when, for the TV to count down from).
+ */
+export function useTvCallTimeBoard(venueId: string) {
+  const { client, userId } = useRivrData();
+  useBoardSignal('call_time', venueId);
+  return useQuery({
+    queryKey: queryKeys.tvCallTimeBoard(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: BOARD_CHECK,
+    queryFn: async (): Promise<TvCallTimeTable[]> => {
+      const { data, error } = await client.rpc('tv_call_time_board');
+      if (error) throw error;
+      return toTvCallTimeTables(data);
     },
   });
 }

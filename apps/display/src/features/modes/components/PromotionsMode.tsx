@@ -6,21 +6,31 @@ import { useEffect, useState } from 'react';
 // The prototype's TV turns to the next promotion every 12 seconds.
 const SLIDE_MS = 12_000;
 
-/** Which slide shows: the next every 12 seconds, round the live ones. */
-function useRotation(count: number): number {
+/**
+ * Which slide shows: the next every 12 seconds, round the live ones. In a TV's rotation (decision
+ * 0163) each shows once, then `onDone`; at once when none is live. `count` is undefined until read.
+ */
+function useSlides(count: number | undefined, onDone: (() => void) | undefined): number {
   const [turn, setTurn] = useState(0);
+  const isRotating = onDone !== undefined;
   useEffect(() => {
-    if (count < 2) return undefined;
+    if (count === undefined || count === 0 || (count < 2 && !isRotating)) return undefined;
     const timer = setInterval(() => setTurn((current) => current + 1), SLIDE_MS);
     return () => clearInterval(timer);
-  }, [count]);
-  return count === 0 ? 0 : turn % count;
+  }, [count, isRotating]);
+  useEffect(() => {
+    if (onDone !== undefined && count !== undefined && turn >= count) onDone();
+  }, [onDone, count, turn]);
+  return count === undefined || count === 0 ? 0 : turn % count;
 }
 
-/** The TV's Promotions mode (#86): the live promotions in rotation, one slide every 12 seconds, a quiet pager beneath. */
-export function PromotionsMode({ venueId }: { venueId: string }) {
+/**
+ * The TV's Promotions mode (#86): the live promotions in rotation, one slide every 12 seconds, a quiet
+ * pager beneath. In a TV's rotation, `onDone` once each has shown, or when none can be shown.
+ */
+export function PromotionsMode({ venueId, onDone }: { venueId: string; onDone?: (() => void) | undefined }) {
   const cards = useTvPromotions(venueId);
-  const shown = useRotation(cards.data?.length ?? 0);
+  const shown = useSlides(cards.data?.length ?? (cards.isError ? 0 : undefined), onDone);
   if (cards.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(cards.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }

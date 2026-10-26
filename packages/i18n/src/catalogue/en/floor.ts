@@ -96,6 +96,16 @@ export const liveFloor = {
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
   leftOwingTitle: 'Left before call time',
   leftOwingLine: '{table} · {time} owed',
+  /** A player who is up and wants to go tells the floor, which marks them leaving (decision 0163). */
+  leaving: 'Leaving',
+  markLeaving: 'Leaving',
+  markLeavingName: '{name} is leaving',
+  notLeaving: 'Not leaving',
+  notLeavingName: '{name} is not leaving',
+  /** The Live floor's list of players marked leaving, soonest seat first. `{table}` and `{seat}`: Table 3, 5. */
+  leavingTitle: 'Leaving',
+  leavingLine: '{table} · seat {seat}',
+  leavingNoCallTime: 'No call time here',
   seatPlayer: 'Seat a player',
   seatNumber: 'Seat',
   phone: 'Mobile number',
