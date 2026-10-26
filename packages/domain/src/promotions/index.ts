@@ -7,3 +7,4 @@ export {
   type PromotionFacts,
   type PromotionReward,
 } from './promotions.ts';
+export { playedSecondsInWindow, secondsInWindow, type Stint, type TableTime } from './window.ts';

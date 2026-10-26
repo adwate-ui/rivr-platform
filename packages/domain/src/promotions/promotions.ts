@@ -20,9 +20,9 @@ export interface PromotionFacts {
   readonly hand: string | null;
 }
 
-const MINUTES_IN_DAY = 1440;
+export const MINUTES_IN_DAY = 1440;
 // The club's day turns over at 06:00 IST. IST is UTC+05:30, so the club's clock runs at UTC-00:30.
-const CLUB_CLOCK_OFFSET_MS = -30 * 60 * 1000;
+export const CLUB_CLOCK_OFFSET_MS = -30 * 60 * 1000;
 const CLUB_DAY_STARTS_MINUTE = 6 * 60;
 
 /** The club's day (ISO, 1 Monday to 7 Sunday) and minutes into it at a moment: 02:00 on Wednesday is Tuesday's minute 1200. */
@@ -32,7 +32,7 @@ function clubClock(at: Date): { day: number; minute: number } {
 }
 
 /** A 24-hour IST time ("14:00") as minutes into the club's day. */
-function clubMinute(time: string): number {
+export function clubMinute(time: string): number {
   const [hours = 0, minutes = 0] = time.split(':').map(Number);
   return (hours * 60 + minutes - CLUB_DAY_STARTS_MINUTE + MINUTES_IN_DAY) % MINUTES_IN_DAY;
 }

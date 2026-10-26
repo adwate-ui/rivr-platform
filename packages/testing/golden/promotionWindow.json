@@ -1,0 +1,165 @@
+{
+  "rule": "hours played inside a promotion's window",
+  "about": "For hours-played promotions with days or times (#457; the owner's answer on question #445): only seated time inside the window counts, whenever the visit closes. A stint's seconds inside the window are summed over the club days it touches that the window's days allow; days and times are the club's, 06:00 to 06:00 IST. A table's in-window seconds in a session bear their share of the time away, rounded down, as tablePlayedSeconds shares it; their points are pointsForTime at the table's rate. 19 November 2026 is a Thursday.",
+  "cases": [
+    {
+      "description": "Thursday 14:00 to 20:30 against a Thursday 14:00 to 20:00 window: its 6 hours.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T14:00:00+05:30",
+        "to": "2026-11-19T20:30:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "21600"
+      }
+    },
+    {
+      "description": "Wholly before the window: nothing.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T10:00:00+05:30",
+        "to": "2026-11-19T13:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "0"
+      }
+    },
+    {
+      "description": "Across the window's start: the hour after 14:00.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T13:00:00+05:30",
+        "to": "2026-11-19T15:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "3600"
+      }
+    },
+    {
+      "description": "Wednesday, when the window is Thursday's: nothing.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-18T14:00:00+05:30",
+        "to": "2026-11-18T20:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "0"
+      }
+    },
+    {
+      "description": "Past midnight is still Thursday's club day: 23:00 to 01:00 inside 22:00 to 02:00.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T23:00:00+05:30",
+        "to": "2026-11-20T01:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"22:00\", \"until\": \"02:00\"}"
+      },
+      "expected": {
+        "seconds": "7200"
+      }
+    },
+    {
+      "description": "A window to 06:00 runs to the end of the club's day.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-20T04:00:00+05:30",
+        "to": "2026-11-20T07:00:00+05:30",
+        "conditions": "{\"from\": \"22:00\", \"until\": \"06:00\"}"
+      },
+      "expected": {
+        "seconds": "7200"
+      }
+    },
+    {
+      "description": "Days with no times: the whole of Thursday's club day counts.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T14:00:00+05:30",
+        "to": "2026-11-19T16:00:00+05:30",
+        "conditions": "{\"days\": [4]}"
+      },
+      "expected": {
+        "seconds": "7200"
+      }
+    },
+    {
+      "description": "Over 06:00 into Friday's club day: only Thursday's part counts.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-20T05:00:00+05:30",
+        "to": "2026-11-20T07:00:00+05:30",
+        "conditions": "{\"days\": [4]}"
+      },
+      "expected": {
+        "seconds": "3600"
+      }
+    },
+    {
+      "description": "Times with no days: the window on every day the stint touches, 2 hours on each of two days.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T18:00:00+05:30",
+        "to": "2026-11-20T20:00:00+05:30",
+        "conditions": "{\"from\": \"18:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "14400"
+      }
+    },
+    {
+      "description": "A stint with no length: nothing.",
+      "operation": "window",
+      "inputs": {
+        "from": "2026-11-19T15:00:00+05:30",
+        "to": "2026-11-19T15:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "0"
+      }
+    },
+    {
+      "description": "A session of 8 hours with 2 away: 6 in the window bear their share, 4.5 hours played.",
+      "operation": "played",
+      "inputs": {
+        "session": "28800",
+        "played": "21600",
+        "stints": "2026-11-19T12:00:00+05:30/2026-11-19T20:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "16200"
+      }
+    },
+    {
+      "description": "Back at the same table after a move: both stints' window time adds up before the share.",
+      "operation": "played",
+      "inputs": {
+        "session": "14400",
+        "played": "12000",
+        "stints": "2026-11-19T13:00:00+05:30/2026-11-19T15:00:00+05:30 | 2026-11-19T16:00:00+05:30/2026-11-19T18:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "9000"
+      }
+    },
+    {
+      "description": "Rounded down: 1 hour in the window, 1 second away in 3 hours.",
+      "operation": "played",
+      "inputs": {
+        "session": "10800",
+        "played": "10799",
+        "stints": "2026-11-19T13:00:00+05:30/2026-11-19T16:00:00+05:30",
+        "conditions": "{\"days\": [4], \"from\": \"15:00\", \"until\": \"20:00\"}"
+      },
+      "expected": {
+        "seconds": "3599"
+      }
+    }
+  ]
+}
