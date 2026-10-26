@@ -8,6 +8,7 @@ import { useRivrData } from './provider.tsx';
 const keys = {
   rakeTonight: (userId: string, venueId: string) => ['user', userId, 'rake-tonight', venueId] as const,
   misReport: (userId: string, venueId: string, month: string) => ['user', userId, 'mis-report', venueId, month] as const,
+  unclaimed: (userId: string, venueId: string) => ['user', userId, 'unclaimed-balances', venueId] as const,
 };
 
 // Tonight's figures move as hands are logged; a minute is fresh enough for a report.
@@ -104,6 +105,34 @@ export function useMisReport(venueId: string, month: string) {
       const [row] = data;
       if (row === undefined) throw new Error('The MIS came back empty');
       return misReport(misReportSchema.parse(row.report), row.generated_at, row.is_preview);
+    },
+  });
+}
+
+/** A member's balance with the club, untouched for the venue's period (#110). */
+export interface UnclaimedBalance {
+  readonly memberId: string;
+  readonly memberNumber: number;
+  readonly fullName: string;
+  readonly cash: Paise;
+  readonly bonus: Paise;
+  /** When the member last moved money or visited. */
+  readonly lastSeenAt: string;
+}
+
+/** The balances no one has touched for the venue's period, the quietest first, for staff who read reports. */
+export function useUnclaimedBalances(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.unclaimed(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<UnclaimedBalance[]> => {
+      const { data, error } = await client.rpc('unclaimed_balances', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name,
+        cash: toPaise(row.cash_paise), bonus: toPaise(row.bonus_paise), lastSeenAt: row.last_seen_at,
+      }));
     },
   });
 }

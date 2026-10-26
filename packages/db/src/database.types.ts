@@ -4123,6 +4123,11 @@ isOneToOne: false
               "big_blind_paise": number,"call_table_name": string,"display_name": string,"is_away": boolean,"open_tables": number,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
             }[]
                            },
+"unclaimed_balances":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bonus_paise": number,"cash_paise": number,"full_name": string,"last_seen_at": string,"member_id": string,"member_number": number
+            }[]
+                           },
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string

@@ -254,11 +254,18 @@ const exportsAlertRows = {
   value: z.strictObject({ rows: z.int().min(1).max(1_000_000) }),
 } as const satisfies SettingDefinition;
 
+const reportsUnclaimedDays = {
+  key: 'reports.unclaimed_days',
+  description: 'Unclaimed balances (decision 0230): a balance is unclaimed after this many days with no money moved and no visit. 365 unless set.',
+  scope: 'venue',
+  value: z.strictObject({ days: z.int().min(30).max(3650) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows,
+  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, reportsUnclaimedDays,
 ] as const;
 
 /** A setting key declared in code. */
