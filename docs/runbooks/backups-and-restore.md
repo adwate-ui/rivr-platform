@@ -30,7 +30,7 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
 
 **Retention.** It comes from the buckets' lifecycle rules (below), not from the workflow. A night whose job fails leaves the earlier nights in place.
 
-**Personal data.** Backups hold members' personal data, KYC photos included, for up to 400 days: nightly copies 35 days, monthly 400 (the owner's answer to #382). A restore brings back members erased since that night, so re-apply those erasures from the audit log before anyone uses the restored data. The website's privacy notice says both. The local and staging seed has the page (`supabase/seed/41_site_pages.sql`); production is never seeded, and the console can't make a page yet, so #406 tracks putting it on the production website before launch. What backs the promise to re-apply erasures is question #407.
+**Personal data.** Backups hold members' personal data, KYC photos included, for up to 400 days: nightly copies 35 days, monthly 400 (the owner's answer to #382). A restore brings back members erased since that night, so re-apply those erasures from the audit log before anyone uses the restored data. The website's privacy notice says both. Every club venue has the page from its bootstrap, production's included (`private.add_website`, #406, decision 0195). What backs the promise to re-apply erasures is question #407.
 
 ## Setting it up (once, by the owner)
 
