@@ -15,8 +15,8 @@ test.describe('TDS and the register', () => {
     await signInToConsole(page, '9000000195');
     await page.getByRole('link', { name: 'TDS' }).click();
     await expect(page.getByRole('heading', { name: 'TDS', level: 1 })).toBeVisible();
-    // The seed withholds no TDS, so the ledger says so.
-    await expect(page.getByText('No TDS in this period.')).toBeVisible();
+    // The ledger by member, or its empty message when no flow before this one has withheld TDS this quarter.
+    await expect(page.getByRole('table', { name: 'TDS by member' }).or(page.getByText('No TDS in this period.'))).toBeVisible();
     await page.getByRole('button', { name: 'Take the extract' }).click();
     await expect(page.getByText(/^\d+ deductions in [A-Z][a-z]{2}–[A-Z][a-z]{2} \d{4}\.$/)).toBeVisible();
     const saved = page.waitForEvent('download');
