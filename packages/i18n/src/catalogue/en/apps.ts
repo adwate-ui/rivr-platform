@@ -14,6 +14,7 @@ import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
 import { incidents, sops } from './sops.ts';
+import { feedback, playerFeedback } from './feedback.ts';
 import { academy, academyFailures, academyPayments } from './academy.ts';
 import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
@@ -29,6 +30,7 @@ import { tonight, waitlist } from './waitlist.ts';
 
 export const playerApp = {
   tonight,
+  feedback: playerFeedback,
   promotions: playerPromotions,
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
   balance,
@@ -163,6 +165,7 @@ export const consoleApp = {
   notStaff,
   sops,
   incidents,
+  feedback,
   promotions,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',

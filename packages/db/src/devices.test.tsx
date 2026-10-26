@@ -46,7 +46,7 @@ describe('Dealer tablets', () => {
       },
     });
     await waitFor(() => expect(paired.result.current.mine.data).toEqual({
-      deviceId: 'd1', venueId: VENUE, name: 'Tablet A', tableId: 't3', tableName: 'Table 3', isPractice: false,
+      deviceId: 'd1', venueId: VENUE, name: 'Tablet A', isDoor: false, tableId: 't3', tableName: 'Table 3', isPractice: false,
     }));
     cleanup();
     const staff = renderDevices(EMPTY);
@@ -56,12 +56,14 @@ describe('Dealer tablets', () => {
   it('lists the venue\'s tablets with whether each is paired and the table it is fixed to', async () => {
     const { result } = renderDevices({
       ...EMPTY,
-      '/rest/v1/device': { body: [{ id: 'd1', name: 'Tablet A', auth_user_id: 'u1' }, { id: 'd2', name: 'Tablet B', auth_user_id: null }] },
+      '/rest/v1/device': {
+        body: [{ id: 'd1', name: 'Tablet A', kind: 'dealer_tablet', auth_user_id: 'u1' }, { id: 'd2', name: 'Front door', kind: 'door', auth_user_id: null }],
+      },
       '/rest/v1/tablet_assignment': { body: [{ device_id: 'd1', table_id: 't3' }] },
     });
     await waitFor(() => expect(result.current.tablets.data).toEqual([
-      { deviceId: 'd1', name: 'Tablet A', isPaired: true, tableId: 't3' },
-      { deviceId: 'd2', name: 'Tablet B', isPaired: false, tableId: null },
+      { deviceId: 'd1', name: 'Tablet A', isDoor: false, isPaired: true, tableId: 't3' },
+      { deviceId: 'd2', name: 'Front door', isDoor: true, isPaired: false, tableId: null },
     ]));
   });
 

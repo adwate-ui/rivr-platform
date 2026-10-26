@@ -37,7 +37,7 @@ src/
                       anomaly's reason from a manager (/end-of-day)
     members/          a member found by name, mobile or number; the record, early departures and a tier change (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset)
-    tablets/          dealer tablets: add and pair, fix to a table, revoke (/tablets)
+    tablets/          dealer tablets and door kiosks: add and pair, fix a tablet to a table, revoke (/tablets)
     computers/        cage and admin computers: add with a code, enrol this one, revoke (/computers)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
@@ -47,6 +47,7 @@ src/
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
+    feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
     promotions/       what is running, paused and resumed in place; the deck's templates, each published as it stands; and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
 ```
 
