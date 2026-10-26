@@ -3262,6 +3262,11 @@ isOneToOne: false
 "hold_drill":
 { Args: { "p_drill_id": string,"p_notes": string }; Returns: undefined
                            },
+"interest_lists":
+{ Args: { "p_venue_id": string }; Returns: {
+              "is_ready": boolean,"players_to_open": number,"table_type_id": string,"waiting": number
+            }[]
+                           },
 "issue_marker":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_member_id": string,"p_signature_svg": string,"p_venue_id": string }; Returns: string
                            },
@@ -3476,6 +3481,11 @@ isOneToOne: false
 "payout_accounts_to_verify":
 { Args: { "p_venue_id": string }; Returns: {
               "account_id": string,"account_number": string,"added_at": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"phone": string,"vpa": string
+            }[]
+                           },
+"pot_data":
+{ Args: { "p_from": string,"p_until": string,"p_venue_id": string }; Returns: {
+              "dealer_id": string,"dealer_name": string,"drop_paise": number,"hand_id": string,"high_hand": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"table_id": string,"table_name": string,"variant": string
             }[]
                            },
 "practice_reset_preview":

@@ -226,6 +226,13 @@ const leaguePoints = {
   }),
 } as const satisfies SettingDefinition;
 
+const waitlistInterestToOpen = {
+  key: 'waitlist.interest_to_open',
+  description: 'Interest lists (decision 0184): how many members waiting for a game with no open table tell the floor to open one; none set never tells.',
+  scope: 'venue',
+  value: z.strictObject({ players: z.int().min(2).max(10) }),
+} as const satisfies SettingDefinition;
+
 const cardQrRotationSeconds = {
   key: 'card.qr_rotation_seconds',
   description: 'How often the membership card\'s QR changes, in seconds; a code from before a change no longer checks in (#71). 30 unless set.',
@@ -237,7 +244,7 @@ const cardQrRotationSeconds = {
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds, leaguePoints,
+  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen,
 ] as const;
 
 /** A setting key declared in code. */

@@ -7,7 +7,7 @@ import type { Database } from './database.types.ts';
 import { useMyLeague, useMyRedemptions, useMyRewards, useRedeemReward, useRewardCatalogue } from './myRewards.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useTvLeagueBoard, useTvRewardsTicker } from './tvRewards.ts';
+import { useTvLeagueBoard, useTvRewardsTicker } from './rewards.ts';
 
 const SIGNED_IN = '00000000-0000-4000-8000-0000000d0702';
 
