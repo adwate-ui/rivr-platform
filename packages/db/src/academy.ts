@@ -165,6 +165,12 @@ export interface AcademyInvoice {
   readonly sgstPaise: bigint;
   readonly igstPaise: bigint;
   readonly totalPaise: bigint;
+  /** The series' SAC code (#423), null on a practice invoice. */
+  readonly sacCode: string | null;
+  /** The place of supply (#423): the venue's state, or the buyer's for IGST; null on a practice invoice. */
+  readonly placeOfSupply: string | null;
+  /** The authorised signatory as venue configuration named them when it was issued, or null when it named none. */
+  readonly signatory: { readonly name: string; readonly designation: string } | null;
 }
 
 /** The signed-in member's invoice for one of their bookings, or null when it has none. */
@@ -182,7 +188,8 @@ export function useAcademyInvoice(bookingId: string) {
         supplier: { legalName: row.supplier_legal_name, gstin: row.supplier_gstin, address: row.supplier_address },
         buyer: { name: row.buyer_name, gstin: row.buyer_gstin }, description: row.description, rateBasisPoints: row.rate_basis_points,
         taxablePaise: BigInt(row.taxable_paise), cgstPaise: BigInt(row.cgst_paise), sgstPaise: BigInt(row.sgst_paise),
-        igstPaise: BigInt(row.igst_paise), totalPaise: BigInt(row.total_paise),
+        igstPaise: BigInt(row.igst_paise), totalPaise: BigInt(row.total_paise), sacCode: row.sac_code, placeOfSupply: row.place_of_supply,
+        signatory: row.signatory_name === null ? null : { name: row.signatory_name, designation: row.signatory_designation ?? '' },
       } : null;
     },
   });

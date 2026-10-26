@@ -17,6 +17,10 @@ select private.bootstrap_venue(
 -- can issue tax invoices (#23; owner, #378).
 update public.venue_config set gstin = '06ABCDE1234F1Z4'
 where venue_id = '00000000-0000-4000-8000-000000000001' and gstin is null;
+-- Made-up SAC codes for each series and an authorised signatory, so the club's tax invoices issue (#423); the
+-- real codes are the CA's, set in venue configuration.
+update public.venue_config set sac_club_services = '999692', sac_academy = '999293', signatory_name = 'Rhea Kapoor', signatory_designation = 'Partner'
+where venue_id = '00000000-0000-4000-8000-000000000001' and sac_club_services is null;
 -- And one for the practice venue, also in Haryana, so a trainee's invoice to a company from another state
 -- shows IGST as the club's would (#380). Its invoices never carry it and are never tax invoices.
 update public.venue_config set gstin = '06AABCP1234Q1Z5'

@@ -5,6 +5,7 @@ const TYPED = {
   legalName: ' RIVR Gaming Pvt Ltd ', gstin: '06abcde1234f1z4', tan: ' delr12345e ', address: 'Golf Course Road, Gurugram', upiPayeeName: '', upiVpa: '',
   bankName: '', bankAccountName: '', bankAccountNumber: '', bankIfsc: '', invoicePrefix: 'rivr',
   staffIpAllowlist: '203.0.113.0/24, 198.51.100.7  2001:db8::/32', alertWhatsapp: '98765 43210',
+  sacClubServices: ' 999692 ', sacAcademy: '', signatoryName: ' Rhea Kapoor ', signatoryDesignation: 'Partner',
 };
 
 describe('the venue configuration form (#33)', () => {
@@ -13,6 +14,7 @@ describe('the venue configuration form (#33)', () => {
     expect(parsed).toMatchObject({
       legalName: 'RIVR Gaming Pvt Ltd', gstin: '06ABCDE1234F1Z4', tan: 'DELR12345E', upiVpa: null, bankIfsc: null, invoicePrefix: 'RIVR',
       staffIpAllowlist: ['203.0.113.0/24', '198.51.100.7', '2001:db8::/32'], alertWhatsapp: '+919876543210',
+      sacClubServices: '999692', sacAcademy: null, signatoryName: 'Rhea Kapoor', signatoryDesignation: 'Partner',
     });
     expect(venueConfigSchema.parse({ ...TYPED, staffIpAllowlist: '  ' }).staffIpAllowlist).toEqual([]);
   });
@@ -20,7 +22,7 @@ describe('the venue configuration form (#33)', () => {
   it('refuses what the database would: a bad GSTIN, a long prefix, a network that is not one or not its range\'s start, no legal name', () => {
     for (const wrong of [
       { gstin: '06ABCDE1234F1Z' }, { invoicePrefix: 'RIVRGGN' }, { staffIpAllowlist: '203.0.113.0/40' }, { staffIpAllowlist: '203.0.113.5/24' },
-      { legalName: ' ' }, { alertWhatsapp: '12345' },
+      { legalName: ' ' }, { alertWhatsapp: '12345' }, { sacClubServices: '99969' }, { sacAcademy: 'SAC999' },
     ]) {
       expect(venueConfigSchema.safeParse({ ...TYPED, ...wrong }).success).toBe(false);
     }

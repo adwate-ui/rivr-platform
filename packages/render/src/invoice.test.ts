@@ -23,6 +23,10 @@ const ROW: InvoiceRow = {
   sgst_paise: 15_254,
   igst_paise: 0,
   total_paise: 200_000,
+  sac_code: '999293',
+  place_of_supply: 'Haryana',
+  signatory_name: 'Rhea Kapoor',
+  signatory_designation: 'Partner',
 };
 const STORED = storedInvoiceFromRow(ROW);
 

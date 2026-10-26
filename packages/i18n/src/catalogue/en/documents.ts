@@ -25,6 +25,13 @@ export const documents = {
     sgst: 'SGST at {rate}',
     igst: 'IGST at {rate}',
     total: 'Total',
+    /** A tax invoice's SAC code and place of supply (#423). */
+    sac: 'SAC',
+    placeOfSupply: 'Place of supply',
+    /** At the foot of an invoice, in place of "Computer-generated." when venue configuration names one (#423). */
+    signedBy: 'Authorised signatory: {name}, {designation}',
+    /** The same, when venue configuration names no designation. */
+    signedByName: 'Authorised signatory: {name}',
     /** In the player app, above the invoice (#249): the browser's print saves it as a PDF. */
     save: 'Save as PDF',
     /** Beside Save as PDF: back to where the invoice was opened from. */

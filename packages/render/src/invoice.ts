@@ -21,6 +21,10 @@ export interface InvoiceRow {
   readonly sgst_paise: number;
   readonly igst_paise: number;
   readonly total_paise: number;
+  readonly sac_code: string | null;
+  readonly place_of_supply: string | null;
+  readonly signatory_name: string | null;
+  readonly signatory_designation: string | null;
 }
 
 /** A stored invoice from its row, each amount the row's paise as a bigint. */
@@ -38,6 +42,9 @@ export function storedInvoiceFromRow(row: InvoiceRow): StoredInvoice {
     sgstPaise: BigInt(row.sgst_paise),
     igstPaise: BigInt(row.igst_paise),
     totalPaise: BigInt(row.total_paise),
+    sacCode: row.sac_code,
+    placeOfSupply: row.place_of_supply,
+    signatory: row.signatory_name === null ? null : { name: row.signatory_name, designation: row.signatory_designation ?? '' },
   };
 }
 

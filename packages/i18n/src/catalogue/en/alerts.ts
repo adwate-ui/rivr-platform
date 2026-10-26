@@ -14,7 +14,7 @@ export const alerts = {
     'eod.opening_variance': 'a cage shift opened with a variance',
     'eod.variance': 'a cage shift closed with a variance',
     'export.large': 'a large table export was taken',
-    'invoice.rake_negative': 'a night’s rake came to less than nothing',
+    'invoice.rake_negative': 'a night’s rake and tournament fees came to less than nothing',
     'invoice.rake_refused': 'a night’s rake invoice could not be issued',
     'mis.not_stored': 'the monthly MIS could not be stored',
     'outbox.delivery_failed': 'a message or post could not be delivered',

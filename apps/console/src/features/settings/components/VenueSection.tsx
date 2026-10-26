@@ -22,14 +22,24 @@ const FIELDS: readonly { readonly name: keyof VenueConfigInput; readonly label: 
   { name: 'invoicePrefix', label: 'console.settings.invoicePrefix', hint: 'console.settings.invoicePrefixHint' },
   { name: 'staffIpAllowlist', label: 'console.settings.staffIpAllowlist', hint: 'console.settings.staffIpAllowlistHint' },
   { name: 'alertWhatsapp', label: 'console.settings.alertWhatsapp' },
+  { name: 'sacClubServices', label: 'console.settings.sacClubServices', hint: 'console.settings.sacHint' },
+  { name: 'sacAcademy', label: 'console.settings.sacAcademy', hint: 'console.settings.sacHint' },
+  { name: 'signatoryName', label: 'console.settings.signatoryName', hint: 'console.settings.signatoryHint' },
+  { name: 'signatoryDesignation', label: 'console.settings.signatoryDesignation' },
 ];
+
+/** What every tax invoice carries (#423), as the form types it: empty for nothing. */
+const invoiceInput = (config: VenueConfig) => ({
+  sacClubServices: config.sacClubServices ?? '', sacAcademy: config.sacAcademy ?? '', signatoryName: config.signatoryName ?? '',
+  signatoryDesignation: config.signatoryDesignation ?? '',
+});
 
 /** The configuration as the form types it: empty for nothing, the networks separated by commas. */
 const toInput = (config: VenueConfig): VenueConfigInput => ({
   legalName: config.legalName, gstin: config.gstin ?? '', tan: config.tan ?? '', address: config.address, upiPayeeName: config.upiPayeeName ?? '',
   upiVpa: config.upiVpa ?? '', bankName: config.bankName ?? '', bankAccountName: config.bankAccountName ?? '',
   bankAccountNumber: config.bankAccountNumber ?? '', bankIfsc: config.bankIfsc ?? '', invoicePrefix: config.invoicePrefix,
-  staffIpAllowlist: config.staffIpAllowlist.join(', '), alertWhatsapp: config.alertWhatsapp ?? '',
+  staffIpAllowlist: config.staffIpAllowlist.join(', '), alertWhatsapp: config.alertWhatsapp ?? '', ...invoiceInput(config),
 });
 
 function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }) {

@@ -6,7 +6,7 @@ import { InvoiceDocument, type StoredInvoice } from './InvoiceDocument.tsx';
 registerMessages({ documents });
 
 const STORED: StoredInvoice = {
-  number: 'RIVR/S26/41',
+  number: 'RIVR/A26/41',
   isTaxInvoice: true,
   issuedAt: '2026-11-15T13:30:00Z',
   supplier: { legalName: 'RIVR Hospitality LLP', gstin: '06AAAAA0000A1Z5', address: 'Upper floor, Glaza, M3M 65th Avenue, Sector 65, Gurugram 122018' },
@@ -18,6 +18,9 @@ const STORED: StoredInvoice = {
   sgstPaise: 15_254n,
   igstPaise: 0n,
   totalPaise: 200_000n,
+  sacCode: '999293',
+  placeOfSupply: 'Haryana',
+  signatory: { name: 'Rhea Kapoor', designation: 'Partner' },
 };
 
 const meta = {
@@ -47,7 +50,9 @@ export const Igst: Story = {
 };
 
 /** The practice venue's: never a tax invoice, and no supplier GSTIN. */
-export const Practice: Story = { args: { invoice: { ...STORED, isTaxInvoice: false, supplier: { ...STORED.supplier, gstin: null } } } };
+export const Practice: Story = {
+  args: { invoice: { ...STORED, isTaxInvoice: false, supplier: { ...STORED.supplier, gstin: null }, sacCode: null, placeOfSupply: null, signatory: null } },
+};
 
 export const LongText: Story = {
   args: {
