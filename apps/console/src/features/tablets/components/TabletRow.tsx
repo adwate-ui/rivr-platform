@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { deviceRevokeSchema } from '@rivr/contracts';
 import { useDeviceActions, type DealerTablet, type DeviceFailure, type FloorTable, type PairingCode } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -18,14 +18,11 @@ function RevokeForm({ venueId, tablet, onDone }: { venueId: string; tablet: Deal
     resolver, defaultValues: { reason: '' },
   });
   const submit = form.handleSubmit(async ({ reason }) => onDone(await revoke.mutateAsync({ deviceId: tablet.deviceId, reason })));
-  const reasonField = form.register('reason');
   return (
-    <Inline gap={3} align="end">
-      <Input {...reasonField} label={t('console.tablets.revokeReason')} autoComplete="off"
-        error={form.formState.errors.reason ? t('console.tablets.invalidReason') : undefined} />
-      <Button variant="danger" isLoading={revoke.isPending} onClick={() => void submit()}>{t('console.tablets.revokeConfirm')}</Button>
-      <Button variant="text" onClick={() => onDone(null)}>{t('common.cancel')}</Button>
-    </Inline>
+    <ReasonForm field={form.register('reason')} label={t('console.tablets.revokeReason')}
+      error={form.formState.errors.reason ? t('console.tablets.invalidReason') : undefined}
+      actions={[{ label: t('console.tablets.revokeConfirm'), onClick: () => void submit() }]}
+      isLoading={revoke.isPending} onCancel={() => onDone(null)} />
   );
 }
 

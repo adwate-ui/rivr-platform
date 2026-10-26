@@ -1,0 +1,10 @@
+# 0211 One reason form, in @rivr/ui, without React Hook Form
+
+Date: 27 Oct 2026. Task: #318 (from the UI guard on #316).
+
+- **`ReasonForm` lives in `@rivr/ui` and holds no form state.** It draws the required reason field (label, hint, error, `maxLength`, never autofilled), a button for each decision and an optional Cancel. The app passes `form.register('reason')` in as `field`, as it already did into `Input`.
+- **Why not a shared console component holding React Hook Form.** The screens check the reason against different contracts schemas: devices 1 to 200 characters, jackpots and high hands 3 to 300, KYC review 3 to 500 with no document numbers. KYC review also checks a date of birth and PAN in the same form, which a reason-only form cannot hold. A shared form would have to take any schema as a generic, and it would need a home: a feature may not import another feature (`no-feature-to-feature`), and an app holds only `routes/` and `features/` (`.claude/rules/apps.md`). Each feature keeps its own `useForm` and schema, as the apps rule asks.
+- **One layout: the field, then the buttons under it.** Tablets, TVs, high hands and jackpots drew the field and buttons in one row; KYC review and the treasury's reason forms already stacked them. The stacked layout holds a hint, an error and long labels without the buttons moving off the field, so all five take it.
+- **`variant`** is `danger` for revoke, unpair, reject and reverse a claim; `secondary` for jackpot reversal and KYC review, as before: a button's weight is a design call outside #318. KYC review's two decisions, Approve and Reject, are two `actions`.
+- **KYC review's date of birth and PAN now come before the reason**, so the reason sits with the decisions. Its one message for all three fields stays under the decisions, so its reason field is not marked invalid on its own, as before.
+- **Left for a follow-up** (out of #318's scope): the computers screen's revoke form, an exact sixth copy, and the single-decision reason forms in treasury (opening and close), withdrawals, expenses, the cage's payouts and the kill switch.

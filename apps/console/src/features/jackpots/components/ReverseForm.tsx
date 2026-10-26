@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { jackpotReversalSchema } from '@rivr/contracts';
 import { useJackpotActions, type JackpotEvent, type JackpotFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
+import { ErrorMessage, ReasonForm, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -19,16 +19,12 @@ export function ReverseForm({ venueId, payout }: { venueId: string; payout: Jack
     const reversed = await reverse.mutateAsync({ eventId: payout.eventId, reason, requestId });
     setFailure(reversed.ok ? null : reversed.error);
   });
-  const reason = form.register('reason');
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end" wrap>
-        <Input {...reason} label={t('console.jackpots.reason', { payout: payoutName(payout) })}
-          error={form.formState.errors.reason ? t('console.jackpots.invalidReason') : undefined} />
-        <Button variant="secondary" isLoading={reverse.isPending} onClick={() => void submit()}>
-          {t('console.jackpots.reverse', { payout: payoutName(payout) })}
-        </Button>
-      </Inline>
+      <ReasonForm field={form.register('reason')} label={t('console.jackpots.reason', { payout: payoutName(payout) })}
+        error={form.formState.errors.reason ? t('console.jackpots.invalidReason') : undefined} variant="secondary"
+        actions={[{ label: t('console.jackpots.reverse', { payout: payoutName(payout) }), onClick: () => void submit() }]}
+        isLoading={reverse.isPending} />
       {failure === null ? null : <ErrorMessage>{jackpotFailureText(failure)}</ErrorMessage>}
     </Stack>
   );

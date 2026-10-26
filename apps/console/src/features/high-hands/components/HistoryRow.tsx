@@ -3,7 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { claimText, correctionText, decisionText, HIGH_HAND_FAILURE_COPY } from './highHandCopy.ts';
-import { ReasonForm } from './ReasonForm.tsx';
+import { ClaimReasonForm } from './ClaimReasonForm.tsx';
 
 /**
  * A decided claim: what it was, who decided and how, any correction, and any reversal. Staff who approve
@@ -34,7 +34,7 @@ export function HistoryRow({ venueId, hand, canDecide }: { venueId: string; hand
         ) : null}
       </Inline>
       {isReversing ? (
-        <ReasonForm label={t('console.highHands.reverseReason')} confirm={t('console.highHands.reverseConfirm')} isPending={reverse.isPending}
+        <ClaimReasonForm label={t('console.highHands.reverseReason')} confirm={t('console.highHands.reverseConfirm')} isPending={reverse.isPending}
           onSubmit={submit} onCancel={() => setIsReversing(false)} />
       ) : null}
       {failure === null ? null : <ErrorMessage>{t(HIGH_HAND_FAILURE_COPY[failure])}</ErrorMessage>}
