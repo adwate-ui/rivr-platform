@@ -16,6 +16,12 @@ describe('MapBlock', () => {
     expect(container.querySelector('iframe')).toBeNull();
   });
 
+  it('gives the club’s number to call and email to write to, when it has them (decision 0166)', () => {
+    renderIn(<MapBlock address="Glaza" directionsUrl={DIRECTIONS} phone="+919000000000" email="info@rivrpoker.com" />);
+    expect(screen.getByRole('link', { name: '+91 90000 00000' })).toHaveAttribute('href', 'tel:+919000000000');
+    expect(screen.getByRole('link', { name: 'info@rivrpoker.com' })).toHaveAttribute('href', 'mailto:info@rivrpoker.com');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<MapBlock address="Upper floor, Glaza, M3M 65th Avenue, Gurugram" directionsUrl={DIRECTIONS} />);
     expect(await axeViolations(container)).toEqual([]);

@@ -27,3 +27,7 @@ export const Default: Story = {};
 
 /** Words alone, with no photo or figures. */
 export const WordsOnly: Story = { args: { image: undefined, alt: undefined, figures: undefined, action: undefined } };
+
+export const LongText: Story = {
+  args: { heading: 'A very long heading that runs on to see how the band wraps it', paragraphs: ['An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band. An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band.', 'An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band.'], figures: [{ value: 'Same night', label: 'An unusually long line, as an owner might write it in the co' }] },
+};

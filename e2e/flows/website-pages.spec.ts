@@ -38,7 +38,7 @@ test.describe('Website', () => {
     await expect(page.getByText(/every erasure made since it was taken is made again/)).toBeVisible();
   });
 
-  test('the club's pages: about, membership, promotions, and a journal article, each keeping the visitor's codes', async ({ page }) => {
+  test('the club’s pages: about, membership, promotions, and a journal article, each keeping the visitor’s codes', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
     const site = page.getByRole('navigation', { name: 'Site' });
@@ -59,9 +59,9 @@ test.describe('Website', () => {
     await expect(page.getByRole('heading', { level: 3, name: 'Buy-in bonus Tuesday' })).toBeVisible();
 
     await site.getByRole('link', { name: 'Journal' }).click();
-    await page.getByRole('main').getByRole('link', { name: 'Read' }).first().click();
+    await page.getByRole('main').getByRole('link', { name: "Read: Texas Hold'em for beginners" }).click();
     await expect(page).toHaveURL(/\/journal-holdem-basics\?ref=FRIEND1$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Texas Hold'em for beginners' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: "Texas Hold'em for beginners" })).toBeVisible();
     await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Terms of use' })).toHaveAttribute('href', '/terms?ref=FRIEND1');
   });
 

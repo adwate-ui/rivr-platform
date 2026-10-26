@@ -13,3 +13,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const LongText: Story = {
+  args: { phrases: ['A phrase that runs as long as forty', 'Another long phrase, nearly forty', 'Members only', 'Opens 15 November', 'Hold your nerve', 'Gurugram'] },
+};

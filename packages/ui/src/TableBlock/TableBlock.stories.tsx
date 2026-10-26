@@ -19,3 +19,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const LongText: Story = {
+  args: { columns: ['Stake', 'Points an hour', 'A long column name'], rows: [['Private Room, 100/200', '20', 'An unusually long line, as an owner might write it in the co']], note: 'An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band.' },
+};

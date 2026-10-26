@@ -22,3 +22,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const LongText: Story = {
+  args: { items: [{ when: '14 Nov 2026', title: 'An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and ', text: 'An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band.' }] },
+};

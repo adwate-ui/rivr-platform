@@ -32,3 +32,7 @@ export const Four: Story = {
     action: { label: 'Join RIVR', href: '#' },
   },
 };
+
+export const LongText: Story = {
+  args: { cards: [{ label: 'A long label above it', title: 'A card title that runs long', text: 'An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band.', points: ['An unusually long line, as an owner might write it in the console, to see that i'] }, { title: 'Short' }] },
+};

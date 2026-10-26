@@ -40,7 +40,7 @@ function Card({ card }: { card: WebCard }) {
           ))}
         </ul>
       ) : null}
-      {card.link ? <div className="self-start"><Button variant="text" href={card.link.href}>{card.link.label}</Button></div> : null}
+      {card.link ? <div className="self-start"><Button variant="text" href={card.link.href} aria-label={`${card.link.label}: ${card.title}`}>{card.link.label}</Button></div> : null}
     </li>
   );
 }

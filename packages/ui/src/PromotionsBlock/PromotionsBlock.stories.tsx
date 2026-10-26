@@ -23,3 +23,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Empty: Story = { args: { promotions: [] } };
+
+export const LongText: Story = {
+  args: { promotions: [{ title: 'A promotion with a long title', detail: 'An unusually long line, as an owner might write it in the console, to see that it wraps cleanly and never breaks the band', runs: 'Tuesday, 22:00 to 04:00 · every stake' }] },
+};

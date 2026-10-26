@@ -14,7 +14,7 @@ describe('CardsBlock', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'What we stand for' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: 'Play' })).toBeInTheDocument();
     expect(screen.getByText('Professional dealers')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'See what’s on' })).toHaveAttribute('href', '/tournaments');
+    expect(screen.getByRole('link', { name: 'See what’s on: Connect' })).toHaveAttribute('href', '/tournaments');
     expect(screen.getByText('The next decision.')).toBeInTheDocument();
   });
 

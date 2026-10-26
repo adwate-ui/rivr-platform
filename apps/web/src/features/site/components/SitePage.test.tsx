@@ -92,7 +92,7 @@ describe('a website page', () => {
     const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['deep', 'cream', 'dark', 'deep', 'cream', 'deep']);
     expect(screen.getByRole('heading', { level: 2, name: 'Good hands. Better company.' })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Full calendar' }).getAttribute('href')).toBe('/tournaments?ref=FRIEND1');
+    expect(screen.getByRole('link', { name: 'Full calendar: Tournament nights' }).getAttribute('href')).toBe('/tournaments?ref=FRIEND1');
     expect(screen.getByRole('cell', { name: '5' })).toBeDefined();
     expect(screen.getByRole('heading', { level: 3, name: 'Referral' })).toBeDefined();
     expect(screen.getByRole('contentinfo').querySelector('a[href="/house-rules?ref=FRIEND1"]')?.textContent).toBe('House rules');
