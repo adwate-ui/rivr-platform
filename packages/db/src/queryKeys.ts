@@ -114,6 +114,7 @@ export const queryKeys = {
   potData: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'pot-data', venueId, start, end] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
+  membersOfTier: (userId: string, venueId: string, tierId: string) => ['user', userId, 'members-of-tier', venueId, tierId] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,
   memberEarlyDepartures: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-early-departures', venueId, memberId] as const,
   venueTiers: (userId: string, venueId: string) => ['user', userId, 'venue-tiers', venueId] as const,

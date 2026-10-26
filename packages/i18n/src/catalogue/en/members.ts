@@ -2,6 +2,12 @@
 export const members = {
   title: 'Members',
   notAllowed: 'Your role does not include members. Ask an admin if you need it.',
+  /** Lists every member of a tier (additions flow 20), or any tier, as the search finds them. */
+  filterTier: 'Tier',
+  anyTier: 'Any',
+  noneInTier: 'No members in {tier}.',
+  /** How an export of the results records the search (#102). */
+  searchedFor: 'Search: {query}',
   search: 'Find a member',
   searchHint: 'A name, four or more digits of a mobile number, or a member number.',
   searchPrompt: 'Type a member number, two or more letters of a name, or four or more digits of a mobile number.',

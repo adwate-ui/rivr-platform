@@ -17,11 +17,14 @@ function columns(): readonly DataTableColumn<StatementLine>[] {
 }
 
 /** The statement's lines in order, or the table's loading or error state. */
-function StatementRows({ accountId, from, to }: { accountId: string; from: string; to: string }) {
+function StatementRows({ accountId, accountName, from, to }: { accountId: string; accountName: string; from: string; to: string }) {
   // Up to the midnight after the last day, in India time (no daylight saving), as the statement counts entries before it.
   const statement = useAccountStatement(accountId, new Date(`${from}T00:00:00+05:30`).toISOString(),
     new Date(new Date(`${to}T00:00:00+05:30`).getTime() + DAY_MS).toISOString());
-  const base = { label: t('console.accounts.statementLabel'), columns: columns(), rowKey: (row: StatementLine) => `${row.occurredAt}:${row.kind}:${row.balance}` };
+  const base = {
+    label: t('console.accounts.statementLabel'), columns: columns(), rowKey: (row: StatementLine) => `${row.occurredAt}:${row.kind}:${row.balance}`,
+    exportFilter: [t('console.exportFilters.choice', { label: t('console.accounts.statementAccount'), value: accountName }), t('console.exportFilters.period', { from, to })].join('; '),
+  };
   if (statement.data === undefined && statement.isError) return <DataTable {...base} status="error" onRetry={() => void statement.refetch()} />;
   if (statement.data === undefined) return <DataTable {...base} status="loading" />;
   return <DataTable {...base} rows={statement.data} emptyText={t('console.accounts.noEntries')} />;
@@ -46,7 +49,7 @@ export function Statement({ accounts }: { accounts: readonly PaymentAccount[] })
       </Inline>
       {accountId === null || period.from === '' || period.to === ''
         ? <Text tone="muted">{t('console.accounts.statementEmpty')}</Text>
-        : <StatementRows accountId={accountId} from={period.from} to={period.to} />}
+        : <StatementRows accountId={accountId} accountName={accounts.find((account) => account.id === accountId)?.name ?? ''} from={period.from} to={period.to} />}
     </Stack>
   );
 }

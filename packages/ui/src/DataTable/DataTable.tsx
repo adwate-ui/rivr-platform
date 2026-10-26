@@ -6,6 +6,7 @@ import { Icon } from '../Icon/Icon.tsx';
 import { Input } from '../Input/Input.tsx';
 import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
+import { ExportBar, useTableExporter } from './DataTableExport.tsx';
 
 /** One column: its header, what each row shows in it, and the value it sorts by (no sorting without one). */
 export interface DataTableColumn<Row> {
@@ -15,6 +16,11 @@ export interface DataTableColumn<Row> {
   readonly sortValue?: (row: Row) => string | number | bigint;
   /** Figures and money line up at the end. */
   readonly align?: 'start' | 'end';
+  /**
+   * What an export gives for the column (#102). Without one: the cell's words, a Money cell's rupees, or the
+   * sort value. A column with no heading, such as a row's buttons, is left out of exports.
+   */
+  readonly exportValue?: (row: Row) => string | number;
 }
 
 /** Which column the rows are sorted by, and which way. */
@@ -37,8 +43,10 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   /** A filter box above the table: a row stays when `text` gives something containing what is typed, case aside. */
   filter?: { readonly label: string; readonly text: (row: Row) => string };
   initialSort?: DataTableSort;
-  /** Beside the filter box, given the rows as shown (filtered and sorted): #102's export hangs here. */
+  /** Beside the filter box, given the rows as shown (filtered and sorted). */
   toolbar?: (rows: readonly Row[]) => ReactNode;
+  /** The screen's own filters, in words, which an export records with the table's (#102): `Search: 9000`. */
+  exportFilter?: string;
 };
 
 /** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */
@@ -162,10 +170,39 @@ function Instead<Row>({ props, query }: { props: DataTableProps<Row>; query: str
   return <div role="status" className="px-3 py-4"><Text tone="muted">{text}</Text></div>;
 }
 
+/** Every filter in force, in words, as an export records them: the screen's, then the table's own. */
+function filtersInForce<Row>(props: DataTableProps<Row>, query: string): string {
+  const typed = query.trim();
+  const own = typed === '' || props.filter === undefined ? undefined : `${props.filter.label}: ${typed}`;
+  return [props.exportFilter, own].filter((part) => part !== undefined && part !== '').join('; ');
+}
+
+/**
+ * Above the table: the filter box, the caller's toolbar, and, beneath a DataTableExportProvider, the export
+ * of the rows as shown with every filter in force; nothing when there is none of these.
+ */
+function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Row>; visible: readonly Row[]; query: string; onQuery: (query: string) => void }) {
+  const found = useTableExporter();
+  const exporter = visible.length === 0 ? null : found;
+  if (props.filter === undefined && props.toolbar === undefined && exporter === null) return null;
+  return (
+    <div className="flex items-end gap-4">
+      {props.filter === undefined ? null : (
+        <div className="min-w-0 flex-1">
+          <Input type="search" label={props.filter.label} value={query} onChange={(event) => onQuery(event.target.value)} autoComplete="off" />
+        </div>
+      )}
+      {props.toolbar?.(visible)}
+      {exporter === null ? null : <ExportBar exporter={exporter} label={props.label} columns={props.columns} rows={visible} filter={filtersInForce(props, query)} />}
+    </div>
+  );
+}
+
 /**
  * A table of records for the console (`.claude/rules/ui.md`, "Data"): headers that sort, an optional
  * filter box, and the loading, empty and error states. Past 200 rows only the rows in view are drawn,
- * so thousands of rows scroll smoothly. Export (#102) hangs on `toolbar`.
+ * so thousands of rows scroll smoothly. Beneath a DataTableExportProvider, the rows as shown export as CSV
+ * or XLSX, each export recorded first (#102).
  */
 export function DataTable<Row>(props: DataTableProps<Row>) {
   const [sort, setSort] = useState<DataTableSort | null>(props.initialSort ?? null);
@@ -175,19 +212,9 @@ export function DataTable<Row>(props: DataTableProps<Row>) {
   const visible = useMemo(() => shown(source, { columns: props.columns, sort, text, query }), [source, props.columns, sort, text, query]);
   const onSort = (key: string) => setSort((current) =>
     current?.key === key && current.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' });
-  const hasBar = props.filter !== undefined || props.toolbar !== undefined;
   return (
     <div className="flex flex-col gap-4">
-      {hasBar ? (
-        <div className="flex items-end gap-4">
-          {props.filter === undefined ? null : (
-            <div className="min-w-0 flex-1">
-              <Input type="search" label={props.filter.label} value={query} onChange={(event) => setQuery(event.target.value)} autoComplete="off" />
-            </div>
-          )}
-          {props.toolbar?.(visible)}
-        </div>
-      ) : null}
+      <Bar props={props} visible={visible} query={query} onQuery={setQuery} />
       {visible.length === 0 ? <Instead props={props} query={query} /> : <Table props={props} visible={visible} sort={sort} query={query} onSort={onSort} />}
     </div>
   );

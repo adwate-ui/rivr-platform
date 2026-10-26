@@ -117,6 +117,23 @@ export function useMemberEarlyDepartures(venueId: string, memberId: string) {
   });
 }
 
+/** Every member of a tier (additions flow 20), by name, at most 5,000, for staff who read members. */
+export function useMembersOfTier(venueId: string, tierId: string | null) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.membersOfTier(userId ?? 'signed-out', venueId, tierId ?? ''),
+    enabled: userId !== null && tierId !== null,
+    queryFn: async (): Promise<MemberRow[]> => {
+      const { data, error } = await client.rpc('members_of_tier', { p_venue_id: venueId, p_tier_id: tierId ?? '' });
+      if (error) throw error;
+      return data.map((row) => ({
+        memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, tierName: row.tier_name,
+        visits: row.visits, lastVisitAt: row.last_visit_at,
+      }));
+    },
+  });
+}
+
 /** The venue's tiers a member can be moved to, most senior first. */
 export function useVenueTiers(venueId: string) {
   const { client, userId } = useRivrData();

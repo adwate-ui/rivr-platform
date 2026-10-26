@@ -1,6 +1,6 @@
 import { usePotData, useStaffVenue, type PotHand, type PotVariant } from '@rivr/db';
 import { clubDay } from '@rivr/domain/clubDay';
-import { formatDayTime, formatMoney, formatNumber, t, type MessageKey } from '@rivr/i18n';
+import { formatDayTime, formatMoney, formatNumber, formatRupeesForFile, t, type MessageKey } from '@rivr/i18n';
 import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, Screen, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useMemo, useState } from 'react';
 
@@ -21,9 +21,12 @@ function columns(): readonly DataTableColumn<PotHand>[] {
     { key: 'table', header: t('console.potData.table'), cell: (hand) => hand.tableName, sortValue: (hand) => hand.tableName },
     { key: 'dealer', header: t('console.potData.dealer'), cell: (hand) => hand.dealerName, sortValue: (hand) => hand.dealerName },
     { key: 'variant', header: t('console.potData.variant'), cell: (hand) => t(VARIANT_COPY[hand.variant]) },
-    { key: 'pot', header: t('console.potData.pot'), align: 'end', cell: (hand) => formatMoney(hand.pot), sortValue: (hand) => hand.pot },
-    { key: 'rake', header: t('console.potData.rake'), align: 'end', cell: (hand) => formatMoney(hand.rake), sortValue: (hand) => hand.rake },
-    { key: 'drop', header: t('console.potData.drop'), align: 'end', cell: (hand) => formatMoney(hand.drop), sortValue: (hand) => hand.drop },
+    { key: 'pot', header: t('console.potData.pot'), align: 'end', cell: (hand) => formatMoney(hand.pot), sortValue: (hand) => hand.pot,
+      exportValue: (hand) => Number(formatRupeesForFile(hand.pot)) },
+    { key: 'rake', header: t('console.potData.rake'), align: 'end', cell: (hand) => formatMoney(hand.rake), sortValue: (hand) => hand.rake,
+      exportValue: (hand) => Number(formatRupeesForFile(hand.rake)) },
+    { key: 'drop', header: t('console.potData.drop'), align: 'end', cell: (hand) => formatMoney(hand.drop), sortValue: (hand) => hand.drop,
+      exportValue: (hand) => Number(formatRupeesForFile(hand.drop)) },
     { key: 'cap', header: t('console.potData.cap'), cell: (hand) => t(hand.isCapApplied ? 'console.potData.capYes' : 'console.potData.capNo') },
     { key: 'highHand', header: t('console.potData.highHand'), cell: highHandText },
   ];
@@ -41,6 +44,19 @@ function Filter({ label, values, chosen, onChange }: { label: string; values: re
 function optionsOf(hands: readonly PotHand[], pick: (hand: PotHand) => { value: string; label: string }) {
   const seen = new Map(hands.map((hand) => [pick(hand).value, pick(hand)]));
   return [...seen.values()].sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** The filters in force, in words, as an export records them: the days, and any table, dealer or game chosen. */
+function filtersInWords(hands: readonly PotHand[], filter: { table: string; dealer: string; variant: string }, from: string, to: string): string {
+  const choice = (label: string, value: string | undefined) => (value === undefined ? [] : [t('console.exportFilters.choice', { label, value })]);
+  const table = hands.find((hand) => hand.tableId === filter.table)?.tableName;
+  const dealer = hands.find((hand) => hand.dealerId === filter.dealer)?.dealerName;
+  const chosenVariant = hands.find((hand) => hand.variant === filter.variant)?.variant;
+  const variant = chosenVariant === undefined ? undefined : t(VARIANT_COPY[chosenVariant]);
+  return [
+    t('console.exportFilters.period', { from, to }), ...choice(t('console.potData.table'), table),
+    ...choice(t('console.potData.dealer'), dealer), ...choice(t('console.potData.variant'), variant),
+  ].join('; ');
 }
 
 function Hands({ venueId, from, to }: { venueId: string; from: string; to: string }) {
@@ -61,7 +77,7 @@ function Hands({ venueId, from, to }: { venueId: string; from: string; to: strin
       <Filter label={t('console.potData.variant')} chosen={filter.variant} onChange={(variant) => setFilter({ ...filter, variant })}
         values={optionsOf(hands.data, (hand) => ({ value: hand.variant, label: t(VARIANT_COPY[hand.variant]) }))} />
       {hands.data.length >= MOST ? <Text tone="muted">{t('console.potData.tooMany', { count: formatNumber(MOST) })}</Text> : null}
-      <DataTable {...base} rows={rows} emptyText={t('console.potData.noHands')} />
+      <DataTable {...base} rows={rows} emptyText={t('console.potData.noHands')} exportFilter={filtersInWords(hands.data, filter, from, to)} />
     </Stack>
   );
 }

@@ -33,13 +33,14 @@ const accountColumns = (): readonly DataTableColumn<AccountLine>[] => [
 
 /** The month's tables: its figures, revenue and expenses by account, and rake by table, dealer and game. */
 function MisTables({ mis }: { mis: MisReport }) {
-  const rake = { isError: false, onRetry: () => undefined, emptyText: t('console.reports.noHandsMonth') };
+  const exportFilter = t('console.exportFilters.month', { month: formatMonth(mis.month) });
+  const rake = { isError: false, onRetry: () => undefined, emptyText: t('console.reports.noHandsMonth'), exportFilter };
   const accounts = (label: string, lines: readonly AccountLine[], emptyText: string) => (
-    <DataTable label={label} columns={accountColumns()} rowKey={(row) => row.code} rows={lines} emptyText={emptyText} />
+    <DataTable label={label} columns={accountColumns()} rowKey={(row) => row.code} rows={lines} emptyText={emptyText} exportFilter={exportFilter} />
   );
   return (
     <Grid columns={3} gap={6}>
-      <DataTable label={t('console.reports.figures')} columns={figureColumns()} rowKey={(row) => row.key} rows={figures(mis)} emptyText="" />
+      <DataTable label={t('console.reports.figures')} columns={figureColumns()} rowKey={(row) => row.key} rows={figures(mis)} emptyText="" exportFilter={exportFilter} />
       {accounts(t('console.reports.revenue'), mis.revenue, t('console.reports.noRevenue'))}
       {accounts(t('console.reports.expenses'), mis.expenses, t('console.reports.noExpenses'))}
       <RakeTable {...rake} label={t('console.reports.monthByTable')} nameHeader={t('console.reports.table')} rows={mis.byTable} />

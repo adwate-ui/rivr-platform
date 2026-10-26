@@ -29,11 +29,13 @@ interface RakeTableProps {
   readonly isError: boolean;
   readonly onRetry: () => void;
   readonly emptyText: string;
+  /** The screen's own filters, in words, for an export: the month. */
+  readonly exportFilter?: string;
 }
 
 /** Rake by table, dealer or game, the most first, or the table's loading or error state. The month's drop is in its figures. */
-export function RakeTable({ label, nameHeader, rows, isError, onRetry, emptyText }: RakeTableProps) {
-  const base = { label, columns: columns(nameHeader), rowKey: (row: RakeRow) => row.key };
+export function RakeTable({ label, nameHeader, rows, isError, onRetry, emptyText, exportFilter }: RakeTableProps) {
+  const base = { label, columns: columns(nameHeader), rowKey: (row: RakeRow) => row.key, ...(exportFilter === undefined ? {} : { exportFilter }) };
   if (rows === undefined && isError) return <DataTable {...base} status="error" onRetry={onRetry} />;
   if (rows === undefined) return <DataTable {...base} status="loading" />;
   return <DataTable {...base} rows={rows} emptyText={emptyText} initialSort={{ key: 'rake', direction: 'descending' }} />;

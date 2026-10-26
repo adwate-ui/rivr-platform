@@ -23,7 +23,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 | `shareholder`, `shareholding`, `holder_statement` | Partners and investors, effective-dated holdings, monthly statements. `shareholder` and `shareholding` (#97, decision 0170): a partner or an investor, and a share in basis points from a day on, never above 100% on any day; super admins only, audited |
 | `aml_flag`, `sar_entry` | Cash limits, structuring flags and the suspicious-activity register |
 | `staff_shift`, `staff_attendance`, `onboarding_item` | Rosters, shifts and attendance by job title; onboarding checklists linked to SOP acknowledgements (lane B owns SOPs) |
-| `export_job`, `purge_run` | Every export and purge, audited |
+| `purge_run` | Every purge, audited. Every table export is recorded in the audit log (`export.table`: who, what, filters, format, rows; decision 0190), not a table of its own |
 | `alert` | Alerts for the owner dashboard and the alert WhatsApp number |
 | `accommodation_rate` | Hours of play per hotel night by stake, for accommodation rewards |
 | `glaza_import_line`, `glaza_statement` | Monthly F&B CSV import from Glaza, matched to visits; statements |

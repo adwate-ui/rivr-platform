@@ -31,7 +31,7 @@ function columns(): readonly DataTableColumn<CreditReportRow>[] {
 function ReportRows({ venueId, day }: { venueId: string; day: string }) {
   // The end of the day is the next midnight in India time, which keeps no daylight saving.
   const report = useCreditReport(venueId, new Date(new Date(`${day}T00:00:00+05:30`).getTime() + DAY_MS).toISOString());
-  const base = { label: t('console.markers.reportLabel'), columns: columns(), rowKey: (row: CreditReportRow) => row.memberId };
+  const base = { label: t('console.markers.reportLabel'), columns: columns(), rowKey: (row: CreditReportRow) => row.memberId, exportFilter: t('console.exportFilters.day', { day }) };
   if (report.data === undefined && report.isError) return <DataTable {...base} status="error" onRetry={() => void report.refetch()} />;
   if (report.data === undefined) return <DataTable {...base} status="loading" />;
   return <DataTable {...base} rows={report.data} emptyText={t('console.markers.reportEmpty')} initialSort={{ key: 'owed', direction: 'descending' }} />;

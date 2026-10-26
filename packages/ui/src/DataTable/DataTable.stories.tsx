@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Money } from '../Money/Money.tsx';
 import { Text } from '../Text/Text.tsx';
 import { DataTable, type DataTableColumn, type DataTableSort } from './DataTable.tsx';
+import { DataTableExportProvider } from './DataTableExport.tsx';
 
 interface Marker {
   readonly id: string;
@@ -38,10 +39,17 @@ interface MarkerTableProps {
   rows?: readonly Marker[];
   initialSort?: DataTableSort;
   withFilter?: boolean;
+  /** Beneath an export provider, as every console table is for staff who export tables (#102). */
+  withExport?: boolean;
 }
 
 /** The table as the console's Markers screen would hold it: open markers, by member. */
-function MarkerTable({ state = 'ready', rows = markers(8), initialSort, withFilter = false }: MarkerTableProps) {
+function MarkerTable({ withExport = false, ...props }: MarkerTableProps) {
+  if (!withExport) return <Markers {...props} />;
+  return <DataTableExportProvider exporter={async () => true}><Markers {...props} /></DataTableExportProvider>;
+}
+
+function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false }: Omit<MarkerTableProps, 'withExport'>) {
   const base = {
     label: 'Open markers', columns: COLUMNS, rowKey: (row: Marker) => row.id, ...(initialSort ? { initialSort } : {}),
     ...(withFilter ? { filter: { label: 'Find a member', text: (row: Marker) => row.name } } : {}),
@@ -63,6 +71,9 @@ export const Sorted: Story = { args: { initialSort: { key: 'amount', direction: 
 
 /** With a filter box above, matching a member's name. */
 export const WithFilter: Story = { args: { withFilter: true } };
+
+/** For staff who export tables: Export CSV and Export XLSX beside the filter box (#102). */
+export const WithExport: Story = { args: { withFilter: true, withExport: true } };
 
 export const Loading: Story = { args: { state: 'loading' } };
 
