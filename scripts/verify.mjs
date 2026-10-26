@@ -21,9 +21,13 @@ function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
 }
 
-/** The commit this branch started from, or null when there is no main to compare with. */
+/**
+ * The commit this branch started from, or null when there is nothing to compare with. A task branch starts
+ * from `integration` (decision 0193), which runs ahead of main between release cuts: measured from main, every
+ * task integrated since the last cut would count as this branch's change, and verify would check it all again.
+ */
 function baseCommit() {
-  for (const ref of ['origin/main', 'main']) {
+  for (const ref of ['origin/integration', 'origin/main', 'main']) {
     try {
       return git('merge-base', 'HEAD', ref);
     } catch {
