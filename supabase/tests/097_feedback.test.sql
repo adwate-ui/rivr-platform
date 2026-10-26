@@ -29,8 +29,11 @@ select lives_ok($$ select public.rate_visit('00000000-0000-4000-8000-0000000a970
   'he gives it a 2, with a note');
 select throws_ok($$ select public.rate_visit('00000000-0000-4000-8000-0000000a9701', 5, null) $$, 'RVDUP', null, 'once');
 select is_empty($$ select * from public.my_feedback_visit() $$, 'and Home stops asking');
+select is_empty($$ select * from public.feedback $$, 'he reads no feedback rows, not even his own: only through the functions');
+reset role;
 select results_eq($$ select score, note, is_ticket from public.feedback $$, $$ values (2::smallint, 'The dealer at Table 3 was slow.'::text, true) $$,
-  'he sees his own feedback: a ticket, the note trimmed');
+  'his 2 is a ticket, the note trimmed');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select throws_ok($$ select public.send_feedback('   ') $$, '22023', null, 'a note from Profile says something');
 select lives_ok($$ select public.send_feedback('Please add PLO on Mondays.') $$, 'and he sends the club a note');
 select throws_ok($$ insert into public.feedback (venue_id, member_id, note) values

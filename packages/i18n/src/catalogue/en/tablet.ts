@@ -36,5 +36,7 @@ export const tabletApp = {
     seeFrontDesk: 'Please see the front desk.',
     onBreak: 'You are on a break from play.',
     unavailable: 'Your card could not be read just now.',
+    /** A revoked kiosk: its pairing is gone. */
+    notPaired: 'This kiosk is no longer paired.',
   },
 } as const;

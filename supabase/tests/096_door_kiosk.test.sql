@@ -56,8 +56,15 @@ select is((select count(*)::integer from public.promotion_grant
            where promotion_id = '00000000-0000-4000-8000-0000000c9601' and member_id = '00000000-0000-4000-8000-000000000290'), 1,
   'and her check-in earns the welcome points');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e961');
+select results_eq($$ select * from public.door_scan(pg_temp.card('kavya')) $$, $$ values ('in'::text, 'Kavya'::text, 0::bigint) $$,
+  'her card scanned again as she walks in only says she is in');
+reset role;
+select is((select count(*)::integer from public.visit where member_id = '00000000-0000-4000-8000-000000000290' and closed_at is null), 1,
+  'her visit stays open');
+update public.visit set opened_at = opened_at - interval '3 minutes' where member_id = '00000000-0000-4000-8000-000000000290';
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e961');
 select results_eq($$ select * from public.door_scan(pg_temp.card('kavya')) $$, $$ values ('out'::text, 'Kavya'::text, 0::bigint) $$,
-  'her next scan checks her out');
+  'past the first two minutes, her next scan checks her out');
 select results_eq($$ select * from public.door_scan(pg_temp.card('kavya')) $$, $$ values ('gone'::text, 'Kavya'::text, 0::bigint) $$,
   'a scan just after says goodbye');
 reset role;
@@ -68,6 +75,11 @@ where member_id = '00000000-0000-4000-8000-000000000290';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e961');
 select results_eq($$ select action from public.door_scan(pg_temp.card('kavya')) $$, $$ values ('in'::text) $$,
   'ten minutes on, she is checked in again');
+reset role;
+select is((select count(*)::integer from public.promotion_grant
+           where promotion_id = '00000000-0000-4000-8000-0000000c9601' and member_id = '00000000-0000-4000-8000-000000000290'), 1,
+  'but the welcome points come once a club day, however often she scans in');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e961');
 
 -- Four and a half hours at Table 2: the scan out earns the four-hour bonus.
 reset role;
@@ -84,6 +96,22 @@ reset role;
 select results_eq($$ select g.cost_paise, g.trigger from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
                      where p.template_key = 'hours_bonus' and g.member_id = '00000000-0000-4000-8000-000000000213' $$,
   $$ values (100000::bigint, 'hours_played'::text) $$, 'and the four-hour bonus gives him ₹1,000');
+select lives_ok($$ select private.weigh_hours_played('00000000-0000-4000-8000-0000000a9601') $$, 'the close weighed again, as a replay would');
+select is((select count(*)::integer from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+           where p.template_key = 'hours_bonus' and g.member_id = '00000000-0000-4000-8000-000000000213'), 1, 'gives nothing more');
+
+-- A visit closed at the cage pays it too: Kunal's four hours at Table 3, closed by a final cash-out.
+insert into public.visit (id, venue_id, member_id, opened_at) values
+  ('00000000-0000-4000-8000-0000000a9602', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', now() - interval '5 hours');
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason)
+select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', '00000000-0000-4000-8000-0000000a9602', g.id, 6,
+       now() - interval '245 minutes', now() - interval '245 minutes', now() - interval '1 minute', 'left'
+from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 3';
+select is(private.close_visit('00000000-0000-4000-8000-000000000216', now(), 'cash_out'), '00000000-0000-4000-8000-0000000a9602'::uuid,
+  'Kunal''s visit closes at the cage');
+select is((select count(*)::integer from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+           where p.template_key = 'hours_bonus' and g.member_id = '00000000-0000-4000-8000-000000000216'), 1,
+  'and his four hours earn the bonus as a door close would');
 
 -- The front desk's rules hold at the kiosk.
 insert into public.visit (venue_id, member_id, opened_at) values
@@ -116,6 +144,7 @@ select throws_ok($$ select public.check_out('00000000-0000-4000-8000-00000000000
 select is_empty($$ select * from public.member $$, 'it reads no member');
 select is_empty($$ select * from public.visit $$, 'and no visit');
 select is_empty($$ select * from public.floor_seats('00000000-0000-4000-8000-000000000001') $$, 'and nobody''s seat');
+select is_empty($$ select * from public.dealer_down $$, 'nor the dealers'' downs');
 
 -- Door kiosks pair as tablets do; the front desk still checks in as before.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

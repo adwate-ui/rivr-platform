@@ -17,5 +17,6 @@ export function scanResult(outcome: { ok: true; value: DoorScan } | { ok: false;
   }
   if (reason === 'card_not_current') return { title: t('tablet.door.tryAgain'), detail: t('tablet.door.cardNotCurrent'), isRefused: true };
   if (reason === 'on_break') return { title: t('tablet.door.seeFrontDesk'), detail: t('tablet.door.onBreak'), isRefused: true };
+  if (reason === 'not_allowed') return { title: t('tablet.door.seeFrontDesk'), detail: t('tablet.door.notPaired'), isRefused: true };
   return { title: t('tablet.door.seeFrontDesk'), detail: t('tablet.door.unavailable'), isRefused: true };
 }

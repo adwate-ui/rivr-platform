@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 // A frame is read four times a second, at no more than 640 pixels across: enough for a card held up close.
 const READ_MS = 250;
 const READ_WIDTH = 640;
-// The same code read again within this long is the same card still held up, not a second scan.
-const SAME_CARD_MS = 5_000;
+// The same card read again within this long is the card still held up, not a second scan: a code stays
+// the same for its whole window (30 seconds unless set).
+const SAME_CARD_MS = 30_000;
 
 /** The QR code in the video's current frame, drawn small onto the canvas to read; null when there is none. */
 function readFrame(video: HTMLVideoElement, canvas: HTMLCanvasElement): string | null {
@@ -34,23 +35,31 @@ export function useCardScanner(onCode: (code: string) => void) {
   }, [onCode]);
   useEffect(() => {
     let stream: MediaStream | null = null;
-    let last = { code: '', at: 0 };
+    let isClosed = false;
+    let last = { card: '', at: 0 };
     const canvas = document.createElement('canvas');
     const timer = setInterval(() => {
       const code = videoRef.current === null ? null : readFrame(videoRef.current, canvas);
-      if (code === null || (code === last.code && Date.now() - last.at < SAME_CARD_MS)) return;
-      last = { code, at: Date.now() };
+      // A card's code names the card before its first dot; the same card held up is one scan.
+      const card = code?.split('.')[0] ?? '';
+      if (code === null || (card === last.card && Date.now() - last.at < SAME_CARD_MS)) return;
+      last = { card, at: Date.now() };
       onCodeRef.current(code);
     }, READ_MS);
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
       .then((opened) => {
         stream = opened;
+        if (isClosed) {
+          opened.getTracks().forEach((track) => track.stop());
+          return;
+        }
         if (videoRef.current === null) return;
         videoRef.current.srcObject = opened;
         void videoRef.current.play();
       })
       .catch(() => setCameraError(true));
     return () => {
+      isClosed = true;
       clearInterval(timer);
       stream?.getTracks().forEach((track) => track.stop());
     };

@@ -52,7 +52,9 @@ begin
           case when private.door_venue_id() = p_venue_id then private.current_device_id() end)
   returning id into v_id;
   perform private.emit(p_venue_id, 'visit.opened', jsonb_build_object('visit_id', v_id, 'member_id', p_member_id), 'visit.opened:' || v_id);
-  perform private.evaluate_promotions(p_venue_id, 'check_in', jsonb_build_object('member_id', p_member_id, 'key', 'check_in:' || v_id));
+  -- Once a club day, however often a member scans in and out (keyed by the day, not the visit).
+  perform private.evaluate_promotions(p_venue_id, 'check_in', jsonb_build_object('member_id', p_member_id,
+    'key', 'check_in:' || p_member_id || ':' || (private.tonight_began(now()) at time zone 'Asia/Kolkata')::date));
   return v_id;
 end;
 $$;
@@ -152,7 +154,7 @@ begin
   group by e.table_id order by sum(e.played_seconds) desc, e.table_id limit 1;
   perform private.evaluate_promotions(v_visit.venue_id, 'hours_played', jsonb_build_object(
     'member_id', v_visit.member_id, 'table_id', v_table, 'key', 'hours_played:' || p_visit_id,
-    'hours_played', round(v_hours.o_played / 3600.0, 2), 'points', v_hours.o_points));
+    'hours_played', trunc(v_hours.o_played / 3600.0, 2), 'points', v_hours.o_points));
 end;
 $$;
 
@@ -177,7 +179,8 @@ begin
 end;
 $$;
 
--- A scan at the door kiosk: the member whose card it is, checked in, or out if they are in. A scan
+-- A scan at the door kiosk: the member whose card it is, checked in, or out if they are in. A scan in
+-- the first two minutes of a visit (a card still held up, scanned again) only says they are in; a scan
 -- within ten minutes of their visit closing (a final cash-out at the cage, say) opens nothing again: it
 -- says goodbye. Gives what happened (`in`, `out` or `gone`), the member's first name, and for `out`
 -- and `gone` the seconds they played that visit. Refusals: 42501 not a door kiosk, RVCRD a card code
@@ -200,6 +203,10 @@ begin
   end if;
   select * into v_member from public.member m where m.id = private.card_member(v_venue_id, p_code, now()) for update;
   v_visit := private.current_visit(v_member.id);
+  if v_visit is not null and (select v.opened_at from public.visit v where v.id = v_visit) > now() - interval '2 minutes' then
+    return query select 'in'::text, split_part(trim(v_member.full_name), ' ', 1), 0::bigint;
+    return;
+  end if;
   if v_visit is not null then
     perform private.leave_by_door(v_venue_id, v_member.id);
     return query select 'out'::text, split_part(trim(v_member.full_name), ' ', 1), h.o_played from private.visit_hours(v_visit) h;

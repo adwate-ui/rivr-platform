@@ -51,8 +51,6 @@ create trigger feedback_audit after insert or update or delete on public.feedbac
 alter table public.feedback enable row level security;
 grant select on public.feedback to authenticated;
 
-create policy "members see their own feedback" on public.feedback
-  for select to authenticated using (member_id = (select private.current_member_id()));
 create policy "the General Manager sees the venue's feedback" on public.feedback
   for select to authenticated using (venue_id in (select private.venues_where('feedback.manage')));
 

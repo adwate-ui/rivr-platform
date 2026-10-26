@@ -42,8 +42,9 @@ function onScannerKey(event: KeyboardEvent<HTMLInputElement>, onScannerCode: (co
 export function QrScanView({ videoRef, prompt, result, cameraError, scannerLabel, onScannerCode }: QrScanViewProps) {
   return (
     <div className="grid grid-cols-2 items-center gap-12">
+      {/* A kiosk has nothing else to focus: a tap elsewhere hands the focus back, for the card scanner. */}
       <input className="sr-only" aria-label={scannerLabel} inputMode="none" autoComplete="off" autoFocus
-        onKeyDown={(event) => onScannerKey(event, onScannerCode)} />
+        onBlur={(event) => event.currentTarget.focus()} onKeyDown={(event) => onScannerKey(event, onScannerCode)} />
       <div className="flex flex-col gap-4">
         <Heading level={1} variant="title">{prompt}</Heading>
         <div className="relative aspect-photo overflow-hidden rounded-lg border border-hairline bg-raised">

@@ -1,13 +1,15 @@
 /**
  * The door kiosk and feedback (#331, #160; decisions 0164 and 0165), signed in once on the console as a
- * floor manager (Rahul Verma, this flow's own sign-in: Auth sends one code a minute to a number):
+ * floor manager (Nisha Arora, this flow's own sign-in, 14_people_c.sql: Auth sends one code a minute to a number):
  * - he adds a door kiosk on the Tablets screen and reads out its code; the tablet pairs with it and
  *   shows the card scanner, not hand entry;
  * - Vidya Chadha, from the seed's hundred more members whom no other flow signs in as, opens her card;
- *   the kiosk's card scanner reads it: she is welcomed in, and the next scan says goodbye;
+ *   the kiosk's card scanner reads it: she is welcomed in, and a second scan straight away (a card
+ *   still held up) changes nothing; Nisha checks her out on the console (the kiosk's scan out, two
+ *   minutes on, is proved in supabase/tests/096_door_kiosk.test.sql);
  * - her Home then asks how her visit was; she gives it a 2 with a note, and is told the General Manager
  *   will look into it;
- * - Rahul, an admin, sees the ticket on Feedback and resolves it with what was done.
+ * - Nisha, an admin, sees the ticket on Feedback and resolves it with what was done.
  * The kiosk is revoked at the end. In and out with no time played, Vidya's visit earns nothing. A scan
  * within ten minutes of a visit closing says goodbye, so a rerun waits ten minutes or a fresh seed.
  */
@@ -32,12 +34,12 @@ async function scan(kiosk: Page, code: string) {
 }
 
 test.describe('Door kiosk', () => {
-  test('Door kiosk: a member scans in and out at the door, then rates her visit, and the General Manager resolves it', async ({ browser }) => {
+  test('Door kiosk: a member scans in at the door, then rates her visit, and the General Manager resolves it', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'makes a device login and opens and closes a visit, so the local stack only');
     test.setTimeout(120_000);
     const name = `Door ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
-    await signInToConsole(floor, '9000000142');
+    await signInToConsole(floor, '9000000191');
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('switch', { name: 'Door kiosk' }).click();
@@ -60,7 +62,11 @@ test.describe('Door kiosk', () => {
     await scan(kiosk, await doorCode(member));
     await expect(kiosk.getByText('Welcome, Vidya.', { exact: true })).toBeVisible();
     await scan(kiosk, await doorCode(member));
-    await expect(kiosk.getByText('Goodbye, Vidya.', { exact: true })).toBeVisible();
+    await expect(kiosk.getByText('Welcome, Vidya.', { exact: true })).toBeVisible();
+    await expect(kiosk.getByText('Goodbye, Vidya.', { exact: true })).toHaveCount(0);
+    await floor.getByRole('link', { name: 'Check-in' }).click();
+    await floor.getByRole('button', { name: 'Check out Vidya Chadha' }).click();
+    await expect(floor.getByRole('button', { name: 'Check out Vidya Chadha' })).toHaveCount(0);
 
     // Home asks how it was; a 2 with a note is a ticket for the General Manager.
     await member.getByRole('link', { name: 'Home' }).click();
@@ -74,7 +80,7 @@ test.describe('Door kiosk', () => {
     await expect(floor.getByText('The door queue was slow.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'What was done' }).first().fill('Second host on the door from Friday.');
     await floor.getByRole('button', { name: 'Resolve Vidya Chadha’s ticket' }).first().click();
-    await expect(floor.getByText(/^Resolved by Rahul Verma on .*: Second host on the door from Friday\.$/)).toBeVisible();
+    await expect(floor.getByText(/^Resolved by Nisha Arora on .*: Second host on the door from Friday\.$/)).toBeVisible();
 
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('button', { name: `Revoke ${name}`, exact: true }).click();

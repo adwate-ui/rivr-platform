@@ -12,6 +12,8 @@ create temporary table seed_person_c (
 insert into seed_person_c (id, phone, full_name) values
   -- The Membership card flow's own front desk (#71).
   ('00000000-0000-4000-8000-000000000190', '+919000000190', 'Farhan Ali'),
+  -- The Door kiosk flow's own floor manager, who adds the kiosk and resolves the feedback (decisions 0164, 0165).
+  ('00000000-0000-4000-8000-000000000191', '+919000000191', 'Nisha Arora'),
   -- The Membership card flow's own member, whose card the door scans (#71).
   ('00000000-0000-4000-8000-000000000290', '+919000000290', 'Kavya Rao');
 
@@ -34,6 +36,12 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, 'Front desk', 'host', p.phone
 from seed_person_c p
 where p.id = '00000000-0000-4000-8000-000000000190'
+on conflict (venue_id, user_id) do nothing;
+
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, 'Floor manager', 'admin', p.phone
+from seed_person_c p
+where p.id = '00000000-0000-4000-8000-000000000191'
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
