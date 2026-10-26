@@ -8,7 +8,8 @@
     "./site": "./src/site.ts",
     "./myRewards": "./src/myRewards.ts",
     "./tds": "./src/tds.ts",
-    "./shareholding": "./src/shareholding.ts"
+    "./shareholding": "./src/shareholding.ts",
+    "./tally": "./src/tally.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",

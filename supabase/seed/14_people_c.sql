@@ -24,6 +24,8 @@ insert into seed_person_c (id, phone, full_name) values
   -- The TDS and register flow's super admins: one takes the TDS extract, one keeps the register (#93, #97).
   ('00000000-0000-4000-8000-000000000195', '+919000000195', 'Simran Gill'),
   ('00000000-0000-4000-8000-000000000196', '+919000000196', 'Rehan Kapur'),
+  -- The Tally flow's own admin, who maps the accounts and takes a day's vouchers (#96).
+  ('00000000-0000-4000-8000-000000000197', '+919000000197', 'Pooja Bhatia'),
   ('00000000-0000-4000-8000-000000000296', '+919000000296', 'Devansh Malik'),
   -- The Membership card flow's own member, whose card the door scans (#71).
   ('00000000-0000-4000-8000-000000000290', '+919000000290', 'Kavya Rao');
@@ -62,7 +64,8 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000193'::uuid, 'General manager', 'admin'),
              ('00000000-0000-4000-8000-000000000194'::uuid, 'Duty manager', 'super_admin'),
              ('00000000-0000-4000-8000-000000000195'::uuid, 'Finance manager', 'super_admin'),
-             ('00000000-0000-4000-8000-000000000196'::uuid, 'Director', 'super_admin')) as j (id, job_title, role) on j.id = p.id
+             ('00000000-0000-4000-8000-000000000196'::uuid, 'Director', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000197'::uuid, 'Accounts manager', 'admin')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
