@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { repaymentSchema } from '@rivr/contracts';
+import { repaymentSchema } from '@rivr/contracts/treasury';
 import { useOpenMarkers, useRepayment, type OpenMarker, type RepaymentFailure } from '@rivr/db';
 import { fromRupees, type Paise } from '@rivr/domain/money';
 import { formatMoney, t } from '@rivr/i18n';

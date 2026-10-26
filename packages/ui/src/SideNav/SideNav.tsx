@@ -4,7 +4,7 @@ import { routeClick, type Navigate } from '../internal/navigation.ts';
 
 export interface SideNavItem {
   id: string;
-  /** Already translated, for example `t('ui.consoleRail.items.cage')`. */
+  /** Already translated, for example `t('console.rail.items.cage')`. */
   label: string;
   href: string;
 }

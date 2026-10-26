@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { expenseRequestSchema } from '@rivr/contracts';
+import { expenseRequestSchema } from '@rivr/contracts/treasury';
 import { useExpenseActions, type ExpenseCategory, type ExpenseFailure, type PaymentAccount } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { t } from '@rivr/i18n';

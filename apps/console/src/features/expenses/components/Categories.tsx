@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { expenseCategorySchema } from '@rivr/contracts';
+import { expenseCategorySchema } from '@rivr/contracts/treasury';
 import { useExpenseActions, type ExpenseCategory, type ExpenseFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
