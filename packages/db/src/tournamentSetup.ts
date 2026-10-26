@@ -5,7 +5,8 @@ import type { Stage } from '@rivr/domain/tournament';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-import { toFormat, toStages, tournamentFailure, type TournamentAddOn, type TournamentFailure } from './tournaments.ts';
+import { tournamentFailure, type TournamentFailure } from './tournamentFailures.ts';
+import { toFormat, toStages, type TournamentAddOn } from './tournaments.ts';
 
 /** A venue's blind structure (#115, decision 0200): its name and its levels and breaks. */
 export interface BlindStructure {

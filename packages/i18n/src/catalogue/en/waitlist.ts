@@ -33,6 +33,27 @@ export const tonight = {
   /** On a break, the level that follows: `Next 500/1,000 ante 1,000`. */
   liveNext: 'Next {blinds}',
   livePaused: 'Paused',
+  /** The field (#118): `31 of 58 left`, `₹5,22,000 pool`. */
+  liveLeft: '{left} of {entries} left',
+  livePool: '{amount} pool',
+  /** The member's own standing and what they may buy (#118). */
+  seatedAt: 'You are at table {table}, seat {seat}.',
+  alternate: 'You are an alternate: the floor seats you when a seat opens.',
+  bustedOut: 'You are out.',
+  offers: { entry: 'Register', re_entry: 'Re-enter', rebuy: 'Rebuy' },
+  confirmBuy: 'Pay {amount} from your balance?',
+  payNow: 'Yes, pay',
+  notNow: 'Not now',
+  /** Why the app did not sell it. */
+  buyFailures: {
+    short: 'Not enough in your balance.',
+    registration_closed: 'Registration has closed.',
+    identity: 'Finish your identity check first.',
+    on_break: 'On a break: no buy-ins until it ends.',
+    switched_off: 'Tournament registration is paused. Try again when the floor reopens it.',
+    room_full: 'Every seat is taken. Ask the floor.',
+    other: 'That did not go through. Try again, or ask at the cage.',
+  },
   closed: 'Closed',
   join: 'Join',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */

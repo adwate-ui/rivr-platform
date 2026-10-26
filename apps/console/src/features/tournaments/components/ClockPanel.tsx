@@ -1,6 +1,6 @@
 import { useElapsedNow, useTournamentClock, type ClockChange, type VenueTournament } from '@rivr/db';
-import { clockAt, levelAtOrAfter, nextLevelAfter, type ClockPosition, type Stage } from '@rivr/domain/tournament';
-import { formatBlinds, formatCountdown, t } from '@rivr/i18n';
+import { averageStack, clockAt, levelAtOrAfter, nextLevelAfter, type ClockPosition, type Stage } from '@rivr/domain/tournament';
+import { formatBlinds, formatCountdown, formatMoney, formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Stack, Text, TournamentClock } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -13,6 +13,18 @@ function clockLines(name: string, stages: readonly Stage[], position: ClockPosit
     blinds: position.isBreak || level === undefined ? t('console.tournaments.break') : formatBlinds(level.smallBlind, level.bigBlind, level.ante),
     next: next === undefined ? undefined : t('console.tournaments.next', { blinds: formatBlinds(next.smallBlind, next.bigBlind, next.ante) }),
   };
+}
+
+/** The field under the clock: entries, re-entries, players left, the average stack and the pool. */
+function fieldStats(tournament: VenueTournament) {
+  const field = tournament.field;
+  return [
+    { label: t('console.tournaments.stats.entries'), value: formatNumber(field.entries) },
+    { label: t('console.tournaments.stats.reEntries'), value: formatNumber(field.reEntries) },
+    { label: t('console.tournaments.stats.left'), value: formatNumber(field.playersLeft) },
+    { label: t('console.tournaments.stats.average'), value: formatNumber(averageStack(field.chipsInPlay, field.playersLeft)) },
+    { label: t('console.tournaments.stats.pool'), value: formatMoney(field.pool) },
+  ];
 }
 
 interface ControlsProps {
@@ -42,9 +54,10 @@ function Controls({ tournament, position, isBusy, onChange }: ControlsProps) {
 
 /**
  * A tournament's clock and the floor's controls (#119, decision 0201): the server keeps the clock, and this
- * counts down from what it last said, a second at a time. A clock not started shows level 1 in full.
+ * counts down from what it last said, a second at a time. A clock not started shows level 1 in full. The field
+ * sits under it (#118); the controls are for staff who run tournaments.
  */
-export function ClockPanel({ venueId, tournament }: { venueId: string; tournament: VenueTournament }) {
+export function ClockPanel({ venueId, tournament, canRun }: { venueId: string; tournament: VenueTournament; canRun: boolean }) {
   const change = useTournamentClock(venueId);
   const [failure, setFailure] = useState<string | null>(null);
   const elapsed = useElapsedNow(tournament.clock);
@@ -60,7 +73,8 @@ export function ClockPanel({ venueId, tournament }: { venueId: string; tournamen
   return (
     <Stack gap={4}>
       <TournamentClock title={lines.title} remaining={formatCountdown(position.secondsLeft)} blinds={lines.blinds} next={lines.next} status={status}
-        actions={<Controls tournament={tournament} position={position} isBusy={change.isPending} onChange={onChange} />} />
+        stats={fieldStats(tournament)}
+        actions={canRun ? <Controls tournament={tournament} position={position} isBusy={change.isPending} onChange={onChange} /> : undefined} />
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

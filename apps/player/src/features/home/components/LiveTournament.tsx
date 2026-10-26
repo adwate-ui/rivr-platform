@@ -1,12 +1,7 @@
-import { useElapsedNow, useLiveTournament } from '@rivr/db';
+import { useElapsedNow, type MyTournament } from '@rivr/db';
 import { clockAt, levelAtOrAfter, nextLevelAfter, type ClockPosition, type Stage } from '@rivr/domain/tournament';
-import { formatBlinds, formatCountdown, t } from '@rivr/i18n';
+import { formatBlinds, formatCountdown, formatMoney, t } from '@rivr/i18n';
 import { Inline, Stack, Text } from '@rivr/ui';
-
-/** Whether a tournament is running at the member's venue, so Home shows it in place of the next one. */
-export function useIsTournamentLive(): boolean {
-  return Boolean(useLiveTournament().data);
-}
 
 /** The blinds under the name: the level's, or on a break the next level's. */
 function blindsLine(stages: readonly Stage[], position: ClockPosition): string {
@@ -20,23 +15,27 @@ function blindsLine(stages: readonly Stage[], position: ClockPosition): string {
 
 /**
  * The tournament running at the member's venue (#119, flow 10), as in the prototype: its name and level,
- * the level's time left counting down from what the server last said, and the blinds. Nothing while none runs.
+ * the level's time left counting down from what the server last said, the players left of the entries,
+ * the blinds and the pool (#118).
  */
-export function LiveTournament() {
-  const live = useLiveTournament().data;
-  const elapsed = useElapsedNow(live?.clock);
-  if (!live) return null;
-  const position = clockAt(live.stages, elapsed);
+export function LiveTournament({ tournament }: { tournament: MyTournament }) {
+  const elapsed = useElapsedNow(tournament.clock);
+  if (tournament.stages.length === 0) return null;
+  const position = clockAt(tournament.stages, elapsed);
+  const field = tournament.field;
   return (
     <Stack gap={1}>
-      <Text variant="small" tone="muted">{t('player.tonight.liveTournament')}</Text>
       <Inline justify="between" align="baseline" gap={4}>
-        <Text weight="medium">{t(position.isBreak ? 'player.tonight.liveBreak' : 'player.tonight.liveLevel', { name: live.name, level: position.level })}</Text>
+        <Text variant="small" tone="muted">{t('player.tonight.liveTournament')}</Text>
+        {field.entries === 0 ? null : <Text variant="small" tone="muted">{t('player.tonight.liveLeft', { left: field.playersLeft, entries: field.entries })}</Text>}
+      </Inline>
+      <Inline justify="between" align="baseline" gap={4}>
+        <Text weight="medium">{t(position.isBreak ? 'player.tonight.liveBreak' : 'player.tonight.liveLevel', { name: tournament.name, level: position.level })}</Text>
         <Text variant="lead" weight="medium" isTabular>{formatCountdown(position.secondsLeft)}</Text>
       </Inline>
       <Inline justify="between" align="baseline" gap={4}>
-        <Text variant="small" tone="muted">{blindsLine(live.stages, position)}</Text>
-        {live.clock.isRunning ? null : <Text variant="small" tone="muted">{t('player.tonight.livePaused')}</Text>}
+        <Text variant="small" tone="muted">{tournament.clock.isRunning ? blindsLine(tournament.stages, position) : t('player.tonight.livePaused')}</Text>
+        {field.entries === 0 ? null : <Text variant="small" tone="muted">{t('player.tonight.livePool', { amount: formatMoney(field.pool) })}</Text>}
       </Inline>
     </Stack>
   );

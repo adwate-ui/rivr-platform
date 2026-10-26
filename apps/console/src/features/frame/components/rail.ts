@@ -25,7 +25,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', anyOf: [] },
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
       { id: 'checkIn', label: 'console.rail.items.checkIn', href: '/check-in', anyOf: ['waitlist.manage'] },
-      { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage'] },
+      { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'] },
       { id: 'tablets', label: 'console.rail.items.tablets', href: '/tablets', anyOf: ['devices.manage'] },
       { id: 'tvs', label: 'console.rail.items.tvs', href: '/tvs', anyOf: ['devices.manage'] },
       { id: 'computers', label: 'console.rail.items.computers', href: '/computers', anyOf: ['devices.manage'] },

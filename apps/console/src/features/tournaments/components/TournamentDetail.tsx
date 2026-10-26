@@ -5,6 +5,7 @@ import { formatMoney, formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { ClockPanel } from './ClockPanel.tsx';
+import { FloorPanel } from './FloorPanel.tsx';
 
 /** The rules under the clock: registration, the guarantee, the buy-in and what reaches the pool, any add-on, the places paid. */
 function ruleLines(tournament: VenueTournament): string[] {
@@ -38,19 +39,24 @@ function RemoveTournament({ tournament, isBusy, onRemove }: { tournament: VenueT
  * One tournament on the console (#115, #119): its clock and controls, the rules its template set, whether
  * members see it, and removing one made by mistake. Keyed by the tournament, so another one starts afresh.
  */
-export function TournamentDetail({ venueId, tournament }: { venueId: string; tournament: VenueTournament }) {
+export function TournamentDetail({ venueId, tournament, canRun, canTakeCash }: { venueId: string; tournament: VenueTournament; canRun: boolean; canTakeCash: boolean }) {
   const actions = useTournamentActions(venueId);
   const [failure, setFailure] = useState<string | null>(null);
   const report = (done: Result<null, TournamentFailure>) => setFailure(done.ok ? null : t(`console.tournaments.failures.${done.error}`));
   return (
     <Stack gap={6}>
-      <ClockPanel venueId={venueId} tournament={tournament} />
+      <ClockPanel venueId={venueId} tournament={tournament} canRun={canRun} />
       <Inline gap={6} wrap>{ruleLines(tournament).map((line) => <Text key={line} variant="small" tone="muted">{line}</Text>)}</Inline>
-      <Switch label={t('console.tournaments.shown')} hint={t('console.tournaments.shownHint')} isOn={tournament.isPublished}
-        isDisabled={actions.list.isPending}
-        onChange={(isPublished) => void actions.list.mutateAsync({ tournament, isPublished }).then(report)} />
-      <RemoveTournament tournament={tournament} isBusy={actions.remove.isPending}
-        onRemove={() => void actions.remove.mutateAsync(tournament.id).then(report)} />
+      <FloorPanel venueId={venueId} tournament={tournament} canRun={canRun} canTakeCash={canTakeCash} />
+      {canRun ? (
+        <>
+          <Switch label={t('console.tournaments.shown')} hint={t('console.tournaments.shownHint')} isOn={tournament.isPublished}
+            isDisabled={actions.list.isPending}
+            onChange={(isPublished) => void actions.list.mutateAsync({ tournament, isPublished }).then(report)} />
+          <RemoveTournament tournament={tournament} isBusy={actions.remove.isPending}
+            onRemove={() => void actions.remove.mutateAsync(tournament.id).then(report)} />
+        </>
+      ) : null}
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

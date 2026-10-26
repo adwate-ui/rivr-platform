@@ -1,9 +1,9 @@
 import { useElapsedNow, useTvTournamentClock, type LiveTournament } from '@rivr/db';
-import { clockAt, levelAtOrAfter, nextLevelAfter } from '@rivr/domain/tournament';
-import { formatBlinds, formatCountdown, formatNumber, t } from '@rivr/i18n';
+import { averageStack, clockAt, levelAtOrAfter, nextLevelAfter } from '@rivr/domain/tournament';
+import { formatBlinds, formatCountdown, formatMoney, formatNumber, t } from '@rivr/i18n';
 import { Heading, Stack, Text, TvTournamentClock, type TvTournamentClockProps } from '@rivr/ui';
 
-/** What the TV shows for a running tournament `elapsedSeconds` in: the level or break, its time left, the blinds, ante and next level. */
+/** What the TV shows for a running tournament `elapsedSeconds` in: the level or break, its time left, the blinds, ante and next level, and the field. */
 export function toClockProps(tournament: LiveTournament, elapsedSeconds: number): TvTournamentClockProps {
   const position = clockAt(tournament.stages, elapsedSeconds);
   const level = levelAtOrAfter(tournament.stages, position.stage);
@@ -17,7 +17,12 @@ export function toClockProps(tournament: LiveTournament, elapsedSeconds: number)
     blinds: showsBlinds ? formatBlinds(level.smallBlind, level.bigBlind) : t('tv.tournamentClock.break'),
     ante: showsBlinds && level.ante > 0 ? t('tv.tournamentClock.ante', { ante: formatNumber(level.ante) }) : undefined,
     next: next === undefined ? undefined : t('tv.tournamentClock.next', { blinds: formatBlinds(next.smallBlind, next.bigBlind, next.ante) }),
-    stats: [],
+    stats: [
+      { label: t('tv.tournamentClock.players'), value: formatNumber(tournament.field.playersLeft) },
+      { label: t('tv.tournamentClock.entries'), value: formatNumber(tournament.field.entries) },
+      { label: t('tv.tournamentClock.average'), value: formatNumber(averageStack(tournament.field.chipsInPlay, tournament.field.playersLeft)) },
+      { label: t('tv.tournamentClock.pool'), value: formatMoney(tournament.field.pool) },
+    ],
     payoutsLabel: t('tv.tournamentClock.payouts'),
     payouts: [],
     noPayoutsText: t('tv.tournamentClock.noPayouts'),

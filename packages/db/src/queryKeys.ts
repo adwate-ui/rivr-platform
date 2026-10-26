@@ -180,7 +180,11 @@ export const queryKeys = {
   venueTournaments: (userId: string, venueId: string) => ['user', userId, 'venue-tournaments', venueId] as const,
   blindStructures: (userId: string, venueId: string) => ['user', userId, 'blind-structures', venueId] as const,
   tournamentTemplates: (userId: string, venueId: string) => ['user', userId, 'tournament-templates', venueId] as const,
-  /** The running tournament on the member's Home, and on the paired TV's tournament clock (#119). */
-  liveTournament: (userId: string) => ['user', userId, 'live-tournament'] as const,
+  /** Home's tournament for the member (#118, #119). */
+  myTournament: (userId: string) => ['user', userId, 'my-tournament'] as const,
+  /** A tournament's players and the floor's balancing prompts (#120). */
+  tournamentSeating: (userId: string, tournamentId: string) => ['user', userId, 'tournament-seating', tournamentId] as const,
+  tournamentBalance: (userId: string, tournamentId: string) => ['user', userId, 'tournament-balance', tournamentId] as const,
+  /** The paired TV's tournament clock (#119). */
   tvTournamentClock: (userId: string) => ['user', userId, 'tv-tournament-clock'] as const,
 };

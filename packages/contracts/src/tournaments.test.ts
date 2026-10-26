@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { blindLevelsSchema } from './blindLevels.ts';
-import { blindStructureSchema, istMoment, newTournamentSchema, stageFormSchema, structurePlanSchema, tournamentTemplateSchema } from './tournaments.ts';
+import { blindStructureSchema, cageBuySchema, istMoment, tournamentRoomSchema, newTournamentSchema, stageFormSchema, structurePlanSchema, tournamentTemplateSchema } from './tournaments.ts';
 
 const TEMPLATE = {
   name: 'RIVR Sunday', format: 're_entry', buyIn: '10000', fee: '1000', startingStack: '30000', structureId: '00000000-0000-4000-8000-0000000007b1',
@@ -75,5 +75,18 @@ describe('a new tournament’s start', () => {
     const order = { templateId: '00000000-0000-4000-8000-0000000007c1', name: 'RIVR Sunday', day: '2026-11-15', time: '24:00', isPublished: true };
     expect(newTournamentSchema.safeParse(order).success).toBe(false);
     expect(newTournamentSchema.safeParse({ ...order, time: '16:00' }).success).toBe(true);
+  });
+});
+
+describe('the floor’s forms', () => {
+  it('takes a room of 1 to 30 tables of 2 to 10 seats', () => {
+    expect(tournamentRoomSchema.parse({ tables: '4', seatsPerTable: '9' })).toEqual({ tables: 4, seatsPerTable: 9 });
+    expect(tournamentRoomSchema.safeParse({ tables: '31', seatsPerTable: '9' }).success).toBe(false);
+    expect(tournamentRoomSchema.safeParse({ tables: '4', seatsPerTable: '1' }).success).toBe(false);
+  });
+
+  it('takes a cash buy for a chosen member', () => {
+    expect(cageBuySchema.safeParse({ memberId: '00000000-0000-4000-8000-000000000213', purchase: 'add_on' }).success).toBe(true);
+    expect(cageBuySchema.safeParse({ memberId: '', purchase: 'entry' }).success).toBe(false);
   });
 });

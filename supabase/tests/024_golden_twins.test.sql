@@ -452,5 +452,59 @@ select results_eq(
   $$ select description, expected ->> 'result' from golden.golden_case where file = 'tournamentEntry.json' order by position $$,
   'private.tournament_purchase_refusal allows or refuses every purchase in the golden file');
 
+-- Tournament money: private.tournament_pool_share and @rivr/domain poolShare (packages/testing/golden/tournamentMoney.json).
+create function pg_temp.pool_share_or_refused(p_price bigint, p_fee bigint) returns text language plpgsql as $$
+begin
+  return private.tournament_pool_share(p_price, p_fee)::text;
+exception when invalid_parameter_value then
+  return 'refused';
+end;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentMoney.json'), 'the tournament money cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tournamentMoney.json' and operation <> 'share' $$,
+  'every operation in tournamentMoney.json is proved here');
+select results_eq(
+  $$ select description, pg_temp.pool_share_or_refused(pg_temp.paise(replace(inputs ->> 'price', '-', '')) * case when inputs ->> 'price' like '-%' then -1 else 1 end,
+                                                        pg_temp.paise(replace(inputs ->> 'fee', '-', '')) * case when inputs ->> 'fee' like '-%' then -1 else 1 end)
+     from golden.golden_case where file = 'tournamentMoney.json' order by position $$,
+  $$ select description, case when expected ->> 'pool' = 'refused' then 'refused' else pg_temp.paise(expected ->> 'pool')::text end
+     from golden.golden_case where file = 'tournamentMoney.json' order by position $$,
+  'private.tournament_pool_share splits or refuses every buy in the golden file');
+
+-- Tournament seating: private.tournament_eligible_seats and tournament_balancing_moves, and @rivr/domain
+-- eligibleSeats and balancingMoves (packages/testing/golden/tournamentSeating.json).
+create function pg_temp.seats(p_text text) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_agg(jsonb_build_array(split_part(s, '/', 1)::integer, split_part(s, '/', 2)::integer)), '[]')
+  from unnest(string_to_array(nullif(p_text, ''), ' ')) s;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentSeating.json'), 'the tournament seating cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tournamentSeating.json' and operation not in ('eligible', 'balance', 'place') $$,
+  'every operation in tournamentSeating.json is proved here');
+select results_eq(
+  $$ select description, coalesce((select string_agg(e.table_number || '/' || e.seat_number, ' ' order by e.table_number, e.seat_number)
+                                   from private.tournament_eligible_seats(pg_temp.seats(inputs ->> 'occupied'), (inputs ->> 'tables')::integer,
+                                                                          (inputs ->> 'seatsPerTable')::integer) e), '')
+     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'eligible' order by position $$,
+  $$ select description, expected ->> 'seats' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'eligible' order by position $$,
+  'private.tournament_eligible_seats offers every seat the golden file does');
+select results_eq(
+  $$ select description, coalesce((select string_agg(m.from_table || '>' || m.to_table, ' ' order by m.move)
+                                   from private.tournament_balancing_moves(string_to_array(inputs ->> 'counts', ' ')::integer[]) m), '')
+     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'balance' order by position $$,
+  $$ select description, expected ->> 'moves' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'balance' order by position $$,
+  'private.tournament_balancing_moves balances every room in the golden file');
+create function pg_temp.finish_place_or_refused(p_runs integer, p_rank integer) returns text language plpgsql as $$
+begin
+  return private.tournament_finish_place(p_runs, p_rank)::text;
+exception when invalid_parameter_value then
+  return 'refused';
+end;
+$$;
+select results_eq(
+  $$ select description, pg_temp.finish_place_or_refused((inputs ->> 'runs')::integer, (inputs ->> 'bustRank')::integer)
+     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
+  $$ select description, expected ->> 'place' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
+  'private.tournament_finish_place places every bust in the golden file');
+
 select * from finish();
 rollback;

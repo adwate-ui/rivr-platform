@@ -1,0 +1,42 @@
+{
+  "rule": "Tournament money",
+  "about": "What each tournament buy puts in the prize pool (#118; decisions 0200, 0203). An entry, re-entry or rebuy costs the tournament's buy-in, which holds its fee; an add-on costs its own price, which holds its own fee. The fee is the club's revenue (venue.tournament_fees); the rest is players' money in the prize pool (venue.tournament_pool) until the prizes are paid. A fee is nothing or more and always less than the price; anything else is refused. Amounts are whole rupees in ₹50 chips.",
+  "cases": [
+    {
+      "description": "RIVR Sunday: ₹10,000 with a ₹1,000 fee puts ₹9,000 in the pool.",
+      "operation": "share",
+      "inputs": { "price": "₹10,000", "fee": "₹1,000" },
+      "expected": { "pool": "₹9,000" }
+    },
+    {
+      "description": "An add-on with no fee puts all of its ₹2,000 in the pool.",
+      "operation": "share",
+      "inputs": { "price": "₹2,000", "fee": "₹0" },
+      "expected": { "pool": "₹2,000" }
+    },
+    {
+      "description": "At the ₹50 boundary: ₹1,050 with a ₹50 fee puts ₹1,000 in.",
+      "operation": "share",
+      "inputs": { "price": "₹1,050", "fee": "₹50" },
+      "expected": { "pool": "₹1,000" }
+    },
+    {
+      "description": "The smallest pool share: ₹100 with a ₹50 fee puts ₹50 in.",
+      "operation": "share",
+      "inputs": { "price": "₹100", "fee": "₹50" },
+      "expected": { "pool": "₹50" }
+    },
+    {
+      "description": "A fee as large as the price is refused: nothing would reach the pool.",
+      "operation": "share",
+      "inputs": { "price": "₹1,000", "fee": "₹1,000" },
+      "expected": { "pool": "refused" }
+    },
+    {
+      "description": "A fee below nothing is refused.",
+      "operation": "share",
+      "inputs": { "price": "₹1,000", "fee": "-₹50" },
+      "expected": { "pool": "refused" }
+    }
+  ]
+}
