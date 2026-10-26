@@ -12,6 +12,7 @@ export const rail = {
   },
   items: {
     liveFloor: 'Live floor',
+    owner: 'Owner',
     settings: 'Settings',
     waitlist: 'Waitlist',
     tablets: 'Tablets',

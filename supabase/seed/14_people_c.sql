@@ -32,6 +32,8 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000199', '+919000000199', 'Kiara Sethi'),
   -- The Export flow's own admin, who exports members filtered by tier (#102; additions flow 20).
   ('00000000-0000-4000-8000-000000000610', '+919000000610', 'Tara Menon'),
+  -- The owner dashboard flow's own owner, who reads the dashboard on a phone (#101).
+  ('00000000-0000-4000-8000-000000000611', '+919000000611', 'Vikram Oberoi'),
   ('00000000-0000-4000-8000-000000000296', '+919000000296', 'Devansh Malik'),
   -- The Membership card flow's own member, whose card the door scans (#71).
   ('00000000-0000-4000-8000-000000000290', '+919000000290', 'Kavya Rao');
@@ -74,7 +76,8 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000197'::uuid, 'Accounts manager', 'admin'),
              ('00000000-0000-4000-8000-000000000198'::uuid, 'Owner', 'owner_view'),
              ('00000000-0000-4000-8000-000000000199'::uuid, 'Managing partner', 'super_admin'),
-             ('00000000-0000-4000-8000-000000000610'::uuid, 'Operations manager', 'admin')) as j (id, job_title, role) on j.id = p.id
+             ('00000000-0000-4000-8000-000000000610'::uuid, 'Operations manager', 'admin'),
+             ('00000000-0000-4000-8000-000000000611'::uuid, 'Owner', 'owner_view')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)

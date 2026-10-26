@@ -3661,6 +3661,9 @@ isOneToOne: false
               "age_days": number,"amount_paise": number,"due_at": string,"full_name": string,"is_past_due": boolean,"issued_at": string,"limit_paise": number,"marker_id": string,"member_id": string,"outstanding_paise": number
             }[]
                            },
+"owner_snapshot":
+{ Args: { "p_venue_id": string }; Returns: Json
+                           },
 "pause_tournament_clock":
 { Args: { "p_is_paused": boolean,"p_tournament_id": string }; Returns: undefined
                            },
