@@ -190,14 +190,14 @@ select results_eq($$ select name, is_paused, elapsed_seconds from public.venue_t
 
 -- The running tournament on Home, for members with tournament registration.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select results_eq($$ select name, elapsed_seconds, is_paused from public.live_tournament() $$, $$ values ('Test Short', 0, false) $$,
+select results_eq($$ select name, elapsed_seconds, is_paused, is_running from public.my_tournament() $$, $$ values ('Test Short', 0, false, true) $$,
   'a member sees the running tournament on Home');
 select throws_ok($$ select public.pause_tournament_clock(pg_temp.short(), true) $$, '42501', null, 'and cannot touch its clock');
 reset role;
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 'tournaments.register', false, 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select is_empty($$ select * from public.live_tournament() $$, 'without tournament registration, nothing');
+select is_empty($$ select * from public.my_tournament() $$, 'without tournament registration, nothing');
 reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is_empty($$ select 1 from public.tournament where id = pg_temp.short() $$, 'nor reads the tournament itself');
@@ -205,7 +205,7 @@ reset role;
 delete from public.member_feature_override where member_id = '00000000-0000-4000-8000-000000000213' and feature_key = 'tournaments.register';
 update public.tournament set is_published = false where id = pg_temp.short();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select is_empty($$ select * from public.live_tournament() $$, 'nor while it is off the calendar');
+select is_empty($$ select * from public.my_tournament() where id = pg_temp.short() $$, 'nor while it is off the calendar');
 reset role;
 update public.tournament set is_published = true where id = pg_temp.short();
 

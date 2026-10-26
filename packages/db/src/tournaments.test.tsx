@@ -5,7 +5,8 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useLiveTournament, useTvTournamentClock } from './liveTournament.ts';
+import { useMyTournament, useRegisterTournamentEntry, useTvTournamentClock } from './liveTournament.ts';
+import { useTournamentBalance, useTournamentFloorActions, useTournamentSeating } from './tournamentFloor.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useBlindStructures, useTournamentSetupActions, useTournamentTemplates } from './tournamentSetup.ts';
 import { useTournamentActions, useTournamentClock, useVenueTournaments } from './tournaments.ts';
@@ -33,7 +34,8 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
   const { result } = renderHook(() => ({
     tournaments: useVenueTournaments(VENUE), clock: useTournamentClock(VENUE), actions: useTournamentActions(VENUE),
     structures: useBlindStructures(VENUE), templates: useTournamentTemplates(VENUE), setup: useTournamentSetupActions(VENUE),
-    live: useLiveTournament(), tv: useTvTournamentClock(),
+    mine: useMyTournament(), register: useRegisterTournamentEntry(), tv: useTvTournamentClock(),
+    seating: useTournamentSeating('t1'), balance: useTournamentBalance('t1'), floor: useTournamentFloorActions(VENUE, 't1'),
   }), { wrapper });
   return { result, calls };
 }
@@ -44,7 +46,8 @@ const TOURNAMENT = {
   id: 't1', name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00+00:00', is_published: true, format: 're_entry', buy_in_paise: 1000000,
   fee_paise: 100000, guarantee_paise: 50000000, starting_stack: 30000, levels: LEVELS, last_registration_level: 9, max_buys: null,
   add_on_paise: null, add_on_fee_paise: null, add_on_chips: null, places_paid: 8, clock_started_at: '2026-11-15T10:30:00+00:00',
-  is_paused: false, elapsed_seconds: 8300,
+  is_paused: false, elapsed_seconds: 8300, tables: 6, seats_per_table: 9, entries: 58, re_entries: 11, players_left: 31, chips_in_play: 1740000,
+  pool_paise: 52200000,
 };
 
 afterEach(cleanup);
@@ -57,6 +60,7 @@ describe('the console’s tournaments (decision 0201)', () => {
       format: 're_entry', buyIn: 1000000n, fee: 100000n, guarantee: 50000000n, addOn: null, placesPaid: 8,
       stages: [{ kind: 'level', smallBlind: 400, bigBlind: 800, ante: 800, minutes: 20 }, { kind: 'break', minutes: 10 }],
       clock: { elapsedSeconds: 8300, isRunning: true },
+      field: { entries: 58, reEntries: 11, playersLeft: 31, chipsInPlay: 1740000, pool: 52200000n },
     });
     expect(result.current.tournaments.data?.[1]).toMatchObject({ stages: [], clock: null });
   });
@@ -125,13 +129,46 @@ describe('templates and blind structures (decision 0200)', () => {
   });
 });
 
-describe('the running tournament on Home and the TV (decision 0201)', () => {
-  it('reads it with its clock, or nothing when none runs', async () => {
+describe('Home’s tournament, the TV and the floor (decisions 0201, 0204)', () => {
+  it('reads the member’s tournament with their seat and what they may buy, and the TV’s nothing when none runs', async () => {
     const { result } = renderHooks({
-      '/rpc/live_tournament': { body: [{ name: 'RIVR Sunday', levels: LEVELS, elapsed_seconds: 600, is_paused: true }] },
+      '/rpc/my_tournament': { body: [{ id: 't1', name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00Z', buy_in_paise: 1000000, guarantee_paise: null,
+        is_running: true, levels: LEVELS, elapsed_seconds: 600, is_paused: true, entries: 2, players_left: 2, pool_paise: 1800000,
+        my_status: 'busted', my_table: null, my_seat: null, offer: 're_entry' }] },
       '/rpc/tv_tournament_clock': { body: [] },
     });
-    await waitFor(() => expect(result.current.live.data).toMatchObject({ name: 'RIVR Sunday', clock: { elapsedSeconds: 600, isRunning: false } }));
+    await waitFor(() => expect(result.current.mine.data).toMatchObject({
+      name: 'RIVR Sunday', isRunning: true, clock: { elapsedSeconds: 600, isRunning: false }, mine: { status: 'busted' }, offer: 're_entry',
+      field: { entries: 2, playersLeft: 2, pool: 1800000n },
+    }));
     await waitFor(() => expect(result.current.tv.data).toBeNull());
+  });
+
+  it('buys from the wallet, and says a rule’s refusal by its reason', async () => {
+    const { result, calls } = renderHooks({ '/rpc/register_tournament_entry': { status: 400, body: { code: 'RVTRN', message: 'refused', hint: 'registration_closed' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.register.mutateAsync({ tournamentId: 't1', purchase: 're_entry', requestId: 'r1' }); });
+    expect(outcome).toEqual({ ok: false, error: 'registration_closed' });
+    expect(bodyOf(calls, '/rpc/register_tournament_entry')).toEqual({ p_tournament_id: 't1', p_purchase: 're_entry', p_idempotency_key: 'r1' });
+  });
+
+  it('reads the floor’s players and prompts, and busts, moves and takes cash through their own functions', async () => {
+    const { result, calls } = renderHooks({
+      '/rpc/tournament_seating': { body: [{ entry_id: 'e1', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, entry_number: 1, status: 'seated',
+        table_number: 1, seat_number: 4, place: null, chips: 30000 }] },
+      '/rpc/tournament_balance': { body: [{ move: 1, from_table: 1, to_table: 2 }] },
+      '/rpc/cage_tournament_entry': { status: 400, body: { code: 'RVSHT', message: 'short' } },
+    });
+    await waitFor(() => expect(result.current.seating.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', status: 'seated', table: 1, seat: 4 }));
+    await waitFor(() => expect(result.current.balance.data).toEqual([{ from: 1, to: 2 }]));
+    let cash: unknown;
+    await act(async () => {
+      await result.current.floor.floor.mutateAsync({ change: 'move', entryId: 'e1', table: 2 });
+      await result.current.floor.floor.mutateAsync({ change: 'bust', entryId: 'e1' });
+      cash = await result.current.floor.cash.mutateAsync({ memberId: 'm1', purchase: 'entry', requestId: 'r2' });
+    });
+    expect(bodyOf(calls, '/rpc/move_tournament_entry')).toEqual({ p_entry_id: 'e1', p_table: 2 });
+    expect(bodyOf(calls, '/rpc/bust_tournament_entry')).toEqual({ p_entry_id: 'e1' });
+    expect(cash).toEqual({ ok: false, error: 'short' });
   });
 });

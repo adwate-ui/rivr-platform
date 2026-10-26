@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { planStructure, type StructurePlan } from './calculator.ts';
 import { clockAt, stageStartSeconds } from './clock.ts';
 import { checkPurchase, TOURNAMENT_FORMATS, type EntryRules, type PlayerStanding, type Purchase } from './entry.ts';
+import { balancingMoves, eligibleSeats, type TournamentSeat } from './seating.ts';
 import { levelCount, structureMinutes, structureProblem, type Stage } from './stages.ts';
 
 /** Any valid structure: a level first, then levels and single breaks, up to thirty stages. */
@@ -105,6 +106,37 @@ describe('checkPurchase properties', () => {
     fc.assert(fc.property(rules, player, fc.integer({ min: 0, max: 12 }), (tournament, standing, clockLevel) => {
       const buys = (['entry', 're_entry', 'rebuy'] as const).filter((asked) => checkPurchase(asked, tournament, clockLevel, standing).ok);
       if (tournament.maxBuys !== null && standing.buys >= tournament.maxBuys) expect(buys).toEqual([]);
+    }));
+  });
+});
+
+/** A room of up to six tables of up to ten seats, some of them taken. */
+const room = fc.record({ tables: fc.integer({ min: 1, max: 6 }), seatsPerTable: fc.integer({ min: 2, max: 10 }) }).chain((size) =>
+  fc.subarray(Array.from({ length: size.tables * size.seatsPerTable }, (_, index): TournamentSeat => ({
+    table: Math.floor(index / size.seatsPerTable) + 1, seat: (index % size.seatsPerTable) + 1,
+  }))).map((occupied) => ({ ...size, occupied })));
+
+describe('seating properties', () => {
+  it('offers only free seats, all at the emptiest tables with room, and none only when the room is full', () => {
+    fc.assert(fc.property(room, ({ tables, seatsPerTable, occupied }) => {
+      const offered = eligibleSeats(occupied, tables, seatsPerTable);
+      const count = (table: number) => occupied.filter((taken) => taken.table === table).length;
+      const withRoom = Array.from({ length: tables }, (_, index) => index + 1).filter((table) => count(table) < seatsPerTable);
+      expect(offered.every((place) => !occupied.some((taken) => taken.table === place.table && taken.seat === place.seat))).toBe(true);
+      expect(offered.every((place) => withRoom.every((table) => count(place.table) <= count(table)))).toBe(true);
+      expect(offered.length === 0).toBe(occupied.length === tables * seatsPerTable);
+    }));
+  });
+
+  it('balances any room to within one player, moving nobody in or out', () => {
+    fc.assert(fc.property(fc.array(fc.integer({ min: 0, max: 10 }), { minLength: 1, maxLength: 8 }), (counts) => {
+      const after = [...counts];
+      for (const move of balancingMoves(counts)) {
+        after[move.from - 1] = (after[move.from - 1] ?? 0) - 1;
+        after[move.to - 1] = (after[move.to - 1] ?? 0) + 1;
+      }
+      expect(Math.max(...after) - Math.min(...after)).toBeLessThanOrEqual(1);
+      expect(after.reduce((total, each) => total + each, 0)).toBe(counts.reduce((total, each) => total + each, 0));
     }));
   });
 });

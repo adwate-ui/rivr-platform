@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fromRupees } from '../money/index.ts';
 import { clockAt, elapsedNow, levelAtOrAfter, nextLevelAfter, stageStartSeconds } from './clock.ts';
 import { poolShare } from './pool.ts';
+import { averageStack } from './seating.ts';
 import { levelCount, MOST_STAGES, structureMinutes, structureProblem, type Stage } from './stages.ts';
 
 const level = (bigBlind: number, minutes = 20): Stage => ({ kind: 'level', smallBlind: bigBlind / 2, bigBlind, ante: bigBlind, minutes });
@@ -64,6 +65,14 @@ describe('the clock between stages', () => {
     expect(nextLevelAfter(SUNDAY_START, 3)).toBeUndefined();
     expect(levelAtOrAfter(SUNDAY_START, 2)).toEqual(level(800));
     expect(levelAtOrAfter(SUNDAY_START, 0)).toEqual(level(200));
+  });
+});
+
+describe('averageStack', () => {
+  it('shares the chips among the players left, in whole chips', () => {
+    expect(averageStack(58 * 30_000, 31)).toBe(56_129);
+    expect(averageStack(90_000, 2)).toBe(45_000);
+    expect(averageStack(90_000, 0)).toBe(0);
   });
 });
 

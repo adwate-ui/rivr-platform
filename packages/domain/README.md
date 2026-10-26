@@ -192,7 +192,8 @@ Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` and `checkPurc
 | `elapsedNow(reading, nowMs)`, `ClockReading` | A device's count down from the server's reading: a running clock runs on from when it was read, a paused one holds. |
 | `planStructure(plan)`, `StructurePlan` | The calculator: levels for a target length, big blinds up the chip ladder to a twentieth of the chips in play, breaks every so many levels, an optional big-blind ante. |
 | `checkPurchase(purchase, rules, level, player)`, `TOURNAMENT_FORMATS`, `EntryRules`, `PlayerStanding`, `Purchase`, `PurchaseRefusal` | Whether a player may enter, re-enter, rebuy or take the add-on at the clock's level: a `Result` with the refusal. |
-| `poolShare(price, fee)` | What one buy puts in the prize pool: its price less the fee. |
+| `poolShare(price, fee)` | What one buy puts in the prize pool: its price less the fee, refused unless the fee is nothing or more and below the price (golden `tournamentMoney.json`). |
+| `eligibleSeats(occupied, tables, seatsPerTable)`, `balancingMoves(counts)`, `averageStack(chips, players)`, `TournamentSeat`, `BalancingMove` | Seating and balancing (#120, decision 0204; golden `tournamentSeating.json`): the free seats at the emptiest tables a new player may be given; the moves that bring every table within one player of the others; the chips per player left. |
 
 ## Usage
 

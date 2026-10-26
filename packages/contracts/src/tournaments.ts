@@ -98,6 +98,15 @@ export const tournamentTemplateSchema = z.object({
   .refine((template) => [template.buyIn, template.fee, template.addOn, template.addOnFee, template.guarantee].every(isChips),
     { path: ['buyIn'], message: 'not_chips' });
 
+/** The room a tournament is played in (#120): 1 to 30 tables of 2 to 10 seats each, as typed. */
+export const tournamentRoomSchema = z.object({ tables: whole(1, 30), seatsPerTable: whole(2, 10) });
+
+/** What a player may buy (#116, #118). */
+export const PURCHASES = ['entry', 're_entry', 'rebuy', 'add_on'] as const;
+
+/** A buy taken in cash at the cage (#118): the member chosen and what they buy. */
+export const cageBuySchema = z.object({ memberId: z.uuid(), purchase: z.enum(PURCHASES) });
+
 /** A new tournament: its template, its name, its start as an IST date and 24-hour time, and whether members see it. */
 export const newTournamentSchema = z.object({
   templateId: z.uuid(),

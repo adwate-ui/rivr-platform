@@ -26,7 +26,8 @@ on conflict do nothing;
 -- who keeps the catalogue and the League's seasons, and its floor manager, who reads the standings (#145, #147).
 -- The Rewards flow's member, who redeems from the app, and its floor manager, who pairs a TV on the rewards
 -- ticker and hands the redemption over (#148, #152). The Pot data flow's super admin (#114). The Tournament clock flow's floor manager and
--- member, who watches the clock on Home (#119). A row with no role is a member.
+-- member, who watches the clock on Home (#119). The Tournament registration flow's member, who registers and re-enters
+-- from the app, and its floor manager (#118, #120). A row with no role is a member.
 create temporary table lane_d_person (
   id uuid primary key,
   phone text not null,
@@ -44,7 +45,9 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-0000000d0703', '+919000000703', 'Meher Lal', 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-0000000d0704', '+919000000704', 'Anika Rao', 'Owner', 'super_admin'),
   ('00000000-0000-4000-8000-0000000d0750', '+919000000750', 'Vikram Bedi', 'Floor manager', 'admin'),
-  ('00000000-0000-4000-8000-0000000d0751', '+919000000751', 'Sara Gill', null, null);
+  ('00000000-0000-4000-8000-0000000d0751', '+919000000751', 'Sara Gill', null, null),
+  ('00000000-0000-4000-8000-0000000d0752', '+919000000752', 'Neha Bhalla', null, null),
+  ('00000000-0000-4000-8000-0000000d0753', '+919000000753', 'Ira Menon', 'Floor manager', 'admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -78,3 +81,16 @@ on conflict (id) do nothing;
 -- Riya's 20,000 points, once, to redeem in the Rewards flow.
 select private.credit_points('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0702', 20000, 'Seed',
                              'seed:rewards-flow:0d0702');
+
+-- The Tournament registration flow's Neha has passed the identity check and has ₹1,00,000 in her wallet, once,
+-- to register and re-enter from the app (#118).
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0752', 'verified', 'digilocker', '1994-06-12', 'ABCPB7521N',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0752/selfie.jpg', now())
+on conflict do nothing;
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'opening_balance', 'seed:tournament-flow:0d0752',
+  jsonb_build_array(
+    jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = '00000000-0000-4000-8000-000000000001'
+                                      and a.code = 'venue.opening_balance' and a.member_id is null), 'amount', '10000000'),
+    jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = '00000000-0000-4000-8000-0000000d0752'
+                                      and a.code = 'member.cash'), 'amount', '-10000000')), null);

@@ -157,9 +157,17 @@ export { useContacts, useDrills, useIncidentActions, useIncidents, type Contact,
 // Tournaments (#115, #119): the console's at their own files, Home's and the TV's clock in liveTournament.ts.
 export {
   useTournamentActions, useTournamentClock, useVenueTournaments,
-  type ClockChange, type NewTournament, type TournamentAddOn, type TournamentFailure, type VenueTournament,
+  type ClockChange, type NewTournament, type TournamentAddOn, type TournamentFailure, type TournamentField, type VenueTournament,
 } from './tournaments.ts';
+export {
+  useTournamentBalance, useTournamentFloorActions, useTournamentSeating,
+  type BalancePrompt, type EntryStatus, type FloorChange, type TournamentSeatRow,
+} from './tournamentFloor.ts';
+export type { BuyFailure } from './tournamentFailures.ts';
 export {
   useBlindStructures, useTournamentSetupActions, useTournamentTemplates, type BlindStructure, type TemplateOrder, type TournamentTemplate,
 } from './tournamentSetup.ts';
-export { useElapsedNow, useLiveTournament, useTvTournamentClock, type LiveTournament } from './liveTournament.ts';
+export {
+  useElapsedNow, useMyTournament, useRegisterTournamentEntry, useTvTournamentClock, type AppPurchase, type LiveField, type LiveTournament, type MyStanding,
+  type MyTournament,
+} from './liveTournament.ts';

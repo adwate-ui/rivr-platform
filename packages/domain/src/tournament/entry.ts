@@ -6,18 +6,14 @@ export { TOURNAMENT_FORMATS, type TournamentFormat } from '@rivr/contracts/tourn
 /** What a player buys: a first entry, a re-entry after busting, a rebuy of chips, or the add-on. */
 export type Purchase = 'entry' | 're_entry' | 'rebuy' | 'add_on';
 
+/** Every reason the rules refuse a purchase. */
+export const PURCHASE_REFUSALS = [
+  'registration_closed', 'already_entered', 'not_entered', 'still_playing', 'wrong_format', 'limit_reached', 'no_add_on', 'busted', 'add_on_taken',
+  'add_on_closed',
+] as const;
+
 /** Why a purchase is refused. */
-export type PurchaseRefusal =
-  | 'registration_closed'
-  | 'already_entered'
-  | 'not_entered'
-  | 'still_playing'
-  | 'wrong_format'
-  | 'limit_reached'
-  | 'no_add_on'
-  | 'busted'
-  | 'add_on_taken'
-  | 'add_on_closed';
+export type PurchaseRefusal = (typeof PURCHASE_REFUSALS)[number];
 
 /** A tournament's entry rules, from its template. */
 export interface EntryRules {

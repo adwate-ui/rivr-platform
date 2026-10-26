@@ -7,6 +7,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { tournamentFailure, type TournamentFailure } from './tournamentFailures.ts';
+
+export { tournamentFailure, type TournamentFailure } from './tournamentFailures.ts';
 
 /** An add-on as a tournament sells it: its price and the fee in it, in paise, and its chips. */
 export interface TournamentAddOn {
@@ -15,7 +18,16 @@ export interface TournamentAddOn {
   readonly chips: number;
 }
 
-/** A tournament on the console (#115, #119): what its template set, its levels, and its clock when started. */
+/** A tournament's field (#118): entries and re-entries, the players still seated, the chips bought and the prize pool. */
+export interface TournamentField {
+  readonly entries: number;
+  readonly reEntries: number;
+  readonly playersLeft: number;
+  readonly chipsInPlay: number;
+  readonly pool: Paise;
+}
+
+/** A tournament on the console (#115, #119): what its template set, its levels, its room, its field, and its clock when started. */
 export interface VenueTournament {
   readonly id: string;
   readonly name: string;
@@ -34,22 +46,13 @@ export interface VenueTournament {
   readonly placesPaid: number | null;
   /** Null until the clock starts. */
   readonly clock: ClockReading | null;
+  readonly tables: number;
+  readonly seatsPerTable: number;
+  readonly field: TournamentField;
 }
-
-/** Why a tournament change was refused: the role, something out of bounds, a name taken, something refers to it, the venue frozen, or anything else. */
-export type TournamentFailure = 'not_allowed' | 'invalid' | 'taken' | 'in_use' | 'paused' | 'unavailable';
 
 /** A change to a tournament's clock (decision 0201). */
 export type ClockChange = 'start' | 'pause' | 'resume' | 'next' | 'previous';
-
-const FAILURE_BY_CODE: Readonly<Record<string, TournamentFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', '23505': 'taken', '23503': 'in_use', RVFRZ: 'paused',
-};
-
-/** The failure a database error code means. */
-export function tournamentFailure(code: string): TournamentFailure {
-  return FAILURE_BY_CODE[code] ?? 'unavailable';
-}
 
 /** A tournament's levels from the database: none when it has none. */
 export function toStages(levels: Json | null): Stage[] {
@@ -65,7 +68,16 @@ interface TournamentRow {
   id: string; name: string; starts_at: string; is_published: boolean; format: string; buy_in_paise: number; fee_paise: number;
   guarantee_paise: number | null; starting_stack: number | null; levels: Json | null; last_registration_level: number; max_buys: number | null;
   add_on_paise: number | null; add_on_fee_paise: number | null; add_on_chips: number | null; places_paid: number | null;
-  clock_started_at: string | null; is_paused: boolean; elapsed_seconds: number;
+  clock_started_at: string | null; is_paused: boolean; elapsed_seconds: number; tables: number; seats_per_table: number; entries: number;
+  re_entries: number; players_left: number; chips_in_play: number; pool_paise: number;
+}
+
+/** A field as the database reads it. */
+export function toField(row: { entries: number; re_entries?: number; players_left: number; chips_in_play: number; pool_paise: number }): TournamentField {
+  return {
+    entries: row.entries, reEntries: row.re_entries ?? 0, playersLeft: row.players_left, chipsInPlay: row.chips_in_play,
+    pool: fromPaise(BigInt(row.pool_paise)),
+  };
 }
 
 function toAddOn(row: TournamentRow): TournamentAddOn | null {
@@ -81,6 +93,7 @@ function toTournament(row: TournamentRow, readAtMs: number): VenueTournament {
     startingStack: row.starting_stack, stages: toStages(row.levels), lastRegistrationLevel: row.last_registration_level, maxBuys: row.max_buys,
     addOn: toAddOn(row), placesPaid: row.places_paid,
     clock: row.clock_started_at === null ? null : { elapsedSeconds: row.elapsed_seconds, isRunning: !row.is_paused, readAtMs },
+    tables: row.tables, seatsPerTable: row.seats_per_table, field: toField(row),
   };
 }
 
