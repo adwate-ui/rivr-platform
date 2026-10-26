@@ -19,6 +19,8 @@ export interface SeatedPlayer {
   readonly isAway: boolean;
   /** Whole seconds of call time left (#78); null where the table's type has none. */
   readonly callTimeLeft: number | null;
+  /** When the floor marked the player leaving (decision 0163); null when not. */
+  readonly leavingAt: string | null;
 }
 
 /** A seat held for a member called from the waitlist (#63): nobody else is seated there. */
@@ -58,7 +60,7 @@ export function useFloorSeats(venueId: string) {
       return data.map((row) => ({
         sessionId: row.session_id, tableId: row.table_id, seat: row.seat, memberId: row.member_id, fullName: row.full_name,
         tierName: row.tier_name, startedAt: row.started_at, mustMoveOrder: row.must_move_order, isAway: row.away_since !== null,
-        callTimeLeft: row.call_time_left,
+        callTimeLeft: row.call_time_left, leavingAt: row.leaving_at,
       }));
     },
   });
@@ -107,18 +109,16 @@ export function useLeftOwingCallTime(venueId: string) {
  * The floor's seating: `seat` a member by mobile number, `move` a player (the same session, so call
  * time runs on), `leave`; floor managers `setOpen` a table (closing only an empty one) and
  * `setMustMove` (a table feeding a main table of its game, or null); admins `letLeaveEarly` a member who still owes call
- * time, with a reason (#79). Each is a Result and reloads the floor.
+ * time, with a reason (#79); the floor marks a player leaving, or takes it back (`setLeaving`, decision 0163). Each is a Result
+ * and reloads the floor.
  */
 export function useSeatActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
+  const user = userId ?? 'signed-out';
   const settle = async (error: { code: string } | null): Promise<Result<null, SeatFailure>> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.floorSeats(userId ?? 'signed-out', venueId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.heldSeats(userId ?? 'signed-out', venueId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.leftOwingCallTime(userId ?? 'signed-out', venueId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.floorTables(userId ?? 'signed-out') }),
-    ]);
+    const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user)];
+    await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
   };
   const seat = useMutation({
@@ -144,5 +144,9 @@ export function useSeatActions(venueId: string) {
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) =>
       settle((await client.rpc('let_leave_early', { p_venue_id: venueId, p_member_id: memberId, p_reason: reason })).error),
   });
-  return { seat, move, leave, setOpen, setMustMove, letLeaveEarly };
+  const setLeaving = useMutation({
+    mutationFn: async ({ sessionId, isLeaving }: { sessionId: string; isLeaving: boolean }) =>
+      settle((await client.rpc('set_leaving', { p_session_id: sessionId, p_is_leaving: isLeaving })).error),
+  });
+  return { seat, move, leave, setOpen, setMustMove, letLeaveEarly, setLeaving };
 }

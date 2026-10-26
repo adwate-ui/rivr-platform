@@ -14,7 +14,7 @@ const BUDGET = 5_000;
 /** Each mode, by its chip on the console, and what shows the TV has rendered it. */
 const MODES: readonly { chip: string; rendered: (tv: Page) => Locator }[] = [
   { chip: 'Waitlist board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Waitlist' }) },
-  { chip: 'Call-time board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Call-time board' }) },
+  { chip: 'Call-time board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Call time' }) },
   { chip: 'Jackpot and high hand', rendered: (tv) => tv.getByText('High hand tonight', { exact: true }) },
   { chip: 'Tournament clock', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Tournament clock' }) },
   // A live promotion's slide, or that none is running (#86).

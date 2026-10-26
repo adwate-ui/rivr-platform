@@ -144,6 +144,8 @@ export const queryKeys = {
   sopAcknowledgements: (userId: string, versionId: string) => ['user', userId, 'sop-acknowledgements', versionId] as const,
   /** The signed-in TV's waitlist board (#65). */
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
+  /** The signed-in TV's call-time board (decision 0163). */
+  tvCallTimeBoard: (userId: string) => ['user', userId, 'tv-call-time-board'] as const,
   /** The signed-in TV's jackpot and tonight's high hand (#65). */
   tvJackpot: (userId: string) => ['user', userId, 'tv-jackpot'] as const,
   /** The paired TV's promotions rotation (#86), and the member's Home cards. */

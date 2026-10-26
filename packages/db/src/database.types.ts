@@ -1901,17 +1901,23 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "seat_session_leaving_by_staff_id_venue_id_fkey"
+      columns: ["leaving_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "seat_session_member_id_venue_id_fkey"
       columns: ["member_id","venue_id"]
 isOneToOne: false
@@ -2371,14 +2377,14 @@ isOneToOne: false
                   ]
                 },"tv_screen": {
                   Row: {
-                    "created_at": string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"set_by_staff_id": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"rotation": (Database["public"]['Enums']["tv_mode"])[],"set_by_staff_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"rotation"?: (Database["public"]['Enums']["tv_mode"])[],"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"device_id"?: string,"mode"?: Database["public"]['Enums']["tv_mode"],"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"device_id"?: string,"mode"?: Database["public"]['Enums']["tv_mode"],"rotation"?: (Database["public"]['Enums']["tv_mode"])[],"set_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2900,7 +2906,7 @@ isOneToOne: false
                            },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "away_since": string,"call_time_left": number,"full_name": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
+              "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
             }[]
                            },
 "floor_tonight":
@@ -3076,7 +3082,7 @@ isOneToOne: false
                            },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
-              "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"venue_id": string
+              "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"venue_id": string
             }[]
                            },
 "my_waitlist":
@@ -3250,6 +3256,9 @@ isOneToOne: false
 "set_feature_override":
 { Args: { "p_feature_key": string,"p_is_granted": boolean,"p_member_id": string,"p_reason": string,"p_until"?: string,"p_venue_id": string }; Returns: string
                            },
+"set_leaving":
+{ Args: { "p_is_leaving": boolean,"p_session_id": string }; Returns: undefined
+                           },
 "set_member_break":
 { Args: { "p_days": number,"p_member_id": string,"p_reason": string }; Returns: string
                            },
@@ -3279,6 +3288,9 @@ isOneToOne: false
                            },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
+                           },
+"set_tv_rotation":
+{ Args: { "p_device_id": string,"p_rotation": (Database["public"]['Enums']["tv_mode"])[] }; Returns: undefined
                            },
 "shift_openings":
 { Args: { "p_venue_id": string }; Returns: {
@@ -3357,6 +3369,11 @@ isOneToOne: false
 "treasury":
 { Args: { "p_venue_id": string }; Returns: {
               "bonus_paise": number,"chips_in_play_paise": number,"float_paise": number,"jackpots_paise": number,"markers_paise": number,"opened_at": string,"opened_by": string,"shift_id": string,"wallets_paise": number,"withdrawals_pending_paise": number
+            }[]
+                           },
+"tv_call_time_board":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "call_time_left": number,"display_name": string,"is_away": boolean,"leaving_at": string,"seat": number,"stake_name": string,"table_id": string,"table_name": string
             }[]
                            },
 "tv_jackpot":

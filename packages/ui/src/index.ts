@@ -67,6 +67,7 @@ export * from './DisplayShell/index.ts';
 export * from './TvJackpotBoard/index.ts';
 export * from './TierMatrix/index.ts';
 export * from './TvWaitlistBoard/index.ts';
+export * from './TvCallTimeBoard/index.ts';
 // The door kiosk's scanner (decision 0164).
 export * from './QrScanView/index.ts';
 export * from './TvTournamentClock/index.ts';

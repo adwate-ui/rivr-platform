@@ -26,8 +26,8 @@ function toBoardStake(stake: TvStake): TvWaitlistStake {
 }
 
 /** The waitlist board (#65): every stake with its places, live as players join, are called and leave. */
-export function WaitlistMode({ venueId }: { venueId: string }) {
-  const board = useTvWaitlistBoard(venueId);
+export function WaitlistMode() {
+  const board = useTvWaitlistBoard();
   if (board.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(board.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }

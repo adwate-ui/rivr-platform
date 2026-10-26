@@ -35,6 +35,7 @@ function SeatLine({ number, player, heldFor, isOpen }: { number: number; player:
       <Text tone="muted">{player.tierName}</Text>
       {player.mustMoveOrder === null ? null : <Text variant="small" tone="muted">{t('console.liveFloor.mustMove', { order: player.mustMoveOrder })}</Text>}
       {player.isAway ? <Text variant="small" tone="muted">{t('console.liveFloor.away')}</Text> : null}
+      {player.leavingAt === null ? null : <Text variant="small" weight="semibold">{t('console.liveFloor.leaving')}</Text>}
       {player.callTimeLeft === null ? null : <CallTimeTimer secondsLeft={player.callTimeLeft} isPaused={player.isAway} />}
     </Inline>
   );
@@ -46,12 +47,21 @@ interface SeatButtonsProps {
   onMove: () => void;
   onLeave: () => void;
   onLeaveEarly: () => void;
+  onLeaving: (isLeaving: boolean) => void;
 }
 
-/** The floor's buttons on a seated player's row: move, leave, and for admins, leave early while call time is owed (#79). */
-function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly }: SeatButtonsProps) {
+/**
+ * The floor's buttons on a seated player's row: mark them leaving or take it back (decision 0163), move,
+ * leave, and for admins, leave early while call time is owed (#79).
+ */
+function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving }: SeatButtonsProps) {
+  const isLeaving = player.leavingAt !== null;
   return (
     <Inline gap={2}>
+      <Button variant="text" aria-label={t(isLeaving ? 'console.liveFloor.notLeavingName' : 'console.liveFloor.markLeavingName', { name: player.fullName })}
+        onClick={() => onLeaving(!isLeaving)}>
+        {t(isLeaving ? 'console.liveFloor.notLeaving' : 'console.liveFloor.markLeaving')}
+      </Button>
       <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
       <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })} onClick={onLeave}>{t('console.liveFloor.leave')}</Button>
       {canLetGoEarly && (player.callTimeLeft ?? 0) > 0 ? (
@@ -70,7 +80,7 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly }: S
  * feed a main table.
  */
 export function TableDetail({ venueId, table, tables, seats, held, permissions, night }: TableDetailProps) {
-  const { leave } = useSeatActions(venueId);
+  const { leave, setLeaving } = useSeatActions(venueId);
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
   const [leavingEarly, setLeavingEarly] = useState<SeatedPlayer | null>(null);
   const [failure, setFailure] = useState<SeatFailure | null>(null);
@@ -89,7 +99,8 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
               <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
               {isFloor && player !== undefined ? (
                 <SeatButtons player={player} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => setMoving(player)}
-                  onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => setLeavingEarly(player)} />
+                  onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => setLeavingEarly(player)}
+                  onLeaving={(isLeaving) => void setLeaving.mutateAsync({ sessionId: player.sessionId, isLeaving }).then(report)} />
               ) : null}
             </Inline>
           );

@@ -15,7 +15,7 @@ const TABLES: FloorTable[] = [
 ];
 const SEATED: SeatedPlayer = {
   sessionId: 's1', tableId: 't3', seat: 1, memberId: 'm1', fullName: 'Vikram Rao', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
-  mustMoveOrder: null, isAway: false, callTimeLeft: null,
+  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null,
 };
 const NIGHT: FloorNight = {
   rake: fromPaise(41_175_000n),

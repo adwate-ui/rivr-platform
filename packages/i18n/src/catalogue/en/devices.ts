@@ -134,6 +134,9 @@ export const tvs = {
   /** Paired on the console, but the TV has not picked up its login yet. */
   waiting: 'Waiting for the TV',
   modeFor: 'What {name} shows',
+  /** The boards a TV turns to after its main one (decision 0163). */
+  rotationFor: 'What {name} turns to in between',
+  rotationHint: 'Each board shows for half a minute; promotions show one after another.',
   unpair: 'Unpair {name}',
   unpairReason: 'Why it is unpaired',
   unpairConfirm: 'Unpair the TV',
