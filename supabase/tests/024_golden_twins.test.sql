@@ -385,5 +385,25 @@ select results_eq(
   $$ select description, pg_temp.paise(expected ->> 'taxed') from golden.golden_case where file = 'tdsReturn.json' order by position $$,
   'private.tds_taxed_winnings gives every case in the golden file');
 
+-- Hours played inside a promotion's window: private.seconds_in_window, and private.table_played_seconds as
+-- private.visit_window_time applies it, and @rivr/domain secondsInWindow and playedSecondsInWindow
+-- (packages/testing/golden/promotionWindow.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'promotionWindow.json'), 'the promotion window cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'promotionWindow.json' and operation not in ('window', 'played') $$,
+  'every operation in promotionWindow.json is proved here');
+select results_eq(
+  $$ select description, private.seconds_in_window((inputs ->> 'from')::timestamptz, (inputs ->> 'to')::timestamptz, (inputs ->> 'conditions')::jsonb)
+     from golden.golden_case where file = 'promotionWindow.json' and operation = 'window' order by position $$,
+  $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'promotionWindow.json' and operation = 'window' order by position $$,
+  'private.seconds_in_window counts every stint in the golden file');
+select results_eq(
+  $$ select description, private.table_played_seconds(
+       (select sum(private.seconds_in_window(split_part(s, '/', 1)::timestamptz, split_part(s, '/', 2)::timestamptz, (inputs ->> 'conditions')::jsonb))
+        from unnest(string_to_array(inputs ->> 'stints', ' | ')) s)::bigint,
+       (inputs ->> 'session')::bigint, (inputs ->> 'played')::bigint)
+     from golden.golden_case where file = 'promotionWindow.json' and operation = 'played' order by position $$,
+  $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'promotionWindow.json' and operation = 'played' order by position $$,
+  'a table''s time inside the window bears its share of the time away, as in the golden file');
+
 select * from finish();
 rollback;
