@@ -67,6 +67,7 @@ export * from './DisplayShell/index.ts';
 export * from './TvJackpotBoard/index.ts';
 export * from './TierMatrix/index.ts';
 export * from './TvWaitlistBoard/index.ts';
+export * from './TvCallTimeBoard/index.ts';
 export * from './TvTournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
 export * from './DisplayPreview/index.ts';

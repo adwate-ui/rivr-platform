@@ -25,3 +25,8 @@ auditConfig:
   ignoreGhsas:
     # braces <=3.0.3, via stylelint and @tailwindcss/cli (docs/decisions/0023, issue #175).
     - GHSA-vfj7-8cjw-p6xm
+
+# Dependencies pinned past a security advisory until their parents take the fix themselves.
+overrides:
+  # undici <7.30.1 (GHSA-xjj6-f33q-929c, high), via wrangler and miniflare: the patch release.
+  'undici@>=7.18.0 <7.30.1': 7.30.1

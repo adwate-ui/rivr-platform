@@ -2,15 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { toPromotionCard, type PromotionCardData } from './promotionCards.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-import { useBoardSignal } from './tvBoards.ts';
 
 // The TV reads its cards again every half minute, and at once when one is published or paused.
 const TV_CHECK = 30_000;
 
-/** The paired TV's venue's live promotion cards, for its Promotions rotation; read again at once when one is published or paused. */
-export function useTvPromotions(venueId: string) {
+/** The paired TV's venue's live promotion cards, for its Promotions rotation; read again at once when one is published or paused (useTvSignals). */
+export function useTvPromotions() {
   const { client, userId } = useRivrData();
-  useBoardSignal('promotions', venueId);
   return useQuery({
     queryKey: queryKeys.tvPromotions(userId ?? 'signed-out'),
     enabled: userId !== null,

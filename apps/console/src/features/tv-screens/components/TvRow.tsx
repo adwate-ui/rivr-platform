@@ -6,7 +6,7 @@ import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import { ModeChips, TV_FAILURE_COPY } from './tvCopy.tsx';
+import { ModeChips, RotationChips, TV_FAILURE_COPY } from './tvCopy.tsx';
 
 type Outcome = { ok: true } | { ok: false; error: TvFailure };
 
@@ -29,13 +29,14 @@ function UnpairForm({ venueId, tv, onDone }: { venueId: string; tv: VenueTv; onD
   );
 }
 
-/** One TV: paired or still waiting for the TV, what it shows, and Unpair. */
+/** One TV: paired or still waiting for the TV, what it shows, what it turns to in between (decision 0163), and Unpair. */
 export function TvRow({ venueId, tv }: { venueId: string; tv: VenueTv }) {
-  const { setMode } = useTvActions(venueId);
+  const { setMode, setRotation } = useTvActions(venueId);
   const [isUnpairing, setIsUnpairing] = useState(false);
   const [failure, setFailure] = useState<TvFailure | null>(null);
   const settle = (outcome: Outcome) => setFailure(outcome.ok ? null : outcome.error);
   const show = async (mode: TvMode) => settle(await setMode.mutateAsync({ deviceId: tv.deviceId, mode }));
+  const turnTo = async (rotation: TvMode[]) => settle(await setRotation.mutateAsync({ deviceId: tv.deviceId, rotation }));
   return (
     <Stack gap={3}>
       <Inline gap={4} align="center" justify="between" wrap>
@@ -47,6 +48,13 @@ export function TvRow({ venueId, tv }: { venueId: string; tv: VenueTv }) {
       </Inline>
       <ModeChips label={t('console.tvs.modeFor', { name: tv.name })} value={tv.mode} isDisabled={setMode.isPending}
         onChange={(mode) => void show(mode)} />
+      {tv.mode === null ? null : (
+        <Stack gap={1}>
+          <RotationChips label={t('console.tvs.rotationFor', { name: tv.name })} mode={tv.mode} value={tv.rotation}
+            isDisabled={setRotation.isPending} onChange={(rotation) => void turnTo(rotation)} />
+          <Text variant="small" tone="muted">{t('console.tvs.rotationHint')}</Text>
+        </Stack>
+      )}
       {isUnpairing ? (
         <UnpairForm venueId={venueId} tv={tv} onDone={(outcome) => {
           setIsUnpairing(false);

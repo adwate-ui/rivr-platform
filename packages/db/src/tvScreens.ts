@@ -14,12 +14,13 @@ export type { TvCode };
 /** What an unpaired TV shows (#49): its code, or why it has none (`too_many` while device-pair refuses for a while). */
 export type TvPairing = { status: 'loading' } | { status: 'code'; code: TvCode } | { status: 'too_many' } | { status: 'unavailable' };
 
-/** The signed-in TV: its name on the console and what it shows. */
+/** The signed-in TV: its name on the console, what it shows, and the boards it turns to after that (decision 0163). */
 export interface MyTvScreen {
   readonly deviceId: string;
   readonly venueId: string;
   readonly name: string;
   readonly mode: TvMode;
+  readonly rotation: readonly TvMode[];
 }
 
 /** One of a venue's TVs, as staff who manage devices see it. */
@@ -29,6 +30,8 @@ export interface VenueTv {
   /** The TV has picked up its login. */
   readonly isPaired: boolean;
   readonly mode: TvMode | null;
+  /** The boards it turns to after its main one, in order. */
+  readonly rotation: readonly TvMode[];
 }
 
 /** Why a staff action on a TV did not go through: `wrong_code` is no TV showing it, `paused` the venue frozen. */
@@ -121,7 +124,7 @@ export function useMyTvScreen() {
         await client.auth.signOut({ scope: 'local' });
         return null;
       }
-      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, mode: row.mode };
+      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, mode: row.mode, rotation: row.rotation };
     },
   });
 }
@@ -136,13 +139,14 @@ export function useVenueTvs(venueId: string) {
     queryFn: async (): Promise<VenueTv[]> => {
       const [devices, screens] = await Promise.all([
         client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'tv').is('revoked_at', null).order('name'),
-        client.from('tv_screen').select('device_id, mode').eq('venue_id', venueId),
+        client.from('tv_screen').select('device_id, mode, rotation').eq('venue_id', venueId),
       ]);
       if (devices.error) throw devices.error;
       if (screens.error) throw screens.error;
-      const modeOf = new Map(screens.data.map((row) => [row.device_id, row.mode]));
+      const screenOf = new Map(screens.data.map((row) => [row.device_id, row]));
       return devices.data.map((device) => ({
-        deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: modeOf.get(device.id) ?? null,
+        deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: screenOf.get(device.id)?.mode ?? null,
+        rotation: screenOf.get(device.id)?.rotation ?? [],
       }));
     },
   });
@@ -150,7 +154,8 @@ export function useVenueTvs(venueId: string) {
 
 /**
  * What staff with devices.manage do with TVs: `pair` one by the code it shows, with a name and mode
- * (ok with its device id); change what one shows (`setMode`); `unpair` one, with the reason. Each
+ * (ok with its device id); change what one shows (`setMode`) and the boards it turns to after that (`setRotation`, decision
+ * 0163); `unpair` one, with the reason. Each
  * resolves to a Result and reloads the list.
  */
 export function useTvActions(venueId: string) {
@@ -170,10 +175,14 @@ export function useTvActions(venueId: string) {
     mutationFn: async ({ deviceId, mode }: { deviceId: string; mode: TvMode }) =>
       settle(null, (await client.rpc('set_tv_mode', { p_device_id: deviceId, p_mode: mode })).error),
   });
+  const setRotation = useMutation({
+    mutationFn: async ({ deviceId, rotation }: { deviceId: string; rotation: readonly TvMode[] }) =>
+      settle(null, (await client.rpc('set_tv_rotation', { p_device_id: deviceId, p_rotation: [...rotation] })).error),
+  });
   const unpair = useMutation({
     // As a tablet is revoked (#41): the database unlinks the TV's login, and 'now' is the database's time.
     mutationFn: async ({ deviceId, reason }: { deviceId: string; reason: string }) =>
       settle(null, (await client.from('device').update({ revoked_at: 'now', revoked_reason: reason.trim() }).eq('id', deviceId)).error),
   });
-  return { pair, setMode, unpair };
+  return { pair, setMode, setRotation, unpair };
 }

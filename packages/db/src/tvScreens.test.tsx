@@ -98,12 +98,12 @@ describe('An unpaired TV', () => {
 });
 
 describe('A paired TV', () => {
-  it('reads its name and mode', async () => {
+  it('reads its name, mode and the boards it turns to in between', async () => {
     const { wrapper } = renderTvs('tv-login', {
-      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'waitlist' }] },
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
-    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist' }));
+    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
   });
 
   it('signs itself out once it reads nothing, so it shows a new code', async () => {
@@ -118,12 +118,12 @@ describe('The console\'s TVs', () => {
   it('lists the venue\'s TVs with whether each is paired and what it shows', async () => {
     const { wrapper } = renderTvs(STAFF, {
       '/rest/v1/device': { body: [{ id: 'd1', name: 'Bar TV', auth_user_id: 'u1' }, { id: 'd2', name: 'Door TV', auth_user_id: null }] },
-      '/rest/v1/tv_screen': { body: [{ device_id: 'd1', mode: 'jackpot' }] },
+      '/rest/v1/tv_screen': { body: [{ device_id: 'd1', mode: 'jackpot', rotation: ['call_time', 'promotions'] }] },
     });
     const { result } = renderHook(() => useVenueTvs(VENUE), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual([
-      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'jackpot' },
-      { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null },
+      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'jackpot', rotation: ['call_time', 'promotions'] },
+      { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [] },
     ]));
   });
 
@@ -144,12 +144,16 @@ describe('The console\'s TVs', () => {
   it('changes what a TV shows, and unpairs one with the reason', async () => {
     const { calls, wrapper } = renderTvs(STAFF, {
       '/rpc/set_tv_mode': { status: 403, body: { code: '42501', message: 'no' } },
+      '/rpc/set_tv_rotation': { status: 400, body: { code: '22023', message: 'no' } },
       '/rest/v1/device': { body: null },
     });
     const { result } = renderHook(() => useTvActions(VENUE), { wrapper });
     let outcome: unknown;
     await act(async () => { outcome = await result.current.setMode.mutateAsync({ deviceId: 'd1', mode: 'jackpot' }); });
     expect(outcome).toEqual({ ok: false, error: 'not_allowed' });
+    await act(async () => { outcome = await result.current.setRotation.mutateAsync({ deviceId: 'd1', rotation: ['jackpot', 'jackpot'] }); });
+    expect(outcome).toEqual({ ok: false, error: 'invalid' });
+    expect(calls.find((call) => call.url.includes('/rpc/set_tv_rotation'))?.body).toEqual({ p_device_id: 'd1', p_rotation: ['jackpot', 'jackpot'] });
     await act(async () => { outcome = await result.current.unpair.mutateAsync({ deviceId: 'd1', reason: ' Moved ' }); });
     expect(outcome).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('/rest/v1/device'))?.body).toEqual({ revoked_at: 'now', revoked_reason: 'Moved' });

@@ -14,8 +14,8 @@ function highHandText(highHand: NonNullable<TvJackpot['highHand']>): { title: st
 }
 
 /** The jackpot (#65): the bad-beat figure large in the display face, tonight's high hand beneath, live. */
-export function JackpotMode({ venueId }: { venueId: string }) {
-  const jackpot = useTvJackpot(venueId);
+export function JackpotMode() {
+  const jackpot = useTvJackpot();
   if (jackpot.data === undefined || jackpot.data === null) {
     return <Text variant="tvBody" tone="muted">{t(jackpot.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }

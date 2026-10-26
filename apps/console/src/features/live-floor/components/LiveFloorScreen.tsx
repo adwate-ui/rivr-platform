@@ -4,6 +4,7 @@ import {
 import { t } from '@rivr/i18n';
 import { Grid, Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
+import { LeavingList } from './LeavingList.tsx';
 import { LeftOwingCallTime } from './LeftOwingCallTime.tsx';
 import { RoomPlan } from './RoomPlan.tsx';
 import { TableDetail } from './TableDetail.tsx';
@@ -14,6 +15,7 @@ import { TableDetail } from './TableDetail.tsx';
  * chosen table beside, with its night so far, its seats and its recent hands. The floor
  * (waitlist.manage) seats, moves and lets players leave; floor managers open and close tables and set
  * must-move tables; admins let a player leave before call time, seated or gone from their seat (#79).
+ * The floor marks a player leaving, and the Leaving list shows when each seat opens (decision 0163).
  */
 export function LiveFloorScreen() {
   const staff = useStaffVenue();
@@ -46,6 +48,7 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
       <Grid columns={2} gap={8}>
         <Stack gap={8}>
           <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} chosenId={chosen.id} onChoose={setChosenId} />
+          <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
           {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
         </Stack>
         <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
