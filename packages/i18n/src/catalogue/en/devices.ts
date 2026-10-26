@@ -17,6 +17,10 @@ export const tablets = {
   code: 'Pairing code {code} · enter it on the tablet by {time}',
   newCode: 'New pairing code for {name}',
   table: 'Table for {name}',
+  /** A door kiosk (decision 0164): a tablet at the door that scans members' cards in and out. */
+  isDoor: 'Door kiosk',
+  isDoorHint: 'Scans a member’s card in and out at the door, and is fixed to no table.',
+  doorKiosk: 'Door kiosk',
   revoke: 'Revoke {name}',
   revokeReason: 'Why it is revoked',
   revokeConfirm: 'Revoke the tablet',

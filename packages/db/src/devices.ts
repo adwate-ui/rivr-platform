@@ -5,21 +5,24 @@ import { functionErrorCode } from './parse/kycFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** The signed-in dealer tablet (#41): its name, and the table it is fixed to, if any. */
+/** The signed-in tablet (#41): its name, a dealer tablet or a door kiosk (decision 0164), and the table it is fixed to, if any. */
 export interface MyDevice {
   readonly deviceId: string;
   readonly venueId: string;
   readonly name: string;
+  readonly isDoor: boolean;
   readonly tableId: string | null;
   readonly tableName: string | null;
   /** The tablet stands in the practice venue, where dealers train (#50). */
   readonly isPractice: boolean;
 }
 
-/** One of a venue's dealer tablets, as staff who manage devices see it. */
+/** One of a venue's dealer tablets or door kiosks (decision 0164), as staff who manage devices see it. */
 export interface DealerTablet {
   readonly deviceId: string;
   readonly name: string;
+  /** A door kiosk, which scans members in and out and is fixed to no table. */
+  readonly isDoor: boolean;
   /** The tablet has signed in with a pairing code. */
   readonly isPaired: boolean;
   readonly tableId: string | null;
@@ -60,7 +63,10 @@ export function useMyDevice() {
       if (error) throw error;
       const row = data[0];
       return row
-        ? { deviceId: row.device_id, venueId: row.venue_id, name: row.name, tableId: row.table_id, tableName: row.table_name, isPractice: row.is_practice }
+        ? {
+          deviceId: row.device_id, venueId: row.venue_id, name: row.name, isDoor: row.kind === 'door', tableId: row.table_id, tableName: row.table_name,
+          isPractice: row.is_practice,
+        }
         : null;
     },
   });
@@ -98,21 +104,22 @@ export function useDealerTablets(venueId: string) {
     refetchInterval: PAIRING_CHECK,
     queryFn: async (): Promise<DealerTablet[]> => {
       const [devices, assignments] = await Promise.all([
-        client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'dealer_tablet').is('revoked_at', null).order('name'),
+        client.from('device').select('id, name, kind, auth_user_id').eq('venue_id', venueId).in('kind', ['dealer_tablet', 'door']).is('revoked_at', null)
+          .order('name'),
         client.from('tablet_assignment').select('device_id, table_id').eq('venue_id', venueId),
       ]);
       if (devices.error) throw devices.error;
       if (assignments.error) throw assignments.error;
       const tableOf = new Map(assignments.data.map((row) => [row.device_id, row.table_id]));
       return devices.data.map((device) => ({
-        deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, tableId: tableOf.get(device.id) ?? null,
+        deviceId: device.id, name: device.name, isDoor: device.kind === 'door', isPaired: device.auth_user_id !== null, tableId: tableOf.get(device.id) ?? null,
       }));
     },
   });
 }
 
 /**
- * What staff with devices.manage do with dealer tablets: `add` one, which also starts pairing it (ok
+ * What staff with devices.manage do with dealer tablets and door kiosks: `add` one (`isDoor` for a kiosk), which also starts pairing it (ok
  * with no code when it was added but pairing did not start: New pairing code pairs it); `pair` one
  * again; fix one to a table (`assign`); `revoke` a lost one, with the reason. The database records who
  * added it. Each resolves to a Result and reloads the list.
@@ -133,8 +140,9 @@ export function useDeviceActions(venueId: string) {
     return settle<PairingCode | null>(row ? { deviceId, code: row.code, expiresAt: row.expires_at } : null, error);
   };
   const add = useMutation({
-    mutationFn: async ({ name }: { name: string }): Promise<Result<PairingCode | null, DeviceFailure>> => {
-      const { data, error } = await client.from('device').insert({ venue_id: venueId, kind: 'dealer_tablet', name: name.trim() }).select('id').single();
+    mutationFn: async ({ name, isDoor = false }: { name: string; isDoor?: boolean }): Promise<Result<PairingCode | null, DeviceFailure>> => {
+      const kind = isDoor ? 'door' : 'dealer_tablet';
+      const { data, error } = await client.from('device').insert({ venue_id: venueId, kind, name: name.trim() }).select('id').single();
       if (error || !data) return settle<PairingCode | null>(null, error);
       const paired = await startPairing(data.id);
       return paired.ok ? paired : ok(null);

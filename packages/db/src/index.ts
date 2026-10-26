@@ -76,6 +76,10 @@ export {
   type SessionReminder,
 } from './restrictions.ts';
 export { useCheckInActions, useCheckOutActions, useDoorBoard, type CheckInFailure, type CheckOutFailure, type CheckOutRefusal, type DoorMember } from './visits.ts';
+export { useDoorScan, type DoorScan, type DoorScanFailure, type DoorScanRefusal } from './door.ts';
+export {
+  useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackVisit,
+} from './feedback.ts';
 export {
   PAYOUT_STATUSES, usePayoutAccountActions, usePayoutAccountDecisions, usePayoutAccounts, usePayoutAccountsToVerify, type PayoutAccount,
   type PayoutAccountFailure, type PayoutAccountToVerify, type PayoutDecision, type PayoutStatus,

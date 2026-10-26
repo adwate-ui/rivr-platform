@@ -881,6 +881,38 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"feedback": {
+                  Row: {
+                    "created_at": string,"id": string,"is_ticket": boolean | null,"member_id": string,"note": string | null,"resolution": string | null,"resolved_at": string | null,"resolved_by_staff_id": string | null,"score": number | null,"updated_at": string,"venue_id": string,"visit_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"is_ticket"?: never,"member_id": string,"note"?: string | null,"resolution"?: string | null,"resolved_at"?: string | null,"resolved_by_staff_id"?: string | null,"score"?: number | null,"updated_at"?: string,"venue_id": string,"visit_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"is_ticket"?: never,"member_id"?: string,"note"?: string | null,"resolution"?: string | null,"resolved_at"?: string | null,"resolved_by_staff_id"?: string | null,"score"?: number | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "feedback_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "feedback_resolved_by_staff_id_venue_id_fkey"
+      columns: ["resolved_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "feedback_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: true
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"game_table": {
                   Row: {
                     "created_at": string,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"room": string,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
@@ -2399,14 +2431,14 @@ isOneToOne: true
                   ]
                 },"visit": {
                   Row: {
-                    "close_reason": string | null,"closed_at": string | null,"created_at": string,"id": string,"member_id": string,"opened_at": string,"opened_by_staff_id": string | null,"updated_at": string,"venue_id": string
+                    "close_reason": string | null,"closed_at": string | null,"created_at": string,"id": string,"member_id": string,"opened_at": string,"opened_by_device_id": string | null,"opened_by_staff_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"opened_at"?: string,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
+                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"opened_at"?: string,"opened_by_device_id"?: string | null,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"opened_at"?: string,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"opened_at"?: string,"opened_by_device_id"?: string | null,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2414,6 +2446,12 @@ isOneToOne: true
       columns: ["member_id","venue_id"]
 isOneToOne: false
       referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "visit_opened_by_device_id_venue_id_fkey"
+      columns: ["opened_by_device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "visit_opened_by_staff_id_venue_id_fkey"
@@ -2821,6 +2859,11 @@ isOneToOne: false
               "full_name": string,"is_in_room": boolean,"member_id": string,"since": string,"tier_name": string
             }[]
                            },
+"door_scan":
+{ Args: { "p_code": string }; Returns: {
+              "action": string,"first_name": string,"played_seconds": number
+            }[]
+                           },
 "down_hands":
 { Args: Record<PropertyKey, never>; Returns: {
               "drop_paise": number,"hand_id": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
@@ -2991,6 +3034,11 @@ isOneToOne: false
               "feature_key": string,"state": string,"tiers": (string)[]
             }[]
                            },
+"my_feedback_visit":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "closed_at": string,"visit_id": string
+            }[]
+                           },
 "my_membership_card":
 { Args: Record<PropertyKey, never>; Returns: {
               "code": string,"full_name": string,"member_number": number,"ms_left": number,"tier_name": string
@@ -3087,6 +3135,9 @@ isOneToOne: false
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"rate_visit":
+{ Args: { "p_note": string,"p_score": number,"p_visit_id": string }; Returns: string
+                           },
 "record_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
@@ -3145,6 +3196,9 @@ isOneToOne: false
               "deleted_rows": number,"restored_rows": number,"table_name": string
             }[]
                            },
+"resolve_feedback":
+{ Args: { "p_feedback_id": string,"p_resolution": string }; Returns: undefined
+                           },
 "reverse_high_hand":
 { Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined
                            },
@@ -3180,6 +3234,9 @@ isOneToOne: false
                            },
 "second_approve_withdrawal":
 { Args: { "p_request_id": string }; Returns: string
+                           },
+"send_feedback":
+{ Args: { "p_note": string }; Returns: string
                            },
 "send_withdrawal":
 { Args: { "p_request_id": string,"p_utr": string }; Returns: undefined
@@ -3320,6 +3377,11 @@ isOneToOne: false
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
+            }[]
+                           },
+"venue_feedback":
+{ Args: { "p_venue_id": string }; Returns: {
+              "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"visit_closed_at": string
             }[]
                            },
 "waiting_deposits":

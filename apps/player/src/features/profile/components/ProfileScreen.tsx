@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { AcademySection } from './AcademySection.tsx';
 import { CardSection } from './CardSection.tsx';
+import { FeedbackSection } from './FeedbackSection.tsx';
 import { GamesSection } from './GamesSection.tsx';
 import { IdentitySection } from './IdentitySection.tsx';
 import { LimitsSection } from './LimitsSection.tsx';
@@ -44,6 +45,7 @@ export function ProfileScreen() {
         <NotificationsSection preferences={preferences.data} />
         <PrivacySection preferences={preferences.data} />
         <AcademySection />
+        <FeedbackSection />
         <SignOutSection />
       </Stack>
     </Screen>

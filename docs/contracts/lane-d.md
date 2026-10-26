@@ -17,7 +17,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `inbox_thread`, `lead` | Inbox webhooks into leads, linked to the member on sign-up |
 | `channel_metric` | Daily follower counts per channel |
 | `wall_post` | Tagged Instagram posts and their moderation |
-| `feedback_survey`, `feedback_ticket`, `review_request` | Visit feedback (3 or below opens a ticket for the General Manager); review request after the third visit, sent regardless of score |
+| `feedback`, `review_request` | Visit feedback, asked in the player app (decision 0165): a rating of 1 to 5 once a visit and notes from Profile; 3 or below, and every note, is a ticket the General Manager (`feedback.manage`) resolves. `public.my_feedback_visit()`, `public.rate_visit(visit, score, note)`, `public.send_feedback(note)`, `public.venue_feedback(venue)`, `public.resolve_feedback(id, resolution)`. Review request after the third visit, sent regardless of score |
 | `host_queue_item` | Lapsed players with churn reasons and offers |
 
 ## Functions offered to other lanes

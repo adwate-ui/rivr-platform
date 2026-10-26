@@ -39,6 +39,7 @@ src/
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: the table it is fixed to (and the practice venue, for a training tablet), the kill-switch banner, not found
     pairing/          the pairing code, until the tablet is signed in as itself
+    door/             a door kiosk's card scanner (decision 0164): the front camera read with jsQR, or a card scanner plugged in; in, then out
     dealer-sign-in/   between downs: the dealer's name and PIN, which starts their down
     hand-entry/       during a down (#42): the pot keypad, the game, the rake, drop and pull as the pot is
                       typed (@rivr/domain potTake on the table's rules), Log hand, and the down's last hands,

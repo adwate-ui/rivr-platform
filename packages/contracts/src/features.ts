@@ -63,6 +63,7 @@ export const FEATURES = [
   core('core.withdrawals', 'Withdrawals', 'Withdrawing an existing balance.', ['player:balance/withdraw']),
   core('core.kill_switch_banner', 'Kill-switch banner', 'The banner shown while the venue is frozen.', ['player:*']),
   core('core.house_rules', 'House rules', 'The club’s house rules.', ['player:profile/rules', 'web:house-rules']),
+  core('core.feedback', 'Feedback', 'Rating a visit, and sending the club a note.', ['player:home', 'player:profile']),
 ] as const satisfies readonly FeatureDefinition[];
 
 /** A feature key declared in code. */

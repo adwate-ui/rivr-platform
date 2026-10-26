@@ -63,6 +63,7 @@ export const ui = {
       dealers: 'Dealers',
       sops: 'SOPs',
       incidents: 'Incidents',
+      feedback: 'Feedback',
       reports: 'Reports',
       killSwitch: 'Kill switch',
       practiceReset: 'Practice reset',

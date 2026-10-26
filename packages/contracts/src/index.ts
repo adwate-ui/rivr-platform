@@ -64,6 +64,7 @@ export {
   type IncidentSeverity,
 } from './incidents.ts';
 export { rakeChangeSchema } from './rake.ts';
+export { feedbackNoteSchema, feedbackResolveSchema, visitRatingSchema } from './feedback.ts';
 export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,
 } from './cage.ts';
