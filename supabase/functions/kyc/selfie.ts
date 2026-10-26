@@ -1,23 +1,20 @@
-// The selfie, the first step of KYC (#5). The vendor checks it is a live person and searches the
-// venue's face gallery for anyone already enrolled with that face. A passing selfie is kept in the
-// private kyc bucket as the member's KYC photo; anything else is deleted.
-import type { MemberId } from '@rivr/contracts';
+// The selfie, the first step of KYC (#5). The vendor checks it is a live person; Cashfree has no search of
+// the faces already enrolled, so none is made (decision 0197). A passing selfie is kept in the private kyc
+// bucket as the member's KYC photo; anything else is deleted.
 import { jpegFromBase64 } from './jpeg.ts';
 import { currentRecord, failed, field, photoUrl, putPhoto, removePhoto, reply, rpc } from './server.ts';
 import type { Kyc, Subject } from './subject.ts';
 
 type FaceCheck =
-  | { readonly ok: true; readonly score: number; readonly sameFaceAs: MemberId | null }
+  | { readonly ok: true; readonly score: number }
   | { readonly ok: false; readonly response: Response };
 
-/** Liveness, then the search for the same face; a failure carries the reply to send. */
-async function checkFace(kyc: Kyc, memberId: MemberId, selfieUrl: string): Promise<FaceCheck> {
+/** Liveness; a failure carries the reply to send. */
+async function checkFace(kyc: Kyc, selfieUrl: string): Promise<FaceCheck> {
   const live = await kyc.checkLiveness({ selfieUrl });
   if (!live.ok) return { ok: false, response: failed(live.error) };
   if (!live.value.isLive) return { ok: false, response: reply({ error: 'not_live' }, 422) };
-  const enrolled = await kyc.enrolFace({ selfieUrl, memberId });
-  if (!enrolled.ok) return { ok: false, response: failed(enrolled.error) };
-  return { ok: true, score: Math.round(live.value.score), sameFaceAs: enrolled.value.sameFaceAs };
+  return { ok: true, score: Math.round(live.value.score) };
 }
 
 /** Stores the selfie, checks it, and records it; whatever is not recorded is deleted again. */
@@ -26,10 +23,10 @@ async function checkAndKeep({ memberId, venueId, kyc }: Subject, jpeg: Uint8Arra
   let isKept = false;
   try {
     await putPhoto(path, jpeg);
-    const checked = await checkFace(kyc, memberId, await photoUrl(path));
+    const checked = await checkFace(kyc, await photoUrl(path));
     if (!checked.ok) return checked.response;
     const status = await rpc('record_kyc_selfie', {
-      p_member_id: memberId, p_liveness_score: checked.score, p_same_face_as: checked.sameFaceAs,
+      p_member_id: memberId, p_liveness_score: checked.score, p_same_face_as: null,
     }, null);
     isKept = status === 'started' || status === 'refused';
     return reply({ status });

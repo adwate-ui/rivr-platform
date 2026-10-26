@@ -10,7 +10,7 @@ export const kycReview = {
   waitPanAlone: 'A PAN alone, with no DigiLocker record. Check the PAN card and the person.',
   waitNothingKept: 'DigiLocker gave another name or face, so nothing was kept. Check the original Aadhaar and PAN card.',
   waitNoDateOfBirth: 'DigiLocker gave no date of birth. Check the original document.',
-  waitClash: 'Another check holds the same PAN, Aadhaar or face.',
+  waitClash: 'Another check holds the same PAN, Aadhaar or face, or the same name, date of birth and last four Aadhaar digits.',
   /** `{date}` and `{time}` are when the check began to wait. */
   since: 'In the queue since {date}, {time}',
   vendorReference: 'Vendor reference',
@@ -25,7 +25,7 @@ export const kycReview = {
   address: 'Address',
   none: 'None',
   scores: 'Liveness {liveness}, face match {match}',
-  clashes: 'Same PAN, Aadhaar or face as: {names}',
+  clashes: 'Same PAN, Aadhaar, face, or name, date of birth and last four digits as: {names}',
   underEighteen: 'Refused: under the minimum age.',
   duplicateFace: 'Refused: the face of a verified member.',
   duplicatePan: 'Refused: the PAN of a verified member.',

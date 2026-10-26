@@ -9,8 +9,7 @@ export type KycCall =
   | { readonly method: 'pullDigiLocker'; readonly sessionId: string }
   | { readonly method: 'verifyPan'; readonly pan: Pan }
   | { readonly method: 'checkLiveness' }
-  | { readonly method: 'matchFace' }
-  | { readonly method: 'enrolFace'; readonly memberId: MemberId };
+  | { readonly method: 'matchFace' };
 
 /** How the fake answers; everything passes by default. */
 export interface FakeKycOptions {
@@ -18,8 +17,6 @@ export interface FakeKycOptions {
   readonly isPanValid?: boolean;
   readonly liveness?: { readonly isLive: boolean; readonly score: number };
   readonly faceMatch?: { readonly isMatch: boolean; readonly score: number };
-  /** The member the face search finds already enrolled with the selfie's face: a duplicate. */
-  readonly sameFaceAs?: MemberId;
 }
 
 /** The fake KYC adapter with its call log and failure script. */
@@ -30,7 +27,8 @@ const FICTIONAL_RECORD: DigiLockerRecord = {
   name: 'Test Member',
   dateOfBirth: '1990-01-01',
   maskedAadhaar: 'XXXX XXXX 0000',
-  aadhaarReference: 'fake-aadhaar',
+  // Like Cashfree's, the fake's DigiLocker gives no Aadhaar reference (decision 0197).
+  aadhaarReference: null,
   pan: panSchema.parse('ABCPE1234F'),
   address: 'Sector 65, Gurugram, Haryana',
   photoUrl: 'https://kyc.invalid/photo.jpg',
@@ -41,22 +39,22 @@ const FICTIONAL_RECORD: DigiLockerRecord = {
 // invocation, with no memory of the start) still recognises them.
 const FAKE_SESSION = 'fake-digilocker-';
 
-// Each member's DigiLocker gives them their own PAN and Aadhaar reference, made from their id, so
+// Each member's DigiLocker gives them their own PAN and last four Aadhaar digits, made from their id, so
 // members of the practice venue never look like duplicates of one another.
-function identityOf(memberId: string): Pick<DigiLockerRecord, 'pan' | 'aadhaarReference'> {
+function identityOf(memberId: string): Pick<DigiLockerRecord, 'pan' | 'maskedAadhaar'> {
   const n = Number.parseInt(memberId.replaceAll('-', '').slice(-8), 16) || 0;
   const letter = (place: number) => String.fromCharCode(65 + (Math.floor(n / 10_000 / 26 ** place) % 26));
   return {
     pan: panSchema.parse(`ABCP${letter(0)}${String(n % 10_000).padStart(4, '0')}${letter(1)}`),
-    aadhaarReference: `fake-aadhaar-${memberId}`,
+    maskedAadhaar: `XXXX XXXX ${String(n % 10_000).padStart(4, '0')}`,
   };
 }
 
-/** The selfie checks: liveness, the match with DigiLocker's photo, and the search for the same face. */
+/** The selfie checks: liveness, and the match with DigiLocker's photo. */
 function faceChecks(
   recorder: Recorder<KycCall, AdapterFailure>,
   options: FakeKycOptions,
-): Pick<KycAdapter, 'checkLiveness' | 'matchFace' | 'enrolFace'> {
+): Pick<KycAdapter, 'checkLiveness' | 'matchFace'> {
   return {
     async checkLiveness() {
       const failure = recorder.record({ method: 'checkLiveness' });
@@ -67,10 +65,6 @@ function faceChecks(
       const failure = recorder.record({ method: 'matchFace' });
       const faceMatch = options.faceMatch ?? { isMatch: true, score: 97 };
       return failure ? err(failure) : ok({ ...faceMatch, vendorReference: 'fake-face-match' });
-    },
-    async enrolFace({ memberId }) {
-      const failure = recorder.record({ method: 'enrolFace', memberId });
-      return failure ? err(failure) : ok({ sameFaceAs: options.sameFaceAs ?? null, vendorReference: 'fake-face-search' });
     },
   };
 }
@@ -96,7 +90,7 @@ export function createFakeKyc(options: FakeKycOptions = {}): FakeKyc {
     async verifyPan({ pan }) {
       const failure = recorder.record({ method: 'verifyPan', pan });
       const isValid = options.isPanValid ?? true;
-      return failure ? err(failure) : ok({ isValid, nameMatches: isValid, vendorReference: 'fake-pan' });
+      return failure ? err(failure) : ok({ isValid, nameMatches: isValid, dateOfBirthMatches: isValid, vendorReference: 'fake-pan' });
     },
     ...faceChecks(recorder, options),
   };

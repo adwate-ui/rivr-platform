@@ -4,7 +4,7 @@
 // the service role; members can only read it, so nobody verifies themselves. Every vendor call first
 // passes begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
 import { panSchema } from '@rivr/contracts';
-import { isSameName } from '@rivr/domain/identity';
+import { isSameName, kycIdentityKey } from '@rivr/domain/identity';
 import { takeSelfie } from './selfie.ts';
 import { CORS, currentRecord, failed, field, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
@@ -54,6 +54,8 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
     p_pan: pan, p_address: address, p_vendor_reference: vendorReference, p_name_matches: isSameName(name, fullName),
     p_face_matches: face.value.isMatch, p_face_match_score: Math.round(face.value.score),
+    // Duplicates by the document's name, date of birth and last four digits (decision 0197).
+    p_identity_key: kycIdentityKey(name, dateOfBirth, maskedAadhaar),
   }, null);
   return reply({ status });
 }
@@ -83,7 +85,8 @@ async function checkPan({ memberId, fullName, kyc }: Subject, body: unknown): Pr
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const checked = await kyc.verifyPan({ pan, name: fullName, dateOfBirth });
   if (!checked.ok) return failed(checked.error);
-  if (!checked.value.isValid || !checked.value.nameMatches) return reply({ error: 'pan_rejected' }, 422);
+  const { isValid, nameMatches, dateOfBirthMatches } = checked.value;
+  if (!isValid || !nameMatches || !dateOfBirthMatches) return reply({ error: 'pan_rejected' }, 422);
   const status = await rpc('record_kyc_pan', {
     p_member_id: memberId, p_pan: pan, p_date_of_birth: dateOfBirth, p_vendor_reference: checked.value.vendorReference,
   }, null);

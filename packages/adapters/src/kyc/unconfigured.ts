@@ -14,6 +14,5 @@ export function createUnconfiguredKyc(): KycAdapter {
     verifyPan: async () => NOT_CONFIGURED,
     checkLiveness: async () => NOT_CONFIGURED,
     matchFace: async () => NOT_CONFIGURED,
-    enrolFace: async () => NOT_CONFIGURED,
   };
 }

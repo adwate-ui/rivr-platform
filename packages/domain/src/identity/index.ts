@@ -1,1 +1,1 @@
-export { isSameName } from './sameName.ts';
+export { isSameName, kycIdentityKey } from './sameName.ts';

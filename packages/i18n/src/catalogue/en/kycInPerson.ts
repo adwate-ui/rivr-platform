@@ -19,7 +19,7 @@ export const kycInPerson = {
   invalid: 'Take their photo, enter the date of birth, the last four Aadhaar digits and the PAN from the originals, and record their consent.',
   verified: '{name} is verified and can take a seat.',
   refused: '{name} was refused. The refused checks below say why.',
-  needsReview: '{name} goes to review: another check holds the same PAN, Aadhaar or face. It is in the list below.',
+  needsReview: '{name} goes to review: another check holds the same PAN, Aadhaar or face, or the same name, date of birth and last four digits. It is in the list below.',
   /** A super admin reopens a refused check done in person (#267). */
   reopenFor: 'Reason for reopening {name}\'s check',
   reopenHint: 'What was wrong, in words only: no numbers or dates. Another reviewer can then check them in person again.',
