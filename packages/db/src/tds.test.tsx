@@ -39,11 +39,11 @@ afterEach(cleanup);
 describe('TDS reports (#93)', () => {
   it('gives the withholding ledger in paise for the days asked', async () => {
     const { result, calls } = renderReports({ tds_ledger: { body: [{
-      member_id: 'm1', full_name: 'Ishaan Verma', member_number: 211, pan_last4: '522C', cash_outs: 2, paid_paise: 7000000, withheld_paise: 600000,
+      member_id: 'm1', full_name: 'Ishaan Verma', member_number: 211, pan_last4: '522C', payments: 2, paid_paise: 7000000, withheld_paise: 600000,
       shadow_paise: 1200000,
     }] } });
     await waitFor(() => expect(result.current.ledger.data).toEqual([{
-      memberId: 'm1', fullName: 'Ishaan Verma', memberNumber: 211, panLast4: '522C', cashOuts: 2, paid: 7_000_000n, withheld: 600_000n, shadow: 1_200_000n,
+      memberId: 'm1', fullName: 'Ishaan Verma', memberNumber: 211, panLast4: '522C', payments: 2, paid: 7_000_000n, withheld: 600_000n, shadow: 1_200_000n,
     }]));
     expect(calls.find((call) => call.rpc === 'tds_ledger')?.body).toEqual({ p_venue_id: VENUE, p_from: '2026-10-01', p_to: '2026-10-31' });
   });
@@ -67,7 +67,7 @@ describe('TDS reports (#93)', () => {
 
   it('gives the member\'s certificate data', async () => {
     const { result } = renderReports({ my_tds_certificates: { body: [{
-      venue_id: VENUE, legal_name: 'RIVR Gaming Pvt Ltd', tan: 'DELR12345E', quarter_start: '2026-10-01', section: '194B', pan_last4: '522C', cash_outs: 1,
+      venue_id: VENUE, legal_name: 'RIVR Gaming Pvt Ltd', tan: 'DELR12345E', quarter_start: '2026-10-01', section: '194B', pan_last4: '522C', payments: 1,
       paid_paise: 2000000, tds_paise: 600000,
     }] } });
     await waitFor(() => expect(result.current.certificates.data?.[0]).toMatchObject({ tan: 'DELR12345E', quarterStart: '2026-10-01', tds: 600_000n }));

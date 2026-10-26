@@ -11,7 +11,7 @@ export const tds = {
   /** The PAN's last four characters: `••522C`. */
   panEnding: '••{last4}',
   noPan: 'No PAN',
-  cashOuts: 'Cash-outs',
+  payments: 'Payments',
   paid: 'Paid',
   withheld: 'Withheld',
   shadow: 'Shadow',

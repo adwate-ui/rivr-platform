@@ -10,14 +10,14 @@ const keys = {
   myTdsCertificates: (userId: string) => ['user', userId, 'my-tds-certificates'] as const,
 };
 
-/** One member's TDS over a period (#93): the cash-outs that recorded it, what they paid, withheld, and shadow while switched off. */
+/** One member's TDS over a period (#93): the payments that recorded it (cash-outs, tournament prizes and bounties, #477), what they paid, withheld, and shadow while switched off. */
 export interface TdsLedgerRow {
   readonly memberId: string;
   readonly fullName: string;
   readonly memberNumber: number;
   /** The PAN's last four characters, or null without one. */
   readonly panLast4: string | null;
-  readonly cashOuts: number;
+  readonly payments: number;
   readonly paid: Paise;
   readonly withheld: Paise;
   readonly shadow: Paise;
@@ -45,7 +45,7 @@ export interface TdsCertificate {
   readonly quarterStart: string;
   readonly section: string;
   readonly panLast4: string | null;
-  readonly cashOuts: number;
+  readonly payments: number;
   readonly paid: Paise;
   readonly tds: Paise;
 }
@@ -65,7 +65,7 @@ export function useTdsLedger(venueId: string, from: string, to: string) {
       const { data, error } = await client.rpc('tds_ledger', { p_venue_id: venueId, p_from: from, p_to: to });
       if (error) throw error;
       return data.map((row) => ({
-        memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, panLast4: row.pan_last4, cashOuts: row.cash_outs,
+        memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, panLast4: row.pan_last4, payments: row.payments,
         paid: toPaise(row.paid_paise), withheld: toPaise(row.withheld_paise), shadow: toPaise(row.shadow_paise),
       }));
     },
@@ -98,7 +98,7 @@ export function useMyTdsCertificates() {
       if (error) throw error;
       return data.map((row) => ({
         venueId: row.venue_id, legalName: row.legal_name, tan: row.tan, quarterStart: row.quarter_start, section: row.section, panLast4: row.pan_last4,
-        cashOuts: row.cash_outs, paid: toPaise(row.paid_paise), tds: toPaise(row.tds_paise),
+        payments: row.payments, paid: toPaise(row.paid_paise), tds: toPaise(row.tds_paise),
       }));
     },
   });

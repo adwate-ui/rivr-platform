@@ -17,7 +17,7 @@ function columns(): readonly DataTableColumn<TdsLedgerRow>[] {
   return [
     { key: 'member', header: t('console.tds.member'), cell: (row) => row.fullName, sortValue: (row) => row.fullName },
     { key: 'pan', header: t('console.tds.pan'), cell: (row) => (row.panLast4 === null ? t('console.tds.noPan') : t('console.tds.panEnding', { last4: row.panLast4 })) },
-    { key: 'cashOuts', header: t('console.tds.cashOuts'), align: 'end', sortValue: (row) => row.cashOuts, cell: (row) => formatNumber(row.cashOuts) },
+    { key: 'payments', header: t('console.tds.payments'), align: 'end', sortValue: (row) => row.payments, cell: (row) => formatNumber(row.payments) },
     money('paid', t('console.tds.paid'), (row) => row.paid),
     money('withheld', t('console.tds.withheld'), (row) => row.withheld),
     money('shadow', t('console.tds.shadow'), (row) => row.shadow),
