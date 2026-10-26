@@ -1,1 +1,1 @@
-export { clubDay, clubDaysPeriod } from './clubDay.ts';
+export { clubDay, clubDaysPeriod, lastDayOfMonth, recentClubMonths } from './clubDay.ts';

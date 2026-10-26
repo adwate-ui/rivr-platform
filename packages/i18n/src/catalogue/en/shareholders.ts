@@ -33,6 +33,16 @@ export const shareholders = {
   historyLabel: 'Every holding recorded',
   recordedBy: 'Recorded by',
   historyEmpty: 'No holdings recorded yet.',
+  /** The monthly partner and investor statements (#98). */
+  statements: 'Monthly statements',
+  statementsHint: 'Each holder’s share of the club month’s net result, at their holding on its last day. Before the month is stored on the 1st, a statement is provisional.',
+  statementsPractice: 'The practice venue has no statements.',
+  statementMonth: 'Month',
+  statementsLabel: 'Holders and their share of the month',
+  statementsEmpty: 'No one held a share on the month’s last day.',
+  statementShare: 'Their share',
+  openStatement: 'Statement',
+  openStatementFor: 'Statement: {name}',
   failures: {
     not_allowed: 'Only a super admin keeps the register.',
     invalid: 'Check the shareholder, the share and the day.',

@@ -50,3 +50,22 @@ export const STATEMENT = {
   ],
   closingPaise: 57_500_000n,
 };
+
+/** Kabir Malhotra's statement for November 2026: 12.5% of the club's ₹2,800 net result. */
+export const PARTNER_STATEMENT = {
+  statement: {
+    issuer: ISSUER,
+    holder: 'Kabir Malhotra',
+    kind: 'partner',
+    month: '2026-11-01',
+    heldOn: '2026-11-30',
+    basisPoints: 1250,
+    revenue: [{ name: 'Rake', paise: 300_000n }],
+    expenses: [{ name: 'Bonus issued', paise: 20_000n }],
+    revenuePaise: 300_000n,
+    expensePaise: 20_000n,
+    netPaise: 280_000n,
+    sharePaise: 35_000n,
+    isProvisional: false,
+  },
+} as const;

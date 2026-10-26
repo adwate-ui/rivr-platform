@@ -11,3 +11,15 @@ export function clubDay(at: Date): string {
 export function clubDaysPeriod(first: string, last: string): { start: Date; end: Date } {
   return { start: new Date(`${first}T06:00:00+05:30`), end: new Date(new Date(`${last}T06:00:00+05:30`).getTime() + DAY_MS) };
 }
+
+/** The first days of the last `count` club months, the one a moment falls in first: `2026-10-01`, `2026-09-01`, and so on. */
+export function recentClubMonths(at: Date, count: number): string[] {
+  const [year = 0, month = 1] = clubDay(at).split('-').map(Number);
+  return Array.from({ length: count }, (_, back) => new Date(Date.UTC(year, month - 1 - back, 1)).toISOString().slice(0, 10));
+}
+
+/** A month's last day, from its first: `2026-02-01` gives `2026-02-28`. */
+export function lastDayOfMonth(first: string): string {
+  const [year = 0, month = 1] = first.split('-').map(Number);
+  return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+}

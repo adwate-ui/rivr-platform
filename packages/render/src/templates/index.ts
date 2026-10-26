@@ -1,4 +1,4 @@
-import { BrandArt, InvoiceDocument, ThermalReceipt } from '@rivr/ui';
+import { BrandArt, InvoiceDocument, PartnerStatementDocument, ThermalReceipt } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { BadBeatJackpotSlide } from './BadBeatJackpotSlide.tsx';
 import { MembershipCardImage } from './paper/MembershipCardImage.tsx';
@@ -32,6 +32,8 @@ export const templates = {
   'receipt.thermal': ThermalReceipt,
   'document.invoice': InvoiceDocument,
   'document.statement': StatementDocument,
+  // A partner's or investor's monthly statement (#98).
+  'document.partnerStatement': PartnerStatementDocument,
 };
 
 export type TemplateName = keyof typeof templates;

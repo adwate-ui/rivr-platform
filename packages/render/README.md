@@ -32,6 +32,7 @@ Templates:
 | `receipt.thermal` | `tokens.size.receipt` (576) wide, no height (`@rivr/ui`'s `ThermalReceipt`, which the cage prints too, #69) | `issuer` (`legalName`, `address`, `gstin`), `isPractice` (says "Practice receipt"), `title`, `at` (ISO), `lines` (`label` and an amount in paise or words), `total`, `reference` |
 | `document.invoice` | `tokens.viewport.a4` (794 × 1123) | `invoice`: a `StoredInvoice` (`@rivr/ui`'s `InvoiceDocument`), its amounts and supplier exactly as stored |
 | `document.statement` | `tokens.viewport.a4` | `issuer`, `holder`, `from` and `to` (ISO dates), `openingPaise`, `movements` (`at`, `description`, `amountPaise`, `balancePaise`), `closingPaise` |
+| `document.partnerStatement` | `tokens.viewport.a4` | `statement`: a `PartnerStatement` (`@rivr/ui`'s `PartnerStatementDocument`, which the console shows too, #98): the holder, month and holding, revenue and expenses by account, the net and the holder's share |
 
 The brand kit (`docs/brand/README.md`) is `brand.art` at every size in `src/brandKit.ts`. `pnpm --filter @rivr/render render:brand-kit` rebuilds the tokens, `@rivr/ui` and the host, then writes all of it into the repository, 83 files in under a minute. `src/brand.test.ts` compares six of them with `baselines/brand-*.png`.
 
