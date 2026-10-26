@@ -1,7 +1,21 @@
 import { useTvCallTimeBoard, type TvCallTimeTable, type TvSeated } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
-import { Text, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
+import { CALL_TIME_TABLES_SHOWN, Text, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
 import { useEffect, useState } from 'react';
+
+// More tables than fit take turns, a page every ten seconds.
+const PAGE_MS = 10_000;
+
+/** Which page of tables shows: the next every ten seconds, round them all. */
+function usePage(pages: number): number {
+  const [turn, setTurn] = useState(0);
+  useEffect(() => {
+    if (pages < 2) return undefined;
+    const timer = setInterval(() => setTurn((current) => current + 1), PAGE_MS);
+    return () => clearInterval(timer);
+  }, [pages]);
+  return pages === 0 ? 0 : turn % pages;
+}
 
 /** The time now, a second at a time: the board counts down between reads. */
 function useNow(): number {
@@ -52,16 +66,25 @@ export function toGroups(tables: readonly TvCallTimeTable[], elapsed: number): T
     .filter((group) => group.rows.length > 0);
 }
 
-/** The call-time board (decision 0163): the seats about to open, and every table's players on call time, counting down. */
-export function CallTimeMode({ venueId }: { venueId: string }) {
-  const board = useTvCallTimeBoard(venueId);
+/**
+ * The call-time board (decision 0163): the seats about to open, and every table's players on call time,
+ * counting down; more tables than fit take turns, a page every ten seconds.
+ */
+export function CallTimeMode() {
+  const board = useTvCallTimeBoard();
   const now = useNow();
+  const elapsed = Math.max(0, Math.floor((now - board.dataUpdatedAt) / 1_000));
+  const groups = board.data === undefined ? [] : toGroups(board.data, elapsed);
+  const pages = Math.ceil(groups.length / CALL_TIME_TABLES_SHOWN);
+  const first = usePage(pages) * CALL_TIME_TABLES_SHOWN;
   if (board.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(board.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
-  const elapsed = Math.max(0, Math.floor((now - board.dataUpdatedAt) / 1_000));
+  const shown = groups.slice(first, first + CALL_TIME_TABLES_SHOWN);
+  const page = pages < 2 ? undefined : t('tv.callTime.page', { from: first + 1, to: first + shown.length, count: groups.length });
   return (
     <TvCallTimeBoard title={t('tv.callTime.title')} openingsTitle={t('tv.callTime.openingsTitle')} noOpeningsText={t('tv.callTime.noOpenings')}
-      emptyText={t('tv.callTime.empty')} openings={toOpenings(board.data, elapsed)} tables={toGroups(board.data, elapsed)} />
+      emptyText={t('tv.callTime.empty')} moreText={(count) => t('tv.callTime.more', { count })} page={page}
+      openings={toOpenings(board.data, elapsed)} tables={shown} />
   );
 }

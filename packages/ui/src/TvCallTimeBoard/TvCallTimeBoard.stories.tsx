@@ -13,6 +13,7 @@ const meta = {
     openingsTitle: 'Seats opening',
     noOpeningsText: 'No seats opening yet.',
     emptyText: 'No one on call time.',
+    moreText: (hidden: number) => `+${hidden} more`,
     openings: [
       { id: 'o1', where: 'Table 3 · Seat 5', name: 'Kabir S.', time: 'Now', isNow: true },
       { id: 'o2', where: 'Private Room · Seat 2', name: 'Naina K.', time: 'In 25 min', isNow: false },
@@ -39,9 +40,10 @@ export const Default: Story = {};
 /** Nobody leaving and nobody on call time. */
 export const Empty: Story = { args: { openings: [], tables: [] } };
 
-/** More than fit: the board shows four openings, four tables, and four players under each. */
+/** More than fit: four openings and four players a table, each saying how many more; the tables a page at a time. */
 export const Full: Story = {
   args: {
+    page: 'Tables 1 to 4 of 5',
     openings: ['Kabir S.', 'Naina K.', 'Rohan B.', 'Arjun M.', 'Dev M.'].map((name, index) => ({
       id: `o${index}`, where: `Table ${index + 2} · Seat ${index + 1}`, name, time: `In ${(index + 1) * 10} min`, isNow: false,
     })),

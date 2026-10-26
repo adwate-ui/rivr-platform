@@ -44,6 +44,10 @@ export const tv = {
     paused: '{time}, away',
     /** A member who hid their name on the TVs (#326). */
     hiddenName: 'Seat {seat}',
+    /** Under a list cut short. */
+    more: '+{count} more',
+    /** More tables than fit take turns: `Tables 1 to 4 of 6`. */
+    page: 'Tables {from} to {to} of {count}',
   },
   /** The jackpot with tonight's high hand (#65). */
   jackpot: {

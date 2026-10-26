@@ -69,34 +69,40 @@ const BOARD_CHECK = 30_000;
 // However many signals arrive, the board is read again at most once every two seconds.
 const SIGNAL_SETTLE = 2_000;
 
-// The query each board's signal reads again; promotions is the Promotions rotation's (#86).
+// The query each board's signal reads again; promotions is the Promotions rotation's (#86). The TV's screen listens (useTvSignals).
 const BOARD_KEYS = {
   waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions,
 };
 
 /**
- * Reads a board again when the database broadcasts on the venue's private topic (tv:<venue id>,
- * decision 0051) that it changed: once, two seconds after the first signal, however many follow.
+ * Reads each of the TV's boards again when the database broadcasts on the venue's private topic
+ * (tv:<venue id>, decision 0051) that it changed: once, two seconds after the first signal, however
+ * many follow. One channel for the whole TV, opened once by the TV's screen: a board that comes round
+ * in a rotation (decision 0163) would otherwise ask for the topic while the last board's channel is
+ * still leaving it, and hear nothing.
  */
-export function useBoardSignal(board: keyof typeof BOARD_KEYS, venueId: string) {
+export function useTvSignals(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (userId === null) return undefined;
-    const key = BOARD_KEYS[board](userId);
-    let pending: ReturnType<typeof setTimeout> | null = null;
-    const readAgain = () => {
-      pending ??= setTimeout(() => {
-        pending = null;
-        void queryClient.invalidateQueries({ queryKey: key });
-      }, SIGNAL_SETTLE);
-    };
-    const channel = client.channel(`tv:${venueId}`, { config: { private: true } }).on('broadcast', { event: board }, readAgain).subscribe();
+    const pending = new Map<string, ReturnType<typeof setTimeout>>();
+    const channel = client.channel(`tv:${venueId}`, { config: { private: true } });
+    for (const [board, key] of Object.entries(BOARD_KEYS)) {
+      channel.on('broadcast', { event: board }, () => {
+        if (pending.has(board)) return;
+        pending.set(board, setTimeout(() => {
+          pending.delete(board);
+          void queryClient.invalidateQueries({ queryKey: key(userId) });
+        }, SIGNAL_SETTLE));
+      });
+    }
+    channel.subscribe();
     return () => {
-      if (pending !== null) clearTimeout(pending);
+      pending.forEach((timer) => clearTimeout(timer));
       void client.removeChannel(channel);
     };
-  }, [client, queryClient, userId, board, venueId]);
+  }, [client, queryClient, userId, venueId]);
 }
 
 interface BoardRow {
@@ -175,10 +181,9 @@ export function toTvJackpot(row: JackpotRow): TvJackpot {
   return { main: toPaise(row.main_paise), highHand };
 }
 
-/** The signed-in TV's waitlist board at its venue, live. */
-export function useTvWaitlistBoard(venueId: string) {
+/** The signed-in TV's waitlist board at its venue, live while the TV's screen listens for signals (useTvSignals). */
+export function useTvWaitlistBoard() {
   const { client, userId } = useRivrData();
-  useBoardSignal('waitlist', venueId);
   return useQuery({
     queryKey: queryKeys.tvWaitlistBoard(userId ?? 'signed-out'),
     enabled: userId !== null,
@@ -192,12 +197,11 @@ export function useTvWaitlistBoard(venueId: string) {
 }
 
 /**
- * The signed-in TV's call-time board at its venue, live: every seated player by table, with the call
- * time left when read (the query's `dataUpdatedAt` says when, for the TV to count down from).
+ * The signed-in TV's call-time board at its venue, live while the TV's screen listens for signals: every
+ * seated player still on call time or leaving, by table, with the call time left when read (the query's `dataUpdatedAt` says when, for the TV to count down from).
  */
-export function useTvCallTimeBoard(venueId: string) {
+export function useTvCallTimeBoard() {
   const { client, userId } = useRivrData();
-  useBoardSignal('call_time', venueId);
   return useQuery({
     queryKey: queryKeys.tvCallTimeBoard(userId ?? 'signed-out'),
     enabled: userId !== null,
@@ -210,10 +214,9 @@ export function useTvCallTimeBoard(venueId: string) {
   });
 }
 
-/** The signed-in TV's jackpot and tonight's high hand at its venue, live. */
-export function useTvJackpot(venueId: string) {
+/** The signed-in TV's jackpot and tonight's high hand at its venue, live while the TV's screen listens for signals. */
+export function useTvJackpot() {
   const { client, userId } = useRivrData();
-  useBoardSignal('jackpot', venueId);
   return useQuery({
     queryKey: queryKeys.tvJackpot(userId ?? 'signed-out'),
     enabled: userId !== null,

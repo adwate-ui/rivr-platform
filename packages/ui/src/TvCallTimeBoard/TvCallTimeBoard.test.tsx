@@ -8,6 +8,7 @@ const PROPS: TvCallTimeBoardProps = {
   openingsTitle: 'Seats opening',
   noOpeningsText: 'No seats opening yet.',
   emptyText: 'No one on call time.',
+  moreText: (hidden) => `+${hidden} more`,
   openings: Array.from({ length: 5 }, (_, index) => ({
     id: String(index), where: `Table 3 · Seat ${index + 1}`, name: `Leaving ${index + 1}`, time: index === 0 ? 'Now' : `In ${index * 10} min`, isNow: index === 0,
   })),
@@ -26,18 +27,20 @@ describe('TvCallTimeBoard', () => {
     expect(openings.getByText('Table 3 · Seat 1')).toBeInTheDocument();
     expect(openings.getByText('Now')).toBeInTheDocument();
     expect(openings.queryByText('Leaving 5')).toBeNull();
+    expect(openings.getByText('+1 more')).toBeInTheDocument();
     const table = within(screen.getByRole('region', { name: 'Table 3' }));
     expect(table.getByText('NLH 100/200')).toBeInTheDocument();
     expect(table.getAllByRole('listitem')).toHaveLength(4);
     expect(table.getByText('4 min')).toBeInTheDocument();
     expect(table.queryByText('Player 5')).toBeNull();
+    expect(table.getByText('+1 more')).toBeInTheDocument();
   });
 
-  it('shows the first four tables', () => {
-    const tables = ['Table 1', 'Table 2', 'Table 3', 'Table 5', 'Private Room'].map((name) => ({ id: name, name, detail: 'NLH 100/200', rows: [] }));
-    renderIn(<TvCallTimeBoard {...PROPS} tables={tables} />);
-    expect(screen.getByRole('region', { name: 'Table 5' })).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Private Room' })).toBeNull();
+  it('shows a page of four tables, and which page', () => {
+    const tables = ['Table 1', 'Table 2', 'Table 3', 'Table 5'].map((name) => ({ id: name, name, detail: 'NLH 100/200', rows: [] }));
+    renderIn(<TvCallTimeBoard {...PROPS} tables={tables} page="Tables 1 to 4 of 5" />);
+    expect(screen.getAllByRole('region')).toHaveLength(5);
+    expect(screen.getByText('Tables 1 to 4 of 5')).toBeInTheDocument();
   });
 
   it('says when nobody is leaving and nobody is on call time', () => {

@@ -10,7 +10,7 @@ const SLIDE_MS = 12_000;
  * Which slide shows: the next every 12 seconds, round the live ones. In a TV's rotation (decision
  * 0163) each shows once, then `onDone`; at once when none is live. `count` is undefined until read.
  */
-function useSlides(count: number | undefined, onDone: (() => void) | undefined): number {
+export function useSlides(count: number | undefined, onDone: (() => void) | undefined): number {
   const [turn, setTurn] = useState(0);
   const isRotating = onDone !== undefined;
   useEffect(() => {
@@ -28,8 +28,8 @@ function useSlides(count: number | undefined, onDone: (() => void) | undefined):
  * The TV's Promotions mode (#86): the live promotions in rotation, one slide every 12 seconds, a quiet
  * pager beneath. In a TV's rotation, `onDone` once each has shown, or when none can be shown.
  */
-export function PromotionsMode({ venueId, onDone }: { venueId: string; onDone?: (() => void) | undefined }) {
-  const cards = useTvPromotions(venueId);
+export function PromotionsMode({ onDone }: { onDone?: (() => void) | undefined }) {
+  const cards = useTvPromotions();
   const shown = useSlides(cards.data?.length ?? (cards.isError ? 0 : undefined), onDone);
   if (cards.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(cards.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;

@@ -81,10 +81,10 @@ as $$
   order by ty.big_blind_paise, ty.small_blind_paise, ty.name, r.place;
 $$;
 
--- The TV's call-time board, only while the TV shows it: every seated player, table by table in the
--- room's order, as a first name and initial (or nothing, for a member who hid their name, #326), with
--- the whole seconds of call time left (null where the table's type has none), away, and when the floor
--- marked them leaving.
+-- The TV's call-time board, only while the TV shows it: every seated player still on call time or
+-- marked leaving, table by table in the room's order, as a first name and initial (or nothing, for a
+-- member who hid their name, #326), with the whole seconds of call time left (null where the table's
+-- type has none), away, and when the floor marked them leaving. Nobody else's name reaches the TV.
 create function private.tv_call_time_board()
 returns table (table_id uuid, table_name text, stake_name text, seat integer, display_name text, call_time_left integer,
                is_away boolean, leaving_at timestamptz)
@@ -102,6 +102,7 @@ as $$
   join public.member m on m.id = s.member_id
   left join public.member_preference p on p.member_id = s.member_id
   where s.venue_id = private.tv_showing('call_time') and s.ended_at is null
+    and (s.leaving_at is not null or private.session_call_time(s, now()) > 0)
   order by g.position, s.seat;
 $$;
 

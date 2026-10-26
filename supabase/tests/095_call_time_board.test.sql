@@ -83,6 +83,14 @@ select results_eq($$ select table_name, seat, display_name, call_time_left, is_a
   'in its rotation, the TV reads every seated player by table: a first name and initial, call time left, and who is leaving');
 select ok(exists (select 1 from public.tv_waitlist_board()), 'and still its waitlist board');
 select ok(not exists (select 1 from public.tv_call_time_board() where display_name in ('Ishaan Verma', 'Vihaan Kapoor')), 'never a full name');
+-- Vihaan's hour is played: not leaving, he is not on the board.
+reset role;
+update public.seat_session set started_at = started_at - interval '61 minutes' where id = (select id from ids where name = 'vihaan');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
+select is_empty($$ select * from public.tv_call_time_board() where seat = 2 $$, 'a player whose call time is done, not leaving, is not sent to the TV');
+reset role;
+update public.seat_session set started_at = started_at + interval '61 minutes' where id = (select id from ids where name = 'vihaan');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
 
 -- A hidden name stays hidden.
 reset role;
