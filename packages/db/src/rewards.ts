@@ -1,4 +1,4 @@
-import { REWARD_KINDS, type RewardKind } from '@rivr/contracts';
+import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
