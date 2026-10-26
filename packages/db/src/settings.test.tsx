@@ -8,7 +8,7 @@ import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useSettingActions, useVenueSettings } from './settings.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useChipDenominations, useVenueConfig, useVenueConfigActions } from './venueConfig.ts';
+import { useChipDenominations, useVenueConfig, useVenueConfigActions, useVenueLogoUpload } from './venueConfig.ts';
 
 const SUPER_ADMIN = '00000000-0000-4000-8000-000000000101';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -33,7 +33,7 @@ function renderSettings(replies: Record<string, { status?: number; body: unknown
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
     settings: useVenueSettings(VENUE), actions: useSettingActions(VENUE),
-    config: useVenueConfig(VENUE), chips: useChipDenominations(VENUE), configActions: useVenueConfigActions(VENUE),
+    config: useVenueConfig(VENUE), chips: useChipDenominations(VENUE), configActions: useVenueConfigActions(VENUE), logo: useVenueLogoUpload(VENUE),
   }), { wrapper });
   return { result, calls };
 }
@@ -150,9 +150,24 @@ describe('venue configuration and chips (#33)', () => {
     await waitFor(() => expect(result.current.config.data).toMatchObject({
       legalName: 'RIVR Gaming Pvt Ltd', tan: 'DELR12345E', staffIpAllowlist: ['203.0.113.0/24'], sacClubServices: '999692', signatoryName: 'Rhea Kapoor',
     }));
+    expect(result.current.config.data?.logoUrl).toBeNull();
     cleanup();
     const other = renderSettings({ 'GET /venue_config_detail': { body: null } });
     await waitFor(() => expect(other.result.current.config.data).toBeNull());
+  });
+
+  it('reads the logo as its public address in the brand bucket', async () => {
+    const { result } = renderSettings({ 'GET /venue_config_detail': { body: { ...DETAIL, logo_path: `${VENUE}/logo-a.png` } } });
+    await waitFor(() => expect(result.current.config.data?.logoUrl).toBe(`http://127.0.0.1:9/storage/v1/object/public/brand/${VENUE}/logo-a.png`));
+  });
+
+  it('refuses a logo that is not a PNG, or over 1 MB, before sending anything', async () => {
+    const { result, calls } = renderSettings({});
+    const jpeg = new File(['jpeg'], 'logo.jpg', { type: 'image/jpeg' });
+    expect(await outcomeOf(() => result.current.logo.mutateAsync(jpeg))).toEqual({ ok: false, error: 'wrong_type' });
+    const big = new File([new Uint8Array(1_048_577)], 'logo.png', { type: 'image/png' });
+    expect(await outcomeOf(() => result.current.logo.mutateAsync(big))).toEqual({ ok: false, error: 'too_big' });
+    expect(calls.filter((call) => call.method !== 'GET')).toEqual([]);
   });
 
   it('saves the configuration, and reads a change RLS hid as not allowed', async () => {

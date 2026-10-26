@@ -27,12 +27,13 @@ export function computerToken(): string | null {
 
 /**
  * Database calls carry this computer's token, so the cage and admin work only from an enrolled computer
- * (#384, decision 0110). Only the database's API: Edge Functions name the headers they accept.
+ * (#384, decision 0110). Only the database's and Storage's APIs, whose policies check it: Edge Functions name
+ * the headers they accept.
  */
 export const fetchWithComputerToken: typeof fetch = (input, init) => {
   const token = computerToken();
   const url = input instanceof Request ? input.url : String(input);
-  if (token === null || !url.includes('/rest/v1/')) return fetch(input, init);
+  if (token === null || !(url.includes('/rest/v1/') || url.includes('/storage/v1/'))) return fetch(input, init);
   const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
   headers.set('x-rivr-computer', token);
   return fetch(input, { ...init, headers });

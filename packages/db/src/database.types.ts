@@ -3905,6 +3905,9 @@ isOneToOne: false
 "set_tv_rotation":
 { Args: { "p_device_id": string,"p_rotation": (Database["public"]['Enums']["tv_mode"])[] }; Returns: undefined
                            },
+"set_venue_logo":
+{ Args: { "p_path": string,"p_venue_id": string }; Returns: undefined
+                           },
 "shareholding_history":
 { Args: { "p_venue_id": string }; Returns: {
               "basis_points": number,"effective_from": string,"name": string,"note": string,"recorded_at": string,"recorded_by": string,"shareholder_id": string

@@ -29,7 +29,17 @@ export interface VenueConfig {
   readonly sacAcademy: string | null;
   readonly signatoryName: string | null;
   readonly signatoryDesignation: string | null;
+  /** The venue's logo in the public brand bucket (#397), or null until one is uploaded. */
+  readonly logoUrl: string | null;
 }
+
+/** Why a logo did not go through: not a PNG, over 1 MB, the role does not configure the venue, or anything else. */
+export type VenueLogoFailure = 'wrong_type' | 'too_big' | 'not_allowed' | 'unavailable';
+
+// The brand bucket takes these, up to 1 MB (supabase/migrations/20261027000300_venue_logo.sql).
+const BRAND_BUCKET = 'brand';
+const LOGO_EXTENSION: Readonly<Record<string, string>> = { 'image/png': 'png' };
+const LOGO_MAX_BYTES = 1_048_576;
 
 /** One chip the venue uses, or used: its value in paise, a multiple of ₹50. */
 export interface ChipDenomination {
@@ -68,6 +78,7 @@ export function useVenueConfig(venueId: string) {
         bankName: data.bank_name, bankAccountName: data.bank_account_name, bankAccountNumber: data.bank_account_number, bankIfsc: data.bank_ifsc,
         invoicePrefix: data.invoice_prefix ?? '', staffIpAllowlist: (data.staff_ip_allowlist ?? []).map(String), alertWhatsapp: data.alert_whatsapp,
         sacClubServices: data.sac_club_services, sacAcademy: data.sac_academy, signatoryName: data.signatory_name, signatoryDesignation: data.signatory_designation,
+        logoUrl: data.logo_path === null ? null : client.storage.from(BRAND_BUCKET).getPublicUrl(data.logo_path).data.publicUrl,
       };
     },
   });
@@ -128,6 +139,29 @@ export function useVenueConfigActions(venueId: string) {
     },
   });
   return { save, addChip, setChipActive };
+}
+
+/**
+ * A super admin uploads the venue's logo, a PNG of up to 1 MB (#397): it goes up under a name of its
+ * own, then the database makes it the venue's logo. Both are audited.
+ */
+export function useVenueLogoUpload(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (logo: File): Promise<Result<null, VenueLogoFailure>> => {
+      const extension = LOGO_EXTENSION[logo.type];
+      if (extension === undefined) return err('wrong_type');
+      if (logo.size > LOGO_MAX_BYTES) return err('too_big');
+      const path = `${venueId}/logo-${crypto.randomUUID()}.${extension}`;
+      const upload = await client.storage.from(BRAND_BUCKET).upload(path, logo, { contentType: logo.type });
+      if (upload.error) return err('unavailable');
+      const { error } = await client.rpc('set_venue_logo', { p_venue_id: venueId, p_path: path });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.venueConfig(userId ?? 'signed-out', venueId) });
+      if (error) return err(error.code === '42501' ? 'not_allowed' : 'unavailable');
+      return ok(null);
+    },
+  });
 }
 
 /** The club as its printed matter heads it (#69): legal name, address and GSTIN, which every staff member reads. */

@@ -92,7 +92,8 @@ export {
   practiceResetFailureOf, usePracticeReset, usePracticeResetPreview, type PracticeResetFailure, type PracticeResetRow,
 } from './practiceReset.ts';
 export {
-  useChipDenominations, useVenueConfig, useVenueConfigActions, type ChipDenomination, type VenueConfig, type VenueConfigFailure,
+  useChipDenominations, useVenueConfig, useVenueConfigActions, useVenueLogoUpload, type ChipDenomination, type VenueConfig, type VenueConfigFailure,
+  type VenueLogoFailure,
   useVenueIssuer,
   type VenueIssuer,
 } from './venueConfig.ts';

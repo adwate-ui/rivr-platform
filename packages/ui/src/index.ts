@@ -39,6 +39,7 @@ export * from './SignaturePad/index.ts';
 
 // Data
 export * from './KycPhoto/index.ts';
+export * from './VenueLogo/index.ts';
 export * from './FloorRow/index.ts';
 export * from './SeatRing/index.ts';
 export * from './CallTimeTimer/index.ts';

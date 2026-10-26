@@ -6,8 +6,13 @@ export interface CameraButtonProps {
   children: ReactNode;
   /** The photo the member took, or chose from the phone. */
   onPhoto: (photo: File) => void;
-  /** `user` opens the front camera, for a selfie; `environment` the back one, for a document. */
-  camera?: 'user' | 'environment';
+  /**
+   * `user` opens the front camera, for a selfie; `environment` the back one, for a document; `none` only the
+   * file picker, for a file such as the venue's logo.
+   */
+  camera?: 'user' | 'environment' | 'none';
+  /** The files it offers, as the file picker reads them: any image unless given, such as `image/png,image/svg+xml`. */
+  accept?: string;
   variant?: ButtonVariant;
   /** Shows the loading label while the photo is sent. */
   isLoading?: boolean;
@@ -18,7 +23,7 @@ export interface CameraButtonProps {
  * A button that opens the phone's camera and hands back the photo. On a computer it opens the file
  * picker. The file input behind it is hidden; the button is what people and screen readers use.
  */
-export function CameraButton({ children, onPhoto, camera = 'user', ...button }: CameraButtonProps) {
+export function CameraButton({ children, onPhoto, camera = 'user', accept = 'image/*', ...button }: CameraButtonProps) {
   const input = useRef<HTMLInputElement>(null);
   return (
     <>
@@ -28,8 +33,8 @@ export function CameraButton({ children, onPhoto, camera = 'user', ...button }: 
       <input
         ref={input}
         type="file"
-        accept="image/*"
-        capture={camera}
+        accept={accept}
+        capture={camera === 'none' ? undefined : camera}
         hidden
         tabIndex={-1}
         onChange={(event) => {
