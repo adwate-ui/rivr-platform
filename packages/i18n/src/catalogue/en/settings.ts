@@ -67,6 +67,8 @@ export const settings = {
   venueHint: 'Super admins only. Invoices, the cage and alerts read these.',
   legalName: 'Legal name',
   gstin: 'GSTIN',
+  tan: 'TAN',
+  tanHint: 'For TDS returns and certificates: four letters, five digits and a letter.',
   address: 'Address',
   upiPayeeName: 'UPI payee name',
   upiVpa: 'UPI address',

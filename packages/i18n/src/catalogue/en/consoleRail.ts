@@ -27,6 +27,8 @@ export const rail = {
     treasury: 'Treasury',
     accounts: 'Accounts',
     expenses: 'Expenses',
+    tds: 'TDS',
+    shareholders: 'Shareholders',
     endOfDay: 'End of day',
     members: 'Members',
     kycReview: 'KYC review',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, formatNumber, formatStakes } from './money.ts';
+import { formatMoney, formatNumber, formatRupeesForFile, formatStakes } from './money.ts';
 
 describe('formatMoney', () => {
   it.each([
@@ -35,5 +35,15 @@ describe('formatNumber', () => {
   it('groups points the Indian way', () => {
     expect(formatNumber(18_420)).toBe('18,420');
     expect(formatNumber(1_234_567n)).toBe('12,34,567');
+  });
+});
+
+describe('formatRupeesForFile', () => {
+  it('gives plain rupees with two decimals for a file, never rounding', () => {
+    expect(formatRupeesForFile(2_000_000n)).toBe('20000.00');
+    expect(formatRupeesForFile(5n)).toBe('0.05');
+    expect(formatRupeesForFile(100_050n)).toBe('1000.50');
+    expect(formatRupeesForFile(-100_050n)).toBe('-1000.50');
+    expect(formatRupeesForFile(0n)).toBe('0.00');
   });
 });

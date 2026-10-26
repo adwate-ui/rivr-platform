@@ -5,7 +5,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./site": "./src/site.ts",
-    "./myRewards": "./src/myRewards.ts"
+    "./myRewards": "./src/myRewards.ts",
+    "./tds": "./src/tds.ts",
+    "./shareholding": "./src/shareholding.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",

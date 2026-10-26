@@ -6,6 +6,8 @@ storybook-static/
 test-results/
 playwright-report/
 reports/
+# The console's Reports feature is code, not a test report.
+!apps/console/src/features/reports/
 .stryker-tmp/
 .astro/
 .wrangler/

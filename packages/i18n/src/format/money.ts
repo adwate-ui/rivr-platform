@@ -24,3 +24,12 @@ export function formatNumber(value: number | bigint): string {
 export function formatStakes(smallBlind: bigint, bigBlind: bigint): string {
   return `${RUPEES.format(smallBlind / PAISE_PER_RUPEE)}/${RUPEES.format(bigBlind / PAISE_PER_RUPEE)}`;
 }
+
+/**
+ * Formats integer paise as a plain rupee figure for a file another program reads, such as a return
+ * extract: `20000.00`, no symbol or grouping, always two decimals, `-1000.50` below nothing. Never rounds.
+ */
+export function formatRupeesForFile(paise: bigint): string {
+  const amount = paise < 0n ? -paise : paise;
+  return `${paise < 0n ? '-' : ''}${amount / PAISE_PER_RUPEE}.${(amount % PAISE_PER_RUPEE).toString().padStart(2, '0')}`;
+}

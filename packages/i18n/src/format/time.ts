@@ -66,3 +66,15 @@ const MONTH = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'long',
 export function formatMonth(month: string): string {
   return MONTH.format(new Date(`${month.slice(0, 7)}-01T00:00:00Z`));
 }
+
+/**
+ * A quarter from its first day (`2026-10-01`), as `Oct–Dec 2026`: the Indian financial year's quarters
+ * are the calendar's. Its formatter is made when asked for, so the player's first load, which never
+ * names a quarter, does not carry it.
+ */
+export function formatQuarter(firstDay: string): string {
+  const month = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'short' });
+  const start = new Date(`${firstDay}T00:00:00Z`);
+  const last = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 2, 1));
+  return `${month.format(start)}–${month.format(last)} ${start.getUTCFullYear()}`;
+}

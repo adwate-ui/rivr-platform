@@ -11,6 +11,7 @@ import { venueFailureText } from './settingsCopy.ts';
 const FIELDS: readonly { readonly name: keyof VenueConfigInput; readonly label: MessageKey; readonly hint?: MessageKey }[] = [
   { name: 'legalName', label: 'console.settings.legalName' },
   { name: 'gstin', label: 'console.settings.gstin' },
+  { name: 'tan', label: 'console.settings.tan', hint: 'console.settings.tanHint' },
   { name: 'address', label: 'console.settings.address' },
   { name: 'upiPayeeName', label: 'console.settings.upiPayeeName' },
   { name: 'upiVpa', label: 'console.settings.upiVpa' },
@@ -25,7 +26,7 @@ const FIELDS: readonly { readonly name: keyof VenueConfigInput; readonly label: 
 
 /** The configuration as the form types it: empty for nothing, the networks separated by commas. */
 const toInput = (config: VenueConfig): VenueConfigInput => ({
-  legalName: config.legalName, gstin: config.gstin ?? '', address: config.address, upiPayeeName: config.upiPayeeName ?? '',
+  legalName: config.legalName, gstin: config.gstin ?? '', tan: config.tan ?? '', address: config.address, upiPayeeName: config.upiPayeeName ?? '',
   upiVpa: config.upiVpa ?? '', bankName: config.bankName ?? '', bankAccountName: config.bankAccountName ?? '',
   bankAccountNumber: config.bankAccountNumber ?? '', bankIfsc: config.bankIfsc ?? '', invoicePrefix: config.invoicePrefix,
   staffIpAllowlist: config.staffIpAllowlist.join(', '), alertWhatsapp: config.alertWhatsapp ?? '',

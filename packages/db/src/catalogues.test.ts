@@ -74,7 +74,8 @@ describe('the role matrix', () => {
 
 describe('the super-admin-only permissions', () => {
   it('are the ones the database refuses to give any other role', () => {
-    const constraint = sql.match(/constraint super_admin_only_permissions check \(([\s\S]*?)\n\s*\)/)?.[1] ?? '';
+    // The latest definition: a later migration redefines the check when a permission joins the list.
+    const constraint = [...sql.matchAll(/constraint super_admin_only_permissions check \(([\s\S]*?)\n\s*\)/g)].at(-1)?.[1] ?? '';
     const inDatabase = [...constraint.matchAll(/'([a-z_]+\.[a-z_]+)'/g)].map(([, permission]) => permission);
     expect(inDatabase.sort()).toEqual([...SUPER_ADMIN_ONLY].sort());
   });

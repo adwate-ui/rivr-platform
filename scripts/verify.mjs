@@ -102,6 +102,7 @@ function stepsFor(mode, scope) {
     step('typecheck, lint, unit and property tests', 'node', ['scripts/turbo.mjs', 'run', 'typecheck', 'lint', 'test', ...turboScope], turboEnv),
     step('root scripts and e2e lint', 'pnpm', ['-s', 'lint:root']),
     step('Edge Function import maps', 'node', ['scripts/ci/check-function-imports.mjs']),
+    step('migration versions', 'node', ['scripts/ci/check-migration-versions.mjs']),
     step('dependency rules', 'pnpm', ['-s', 'lint:deps']),
     step('stylesheets', 'pnpm', ['-s', 'lint:css']),
   ];

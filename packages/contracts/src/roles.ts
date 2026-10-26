@@ -55,6 +55,7 @@ export const PERMISSIONS = [
   'rewards.manage', // the rewards catalogue and the League's seasons (decisions 0181, 0182)
   'rewards.hand_over', // hand a member what they redeemed (decision 0181)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
+  'shareholding.manage', // the shareholding register, super_admin only (decision 0170)
 ] as const;
 
 /** A permission key. */
@@ -85,6 +86,6 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
 
 /** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */
 export const SUPER_ADMIN_ONLY: readonly Permission[] = [
-  'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure',
+  'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure', 'shareholding.manage',
 ];
 

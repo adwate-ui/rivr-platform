@@ -2285,6 +2285,52 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"shareholder": {
+                  Row: {
+                    "created_at": string,"id": string,"kind": string,"name": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"kind": string,"name": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"kind"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shareholder_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"shareholding": {
+                  Row: {
+                    "basis_points": number,"created_at": string,"effective_from": string,"id": string,"note": string | null,"recorded_by_staff_id": string,"shareholder_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "basis_points": number,"created_at"?: string,"effective_from": string,"id"?: string,"note"?: string | null,"recorded_by_staff_id": string,"shareholder_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "basis_points"?: number,"created_at"?: string,"effective_from"?: string,"id"?: string,"note"?: string | null,"recorded_by_staff_id"?: string,"shareholder_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shareholding_recorded_by_staff_id_venue_id_fkey"
+      columns: ["recorded_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "shareholding_shareholder_id_venue_id_fkey"
+      columns: ["shareholder_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "shareholder"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"sign_up_attribution": {
                   Row: {
                     "created_at": string,"creator_code": string | null,"first_seen_at": string | null,"id": string,"member_id": string,"referral_code": string | null,"updated_at": string,"utm_campaign": string | null,"utm_content": string | null,"utm_medium": string | null,"utm_source": string | null,"utm_term": string | null,"venue_id": string
@@ -2667,14 +2713,14 @@ isOneToOne: false
                   ]
                 },"venue_config": {
                   Row: {
-                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"staff_ip_allowlist": (unknown)[],"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
+                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"staff_ip_allowlist"?: (unknown)[],"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
+                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"staff_ip_allowlist"?: (unknown)[],"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
+                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2934,7 +2980,7 @@ isOneToOne: false
                   ]
                 },"venue_config_detail": {
                   Row: {
-                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"staff_ip_allowlist": (unknown)[] | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
+                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -2974,6 +3020,9 @@ isOneToOne: false
                            },
 "add_payout_account":
 { Args: { "p_account_number"?: string,"p_bank_name": string,"p_holder_name"?: string,"p_ifsc"?: string,"p_kind": string,"p_vpa"?: string }; Returns: string
+                           },
+"add_shareholder":
+{ Args: { "p_kind": string,"p_name": string,"p_venue_id": string }; Returns: string
                            },
 "add_sop":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_title": string,"p_venue_id": string }; Returns: string
@@ -3370,6 +3419,11 @@ isOneToOne: false
               "big_blind_paise": number,"small_blind_paise": number
             }[]
                            },
+"my_tds_certificates":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "cash_outs": number,"legal_name": string,"paid_paise": number,"pan_last4": string,"quarter_start": string,"section": string,"tan": string,"tds_paise": number,"venue_id": string
+            }[]
+                           },
 "my_tonight":
 { Args: Record<PropertyKey, never>; Returns: {
               "is_kyc_complete": boolean,"jackpot_paise": number,"tournament_buy_in_paise": number,"tournament_guarantee_paise": number,"tournament_name": string,"tournament_starts_at": string
@@ -3446,6 +3500,9 @@ isOneToOne: false
                            },
 "record_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
+                           },
+"record_holding":
+{ Args: { "p_basis_points": number,"p_effective_from": string,"p_note": string,"p_shareholder_id": string,"p_venue_id": string }; Returns: undefined
                            },
 "record_kyc_digilocker":
 { Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_masked_aadhaar": string,"p_member_id": string,"p_name_matches": boolean,"p_pan": string,"p_vendor_reference": string }; Returns: string
@@ -3609,6 +3666,16 @@ isOneToOne: false
 "set_tv_rotation":
 { Args: { "p_device_id": string,"p_rotation": (Database["public"]['Enums']["tv_mode"])[] }; Returns: undefined
                            },
+"shareholding_history":
+{ Args: { "p_venue_id": string }; Returns: {
+              "basis_points": number,"effective_from": string,"name": string,"note": string,"recorded_at": string,"recorded_by": string,"shareholder_id": string
+            }[]
+                           },
+"shareholding_register":
+{ Args: { "p_on": string,"p_venue_id": string }; Returns: {
+              "basis_points": number,"effective_from": string,"kind": string,"name": string,"shareholder_id": string
+            }[]
+                           },
 "shift_openings":
 { Args: { "p_venue_id": string }; Returns: {
               "cash_variance_paise": number,"chips_variance_paise": number,"float_paise": number,"last_cash_paise": number,"last_chips_paise": number,"last_closed_at": string,"may_review": boolean,"opened_at": string,"opened_by": string,"reason": string,"reviewed_at": string,"reviewed_by": string,"shift_id": string
@@ -3672,6 +3739,16 @@ isOneToOne: false
                            },
 "take_break":
 { Args: { "p_days": number }; Returns: string
+                           },
+"tds_ledger":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "cash_outs": number,"full_name": string,"member_id": string,"member_number": number,"paid_paise": number,"pan_last4": string,"shadow_paise": number,"withheld_paise": number
+            }[]
+                           },
+"tds_return_extract":
+{ Args: { "p_quarter_start": string,"p_venue_id": string }; Returns: {
+              "deducted_at": string,"full_name": string,"pan": string,"rate_basis_points": number,"section": string,"taxed_winnings_paise": number,"tds_paise": number
+            }[]
                            },
 "this_computer":
 { Args: { "p_venue_id": string }; Returns: {

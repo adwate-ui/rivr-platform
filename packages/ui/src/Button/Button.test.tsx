@@ -101,4 +101,9 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Send code' })).toHaveClass('min-h-12', 'font-semibold');
     expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('min-h-touch');
   });
+
+  it('as a link with a file name, saves what it points at under that name', () => {
+    renderIn(<Button href="blob:https://console.invalid/1" download="tds-return.csv">Download the extract</Button>);
+    expect(screen.getByRole('link', { name: 'Download the extract' })).toHaveAttribute('download', 'tds-return.csv');
+  });
 });

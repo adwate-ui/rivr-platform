@@ -7,6 +7,9 @@ import { z } from 'zod';
 import { gstinSchema, indianMobileSchema } from './identity.ts';
 import { bankAccountNumberSchema, ifscSchema, upiVpaSchema } from './payments.ts';
 
+/** A TAN, the number TDS returns and certificates name the deductor by: four letters, five digits, a letter, `DELR12345E` (#93). */
+export const tanSchema = z.string().trim().toUpperCase().regex(/^[A-Z]{4}[0-9]{5}[A-Z]$/);
+
 /** An optional field: empty is null, anything else must pass `schema`. */
 const optional = <Schema extends z.ZodType<unknown, string>>(schema: Schema) =>
   z.string().trim().transform((text) => (text === '' ? null : text)).pipe(z.union([z.null(), schema]));
@@ -28,6 +31,8 @@ export const networkSchema = z.union([z.cidrv4().refine(isNetworkAddress), z.cid
 export const venueConfigSchema = z.strictObject({
   legalName: freeText(200),
   gstin: optional(gstinSchema),
+  // The TAN TDS returns and certificates name the venue by (#93).
+  tan: optional(tanSchema),
   address: freeText(500),
   upiPayeeName: optional(freeText(100)),
   upiVpa: optional(upiVpaSchema),
