@@ -45,7 +45,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 | `public.reject_academy_payment(booking, utr)` | console (cage) | A cashier turns down a UTR not found in the bank, kept with who did: the booking is unpaid again and its UTR freed, or, for a UTR given after the 48-hour hold, cancelled (#222, question #257) |
 | `public.create_academy_batch(...)`, `public.book_academy_corporate(..., request_id, company_gstin?)`, `public.record_academy_payment(booking, utr)`, `public.cancel_academy_booking(booking)` | console | Batches; a company's heads at the corporate fee per head, once per request id; the UTR of a payment the payer could not give in the app; cancelling a booking with no payment given |
 | `private.current_visit(member)`, `private.close_visit(member, at, reason)` | A (final cash-out), B | The open visit (#72); closing it emits `visit.closed` (#82) |
-| `private.visits_this_month(member, at)` | D (cab and promotions conditions) | Closed visits in the calendar month |
+| `private.visits_this_month(member, at)` | D (cab and promotions conditions) | Closed visits in the calendar month with play: seated time, or an hour or more in the club (#448, decision 0180) |
 | `private.has_consent(member, purpose)` | D (marketing sends, Meta events) | Consent in force |
 | `private.wants_push(member, push_type)` | C and D push senders | Whether the member gets that push: only if their tier has the push feature, then on unless they turned it off in Profile; a promotion only with marketing consent |
 | `public.sign_up(full_name, attribution)` | player app | Joins the signed-in number: links a registered member, or creates one in the club with the referral, creator and UTM codes it arrived with; emits `member.signed_up` |
