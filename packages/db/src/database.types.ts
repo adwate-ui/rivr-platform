@@ -3009,14 +3009,14 @@ isOneToOne: false
                   ]
                 },"withdrawal_request": {
                   Row: {
-                    "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decline_reason": string | null,"hold_transaction_id": string,"id": string,"idempotency_key": string,"member_id": string,"outcome_transaction_id": string | null,"payout_account_id": string,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decline_reason": string | null,"hold_transaction_id": string,"id": string,"idempotency_key": string,"member_id": string,"method": string | null,"outcome_transaction_id": string | null,"payout_account_id": string,"payout_attempted_at": string | null,"payout_failure": string | null,"payout_id": string | null,"payout_key": string | null,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decline_reason"?: string | null,"hold_transaction_id": string,"id"?: string,"idempotency_key": string,"member_id": string,"outcome_transaction_id"?: string | null,"payout_account_id": string,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount_paise": number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decline_reason"?: string | null,"hold_transaction_id": string,"id"?: string,"idempotency_key": string,"member_id": string,"method"?: string | null,"outcome_transaction_id"?: string | null,"payout_account_id": string,"payout_attempted_at"?: string | null,"payout_failure"?: string | null,"payout_id"?: string | null,"payout_key"?: string | null,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decline_reason"?: string | null,"hold_transaction_id"?: string,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"outcome_transaction_id"?: string | null,"payout_account_id"?: string,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount_paise"?: number,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decline_reason"?: string | null,"hold_transaction_id"?: string,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"method"?: string | null,"outcome_transaction_id"?: string | null,"payout_account_id"?: string,"payout_attempted_at"?: string | null,"payout_failure"?: string | null,"payout_id"?: string | null,"payout_key"?: string | null,"status"?: string,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3250,6 +3250,9 @@ isOneToOne: false
 "begin_kyc_vendor_call":
 { Args: { "p_is_paid": boolean,"p_member_id": string }; Returns: undefined
                            },
+"begin_withdrawal_payout":
+{ Args: { "p_payout_key": string,"p_request_id": string }; Returns: boolean
+                           },
 "book_academy":
 { Args: { "p_batch_id": string }; Returns: string
                            },
@@ -3333,6 +3336,11 @@ isOneToOne: false
                            },
 "claim_tv_pairing":
 { Args: { "p_code": string,"p_mode": Database["public"]['Enums']["tv_mode"],"p_name": string,"p_venue_id": string }; Returns: string
+                           },
+"claim_withdrawal_payouts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "account_ok": boolean,"amount_paise": number,"attempted": boolean,"holder_name": string,"is_practice": boolean,"may_pay": boolean,"payout_id": string,"payout_key": string,"status": string,"venue_id": string,"vpa": string,"withdrawal_request_id": string
+            }[]
                            },
 "close_cage_shift":
 { Args: { "p_cash_paise": number,"p_counts": Json,"p_idempotency_key": string,"p_markers_paise": number,"p_receipts_paise": number,"p_venue_id": string }; Returns: string
@@ -3705,6 +3713,9 @@ isOneToOne: false
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
                            },
+"note_withdrawal_payout_trouble":
+{ Args: { "p_request_id": string }; Returns: undefined
+                           },
 "offer_recipient":
 { Args: { "p_member_id": string,"p_promotion_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
@@ -3726,6 +3737,12 @@ isOneToOne: false
                            },
 "pay_bad_beat":
 { Args: { "p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
+                           },
+"pay_withdrawal_in_cash":
+{ Args: { "p_request_id": string }; Returns: undefined
+                           },
+"pay_withdrawal_through_cashfree":
+{ Args: { "p_request_id": string }; Returns: undefined
                            },
 "payment_accounts":
 { Args: { "p_venue_id": string }; Returns: {
@@ -3790,6 +3807,9 @@ isOneToOne: false
                            },
 "record_table_export":
 { Args: { "p_filter": string,"p_format": string,"p_rows": number,"p_venue_id": string,"p_what": string }; Returns: boolean
+                           },
+"record_withdrawal_payout":
+{ Args: { "p_failure": string,"p_payout_id": string,"p_payout_key": string,"p_request_id": string,"p_status": string,"p_utr": string }; Returns: string
                            },
 "redeem_device_pairing":
 { Args: { "p_client": string,"p_code": string }; Returns: {
@@ -4175,7 +4195,7 @@ isOneToOne: false
                            },
 "waiting_withdrawals":
 { Args: { "p_venue_id": string }; Returns: {
-              "account_number": string,"amount_paise": number,"approved_by": (string)[],"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"needs_second": boolean,"photo_path": string,"request_id": string,"requested_at": string,"vpa": string
+              "account_number": string,"amount_paise": number,"approved_by": (string)[],"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"needs_second": boolean,"payout_failure": string,"photo_path": string,"request_id": string,"requested_at": string,"status": string,"vpa": string
             }[]
                            },
 "waitlist_board":

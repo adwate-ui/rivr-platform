@@ -20,6 +20,8 @@ export const alerts = {
     'mis.not_stored': 'the monthly MIS could not be stored',
     'outbox.delivery_failed': 'a message or post could not be delivered',
     'outbox.failures': 'many messages or posts are failing',
+    'withdrawal.payout_orphaned': 'Cashfree paid a withdrawal the cage had already paid another way or given up on',
+    'withdrawal.payout_stuck': 'a Cashfree payout of a withdrawal is stuck: it could not be recorded, or has waited half an hour',
   },
   /** For a kind not listed here. */
   other: 'something needs your attention',

@@ -6,6 +6,7 @@ import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Money, S
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import { PayChoices, PayoutNote } from './PayChoices.tsx';
 import { accountLine, secondLine, WITHDRAWAL_FAILURE_COPY } from './withdrawalCopy.ts';
 
 type Done = { ok: true; value: null } | { ok: false; error: WithdrawalFailure };
@@ -75,15 +76,17 @@ export function WithdrawalRow({ venueId, withdrawal, canDecide, canSecond, onSen
         </Stack>
         <Money paise={withdrawal.amount} size="lead" />
       </Inline>
-      <Inline gap={3} align="end" wrap>
+      <PayoutNote withdrawal={withdrawal} />
+      {withdrawal.status === 'paying' ? null : <Inline gap={3} align="end" wrap>
         {canDecide ? <SendForm isSaving={send.isPending} onSend={(utr) => void send.mutateAsync({ withdrawalId: id, utr }).then((done) => settle(done, () => onSent(utr)))} /> : null}
         {canSecond && withdrawal.needsSecond ? (
           <Button variant="secondary" isLoading={secondApprove.isPending} onClick={() => void secondApprove.mutateAsync(id).then((done) => settle(done))}>
             {t('console.withdrawals.secondApprove')}
           </Button>
         ) : null}
+        <PayChoices venueId={venueId} withdrawal={withdrawal} canDecide={canDecide} onDone={(done) => settle(done)} />
         {canDecide ? <Button variant="text" onClick={() => setIsDeclining((open) => !open)}>{t('console.withdrawals.decline')}</Button> : null}
-      </Inline>
+      </Inline>}
       {isDeclining ? <DeclineForm isSaving={decline.isPending} onDecline={(reason) => void decline.mutateAsync({ withdrawalId: id, reason }).then((done) => settle(done))} /> : null}
       {failure === null ? null : <ErrorMessage>{t(WITHDRAWAL_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>

@@ -131,6 +131,11 @@ export const withdrawals = {
   utr: 'UTR',
   utrInvalid: 'Enter the 12-digit UTR from the bank.',
   send: 'Approve and send',
+  /** The other ways to pay a withdrawal (#475). */
+  payInCash: 'Pay in cash',
+  payThroughCashfree: 'Pay through Cashfree',
+  paying: 'Paying through Cashfree. It moves on by itself when Cashfree answers.',
+  payoutFailed: 'The last Cashfree payout failed ({reason}). Pay it another way, or decline it.',
   decline: 'Decline',
   declineReason: 'Why it is declined',
   reasonInvalid: 'Say why in 3 to 200 characters. The member reads it.',

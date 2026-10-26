@@ -58,7 +58,8 @@ async function readTransfer(client: CashfreeClient, transferId: string): Promise
 }
 
 const isUnknown = (failure: AdapterFailure) => failure.code === 'rejected' && failure.reason === 'Cashfree transfer_id_not_found';
-const isDuplicate = (failure: AdapterFailure) => failure.code === 'rejected' && /duplicate|already/i.test(failure.reason);
+// A repeated transfer id, by Cashfree's code, or a bare 409 (a conflict it did not explain).
+const isDuplicate = (failure: AdapterFailure) => failure.code === 'rejected' && /duplicate|already|exists|HTTP 409/i.test(failure.reason);
 const UNAVAILABLE: AdapterFailure = { code: 'unavailable' };
 
 /** Whether a payout may be sent at all: one transfer id of its own, and an amount UPI pays. */
