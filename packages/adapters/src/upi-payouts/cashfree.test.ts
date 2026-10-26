@@ -63,6 +63,8 @@ describe('Cashfree Payouts', () => {
     expect(await found.payouts.pay(request)).toEqual({ ok: true, value: { payoutId: transferIdOf(key), status: 'pending', utr: null } });
     const notYet = await cashfree({ 'POST /payout/transfers': [{ status: 409, body: { code: 'transfer_id_already_exists' } }] });
     expect(await notYet.payouts.pay(request)).toEqual({ ok: false, error: { code: 'unavailable' } });
+    const bare = await cashfree({ 'POST /payout/transfers': [{ status: 409, body: 'Conflict' }] });
+    expect(await bare.payouts.pay(request)).toEqual({ ok: false, error: { code: 'unavailable' } });
   });
 
   it('sends nothing, and says it cannot tell, when the lookup is refused', async () => {

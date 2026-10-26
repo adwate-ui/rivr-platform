@@ -360,6 +360,9 @@ verify_jwt = false
 [functions.alert-whatsapp]
 verify_jwt = false
 
+[functions.withdrawal-payout]
+verify_jwt = false
+
 # A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
 [functions.device-pair]
 verify_jwt = false

@@ -58,6 +58,9 @@ test.describe('Balance', () => {
     const imran = await browser.newPage();
     await withdrawalsFor(imran, '9000000137');
     await expect(imran.getByText('Second approver needed')).toBeVisible();
+    // Cash or Cashfree are offered too (#475); this flow pays by typed UTR.
+    await expect(imran.getByRole('button', { name: 'Pay in cash' })).toBeVisible();
+    await expect(imran.getByRole('button', { name: 'Pay through Cashfree' })).toBeVisible();
     await imran.getByRole('textbox', { name: 'UTR' }).fill(UTR);
     await imran.getByRole('button', { name: 'Approve and send' }).click();
     await expect(imran.getByText('A second approver, other than you, must approve this first.')).toBeVisible();

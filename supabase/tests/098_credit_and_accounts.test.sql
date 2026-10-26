@@ -86,8 +86,9 @@ select is_empty($$ select * from public.credit_report('00000000-0000-4000-8000-0
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq(
   $$ select kind, name, balance_paise from public.payment_accounts('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('cash_drawer'::text, 'Cash drawer'::text, 6000000::bigint), ('bank'::text, 'Bank and UPI'::text, 1000000::bigint) $$,
-  'the club starts with its drawer and its bank, with what the ledger has moved through them');
+  $$ values ('cash_drawer'::text, 'Cash drawer'::text, 6000000::bigint), ('bank'::text, 'Bank and UPI'::text, 1000000::bigint),
+            ('cashfree'::text, 'Cashfree payout balance'::text, 0::bigint) $$,
+  'the club starts with its drawer, its bank and its Cashfree payout balance, with what the ledger has moved through them');
 select throws_ok($$ select public.add_payment_account('00000000-0000-4000-8000-000000000001', 'cash_drawer', 'Second drawer', null) $$,
   '22023', null, 'an account added is a UPI handle or a bank account');
 insert into ids select 'upi', public.add_payment_account('00000000-0000-4000-8000-000000000001', 'upi', '  Club UPI  ', 'rivr@okhdfc');
@@ -107,7 +108,8 @@ select throws_ok($$ select public.transfer_between_accounts('00000000-0000-4000-
   (select id from ids where name = 'upi'), 400000, null, '00000000-0000-4000-8000-0000000c9802') $$, '22023', null,
   'and the same key with another amount is refused, never reported as moved');
 select results_eq(
-  $$ select name, balance_paise from public.payment_accounts('00000000-0000-4000-8000-000000000001') where name <> 'Bank and UPI' $$,
+  $$ select name, balance_paise from public.payment_accounts('00000000-0000-4000-8000-000000000001')
+     where name not in ('Bank and UPI', 'Cashfree payout balance') $$,
   $$ values ('Cash drawer'::text, 2000000::bigint), ('Club UPI'::text, 4000000::bigint) $$, 'once, and balanced');
 select throws_ok($$ select public.transfer_between_accounts('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'upi'),
   (select id from ids where name = 'upi'), 100000, null, gen_random_uuid()) $$, '22023', null, 'not to the same account');

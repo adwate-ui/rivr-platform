@@ -99,6 +99,10 @@ export interface WaitingWithdrawal {
   readonly requestedAt: string;
   readonly needsSecond: boolean;
   readonly approvedBy: readonly string[];
+  /** `paying` while a Cashfree payout is on its way (#475). */
+  readonly status: 'waiting' | 'paying';
+  /** Why the last Cashfree payout failed, or was reversed; null when none has. */
+  readonly payoutFailure: string | null;
 }
 
 /** The venue's withdrawals waiting for the cage (#21), oldest first; asked again every few seconds. */
@@ -115,6 +119,7 @@ export function useWaitingWithdrawals(venueId: string) {
         withdrawalId: row.request_id, memberId: row.member_id, fullName: row.full_name, photoPath: row.photo_path, amount: toPaise(row.amount_paise), kind: kindOf(row.kind),
         bankName: row.bank_name, vpa: row.vpa, accountNumber: row.account_number, ifsc: row.ifsc, holderName: row.holder_name,
         requestedAt: row.requested_at, needsSecond: row.needs_second, approvedBy: row.approved_by,
+        status: row.status === 'paying' ? 'paying' : 'waiting', payoutFailure: row.payout_failure,
       }));
     },
   });
@@ -122,7 +127,8 @@ export function useWaitingWithdrawals(venueId: string) {
 
 /**
  * The cage's steps on a waiting withdrawal: `secondApprove` (a second approver, #20), `send` with the
- * bank's UTR, and `decline` with a reason; each a Result, reloading the list.
+ * bank's UTR, `payInCash` from the drawer and `payThroughCashfree` (#475), and `decline` with a reason; each a
+ * Result, reloading the list.
  */
 export function useWithdrawalDecisions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -142,5 +148,11 @@ export function useWithdrawalDecisions(venueId: string) {
     mutationFn: async ({ withdrawalId, reason }: { withdrawalId: string; reason: string }) =>
       settle((await client.rpc('decline_withdrawal', { p_request_id: withdrawalId, p_reason: reason })).error),
   });
-  return { secondApprove, send, decline };
+  const payInCash = useMutation({
+    mutationFn: async (withdrawalId: string) => settle((await client.rpc('pay_withdrawal_in_cash', { p_request_id: withdrawalId })).error),
+  });
+  const payThroughCashfree = useMutation({
+    mutationFn: async (withdrawalId: string) => settle((await client.rpc('pay_withdrawal_through_cashfree', { p_request_id: withdrawalId })).error),
+  });
+  return { secondApprove, send, decline, payInCash, payThroughCashfree };
 }

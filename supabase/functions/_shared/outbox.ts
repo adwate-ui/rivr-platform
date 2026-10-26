@@ -62,15 +62,21 @@ function sameText(given: string, expected: string): boolean {
 }
 
 /**
- * The request handler for one consumer: only the scheduler (pg_cron, with its secret) may run it.
- * The consumer's function is deployed with verify_jwt off, as the scheduler carries no person's token.
+ * The request handler for a function only the scheduler (pg_cron, with its secret) may run: an outbox consumer,
+ * or the withdrawal payouts (#475). The function is deployed with verify_jwt off, as the scheduler carries no
+ * person's token.
  */
-export function serveConsumer(consumer: Consumer): (request: Request) => Promise<Response> {
+export function serveScheduled(run: () => Promise<unknown>): (request: Request) => Promise<Response> {
   return async (request) => {
     if (request.method !== 'POST') return Response.json({ error: 'POST only' }, { status: 405 });
     if (schedulerSecret === '' || !sameText(request.headers.get('x-outbox-secret') ?? '', schedulerSecret)) {
-      return Response.json({ error: 'Only the scheduler runs a consumer' }, { status: 403 });
+      return Response.json({ error: 'Only the scheduler runs this' }, { status: 403 });
     }
-    return Response.json(await runConsumer(outboxStore, consumer));
+    return Response.json(await run());
   };
+}
+
+/** The request handler for one outbox consumer. */
+export function serveConsumer(consumer: Consumer): (request: Request) => Promise<Response> {
+  return serveScheduled(() => runConsumer(outboxStore, consumer));
 }
