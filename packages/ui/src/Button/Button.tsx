@@ -20,6 +20,8 @@ interface ButtonLookProps {
   fullWidth?: boolean;
   /** `large`, 48 px tall, for the one action of a sign-in step; otherwise the 44 px touch height. */
   size?: ButtonSize;
+  /** A fuller name for a screen reader, where the label alone repeats: `Read: Bankroll basics`. It starts with the label. */
+  'aria-label'?: string;
   'aria-describedby'?: string;
 }
 
@@ -65,7 +67,8 @@ const BASE =
 export function Button({ children, variant = 'secondary', size = 'regular', type = 'button', onClick, isLoading, isDisabled, icon, fullWidth, href, ...rest }: ButtonProps) {
   if (href !== undefined) {
     return (
-      <a href={href} className={cx(BASE, SIZE[size], VARIANT[variant], fullWidth && 'w-full')} aria-describedby={rest['aria-describedby']}>
+      <a href={href} className={cx(BASE, SIZE[size], VARIANT[variant], fullWidth && 'w-full')} aria-label={rest['aria-label']}
+        aria-describedby={rest['aria-describedby']}>
         <ButtonLabel icon={icon} isLoading={false}>
           {children}
         </ButtonLabel>

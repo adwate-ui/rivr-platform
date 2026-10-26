@@ -1,6 +1,6 @@
 -- The website's content (#9): anyone reads the published pages of real venues and their blocks in
 -- order, through the public views; never a draft, never the practice venue, never the tables. Website
--- editors read the tables. 107 Ishita (marketing), 201 Arjun (member). Content from seeds 40_site.sql and 41_site_pages.sql.
+-- editors read the tables. 107 Ishita (marketing), 201 Arjun (member). Content from seeds 40_site.sql, 41_site_pages.sql and 43_site_gpa.sql (decision 0166).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -8,14 +8,22 @@ select no_plan();
 set local role anon;
 select results_eq(
   $$ select venue_slug, slug, title, nav_position from public.public_site_page order by venue_slug, slug $$,
-  $$ values ('gurugram'::text, 'academy'::text, 'RIVR Academy'::text, 1), ('gurugram', 'home', 'RIVR Poker Club', null),
-            ('gurugram', 'house-rules', 'House rules', 3), ('gurugram', 'links', 'RIVR Poker Club', null),
-            ('gurugram', 'privacy', 'Privacy', 7), ('gurugram', 'questions', 'Questions', 4),
-            ('gurugram', 'responsible-play', 'Responsible play', 6), ('gurugram', 'visit', 'Visit', 5) $$,
+  $$ values ('gurugram'::text, 'about'::text, 'About'::text, 1), ('gurugram', 'academy', 'RIVR Academy', 5),
+            ('gurugram', 'home', 'RIVR Poker Club', null), ('gurugram', 'house-rules', 'House rules', null),
+            ('gurugram', 'journal', 'Journal', 6), ('gurugram', 'journal-bankroll', 'Bankroll basics', null),
+            ('gurugram', 'journal-holdem-basics', 'Texas Hold''em for beginners', null),
+            ('gurugram', 'journal-live-etiquette', 'Live poker etiquette', null),
+            ('gurugram', 'journal-plo-basics', 'Pot-Limit Omaha: what changes', null),
+            ('gurugram', 'links', 'RIVR Poker Club', null), ('gurugram', 'membership', 'Membership', 2),
+            ('gurugram', 'privacy', 'Privacy', null), ('gurugram', 'promotions', 'Promotions', 3),
+            ('gurugram', 'questions', 'Questions', null), ('gurugram', 'responsible-play', 'Responsible play', null),
+            ('gurugram', 'terms', 'Terms of use', null), ('gurugram', 'tournaments', 'Tournaments', 4), ('gurugram', 'visit', 'Visit', 7) $$,
   'anyone reads the club''s published pages: not the draft, not the practice venue''s');
 select results_eq(
   $$ select position, kind from public.public_site_block where venue_slug = 'gurugram' and page_slug = 'home' order by position $$,
-  $$ values (1, 'hero'::text), (2, 'statement'::text), (3, 'gallery'), (4, 'feature'), (5, 'games'), (6, 'calendar'), (7, 'statement'), (8, 'map') $$,
+  $$ values (1, 'hero'::text), (2, 'marquee'::text), (3, 'story'), (4, 'cards'), (5, 'statement'), (6, 'gallery'), (7, 'cards'), (8, 'games'),
+            (9, 'cards'), (10, 'cards'), (11, 'timeline'), (12, 'cards'), (13, 'feature'), (14, 'cards'), (15, 'calendar'), (16, 'cards'),
+            (17, 'faq'), (18, 'statement'), (19, 'map') $$,
   'and their blocks, in order');
 select is_empty($$ select * from public.public_site_block where page_slug = 'careers' or venue_slug = 'practice' $$,
   'never a draft''s blocks or the practice venue''s');

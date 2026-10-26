@@ -27,3 +27,6 @@ export const LongText: Story = {
     hours: 'Open 14:00 to 08:00. The front desk closes for new check-ins at 06:00.',
   },
 };
+
+/** With the club's number and email (decision 0166). */
+export const WithContact: Story = { args: { phone: '+919000000000', email: 'info@rivrpoker.com' } };

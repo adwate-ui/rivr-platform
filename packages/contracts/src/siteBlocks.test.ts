@@ -5,7 +5,10 @@ const DIRECTIONS = 'https://www.google.com/maps/search/?api=1&query=Glaza%2C%20M
 
 describe('the website\'s information blocks (#35)', () => {
   it('lists every kind the database allows', () => {
-    expect(SITE_BLOCK_KINDS).toEqual(['hero', 'statement', 'gallery', 'feature', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar', 'links']);
+    expect(SITE_BLOCK_KINDS).toEqual([
+      'hero', 'statement', 'gallery', 'feature', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar', 'links',
+      'story', 'cards', 'marquee', 'timeline', 'table', 'promotions',
+    ]);
   });
 
   it('reads house rules, questions, careers and a map', () => {
@@ -40,5 +43,41 @@ describe('the website\'s information blocks (#35)', () => {
     expect(map('https://www.google.com/search?q=rivr')).toBe(false);
     expect(map('https://evil.example@www.google.com/maps')).toBe(false);
     expect(map('https://www.google.com/maps/place/Glaza')).toBe(true);
+  });
+});
+
+describe('the website’s bands in grandpokerarena.com’s way (decision 0166)', () => {
+  const parse = (block: unknown) => siteBlockSchema.safeParse(block).success;
+
+  it('reads a story, with its photo named only with what it shows', () => {
+    const story = { heading: 'Good hands.', paragraphs: ['RIVR opens.'], figures: [{ value: '6', label: 'Tables' }] };
+    expect(parse({ kind: 'story', content: story })).toBe(true);
+    expect(parse({ kind: 'story', content: { ...story, image: '/media/room.webp', alt: 'The room' } })).toBe(true);
+    expect(parse({ kind: 'story', content: { ...story, image: '/media/room.webp' } })).toBe(false);
+    expect(parse({ kind: 'story', content: { ...story, paragraphs: [] } })).toBe(false);
+  });
+
+  it('reads cards that link only to the website’s own pages', () => {
+    const cards = (link: unknown) => parse({ kind: 'cards', content: { cards: [{ title: 'Play' }, { title: 'Connect', link }] } });
+    expect(cards({ label: 'See membership', page: 'membership' })).toBe(true);
+    expect(cards({ label: 'Elsewhere', page: 'https://evil.example/' })).toBe(false);
+    expect(cards({ label: 'Up', page: '../admin' })).toBe(false);
+    expect(parse({ kind: 'cards', content: { cards: [{ title: 'Alone' }] } })).toBe(false);
+  });
+
+  it('reads phrases, moments and a table whose rows are as long as its columns', () => {
+    expect(parse({ kind: 'marquee', content: { phrases: ['Play', 'Connect'] } })).toBe(true);
+    expect(parse({ kind: 'timeline', content: { items: [{ when: '1996', title: 'The predominance test' }] } })).toBe(true);
+    const table = (rows: string[][]) => parse({ kind: 'table', content: { columns: ['Stake', 'Points an hour'], rows } });
+    expect(table([['NLH 50/100', '5']])).toBe(true);
+    expect(table([['NLH 50/100', '5', 'extra']])).toBe(false);
+  });
+
+  it('reads the live promotions, and a map with the club’s number and email', () => {
+    expect(parse({ kind: 'promotions', content: { heading: 'Running now' } })).toBe(true);
+    const map = (extra: object) => parse({ kind: 'map', content: { address: 'Glaza', directionsUrl: DIRECTIONS, ...extra } });
+    expect(map({ phone: '+919000000000', email: 'info@rivrpoker.com' })).toBe(true);
+    expect(map({ phone: '9000000000' })).toBe(false);
+    expect(map({ email: 'not an email' })).toBe(false);
   });
 });

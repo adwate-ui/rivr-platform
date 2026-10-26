@@ -12,7 +12,8 @@ values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Open', now() + interv
 
 select results_eq(
   $$ select distinct kind from public.site_block order by kind $$,
-  $$ values ('calendar'::text), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'), ('rules'), ('statement'), ('text') $$,
+  $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'), ('marquee'),
+            ('promotions'), ('rules'), ('statement'), ('story'), ('table'), ('text'), ('timeline') $$,
   'the seed uses every kind of block');
 select throws_ok(
   $$ insert into public.site_block (venue_id, page_id, position, kind, content)
@@ -22,8 +23,8 @@ select throws_ok(
 set local role anon;
 select results_eq(
   $$ select slug from public.public_site_page where nav_position is not null order by nav_position $$,
-  $$ values ('academy'::text), ('house-rules'), ('questions'), ('visit'), ('responsible-play'), ('privacy') $$,
-  'anyone sees the published pages in the navigation, in order; careers stays a draft');
+  $$ values ('about'::text), ('membership'), ('promotions'), ('tournaments'), ('academy'), ('journal'), ('visit') $$,
+  'anyone sees the published pages in the navigation, in GPA''s order (decision 0166); careers stays a draft');
 select results_eq(
   $$ select kind from public.public_site_block where page_slug = 'house-rules' order by position $$,
   $$ values ('hero'::text), ('rules') $$, 'and their blocks, each page opening with its hero');

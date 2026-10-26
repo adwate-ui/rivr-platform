@@ -1,9 +1,9 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { siteBlockSchema, type SiteBlock } from '@rivr/contracts/site';
 import type { RivrClient } from './client.ts';
-import { fetchSiteCalendar, fetchSiteGames, type SiteGame, type SiteTournament } from './siteLive.ts';
+import { fetchSiteCalendar, fetchSiteGames, fetchSitePromotions, type SiteGame, type SitePromotion, type SiteTournament } from './siteLive.ts';
 
-export type { SiteGame, SiteTournament } from './siteLive.ts';
+export type { SiteGame, SitePromotion, SiteTournament } from './siteLive.ts';
 
 /** A page in the website's navigation. */
 export interface SiteLink {
@@ -22,17 +22,20 @@ export interface SitePage {
   readonly games: readonly SiteGame[];
   /** The coming tournaments, when the page has a calendar block; otherwise empty. */
   readonly tournaments: readonly SiteTournament[];
+  /** The live promotions, when the page has a promotions block; otherwise empty (decision 0166). */
+  readonly promotions: readonly SitePromotion[];
 }
 
 /** The live rows a page's blocks show, read only when one of its blocks needs them. */
 async function fetchLive(client: RivrClient, blocks: readonly SiteBlock[]) {
   const needs = (kind: SiteBlock['kind']) => blocks.some((block) => block.kind === kind);
-  const [games, tournaments] = await Promise.all([
+  const [games, tournaments, promotions] = await Promise.all([
     needs('games') ? fetchSiteGames(client) : ok([]),
     needs('calendar') ? fetchSiteCalendar(client) : ok([]),
+    needs('promotions') ? fetchSitePromotions(client) : ok([]),
   ]);
-  if (!games.ok || !tournaments.ok) return err('unavailable' as const);
-  return ok({ games: games.value, tournaments: tournaments.value });
+  if (!games.ok || !tournaments.ok || !promotions.ok) return err('unavailable' as const);
+  return ok({ games: games.value, tournaments: tournaments.value, promotions: promotions.value });
 }
 
 /**
