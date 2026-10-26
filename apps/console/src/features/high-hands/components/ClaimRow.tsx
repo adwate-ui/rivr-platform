@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { claimText, correctionText, HIGH_HAND_FAILURE_COPY } from './highHandCopy.ts';
-import { ReasonForm } from './ReasonForm.tsx';
+import { ClaimReasonForm } from './ClaimReasonForm.tsx';
 
 type Outcome = { ok: true } | { ok: false; error: HighHandFailure };
 
@@ -100,7 +100,7 @@ export function ClaimRow({ venueId, hand, canDecide }: { venueId: string; hand: 
       </Inline>
       {form === 'correct' ? <CorrectForm venueId={venueId} hand={hand} onDone={done} /> : null}
       {form === 'reject' ? (
-        <ReasonForm label={t('console.highHands.rejectReason')} confirm={t('console.highHands.rejectConfirm')} isPending={reject.isPending}
+        <ClaimReasonForm label={t('console.highHands.rejectReason')} confirm={t('console.highHands.rejectConfirm')} isPending={reject.isPending}
           onSubmit={async (reason) => done(await reject.mutateAsync({ claimId: hand.claimId, reason }))} onCancel={() => done(null)} />
       ) : null}
       {failure === null ? null : <ErrorMessage>{t(HIGH_HAND_FAILURE_COPY[failure])}</ErrorMessage>}

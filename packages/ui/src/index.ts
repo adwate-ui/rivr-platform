@@ -35,6 +35,7 @@ export * from './ChoiceSheet/index.ts';
 export * from './Switch/index.ts';
 export * from './Input/index.ts';
 export * from './TextArea/index.ts';
+export * from './ReasonForm/index.ts';
 export * from './SignaturePad/index.ts';
 
 // Data

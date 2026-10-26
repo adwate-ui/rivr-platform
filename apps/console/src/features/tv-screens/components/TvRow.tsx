@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { deviceRevokeSchema, type TvMode } from '@rivr/contracts';
 import { useTvActions, type TvFailure, type VenueTv } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -18,14 +18,11 @@ function UnpairForm({ venueId, tv, onDone }: { venueId: string; tv: VenueTv; onD
     resolver, defaultValues: { reason: '' },
   });
   const submit = form.handleSubmit(async ({ reason }) => onDone(await unpair.mutateAsync({ deviceId: tv.deviceId, reason })));
-  const reasonField = form.register('reason');
   return (
-    <Inline gap={3} align="end">
-      <Input {...reasonField} label={t('console.tvs.unpairReason')} autoComplete="off"
-        error={form.formState.errors.reason ? t('console.tvs.invalidReason') : undefined} />
-      <Button variant="danger" isLoading={unpair.isPending} onClick={() => void submit()}>{t('console.tvs.unpairConfirm')}</Button>
-      <Button variant="text" onClick={() => onDone(null)}>{t('common.cancel')}</Button>
-    </Inline>
+    <ReasonForm field={form.register('reason')} label={t('console.tvs.unpairReason')}
+      error={form.formState.errors.reason ? t('console.tvs.invalidReason') : undefined}
+      actions={[{ label: t('console.tvs.unpairConfirm'), onClick: () => void submit() }]}
+      isLoading={unpair.isPending} onCancel={() => onDone(null)} />
   );
 }
 
