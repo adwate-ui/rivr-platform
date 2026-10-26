@@ -40,6 +40,8 @@ interface ActionButtonProps extends ButtonLookProps {
 interface LinkButtonProps extends ButtonLookProps {
   /** Makes it a link to this address that looks the same: the website's hand-off to the player app. */
   href: string;
+  /** Saves what the link points at as a file of this name instead of opening it: a report the console has made. */
+  download?: string;
   type?: never;
   onClick?: never;
   isLoading?: never;
@@ -67,7 +69,8 @@ const BASE =
 export function Button({ children, variant = 'secondary', size = 'regular', type = 'button', onClick, isLoading, isDisabled, icon, fullWidth, href, ...rest }: ButtonProps) {
   if (href !== undefined) {
     return (
-      <a href={href} className={cx(BASE, SIZE[size], VARIANT[variant], fullWidth && 'w-full')} aria-label={rest['aria-label']}
+      <a href={href} download={'download' in rest ? rest.download : undefined} className={cx(BASE, SIZE[size], VARIANT[variant], fullWidth && 'w-full')}
+        aria-label={rest['aria-label']}
         aria-describedby={rest['aria-describedby']}>
         <ButtonLabel icon={icon} isLoading={false}>
           {children}

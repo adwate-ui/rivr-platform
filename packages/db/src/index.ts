@@ -121,9 +121,7 @@ export {
   useChipInventory, useTreasury, useTreasuryActions, type CageShift, type ChipCount, type ChipCountLine, type ChipInventory, type Treasury,
   type TreasuryFailure,
 } from './treasury.ts';
-export {
-  useEodActions, useEodCloses, type CloseFigure, type CloseOrder, type CloseReview, type EodClose, type EodFailure,
-} from './eod.ts';
+export { useEodActions, useEodCloses, type CloseFigure, type CloseOrder, type CloseReview, type EodClose, type EodFailure } from './eod.ts';
 export { useShiftOpenings, type ShiftOpening } from './eod.ts';
 export { useCreditReport, useMarkerActions, useOpenMarkers, useRepayment, type CreditReportRow, type MarkerFailure, type MarkerOrder, type OpenMarker, type Repayment, type RepaymentFailure } from './markers.ts';
 export { useAccountStatement, usePaymentAccountActions, usePaymentAccounts, type AccountFailure, type PaymentAccount, type StatementLine, type Transfer } from './paymentAccounts.ts';

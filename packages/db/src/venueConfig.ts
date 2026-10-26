@@ -10,6 +10,8 @@ import { queryKeys } from './queryKeys.ts';
 export interface VenueConfig {
   readonly legalName: string;
   readonly gstin: string | null;
+  /** The TAN its TDS returns and certificates name it by (#93). */
+  readonly tan: string | null;
   readonly address: string;
   readonly upiPayeeName: string | null;
   readonly upiVpa: string | null;
@@ -57,7 +59,7 @@ export function useVenueConfig(venueId: string) {
       if (error) throw error;
       if (data === null) return null;
       return {
-        legalName: data.legal_name ?? '', gstin: data.gstin, address: data.address ?? '', upiPayeeName: data.upi_payee_name, upiVpa: data.upi_vpa,
+        legalName: data.legal_name ?? '', gstin: data.gstin, tan: data.tan, address: data.address ?? '', upiPayeeName: data.upi_payee_name, upiVpa: data.upi_vpa,
         bankName: data.bank_name, bankAccountName: data.bank_account_name, bankAccountNumber: data.bank_account_number, bankIfsc: data.bank_ifsc,
         invoicePrefix: data.invoice_prefix ?? '', staffIpAllowlist: (data.staff_ip_allowlist ?? []).map(String), alertWhatsapp: data.alert_whatsapp,
       };
@@ -94,7 +96,7 @@ export function useVenueConfigActions(venueId: string) {
   const save = useMutation({
     mutationFn: async (change: VenueConfigChange) => {
       const { data, error } = await client.from('venue_config').update({
-        legal_name: change.legalName, gstin: change.gstin, address: change.address, upi_payee_name: change.upiPayeeName, upi_vpa: change.upiVpa,
+        legal_name: change.legalName, gstin: change.gstin, tan: change.tan, address: change.address, upi_payee_name: change.upiPayeeName, upi_vpa: change.upiVpa,
         bank_name: change.bankName, bank_account_name: change.bankAccountName, bank_account_number: change.bankAccountNumber, bank_ifsc: change.bankIfsc,
         invoice_prefix: change.invoicePrefix, staff_ip_allowlist: [...change.staffIpAllowlist], alert_whatsapp: change.alertWhatsapp,
       }).eq('venue_id', venueId).select('venue_id');

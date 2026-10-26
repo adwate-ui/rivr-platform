@@ -29,6 +29,8 @@ import { balance, withdrawals } from './wallet.ts';
 import { treasury, treasuryFailures } from './treasury.ts';
 import { accounts } from './accounts.ts';
 import { expenses } from './expenses.ts';
+import { shareholders } from './shareholders.ts';
+import { tds } from './tds.ts';
 import { endOfDay, endOfDayFailures } from './endOfDay.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
@@ -36,7 +38,15 @@ export const playerApp = {
   tonight,
   feedback: playerFeedback,
   promotions: playerPromotions,
-  sessions: { title: 'Sessions', empty: 'No sessions yet.' },
+  sessions: {
+    title: 'Sessions',
+    empty: 'No sessions yet.',
+    /** TDS certificate data (#93), shown only when TDS was withheld: `Oct–Dec 2026 · RIVR Gaming Pvt Ltd · TAN DELR12345E`. */
+    tds: 'TDS withheld',
+    tdsFrom: '{quarter} · {legalName} · TAN {tan}',
+    tdsAmount: '{tds} under section {section}, from {count} cash-outs',
+    noTan: 'not yet given',
+  },
   balance,
   learn: { title: 'Learn', empty: 'No sources yet.' },
   /** The digital membership card (#71): the QR the door scans changes every few seconds. */
@@ -146,6 +156,8 @@ export const consoleApp = {
   treasuryFailures,
   accounts,
   expenses,
+  tds,
+  shareholders,
   endOfDay,
   endOfDayFailures,
   members,

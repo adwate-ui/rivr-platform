@@ -1,0 +1,18 @@
+{
+  "rule": "the winnings a TDS deduction was taxed on",
+  "about": "For the quarterly TDS return (#93; the owner's answer on question #455). TDS is worked out on the period's net winnings so far (decision 0068). A deduction was taxed on the period's winnings at its cash-out above the most of them already taxed earlier in the period, never below nothing, so a period's deductions add up to what it won.",
+  "cases": [
+    { "description": "The period's first deduction: all ₹40,000 won so far.", "operation": "taxed",
+      "inputs": { "winnings": "₹40,000", "taxedBefore": "₹0" }, "expected": { "taxed": "₹40,000" } },
+    { "description": "A later one: ₹60,000 won after ₹40,000 already taxed is ₹20,000.", "operation": "taxed",
+      "inputs": { "winnings": "₹60,000", "taxedBefore": "₹40,000" }, "expected": { "taxed": "₹20,000" } },
+    { "description": "Winnings fallen below what was taxed: nothing more.", "operation": "taxed",
+      "inputs": { "winnings": "₹30,000", "taxedBefore": "₹40,000" }, "expected": { "taxed": "₹0" } },
+    { "description": "Back above it: only the ₹15,000 over ₹40,000.", "operation": "taxed",
+      "inputs": { "winnings": "₹55,000", "taxedBefore": "₹40,000" }, "expected": { "taxed": "₹15,000" } },
+    { "description": "Paise count: ₹40,000.50 over ₹40,000 is 50 paise.", "operation": "taxed",
+      "inputs": { "winnings": "₹40,000.50", "taxedBefore": "₹40,000" }, "expected": { "taxed": "₹0.50" } },
+    { "description": "Nothing won: nothing taxed.", "operation": "taxed",
+      "inputs": { "winnings": "₹0", "taxedBefore": "₹0" }, "expected": { "taxed": "₹0" } }
+  ]
+}

@@ -375,5 +375,15 @@ select results_eq(
      from golden.golden_case where file = 'creditAgeing.json' and operation = 'repay' order by position $$,
   'private.repayment_split settles or refuses every repayment in the golden file');
 
+-- The return's taxed winnings: private.tds_taxed_winnings and @rivr/domain tdsTaxedWinnings (packages/testing/golden/tdsReturn.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'tdsReturn.json'), 'the TDS return cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tdsReturn.json' and operation <> 'taxed' $$,
+  'every operation in tdsReturn.json is proved here');
+select results_eq(
+  $$ select description, private.tds_taxed_winnings(pg_temp.paise(inputs ->> 'winnings'), pg_temp.paise(inputs ->> 'taxedBefore'))
+     from golden.golden_case where file = 'tdsReturn.json' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'taxed') from golden.golden_case where file = 'tdsReturn.json' order by position $$,
+  'private.tds_taxed_winnings gives every case in the golden file');
+
 select * from finish();
 rollback;
