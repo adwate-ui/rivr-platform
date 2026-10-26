@@ -3452,6 +3452,9 @@ isOneToOne: false
 "erased_member_kyc_folder":
 { Args: { "p_member_id": string }; Returns: string
                            },
+"export_archive_rows":
+{ Args: { "p_after"?: Json,"p_archive_id": string,"p_limit"?: number,"p_table": string }; Returns: Json
+                           },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
@@ -4028,6 +4031,9 @@ isOneToOne: false
 { Args: { "p_device_id": string }; Returns: {
               "code": string,"expires_at": string
             }[]
+                           },
+"start_export_archive":
+{ Args: { "p_kyc_reason"?: string,"p_member_id"?: string,"p_venue_id": string }; Returns: Json
                            },
 "start_tournament_clock":
 { Args: { "p_tournament_id": string }; Returns: undefined

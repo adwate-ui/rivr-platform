@@ -85,6 +85,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'shareholders', label: 'console.rail.items.shareholders', href: '/shareholders', anyOf: ['shareholding.manage'] },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', anyOf: ['purge.run'] },
+      { id: 'exports', label: 'console.rail.items.exports', href: '/exports', anyOf: ['exports.full'] },
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
     ],
   },

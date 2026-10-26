@@ -254,6 +254,13 @@ const exportsAlertRows = {
   value: z.strictObject({ rows: z.int().min(1).max(1_000_000) }),
 } as const satisfies SettingDefinition;
 
+const exportsArchiveRecipient = {
+  key: 'exports.archive_recipient',
+  description: 'The super admin\'s export archive (decision 0232) is encrypted to this age public key: the owner\'s backup key, the one the nightly backups use. No archive is made until it is set.',
+  scope: 'venue',
+  value: z.strictObject({ recipient: z.string().regex(/^age1(pq1)?[02-9ac-hj-np-z]{58,4000}$/) }),
+} as const satisfies SettingDefinition;
+
 const reportsUnclaimedDays = {
   key: 'reports.unclaimed_days',
   description: 'Unclaimed balances (decision 0230): a balance is unclaimed after this many days with no money moved and no visit. 365 unless set.',
@@ -265,7 +272,7 @@ const reportsUnclaimedDays = {
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, reportsUnclaimedDays,
+  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
 ] as const;
 
 /** A setting key declared in code. */

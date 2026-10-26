@@ -244,6 +244,8 @@ max_frequency = "60s"
 919000000177 = "123456"
 919000000175 = "123456"
 919000000176 = "123456"
+# The Export flow's own super admin, supabase/seed/10_people.sql (#103).
+919000000182 = "123456"
 # Lane D builder: the Rewards catalogue flow's marketing and floor managers, supabase/seed/12_people_d.sql (#145, #147).
 919000000700 = "123456"
 919000000701 = "123456"
