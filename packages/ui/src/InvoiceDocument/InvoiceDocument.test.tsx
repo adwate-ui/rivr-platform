@@ -21,6 +21,9 @@ const STORED: StoredInvoice = {
   sgstPaise: 15_254n,
   igstPaise: 0n,
   totalPaise: 200_000n,
+  sacCode: '999293',
+  placeOfSupply: 'Haryana',
+  signatory: { name: 'Rhea Kapoor', designation: 'Partner' },
 };
 
 describe('InvoiceDocument', () => {
@@ -31,14 +34,24 @@ describe('InvoiceDocument', () => {
     expect(screen.getByText('06BBBBB1111B1Z6')).toBeInTheDocument();
     expect(screen.getByText('CGST at 9%')).toBeInTheDocument();
     expect(screen.getByText('SGST at 9%')).toBeInTheDocument();
+    expect(screen.getByText('999293')).toBeInTheDocument();
+    expect(screen.getByText('Haryana')).toBeInTheDocument();
+    expect(screen.getByText('Authorised signatory: Rhea Kapoor, Partner')).toBeInTheDocument();
+    expect(screen.queryByText('Computer-generated.')).toBeNull();
     expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('shows IGST alone for another state, an odd rate exactly, and a practice invoice as no tax invoice', () => {
-    render(<InvoiceDocument invoice={{ ...STORED, isTaxInvoice: false, rateBasisPoints: 500, cgstPaise: 0n, sgstPaise: 0n, igstPaise: 9_524n }} />);
+    render(<InvoiceDocument invoice={{ ...STORED, isTaxInvoice: false, rateBasisPoints: 500, cgstPaise: 0n, sgstPaise: 0n, igstPaise: 9_524n, signatory: null }} />);
     expect(screen.getByText('Practice invoice, not a tax invoice')).toBeInTheDocument();
     expect(screen.getByText('IGST at 5%')).toBeInTheDocument();
     expect(screen.queryByText(/^CGST/)).toBeNull();
+    expect(screen.getByText('Computer-generated.')).toBeInTheDocument();
+  });
+
+  it('names a signatory without a designation on their own', () => {
+    render(<InvoiceDocument invoice={{ ...STORED, signatory: { name: 'Rhea Kapoor', designation: '' } }} />);
+    expect(screen.getByText('Authorised signatory: Rhea Kapoor')).toBeInTheDocument();
   });
 
   it('offers Back and Save as PDF when asked, from the keyboard too', async () => {

@@ -24,6 +24,12 @@ export interface StoredInvoice {
   /** Above zero only for a supply to another state (#380), when CGST and SGST are zero. */
   readonly igstPaise: bigint;
   readonly totalPaise: bigint;
+  /** The series' SAC code (#423), null on a practice invoice. */
+  readonly sacCode: string | null;
+  /** The place of supply (#423): the venue's state, or the buyer's for IGST; null on a practice invoice. */
+  readonly placeOfSupply: string | null;
+  /** The authorised signatory as venue configuration named them when it was issued, or null when it named none. */
+  readonly signatory: { readonly name: string; readonly designation: string } | null;
 }
 
 export interface InvoiceDocumentProps {
@@ -52,13 +58,23 @@ function totalsOf(invoice: StoredInvoice): DocumentTotal[] {
   ];
 }
 
+/** At the foot: the authorised signatory, or that the invoice is computer-generated when none is named. */
+function signatureOf(invoice: StoredInvoice): string {
+  if (invoice.signatory === null) return t('documents.computerGenerated');
+  const { name, designation } = invoice.signatory;
+  return designation === '' ? t('documents.invoice.signedByName', { name }) : t('documents.invoice.signedBy', { name, designation });
+}
+
 function detailsOf(invoice: StoredInvoice): DocumentDetail[] {
   const details = [
     { label: t('documents.invoice.number'), value: invoice.number },
     { label: t('documents.invoice.date'), value: formatDate(new Date(invoice.issuedAt)) },
     { label: t('documents.invoice.billedTo'), value: invoice.buyer.name },
+    ...(invoice.buyer.gstin ? [{ label: t('documents.invoice.buyerGstin'), value: invoice.buyer.gstin }] : []),
+    ...(invoice.sacCode ? [{ label: t('documents.invoice.sac'), value: invoice.sacCode }] : []),
+    ...(invoice.placeOfSupply ? [{ label: t('documents.invoice.placeOfSupply'), value: invoice.placeOfSupply }] : []),
   ];
-  return invoice.buyer.gstin ? [...details, { label: t('documents.invoice.buyerGstin'), value: invoice.buyer.gstin }] : details;
+  return details;
 }
 
 /**
@@ -77,7 +93,7 @@ export function InvoiceDocument({ invoice, onSave, onBack }: InvoiceDocumentProp
           {onSave ? <Button onClick={onSave}>{t('documents.invoice.save')}</Button> : null}
         </div>
       ) : null}
-      <DocumentPage issuer={issuer} title={title} details={detailsOf(invoice)} note={t('documents.computerGenerated')}>
+      <DocumentPage issuer={issuer} title={title} details={detailsOf(invoice)} note={signatureOf(invoice)}>
         <DocumentTable
           caption={t('documents.invoice.caption')}
           columns={[{ label: t('documents.invoice.description') }, { label: t('documents.invoice.amount'), isAmount: true }]}

@@ -1207,14 +1207,14 @@ isOneToOne: false
                   ]
                 },"invoice": {
                   Row: {
-                    "buyer_gstin": string | null,"buyer_name": string,"cgst_paise": number,"created_at": string,"description": string,"financial_year": number,"id": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"member_id": string | null,"number": string,"rate_basis_points": number,"sequence": number,"series_id": string,"sgst_paise": number,"source": string,"supplier_address": string,"supplier_gstin": string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at": string,"venue_id": string
+                    "buyer_gstin": string | null,"buyer_name": string,"cgst_paise": number,"created_at": string,"description": string,"financial_year": number,"id": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"member_id": string | null,"number": string,"place_of_supply": string | null,"rate_basis_points": number,"sac_code": string | null,"sequence": number,"series_id": string,"sgst_paise": number,"signatory_designation": string | null,"signatory_name": string | null,"source": string,"supplier_address": string,"supplier_gstin": string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "buyer_gstin"?: string | null,"buyer_name": string,"cgst_paise": number,"created_at"?: string,"description": string,"financial_year": number,"id"?: string,"igst_paise"?: number,"is_tax_invoice": boolean,"issued_at"?: string,"member_id"?: string | null,"number": string,"rate_basis_points": number,"sequence": number,"series_id": string,"sgst_paise": number,"source": string,"supplier_address": string,"supplier_gstin"?: string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at"?: string,"venue_id": string
+                    "buyer_gstin"?: string | null,"buyer_name": string,"cgst_paise": number,"created_at"?: string,"description": string,"financial_year": number,"id"?: string,"igst_paise"?: number,"is_tax_invoice": boolean,"issued_at"?: string,"member_id"?: string | null,"number": string,"place_of_supply"?: string | null,"rate_basis_points": number,"sac_code"?: string | null,"sequence": number,"series_id": string,"sgst_paise": number,"signatory_designation"?: string | null,"signatory_name"?: string | null,"source": string,"supplier_address": string,"supplier_gstin"?: string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "buyer_gstin"?: string | null,"buyer_name"?: string,"cgst_paise"?: number,"created_at"?: string,"description"?: string,"financial_year"?: number,"id"?: string,"igst_paise"?: number,"is_tax_invoice"?: boolean,"issued_at"?: string,"member_id"?: string | null,"number"?: string,"rate_basis_points"?: number,"sequence"?: number,"series_id"?: string,"sgst_paise"?: number,"source"?: string,"supplier_address"?: string,"supplier_gstin"?: string | null,"supplier_legal_name"?: string,"taxable_paise"?: number,"total_paise"?: number,"updated_at"?: string,"venue_id"?: string
+                    "buyer_gstin"?: string | null,"buyer_name"?: string,"cgst_paise"?: number,"created_at"?: string,"description"?: string,"financial_year"?: number,"id"?: string,"igst_paise"?: number,"is_tax_invoice"?: boolean,"issued_at"?: string,"member_id"?: string | null,"number"?: string,"place_of_supply"?: string | null,"rate_basis_points"?: number,"sac_code"?: string | null,"sequence"?: number,"series_id"?: string,"sgst_paise"?: number,"signatory_designation"?: string | null,"signatory_name"?: string | null,"source"?: string,"supplier_address"?: string,"supplier_gstin"?: string | null,"supplier_legal_name"?: string,"taxable_paise"?: number,"total_paise"?: number,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2869,14 +2869,14 @@ isOneToOne: false
                   ]
                 },"venue_config": {
                   Row: {
-                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
+                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
+                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
+                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3136,7 +3136,7 @@ isOneToOne: false
                   ]
                 },"venue_config_detail": {
                   Row: {
-                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
+                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -3542,7 +3542,7 @@ isOneToOne: false
                            },
 "my_academy_invoice":
 { Args: { "p_booking_id": string }; Returns: {
-              "buyer_gstin": string,"buyer_name": string,"cgst_paise": number,"description": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"number": string,"rate_basis_points": number,"sgst_paise": number,"supplier_address": string,"supplier_gstin": string,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number
+              "buyer_gstin": string,"buyer_name": string,"cgst_paise": number,"description": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"number": string,"place_of_supply": string,"rate_basis_points": number,"sac_code": string,"sgst_paise": number,"signatory_designation": string,"signatory_name": string,"supplier_address": string,"supplier_gstin": string,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number
             }[]
                            },
 "my_deposits":

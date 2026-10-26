@@ -35,6 +35,9 @@ export const INVOICE = {
     sgstPaise: 15_254n,
     igstPaise: 0n,
     totalPaise: 200_000n,
+    sacCode: '999293',
+    placeOfSupply: 'Haryana',
+    signatory: { name: 'Rhea Kapoor', designation: 'Partner' },
   },
 };
 

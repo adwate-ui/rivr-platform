@@ -122,7 +122,7 @@ select results_eq($$ select is_tax_invoice, supplier_gstin, cgst_paise, igst_pai
   $$ values (false, null::text, 0::bigint, 30508::bigint) $$,
   'a trainee''s invoice to a company from another state shows IGST as the club''s would, and is still not a tax invoice');
 -- And one at the test venue, where none of the club's staff work.
-update public.venue_config set gstin = '07AABCT1234Q1Z5' where venue_id = '00000000-0000-4000-8000-0000000007a1';
+update public.venue_config set gstin = '07AABCT1234Q1Z5', sac_club_services = '999692' where venue_id = '00000000-0000-4000-8000-0000000007a1';
 select is((private.issue_invoice('00000000-0000-4000-8000-0000000007a1', 'S', 'other:1', 100000, 1800, 'Club services', null, 'Someone')).number,
   'TST/S' || pg_temp.yy() || '/1', 'another venue numbers its own from 1');
 

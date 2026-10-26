@@ -10,6 +10,9 @@ import { bankAccountNumberSchema, ifscSchema, upiVpaSchema } from './payments.ts
 /** A TAN, the number TDS returns and certificates name the deductor by: four letters, five digits, a letter, `DELR12345E` (#93). */
 export const tanSchema = z.string().trim().toUpperCase().regex(/^[A-Z]{4}[0-9]{5}[A-Z]$/);
 
+/** A SAC code, the services code a tax invoice carries for its series: four or six digits, `999692` (#423). */
+export const sacSchema = z.string().trim().regex(/^[0-9]{4}([0-9]{2})?$/);
+
 /** An optional field: empty is null, anything else must pass `schema`. */
 const optional = <Schema extends z.ZodType<unknown, string>>(schema: Schema) =>
   z.string().trim().transform((text) => (text === '' ? null : text)).pipe(z.union([z.null(), schema]));
@@ -44,6 +47,11 @@ export const venueConfigSchema = z.strictObject({
   invoicePrefix: z.string().trim().toUpperCase().regex(/^[A-Z0-9-]{1,6}$/),
   staffIpAllowlist: z.string().transform((text) => text.split(/[\s,]+/).filter((part) => part !== '')).pipe(z.array(networkSchema).max(50)),
   alertWhatsapp: optional(indianMobileSchema),
+  // The SAC code of each invoice series, from the CA, and the authorised signatory every tax invoice names (#423).
+  sacClubServices: optional(sacSchema),
+  sacAcademy: optional(sacSchema),
+  signatoryName: optional(freeText(100)),
+  signatoryDesignation: optional(freeText(100)),
 });
 
 /** The form as typed. */

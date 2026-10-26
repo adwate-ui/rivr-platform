@@ -21,7 +21,7 @@ Production is never seeded. The real venue, and any later room, is created once 
    insert into public.setting (venue_id, key, value, effective_from, reason)
    values ('<venue id>', 'academy.price', '{"individual_paise": 200000, "corporate_per_head_paise": 150000}', now(), 'Opening fees');
    ```
-5. Everything else (GSTIN, UPI payee and VPA, bank details, logo, the IP allowlist, staff, the tier matrix) is set from the console. The UPI payee and VPA must be set before the first Academy booking: they are where players pay.
+5. Everything else (GSTIN, UPI payee and VPA, bank details, logo, the IP allowlist, staff, the tier matrix) is set from the console. The UPI payee and VPA must be set before the first Academy booking: they are where players pay. The GSTIN, the SAC codes of both invoice series and the authorised signatory must be set before the first Academy payment is confirmed or the first nightly invoice is due (07:00 after the first night): without the GSTIN or the series' SAC code a tax invoice is refused, and the cage cannot confirm an Academy payment (#423, decision 0194).
 
 The practice venue is created the same way with `is_practice = true`.
 
