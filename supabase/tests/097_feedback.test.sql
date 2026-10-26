@@ -71,6 +71,7 @@ reset role;
 update public.feedback set visit_id = null, score = null where score = 2;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select lives_ok($$ select public.rate_visit('00000000-0000-4000-8000-0000000a9701', 5, null) $$, 'a 5, with no note');
+reset role;
 select is((select is_ticket from public.feedback where score = 5), false, 'is no ticket');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.resolve_feedback((select id from public.feedback where score = 5), 'Nothing to do') $$, '22023', null,
