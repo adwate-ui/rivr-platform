@@ -64,9 +64,10 @@ select is(private.bonus_in_force('00000000-0000-4000-8000-000000000211', now()),
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.granted'
            and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000211'), 1, 'announced by promotion.granted');
 
--- A retried tap is one buy-in, so one bonus.
+-- A retried tap, the same approval again, is one buy-in, so one bonus.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select pg_temp.buy_in('00000000-0000-4000-8000-000000000211', 1000000, 'wallet', '00000000-0000-4000-8000-0000000c8801');
+select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'wallet',
+  '00000000-0000-4000-8000-0000000c8801', null, (select id from ids where name = 'request'));
 reset role;
 select is(pg_temp.bonuses('00000000-0000-4000-8000-000000000211'), '200000', 'a retried buy-in gives no second bonus');
 
