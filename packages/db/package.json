@@ -9,7 +9,8 @@
     "./myRewards": "./src/myRewards.ts",
     "./tds": "./src/tds.ts",
     "./shareholding": "./src/shareholding.ts",
-    "./tally": "./src/tally.ts"
+    "./tally": "./src/tally.ts",
+    "./reports": "./src/reports.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
