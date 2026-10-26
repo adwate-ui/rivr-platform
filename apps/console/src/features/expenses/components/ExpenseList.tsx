@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { expenseRejectionSchema } from '@rivr/contracts';
+import { expenseRejectionSchema } from '@rivr/contracts/treasury';
 import { useExpenseActions, useReceiptUrl, useVenueExpenses, type ExpenseFailure, type VenueExpense } from '@rivr/db';
 import { formatDate, formatMoney, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';

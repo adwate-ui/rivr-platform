@@ -71,9 +71,6 @@ export {
 } from './cage.ts';
 export { creditLimitSchema, markerIssueSchema } from './credit.ts';
 export {
-  expenseCategorySchema, expenseRejectionSchema, expenseRequestSchema, paymentAccountSchema, repaymentSchema, transferSchema,
-} from './treasury.ts';
-export {
   PROMOTION_BUILDER_LIMITS, PROMOTION_BUILDER_REWARDS, PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionBuilderSchema, promotionConditionsSchema,
   promotionEffectSchema, type PromotionBuilder, type PromotionBuilderLimit, type PromotionBuilderReward, type PromotionConditions, type PromotionEffect,
   type PromotionEffectKind, type PromotionTrigger,

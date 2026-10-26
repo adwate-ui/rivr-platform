@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { paymentAccountSchema, transferSchema } from '@rivr/contracts';
+import { paymentAccountSchema, transferSchema } from '@rivr/contracts/treasury';
 import { usePaymentAccountActions, type AccountFailure, type PaymentAccount } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { formatMoney, t } from '@rivr/i18n';
