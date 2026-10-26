@@ -76,6 +76,9 @@ export {
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export {
+  useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
+} from './memberErasure.ts';
+export {
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,

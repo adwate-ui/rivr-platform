@@ -3449,6 +3449,9 @@ isOneToOne: false
               "blocked_until": string,"forfeited_bonus_paise": number,"forfeited_points": number,"venue_id": string
             }[]
                            },
+"erased_member_kyc_folder":
+{ Args: { "p_member_id": string }; Returns: string
+                           },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
@@ -3558,7 +3561,7 @@ isOneToOne: false
                            },
 "member_erasure_preview":
 { Args: { "p_member_id": string }; Returns: {
-              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"points": number
+              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"kyc_files": number,"points": number
             }[]
                            },
 "member_feature_overrides":
