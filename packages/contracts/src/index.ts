@@ -89,6 +89,7 @@ export {
   alertRaisedSchema, linkSuffixSchema, promotionOfferedSchema, receiptReadySchema, waitlistCalledSchema, type PromotionOffered, type ReceiptReady, type WaitlistCalled,
 } from './messaging.ts';
 export { kycInPersonSchema, kycReviewSchema, type KycInPerson } from './kycReview.ts';
+export { erasedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';
 export { sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
 export {
   INBOX_CHANNELS,

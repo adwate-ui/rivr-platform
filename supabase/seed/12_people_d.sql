@@ -27,7 +27,8 @@ on conflict do nothing;
 -- The Rewards flow's member, who redeems from the app, and its floor manager, who pairs a TV on the rewards
 -- ticker and hands the redemption over (#148, #152). The Pot data flow's super admin (#114). The Tournament clock flow's floor manager and
 -- member, who watches the clock on Home (#119). The Tournament registration flow's member, who registers and re-enters
--- from the app, and its floor manager (#118, #120). A row with no role is a member.
+-- from the app, and its floor manager (#118, #120). The Member erasure flow's super admin (#424). A row with no
+-- role is a member.
 create temporary table lane_d_person (
   id uuid primary key,
   phone text not null,
@@ -50,7 +51,8 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-0000000d0753', '+919000000753', 'Ira Menon', 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-0000000d0754', '+919000000754', 'Rhea Kapoor', 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-0000000d0755', '+919000000755', 'Tara Malhotra', null, null),
-  ('00000000-0000-4000-8000-0000000d0756', '+919000000756', 'Dev Khanna', null, null);
+  ('00000000-0000-4000-8000-0000000d0756', '+919000000756', 'Dev Khanna', null, null),
+  ('00000000-0000-4000-8000-0000000d0757', '+919000000757', 'Nisha Bhatt', 'Duty manager', 'super_admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -113,3 +115,15 @@ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', '
     jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = m.id and a.code = 'member.cash'), 'amount', '-10000000')),
   null)
 from public.member m where m.id in ('00000000-0000-4000-8000-0000000d0755', '00000000-0000-4000-8000-0000000d0756');
+
+-- The practice member the Member erasure flow erases on request (#424): an identity check and 500 points to
+-- forfeit, once. Practice records never sign in.
+insert into public.member (id, venue_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000d0758', '00000000-0000-4000-8000-000000000002', 'Neel Kapur', '+919000000758')
+on conflict (id) do nothing;
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000d0758', 'verified', 'digilocker', '1991-07-14', 'ABCPK7581S',
+   '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-0000000d0758/selfie.jpg', now())
+on conflict do nothing;
+select private.credit_points('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000d0758', 500, 'Seed',
+                             'seed:member-erasure-flow:0d0758');

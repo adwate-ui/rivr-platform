@@ -2,14 +2,16 @@ import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { formatDate, formatStakes, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Text } from '@rivr/ui';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
+import { EraseMember } from './EraseMember.tsx';
 import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { TierForm } from './TierForm.tsx';
 
-/** What the staff member may do on a record: change the tier, see the KYC photo, override features (super admins). */
+/** What the staff member may do on a record: change the tier, see the KYC photo, override features and erase (super admins). */
 export interface RecordAccess {
   readonly manage: boolean;
   readonly seePhoto: boolean;
   readonly override: boolean;
+  readonly erase: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -51,13 +53,14 @@ function Record({ venueId, record, can }: { venueId: string; record: MemberRecor
       <EarlyDepartures venueId={venueId} memberId={record.memberId} />
       {can.manage ? <TierForm venueId={venueId} record={record} /> : null}
       {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
+      {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}
     </Stack>
   );
 }
 
 /**
  * The member record (#60): KYC photo, tier and qualifying stake, visits and early departures; a tier change for members.manage,
- * and feature overrides for super admins (#61).
+ * and feature overrides (#61) and erasure on request (#424) for super admins.
  */
 export function MemberRecordPanel({ venueId, memberId, can }: { venueId: string; memberId: string; can: RecordAccess }) {
   const record = useMemberRecord(venueId, memberId);

@@ -93,6 +93,8 @@ insert into public.payout_account (id, venue_id, member_id, kind, bank_name, vpa
 insert into public.deposit_request (venue_id, member_id, amount_paise, utr, payout_account_id, status, decided_at, idempotency_key)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 100000, '797979797979', '00000000-0000-4000-8000-0000000e0797',
         'not_found', now(), gen_random_uuid());
+insert into storage.objects (bucket_id, name)
+values ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0797/selfie.jpg');
 insert into public.outbox_event (venue_id, event_type, payload)
 values ('00000000-0000-4000-8000-000000000001', 'kyc.completed', jsonb_build_object('member_id', '00000000-0000-4000-8000-0000000d0797'));
 -- A cash-out with TDS taken, as the cage records it (its ledger side is not this test's).
@@ -167,6 +169,14 @@ select results_eq($$ select forfeited_points, forfeited_bonus_paise, blocked_unt
   $$ values (1200::bigint, 50000::bigint, true) $$, 'Vikram erases Tara, who forfeits her points and bonus, with no break to keep');
 select throws_ok($$ select * from public.erase_member('00000000-0000-4000-8000-0000000d0797', 'Erased member', 'Asked by email on 25 Oct') $$, 'RVERD', null,
   'once only');
+select results_eq($$ select is_erased, kyc_files from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0797') $$,
+  $$ values (true, 1) $$, 'her record shows her erased, with one KYC file in Storage still to remove');
+select is(public.erased_member_kyc_folder('00000000-0000-4000-8000-0000000d0797'),
+  '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0797/', 'her folder, kyc/<venue>/<member>/, for the Edge Function to remove');
+select is(public.erased_member_kyc_folder('00000000-0000-4000-8000-0000000d0798'), null, 'none for a member not erased');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is(public.erased_member_kyc_folder('00000000-0000-4000-8000-0000000d0797'), null,
+  'and none for anyone but a super admin of her venue, who learns nothing of who was erased');
 select pg_temp.as_owner();
 
 select results_eq($$ select full_name, phone, user_id, qualifying_small_blind, erased_at is not null, member_number is not null
@@ -271,9 +281,19 @@ select results_eq($$ select forfeited_points, forfeited_bonus_paise, blocked_unt
 select pg_temp.as_owner();
 select is_empty($$ select 1 from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0798' $$,
   'with no TDS taken, his KYC record is deleted');
+select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}', true);
 select throws_ok($$ insert into public.kyc_record (venue_id, member_id, status, method)
                     values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', 'started', 'pan') $$,
   'RVERD', null, 'and an erased member is never checked again');
+select set_config('request.jwt.claims', '{"role": "service_role"}', true);
+select throws_ok($$ insert into public.kyc_record (venue_id, member_id, status, method)
+                    values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', 'started', 'pan') $$,
+  'RVERD', null, 'not by a service either');
+select pg_temp.as_owner();
+insert into public.kyc_record (venue_id, member_id, status, method)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', 'started', 'pan') on conflict do nothing;
+select is_empty($$ select 1 from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0798' $$,
+  'a seed run again on staging skips his old KYC row instead of failing');
 select results_eq($$ select phone_hash = private.kyc_reference('phone:+919000000798'), identity_keys @> array['dev-identity'], cardinality(identity_keys),
                             ends_at > now() + interval '29 days'
                      from private.member_erasure_block where venue_id = '00000000-0000-4000-8000-000000000001' $$,

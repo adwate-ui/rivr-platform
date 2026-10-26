@@ -100,7 +100,11 @@ You need, on the computer you restore from:
    - `kyc_reference_key`: the escrowed value, exactly;
    - `sign_in_send_key`: a new random value from `openssl rand -hex 32`. It only remembers which numbers got a code in the last ten minutes.
    - `project_url` and `outbox_scheduler_secret`: as `docs/runbooks/ci-and-release.md` describes for a new project, with the matching Edge Function secret.
-6. **Re-apply erasures.** Re-apply any member erasures made after the backup was taken.
+6. **Re-apply erasures** (#424, decision 0207). The backup still holds members erased after it was taken, and `--files` brought back their KYC files.
+   - Take their ids from the project the backup came from, if it still answers, in its SQL editor: `select entity_id, occurred_at from audit_log where action = 'member.erase' and occurred_at >= '<the backup's night>'`. If that project is gone, erasures made since the backup are lost; the owner accepts that (#407).
+   - In the new project's SQL editor (as `postgres`), run `select * from private.reapply_member_erasures('<the backup's night>', array['<id>', '<id>']::uuid[]);`. It also makes again any erasure the restored audit log records since then.
+   - Each row says `erased`, or why not (for example `Settle these before erasing the member: cash`). Settle that and run it again; running it twice changes nothing.
+   - Then remove their KYC files, which the restore put back: on each erased member's record in the console (Members), press Remove KYC files. Or delete the folder `kyc/<venue_id>/<member_id>/` in the new project's Storage.
 7. **Check it.**
    - Compare each table's row count with `manifest.csv`. Tables a per-minute job writes to may differ by the rows written in the seconds between the dump and the export.
    - `select jobname from cron.job` lists every job in `cron.sql`.
@@ -139,3 +143,4 @@ You need, on the computer you restore from:
 - Use point-in-time recovery for a moment in the last 7 days, or the daily backup.
 - In Supabase go to Database → Backups, choose the time or the backup, and restore. The project is unavailable while it restores, and everything after that moment is lost.
 - Engage the kill switch first, so nothing is written in between, and note in the incident log what was lost.
+- Before restoring, list the erasures made after the moment you restore to: `select entity_id from audit_log where action = 'member.erase' and occurred_at >= '<that moment>'`. The restore takes them back. Afterwards, release the kill switch and re-apply them as in step 6 above: a venue freeze refuses an erasure.
