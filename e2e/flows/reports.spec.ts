@@ -23,5 +23,7 @@ test.describe('Reports', () => {
     await months.nth(1).click();
     await expect(page.getByText(/was not stored on the 1st|^Stored /)).toBeVisible();
     await expect(page.getByRole('table', { name: 'The month' }).getByRole('row').filter({ hasText: 'Hands' })).toBeVisible();
+    // Unclaimed balances (#110): the table, or its empty message when no balance has been left a year.
+    await expect(page.getByRole('table', { name: 'Unclaimed balances' }).or(page.getByText('No unclaimed balances.'))).toBeVisible();
   });
 });

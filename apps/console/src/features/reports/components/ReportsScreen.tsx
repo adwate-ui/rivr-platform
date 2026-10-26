@@ -2,6 +2,7 @@ import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { MonthlyMis } from './MonthlyMis.tsx';
+import { UnclaimedBalances } from './UnclaimedBalances.tsx';
 import { RakeTonight } from './RakeTonight.tsx';
 
 /**
@@ -21,6 +22,7 @@ export function ReportsScreen() {
       <Stack gap={8}>
         <RakeTonight venueId={venueId} />
         <MonthlyMis venueId={venueId} />
+        <UnclaimedBalances venueId={venueId} />
       </Stack>
     </Screen>
   );
