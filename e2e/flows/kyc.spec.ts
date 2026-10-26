@@ -1,10 +1,11 @@
 /**
  * KYC (#4, #5): a member takes a selfie, checks their identity with DigiLocker and sees what was
  * kept: the masked Aadhaar, never the number. The practice venue uses the fake vendor, which consents at once and
- * sends the member straight back; a real venue without vendor keys fails closed (decision 0014).
+ * sends the member straight back; a real venue without vendor keys fails closed (decision 0014). Staging has
+ * Cashfree's sandbox keys (#474, decision 0197), so there the real venue's check goes to Cashfree instead.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { appUrl } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToPlayer } from '../support/signIn.ts';
 
 /** A plain JPEG made in the page: the practice venue's fake vendor passes any selfie. */
@@ -57,6 +58,8 @@ test.describe('KYC', () => {
     await expect(page.getByText('KYC incomplete. Finish it to join a table.')).toBeVisible();
     await expect(page.getByText('Table 1', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Join' })).toHaveCount(0);
+    // Staging's real venue has Cashfree's sandbox keys, so its KYC is open, not closed: it is proved locally.
+    if (isRemoteTarget()) return;
     await takeSelfie(page);
     await expect(page.getByText('Identity checks are not open yet. Staff will check your documents at the club.')).toBeVisible();
   });
