@@ -41,10 +41,12 @@ describe('fetchSitePage', () => {
       navigation: [{ slug: 'academy', title: 'RIVR Academy' }, { slug: 'faq', title: 'FAQ' }],
       games: [],
       tournaments: [],
+      promotions: [],
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
     // A page without live blocks reads no live view.
-    expect(urls.filter((url) => ['/public_table_status', '/public_waitlist_length', '/public_tournament_calendar'].some((view) => url.includes(view)))).toEqual([]);
+    const live = ['/public_table_status', '/public_waitlist_length', '/public_tournament_calendar', '/public_promotion_cards'];
+    expect(urls.filter((url) => live.some((view) => url.includes(view)))).toEqual([]);
   });
 
   const LIVE_BLOCKS = [{ kind: 'games', content: { heading: 'Games and stakes' } }, { kind: 'calendar', content: {} }];
@@ -66,6 +68,20 @@ describe('fetchSitePage', () => {
     expect(page.ok && page.value?.tournaments).toEqual([
       { name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n },
     ]);
+  });
+
+  it('reads the live promotions when the page has their block, leaving out a card with no title (decision 0166)', async () => {
+    const { client, urls } = siteClient(PAGES, [{ kind: 'promotions', content: { heading: 'Running now' } }], {
+      public_promotion_cards: { body: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }, { title: null, detail: null, runs: null }] },
+    });
+    const page = await fetchSitePage(client, 'home');
+    expect(page.ok && page.value?.promotions).toEqual([{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }]);
+    expect(urls.some((url) => url.includes('/public_table_status'))).toBe(false);
+  });
+
+  it('is unavailable when the promotions cannot be read', async () => {
+    const { client } = siteClient(PAGES, [{ kind: 'promotions', content: {} }], { public_promotion_cards: { status: 500, body: { message: 'down' } } });
+    expect(await fetchSitePage(client, 'home')).toEqual(err('unavailable'));
   });
 
   it('is unavailable when the waitlist counts cannot be read', async () => {

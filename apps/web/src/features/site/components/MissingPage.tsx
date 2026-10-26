@@ -15,7 +15,7 @@ interface MissingPageProps {
 /** No page to show: a draft or an address the website does not have, or content that could not be read. */
 export function MissingPage({ failed, attribution }: MissingPageProps) {
   return (
-    <WebShell links={[]} homeHref={siteHref('home', attribution)} footer={<Footer />}>
+    <WebShell links={[]} homeHref={siteHref('home', attribution)} footer={<Footer attribution={attribution} />}>
       {failed ? (
         <HeroBlock heading={t('web.unavailableTitle')} text={t('web.unavailable')} />
       ) : (

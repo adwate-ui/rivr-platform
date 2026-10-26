@@ -78,3 +78,17 @@ export async function fetchSiteCalendar(client: RivrClient): Promise<Result<Site
          guarantee: row.guarantee_paise === null ? null : BigInt(row.guarantee_paise) }]
     : [])));
 }
+
+/** A live promotion, for the website's promotions block (decision 0166): as published. */
+export interface SitePromotion {
+  readonly title: string;
+  readonly detail: string | null;
+  readonly runs: string | null;
+}
+
+/** The club's live promotion cards from the public view (`public_promotion_cards`), highest priority first. */
+export async function fetchSitePromotions(client: RivrClient): Promise<Result<SitePromotion[], 'unavailable'>> {
+  const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs');
+  if (error) return err('unavailable');
+  return ok(data.flatMap((row) => (row.title ? [{ title: row.title, detail: row.detail, runs: row.runs }] : [])));
+}

@@ -12,7 +12,8 @@ values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Open', now() + interv
 
 select results_eq(
   $$ select distinct kind from public.site_block order by kind $$,
-  $$ values ('calendar'::text), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'), ('rules'), ('statement'), ('text') $$,
+  $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'), ('marquee'),
+            ('promotions'), ('rules'), ('statement'), ('story'), ('table'), ('text'), ('timeline') $$,
   'the seed uses every kind of block');
 select throws_ok(
   $$ insert into public.site_block (venue_id, page_id, position, kind, content)

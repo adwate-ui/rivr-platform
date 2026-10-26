@@ -14,7 +14,7 @@ const PAGE = {
   ],
   navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
   games: [],
-  tournaments: [],
+  tournaments: [], promotions: [],
 };
 
 describe('a website page', () => {
@@ -74,5 +74,27 @@ describe('a website page', () => {
     render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
     expect(screen.getByText('1 table running · 3 waiting')).toBeDefined();
     expect(screen.getByText('Sunday 15 Nov 2026, 16:00')).toBeDefined();
+  });
+
+  it('draws the bands added in grandpokerarena.com’s way, with the live promotions, a card’s page link and the footer’s policies (decision 0166)', () => {
+    const page = {
+      ...PAGE,
+      blocks: [
+        { kind: 'marquee' as const, content: { phrases: ['Play', 'Connect'] } },
+        { kind: 'story' as const, content: { heading: 'Good hands. Better company.', paragraphs: ['RIVR opens.'], figures: [{ value: '6', label: 'Tables' }] } },
+        { kind: 'cards' as const, content: { heading: 'What’s on', cards: [{ title: 'Tournament nights', link: { label: 'Full calendar', page: 'tournaments' } }, { title: 'On the house' }] } },
+        { kind: 'timeline' as const, content: { items: [{ when: '1996', title: 'The predominance test' }] } },
+        { kind: 'table' as const, content: { columns: ['Stake', 'Points an hour'], rows: [['NLH 50/100', '5']] } },
+        { kind: 'promotions' as const, content: { heading: 'Running now' } },
+      ],
+      promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }],
+    };
+    const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
+    expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['deep', 'cream', 'dark', 'deep', 'cream', 'deep']);
+    expect(screen.getByRole('heading', { level: 2, name: 'Good hands. Better company.' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Full calendar' }).getAttribute('href')).toBe('/tournaments?ref=FRIEND1');
+    expect(screen.getByRole('cell', { name: '5' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 3, name: 'Referral' })).toBeDefined();
+    expect(screen.getByRole('contentinfo').querySelector('a[href="/house-rules?ref=FRIEND1"]')?.textContent).toBe('House rules');
   });
 });

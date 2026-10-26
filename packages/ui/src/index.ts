@@ -90,6 +90,12 @@ export * from './WebBand/index.ts';
 export * from './StatementBlock/index.ts';
 export * from './GalleryBlock/index.ts';
 export * from './FeatureBlock/index.ts';
+export * from './StoryBlock/index.ts';
+export * from './CardsBlock/index.ts';
+export * from './MarqueeBlock/index.ts';
+export * from './TimelineBlock/index.ts';
+export * from './TableBlock/index.ts';
+export * from './PromotionsBlock/index.ts';
 export * from './WebFooter/index.ts';
 
 // Social cards and brand art, drawn by @rivr/render

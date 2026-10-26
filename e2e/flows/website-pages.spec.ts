@@ -1,8 +1,9 @@
 /**
- * Website pages (#35): the club's information pages are in the navigation and draw their blocks:
- * house rules as a numbered list, questions that open to their answers, how to find the club with a
- * link to directions, responsible play, and the privacy notice with its backups (#386); the front page
- * shows the games and the calendar, live.
+ * Website pages (#35; decision 0166): the policies are in every page's footer and the club's pages in the
+ * navigation, and each draws its blocks: house rules as a numbered list, questions that open to their
+ * answers, how to find the club with a link to directions, responsible play, and the privacy notice with
+ * its backups (#386); about, membership with its points table, the live promotions, and a journal
+ * article from the journal's list. The front page shows the games and the calendar, live.
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
@@ -12,13 +13,14 @@ test.describe('Website', () => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
     const site = page.getByRole('navigation', { name: 'Site' });
+    const footer = page.getByRole('contentinfo');
 
-    await site.getByRole('link', { name: 'House rules' }).click();
+    await footer.getByRole('link', { name: 'House rules' }).click();
     await expect(page).toHaveURL(/\/house-rules\?ref=FRIEND1$/);
     await expect(page.getByRole('heading', { level: 1, name: 'House rules' })).toBeVisible();
     await expect(page.getByRole('main').getByRole('listitem').first()).toHaveText(/^Members only, 18 and over\./);
 
-    await site.getByRole('link', { name: 'Questions' }).click();
+    await footer.getByRole('link', { name: 'Questions' }).click();
     await page.getByText('Who can join?').click();
     await expect(page.getByText(/^Anyone 18 or over\./)).toBeVisible();
 
@@ -26,14 +28,41 @@ test.describe('Website', () => {
     await expect(page.getByText('Upper floor, Glaza, M3M 65th Avenue, Sector 65, Gurugram')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Get directions' })).toHaveAttribute('href', /^https:\/\/www\.google\.com\/maps\//);
 
-    await site.getByRole('link', { name: 'Responsible play' }).click();
+    await footer.getByRole('link', { name: 'Responsible play' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Responsible play' })).toBeVisible();
 
     // The privacy notice says how long backups keep personal data, and that erasures outlast a restore (#386).
-    await site.getByRole('link', { name: 'Privacy' }).click();
+    await footer.getByRole('link', { name: 'Privacy' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
     await expect(page.getByText(/Personal data can be in a backup for up to 400 days\./)).toBeVisible();
     await expect(page.getByText(/every erasure made since it was taken is made again/)).toBeVisible();
+  });
+
+  test('the club's pages: about, membership, promotions, and a journal article, each keeping the visitor's codes', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT.web);
+    await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
+    const site = page.getByRole('navigation', { name: 'Site' });
+
+    await site.getByRole('link', { name: 'About' }).click();
+    await expect(page).toHaveURL(/\/about\?ref=FRIEND1$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'About RIVR' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Poker is a game of skill.' })).toBeVisible();
+    await expect(page.getByText('K.R. Lakshmanan v. State of Tamil Nadu')).toBeVisible();
+
+    await site.getByRole('link', { name: 'Membership' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'RIVR membership' })).toBeVisible();
+    await expect(page.getByRole('row', { name: /Private Room/ }).getByRole('cell', { name: '20' })).toBeVisible();
+    await expect(page.getByText(/^Example rates: the club confirms its rates before launch\./)).toBeVisible();
+
+    // The seed publishes Buy-in bonus Tuesday, high hands and the referral (57_promotions.sql).
+    await site.getByRole('link', { name: 'Promotions' }).click();
+    await expect(page.getByRole('heading', { level: 3, name: 'Buy-in bonus Tuesday' })).toBeVisible();
+
+    await site.getByRole('link', { name: 'Journal' }).click();
+    await page.getByRole('main').getByRole('link', { name: 'Read' }).first().click();
+    await expect(page).toHaveURL(/\/journal-holdem-basics\?ref=FRIEND1$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Texas Hold'em for beginners' })).toBeVisible();
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Terms of use' })).toHaveAttribute('href', '/terms?ref=FRIEND1');
   });
 
   test('the front page shows the games and stakes and the tournament calendar, live from the club', async ({ page }) => {
