@@ -26,6 +26,7 @@ import { staffRoute } from './routes/staff.tsx';
 import { certificationRoute } from './routes/certification.tsx';
 import { promotionsRoute } from './routes/promotions.tsx';
 import { sopsRoute } from './routes/sops.tsx';
+import { feedbackRoute } from './routes/feedback.tsx';
 import { incidentsRoute } from './routes/incidents.tsx';
 import { tiersRoute } from './routes/tiers.tsx';
 import { computersRoute } from './routes/computers.tsx';
@@ -39,6 +40,7 @@ const routeTree = rootRoute.addChildren([
     certificationRoute,
     sopsRoute,
     incidentsRoute,
+    feedbackRoute,
     promotionsRoute,
     tiersRoute,
   ]),

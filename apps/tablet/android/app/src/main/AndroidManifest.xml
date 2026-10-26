@@ -68,4 +68,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- A door kiosk scans members' cards with the camera (decision 0164). -->
+    <uses-permission android:name="android.permission.CAMERA" />
 </manifest>

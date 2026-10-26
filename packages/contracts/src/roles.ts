@@ -51,6 +51,7 @@ export const PERMISSIONS = [
   'incidents.log',
   'aml.review',
   'learn.manage_sources', // upload licensed Learn encodings
+  'feedback.manage', // the General Manager's feedback tickets (decision 0165)
 ] as const;
 
 /** A permission key. */
@@ -65,7 +66,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'members.read', 'members.manage',
     'kyc.review', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
-    'host_queue.manage', 'fnb.manage', 'reports.read', 'exports.table', 'sops.manage', 'aml.review',
+    'host_queue.manage', 'fnb.manage', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
   ],
   cashier: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',

@@ -85,6 +85,9 @@ export const queryKeys = {
   creditRoom: (userId: string, venueId: string) => ['user', userId, 'credit-room', venueId] as const,
   openMarkers: (userId: string, venueId: string) => ['user', userId, 'open-markers', venueId] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
+  /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
+  myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,
+  venueFeedback: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,

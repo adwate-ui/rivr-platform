@@ -11,6 +11,8 @@ interface FrameProps {
   unpaired: ReactNode;
   /** What a tablet fixed to a table shows between downs: dealer sign-in. */
   signIn: ReactNode;
+  /** What a door kiosk shows in place of the table's screens (decision 0164): the card scanner. */
+  door: ReactNode;
 }
 
 interface TableFrameProps {
@@ -74,9 +76,9 @@ function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
 /**
  * The dealer tablet's frame: the table it is fixed to (#41) and the kill-switch banner. A tablet
  * that is not signed in as a paired device shows `unpaired` instead of its screens; one fixed to a
- * table asks a dealer to sign in between downs. Lane B adds the offline banner from @rivr/offline.
+ * table asks a dealer to sign in between downs; a door kiosk shows `door`, under its name. Lane B adds the offline banner from @rivr/offline.
  */
-export function Frame({ children, unpaired, signIn }: FrameProps) {
+export function Frame({ children, unpaired, signIn, door }: FrameProps) {
   const { isVenueFrozen } = useControlState();
   const authStatus = useAuthStatus();
   const device = useMyDevice();
@@ -92,5 +94,6 @@ export function Frame({ children, unpaired, signIn }: FrameProps) {
   if (authStatus === 'signed-out' || !device.data) {
     return <TabletShell tableName={t('tablet.pairing.notPaired')} banner={banner}>{unpaired}</TabletShell>;
   }
+  if (device.data.isDoor) return <TabletShell tableName={device.data.name} banner={banner}>{door}</TabletShell>;
   return <TableFrame device={device.data} banner={banner} signIn={signIn}>{children}</TableFrame>;
 }
