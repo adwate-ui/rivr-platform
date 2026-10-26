@@ -10,7 +10,12 @@ insert into public.feature (key, name, description, screens, is_gateable) values
   ('core.feedback', 'Feedback', 'Rating a visit, and sending the club a note.', '{player:home,player:profile}', false);
 
 insert into public.role_permission (role, permission)
-select role::public.staff_role, 'feedback.manage' from unnest(array['super_admin', 'admin']) as role;
+select 'super_admin', permission
+from unnest(array['feedback.manage']) as permission;
+
+insert into public.role_permission (role, permission)
+select 'admin', permission
+from unnest(array['feedback.manage']) as permission;
 
 create table public.feedback (
   id uuid primary key default gen_random_uuid(),
