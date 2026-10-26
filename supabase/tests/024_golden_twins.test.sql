@@ -355,6 +355,25 @@ select results_eq(
   $$ select description, case operation when 'finish' then expected ->> 'points' else expected ->> 'month' end
      from golden.golden_case where file = 'league.json' order by position $$,
   'the League rules give every case in the golden file');
+-- Credit: private.credit_age_bucket and private.repayment_split, and @rivr/domain ageingBucket and repayment
+-- (packages/testing/golden/creditAgeing.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'creditAgeing.json'), 'the credit ageing cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'creditAgeing.json' and operation not in ('bucket', 'repay') $$,
+  'every operation in creditAgeing.json is proved here');
+select results_eq(
+  $$ select description, private.credit_age_bucket((inputs ->> 'issued')::timestamptz, (inputs ->> 'at')::timestamptz)
+     from golden.golden_case where file = 'creditAgeing.json' and operation = 'bucket' order by position $$,
+  $$ select description, expected ->> 'bucket' from golden.golden_case where file = 'creditAgeing.json' and operation = 'bucket' order by position $$,
+  'private.credit_age_bucket puts every marker in the golden file in its bucket');
+select results_eq(
+  $$ select description, coalesce(r.refusal, r.settled_paise::text)
+     from golden.golden_case
+     cross join lateral private.repayment_split(pg_temp.paise(inputs ->> 'amount'), pg_temp.paise_list(inputs ->> 'markers')) r
+     where file = 'creditAgeing.json' and operation = 'repay' order by position $$,
+  $$ select description, case when expected ->> 'settled' in ('not_chips', 'nothing_owed', 'more_than_owed') then expected ->> 'settled'
+                              else pg_temp.paise_list(expected ->> 'settled')::text end
+     from golden.golden_case where file = 'creditAgeing.json' and operation = 'repay' order by position $$,
+  'private.repayment_split settles or refuses every repayment in the golden file');
 
 select * from finish();
 rollback;

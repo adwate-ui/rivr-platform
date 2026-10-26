@@ -14,6 +14,14 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000190', '+919000000190', 'Farhan Ali'),
   -- The Door kiosk flow's own floor manager, who adds the kiosk and resolves the feedback (decisions 0164, 0165).
   ('00000000-0000-4000-8000-000000000191', '+919000000191', 'Nisha Arora'),
+  -- The Credit and accounts flow's own duty manager, who takes repayments and asks for an expense, and the
+  -- admin who approves it (#92, #94, #95; decisions 0167 and 0168).
+  ('00000000-0000-4000-8000-000000000192', '+919000000192', 'Karan Ahuja'),
+  ('00000000-0000-4000-8000-000000000193', '+919000000193', 'Meher Gill'),
+  -- The Credit and accounts flow's duty manager for its repayments, with Devansh Malik, the member who
+  -- owes them: identity checked and in three times this month, so he can be given credit (#92).
+  ('00000000-0000-4000-8000-000000000194', '+919000000194', 'Ira Sethi'),
+  ('00000000-0000-4000-8000-000000000296', '+919000000296', 'Devansh Malik'),
   -- The Membership card flow's own member, whose card the door scans (#71).
   ('00000000-0000-4000-8000-000000000290', '+919000000290', 'Kavya Rao');
 
@@ -44,10 +52,28 @@ from seed_person_c p
 where p.id = '00000000-0000-4000-8000-000000000191'
 on conflict (venue_id, user_id) do nothing;
 
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, j.job_title, j.role::public.staff_role, p.phone
+from seed_person_c p
+join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000193'::uuid, 'General manager', 'admin'),
+             ('00000000-0000-4000-8000-000000000194'::uuid, 'Duty manager', 'super_admin')) as j (id, job_title, role) on j.id = p.id
+on conflict (venue_id, user_id) do nothing;
+
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id = '00000000-0000-4000-8000-000000000290'
+where p.id in ('00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296')
 on conflict (id) do nothing;
+
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', 'verified', 'digilocker', '1990-02-11', 'ABCPM2961D',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000296/selfie.jpg', now())
+on conflict do nothing;
+
+insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', now() - d.ago, now() - d.ago + interval '5 hours', 'door'
+from (values (interval '3 days'), (interval '10 days'), (interval '17 days')) as d (ago)
+where not exists (select 1 from public.visit v where v.member_id = '00000000-0000-4000-8000-000000000296');
 
