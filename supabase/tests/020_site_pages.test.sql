@@ -1,6 +1,6 @@
 -- The website's content (#9): anyone reads the published pages of real venues and their blocks in
 -- order, through the public views; never a draft, never the practice venue, never the tables. Website
--- editors read the tables. 107 Ishita (marketing), 201 Arjun (member). Content from seeds 40_site.sql, 41_site_pages.sql and 43_site_gpa.sql (decision 0166).
+-- editors read the tables. 107 Ishita (marketing), 201 Arjun (member). Content from private.add_website (decision 0195) and, for the practice venue, seed 40_site.sql.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();

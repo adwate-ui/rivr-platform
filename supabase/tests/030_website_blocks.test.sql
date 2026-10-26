@@ -14,10 +14,10 @@ select results_eq(
   $$ select distinct kind from public.site_block order by kind $$,
   $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'), ('marquee'),
             ('promotions'), ('rules'), ('statement'), ('story'), ('table'), ('text'), ('timeline') $$,
-  'the seed uses every kind of block');
+  'the club''s website uses every kind of block');
 select throws_ok(
   $$ insert into public.site_block (venue_id, page_id, position, kind, content)
-     values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005b1', 9, 'video', '{}') $$,
+     values ('00000000-0000-4000-8000-000000000001', (select id from public.site_page where venue_id = '00000000-0000-4000-8000-000000000001' and slug = 'house-rules'), 9, 'video', '{}') $$,
   '23514', null, 'a kind the website does not know is refused');
 
 set local role anon;

@@ -100,4 +100,4 @@ join public.tournament_template p on p.id = seeded.template_id
 join public.blind_structure s on s.id = p.blind_structure_id
 where t.id = seeded.tournament_id and t.clock_started_at is null and t.template_id is null;
 
--- The front page shows tonight's games and this calendar, live: 40_site.sql places them (#441).
+-- The front page shows tonight's games and this calendar, live: the website places them (private.add_website, #441).

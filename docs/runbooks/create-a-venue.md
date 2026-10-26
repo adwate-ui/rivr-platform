@@ -1,6 +1,6 @@
 # Create a venue
 
-Production is never seeded. The real venue, and any later room, is created once with `private.bootstrap_venue`, which sets up everything a venue needs: its configuration row, the four starting tiers (Member is the default), a tier × feature matrix with every gateable feature on, its ledger accounts and its chip denominations (₹50 upwards).
+Production is never seeded. The real venue, and any later room, is created once with `private.bootstrap_venue`, which sets up everything a venue needs: its configuration row, the four starting tiers (Member is the default), a tier × feature matrix with every gateable feature on, its ledger accounts, its chip denominations (₹50 upwards) and, for the club's first venue, its website: every page, the Privacy page included, ready for marketing to edit; a later room shares it (#406, #472, decision 0195).
 
 1. In the Supabase dashboard for `rivr-prod`, open the SQL editor (it runs as the database owner).
 2. Run, with the real values:
