@@ -1,5 +1,8 @@
+import { payouts } from './tournamentPayouts.ts';
+
 /** The console's Tournaments (#115, #116, #119): the clock, the tournaments, their templates and blind structures. */
 export const tournaments = {
+  payouts,
   title: 'Tournaments',
   notAllowed: 'Tournaments are for staff who run them.',
   show: 'Show',
@@ -93,6 +96,11 @@ export const tournaments = {
   places: 'Places paid',
   guaranteeLabel: 'Guarantee',
   guaranteeHint: 'Blank for none.',
+  bountyLabel: 'Bounty',
+  bountyKindLabel: 'Bounty kind',
+  bountyHint: 'Part of each entry’s buy-in, on their head. Blank for none.',
+  bountyKinds: { none: 'No bounty', standard: 'Standard bounty', progressive: 'Progressive bounty' },
+  invalidBounty: 'That bounty does not work. Give it in ₹50 chips with its kind, below the buy-in less the fee, and not in a rebuy.',
   save: 'Save',
   cancel: 'Cancel',
   saved: '{name} is saved.',
@@ -164,6 +172,7 @@ export const tournaments = {
   seatAt: 'Table {table}, seat {seat}',
   alternate: 'Alternate',
   bustedPlace: 'Out in {place}',
+  finishedPlace: 'Finished {place}',
   refunded: 'Refunded',
   bust: 'Bust',
   confirmBust: 'Confirm bust',
@@ -202,6 +211,7 @@ export const tournaments = {
     add_on_taken: 'The add-on is already taken.',
     add_on_closed: 'The add-on is sold in the last registration level and its break only.',
     room_full: 'Every seat is taken: a rebuy needs one. Take it when a seat opens.',
+    finished: 'This tournament has finished.',
     short: 'Not enough in the balance.',
     identity: 'The identity check is not passed.',
     on_break: 'On a break: no buy-ins until it ends.',

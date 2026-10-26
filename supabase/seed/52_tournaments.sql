@@ -74,6 +74,16 @@ values ('00000000-0000-4000-8000-0000000007c7', '00000000-0000-4000-8000-0000000
         10000, '00000000-0000-4000-8000-0000000007b4', 2, 2)
 on conflict (id) do nothing;
 
+-- A knockout (#117, decision 0206): ₹1,000 of each ₹5,000 entry is on the player's head, paid whole to
+-- whoever knocks them out; top 3 paid.
+insert into public.tournament_template (id, venue_id, name, format, buy_in_paise, fee_paise, starting_stack, blind_structure_id,
+                                        last_registration_level, places_paid, bounty_paise, bounty_kind)
+values ('00000000-0000-4000-8000-0000000007c8', '00000000-0000-4000-8000-000000000001', 'Bounty Thursday', 're_entry', 500000, 50000,
+        15000, '00000000-0000-4000-8000-0000000007b2', 4, 3, 100000, 'standard'),
+       ('00000000-0000-4000-8000-0000000007c9', '00000000-0000-4000-8000-000000000002', 'Bounty Thursday', 're_entry', 500000, 50000,
+        15000, '00000000-0000-4000-8000-0000000007b4', 4, 3, 100000, 'standard')
+on conflict (id) do nothing;
+
 insert into public.tournament (id, venue_id, name, starts_at, buy_in_paise, guarantee_paise, is_published) values
   ('00000000-0000-4000-8000-0000000007a1', '00000000-0000-4000-8000-000000000001', 'RIVR Sunday', '2026-11-15 16:00:00+05:30',
    1000000, 50000000, true),

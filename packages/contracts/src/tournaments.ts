@@ -4,6 +4,9 @@ import { z } from 'zod';
 export const TOURNAMENT_FORMATS = ['freezeout', 're_entry', 'rebuy'] as const;
 export type TournamentFormat = (typeof TOURNAMENT_FORMATS)[number];
 
+/** How a bounty is paid on a bust (#117, decision 0206): all of it, or half with the rest on the eliminator's head. */
+export const BOUNTY_KINDS = ['standard', 'progressive'] as const;
+
 /** A whole number as typed, from `least` to `most`. */
 const whole = (least: number, most: number) => z.string().trim().regex(/^\d{1,10}$/).transform(Number).pipe(z.int().min(least).max(most));
 /** Whole rupees as typed; the database then checks ₹50 chips. */
@@ -70,8 +73,9 @@ export const structurePlanSchema = z.object({
  * A tournament template as the console keeps it (#115, #116): amounts in whole rupees in ₹50 chips, the
  * fee part of the buy-in and below it; the most buys blank for no limit and always blank in a freezeout;
  * an add-on's price, fee and chips all given or all blank, its fee below its price, and only with
- * registration past level 0; a guarantee blank for none. The database checks the last registration
- * level against the structure's levels.
+ * registration past level 0; a guarantee blank for none; a bounty (#117) blank with no kind, or given
+ * with its kind, below the buy-in less the fee, and never in a rebuy. The database checks the last
+ * registration level against the structure's levels.
  */
 export const tournamentTemplateSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -87,6 +91,8 @@ export const tournamentTemplateSchema = z.object({
   addOnChips: z.string().trim().regex(/^(|[1-9]\d{0,9})$/),
   placesPaid: whole(1, 100),
   guarantee: optionalRupees,
+  bounty: optionalRupees,
+  bountyKind: z.enum(['none', ...BOUNTY_KINDS]),
 })
   .refine((template) => Number(template.fee) < Number(template.buyIn), { path: ['fee'], message: 'not_below_buy_in' })
   .refine((template) => template.format !== 'freezeout' || template.maxBuys === '', { path: ['maxBuys'], message: 'freezeout' })
@@ -95,8 +101,34 @@ export const tournamentTemplateSchema = z.object({
   .refine((template) => template.addOn === '' || template.lastRegistrationLevel >= 1, { path: ['addOn'], message: 'add_on_at_start' })
   .refine((template) => template.addOn === '' || template.addOnFee === '' || Number(template.addOnFee) < Number(template.addOn),
     { path: ['addOnFee'], message: 'not_below_add_on' })
-  .refine((template) => [template.buyIn, template.fee, template.addOn, template.addOnFee, template.guarantee].every(isChips),
-    { path: ['buyIn'], message: 'not_chips' });
+  .refine((template) => [template.buyIn, template.fee, template.addOn, template.addOnFee, template.guarantee, template.bounty].every(isChips),
+    { path: ['buyIn'], message: 'not_chips' })
+  .refine((template) => (template.bounty === '') === (template.bountyKind === 'none'), { path: ['bounty'], message: 'bounty_incomplete' })
+  .refine((template) => template.bounty === '' || template.format !== 'rebuy', { path: ['bounty'], message: 'bounty_rebuy' })
+  .refine((template) => template.bounty === '' || Number(template.bounty) < Number(template.buyIn) - Number(template.fee),
+    { path: ['bounty'], message: 'bounty_above_pool' });
+
+/** One paid place's share of the prize pool as typed: percent, to two decimal places, read as basis points. */
+export const sharePercentSchema = z.string().trim().regex(/^\d{1,3}(\.\d{1,2})?$/).transform((typed) => Math.round(Number(typed) * 100));
+
+/**
+ * Each paid place's share of the prize pool, first place first, as the floor sets them for a tournament
+ * (#121, question #470): one to a hundred, each above nothing and none above the place before's, adding up
+ * to 100%. Read as basis points.
+ */
+export const payoutSharesSchema = z.object({ shares: z.array(z.object({ percent: sharePercentSchema })).min(1).max(100) })
+  .transform((form) => form.shares.map((share) => share.percent))
+  .refine((shares) => shares.every((share, index) => share > 0 && share <= (shares[index - 1] ?? 10_000))
+    && shares.reduce((sum, share) => sum + share, 0) === 10_000, { message: 'not_whole' });
+
+/** How a deal shares the prizes left (#121): by the Independent Chip Model, or chip-chop. */
+export const DEAL_METHODS = ['icm', 'chip_chop'] as const;
+
+/** A deal among the players left (#121): its method, and each player's chips as counted. */
+export const dealSchema = z.object({
+  method: z.enum(DEAL_METHODS),
+  stacks: z.array(z.object({ entryId: z.uuid(), chips: z.string().trim().regex(/^[1-9]\d{0,11}$/).transform(BigInt) })).min(2).max(9),
+});
 
 /** The room a tournament is played in (#120): 1 to 30 tables of 2 to 10 seats each, as typed. */
 export const tournamentRoomSchema = z.object({ tables: whole(1, 30), seatsPerTable: whole(2, 10) });

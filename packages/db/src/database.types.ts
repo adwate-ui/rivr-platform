@@ -2713,14 +2713,14 @@ isOneToOne: false
                   ]
                 },"tournament": {
                   Row: {
-                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"buy_in_paise": number,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"fee_paise": number,"format": string,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"places_paid": number | null,"seats_per_table": number,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string
+                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"deal_method": string | null,"deal_stacks": Json | null,"fee_paise": number,"finished_at": string | null,"format": string,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"overlay_paise": number | null,"payout_shares": (number)[] | null,"places_paid": number | null,"seats_per_table": number,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"buy_in_paise": number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"fee_paise"?: number,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"places_paid"?: number | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise": number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"deal_method"?: string | null,"deal_stacks"?: Json | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"buy_in_paise"?: number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"fee_paise"?: number,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"places_paid"?: number | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"deal_method"?: string | null,"deal_stacks"?: Json | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2739,14 +2739,14 @@ isOneToOne: false
                   ]
                 },"tournament_entry": {
                   Row: {
-                    "bust_order": number | null,"busted_at": string | null,"created_at": string,"entry_number": number,"id": string,"member_id": string,"seat_number": number | null,"status": string,"table_number": number | null,"tournament_id": string,"updated_at": string,"venue_id": string
+                    "bust_order": number | null,"busted_at": string | null,"created_at": string,"entry_number": number,"id": string,"member_id": string,"place": number | null,"seat_number": number | null,"status": string,"table_number": number | null,"tournament_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bust_order"?: number | null,"busted_at"?: string | null,"created_at"?: string,"entry_number": number,"id"?: string,"member_id": string,"seat_number"?: number | null,"status": string,"table_number"?: number | null,"tournament_id": string,"updated_at"?: string,"venue_id": string
+                    "bust_order"?: number | null,"busted_at"?: string | null,"created_at"?: string,"entry_number": number,"id"?: string,"member_id": string,"place"?: number | null,"seat_number"?: number | null,"status": string,"table_number"?: number | null,"tournament_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "bust_order"?: number | null,"busted_at"?: string | null,"created_at"?: string,"entry_number"?: number,"id"?: string,"member_id"?: string,"seat_number"?: number | null,"status"?: string,"table_number"?: number | null,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "bust_order"?: number | null,"busted_at"?: string | null,"created_at"?: string,"entry_number"?: number,"id"?: string,"member_id"?: string,"place"?: number | null,"seat_number"?: number | null,"status"?: string,"table_number"?: number | null,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2757,6 +2757,50 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "tournament_entry_tournament_id_venue_id_fkey"
+      columns: ["tournament_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"tournament_payout": {
+                  Row: {
+                    "bounty_paise": number,"busted_entry_id": string | null,"created_at": string,"entry_id": string,"head_paise": number,"id": string,"is_tds_shadow": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"place": number | null,"prize_paise": number,"tds_paise": number,"tournament_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bounty_paise": number,"busted_entry_id"?: string | null,"created_at"?: string,"entry_id": string,"head_paise"?: number,"id"?: string,"is_tds_shadow": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"place"?: number | null,"prize_paise": number,"tds_paise": number,"tournament_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "bounty_paise"?: number,"busted_entry_id"?: string | null,"created_at"?: string,"entry_id"?: string,"head_paise"?: number,"id"?: string,"is_tds_shadow"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"place"?: number | null,"prize_paise"?: number,"tds_paise"?: number,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tournament_payout_busted_entry_id_venue_id_fkey"
+      columns: ["busted_entry_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament_entry"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_payout_entry_id_venue_id_fkey"
+      columns: ["entry_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament_entry"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_payout_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_payout_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_payout_tournament_id_venue_id_fkey"
       columns: ["tournament_id","venue_id"]
 isOneToOne: false
       referencedRelation: "tournament"
@@ -2803,14 +2847,14 @@ isOneToOne: false
                   ]
                 },"tournament_template": {
                   Row: {
-                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"blind_structure_id": string,"buy_in_paise": number,"created_at": string,"fee_paise": number,"format": string,"guarantee_paise": number | null,"id": string,"last_registration_level": number,"max_buys": number | null,"name": string,"places_paid": number,"starting_stack": number,"updated_at": string,"venue_id": string
+                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"blind_structure_id": string,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number,"created_at": string,"fee_paise": number,"format": string,"guarantee_paise": number | null,"id": string,"last_registration_level": number,"max_buys": number | null,"name": string,"places_paid": number,"starting_stack": number,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"blind_structure_id": string,"buy_in_paise": number,"created_at"?: string,"fee_paise": number,"format": string,"guarantee_paise"?: number | null,"id"?: string,"last_registration_level": number,"max_buys"?: number | null,"name": string,"places_paid": number,"starting_stack": number,"updated_at"?: string,"venue_id": string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"blind_structure_id": string,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise": number,"created_at"?: string,"fee_paise": number,"format": string,"guarantee_paise"?: number | null,"id"?: string,"last_registration_level": number,"max_buys"?: number | null,"name": string,"places_paid": number,"starting_stack": number,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"blind_structure_id"?: string,"buy_in_paise"?: number,"created_at"?: string,"fee_paise"?: number,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"last_registration_level"?: number,"max_buys"?: number | null,"name"?: string,"places_paid"?: number,"starting_stack"?: number,"updated_at"?: string,"venue_id"?: string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"blind_structure_id"?: string,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number,"created_at"?: string,"fee_paise"?: number,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"last_registration_level"?: number,"max_buys"?: number | null,"name"?: string,"places_paid"?: number,"starting_stack"?: number,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3213,7 +3257,7 @@ isOneToOne: false
 { Args: { "p_batch_id": string,"p_company_gstin"?: string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
                            },
 "bust_tournament_entry":
-{ Args: { "p_entry_id": string }; Returns: number
+{ Args: { "p_eliminator_id"?: string,"p_entry_id": string }; Returns: number
                            },
 "cage_buy_in":
 { Args: { "p_amount_paise": number,"p_buy_in_request_id"?: string,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr"?: string,"p_venue_id": string }; Returns: string
@@ -3394,6 +3438,9 @@ isOneToOne: false
                            },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
+                           },
+"finish_tournament":
+{ Args: { "p_method"?: string,"p_stacks"?: Json,"p_tournament_id": string }; Returns: undefined
                            },
 "floor_open_seats":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -3896,6 +3943,9 @@ isOneToOne: false
 "set_tournament_listing":
 { Args: { "p_is_published": boolean,"p_name": string,"p_starts_at": string,"p_tournament_id": string }; Returns: undefined
                            },
+"set_tournament_payouts":
+{ Args: { "p_shares": (number)[],"p_tournament_id": string }; Returns: undefined
+                           },
 "set_tournament_room":
 { Args: { "p_seats_per_table": number,"p_tables": number,"p_tournament_id": string }; Returns: undefined
                            },
@@ -4020,6 +4070,11 @@ isOneToOne: false
               "from_table": number,"move": number,"to_table": number
             }[]
                            },
+"tournament_payouts":
+{ Args: { "p_tournament_id": string }; Returns: {
+              "bounty_paise": number,"created_at": string,"entry_number": number,"full_name": string,"is_tds_shadow": boolean,"kind": string,"member_id": string,"payout_id": string,"place": number,"prize_paise": number,"tds_paise": number
+            }[]
+                           },
 "tournament_seating":
 { Args: { "p_tournament_id": string }; Returns: {
               "chips": number,"entry_id": string,"entry_number": number,"full_name": string,"member_id": string,"member_number": number,"place": number,"seat_number": number,"status": string,"table_number": number
@@ -4095,7 +4150,7 @@ isOneToOne: false
                            },
 "venue_tournaments":
 { Args: { "p_venue_id": string }; Returns: {
-              "add_on_chips": number,"add_on_fee_paise": number,"add_on_paise": number,"buy_in_paise": number,"chips_in_play": number,"clock_started_at": string,"elapsed_seconds": number,"entries": number,"fee_paise": number,"format": string,"guarantee_paise": number,"id": string,"is_paused": boolean,"is_published": boolean,"last_registration_level": number,"levels": Json,"max_buys": number,"name": string,"places_paid": number,"players_left": number,"pool_paise": number,"re_entries": number,"seats_per_table": number,"starting_stack": number,"starts_at": string,"tables": number
+              "add_on_chips": number,"add_on_fee_paise": number,"add_on_paise": number,"bounty_kind": string,"bounty_paise": number,"buy_in_paise": number,"chips_in_play": number,"clock_started_at": string,"elapsed_seconds": number,"entries": number,"fee_paise": number,"finished_at": string,"format": string,"guarantee_paise": number,"id": string,"is_paused": boolean,"is_published": boolean,"last_registration_level": number,"levels": Json,"max_buys": number,"name": string,"overlay_paise": number,"payout_shares": (number)[],"places_paid": number,"players_left": number,"pool_paise": number,"re_entries": number,"seats_per_table": number,"starting_stack": number,"starts_at": string,"tables": number
             }[]
                            },
 "waiting_deposits":

@@ -2,8 +2,9 @@ import type { VenueTournament } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, DataTable, type DataTableColumn } from '@rivr/ui';
 
-/** Where a tournament stands: running, paused, not shown to members, or when it starts. */
+/** Where a tournament stands: finished, running, paused, not shown to members, or when it starts. */
 function statusOf(tournament: VenueTournament): string {
+  if (tournament.finishedAt !== null) return t('console.tournaments.payouts.finishedStatus');
   if (tournament.clock !== null) return t(tournament.clock.isRunning ? 'console.tournaments.running' : 'console.tournaments.paused');
   return tournament.isPublished ? t('console.tournaments.notStarted') : t('console.tournaments.offCalendar');
 }

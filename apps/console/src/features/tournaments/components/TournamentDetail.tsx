@@ -6,6 +6,7 @@ import { Button, ErrorMessage, Inline, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { ClockPanel } from './ClockPanel.tsx';
 import { FloorPanel } from './FloorPanel.tsx';
+import { PayoutsPanel } from './PayoutsPanel.tsx';
 
 /** The rules under the clock: registration, the guarantee, the buy-in and what reaches the pool, any add-on, the places paid. */
 function ruleLines(tournament: VenueTournament): string[] {
@@ -36,8 +37,8 @@ function RemoveTournament({ tournament, isBusy, onRemove }: { tournament: VenueT
 }
 
 /**
- * One tournament on the console (#115, #119): its clock and controls, the rules its template set, whether
- * members see it, and removing one made by mistake. Keyed by the tournament, so another one starts afresh.
+ * One tournament on the console (#115, #119, #121): its clock and controls, the rules its template set, the
+ * floor, its payouts and finish, whether members see it, and removing one made by mistake. Keyed by the tournament, so another one starts afresh.
  */
 export function TournamentDetail({ venueId, tournament, canRun, canTakeCash }: { venueId: string; tournament: VenueTournament; canRun: boolean; canTakeCash: boolean }) {
   const actions = useTournamentActions(venueId);
@@ -47,7 +48,9 @@ export function TournamentDetail({ venueId, tournament, canRun, canTakeCash }: {
     <Stack gap={6}>
       <ClockPanel venueId={venueId} tournament={tournament} canRun={canRun} />
       <Inline gap={6} wrap>{ruleLines(tournament).map((line) => <Text key={line} variant="small" tone="muted">{line}</Text>)}</Inline>
-      <FloorPanel venueId={venueId} tournament={tournament} canRun={canRun} canTakeCash={canTakeCash} />
+      <FloorPanel venueId={venueId} tournament={tournament} canRun={canRun && tournament.finishedAt === null}
+        canTakeCash={canTakeCash && tournament.finishedAt === null} />
+      <PayoutsPanel venueId={venueId} tournament={tournament} canRun={canRun} />
       {canRun ? (
         <>
           <Switch label={t('console.tournaments.shown')} hint={t('console.tournaments.shownHint')} isOn={tournament.isPublished}

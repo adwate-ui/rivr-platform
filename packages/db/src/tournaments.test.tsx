@@ -7,6 +7,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { useMyTournament, useRegisterTournamentEntry, useTvTournamentClock } from './liveTournament.ts';
 import { useTournamentBalance, useTournamentFloorActions, useTournamentSeating } from './tournamentFloor.ts';
+import { useTournamentPayoutActions, useTournamentPayouts } from './tournamentPayouts.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useBlindStructures, useTournamentSetupActions, useTournamentTemplates } from './tournamentSetup.ts';
 import { useTournamentActions, useTournamentClock, useVenueTournaments } from './tournaments.ts';
@@ -36,6 +37,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
     structures: useBlindStructures(VENUE), templates: useTournamentTemplates(VENUE), setup: useTournamentSetupActions(VENUE),
     mine: useMyTournament(), register: useRegisterTournamentEntry(), tv: useTvTournamentClock(),
     seating: useTournamentSeating('t1'), balance: useTournamentBalance('t1'), floor: useTournamentFloorActions(VENUE, 't1'),
+    payouts: useTournamentPayouts('t1'), payout: useTournamentPayoutActions(VENUE, 't1'),
   }), { wrapper });
   return { result, calls };
 }
@@ -47,7 +49,7 @@ const TOURNAMENT = {
   fee_paise: 100000, guarantee_paise: 50000000, starting_stack: 30000, levels: LEVELS, last_registration_level: 9, max_buys: null,
   add_on_paise: null, add_on_fee_paise: null, add_on_chips: null, places_paid: 8, clock_started_at: '2026-11-15T10:30:00+00:00',
   is_paused: false, elapsed_seconds: 8300, tables: 6, seats_per_table: 9, entries: 58, re_entries: 11, players_left: 31, chips_in_play: 1740000,
-  pool_paise: 52200000,
+  pool_paise: 52200000, bounty_paise: null, bounty_kind: null, finished_at: null, overlay_paise: null, payout_shares: [3000, 2000, 5000],
 };
 
 afterEach(cleanup);
@@ -117,14 +119,15 @@ describe('templates and blind structures (decision 0200)', () => {
       await result.current.setup.saveStructure.mutateAsync({ structureId: null, name: 'Short', stages: [{ kind: 'level', smallBlind: 50, bigBlind: 100, ante: 0, minutes: 15 }] });
       await result.current.setup.saveTemplate.mutateAsync({
         templateId: 'p1', name: 'Turbo', format: 'freezeout', buyIn: fromPaise(300000n), fee: fromPaise(30000n), startingStack: 15000, structureId: 's1',
-        lastRegistrationLevel: 4, maxBuys: null, addOn: null, placesPaid: 3, guarantee: null,
+        lastRegistrationLevel: 4, maxBuys: null, addOn: null, placesPaid: 3, guarantee: null, bounty: { amount: fromPaise(50000n), kind: 'progressive' },
       });
     });
     expect(bodyOf(calls, '/rpc/save_blind_structure')).toEqual({
       p_venue_id: VENUE, p_name: 'Short', p_levels: [{ kind: 'level', small_blind: 50, big_blind: 100, ante: 0, minutes: 15 }],
     });
     expect(bodyOf(calls, '/rpc/save_tournament_template')).toMatchObject({
-      p_template_id: 'p1', p_template: { name: 'Turbo', format: 'freezeout', buy_in_paise: 300000, fee_paise: 30000, add_on_paise: null, guarantee_paise: null },
+      p_template_id: 'p1', p_template: { name: 'Turbo', format: 'freezeout', buy_in_paise: 300000, fee_paise: 30000, add_on_paise: null, guarantee_paise: null,
+        bounty_paise: 50000, bounty_kind: 'progressive' },
     });
   });
 });
@@ -164,11 +167,31 @@ describe('Home’s tournament, the TV and the floor (decisions 0201, 0204)', () 
     let cash: unknown;
     await act(async () => {
       await result.current.floor.floor.mutateAsync({ change: 'move', entryId: 'e1', table: 2 });
-      await result.current.floor.floor.mutateAsync({ change: 'bust', entryId: 'e1' });
+      await result.current.floor.floor.mutateAsync({ change: 'bust', entryId: 'e1', eliminatorId: 'e2' });
       cash = await result.current.floor.cash.mutateAsync({ memberId: 'm1', purchase: 'entry', requestId: 'r2' });
     });
     expect(bodyOf(calls, '/rpc/move_tournament_entry')).toEqual({ p_entry_id: 'e1', p_table: 2 });
-    expect(bodyOf(calls, '/rpc/bust_tournament_entry')).toEqual({ p_entry_id: 'e1' });
+    expect(bodyOf(calls, '/rpc/bust_tournament_entry')).toEqual({ p_entry_id: 'e1', p_eliminator_id: 'e2' });
     expect(cash).toEqual({ ok: false, error: 'short' });
+  });
+});
+
+// Payouts (#121).
+describe('payouts', () => {
+  it('reads what was paid, sets the shares, and finishes with a deal, saying why one is refused', async () => {
+    const { result, calls } = renderHooks({
+      '/rpc/tournament_payouts': { body: [{ payout_id: 'p1', kind: 'prize', place: 1, member_id: 'm1', full_name: 'Ritika Das', entry_number: 1,
+        prize_paise: 23440000, bounty_paise: 0, tds_paise: 7032000, is_tds_shadow: true, created_at: '2026-11-15T20:00:00Z' }] },
+      '/rpc/finish_tournament': { status: 400, body: { code: 'RVTRN', message: 'refused', hint: 'alternates_waiting' } },
+    });
+    await waitFor(() => expect(result.current.payouts.data?.[0]).toMatchObject({ kind: 'prize', place: 1, prize: 23440000n, tds: 7032000n, isTdsShadow: true }));
+    let finished: unknown;
+    await act(async () => {
+      await result.current.payout.shares.mutateAsync([6250, 3750]);
+      finished = await result.current.payout.finish.mutateAsync({ method: 'icm', stacks: [{ entryId: 'e1', chips: 40000n }, { entryId: 'e2', chips: 20000n }] });
+    });
+    expect(bodyOf(calls, '/rpc/set_tournament_payouts')).toEqual({ p_tournament_id: 't1', p_shares: [6250, 3750] });
+    expect(bodyOf(calls, '/rpc/finish_tournament')).toEqual({ p_tournament_id: 't1', p_method: 'icm', p_stacks: { e1: 40000, e2: 20000 } });
+    expect(finished).toEqual({ ok: false, error: 'alternates_waiting' });
   });
 });

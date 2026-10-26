@@ -258,6 +258,10 @@ max_frequency = "60s"
 # Lane D builder: the Tournament registration flow's member and floor manager, supabase/seed/12_people_d.sql (#118, #120).
 919000000752 = "123456"
 919000000753 = "123456"
+# Lane D builder: the Tournament with re-entry and bounty flow's floor manager and two members, supabase/seed/12_people_d.sql (#149).
+919000000754 = "123456"
+919000000755 = "123456"
+919000000756 = "123456"
 919000000201 = "123456"
 919000000202 = "123456"
 919000000203 = "123456"

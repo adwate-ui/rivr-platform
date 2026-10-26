@@ -62,12 +62,12 @@ select results_eq(
   $$ select format, fee_paise, last_registration_level, places_paid, levels ->> 7 from public.tournament where id = '00000000-0000-4000-8000-0000000007a1' $$,
   $$ values ('re_entry', 100000::bigint, 9, 8, '{"ante": 800, "kind": "level", "minutes": 20, "big_blind": 800, "small_blind": 400}') $$,
   'the opening-day RIVR Sunday copies its template, level 7 at 400/800 ante 800');
-select is((select count(*)::integer from public.tournament_template where venue_id = '00000000-0000-4000-8000-000000000002'), 4,
-  'the practice venue has the templates and its sit and go');
+select is((select count(*)::integer from public.tournament_template where venue_id = '00000000-0000-4000-8000-000000000002'), 5,
+  'the practice venue has the templates, the knockout and its sit and go');
 
 -- Who sees templates and structures.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is((select count(*)::integer from public.tournament_template), 7, 'an admin sees both venues'' templates');
+select is((select count(*)::integer from public.tournament_template), 9, 'an admin sees both venues'' templates');
 select is((select count(*)::integer from public.blind_structure), 4, 'and their structures');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select 1 from public.tournament_template union all select 1 from public.blind_structure $$, 'a dealer sees none');

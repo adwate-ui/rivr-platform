@@ -47,7 +47,10 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-0000000d0750', '+919000000750', 'Vikram Bedi', 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-0000000d0751', '+919000000751', 'Sara Gill', null, null),
   ('00000000-0000-4000-8000-0000000d0752', '+919000000752', 'Neha Bhalla', null, null),
-  ('00000000-0000-4000-8000-0000000d0753', '+919000000753', 'Ira Menon', 'Floor manager', 'admin');
+  ('00000000-0000-4000-8000-0000000d0753', '+919000000753', 'Ira Menon', 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-0000000d0754', '+919000000754', 'Rhea Kapoor', 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-0000000d0755', '+919000000755', 'Tara Malhotra', null, null),
+  ('00000000-0000-4000-8000-0000000d0756', '+919000000756', 'Dev Khanna', null, null);
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -94,3 +97,19 @@ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', '
                                       and a.code = 'venue.opening_balance' and a.member_id is null), 'amount', '10000000'),
     jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = '00000000-0000-4000-8000-0000000d0752'
                                       and a.code = 'member.cash'), 'amount', '-10000000')), null);
+
+-- The Tournament with re-entry and bounty flow's Tara and Dev have passed the identity check and have ₹1,00,000
+-- each in their wallets, once, to register, re-enter and be paid (#149, design flow 18).
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0755', 'verified', 'digilocker', '1992-02-18', 'ABCPM7551Q',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0755/selfie.jpg', now()),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0756', 'verified', 'digilocker', '1989-08-03', 'ABCPK7561R',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0756/selfie.jpg', now())
+on conflict do nothing;
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'opening_balance', 'seed:tournament-flow:' || right(m.id::text, 6),
+  jsonb_build_array(
+    jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = '00000000-0000-4000-8000-000000000001'
+                                      and a.code = 'venue.opening_balance' and a.member_id is null), 'amount', '10000000'),
+    jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = m.id and a.code = 'member.cash'), 'amount', '-10000000')),
+  null)
+from public.member m where m.id in ('00000000-0000-4000-8000-0000000d0755', '00000000-0000-4000-8000-0000000d0756');

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TOURNAMENT_FORMATS, tournamentTemplateSchema } from '@rivr/contracts/tournaments';
+import { BOUNTY_KINDS, TOURNAMENT_FORMATS, tournamentTemplateSchema } from '@rivr/contracts/tournaments';
 import { useTournamentSetupActions, type BlindStructure, type TournamentTemplate } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { ChoiceChips, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
@@ -10,7 +10,7 @@ import { SaveRow, type SaveOutcome } from './SaveRow.tsx';
 import { emptyTemplate, templateOrder, templateValues, type TemplateValues } from './templateValues.ts';
 
 type TemplateFormApi = UseFormReturn<TemplateValues, unknown, z.output<typeof tournamentTemplateSchema>>;
-type FieldName = Exclude<keyof TemplateValues, 'format' | 'structureId'>;
+type FieldName = Exclude<keyof TemplateValues, 'format' | 'structureId' | 'bountyKind'>;
 
 /** Each typed field: its label, its hint, what it says when wrong, and whether it is rupees. */
 const FIELDS: readonly { name: FieldName; label: MessageKey; hint?: MessageKey; error: MessageKey; isRupees?: boolean }[] = [
@@ -24,9 +24,10 @@ const FIELDS: readonly { name: FieldName; label: MessageKey; hint?: MessageKey; 
   { name: 'addOn', label: 'console.tournaments.addOn', hint: 'console.tournaments.addOnHint', error: 'console.tournaments.invalidAddOn', isRupees: true },
   { name: 'addOnFee', label: 'console.tournaments.addOnFee', error: 'console.tournaments.invalidAddOnFee', isRupees: true },
   { name: 'addOnChips', label: 'console.tournaments.addOnChips', error: 'console.tournaments.invalidWhole' },
+  { name: 'bounty', label: 'console.tournaments.bountyLabel', hint: 'console.tournaments.bountyHint', error: 'console.tournaments.invalidBounty', isRupees: true },
 ];
 
-/** The format and the blind structure, each chosen from its list. */
+/** The format, the blind structure and the bounty's kind, each chosen from its list. */
 function Choices({ form, structures }: { form: TemplateFormApi; structures: readonly BlindStructure[] }) {
   return (
     <>
@@ -38,6 +39,11 @@ function Choices({ form, structures }: { form: TemplateFormApi; structures: read
       <Controller control={form.control} name="structureId" render={({ field }) => (
         <ChoiceChips label={t('console.tournaments.structure')} mode="one" selected={[field.value]}
           options={structures.map((structure) => ({ value: structure.id, label: structure.name }))}
+          onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
+      )} />
+      <Controller control={form.control} name="bountyKind" render={({ field }) => (
+        <ChoiceChips label={t('console.tournaments.bountyKindLabel')} mode="one" selected={[field.value]}
+          options={(['none', ...BOUNTY_KINDS] as const).map((kind) => ({ value: kind, label: t(`console.tournaments.bountyKinds.${kind}`) }))}
           onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
       )} />
     </>

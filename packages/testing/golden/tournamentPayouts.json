@@ -1,0 +1,204 @@
+{
+  "rule": "Tournament prize pool, payouts, deals and bounties",
+  "about": "What a tournament pays (#117, #121; decisions 0205, 0206). The prize pool is what the buys put in for prizes (prices less fees and bounties), or the guarantee when that is more, the club paying the difference as overlay. The floor sets each paid place's share of the pool for the tournament, in percent to two decimal places, each above nothing and none above the place before's, adding up to 100% (question #470); anything else is refused. With fewer runs (entries and re-entries not refunded) than paid places, the places that exist share the pool in the same proportions. Each prize is rounded down to ₹50 chips, the chips left over to first. A deal shares the prizes the players left would play for: each is sure of the smallest of them; chip-chop shares the rest in proportion to chips, ICM by what each player's chips are worth over the rest of each prize by Malmuth-Harville, chances worked to thirty decimal places and rounded down, each value to the nearest paisa; each rounded down to ₹50 chips, the chips left over to the biggest stack (the first on a tie). A bust's bounty is paid whole (standard) or half rounded down to ₹50 chips, the rest on the eliminator's own head (progressive). Prizes and lists are first place first; stacks are chips, in the order the amounts come back.",
+  "cases": [
+    {
+      "description": "RIVR Sunday under its guarantee: 50 entries put in ₹4,50,000, so the club adds ₹50,000.",
+      "operation": "pool",
+      "inputs": { "collected": "₹4,50,000", "guarantee": "₹5,00,000" },
+      "expected": { "pool": "₹5,00,000", "overlay": "₹50,000" }
+    },
+    {
+      "description": "65 entries put in ₹5,85,000, past the ₹5,00,000 guarantee: no overlay.",
+      "operation": "pool",
+      "inputs": { "collected": "₹5,85,000", "guarantee": "₹5,00,000" },
+      "expected": { "pool": "₹5,85,000", "overlay": "₹0" }
+    },
+    {
+      "description": "Exactly the guarantee: no overlay.",
+      "operation": "pool",
+      "inputs": { "collected": "₹5,00,000", "guarantee": "₹5,00,000" },
+      "expected": { "pool": "₹5,00,000", "overlay": "₹0" }
+    },
+    {
+      "description": "No guarantee: the pool is what the buys put in.",
+      "operation": "pool",
+      "inputs": { "collected": "₹27,000", "guarantee": "" },
+      "expected": { "pool": "₹27,000", "overlay": "₹0" }
+    },
+    {
+      "description": "Nobody paid in: the club pays the whole ₹10,000 guarantee.",
+      "operation": "pool",
+      "inputs": { "collected": "₹0", "guarantee": "₹10,000" },
+      "expected": { "pool": "₹10,000", "overlay": "₹10,000" }
+    },
+    {
+      "description": "RIVR Sunday with 65 entries, top 8 paid at the prototype's 30, 20, 14, 10, 8, 7, 6 and 5%.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹5,85,000", "shares": "30 20 14 10 8 7 6 5", "runs": "65" },
+      "expected": { "prizes": "₹1,75,500 ₹1,17,000 ₹81,900 ₹58,500 ₹46,800 ₹40,950 ₹35,100 ₹29,250" }
+    },
+    {
+      "description": "At the ₹50 boundary: ₹1,050 at 50, 30 and 20% rounds each down and gives first the chip left over.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹1,050", "shares": "50 30 20", "runs": "10" },
+      "expected": { "prizes": "₹550 ₹300 ₹200" }
+    },
+    {
+      "description": "Shares to two decimal places: 62.5 and 37.5% of ₹10,000.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹10,000", "shares": "62.5 37.5", "runs": "4" },
+      "expected": { "prizes": "₹6,250 ₹3,750" }
+    },
+    {
+      "description": "Two runs with three places set: the two places share the pool 50 to 30.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹18,000", "shares": "50 30 20", "runs": "2" },
+      "expected": { "prizes": "₹11,250 ₹6,750" }
+    },
+    {
+      "description": "One place at 100% takes the whole pool.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹5,000", "shares": "100", "runs": "5" },
+      "expected": { "prizes": "₹5,000" }
+    },
+    {
+      "description": "An empty pool pays nothing in each place.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹0", "shares": "50 30 20", "runs": "3" },
+      "expected": { "prizes": "₹0 ₹0 ₹0" }
+    },
+    {
+      "description": "Shares adding up to 99% are refused.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹10,000", "shares": "50 30 19", "runs": "3" },
+      "expected": { "prizes": "refused" }
+    },
+    {
+      "description": "A lower place paid more than the one above is refused.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹10,000", "shares": "20 30 50", "runs": "3" },
+      "expected": { "prizes": "refused" }
+    },
+    {
+      "description": "Two places paid the same is fine: 50 and 50.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹10,000", "shares": "50 50", "runs": "3" },
+      "expected": { "prizes": "₹5,000 ₹5,000" }
+    },
+    {
+      "description": "A share of nothing is refused.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹10,000", "shares": "100 0", "runs": "3" },
+      "expected": { "prizes": "refused" }
+    },
+    {
+      "description": "No runs: nothing to pay, refused.",
+      "operation": "payouts",
+      "inputs": { "pool": "₹0", "shares": "50 30 20", "runs": "0" },
+      "expected": { "prizes": "refused" }
+    },
+    {
+      "description": "Chip-chop heads-up: each is sure of ₹7,200 and the ₹3,600 left goes 3 to 1 by chips.",
+      "operation": "chop",
+      "inputs": { "stacks": "30000 10000", "prizes": "₹10,800 ₹7,200" },
+      "expected": { "amounts": "₹9,900 ₹8,100" }
+    },
+    {
+      "description": "Chip-chop three ways at the ₹50 boundary: the shares round down and the biggest stack takes the chip left over.",
+      "operation": "chop",
+      "inputs": { "stacks": "50 30 20", "prizes": "₹500 ₹300 ₹200" },
+      "expected": { "amounts": "₹450 ₹300 ₹250" }
+    },
+    {
+      "description": "Chip-chop with level stacks splits evenly.",
+      "operation": "chop",
+      "inputs": { "stacks": "20000 20000", "prizes": "₹10,800 ₹7,200" },
+      "expected": { "amounts": "₹9,000 ₹9,000" }
+    },
+    {
+      "description": "Three left chip-chop ₹1,60,100, ₹1,06,600 and ₹79,950.",
+      "operation": "chop",
+      "inputs": { "stacks": "900000 600000 450000", "prizes": "₹1,60,100 ₹1,06,600 ₹79,950" },
+      "expected": { "amounts": "₹1,29,300 ₹1,12,800 ₹1,04,550" }
+    },
+    {
+      "description": "A deal needs two players at least.",
+      "operation": "chop",
+      "inputs": { "stacks": "30000", "prizes": "₹10,800" },
+      "expected": { "amounts": "refused" }
+    },
+    {
+      "description": "ICM heads-up is the same as chip-chop: 3 to 1 chips wins first three times in four.",
+      "operation": "icm",
+      "inputs": { "stacks": "30000 10000", "prizes": "₹10,800 ₹7,200" },
+      "expected": { "amounts": "₹9,900 ₹8,100" }
+    },
+    {
+      "description": "Three left by ICM for ₹1,60,100, ₹1,06,600 and ₹79,950: first's chips are worth ₹1,26,099, rounded down, plus the chip left over.",
+      "operation": "icm",
+      "inputs": { "stacks": "900000 600000 450000", "prizes": "₹1,60,100 ₹1,06,600 ₹79,950" },
+      "expected": { "amounts": "₹1,26,100 ₹1,14,100 ₹1,06,450" }
+    },
+    {
+      "description": "ICM four ways, two level stacks: the first named takes the chip left over.",
+      "operation": "icm",
+      "inputs": { "stacks": "600000 600000 450000 300000", "prizes": "₹1,60,100 ₹1,06,600 ₹79,950 ₹63,950" },
+      "expected": { "amounts": "₹1,09,650 ₹1,09,600 ₹1,01,000 ₹90,350" }
+    },
+    {
+      "description": "ICM heads-up, 2 to 1 in chips: exactly ₹4,550 and ₹3,850, which round to chips as they are.",
+      "operation": "icm",
+      "inputs": { "stacks": "30000 15000", "prizes": "₹5,250 ₹3,150" },
+      "expected": { "amounts": "₹4,550 ₹3,850" }
+    },
+    {
+      "description": "ICM with nothing left to play for gives nothing.",
+      "operation": "icm",
+      "inputs": { "stacks": "500 300", "prizes": "₹0 ₹0" },
+      "expected": { "amounts": "₹0 ₹0" }
+    },
+    {
+      "description": "A player with no chips is not in a deal.",
+      "operation": "icm",
+      "inputs": { "stacks": "30000 0", "prizes": "₹10,800 ₹7,200" },
+      "expected": { "amounts": "refused" }
+    },
+    {
+      "description": "A standard bounty pays all ₹2,500.",
+      "operation": "bounty",
+      "inputs": { "bounty": "₹2,500", "kind": "standard" },
+      "expected": { "paid": "₹2,500", "head": "₹0" }
+    },
+    {
+      "description": "A progressive bounty pays half and puts half on the eliminator's head.",
+      "operation": "bounty",
+      "inputs": { "bounty": "₹2,500", "kind": "progressive" },
+      "expected": { "paid": "₹1,250", "head": "₹1,250" }
+    },
+    {
+      "description": "At the ₹50 boundary: half of ₹1,050 rounds down to ₹500 paid, ₹550 on the head.",
+      "operation": "bounty",
+      "inputs": { "bounty": "₹1,050", "kind": "progressive" },
+      "expected": { "paid": "₹500", "head": "₹550" }
+    },
+    {
+      "description": "The smallest progressive bounty pays nothing and moves its ₹50 to the head.",
+      "operation": "bounty",
+      "inputs": { "bounty": "₹50", "kind": "progressive" },
+      "expected": { "paid": "₹0", "head": "₹50" }
+    },
+    {
+      "description": "No bounty pays nothing.",
+      "operation": "bounty",
+      "inputs": { "bounty": "₹0", "kind": "standard" },
+      "expected": { "paid": "₹0", "head": "₹0" }
+    },
+    {
+      "description": "A bounty not in ₹50 chips is refused.",
+      "operation": "bounty",
+      "inputs": { "bounty": "₹75", "kind": "progressive" },
+      "expected": { "paid": "refused", "head": "refused" }
+    }
+  ]
+}

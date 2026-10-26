@@ -3,7 +3,7 @@ import type { Purchase } from '@rivr/domain/tournament';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-import { toBuyFailure, tournamentFailure, type BuyFailure, type TournamentFailure } from './tournamentFailures.ts';
+import { toBuyFailure, toFinishFailure, tournamentFailure, type BuyFailure, type FinishFailure, type TournamentFailure } from './tournamentFailures.ts';
 
 /** Where a player's run stands (decision 0204). */
 export type EntryStatus = 'seated' | 'alternate' | 'busted' | 'refunded';
@@ -64,8 +64,11 @@ export function useTournamentBalance(tournamentId: string) {
   });
 }
 
-/** A change on the floor, by entry: bust, move to a table, refund an alternate. */
-export type FloorChange = { readonly change: 'bust' | 'refund'; readonly entryId: string } | { readonly change: 'move'; readonly entryId: string; readonly table: number };
+/** A change on the floor, by entry: bust (in a bounty tournament, by the run that knocked them out), move to a table, refund an alternate. */
+export type FloorChange =
+  | { readonly change: 'bust'; readonly entryId: string; readonly eliminatorId?: string }
+  | { readonly change: 'refund'; readonly entryId: string }
+  | { readonly change: 'move'; readonly entryId: string; readonly table: number };
 
 /** Every read a floor change moves: the list, the prompts and the tournaments' fields. */
 function useFloorReload(venueId: string, tournamentId: string) {
@@ -76,6 +79,7 @@ function useFloorReload(venueId: string, tournamentId: string) {
     queryClient.invalidateQueries({ queryKey: queryKeys.tournamentSeating(person, tournamentId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.tournamentBalance(person, tournamentId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.venueTournaments(person, venueId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.tournamentPayouts(person, tournamentId) }),
   ]);
 }
 
@@ -84,13 +88,13 @@ export function useTournamentFloorActions(venueId: string, tournamentId: string)
   const { client } = useRivrData();
   const reload = useFloorReload(venueId, tournamentId);
   const floor = useMutation({
-    mutationFn: async (order: FloorChange): Promise<Result<null, TournamentFailure>> => {
+    mutationFn: async (order: FloorChange): Promise<Result<null, FinishFailure>> => {
       const entry = { p_entry_id: order.entryId };
       const { error } = order.change === 'move' ? await client.rpc('move_tournament_entry', { ...entry, p_table: order.table })
-        : order.change === 'bust' ? await client.rpc('bust_tournament_entry', entry)
+        : order.change === 'bust' ? await client.rpc('bust_tournament_entry', order.eliminatorId === undefined ? entry : { ...entry, p_eliminator_id: order.eliminatorId })
         : await client.rpc('refund_tournament_alternate', entry);
       await reload();
-      return error ? err(tournamentFailure(error.code)) : ok(null);
+      return error ? err(toFinishFailure(error)) : ok(null);
     },
   });
   const room = useMutation({
