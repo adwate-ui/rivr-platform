@@ -43,6 +43,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'expenses', label: 'console.rail.items.expenses', href: '/expenses', anyOf: ['cage.transact', 'treasury.manage'] },
       { id: 'tds', label: 'console.rail.items.tds', href: '/tds', anyOf: ['ledger.read'] },
       { id: 'tally', label: 'console.rail.items.tally', href: '/tally', anyOf: ['treasury.manage'] },
+      { id: 'reports', label: 'console.rail.items.reports', href: '/reports', anyOf: ['reports.read'] },
       { id: 'endOfDay', label: 'console.rail.items.endOfDay', href: '/end-of-day', anyOf: ['ledger.read'] },
       { id: 'withdrawals', label: 'console.rail.items.withdrawals', href: '/withdrawals', anyOf: ['withdrawals.approve', 'cage.second_approve'] },
       { id: 'academyPayments', label: 'console.rail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'] },

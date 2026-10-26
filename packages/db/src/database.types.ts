@@ -1715,6 +1715,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"mis_report": {
+                  Row: {
+                    "created_at": string,"generated_at": string,"id": string,"month": string,"report": NonNullable<Json>,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"generated_at"?: string,"id"?: string,"month": string,"report": NonNullable<Json>,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"generated_at"?: string,"id"?: string,"month"?: string,"report"?: NonNullable<Json>,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "mis_report_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"notification_preference": {
                   Row: {
                     "created_at": string,"is_on": boolean,"member_id": string,"push_type": string,"updated_at": string,"venue_id": string
@@ -3366,6 +3386,11 @@ isOneToOne: false
               "marketing_opted_in_at": string,"phone": string
             }[]
                            },
+"mis_report_for":
+{ Args: { "p_month": string,"p_venue_id": string }; Returns: {
+              "generated_at": string,"is_preview": boolean,"report": Json
+            }[]
+                           },
 "move_seat":
 { Args: { "p_seat": number,"p_session_id": string,"p_table_id": string }; Returns: undefined
                            },
@@ -3524,6 +3549,11 @@ isOneToOne: false
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"rake_tonight":
+{ Args: { "p_venue_id": string }; Returns: {
+              "dimension": string,"drop_paise": number,"hands": number,"key": string,"label": string,"rake_paise": number
+            }[]
                            },
 "rate_visit":
 { Args: { "p_note": string,"p_score": number,"p_visit_id": string }; Returns: string
