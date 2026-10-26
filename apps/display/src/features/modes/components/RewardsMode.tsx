@@ -1,8 +1,8 @@
 import { useTvRewardsTicker, type TvRewardsTicker } from '@rivr/db';
-import { formatNumber, formatTime, t } from '@rivr/i18n';
+import { formatNumber, t } from '@rivr/i18n';
 import { Text, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 
-/** The ticker as the board's two columns: the points leaders by place, and the week's redemptions by time. */
+/** The ticker as the board's two columns: the points leaders by place, and the week's redemptions, newest first. */
 export function toRewardsColumns(ticker: TvRewardsTicker): TvWaitlistStake[] {
   return [
     {
@@ -15,7 +15,8 @@ export function toRewardsColumns(ticker: TvRewardsTicker): TvWaitlistStake[] {
     {
       id: 'redeemed', stake: t('tv.rewards.redeemed'), detail: t('tv.rewards.redeemedDetail'),
       places: ticker.redemptions.map((redemption, index) => ({
-        id: `redemption-${index}`, place: formatTime(new Date(redemption.at)), name: redemption.name ?? t('tv.rewards.hiddenName'),
+        // Newest first; the board's narrow place column has no room for a time, so it stays empty.
+        id: `redemption-${index}`, place: '', name: redemption.name ?? t('tv.rewards.hiddenName'),
         status: redemption.rewardName,
       })),
     },

@@ -22,7 +22,7 @@ async function redeem(member: Page) {
   await member.getByRole('button', { name: `Redeem ${REWARD}` }).click();
   await expect(member.getByText(`Redeem ${REWARD} for 2,500 points?`)).toBeVisible();
   await member.getByRole('button', { name: 'Yes, redeem' }).click();
-  await expect(member.getByText('Redeemed. At the Glaza bar.')).toBeVisible({ timeout: 10_000 });
+  await expect(member.getByText('Redeemed. Collect it: At the Glaza bar')).toBeVisible({ timeout: 10_000 });
   await expect(member.getByText(`${REWARD} · 2,500 points`).first()).toBeVisible();
   await expect(member.getByText('To collect: At the Glaza bar').first()).toBeVisible();
 }

@@ -10,8 +10,9 @@ function Standing({ title, rows }: { title: string; rows: readonly LeagueBoardRo
     <Stack gap={3}>
       <Text variant="label" tone="muted">{title}</Text>
       <Stack gap={2} divided>
-        {rows.map((row) => (
-          <Inline key={`${row.place}-${row.isMe ? 'me' : row.name ?? ''}`} justify="between" align="center" gap={4}>
+        {rows.map((row, index) => (
+          // Ties share a place and hidden names have none, so a row is known by its position.
+          <Inline key={index} justify="between" align="center" gap={4}>
             <Text weight={row.isMe ? 'semibold' : 'regular'}>{t('memberRewards.placeLine', { place: row.place, name: nameOf(row) })}</Text>
             <Text variant="small" tone={row.isMe ? 'money' : 'muted'}>{t('memberRewards.leaguePoints', { points: formatNumber(row.points) })}</Text>
           </Inline>

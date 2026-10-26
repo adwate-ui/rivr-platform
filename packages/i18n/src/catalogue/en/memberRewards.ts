@@ -5,6 +5,8 @@
  */
 export const memberRewards = {
   title: 'Rewards',
+  /** Someone signed in who is not a member. */
+  notMember: 'Rewards are for members.',
   points: 'Points',
   /** The member's tier, beside their points: `Member`, `Black card`. */
   tier: 'Your tier: {tier}',
@@ -14,10 +16,10 @@ export const memberRewards = {
   show: 'Show',
   all: 'All',
   kinds: {
-    tournament_seat: 'Tournament seat',
-    fnb_upgrade: 'F&B upgrade',
+    tournament_seat: 'Tournament seats',
+    fnb_upgrade: 'F&B upgrades',
     merchandise: 'Merchandise',
-    hotel_night: 'Hotel night',
+    hotel_night: 'Hotel nights',
   },
   /** A reward's price: `4,000 points`. */
   price: '{points} points',
@@ -25,13 +27,14 @@ export const memberRewards = {
   /** How many are left, and where to collect it: `42 left · At the host desk`. */
   leftLine: '{count} left · {detail}',
   redeem: 'Redeem',
+  noneLeft: 'None left',
   redeemName: 'Redeem {name}',
   /** Asked before the points are taken. */
-  confirm: 'Redeem {name} for {points} points?',
+  confirm: 'Redeem {name} for {price}?',
   confirmYes: 'Yes, redeem',
   cancel: 'Cancel',
   /** After a redemption: where to collect it. */
-  redeemed: 'Redeemed. {detail}.',
+  redeemed: 'Redeemed. Collect it: {detail}',
   failures: {
     not_allowed: 'The catalogue is not part of your tier.',
     invalid: 'That did not go through. Please try again.',

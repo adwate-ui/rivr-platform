@@ -1,4 +1,4 @@
--- Lane D builder's seed people (members 0000…0270 to 0299, staff 0170 to 0199). Self-contained, after
+-- Lane D builder's seed people (members 0000…0270 to 0299, staff 0170 to 0199, and from 26 Oct the ids …0d07xx that match their sign-in numbers 9190000007xx). Self-contained, after
 -- 10_people.sql; every statement is idempotent. Those who sign in take code 123456 locally
 -- (supabase/config.template.toml, [auth.sms.test_otp]).
 --

@@ -1,13 +1,14 @@
 -- The TVs' rewards ticker and League leaderboard (#148, decision 0183), and the player app's Rewards tab
 -- (#152). A TV reads either board only while it is its main mode or in its rotation (decision 0163,
 -- private.tv_showing). The ticker shows this League month's five points leaders (points earned at the
--- tables, both schemes, as points_earning holds them) and the week's last ten redemptions; the
--- leaderboard shows the League's board (decision 0182). Both name a member by first name and initial,
--- or not at all for one who hid their name on the TVs (#326); nobody who excluded themselves from play
--- leads. A member reads their own points and tier, and their redemptions with rewards.catalogue.
+-- tables, both schemes, as points_earning holds them) and the week's last six redemptions (the board
+-- shows six to a column); the leaderboard shows the League's board (decision 0182). Both name a member
+-- by first name and initial, or not at all for one who hid their name on the TVs (#326); nobody who
+-- excluded themselves from play shows. A member reads their own points and tier, and their
+-- redemptions with rewards.catalogue.
 
--- The rewards ticker for a paired TV showing it: 'leader' rows (place, name, points) and 'redemption' rows
--- (name, reward, when), newest first.
+-- The rewards ticker for a paired TV showing it: 'leader' rows (place, name, points), in place order, then
+-- 'redemption' rows (name, reward, when), newest first.
 create function private.tv_rewards_ticker()
 returns table (kind text, place integer, display_name text, points bigint, reward_name text, at timestamptz)
 language sql
@@ -40,11 +41,11 @@ as $$
     join public.reward_item i on i.id = r.reward_item_id
     join public.member m on m.id = r.member_id left join public.member_preference p on p.member_id = m.id
     where r.created_at > now() - interval '7 days'
-    order by r.created_at desc limit 10
+      and not exists (select 1 from public.self_exclusion x where x.member_id = r.member_id and x.starts_at <= now() and x.ends_at > now())
+    order by r.created_at desc limit 6
   )
-  select * from leaders
-  union all
-  select * from redeemed;
+  select * from (select * from leaders union all select * from redeemed) t
+  order by t.kind, t.place, t.at desc;
 $$;
 
 -- The League's board for a paired TV showing it: this month's top ten and the season's (decision 0182).

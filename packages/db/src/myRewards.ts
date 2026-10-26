@@ -56,7 +56,8 @@ export function useRewardCatalogue() {
     queryKey: queryKeys.rewardCatalogue(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<RewardItem[]> => {
-      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, stock, is_live').order('points').order('name');
+      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, stock, is_live')
+        .eq('is_live', true).order('points').order('name');
       if (error) throw error;
       return data.map((row) => ({
         id: row.id, kind: rewardKindOf(row.kind), name: row.name, detail: row.detail, points: BigInt(row.points), stock: row.stock, isLive: row.is_live,

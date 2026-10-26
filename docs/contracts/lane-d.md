@@ -29,6 +29,8 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `public.redeem_reward(item, points, idempotency_key)` | player app (C screens) | Redemption from the catalogue at the price the member was shown; feature `rewards.catalogue` |
 | `private.award_league_points(tournament, member, place, at)` | B (tournament finish, #149) | A finish's League points, once, from `league.points` (decision 0182) |
 | `public.my_league()` | player app (C screens) | This month's and this season's top ten, and the member's own place; feature `league.standings` |
+| `public.my_rewards()`, `public.my_redemptions()` | player app (Rewards tab, #152) | The member's points and tier; their redemptions with where to collect them, feature `rewards.catalogue` |
+| `public.tv_rewards_ticker()`, `public.tv_league_board()` | TVs (B, #148) | The rewards ticker and the League leaderboard for a TV showing them; first name and initial only (decision 0183) |
 | `public.give_card_consent(card)`, `public.withdraw_card_consent(card)` | player app | Consent per winner card; withdrawal takes the post down |
 | Views `public_promotion_cards`, `public_league_table`, `public_wall_posts` | web (C), TVs (B) | No personal data beyond first name and initial; never the practice venue |
 | `@rivr/render` templates | B (TVs), C (share and membership cards), A (receipts, statements, offline pack) | Every graphic from `@rivr/ui` |

@@ -21,7 +21,7 @@ export function RewardsScreen() {
   const title = t('memberRewards.title');
   if (rewards.isPending) return <Screen title={title} status="loading" />;
   if (rewards.data === undefined) return <Screen title={title} status="error" onRetry={() => void rewards.refetch()} />;
-  if (rewards.data === null) return null;
+  if (rewards.data === null) return <Screen title={title} status="empty" emptyText={t('memberRewards.notMember')} />;
   return (
     <Screen title={title}>
       <Stack gap={10}>

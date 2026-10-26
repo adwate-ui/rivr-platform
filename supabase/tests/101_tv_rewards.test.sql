@@ -81,6 +81,32 @@ select results_eq(
   $$ select standing, place, display_name from public.tv_league_board() where place <= 2 and standing = 'month' $$,
   $$ values ('month'::text, 1, 'Mihir S.'::text), ('month', 2, null) $$, 'the League board: this month''s standings, the same names');
 
+-- Neel, though excluded from play, redeems a bar upgrade too: the TV never names him.
+reset role;
+select private.credit_points('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217', 2500, 'Test', 'test:101:neel');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000217');
+select lives_ok($$ select public.redeem_reward('00000000-0000-4000-8000-000000145002', 2500, 'neel-bar') $$, 'Neel redeems a bar upgrade');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e101');
+select is((select count(*)::integer from public.tv_rewards_ticker() where kind = 'redemption'), 1, 'the TV shows Mihir''s redemption alone');
+
+-- A TV at the practice venue, with both boards in its rotation, sees nothing of the club's.
+reset role;
+insert into auth.users (id, instance_id, aud, role, phone) values
+  ('00000000-0000-4000-8000-00000000e102', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000001012');
+insert into public.device (id, venue_id, kind, name, auth_user_id) values
+  ('00000000-0000-4000-8000-00000000d102', '00000000-0000-4000-8000-000000000002', 'tv', 'Practice TV', '00000000-0000-4000-8000-00000000e102');
+insert into public.tv_screen (device_id, venue_id, mode, rotation) values
+  ('00000000-0000-4000-8000-00000000d102', '00000000-0000-4000-8000-000000000002', 'rewards', array['league']::public.tv_mode[]);
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e102');
+select is_empty($$ select * from public.tv_rewards_ticker() where display_name = 'Mihir S.' or reward_name = 'Bar upgrade, one night' $$,
+  'the practice TV''s ticker has nothing of the club''s');
+select is_empty($$ select * from public.tv_league_board() where display_name = 'Mihir S.' $$, 'nor its League');
+reset role;
+select ok(not has_function_privilege('anon', 'public.tv_rewards_ticker()', 'execute')
+          and not has_function_privilege('anon', 'public.my_redemptions()', 'execute')
+          and not has_function_privilege('authenticated', 'private.signal_rewards_boards()', 'execute'),
+  'nobody signed out reads the boards, and nobody calls the signal');
+
 -- A member reads neither TV board, but their own points, tier and redemptions.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is_empty($$ select * from public.tv_rewards_ticker() $$, 'a member reads no TV board');
