@@ -52,7 +52,7 @@ from public.dealer_down d join public.game_table g on g.venue_id = d.venue_id an
 where d.id = '00000000-0000-4000-8000-00000000c121';
 insert into public.hand (venue_id, table_id, down_id, staff_id, device_id, variant, pot_paise, rake_paise, drop_paise, is_cap_applied,
                          played_at, idempotency_key)
-select d.venue_id, d.table_id, d.id, d.staff_id, d.device_id, 'bomb_pot', 500000, 25000, 0, false, now() - interval '1 minute', 'mis-hand:tonight'
+select d.venue_id, d.table_id, d.id, d.staff_id, d.device_id, 'bomb_pot', 500000, 25000, 0, false, now(), 'mis-hand:tonight'
 from public.dealer_down d where d.id = '00000000-0000-4000-8000-00000000c122';
 select pg_temp.post('hand_rake', '2026-02-10T23:00:00+05:30', 'venue.chips_outstanding', 'venue.rake', 300000);
 select pg_temp.post('bonus', '2026-02-11T23:00:00+05:30', 'venue.bonus_expense', 'venue.chips_outstanding', 20000);

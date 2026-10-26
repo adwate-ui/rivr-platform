@@ -92,15 +92,25 @@
 /*
  * While a PrintSheet is on the page (#69), printing shows it alone: the rest of the page takes no paper, and the
  * sheet starts at the paper's top-left corner with no page margin. A receipt is drawn one CSS pixel to each printer
- * dot, and the browser prints 96 CSS pixels to the inch, so the sheet shrinks to its printed width.
+ * dot, and the browser prints 96 CSS pixels to the inch, so the sheet shrinks to its printed width. An A4 sheet
+ * (#98) is drawn at A4's own 794 CSS pixels, so it prints at its size on A4 paper.
  */
 @page receipt {
   margin: 0;
 }
 
+@page a4 {
+  size: A4;
+  margin: 0;
+}
+
 @media print {
-  body:has([data-print-sheet]) {
+  body:has([data-print-sheet='receipt']) {
     page: receipt;
+  }
+
+  body:has([data-print-sheet='a4']) {
+    page: a4;
   }
 
   body:has([data-print-sheet]) :not([data-print-sheet], [data-print-sheet] *, :has([data-print-sheet])) {
@@ -111,7 +121,14 @@
     position: absolute;
     inset-block-start: 0;
     inset-inline-start: 0;
+  }
+
+  [data-print-sheet='receipt'] {
     zoom: var(--rivr-print-receipt-scale);
+  }
+
+  [data-print-sheet='a4'] {
+    inline-size: 210mm;
   }
 }
 

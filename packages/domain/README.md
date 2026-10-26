@@ -144,6 +144,12 @@ The database's `private.promotion_applies`, `private.promotion_reward` and `priv
 | `tallyVouchers(day, postings)`, `TallyPosting`, `TallyVoucher`, `TallyUnmapped` | A club day's journal vouchers for Tally (#96, decision 0187): one per transaction kind, its postings summed by Tally ledger, ledgers that net to nothing left out, numbered `RIVR-<day>-<n>`; refused, naming the codes, while a code posted that day has no Tally ledger. Proved on `packages/testing/golden/tally.json`. |
 | `tallyImportXml(day, vouchers)` | The vouchers as a file Tally imports (Import Data, Vouchers): journals dated the club day, debits deemed positive with negative amounts, names escaped. |
 
+### `@rivr/domain/shareholding`
+
+| Export | What it does |
+|---|---|
+| `holderShare(net, basisPoints)` | A partner's or investor's share of a club month's net result (#98, decision 0189): the net times their holding in basis points on the month's last day, rounded towards nothing to the paisa, so a loss is shared as a profit is. Proved on `packages/testing/golden/holderShare.json`. |
+
 ### `@rivr/domain/points`
 
 Points (#89, decision 0161, question #395), in whole points (bigint); they never convert to cash. Each is proved equal to its `private.` twin by `packages/testing/golden/points.json`.
@@ -162,6 +168,7 @@ The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the 
 | Export | What it does |
 |---|---|
 | `clubDay(at)` | The club's day a moment falls in, as `2026-11-15`: 02:00 IST on the 16th is still the 15th. |
+| `recentClubMonths(at, count)`, `lastDayOfMonth(first)` | The first days of the last club months, the one a moment falls in first, and a month's last day: Reports and the partner statements choose months by them (#99, #98). |
 | `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. Pot data reads hands by it (#114). |
 
 ### `@rivr/domain/league`

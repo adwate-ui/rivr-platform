@@ -1,0 +1,20 @@
+{
+  "rule": "a holder's share of a club month's net result",
+  "about": "For the monthly partner and investor statement (#98; decision 0189). The month's net result from the MIS (revenue less expenses) times the holder's holding in basis points on the month's last day (decision 0170), rounded towards nothing to the paisa: a loss is shared as a profit is. 10,000 basis points is the whole club.",
+  "cases": [
+    { "description": "12.5% of a ₹2,80,000 profit: ₹35,000.", "operation": "share",
+      "inputs": { "net": "₹2,80,000", "basisPoints": "1250" }, "expected": { "share": "₹35,000" } },
+    { "description": "Rounded down to the paisa: 12.5% of ₹1,000.01 is ₹125.00.", "operation": "share",
+      "inputs": { "net": "₹1,000.01", "basisPoints": "1250" }, "expected": { "share": "₹125" } },
+    { "description": "A loss is shared too: 33.33% of a ₹10,000 loss is ₹3,333 of it.", "operation": "share",
+      "inputs": { "net": "-₹10,000", "basisPoints": "3333" }, "expected": { "share": "-₹3,333" } },
+    { "description": "Rounded towards nothing for a loss: 33.33% of ₹10,000.01 lost is ₹3,333.00.", "operation": "share",
+      "inputs": { "net": "-₹10,000.01", "basisPoints": "3333" }, "expected": { "share": "-₹3,333" } },
+    { "description": "The whole club holds the whole result.", "operation": "share",
+      "inputs": { "net": "₹2,80,000", "basisPoints": "10000" }, "expected": { "share": "₹2,80,000" } },
+    { "description": "No holding, no share.", "operation": "share",
+      "inputs": { "net": "₹2,80,000", "basisPoints": "0" }, "expected": { "share": "₹0" } },
+    { "description": "A month that broke even: nothing to share.", "operation": "share",
+      "inputs": { "net": "₹0", "basisPoints": "1250" }, "expected": { "share": "₹0" } }
+  ]
+}

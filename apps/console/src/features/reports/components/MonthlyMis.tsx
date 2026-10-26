@@ -1,19 +1,10 @@
 import { useMisReport, type AccountLine, type MisReport } from '@rivr/db/reports';
-import { clubDay } from '@rivr/domain/clubDay';
+import { recentClubMonths } from '@rivr/domain/clubDay';
 import type { Paise } from '@rivr/domain/money';
 import { formatDayTime, formatMonth, formatNumber, t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Grid, Heading, Money, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { RakeTable } from './RakeTable.tsx';
-
-/** The first days of the last six club months, this one first, from a club day (`2026-10-26`). */
-export function recentMonths(today: string): string[] {
-  const [year = 0, month = 1] = today.split('-').map(Number);
-  return [0, 1, 2, 3, 4, 5].map((back) => {
-    const first = new Date(Date.UTC(year, month - 1 - back, 1));
-    return `${first.getUTCFullYear()}-${String(first.getUTCMonth() + 1).padStart(2, '0')}-01`;
-  });
-}
 
 /** One of the month's figures: a count or an amount. */
 interface Figure {
@@ -80,7 +71,7 @@ function MisBody({ venueId, month, isThisMonth }: { venueId: string; month: stri
 
 /** The monthly investor MIS (#99): one of the last six club months, as stored on the 1st or as a preview. */
 export function MonthlyMis({ venueId }: { venueId: string }) {
-  const [months] = useState(() => recentMonths(clubDay(new Date())));
+  const [months] = useState(() => recentClubMonths(new Date(), 6));
   const [month, setMonth] = useState(months[0] ?? '');
   return (
     <Stack gap={4}>

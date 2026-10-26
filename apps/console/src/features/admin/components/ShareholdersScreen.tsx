@@ -3,6 +3,7 @@ import { useShareholdingHistory, useShareholdingRegister, type HoldingRecord, ty
 import { formatDate, formatNumber, t } from '@rivr/i18n';
 import { DataTable, Grid, Heading, Input, Screen, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
+import { PartnerStatements } from './PartnerStatements.tsx';
 import { AddHolderForm, RecordHoldingForm } from './RegisterForms.tsx';
 
 const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -68,7 +69,8 @@ function History({ venueId }: { venueId: string }) {
 
 /**
  * Shareholders (#97; additions "Shareholding register"): partners and investors, with holdings that
- * change on the days they are recorded from. Super admins only; every change is audited.
+ * change on the days they are recorded from, and their monthly statements (#98). Super admins only; every
+ * change is audited.
  */
 export function ShareholdersScreen() {
   const staff = useStaffVenue();
@@ -76,20 +78,23 @@ export function ShareholdersScreen() {
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.shareholders.title');
-  const { permissions, venueId } = staff.venue;
+  const { permissions, venueId, isPractice } = staff.venue;
   if (!permissions.includes('shareholding.manage')) return <Screen title={title} status="error" errorText={t('console.shareholders.notAllowed')} />;
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
-        <Stack gap={8}>
-          <Register venueId={venueId} on={on} onDay={setOn} />
-          <History venueId={venueId} />
-        </Stack>
-        <Stack gap={8}>
-          <RecordHoldingForm venueId={venueId} />
-          <AddHolderForm venueId={venueId} />
-        </Stack>
-      </Grid>
+      <Stack gap={8}>
+        <Grid columns={2} gap={8}>
+          <Stack gap={8}>
+            <Register venueId={venueId} on={on} onDay={setOn} />
+            <History venueId={venueId} />
+          </Stack>
+          <Stack gap={8}>
+            <RecordHoldingForm venueId={venueId} />
+            <AddHolderForm venueId={venueId} />
+          </Stack>
+        </Grid>
+        <PartnerStatements venueId={venueId} isPractice={isPractice} />
+      </Stack>
     </Screen>
   );
 }

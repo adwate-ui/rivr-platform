@@ -44,6 +44,27 @@ export const documents = {
     opening: 'Opening balance',
     closing: 'Closing balance',
   },
+  /** A partner's or investor's monthly statement (#98): the club's result for the month and their share. */
+  partnerStatement: {
+    title: { partner: 'Partner statement', investor: 'Investor statement' },
+    holder: 'Holder',
+    month: 'Month',
+    holding: 'Holding',
+    /** `{share}` as `12.5%`, `{day}` the month's last day. */
+    holdingOn: '{share} on {day}',
+    status: 'Status',
+    provisional: 'Provisional: the month’s figures are final once stored on the 1st.',
+    caption: 'The club’s result for the month',
+    item: 'Revenue and expenses',
+    amount: 'Amount',
+    /** An expense line: `Less: Bonus issued`. */
+    less: 'Less: {name}',
+    revenue: 'Revenue',
+    expenses: 'Expenses',
+    net: 'Net result',
+    /** `{share}` as `12.5%`. */
+    share: 'Share at {share}',
+  },
   /** At the foot of every A4 document. */
   computerGenerated: 'Computer-generated.',
 } as const;
