@@ -2,7 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { blindLevelsSchema } from '@rivr/contracts/blindLevels';
 import { TOURNAMENT_FORMATS, type TournamentFormat } from '@rivr/contracts/tournaments';
 import { fromPaise, type Paise } from '@rivr/domain/money';
-import type { ClockReading, Stage } from '@rivr/domain/tournament';
+import { BOUNTY_KINDS, type BountyKind, type ClockReading, type Stage } from '@rivr/domain/tournament';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
@@ -16,6 +16,18 @@ export interface TournamentAddOn {
   readonly price: Paise;
   readonly fee: Paise;
   readonly chips: number;
+}
+
+/** A bounty on every entry's head (#117, decision 0206): its amount and how a bust pays it. */
+export interface TournamentBounty {
+  readonly amount: Paise;
+  readonly kind: BountyKind;
+}
+
+/** A bounty as the database keeps it: none without both. */
+export function toBounty(paise: number | null, kind: string | null): TournamentBounty | null {
+  const known = BOUNTY_KINDS.find((each) => each === kind);
+  return paise === null || known === undefined ? null : { amount: fromPaise(BigInt(paise)), kind: known };
 }
 
 /** A tournament's field (#118): entries and re-entries, the players still seated, the chips bought and the prize pool. */
@@ -49,6 +61,12 @@ export interface VenueTournament {
   readonly tables: number;
   readonly seatsPerTable: number;
   readonly field: TournamentField;
+  readonly bounty: TournamentBounty | null;
+  /** Each paid place's share of the pool in basis points, as the floor set them (#121); null until set. */
+  readonly payoutShares: readonly number[] | null;
+  /** When it finished and paid out, and the overlay its guarantee needed then; both null until then. */
+  readonly finishedAt: string | null;
+  readonly overlay: Paise | null;
 }
 
 /** A change to a tournament's clock (decision 0201). */
@@ -69,7 +87,8 @@ interface TournamentRow {
   guarantee_paise: number | null; starting_stack: number | null; levels: Json | null; last_registration_level: number; max_buys: number | null;
   add_on_paise: number | null; add_on_fee_paise: number | null; add_on_chips: number | null; places_paid: number | null;
   clock_started_at: string | null; is_paused: boolean; elapsed_seconds: number; tables: number; seats_per_table: number; entries: number;
-  re_entries: number; players_left: number; chips_in_play: number; pool_paise: number;
+  re_entries: number; players_left: number; chips_in_play: number; pool_paise: number; bounty_paise: number | null; bounty_kind: string | null;
+  finished_at: string | null; overlay_paise: number | null; payout_shares: number[] | null;
 }
 
 /** A field as the database reads it. */
@@ -93,7 +112,8 @@ function toTournament(row: TournamentRow, readAtMs: number): VenueTournament {
     startingStack: row.starting_stack, stages: toStages(row.levels), lastRegistrationLevel: row.last_registration_level, maxBuys: row.max_buys,
     addOn: toAddOn(row), placesPaid: row.places_paid,
     clock: row.clock_started_at === null ? null : { elapsedSeconds: row.elapsed_seconds, isRunning: !row.is_paused, readAtMs },
-    tables: row.tables, seatsPerTable: row.seats_per_table, field: toField(row),
+    tables: row.tables, seatsPerTable: row.seats_per_table, field: toField(row), bounty: toBounty(row.bounty_paise, row.bounty_kind),
+    payoutShares: row.payout_shares, finishedAt: row.finished_at, overlay: row.overlay_paise === null ? null : fromPaise(BigInt(row.overlay_paise)),
   };
 }
 

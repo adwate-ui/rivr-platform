@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { tournamentFailure, type TournamentFailure } from './tournamentFailures.ts';
-import { toFormat, toStages, type TournamentAddOn } from './tournaments.ts';
+import { toBounty, toFormat, toStages, type TournamentAddOn, type TournamentBounty } from './tournaments.ts';
 
 /** A venue's blind structure (#115, decision 0200): its name and its levels and breaks. */
 export interface BlindStructure {
@@ -29,6 +29,7 @@ export interface TournamentTemplate {
   readonly addOn: TournamentAddOn | null;
   readonly placesPaid: number;
   readonly guarantee: Paise | null;
+  readonly bounty: TournamentBounty | null;
 }
 
 /** A template as the console saves it: a new one has no id. */
@@ -63,6 +64,7 @@ export function useTournamentTemplates(venueId: string) {
         maxBuys: row.max_buys, placesPaid: row.places_paid, guarantee: row.guarantee_paise === null ? null : fromPaise(BigInt(row.guarantee_paise)),
         addOn: row.add_on_paise === null || row.add_on_chips === null ? null
           : { price: fromPaise(BigInt(row.add_on_paise)), fee: fromPaise(BigInt(row.add_on_fee_paise ?? 0)), chips: row.add_on_chips },
+        bounty: toBounty(row.bounty_paise, row.bounty_kind),
       }));
     },
   });
@@ -81,6 +83,7 @@ function toTemplateJson(order: TemplateOrder) {
     blind_structure_id: order.structureId, last_registration_level: order.lastRegistrationLevel, max_buys: order.maxBuys,
     add_on_paise: order.addOn === null ? null : Number(order.addOn.price), add_on_fee_paise: order.addOn === null ? null : Number(order.addOn.fee),
     add_on_chips: order.addOn?.chips ?? null, places_paid: order.placesPaid, guarantee_paise: order.guarantee === null ? null : Number(order.guarantee),
+    bounty_paise: order.bounty === null ? null : Number(order.bounty.amount), bounty_kind: order.bounty?.kind ?? null,
   };
 }
 

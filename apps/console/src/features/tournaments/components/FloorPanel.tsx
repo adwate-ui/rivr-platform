@@ -6,6 +6,7 @@ import { Button, DataTable, ErrorMessage, Heading, Inline, Input, Stack, Text } 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import { BountyBust } from './BustAction.tsx';
 import { CageBuyForm } from './CageBuyForm.tsx';
 import { PlayersTable } from './PlayersTable.tsx';
 
@@ -61,15 +62,21 @@ function Players({ venueId, tournament, canRun }: Omit<FloorPanelProps, 'canTake
   const balance = useTournamentBalance(tournament.id);
   const { floor } = useTournamentFloorActions(venueId, tournament.id);
   const [failure, setFailure] = useState<string | null>(null);
+  const [busting, setBusting] = useState<TournamentSeatRow | null>(null);
   const label = t('console.tournaments.floor');
   if (seating.isPending) return <DataTable label={label} columns={[]} rowKey={() => ''} status="loading" />;
   if (seating.data === undefined) return <DataTable label={label} columns={[]} rowKey={() => ''} status="error" onRetry={() => void seating.refetch()} />;
-  const onChange: typeof floor.mutate = (order) => void floor.mutateAsync(order).then((done) => setFailure(done.ok ? null : t(`console.tournaments.failures.${done.error}`)));
+  const onChange: typeof floor.mutate = (order) => void floor.mutateAsync(order)
+    .then((done) => setFailure(done.ok ? null : t(`console.tournaments.payouts.failures.${done.error}`)));
   return (
     <Stack gap={4}>
       <Heading level={3} variant="subsection">{t('console.tournaments.tableBalance')}</Heading>
       {balance.data === undefined ? null : <BalanceLine prompts={balance.data} rows={seating.data} tables={tournament.tables} />}
-      <PlayersTable rows={seating.data} prompts={balance.data ?? []} canRun={canRun} onChange={onChange} />
+      <PlayersTable rows={seating.data} prompts={balance.data ?? []} canRun={canRun} hasBounty={tournament.bounty !== null} onAskBust={setBusting} onChange={onChange} />
+      {busting === null ? null : (
+        <BountyBust key={busting.entryId} row={busting} rows={seating.data} onCancel={() => setBusting(null)}
+          onBust={(eliminatorId) => { setBusting(null); onChange({ change: 'bust', entryId: busting.entryId, eliminatorId }); }} />
+      )}
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

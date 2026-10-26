@@ -506,5 +506,57 @@ select results_eq(
   $$ select description, expected ->> 'place' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
   'private.tournament_finish_place places every bust in the golden file');
 
+-- Tournament payouts, deals and bounties: private.tournament_prize_pool, tournament_payout_table,
+-- tournament_chip_chop, tournament_icm and tournament_bounty_split, and @rivr/domain prizePool, payoutTable,
+-- chipChop, icmDeal and bountyOnBust (packages/testing/golden/tournamentPayouts.json).
+create function pg_temp.amounts(p_text text) returns bigint[] language sql immutable as $$
+  select array(select pg_temp.paise(a) from unnest(string_to_array(p_text, ' ')) with ordinality u (a, n) order by n);
+$$;
+create function pg_temp.paid_or_refused(p_operation text, p_inputs jsonb) returns text language plpgsql as $$
+begin
+  return array_to_string(case p_operation
+    -- Percent to two places, as basis points: "62.5" is 6,250.
+    when 'payouts' then private.tournament_payout_table(pg_temp.paise(p_inputs ->> 'pool'),
+                          array(select (s::numeric * 100)::integer from unnest(string_to_array(p_inputs ->> 'shares', ' ')) with ordinality u (s, n) order by n),
+                          (p_inputs ->> 'runs')::integer)
+    when 'chop' then private.tournament_chip_chop(string_to_array(p_inputs ->> 'stacks', ' ')::bigint[], pg_temp.amounts(p_inputs ->> 'prizes'))
+    else private.tournament_icm(string_to_array(p_inputs ->> 'stacks', ' ')::bigint[], pg_temp.amounts(p_inputs ->> 'prizes')) end, ' ');
+exception when invalid_parameter_value then
+  return 'refused';
+end;
+$$;
+create function pg_temp.bounty_or_refused(p_bounty bigint, p_kind text) returns text language plpgsql as $$
+begin
+  return (select b.paid_paise || ' ' || b.head_paise from private.tournament_bounty_split(p_bounty, p_kind) b);
+exception when invalid_parameter_value then
+  return 'refused';
+end;
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentPayouts.json'), 'the tournament payout cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tournamentPayouts.json'
+                   and operation not in ('pool', 'payouts', 'chop', 'icm', 'bounty') $$,
+  'every operation in tournamentPayouts.json is proved here');
+select results_eq(
+  $$ select description, p.pool_paise, p.overlay_paise from golden.golden_case
+     cross join lateral private.tournament_prize_pool(pg_temp.paise(inputs ->> 'collected'), pg_temp.paise(nullif(inputs ->> 'guarantee', ''))) p
+     where file = 'tournamentPayouts.json' and operation = 'pool' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'pool'), pg_temp.paise(expected ->> 'overlay') from golden.golden_case
+     where file = 'tournamentPayouts.json' and operation = 'pool' order by position $$,
+  'private.tournament_prize_pool tops up every pool in the golden file');
+select results_eq(
+  $$ select description, pg_temp.paid_or_refused(operation, inputs) from golden.golden_case
+     where file = 'tournamentPayouts.json' and operation in ('payouts', 'chop', 'icm') order by position $$,
+  $$ select description, case when coalesce(expected ->> 'prizes', expected ->> 'amounts') = 'refused' then 'refused'
+                              else array_to_string(pg_temp.amounts(coalesce(expected ->> 'prizes', expected ->> 'amounts')), ' ') end
+     from golden.golden_case where file = 'tournamentPayouts.json' and operation in ('payouts', 'chop', 'icm') order by position $$,
+  'private.tournament_payout_table, tournament_chip_chop and tournament_icm pay every case in the golden file');
+select results_eq(
+  $$ select description, pg_temp.bounty_or_refused(pg_temp.paise(inputs ->> 'bounty'), inputs ->> 'kind') from golden.golden_case
+     where file = 'tournamentPayouts.json' and operation = 'bounty' order by position $$,
+  $$ select description, case when expected ->> 'paid' = 'refused' then 'refused'
+                              else pg_temp.paise(expected ->> 'paid') || ' ' || pg_temp.paise(expected ->> 'head') end
+     from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'bounty' order by position $$,
+  'private.tournament_bounty_split splits every bounty in the golden file');
+
 select * from finish();
 rollback;

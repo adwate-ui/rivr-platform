@@ -5,7 +5,7 @@ import { PURCHASE_REFUSALS, type PurchaseRefusal } from '@rivr/domain/tournament
 export type TournamentFailure = 'not_allowed' | 'invalid' | 'taken' | 'in_use' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, TournamentFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', '23505': 'taken', '23503': 'in_use', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', '23505': 'taken', '23503': 'in_use', RVFRZ: 'paused', RVMBR: 'paused',
 };
 
 /** The failure a database error code means. */
@@ -13,14 +13,28 @@ export function tournamentFailure(code: string): TournamentFailure {
   return FAILURE_BY_CODE[code] ?? 'unavailable';
 }
 
+/**
+ * Why setting payouts or finishing was refused (#121): the tournament's own state (the payouts not set,
+ * an alternate waiting, the wrong number of players left for how it finishes, finished already), or why
+ * any tournament change is.
+ */
+export type FinishFailure = TournamentFailure | 'payouts_unset' | 'alternates_waiting' | 'players_left' | 'shares_locked' | 'finished';
+const FINISH_STATES: readonly FinishFailure[] = ['payouts_unset', 'alternates_waiting', 'players_left', 'shares_locked', 'finished'];
+
+/** What a refused finish or payout setting means: the state from the hint, or the code's. */
+export function toFinishFailure(error: { code: string; hint?: string | null }): FinishFailure {
+  if (error.code === 'RVTRN') return FINISH_STATES.find((state) => state === error.hint) ?? 'unavailable';
+  return tournamentFailure(error.code);
+}
+
 /** Why a buy was refused: the rules' reason (decision 0202), no free seat for a busted player's rebuy, or the wallet's or the cage's. */
 export type BuyFailure =
-  | TournamentFailure | PurchaseRefusal | 'room_full' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift';
+  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift';
 
 const BUY_FAILURE_BY_CODE: Readonly<Record<string, BuyFailure>> = {
   RVSHT: 'short', RVKYC: 'identity', RVAGE: 'identity', RVDUP: 'identity', RVBRK: 'on_break', RVKIL: 'switched_off', RVNSH: 'no_shift',
 };
-const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full'];
+const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full', 'finished'];
 
 /** What a refused buy means: the rules' reason from the hint, or the code's. */
 export function toBuyFailure(error: { code: string; hint?: string | null }): BuyFailure {

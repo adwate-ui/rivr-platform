@@ -12,11 +12,13 @@ type TemplateOutput = z.output<typeof tournamentTemplateSchema>;
 export function emptyTemplate(structureId: string): TemplateValues {
   return {
     name: '', format: 're_entry', buyIn: '', fee: '', startingStack: '', structureId, lastRegistrationLevel: '', maxBuys: '', addOn: '', addOnFee: '',
-    addOnChips: '', placesPaid: '', guarantee: '',
+    addOnChips: '', placesPaid: '', guarantee: '', bounty: '', bountyKind: 'none',
   };
 }
 
 const typed = (paise: Paise | null) => (paise === null ? '' : formatRupeesForInput(paise));
+/** A template's bounty as the form holds it: its amount and kind, or blank and none. */
+const bountyValues = (template: TournamentTemplate): Pick<TemplateValues, 'bounty' | 'bountyKind'> => ({ bounty: typed(template.bounty?.amount ?? null), bountyKind: template.bounty?.kind ?? 'none' });
 
 /** The form's values for a template being changed. */
 export function templateValues(template: TournamentTemplate): TemplateValues {
@@ -25,7 +27,7 @@ export function templateValues(template: TournamentTemplate): TemplateValues {
     structureId: template.structureId, lastRegistrationLevel: String(template.lastRegistrationLevel),
     maxBuys: template.maxBuys === null ? '' : String(template.maxBuys), addOn: typed(template.addOn?.price ?? null),
     addOnFee: typed(template.addOn?.fee ?? null), addOnChips: template.addOn === null ? '' : String(template.addOn.chips),
-    placesPaid: String(template.placesPaid), guarantee: typed(template.guarantee),
+    placesPaid: String(template.placesPaid), guarantee: typed(template.guarantee), ...bountyValues(template),
   };
 }
 
@@ -38,5 +40,6 @@ export function templateOrder(values: TemplateOutput, templateId: string | null)
     structureId: values.structureId, lastRegistrationLevel: values.lastRegistrationLevel, maxBuys: values.maxBuys === '' ? null : Number(values.maxBuys),
     addOn: values.addOn === '' ? null : { price: rupees(values.addOn), fee: rupees(values.addOnFee), chips: Number(values.addOnChips) },
     placesPaid: values.placesPaid, guarantee: values.guarantee === '' ? null : rupees(values.guarantee),
+    bounty: values.bountyKind === 'none' ? null : { amount: rupees(values.bounty), kind: values.bountyKind },
   };
 }

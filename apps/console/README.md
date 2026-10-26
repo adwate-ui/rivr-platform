@@ -51,9 +51,10 @@ src/
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
     rewards/          the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
     league/           the RIVR League's standings by month or season, and its seasons (/league)
-    tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs,
-                      balancing, the room, buys in cash for a cashier), tournaments from templates, templates,
-                      and blind structures with the calculator (/tournaments; #115, #116, #118, #119, #120)
+    tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs with
+                      bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
+                      the finish, deals, what was paid), tournaments from templates, templates, and blind
+                      structures with the calculator (/tournaments; #115 to #121, #149)
     promotions/       what is running, paused and resumed in place; the deck's templates, each published as it stands; and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
 ```
 

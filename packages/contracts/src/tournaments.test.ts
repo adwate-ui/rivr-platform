@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { blindLevelsSchema } from './blindLevels.ts';
-import { blindStructureSchema, cageBuySchema, istMoment, tournamentRoomSchema, newTournamentSchema, stageFormSchema, structurePlanSchema, tournamentTemplateSchema } from './tournaments.ts';
+import {
+  blindStructureSchema, cageBuySchema, dealSchema, istMoment, newTournamentSchema, payoutSharesSchema, stageFormSchema, structurePlanSchema, tournamentRoomSchema,
+  tournamentTemplateSchema,
+} from './tournaments.ts';
 
 const TEMPLATE = {
   name: 'RIVR Sunday', format: 're_entry', buyIn: '10000', fee: '1000', startingStack: '30000', structureId: '00000000-0000-4000-8000-0000000007b1',
   lastRegistrationLevel: '9', maxBuys: '', addOn: '', addOnFee: '', addOnChips: '', placesPaid: '8', guarantee: '500000',
+  bounty: '', bountyKind: 'none',
 } as const;
 
 const issuesOf = (result: { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } }) =>
@@ -66,6 +70,40 @@ describe('tournamentTemplateSchema', () => {
   it('takes amounts only in ₹50 chips', () => {
     expect(issuesOf(tournamentTemplateSchema.safeParse({ ...TEMPLATE, buyIn: '10025' }))).toEqual(['buyIn:not_chips']);
     expect(issuesOf(tournamentTemplateSchema.safeParse({ ...TEMPLATE, guarantee: '500010' }))).toEqual(['buyIn:not_chips']);
+  });
+
+  it('takes a bounty with its kind, below what the pool would get, never in a rebuy', () => {
+    expect(tournamentTemplateSchema.safeParse({ ...TEMPLATE, bounty: '2000', bountyKind: 'progressive' }).success).toBe(true);
+    expect(issuesOf(tournamentTemplateSchema.safeParse({ ...TEMPLATE, bounty: '2000' }))).toEqual(['bounty:bounty_incomplete']);
+    expect(issuesOf(tournamentTemplateSchema.safeParse({ ...TEMPLATE, bounty: '9000', bountyKind: 'standard' }))).toEqual(['bounty:bounty_above_pool']);
+    expect(issuesOf(tournamentTemplateSchema.safeParse({ ...TEMPLATE, format: 'rebuy', bounty: '2000', bountyKind: 'standard' })))
+      .toEqual(['bounty:bounty_rebuy']);
+  });
+});
+
+describe('payoutSharesSchema', () => {
+  const shares = (...typed: string[]) => ({ shares: typed.map((percent) => ({ percent })) });
+
+  it('reads each place’s percent as basis points, adding up to 100%', () => {
+    expect(payoutSharesSchema.parse(shares('62.5', '37.5'))).toEqual([6250, 3750]);
+    expect(payoutSharesSchema.parse(shares('100'))).toEqual([10_000]);
+  });
+
+  it('refuses shares that do not add up to 100%, a share of nothing, and none at all', () => {
+    expect(issuesOf(payoutSharesSchema.safeParse(shares('50', '30', '19')))).toEqual([':not_whole']);
+    expect(issuesOf(payoutSharesSchema.safeParse(shares('100', '0')))).toEqual([':not_whole']);
+    expect(issuesOf(payoutSharesSchema.safeParse(shares('40', '60')))).toEqual([':not_whole']);
+    expect(payoutSharesSchema.safeParse(shares('33.333', '66.667')).success).toBe(false);
+    expect(payoutSharesSchema.safeParse(shares()).success).toBe(false);
+  });
+});
+
+describe('dealSchema', () => {
+  it('takes two to nine players, each with whole chips', () => {
+    const stack = (chips: string) => ({ entryId: '00000000-0000-4000-8000-000000000213', chips });
+    expect(dealSchema.parse({ method: 'icm', stacks: [stack('40000'), stack('20000')] }).stacks.map((each) => each.chips)).toEqual([40000n, 20000n]);
+    expect(dealSchema.safeParse({ method: 'icm', stacks: [stack('40000')] }).success).toBe(false);
+    expect(dealSchema.safeParse({ method: 'chip_chop', stacks: [stack('0'), stack('100')] }).success).toBe(false);
   });
 });
 
