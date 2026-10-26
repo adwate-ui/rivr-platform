@@ -29,6 +29,7 @@ export const rail = {
     accounts: 'Accounts',
     expenses: 'Expenses',
     tds: 'TDS',
+    tally: 'Tally',
     shareholders: 'Shareholders',
     endOfDay: 'End of day',
     members: 'Members',

@@ -137,6 +137,13 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`, and `private.seconds_in_window` on `promotionWindow.json`; `private.evaluate_promotions` puts them together.
 
+### `@rivr/domain/tally`
+
+| Export | What it does |
+|---|---|
+| `tallyVouchers(day, postings)`, `TallyPosting`, `TallyVoucher`, `TallyUnmapped` | A club day's journal vouchers for Tally (#96, decision 0187): one per transaction kind, its postings summed by Tally ledger, ledgers that net to nothing left out, numbered `RIVR-<day>-<n>`; refused, naming the codes, while a code posted that day has no Tally ledger. Proved on `packages/testing/golden/tally.json`. |
+| `tallyImportXml(day, vouchers)` | The vouchers as a file Tally imports (Import Data, Vouchers): journals dated the club day, debits deemed positive with negative amounts, names escaped. |
+
 ### `@rivr/domain/points`
 
 Points (#89, decision 0161, question #395), in whole points (bigint); they never convert to cash. Each is proved equal to its `private.` twin by `packages/testing/golden/points.json`.

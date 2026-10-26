@@ -1,0 +1,24 @@
+{
+  "rule": "the daily Tally vouchers",
+  "about": "A club day's money postings, by transaction kind and ledger account code (debits positive), become one journal voucher per kind, in the order of the kinds' names (#96, decision 0187). Each kind's postings are summed by the Tally ledger its code maps to; codes mapped to one ledger net together, a ledger that nets to nothing is left out, and so is a kind with no lines left. Debit lines come first, the larger first, then by ledger name. Vouchers are numbered RIVR-<day>-<n> from 1. While any code posted that day maps to no Tally ledger, there is no file, and the codes are named. Postings are written 'kind code ledger amount' (a dash for no ledger), one per line; vouchers 'number kind: ledger amount, ...'.",
+  "cases": [
+    { "description": "A day of buy-ins, cash-outs and rake: three vouchers, in the kinds' order.", "operation": "vouchers",
+      "inputs": { "day": "2026-11-15", "postings": "buy_in member.cash Player deposits ₹-30,000\nbuy_in venue.cash Cash ₹30,000\ncash_out member.cash Player deposits ₹12,000\ncash_out venue.cash Cash ₹-12,000\nhand_rake member.cash Player deposits ₹1,500\nhand_rake venue.rake Rake income ₹-1,500" },
+      "expected": { "vouchers": "RIVR-20261115-1 buy_in: Cash ₹30,000, Player deposits ₹-30,000 | RIVR-20261115-2 cash_out: Player deposits ₹12,000, Cash ₹-12,000 | RIVR-20261115-3 hand_rake: Player deposits ₹1,500, Rake income ₹-1,500" } },
+    { "description": "Two codes mapped to one ledger net together: cash and UPI both to Bank.", "operation": "vouchers",
+      "inputs": { "day": "2026-11-15", "postings": "buy_in member.cash Player deposits ₹-25,000\nbuy_in venue.cash Bank ₹20,000\nbuy_in venue.upi Bank ₹5,000" },
+      "expected": { "vouchers": "RIVR-20261115-1 buy_in: Bank ₹25,000, Player deposits ₹-25,000" } },
+    { "description": "Money moved between two codes on one ledger nets to nothing: no voucher, and the next is numbered 1.", "operation": "vouchers",
+      "inputs": { "day": "2026-11-15", "postings": "account_transfer venue.cash Bank ₹10,000\naccount_transfer venue.upi Bank ₹-10,000\nbuy_in member.cash Player deposits ₹-5,000\nbuy_in venue.cash Bank ₹5,000" },
+      "expected": { "vouchers": "RIVR-20261115-1 buy_in: Bank ₹5,000, Player deposits ₹-5,000" } },
+    { "description": "Debits first, the larger first; equal debits by ledger name.", "operation": "vouchers",
+      "inputs": { "day": "2026-11-16", "postings": "expense venue.expense.tea Tea ₹500\nexpense venue.expense.cabs Cabs ₹500\nexpense venue.expense.rent Rent ₹80,000\nexpense venue.cash Cash ₹-81,000" },
+      "expected": { "vouchers": "RIVR-20261116-1 expense: Rent ₹80,000, Cabs ₹500, Tea ₹500, Cash ₹-81,000" } },
+    { "description": "A day with nothing posted: no vouchers.", "operation": "vouchers",
+      "inputs": { "day": "2026-11-15", "postings": "" },
+      "expected": { "vouchers": "none" } },
+    { "description": "Codes with no Tally ledger: no file, and each code is named once, in order.", "operation": "vouchers",
+      "inputs": { "day": "2026-11-15", "postings": "buy_in member.cash - ₹-30,000\nbuy_in venue.cash Cash ₹30,000\ncash_out member.cash - ₹12,000\ncash_out venue.bank - ₹-12,000" },
+      "expected": { "vouchers": "unmapped member.cash, venue.bank" } }
+  ]
+}

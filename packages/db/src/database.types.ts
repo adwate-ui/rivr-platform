@@ -2561,6 +2561,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"tally_ledger_map": {
+                  Row: {
+                    "account_code": string,"created_at": string,"id": string,"tally_ledger": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_code": string,"created_at"?: string,"id"?: string,"tally_ledger": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "account_code"?: string,"created_at"?: string,"id"?: string,"tally_ledger"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tally_ledger_map_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tds_withholding": {
                   Row: {
                     "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id": string,"created_at": string,"due_paise": number,"has_pan": boolean,"id": string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"updated_at": string,"venue_id": string,"winnings_paise": number
@@ -3670,6 +3690,9 @@ isOneToOne: false
 "set_table_open":
 { Args: { "p_is_open": boolean,"p_table_id": string }; Returns: undefined
                            },
+"set_tally_ledger":
+{ Args: { "p_account_code": string,"p_tally_ledger": string,"p_venue_id": string }; Returns: undefined
+                           },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
                            },
@@ -3749,6 +3772,16 @@ isOneToOne: false
                            },
 "take_break":
 { Args: { "p_days": number }; Returns: string
+                           },
+"tally_accounts":
+{ Args: { "p_venue_id": string }; Returns: {
+              "account_code": string,"account_name": string,"tally_ledger": string
+            }[]
+                           },
+"tally_day":
+{ Args: { "p_day": string,"p_venue_id": string }; Returns: {
+              "account_code": string,"amount_paise": number,"kind": string,"tally_ledger": string
+            }[]
                            },
 "tds_ledger":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {

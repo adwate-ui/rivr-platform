@@ -24,6 +24,7 @@ import { treasuryRoute } from './routes/treasury.tsx';
 import { accountsRoute } from './routes/accounts.tsx';
 import { expensesRoute } from './routes/expenses.tsx';
 import { shareholdersRoute } from './routes/shareholders.tsx';
+import { tallyRoute } from './routes/tally.tsx';
 import { tdsRoute } from './routes/tds.tsx';
 import { endOfDayRoute } from './routes/end-of-day.tsx';
 import { staffRoute } from './routes/staff.tsx';
@@ -53,6 +54,7 @@ const routeTree = rootRoute.addChildren([
     accountsRoute,
     expensesRoute,
     tdsRoute,
+    tallyRoute,
     shareholdersRoute,
     potDataRoute,
     promotionsRoute,

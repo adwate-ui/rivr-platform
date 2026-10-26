@@ -31,6 +31,7 @@ import { treasury, treasuryFailures } from './treasury.ts';
 import { accounts } from './accounts.ts';
 import { expenses } from './expenses.ts';
 import { shareholders } from './shareholders.ts';
+import { tally } from './tally.ts';
 import { tds } from './tds.ts';
 import { endOfDay, endOfDayFailures } from './endOfDay.ts';
 import { tonight, waitlist } from './waitlist.ts';
@@ -158,6 +159,7 @@ export const consoleApp = {
   accounts,
   expenses,
   tds,
+  tally,
   shareholders,
   endOfDay,
   endOfDayFailures,
