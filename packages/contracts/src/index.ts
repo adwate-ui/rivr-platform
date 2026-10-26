@@ -86,7 +86,7 @@ export {
   type HighHandRank,
 } from './highHands.ts';
 export {
-  linkSuffixSchema, promotionOfferedSchema, receiptReadySchema, waitlistCalledSchema, type PromotionOffered, type ReceiptReady, type WaitlistCalled,
+  alertRaisedSchema, linkSuffixSchema, promotionOfferedSchema, receiptReadySchema, waitlistCalledSchema, type PromotionOffered, type ReceiptReady, type WaitlistCalled,
 } from './messaging.ts';
 export { kycInPersonSchema, kycReviewSchema, type KycInPerson } from './kycReview.ts';
 export { sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';

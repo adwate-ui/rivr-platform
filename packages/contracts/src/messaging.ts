@@ -19,6 +19,12 @@ export const waitlistCalledSchema = z.object({
  */
 export const linkSuffixSchema = z.string().regex(/^[A-Za-z0-9_\-/]{1,200}$/);
 
+/** alert.raised (#100): an alert and its kind; its details stay in the database, for the owner dashboard. */
+export const alertRaisedSchema = z.object({
+  alert_id: z.uuid(),
+  kind: z.string().regex(/^[a-z_]+(\.[a-z_]+)*$/),
+});
+
 /** receipt.ready: a receipt for an amount is ready at a link (the part after the template's base address). */
 export const receiptReadySchema = z.object({
   member_id: z.uuid(),

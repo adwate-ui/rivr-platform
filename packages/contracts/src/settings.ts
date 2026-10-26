@@ -240,11 +240,18 @@ const cardQrRotationSeconds = {
   value: z.strictObject({ seconds: z.int().min(10).max(300) }),
 } as const satisfies SettingDefinition;
 
+const alertThresholds = {
+  key: 'alert.thresholds',
+  description: 'Alerting (decision 0191): this many outbox deliveries failing for good within the window alerts the owner. 5 within 60 minutes unless set.',
+  scope: 'venue',
+  value: z.strictObject({ failed_deliveries: z.int().min(1).max(1000), window_minutes: z.int().min(5).max(1440) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen,
+  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds,
 ] as const;
 
 /** A setting key declared in code. */
