@@ -10,7 +10,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `spin_wheel`, `spin` | Prizes and odds from configuration with a budget cap; spins and results |
 | `reward_item`, `redemption` | Catalogue (tournament seat, F&B upgrade, merchandise, hotel nights) and redemptions |
 | `points_earning` | What each visit earned in points, by table and from rake, as `private.close_visit` credits it (#89, decision 0161) |
-| `league_season`, `league_standing` | Monthly League across cash and tournaments, season championship |
+| `league_season`, `league_finish` | Monthly League across cash (hours at the tables, from `points_earning`) and tournament finishes, season championship; standings are computed, not stored (decision 0182) |
 | `creator`, `tracked_link`, `attribution_touch` | Influencer codes and links, first-touch attribution to KYC, first visit and first buy-in |
 | `referral` | Referral codes and the ₹1,000-each-side reward |
 | `social_post`, `social_channel_account`, `winner_card`, `card_consent` | Publishing to each channel, download-and-post fallback, winner cards held for consent |
@@ -25,8 +25,10 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | Function | Used by | What it does |
 |---|---|---|
 | `private.evaluate_promotions(venue, trigger, context)` | A (buy-in), B (hand logged, tournament entry), C (check-in, Academy graduation) | Applies every live promotion whose trigger and conditions match; posts effects (bonus through lane A's `private.credit_bonus`, points, freeroll ticket, cab eligibility, spin); respects budgets and limits |
-| `private.credit_points(venue, member, points, reason, idempotency_key)`, `private.debit_points(...)` | B (League), C (Learn, capped daily) | The points ledger; points never convert to cash |
-| `public.redeem_reward(item, idempotency_key)` | player app (C screens) | Redemption from the catalogue; feature `rewards.catalogue` |
+| `private.credit_points(venue, member, points, reason, idempotency_key)`, `private.debit_points(...)` | C (Learn, capped daily) | The points ledger; points never convert to cash |
+| `public.redeem_reward(item, points, idempotency_key)` | player app (C screens) | Redemption from the catalogue at the price the member was shown; feature `rewards.catalogue` |
+| `private.award_league_points(tournament, member, place, at)` | B (tournament finish, #149) | A finish's League points, once, from `league.points` (decision 0182) |
+| `public.my_league()` | player app (C screens) | This month's and this season's top ten, and the member's own place; feature `league.standings` |
 | `public.give_card_consent(card)`, `public.withdraw_card_consent(card)` | player app | Consent per winner card; withdrawal takes the post down |
 | Views `public_promotion_cards`, `public_league_table`, `public_wall_posts` | web (C), TVs (B) | No personal data beyond first name and initial; never the practice venue |
 | `@rivr/render` templates | B (TVs), C (share and membership cards), A (receipts, statements, offline pack) | Every graphic from `@rivr/ui` |

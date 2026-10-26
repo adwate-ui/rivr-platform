@@ -340,5 +340,21 @@ select results_eq(
      from golden.golden_case where file = 'points.json' order by position $$,
   'the points rules give every case in the golden file');
 
+-- The League: private.league_finish_points and league_month, and @rivr/domain's (packages/testing/golden/league.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'league.json'), 'the League cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'league.json' and operation not in ('finish', 'month') $$,
+  'every operation in league.json is proved here');
+select results_eq(
+  $$ select description, case operation
+       when 'finish' then private.league_finish_points((inputs ->> 'place')::integer,
+                            jsonb_build_object('first', (inputs ->> 'first')::bigint, 'second', (inputs ->> 'second')::bigint,
+                                               'third', (inputs ->> 'third')::bigint, 'final_table', (inputs ->> 'finalTable')::bigint,
+                                               'entry', (inputs ->> 'entry')::bigint))::text
+       else private.league_month((inputs ->> 'at')::timestamptz)::text end
+     from golden.golden_case where file = 'league.json' order by position $$,
+  $$ select description, case operation when 'finish' then expected ->> 'points' else expected ->> 'month' end
+     from golden.golden_case where file = 'league.json' order by position $$,
+  'the League rules give every case in the golden file');
+
 select * from finish();
 rollback;

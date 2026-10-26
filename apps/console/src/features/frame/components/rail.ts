@@ -60,6 +60,8 @@ const RAIL: readonly RailGroup[] = [
       { id: 'promotions', label: 'ui.consoleRail.items.promotions', href: '/promotions', anyOf: ['promotions.manage'] },
       { id: 'jackpots', label: 'ui.consoleRail.items.jackpots', href: '/jackpots', anyOf: ['jackpots.approve', 'ledger.read'] },
       { id: 'highHands', label: 'ui.consoleRail.items.highHands', href: '/high-hands', anyOf: ['jackpots.approve', 'ledger.read'] },
+      { id: 'rewards', label: 'ui.consoleRail.items.rewards', href: '/rewards', anyOf: ['rewards.manage', 'rewards.hand_over'] },
+      { id: 'league', label: 'ui.consoleRail.items.league', href: '/league', anyOf: ['rewards.manage', 'members.read'] },
       { id: 'academy', label: 'ui.consoleRail.items.academy', href: '/academy', anyOf: ['members.manage'] },
     ],
   },

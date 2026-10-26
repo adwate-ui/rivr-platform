@@ -56,6 +56,7 @@ export const ui = {
       jackpots: 'Jackpots',
       highHands: 'High hands',
       rewards: 'Rewards',
+      league: 'League',
       academy: 'Academy',
       academyPayments: 'Academy payments',
       withdrawals: 'Withdrawals',

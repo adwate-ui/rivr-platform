@@ -147,6 +147,15 @@ Points (#89, decision 0161, question #395), in whole points (bigint); they never
 | `rakeShare(rake, seated)` | RIVR Rewards: a hand's rake split equally among the members seated at its table, rounded down to the paisa. |
 | `rakePoints(share, rate)` | A share (basis points, 500 is 5%) of a member's rake for a visit, as points at one a rupee, rounded down. ₹612.40 at 5% is 30. |
 
+### `@rivr/domain/league`
+
+The RIVR League (#147, decision 0182, question #452). A month's League points are the points cash play earned for hours at the tables, plus tournament finishes. Each is proved equal to its `private.` twin by `packages/testing/golden/league.json`.
+
+| Export | What it does |
+|---|---|
+| `leagueFinishPoints(place, schedule)`, `LeagueFinishPoints` | A tournament finish, from `league.points`: the points for taking part, plus first's, second's or third's, or the final table's for fourth to ninth; nothing more below ninth. With 100, 70, 50, 20 and 5, the winner earns 105 and tenth 5. |
+| `leagueMonth(at)` | The League month of a moment, as its first day: the month of the club's day (06:00 to 06:00 IST), so 02:00 on 1 December is November. |
+
 ## Usage
 
 ```ts

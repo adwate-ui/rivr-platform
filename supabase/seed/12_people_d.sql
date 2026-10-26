@@ -22,7 +22,8 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
 on conflict do nothing;
 
 -- The Paper fallback flow's own duty managers, super admins at both venues: one runs the drill and asks
--- to release the freeze, the other releases it (#52).
+-- to release the freeze, the other releases it (#52). The Rewards catalogue flow's marketing manager,
+-- who keeps the catalogue and the League's seasons, and its floor manager, who reads the standings (#145, #147).
 create temporary table lane_d_person (
   id uuid primary key,
   phone text not null,
@@ -33,7 +34,9 @@ create temporary table lane_d_person (
 
 insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-000000000175', '+919000000175', 'Gautam Sood', 'Duty manager', 'super_admin'),
-  ('00000000-0000-4000-8000-000000000176', '+919000000176', 'Priya Nath', 'Duty manager', 'super_admin');
+  ('00000000-0000-4000-8000-000000000176', '+919000000176', 'Priya Nath', 'Duty manager', 'super_admin'),
+  ('00000000-0000-4000-8000-000000000178', '+919000000700', 'Tanya Rao', 'Marketing manager', 'marketing'),
+  ('00000000-0000-4000-8000-000000000179', '+919000000701', 'Kabir Anand', 'Floor manager', 'admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,

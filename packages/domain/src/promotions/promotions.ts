@@ -64,7 +64,7 @@ function isVisitorAsAsked(conditions: PromotionConditions, facts: PromotionFacts
 /**
  * Whether a rule applies (scope-v1 module 7): every condition it names holds, so a rule with none
  * always applies. Days and times are the club's, 06:00 to 06:00 IST; visits in the month are closed
- * ones (lane C's private.visits_this_month). The database's
+ * ones with play (lane C's private.visits_this_month, decision 0180). The database's
  * private.promotion_applies is proved equal by packages/testing/golden/promotions.json.
  */
 export function promotionApplies(conditions: PromotionConditions, facts: PromotionFacts): boolean {
