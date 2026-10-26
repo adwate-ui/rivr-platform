@@ -1,9 +1,9 @@
 /**
- * Credit and accounts (#92, #94, #95; decisions 0167 and 0168). Karan Ahuja, this flow's own duty
- * manager (Auth sends one code a minute to a number), seats Neel Bose at Table 2, seat 7, gives him
- * ₹50,000 of credit and issues him a ₹20,000 marker. Neel repays ₹5,000 in cash: the credit report shows
- * ₹15,000 owed, 0 to 7 days old. He pays the rest by UPI and is off the report, and he leaves the table.
- * Then Karan adds a UPI account, moves ₹1,000 from the drawer into it (its statement shows the
+ * Credit and accounts (#92, #94, #95; decisions 0167 and 0168). Ira Sethi, this flow's own duty manager
+ * (Auth sends one code a minute to a number), seats Devansh Malik, its own member, at Table 3, seat 6, gives
+ * him ₹50,000 of credit and issues him a ₹20,000 marker. Devansh repays ₹5,000 in cash: the credit report
+ * shows ₹15,000 owed, 0 to 7 days old. He pays the rest by UPI and is off the report, and he leaves the
+ * table. Then Karan Ahuja, another duty manager, adds a UPI account, moves ₹1,000 from the drawer into it (its statement shows the
  * transfer), and asks for a ₹500 expense from it with a photo of the receipt. Meher Gill, the general
  * manager, approves it on her console, and the account is down to ₹500. Refusals (more than owed, a UTR
  * used twice, the one who asked approving) are proved in supabase/tests/098_credit_and_accounts.test.sql.
@@ -29,31 +29,31 @@ async function sign(page: Page, label: string) {
   await expect(page.getByRole('button', { name: 'Clear' })).toBeEnabled();
 }
 
-/** Neel sits at Table 2, has ₹50,000 of credit, and signs a ₹20,000 marker at the cage. */
-async function issueNeelAMarker(page: Page) {
-  await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 2', exact: true }).click();
-  await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '7', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000217');
+/** Devansh sits at Table 3, has ₹50,000 of credit, and signs a ₹20,000 marker at the cage. */
+async function issueDevanshAMarker(page: Page) {
+  await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
+  await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '6', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000296');
   await page.getByRole('button', { name: 'Seat', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Move Neel Bose' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Move Devansh Malik' })).toBeVisible();
   await page.getByRole('link', { name: 'Markers' }).click();
-  await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000217');
+  await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000296');
   await page.getByRole('textbox', { name: 'Limit' }).fill('50000');
   await page.getByRole('textbox', { name: 'Why' }).fill('A regular');
   await page.getByRole('button', { name: 'Set limit' }).click();
   await expect(page.getByText('Limit in force.')).toBeVisible();
   await page.getByRole('link', { name: 'Cage' }).click();
-  await page.getByRole('textbox', { name: 'Search members' }).fill('Neel');
-  await page.getByRole('button', { name: 'Neel Bose' }).click();
+  await page.getByRole('textbox', { name: 'Search members' }).fill('Devansh');
+  await page.getByRole('button', { name: 'Devansh Malik' }).click();
   await page.getByRole('textbox', { name: 'Marker amount' }).fill('20000');
-  await sign(page, 'Signature of Neel Bose for ₹20,000');
+  await sign(page, 'Signature of Devansh Malik for ₹20,000');
   await page.getByRole('button', { name: 'Issue marker' }).click();
   await expect(page.getByText('₹20,000 issued on a marker.')).toBeVisible();
 }
 
 /** A repayment on the Markers screen: who, how much, and how. */
 async function repay(page: Page, amount: string, utr: string | null) {
-  await page.getByRole('group', { name: 'Who is paying' }).getByRole('button', { name: 'Neel Bose' }).click();
+  await page.getByRole('group', { name: 'Who is paying' }).getByRole('button', { name: 'Devansh Malik' }).click();
   await page.getByRole('textbox', { name: 'Amount' }).fill(amount);
   await page.getByRole('group', { name: 'Paid by' }).getByRole('button', { name: utr === null ? 'Cash' : 'UPI' }).click();
   if (utr !== null) await page.getByRole('textbox', { name: 'UTR' }).fill(utr);
@@ -63,25 +63,25 @@ async function repay(page: Page, amount: string, utr: string | null) {
 test.describe('Credit and accounts', () => {
   test('Credit: a marker is repaid part in cash and the rest by UPI, and the daily report shows what is owed by age', async ({ page }) => {
     test.skip(isRemoteTarget(), 'seats a member, gives credit and issues a marker, so the local stack only');
-    await signInToConsole(page, '9000000192');
-    await issueNeelAMarker(page);
+    await signInToConsole(page, '9000000194');
+    await issueDevanshAMarker(page);
 
     await page.getByRole('link', { name: 'Markers' }).click();
     await repay(page, '5000', null);
     await expect(page.getByText('₹5,000 repaid.')).toBeVisible();
     const report = page.getByRole('table', { name: 'Credit outstanding by player and age' });
-    const neel = report.getByRole('row').filter({ hasText: 'Neel Bose' });
-    await expect(neel).toContainText('₹15,000');
+    const devansh = report.getByRole('row').filter({ hasText: 'Devansh Malik' });
+    await expect(devansh).toContainText('₹15,000');
 
     // A UTR the club has not seen, so a run again finds it unused.
     await repay(page, '15000', String(Date.now()).slice(-12).padStart(12, '5'));
     await expect(page.getByText('₹15,000 repaid.')).toBeVisible();
-    await expect(neel).toHaveCount(0);
+    await expect(devansh).toHaveCount(0);
 
     await page.getByRole('link', { name: 'Live floor' }).click();
-    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 2', exact: true }).click();
-    await page.getByRole('button', { name: 'Neel Bose leaves' }).click();
-    await expect(page.getByRole('button', { name: 'Move Neel Bose' })).toHaveCount(0);
+    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
+    await page.getByRole('button', { name: 'Devansh Malik leaves' }).click();
+    await expect(page.getByRole('button', { name: 'Move Devansh Malik' })).toHaveCount(0);
   });
 
   test('Accounts and expenses: money moves into a new UPI account, and an expense from it posts once a second person approves', async ({ browser }) => {

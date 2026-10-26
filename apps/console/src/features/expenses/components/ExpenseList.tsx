@@ -1,7 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { expenseRejectionSchema } from '@rivr/contracts';
 import { useExpenseActions, useReceiptUrl, useVenueExpenses, type ExpenseFailure, type VenueExpense } from '@rivr/db';
 import { formatDate, formatMoney, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
 import { EXPENSE_FAILURE_COPY, statusLine } from './expenseCopy.ts';
 
 /** The receipt's photo, fetched only once asked for. */
@@ -17,22 +21,26 @@ function Receipt({ expense }: { expense: VenueExpense }) {
 /** Approve, or turn down with a reason; the one who asked sees that a second person decides. */
 function Decision({ venueId, expense }: { venueId: string; expense: VenueExpense }) {
   const { decide } = useExpenseActions(venueId);
-  const [reason, setReason] = useState<string | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [failure, setFailure] = useState<ExpenseFailure | null>(null);
-  if (expense.isMine) return <Text variant="small" tone="muted">{t('console.expenses.yours')}</Text>;
-  const send = async (isApproved: boolean) => {
-    const done = await decide.mutateAsync({ expenseId: expense.id, isApproved, note: reason ?? '' });
+  const [resolver] = useState(() => zodResolver(expenseRejectionSchema));
+  const form = useForm<z.input<typeof expenseRejectionSchema>, unknown, z.output<typeof expenseRejectionSchema>>({ resolver, defaultValues: { reason: '' } });
+  const send = async (isApproved: boolean, note: string) => {
+    const done = await decide.mutateAsync({ expenseId: expense.id, isApproved, note });
     setFailure(done.ok ? null : done.error);
   };
+  const reject = form.handleSubmit(({ reason }) => send(false, reason));
+  const reasonField = form.register('reason');
+  if (expense.isMine) return <Text variant="small" tone="muted">{t('console.expenses.yours')}</Text>;
   const names = { amount: formatMoney(expense.amount), payee: expense.payee };
   return (
     <Stack gap={2}>
-      {reason === null ? null : <Input label={t('console.expenses.reason')} value={reason} onChange={(event) => setReason(event.target.value)} />}
+      {isRejecting ? <Input {...reasonField} label={t('console.expenses.reason')} error={form.formState.errors.reason ? t('console.expenses.invalidReason') : undefined} /> : null}
       <Inline gap={2}>
-        {reason === null ? <Button variant="primary" aria-label={t('console.expenses.approveName', names)} isLoading={decide.isPending}
-          onClick={() => void send(true)}>{t('console.expenses.approve')}</Button> : null}
-        <Button aria-label={t('console.expenses.rejectName', names)} isLoading={decide.isPending} isDisabled={reason !== null && reason.trim() === ''}
-          onClick={() => (reason === null ? setReason('') : void send(false))}>{t('console.expenses.reject')}</Button>
+        {isRejecting ? null : <Button aria-label={t('console.expenses.approveName', names)} isLoading={decide.isPending}
+          onClick={() => void send(true, '')}>{t('console.expenses.approve')}</Button>}
+        <Button aria-label={t('console.expenses.rejectName', names)} isLoading={decide.isPending}
+          onClick={() => (isRejecting ? void reject() : setIsRejecting(true))}>{t('console.expenses.reject')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{t(EXPENSE_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>

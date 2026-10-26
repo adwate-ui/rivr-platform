@@ -18,22 +18,22 @@ function debtors(markers: readonly OpenMarker[]): { value: string; label: string
   return [...names].map(([value, label]) => ({ value, label }));
 }
 
-/** Who pays, how much, and how: cash, or UPI with its UTR. */
-function RepaymentFields({ form, markers }: { form: RepaymentForm; markers: readonly OpenMarker[] }) {
+/** Who pays, how much, and how: cash, or UPI with its UTR. Any change is a new repayment, with a new request id. */
+function RepaymentFields({ form, markers, onChange }: { form: RepaymentForm; markers: readonly OpenMarker[]; onChange: () => void }) {
   const memberId = useWatch({ control: form.control, name: 'memberId' });
   const method = useWatch({ control: form.control, name: 'method' });
   const errors = form.formState.errors;
-  const fields = { amount: form.register('amount'), utr: form.register('utr') };
+  const fields = { amount: form.register('amount', { onChange }), utr: form.register('utr', { onChange }) };
   return (
     <Stack gap={4}>
       <ChoiceChips label={t('console.markers.repayWho')} mode="one" options={debtors(markers)} selected={memberId === '' ? [] : [memberId]}
-        onChange={(picked) => form.setValue('memberId', picked[0] ?? '')} />
+        onChange={(picked) => { form.setValue('memberId', picked[0] ?? ''); onChange(); }} />
       {errors.memberId ? <ErrorMessage>{t('console.markers.chooseMember')}</ErrorMessage> : null}
       <Input {...fields.amount} label={t('console.markers.repayAmount')} prefix={t('console.markers.rupee')} inputMode="numeric" autoComplete="off"
         error={errors.amount ? t('console.markers.invalidAmount') : undefined} />
       <ChoiceChips label={t('console.markers.repayMethod')} mode="one" selected={[method]}
         options={[{ value: 'cash', label: t('console.markers.cash') }, { value: 'upi', label: t('console.markers.upi') }]}
-        onChange={(picked) => form.setValue('method', picked[0] === 'upi' ? 'upi' : 'cash')} />
+        onChange={(picked) => { form.setValue('method', picked[0] === 'upi' ? 'upi' : 'cash'); onChange(); }} />
       {method === 'upi' ? (
         <Input {...fields.utr} label={t('console.markers.utr')} inputMode="numeric" autoComplete="off"
           error={errors.utr ? t('console.markers.invalidUtr') : undefined} />
@@ -60,13 +60,15 @@ export function RepaymentForm({ venueId }: { venueId: string }) {
     form.reset();
     setRequestId(crypto.randomUUID());
   });
-  if (markers.data === undefined || markers.data.length === 0) return null;
+  // The open markers' loading and error show beside, in the Outstanding list that reads the same.
+  if (markers.data === undefined) return null;
+  const hasDebtors = markers.data.length > 0;
   return (
     <Stack gap={3}>
       <Heading level={2}>{t('console.markers.repay')}</Heading>
-      <Text variant="small" tone="muted">{t('console.markers.repayHint')}</Text>
-      <RepaymentFields form={form} markers={markers.data} />
-      <Button variant="primary" isLoading={repay.isPending} onClick={() => void submit()}>{t('console.markers.repaySave')}</Button>
+      <Text variant="small" tone="muted">{hasDebtors ? t('console.markers.repayHint') : t('console.markers.noOpen')}</Text>
+      {hasDebtors ? <RepaymentFields form={form} markers={markers.data} onChange={() => setRequestId(crypto.randomUUID())} /> : null}
+      {hasDebtors ? <Button isLoading={repay.isPending} onClick={() => void submit()}>{t('console.markers.repaySave')}</Button> : null}
       {outcome.failure === null ? null : <ErrorMessage>{t(REPAYMENT_FAILURE_COPY[outcome.failure])}</ErrorMessage>}
       {outcome.repaid === null ? null : <Text tone="money">{t('console.markers.repaid', { amount: formatMoney(outcome.repaid) })}</Text>}
     </Stack>

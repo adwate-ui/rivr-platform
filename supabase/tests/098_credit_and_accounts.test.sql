@@ -103,6 +103,9 @@ select lives_ok($$ select public.transfer_between_accounts('00000000-0000-4000-8
 select is(public.transfer_between_accounts('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'drawer'),
   (select id from ids where name = 'upi'), 4000000, null, '00000000-0000-4000-8000-0000000c9802'),
   (select id from public.account_transfer), 'a retried tap gives the same transfer');
+select throws_ok($$ select public.transfer_between_accounts('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'drawer'),
+  (select id from ids where name = 'upi'), 400000, null, '00000000-0000-4000-8000-0000000c9802') $$, '22023', null,
+  'and the same key with another amount is refused, never reported as moved');
 select results_eq(
   $$ select name, balance_paise from public.payment_accounts('00000000-0000-4000-8000-000000000001') where name <> 'Bank and UPI' $$,
   $$ values ('Cash drawer'::text, 2000000::bigint), ('Club UPI'::text, 4000000::bigint) $$, 'once, and balanced');
@@ -139,6 +142,17 @@ select throws_ok($$ select public.add_expense_category('00000000-0000-4000-8000-
 select pg_temp.as_person('00000000-0000-4000-8000-000000000140');
 select throws_ok($$ select public.add_expense_category('00000000-0000-4000-8000-000000000001', 'Repairs') $$, '42501', null,
   'a cashier adds no categories');
+select ok(private.may_upload_receipt('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9803.jpg'),
+  'Rohit may upload the receipt of an expense not yet asked for');
+select ok(not private.may_upload_receipt('00000000-0000-4000-8000-000000000001/anything.jpg'), 'but only at an expense''s path');
+reset role;
+-- Rohit's upload of the fruit receipt, as Storage records it.
+insert into storage.objects (bucket_id, name, owner_id)
+values ('expense-receipts', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9803.jpg', '00000000-0000-4000-8000-000000000140');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000140');
+select throws_ok($$ select public.request_expense('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9805',
+  (select id from ids where name = 'food'), (select id from ids where name = 'drawer'), 250000, 'Fresh Fruits Co', null,
+  '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9805.jpg') $$, '22023', null, 'a receipt never uploaded is refused');
 select throws_ok($$ select public.request_expense('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9803',
   (select id from ids where name = 'food'), (select id from ids where name = 'drawer'), 250000, 'Fresh Fruits Co', null,
   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9899.jpg') $$, '22023', null, 'the receipt is this expense''s');
@@ -148,7 +162,15 @@ select throws_ok($$ select public.request_expense('00000000-0000-4000-8000-00000
 select lives_ok($$ select public.request_expense('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9803',
   (select id from ids where name = 'food'), (select id from ids where name = 'drawer'), 250000, ' Fresh Fruits Co ', 'Fruit for the floor',
   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9803.jpg') $$, 'Rohit asks for ₹2,500 of fruit, with the receipt');
+select lives_ok($$ select public.request_expense('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9803',
+  (select id from ids where name = 'food'), (select id from ids where name = 'drawer'), 250000, 'Fresh Fruits Co', 'Fruit for the floor',
+  '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9803.jpg') $$, 'a retried tap asks once');
+select throws_ok($$ select public.request_expense('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9803',
+  (select id from ids where name = 'food'), (select id from ids where name = 'drawer'), 350000, 'Fresh Fruits Co', null, null) $$,
+  '22023', null, 'and the same id with another amount is refused, not taken as asked');
 select is((select count(*)::integer from public.expense), 1, 'the cage sees the expense');
+select ok(not private.may_upload_receipt('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000c9803.jpg'),
+  'and once it is asked for, no receipt is uploaded for it again');
 select throws_ok($$ select public.decide_expense('00000000-0000-4000-8000-0000000c9803', true, null) $$, '42501', null,
   'a cashier decides no expense');
 select throws_ok($$ insert into public.expense (venue_id, category_id, payment_account_id, amount_paise, payee, requested_by_staff_id)
@@ -157,6 +179,10 @@ select throws_ok($$ insert into public.expense (venue_id, category_id, payment_a
 select ok(private.may_handle_receipts('00000000-0000-4000-8000-000000000001/x.jpg'), 'the cage handles the venue''s receipts');
 select ok(not private.may_handle_receipts('00000000-0000-4000-8000-000000000009/x.jpg'), 'not a venue he does not work at');
 select ok(not private.may_handle_receipts('receipts/x.jpg'), 'nor a path outside a venue''s folder');
+reset role;
+create temporary table expected_before as
+select * from private.shift_expected((select s.id from public.cage_shift s where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.closed_at is null));
+grant select on expected_before to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.decide_expense('00000000-0000-4000-8000-0000000c9803', true, null) $$, 'Aditya approves it');
 select results_eq(
@@ -167,6 +193,11 @@ select results_eq(
   $$ select e.status, private.account_balance(c.ledger_account_id), t.kind from public.expense e
      join public.expense_category c on c.id = e.category_id join public.ledger_transaction t on t.id = e.ledger_transaction_id $$,
   $$ values ('approved'::text, 250000::bigint, 'expense'::text) $$, 'to the category''s expense account');
+select results_eq(
+  $$ select e.cash_paise - b.cash_paise, e.receipts_paise - b.receipts_paise
+     from private.shift_expected((select s.id from public.cage_shift s where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.closed_at is null)) e
+     cross join expected_before b $$,
+  $$ values (-250000::bigint, 0::bigint) $$, 'and the end-of-day close expects ₹2,500 less in the drawer');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.request_expense('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9804',
   (select id from ids where name = 'food'), (select id from ids where name = 'upi'), 1200000, 'Caterer', null, null) $$,
@@ -194,6 +225,33 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is_empty($$ select * from public.expense $$, 'a member sees no expenses');
 select is_empty($$ select * from public.venue_expenses('00000000-0000-4000-8000-000000000001') $$, 'nor the list');
 select ok(not private.may_handle_receipts('00000000-0000-4000-8000-000000000001/x.jpg'), 'nor any receipt');
+
+-- Cash taken to the bank is no player's receipt at the close (#45): the drawer expects less, the receipts the same.
+reset role;
+truncate expected_before;
+insert into expected_before
+select * from private.shift_expected((select s.id from public.cage_shift s where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.closed_at is null));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.transfer_between_accounts('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'drawer'),
+  (select payment_account_id from public.payment_accounts('00000000-0000-4000-8000-000000000001') where kind = 'bank'), 100000, 'Banked',
+  gen_random_uuid()) $$, 'Aditya banks ₹1,000 of the drawer');
+reset role;
+select results_eq(
+  $$ select e.cash_paise - b.cash_paise, e.receipts_paise - b.receipts_paise
+     from private.shift_expected((select s.id from public.cage_shift s where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.closed_at is null)) e
+     cross join expected_before b $$,
+  $$ values (-100000::bigint, 0::bigint) $$, 'the close expects ₹1,000 less in the drawer and no more in receipts');
+
+-- Venues apart, and the admin computer (#384).
+select is(private.computer_kind_for('treasury.manage'), 'console'::public.device_kind, 'where a venue keeps money work to its computers, treasury work is the admin computer''s');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000193');
+select ok((select count(*) > 0 from public.payment_account), 'Meher, who works only at the club, sees its accounts');
+select is_empty($$ select * from public.payment_account where venue_id = '00000000-0000-4000-8000-000000000002' $$, 'and none of the practice venue''s');
+select is_empty($$ select * from public.account_statement((select p.id from public.payment_account p where p.venue_id = '00000000-0000-4000-8000-000000000002'
+  limit 1), now() - interval '1 day', now() + interval '1 day') $$, 'nor its statements');
+select is_empty($$ select * from public.venue_expenses('00000000-0000-4000-8000-000000000002') $$, 'nor its expenses');
+select throws_ok($$ select public.transfer_between_accounts('00000000-0000-4000-8000-000000000002', (select id from ids where name = 'drawer'),
+  (select id from ids where name = 'upi'), 100000, null, gen_random_uuid()) $$, '42501', null, 'and moves no money there');
 
 select * from finish();
 rollback;

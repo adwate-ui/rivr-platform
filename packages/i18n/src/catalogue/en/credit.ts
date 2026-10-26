@@ -84,6 +84,8 @@ export const markers = {
   age31to60: '31–60 days',
   ageOver60: 'Over 60 days',
   owed: 'Owed',
+  /** The report's limit is the one in force now, whatever day the report is for. */
+  limitToday: 'Limit today',
   pastDueColumn: 'Past due',
   yes: 'Yes',
   no: 'No',

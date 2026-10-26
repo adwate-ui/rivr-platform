@@ -6,4 +6,6 @@ Date: 2026-10-26 · Task: #92 (scope-v1 module 5)
 
 **Ageing.** A marker's age is the whole days since it was issued, counted down: 0 to 7 days, 8 to 30, 31 to 60, and over 60 (@rivr/domain `ageingBucket`, twin `private.credit_age_bucket`).
 
-**The daily report.** The report gives what each member owed at the end of a chosen day in India time. That is each marker's amount less the settlements made by then, so the report for a past day stands as it was. It sits on the Markers screen, for staff who see credit.
+**The daily report.** The report gives what each member owed at the end of a chosen day in India time (the next midnight). That is each marker's amount less the settlements made by then, so what was owed on a past day stands as it was. The limit shown beside it is the one in force today, and is labelled so: limits keep no history of their own beyond the audit log. The report sits on the Markers screen, for staff who see credit.
+
+**Retries.** A retried tap with the same key gives the same repayment. The same key with another amount, method or UTR is refused.

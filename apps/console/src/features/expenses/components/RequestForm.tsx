@@ -17,21 +17,24 @@ interface RequestFormProps {
   accounts: readonly PaymentAccount[];
 }
 
-/** The category, the account it is paid from, the amount, the payee and a note. */
-function RequestInputs({ form, categories, accounts }: { form: RequestFields } & Omit<RequestFormProps, 'venueId'>) {
+/** The category, the account it is paid from, the amount, the payee and a note. Any change is a new expense, with a new id. */
+function RequestInputs({ form, categories, accounts, onChange }: { form: RequestFields; onChange: () => void } & Omit<RequestFormProps, 'venueId'>) {
   const categoryId = useWatch({ control: form.control, name: 'categoryId' });
   const accountId = useWatch({ control: form.control, name: 'accountId' });
   const errors = form.formState.errors;
-  const fields = { amount: form.register('amount'), payee: form.register('payee'), note: form.register('note') };
+  const fields = { amount: form.register('amount', { onChange }), payee: form.register('payee', { onChange }), note: form.register('note') };
   return (
     <Stack gap={4}>
       {categories.length === 0 ? <Text tone="muted">{t('console.expenses.noCategories')}</Text> : (
         <ChoiceChips label={t('console.expenses.category')} mode="one" selected={categoryId === '' ? [] : [categoryId]}
-          options={categories.map((category) => ({ value: category.id, label: category.name }))} onChange={(picked) => form.setValue('categoryId', picked[0] ?? '')} />
+          options={categories.map((category) => ({ value: category.id, label: category.name }))}
+          onChange={(picked) => { form.setValue('categoryId', picked[0] ?? ''); onChange(); }} />
       )}
       {errors.categoryId ? <ErrorMessage>{t('console.expenses.chooseCategory')}</ErrorMessage> : null}
       <ChoiceChips label={t('console.expenses.account')} mode="one" selected={accountId === '' ? [] : [accountId]}
-        options={accounts.map((account) => ({ value: account.id, label: account.name }))} onChange={(picked) => form.setValue('accountId', picked[0] ?? '')} />
+        options={accounts.map((account) => ({ value: account.id, label: account.name }))}
+        onChange={(picked) => { form.setValue('accountId', picked[0] ?? ''); onChange(); }} />
+      {errors.accountId ? <ErrorMessage>{t('console.expenses.chooseAccount')}</ErrorMessage> : null}
       <Input {...fields.amount} label={t('console.expenses.amount')} prefix={t('console.expenses.rupee')} inputMode="numeric" autoComplete="off"
         error={errors.amount ? t('console.expenses.invalidAmount') : undefined} />
       <Input {...fields.payee} label={t('console.expenses.payee')} autoComplete="off" error={errors.payee ? t('console.expenses.invalidPayee') : undefined} />
@@ -42,7 +45,8 @@ function RequestInputs({ form, categories, accounts }: { form: RequestFields } &
 
 /**
  * Asks for an expense (#95) with a photo of its receipt, sent to the private receipts bucket under the
- * expense's id; the id stays the same across a retry, so a retried tap asks once.
+ * expense's id. The id stays the same across a retry, so a retried tap asks once; a change to the
+ * expense or a new photo makes it a new one.
  */
 export function RequestForm({ venueId, categories, accounts }: RequestFormProps) {
   const { request } = useExpenseActions(venueId);
@@ -62,8 +66,8 @@ export function RequestForm({ venueId, categories, accounts }: RequestFormProps)
   return (
     <Stack gap={3}>
       <Heading level={2}>{t('console.expenses.request')}</Heading>
-      <RequestInputs form={form} categories={categories} accounts={accounts} />
-      <CameraButton camera="environment" onPhoto={setReceipt}>{receipt === null ? t('console.expenses.receipt') : t('console.expenses.receiptAgain')}</CameraButton>
+      <RequestInputs form={form} categories={categories} accounts={accounts} onChange={() => setExpenseId(crypto.randomUUID())} />
+      <CameraButton camera="environment" onPhoto={(photo) => { setReceipt(photo); setExpenseId(crypto.randomUUID()); }}>{receipt === null ? t('console.expenses.receipt') : t('console.expenses.receiptAgain')}</CameraButton>
       {receipt === null ? null : <Text variant="small" tone="muted">{t('console.expenses.receiptReady')}</Text>}
       <Button variant="primary" isLoading={request.isPending} onClick={() => void submit()}>{t('console.expenses.requestSave')}</Button>
       {outcome.failure === null ? null : <ErrorMessage>{t(EXPENSE_FAILURE_COPY[outcome.failure])}</ErrorMessage>}

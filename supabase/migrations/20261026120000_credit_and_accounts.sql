@@ -90,7 +90,7 @@ begin
   select c.id into v_id from public.cage_transaction c where c.venue_id = p_venue_id and c.idempotency_key = p_idempotency_key;
   if v_id is not null then
     if not exists (select 1 from public.cage_transaction c where c.id = v_id and c.kind = 'marker_repayment' and c.member_id = p_member_id
-                   and c.amount_paise = p_amount_paise and c.method = p_method) then
+                   and c.amount_paise = p_amount_paise and c.method = p_method and c.utr is not distinct from v_utr) then
       raise exception 'That key was used for something else' using errcode = '22023';
     end if;
     return query select v_id, coalesce((select sum(s.amount_paise) from public.marker_settlement s where s.cage_transaction_id = v_id), 0)::bigint;
@@ -332,7 +332,14 @@ begin
     raise exception 'Only treasury managers move money between accounts' using errcode = '42501';
   end if;
   select t.id into v_id from public.account_transfer t where t.venue_id = p_venue_id and t.idempotency_key = p_idempotency_key;
-  if v_id is not null then return v_id; end if;
+  if v_id is not null then
+    -- A retried tap gives the same transfer; the same key with other figures is refused, never taken as done.
+    if not exists (select 1 from public.account_transfer t where t.id = v_id and t.from_account_id = p_from_id and t.to_account_id = p_to_id
+                   and t.amount_paise = p_amount_paise) then
+      raise exception 'That key was used for another transfer' using errcode = '22023';
+    end if;
+    return v_id;
+  end if;
   select * into v_from from public.payment_account p where p.id = p_from_id and p.venue_id = p_venue_id and p.is_active for update;
   select * into v_to from public.payment_account p where p.id = p_to_id and p.venue_id = p_venue_id and p.is_active;
   if v_from.id is null or v_to.id is null or v_from.id = v_to.id or p_amount_paise is null or p_amount_paise <= 0
@@ -460,8 +467,9 @@ create policy "the cage and treasury managers see expenses" on public.expense
   for select to authenticated using (venue_id in (select private.venues_where('cage.transact'))
                                      or venue_id in (select private.venues_where('treasury.manage')));
 
--- Receipts: private, photos up to 5 MB. The cage and treasury managers of the venue in the
--- path's first folder upload and read them; nobody else, and nobody changes or deletes one.
+-- Receipts: private, photos up to 5 MB, at <venue>/<expense>.<jpg|png|webp>. The cage and treasury
+-- managers of that venue read them, and upload one only for an expense not yet asked for; nobody else,
+-- and nobody changes or deletes one.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('expense-receipts', 'expense-receipts', false, 5242880, array['image/jpeg', 'image/png', 'image/webp']);
 
@@ -472,12 +480,26 @@ stable
 security definer
 set search_path = ''
 as $$
-  select split_part(p_name, '/', 1) ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-     and (private.has_permission(split_part(p_name, '/', 1)::uuid, 'cage.transact')
-          or private.has_permission(split_part(p_name, '/', 1)::uuid, 'treasury.manage'));
+  -- The folder is checked before it is read as a venue's id, so any other name is simply refused.
+  select case when split_part(p_name, '/', 1) ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+              then private.has_permission(split_part(p_name, '/', 1)::uuid, 'cage.transact')
+                   or private.has_permission(split_part(p_name, '/', 1)::uuid, 'treasury.manage')
+              else false end;
+$$;
+create function private.may_upload_receipt(p_name text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case when p_name ~ '^[0-9a-f-]{36}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$'
+              then private.may_handle_receipts(p_name)
+                   and not exists (select 1 from public.expense e where e.id = split_part(split_part(p_name, '/', 2), '.', 1)::uuid)
+              else false end;
 $$;
 create policy "the cage and treasury managers upload expense receipts" on storage.objects
-  for insert to authenticated with check (bucket_id = 'expense-receipts' and (select private.may_handle_receipts(name)));
+  for insert to authenticated with check (bucket_id = 'expense-receipts' and (select private.may_upload_receipt(name)));
 create policy "the cage and treasury managers read expense receipts" on storage.objects
   for select to authenticated using (bucket_id = 'expense-receipts' and (select private.may_handle_receipts(name)));
 
@@ -508,9 +530,10 @@ begin
 end;
 $$;
 
--- The cage or a treasury manager asks for an expense, with the receipt they uploaded under its id.
--- Refusals: 42501, 22023 a category or account not the venue's, an amount not in whole rupees, or a
--- receipt path not this expense's, RVFRZ the venue frozen.
+-- The cage or a treasury manager asks for an expense, with the receipt they uploaded under its id. A
+-- retried tap gives the same expense. Refusals: 42501, 22023 a category or account not the venue's, an
+-- amount not in whole rupees, a receipt not uploaded by them for this expense, or the id of another
+-- expense, RVFRZ the venue frozen.
 create function private.request_expense(p_venue_id uuid, p_expense_id uuid, p_category_id uuid, p_payment_account_id uuid,
                                         p_amount_paise bigint, p_payee text, p_note text, p_receipt_path text)
 returns uuid
@@ -522,7 +545,18 @@ begin
   if p_venue_id is null or not (private.has_permission(p_venue_id, 'cage.transact') or private.has_permission(p_venue_id, 'treasury.manage')) then
     raise exception 'Only the cage or treasury managers ask for an expense' using errcode = '42501';
   end if;
+  if exists (select 1 from public.expense e where e.id = p_expense_id) then
+    if not exists (select 1 from public.expense e where e.id = p_expense_id and e.venue_id = p_venue_id and e.category_id = p_category_id
+                   and e.payment_account_id = p_payment_account_id and e.amount_paise = p_amount_paise and e.payee = trim(p_payee)
+                   and e.requested_by_staff_id = private.current_staff_id(p_venue_id)) then
+      raise exception 'That id is another expense' using errcode = '22023';
+    end if;
+    return p_expense_id;
+  end if;
   if p_expense_id is null
+     or (nullif(p_receipt_path, '') is not null
+         and not exists (select 1 from storage.objects o where o.bucket_id = 'expense-receipts' and o.name = p_receipt_path
+                         and o.owner_id = (select auth.uid())::text))
      or not exists (select 1 from public.expense_category c where c.id = p_category_id and c.venue_id = p_venue_id)
      or not exists (select 1 from public.payment_account p where p.id = p_payment_account_id and p.venue_id = p_venue_id and p.is_active)
      or p_amount_paise is null or p_amount_paise <= 0 or p_amount_paise % 100 <> 0 or length(trim(coalesce(p_payee, ''))) not between 1 and 80
@@ -533,8 +567,7 @@ begin
   perform private.assert_writable(p_venue_id);
   insert into public.expense (id, venue_id, category_id, payment_account_id, amount_paise, payee, note, receipt_path, requested_by_staff_id)
   values (p_expense_id, p_venue_id, p_category_id, p_payment_account_id, p_amount_paise, trim(p_payee), nullif(trim(coalesce(p_note, '')), ''),
-          nullif(p_receipt_path, ''), private.current_staff_id(p_venue_id))
-  on conflict (id) do nothing;
+          nullif(p_receipt_path, ''), private.current_staff_id(p_venue_id));
   return p_expense_id;
 end;
 $$;
@@ -608,6 +641,54 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------------------------------
+-- The end-of-day close (#45) and the cage's computers (#384) with these in place.
+
+-- As before, with one change: money moved into the bank from another of the club's accounts (a cash
+-- deposit, say) is no receipt from a player, so the close's UPI and bank receipts leave transfers out.
+-- An expense or a transfer out of the drawer lowers the cash expected, as every drawer line does.
+create or replace function private.shift_expected(p_shift_id uuid)
+returns table (cash_paise bigint, chips_paise bigint, receipts_paise bigint, markers_paise bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with shift as (select * from public.cage_shift s where s.id = p_shift_id),
+  moved as (
+    select a.code, e.amount, t.kind
+    from shift
+    join public.ledger_account a on a.venue_id = shift.venue_id and a.code in ('venue.cash_drawer', 'venue.chips_outstanding', 'venue.bank')
+    join public.ledger_entry e on e.account_id = a.id and e.id > shift.opened_after_entry_id
+    join public.ledger_transaction t on t.id = e.transaction_id
+  ),
+  opening as (
+    select c.id from public.chip_inventory_count c join shift on c.shift_id = shift.id order by c.counted_at, c.id limit 1
+  )
+  select (shift.float_paise + coalesce((select sum(m.amount) from moved m where m.code = 'venue.cash_drawer'), 0))::bigint,
+         (coalesce((select sum(l.value_paise * l.quantity) from public.chip_inventory_line l join opening o on o.id = l.count_id), 0)
+          + coalesce((select sum(m.amount) from moved m where m.code = 'venue.chips_outstanding'), 0))::bigint,
+         coalesce((select sum(m.amount) from moved m where m.code = 'venue.bank' and m.amount > 0 and m.kind <> 'account_transfer'), 0)::bigint,
+         coalesce((select sum(e.amount) from public.ledger_account a join public.ledger_entry e on e.account_id = a.id
+                   where a.venue_id = shift.venue_id and a.code = 'member.receivable'), 0)::bigint
+  from shift;
+$$;
+
+-- treasury.manage moves the club's money, so where a venue keeps money work to its computers, it is
+-- held to the admin computer as the other console money powers are (#384).
+create or replace function private.computer_kind_for(p_permission text)
+returns public.device_kind
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_permission in ('cage.transact', 'cage.second_approve', 'markers.issue', 'withdrawals.approve') then 'cage'::public.device_kind
+    when p_permission in ('settings.manage', 'staff.manage', 'devices.manage', 'tiers.manage', 'venue.configure', 'control.engage',
+                          'purge.run', 'exports.full', 'treasury.manage') then 'console'::public.device_kind
+  end;
+$$;
+
+-- ---------------------------------------------------------------------------------------------------
 -- What the apps call.
 
 create function public.repay_markers(p_venue_id uuid, p_member_id uuid, p_amount_paise bigint, p_method text, p_utr text, p_idempotency_key uuid)
@@ -654,9 +735,9 @@ as $$ select * from private.venue_expenses(p_venue_id); $$;
 revoke execute on function private.venue_expenses(uuid), public.venue_expenses(uuid) from public, anon;
 grant execute on function private.venue_expenses(uuid), public.venue_expenses(uuid) to authenticated;
 revoke execute on function private.credit_age_bucket(timestamptz, timestamptz), private.repayment_split(bigint, bigint[]),
-  private.payment_account_for_ledger_account(), private.new_ledger_code(text), private.may_handle_receipts(text)
+  private.payment_account_for_ledger_account(), private.new_ledger_code(text), private.may_handle_receipts(text), private.may_upload_receipt(text)
   from public, anon, authenticated;
-grant execute on function private.may_handle_receipts(text) to authenticated;
+grant execute on function private.may_handle_receipts(text), private.may_upload_receipt(text) to authenticated;
 revoke execute on function private.repay_markers(uuid, uuid, bigint, text, text, uuid), private.credit_report(uuid, timestamptz),
   private.add_payment_account(uuid, text, text, text), private.payment_accounts(uuid),
   private.transfer_between_accounts(uuid, uuid, uuid, bigint, text, uuid), private.account_statement(uuid, timestamptz, timestamptz),
@@ -677,3 +758,7 @@ grant execute on function public.repay_markers(uuid, uuid, bigint, text, text, u
   public.transfer_between_accounts(uuid, uuid, uuid, bigint, text, uuid), public.account_statement(uuid, timestamptz, timestamptz),
   public.add_expense_category(uuid, text), public.request_expense(uuid, uuid, uuid, uuid, bigint, text, text, text),
   public.decide_expense(uuid, boolean, text) to authenticated;
+
+-- The practice venue now has its drawer and bank as payment accounts: its seed is taken again, so a
+-- reset brings them back as they are (decision 0117).
+select private.capture_practice_seed(v.id) from public.venue v where v.is_practice;

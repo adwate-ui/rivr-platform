@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { entryLabel } from './accountCopy.ts';
 
 const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
+const DAY_MS = 86_400_000;
 
 function columns(): readonly DataTableColumn<StatementLine>[] {
   return [
@@ -17,7 +18,9 @@ function columns(): readonly DataTableColumn<StatementLine>[] {
 
 /** The statement's lines in order, or the table's loading or error state. */
 function StatementRows({ accountId, from, to }: { accountId: string; from: string; to: string }) {
-  const statement = useAccountStatement(accountId, new Date(`${from}T00:00:00+05:30`).toISOString(), new Date(`${to}T23:59:59.999+05:30`).toISOString());
+  // Up to the midnight after the last day, in India time (no daylight saving), as the statement counts entries before it.
+  const statement = useAccountStatement(accountId, new Date(`${from}T00:00:00+05:30`).toISOString(),
+    new Date(new Date(`${to}T00:00:00+05:30`).getTime() + DAY_MS).toISOString());
   const base = { label: t('console.accounts.statementLabel'), columns: columns(), rowKey: (row: StatementLine) => `${row.occurredAt}:${row.kind}:${row.balance}` };
   if (statement.data === undefined && statement.isError) return <DataTable {...base} status="error" onRetry={() => void statement.refetch()} />;
   if (statement.data === undefined) return <DataTable {...base} status="loading" />;

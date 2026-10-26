@@ -5,6 +5,7 @@ import type { Paise } from '@rivr/domain/money';
 import { useState } from 'react';
 
 const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
+const DAY_MS = 86_400_000;
 
 const money = (key: string, header: string, paise: (row: CreditReportRow) => Paise): DataTableColumn<CreditReportRow> => ({
   key, header, align: 'end', sortValue: paise, cell: (row) => <Money paise={paise(row)} />,
@@ -18,7 +19,7 @@ function columns(): readonly DataTableColumn<CreditReportRow>[] {
     money('31_60', t('console.markers.age31to60'), (row) => row.owed['31_60']),
     money('over_60', t('console.markers.ageOver60'), (row) => row.owed.over_60),
     money('owed', t('console.markers.owed'), (row) => row.total),
-    money('limit', t('console.markers.limit'), (row) => row.limit),
+    money('limit', t('console.markers.limitToday'), (row) => row.limit),
     {
       key: 'pastDue', header: t('console.markers.pastDueColumn'), sortValue: (row) => (row.isPastDue ? 1 : 0),
       cell: (row) => (row.isPastDue ? t('console.markers.yes') : t('console.markers.no')),
@@ -28,7 +29,8 @@ function columns(): readonly DataTableColumn<CreditReportRow>[] {
 
 /** The report's rows, or the table's loading or error state. */
 function ReportRows({ venueId, day }: { venueId: string; day: string }) {
-  const report = useCreditReport(venueId, new Date(`${day}T23:59:59.999+05:30`).toISOString());
+  // The end of the day is the next midnight in India time, which keeps no daylight saving.
+  const report = useCreditReport(venueId, new Date(new Date(`${day}T00:00:00+05:30`).getTime() + DAY_MS).toISOString());
   const base = { label: t('console.markers.reportLabel'), columns: columns(), rowKey: (row: CreditReportRow) => row.memberId };
   if (report.data === undefined && report.isError) return <DataTable {...base} status="error" onRetry={() => void report.refetch()} />;
   if (report.data === undefined) return <DataTable {...base} status="loading" />;

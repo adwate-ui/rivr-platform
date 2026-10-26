@@ -22,19 +22,19 @@ function OutcomeLine({ outcome }: { outcome: Outcome }) {
   return outcome.done === null ? null : <Text tone="money">{outcome.done}</Text>;
 }
 
-/** The two accounts, the amount and a note. */
-function TransferInputs({ form, accounts }: { form: TransferFields; accounts: readonly PaymentAccount[] }) {
+/** The two accounts, the amount and a note. Any change is a new transfer, with a new request id. */
+function TransferInputs({ form, accounts, onChange }: { form: TransferFields; accounts: readonly PaymentAccount[]; onChange: () => void }) {
   const fromId = useWatch({ control: form.control, name: 'fromId' });
   const toId = useWatch({ control: form.control, name: 'toId' });
   const errors = form.formState.errors;
-  const fields = { amount: form.register('amount'), note: form.register('note') };
+  const fields = { amount: form.register('amount', { onChange }), note: form.register('note') };
   const options = accounts.map((account) => ({ value: account.id, label: account.name }));
   return (
     <Stack gap={4}>
       <ChoiceChips label={t('console.accounts.from')} mode="one" options={options} selected={fromId === '' ? [] : [fromId]}
-        onChange={(picked) => form.setValue('fromId', picked[0] ?? '')} />
+        onChange={(picked) => { form.setValue('fromId', picked[0] ?? ''); onChange(); }} />
       <ChoiceChips label={t('console.accounts.to')} mode="one" options={options} selected={toId === '' ? [] : [toId]}
-        onChange={(picked) => form.setValue('toId', picked[0] ?? '')} />
+        onChange={(picked) => { form.setValue('toId', picked[0] ?? ''); onChange(); }} />
       {errors.fromId || errors.toId ? <ErrorMessage>{t(errors.toId?.type === 'custom' ? 'console.accounts.invalidTo' : 'console.accounts.chooseAccounts')}</ErrorMessage> : null}
       <Input {...fields.amount} label={t('console.accounts.amount')} prefix={t('console.accounts.rupee')} inputMode="numeric" autoComplete="off"
         error={errors.amount ? t('console.accounts.invalidAmount') : undefined} />
@@ -62,7 +62,7 @@ export function TransferForm({ venueId, accounts }: { venueId: string; accounts:
   return (
     <Stack gap={3}>
       <Heading level={2}>{t('console.accounts.transfer')}</Heading>
-      <TransferInputs form={form} accounts={accounts} />
+      <TransferInputs form={form} accounts={accounts} onChange={() => setRequestId(crypto.randomUUID())} />
       <Button variant="primary" isLoading={transfer.isPending} onClick={() => void submit()}>{t('console.accounts.transferSave')}</Button>
       <OutcomeLine outcome={outcome} />
     </Stack>

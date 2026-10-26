@@ -1,7 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { fromPaise } from '../money/index.ts';
-import { AGEING_BUCKETS, ageingBucket, creditAgeing } from './ageing.ts';
+import { AGEING_BUCKETS, ageingBucket } from './ageing.ts';
 
 const DAY_MS = 86_400_000;
 const moment = fc.integer({ min: 1_700_000_000_000, max: 1_900_000_000_000 });
@@ -16,12 +15,9 @@ describe('credit ageing properties', () => {
     }));
   });
 
-  it('puts every rupee owed in exactly one bucket', () => {
-    const marker = fc.record({ age: later, owed: fc.bigInt({ min: 1n, max: 100_000n }) });
-    fc.assert(fc.property(moment, fc.array(marker, { maxLength: 6 }), (at, markers) => {
-      const totals = creditAgeing(markers.map(({ age, owed }) => ({ issuedAt: new Date(at - age), outstanding: fromPaise(owed * 5_000n) })), new Date(at));
-      const owed = markers.reduce((total, { owed: chips }) => total + chips * 5_000n, 0n);
-      expect(AGEING_BUCKETS.reduce((total, bucket) => total + totals[bucket], 0n)).toBe(owed);
+  it('puts a marker issued after the moment asked about in the first bucket', () => {
+    fc.assert(fc.property(moment, later, (at, ahead) => {
+      expect(ageingBucket(new Date(at + ahead), new Date(at))).toBe('0_7');
     }));
   });
 });

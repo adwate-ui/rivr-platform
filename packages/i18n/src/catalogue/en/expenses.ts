@@ -18,6 +18,7 @@ export const expenses = {
   invalidPayee: 'Say who is paid.',
   invalidNote: 'Keep the note to 300 characters.',
   chooseCategory: 'Choose a category. A treasury manager adds them below.',
+  chooseAccount: 'Choose the account it is paid from.',
   noCategories: 'No categories yet. A treasury manager adds them below.',
   list: 'Expenses',
   listEmpty: 'No expenses in the last 90 days.',
