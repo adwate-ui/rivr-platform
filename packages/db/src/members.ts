@@ -10,7 +10,8 @@ export interface MemberRow {
   readonly memberId: string;
   readonly memberNumber: number;
   readonly fullName: string;
-  readonly phone: string;
+  /** Null once the member is erased (#424). */
+  readonly phone: string | null;
   readonly tierName: string;
   readonly visits: number;
   readonly lastVisitAt: string | null;
@@ -21,7 +22,8 @@ export interface MemberRecord {
   readonly memberId: string;
   readonly memberNumber: number;
   readonly fullName: string;
-  readonly phone: string;
+  /** Null once the member is erased (#424). */
+  readonly phone: string | null;
   readonly tierId: string;
   readonly tierName: string;
   /** A tier change's last club day (YYYY-MM-DD); null when the tier is for good. */

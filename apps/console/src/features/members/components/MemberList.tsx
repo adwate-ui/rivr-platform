@@ -50,7 +50,7 @@ function Results({ venueId, query, tier, onOpen }: { venueId: string; query: str
   // Within a tier, the search narrows the tier's members by name, number or mobile number as typed.
   const shown = tier === null || typed === ''
     ? rows.data
-    : rows.data.filter((row) => row.fullName.toLowerCase().includes(typed) || String(row.memberNumber) === typed || row.phone.includes(typed));
+    : rows.data.filter((row) => row.fullName.toLowerCase().includes(typed) || String(row.memberNumber) === typed || row.phone?.includes(typed) === true);
   return <DataTable {...base} rows={shown} emptyText={tier === null ? t('console.members.noMatch', { query: query.trim() }) : t('console.members.noneInTier', { tier: tier.name })} />;
 }
 

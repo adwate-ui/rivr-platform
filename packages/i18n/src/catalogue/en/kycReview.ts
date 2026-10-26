@@ -31,6 +31,7 @@ export const kycReview = {
   duplicatePan: 'Refused: the PAN of a verified member.',
   duplicateAadhaar: 'Refused: the Aadhaar of a verified member.',
   staffRejected: 'Rejected by a reviewer.',
+  onBreak: 'Refused: the identity of an erased member whose break has not ended.',
   reasonFor: 'Reason for {name}',
   reasonHint: 'What you saw, in your words. Never type document numbers.',
   dateOfBirthFor: 'Date of birth on {name}\'s original document',

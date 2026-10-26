@@ -7,7 +7,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 /** Why a check was refused: the gate's reasons, or a reviewer's rejection. */
-export type KycRefusal = 'under_18' | 'duplicate_face' | 'duplicate_pan' | 'duplicate_aadhaar' | 'staff_rejected';
+export type KycRefusal = 'under_18' | 'duplicate_face' | 'duplicate_pan' | 'duplicate_aadhaar' | 'staff_rejected' | 'on_break';
 
 /**
  * An identity check as a KYC reviewer sees it: what the vendor found (scores 0 to 100), the KYC photo's
@@ -53,7 +53,7 @@ const FAILURE_BY_CODE: Readonly<Record<string, KycReviewFailure>> = {
 const STATUSES = ['needs_review', 'needs_pan', 'refused'] as const;
 const METHODS = ['digilocker', 'pan', 'manual'] as const;
 const WAIT_REASONS = ['pan_alone', 'nothing_kept', 'no_date_of_birth', 'clash'] as const;
-const REFUSALS = ['under_18', 'duplicate_face', 'duplicate_pan', 'duplicate_aadhaar', 'staff_rejected'] as const;
+const REFUSALS = ['under_18', 'duplicate_face', 'duplicate_pan', 'duplicate_aadhaar', 'staff_rejected', 'on_break'] as const;
 
 /** One of `known`, or a fault: a value this console does not know is never shown as some other. */
 function oneOf<Value extends string>(known: readonly Value[], value: string): Value {

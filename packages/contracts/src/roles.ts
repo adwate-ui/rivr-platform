@@ -19,6 +19,7 @@ export const PERMISSIONS = [
   'members.read',
   'members.manage',
   'members.override_features', // grant or revoke one feature for one member
+  'members.erase', // erase one member's personal data on request, super_admin only (decision 0207)
   'kyc.review',
   'tiers.manage', // tiers and the tier x feature matrix
   'floor.manage', // tables, seating, games
@@ -88,5 +89,6 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
 /** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */
 export const SUPER_ADMIN_ONLY: readonly Permission[] = [
   'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure', 'shareholding.manage',
+  'members.erase',
 ];
 

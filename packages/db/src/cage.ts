@@ -8,7 +8,7 @@ import type { KycRefusal } from './kycReview.ts';
 import { queryKeys } from './queryKeys.ts';
 
 // Why a member's identity check fails, as the KYC review names it (#58).
-const KYC_REFUSALS: readonly KycRefusal[] = ['under_18', 'duplicate_pan', 'duplicate_aadhaar', 'duplicate_face', 'staff_rejected'];
+const KYC_REFUSALS: readonly KycRefusal[] = ['under_18', 'duplicate_pan', 'duplicate_aadhaar', 'duplicate_face', 'staff_rejected', 'on_break'];
 
 /** A member as the cage sees them (#57): KYC, wallet cash, bonus, markers, where they sit and the table's minimum. */
 export interface CageMember {
