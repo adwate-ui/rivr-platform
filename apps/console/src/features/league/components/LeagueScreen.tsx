@@ -60,23 +60,30 @@ function Seasons({ venueId, seasons, canKeep }: { venueId: string; seasons: read
   );
 }
 
-function LeagueBody({ venueId, canKeep }: { venueId: string; canKeep: boolean }) {
-  const seasons = useLeagueSeasons(venueId);
+/** The standings for one period, chosen from this month, the two before and each season. */
+function Standings({ venueId, seasons }: { venueId: string; seasons: readonly LeagueSeason[] }) {
   const [chosen, setChosen] = useState<string | null>(null);
-  const title = t('console.league.title');
-  if (seasons.isPending) return <Screen title={title} status="loading" />;
-  if (seasons.data === undefined) return <Screen title={title} status="error" onRetry={() => void seasons.refetch()} />;
-  const periods = periodsFor(seasons.data);
+  const periods = periodsFor(seasons);
   const period = periods.find((option) => option.value === chosen) ?? periods[0];
   if (period === undefined) return null;
   return (
+    <Stack gap={6}>
+      <ChoiceChips label={t('console.league.period')} mode="one" selected={[period.value]} options={periods}
+        onChange={(next) => { if (next[0] !== undefined) setChosen(next[0]); }} />
+      <StandingsTable venueId={venueId} label={period.label} firstMonth={period.firstMonth} lastMonth={period.lastMonth} />
+    </Stack>
+  );
+}
+
+function LeagueBody({ venueId, canRead, canKeep }: { venueId: string; canRead: boolean; canKeep: boolean }) {
+  const seasons = useLeagueSeasons(venueId);
+  const title = t('console.league.title');
+  if (seasons.isPending) return <Screen title={title} status="loading" />;
+  if (seasons.data === undefined) return <Screen title={title} status="error" onRetry={() => void seasons.refetch()} />;
+  return (
     <Screen title={title}>
       <Grid columns={2} gap={12}>
-        <Stack gap={6}>
-          <ChoiceChips label={t('console.league.period')} mode="one" selected={[period.value]} options={periods}
-            onChange={(next) => { if (next[0] !== undefined) setChosen(next[0]); }} />
-          <StandingsTable venueId={venueId} label={period.label} firstMonth={period.firstMonth} lastMonth={period.lastMonth} />
-        </Stack>
+        {canRead ? <Standings venueId={venueId} seasons={seasons.data} /> : <Text tone="muted">{t('console.league.noNames')}</Text>}
         <Seasons venueId={venueId} seasons={seasons.data} canKeep={canKeep} />
       </Grid>
     </Screen>
@@ -84,16 +91,18 @@ function LeagueBody({ venueId, canKeep }: { venueId: string; canKeep: boolean })
 }
 
 /**
- * The RIVR League (#147, decision 0182): the standings this month, the two months before, or a season, with
- * cash and tournament points apart; and the seasons, which staff with rewards.manage add and change. For
- * staff who read members or keep rewards.
+ * The RIVR League (#147, decision 0182): for staff who read members, the standings this month, the two months
+ * before, or a season, with cash and tournament points apart; and the seasons, which staff with
+ * rewards.manage add and change.
  */
 export function LeagueScreen() {
   const staff = useStaffVenue();
   if (staff.status !== 'ready') return null;
   const permissions = staff.venue.permissions;
-  if (!permissions.includes('members.read') && !permissions.includes('rewards.manage')) {
+  const canRead = permissions.includes('members.read');
+  const canKeep = permissions.includes('rewards.manage');
+  if (!canRead && !canKeep) {
     return <Screen title={t('console.league.title')} status="error" errorText={t('console.league.notAllowed')} />;
   }
-  return <LeagueBody venueId={staff.venue.venueId} canKeep={permissions.includes('rewards.manage')} />;
+  return <LeagueBody venueId={staff.venue.venueId} canRead={canRead} canKeep={canKeep} />;
 }

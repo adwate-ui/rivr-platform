@@ -1,4 +1,4 @@
-import type { RewardKind } from '@rivr/contracts';
+import { REWARD_KINDS, type RewardKind } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -16,7 +16,10 @@ export interface RewardItem {
   readonly isLive: boolean;
 }
 
-/** A reward as the console saves it: a new one has no id. */
+/**
+ * A reward as the console saves it: a new one has no id. A change carries the stock the editor was shown
+ * (`stockWas`), so a redemption made meanwhile is never written over.
+ */
 export interface RewardItemOrder {
   readonly itemId: string | null;
   readonly kind: RewardKind;
@@ -24,6 +27,7 @@ export interface RewardItemOrder {
   readonly detail: string;
   readonly points: number;
   readonly stock: number | null;
+  readonly stockWas: number | null;
   readonly isLive: boolean;
 }
 
@@ -42,17 +46,21 @@ export interface Redemption {
 }
 
 /**
- * Why a rewards action did not go through: the role does not allow it, a value out of bounds or handed over
- * already, the reward not on offer or none left, not enough points, the member or the venue frozen, or anything else.
+ * Why a rewards action did not go through: the role does not allow it, a value out of bounds, the stock
+ * changed since the editor saw it, handed over already, the reward not on offer or none left, its price
+ * changed since the member saw it, not enough points, the member or the venue frozen, or anything else.
  */
-export type RewardFailure = 'not_allowed' | 'invalid' | 'not_on_offer' | 'not_enough_points' | 'stopped' | 'paused' | 'unavailable';
+export type RewardFailure =
+  | 'not_allowed' | 'invalid' | 'stock_changed' | 'handed_over' | 'not_on_offer' | 'price_changed' | 'not_enough_points' | 'stopped' | 'paused'
+  | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPTS: 'not_enough_points', RVMBR: 'stopped', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', RVCHG: 'stock_changed', RVHND: 'handed_over', RVRWD: 'not_on_offer', RVPRC: 'price_changed',
+  RVPTS: 'not_enough_points', RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
-const KINDS: readonly RewardKind[] = ['tournament_seat', 'fnb_upgrade', 'merchandise', 'hotel_night'];
-const kindOf = (kind: string): RewardKind => KINDS.find((known) => known === kind) ?? 'merchandise';
+// The database holds only the four kinds; anything else would be a reward from a newer catalogue, shown as merchandise.
+const kindOf = (kind: string): RewardKind => REWARD_KINDS.find((known) => known === kind) ?? 'merchandise';
 
 // The console's list of redemptions asks again every half minute: members redeem from the app at any time.
 const REDEMPTIONS_CHECK = 30_000;
@@ -96,6 +104,7 @@ export function useSaveRewardItem(venueId: string) {
       const { data, error } = await client.rpc('save_reward_item', {
         p_venue_id: venueId, p_kind: order.kind, p_name: order.name.trim(), p_detail: order.detail.trim(), p_points: order.points,
         p_is_live: order.isLive, ...(order.itemId === null ? {} : { p_item_id: order.itemId }), ...(order.stock === null ? {} : { p_stock: order.stock }),
+        ...(order.stockWas === null ? {} : { p_stock_was: order.stockWas }),
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.rewardItems(userId ?? 'signed-out', venueId) });
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
@@ -103,7 +112,7 @@ export function useSaveRewardItem(venueId: string) {
   });
 }
 
-/** The venue's redemptions (rewards.manage or rewards.hand_over): those waiting first, oldest first, then 30 days handed over. */
+/** The venue's redemptions, for staff who hand them over (rewards.hand_over): those waiting first, oldest first, then 30 days handed over. */
 export function useVenueRedemptions(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({

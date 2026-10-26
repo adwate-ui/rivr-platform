@@ -30,6 +30,13 @@ create function pg_temp.earn(p_member uuid, p_points bigint, p_closed timestampt
   returning visit_id;
 $$;
 
+-- Elsewhere, a venue made here with its own cashier, who reads members there and nothing at the club.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e2', 'authenticated', 'authenticated', '919000000999', now(), now());
+insert into public.staff (venue_id, user_id, full_name, job_title, role)
+values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e2', 'Elsewhere Cashier', 'Cashier', 'cashier');
+
 select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'league.points', '', now()),
   '{"first": 100, "second": 70, "third": 50, "final_table": 20, "entry": 5}'::jsonb,
   'the seed gives 100, 70 and 50 for the podium, 20 for the final table and 5 for taking part');
@@ -75,17 +82,27 @@ select results_eq(
   $$ select place, full_name, points from public.venue_league('00000000-0000-4000-8000-000000000001', '2026-01-01', '2026-03-01') $$,
   $$ values (1, 'Mihir Shah'::text, 135::bigint), (2, 'Yash Gupta', 75), (3, 'Kunal Mehra', 25) $$,
   'a season from January to March adds the months up');
+select is((select count(*)::integer from public.league_finish where venue_id = '00000000-0000-4000-8000-000000000001'), 2,
+  'the admin reads the club''s finishes');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select is((select count(*)::integer from public.venue_league('00000000-0000-4000-8000-000000000001', '2026-01-01', '2026-01-01')), 3,
-  'marketing sees the standings too');
+select is_empty($$ select * from public.venue_league('00000000-0000-4000-8000-000000000001', '2026-01-01', '2026-01-01') $$,
+  'marketing, who reads no members, sees no full names');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.venue_league('00000000-0000-4000-8000-000000000001', '2026-01-01', '2026-01-01') $$,
   'a dealer sees none');
 select is_empty($$ select * from public.league_finish $$, 'nor any finish');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
+select is_empty($$ select * from public.venue_league('00000000-0000-4000-8000-000000000001', '2026-01-01', '2026-01-01') $$,
+  'Elsewhere''s cashier sees none of the club''s standings');
+select is_empty($$ select * from public.league_finish $$, 'nor its finishes');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is_empty($$ select * from public.venue_league('00000000-0000-4000-8000-000000000001', '2026-01-01', '2026-01-01') $$,
   'a member reads no full names');
 select results_eq($$ select place, points from public.league_finish $$, $$ values (1, 105::bigint) $$, 'Mihir sees his own finish only');
+select throws_ok($$ select private.award_league_points('00000000-0000-4000-8000-0000000c1001', '00000000-0000-4000-8000-000000000213', 1, now()) $$,
+  '42501', null, 'and awards himself nothing');
+select throws_ok($$ select * from private.league_board('00000000-0000-4000-8000-000000000001') $$, '42501', null,
+  'nor reads the board''s member ids');
 
 -- Seasons, from rewards.manage.
 reset role;
@@ -110,16 +127,21 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is((select count(*)::integer from public.league_season), 1, 'Mihir sees the season');
 
 -- This month's board. Mihir and Kunal lead by far; Kunal hid his name on the TVs; ten others play a little, and
--- Yash least; Ritika's tier is denied the League. A practice member plays too.
+-- Yash least. Ritika's tier is denied the League and Neel has excluded himself from play: neither is ranked,
+-- whatever they played. A practice member plays too.
 reset role;
 select pg_temp.earn('00000000-0000-4000-8000-000000000213', 100000, now());
 select pg_temp.earn('00000000-0000-4000-8000-000000000216', 50000, now());
 select pg_temp.earn(m.id, 1000 + m.n, now()) from (
   select id, row_number() over (order by id) as n from public.member where venue_id = '00000000-0000-4000-8000-000000000001'
     and id not in ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000214', '00000000-0000-4000-8000-000000000215',
-                   '00000000-0000-4000-8000-000000000216')
+                   '00000000-0000-4000-8000-000000000216', '00000000-0000-4000-8000-000000000217')
   order by id limit 10) m;
 select pg_temp.earn('00000000-0000-4000-8000-000000000214', 1, now());
+select pg_temp.earn('00000000-0000-4000-8000-000000000215', 2000, now());
+select pg_temp.earn('00000000-0000-4000-8000-000000000217', 3000, now());
+insert into public.self_exclusion (venue_id, member_id, starts_at, ends_at)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217', now() - interval '1 day', now() + interval '30 days');
 select pg_temp.earn('00000000-0000-4000-8000-000000000270', 500000, now());
 insert into public.member_preference (member_id, venue_id, name_on_tvs)
 values ('00000000-0000-4000-8000-000000000216', '00000000-0000-4000-8000-000000000001', false)
@@ -143,6 +165,13 @@ select results_eq(
 select is((select max(place) from public.public_league_table where venue_slug = 'gurugram' and standing = 'month'), 10,
   'ten places on the board');
 select is_empty($$ select * from public.public_league_table where venue_slug = 'practice' $$, 'never the practice venue');
+select is_empty($$ select * from public.public_league_table where display_name in ('Ritika D.', 'Neel B.') $$,
+  'nor Ritika, whose tier has no League, nor Neel, who excluded himself');
+reset role;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is_empty($$ select * from public.venue_league('00000000-0000-4000-8000-000000000001', (select first_month from this_month),
+                                                     (select first_month from this_month))
+                   where full_name in ('Ritika Das', 'Neel Bose') $$, 'and the console ranks neither');
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');

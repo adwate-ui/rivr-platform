@@ -158,7 +158,8 @@ as $$
   with cash as (
     select e.member_id, sum(e.points) as points
     from public.visit v join public.points_earning e on e.visit_id = v.id and e.basis = 'hours'
-    -- The months' club days run from 06:00 IST on the first's first to 06:00 IST after the last's end.
+    -- The rule is league_month. The range before it says the same (the months' club days run from 06:00
+    -- IST on the first's first to 06:00 IST after the last's end) so the index on closed_at finds the visits.
     where v.venue_id = p_venue_id
       and v.closed_at >= (p_first + interval '6 hours') at time zone 'Asia/Kolkata'
       and v.closed_at < (p_last + interval '1 month 6 hours') at time zone 'Asia/Kolkata'
@@ -174,7 +175,9 @@ as $$
   from cash c full join finishes t on t.member_id = c.member_id;
 $$;
 
--- The standings over those months: everyone with points, in order, ties sharing a place (1, 2, 2, 4).
+-- The standings over those months: every member in the League with points, in order, ties sharing a
+-- place (1, 2, 2, 4). In the League is a member whose tier has it and who has not excluded themselves
+-- from play (#56): nobody else is ranked, on the console or anywhere members look.
 create function private.league_standings(p_venue_id uuid, p_first date, p_last date)
 returns table (o_place integer, o_member_id uuid, o_cash bigint, o_tournament bigint, o_points bigint)
 language sql
@@ -185,6 +188,8 @@ as $$
   select (rank() over (order by p.o_cash + p.o_tournament desc))::integer, p.o_member_id, p.o_cash, p.o_tournament, p.o_cash + p.o_tournament
   from private.league_points(p_venue_id, p_first, p_last) p
   where p.o_cash + p.o_tournament > 0
+    and private.has_feature(p.o_member_id, 'league.standings')
+    and not exists (select 1 from public.self_exclusion x where x.member_id = p.o_member_id and x.starts_at <= now() and x.ends_at > now())
   order by 1, 2;
 $$;
 
@@ -215,8 +220,8 @@ as $$
   order by p.standing = 'season', l.o_place, m.full_name;
 $$;
 
--- The console's standings over the months from p_first to p_last (members.read or rewards.manage):
--- full names and member numbers, cash and tournament points apart.
+-- The console's standings over the months from p_first to p_last, for staff who read members: full
+-- names and member numbers, cash and tournament points apart.
 create function private.venue_league(p_venue_id uuid, p_first date, p_last date)
 returns table (place integer, member_id uuid, full_name text, member_number bigint, cash_points bigint, tournament_points bigint, points bigint)
 language sql
@@ -227,7 +232,7 @@ as $$
   select l.o_place, m.id, m.full_name, m.member_number, l.o_cash, l.o_tournament, l.o_points
   from private.league_standings(p_venue_id, p_first, p_last) l
   join public.member m on m.id = l.o_member_id
-  where private.has_permission(p_venue_id, 'members.read') or private.has_permission(p_venue_id, 'rewards.manage')
+  where private.has_permission(p_venue_id, 'members.read')
   order by l.o_place, m.full_name
   limit 200;
 $$;
@@ -242,19 +247,27 @@ stable
 security definer
 set search_path = ''
 as $$
-  with me as (select private.current_member_id() as id, private.current_member_venue_id() as venue_id),
-  board as (select b.* from me cross join lateral private.league_board(me.venue_id) b)
+  -- The signed-in member, if their tier has the League; nobody otherwise, and so no rows.
+  with me as (
+    select m.id, m.venue_id, private.first_name_and_initial(m.full_name) as display_name from public.member m
+    where m.id = private.current_member_id() and private.has_feature(m.id, 'league.standings')
+  ),
+  -- This month's and this season's top ten at their venue.
+  board as (select b.* from me cross join lateral private.league_board(me.venue_id) b),
+  -- The periods the board shows, each once.
+  periods as (select distinct b.standing, b.season_name, b.first_month, b.last_month from board b),
+  -- Their own place in each period where they are not on the board.
+  mine_off_board as (
+    select p.standing, p.season_name, p.first_month, p.last_month, l.o_place as place, l.o_points as points
+    from me cross join periods p
+    cross join lateral private.league_standings(me.venue_id, p.first_month, p.last_month) l
+    where l.o_member_id = me.id and not exists (select 1 from board b where b.standing = p.standing and b.member_id = me.id)
+  )
   select b.standing, b.season_name, b.first_month, b.last_month, b.place, b.display_name, b.points, b.member_id = me.id
   from board b cross join me
-  where private.has_feature(me.id, 'league.standings')
   union all
-  select p.standing, p.season_name, p.first_month, p.last_month, l.o_place, private.first_name_and_initial(m.full_name), l.o_points, true
-  from me
-  join public.member m on m.id = me.id
-  cross join lateral (select distinct b.standing, b.season_name, b.first_month, b.last_month from board b) p
-  cross join lateral private.league_standings(me.venue_id, p.first_month, p.last_month) l
-  where private.has_feature(me.id, 'league.standings') and l.o_member_id = me.id
-    and not exists (select 1 from board b where b.standing = p.standing and b.member_id = me.id)
+  select o.standing, o.season_name, o.first_month, o.last_month, o.place, me.display_name, o.points, true
+  from mine_off_board o cross join me
   order by 1, 5;
 $$;
 

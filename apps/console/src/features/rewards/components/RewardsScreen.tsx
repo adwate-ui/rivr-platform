@@ -9,21 +9,19 @@ import { RewardForm } from './RewardForm.tsx';
 /** The catalogue and the redemptions beside the form: a new reward, or the one chosen to change. */
 function RewardsBody({ venueId, canKeep, canHandOver }: { venueId: string; canKeep: boolean; canHandOver: boolean }) {
   const [editing, setEditing] = useState<RewardItem | null>(null);
-  const lists = (
-    <Stack gap={10}>
-      <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={setEditing} />
-      <RedemptionList venueId={venueId} canHandOver={canHandOver} />
-    </Stack>
-  );
+  const catalogue = <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={setEditing} />;
   const newReward = editing === null ? null : <Button variant="text" onClick={() => setEditing(null)}>{t('console.rewards.newReward')}</Button>;
   return (
     <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
-      {canKeep ? (
-        <Grid columns={2} gap={12}>
-          {lists}
-          <RewardForm key={editing?.id ?? 'new'} venueId={venueId} item={editing} onDone={() => setEditing(null)} />
-        </Grid>
-      ) : lists}
+      <Stack gap={10}>
+        {canKeep ? (
+          <Grid columns={2} gap={12}>
+            {catalogue}
+            <RewardForm key={editing?.id ?? 'new'} venueId={venueId} item={editing} onDone={() => setEditing(null)} />
+          </Grid>
+        ) : catalogue}
+        {canHandOver ? <RedemptionList venueId={venueId} /> : null}
+      </Stack>
     </Screen>
   );
 }
@@ -31,7 +29,7 @@ function RewardsBody({ venueId, canKeep, canHandOver }: { venueId: string; canKe
 /**
  * Rewards (#145, decision 0181; design prompt "Rewards"): the venue's catalogue of tournament seats, F&B
  * upgrades, merchandise and hotel nights, kept by staff with rewards.manage beside the form; and members'
- * redemptions, which the cage, the host desk or an admin (rewards.hand_over) hand over.
+ * redemptions, which the cage, the host desk or an admin (rewards.hand_over) see and hand over.
  */
 export function RewardsScreen() {
   const staff = useStaffVenue();

@@ -104,10 +104,12 @@ create policy "reward staff see the venue's redemptions" on public.redemption
   using (venue_id in (select private.venues_where('rewards.manage')) or venue_id in (select private.venues_where('rewards.hand_over')));
 
 -- Adds a reward to the catalogue (no item given) or changes one, for rewards.manage; no stock is no
--- limit. Refusals: 42501 not rewards.manage or not this venue's item, 22023 a kind not in the
--- catalogue or a name, detail, points or stock out of bounds, RVFRZ the venue frozen.
+-- limit. A change carries the stock the editor saw (p_stock_was), so a redemption made meanwhile is
+-- never written over. Refusals: 42501 not rewards.manage or not this venue's item, 22023 a kind not in
+-- the catalogue or a name, detail, points or stock out of bounds, RVCHG the stock changed since the
+-- editor saw it, RVFRZ the venue frozen.
 create function private.save_reward_item(p_venue_id uuid, p_kind text, p_name text, p_detail text, p_points bigint, p_is_live boolean,
-                                         p_item_id uuid default null, p_stock integer default null)
+                                         p_item_id uuid default null, p_stock integer default null, p_stock_was integer default null)
 returns uuid
 language plpgsql
 security definer
@@ -115,6 +117,7 @@ set search_path = ''
 as $$
 declare
   v_id uuid;
+  v_item public.reward_item;
 begin
   if p_venue_id is null or not private.has_permission(p_venue_id, 'rewards.manage') then
     raise exception 'Only rewards.manage keeps the catalogue' using errcode = '42501';
@@ -132,22 +135,27 @@ begin
     returning id into v_id;
     return v_id;
   end if;
-  update public.reward_item
-  set kind = p_kind, name = btrim(p_name), detail = btrim(p_detail), points = p_points, stock = p_stock, is_live = p_is_live
-  where id = p_item_id and venue_id = p_venue_id
-  returning id into v_id;
-  if v_id is null then
+  -- Locked as redeem_reward locks it, so a redemption either comes first and is seen, or waits.
+  select * into v_item from public.reward_item i where i.id = p_item_id and i.venue_id = p_venue_id for update;
+  if v_item.id is null then
     raise exception 'No such reward at this venue' using errcode = '42501';
   end if;
-  return v_id;
+  if v_item.stock is distinct from p_stock_was then
+    raise exception 'Members redeemed it meanwhile: % left now', coalesce(v_item.stock::text, 'no limit') using errcode = 'RVCHG';
+  end if;
+  update public.reward_item
+  set kind = p_kind, name = btrim(p_name), detail = btrim(p_detail), points = p_points, stock = p_stock, is_live = p_is_live
+  where id = v_item.id;
+  return v_item.id;
 end;
 $$;
 
--- The signed-in member redeems a reward with their points, once per key of theirs: the same key again
--- gives the same redemption and takes nothing more. Refusals: 42501 not a member, or their tier has no
--- rewards.catalogue; 22023 no key, or a key that redeemed another reward; RVRWD a reward not on offer
--- at their venue, or none left; RVPTS not enough points; RVFRZ/RVMBR the venue or the member frozen.
-create function private.redeem_reward(p_item_id uuid, p_idempotency_key text)
+-- The signed-in member redeems a reward for the points they were shown (p_points), once per key of
+-- theirs: the same key again gives the same redemption and takes nothing more. Refusals: 42501 not a
+-- member, or their tier has no rewards.catalogue; 22023 no key, or a key that redeemed another reward;
+-- RVRWD a reward not on offer at their venue, or none left; RVPRC its price changed since they saw it;
+-- RVPTS not enough points; RVFRZ/RVMBR the venue or the member frozen.
+create function private.redeem_reward(p_item_id uuid, p_points bigint, p_idempotency_key text)
 returns uuid
 language plpgsql
 security definer
@@ -180,6 +188,9 @@ begin
   if v_item.id is null or not v_item.is_live or v_item.stock = 0 then
     raise exception 'That reward is not on offer, or none are left' using errcode = 'RVRWD';
   end if;
+  if v_item.points is distinct from p_points then
+    raise exception 'The price changed: % points now', v_item.points using errcode = 'RVPRC';
+  end if;
   v_txn := private.debit_points(v_member.venue_id, v_member.id, v_item.points, 'Redeemed: ' || v_item.name,
                                 'redemption:' || v_member.id || ':' || p_idempotency_key);
   update public.reward_item set stock = stock - 1 where id = v_item.id and stock is not null;
@@ -193,8 +204,8 @@ begin
 end;
 $$;
 
--- The venue's redemptions for the console (rewards.manage or rewards.hand_over): those waiting to be
--- handed over first, oldest first, then those handed over in the last 30 days, newest first.
+-- The venue's redemptions for the staff who hand them over (rewards.hand_over, who all read members):
+-- those waiting first, oldest first, then those handed over in the last 30 days, newest first.
 create function private.venue_redemptions(p_venue_id uuid)
 returns table (id uuid, member_id uuid, full_name text, member_number bigint, reward_name text, kind text, points bigint,
                created_at timestamptz, handed_over_at timestamptz, handed_over_by text)
@@ -208,15 +219,14 @@ as $$
   join public.member m on m.id = r.member_id
   join public.reward_item i on i.id = r.reward_item_id
   left join public.staff s on s.id = r.handed_over_by_staff_id
-  where r.venue_id = p_venue_id
-    and (private.has_permission(p_venue_id, 'rewards.manage') or private.has_permission(p_venue_id, 'rewards.hand_over'))
+  where r.venue_id = p_venue_id and private.has_permission(p_venue_id, 'rewards.hand_over')
     and (r.handed_over_at is null or r.handed_over_at > now() - interval '30 days')
   order by r.handed_over_at is null desc, case when r.handed_over_at is null then r.created_at end, r.handed_over_at desc
   limit 500;
 $$;
 
 -- Staff hand a member what they redeemed. Refusals: 42501 not rewards.hand_over at the redemption's
--- venue, 22023 handed over already, RVFRZ the venue frozen.
+-- venue, RVHND handed over already, RVFRZ the venue frozen.
 create function private.hand_over_redemption(p_redemption_id uuid)
 returns void
 language plpgsql
@@ -231,7 +241,7 @@ begin
     raise exception 'Only rewards.hand_over hands over a redemption' using errcode = '42501';
   end if;
   if v_redemption.handed_over_at is not null then
-    raise exception 'That redemption was handed over already' using errcode = '22023';
+    raise exception 'That redemption was handed over already' using errcode = 'RVHND';
   end if;
   perform private.assert_writable(v_redemption.venue_id);
   update public.redemption set handed_over_at = now(), handed_over_by_staff_id = private.current_staff_id(v_redemption.venue_id)
@@ -240,12 +250,12 @@ end;
 $$;
 
 create function public.save_reward_item(p_venue_id uuid, p_kind text, p_name text, p_detail text, p_points bigint, p_is_live boolean,
-                                        p_item_id uuid default null, p_stock integer default null)
+                                        p_item_id uuid default null, p_stock integer default null, p_stock_was integer default null)
 returns uuid language sql volatile security invoker set search_path = ''
-as $$ select private.save_reward_item(p_venue_id, p_kind, p_name, p_detail, p_points, p_is_live, p_item_id, p_stock); $$;
-create function public.redeem_reward(p_item_id uuid, p_idempotency_key text)
+as $$ select private.save_reward_item(p_venue_id, p_kind, p_name, p_detail, p_points, p_is_live, p_item_id, p_stock, p_stock_was); $$;
+create function public.redeem_reward(p_item_id uuid, p_points bigint, p_idempotency_key text)
 returns uuid language sql volatile security invoker set search_path = ''
-as $$ select private.redeem_reward(p_item_id, p_idempotency_key); $$;
+as $$ select private.redeem_reward(p_item_id, p_points, p_idempotency_key); $$;
 create function public.venue_redemptions(p_venue_id uuid)
 returns table (id uuid, member_id uuid, full_name text, member_number bigint, reward_name text, kind text, points bigint,
                created_at timestamptz, handed_over_at timestamptz, handed_over_by text)
@@ -255,11 +265,11 @@ create function public.hand_over_redemption(p_redemption_id uuid)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.hand_over_redemption(p_redemption_id); $$;
 
-revoke execute on function private.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer), private.redeem_reward(uuid, text),
+revoke execute on function private.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer, integer), private.redeem_reward(uuid, bigint, text),
   private.venue_redemptions(uuid), private.hand_over_redemption(uuid) from public, anon;
-grant execute on function private.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer), private.redeem_reward(uuid, text),
+grant execute on function private.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer, integer), private.redeem_reward(uuid, bigint, text),
   private.venue_redemptions(uuid), private.hand_over_redemption(uuid) to authenticated;
-revoke execute on function public.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer), public.redeem_reward(uuid, text),
+revoke execute on function public.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer, integer), public.redeem_reward(uuid, bigint, text),
   public.venue_redemptions(uuid), public.hand_over_redemption(uuid) from public, anon;
-grant execute on function public.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer), public.redeem_reward(uuid, text),
+grant execute on function public.save_reward_item(uuid, text, text, text, bigint, boolean, uuid, integer, integer), public.redeem_reward(uuid, bigint, text),
   public.venue_redemptions(uuid), public.hand_over_redemption(uuid) to authenticated;

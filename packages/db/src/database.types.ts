@@ -3288,7 +3288,7 @@ isOneToOne: false
             }[]
                            },
 "redeem_reward":
-{ Args: { "p_idempotency_key": string,"p_item_id": string }; Returns: string
+{ Args: { "p_idempotency_key": string,"p_item_id": string,"p_points": number }; Returns: string
                            },
 "reject_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
@@ -3350,7 +3350,7 @@ isOneToOne: false
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
                            },
 "save_reward_item":
-{ Args: { "p_detail": string,"p_is_live": boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_points": number,"p_stock"?: number,"p_venue_id": string }; Returns: string
+{ Args: { "p_detail": string,"p_is_live": boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_points": number,"p_stock"?: number,"p_stock_was"?: number,"p_venue_id": string }; Returns: string
                            },
 "schedule_drills":
 { Args: { "p_first_on": string,"p_sop_id"?: string,"p_title": string,"p_venue_id": string }; Returns: number

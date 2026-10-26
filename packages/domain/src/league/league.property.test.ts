@@ -10,6 +10,10 @@ const place = fc.bigInt({ min: 1n, max: 500n });
 const moment = fc.date({ min: new Date('2026-01-01T00:00:00Z'), max: new Date('2035-12-31T23:59:59Z'), noInvalidDate: true });
 
 const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+// 06:00 IST is 00:30 UTC.
+const CLUB_DAY_START_UTC_MS = 30 * 60 * 1000;
+const IST_MONTH = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit' });
 
 describe('leagueFinishPoints properties', () => {
   it('gives every finisher at least the points for taking part', () => {
@@ -45,11 +49,26 @@ describe('leagueMonth properties', () => {
     }));
   });
 
-  it('is the month of the IST calendar day six hours before', () => {
+  it('is the month of the IST calendar day six hours before, as the time-zone database tells it', () => {
     fc.assert(fc.property(moment, (at) => {
-      // IST is UTC+05:30; six hours before in IST is UTC-00:30.
-      const sixHoursBeforeInIst = new Date(at.getTime() + 5.5 * HOUR_MS - 6 * HOUR_MS).toISOString();
-      expect(leagueMonth(at)).toBe(`${sixHoursBeforeInIst.slice(0, 7)}-01`);
+      const parts = IST_MONTH.formatToParts(new Date(at.getTime() - 6 * HOUR_MS));
+      const part = (type: string) => parts.find((found) => found.type === type)?.value;
+      expect(leagueMonth(at)).toBe(`${part('year') ?? ''}-${part('month') ?? ''}-01`);
+    }));
+  });
+
+  it('never goes back as time goes on', () => {
+    fc.assert(fc.property(moment, moment, (a, b) => {
+      const [earlier, later] = a <= b ? [a, b] : [b, a];
+      expect(leagueMonth(earlier) <= leagueMonth(later)).toBe(true);
+    }));
+  });
+
+  it('is one month for the whole of a club day, 06:00 to 06:00 IST', () => {
+    fc.assert(fc.property(moment, fc.integer({ min: 0, max: 24 * 60 - 1 }), (at, minutes) => {
+      // The club day's 06:00 IST (00:30 UTC) on or before the moment, and a minute within that day.
+      const dayStart = Math.floor((at.getTime() - CLUB_DAY_START_UTC_MS) / DAY_MS) * DAY_MS + CLUB_DAY_START_UTC_MS;
+      expect(leagueMonth(new Date(dayStart + minutes * 60_000))).toBe(leagueMonth(new Date(dayStart)));
     }));
   });
 });

@@ -60,7 +60,7 @@ describe('the rewards catalogue (decision 0181)', () => {
     let outcome: unknown;
     await act(async () => {
       outcome = await result.current.save.mutateAsync({
-        itemId: null, kind: 'fnb_upgrade', name: ' F&B upgrade ', detail: 'At the bar', points: 2500, stock: null, isLive: true,
+        itemId: null, kind: 'fnb_upgrade', name: ' F&B upgrade ', detail: 'At the bar', points: 2500, stock: null, stockWas: null, isLive: true,
       });
     });
     expect(outcome).toEqual({ ok: true, value: 'r2' });
@@ -72,18 +72,18 @@ describe('the rewards catalogue (decision 0181)', () => {
   it('changes one, with its id and stock, and says why a hand-over failed', async () => {
     const { result, calls } = renderHooks({
       '/rpc/save_reward_item': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } },
-      '/rpc/hand_over_redemption': { status: 400, body: { code: '22023', message: 'handed over' } },
+      '/rpc/hand_over_redemption': { status: 400, body: { code: 'RVHND', message: 'handed over' } },
     });
     let outcome: unknown;
     await act(async () => {
       outcome = await result.current.save.mutateAsync({
-        itemId: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, stock: 3, isLive: false,
+        itemId: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, stock: 3, stockWas: 2, isLive: false,
       });
     });
     expect(outcome).toEqual({ ok: false, error: 'paused' });
-    expect(bodyOf(calls, '/rpc/save_reward_item')).toMatchObject({ p_item_id: 'r1', p_stock: 3, p_is_live: false });
+    expect(bodyOf(calls, '/rpc/save_reward_item')).toMatchObject({ p_item_id: 'r1', p_stock: 3, p_stock_was: 2, p_is_live: false });
     await act(async () => { outcome = await result.current.handOver.mutateAsync('d1'); });
-    expect(outcome).toEqual({ ok: false, error: 'invalid' });
+    expect(outcome).toEqual({ ok: false, error: 'handed_over' });
     expect(bodyOf(calls, '/rpc/hand_over_redemption')).toEqual({ p_redemption_id: 'd1' });
   });
 });

@@ -14,9 +14,11 @@ Every tournament counts. Lane B calls this function when a tournament finishes (
 
 **When.** Points belong to the month of the club's day, 06:00 to 06:00 IST (`leagueMonth` in `@rivr/domain/league`, proved equal to `private.league_month`).
 
-**Seasons.** A season (`league_season`) is a run of whole months that overlaps no other. Its championship adds the months up. Ties share a place (1, 2, 2, 4), and the top place when the season ends is the champion. Standings are computed from `points_earning` and `league_finish`, not kept as a table.
+**Seasons.** A season (`league_season`) is a run of whole months that overlaps no other. Its championship adds the months up. Ties share a place (1, 2, 2, 4), and the top place when the season ends is the champion. Standings are computed from `points_earning` and `league_finish`, not kept as a table. Places are SQL's `rank()` over a plain sum, with no arithmetic to prove, so they have no `@rivr/domain` twin.
+
+**Who is ranked.** Only members in the League: their tier has `league.standings`, and they have not excluded themselves from play. Nobody else is ranked anywhere, the console included.
 
 **Who sees what.**
 
-- The console shows full names to staff who read members or keep rewards.
+- The console shows full names to staff who read members. Marketing keeps the seasons but sees no names.
 - The TVs, the website (`public_league_table`, never the practice venue) and other members see a first name and initial, and no name for a member who hid theirs on the TVs (#326).

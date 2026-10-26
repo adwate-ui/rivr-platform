@@ -64,14 +64,14 @@ export function RewardForm({ venueId, item, onDone }: { venueId: string; item: R
   const [resolver] = useState(() => zodResolver(rewardItemSchema));
   const form = useForm<RewardValues, unknown, z.output<typeof rewardItemSchema>>({ resolver, defaultValues: valuesOf(item) });
   const submit = form.handleSubmit(async (values) => {
-    const saved = await save.mutateAsync({ ...values, itemId: item?.id ?? null });
+    const saved = await save.mutateAsync({ ...values, itemId: item?.id ?? null, stockWas: item?.stock ?? null });
     setOutcome(saved.ok ? { ok: true, text: t('console.rewards.saved', { name: values.name }) } : { ok: false, text: t(`console.rewards.failures.${saved.error}`) });
     if (saved.ok && item === null) form.reset(EMPTY);
     if (saved.ok && item !== null) onDone();
   });
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{item === null ? t('console.rewards.adding') : t('console.rewards.editing', { name: item.name })}</Heading>
+      <Heading level={2} variant="section">{item === null ? t('console.rewards.newReward') : t('console.rewards.editName', { name: item.name })}</Heading>
       <Choices form={form} />
       <Fields form={form} />
       <Inline gap={4} align="center">

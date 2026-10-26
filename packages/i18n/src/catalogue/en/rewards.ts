@@ -13,22 +13,27 @@ export const rewards = {
   title: 'Rewards',
   notAllowed: 'Your role does not include rewards. Ask an admin if you need it.',
   catalogue: 'Catalogue',
-  noRewards: 'No rewards yet. Add the first one.',
+  noRewards: 'No rewards here yet.',
+  /** The catalogue's filter: all rewards, or one kind. */
+  show: 'Show',
+  all: 'All',
   kinds,
+  /** The redemptions' columns. */
+  reward: 'Reward',
   /** A reward's second line: its kind and where to collect it, `Merchandise · At the host desk`. */
   itemLine: '{kind} · {detail}',
   points: '{points} points',
+  onePoint: '1 point',
   /** How many are left, or none counted. */
   left: '{count} left',
   noLimit: 'No limit',
   live: 'Live',
   retired: 'Retired',
   edit: 'Edit',
+  /** The Edit button's name, and the form's heading while it changes that reward. */
   editName: 'Edit {name}',
+  /** The action beside the heading, and the form's heading for a new reward. */
   newReward: 'New reward',
-  /** The form beside the catalogue. */
-  editing: 'Edit {name}',
-  adding: 'New reward',
   kind: 'Kind',
   name: 'Name',
   invalidName: 'Give it a name of up to 80 characters.',
@@ -45,21 +50,27 @@ export const rewards = {
   save: 'Save',
   cancel: 'Cancel',
   saved: '{name} is saved.',
-  /** Redemptions. */
+  /** Redemptions, for staff who hand them over. */
   waiting: 'Waiting to hand over',
   noneWaiting: 'Nothing is waiting to be handed over.',
   handedOver: 'Handed over in the last 30 days',
   noneHandedOver: 'Nothing handed over in the last 30 days.',
-  /** A redemption: `Mihir Shah · No. 1213 · RIVR cap · 4,000 points · 15 Nov, 22:40`. */
-  redemptionLine: '{name} · No. {number} · {reward} · {points} points · {when}',
-  /** Who handed it over, and when. */
-  handedOverLine: 'Handed over by {name}, {when}',
+  member: 'Member',
+  /** The member and their number: `Mihir Shah · No. 1213`. */
+  memberLine: '{name} · No. {number}',
+  redeemed: 'Redeemed',
+  handedOverBy: 'Handed over',
+  /** Who handed it over, and when: `Karan Gill, Sun 15 Nov, 22:40`. */
+  handedOverLine: '{name}, {when}',
   handOver: 'Hand over',
   handOverName: 'Hand {reward} over to {name}',
   failures: {
     not_allowed: 'Your role does not allow this.',
-    invalid: 'That did not save. Check the values; a redemption may have been handed over already.',
-    not_on_offer: 'That reward is not on offer.',
+    invalid: 'That did not save. Check the values and try again.',
+    stock_changed: 'Members redeemed this reward while you were editing. Open it again to see how many are left.',
+    handed_over: 'That was handed over already. The list now shows who did.',
+    not_on_offer: 'That reward is not on offer, or none are left.',
+    price_changed: 'The price changed. The catalogue now shows it.',
     not_enough_points: 'Not enough points.',
     stopped: 'That member is frozen.',
     paused: 'The venue is frozen. Rewards change again once it is released.',
@@ -74,7 +85,7 @@ export const league = {
   /** Which standings to show. */
   period: 'Standings for',
   thisMonth: 'This month',
-  standings: 'Standings',
+  noNames: 'Standings by name are for staff who read members.',
   noStandings: 'No League points yet for this period.',
   place: 'Place',
   member: 'Member',

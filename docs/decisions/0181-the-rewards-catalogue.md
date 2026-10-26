@@ -21,10 +21,15 @@ Points never convert to cash (decision 0161). The prototype's "₹1,000 to cash"
 
 **Who.**
 
-- `rewards.manage` (super admin, admin, marketing) keeps the catalogue.
-- `rewards.hand_over` (super admin, admin, cashier, host) hands redemptions over on the console's Rewards screen. The redemptions list is the record of what is owed to whom.
+- `rewards.manage` (super admin, admin, marketing) keeps the catalogue. A change carries the stock the editor saw, and is refused (RVCHG) if members redeemed meanwhile, so a redemption is never written over.
+- `rewards.hand_over` (super admin, admin, cashier, host) sees the redemptions, with members' names, and hands them over on the console's Rewards screen. Every role with it also reads members; marketing, which does not, sees no names. The list is the record of what is owed to whom.
 
-**Redeeming.** `public.redeem_reward(item, key)` works for a member whose tier has `rewards.catalogue`. It takes the points through `private.debit_points`, never below nothing. The same key again returns the same redemption and takes nothing more. It emits `reward.redeemed`.
+**Redeeming.** `public.redeem_reward(item, points, key)` works for a member whose tier has `rewards.catalogue`.
+
+- It charges only the price the member was shown; if the price changed meanwhile it refuses (RVPRC).
+- It takes the points through `private.debit_points`, never below nothing.
+- The same key again returns the same redemption and takes nothing more.
+- It emits `reward.redeemed`.
 
 **Not built.**
 
