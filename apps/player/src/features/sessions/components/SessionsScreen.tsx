@@ -3,7 +3,7 @@ import { useMyTdsCertificates, type TdsCertificate } from '@rivr/db/tds';
 import { formatMoney, formatNumber, formatQuarter, t } from '@rivr/i18n';
 import { FeatureGate, Heading, Screen, Stack, Text } from '@rivr/ui';
 
-/** One quarter's TDS from one venue: when, who withheld it and their TAN, and how much from how many cash-outs. */
+/** One quarter's TDS from one venue: when, who withheld it and their TAN, and how much from how many payments: cash-outs, tournament prizes and bounties. */
 function Certificate({ certificate }: { certificate: TdsCertificate }) {
   return (
     <Stack gap={1}>
@@ -13,7 +13,7 @@ function Certificate({ certificate }: { certificate: TdsCertificate }) {
         })}
       </Text>
       <Text variant="small" tone="muted">
-        {t('player.sessions.tdsAmount', { tds: formatMoney(certificate.tds), section: certificate.section, count: formatNumber(certificate.cashOuts) })}
+        {t('player.sessions.tdsAmount', { tds: formatMoney(certificate.tds), section: certificate.section, count: formatNumber(certificate.payments) })}
       </Text>
     </Stack>
   );

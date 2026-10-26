@@ -51,7 +51,7 @@ export const playerApp = {
     /** TDS certificate data (#93), shown only when TDS was withheld: `Oct–Dec 2026 · RIVR Gaming Pvt Ltd · TAN DELR12345E`. */
     tds: 'TDS withheld',
     tdsFrom: '{quarter} · {legalName} · TAN {tan}',
-    tdsAmount: '{tds} under section {section}, from {count} cash-outs',
+    tdsAmount: '{tds} under section {section}, from {count} payments',
     noTan: 'not yet given',
   },
   balance,

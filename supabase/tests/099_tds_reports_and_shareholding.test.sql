@@ -41,7 +41,7 @@ select is((select to_member_paise from public.cage_cash_out('00000000-0000-4000-
 
 -- The withholding ledger.
 select results_eq(
-  $$ select full_name, pan_last4 is not null, cash_outs, paid_paise, withheld_paise, shadow_paise
+  $$ select full_name, pan_last4 is not null, payments, paid_paise, withheld_paise, shadow_paise
      from public.tds_ledger('00000000-0000-4000-8000-000000000001', (now() at time zone 'Asia/Kolkata')::date, (now() at time zone 'Asia/Kolkata')::date)
      where member_id = '00000000-0000-4000-8000-000000000211' $$,
   $$ values ('Ishaan Verma'::text, true, 2, 7000000::bigint, 600000::bigint, 1200000::bigint) $$,
@@ -80,7 +80,7 @@ select is(private.tds_quarter_start('2026-12-31T19:00:00Z'), '2027-01-01'::date,
 -- Certificate data, for the member himself.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select results_eq(
-  $$ select tan, quarter_start = (select starts from quarter), section, length(pan_last4), cash_outs, paid_paise, tds_paise
+  $$ select tan, quarter_start = (select starts from quarter), section, length(pan_last4), payments, paid_paise, tds_paise
      from public.my_tds_certificates() $$,
   $$ values ('DELR12345E'::text, true, '194B'::text, 4, 1, 2000000::bigint, 600000::bigint) $$,
   'Ishaan''s certificate data: the club''s TAN, the quarter, and the TDS withheld from him');

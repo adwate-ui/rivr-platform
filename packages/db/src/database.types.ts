@@ -2623,14 +2623,14 @@ isOneToOne: false
                   ]
                 },"tds_withholding": {
                   Row: {
-                    "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id": string,"created_at": string,"due_paise": number,"has_pan": boolean,"id": string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"updated_at": string,"venue_id": string,"winnings_paise": number
+                    "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id": string | null,"created_at": string,"due_paise": number,"has_pan": boolean,"id": string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"tournament_payout_id": string | null,"updated_at": string,"venue_id": string,"winnings_paise": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id": string,"created_at"?: string,"due_paise": number,"has_pan": boolean,"id"?: string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"updated_at"?: string,"venue_id": string,"winnings_paise": number
+                    "already_paise": number,"amount_paise": number,"basis": string,"cage_transaction_id"?: string | null,"created_at"?: string,"due_paise": number,"has_pan": boolean,"id"?: string,"is_shadow": boolean,"member_id": string,"period_start": string,"rate_basis_points": number,"section": string,"tournament_payout_id"?: string | null,"updated_at"?: string,"venue_id": string,"winnings_paise": number
                   }
                   Update: {
-                    "already_paise"?: number,"amount_paise"?: number,"basis"?: string,"cage_transaction_id"?: string,"created_at"?: string,"due_paise"?: number,"has_pan"?: boolean,"id"?: string,"is_shadow"?: boolean,"member_id"?: string,"period_start"?: string,"rate_basis_points"?: number,"section"?: string,"updated_at"?: string,"venue_id"?: string,"winnings_paise"?: number
+                    "already_paise"?: number,"amount_paise"?: number,"basis"?: string,"cage_transaction_id"?: string | null,"created_at"?: string,"due_paise"?: number,"has_pan"?: boolean,"id"?: string,"is_shadow"?: boolean,"member_id"?: string,"period_start"?: string,"rate_basis_points"?: number,"section"?: string,"tournament_payout_id"?: string | null,"updated_at"?: string,"venue_id"?: string,"winnings_paise"?: number
                   }
                   Relationships: [
                     {
@@ -2645,6 +2645,12 @@ isOneToOne: true
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tds_withholding_tournament_payout_id_fkey"
+      columns: ["tournament_payout_id"]
+isOneToOne: true
+      referencedRelation: "tournament_payout"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "tds_withholding_venue_id_fkey"
       columns: ["venue_id"]
@@ -3683,7 +3689,7 @@ isOneToOne: false
                            },
 "my_tds_certificates":
 { Args: Record<PropertyKey, never>; Returns: {
-              "cash_outs": number,"legal_name": string,"paid_paise": number,"pan_last4": string,"quarter_start": string,"section": string,"tan": string,"tds_paise": number,"venue_id": string
+              "legal_name": string,"paid_paise": number,"pan_last4": string,"payments": number,"quarter_start": string,"section": string,"tan": string,"tds_paise": number,"venue_id": string
             }[]
                            },
 "my_tonight":
@@ -4086,7 +4092,7 @@ isOneToOne: false
                            },
 "tds_ledger":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
-              "cash_outs": number,"full_name": string,"member_id": string,"member_number": number,"paid_paise": number,"pan_last4": string,"shadow_paise": number,"withheld_paise": number
+              "full_name": string,"member_id": string,"member_number": number,"paid_paise": number,"pan_last4": string,"payments": number,"shadow_paise": number,"withheld_paise": number
             }[]
                            },
 "tds_return_extract":
