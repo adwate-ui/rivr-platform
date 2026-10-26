@@ -1,4 +1,4 @@
-import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
+import { rewardKindOf, type RewardKind } from '@rivr/contracts/rewardKinds';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -59,9 +59,6 @@ const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
   RVPTS: 'not_enough_points', RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
-// The database holds only the four kinds; anything else would be a reward from a newer catalogue, shown as merchandise.
-const kindOf = (kind: string): RewardKind => REWARD_KINDS.find((known) => known === kind) ?? 'merchandise';
-
 // The console's list of redemptions asks again every half minute: members redeem from the app at any time.
 const REDEMPTIONS_CHECK = 30_000;
 
@@ -76,7 +73,7 @@ interface RewardItemRow {
 }
 
 function rewardItemOf(row: RewardItemRow): RewardItem {
-  return { id: row.id, kind: kindOf(row.kind), name: row.name, detail: row.detail, points: BigInt(row.points), stock: row.stock, isLive: row.is_live };
+  return { id: row.id, kind: rewardKindOf(row.kind), name: row.name, detail: row.detail, points: BigInt(row.points), stock: row.stock, isLive: row.is_live };
 }
 
 /** A venue's catalogue as the console keeps it (rewards.manage or rewards.hand_over): live first, cheapest first. */
@@ -124,7 +121,7 @@ export function useVenueRedemptions(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         id: row.id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, rewardName: row.reward_name,
-        kind: kindOf(row.kind), points: BigInt(row.points), createdAt: row.created_at, handedOverAt: row.handed_over_at, handedOverBy: row.handed_over_by,
+        kind: rewardKindOf(row.kind), points: BigInt(row.points), createdAt: row.created_at, handedOverAt: row.handed_over_at, handedOverBy: row.handed_over_by,
       }));
     },
   });
