@@ -1,0 +1,174 @@
+{
+  "rule": "Tournament entry rules",
+  "about": "Who may buy what in a tournament, and when (#116; decision 0202). Every format takes one first entry per player while registration is open: before the clock starts (level 0) and to the end of the last registration level, the break after it included (a break counts as the level before it). A freezeout takes nothing more. A re-entry tournament takes a new entry from a player who has busted; a rebuy tournament sells more chips to a player alive or busted; each only while registration is open and within the most buys a player may make (the first entry counts; none set is no limit). An add-on, where the tournament sells one, is one per player with chips, during the last registration level or the break after it. Checks run in this order and the first that fails is the answer; 'allowed' is a purchase that may go ahead.",
+  "cases": [
+    {
+      "description": "RIVR Sunday: a first entry before the clock starts.",
+      "operation": "purchase",
+      "inputs": { "purchase": "entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "0", "buys": "0", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "Late registration in level 9, the last registration level.",
+      "operation": "purchase",
+      "inputs": { "purchase": "entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "9", "buys": "0", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "Level 10: registration has closed.",
+      "operation": "purchase",
+      "inputs": { "purchase": "entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "10", "buys": "0", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "registration_closed" }
+    },
+    {
+      "description": "A player already entered cannot enter again; they re-enter after busting.",
+      "operation": "purchase",
+      "inputs": { "purchase": "entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "3", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "already_entered" }
+    },
+    {
+      "description": "A re-entry after busting in level 6.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "6", "buys": "1", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "A third re-entry with no limit set.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "8", "buys": "3", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "No re-entry while the player still has chips.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "6", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "still_playing" }
+    },
+    {
+      "description": "No re-entry once registration has closed.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "10", "buys": "1", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "registration_closed" }
+    },
+    {
+      "description": "Three buys at most: the third buy was the last.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "3", "addOn": "no", "level": "4", "buys": "3", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "limit_reached" }
+    },
+    {
+      "description": "Two buys of three: one more is allowed.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "3", "addOn": "no", "level": "4", "buys": "2", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "A re-entry needs a first entry.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "2", "buys": "0", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "not_entered" }
+    },
+    {
+      "description": "A freezeout: one entry, so no re-entry.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "freezeout", "lastRegistrationLevel": "4", "maxBuys": "", "addOn": "no", "level": "2", "buys": "1", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "wrong_format" }
+    },
+    {
+      "description": "A freezeout: a busted player cannot enter again.",
+      "operation": "purchase",
+      "inputs": { "purchase": "entry", "format": "freezeout", "lastRegistrationLevel": "4", "maxBuys": "", "addOn": "no", "level": "2", "buys": "1", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "already_entered" }
+    },
+    {
+      "description": "A freezeout sells no rebuys.",
+      "operation": "purchase",
+      "inputs": { "purchase": "rebuy", "format": "freezeout", "lastRegistrationLevel": "4", "maxBuys": "", "addOn": "no", "level": "2", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "wrong_format" }
+    },
+    {
+      "description": "A rebuy tournament: more chips for a player still alive.",
+      "operation": "purchase",
+      "inputs": { "purchase": "rebuy", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "3", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "A rebuy tournament: a busted player rebuys in the rebuy period.",
+      "operation": "purchase",
+      "inputs": { "purchase": "rebuy", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "6", "buys": "2", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "No rebuy after the rebuy period.",
+      "operation": "purchase",
+      "inputs": { "purchase": "rebuy", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "7", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "registration_closed" }
+    },
+    {
+      "description": "Four buys at most in a rebuy tournament: the entry and three rebuys.",
+      "operation": "purchase",
+      "inputs": { "purchase": "rebuy", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "4", "addOn": "yes", "level": "5", "buys": "4", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "limit_reached" }
+    },
+    {
+      "description": "A rebuy tournament takes no re-entries.",
+      "operation": "purchase",
+      "inputs": { "purchase": "re_entry", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "5", "buys": "1", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "wrong_format" }
+    },
+    {
+      "description": "A re-entry tournament sells no rebuys.",
+      "operation": "purchase",
+      "inputs": { "purchase": "rebuy", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "5", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "wrong_format" }
+    },
+    {
+      "description": "The add-on, in the last rebuy level.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "6", "buys": "3", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    },
+    {
+      "description": "Too early for the add-on: level 5.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "5", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "add_on_closed" }
+    },
+    {
+      "description": "Too late for the add-on: level 7.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "7", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "add_on_closed" }
+    },
+    {
+      "description": "One add-on a player.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "6", "buys": "1", "alive": "yes", "addOnTaken": "yes" },
+      "expected": { "result": "add_on_taken" }
+    },
+    {
+      "description": "No add-on for a busted player.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "6", "buys": "1", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "busted" }
+    },
+    {
+      "description": "No add-on before entering.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "rebuy", "lastRegistrationLevel": "6", "maxBuys": "", "addOn": "yes", "level": "6", "buys": "0", "alive": "no", "addOnTaken": "no" },
+      "expected": { "result": "not_entered" }
+    },
+    {
+      "description": "No add-on where none is sold.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "re_entry", "lastRegistrationLevel": "9", "maxBuys": "", "addOn": "no", "level": "9", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "no_add_on" }
+    },
+    {
+      "description": "A freezeout with an add-on at its last registration level.",
+      "operation": "purchase",
+      "inputs": { "purchase": "add_on", "format": "freezeout", "lastRegistrationLevel": "4", "maxBuys": "", "addOn": "yes", "level": "4", "buys": "1", "alive": "yes", "addOnTaken": "no" },
+      "expected": { "result": "allowed" }
+    }
+  ]
+}

@@ -173,6 +173,20 @@ The RIVR League (#147, decision 0182, question #452). A month's League points ar
 | `leagueFinishPoints(place, schedule)`, `LeagueFinishPoints` | A tournament finish, from `league.points`: the points for taking part, plus first's, second's or third's, or the final table's for fourth to ninth; nothing more below ninth. With 100, 70, 50, 20 and 5, the winner earns 105 and tenth 5. |
 | `leagueMonth(at)` | The League month of a moment, as its first day: the month of the club's day (06:00 to 06:00 IST), so 02:00 on 1 December is November. |
 
+### `@rivr/domain/tournament`
+
+Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` and `checkPurchase` are proved equal to their `private.` twins by `packages/testing/golden/tournamentClock.json` and `tournamentEntry.json`; the calculator by `blindStructure.json`.
+
+| Export | What it does |
+|---|---|
+| `Stage`, `PlayLevel`, `BreakStage`, `structureProblem(stages)`, `structureMinutes`, `levelCount`, `MOST_STAGES` | A blind structure: levels (blinds and ante in chips, minutes) and breaks. What stops the clock running one: none, more than sixty stages, a break first, two breaks together, minutes outside 1 to 120, a small blind above the big. |
+| `clockAt(stages, elapsedSeconds)`, `ClockPosition` | Where the clock stands: the stage, the level (a break counts as the level before it), whether it is a break, the seconds left. Before the start, level 1 in full; past the end, the last stage with none left. |
+| `stageStartSeconds`, `nextLevelAfter`, `levelAtOrAfter` | When a stage starts; the next level after a stage; the level at a stage, or after a break. |
+| `elapsedNow(reading, nowMs)`, `ClockReading` | A device's count down from the server's reading: a running clock runs on from when it was read, a paused one holds. |
+| `planStructure(plan)`, `StructurePlan` | The calculator: levels for a target length, big blinds up the chip ladder to a twentieth of the chips in play, breaks every so many levels, an optional big-blind ante. |
+| `checkPurchase(purchase, rules, level, player)`, `TOURNAMENT_FORMATS`, `EntryRules`, `PlayerStanding`, `Purchase`, `PurchaseRefusal` | Whether a player may enter, re-enter, rebuy or take the add-on at the clock's level: a `Result` with the refusal. |
+| `poolShare(price, fee)` | What one buy puts in the prize pool: its price less the fee. |
+
 ## Usage
 
 ```ts

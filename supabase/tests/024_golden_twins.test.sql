@@ -405,5 +405,52 @@ select results_eq(
   $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'promotionWindow.json' and operation = 'played' order by position $$,
   'a table''s time inside the window bears its share of the time away, as in the golden file');
 
+-- A golden blind structure, 'small/big ante A for M; break M', as the levels a tournament keeps.
+create function pg_temp.stages(p_notation text) returns jsonb language sql immutable as $$
+  select jsonb_agg(case when x.pause is not null then jsonb_build_object('kind', 'break', 'minutes', x.pause[1]::integer)
+                        else jsonb_build_object('kind', 'level', 'small_blind', x.play[1]::integer, 'big_blind', x.play[2]::integer,
+                                                'ante', coalesce(x.play[3], '0')::integer, 'minutes', x.play[4]::integer) end order by p.n)
+  from regexp_split_to_table(p_notation, ';') with ordinality as p (part, n)
+  cross join lateral (select regexp_match(btrim(p.part), '^break (\d+)$') as pause,
+                             regexp_match(btrim(p.part), '^(\d+)/(\d+)(?: ante (\d+))? for (\d+)$') as play) x;
+$$;
+-- A golden '138:20' as seconds, and seconds back as minutes:seconds.
+create function pg_temp.seconds(p_text text) returns integer language sql immutable as $$
+  select split_part(p_text, ':', 1)::integer * 60 + split_part(p_text, ':', 2)::integer;
+$$;
+create function pg_temp.minutes_seconds(p_seconds integer) returns text language sql immutable as $$
+  select (p_seconds / 60)::text || ':' || lpad((p_seconds % 60)::text, 2, '0');
+$$;
+
+-- The tournament clock: private.tournament_clock_at and @rivr/domain clockAt (packages/testing/golden/tournamentClock.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentClock.json'), 'the tournament clock cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tournamentClock.json' and operation <> 'position' $$,
+  'every operation in tournamentClock.json is proved here');
+select results_eq(
+  $$ select description, c.stage::text, c.level::text, case when c.is_break then 'yes' else 'no' end, pg_temp.minutes_seconds(c.seconds_left)
+     from golden.golden_case
+     cross join lateral private.tournament_clock_at(pg_temp.stages(inputs ->> 'levels'), pg_temp.seconds(inputs ->> 'elapsed')) c
+     where file = 'tournamentClock.json' order by position $$,
+  $$ select description, expected ->> 'stage', expected ->> 'level', expected ->> 'break', expected ->> 'left'
+     from golden.golden_case where file = 'tournamentClock.json' order by position $$,
+  'private.tournament_clock_at puts the clock where the golden file does');
+select is_empty($$ select description from golden.golden_case where file = 'tournamentClock.json'
+                   and private.blind_levels_problem(pg_temp.stages(inputs ->> 'levels')) is not null $$,
+  'and every golden structure is one the clock can run');
+
+-- Tournament entry rules: private.tournament_purchase_refusal and @rivr/domain checkPurchase
+-- (packages/testing/golden/tournamentEntry.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentEntry.json'), 'the tournament entry cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'tournamentEntry.json' and operation <> 'purchase' $$,
+  'every operation in tournamentEntry.json is proved here');
+select results_eq(
+  $$ select description, coalesce(private.tournament_purchase_refusal(
+       inputs ->> 'purchase', inputs ->> 'format', (inputs ->> 'lastRegistrationLevel')::integer, nullif(inputs ->> 'maxBuys', '')::integer,
+       inputs ->> 'addOn' = 'yes', (inputs ->> 'level')::integer, (inputs ->> 'buys')::integer, inputs ->> 'alive' = 'yes',
+       inputs ->> 'addOnTaken' = 'yes'), 'allowed')
+     from golden.golden_case where file = 'tournamentEntry.json' order by position $$,
+  $$ select description, expected ->> 'result' from golden.golden_case where file = 'tournamentEntry.json' order by position $$,
+  'private.tournament_purchase_refusal allows or refuses every purchase in the golden file');
+
 select * from finish();
 rollback;

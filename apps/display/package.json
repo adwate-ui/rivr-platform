@@ -13,6 +13,7 @@
   "dependencies": {
     "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
+    "@rivr/domain": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/ui": "workspace:*",
     "@tanstack/react-query": "^5.104.4",

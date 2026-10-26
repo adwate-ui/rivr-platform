@@ -275,6 +275,9 @@ importers:
       '@rivr/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@rivr/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@rivr/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n

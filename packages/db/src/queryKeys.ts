@@ -175,4 +175,11 @@ export const queryKeys = {
   /** The paired TV's promotions rotation (#86), and the member's Home cards. */
   tvPromotions: (userId: string) => ['user', userId, 'tv-promotions'] as const,
   myPromotionCards: (userId: string) => ['user', userId, 'my-promotion-cards'] as const,
+  /** The console's tournaments, blind structures and templates at a venue (#115, #119). */
+  venueTournaments: (userId: string, venueId: string) => ['user', userId, 'venue-tournaments', venueId] as const,
+  blindStructures: (userId: string, venueId: string) => ['user', userId, 'blind-structures', venueId] as const,
+  tournamentTemplates: (userId: string, venueId: string) => ['user', userId, 'tournament-templates', venueId] as const,
+  /** The running tournament on the member's Home, and on the paired TV's tournament clock (#119). */
+  liveTournament: (userId: string) => ['user', userId, 'live-tournament'] as const,
+  tvTournamentClock: (userId: string) => ['user', userId, 'tv-tournament-clock'] as const,
 };

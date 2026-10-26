@@ -34,6 +34,7 @@ import { promotionsRoute } from './routes/promotions.tsx';
 import { sopsRoute } from './routes/sops.tsx';
 import { feedbackRoute } from './routes/feedback.tsx';
 import { leagueRoute } from './routes/league.tsx';
+import { tournamentsRoute } from './routes/tournaments.tsx';
 import { rewardsRoute } from './routes/rewards.tsx';
 import { potDataRoute } from './routes/pot-data.tsx';
 import { incidentsRoute } from './routes/incidents.tsx';
@@ -52,6 +53,7 @@ const routeTree = rootRoute.addChildren([
     feedbackRoute,
     rewardsRoute,
     leagueRoute,
+    tournamentsRoute,
     accountsRoute,
     expensesRoute,
     tdsRoute,

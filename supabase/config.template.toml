@@ -248,6 +248,9 @@ max_frequency = "60s"
 919000000703 = "123456"
 # Lane D builder: the Pot data flow's super admin (#114).
 919000000704 = "123456"
+# Lane D builder: the Tournament clock flow's floor manager and member, supabase/seed/12_people_d.sql (#119).
+919000000750 = "123456"
+919000000751 = "123456"
 919000000201 = "123456"
 919000000202 = "123456"
 919000000203 = "123456"

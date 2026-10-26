@@ -26,6 +26,13 @@ export const tonight = {
   tournamentWhen: '{when} · Buy-in {buyIn}',
   /** The prize pool the club guarantees. */
   guaranteed: '{amount} guaranteed',
+  /** A tournament running at the club (#119), its level and time left ticking: `RIVR Sunday · Level 8`, `11:32`. */
+  liveTournament: 'Tournament',
+  liveLevel: '{name} · Level {level}',
+  liveBreak: '{name} · Break',
+  /** On a break, the level that follows: `Next 500/1,000 ante 1,000`. */
+  liveNext: 'Next {blinds}',
+  livePaused: 'Paused',
   closed: 'Closed',
   join: 'Join',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */
