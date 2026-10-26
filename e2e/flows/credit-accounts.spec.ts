@@ -82,6 +82,14 @@ test.describe('Credit and accounts', () => {
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await page.getByRole('button', { name: 'Devansh Malik leaves' }).click();
     await expect(page.getByRole('button', { name: 'Move Devansh Malik' })).toHaveCount(0);
+
+    // His line closes, so the Credit and Markers flows find only their own members' lines.
+    await page.getByRole('link', { name: 'Markers' }).click();
+    await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000296');
+    await page.getByRole('textbox', { name: 'Limit' }).fill('0');
+    await page.getByRole('textbox', { name: 'Why' }).fill('End of the test run');
+    await page.getByRole('button', { name: 'Set limit' }).click();
+    await expect(page.getByText('Limit in force.')).toBeVisible();
   });
 
   test('Accounts and expenses: money moves into a new UPI account, and an expense from it posts once a second person approves', async ({ browser }) => {
