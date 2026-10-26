@@ -20,6 +20,12 @@ export const WHATSAPP_TEMPLATES = {
     body: 'Pay {{1}} for {{2}} with the link below.',
     urlButton: true,
   },
+  // The owner's alerts (#100): what happened in words, never its details; those are on the owner dashboard.
+  owner_alert: {
+    category: 'utility',
+    body: 'RIVR alert: {{1}}. The details are on the owner dashboard.',
+    urlButton: false,
+  },
   promotion: {
     category: 'marketing',
     // Meta refuses a body that is mostly a parameter. Opting out is the member's Profile, until #154 reads replies.

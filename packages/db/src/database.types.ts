@@ -3122,6 +3122,11 @@ isOneToOne: false
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
                            },
+"alert_recipient":
+{ Args: { "p_alert_id": string,"p_venue_id": string }; Returns: {
+              "alert_whatsapp": string
+            }[]
+                           },
 "approve_high_hand":
 { Args: { "p_claim_id": string,"p_expected_paise": number }; Returns: number
                            },

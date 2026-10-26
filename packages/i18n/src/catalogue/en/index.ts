@@ -4,6 +4,7 @@
  */
 import { consoleApp, displayApp, driverApp, playerApp, tabletApp, webApp } from './apps.ts';
 import { common } from './common.ts';
+import { alerts } from './alerts.ts';
 import { documents } from './documents.ts';
 import { memberRewards } from './memberRewards.ts';
 import { social } from './social.ts';
@@ -15,6 +16,7 @@ export const en = {
   ui,
   tv,
   social,
+  alerts,
   documents,
   memberRewards,
   player: playerApp,

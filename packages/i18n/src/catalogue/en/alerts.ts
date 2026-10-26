@@ -1,0 +1,25 @@
+/**
+ * What the owner's alert message says each kind of alert is (#100): words only, never an alert's
+ * details, so an alert carries no personal data. The details are on the owner dashboard.
+ */
+export const alerts = {
+  kinds: {
+    'auth.sms_rate_limit': 'sign-in codes are being refused because the hourly limit is used up',
+    'control.engaged': 'the kill switch was engaged',
+    'control.release_asked': 'a release of the kill switch was asked for',
+    'control.released': 'the kill switch was released',
+    'dealer.uncounted': 'a dealer down closed without its count',
+    'dealer.variance': 'a dealer down closed with a variance',
+    'devices.pairing_guessed': 'someone kept guessing a device pairing code',
+    'eod.opening_variance': 'a cage shift opened with a variance',
+    'eod.variance': 'a cage shift closed with a variance',
+    'export.large': 'a large table export was taken',
+    'invoice.rake_negative': 'a night’s rake came to less than nothing',
+    'invoice.rake_refused': 'a night’s rake invoice could not be issued',
+    'mis.not_stored': 'the monthly MIS could not be stored',
+    'outbox.delivery_failed': 'a message or post could not be delivered',
+    'outbox.failures': 'many messages or posts are failing',
+  },
+  /** For a kind not listed here. */
+  other: 'something needs your attention',
+} as const;
