@@ -83,16 +83,17 @@ function fields(...values: readonly (readonly [number, 2 | 4])[]): Uint8Array {
 
 /**
  * Files stored, not compressed, in a zip archive: each part's local header and bytes, then the central
- * directory and its end record. Small exports need no compression, and this needs no library.
+ * directory and its end record. Small exports need no compression, and this needs no library. A part is
+ * text (written as UTF-8) or bytes, such as a photo.
  */
-export function zipStored(files: Readonly<Record<string, string>>): Uint8Array<ArrayBuffer> {
+export function zipStored(files: Readonly<Record<string, string | Uint8Array>>): Uint8Array<ArrayBuffer> {
   const encoder = new TextEncoder();
   const local: Uint8Array[] = [];
   const central: Uint8Array[] = [];
   let offset = 0;
   for (const [name, content] of Object.entries(files)) {
     const nameBytes = encoder.encode(name);
-    const data = encoder.encode(content);
+    const data = typeof content === 'string' ? encoder.encode(content) : content;
     const crc = crc32(data);
     // Version 2.0, flag 0x0800 (UTF-8 names), stored, no date.
     const common = [[20, 2], [0x0800, 2], [0, 2], [0, 2], [0, 2], [crc, 4], [data.length, 4], [data.length, 4], [nameBytes.length, 2], [0, 2]] as const;
@@ -112,6 +113,16 @@ export function zipStored(files: Readonly<Record<string, string>>): Uint8Array<A
     at += part.length;
   }
   return out;
+}
+
+/** Saves a file through the browser's download, under the name given. */
+export function saveFile(file: Blob, name: string) {
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  globalThis.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 /** A table as an XLSX workbook of one sheet (#102): the headers, then the rows; figures stay numbers. */

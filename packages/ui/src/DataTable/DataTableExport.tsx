@@ -2,7 +2,7 @@ import { formatRupeesForFile, t } from '@rivr/i18n';
 import { createContext, isValidElement, useContext, useState, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
-import { csvFile, xlsxFile, type ExportCell } from './exportFiles.ts';
+import { csvFile, saveFile, xlsxFile, type ExportCell } from './exportFiles.ts';
 
 /** What an export asks to be recorded before its file is saved (#102): the table, its filters, the format and the rows. */
 export interface TableExportRequest {
@@ -60,12 +60,7 @@ const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 /** Saves a file through the browser's download: `members-2026-10-26.csv`. */
 function save(file: Blob, label: string, format: 'csv' | 'xlsx') {
   const stem = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'table';
-  const url = URL.createObjectURL(file);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${stem}-${IST_DAY.format(new Date())}.${format}`;
-  link.click();
-  globalThis.setTimeout(() => URL.revokeObjectURL(url), 0);
+  saveFile(file, `${stem}-${IST_DAY.format(new Date())}.${format}`);
 }
 
 interface ExportBarProps<Row> {

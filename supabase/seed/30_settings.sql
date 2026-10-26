@@ -30,3 +30,10 @@ insert into public.setting (venue_id, key, subject, value, effective_from, reaso
 select v.venue_id, 'cage.second_approver_threshold', '', '{"threshold_paise": 10000000}', '-infinity', 'Seed'
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 on conflict (venue_id, key, subject, effective_from) do nothing;
+
+-- The export archive's key (#103; decision 0232), local and staging only: a test age key, whose identity is kept
+-- outside the repository. Production's is the owner's backup key, set in the console's Settings.
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'exports.archive_recipient', '', '{"recipient": "age1wy5nka0c35w4a47qnvvwcsedlatfs5y67uzqhwrnd5pmae56h9vs77k5za"}', '-infinity', 'Seed'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+on conflict (venue_id, key, subject, effective_from) do nothing;

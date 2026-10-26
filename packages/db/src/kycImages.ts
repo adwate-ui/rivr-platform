@@ -15,9 +15,17 @@ function storageApiUrl(client: RivrClient): string {
 /**
  * A signed URL for one KYC image (`<venue_id>/<member_id>/<file>` in the private `kyc` bucket),
  * valid for a minute. The kyc-image-url Edge Function signs it for active staff with KYC review
- * or the cage at that venue, and audits the view; anyone else gets an error. The one way any app
- * shows a KYC image.
+ * or the cage at that venue, and audits the view; anyone else gets an error.
  */
+export async function signedKycImageUrl(client: RivrClient, path: string): Promise<string> {
+  const { data, error } = await client.functions.invoke('kyc-image-url', { body: { path } });
+  if (error) throw error;
+  const signedPath: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'signedPath') : undefined;
+  if (typeof signedPath !== 'string') throw new Error('kyc-image-url answered without a signed path');
+  return `${storageApiUrl(client)}${signedPath}`;
+}
+
+/** One KYC image's signed URL, kept fresh: the one way any app shows a KYC image. */
 export function useKycImageUrl(path: string | null) {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -27,12 +35,6 @@ export function useKycImageUrl(path: string | null) {
     staleTime: (KYC_IMAGE_URL_SECONDS - 10) * 1000,
     // A refusal stays a refusal; the screen's error state offers Try again.
     retry: false,
-    queryFn: async () => {
-      const { data, error } = await client.functions.invoke('kyc-image-url', { body: { path } });
-      if (error) throw error;
-      const signedPath: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'signedPath') : undefined;
-      if (typeof signedPath !== 'string') throw new Error('kyc-image-url answered without a signed path');
-      return `${storageApiUrl(client)}${signedPath}`;
-    },
+    queryFn: () => signedKycImageUrl(client, path ?? ''),
   });
 }
