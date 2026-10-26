@@ -21,6 +21,8 @@ import { killSwitchRoute } from './routes/kill-switch.tsx';
 import { practiceResetRoute } from './routes/practice-reset.tsx';
 import { withdrawalsRoute } from './routes/withdrawals.tsx';
 import { treasuryRoute } from './routes/treasury.tsx';
+import { accountsRoute } from './routes/accounts.tsx';
+import { expensesRoute } from './routes/expenses.tsx';
 import { endOfDayRoute } from './routes/end-of-day.tsx';
 import { staffRoute } from './routes/staff.tsx';
 import { certificationRoute } from './routes/certification.tsx';
@@ -45,6 +47,8 @@ const routeTree = rootRoute.addChildren([
     feedbackRoute,
     rewardsRoute,
     leagueRoute,
+    accountsRoute,
+    expensesRoute,
     promotionsRoute,
     tiersRoute,
   ]),

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useMarkerActions, useOpenMarkers } from './markers.ts';
+import { useCreditReport, useMarkerActions, useOpenMarkers, useRepayment } from './markers.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -26,7 +26,9 @@ function renderMarkers(replies: Record<string, { status?: number; body: unknown 
     auth: { storage: sessionStorageFor(STAFF), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ open: useOpenMarkers(VENUE), actions: useMarkerActions(VENUE) }), { wrapper });
+  const { result } = renderHook(() => ({
+    open: useOpenMarkers(VENUE), actions: useMarkerActions(VENUE), repay: useRepayment(VENUE), report: useCreditReport(VENUE, '2026-11-15T18:30:00Z'),
+  }), { wrapper });
   return { result, calls };
 }
 
@@ -54,5 +56,38 @@ describe('Markers', () => {
     expect(calls.find((call) => call.rpc === 'issue_marker')?.body).toEqual({
       p_venue_id: VENUE, p_member_id: 'm1', p_amount_paise: 4500000, p_signature_svg: 'M 1 1 L 2 2', p_idempotency_key: 'r1',
     });
+  });
+
+  it('takes a repayment by cash with no UTR, and says what it settled (#92)', async () => {
+    const { result, calls } = renderMarkers({ repay_markers: { body: [{ o_cage_transaction_id: 'c1', o_settled_paise: 6000000 }] } });
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.repay.mutateAsync({ memberId: 'm1', amount: fromPaise(6_000_000n), method: 'cash', utr: null, requestId: 'r2' });
+    });
+    expect(outcome).toEqual({ ok: true, value: 6_000_000n });
+    expect(calls.find((call) => call.rpc === 'repay_markers')?.body).toEqual({
+      p_venue_id: VENUE, p_member_id: 'm1', p_amount_paise: 6000000, p_method: 'cash', p_utr: '', p_idempotency_key: 'r2',
+    });
+  });
+
+  it('says why a repayment is refused', async () => {
+    const { result } = renderMarkers({ repay_markers: { status: 400, body: { code: 'RVOVR', message: 'more' } } });
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.repay.mutateAsync({ memberId: 'm1', amount: fromPaise(8_000_000n), method: 'upi', utr: '123456789012', requestId: 'r3' });
+    });
+    expect(outcome).toEqual({ ok: false, error: 'more_than_owed' });
+  });
+
+  it('gives the credit report at the moment asked about, by age, in paise', async () => {
+    const { result, calls } = renderMarkers({ credit_report: { body: [{
+      member_id: 'm1', full_name: 'Arjun Mehta', member_number: 201, limit_paise: 20000000, owed_0_7_paise: 2000000, owed_8_30_paise: 5000000,
+      owed_31_60_paise: 0, owed_over_60_paise: 0, owed_paise: 7000000, oldest_issued_at: '2026-11-01T18:00:00Z', is_past_due: false,
+    }] } });
+    await waitFor(() => expect(result.current.report.data).toEqual([{
+      memberId: 'm1', fullName: 'Arjun Mehta', memberNumber: 201, limit: 20_000_000n,
+      owed: { '0_7': 2_000_000n, '8_30': 5_000_000n, '31_60': 0n, over_60: 0n }, total: 7_000_000n, oldestIssuedAt: '2026-11-01T18:00:00Z', isPastDue: false,
+    }]));
+    expect(calls.find((call) => call.rpc === 'credit_report')?.body).toEqual({ p_venue_id: VENUE, p_at: '2026-11-15T18:30:00Z' });
   });
 });

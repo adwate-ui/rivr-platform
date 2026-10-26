@@ -1,0 +1,81 @@
+import { useExpenseActions, useReceiptUrl, useVenueExpenses, type ExpenseFailure, type VenueExpense } from '@rivr/db';
+import { formatDate, formatMoney, t } from '@rivr/i18n';
+import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
+import { useState } from 'react';
+import { EXPENSE_FAILURE_COPY, statusLine } from './expenseCopy.ts';
+
+/** The receipt's photo, fetched only once asked for. */
+function Receipt({ expense }: { expense: VenueExpense }) {
+  const [isShown, setIsShown] = useState(false);
+  const url = useReceiptUrl(isShown ? expense.receiptPath : null);
+  const name = t('console.expenses.viewReceiptOf', { payee: expense.payee });
+  if (expense.receiptPath === null) return null;
+  if (!isShown) return <Button aria-label={name} onClick={() => setIsShown(true)}>{t('console.expenses.viewReceipt')}</Button>;
+  return <KycPhoto alt={name} src={url.data ?? null} status={kycPhotoStatus(expense.receiptPath, url)} />;
+}
+
+/** Approve, or turn down with a reason; the one who asked sees that a second person decides. */
+function Decision({ venueId, expense }: { venueId: string; expense: VenueExpense }) {
+  const { decide } = useExpenseActions(venueId);
+  const [reason, setReason] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ExpenseFailure | null>(null);
+  if (expense.isMine) return <Text variant="small" tone="muted">{t('console.expenses.yours')}</Text>;
+  const send = async (isApproved: boolean) => {
+    const done = await decide.mutateAsync({ expenseId: expense.id, isApproved, note: reason ?? '' });
+    setFailure(done.ok ? null : done.error);
+  };
+  const names = { amount: formatMoney(expense.amount), payee: expense.payee };
+  return (
+    <Stack gap={2}>
+      {reason === null ? null : <Input label={t('console.expenses.reason')} value={reason} onChange={(event) => setReason(event.target.value)} />}
+      <Inline gap={2}>
+        {reason === null ? <Button variant="primary" aria-label={t('console.expenses.approveName', names)} isLoading={decide.isPending}
+          onClick={() => void send(true)}>{t('console.expenses.approve')}</Button> : null}
+        <Button aria-label={t('console.expenses.rejectName', names)} isLoading={decide.isPending} isDisabled={reason !== null && reason.trim() === ''}
+          onClick={() => (reason === null ? setReason('') : void send(false))}>{t('console.expenses.reject')}</Button>
+      </Inline>
+      {failure === null ? null : <ErrorMessage>{t(EXPENSE_FAILURE_COPY[failure])}</ErrorMessage>}
+    </Stack>
+  );
+}
+
+/** One expense: to whom and what for, from which account and when, its status with who, the amount, and what can be done. */
+function ExpenseRow({ venueId, expense, canDecide }: { venueId: string; expense: VenueExpense; canDecide: boolean }) {
+  return (
+    <Stack gap={3}>
+      <Inline gap={4} justify="between" align="start">
+        <Stack gap={1}>
+          <Text weight="medium">{expense.payee}</Text>
+          <Text variant="small" tone="muted">{`${expense.category} · ${expense.account} · ${formatDate(new Date(expense.requestedAt))}`}</Text>
+          <Text variant="small">{statusLine(expense)}</Text>
+          {expense.note === null ? null : <Text variant="small" tone="muted">{expense.note}</Text>}
+          {expense.decisionNote === null ? null : <Text variant="small" tone="muted">{expense.decisionNote}</Text>}
+        </Stack>
+        <Money paise={expense.amount} />
+      </Inline>
+      {canDecide && expense.status === 'requested' ? <Decision venueId={venueId} expense={expense} /> : null}
+      <Receipt expense={expense} />
+    </Stack>
+  );
+}
+
+/** The venue's expenses (#95), those waiting first: to whom, from which account, who asked and who decided. */
+export function ExpenseList({ venueId, canDecide }: { venueId: string; canDecide: boolean }) {
+  const expenses = useVenueExpenses(venueId);
+  return (
+    <Stack gap={4}>
+      <Heading level={2}>{t('console.expenses.list')}</Heading>
+      {expenses.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {expenses.isError ? (
+        <Stack gap={2} align="start">
+          <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
+          <Button onClick={() => void expenses.refetch()}>{t('common.retry')}</Button>
+        </Stack>
+      ) : null}
+      {expenses.data?.length === 0 ? <Text tone="muted">{t('console.expenses.listEmpty')}</Text> : null}
+      <Stack gap={4} divided>
+        {(expenses.data ?? []).map((expense) => <ExpenseRow key={expense.id} venueId={venueId} expense={expense} canDecide={canDecide} />)}
+      </Stack>
+    </Stack>
+  );
+}

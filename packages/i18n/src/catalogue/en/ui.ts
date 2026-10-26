@@ -48,6 +48,8 @@ export const ui = {
       cage: 'Cage',
       markers: 'Markers',
       treasury: 'Treasury',
+      accounts: 'Accounts',
+      expenses: 'Expenses',
       endOfDay: 'End of day',
       members: 'Members',
       kycReview: 'KYC review',

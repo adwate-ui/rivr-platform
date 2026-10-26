@@ -84,6 +84,13 @@ export const queryKeys = {
   creditLines: (userId: string, venueId: string) => ['user', userId, 'credit-lines', venueId] as const,
   creditRoom: (userId: string, venueId: string) => ['user', userId, 'credit-room', venueId] as const,
   openMarkers: (userId: string, venueId: string) => ['user', userId, 'open-markers', venueId] as const,
+  /** The credit report at a moment ('now' for the present), the payment accounts, a statement, and expenses (#92, #94, #95). */
+  creditReport: (userId: string, venueId: string, at: string) => ['user', userId, 'credit-report', venueId, at] as const,
+  paymentAccounts: (userId: string, venueId: string) => ['user', userId, 'payment-accounts', venueId] as const,
+  accountStatement: (userId: string, accountId: string, from: string, to: string) => ['user', userId, 'account-statement', accountId, from, to] as const,
+  expenseCategories: (userId: string, venueId: string) => ['user', userId, 'expense-categories', venueId] as const,
+  venueExpenses: (userId: string, venueId: string) => ['user', userId, 'venue-expenses', venueId] as const,
+  receiptUrl: (userId: string, path: string) => ['user', userId, 'receipt-url', path] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
   myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,

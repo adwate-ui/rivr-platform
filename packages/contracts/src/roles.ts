@@ -54,6 +54,7 @@ export const PERMISSIONS = [
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
   'rewards.manage', // the rewards catalogue and the League's seasons (decisions 0181, 0182)
   'rewards.hand_over', // hand a member what they redeemed (decision 0181)
+  'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
 ] as const;
 
 /** A permission key. */
@@ -70,6 +71,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'rewards.manage', 'rewards.hand_over',
+    'treasury.manage',
   ],
   cashier: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',

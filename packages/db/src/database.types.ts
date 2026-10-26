@@ -133,6 +133,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"account_transfer": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"from_account_id": string,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"note": string | null,"staff_id": string,"to_account_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"from_account_id": string,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"note"?: string | null,"staff_id": string,"to_account_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"from_account_id"?: string,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"note"?: string | null,"staff_id"?: string,"to_account_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "account_transfer_from_account_id_venue_id_fkey"
+      columns: ["from_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "payment_account"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "account_transfer_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "account_transfer_staff_id_venue_id_fkey"
+      columns: ["staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "account_transfer_to_account_id_venue_id_fkey"
+      columns: ["to_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "payment_account"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"alert": {
                   Row: {
                     "created_at": string,"detail": NonNullable<Json>,"id": string,"kind": string,"raised_at": string,"updated_at": string,"venue_id": string
@@ -861,6 +899,82 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "eod_close_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"expense": {
+                  Row: {
+                    "amount_paise": number,"category_id": string,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decision_note": string | null,"id": string,"ledger_transaction_id": string | null,"note": string | null,"payee": string,"payment_account_id": string,"receipt_path": string | null,"requested_by_staff_id": string,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"category_id": string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decision_note"?: string | null,"id"?: string,"ledger_transaction_id"?: string | null,"note"?: string | null,"payee": string,"payment_account_id": string,"receipt_path"?: string | null,"requested_by_staff_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"category_id"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"decision_note"?: string | null,"id"?: string,"ledger_transaction_id"?: string | null,"note"?: string | null,"payee"?: string,"payment_account_id"?: string,"receipt_path"?: string | null,"requested_by_staff_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "expense_category_id_venue_id_fkey"
+      columns: ["category_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "expense_category"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "expense_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "expense_ledger_transaction_id_venue_id_fkey"
+      columns: ["ledger_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "expense_payment_account_id_venue_id_fkey"
+      columns: ["payment_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "payment_account"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "expense_requested_by_staff_id_venue_id_fkey"
+      columns: ["requested_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"expense_category": {
+                  Row: {
+                    "created_at": string,"id": string,"ledger_account_id": string,"name": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"ledger_account_id": string,"name": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"ledger_account_id"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "expense_category_ledger_account_id_venue_id_fkey"
+      columns: ["ledger_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_account"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "expense_category_ledger_account_id_venue_id_fkey"
+      columns: ["ledger_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_balance"
+      referencedColumns: ["account_id","venue_id"]
+    },{
+      foreignKeyName: "expense_category_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -1667,6 +1781,38 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "outbox_event_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payment_account": {
+                  Row: {
+                    "created_at": string,"details": string | null,"id": string,"is_active": boolean,"kind": string,"ledger_account_id": string,"name": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"details"?: string | null,"id"?: string,"is_active"?: boolean,"kind": string,"ledger_account_id": string,"name": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"details"?: string | null,"id"?: string,"is_active"?: boolean,"kind"?: string,"ledger_account_id"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_account_ledger_account_id_venue_id_fkey"
+      columns: ["ledger_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_account"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "payment_account_ledger_account_id_venue_id_fkey"
+      columns: ["ledger_account_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_balance"
+      referencedColumns: ["account_id","venue_id"]
+    },{
+      foreignKeyName: "payment_account_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -2807,6 +2953,11 @@ isOneToOne: false
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
                            },
+"account_statement":
+{ Args: { "p_from": string,"p_payment_account_id": string,"p_to": string }; Returns: {
+              "amount_paise": number,"balance_paise": number,"kind": string,"memo": string,"occurred_at": string
+            }[]
+                           },
 "acknowledge_sop":
 { Args: { "p_version_id": string }; Returns: string
                            },
@@ -2814,6 +2965,12 @@ isOneToOne: false
 { Args: { "p_kind": Database["public"]['Enums']["device_kind"],"p_name": string,"p_venue_id": string }; Returns: {
               "code": string,"device_id": string,"expires_at": string
             }[]
+                           },
+"add_expense_category":
+{ Args: { "p_name": string,"p_venue_id": string }; Returns: string
+                           },
+"add_payment_account":
+{ Args: { "p_details": string,"p_kind": string,"p_name": string,"p_venue_id": string }; Returns: string
                            },
 "add_payout_account":
 { Args: { "p_account_number"?: string,"p_bank_name": string,"p_holder_name"?: string,"p_ifsc"?: string,"p_kind": string,"p_vpa"?: string }; Returns: string
@@ -2940,6 +3097,11 @@ isOneToOne: false
               "approval_threshold_paise": number,"exposure_cap_paise": number,"exposure_paise": number,"full_name": string,"limit_paise": number,"line_id": string,"member_id": string,"outstanding_paise": number,"proposal_reason": string,"proposed_by": string,"proposed_limit_paise": number
             }[]
                            },
+"credit_report":
+{ Args: { "p_at": string,"p_venue_id": string }; Returns: {
+              "full_name": string,"is_past_due": boolean,"limit_paise": number,"member_id": string,"member_number": number,"oldest_issued_at": string,"owed_0_7_paise": number,"owed_31_60_paise": number,"owed_8_30_paise": number,"owed_over_60_paise": number,"owed_paise": number
+            }[]
+                           },
 "credit_room":
 { Args: { "p_venue_id": string }; Returns: {
               "approval_threshold_paise": number,"exposure_cap_paise": number,"exposure_paise": number,"minimum_visits": number
@@ -2957,6 +3119,9 @@ isOneToOne: false
                            },
 "decide_credit_limit":
 { Args: { "p_expected_limit_paise": number,"p_is_approved": boolean,"p_line_id": string }; Returns: undefined
+                           },
+"decide_expense":
+{ Args: { "p_expense_id": string,"p_is_approved": boolean,"p_note": string }; Returns: undefined
                            },
 "decide_payout_account":
 { Args: { "p_account_id": string,"p_is_verified": boolean,"p_reason"?: string }; Returns: undefined
@@ -3239,6 +3404,11 @@ isOneToOne: false
 "pay_bad_beat":
 { Args: { "p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
                            },
+"payment_accounts":
+{ Args: { "p_venue_id": string }; Returns: {
+              "balance_paise": number,"details": string,"is_active": boolean,"kind": string,"name": string,"payment_account_id": string
+            }[]
+                           },
 "payout_accounts_to_verify":
 { Args: { "p_venue_id": string }; Returns: {
               "account_id": string,"account_number": string,"added_at": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"phone": string,"vpa": string
@@ -3311,11 +3481,19 @@ isOneToOne: false
 "reopen_kyc_check":
 { Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
                            },
+"repay_markers":
+{ Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr": string,"p_venue_id": string }; Returns: {
+              "o_cage_transaction_id": string,"o_settled_paise": number
+            }[]
+                           },
 "request_buy_in":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string
                            },
 "request_deposit":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string,"p_utr": string }; Returns: string
+                           },
+"request_expense":
+{ Args: { "p_amount_paise": number,"p_category_id": string,"p_expense_id": string,"p_note": string,"p_payee": string,"p_payment_account_id": string,"p_receipt_path": string,"p_venue_id": string }; Returns: string
                            },
 "request_withdrawal":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string }; Returns: string
@@ -3495,6 +3673,9 @@ isOneToOne: false
               "display_mode": Database["public"]['Enums']["feature_display_mode"],"feature_description": string,"feature_key": string,"feature_name": string,"is_enabled": boolean,"next_cell_id": string,"next_display_mode": Database["public"]['Enums']["feature_display_mode"],"next_from": string,"next_is_enabled": boolean,"shows_as": string,"tier_id": string,"tier_name": string,"tier_rank": number,"tiers_with_it": (string)[]
             }[]
                            },
+"transfer_between_accounts":
+{ Args: { "p_amount_paise": number,"p_from_id": string,"p_idempotency_key": string,"p_note": string,"p_to_id": string,"p_venue_id": string }; Returns: string
+                           },
 "treasury":
 { Args: { "p_venue_id": string }; Returns: {
               "bonus_paise": number,"chips_in_play_paise": number,"float_paise": number,"jackpots_paise": number,"markers_paise": number,"opened_at": string,"opened_by": string,"shift_id": string,"wallets_paise": number,"withdrawals_pending_paise": number
@@ -3523,6 +3704,11 @@ isOneToOne: false
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
+            }[]
+                           },
+"venue_expenses":
+{ Args: { "p_venue_id": string }; Returns: {
+              "amount_paise": number,"category": string,"decided_at": string,"decided_by": string,"decision_note": string,"expense_id": string,"is_mine": boolean,"note": string,"payee": string,"payment_account": string,"receipt_path": string,"requested_at": string,"requested_by": string,"status": string
             }[]
                            },
 "venue_feedback":

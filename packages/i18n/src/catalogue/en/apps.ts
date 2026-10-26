@@ -26,6 +26,8 @@ import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
 import { balance, withdrawals } from './wallet.ts';
 import { treasury, treasuryFailures } from './treasury.ts';
+import { accounts } from './accounts.ts';
+import { expenses } from './expenses.ts';
 import { endOfDay, endOfDayFailures } from './endOfDay.ts';
 import { tonight, waitlist } from './waitlist.ts';
 
@@ -142,6 +144,8 @@ export const consoleApp = {
   withdrawals,
   treasury,
   treasuryFailures,
+  accounts,
+  expenses,
   endOfDay,
   endOfDayFailures,
   members,
