@@ -3345,9 +3345,19 @@ isOneToOne: false
               "detail": string,"promotion_id": string,"runs": string,"title": string
             }[]
                            },
+"my_redemptions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "created_at": string,"detail": string,"handed_over_at": string,"id": string,"kind": string,"points": number,"reward_name": string
+            }[]
+                           },
 "my_restrictions":
 { Args: Record<PropertyKey, never>; Returns: {
               "break_until": string,"session_reminder_hours": number
+            }[]
+                           },
+"my_rewards":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "points": number,"tier_name": string
             }[]
                            },
 "my_seat":
@@ -3691,9 +3701,19 @@ isOneToOne: false
               "high_hand_category": Database["public"]['Enums']["high_hand_category"],"high_hand_payout_paise": number,"high_hand_played_at": string,"high_hand_rank": string,"high_hand_table_name": string,"main_paise": number
             }[]
                            },
+"tv_league_board":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "display_name": string,"first_month": string,"last_month": string,"place": number,"points": number,"season_name": string,"standing": string
+            }[]
+                           },
 "tv_promotions":
 { Args: Record<PropertyKey, never>; Returns: {
               "detail": string,"promotion_id": string,"runs": string,"title": string
+            }[]
+                           },
+"tv_rewards_ticker":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "at": string,"display_name": string,"kind": string,"place": number,"points": number,"reward_name": string
             }[]
                            },
 "tv_waitlist_board":

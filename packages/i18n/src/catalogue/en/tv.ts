@@ -29,6 +29,29 @@ export const tv = {
     /** A member who hid their name on the TVs (#326): `{place}` is their place on the list. */
     hiddenName: 'Player {place}',
   },
+  /** The rewards ticker (#148, decision 0183): this month's points leaders, and the week's redemptions with their time. */
+  rewards: {
+    title: 'Rewards',
+    leaders: 'Points leaders',
+    leadersDetail: 'This month',
+    redeemed: 'Just redeemed',
+    redeemedDetail: 'This week',
+    empty: 'Nothing yet.',
+    points: '{points} points',
+    /** A member who hid their name on the TVs (#326). */
+    hiddenName: 'A member',
+  },
+  /** The League leaderboard (#148, decision 0182): this month's places, and the season's. */
+  league: {
+    title: 'RIVR League',
+    thisMonth: 'This month',
+    /** A season's months: `November 2026 to April 2027`. */
+    seasonMonths: '{first} to {last}',
+    empty: 'No League points yet.',
+    points: '{points} points',
+    /** A member who hid their name on the TVs (#326). */
+    hiddenName: 'A member',
+  },
   /** The call-time board (decision 0163): the seats about to open, and every table's players on call time. */
   callTime: {
     title: 'Call time',

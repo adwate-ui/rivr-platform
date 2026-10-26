@@ -1,4 +1,4 @@
--- Lane D builder's seed people (members 0000…0270 to 0299, staff 0170 to 0199). Self-contained, after
+-- Lane D builder's seed people (members 0000…0270 to 0299, staff 0170 to 0199, and from 26 Oct the ids …0d07xx that match their sign-in numbers 9190000007xx). Self-contained, after
 -- 10_people.sql; every statement is idempotent. Those who sign in take code 123456 locally
 -- (supabase/config.template.toml, [auth.sms.test_otp]).
 --
@@ -24,19 +24,23 @@ on conflict do nothing;
 -- The Paper fallback flow's own duty managers, super admins at both venues: one runs the drill and asks
 -- to release the freeze, the other releases it (#52). The Rewards catalogue flow's marketing manager,
 -- who keeps the catalogue and the League's seasons, and its floor manager, who reads the standings (#145, #147).
+-- The Rewards flow's member, who redeems from the app, and its floor manager, who pairs a TV on the rewards
+-- ticker and hands the redemption over (#148, #152). A row with no role is a member.
 create temporary table lane_d_person (
   id uuid primary key,
   phone text not null,
   full_name text not null,
-  job_title text not null,
-  role public.staff_role not null
+  job_title text,
+  role public.staff_role
 ) on commit drop;
 
 insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-000000000175', '+919000000175', 'Gautam Sood', 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000176', '+919000000176', 'Priya Nath', 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-000000000178', '+919000000700', 'Tanya Rao', 'Marketing manager', 'marketing'),
-  ('00000000-0000-4000-8000-000000000179', '+919000000701', 'Kabir Anand', 'Floor manager', 'admin');
+  ('00000000-0000-4000-8000-000000000179', '+919000000701', 'Kabir Anand', 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-0000000d0702', '+919000000702', 'Riya Sen', null, null),
+  ('00000000-0000-4000-8000-0000000d0703', '+919000000703', 'Meher Lal', 'Floor manager', 'admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -57,4 +61,16 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 select v.venue_id, p.id, p.full_name, p.job_title, p.role, p.phone
 from lane_d_person p
 cross join (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+where p.role is not null
 on conflict (venue_id, user_id) do nothing;
+
+insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
+select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
+       (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
+from lane_d_person p
+where p.role is null
+on conflict (id) do nothing;
+
+-- Riya's 20,000 points, once, to redeem in the Rewards flow.
+select private.credit_points('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0702', 20000, 'Seed',
+                             'seed:rewards-flow:0d0702');

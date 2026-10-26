@@ -19,8 +19,8 @@ const MODES: readonly { chip: string; rendered: (tv: Page) => Locator }[] = [
   { chip: 'Tournament clock', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Tournament clock' }) },
   // A live promotion's slide, or that none is running (#86).
   { chip: 'Promotions', rendered: (tv) => tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true })) },
-  { chip: 'Rewards ticker', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Rewards ticker' }) },
-  { chip: 'League leaderboard', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'League leaderboard' }) },
+  { chip: 'Rewards ticker', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Rewards' }) },
+  { chip: 'League leaderboard', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'RIVR League' }) },
   { chip: 'Social wall', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Social wall' }) },
   { chip: 'Spin wheel', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Spin wheel' }) },
 ];

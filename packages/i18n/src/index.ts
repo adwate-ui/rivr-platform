@@ -3,6 +3,7 @@ export { en } from './catalogue/en/index.ts';
 // Each app registers its own copy at start (registerMessages), so it ships no other app's (#344).
 export { consoleApp, displayApp, driverApp, playerApp, tabletApp, webApp } from './catalogue/en/apps.ts';
 export { documents } from './catalogue/en/documents.ts';
+export { memberRewards } from './catalogue/en/memberRewards.ts';
 export { social } from './catalogue/en/social.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';

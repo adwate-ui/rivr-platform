@@ -32,7 +32,7 @@ Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every re
 
 ## Who builds what
 
-Lane C owns the shell, routes, sign-in and KYC, Home, Sessions, Profile and Learn. Lane A adds `features/balance`, lane B `features/waitlist`, `call-time`, `tournament` and `fnb`, and lane D `features/rewards`, `promotions` and `winner-cards` (`docs/contracts/`).
+Lane C owns the shell, routes, sign-in and KYC, Home, Sessions, Profile and Learn. Lane A adds `features/balance`, lane B `features/waitlist`, `call-time`, `tournament` and `fnb`, and lane D `features/rewards`, `promotions` and `winner-cards` (`docs/contracts/`). Rewards (#152, decision 0183) shows points and tier, the catalogue and the member's redemptions (`rewards.catalogue`) and the League (`league.standings`); its copy (`memberRewards`) and hooks (`@rivr/db/myRewards`) load with the tab, so the first load stays under its budget.
 
 ## Installed app (PWA)
 

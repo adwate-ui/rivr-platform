@@ -37,7 +37,6 @@ export const playerApp = {
   promotions: playerPromotions,
   sessions: { title: 'Sessions', empty: 'No sessions yet.' },
   balance,
-  rewards: { title: 'Rewards', empty: 'No rewards yet.' },
   learn: { title: 'Learn', empty: 'No sources yet.' },
   /** The digital membership card (#71): the QR the door scans changes every few seconds. */
   card: { title: 'Membership card', qr: 'Your door code', hint: 'Show this at the door. The code changes every few seconds.' },
