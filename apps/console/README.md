@@ -48,6 +48,8 @@ src/
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
+    rewards/          the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
+    league/           the RIVR League's standings by month or season, and its seasons (/league)
     promotions/       what is running, paused and resumed in place; the deck's templates, each published as it stands; and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
 ```
 

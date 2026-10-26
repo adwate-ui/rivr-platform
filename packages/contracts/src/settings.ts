@@ -213,6 +213,19 @@ const pointsRewardsRakeShare = {
   value: z.strictObject({ basis_points: z.int().min(0).max(10_000) }),
 } as const satisfies SettingDefinition;
 
+const leaguePoints = {
+  key: 'league.points',
+  description: 'RIVR League points for a tournament finish (decision 0182): every finisher\'s for taking part, and more for first, second, third and the rest of the final table (fourth to ninth); none set earns none.',
+  scope: 'venue',
+  value: z.strictObject({
+    first: z.int().min(0).max(100_000),
+    second: z.int().min(0).max(100_000),
+    third: z.int().min(0).max(100_000),
+    final_table: z.int().min(0).max(100_000),
+    entry: z.int().min(0).max(100_000),
+  }),
+} as const satisfies SettingDefinition;
+
 const cardQrRotationSeconds = {
   key: 'card.qr_rotation_seconds',
   description: 'How often the membership card\'s QR changes, in seconds; a code from before a change no longer checks in (#71). 30 unless set.',
@@ -224,7 +237,7 @@ const cardQrRotationSeconds = {
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds,
+  cardQrRotationSeconds, leaguePoints,
 ] as const;
 
 /** A setting key declared in code. */

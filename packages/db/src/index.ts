@@ -81,6 +81,10 @@ export {
   useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackVisit,
 } from './feedback.ts';
 export {
+  useHandOverRedemption, useRewardItems, useSaveRewardItem, useVenueRedemptions, type Redemption, type RewardFailure, type RewardItem, type RewardItemOrder,
+} from './rewards.ts';
+export { useLeagueSeasons, useSaveLeagueSeason, useVenueLeague, type LeagueFailure, type LeagueSeason, type LeagueSeasonOrder, type LeagueStanding } from './league.ts';
+export {
   PAYOUT_STATUSES, usePayoutAccountActions, usePayoutAccountDecisions, usePayoutAccounts, usePayoutAccountsToVerify, type PayoutAccount,
   type PayoutAccountFailure, type PayoutAccountToVerify, type PayoutDecision, type PayoutStatus,
 } from './payoutAccounts.ts';

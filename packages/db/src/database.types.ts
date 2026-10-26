@@ -1233,6 +1233,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"league_finish": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"month": string,"place": number,"points": number,"tournament_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"month": string,"place": number,"points": number,"tournament_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"month"?: string,"place"?: number,"points"?: number,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "league_finish_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "league_finish_tournament_id_venue_id_fkey"
+      columns: ["tournament_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"league_season": {
+                  Row: {
+                    "created_at": string,"first_month": string,"id": string,"last_month": string,"name": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"first_month": string,"id"?: string,"last_month": string,"name": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"first_month"?: string,"id"?: string,"last_month"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "league_season_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ledger_account": {
                   Row: {
                     "code": string,"created_at": string,"id": string,"is_players_money": boolean,"kind": Database["public"]['Enums']["ledger_account_kind"],"member_id": string | null,"name": string,"unit": Database["public"]['Enums']["ledger_unit"],"updated_at": string,"venue_id": string
@@ -1841,6 +1887,64 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "quiz_attempt_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"redemption": {
+                  Row: {
+                    "created_at": string,"handed_over_at": string | null,"handed_over_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"points": number,"reward_item_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"points": number,"reward_item_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"points"?: number,"reward_item_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "redemption_handed_over_by_staff_id_venue_id_fkey"
+      columns: ["handed_over_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "redemption_ledger_transaction_id_fkey"
+      columns: ["ledger_transaction_id"]
+isOneToOne: true
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "redemption_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "redemption_reward_item_id_venue_id_fkey"
+      columns: ["reward_item_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "reward_item"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"reward_item": {
+                  Row: {
+                    "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"points": number,"stock": number | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"detail": string,"id"?: string,"is_live"?: boolean,"kind": string,"name": string,"points": number,"stock"?: number | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"detail"?: string,"id"?: string,"is_live"?: boolean,"kind"?: string,"name"?: string,"points"?: number,"stock"?: number | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reward_item_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -2610,6 +2714,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_league_table": {
+                  Row: {
+                    "display_name": string | null,"first_month": string | null,"last_month": string | null,"place": number | null,"points": number | null,"season_name": string | null,"standing": string | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_promotion_cards": {
                   Row: {
                     "detail": string | null,"runs": string | null,"title": string | null,"venue_slug": string | null
@@ -2917,6 +3029,9 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
+"hand_over_redemption":
+{ Args: { "p_redemption_id": string }; Returns: undefined
+                           },
 "has_my_consent":
 { Args: { "p_purpose": string }; Returns: boolean
                            },
@@ -3045,6 +3160,11 @@ isOneToOne: false
               "closed_at": string,"visit_id": string
             }[]
                            },
+"my_league":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "display_name": string,"first_month": string,"is_me": boolean,"last_month": string,"place": number,"points": number,"season_name": string,"standing": string
+            }[]
+                           },
 "my_membership_card":
 { Args: Record<PropertyKey, never>; Returns: {
               "code": string,"full_name": string,"member_number": number,"ms_left": number,"tier_name": string
@@ -3167,6 +3287,9 @@ isOneToOne: false
               "device_id": string,"previous_user_id": string,"refusal": string
             }[]
                            },
+"redeem_reward":
+{ Args: { "p_idempotency_key": string,"p_item_id": string }; Returns: string
+                           },
 "reject_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
@@ -3220,8 +3343,14 @@ isOneToOne: false
 "review_shift_opening":
 { Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined
                            },
+"save_league_season":
+{ Args: { "p_first_month": string,"p_last_month": string,"p_name": string,"p_season_id"?: string,"p_venue_id": string }; Returns: string
+                           },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
+                           },
+"save_reward_item":
+{ Args: { "p_detail": string,"p_is_live": boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_points": number,"p_stock"?: number,"p_venue_id": string }; Returns: string
                            },
 "schedule_drills":
 { Args: { "p_first_on": string,"p_sop_id"?: string,"p_title": string,"p_venue_id": string }; Returns: number
@@ -3399,6 +3528,16 @@ isOneToOne: false
 "venue_feedback":
 { Args: { "p_venue_id": string }; Returns: {
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"visit_closed_at": string
+            }[]
+                           },
+"venue_league":
+{ Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
+              "cash_points": number,"full_name": string,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
+            }[]
+                           },
+"venue_redemptions":
+{ Args: { "p_venue_id": string }; Returns: {
+              "created_at": string,"full_name": string,"handed_over_at": string,"handed_over_by": string,"id": string,"kind": string,"member_id": string,"member_number": number,"points": number,"reward_name": string
             }[]
                            },
 "waiting_deposits":

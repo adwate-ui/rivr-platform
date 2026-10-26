@@ -78,7 +78,7 @@ Tables and table types, seating, the waitlist and its priority, call time, the d
 
 - A: `private.debit_wallet`, `private.credit_wallet`, `private.tds_for`, `buy_in_request`, the chart of accounts for rake and jackpot.
 - C: `private.is_kyc_complete`, `private.member_restrictions`, `private.current_visit(member)`.
-- D: `private.evaluate_promotions(venue, trigger, context)` on hands; League points on tournament finish through `private.credit_points`.
+- D: `private.evaluate_promotions(venue, trigger, context)` on hands; League points on tournament finish through `private.award_league_points(tournament, member, place, at)` (decision 0182).
 
 ## Screens
 

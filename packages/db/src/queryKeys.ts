@@ -88,6 +88,12 @@ export const queryKeys = {
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
   myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,
   venueFeedback: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId] as const,
+  /** A venue's rewards catalogue and redemptions, as the console keeps them (decision 0181). */
+  rewardItems: (userId: string, venueId: string) => ['user', userId, 'reward-items', venueId] as const,
+  venueRedemptions: (userId: string, venueId: string) => ['user', userId, 'venue-redemptions', venueId] as const,
+  /** A venue's League seasons, and its standings over some months (decision 0182). */
+  leagueSeasons: (userId: string, venueId: string) => ['user', userId, 'league-seasons', venueId] as const,
+  venueLeague: (userId: string, venueId: string, first: string, last: string) => ['user', userId, 'venue-league', venueId, first, last] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,

@@ -1,0 +1,90 @@
+{
+  "rule": "RIVR League points",
+  "about": "The RIVR League (#147; decision 0182; question #452). A member's League points for a month are the points their cash play earned for hours at the tables (points.per_hour by stake, as points_earning holds them; RIVR Rewards' rake share is not League play) plus what each tournament finish earned: every finisher gets the venue's entry points, and first, second and third their own points on top, fourth to ninth the final table's, and below ninth nothing more. Points belong to the month of the club's day they were earned on (06:00 to 06:00 IST): a visit by the club day it closed, a tournament by the club day it finished. A season's championship adds up its months; ties share a place.",
+  "cases": [
+    {
+      "description": "The winner of a Sunday: 100 for first and 5 for taking part.",
+      "operation": "finish",
+      "inputs": { "place": "1", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "105" }
+    },
+    {
+      "description": "Second: 70 and 5.",
+      "operation": "finish",
+      "inputs": { "place": "2", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "75" }
+    },
+    {
+      "description": "Third: 50 and 5.",
+      "operation": "finish",
+      "inputs": { "place": "3", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "55" }
+    },
+    {
+      "description": "Fourth is the first place at the final table below the podium: 20 and 5.",
+      "operation": "finish",
+      "inputs": { "place": "4", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "25" }
+    },
+    {
+      "description": "Ninth is the last place at the final table: 20 and 5.",
+      "operation": "finish",
+      "inputs": { "place": "9", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "25" }
+    },
+    {
+      "description": "Tenth missed the final table: only the 5 for taking part.",
+      "operation": "finish",
+      "inputs": { "place": "10", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "5" }
+    },
+    {
+      "description": "Two hundredth of a big field: still the 5 for taking part.",
+      "operation": "finish",
+      "inputs": { "place": "200", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "5" },
+      "expected": { "points": "5" }
+    },
+    {
+      "description": "With nothing for taking part, tenth earns nothing.",
+      "operation": "finish",
+      "inputs": { "place": "10", "first": "100", "second": "70", "third": "50", "finalTable": "20", "entry": "0" },
+      "expected": { "points": "0" }
+    },
+    {
+      "description": "A venue that set no League points: the winner earns nothing.",
+      "operation": "finish",
+      "inputs": { "place": "1", "first": "0", "second": "0", "third": "0", "finalTable": "0", "entry": "0" },
+      "expected": { "points": "0" }
+    },
+    {
+      "description": "Mid-evening on 14 November IST is November.",
+      "operation": "month",
+      "inputs": { "at": "2026-11-14T15:30:00Z" },
+      "expected": { "month": "2026-11-01" }
+    },
+    {
+      "description": "02:00 IST on 1 December is still the club's 30 November: November.",
+      "operation": "month",
+      "inputs": { "at": "2026-11-30T20:30:00Z" },
+      "expected": { "month": "2026-11-01" }
+    },
+    {
+      "description": "05:59 IST on 1 December is the last minute of November's club day.",
+      "operation": "month",
+      "inputs": { "at": "2026-12-01T00:29:00Z" },
+      "expected": { "month": "2026-11-01" }
+    },
+    {
+      "description": "06:00 IST on 1 December starts December.",
+      "operation": "month",
+      "inputs": { "at": "2026-12-01T00:30:00Z" },
+      "expected": { "month": "2026-12-01" }
+    },
+    {
+      "description": "The club's New Year's Eve runs to 06:00 on 1 January: December 2026.",
+      "operation": "month",
+      "inputs": { "at": "2027-01-01T00:00:00Z" },
+      "expected": { "month": "2026-12-01" }
+    }
+  ]
+}

@@ -15,6 +15,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
 | `formatCountdown(seconds)` | A clock counting down, whole seconds: `11:29`, `05:00`, `1:15:00` from an hour up. The tournament clock. |
 | `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40`, in IST. |
+| `formatMonth(month)` | A calendar month from `2026-11` or `2026-11-01`: `November 2026`, as a League month is named. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
 | `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |
 | `en` | The catalogue itself, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not this: importing it as a value ships every app's copy. |
