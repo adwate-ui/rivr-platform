@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { toPaise } from './parse/hands.ts';
-import { toTvJackpot, toTvStakes } from './tvBoards.ts';
+import { toTvCallTimeTables, toTvJackpot, toTvStakes } from './tvBoards.ts';
 
 const STAKE = { small_blind_paise: 10000, big_blind_paise: 20000, open_tables: 2 };
 
@@ -34,5 +34,18 @@ describe('the TV boards (#65)', () => {
       main_paise: 34260000, high_hand_category: 'four_of_a_kind', high_hand_rank: 'Q', high_hand_table_name: 'Table 2',
       high_hand_played_at: '2026-10-19T22:18:00+05:30', high_hand_payout_paise: 200000,
     }).highHand).toEqual({ category: 'four_of_a_kind', rank: 'Q', tableName: 'Table 2', playedAt: '2026-10-19T22:18:00+05:30', payout: toPaise(200000) });
+  });
+
+  it('groups the call-time board a table at a time, each player by seat, leaving when the floor marked it (decision 0163)', () => {
+    const table3 = { table_id: 't3', table_name: 'Table 3', stake_name: 'NLH 100/200' };
+    const tables = toTvCallTimeTables([
+      { ...table3, seat: 2, display_name: 'Vihaan K.', call_time_left: 3600, is_away: false, leaving_at: null },
+      { ...table3, seat: 5, display_name: null, call_time_left: 0, is_away: true, leaving_at: null },
+      { table_id: 'pr', table_name: 'Private Room', stake_name: 'NLH 200/400', seat: 1, display_name: 'Ishaan V.', call_time_left: 7200, is_away: false,
+        leaving_at: '2026-10-26T21:00:00+05:30' },
+    ]);
+    expect(tables.map((table) => [table.name, table.stake, table.seated.length])).toEqual([['Table 3', 'NLH 100/200', 2], ['Private Room', 'NLH 200/400', 1]]);
+    expect(tables[0]?.seated[1]).toEqual({ seat: 5, name: null, callTimeLeft: 0, isAway: true, isLeaving: false });
+    expect(tables[1]?.seated[0]).toEqual({ seat: 1, name: 'Ishaan V.', callTimeLeft: 7200, isAway: false, isLeaving: true });
   });
 });

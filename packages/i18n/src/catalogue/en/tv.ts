@@ -29,6 +29,26 @@ export const tv = {
     /** A member who hid their name on the TVs (#326): `{place}` is their place on the list. */
     hiddenName: 'Player {place}',
   },
+  /** The call-time board (decision 0163): the seats about to open, and every table's players on call time. */
+  callTime: {
+    title: 'Call time',
+    openingsTitle: 'Seats opening',
+    noOpenings: 'No seats opening yet.',
+    empty: 'No one on call time.',
+    /** Where a seat opens: `{table} · Seat {seat}`. */
+    where: '{table} · Seat {seat}',
+    /** When it opens: `{time}` is 25 min, or 1 h 5 min. */
+    opensIn: 'In {time}',
+    opensNow: 'Now',
+    /** A player away from the table: their clock stands still. */
+    paused: '{time}, away',
+    /** A member who hid their name on the TVs (#326). */
+    hiddenName: 'Seat {seat}',
+    /** Under a list cut short. */
+    more: '+{count} more',
+    /** More tables than fit take turns: `Tables 1 to 4 of 6`. */
+    page: 'Tables {from} to {to} of {count}',
+  },
   /** The jackpot with tonight's high hand (#65). */
   jackpot: {
     highHandTonight: 'High hand tonight',
