@@ -1569,14 +1569,14 @@ isOneToOne: false
                   ]
                 },"member": {
                   Row: {
-                    "created_at": string,"full_name": string,"id": string,"member_number": number,"phone": string,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
+                    "created_at": string,"erased_at": string | null,"full_name": string,"id": string,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"full_name": string,"id"?: string,"member_number"?: never,"phone": string,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3436,6 +3436,11 @@ isOneToOne: false
               "cash_variance_paise": number,"chips_variance_paise": number,"close_id": string,"closed_at": string,"closed_by": string,"counted_cash_paise": number,"counted_chips_paise": number,"counted_markers_paise": number,"counted_receipts_paise": number,"expected_cash_paise": number,"expected_chips_paise": number,"expected_markers_paise": number,"expected_receipts_paise": number,"float_paise": number,"is_anomaly": boolean,"markers_variance_paise": number,"may_review": boolean,"opened_at": string,"opened_by": string,"reason": string,"receipts_variance_paise": number,"reviewed_at": string,"reviewed_by": string
             }[]
                            },
+"erase_member":
+{ Args: { "p_full_name": string,"p_member_id": string,"p_reason": string }; Returns: {
+              "blocked_until": string,"forfeited_bonus_paise": number,"forfeited_points": number,"venue_id": string
+            }[]
+                           },
 "finish_outbox_delivery":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
@@ -3541,6 +3546,11 @@ isOneToOne: false
 "member_early_departures":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "created_at": string,"early_departure_id": string,"reason": string,"shortfall_seconds": number,"staff_name": string
+            }[]
+                           },
+"member_erasure_preview":
+{ Args: { "p_member_id": string }; Returns: {
+              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"points": number
             }[]
                            },
 "member_feature_overrides":

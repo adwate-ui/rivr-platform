@@ -43,6 +43,7 @@ const KYC_REFUSAL_COPY: Readonly<Record<KycRefusal, MessageKey>> = {
   duplicate_aadhaar: 'console.kycReview.duplicateAadhaar',
   duplicate_face: 'console.kycReview.duplicateFace',
   staff_rejected: 'console.kycReview.staffRejected',
+  on_break: 'console.kycReview.onBreak',
 };
 
 /** What the cage says of a member whose identity check is not complete: the reason it failed, or that it is not finished. */

@@ -7,6 +7,7 @@ const REFUSAL_COPY: Readonly<Record<KycRefusal, MessageKey>> = {
   duplicate_pan: 'console.kycReview.duplicatePan',
   duplicate_aadhaar: 'console.kycReview.duplicateAadhaar',
   staff_rejected: 'console.kycReview.staffRejected',
+  on_break: 'console.kycReview.onBreak',
 };
 
 const WAIT_COPY: Readonly<Record<KycWaitReason, MessageKey>> = {
