@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, formatNumber, formatRupeesForFile, formatStakes } from './money.ts';
+import { formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
 
 describe('formatMoney', () => {
   it.each([
@@ -45,5 +45,12 @@ describe('formatRupeesForFile', () => {
     expect(formatRupeesForFile(100_050n)).toBe('1000.50');
     expect(formatRupeesForFile(-100_050n)).toBe('-1000.50');
     expect(formatRupeesForFile(0n)).toBe('0.00');
+  });
+});
+
+describe('formatRupeesForInput', () => {
+  it('gives whole rupees as a field holds them', () => {
+    expect(formatRupeesForInput(1_000_000n)).toBe('10000');
+    expect(formatRupeesForInput(0n)).toBe('0');
   });
 });

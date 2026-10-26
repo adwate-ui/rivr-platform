@@ -69,10 +69,10 @@ const BOARD_CHECK = 30_000;
 // However many signals arrive, the board is read again at most once every two seconds.
 const SIGNAL_SETTLE = 2_000;
 
-// The query each board's signal reads again; promotions is the Promotions rotation's (#86). The TV's screen listens (useTvSignals).
+// The query each board's signal reads again; promotions is the Promotions rotation's (#86), tournament the clock's (#119). The TV's screen listens (useTvSignals).
 const BOARD_KEYS = {
   waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions,
-  rewards: queryKeys.tvRewardsTicker, league: queryKeys.tvLeagueBoard,
+  rewards: queryKeys.tvRewardsTicker, league: queryKeys.tvLeagueBoard, tournament: queryKeys.tvTournamentClock,
 };
 
 /**

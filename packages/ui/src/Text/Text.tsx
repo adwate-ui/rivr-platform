@@ -20,6 +20,8 @@ export interface TextProps {
   align?: 'start' | 'center' | 'end';
   /** Cuts a single line with an ellipsis instead of wrapping. */
   truncate?: boolean;
+  /** Figures of one width, so a clock ticking down does not shift: `11:32`. */
+  isTabular?: boolean;
   id?: string;
 }
 
@@ -40,7 +42,7 @@ const WEIGHT = { regular: 'font-regular', medium: 'font-medium', semibold: 'font
 const ALIGN = { start: 'text-start', center: 'text-center', end: 'text-end' } as const;
 
 /** Running text in the text face. */
-export function Text({ children, variant = 'body', tone = 'default', weight, as: Element = 'p', align, truncate = false, id }: TextProps) {
+export function Text({ children, variant = 'body', tone = 'default', weight, as: Element = 'p', align, truncate = false, isTabular = false, id }: TextProps) {
   const classes = cx(
     'font-text',
     VARIANT[variant],
@@ -48,6 +50,7 @@ export function Text({ children, variant = 'body', tone = 'default', weight, as:
     weight && WEIGHT[weight],
     align && ALIGN[align],
     truncate && 'truncate',
+    isTabular && 'tabular-nums',
   );
   return (
     <Element className={classes} id={id}>

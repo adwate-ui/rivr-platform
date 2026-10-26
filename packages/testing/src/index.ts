@@ -8,6 +8,7 @@ export {
   type GoldenFile,
 } from './golden.ts';
 export { newId, nextTestUuid } from './ids.ts';
+export { formatMinutesSeconds, formatStages, parseMinutesSeconds, parseStages, type NotedStage } from './stages.ts';
 export { buildMember, buildTable, buildVenue, buildWaitlistEntry } from './factories.ts';
 export {
   designPromptSeed,

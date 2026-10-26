@@ -33,3 +33,8 @@ export function formatRupeesForFile(paise: bigint): string {
   const amount = paise < 0n ? -paise : paise;
   return `${paise < 0n ? '-' : ''}${amount / PAISE_PER_RUPEE}.${(amount % PAISE_PER_RUPEE).toString().padStart(2, '0')}`;
 }
+
+/** Paise as the whole rupees a form's field holds, for a figure being changed: `10000`. Chips are whole ₹50, so nothing is dropped. */
+export function formatRupeesForInput(paise: bigint): string {
+  return String(paise / PAISE_PER_RUPEE);
+}

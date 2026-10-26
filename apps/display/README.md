@@ -26,7 +26,8 @@ src/
     modes/            a paired TV shows the mode the console gave it: the waitlist board and the jackpot
                       with tonight's high hand (#65), the promotions (#86) and the call-time board with the
                       seats opening (decision 0163), the rewards ticker and the League leaderboard (#148,
-                      decision 0183), live through Realtime; in between, the boards the console
+                      decision 0183), and the tournament clock counting down from the server's reading
+                      (#119, decision 0201), live through Realtime; in between, the boards the console
                       chose for it to turn to, half a minute each, the promotions one after another; other modes show their name
 ```
 

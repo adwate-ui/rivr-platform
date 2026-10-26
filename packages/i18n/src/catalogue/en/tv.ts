@@ -94,6 +94,11 @@ export const tv = {
     pool: 'Pool',
     payouts: 'Payouts',
     noPayouts: 'Payouts are set when registration closes.',
+    /** On a break the clock shows this in place of the blinds (#119). */
+    break: 'Break',
+    breakLevel: 'Break after level {level}',
+    /** With no tournament running at the venue. */
+    none: 'No tournament is running.',
   },
   /** A promotion slide in the TV's rotation (#64). */
   promotion: {

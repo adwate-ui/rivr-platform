@@ -43,4 +43,10 @@ describe('Text', () => {
     expect(text).toHaveClass('truncate');
     expect(text).toHaveAttribute('id', 'seat');
   });
+
+  it('sets figures of one width only when asked, so a ticking clock stays still', () => {
+    renderIn(<><Text isTabular>11:32</Text><Text>11:31</Text></>);
+    expect(screen.getByText('11:32')).toHaveClass('tabular-nums');
+    expect(screen.getByText('11:31')).not.toHaveClass('tabular-nums');
+  });
 });

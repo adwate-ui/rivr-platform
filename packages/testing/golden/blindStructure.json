@@ -1,0 +1,36 @@
+{
+  "rule": "Blind-structure calculator",
+  "about": "A blind structure for a target length (#115; decision 0200). As many levels of the chosen minutes as fit the target length with their breaks (a break after every so many levels, never after the last; at least one level; at most sixty stages). Big blinds come off the chip ladder 100, 120, 150, 200, 250, 300, 400, 500, 600, 800, then 1,000, 1,200 and so on; they climb the ladder evenly from the first level's big blind to a twentieth of the chips in play (starting stack times expected entries), each rounded to the nearest rung and always above the level before. The small blind is half the big blind; the ante, when asked for, is the big blind. Levels are written 'small blind/big blind ante A for M' and breaks 'break M', in minutes. The floor may change any level after.",
+  "cases": [
+    {
+      "description": "Eight hours of 20-minute levels for 60 entries of 30,000, a ten-minute break every four levels, a big-blind ante.",
+      "operation": "plan",
+      "inputs": { "startingStack": "30000", "expectedEntries": "60", "firstBigBlind": "200", "levelMinutes": "20", "targetMinutes": "480", "breakEvery": "4", "breakMinutes": "10", "ante": "yes" },
+      "expected": { "levels": "100/200 ante 200 for 20; 125/250 ante 250 for 20; 200/400 ante 400 for 20; 250/500 ante 500 for 20; break 10; 300/600 ante 600 for 20; 500/1000 ante 1000 for 20; 600/1200 ante 1200 for 20; 750/1500 ante 1500 for 20; break 10; 1250/2500 ante 2500 for 20; 1500/3000 ante 3000 for 20; 2500/5000 ante 5000 for 20; 3000/6000 ante 6000 for 20; break 10; 4000/8000 ante 8000 for 20; 6000/12000 ante 12000 for 20; 7500/15000 ante 15000 for 20; 10000/20000 ante 20000 for 20; break 10; 15000/30000 ante 30000 for 20; 20000/40000 ante 40000 for 20; 25000/50000 ante 50000 for 20; 40000/80000 ante 80000 for 20; break 10; 50000/100000 ante 100000 for 20" }
+    },
+    {
+      "description": "A two-hour turbo of 10-minute levels for 20 entries of 10,000: no breaks, no ante.",
+      "operation": "plan",
+      "inputs": { "startingStack": "10000", "expectedEntries": "20", "firstBigBlind": "100", "levelMinutes": "10", "targetMinutes": "120", "breakEvery": "0", "breakMinutes": "0", "ante": "no" },
+      "expected": { "levels": "50/100 for 10; 75/150 for 10; 125/250 for 10; 150/300 for 10; 250/500 for 10; 400/800 for 10; 600/1200 for 10; 1000/2000 for 10; 1500/3000 for 10; 2000/4000 for 10; 3000/6000 for 10; 5000/10000 for 10" }
+    },
+    {
+      "description": "Exactly at the target length: four 30-minute levels and one five-minute break make 125 minutes. A first big blind of 180 rounds to 200.",
+      "operation": "plan",
+      "inputs": { "startingStack": "25000", "expectedEntries": "40", "firstBigBlind": "180", "levelMinutes": "30", "targetMinutes": "125", "breakEvery": "2", "breakMinutes": "5", "ante": "yes" },
+      "expected": { "levels": "100/200 ante 200 for 30; 600/1200 ante 1200 for 30; break 5; 4000/8000 ante 8000 for 30; 25000/50000 ante 50000 for 30" }
+    },
+    {
+      "description": "A target shorter than one level still gets one level.",
+      "operation": "plan",
+      "inputs": { "startingStack": "20000", "expectedEntries": "10", "firstBigBlind": "100", "levelMinutes": "30", "targetMinutes": "20", "breakEvery": "2", "breakMinutes": "10", "ante": "yes" },
+      "expected": { "levels": "50/100 ante 100 for 30" }
+    },
+    {
+      "description": "Too few chips to climb to: each level takes the next rung up, so the blinds still rise.",
+      "operation": "plan",
+      "inputs": { "startingStack": "1000", "expectedEntries": "2", "firstBigBlind": "500", "levelMinutes": "15", "targetMinutes": "45", "breakEvery": "0", "breakMinutes": "0", "ante": "no" },
+      "expected": { "levels": "250/500 for 15; 300/600 for 15; 400/800 for 15" }
+    }
+  ]
+}

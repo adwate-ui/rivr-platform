@@ -154,3 +154,12 @@ export {
   type SettingValue, type VenueSetting, type VenueSettings,
 } from './settings.ts';
 export { useContacts, useDrills, useIncidentActions, useIncidents, type Contact, type Drill, type Incident, type IncidentFailure } from './incidents.ts';
+// Tournaments (#115, #119): the console's at their own files, Home's and the TV's clock in liveTournament.ts.
+export {
+  useTournamentActions, useTournamentClock, useVenueTournaments,
+  type ClockChange, type NewTournament, type TournamentAddOn, type TournamentFailure, type VenueTournament,
+} from './tournaments.ts';
+export {
+  useBlindStructures, useTournamentSetupActions, useTournamentTemplates, type BlindStructure, type TemplateOrder, type TournamentTemplate,
+} from './tournamentSetup.ts';
+export { useElapsedNow, useLiveTournament, useTvTournamentClock, type LiveTournament } from './liveTournament.ts';

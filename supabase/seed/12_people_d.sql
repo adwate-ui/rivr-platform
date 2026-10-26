@@ -25,7 +25,8 @@ on conflict do nothing;
 -- to release the freeze, the other releases it (#52). The Rewards catalogue flow's marketing manager,
 -- who keeps the catalogue and the League's seasons, and its floor manager, who reads the standings (#145, #147).
 -- The Rewards flow's member, who redeems from the app, and its floor manager, who pairs a TV on the rewards
--- ticker and hands the redemption over (#148, #152). The Pot data flow's super admin (#114). A row with no role is a member.
+-- ticker and hands the redemption over (#148, #152). The Pot data flow's super admin (#114). The Tournament clock flow's floor manager and
+-- member, who watches the clock on Home (#119). A row with no role is a member.
 create temporary table lane_d_person (
   id uuid primary key,
   phone text not null,
@@ -41,7 +42,9 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-000000000179', '+919000000701', 'Kabir Anand', 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-0000000d0702', '+919000000702', 'Riya Sen', null, null),
   ('00000000-0000-4000-8000-0000000d0703', '+919000000703', 'Meher Lal', 'Floor manager', 'admin'),
-  ('00000000-0000-4000-8000-0000000d0704', '+919000000704', 'Anika Rao', 'Owner', 'super_admin');
+  ('00000000-0000-4000-8000-0000000d0704', '+919000000704', 'Anika Rao', 'Owner', 'super_admin'),
+  ('00000000-0000-4000-8000-0000000d0750', '+919000000750', 'Vikram Bedi', 'Floor manager', 'admin'),
+  ('00000000-0000-4000-8000-0000000d0751', '+919000000751', 'Sara Gill', null, null);
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
