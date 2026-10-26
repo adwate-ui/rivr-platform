@@ -2,11 +2,14 @@
  * Sample navigation for stories: the console rail and the player tabs as the design prompt
  * lists them. Apps build their own from their routes and the signed-in role.
  */
-import { t, type en } from '@rivr/i18n';
+import { consoleApp, registerMessages, t, type en } from '@rivr/i18n';
 import type { BottomNavItem } from '../BottomNav/BottomNav.tsx';
 import type { SideNavItem, SideNavSection } from '../SideNav/SideNav.tsx';
 
 type RailItem = keyof typeof en.console.rail.items;
+
+// The rail's labels are the console's own copy, which the console registers at start; the stories and tests do the same.
+registerMessages({ console: consoleApp });
 
 /** The console rail: Floor, Money, Players, Growth, Team and Reports. */
 export function consoleSections(): SideNavSection[] {
