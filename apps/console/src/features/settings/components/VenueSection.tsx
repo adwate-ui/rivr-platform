@@ -5,6 +5,7 @@ import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { LogoField } from './LogoField.tsx';
 import { venueFailureText } from './settingsCopy.ts';
 
 /** The form's fields in order, each with its label (and hint). */
@@ -86,6 +87,7 @@ export function VenueSection({ venueId }: { venueId: string }) {
       ) : null}
       {config.data === null ? <ErrorMessage>{notSuperAdmin}</ErrorMessage> : null}
       {config.data ? <VenueForm venueId={venueId} config={config.data} /> : null}
+      {config.data ? <LogoField venueId={venueId} logoUrl={config.data.logoUrl} /> : null}
     </Stack>
   );
 }

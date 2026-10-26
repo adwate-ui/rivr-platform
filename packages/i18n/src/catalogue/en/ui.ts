@@ -55,6 +55,11 @@ export const ui = {
     missing: 'No photo',
     failed: 'The photo could not load. Reload the page, or check the member at the desk.',
   },
+  /** VenueLogo, in place of the venue's logo that is not there (#397). */
+  logo: {
+    missing: 'No logo yet',
+    failed: 'The logo could not load. Upload it again.',
+  },
   /** The dealer tablet's pot keypad (#42). */
   keypad: {
     delete: 'Delete',

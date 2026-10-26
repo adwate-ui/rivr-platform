@@ -3,8 +3,9 @@
  * This flow has its own admin (Imran Qureshi), super admin (Leela Menon) and cashier (Tara Bose).
  * - Imran opens Team → Settings, opens the waitlist hold, is told a value past its limits is wrong,
  *   schedules 12 minutes from tomorrow, and withdraws it. He sees no venue configuration.
- * - Leela sets the alert number in the venue configuration, which survives a reload, and adds a chip,
- *   then takes it out of use (in `finally`, so the Treasury flow never has to count it).
+ * - Leela sets the alert number in the venue configuration, which survives a reload, uploads the venue's
+ *   logo (#397), which is there after a reload, and adds a chip, then takes it out of use (in `finally`, so
+ *   the Treasury flow never has to count it).
  * - Tara has no Settings in her rail, and the address shows a refusal.
  * The database's side (schemas, the past, who may, the audit log) is proved in supabase/tests/081.
  */
@@ -13,6 +14,9 @@ import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 const REFUSED = 'Your role does not include this screen. Ask an admin if you need it.';
+
+/** A one-pixel PNG, as the logo. */
+const LOGO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 
 /** Tomorrow on the club's clock, as a date field takes it. */
 const tomorrow = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(Date.now() + 24 * 3_600_000));
@@ -59,6 +63,12 @@ test.describe('Settings', () => {
     await expect(owner.getByText('Configuration saved.')).toBeVisible();
     await owner.reload();
     await expect(owner.getByRole('textbox', { name: 'Alert WhatsApp number' })).toHaveValue('+919876543210');
+
+    // The venue's logo: a PNG uploaded on Settings is there after a reload.
+    await owner.locator('input[type="file"]').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: LOGO });
+    await expect(owner.getByText('Logo saved.')).toBeVisible();
+    await owner.reload();
+    await expect(owner.getByRole('img', { name: 'The venue’s logo' })).toHaveAttribute('src', /\/brand\/.*\/logo-.*\.png$/);
 
     // A value no earlier run used: ₹5,00,000 to ₹9,49,950 in ₹50 steps.
     const rupees = 50 * (10_000 + (Date.now() % 9_000));

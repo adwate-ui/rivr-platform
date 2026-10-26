@@ -18,6 +18,13 @@ describe('CameraButton', () => {
     expect(input).toHaveAttribute('accept', 'image/*');
   });
 
+  it('offers only the files asked for, from the file picker without a camera', () => {
+    const { container } = renderIn(<CameraButton camera="none" accept="image/png,image/svg+xml" onPhoto={() => undefined}>Upload a logo</CameraButton>);
+    const input = container.querySelector('input[type="file"]');
+    expect(input).not.toHaveAttribute('capture');
+    expect(input).toHaveAttribute('accept', 'image/png,image/svg+xml');
+  });
+
   it('hands back the photo taken', async () => {
     const onPhoto = vi.fn();
     const { container } = renderIn(<CameraButton onPhoto={onPhoto}>Take a selfie</CameraButton>);
