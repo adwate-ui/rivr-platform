@@ -29,7 +29,7 @@ function Board({ mode, name, onDone }: BoardProps) {
   if (mode === 'promotions') return <PromotionsMode onDone={onDone} />;
   if (mode === 'rewards') return <RewardsMode />;
   if (mode === 'league') return <LeagueMode />;
-  if (mode === 'tournament_clock') return <TournamentClockMode />;
+  if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
   return (
     <Stack gap={4}>
       <Heading level={1} variant="display">{t(`tv.modes.${mode}`)}</Heading>

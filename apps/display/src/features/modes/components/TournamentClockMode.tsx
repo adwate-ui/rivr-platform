@@ -27,8 +27,9 @@ export function toClockProps(tournament: LiveTournament, elapsedSeconds: number)
 /**
  * The tournament clock (#119, decision 0201): the venue's running tournament, its level and time left
  * counting down from what the server last said, so a TV that reloads is back on the right level and second.
+ * With none running it says so under the board's name and the TV's own (`name`), so staff can tell the TVs apart.
  */
-export function TournamentClockMode() {
+export function TournamentClockMode({ name }: { name: string }) {
   const clock = useTvTournamentClock();
   const elapsed = useElapsedNow(clock.data?.clock);
   if (clock.data === undefined) {
@@ -38,6 +39,7 @@ export function TournamentClockMode() {
     return (
       <Stack gap={4}>
         <Heading level={1} variant="display">{t('tv.modes.tournament_clock')}</Heading>
+        <Text variant="tvBody" tone="muted">{name}</Text>
         <Text variant="tvBody" tone="muted">{t('tv.tournamentClock.none')}</Text>
       </Stack>
     );
