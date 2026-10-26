@@ -33,6 +33,7 @@ import { accounts } from './accounts.ts';
 import { expenses } from './expenses.ts';
 import { shareholders } from './shareholders.ts';
 import { tally } from './tally.ts';
+import { ownerDashboard } from './ownerDashboard.ts';
 import { reports } from './reports.ts';
 import { exportFilters } from './exportFilters.ts';
 import { tds } from './tds.ts';
@@ -165,6 +166,7 @@ export const consoleApp = {
   exportFilters,
   tally,
   reports,
+  ownerDashboard,
   shareholders,
   endOfDay,
   endOfDayFailures,

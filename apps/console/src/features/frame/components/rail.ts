@@ -23,6 +23,7 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.floor',
     entries: [
       { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', anyOf: [] },
+      { id: 'owner', label: 'console.rail.items.owner', href: '/owner', anyOf: ['dashboards.read'] },
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
       { id: 'checkIn', label: 'console.rail.items.checkIn', href: '/check-in', anyOf: ['waitlist.manage'] },
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'] },

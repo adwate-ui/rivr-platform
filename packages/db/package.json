@@ -11,7 +11,8 @@
     "./shareholding": "./src/shareholding.ts",
     "./tally": "./src/tally.ts",
     "./reports": "./src/reports.ts",
-    "./exports": "./src/exports.ts"
+    "./exports": "./src/exports.ts",
+    "./ownerDashboard": "./src/ownerDashboard.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
