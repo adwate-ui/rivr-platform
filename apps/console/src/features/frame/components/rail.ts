@@ -29,6 +29,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'tvs', label: 'console.rail.items.tvs', href: '/tvs', anyOf: ['devices.manage'] },
       { id: 'computers', label: 'console.rail.items.computers', href: '/computers', anyOf: ['devices.manage'] },
       { id: 'rake', label: 'console.rail.items.rake', href: '/rake', anyOf: ['settings.manage'] },
+      { id: 'potData', label: 'console.rail.items.potData', href: '/pot-data', anyOf: ['pot_data.read'] },
     ],
   },
   {

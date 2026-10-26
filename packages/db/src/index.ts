@@ -82,7 +82,7 @@ export {
 } from './feedback.ts';
 export * from './rewards.ts';
 export * from './league.ts';
-export * from './tvRewards.ts';
+export * from './floorReports.ts';
 export {
   PAYOUT_STATUSES, usePayoutAccountActions, usePayoutAccountDecisions, usePayoutAccounts, usePayoutAccountsToVerify, type PayoutAccount,
   type PayoutAccountFailure, type PayoutAccountToVerify, type PayoutDecision, type PayoutStatus,

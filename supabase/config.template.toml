@@ -244,6 +244,8 @@ max_frequency = "60s"
 # Lane D builder: the Rewards flow's member and floor manager (#148, #152).
 919000000702 = "123456"
 919000000703 = "123456"
+# Lane D builder: the Pot data flow's super admin (#114).
+919000000704 = "123456"
 919000000201 = "123456"
 919000000202 = "123456"
 919000000203 = "123456"

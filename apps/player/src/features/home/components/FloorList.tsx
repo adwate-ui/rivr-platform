@@ -18,9 +18,16 @@ function waitOf(table: FloorTable, place: WaitlistPlace | undefined): string {
   return table.waiting === 0 ? t('player.tonight.noWait') : t('player.tonight.waiting', { count: table.waiting });
 }
 
-/** The line under a table: closed, or its open seats and its wait. */
-function detailOf(table: FloorTable, place: WaitlistPlace | undefined): string {
-  if (!table.isOpen) return t('player.tonight.closed');
+/**
+ * The line under a table: closed, or its open seats and its wait. A closed game's list is its interest
+ * list (#113, decision 0184): joining it registers interest, and the floor opens a table once enough wait.
+ */
+function detailOf(table: FloorTable, place: WaitlistPlace | undefined, isRunning: boolean): string {
+  if (!table.isOpen) {
+    // A game not running: its waitlist is its interest list, so the line says how many are interested.
+    if (isRunning || (table.waiting === 0 && !place)) return t('player.tonight.closed');
+    return [t('player.tonight.closed'), waitOf(table, place)].join(' · ');
+  }
   const seats = seatsOf(table);
   return seats === null ? waitOf(table, place) : [seats, waitOf(table, place)].join(' · ');
 }
@@ -36,7 +43,7 @@ function useRequestIds() {
 
 /**
  * Tonight's tables in floor order, each with its open seats and Join while the member may join
- * (waitlist.join) and is not on its list. Where the member's tier lacks Join, one locked notice says
+ * (waitlist.join) and is not on its list; a closed table's Join registers interest in its game. Where the member's tier lacks Join, one locked notice says
  * which tiers have it; until their identity check is done, Join waits for it (#87).
  */
 export function FloorList({ tables, places }: { tables: readonly FloorTable[]; places: readonly WaitlistPlace[] }) {
@@ -63,7 +70,9 @@ export function FloorList({ tables, places }: { tables: readonly FloorTable[]; p
       <Stack gap={4} divided>
         {tables.map((table) => {
           const place = places.find((candidate) => candidate.tableTypeId === table.tableTypeId);
-          const action = table.isOpen && !place ? (
+          // A closed table offers Join only while none of its game's tables is open: that is registering interest.
+          const isRunning = tables.some((other) => other.tableTypeId === table.tableTypeId && other.isOpen);
+          const action = !place && (table.isOpen || !isRunning) ? (
             <FeatureGate access={rowAccess}>
               <Button variant="secondary" isLoading={join.isPending} onClick={() => void joinList(table.tableTypeId)}>
                 {t('player.tonight.join')}
@@ -72,7 +81,7 @@ export function FloorList({ tables, places }: { tables: readonly FloorTable[]; p
           ) : undefined;
           return (
             <FloorRow key={table.id} name={table.name} smallBlind={table.smallBlind} bigBlind={table.bigBlind}
-              detail={detailOf(table, place)} action={action} isMuted={!table.isOpen} />
+              detail={detailOf(table, place, isRunning)} action={action} isMuted={!table.isOpen} />
           );
         })}
       </Stack>

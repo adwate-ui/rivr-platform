@@ -56,6 +56,7 @@ export const PERMISSIONS = [
   'rewards.hand_over', // hand a member what they redeemed (decision 0181)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
   'shareholding.manage', // the shareholding register, super_admin only (decision 0170)
+  'pot_data.read', // every hand by table, dealer, variant and period (decision 0185)
 ] as const;
 
 /** A permission key. */

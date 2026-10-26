@@ -109,6 +109,9 @@ export const queryKeys = {
   /** The TV's rewards ticker and League leaderboard (#148, decision 0183). */
   tvRewardsTicker: (userId: string) => ['user', userId, 'tv-rewards-ticker'] as const,
   tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,
+  /** A venue's games not running and their interest (#113), and its hands over a period (#114). */
+  interestLists: (userId: string, venueId: string) => ['user', userId, 'interest-lists', venueId] as const,
+  potData: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'pot-data', venueId, start, end] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,

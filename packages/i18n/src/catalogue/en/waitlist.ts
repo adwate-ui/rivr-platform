@@ -55,6 +55,15 @@ export const waitlist = {
   empty: 'No one is waiting.',
   /** The venue has no tables set up, so no lists. */
   noGames: 'No games are set up at this venue yet.',
+  /** A game with no open table (#113, decision 0184): its waitlist is its interest list. */
+  interest: 'Not running · {count} interested',
+  /** With the venue's number to open a table at. */
+  interestShort: 'Not running · {count} interested, a table opens at {needed}',
+  interestReady: '{count} interested: enough to open a table',
+  openTable: 'Open {table}',
+  openFailed: 'The table did not open. Check the connection and try again.',
+  openNotAllowed: 'Your role does not open tables. Ask a floor manager.',
+  openPaused: 'The venue is frozen. Tables open again once it is released.',
   /** One place: `{place}` on the list, `{name}`, joined at `{time}` (IST). */
   entry: '{place}. {name} · {time}',
   /** A place ahead of join time (#40): `{reason}` is the tier, "Black card". */

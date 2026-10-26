@@ -30,6 +30,22 @@ export interface LeagueStanding {
   readonly points: bigint;
 }
 
+/**
+ * A place on the League's board as members and the TVs see it (decision 0182): this month's (`month`) or
+ * the season's (`season`, with its name), a first name and initial or none for a member who hid it, and
+ * whether it is the signed-in member's own.
+ */
+export interface LeagueBoardRow {
+  readonly standing: 'month' | 'season';
+  readonly seasonName: string | null;
+  readonly firstMonth: string;
+  readonly lastMonth: string;
+  readonly place: number;
+  readonly name: string | null;
+  readonly points: bigint;
+  readonly isMe: boolean;
+}
+
 /** Why a season was not saved: the role does not allow it, a name or months out of bounds or overlapping another season, the venue frozen, or anything else. */
 export type LeagueFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
 

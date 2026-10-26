@@ -3,7 +3,10 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import type { LeagueBoardRow } from './league.ts';
 import type { RewardFailure, RewardItem } from './rewards.ts';
+
+export type { LeagueBoardRow } from './league.ts';
 
 /** The signed-in member's points and tier, for the top of Rewards (#152). */
 export interface MyRewards {
@@ -101,21 +104,6 @@ export function useRedeemReward() {
   });
 }
 
-/**
- * A place on the League's board as members and the TVs see it (decision 0182): this month's (`month`) or
- * the season's (`season`, with its name), a first name and initial or none for a member who hid it, and
- * whether it is the signed-in member's own.
- */
-export interface LeagueBoardRow {
-  readonly standing: 'month' | 'season';
-  readonly seasonName: string | null;
-  readonly firstMonth: string;
-  readonly lastMonth: string;
-  readonly place: number;
-  readonly name: string | null;
-  readonly points: bigint;
-  readonly isMe: boolean;
-}
 
 interface LeagueBoardRecord {
   standing: string;

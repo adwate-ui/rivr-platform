@@ -18,6 +18,7 @@ export const rail = {
     tvs: 'TVs',
     computers: 'Computers',
     rake: 'Rake',
+    potData: 'Pot data',
     dealerPins: 'Dealer PINs',
     certification: 'Certification',
     checkIn: 'Check-in',
