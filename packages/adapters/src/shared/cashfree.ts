@@ -1,4 +1,5 @@
 import { err, ok, type Result } from '@rivr/contracts';
+import type { z } from 'zod';
 import type { AdapterFailure } from './failure.ts';
 
 /**
@@ -107,3 +108,10 @@ export function createCashfreeClient(options: CashfreeOptions) {
 }
 
 export type CashfreeClient = ReturnType<typeof createCashfreeClient>;
+
+/** A reply read through its schema, or unavailable when it is not what Cashfree documents. */
+export function parsed<T>(schema: z.ZodType<T>, reply: Result<unknown, AdapterFailure>): Result<T, AdapterFailure> {
+  if (!reply.ok) return reply;
+  const read = schema.safeParse(reply.value);
+  return read.success ? ok(read.data) : err({ code: 'unavailable' });
+}
