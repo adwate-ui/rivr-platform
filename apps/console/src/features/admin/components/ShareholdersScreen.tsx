@@ -36,7 +36,10 @@ function historyColumns(): readonly DataTableColumn<HoldingRecord>[] {
 /** The register on a day: each holder and their share then. */
 function RegisterRows({ venueId, on }: { venueId: string; on: string }) {
   const register = useShareholdingRegister(venueId, on);
-  const base = { label: t('console.shareholders.registerLabel'), columns: registerColumns(), rowKey: (row: RegisterRow) => row.shareholderId };
+  const base = {
+    label: t('console.shareholders.registerLabel'), columns: registerColumns(), rowKey: (row: RegisterRow) => row.shareholderId,
+    exportFilter: t('console.exportFilters.day', { day: on }),
+  };
   if (register.data === undefined && register.isError) return <DataTable {...base} status="error" onRetry={() => void register.refetch()} />;
   if (register.data === undefined) return <DataTable {...base} status="loading" />;
   return <DataTable {...base} rows={register.data} emptyText={t('console.shareholders.empty')} />;

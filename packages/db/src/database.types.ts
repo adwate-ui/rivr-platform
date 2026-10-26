@@ -3446,6 +3446,11 @@ isOneToOne: false
               "full_name": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"tier_name": string,"visits": number
             }[]
                            },
+"members_of_tier":
+{ Args: { "p_tier_id": string,"p_venue_id": string }; Returns: {
+              "full_name": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"tier_name": string,"visits": number
+            }[]
+                           },
 "message_recipient":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
@@ -3649,6 +3654,9 @@ isOneToOne: false
                            },
 "record_kyc_started":
 { Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
+                           },
+"record_table_export":
+{ Args: { "p_filter": string,"p_format": string,"p_rows": number,"p_venue_id": string,"p_what": string }; Returns: boolean
                            },
 "redeem_device_pairing":
 { Args: { "p_client": string,"p_code": string }; Returns: {

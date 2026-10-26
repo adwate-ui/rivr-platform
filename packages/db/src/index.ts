@@ -72,7 +72,7 @@ export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer
 export { useMySeat, type MySeat } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,
+  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export {

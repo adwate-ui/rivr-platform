@@ -247,11 +247,18 @@ const alertThresholds = {
   value: z.strictObject({ failed_deliveries: z.int().min(1).max(1000), window_minutes: z.int().min(5).max(1440) }),
 } as const satisfies SettingDefinition;
 
+const exportsAlertRows = {
+  key: 'exports.alert_rows',
+  description: 'Console table exports (decision 0190): an export of this many rows or more alerts the owner. 1,000 unless set.',
+  scope: 'venue',
+  value: z.strictObject({ rows: z.int().min(1).max(1_000_000) }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds,
+  cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows,
 ] as const;
 
 /** A setting key declared in code. */

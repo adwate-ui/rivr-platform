@@ -75,7 +75,10 @@ function MonthStatements({ venueId, month }: { venueId: string; month: string })
   const issuer = useVenueIssuer(venueId);
   const [open, setOpen] = useState<HolderStatement | null>(null);
   const { isPrinting, print } = usePrinting();
-  const base = { label: t('console.shareholders.statementsLabel'), columns: columns(setOpen), rowKey: (row: HolderStatement) => row.holder.shareholderId };
+  const base = {
+    label: t('console.shareholders.statementsLabel'), columns: columns(setOpen), rowKey: (row: HolderStatement) => row.holder.shareholderId,
+    exportFilter: t('console.exportFilters.month', { month: formatMonth(month) }),
+  };
   if (register.isError || mis.isError || issuer.isError || issuer.data === null) {
     return <DataTable {...base} status="error" onRetry={() => void Promise.all([register.refetch(), mis.refetch(), issuer.refetch()])} />;
   }

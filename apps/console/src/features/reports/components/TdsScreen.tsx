@@ -27,7 +27,10 @@ function columns(): readonly DataTableColumn<TdsLedgerRow>[] {
 /** The ledger's rows for the days chosen, or the table's loading or error state. */
 function LedgerRows({ venueId, from, to }: { venueId: string; from: string; to: string }) {
   const ledger = useTdsLedger(venueId, from, to);
-  const base = { label: t('console.tds.ledgerLabel'), columns: columns(), rowKey: (row: TdsLedgerRow) => row.memberId };
+  const base = {
+    label: t('console.tds.ledgerLabel'), columns: columns(), rowKey: (row: TdsLedgerRow) => row.memberId,
+    exportFilter: t('console.exportFilters.period', { from, to }),
+  };
   if (ledger.data === undefined && ledger.isError) return <DataTable {...base} status="error" onRetry={() => void ledger.refetch()} />;
   if (ledger.data === undefined) return <DataTable {...base} status="loading" />;
   return <DataTable {...base} rows={ledger.data} emptyText={t('console.tds.empty')} initialSort={{ key: 'withheld', direction: 'descending' }} />;
