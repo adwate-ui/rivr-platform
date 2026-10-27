@@ -106,6 +106,8 @@ export const members = {
     },
     forfeit: 'Forfeited to the club: {points} points and {bonus} of bonus.',
     nothingToForfeit: 'No points or bonus to forfeit.',
+    /** Hotel nights the erasure forfeits, or forfeited (#146): `1.25`. */
+    nightsForfeit: 'Hotel nights forfeited to the club: {nights}.',
     blockNote: 'On a break until {date}: their number and identity stay blocked until then, by keyed hashes alone.',
     typeName: 'Type the member\'s full name to confirm',
     reason: 'Why the member is erased',

@@ -18,9 +18,10 @@ const BLOCKERS: readonly ErasureBlocker[] = [
 export interface ErasurePreview {
   readonly isErased: boolean;
   readonly blockers: readonly ErasureBlocker[];
-  /** The points and bonus an erasure would forfeit to the club. */
+  /** The points, bonus and hotel nights (in thousandths, #146) an erasure would forfeit to the club. */
   readonly points: number;
   readonly bonus: Paise;
+  readonly nights: bigint;
   /** The end of a break whose block would stand; null for none. */
   readonly blockedUntil: string | null;
   /** KYC files of the member still in Storage: once erased, still to remove. */
@@ -31,6 +32,8 @@ export interface ErasurePreview {
 export interface Erasure {
   readonly forfeitedPoints: number;
   readonly forfeitedBonus: Paise;
+  /** Hotel nights forfeited, in thousandths. */
+  readonly forfeitedNights: bigint;
   readonly blockedUntil: string | null;
   readonly filesRemoved: number | null;
 }
@@ -89,7 +92,7 @@ export function useMemberErasurePreview(memberId: string) {
       if (row === undefined) return null;
       return {
         isErased: row.is_erased, blockers: row.blockers.map(erasureBlockerOf), points: row.points, bonus: toPaise(row.bonus_paise),
-        blockedUntil: row.blocked_until, kycFiles: row.kyc_files,
+        nights: BigInt(row.nights), blockedUntil: row.blocked_until, kycFiles: row.kyc_files,
       };
     },
   });
@@ -109,7 +112,8 @@ export function useEraseMember(venueId: string, memberId: string) {
       const row = data[0];
       if (row === undefined) return err('unavailable');
       return ok({
-        forfeitedPoints: row.forfeited_points, forfeitedBonus: toPaise(row.forfeited_bonus_paise), blockedUntil: row.blocked_until,
+        forfeitedPoints: row.forfeited_points, forfeitedBonus: toPaise(row.forfeited_bonus_paise), forfeitedNights: BigInt(row.forfeited_nights),
+        blockedUntil: row.blocked_until,
         filesRemoved: await removeKycFiles(client, memberId),
       });
     },
