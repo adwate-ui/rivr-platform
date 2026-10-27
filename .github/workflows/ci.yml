@@ -30,8 +30,11 @@ jobs:
         with:
           playwright: 'true'
       # Typecheck, lint, unit, property and mutation tests, pgTAP, generated tokens,
-      # drill gates, Storybook build and visual tests, for every package.
+      # drill gates, Storybook build and visual tests, for every package. On a pull request,
+      # mutation tests cover the money modules it changes; the push to main covers them all (decision 0242).
       - run: pnpm verify:all
+        env:
+          MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
