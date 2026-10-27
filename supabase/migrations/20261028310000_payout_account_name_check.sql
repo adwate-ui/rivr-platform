@@ -28,9 +28,12 @@ alter table private.payout_name_check_claim enable row level security;
 revoke all on private.payout_name_check_claim from public, anon, authenticated;
 
 -- The UPI addresses waiting for their name, for the payout-name-check function (service role): pending, in use, of a
--- KYC-verified member, at a venue not frozen, not yet answered, tried fewer than five times, not claimed in the last two
--- minutes. The practice venue's always; a real venue's only once the function can ask Cashfree (p_with_provider), so
--- a venue without its keys spends no tries. Each is claimed as it is given.
+-- KYC-verified member, at a venue not frozen, not yet answered, tried fewer than five times, each try twice as long
+-- after the last (2, 4, 8, 16 minutes), so a short outage does not use them up. A member whose addresses were asked
+-- about six times in a day waits: each check is billed, and adding and removing addresses must not run up the bill.
+-- The practice venue's always; a real venue's only once the function can ask Cashfree (p_with_provider), so a venue
+-- without its keys spends no tries. The member's name goes only to the practice venue's fake, which answers with it.
+-- Each is claimed as it is given.
 create function private.claim_payout_name_checks(p_with_provider boolean)
 returns table (account_id uuid, vpa text, full_name text, is_practice boolean)
 language plpgsql
@@ -41,7 +44,7 @@ as $$
 begin
   return query
   with due as (
-    select a.id, a.vpa, m.full_name, v.is_practice
+    select a.id, a.vpa, case when v.is_practice then m.full_name end as full_name, v.is_practice
     from public.payout_account a
     join public.member m on m.id = a.member_id
     join public.venue v on v.id = a.venue_id
@@ -50,7 +53,10 @@ begin
       and (v.is_practice or p_with_provider)
       and exists (select 1 from public.kyc_record k where k.member_id = a.member_id and k.status = 'verified')
       and not exists (select 1 from public.control_state f where f.venue_id = a.venue_id and f.level = 'venue_freeze' and f.released_at is null)
-      and coalesce(c.attempts, 0) < 5 and (c.claimed_at is null or c.claimed_at < now() - interval '2 minutes')
+      and coalesce(c.attempts, 0) < 5
+      and (c.claimed_at is null or c.claimed_at < now() - interval '1 minute' * power(2, c.attempts))
+      and (select count(*) from private.payout_name_check_claim mc join public.payout_account ma on ma.id = mc.account_id
+           where ma.member_id = a.member_id and mc.claimed_at > now() - interval '1 day') < 6
     order by a.created_at
     limit 50
   ),
@@ -139,6 +145,7 @@ set search_path = ''
 as $$
   select c.table_name, c.column_name, c.kind from private.member_export_column c;
 $$;
+alter table private.member_export_column enable row level security;
 revoke all on private.member_export_column from public, anon, authenticated;
 
 select private.schedule_outbox_consumer('payout-name-check', '* * * * *');

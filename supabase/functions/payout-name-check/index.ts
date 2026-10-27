@@ -3,7 +3,7 @@
 // (Cashfree's VPA check); the cage then sees that name beside the member's KYC name. The practice venue gets the fake,
 // which answers with the member's own name; a real venue Cashfree from its four secrets, or nothing until they are set.
 // A trouble asking leaves the address to be asked again (five tries).
-import { createAdapters, createCashfreePayouts, createFakeUpiPayouts, type UpiPayoutAdapter } from '@rivr/adapters';
+import { createAdapters, createCashfreePayouts, createFakeUpiPayouts, isVpaAnswer, type UpiPayoutAdapter } from '@rivr/adapters';
 import { upiVpaSchema } from '@rivr/contracts';
 import { rpc, serveScheduled } from '../_shared/outbox.ts';
 
@@ -49,7 +49,8 @@ async function check(live: UpiPayoutAdapter | undefined, claimed: Claimed): Prom
     await rpc('record_payout_name_check', { p_account_id: claimed.accountId, p_outcome: 'found', p_holder_name: answer.value.accountHolderName });
     return 'found';
   }
-  if (answer.error.code === 'rejected') {
+  // Only the bank's own answer about the address is final; a wrong or rotated key says nothing about it.
+  if (isVpaAnswer(answer.error)) {
     await rpc('record_payout_name_check', { p_account_id: claimed.accountId, p_outcome: 'not_found' });
     return 'not_found';
   }

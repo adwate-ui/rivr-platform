@@ -74,6 +74,14 @@ function refusalOf(transferId: string, amount: Paise): AdapterFailure | null {
  * looked up first and sent only when Cashfree has never seen it, so a retry after a timeout or a server error
  * returns the first transfer and never pays twice. The sandbox pays only Cashfree's test VPAs (`success@upi`).
  */
+const VPA_ANSWER = 'Cashfree VPA ';
+
+/**
+ * Whether a refused VPA check is Cashfree's own answer about the address (it knows no such VPA, or not a valid one),
+ * not trouble asking: a wrong or rotated key, or a bad request, says nothing about the address (#503).
+ */
+export const isVpaAnswer = (failure: AdapterFailure): boolean => failure.code === 'rejected' && failure.reason.startsWith(VPA_ANSWER);
+
 export function createCashfreePayouts(options: CashfreeOptions): UpiPayoutAdapter {
   const client = createCashfreeClient(options);
   return {
@@ -109,7 +117,7 @@ export function createCashfreePayouts(options: CashfreeOptions): UpiPayoutAdapte
         json: { transfer_id: `rivrvpa_${crypto.randomUUID().replaceAll('-', '')}`, vpa },
       }));
       if (!reply.ok) return reply;
-      if (reply.value.account_status !== 'VALID') return err({ code: 'rejected', reason: `Cashfree VPA ${reply.value.account_status}` });
+      if (reply.value.account_status !== 'VALID') return err({ code: 'rejected', reason: `${VPA_ANSWER}${reply.value.account_status}` });
       return ok({ accountHolderName: reply.value.name_at_bank ?? '', bankName: reply.value.ifsc_details?.bank ?? '' });
     },
   };

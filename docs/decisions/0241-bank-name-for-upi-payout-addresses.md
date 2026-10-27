@@ -10,11 +10,14 @@ Date: 2026-10-27 · Task: #503 · Question: #496 item 2 (the owner's answer of 2
 - the bank knows no such address;
 - not checked yet.
 
-Staff decide; nothing is refused automatically for a mismatch. Members never read the bank's name, so this is not a way to look up whose an address is.
+Staff decide; nothing is refused automatically for a mismatch. Members never read the bank's name in the app, so this is not a way to look up whose an address is. A member's own export (#498) includes it, as it is data about them.
 
 **How.**
 - `payout_account` keeps the bank's name and the outcome: `found`, `no_name` or `not_found`.
 - The function claims addresses waiting for their name and records the answer. An address is claimed when it is pending and in use, its member is KYC verified, its venue is not frozen, it has no answer yet, it has had fewer than five tries, and it was not claimed in the last two minutes.
-- The tries and claims live in `private.payout_name_check_claim`, so asking writes no audit rows. A problem asking leaves the address for the next run.
+- The tries and claims live in `private.payout_name_check_claim`, so asking writes no audit rows.
+- A problem asking leaves the address for the next run, and so does any refusal that isn't the bank's own answer about the address, such as a wrong or rotated key.
+- Tries are spaced 2, 4, 8 and 16 minutes apart.
+- A member whose addresses were asked about six times in a day waits, since each check is billed.
 - Both calls are the service role's alone. Bank accounts are not asked.
 - The member export's column list became `private.member_export_column`, so a later column is one row more.

@@ -1,6 +1,6 @@
 import { idempotencyKeySchema, paiseSchema, upiVpaSchema } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { createCashfreePayouts, transferIdOf } from './cashfree.ts';
+import { createCashfreePayouts, isVpaAnswer, transferIdOf } from './cashfree.ts';
 
 const key = idempotencyKeySchema.parse('7240ba7e-ade2-456d-a638-80f81f7bd64c');
 const request = {
@@ -112,5 +112,15 @@ describe('Cashfree Payouts', () => {
     const invalid = await cashfree({ 'POST /payout/validatePayout': [{ body: { account_status: 'INVALID', vpa: 'invalid@upi' } }] });
     expect(await invalid.payouts.verifyVpa({ vpa: upiVpaSchema.parse('invalid@upi') }))
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'Cashfree VPA INVALID' } });
+  });
+
+  it('tells Cashfree\'s answer about an address from trouble asking', async () => {
+    const invalid = await cashfree({ 'POST /payout/validatePayout': [{ body: { account_status: 'INVALID', vpa: 'invalid@upi' } }] });
+    const answer = await invalid.payouts.verifyVpa({ vpa: upiVpaSchema.parse('invalid@upi') });
+    expect(!answer.ok && isVpaAnswer(answer.error)).toBe(true);
+    const wrongKey = await cashfree({ 'POST /payout/validatePayout': [{ status: 401, body: { code: 'authentication_failed' } }] });
+    const trouble = await wrongKey.payouts.verifyVpa({ vpa: upiVpaSchema.parse('success@upi') });
+    expect(trouble.ok).toBe(false);
+    expect(!trouble.ok && isVpaAnswer(trouble.error)).toBe(false);
   });
 });

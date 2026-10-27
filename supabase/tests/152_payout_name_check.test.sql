@@ -38,7 +38,7 @@ select set_config('role', 'service_role', true);
 create temp table claimed as select * from public.claim_payout_name_checks(true);
 select set_eq($$ select account_id from claimed $$, $$ select id from ids $$, 'the UPI addresses are claimed');
 select results_eq($$ select full_name, is_practice from claimed where account_id = (select id from ids where name = 'upi') $$,
-  $$ values ('Ishaan Verma'::text, false) $$, 'with the member''s name, and whether the venue is the practice one');
+  $$ values (null::text, false) $$, 'a real venue''s without the member''s name, which only the practice venue''s fake uses');
 select is_empty($$ select * from public.claim_payout_name_checks(true) $$, 'a claimed address is not claimed again within two minutes');
 select lives_ok($$ select public.record_payout_name_check((select id from ids where name = 'upi'), 'found', ' ISHAAN VERMA ') $$,
   'the bank''s name is recorded');
@@ -99,6 +99,18 @@ update public.kyc_record set status = 'verified', verified_at = now() where memb
 select set_config('role', 'service_role', true);
 select results_eq($$ select account_id from public.claim_payout_name_checks(true) $$, $$ select id from ids where name = 'retry' $$,
   'and asked once the venue is open and the member verified');
+reset role;
+
+-- Six asks about a member's addresses in a day, then they wait: each check is billed (adding and removing addresses
+-- must not run up the bill). Today: upi, unknown, quiet, retry, and two more.
+update public.payout_account set removed_at = now() where id = (select id from ids where name = 'upi');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+insert into ids select 'extra', public.add_payout_account('upi', 'Yes Bank', 'ishaan.extra@yesbank');
+reset role;
+insert into private.payout_name_check_claim (account_id, attempts, claimed_at) select id, 1, now() from ids where name in ('bank', 'extra');
+update private.payout_name_check_claim set attempts = 1, claimed_at = now() - interval '1 hour' where account_id = (select id from ids where name = 'retry');
+select set_config('role', 'service_role', true);
+select is_empty($$ select * from public.claim_payout_name_checks(true) $$, 'six asks in a day, then the member waits');
 reset role;
 
 select * from finish();
