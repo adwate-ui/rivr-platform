@@ -4,16 +4,14 @@
 # into ci-ok's `needs`, never into branch protection. Each timeout is near twice the job's usual time, so a hang fails
 # fast. CI restores no build cache: a green run is a result from scratch.
 # Main's runs (decision 0254): a push runs everything but mutation, and a newer commit's run replaces an older one, since
-# it tests that commit too. The full run, every three hours or dispatched before a release, adds the mutation of every
-# money module and is never cancelled: a release needs it green at the tagged commit (release.yml).
+# it tests that commit too. The full run, dispatched every three hours (full-run.yml) or before a release, adds the
+# mutation of every money module and is never cancelled: a release needs it green at the tagged commit (release.yml).
 name: CI
 
 on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    - cron: '17 */3 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -101,7 +99,7 @@ jobs:
           path: packages/ui/visual/test-results/
           if-no-files-found: ignore
 
-  # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one.
+  # Mutation tests (decision 0242): on a pull request the money modules it changes, in the full run every one (0254).
   # Their files are shared six ways, balanced by size, so no runner carries them all (#515); mutation-score then
   # checks each module over every share's report.
   mutation:

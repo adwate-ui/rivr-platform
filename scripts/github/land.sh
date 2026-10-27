@@ -42,10 +42,21 @@ checks_passed() {
   passed="$( (gh pr checks "$pr" --required 2>/dev/null || true) | awk -F'\t' '$2 == "pass" { print $1 }' | LC_ALL=C sort -u | paste -sd, -)"
   [ -n "$required" ] && [ "$passed" = "$required" ]
 }
-# The conclusion of the newest finished CI run on main; empty when it cannot be read.
-# A push's run or the full run counts; one a newer commit's run replaced says nothing about main (decision 0254).
+# The newest finished run on main of the events given, newest commit first; one a newer commit's run replaced says
+# nothing (decision 0254). A pull request's run never counts, a fork's from its own main included.
+newest_on_main() {
+  read_api "repos/$repo/actions/workflows/ci.yml/runs?branch=main&status=completed&per_page=50" \
+    --jq "[.workflow_runs[] | select(.conclusion != \"cancelled\" and ($1))][0].conclusion // empty"
+}
+# Main has passed: its newest push run, and its newest full run, the only one that mutates every money module. Empty
+# when GitHub cannot be read; until a full run has finished, the push run's alone.
 main_ci() {
-  read_api "repos/$repo/actions/workflows/ci.yml/runs?branch=main&status=completed&per_page=20"     --jq '[.workflow_runs[] | select(.conclusion != "cancelled")][0].conclusion // empty'
+  local push full
+  push="$(newest_on_main '.event == "push"')"
+  full="$(newest_on_main '.event == "schedule" or .event == "workflow_dispatch"')"
+  if [ -z "$push" ] || [ "$push" != success ]; then echo "$push"; return; fi
+  if [ -n "$full" ] && [ "$full" != success ]; then echo "$full in the full run"; return; fi
+  echo success
 }
 # Whether the pull request and main, since the commit left it, both changed migrations or seed: 0 when they did, 1 when
 # not, 2 when GitHub could not be read. A comparison lists at most 300 files, so a full list counts as a clash.
@@ -142,13 +153,15 @@ gh pr view "$pr" --json statusCheckRollup \
     if [ "$minutes" -gt 15 ]; then echo "  over 15 minutes: find the cause before the next pull request"; fi
   done
 
-# Main's own run after the merge mutates every money module, which catches what a pull request's run cannot: a change
-# to one module's tests that moves another's score. A red main is fixed before anything else lands.
+# Main's own run after the merge catches what two pull requests break together, and the full run every three hours a
+# change to one module's tests that moves another's score (decision 0254). A red main is fixed before anything else
+# lands: a fix landed with --fixes-main starts the full run at once, so merges need not wait for the next one.
 main_deadline=$(($(date +%s) + 3600))
 until merge_sha="$(read_api "repos/$repo/pulls/$pr" --jq '.merge_commit_sha // empty')"; [ -n "$merge_sha" ]; do
   if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "#$pr merged, but its merge commit could not be read: check CI on main." >&2; exit 1; fi
   sleep 10
 done
+if [ -n "$fixes_main" ] && gh workflow run ci.yml --ref main >/dev/null 2>&1; then echo "Started CI's full run on main."; fi
 echo "Waiting for CI on main at ${merge_sha:0:8}."
 until result="$(read_api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$merge_sha&event=push" \
   --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // empty')"; [ -n "$result" ]; do
