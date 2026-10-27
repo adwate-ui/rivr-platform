@@ -33,15 +33,17 @@ function renderSops(replies: Record<string, { status?: number; body: unknown }>)
   return { result, calls };
 }
 
-const NO_NEXT = { next_version_id: null, next_version: null, next_owner: null, next_ack_roles: null, next_effective_on: null, next_body: null };
 const ROW = {
   sop_id: 's1', title: 'Cage', version_id: 'v1', version: 2, owner: 'Duty manager', ack_roles: ['cashier'], effective_on: '2026-10-20',
-  body: '1. Count the float.', ...NO_NEXT, must_acknowledge: true, acknowledged_at: null, acknowledged_count: 1, required_count: 4,
+  body: '1. Count the float.', waiting: [], must_acknowledge: true, acknowledged_at: null, acknowledged_count: 1, required_count: 4,
 };
 const WAITING = {
   ...ROW, sop_id: 's2', title: 'Opening the room', version_id: null, version: null, owner: null, ack_roles: null, effective_on: null, body: null,
-  next_version_id: 'v9', next_version: 1, next_owner: 'Duty manager', next_ack_roles: ['host'], next_effective_on: '2026-10-27',
-  next_body: '1. Lights.', must_acknowledge: false, required_count: 0, acknowledged_count: 0,
+  waiting: [
+    { version_id: 'v9', version: 1, owner: 'Duty manager', ack_roles: ['host'], effective_on: '2026-10-27', body: '1. Lights.' },
+    { version_id: 'v10', version: 2, owner: 'Duty manager', ack_roles: ['host'], effective_on: '2026-11-03', body: '1. Lights. 2. Music.' },
+  ],
+  must_acknowledge: false, required_count: 0, acknowledged_count: 0,
 };
 const EMPTY = { '/rpc/sop_library': { body: [] }, '/rpc/sop_acknowledgements': { body: [] } };
 
@@ -52,12 +54,15 @@ describe('SOPs', () => {
     const { result } = renderSops({ ...EMPTY, '/rpc/sop_library': { body: [ROW, WAITING] } });
     await waitFor(() => expect(result.current.library.data).toEqual([
       {
-        sopId: 's1', title: 'Cage', next: null, mustAcknowledge: true, acknowledgedAt: null, acknowledgedCount: 1, requiredCount: 4,
+        sopId: 's1', title: 'Cage', waiting: [], mustAcknowledge: true, acknowledgedAt: null, acknowledgedCount: 1, requiredCount: 4,
         current: { versionId: 'v1', version: 2, owner: 'Duty manager', ackRoles: ['cashier'], effectiveOn: '2026-10-20', body: '1. Count the float.' },
       },
       {
         sopId: 's2', title: 'Opening the room', current: null, mustAcknowledge: false, acknowledgedAt: null, acknowledgedCount: 0, requiredCount: 0,
-        next: { versionId: 'v9', version: 1, owner: 'Duty manager', ackRoles: ['host'], effectiveOn: '2026-10-27', body: '1. Lights.' },
+        waiting: [
+          { versionId: 'v9', version: 1, owner: 'Duty manager', ackRoles: ['host'], effectiveOn: '2026-10-27', body: '1. Lights.' },
+          { versionId: 'v10', version: 2, owner: 'Duty manager', ackRoles: ['host'], effectiveOn: '2026-11-03', body: '1. Lights. 2. Music.' },
+        ],
       },
     ]));
   });

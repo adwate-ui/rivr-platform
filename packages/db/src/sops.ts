@@ -1,5 +1,6 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { StaffRole } from '@rivr/contracts/roles';
+import { sopWaitingSchema } from '@rivr/contracts/sops';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Database } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
@@ -22,8 +23,8 @@ export interface Sop {
   readonly title: string;
   /** The version in force; null for an SOP whose first day is still to come. */
   readonly current: SopVersion | null;
-  /** The next version to take effect, if one is waiting for its day. */
-  readonly next: SopVersion | null;
+  /** Every version waiting for its day, soonest first (#388); the last is the latest published. */
+  readonly waiting: readonly SopVersion[];
   /** The signed-in staff member's role is one the version in force asks. */
   readonly mustAcknowledge: boolean;
   /** When they acknowledged the version in force; null if they have not. */
@@ -61,19 +62,23 @@ const FAILURE_BY_CODE: Readonly<Record<string, SopFailure>> = {
 
 type LibraryRow = Database['public']['Functions']['sop_library']['Returns'][number];
 
-/** One SOP from the library's row: its version in force and the next, either null when there is none. */
+/** The versions waiting for their day; none when the row cannot be read. */
+function waitingOf(waiting: unknown): SopVersion[] {
+  const parsed = sopWaitingSchema.safeParse(waiting);
+  return parsed.success ? parsed.data.map((version) => ({
+    versionId: version.version_id, version: version.version, owner: version.owner, ackRoles: version.ack_roles,
+    effectiveOn: version.effective_on, body: version.body,
+  })) : [];
+}
+
+/** One SOP from the library's row: its version in force, or null before its first day, and every version waiting. */
 function toSop(row: LibraryRow): Sop {
   return {
     sopId: row.sop_id, title: row.title,
     current: row.version_id
       ? { versionId: row.version_id, version: row.version, owner: row.owner, ackRoles: row.ack_roles, effectiveOn: row.effective_on, body: row.body }
       : null,
-    next: row.next_version_id
-      ? {
-          versionId: row.next_version_id, version: row.next_version, owner: row.next_owner, ackRoles: row.next_ack_roles,
-          effectiveOn: row.next_effective_on, body: row.next_body,
-        }
-      : null,
+    waiting: waitingOf(row.waiting),
     mustAcknowledge: row.must_acknowledge, acknowledgedAt: row.acknowledged_at,
     acknowledgedCount: row.acknowledged_count, requiredCount: row.required_count,
   };

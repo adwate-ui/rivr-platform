@@ -56,7 +56,7 @@ export {
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
 export { quizAnswersSchema } from './training.ts';
-export { sopSchema, sopVersionSchema } from './sops.ts';
+export { sopSchema, sopVersionSchema, sopWaitingSchema } from './sops.ts';
 export {
   CONTACT_KINDS,
   contactSchema,

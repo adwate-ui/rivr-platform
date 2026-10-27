@@ -1,6 +1,7 @@
 import { useStaffVenue, useVenueTvs, type StaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack, Text } from '@rivr/ui';
+import { PairingWindow } from './PairingWindow.tsx';
 import { PairTvForm } from './PairTvForm.tsx';
 import { TvRow } from './TvRow.tsx';
 
@@ -30,6 +31,7 @@ function TvList({ venue }: { venue: StaffVenue }) {
             {tvs.data.map((tv) => <TvRow key={tv.deviceId} venueId={venueId} tv={tv} />)}
           </Stack>
         )}
+        {venue.isPractice ? null : <PairingWindow venueId={venueId} canSwitch={venue.permissions.includes('venue.configure')} />}
         <PairTvForm venueId={venueId} venueName={venue.venueName} isPractice={venue.isPractice} />
       </Stack>
     </Screen>

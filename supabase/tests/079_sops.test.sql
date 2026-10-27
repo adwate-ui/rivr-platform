@@ -104,14 +104,21 @@ select is(public.publish_sop_version((select sop_id from club where title = 'Dea
 select throws_ok($$ select public.publish_sop_version((select sop_id from club where title = 'Dealer certification'), 'Floor manager', '{dealer}',
   pg_temp.today(), 'Version three') $$, '22023', null, 'and a later version never takes effect before it');
 select results_eq(
-  $$ select version, next_version, next_effective_on = pg_temp.today() + 1, acknowledged_count
+  $$ select version, (waiting -> 0 ->> 'version')::integer, (waiting -> 0 ->> 'effective_on')::date = pg_temp.today() + 1, acknowledged_count
      from public.sop_library('00000000-0000-4000-8000-000000000001') where title = 'Dealer certification' $$,
   $$ values (1, 2, true, 1) $$, 'version 1 stays in force until tomorrow, with version 2 waiting');
 select is(public.publish_sop_version((select sop_id from club where title = 'Dealer certification'), 'Floor manager', '{dealer,host}',
   pg_temp.today() + 1, 'Version three'), 3, 'a version 3 for the same day replaces it before it takes effect');
 select results_eq(
-  $$ select next_version, next_body from public.sop_library('00000000-0000-4000-8000-000000000001') where title = 'Dealer certification' $$,
-  $$ values (3, 'Version three'::text) $$, 'so version 3 is the one waiting');
+  $$ select (waiting -> 0 ->> 'version')::integer, waiting -> 0 ->> 'body', jsonb_array_length(waiting)
+     from public.sop_library('00000000-0000-4000-8000-000000000001') where title = 'Dealer certification' $$,
+  $$ values (3, 'Version three'::text, 1) $$, 'so version 3 is the one waiting');
+select is(public.publish_sop_version((select sop_id from club where title = 'Dealer certification'), 'Floor manager', '{dealer,host}',
+  pg_temp.today() + 7, 'Version four'), 4, 'version 4 waits for next week (#388)');
+select results_eq(
+  $$ select jsonb_path_query_array(waiting, '$[*].version') from public.sop_library('00000000-0000-4000-8000-000000000001')
+     where title = 'Dealer certification' $$,
+  $$ values ('[3, 4]'::jsonb) $$, 'the library lists both versions waiting, in the order they take effect');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.acknowledge_sop((select v.id from public.sop_version v join club c on c.sop_id = v.sop_id
   where c.title = 'Dealer certification' and v.version = 2)) $$, 'RVSTL', null, 'a version not yet in force is not acknowledged');
@@ -138,9 +145,10 @@ select throws_ok($$ select public.add_sop('00000000-0000-4000-8000-000000000001'
   '22023', null, 'and an SOP from yesterday');
 select is_empty($$ select id from public.sop where title = 'Closing the room' $$, 'which leaves nothing behind');
 select results_eq(
-  $$ select version is null, next_version, next_owner, next_ack_roles::text, next_body, must_acknowledge, required_count
+  $$ select version is null, (waiting -> 0 ->> 'version')::integer, waiting -> 0 ->> 'owner', waiting -> 0 -> 'ack_roles', waiting -> 0 ->> 'body',
+            must_acknowledge, required_count
      from public.sop_library('00000000-0000-4000-8000-000000000001') where title = 'Opening the room' $$,
-  $$ values (true, 1, 'Duty manager'::text, '{host}'::text, 'Lights first.'::text, false, 0) $$,
+  $$ values (true, 1, 'Duty manager'::text, '["host"]'::jsonb, 'Lights first.'::text, false, 0) $$,
   'it is listed with its first version, owner, roles and text, waiting for its day');
 select throws_ok($$ insert into public.sop (venue_id, title) values ('00000000-0000-4000-8000-000000000001', 'Direct') $$, '42501', null,
   'SOPs are written only through these functions');

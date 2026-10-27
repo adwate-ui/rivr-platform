@@ -1,10 +1,11 @@
 import type { Sop, SopVersion } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
 import { bodyLines, rolesText, sopFailureText, standingText, versionText, waitingText } from './sopCopy.ts';
+import { startingValues } from './SopForm.tsx';
 
 const CURRENT: SopVersion = { versionId: 'v1', version: 2, owner: 'Duty manager', ackRoles: ['cashier'], effectiveOn: '2026-10-20', body: '1. Count.' };
 const SOP: Sop = {
-  sopId: 's1', title: 'Cage', current: CURRENT, next: null, mustAcknowledge: true, acknowledgedAt: null, acknowledgedCount: 1, requiredCount: 4,
+  sopId: 's1', title: 'Cage', current: CURRENT, waiting: [], mustAcknowledge: true, acknowledgedAt: null, acknowledgedCount: 1, requiredCount: 4,
 };
 
 describe('what the SOPs screen says', () => {
@@ -28,5 +29,11 @@ describe('what the SOPs screen says', () => {
     expect(bodyLines('1. Count.\n\n 2. Open. ')).toEqual(['1. Count.', '2. Open.']);
     expect(sopFailureText('taken')).toBe('The library already has an SOP with this title. Choose another title, or publish a new version of it.');
     expect(sopFailureText('changed')).toBe('A newer version is now in force. Read it, then acknowledge it.');
+  });
+
+  it('starts a new version from the last waiting for its day, else the one in force', () => {
+    const waiting = [{ ...CURRENT, versionId: 'v3', version: 3, body: 'Three' }, { ...CURRENT, versionId: 'v4', version: 4, body: 'Four' }];
+    expect(startingValues({ ...SOP, waiting }).body).toBe('Four');
+    expect(startingValues(SOP).body).toBe(CURRENT.body);
   });
 });

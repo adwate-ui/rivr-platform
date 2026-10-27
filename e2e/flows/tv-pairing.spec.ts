@@ -5,7 +5,8 @@
  * - he types the TV's code in with a name and the tournament clock (a mode still to be built, so the
  *   TV shows its name and its name only), and the TV shows it;
  * - he puts promotions on it, which the TV shows without a reload, and again within five seconds of one;
- * - once unpaired, the TV shows a new code.
+ * - once unpaired, the TV shows a new code;
+ * - the owner switches to window-only pairing: a TV shows no code until Pair a TV is pressed (#325).
  * The waitlist and jackpot boards themselves are the "TV boards" flow.
  */
 import { expect, test } from '@playwright/test';
@@ -61,5 +62,30 @@ test.describe('TV pairing', () => {
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);
     await expect(tv.getByRole('heading', { name: 'Screen pairing' })).toBeVisible({ timeout: 15_000 });
     await expect(tv.getByRole('heading', { level: 2, name: /^\d{6}$/ })).toBeVisible();
+  });
+
+  test('TV pairing: window-only, a TV gets a code only after Pair a TV, and switching back restores codes', async ({ browser }) => {
+    test.skip(isRemoteTarget(), 'switches how the club pairs TVs, so the local stack only');
+    // Arvind Rao, a super admin (the owner's switch, venue.configure); his number is otherwise only the Kill switch flow's.
+    const owner = await browser.newPage();
+    await signInToConsole(owner, '9000000136');
+    await owner.getByRole('link', { name: 'TVs' }).click();
+    const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
+    await windowOnly.click();
+    try {
+      await expect(owner.getByText('TVs get a code only for ten minutes after Pair a TV is pressed.')).toBeVisible();
+      const tv = await browser.newPage();
+      await tv.setViewportSize(VIEWPORT.display);
+      await tv.goto(appUrl('display'));
+      await expect(tv.getByText(/^Press Pair a TV on the console/)).toBeVisible();
+      await owner.getByRole('button', { name: 'Pair a TV' }).click();
+      await expect(owner.getByText(/^A TV gets a code until \d{2}:\d{2}\.$/)).toBeVisible();
+      await tv.reload();
+      await expect(tv.getByRole('heading', { level: 2, name: /^\d{6}$/ })).toBeVisible();
+    } finally {
+      // Back to codes on first load, so later flows' TVs get one.
+      await windowOnly.click();
+      await expect(owner.getByRole('button', { name: 'Pair a TV' })).toHaveCount(0);
+    }
   });
 });

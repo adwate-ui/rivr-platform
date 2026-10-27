@@ -166,6 +166,7 @@ export const queryKeys = {
   isPublicVenue: (userId: string, venueId: string) => ['user', userId, 'is-public-venue', venueId] as const,
   /** A venue's TVs, for staff who manage devices. */
   venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
+  tvPairingPolicy: (userId: string, venueId: string) => ['user', userId, 'tv-pairing-policy', venueId] as const,
   /** The tablet's own high-hand claims. */
   tabletHighHands: (userId: string) => ['user', userId, 'tablet-high-hands'] as const,
   /** A venue's high hands, for the console. */

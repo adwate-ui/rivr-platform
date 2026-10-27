@@ -13,7 +13,7 @@ function SopRow({ sop, canManage, onRead }: { sop: Sop; canManage: boolean; onRe
     <Stack gap={2}>
       <Text weight="semibold">{sop.title}</Text>
       {sop.current === null ? null : <Text variant="small" tone="muted">{versionText(sop.current)}</Text>}
-      {sop.next === null ? null : <Text variant="small" tone="muted">{waitingText(sop.next)}</Text>}
+      {sop.waiting.map((version) => <Text key={version.versionId} variant="small" tone="muted">{waitingText(version)}</Text>)}
       {standing === null ? null : <Text variant="small">{standing}</Text>}
       {canManage && sop.current !== null
         ? <Text variant="small">{t('console.sops.progress', { count: sop.acknowledgedCount, total: sop.requiredCount })}</Text>
