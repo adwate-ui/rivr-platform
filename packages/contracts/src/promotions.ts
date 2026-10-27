@@ -78,6 +78,28 @@ export const promotionEffectSchema = z.union([
 ]);
 export type PromotionEffect = z.infer<typeof promotionEffectSchema>;
 
+/**
+ * Last week's events for a promotion's simulation (#144), as `promotion_replay` returns them: the seven
+ * whole club days before today's, and each buy-in or closed visit's time, member (a number within the
+ * replay, never an id), tier, table, stake, own money in paise (₹0 when paid from bonus), points earned and
+ * hours played.
+ */
+export const promotionReplaySchema = z.strictObject({
+  from: z.iso.datetime({ offset: true }),
+  to: z.iso.datetime({ offset: true }),
+  events: z.array(z.strictObject({
+    at: z.iso.datetime({ offset: true }),
+    member: z.int().min(1),
+    tier_id: z.string().nullable(),
+    table_id: z.string().nullable(),
+    stake: z.string().nullable(),
+    amount_paise: z.int().min(0),
+    points: z.int().min(0),
+    hours_played: z.number().min(0),
+  })),
+});
+export type PromotionReplay = z.infer<typeof promotionReplaySchema>;
+
 /** The builder's rewards (#84), as the prototype offers them: double or triple points on hours played, or 10% of a buy-in as bonus. */
 export const PROMOTION_BUILDER_REWARDS = ['double_points', 'triple_points', 'buy_in_bonus'] as const;
 export type PromotionBuilderReward = (typeof PROMOTION_BUILDER_REWARDS)[number];

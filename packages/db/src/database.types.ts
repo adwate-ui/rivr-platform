@@ -3980,6 +3980,9 @@ isOneToOne: false
               "current_rows": number,"seed_rows": number,"table_name": string
             }[]
                            },
+"promotion_replay":
+{ Args: { "p_conditions": Json,"p_trigger": string,"p_venue_id": string }; Returns: Json
+                           },
 "publish_promotion":
 { Args: { "p_promotion": Json,"p_venue_id": string }; Returns: string
                            },

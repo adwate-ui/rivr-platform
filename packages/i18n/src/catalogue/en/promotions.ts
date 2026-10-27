@@ -42,6 +42,30 @@ export const promotions = {
   publish: 'Publish',
   /** After Publish: `{name}` is the promotion. */
   published: '{name} is live.',
+  /** The simulation before publishing (#144): last week's seven club days replayed with the promotion. */
+  simulate: 'Simulate last week',
+  simulateFirst: 'Simulate it on last week before publishing.',
+  simulation: {
+    heading: 'Last week',
+    /** The club days replayed: "12 Oct to 18 Oct". */
+    period: '{from} to {to}',
+    replaying: 'Replaying last week.',
+    replayed: 'Buy-ins and visits replayed',
+    grants: 'Times given',
+    members: 'Members',
+    cost: 'Bonus cost',
+    points: 'Extra points',
+    budget: 'Budget',
+    noCap: 'No cap',
+    budgetLeft: 'Left of the budget',
+    budgetReached: 'The budget would have run out.',
+    nothing: 'Nothing last week would have earned it.',
+    failures: {
+      not_allowed: 'Only staff who manage promotions simulate one.',
+      not_replayable: 'This promotion cannot be replayed on last week.',
+      unavailable: 'The simulation did not run. Try again.',
+    },
+  },
   failures: {
     invalid: 'Choose both times, the start before the end, within the night (it ends at 06:00).',
     invalidCap: 'The most per buy-in is whole rupees in ₹50 chips, from ₹50 to ₹1,00,000.',
