@@ -6,6 +6,8 @@
  *            the generated-tokens check, the drill gates, Storybook build and visual tests
  *   all      every step for every package; with MUTATION_SINCE=<ref>, mutation tests only on the money modules
  *            changed since that ref (CI on a pull request, decision 0242)
+ *   mutation <n>/<count>   mutation tests alone, on the n-th of `count` even shares of the money modules (CI's
+ *            mutation job on main, one share per runner)
  * quick and changed cover packages changed against origin/main (or main), uncommitted work
  * included, plus the packages that depend on them. Stops at the first failure and prints a
  * summary to paste into the PR.
@@ -122,6 +124,13 @@ function pgtapStep() {
   };
 }
 
+/** The n-th of `count` shares of the money modules, every module in exactly one share ("2/4"). */
+function mutationShare(share) {
+  const [n, count] = (share ?? '').split('/').map(Number);
+  if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
+  return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`)).filter((_, index) => index % count === n - 1);
+}
+
 function stepsFor(mode, scope) {
   const touched = (prefix) => scope.everything || scope.files.some((file) => file.startsWith(prefix));
   const turboScope = scope.everything ? [] : ['--affected'];
@@ -152,7 +161,8 @@ function main() {
   const what = scope.everything ? 'every package' : `packages changed since ${scope.base?.slice(0, 8)}`;
   process.stdout.write(`\nverify (${MODE}): ${what}\n\n`);
   const results = [];
-  for (const { name, run: runStep } of stepsFor(MODE, scope)) {
+  const steps = MODE === 'mutation' ? [mutationStep(mutationShare(process.argv[3]))] : stepsFor(MODE, scope);
+  for (const { name, run: runStep } of steps) {
     const started = Date.now();
     const status = runStep();
     results.push({ name, ok: status === 0, seconds: Math.round((Date.now() - started) / 1000) });

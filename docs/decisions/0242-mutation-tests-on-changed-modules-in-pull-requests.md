@@ -8,6 +8,8 @@ Date: 2026-10-27 · Owner's question: why a release cut takes an hour to land
 - domain code or config outside a money module (prose such as README does not count);
 - the lockfile, the root package or TypeScript config, or `packages/config`.
 
-The push to main still mutates every module. Thresholds are unchanged: break 80.
+The push to main still mutates every module, in a separate `mutation` job split four ways (`verify.mjs mutation <n>/4`, shares taken from the same module list), so it runs in about a quarter of the time instead of pushing `verify` past its 60-minute limit. Thresholds are unchanged: break 80.
+
+**Watch.** The cut checklist now records the `verify`, `e2e` and `mutation` times, so a slow climb is seen early: `verify` went from 21 minutes on 26 Oct to 58 on 27 Oct without anyone noticing.
 
 **Why this is safe.** A module's score depends on its source and its tests. If neither changed, it scores what it scored when main last passed.
