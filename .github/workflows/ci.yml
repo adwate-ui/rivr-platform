@@ -78,7 +78,7 @@ jobs:
   mutation:
     name: mutation ${{ matrix.share }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
