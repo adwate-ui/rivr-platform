@@ -5,6 +5,7 @@ import { FeatureGate, Number, Screen, Stack, Text } from '@rivr/ui';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
+import { CabSection } from './CabSection.tsx';
 import { ReferralSection } from './ReferralSection.tsx';
 
 // The tab's copy loads with the tab, so the app's first load carries none of it (#344).
@@ -46,6 +47,7 @@ export function RewardsScreen() {
         </FeatureGate>
         <FeatureGate access={league}><LeagueSection /></FeatureGate>
         <ReferralSection />
+        <CabSection />
       </Stack>
     </Screen>
   );

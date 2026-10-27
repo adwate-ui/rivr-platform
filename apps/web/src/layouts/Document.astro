@@ -20,5 +20,20 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <slot />
+    <script>
+      // The live floor (#130): every half minute the page is read again and each live band (data-live) is swapped for
+      // the server's fresh one, so tables running, open seats and waiting stay current without a reload.
+      const LIVE_EVERY_MS = 30_000;
+      setInterval(async () => {
+        if (document.querySelector('[data-live]') === null) return;
+        const response = await fetch(location.href, { cache: 'no-store' }).catch(() => null);
+        if (!response?.ok) return;
+        const fresh = new DOMParser().parseFromString(await response.text(), 'text/html');
+        for (const band of document.querySelectorAll<HTMLElement>('[data-live]')) {
+          const next = fresh.querySelector(`[data-live="${band.dataset.live ?? ''}"]`);
+          if (next) band.replaceWith(document.importNode(next, true));
+        }
+      }, LIVE_EVERY_MS);
+    </script>
   </body>
 </html>

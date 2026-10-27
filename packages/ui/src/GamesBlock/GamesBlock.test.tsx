@@ -30,4 +30,9 @@ describe('GamesBlock', () => {
     const { container } = renderIn(<GamesBlock heading="Games and stakes" games={GAMES} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('adds the open seats when it is given them', () => {
+    renderIn(<GamesBlock heading="Games and stakes" games={[{ name: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 1000000n, buyInMax: 4000000n, straddle: null, tablesOpen: 3, waiting: 4, openSeats: 2 }]} />);
+    expect(screen.getByText('3 tables running · 2 open seats · 4 waiting')).toBeInTheDocument();
+  });
 });

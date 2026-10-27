@@ -35,7 +35,7 @@ describe('fetchSitePage', () => {
     });
     const page = await fetchSitePage(client, 'home');
     expect(page.ok && page.value?.isPaused).toBe(true);
-    expect(page.ok && page.value?.games.map((game) => game.tablesOpen)).toEqual([0]);
+    expect(page.ok && page.value?.games.map((game) => [game.tablesOpen, game.openSeats])).toEqual([[0, 0]]);
   });
 
   it('gives a page\'s blocks in order and the website\'s navigation, leaving out a block it cannot read', async () => {
@@ -65,7 +65,7 @@ describe('fetchSitePage', () => {
   const LIVE_BLOCKS = [{ kind: 'games', content: { heading: 'Games and stakes' } }, { kind: 'calendar', content: {} }];
   const TABLES = [
     { table_type_code: 'nlh_50_100', table_type_name: 'NLH 50/100', is_open: true, small_blind_paise: 5000, big_blind_paise: 10000,
-      buy_in_min_paise: 500000, buy_in_max_paise: 500000, straddle_paise: null },
+      buy_in_min_paise: 500000, buy_in_max_paise: 500000, straddle_paise: null, seats: 9, seats_taken: 4 },
   ];
   const CALENDAR = [{ name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00+00:00', buy_in_paise: 1000000, guarantee_paise: 50000000 }];
 
@@ -76,7 +76,7 @@ describe('fetchSitePage', () => {
     });
     const page = await fetchSitePage(client, 'home');
     expect(page.ok && page.value?.games).toEqual([
-      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1, waiting: 2 },
+      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1, openSeats: 5, waiting: 2 },
     ]);
     expect(page.ok && page.value?.tournaments).toEqual([
       { name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n },

@@ -176,3 +176,68 @@ export function useMyReferral() {
     },
   });
 }
+
+/** The member's cab (#140, feature cab.requests): whether they may ask for one, and their visits this month against the visits it needs. */
+export interface MyCab {
+  readonly isEligible: boolean;
+  readonly visits: number;
+  readonly minimumVisits: number;
+}
+
+/** A pickup or drop the member asked for. */
+export interface CabRequest {
+  readonly requestId: string;
+  readonly kind: 'pickup' | 'drop';
+  readonly address: string;
+  readonly wantedAt: string;
+}
+
+/** Why a cab request did not go through: not the visits this month, a time or place it cannot take, the club paused, or anything else. */
+export type CabFailure = 'not_eligible' | 'invalid' | 'not_allowed' | 'paused' | 'unavailable';
+
+const CAB_FAILURE_BY_CODE: Readonly<Record<string, CabFailure>> = {
+  RVCAB: 'not_eligible', '22023': 'invalid', '42501': 'not_allowed', RVFRZ: 'paused', RVMBR: 'paused',
+};
+
+/** The signed-in member's cab; null for a member whose tier has no cab requests. */
+export function useMyCab() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myCab(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<MyCab | null> => {
+      const { data, error } = await client.rpc('my_cab');
+      if (error) throw error;
+      const [row] = data;
+      return row === undefined ? null : { isEligible: row.is_eligible, visits: row.visits, minimumVisits: row.minimum_visits };
+    },
+  });
+}
+
+/** The member's cab requests still to come, soonest first. */
+export function useMyCabRequests() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myCabRequests(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<CabRequest[]> => {
+      const { data, error } = await client.from('cab_request').select('id, kind, address, wanted_at')
+        .gte('wanted_at', new Date(Date.now() - 3_600_000).toISOString()).order('wanted_at');
+      if (error) throw error;
+      return data.map((row) => ({ requestId: row.id, kind: row.kind === 'drop' ? 'drop' : 'pickup', address: row.address, wantedAt: row.wanted_at }));
+    },
+  });
+}
+
+/** Asks for a pickup or drop at a time of day (`21:30`, the next such in IST); a Result, and the requests reload. */
+export function useRequestCab() {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ kind, address, time }: { kind: 'pickup' | 'drop'; address: string; time: string }): Promise<Result<string, CabFailure>> => {
+      const { data, error } = await client.rpc('request_cab', { p_kind: kind, p_address: address, p_time: time });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.myCabRequests(userId ?? 'signed-out') });
+      return error ? err(CAB_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
+    },
+  });
+}

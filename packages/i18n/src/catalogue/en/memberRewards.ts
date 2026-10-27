@@ -40,6 +40,24 @@ export const memberRewards = {
   cancel: 'Cancel',
   /** After a redemption: where to collect it. */
   redeemed: 'Redeemed. Collect it: {detail}',
+  /** A cab (#140): shown once the member has the visits this month the club asks. */
+  cab: {
+    title: 'Cab',
+    how: 'You have {visits} visits this month, so RIVR sends a cab to bring you or take you home.',
+    kind: 'Pickup or drop',
+    kinds: { pickup: 'Pickup to the club', drop: 'Drop home' },
+    address: 'Where',
+    time: 'At (24-hour time, as 21:30)',
+    request: 'Ask for the cab',
+    asked: 'Asked: {kind} at {time}, {address}.',
+    failures: {
+      not_eligible: 'A cab comes with more visits this month.',
+      invalid: 'Say where, and a time as 21:30.',
+      not_allowed: 'Cabs are not part of your tier.',
+      paused: 'The club is paused. Ask again later.',
+      unavailable: 'That did not go through. Try again.',
+    },
+  },
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {
     title: 'Refer a friend',

@@ -44,7 +44,7 @@ describe('the Academy, as staff see it', () => {
       '/rest/v1/academy_booking': {
         body: [{
           id: 'k1', batch_id: 'b1', company_name: 'Acme Pvt Ltd', seats: 3, amount: 450000, status: 'payment_claimed', utr: '512345678901',
-          recorded_by_staff_id: 's103', member: { full_name: 'Naina Kapoor' },
+          recorded_by_staff_id: 's103', graduated_at: null, member: { full_name: 'Naina Kapoor' }, academy_attendance: [{ count: 2 }],
         }],
       },
     });
@@ -54,7 +54,7 @@ describe('the Academy, as staff see it', () => {
     ]));
     await waitFor(() => expect(result.current.bookings.data).toEqual([{
       id: 'k1', batchId: 'b1', memberName: 'Naina Kapoor', companyName: 'Acme Pvt Ltd', seats: 3, amount: 450000n,
-      status: 'payment_claimed', utr: '512345678901', recordedByStaffId: 's103',
+      status: 'payment_claimed', utr: '512345678901', recordedByStaffId: 's103', graduatedAt: null, classesAttended: 2,
     }]));
     expect(calls.find((call) => call.url.includes('/rpc/staff_academy_batches'))?.body).toEqual({ p_venue_id: 'v1' });
     expect(calls.find((call) => call.url.includes('/rest/v1/academy_booking'))?.url).toContain('venue_id=eq.v1');

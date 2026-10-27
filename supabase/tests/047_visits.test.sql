@@ -66,8 +66,9 @@ select is((select count(*)::integer from public.visit), 1, 'Kabir sees his own v
 select pg_temp.as_person('00000000-0000-4000-8000-000000000203');
 select is_empty($$ select * from public.visit $$, 'Naina sees none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
--- The two opened here, and Kunal Mehra's, Neel Bose's and Devansh Malik's three past visits each (seed, #73, #74, #92).
-select is((select count(*)::integer from public.visit), 11, 'a cashier sees the venue''s visits');
+-- The two opened here, Kunal Mehra's, Neel Bose's and Devansh Malik's three past visits each (seed, #73, #74, #92), and
+-- the Cab flow's Kabir Anand's four and Tara Singh's three this month (seed 59_cab.sql, #140).
+select is((select count(*)::integer from public.visit), 18, 'a cashier sees the venue''s visits');
 select throws_ok($$ update public.visit set closed_at = now(), close_reason = 'door' $$, '42501', null, 'but changes none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.visit $$, 'a dealer sees none');
