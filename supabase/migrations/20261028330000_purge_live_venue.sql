@@ -339,9 +339,9 @@ begin
 end;
 $$;
 
--- The venue's own logs a purge deletes but does not hold to the archive's count: alerts and the outbox carry no personal
--- data, and making the archive itself writes to them (the export.large alert, a delivery's progress), so rows made
--- after the archive started go unarchived.
+-- The venue's own logs a purge deletes but does not hold to the archive's count: alerts and the outbox are transient
+-- delivery records, and making the archive itself writes to them (the export.large alert, a delivery's progress), so
+-- rows made after the archive started go unarchived.
 create function private.live_purge_logs()
 returns text[]
 language sql
@@ -494,7 +494,7 @@ as $$
   where p.done_at is null and p.purged_at > now() - interval '7 days' and f <> all(p.removed)
     and (f like 'kyc/' || p_venue_id::text || '/%' or f like 'expense-receipts/' || p_venue_id::text || '/%')
     -- Still in Storage: a file removed when its answer was lost is not left for ever.
-    and exists (select 1 from storage.objects o where o.bucket_id || '/' || o.name = f)
+    and exists (select 1 from storage.objects o where o.bucket_id = split_part(f, '/', 1) and o.name = substr(f, strpos(f, '/') + 1))
     and not exists (select 1 from public.kyc_record k where k.venue_id = p_venue_id and 'kyc/' || k.photo_path = f)
     and not exists (select 1 from public.expense e where e.venue_id = p_venue_id and 'expense-receipts/' || e.receipt_path = f);
 $$;
@@ -534,7 +534,8 @@ begin
   if not found or p_removed is null or array_position(p_removed, null) is not null or p_failed is null or p_failed < 0
      or exists (select 1 from unnest(p_removed) f
                 where f <> all(v_purge.files) or f = any(v_purge.removed)
-                   or exists (select 1 from storage.objects o where o.bucket_id || '/' || o.name = f)) then
+                   or exists (select 1 from storage.objects o
+                              where o.bucket_id = split_part(f, '/', 1) and o.name = substr(f, strpos(f, '/') + 1))) then
     raise exception 'Only files the purge left, and that are gone from Storage' using errcode = '22023';
   end if;
   update private.venue_purge p set removed = p.removed || p_removed where p.id = v_purge.id;
