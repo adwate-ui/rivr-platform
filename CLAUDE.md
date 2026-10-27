@@ -42,14 +42,14 @@ Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which set
 
 Use the `feature-task` skill. In short:
 
-1. Take the lowest-numbered ready issue, whatever its lane, on a fresh branch from `origin/main`. Tasks run one at a time in the main checkout, in release-gate order (`docs/decisions/0024`).
+1. Take a batch of three or four ready issues from one area of the app (rewards, the floor, the website...), lowest-numbered first, on a fresh `batch/<area>` branch from `origin/main`, and claim them all (`docs/decisions/0257`). Batches run one at a time in the main checkout, in release-gate order (`docs/decisions/0024`).
 2. Read the task's spec section and the files it names. Use plan mode when it touches more than one package.
 3. Write the failing test first, from the task's acceptance criteria.
 4. Implement in small steps. Run the narrowest test after each step.
 5. For UI, screenshot the screen and compare it with `docs/design/prototype.html`. List differences and fix them.
 6. Run `pnpm verify`. Paste the summary into the PR.
 7. Ask the `reviewer` subagent to review the diff against the task, once. Add the `security-reviewer` only for auth, money or database policies. Fix correctness and requirement gaps; ignore style preferences the linters do not enforce.
-8. Open one PR per task with `gh pr create`, titled `type(scope): summary`, body `Closes #<issue>`, up to about 800 changed lines (`docs/decisions/0028`). Build only the acceptance criteria; polish and design nits become follow-up issues.
+8. Open one PR per batch with `gh pr create`, titled `type(scope): summary`, one commit per issue, and a body with a section per issue (its acceptance criteria and their evidence) and a `Closes #<issue>` line for each (`docs/decisions/0257`). Build only the acceptance criteria; polish and design nits become follow-up issues. An issue that stalls in review moves to the next batch rather than holding the others.
 9. When the review passes, post `agent-review` with `scripts/github/post-agent-review.sh`, then run `scripts/github/land.sh <pr>` in the background: it merges once CI is green, re-running CI on main's latest only when both changed migrations or seed (decisions 0243, 0253). Then take the next task.
 
 Show evidence, not claims: the command you ran and its output, or the screenshot.
