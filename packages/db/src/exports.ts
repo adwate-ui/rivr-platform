@@ -31,11 +31,16 @@ export interface ArchiveTable {
   readonly columns: readonly string[];
 }
 
-/** An archive started (#103): its id, the key it is encrypted to (the owner's backup key), and every table in it. */
+/**
+ * An archive started (#103): its id, the key it is encrypted to (the owner's backup key), every table in it, and for a
+ * full archive the venue's files as the server listed them, each `<bucket>/<path>` (#432): expense receipts, and KYC
+ * photos when a reason was given.
+ */
 export interface ArchivePlan {
   readonly archiveId: string;
   readonly recipient: string;
   readonly tables: readonly ArchiveTable[];
+  readonly files: readonly string[];
 }
 
 /** One page of a table: each row's cells as the database writes them, null as null; `after` asks for the next page. */
@@ -72,7 +77,7 @@ function planOf(data: Json): ArchivePlan {
   if (!isJsonObject(data) || typeof data.archive_id !== 'string' || typeof data.recipient !== 'string' || !Array.isArray(data.tables)) {
     throw new Error('start_export_archive answered without an archive, a key and tables');
   }
-  return { archiveId: data.archive_id, recipient: data.recipient, tables: data.tables.map(tableOf) };
+  return { archiveId: data.archive_id, recipient: data.recipient, tables: data.tables.map(tableOf), files: isTexts(data.files) ? data.files : [] };
 }
 
 function pageOf(data: Json): ArchivePage {
@@ -98,10 +103,24 @@ function archiveSource(client: RivrClient, venueId: string) {
       if (error) throw error;
       return pageOf(data);
     },
+    /**
+     * Says a full archive is saved, once the browser has written it, with the file's SHA-256 and size and the listed
+     * files it could not read: a purge needs one, and removes only the files it holds (#432).
+     */
+    complete: async (archiveId: string, sha256: string, bytes: number, unread: readonly string[]): Promise<void> => {
+      const { error } = await client.rpc('complete_export_archive', { p_archive_id: archiveId, p_sha256: sha256, p_bytes: bytes, p_unread: [...unread] });
+      if (error) throw error;
+    },
     kycPhoto: async (path: string): Promise<Uint8Array> => {
       const response = await fetch(await signedKycImageUrl(client, path));
       if (!response.ok) throw new Error(`KYC photo ${path}: HTTP ${response.status}`);
       return new Uint8Array(await response.arrayBuffer());
+    },
+    /** An expense receipt from its private bucket, as the treasury reads it (#432). */
+    receipt: async (path: string): Promise<Uint8Array> => {
+      const { data, error } = await client.storage.from('expense-receipts').download(path);
+      if (error) throw error;
+      return new Uint8Array(await data.arrayBuffer());
     },
   };
 }

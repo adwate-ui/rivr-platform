@@ -29,3 +29,45 @@ export const practiceResetFailures = {
   held: 'A kill-switch control at the practice venue names a member. Release it, then reset.',
   unavailable: 'The reset did not go through. Check the connection and try again.',
 };
+
+/** The console's Purge screen (#432; decision 0239), for super admins at a live venue. */
+export const purge = {
+  title: 'Purge',
+  notAllowed: 'Only a super admin purges a venue.',
+  practice: 'The practice venue resets to its seed instead, on Practice reset.',
+  intro: 'Purging deletes the venue\'s play for good: members, visits, seats, hands, tournaments, the ledger\'s entries, promotions and messages. Its setup, staff, accounts and the audit log stay.',
+  freezeFirst: 'Freeze the venue on Kill switch first, so nothing changes between the archive and the purge.',
+  archiveTitle: 'The archive',
+  archiveHint: 'Make the full encrypted archive, with the KYC photos and receipts, and keep the file: it is the only copy once the purge removes them. The purge waits for one made in the last 30 minutes.',
+  kycReason: 'Why the KYC photos go in the archive',
+  kycReasonHint: 'At least 10 characters, kept in the audit log: "Purging the venue: the archive keeps the only copy".',
+  tableLabel: 'What the purge deletes',
+  table: 'Table',
+  rows: 'Rows',
+  empty: 'Nothing to delete.',
+  typeName: 'Type the venue\'s name to purge it',
+  purge: 'Purge the venue',
+  /** After the purge: `{count}` rows deleted. */
+  purged: 'Purged: {count} rows deleted.',
+  /** The files the archive holds, removed from storage: `{files}` of them. */
+  filesRemoved: '{files} files removed from storage. Only the archive holds them now.',
+  /** Some did not go: `{left}` of them. Asked again within seven days of the purge. */
+  filesLeft: '{left} of the venue\'s files are still in storage. Remove them within seven days.',
+  filesAgain: 'Remove the files again',
+  /** On opening the screen again: `{left}` files the last purge still leaves in storage. */
+  lastPurgeFiles: 'The last purge left {left} files in storage. Remove them within seven days of it.',
+};
+
+/** Why a purge did not go through. */
+export const purgeFailures = {
+  notAllowed: 'Only a super admin purges a venue.',
+  practice: 'The practice venue resets to its seed instead, on Practice reset.',
+  notFrozen: 'Freeze the venue on Kill switch first.',
+  noArchive: 'Make and save the full archive after freezing the venue. It counts for 30 minutes, while nothing changes.',
+  wrongName: 'Type the venue\'s name exactly as it is.',
+  held: 'A kill-switch control names a member. Release it, then purge.',
+  changed: 'The venue changed after the archive began, often a waitlist hold moving or a sign-up. Clear the waitlist, make the archive again, then purge.',
+  busy: 'Another change held the tables. Try the purge again in a moment.',
+  tooOften: 'Too many tries in a minute. Wait a moment and try again.',
+  unavailable: 'That did not go through. Check the connection and try again.',
+};

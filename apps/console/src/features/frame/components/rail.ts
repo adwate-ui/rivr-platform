@@ -88,6 +88,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'aml', label: 'console.rail.items.aml', href: '/aml', anyOf: ['aml.review'] },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', anyOf: ['purge.run'] },
+      { id: 'purge', label: 'console.rail.items.purge', href: '/purge', anyOf: ['purge.run'] },
       { id: 'exports', label: 'console.rail.items.exports', href: '/exports', anyOf: ['exports.full'] },
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
     ],

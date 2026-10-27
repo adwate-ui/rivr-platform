@@ -54,6 +54,7 @@ export const rail = {
     reports: 'Reports',
     killSwitch: 'Kill switch',
     practiceReset: 'Practice reset',
+    purge: 'Purge',
     exports: 'Exports',
     aml: 'AML register',
     tiers: 'Tiers',
