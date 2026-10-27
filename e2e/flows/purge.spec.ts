@@ -76,10 +76,10 @@ test.describe('Purge', () => {
 
     const table = page.getByRole('table', { name: 'What the purge deletes' });
     await expect(table.getByRole('row', { name: /^member 1$/ })).toBeVisible();
-    const name = page.getByRole('textbox', { name: 'Type the venue's name to purge it' });
+    const name = page.getByRole('textbox', { name: 'Type the venue\'s name to purge it' });
     await name.fill('E2E purge room');
     await page.getByRole('button', { name: 'Purge the venue' }).click();
-    await expect(page.getByText('Type the venue's name exactly as it is.')).toBeVisible();
+    await expect(page.getByText('Type the venue\'s name exactly as it is.')).toBeVisible();
     await name.fill('E2E Purge Room');
     await page.getByRole('button', { name: 'Purge the venue' }).click();
     await expect(page.getByText(/^Purged: [\d,]+ rows deleted\.$/)).toBeVisible();
