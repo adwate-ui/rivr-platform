@@ -45,7 +45,8 @@ select lives_ok($$ select public.save_reward_item('00000000-0000-4000-8000-00000
 select lives_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'merchandise', 'RIVR cap',
                                                  'At the host desk', 4000, true, p_stock => 1) $$, 'a cap, the last one');
 select lives_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'hotel_night', 'Partner hotel, one night',
-                                                 'The host confirms by SMS', 45000, true, p_stock => 6) $$, 'and a hotel night');
+                                                 'The host confirms by SMS', null, true, p_stock => 6, p_nights => 2) $$,
+  'and a hotel night, priced in nights (decision 0246)');
 select throws_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'cash', '₹1,000 to cash',
                                                   'Credited to cash', 10000, true) $$, '22023', null, 'points never buy cash');
 select throws_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'merchandise', 'Free cap',
@@ -93,8 +94,8 @@ select throws_ok($$ select public.redeem_reward(pg_temp.item('F&B upgrade'), 250
   'a key that redeemed the cap redeems nothing else');
 select throws_ok($$ select public.redeem_reward(pg_temp.item('F&B upgrade'), 2000, 'mihir-fnb') $$, 'RVPRC', null,
   'nor is he charged a price he was not shown');
-select throws_ok($$ select public.redeem_reward(pg_temp.item('Partner hotel, one night'), 45000, 'mihir-hotel') $$, 'RVPTS', null,
-  'a hotel night is 45,000 points: more than he holds');
+select throws_ok($$ select public.redeem_reward(pg_temp.item('Partner hotel, one night'), null, 'mihir-hotel', 2) $$, 'RVNGT', null,
+  'a hotel night is two nights: more than he holds');
 select throws_ok($$ select public.redeem_reward(pg_temp.item('F&B upgrade'), 2500, '') $$, '22023', null, 'a redemption carries a key');
 select throws_ok($$ select public.redeem_reward(pg_temp.item('Practice cap'), 10, 'mihir-practice') $$, 'RVRWD', null,
   'the practice venue''s rewards are not his to redeem');

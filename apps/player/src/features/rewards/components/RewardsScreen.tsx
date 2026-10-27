@@ -1,6 +1,6 @@
 import { useFeature } from '@rivr/db';
 import { useMyRewards } from '@rivr/db/myRewards';
-import { memberRewards, registerMessages, t } from '@rivr/i18n';
+import { formatNights, memberRewards, registerMessages, t } from '@rivr/i18n';
 import { FeatureGate, Number, Screen, Stack, Text } from '@rivr/ui';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
@@ -10,14 +10,16 @@ import { MyRedemptionList } from './MyRedemptionList.tsx';
 registerMessages({ memberRewards });
 
 /**
- * Rewards (#152; design prompt "Rewards"): the member's points and tier, always; then the catalogue and
- * their redemptions (rewards.catalogue) and the RIVR League (league.standings), each behind its feature.
+ * Rewards (#152; design prompt "Rewards"): the member's points and tier, always; their hotel nights
+ * (rewards.accommodation, #146); then the catalogue and their redemptions (rewards.catalogue) and the RIVR League
+ * (league.standings), each behind its feature.
  * Referral (#151) and cab requests (#140) join it when they are built.
  */
 export function RewardsScreen() {
   const rewards = useMyRewards();
   const catalogue = useFeature('rewards.catalogue');
   const league = useFeature('league.standings');
+  const accommodation = useFeature('rewards.accommodation');
   const title = t('memberRewards.title');
   if (rewards.isPending) return <Screen title={title} status="loading" />;
   if (rewards.data === undefined) return <Screen title={title} status="error" onRetry={() => void rewards.refetch()} />;
@@ -30,6 +32,12 @@ export function RewardsScreen() {
           <Number value={rewards.data.points} size="title" />
           <Text tone="muted">{t('memberRewards.tier', { tier: rewards.data.tierName })}</Text>
         </Stack>
+        <FeatureGate access={accommodation}>
+          <Stack gap={2}>
+            <Text variant="small" tone="muted">{t('memberRewards.nights')}</Text>
+            <Text variant="lead" isTabular>{formatNights(rewards.data.nights)}</Text>
+          </Stack>
+        </FeatureGate>
         <FeatureGate access={catalogue}>
           <Stack gap={10}>
             <Catalogue />

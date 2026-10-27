@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import type { LeagueBoardRow } from './league.ts';
-import type { RewardFailure, RewardItem } from './rewards.ts';
+import { rewardItemOf, type RewardFailure, type RewardItem } from './rewards.ts';
 
 export type { LeagueBoardRow } from './league.ts';
 
@@ -12,28 +12,35 @@ export type { LeagueBoardRow } from './league.ts';
 export interface MyRewards {
   readonly points: bigint;
   readonly tierName: string;
+  /** Hotel nights earned (#146), in thousandths of a night: 1250 is a night and a quarter. */
+  readonly nights: bigint;
 }
 
-/** One of the member's redemptions: the reward, where to collect it, the points it took, and when it was handed over (null while it waits). */
+/**
+ * One of the member's redemptions: the reward, where to collect it, what it took (points, or for a hotel night whole
+ * nights; the other is null), and when it was handed over (null while it waits).
+ */
 export interface MyRedemption {
   readonly id: string;
   readonly rewardName: string;
   readonly kind: RewardKind;
   readonly detail: string;
-  readonly points: bigint;
+  readonly points: bigint | null;
+  readonly nights: number | null;
   readonly createdAt: string;
   readonly handedOverAt: string | null;
 }
 
-/** A redemption as the member asks for it: the reward, the points they were shown for it, and one request id per tap. */
+/** A redemption as the member asks for it: the reward, the price they were shown for it (points or nights), and one request id per tap. */
 export interface RedeemOrder {
   readonly itemId: string;
-  readonly points: bigint;
+  readonly points: bigint | null;
+  readonly nights: number | null;
   readonly requestId: string;
 }
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPRC: 'price_changed', RVPTS: 'not_enough_points', RVMBR: 'stopped',
+  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPRC: 'price_changed', RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped',
   RVFRZ: 'paused',
 };
 
@@ -47,24 +54,22 @@ export function useMyRewards() {
       const { data, error } = await client.rpc('my_rewards');
       if (error) throw error;
       const row = data[0];
-      return row === undefined ? null : { points: BigInt(row.points), tierName: row.tier_name };
+      return row === undefined ? null : { points: BigInt(row.points), tierName: row.tier_name, nights: BigInt(row.nights) };
     },
   });
 }
 
-/** The member's catalogue (rewards.catalogue): their venue's live rewards, cheapest first; none without the feature. */
+/** The member's catalogue (rewards.catalogue): their venue's live rewards, cheapest first, hotel nights last; none without the feature. */
 export function useRewardCatalogue() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.rewardCatalogue(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<RewardItem[]> => {
-      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, stock, is_live')
+      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, nights, stock, is_live')
         .eq('is_live', true).order('points').order('name');
       if (error) throw error;
-      return data.map((row) => ({
-        id: row.id, kind: rewardKindOf(row.kind), name: row.name, detail: row.detail, points: BigInt(row.points), stock: row.stock, isLive: row.is_live,
-      }));
+      return data.map(rewardItemOf);
     },
   });
 }
@@ -79,15 +84,15 @@ export function useMyRedemptions() {
       const { data, error } = await client.rpc('my_redemptions');
       if (error) throw error;
       return data.map((row) => ({
-        id: row.id, rewardName: row.reward_name, kind: rewardKindOf(row.kind), detail: row.detail, points: BigInt(row.points), createdAt: row.created_at,
-        handedOverAt: row.handed_over_at,
+        id: row.id, rewardName: row.reward_name, kind: rewardKindOf(row.kind), detail: row.detail, points: row.points === null ? null : BigInt(row.points),
+        nights: row.nights, createdAt: row.created_at, handedOverAt: row.handed_over_at,
       }));
     },
   });
 }
 
 /**
- * The member redeems a reward for the points they were shown, once per request id; a Result with the
+ * The member redeems a reward for the price they were shown (points or nights), once per request id; a Result with the
  * redemption's id. Points, the catalogue (its stock) and the redemptions reload either way.
  */
 export function useRedeemReward() {
@@ -95,7 +100,10 @@ export function useRedeemReward() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (order: RedeemOrder): Promise<Result<string, RewardFailure>> => {
-      const { data, error } = await client.rpc('redeem_reward', { p_item_id: order.itemId, p_points: Number(order.points), p_idempotency_key: order.requestId });
+      const { data, error } = await client.rpc('redeem_reward', {
+        p_item_id: order.itemId, p_idempotency_key: order.requestId,
+        ...(order.points === null ? {} : { p_points: Number(order.points) }), ...(order.nights === null ? {} : { p_nights: order.nights }),
+      });
       const who = userId ?? 'signed-out';
       await Promise.all([queryKeys.myRewards(who), queryKeys.rewardCatalogue(who), queryKeys.myRedemptions(who), queryKeys.wallet(who)]
         .map((queryKey) => queryClient.invalidateQueries({ queryKey })));

@@ -24,6 +24,11 @@ export const rewards = {
   itemLine: '{kind} · {detail}',
   points: '{points} points',
   onePoint: '1 point',
+  /** A hotel night's price: `2 nights`. */
+  nights: '{nights} nights',
+  oneNight: '1 night',
+  /** The redemptions' price column: points, or nights for a hotel night. */
+  priceColumn: 'Price',
   /** How many are left, or none counted. */
   left: '{count} left',
   noLimit: 'No limit',
@@ -42,6 +47,9 @@ export const rewards = {
   invalidDetail: 'Say where to collect it, in up to 200 characters.',
   price: 'Points',
   invalidPrice: 'A whole number of points from 1 to 1,00,00,000.',
+  /** A hotel night is priced in nights (#146). */
+  priceNights: 'Nights',
+  invalidNights: 'A whole number of nights from 1 to 1,000.',
   stock: 'How many are left',
   stockHint: 'Leave blank for no limit.',
   invalidStock: 'A whole number, or blank for no limit.',
@@ -72,6 +80,7 @@ export const rewards = {
     not_on_offer: 'That reward is not on offer, or none are left.',
     price_changed: 'The price changed. The catalogue now shows it.',
     not_enough_points: 'Not enough points.',
+    not_enough_nights: 'Not enough nights.',
     stopped: 'That member is frozen.',
     paused: 'The venue is frozen. Rewards change again once it is released.',
     unavailable: 'That did not go through. Check the connection and try again.',

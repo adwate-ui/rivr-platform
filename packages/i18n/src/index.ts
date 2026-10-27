@@ -8,7 +8,7 @@ export { memberRewards } from './catalogue/en/memberRewards.ts';
 export { social } from './catalogue/en/social.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
-export { formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
+export { formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
 export { formatCountdown, formatDate, formatDayMonth, formatDayTime, formatDuration, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
 export { formatBlinds } from './format/chips.ts';

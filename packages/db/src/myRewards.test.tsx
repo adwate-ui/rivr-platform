@@ -38,9 +38,9 @@ const BOARD_ROW = { standing: 'month', season_name: null, first_month: '2026-11-
 afterEach(cleanup);
 
 describe('the member\'s Rewards', () => {
-  it('reads points and tier, the catalogue, the redemptions and the League', async () => {
+  it('reads points, tier and hotel nights, the catalogue, the redemptions and the League', async () => {
     const { result } = renderHooks({
-      '/rpc/my_rewards': { body: [{ points: 20000, tier_name: 'Member' }] },
+      '/rpc/my_rewards': { body: [{ points: 20000, tier_name: 'Member', nights: 1250 }] },
       '/reward_item': { body: [{ id: 'r1', kind: 'fnb_upgrade', name: 'Bar upgrade', detail: 'At the bar', points: 2500, stock: null, is_live: true }] },
       '/rpc/my_redemptions': {
         body: [{ id: 'd1', reward_name: 'Bar upgrade', kind: 'fnb_upgrade', detail: 'At the bar', points: 2500, created_at: '2026-11-15T17:00:00Z', handed_over_at: null }],
@@ -49,7 +49,7 @@ describe('the member\'s Rewards', () => {
       '/rpc/tv_rewards_ticker': { body: [] },
       '/rpc/tv_league_board': { body: [] },
     });
-    await waitFor(() => expect(result.current.rewards.data).toEqual({ points: 20000n, tierName: 'Member' }));
+    await waitFor(() => expect(result.current.rewards.data).toEqual({ points: 20000n, tierName: 'Member', nights: 1250n }));
     await waitFor(() => expect(result.current.catalogue.data?.[0]).toMatchObject({ kind: 'fnb_upgrade', points: 2500n, stock: null }));
     await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ rewardName: 'Bar upgrade', points: 2500n, handedOverAt: null }));
     await waitFor(() => expect(result.current.league.data).toEqual([{
@@ -60,9 +60,17 @@ describe('the member\'s Rewards', () => {
   it('redeems at the price shown, once per request id, and says why not', async () => {
     const { result, calls } = renderHooks({ '/rpc/redeem_reward': { status: 400, body: { code: 'RVPRC', message: 'price changed' } } });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.redeem.mutateAsync({ itemId: 'r1', points: 2500n, requestId: 'q1' }); });
+    await act(async () => { outcome = await result.current.redeem.mutateAsync({ itemId: 'r1', points: 2500n, nights: null, requestId: 'q1' }); });
     expect(outcome).toEqual({ ok: false, error: 'price_changed' });
     expect(calls.find((call) => call.url.includes('/rpc/redeem_reward'))?.body).toEqual({ p_item_id: 'r1', p_points: 2500, p_idempotency_key: 'q1' });
+  });
+
+  it('redeems a hotel night for the nights shown, and says when there are not enough', async () => {
+    const { result, calls } = renderHooks({ '/rpc/redeem_reward': { status: 400, body: { code: 'RVNGT', message: 'not enough nights' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.redeem.mutateAsync({ itemId: 'r2', points: null, nights: 2, requestId: 'q2' }); });
+    expect(outcome).toEqual({ ok: false, error: 'not_enough_nights' });
+    expect(calls.find((call) => call.url.includes('/rpc/redeem_reward'))?.body).toEqual({ p_item_id: 'r2', p_nights: 2, p_idempotency_key: 'q2' });
   });
 });
 

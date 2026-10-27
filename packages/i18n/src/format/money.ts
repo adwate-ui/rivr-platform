@@ -20,6 +20,15 @@ export function formatNumber(value: number | bigint): string {
   return RUPEES.format(value);
 }
 
+/** Formats hotel nights, kept in thousandths (#146, decision 0246): `2`, `1.25`, `0.175`, `1,200.5`. */
+export function formatNights(thousandths: bigint): string {
+  const size = thousandths < 0n ? -thousandths : thousandths;
+  const whole = RUPEES.format(size / 1_000n);
+  const rest = size % 1_000n;
+  const sign = thousandths < 0n ? '-' : '';
+  return rest === 0n ? `${sign}${whole}` : `${sign}${whole}.${rest.toString().padStart(3, '0').replace(/0+$/, '')}`;
+}
+
 /** Formats a cash game's blinds, given in paise, as `100/200`. */
 export function formatStakes(smallBlind: bigint, bigBlind: bigint): string {
   return `${RUPEES.format(smallBlind / PAISE_PER_RUPEE)}/${RUPEES.format(bigBlind / PAISE_PER_RUPEE)}`;

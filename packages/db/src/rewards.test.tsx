@@ -39,20 +39,30 @@ const bodyOf = (calls: { url: string; body: unknown }[], path: string) => calls.
 afterEach(cleanup);
 
 describe('the rewards catalogue (decision 0181)', () => {
-  it('reads the catalogue and redemptions, points as whole numbers', async () => {
+  it('reads the catalogue and redemptions, points as whole numbers and a hotel night in nights', async () => {
     const { result } = renderHooks({
-      '/reward_item': { body: [{ id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, stock: null, is_live: true }] },
+      '/reward_item': {
+        body: [
+          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true },
+          { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, is_live: true },
+        ],
+      },
       '/rpc/venue_redemptions': {
         body: [{
-          id: 'd1', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, reward_name: 'RIVR cap', kind: 'merchandise', points: 4000,
+          id: 'd1', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, reward_name: 'RIVR cap', kind: 'merchandise', points: 4000, nights: null,
           created_at: '2026-11-15T17:00:00Z', handed_over_at: null, handed_over_by: null,
+        }, {
+          id: 'd2', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, reward_name: 'Partner hotel', kind: 'hotel_night', points: null, nights: 2,
+          created_at: '2026-11-15T18:00:00Z', handed_over_at: null, handed_over_by: null,
         }],
       },
     });
     await waitFor(() => expect(result.current.items.data).toEqual([
-      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, stock: null, isLive: true },
+      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true },
+      { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, isLive: true },
     ]));
-    await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', points: 4000n, handedOverAt: null }));
+    await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', points: 4000n, nights: null, handedOverAt: null }));
+    expect(result.current.redemptions.data?.[1]).toMatchObject({ rewardName: 'Partner hotel', points: null, nights: 2 });
   });
 
   it('saves a new reward with no limit, leaving the id and stock out', async () => {
@@ -60,12 +70,24 @@ describe('the rewards catalogue (decision 0181)', () => {
     let outcome: unknown;
     await act(async () => {
       outcome = await result.current.save.mutateAsync({
-        itemId: null, kind: 'fnb_upgrade', name: ' F&B upgrade ', detail: 'At the bar', points: 2500, stock: null, stockWas: null, isLive: true,
+        itemId: null, kind: 'fnb_upgrade', name: ' F&B upgrade ', detail: 'At the bar', points: 2500, nights: null, stock: null, stockWas: null, isLive: true,
       });
     });
     expect(outcome).toEqual({ ok: true, value: 'r2' });
     expect(bodyOf(calls, '/rpc/save_reward_item')).toEqual({
       p_venue_id: VENUE, p_kind: 'fnb_upgrade', p_name: 'F&B upgrade', p_detail: 'At the bar', p_points: 2500, p_is_live: true,
+    });
+  });
+
+  it('saves a hotel night in nights, sending no points', async () => {
+    const { result, calls } = renderHooks({ '/rpc/save_reward_item': { body: 'r3' } });
+    await act(async () => {
+      await result.current.save.mutateAsync({
+        itemId: null, kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, stockWas: null, isLive: true,
+      });
+    });
+    expect(bodyOf(calls, '/rpc/save_reward_item')).toEqual({
+      p_venue_id: VENUE, p_kind: 'hotel_night', p_name: 'Partner hotel', p_detail: 'The host confirms', p_nights: 2, p_stock: 6, p_is_live: true,
     });
   });
 
@@ -77,7 +99,7 @@ describe('the rewards catalogue (decision 0181)', () => {
     let outcome: unknown;
     await act(async () => {
       outcome = await result.current.save.mutateAsync({
-        itemId: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, stock: 3, stockWas: 2, isLive: false,
+        itemId: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: 3, stockWas: 2, isLive: false,
       });
     });
     expect(outcome).toEqual({ ok: false, error: 'paused' });
