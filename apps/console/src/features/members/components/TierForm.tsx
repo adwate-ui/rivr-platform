@@ -1,6 +1,6 @@
 import { useMemberActions, useVenueTiers, type MemberFailure, type MemberRecord } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<MemberFailure, MessageKey>> = {
@@ -12,9 +12,12 @@ const FAILURE_COPY: Readonly<Record<MemberFailure, MessageKey>> = {
 };
 
 function Outcome({ outcome }: { outcome: MemberFailure | 'saved' | null }) {
-  if (outcome === null) return null;
-  if (outcome === 'saved') return <Text>{t('console.members.saved')}</Text>;
-  return <ErrorMessage>{t(FAILURE_COPY[outcome])}</ErrorMessage>;
+  return (
+    <>
+      <StatusMessage>{outcome === 'saved' ? t('console.members.saved') : null}</StatusMessage>
+      {outcome === null || outcome === 'saved' ? null : <ErrorMessage>{t(FAILURE_COPY[outcome])}</ErrorMessage>}
+    </>
+  );
 }
 
 /** The tiers to choose from, once they have loaded; or why not. */

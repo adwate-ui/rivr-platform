@@ -3,7 +3,7 @@ import { rakeChangeSchema } from '@rivr/contracts';
 import { useRakeChangeActions, type RakeChangeFailure, type TableTypeRake } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -64,7 +64,7 @@ export function RakeChangeForm({ venueId, tableTypes }: { venueId: string; table
       <RakeFields form={form} onEdit={clearSaved} />
       <Inline gap={4}>
         <Button variant="primary" isLoading={schedule.isPending} onClick={() => void submit()}>{t('console.rake.save')}</Button>
-        {isSaved ? <Text variant="small">{t('console.rake.saved')}</Text> : null}
+        <StatusMessage>{isSaved ? t('console.rake.saved') : null}</StatusMessage>
       </Inline>
       {failure === null ? null : <ErrorMessage>{rakeFailureText(failure)}</ErrorMessage>}
     </Stack>

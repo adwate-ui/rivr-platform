@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { istMoment, newTournamentSchema } from '@rivr/contracts/tournaments';
 import { useTournamentActions, type TournamentTemplate } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -73,7 +73,7 @@ export function NewTournamentForm({ venueId, templates, onMade }: { venueId: str
           <Fields form={form} />
           <Inline gap={4} align="center">
             <Button variant="secondary" isLoading={create.isPending} onClick={() => void submit()}>{t('console.tournaments.make')}</Button>
-            {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+            <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
           </Inline>
         </>
       )}

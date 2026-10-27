@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cageBuySchema, PURCHASES } from '@rivr/contracts/tournaments';
-import { useCageMembers, useTournamentFloorActions, type CageMember, type VenueTournament } from '@rivr/db';
+import type { Result } from '@rivr/contracts/result';
+import { useCageMembers, useTournamentFloorActions, type BuyFailure, type CageMember, type VenueTournament } from '@rivr/db';
 import type { Purchase } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, StatusMessage, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -51,16 +52,20 @@ export function CageBuyForm({ venueId, tournament }: { venueId: string; tourname
   const [resolver] = useState(() => zodResolver(cageBuySchema));
   const form = useForm<BuyValues, unknown, z.output<typeof cageBuySchema>>({ resolver, defaultValues: { memberId: '', purchase: 'entry' } });
   const members = useCageMembers(venueId, query);
-  const { cash } = useTournamentFloorActions(venueId, tournament.id);
+  const { cash, ticket } = useTournamentFloorActions(venueId, tournament.id);
   const [chosenMember, purchase] = useWatch({ control: form.control, name: ['memberId', 'purchase'] });
   const amount = formatMoney(priceOf(tournament, purchase));
-  const take = form.handleSubmit(async (values) => {
-    const done = await cash.mutateAsync({ ...values, requestId });
-    const name = members.data?.find((each) => each.memberId === values.memberId)?.fullName ?? '';
-    setOutcome(done.ok ? { ok: true, text: t('console.tournaments.taken', { name, purchase: t(`console.tournaments.purchases.${values.purchase}`) }) }
-      : { ok: false, text: t(`console.tournaments.buyFailures.${done.error}`) });
+  // What the cage says once the server answers; a new request id unless the answer was lost.
+  const settle = (memberId: string, done: Result<string, BuyFailure>, said: (name: string) => string) => {
+    const name = members.data?.find((each) => each.memberId === memberId)?.fullName ?? '';
+    setOutcome(done.ok ? { ok: true, text: said(name) } : { ok: false, text: t(`console.tournaments.buyFailures.${done.error}`) });
     if (done.ok || done.error !== 'unavailable') setRequestId(crypto.randomUUID());
-  });
+  };
+  const take = form.handleSubmit(async (values) => settle(values.memberId, await cash.mutateAsync({ ...values, requestId }),
+    (name) => t('console.tournaments.taken', { name, purchase: t(`console.tournaments.purchases.${values.purchase}`) })));
+  // A satellite ticket pays an entry, with no cash taken (#519).
+  const payWithTicket = form.handleSubmit(async (values) => settle(values.memberId, await ticket.mutateAsync({ memberId: values.memberId, requestId }),
+    (name) => t('console.tournaments.takenWithTicket', { name })));
   return (
     <Stack gap={4}>
       <Heading level={3} variant="subsection">{t('console.tournaments.cage')}</Heading>
@@ -70,10 +75,14 @@ export function CageBuyForm({ venueId, tournament }: { venueId: string; tourname
           options={PURCHASES.map((value) => ({ value, label: t(`console.tournaments.purchases.${value}`) }))}
           onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
       )} />
-      <Button variant="secondary" isDisabled={chosenMember === ''} isLoading={cash.isPending} onClick={() => void take()}>
-        {t('console.tournaments.takeCash', { amount })}
-      </Button>
-      {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+      <Inline gap={3} wrap>
+        <Button variant="secondary" isDisabled={chosenMember === ''} isLoading={cash.isPending} onClick={() => void take()}>
+          {t('console.tournaments.takeCash', { amount })}
+        </Button>
+        {purchase === 'entry' ? <Button variant="text" isDisabled={chosenMember === ''} isLoading={ticket.isPending}
+          onClick={() => void payWithTicket()}>{t('console.tournaments.useTicket')}</Button> : null}
+      </Inline>
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>
   );

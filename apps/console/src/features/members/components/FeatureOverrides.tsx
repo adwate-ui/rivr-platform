@@ -2,7 +2,7 @@ import {
   useFeatureOverrideActions, useGateableFeatures, useMemberFeatureOverrides, type FeatureOverride, type OverrideFailure,
 } from '@rivr/db';
 import { formatDate, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<OverrideFailure, MessageKey>> = {
@@ -17,10 +17,13 @@ const FAILURE_COPY: Readonly<Record<OverrideFailure, MessageKey>> = {
 type Outcome = OverrideFailure | 'saved' | 'lifted' | null;
 
 function OutcomeLine({ outcome }: { outcome: Outcome }) {
-  if (outcome === null) return null;
-  if (outcome === 'saved') return <Text>{t('console.members.overrides.saved')}</Text>;
-  if (outcome === 'lifted') return <Text>{t('console.members.overrides.lifted')}</Text>;
-  return <ErrorMessage>{t(FAILURE_COPY[outcome])}</ErrorMessage>;
+  const done = outcome === 'saved' || outcome === 'lifted' ? t(`console.members.overrides.${outcome}`) : null;
+  return (
+    <>
+      <StatusMessage>{done}</StatusMessage>
+      {outcome === null || outcome === 'saved' || outcome === 'lifted' ? null : <ErrorMessage>{t(FAILURE_COPY[outcome])}</ErrorMessage>}
+    </>
+  );
 }
 
 function line(override: FeatureOverride): string {

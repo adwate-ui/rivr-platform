@@ -2,7 +2,7 @@ import {
   useChipInventory, useEodCloses, useShiftOpenings, useStaffVenue, useTreasury, type ChipCountLine, type EodClose, type ShiftOpening, type Treasury,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Heading, Screen, Stack, Text } from '@rivr/ui';
+import { Heading, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CloseCard } from './CloseCard.tsx';
 import { CloseShiftForm } from './CloseShiftForm.tsx';
@@ -38,7 +38,7 @@ function EndOfDay({ title, venueId, canClose }: { title: string; venueId: string
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        {notice === null ? null : <Text tone="money">{notice}</Text>}
+        <StatusMessage>{notice === null ? null : notice}</StatusMessage>
         <CloseSection venueId={venueId} treasury={treasury.data} lines={chips.data.lines} canClose={canClose}
           onClosed={() => setNotice(t('console.endOfDay.closed'))} />
         <Openings venueId={venueId} openings={openings.data} />

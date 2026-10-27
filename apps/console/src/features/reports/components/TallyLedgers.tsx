@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { tallyLedgerSchema } from '@rivr/contracts/tally';
 import { useSetTallyLedger, useTallyAccounts, type TallyAccount, type TallyFailure } from '@rivr/db/tally';
 import { t } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Heading, Input, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { Button, DataTable, ErrorMessage, Heading, Input, Stack, Text, type DataTableColumn, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
@@ -55,9 +55,8 @@ function MapForm({ venueId, form }: { venueId: string; form: LedgerForm }) {
         error={errors.tallyLedger ? t('console.tally.invalidLedger') : undefined} />
       {errors.accountCode ? <ErrorMessage>{t('console.tally.chooseAccount')}</ErrorMessage> : null}
       <Button isLoading={setLedger.isPending} onClick={() => void submit()}>{t('console.tally.save')}</Button>
-      {outcome === null ? null : outcome === 'done'
-        ? <Text tone="money">{t('console.tally.saved')}</Text>
-        : <ErrorMessage>{t(`console.tally.failures.${outcome}`)}</ErrorMessage>}
+      <StatusMessage>{outcome === 'done' ? t('console.tally.saved') : null}</StatusMessage>
+      {outcome === null || outcome === 'done' ? null : <ErrorMessage>{t(`console.tally.failures.${outcome}`)}</ErrorMessage>}
     </Stack>
   );
 }

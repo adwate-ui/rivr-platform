@@ -52,8 +52,16 @@ export const tonight = {
     on_break: 'On a break: no buy-ins until it ends.',
     switched_off: 'Tournament registration is paused. Try again when the floor reopens it.',
     room_full: 'Every seat is taken. Ask the floor.',
+    no_ticket: 'That ticket is used already.',
     other: 'That did not go through. Try again, or ask at the cage.',
   },
+  /** Satellite tickets the member holds (#519). */
+  tickets: 'Your tournament tickets',
+  ticketLine: '{name} · {when}',
+  ticketValue: 'A {amount} ticket',
+  enterWithTicket: 'Enter with your ticket',
+  enteredWithTicket: 'You are in {name}.',
+  ticketsFailed: 'Your tickets did not load.',
   closed: 'Closed',
   join: 'Join',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */

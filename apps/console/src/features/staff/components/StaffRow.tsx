@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { staffJobTitleSchema, type StaffRole } from '@rivr/contracts';
 import { useStaffActions, type StaffChange, type StaffFailure, type StaffMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Switch, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Switch, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -65,7 +65,7 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
     <Stack gap={3}>
       <StaffIdentity member={member} />
       <JobTitleForm member={member} isDisabled={!canChange} onSave={(jobTitle) => save({ jobTitle })} />
-      {isTitleSaved ? <Text variant="small">{t('console.staff.jobTitleSaved')}</Text> : null}
+      <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
       {isInReach ? (
         <ChoiceChips label={t('console.staff.roleFor', { name })} mode="one" selected={[member.role]} isDisabled={!canChange || member.isMe}
           options={grantable.map((role) => ({ value: role, label: roleName(role) }))}

@@ -1,6 +1,6 @@
 import { useVenueLogoUpload, type VenueLogoFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { CameraButton, ErrorMessage, Inline, Stack, Text, VenueLogo } from '@rivr/ui';
+import { CameraButton, ErrorMessage, Inline, Stack, Text, VenueLogo, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE: Readonly<Record<VenueLogoFailure, MessageKey>> = {
@@ -27,7 +27,7 @@ export function LogoField({ venueId, logoUrl }: { venueId: string; logoUrl: stri
           onPhoto={(logo) => void upload(logo)}>
           {logoUrl === null ? t('console.settings.uploadLogo') : t('console.settings.replaceLogo')}
         </CameraButton>
-        {outcome === 'saved' ? <Text variant="small">{t('console.settings.logoSaved')}</Text> : null}
+        <StatusMessage>{outcome === 'saved' ? t('console.settings.logoSaved') : null}</StatusMessage>
       </Inline>
       {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{t(FAILURE[outcome])}</ErrorMessage> : null}
     </Stack>

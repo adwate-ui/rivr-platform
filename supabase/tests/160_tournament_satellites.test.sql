@@ -127,6 +127,10 @@ select results_eq($$ select m.full_name, e.place, k.value_paise, k.status, k.tar
   'Ritika, with more chips, first and Yash second: each wins a ₹3,000 ticket to the Turbo');
 select results_eq($$ select p.place, p.full_name, p.prize_paise from public.tournament_payouts(pg_temp.named('Ticket Satellite')) p $$,
   $$ values (3, 'Mihir Shah'::text, 120000::bigint) $$, 'and Mihir is paid the ₹1,200 left, to his wallet');
+select results_eq($$ select full_name, value_paise, status from public.satellite_tickets(pg_temp.named('Ticket Satellite')) $$,
+  $$ values ('Ritika Das'::text, 300000::bigint, 'held'::text), ('Yash Gupta', 300000, 'held') $$, 'the floor reads the tickets it issued');
+select is((select satellite_target_id from public.venue_tournaments('00000000-0000-4000-8000-000000000001') where id = pg_temp.named('Ticket Satellite')),
+  pg_temp.named('Ticket Turbo'), 'and the venue''s tournaments say what it is a satellite for');
 select throws_ok($$ select public.set_tournament_satellite(pg_temp.named('Ticket Knockout'), pg_temp.named('Ticket Satellite')) $$, '22023',
   'Before anyone enters, a satellite for another tournament whose registration is open', 'a finished tournament is no target');
 reset role;
@@ -138,10 +142,13 @@ select is(pg_temp.balance('venue.tournament_pool') - (select pool from before), 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
 select results_eq($$ select status, value_paise from public.tournament_ticket $$, $$ values ('held'::text, 300000::bigint) $$,
   'Yash sees his own ticket only');
+select results_eq($$ select tournament_name, value_paise from public.my_tournament_tickets() $$, $$ values ('Ticket Turbo'::text, 300000::bigint) $$,
+  'and Home lists it with its target');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select count(*)::integer from public.tournament_ticket), 2, 'the floor sees both');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select 1 from public.tournament_ticket $$, 'a dealer sees none');
+select is_empty($$ select 1 from public.satellite_tickets(pg_temp.named('Ticket Satellite')) $$, 'nor the satellite''s tickets');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
 select is_empty($$ select 1 from public.tournament_ticket $$, 'nor does another venue''s admin');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000109');

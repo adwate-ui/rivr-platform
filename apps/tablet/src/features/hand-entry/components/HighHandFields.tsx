@@ -1,6 +1,6 @@
 import { HIGH_HAND_CATEGORIES, HIGH_HAND_RANKS } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, ErrorMessage, Stack, Switch, Text } from '@rivr/ui';
+import { ChoiceChips, ErrorMessage, Stack, Switch, StatusMessage } from '@rivr/ui';
 import { Controller, useWatch } from 'react-hook-form';
 import type { useHighHandClaim } from '../hooks/useHighHandClaim.ts';
 
@@ -40,7 +40,7 @@ export function HighHandFields({ highHand }: { highHand: HighHand }) {
           {errors.rank ? <ErrorMessage>{t('tablet.highHand.pickRank')}</ErrorMessage> : null}
         </Stack>
       ) : null}
-      {highHand.isSent ? <Text>{t('tablet.highHand.sent')}</Text> : null}
+      <StatusMessage>{highHand.isSent ? t('tablet.highHand.sent') : null}</StatusMessage>
     </Stack>
   );
 }

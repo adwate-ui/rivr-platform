@@ -7,6 +7,7 @@ import { HomePromotions } from './HomePromotions.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
 import { TonightHighlights } from './TonightHighlights.tsx';
+import { TournamentTickets } from './TournamentTickets.tsx';
 
 /**
  * Home: tonight's floor (design prompt, "Home"). The member's waitlist places first, then each table
@@ -15,8 +16,8 @@ import { TonightHighlights } from './TonightHighlights.tsx';
  * Seated, Home says where, and the call time left (#78). The live promotions page beneath (#86). The
  * jackpot and the next tournament above the tables, each table's open seats, and Join held until the
  * member's identity check is done (#87); these come quietly, and the database refuses Join without it anyway.
- * After a visit, Home asks how it was (#160, decision 0165). The waitlist's parts come from features/waitlist, through the
- * route (#273), so no feature imports another.
+ * After a visit, Home asks how it was (#160, decision 0165). The satellite tickets the member holds, to enter with (#519).
+ * The waitlist's parts come from features/waitlist, through the route (#273), so no feature imports another.
  */
 interface HomeScreenProps {
   /** The member's waitlist places, from features/waitlist (#273). */
@@ -45,6 +46,7 @@ export function HomeScreen({ yourWaitlist, floor }: HomeScreenProps) {
         <RateVisit />
         {yourWaitlist(places.data)}
         <TonightHighlights />
+        <TournamentTickets />
         <FeatureGate access={liveView}>
           {floor(tables.data, places.data)}
         </FeatureGate>

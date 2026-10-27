@@ -1,6 +1,6 @@
 import { usePracticeReset, usePracticeResetPreview, useStaffVenue, type PracticeResetFailure, type PracticeResetRow } from '@rivr/db';
 import { formatNumber, t, type MessageKey } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Input, Screen, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { Button, DataTable, ErrorMessage, Input, Screen, Stack, Text, type DataTableColumn, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<PracticeResetFailure, MessageKey>> = {
@@ -38,7 +38,7 @@ function PracticeResetPanel({ venueId }: { venueId: string }) {
   return (
     <Stack gap={6}>
       <Text>{t('console.practiceReset.intro')}</Text>
-      {outcome === 'done' ? <Text>{t('console.practiceReset.done')}</Text> : null}
+      <StatusMessage>{outcome === 'done' ? t('console.practiceReset.done') : null}</StatusMessage>
       {outcome !== null && outcome !== 'done' ? <ErrorMessage>{t(FAILURE_COPY[outcome])}</ErrorMessage> : null}
       {preview.isSuccess ? <Text tone="muted">{rows.some((row) => row.now !== row.seed) ? t('console.practiceReset.differs') : t('console.practiceReset.matches')}</Text> : null}
       <DataTable label={t('console.practiceReset.tableLabel')} columns={COLUMNS} rowKey={(row) => row.table} {...state} />

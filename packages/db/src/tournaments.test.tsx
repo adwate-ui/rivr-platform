@@ -5,9 +5,9 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useMyTournament, useRegisterTournamentEntry, useTvTournamentClock } from './liveTournament.ts';
+import { useEnterWithTicket, useMyTournament, useMyTournamentTickets, useRegisterTournamentEntry, useTvTournamentClock } from './liveTournament.ts';
 import { useTournamentBalance, useTournamentFloorActions, useTournamentSeating } from './tournamentFloor.ts';
-import { useTournamentPayoutActions, useTournamentPayouts } from './tournamentPayouts.ts';
+import { useSatelliteTickets, useTournamentPayoutActions, useTournamentPayouts } from './tournamentPayouts.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useBlindStructures, useTournamentSetupActions, useTournamentTemplates } from './tournamentSetup.ts';
 import { useTournamentActions, useTournamentClock, useVenueTournaments } from './tournaments.ts';
@@ -38,6 +38,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
     mine: useMyTournament(), register: useRegisterTournamentEntry(), tv: useTvTournamentClock(),
     seating: useTournamentSeating('t1'), balance: useTournamentBalance('t1'), floor: useTournamentFloorActions(VENUE, 't1'),
     payouts: useTournamentPayouts('t1'), payout: useTournamentPayoutActions(VENUE, 't1'),
+    tickets: useSatelliteTickets('t1'), myTickets: useMyTournamentTickets(), enter: useEnterWithTicket(),
   }), { wrapper });
   return { result, calls };
 }
@@ -50,6 +51,7 @@ const TOURNAMENT = {
   add_on_paise: null, add_on_fee_paise: null, add_on_chips: null, places_paid: 8, clock_started_at: '2026-11-15T10:30:00+00:00',
   is_paused: false, elapsed_seconds: 8300, tables: 6, seats_per_table: 9, entries: 58, re_entries: 11, players_left: 31, chips_in_play: 1740000,
   pool_paise: 52200000, bounty_paise: null, bounty_kind: null, finished_at: null, overlay_paise: null, payout_shares: [3000, 2000, 5000],
+  satellite_target_id: null, day_two_id: null,
 };
 
 afterEach(cleanup);
@@ -193,5 +195,41 @@ describe('payouts', () => {
     expect(bodyOf(calls, '/rpc/set_tournament_payouts')).toEqual({ p_tournament_id: 't1', p_shares: [6250, 3750] });
     expect(bodyOf(calls, '/rpc/finish_tournament')).toEqual({ p_tournament_id: 't1', p_method: 'icm', p_stacks: { e1: 40000, e2: 20000 } });
     expect(finished).toEqual({ ok: false, error: 'alternates_waiting' });
+  });
+});
+
+describe('satellites and flights (decisions 0250, 0251)', () => {
+  it('links a tournament to its event, bags a flight, finishes a satellite by chips, and reads and uses tickets', async () => {
+    const { result, calls } = renderHooks({
+      '/rpc/satellite_tickets': { body: [{ full_name: 'Ritika Das', value_paise: 300000, status: 'held' }] },
+      '/rpc/my_tournament_tickets': { body: [{ ticket_id: 'k1', member_id: 'm1', tournament_id: 't2', tournament_name: 'Weeknight Turbo',
+        starts_at: '2026-11-18T14:30:00+00:00', value_paise: 300000 }] },
+      '/rpc/use_tournament_ticket': { status: 400, body: { code: 'RVTRN', message: 'refused', hint: 'no_ticket' } },
+    });
+    await waitFor(() => expect(result.current.tickets.data).toEqual([{ fullName: 'Ritika Das', value: fromPaise(300000n), status: 'held' }]));
+    await waitFor(() => expect(result.current.myTickets.data?.[0]?.tournamentName).toBe('Weeknight Turbo'));
+    await act(async () => {
+      await result.current.actions.link.mutateAsync({ tournamentId: 't1', kind: 'satellite', targetId: 't2' });
+      await result.current.actions.link.mutateAsync({ tournamentId: 't3', kind: 'flight', targetId: 't4' });
+      await result.current.payout.bag.mutateAsync([{ entryId: 'e1', chips: 25000n }]);
+      await result.current.payout.finish.mutateAsync({ method: null, stacks: [{ entryId: 'e2', chips: 15000n }, { entryId: 'e3', chips: 25000n }] });
+    });
+    expect(bodyOf(calls, '/rpc/set_tournament_satellite')).toEqual({ p_tournament_id: 't1', p_target_id: 't2' });
+    expect(bodyOf(calls, '/rpc/set_tournament_flight')).toEqual({ p_flight_id: 't3', p_day_two_id: 't4' });
+    expect(bodyOf(calls, '/rpc/bag_tournament_flight')).toEqual({ p_flight_id: 't1', p_stacks: { e1: 25000 } });
+    expect(bodyOf(calls, '/rpc/finish_tournament')).toEqual({ p_tournament_id: 't1', p_stacks: { e2: 15000, e3: 25000 } });
+    const ticket = result.current.myTickets.data?.[0];
+    if (ticket === undefined) throw new Error('no ticket read');
+    let atCage: unknown;
+    let inApp: unknown;
+    await act(async () => {
+      atCage = await result.current.floor.ticket.mutateAsync({ memberId: 'm1', requestId: 'r1' });
+      inApp = await result.current.enter.mutateAsync({ ticket, requestId: 'r2' });
+    });
+    expect(atCage).toEqual({ ok: false, error: 'no_ticket' });
+    expect(inApp).toEqual({ ok: false, error: 'no_ticket' });
+    expect(calls.filter((call) => call.url.includes('/rpc/use_tournament_ticket')).map((call) => call.body)).toEqual([
+      { p_tournament_id: 't1', p_member_id: 'm1', p_idempotency_key: 'r1' }, { p_tournament_id: 't2', p_member_id: 'm1', p_idempotency_key: 'r2' },
+    ]);
   });
 });

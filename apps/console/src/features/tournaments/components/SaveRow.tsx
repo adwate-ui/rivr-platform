@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Stack, StatusMessage } from '@rivr/ui';
 
 /** What the last save said: saved, or what went wrong. */
 export interface SaveOutcome {
@@ -22,7 +22,7 @@ export function SaveRow({ isSaving, onSave, onCancel, outcome }: SaveRowProps) {
       <Inline gap={4} align="center">
         <Button variant="primary" isLoading={isSaving} onClick={onSave}>{t('console.tournaments.save')}</Button>
         {onCancel === undefined ? null : <Button variant="text" onClick={onCancel}>{t('console.tournaments.cancel')}</Button>}
-        {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       </Inline>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>

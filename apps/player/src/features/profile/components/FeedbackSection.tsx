@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { feedbackNoteSchema } from '@rivr/contracts';
 import { useFeedbackActions, type FeedbackFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Stack, Text, TextArea } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Stack, Text, TextArea, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -28,7 +28,7 @@ export function FeedbackSection() {
       <TextArea {...noteField} label={t('player.feedback.noteLabel')} rows={3}
         error={form.formState.errors.note ? t('player.feedback.invalidNote') : undefined} />
       {failure === null ? null : <ErrorMessage>{t(`player.feedback.failures.${failure}`)}</ErrorMessage>}
-      {isSent ? <Text>{t('player.feedback.sent')}</Text> : null}
+      <StatusMessage>{isSent ? t('player.feedback.sent') : null}</StatusMessage>
       <Button variant="secondary" isLoading={send.isPending} onClick={() => void submit()}>{t('player.feedback.send')}</Button>
     </Stack>
   );

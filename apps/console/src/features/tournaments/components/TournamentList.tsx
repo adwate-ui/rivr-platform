@@ -1,10 +1,11 @@
 import type { VenueTournament } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, DataTable, type DataTableColumn } from '@rivr/ui';
+import { eventLine } from './eventLine.ts';
 
 /** Where a tournament stands: finished, running, paused, not shown to members, or when it starts. */
 function statusOf(tournament: VenueTournament): string {
-  if (tournament.finishedAt !== null) return t('console.tournaments.payouts.finishedStatus');
+  if (tournament.finishedAt !== null) return t(tournament.dayTwoId === null ? 'console.tournaments.payouts.finishedStatus' : 'console.tournaments.bagged');
   if (tournament.clock !== null) return t(tournament.clock.isRunning ? 'console.tournaments.running' : 'console.tournaments.paused');
   return tournament.isPublished ? t('console.tournaments.notStarted') : t('console.tournaments.offCalendar');
 }
@@ -21,6 +22,7 @@ export function TournamentList({ tournaments, chosenId, onChoose }: TournamentLi
     { key: 'name', header: t('console.tournaments.name'), cell: (row) => row.name },
     { key: 'starts', header: t('console.tournaments.starts'), cell: (row) => formatDayTime(new Date(row.startsAt)) },
     { key: 'status', header: t('console.tournaments.status'), cell: statusOf },
+    { key: 'event', header: t('console.tournaments.event'), cell: (row) => eventLine(row, tournaments) ?? '' },
     {
       key: 'open', header: t('console.tournaments.open'), align: 'end',
       cell: (row) => (

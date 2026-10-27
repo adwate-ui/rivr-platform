@@ -5,7 +5,7 @@ import {
 } from '@rivr/db';
 import { promotionDraft } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
-import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TvPromotionSlide } from '@rivr/ui';
+import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TvPromotionSlide, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
 import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
@@ -85,7 +85,7 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
         <Inline gap={4} align="center">
           <Button variant="primary" isLoading={submitPromotion.isPending} isDisabled={simulation.simulation === null || simulation.isPending}
             onClick={() => void check(submit)}>{t('console.promotions.submit')}</Button>
-          {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+          <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
           {outcome === null && simulation.simulation === null ? <Text variant="small" tone="muted">{t('console.promotions.simulateFirst')}</Text> : null}
         </Inline>
         {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
