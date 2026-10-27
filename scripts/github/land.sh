@@ -14,11 +14,19 @@ here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
 deadline=$(($(date +%s) + 2 * 3600))
 
-head_sha() { gh api "repos/$repo/pulls/$pr" --jq .head.sha; }
+# A read from GitHub; empty when the call fails, so one failed call is tried again on the next round.
+read_api() { gh api "$@" 2>/dev/null || true; }
+head_sha() { read_api "repos/$repo/pulls/$pr" --jq .head.sha; }
+is_merged() { [ "$(read_api "repos/$repo/pulls/$pr" --jq .merged)" = true ]; }
 # The latest agent-review on a commit: its state, a tab, its description.
-review_of() { gh api "repos/$repo/commits/$1/status" --jq '.statuses[] | select(.context == "agent-review") | "\(.state)\t\(.description)"'; }
+review_of() { read_api "repos/$repo/commits/$1/status" --jq '.statuses[] | select(.context == "agent-review") | "\(.state)\t\(.description)"'; }
 # How many commits main has that the commit lacks.
-behind_main() { gh api "repos/$repo/compare/$1...main" --jq .ahead_by; }
+behind_main() { read_api "repos/$repo/compare/$1...main" --jq .ahead_by; }
+# GitHub's own merge of main into the reviewed head: two parents, the first the reviewed head, made and signed by GitHub.
+is_update_of() {
+  [ "$(read_api "repos/$repo/commits/$1" --jq '[(.parents | length), .parents[0].sha, .commit.committer.email, .commit.verification.verified] | @tsv')" \
+    = "$(printf '2\t%s\tnoreply@github.com\ttrue' "$2")" ]
+}
 failed_checks() { (gh pr checks "$pr" --required 2>/dev/null || true) | awk -F'\t' '$2 == "fail" || $2 == "cancel" { print $1 }'; }
 in_time() { [ "$(date +%s)" -lt "$deadline" ] || { echo "#$pr: not merged after two hours; look at its checks." >&2; exit 1; }; }
 
@@ -29,27 +37,30 @@ IFS=$'\t' read -r review reason <<<"$(review_of "$expected")"
 gh pr merge "$pr" --auto --squash
 while :; do
   in_time
-  read -r state merged <<<"$(gh api "repos/$repo/pulls/$pr" --jq '"\(.state) \(.merged)"')"
+  read -r state merged <<<"$(read_api "repos/$repo/pulls/$pr" --jq '"\(.state) \(.merged)"')"
+  if [ -z "${state:-}" ]; then sleep 30; continue; fi
   if [ "$merged" = true ]; then break; fi
   if [ "$state" != open ]; then echo "#$pr was closed without merging." >&2; exit 1; fi
   head="$(head_sha)"
+  if [ -z "$head" ]; then sleep 30; continue; fi
   if [ "$head" != "$expected" ]; then
     echo "#$pr's head moved to $head, which nobody reviewed: review it, post agent-review, then run this again." >&2
     exit 1
   fi
-  if [ "$(behind_main "$head")" -gt 0 ]; then
-    if ! gh api --method PUT "repos/$repo/pulls/$pr/update-branch" -f expected_head_sha="$head" >/dev/null; then
+  behind="$(behind_main "$head")"
+  if [ "${behind:-0}" -gt 0 ]; then
+    if ! gh api --method PUT "repos/$repo/pulls/$pr/update-branch" -f expected_head_sha="$head" >/dev/null 2>&1; then
+      if is_merged; then break; fi
       echo "#$pr cannot take main (a conflict?): merge main into the branch, re-run verify, push, review, run this again." >&2
       exit 1
     fi
-    while [ "$(head_sha)" = "$head" ]; do in_time; sleep 5; done
-    expected="$(head_sha)"
-    # GitHub's merge of main into the reviewed head, and nothing else.
-    if [ "$(gh api "repos/$repo/commits/$expected" --jq '.parents[0].sha')" != "$head" ]; then
-      echo "#$pr: the head after the update, $expected, is not a merge onto the reviewed head." >&2
+    while next="$(head_sha)"; [ -z "$next" ] || [ "$next" = "$head" ]; do in_time; sleep 5; done
+    expected="$next"
+    if ! is_update_of "$expected" "$head"; then
+      echo "#$pr: the head after the update, $expected, is not GitHub's merge of main onto the reviewed head." >&2
       exit 1
     fi
-    "$here/post-agent-review.sh" "$pr" success "$reason"
+    "$here/post-agent-review.sh" "$pr" success "$reason" "$expected"
   fi
   failed="$(failed_checks)"
   if [ -n "$failed" ]; then echo "#$pr: required check failed or cancelled: $failed" >&2; exit 1; fi
