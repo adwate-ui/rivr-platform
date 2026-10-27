@@ -242,8 +242,8 @@ select results_eq($$ select p.place, p.full_name, p.prize_paise from public.tour
 select is((select overlay_paise from public.tournament where id = pg_temp.named('Guaranteed Satellite')), 190000::bigint,
   'the club''s ₹1,900 overlay is booked');
 
--- A satellite too small for a seat: Mihir alone puts ₹1,800 in for a ₹3,000 seat, so he is paid it in cash. While
--- TDS is switched on, no satellite finishes, since a ticket carries none until question #517 is answered.
+-- A satellite too small for a seat: Mihir alone puts ₹1,800 in for a ₹3,000 seat, so he is paid it in cash. It
+-- finishes with TDS switched on: a ticket carries no TDS (question #517, answered).
 select public.create_tournament('00000000-0000-4000-8000-0000000007c3', 'Small Satellite', now(), true);
 select public.set_tournament_satellite(pg_temp.named('Small Satellite'), pg_temp.named('Second Turbo'));
 select public.start_tournament_clock(pg_temp.named('Small Satellite'));
@@ -256,16 +256,7 @@ values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
         '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "financial_year", "pan_required": true, "no_pan_rate_basis_points": 3000}',
         now() - interval '2 minutes', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.finish_tournament(pg_temp.named('Small Satellite')) $$, 'RVTRN', null,
-  'no satellite finishes while TDS is switched on');
-reset role;
-select set_config('request.jwt.claims', '', true);
-insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
-        '{"enabled": false, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "financial_year", "pan_required": true, "no_pan_rate_basis_points": 3000}',
-        now() - interval '1 minute', 'Test');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.finish_tournament(pg_temp.named('Small Satellite')) $$, 'switched off, it finishes');
+select lives_ok($$ select public.finish_tournament(pg_temp.named('Small Satellite')) $$, 'a satellite finishes with TDS switched on');
 select is_empty($$ select 1 from public.tournament_ticket where satellite_id = pg_temp.named('Small Satellite') $$, 'with no ticket');
 select results_eq($$ select p.place, p.full_name, p.prize_paise from public.tournament_payouts(pg_temp.named('Small Satellite')) p $$,
   $$ values (1, 'Mihir Shah'::text, 180000::bigint) $$, 'and Mihir is paid the ₹1,800 in cash');
