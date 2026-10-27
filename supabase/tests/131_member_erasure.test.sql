@@ -115,6 +115,8 @@ select isnt(private.post_points('00000000-0000-4000-8000-000000000001', '0000000
   'erasure-test:points'), null, 'Tara holds 1,200 points');
 select isnt(private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 50000, 'Welcome bonus',
   now() + interval '30 days', 'erasure-test:bonus'), null, 'and ₹500 of bonus');
+select isnt(private.post_nights('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 1250, 'nights_earned', 'Erasure test',
+  'erasure-test:nights'), null, 'and a night and a quarter at the partner hotel (#146)');
 -- A break Tara took last month, over; and Dev's, a month from now.
 insert into public.self_exclusion (venue_id, member_id, starts_at, ends_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', now() - interval '40 days', now() - interval '10 days'),
@@ -139,9 +141,9 @@ select is_empty($$ select * from public.member_erasure_preview('00000000-0000-40
 select throws_ok($$ select * from public.erase_member('00000000-0000-4000-8000-0000000d0797', 'Tara Mehta', 'Asked by email') $$, '42501', null,
   'and erases no one');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select results_eq($$ select is_erased, blockers, points, bonus_paise, blocked_until is null from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0797') $$,
-  $$ values (false, '{}'::text[], 1200::bigint, 50000::bigint, true) $$,
-  'Vikram sees Tara has nothing open, and the points and bonus she will forfeit');
+select results_eq($$ select is_erased, blockers, points, bonus_paise, nights, blocked_until is null from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0797') $$,
+  $$ values (false, '{}'::text[], 1200::bigint, 50000::bigint, 1250::bigint, true) $$,
+  'Vikram sees Tara has nothing open, and the points, bonus and hotel nights she will forfeit');
 select results_eq($$ select blockers, blocked_until > now() + interval '29 days' from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0798') $$,
   $$ values (array['cash', 'chips', 'requests'], true) $$,
   'and that Dev''s wallet, his visit and his waiting deposit must be settled first, and his break will be kept');
@@ -165,9 +167,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 
 -- ---------------------------------------------------------------------------------------------------
 -- Tara is erased.
-select results_eq($$ select forfeited_points, forfeited_bonus_paise, blocked_until is null
+select results_eq($$ select forfeited_points, forfeited_bonus_paise, forfeited_nights, blocked_until is null
                      from public.erase_member('00000000-0000-4000-8000-0000000d0797', ' Tara Mehta ', 'Asked by email on 25 Oct') $$,
-  $$ values (1200::bigint, 50000::bigint, true) $$, 'Vikram erases Tara, who forfeits her points and bonus, with no break to keep');
+  $$ values (1200::bigint, 50000::bigint, 1250::bigint, true) $$, 'Vikram erases Tara, who forfeits her points, bonus and nights, with no break to keep');
 select throws_ok($$ select * from public.erase_member('00000000-0000-4000-8000-0000000d0797', 'Erased member', 'Asked by email on 25 Oct') $$, 'RVERD', null,
   'once only');
 select results_eq($$ select is_erased, kyc_files from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0797') $$,
@@ -219,8 +221,9 @@ select is_empty($$ select 1 from public.outbox_event where payload ->> 'member_i
 select results_eq($$ select a.code, sum(e.amount)::bigint from public.ledger_transaction t join public.ledger_entry e on e.transaction_id = t.id
                      join public.ledger_account a on a.id = e.account_id
                      where t.kind = 'member_erasure_forfeit' and t.idempotency_key like '%0d0797' group by a.code order by a.code $$,
-  $$ values ('member.bonus'::text, 50000::bigint), ('member.points', 1200), ('venue.bonus_expense', -50000), ('venue.points_issued', -1200) $$,
-  'the forfeit posts her points and bonus back to the club');
+  $$ values ('member.bonus'::text, 50000::bigint), ('member.nights', 1250), ('member.points', 1200), ('venue.bonus_expense', -50000),
+            ('venue.nights_issued', -1250), ('venue.points_issued', -1200) $$,
+  'the forfeit posts her points, bonus and nights back to the club');
 select is((select count(*)::int from public.ledger_account a where a.member_id = '00000000-0000-4000-8000-0000000d0797'
            and private.account_balance(a.id) <> 0), 0, 'and every account of hers is at zero');
 select results_eq($$ select g.remaining_paise, g.expired_at is not null, g.expiry_transaction_id = t.id
@@ -355,8 +358,8 @@ create temp table audit_before as select count(*) as n from public.audit_log;
 select results_eq($$ select member_id, outcome from private.reapply_member_erasures(null, array['00000000-0000-4000-8000-0000000d0797'::uuid]) $$,
   $$ values ('00000000-0000-4000-8000-0000000d0797'::uuid, 'erased'::text) $$, 're-applying an erasure already made succeeds');
 select is((select count(*) from public.audit_log), (select n from audit_before), 'and writes nothing');
-select is((select count(*)::int from public.ledger_transaction where kind = 'member_erasure_forfeit' and idempotency_key like '%0d0797'), 2,
-  'nor forfeits again');
+select is((select count(*)::int from public.ledger_transaction where kind = 'member_erasure_forfeit' and idempotency_key like '%0d0797'), 3,
+  'nor forfeits again: still her one transaction each for points, bonus and nights');
 -- A restore from before the erasure brings her back.
 update public.member set full_name = 'Tara Mehta', phone = '+919000000797', erased_at = null where id = '00000000-0000-4000-8000-0000000d0797';
 insert into public.member_preference (member_id, venue_id, name_on_tvs)
@@ -373,8 +376,8 @@ select is_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-00
 select is((select count(*)::int from public.audit_log where action = 'member.erase' and entity_id = '00000000-0000-4000-8000-0000000d0797'), 1,
   'still one erasure in the log');
 
-select is((select count(*)::int from public.ledger_transaction where kind = 'member_erasure_forfeit' and idempotency_key like '%0d0797'), 2,
-  'and forfeits nothing again');
+select is((select count(*)::int from public.ledger_transaction where kind = 'member_erasure_forfeit' and idempotency_key like '%0d0797'), 3,
+  'and forfeits nothing again: still three');
 
 -- ---------------------------------------------------------------------------------------------------
 -- Isha (0793) owes the club 100 points, busted from the Weeknight Turbo (not finished) with TDS on a prize, and
