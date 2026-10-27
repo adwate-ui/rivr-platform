@@ -2,19 +2,20 @@
 /**
  * pnpm verify | verify:quick | verify:all, and CI's parallel parts (decision 0243)
  *   quick      typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
- *   changed    quick, plus: mutation tests on the money modules a change touches, pgTAP when supabase/ or a golden
+ *   changed    quick, plus: mutation tests on the changed money modules, pgTAP when supabase/ or a golden
  *              file changed, the generated-tokens check, the drill gates, Storybook build and visual tests
  *   all        every step for every package
  *   code       CI: quick, the generated-tokens check and the drill gates, for every package
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
  *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules to mutate. With MUTATION_SINCE=<ref>
- *              (a pull request) only those its changes touch, else every one (decision 0242).
+ *              (a pull request) only those it changes, else every one (decision 0242). Each module must score 80 or
+ *              more on its own, not only the run as a whole.
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
@@ -94,34 +95,17 @@ function moduleChanged(module, files) {
 }
 
 /**
- * The money modules a change touches: those that changed, and every module they import, directly or not, since
- * Stryker runs every test for each mutant and a changed module's tests kill its imports' mutants too.
- */
-function touchedModules(files) {
-  const touched = new Set(MONEY_MODULES.filter((module) => moduleChanged(module, files)));
-  for (let grew = true; grew; ) {
-    const imported = MONEY_MODULES.filter(
-      (module) => !touched.has(module) && [...touched].some((user) => mentions(moduleFolder(user), `'../${module}/`)),
-    );
-    imported.forEach((module) => touched.add(module));
-    grew = imported.length > 0;
-  }
-  return MONEY_MODULES.filter((module) => touched.has(module));
-}
-
-/**
- * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those its changes touch, every one when
- * it changes shared code: an untouched module keeps the score main proved, and the push to main runs every module
- * again (decision 0242).
+ * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those it changes, every one when it
+ * changes shared code (decision 0242). A changed module's tests also kill the mutants of the modules it imports, nearly
+ * always money, so a change to them can move money's score; mutating money on every such pull request took longer than
+ * the rest of CI together. The push to main mutates every module, and a release needs that run green (release.yml).
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;
   const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
   const everything = since ? files.some(movesEveryScore) : scope.everything;
   const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
-  if (everything) return modules;
-  const touched = touchedModules(files);
-  return modules.filter((module) => touched.includes(module));
+  return everything ? modules : modules.filter((module) => moduleChanged(module, files));
 }
 
 /** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */
@@ -131,11 +115,40 @@ function mutationShare(modules, share) {
   return modules.filter((_, index) => index % count === n - 1);
 }
 
-function mutationStep(modules) {
+const DETECTED = new Set(['Killed', 'Timeout']);
+const SCORED = new Set(['Killed', 'Timeout', 'Survived', 'NoCoverage']);
+
+/**
+ * Fails when any one module scores under Stryker's break threshold. Stryker's own check is for the run as a whole, so
+ * in a run of several modules a weak one could pass behind strong ones; the money rules set the floor per module.
+ */
+function perModuleScoreStep(modules) {
+  const floor = strykerConfig.thresholds.break;
+  return {
+    name: `mutation score of each module, ${floor} or more`,
+    run: () => {
+      const report = JSON.parse(readFileSync('packages/domain/reports/mutation/mutation.json', 'utf8'));
+      const tally = new Map(modules.map((module) => [module, { detected: 0, scored: 0 }]));
+      for (const [file, { mutants }] of Object.entries(report.files)) {
+        const counts = tally.get(file.match(/(?:^|\/)src\/([^/]+)\//)?.[1] ?? '');
+        for (const { status } of counts ? mutants : []) {
+          counts.detected += DETECTED.has(status) ? 1 : 0;
+          counts.scored += SCORED.has(status) ? 1 : 0;
+        }
+      }
+      const scores = [...tally].map(([module, { detected, scored }]) => [module, scored === 0 ? 100 : (100 * detected) / scored]);
+      for (const [module, score] of scores) process.stdout.write(`  ${module}: ${score.toFixed(2)}\n`);
+      return scores.every(([, score]) => score >= floor) ? 0 : 1;
+    },
+  };
+}
+
+function mutationSteps(modules) {
   const globs = modules.flatMap((module) => [`src/${module}/**/*.ts`, `!src/${module}/**/*.test.ts`]);
-  return step(`mutation tests (${modules.join(', ')})`, 'pnpm', [
-    '--filter', '@rivr/domain', 'exec', 'stryker', 'run', '--mutate', globs.join(','),
-  ]);
+  return [
+    step(`mutation tests (${modules.join(', ')})`, 'pnpm', ['--filter', '@rivr/domain', 'exec', 'stryker', 'run', '--mutate', globs.join(',')]),
+    perModuleScoreStep(modules),
+  ];
 }
 
 /**
@@ -182,7 +195,7 @@ function stepsFor(mode, scope) {
   const steps = quickSteps(scope);
   if (mode === 'quick') return steps;
   const money = moneyModulesToMutate(scope);
-  if (money.length > 0) steps.push(mutationStep(money));
+  if (money.length > 0) steps.push(...mutationSteps(money));
   // A golden file is proved in SQL too (decision 0037).
   if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
   if (touched('packages/tokens/')) steps.push(tokensStep());
@@ -198,7 +211,7 @@ const CI_PARTS = {
   storybook: () => [storybookStep()],
   mutation: (scope) => {
     const modules = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
-    return modules.length > 0 ? [mutationStep(modules)] : [];
+    return modules.length > 0 ? mutationSteps(modules) : [];
   },
 };
 
