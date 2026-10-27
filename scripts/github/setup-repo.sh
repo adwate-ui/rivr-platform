@@ -37,9 +37,9 @@ gh api --method PUT "repos/$repo/branches/main/protection" --input - >/dev/null 
 JSON
 echo "branch protection on main"
 
-gh api --method PATCH "repos/$repo" -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_auto_merge=true \
+gh api --method PATCH "repos/$repo" -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_auto_merge=false \
   -F delete_branch_on_merge=true >/dev/null
-echo "squash merges only, auto-merge on, branches deleted after merge"
+echo "squash merges only, no auto-merge (land.sh merges), branches deleted after merge"
 
 gh api --method PUT "repos/$repo/actions/permissions/fork-pr-contributor-approval" -f approval_policy=all_external_contributors >/dev/null
 echo "workflows from outside contributors need approval"

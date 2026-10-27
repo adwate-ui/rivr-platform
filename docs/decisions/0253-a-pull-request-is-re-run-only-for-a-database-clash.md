@@ -6,6 +6,7 @@ Date: 2026-10-27 · Owner's decision. Supersedes 0243's rule that a pull request
 
 **What.**
 - Branch protection no longer requires a pull request to be up to date (`scripts/github/setup-repo.sh`). A green pull request lands as it passed.
-- `land.sh` merges it itself, no longer by auto-merge. It brings a branch up to date, and CI runs again, only when the pull request and `main`, since the branch left it, both changed `supabase/migrations` or `supabase/seed`: migration versions must stay in order, and seed rows share ids. The check and the merge hold one lock in `/tmp`, so two database changes cannot both pass it at once.
-- It merges nothing while the newest finished CI run on `main` has failed.
+- `land.sh` merges it itself; auto-merge is off for the repository, and `land.sh` turns it off on the pull request, since it would merge without the checks below.
+- It brings a branch up to date, and CI runs again, only when the pull request and `main`, since the branch left it, both changed `supabase/migrations` or `supabase/seed`: two migrations must not share a version (`check-migration-versions.mjs`) and must apply together, and seed rows share ids. A comparison listing 300 files or more counts as a clash. The check and the merge hold one lock in `/tmp`, so two database changes cannot both pass it at once.
+- It merges nothing while the newest finished CI run on `main` has not passed, except the pull request that fixes it (`land.sh <pr> --fixes-main`).
 - Anything else two pull requests break together shows in CI on `main` after the merge, which `land.sh` waits for, and is fixed before anything else lands.
