@@ -107,11 +107,14 @@ export {
   useMyTvScreen,
   useTvActions,
   useTvPairing,
+  useTvPairingActions,
+  useTvPairingPolicy,
   useVenueTvs,
   type MyTvScreen,
   type TvCode,
   type TvFailure,
   type TvPairing,
+  type TvPairingPolicy,
   type VenueTv,
 } from './tvScreens.ts';
 export {

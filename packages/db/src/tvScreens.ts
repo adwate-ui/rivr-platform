@@ -11,8 +11,14 @@ import { queryKeys } from './queryKeys.ts';
 
 export type { TvCode };
 
-/** What an unpaired TV shows (#49): its code, or why it has none (`too_many` while device-pair refuses for a while). */
-export type TvPairing = { status: 'loading' } | { status: 'code'; code: TvCode } | { status: 'too_many' } | { status: 'unavailable' };
+/**
+ * What an unpaired TV shows (#49): its code, or why it has none (`too_many` while device-pair refuses for a while,
+ * `window_closed` while the venue pairs only after staff press Pair a TV, #325).
+ */
+export type TvPairing = { status: 'loading' } | { status: 'code'; code: TvCode } | { status: 'too_many' } | { status: 'window_closed' }
+  | { status: 'unavailable' };
+
+const PAIRING_REFUSALS = ['too_many', 'window_closed'] as const;
 
 /** The signed-in TV: its name on the console, what it shows, and the boards it turns to after that (decision 0163). */
 export interface MyTvScreen {
@@ -93,9 +99,12 @@ export function useTvPairing(): TvPairing {
     // A code is renewed when device-pair says it has run out (useClaimCheck), not by the TV's own
     // clock, which may be wrong.
     refetchInterval: (query) => (query.state.data?.ok ? false : ASK_AGAIN),
-    queryFn: async (): Promise<Result<TvCode, 'too_many' | 'unavailable'>> => {
+    queryFn: async (): Promise<Result<TvCode, 'too_many' | 'window_closed' | 'unavailable'>> => {
       const { data, error } = await client.functions.invoke('device-pair', { body: { tv: 'start' } });
-      if (error) return err((await functionErrorCode(error)) === 'too_many' ? 'too_many' : 'unavailable');
+      if (error) {
+        const code = await functionErrorCode(error);
+        return err(PAIRING_REFUSALS.find((refusal) => refusal === code) ?? 'unavailable');
+      }
       const code = toTvCode(data);
       return code === null ? err('unavailable') : ok(code);
     },
@@ -206,4 +215,42 @@ export function useTvActions(venueId: string) {
       settle(null, (await client.from('device').update({ revoked_at: 'now', revoked_reason: reason.trim() }).eq('id', deviceId)).error),
   });
   return { pair, setMode, setRotation, unpair };
+}
+
+/** How the venue pairs TVs (#325): only in a window after Pair a TV, and until when one is open; null while unknown. */
+export interface TvPairingPolicy {
+  readonly isWindowOnly: boolean;
+  readonly openUntil: string | null;
+}
+
+/** The venue's TV pairing policy, for staff who manage devices. */
+export function useTvPairingPolicy(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.tvPairingPolicy(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<TvPairingPolicy | null> => {
+      const { data, error } = await client.rpc('tv_pairing_policy', { p_venue_id: venueId });
+      if (error) throw error;
+      const row = data[0];
+      return row ? { isWindowOnly: row.is_window_only, openUntil: row.open_until } : null;
+    },
+  });
+}
+
+/** The owner switches window-only pairing (`setWindowOnly`); staff who manage devices press Pair a TV (`openWindow`). Each a Result. */
+export function useTvPairingActions(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  const settle = async (error: { code: string } | null): Promise<Result<null, TvFailure>> => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.tvPairingPolicy(userId ?? 'signed-out', venueId) });
+    return error ? err(TV_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+  };
+  const setWindowOnly = useMutation({
+    mutationFn: async (isOn: boolean) => settle((await client.rpc('set_tv_pairing_window_only', { p_venue_id: venueId, p_is_on: isOn })).error),
+  });
+  const openWindow = useMutation({
+    mutationFn: async () => settle((await client.rpc('open_tv_pairing_window', { p_venue_id: venueId })).error),
+  });
+  return { setWindowOnly, openWindow };
 }

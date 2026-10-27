@@ -3329,14 +3329,14 @@ isOneToOne: false
                   ]
                 },"venue_config": {
                   Row: {
-                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
+                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
+                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
+                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4271,6 +4271,9 @@ isOneToOne: false
               "age_days": number,"amount_paise": number,"due_at": string,"full_name": string,"is_past_due": boolean,"issued_at": string,"limit_paise": number,"marker_id": string,"member_id": string,"outstanding_paise": number
             }[]
                            },
+"open_tv_pairing_window":
+{ Args: { "p_venue_id": string }; Returns: string
+                           },
 "owner_snapshot":
 { Args: { "p_venue_id": string }; Returns: Json
                            },
@@ -4582,6 +4585,9 @@ isOneToOne: false
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
                            },
+"set_tv_pairing_window_only":
+{ Args: { "p_is_on": boolean,"p_venue_id": string }; Returns: undefined
+                           },
 "set_tv_rotation":
 { Args: { "p_device_id": string,"p_rotation": (Database["public"]['Enums']["tv_mode"])[] }; Returns: undefined
                            },
@@ -4745,6 +4751,11 @@ isOneToOne: false
 "tv_league_board":
 { Args: Record<PropertyKey, never>; Returns: {
               "display_name": string,"first_month": string,"last_month": string,"place": number,"points": number,"season_name": string,"standing": string
+            }[]
+                           },
+"tv_pairing_policy":
+{ Args: { "p_venue_id": string }; Returns: {
+              "is_window_only": boolean,"open_until": string
             }[]
                            },
 "tv_promotions":

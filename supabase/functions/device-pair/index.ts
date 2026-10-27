@@ -80,7 +80,7 @@ async function linkNewLogin(deviceId: string): Promise<{ phone: string; password
 }
 
 /** What the device is sent back, or why not. */
-type Outcome = { reply: object } | { refusal: 'wrong_code' | 'too_many' | 'expired' };
+type Outcome = { reply: object } | { refusal: 'wrong_code' | 'too_many' | 'expired' | 'window_closed' };
 
 /** The first row a database function returned. */
 async function rpc(name: string, args: object): Promise<unknown> {
@@ -119,7 +119,9 @@ async function pair(code: string, client: string): Promise<Outcome> {
 /** A TV: a code to show, the secret to ask with, and when they run out. */
 async function startTv(client: string): Promise<Outcome> {
   const row = await rpc('start_tv_pairing', { p_client: client });
-  if (field(row, 'refusal') === 'too_many') return { refusal: 'too_many' };
+  const refusal = field(row, 'refusal');
+  // Window-only pairing (#325): no code until staff press Pair a TV.
+  if (refusal === 'too_many' || refusal === 'window_closed') return { refusal };
   const code = field(row, 'code');
   if (typeof code !== 'string') throw new Error('start_tv_pairing returned no code');
   return { reply: { code, secret: field(row, 'secret'), expires_at: field(row, 'expires_at') } };
@@ -145,10 +147,11 @@ function clientOf(request: Request): string {
   return request.headers.get('cf-connecting-ip') ?? (request.headers.get('x-forwarded-for') ?? '').split(',')[0]?.trim() ?? '';
 }
 
-/** The reply, or the refusal: 429 for too many codes, 400 for a wrong code or a TV's secret no longer good. */
+/** The reply, or the refusal: 429 for too many codes, 403 while pairing waits for its window, 400 for a wrong code or a TV's secret no longer good. */
 function answer(outcome: Outcome, headers: Record<string, string>): Response {
   if ('reply' in outcome) return Response.json(outcome.reply, { headers });
-  return Response.json({ error: outcome.refusal }, { status: outcome.refusal === 'too_many' ? 429 : 400, headers });
+  const status = outcome.refusal === 'too_many' ? 429 : outcome.refusal === 'window_closed' ? 403 : 400;
+  return Response.json({ error: outcome.refusal }, { status, headers });
 }
 
 Deno.serve(async (request) => {

@@ -6,6 +6,7 @@ import { Heading, Stack, Text } from '@rivr/ui';
 function PairingCode({ pairing }: { pairing: TvPairing }) {
   if (pairing.status === 'loading') return <Text variant="tvBody" tone="muted">{t('display.pairing.loading')}</Text>;
   if (pairing.status === 'too_many') return <Text variant="tvBody">{t('display.pairing.tooMany')}</Text>;
+  if (pairing.status === 'window_closed') return <Text variant="tvBody">{t('display.pairing.windowClosed')}</Text>;
   if (pairing.status === 'unavailable') return <Text variant="tvBody">{t('display.pairing.unavailable')}</Text>;
   return (
     <Stack gap={6}>

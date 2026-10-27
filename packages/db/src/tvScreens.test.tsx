@@ -82,6 +82,10 @@ describe('An unpaired TV', () => {
     const refused = renderHook(() => useTvPairing(), { wrapper: busy.wrapper });
     await waitFor(() => expect(refused.result.current).toEqual({ status: 'too_many' }));
     cleanup();
+    const closed = renderTvs(null, { 'device-pair:start': { status: 403, body: { error: 'window_closed' } } });
+    const waiting = renderHook(() => useTvPairing(), { wrapper: closed.wrapper });
+    await waitFor(() => expect(waiting.result.current).toEqual({ status: 'window_closed' }));
+    cleanup();
     const down = renderTvs(null, { 'device-pair:start': { status: 502, body: { error: 'unavailable' } } });
     const failed = renderHook(() => useTvPairing(), { wrapper: down.wrapper });
     await waitFor(() => expect(failed.result.current).toEqual({ status: 'unavailable' }));

@@ -113,6 +113,11 @@ export const dealerSignIn = {
 /** The console's TVs screen (#49): pair a TV by the code it shows, change what it shows, unpair it. */
 export const tvs = {
   title: 'TVs',
+  /** Window-only pairing (#325): the owner's switch, and Pair a TV for staff who manage devices. */
+  windowOnly: 'Pair TVs only after Pair a TV is pressed',
+  openWindow: 'Pair a TV',
+  windowOpenUntil: 'A TV gets a code until {time}.',
+  windowShut: 'TVs get a code only for ten minutes after Pair a TV is pressed.',
   notAllowed: 'Your role does not include TVs. Ask an admin if you need it.',
   empty: 'No TVs yet: type in the code a TV shows to pair it.',
   code: 'Code on the TV',
@@ -155,6 +160,8 @@ export const tvPairing = {
   changes: 'The code changes at {time}.',
   loading: 'Getting a code.',
   tooMany: 'Too many screens asked for a code. This one asks again in a minute.',
+  /** The venue pairs TVs only after staff press Pair a TV (#325). */
+  windowClosed: 'Press Pair a TV on the console\u2019s TVs screen. This screen shows its code within a few seconds after.',
   unavailable: 'RIVR cannot be reached. This screen tries again in a minute.',
 };
 
