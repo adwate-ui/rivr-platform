@@ -61,9 +61,10 @@ function contentsOf(waiting: readonly QueuedWrite<TabletWrite>[], parked: readon
   return { queued: hands(waiting), claimsWaiting: claims(waiting).length, refusedHands: hands(parked).length, refusedClaims: claims(parked) };
 }
 
-// Refusals that may pass later: the venue frozen or a switch off until it is released, a lost
-// connection or a server error, a conflict worth trying again. Anything else is parked.
-const TRY_AGAIN = new Set(['RVFRZ', 'RVKIL', '40001', '40P01', '57014']);
+// Refusals that may pass later: the venue frozen or a switch off until it is released, the table's
+// hand rate limit (#298) until its minute has passed, a lost connection or a server error, a conflict
+// worth trying again. Anything else is parked.
+const TRY_AGAIN = new Set(['RVFRZ', 'RVKIL', 'RVFST', '40001', '40P01', '57014']);
 
 function outcomeOf(error: { code?: string }): SendOutcome {
   const code = error.code ?? '';
