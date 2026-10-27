@@ -73,6 +73,8 @@ export const playerApp = {
     bonus: 'Bonus chips',
     cashOut: 'Cash-out',
     tdsLine: 'TDS withheld',
+    /** Under the TDS line when it was withheld on a period's winnings, not the session's alone (#563). */
+    tdsOn: { day: 'TDS on the day’s winnings', financial_year: 'TDS on this year’s winnings' },
     paid: 'Paid to you',
     net: 'Net',
     receipt: 'Receipt {reference}',

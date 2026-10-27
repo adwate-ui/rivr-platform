@@ -16,7 +16,7 @@ const SESSION = {
   visit_id: 'v1', opened_at: '2026-02-13T20:30:00+00:00', closed_at: '2026-02-13T22:00:00+00:00', table_name: 'Table 3',
   small_blind_paise: 10000, big_blind_paise: 20000, other_tables: 0, played_seconds: 21600, buy_in_paise: 1000000, bonus_paise: 0,
   cash_out_paise: 5000000, tds_paise: 1200000, paid_paise: 3800000, net_paise: 2800000, receipt: 'A1B2C3D4', month: '2026-02-01',
-  month_sessions: 1, month_played_seconds: 21600, month_net_paise: 2800000,
+  month_sessions: 1, month_played_seconds: 21600, month_net_paise: 2800000, tds_basis: 'session',
 };
 
 interface Api {
@@ -83,6 +83,18 @@ describe('a session', () => {
     expect(screen.getByText('₹38,000')).toBeDefined();
     expect(screen.getByText('+₹28,000')).toBeDefined();
     expect(screen.getByText('Receipt A1B2C3D4')).toBeDefined();
+  });
+
+  it('says the TDS was on the period\u2019s winnings under the day and financial-year bases, not under the session\u2019s', async () => {
+    renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'financial_year' }] });
+    expect(await screen.findByText('TDS on this year\u2019s winnings')).toBeDefined();
+    cleanup();
+    renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'day' }] });
+    expect(await screen.findByText('TDS on the day\u2019s winnings')).toBeDefined();
+    cleanup();
+    renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'session' }] });
+    expect(await screen.findByText('TDS withheld')).toBeDefined();
+    expect(screen.queryByText(/winnings$/)).toBeNull();
   });
 
   it('has no TDS line, nor what was paid, when none was withheld', async () => {

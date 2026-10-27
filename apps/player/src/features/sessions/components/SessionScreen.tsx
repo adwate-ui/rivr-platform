@@ -10,6 +10,13 @@ import { sessionDay, sessionTitle } from './naming.ts';
 interface Row {
   label: string;
   value: ReactNode;
+  /** A line under the row, such as what the TDS was withheld on. */
+  note?: string;
+}
+
+/** What the TDS was withheld on, when it was a period's winnings rather than the session's alone (#563). */
+function tdsNote(session: MySession): { note?: string } {
+  return session.tdsBasis === 'day' || session.tdsBasis === 'financial_year' ? { note: t(`player.sessions.tdsOn.${session.tdsBasis}`) } : {};
 }
 
 /** The detail's rows (design prompt, "Sessions"): bonus chips, the TDS and what was paid only when they apply. */
@@ -24,7 +31,7 @@ function rowsOf(session: MySession): Row[] {
     { label: t('player.sessions.buyIn'), value: <Money paise={session.buyIn} /> },
     session.bonus > 0n ? { label: t('player.sessions.bonus'), value: <Money paise={session.bonus} /> } : null,
     { label: t('player.sessions.cashOut'), value: <Money paise={session.cashOut} /> },
-    session.tds > 0n ? { label: t('player.sessions.tdsLine'), value: <Money paise={session.tds} /> } : null,
+    session.tds > 0n ? { label: t('player.sessions.tdsLine'), value: <Money paise={session.tds} />, ...tdsNote(session) } : null,
     session.paid === session.cashOut ? null : { label: t('player.sessions.paid'), value: <Money paise={session.paid} /> },
   ];
   return rows.filter((row): row is Row => row !== null);
@@ -38,10 +45,13 @@ function Detail({ session }: { session: MySession }) {
       <Stack gap={3}>
         <Stack gap={3} divided>
           {rowsOf(session).map((row) => (
-            <Inline key={row.label} gap={4} align="baseline" justify="between">
-              <Text tone="muted">{row.label}</Text>
-              {row.value}
-            </Inline>
+            <Stack key={row.label} gap={1}>
+              <Inline gap={4} align="baseline" justify="between">
+                <Text tone="muted">{row.label}</Text>
+                {row.value}
+              </Inline>
+              {row.note === undefined ? null : <Text variant="small" tone="muted">{row.note}</Text>}
+            </Stack>
           ))}
           <Inline gap={4} align="baseline" justify="between">
             <Text weight="semibold">{t('player.sessions.net')}</Text>

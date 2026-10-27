@@ -46,6 +46,7 @@ select results_eq(
 select is((select receipt from public.my_sessions()),
   (select upper(left(id::text, 8)) from public.cage_transaction where idempotency_key = '00000000-0000-4000-8000-0000000c5701'),
   'with the cash-out''s receipt, as the cage printed it');
+select is((select tds_basis from public.my_sessions()), 'session', 'and the basis its TDS was withheld on (#563)');
 select results_eq(
   $$ select month, month_sessions, month_played_seconds, month_net_paise from public.my_sessions() $$,
   $$ select date_trunc('month', (now() - interval '3 hours') at time zone 'Asia/Kolkata' - interval '6 hours')::date, 1, 10800::bigint, 2800000::bigint $$,

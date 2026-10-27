@@ -4079,7 +4079,7 @@ isOneToOne: false
                            },
 "my_sessions":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"bonus_paise": number,"buy_in_paise": number,"cash_out_paise": number,"closed_at": string,"month": string,"month_net_paise": number,"month_played_seconds": number,"month_sessions": number,"net_paise": number,"opened_at": string,"other_tables": number,"paid_paise": number,"played_seconds": number,"receipt": string,"small_blind_paise": number,"table_name": string,"tds_paise": number,"visit_id": string
+              "big_blind_paise": number,"bonus_paise": number,"buy_in_paise": number,"cash_out_paise": number,"closed_at": string,"month": string,"month_net_paise": number,"month_played_seconds": number,"month_sessions": number,"net_paise": number,"opened_at": string,"other_tables": number,"paid_paise": number,"played_seconds": number,"receipt": string,"small_blind_paise": number,"table_name": string,"tds_basis": string,"tds_paise": number,"visit_id": string
             }[]
                            },
 "my_stakes":

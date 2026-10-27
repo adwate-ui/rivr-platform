@@ -13,6 +13,9 @@ const keys = {
  * and its club month's totals. Net is what came out less the TDS and what went in; what went in counts chips on credit
  * and not bonus chips, which show apart.
  */
+const TDS_BASES = ['session', 'day', 'financial_year'] as const;
+export type TdsBasis = (typeof TDS_BASES)[number];
+
 export interface MySession {
   readonly visitId: string;
   readonly openedAt: string;
@@ -27,6 +30,8 @@ export interface MySession {
   readonly bonus: Paise;
   readonly cashOut: Paise;
   readonly tds: Paise;
+  /** What the TDS was withheld on (#563): the session alone, the day's or this financial year's winnings; null with none. */
+  readonly tdsBasis: TdsBasis | null;
   /** What the cage handed over: the cash-outs less the markers they settled and the TDS. */
   readonly paid: Paise;
   readonly net: Paise;
@@ -54,7 +59,7 @@ export function useMySessions() {
         playedSeconds: Number(row.played_seconds), buyIn: toPaise(row.buy_in_paise), bonus: toPaise(row.bonus_paise),
         cashOut: toPaise(row.cash_out_paise), tds: toPaise(row.tds_paise), paid: toPaise(row.paid_paise), net: toPaise(row.net_paise),
         receipt: row.receipt, month: row.month, monthSessions: row.month_sessions, monthPlayedSeconds: Number(row.month_played_seconds),
-        monthNet: toPaise(row.month_net_paise),
+        monthNet: toPaise(row.month_net_paise), tdsBasis: TDS_BASES.find((basis) => basis === row.tds_basis) ?? null,
       }));
     },
   });
