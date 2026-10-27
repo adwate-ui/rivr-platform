@@ -4,7 +4,7 @@
  * it, at /overlay?delay=20, and is paired as a TV on the tournament clock. Its page is transparent, and
  * it shows nothing until what it heard is 20 seconds old, then level 1. She moves the clock to level 2;
  * a TV would follow within seconds, but the overlay stays on level 1 for the delay, then moves. The
- * overlay is unpaired and the tournament removed at the end. The delay itself is proved in
+ * overlay is unpaired, and shows no pairing code on the stream, and the tournament is removed. The delay itself is proved in
  * apps/display's useDelayedTournament.test.ts.
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
@@ -96,6 +96,11 @@ async function runFlow(browser: Browser, floor: Page, name: string) {
   await floor.getByRole('button', { name: `Unpair ${tvName}`, exact: true }).click();
   await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
   await floor.getByRole('button', { name: 'Unpair the TV' }).click();
+  // Unpaired mid-stream, it never puts a pairing code on the stream: the clock goes and the page stays transparent.
+  await expect(overlay.getByRole('region', { name })).toHaveCount(0, { timeout: 20_000 });
+  await expect(overlay.getByRole('status')).toBeAttached();
+  await expect(overlay.getByRole('heading', { name: 'Screen pairing' })).toHaveCount(0);
+  expect(await background()).toBe('rgba(0, 0, 0, 0)');
 }
 
 test.describe('Stream overlay', () => {

@@ -139,6 +139,8 @@ export function useIsPublicVenue(venueId: string | undefined): boolean | undefin
   const venue = useQuery({
     queryKey: queryKeys.isPublicVenue(userId ?? 'signed-out', venueId ?? 'none'),
     enabled: userId !== null && venueId !== undefined,
+    // Asked again as the screen is, so an overlay whose first read failed recovers without a reload.
+    refetchInterval: SCREEN_CHECK,
     queryFn: async () => {
       const { data, error } = await client.from('public_venue').select('id').eq('id', venueId ?? '');
       if (error) throw error;
