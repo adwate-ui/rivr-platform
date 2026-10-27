@@ -91,8 +91,8 @@ select public.approve_promotion((select id from public.promotion where venue_id 
 reset role;
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.offered'
            and payload ->> 'promotion_id' = (select id::text from ids where name = 'flow7')), 1, 'resumed, it is not offered again');
-select is(pg_temp.offers((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral')), '212',
-  'an approved template is offered too');
+select is(pg_temp.offers((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral')), 'none',
+  'an approved template is offered as a promotion is, but not to Vihaan again tonight: one marketing send a day (#501)');
 select is((select count(*)::integer from private.promotion_cards('00000000-0000-4000-8000-000000000001')), 2, 'and both cards are live');
 
 -- At send time, the WhatsApp consumer finds the member only while the offer may still be sent.
@@ -119,7 +119,8 @@ select public.submit_promotion_template((select id from templates where template
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select public.approve_promotion((select id from templates where template_key = 'tuesday_bonus'));
 reset role;
-select is(pg_temp.offers((select id from templates where template_key = 'tuesday_bonus')), '212', 'a member without promotions.feed is not offered it');
+select is(pg_temp.offers((select id from templates where template_key = 'tuesday_bonus')), 'none',
+  'a member without promotions.feed is not offered it (and Vihaan had his one offer tonight)');
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
   (select id from templates where template_key = 'tuesday_bonus')) $$, 'nor found at send time');
 
