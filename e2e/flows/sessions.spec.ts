@@ -4,6 +4,7 @@
  * go before her call time and cashes out ₹25,000 to her wallet, finally, which closes her visit. On her phone, her
  * history shows this month with the session, up ₹15,000, and its detail: buy-in, cash-out, net and the receipt the
  * cage printed. TDS, markers, the month's totals and the tier gate are proved in supabase/tests/157_my_sessions.test.sql.
+ * Run it again locally after `pnpm db:reset`: Rhea's first session stays in her history.
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -56,7 +57,7 @@ test.describe('Sessions', () => {
     await expect(rhea.getByText('₹10,000', { exact: true })).toBeVisible();
     await expect(rhea.getByText('₹25,000', { exact: true })).toBeVisible();
     await expect(rhea.getByText(/^Receipt [0-9A-F]{8}$/)).toBeVisible();
-    await expect(rhea.getByText('TDS', { exact: true })).toBeHidden();
+    await expect(rhea.getByText('TDS withheld', { exact: true })).toBeHidden();
     await rhea.getByRole('button', { name: 'Back' }).click();
     await expect(rhea).toHaveURL(/\/sessions$/);
   });

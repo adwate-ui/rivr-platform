@@ -65,7 +65,6 @@ export const playerApp = {
     monthSummary: '{count} sessions · {hours}',
     monthSummaryOne: '1 session · {hours}',
     /** A session's detail (design prompt, "Sessions"): bonus chips, TDS and what was paid only when they apply. */
-    back: 'Back',
     stake: 'Stake',
     time: 'Time',
     timeRange: '{from} to {to}',
@@ -73,7 +72,7 @@ export const playerApp = {
     buyIn: 'Buy-in',
     bonus: 'Bonus chips',
     cashOut: 'Cash-out',
-    tdsLine: 'TDS',
+    tdsLine: 'TDS withheld',
     paid: 'Paid to you',
     net: 'Net',
     receipt: 'Receipt {reference}',

@@ -1,11 +1,11 @@
 import { useFeature } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
-import { formatDate, formatDuration, formatStakes, formatTime, t } from '@rivr/i18n';
-import { Button, FeatureGate, Inline, Money, Screen, Stack, Text } from '@rivr/ui';
+import { formatDuration, formatStakes, formatTime, t } from '@rivr/i18n';
+import { Button, Divider, FeatureGate, Inline, Money, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { Net } from './Net.tsx';
-import { sessionTitle } from './sessionTitle.ts';
+import { sessionDay, sessionTitle } from './naming.ts';
 
 interface Row {
   label: string;
@@ -34,18 +34,21 @@ function rowsOf(session: MySession): Row[] {
 function Detail({ session }: { session: MySession }) {
   return (
     <Stack gap={6}>
-      <Text tone="muted">{formatDate(new Date(session.openedAt))}</Text>
-      <Stack gap={3} divided>
-        {rowsOf(session).map((row) => (
-          <Inline key={row.label} gap={4} align="baseline" justify="between">
-            <Text tone="muted">{row.label}</Text>
-            {row.value}
+      <Text tone="muted">{sessionDay(session)}</Text>
+      <Stack gap={3}>
+        <Stack gap={3} divided>
+          {rowsOf(session).map((row) => (
+            <Inline key={row.label} gap={4} align="baseline" justify="between">
+              <Text tone="muted">{row.label}</Text>
+              {row.value}
+            </Inline>
+          ))}
+          <Inline gap={4} align="baseline" justify="between">
+            <Text weight="semibold">{t('player.sessions.net')}</Text>
+            <Net paise={session.net} />
           </Inline>
-        ))}
-        <Inline gap={4} align="baseline" justify="between">
-          <Text weight="semibold">{t('player.sessions.net')}</Text>
-          <Net paise={session.net} />
-        </Inline>
+        </Stack>
+        <Divider />
       </Stack>
       {session.receipt === null ? null : <Text variant="small" tone="muted">{t('player.sessions.receipt', { reference: session.receipt })}</Text>}
     </Stack>
@@ -58,7 +61,7 @@ export function SessionScreen() {
   const sessions = useMySessions();
   const access = useFeature('sessions.history');
   const navigate = useNavigate();
-  const back = <Button variant="text" icon="chevronLeft" onClick={() => void navigate({ to: '/sessions' })}>{t('player.sessions.back')}</Button>;
+  const back = <Button variant="text" icon="chevronLeft" onClick={() => void navigate({ to: '/sessions' })}>{t('common.back')}</Button>;
   const session = sessions.data?.find((one) => one.visitId === visitId);
   const title = session === undefined ? t('player.sessions.title') : sessionTitle(session);
   if (sessions.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void sessions.refetch()} />;
