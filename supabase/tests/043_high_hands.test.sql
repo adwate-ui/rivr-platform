@@ -190,16 +190,18 @@ select throws_ok($$ select public.approve_high_hand((select claim_id from earlie
 select is(public.approve_high_hand((select claim_id from earlier), 1000000), 1000000::bigint, 'it is paid ₹10,000, as when it was played');
 select is(public.approve_high_hand((select claim_id from later), 1500000), 1500000::bigint, 'and the hand after the change ₹15,000');
 reset role;
+-- The settings below are written as the seed writes them, with no one signed in: only a super admin changes them (#499).
+select set_config('request.jwt.claims', '', true);
 
 -- Payouts are whole ₹50 chips up to ₹1,00,000.
 select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
                     values ('00000000-0000-4000-8000-000000000001', 'high_hand.payouts', '',
                             '{"royal_flush": 2500000, "straight_flush": 1002500, "four_of_a_kind": 200000}', now(), 'Test') $$,
-  null, null, 'a payout of half a chip is refused');
+  '23514', null, 'a payout of half a chip is refused');
 select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
                     values ('00000000-0000-4000-8000-000000000001', 'high_hand.payouts', '',
                             '{"royal_flush": 10005000, "straight_flush": 1000000, "four_of_a_kind": 200000}', now(), 'Test') $$,
-  null, null, 'and one above ₹1,00,000');
+  '23514', null, 'and one above ₹1,00,000');
 
 -- A high hand that pays nothing is not claimed.
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)

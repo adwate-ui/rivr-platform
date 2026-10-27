@@ -88,7 +88,7 @@ const jackpotShares = {
 
 const jackpotPayout = {
   key: 'jackpot.payout',
-  description: 'How a bad beat pays, in basis points: the share of the main pool paid, and its split between the loser, the winner and the other players dealt in, which together make 100% (scope-v1 module 8).',
+  description: 'How a bad beat pays, in basis points: the share of the main pool paid, and its split between the loser, the winner and the other players dealt in, which together make 100% (scope-v1 module 8). Only a super admin changes it, with a reason.',
   scope: 'venue',
   // The database's schema cannot add the split up; pay_bad_beat refuses a rule whose split is not 100%.
   value: z
@@ -103,7 +103,7 @@ const jackpotPayout = {
 
 const highHandPayouts = {
   key: 'high_hand.payouts',
-  description: 'What each high hand pays, in paise, in whole ₹50 chips: royal flush, straight flush and four of a kind; 0 pays nothing (scope-v1 module 8).',
+  description: 'What each high hand pays, in paise, in whole ₹50 chips: royal flush, straight flush and four of a kind; 0 pays nothing (scope-v1 module 8). Only a super admin changes it, with a reason.',
   scope: 'venue',
   value: z.strictObject({
     royal_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
@@ -138,7 +138,7 @@ const waitlistHoldMinutes = {
 
 const creditConfig = {
   key: 'credit.config',
-  description: 'Credit lines: a limit above the approval threshold waits for a super admin; a member needs the minimum visits before any limit; open markers across the room stay within the exposure cap. Paise in whole ₹50 chips (scope-v1 module 5).',
+  description: 'Credit lines: a limit above the approval threshold waits for a super admin; a member needs the minimum visits before any limit; open markers across the room stay within the exposure cap. Paise in whole ₹50 chips (scope-v1 module 5). A raise of the threshold takes effect 24 hours after it is made; a cut, as set.',
   scope: 'venue',
   value: z.strictObject({
     approval_threshold_paise: z.int().min(0).max(100_000_000).multipleOf(CHIP_PAISE),
@@ -156,7 +156,7 @@ const markersDueDays = {
 
 const cageSecondApproverThreshold = {
   key: 'cage.second_approver_threshold',
-  description: 'Dual control: a withdrawal of this amount or more is paid only once a second approver, a different staff member holding cage.second_approve, has approved it. Paise in whole ₹50 chips (scope-v1 module 5; decision 0063).',
+  description: 'Dual control: a withdrawal of this amount or more is paid only once a second approver, a different staff member holding cage.second_approve, has approved it. Paise in whole ₹50 chips (scope-v1 module 5; decision 0063). A raise of the threshold takes effect 24 hours after it is made; a cut, as set.',
   scope: 'venue',
   value: z.strictObject({ threshold_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE) }),
 } as const satisfies SettingDefinition;
@@ -184,7 +184,7 @@ export const GST_BASES = ['rake', 'table_fee'] as const;
 
 const gstConfig = {
   key: 'gst.config',
-  description: 'GST on the club\'s own supply (tech plan item 20; #23, decision 0071): the rate in basis points (1800 is 18%), taken out of what is collected, and the basis it is charged on (the rake or a table fee).',
+  description: 'GST on the club\'s own supply (tech plan item 20; #23, decision 0071): the rate in basis points (1800 is 18%), taken out of what is collected, and the basis it is charged on (the rake or a table fee). Only a super admin changes it, with a reason.',
   scope: 'venue',
   value: z.strictObject({
     rate_basis_points: z.int().min(0).max(10_000),
