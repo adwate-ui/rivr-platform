@@ -69,6 +69,9 @@ export function useStaffActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const settle = async (error: { code: string } | null, wasApplied: boolean): Promise<Result<null, StaffFailure>> => {
+    // A new hire, a new role or a hire turned off changes the onboarding checklists: read them first, so a
+    // new hire's row never shows before their checklist.
+    await queryClient.invalidateQueries({ queryKey: queryKeys.onboardingChecklists(userId ?? 'signed-out', venueId) });
     await queryClient.invalidateQueries({ queryKey: queryKeys.venueStaff(userId ?? 'signed-out', venueId) });
     if (error) return err(STAFF_FAILURE_BY_CODE[error.code] ?? 'unavailable');
     // A row the policy hides from a change is no error, only nothing changed.

@@ -170,6 +170,8 @@ export const queryKeys = {
   sops: (userId: string, venueId: string) => ['user', userId, 'sops', venueId] as const,
   sopAcknowledgementsAll: (userId: string) => ['user', userId, 'sop-acknowledgements'] as const,
   sopAcknowledgements: (userId: string, versionId: string) => ['user', userId, 'sop-acknowledgements', versionId] as const,
+  /** Each active hire's onboarding checklist at a venue (#107), for staff who manage staff. */
+  onboardingChecklists: (userId: string, venueId: string) => ['user', userId, 'onboarding-checklists', venueId] as const,
   /** The signed-in TV's waitlist board (#65). */
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
   /** The signed-in TV's call-time board (decision 0163). */

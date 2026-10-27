@@ -6,6 +6,7 @@ import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Switch, Text }
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import { OnboardingChecklist } from './OnboardingChecklist.tsx';
 import { roleName, STAFF_FAILURE_COPY } from './staffCopy.ts';
 
 /** The job title, changed on its own. */
@@ -74,6 +75,8 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
         isDisabled={!canChange || member.isMe} onChange={(isActive) => void save({ isActive })} />
       {member.isMe ? <Text variant="small" tone="muted">{t('console.staff.ownRow')}</Text> : null}
       {failure === null ? null : <ErrorMessage>{t(STAFF_FAILURE_COPY[failure])}</ErrorMessage>}
+      {/* A hire turned off has no checklist. */}
+      {member.isActive ? <OnboardingChecklist venueId={venueId} member={member} /> : null}
     </Stack>
   );
 }
