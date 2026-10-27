@@ -558,5 +558,24 @@ select results_eq(
      from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'bounty' order by position $$,
   'private.tournament_bounty_split splits every bounty in the golden file');
 
+-- AML cash limits and structuring: private.cash_limit_hit and private.is_near_limit, and @rivr/domain cashLimitHit and
+-- isNearLimit (packages/testing/golden/aml.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'aml.json'), 'the AML cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'aml.json' and operation not in ('cash_limit', 'near_limit') $$,
+  'every operation in aml.json is proved here');
+select results_eq(
+  $$ select description, coalesce(private.cash_limit_hit(pg_temp.paise(inputs ->> 'perVisit'), pg_temp.paise(inputs ->> 'perDay'),
+                                                        pg_temp.paise(inputs ->> 'visitSoFar'), pg_temp.paise(inputs ->> 'daySoFar'),
+                                                        pg_temp.paise(inputs ->> 'amount')), 'none')
+     from golden.golden_case where file = 'aml.json' and operation = 'cash_limit' order by position $$,
+  $$ select description, expected ->> 'hit' from golden.golden_case where file = 'aml.json' and operation = 'cash_limit' order by position $$,
+  'private.cash_limit_hit gives every limit in the golden file');
+select results_eq(
+  $$ select description, private.is_near_limit(pg_temp.paise(inputs ->> 'total'), pg_temp.paise(inputs ->> 'limit'),
+                                               (inputs ->> 'marginBasisPoints')::integer)::text
+     from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
+  $$ select description, expected ->> 'near' from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
+  'private.is_near_limit gives every total in the golden file');
+
 select * from finish();
 rollback;

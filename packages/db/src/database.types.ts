@@ -2151,6 +2151,76 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"sar_entry": {
+                  Row: {
+                    "created_at": string,"detected_at": string,"id": string,"kind": string,"member_id": string,"note": string | null,"outcome": string | null,"reviewed_at": string | null,"reviewed_by_staff_id": string | null,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"detected_at"?: string,"id"?: string,"kind": string,"member_id": string,"note"?: string | null,"outcome"?: string | null,"reviewed_at"?: string | null,"reviewed_by_staff_id"?: string | null,"status"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"detected_at"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"note"?: string | null,"outcome"?: string | null,"reviewed_at"?: string | null,"reviewed_by_staff_id"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sar_entry_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "sar_entry_reviewed_by_staff_id_fkey"
+      columns: ["reviewed_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sar_entry_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"sar_entry_transaction": {
+                  Row: {
+                    "cage_transaction_id": string | null,"created_at": string,"id": string,"sar_entry_id": string,"tournament_purchase_id": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cage_transaction_id"?: string | null,"created_at"?: string,"id"?: string,"sar_entry_id": string,"tournament_purchase_id"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "cage_transaction_id"?: string | null,"created_at"?: string,"id"?: string,"sar_entry_id"?: string,"tournament_purchase_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sar_entry_transaction_cage_transaction_id_fkey"
+      columns: ["cage_transaction_id"]
+isOneToOne: false
+      referencedRelation: "cage_transaction"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sar_entry_transaction_sar_entry_id_fkey"
+      columns: ["sar_entry_id"]
+isOneToOne: false
+      referencedRelation: "sar_entry"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sar_entry_transaction_tournament_purchase_id_fkey"
+      columns: ["tournament_purchase_id"]
+isOneToOne: false
+      referencedRelation: "tournament_purchase"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sar_entry_transaction_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"seat_move": {
                   Row: {
                     "created_at": string,"from_seat": number,"from_table_id": string,"id": string,"moved_by_staff_id": string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at": string,"venue_id": string
@@ -3241,6 +3311,11 @@ isOneToOne: false
               "alert_whatsapp": string
             }[]
                            },
+"aml_register":
+{ Args: { "p_venue_id": string }; Returns: {
+              "buy_ins": Json,"cash_paise": number,"detected_at": string,"entry_id": string,"full_name": string,"kind": string,"member_id": string,"member_number": number,"note": string,"outcome": string,"reviewed_at": string,"reviewed_by": string,"status": string
+            }[]
+                           },
 "approve_high_hand":
 { Args: { "p_claim_id": string,"p_expected_paise": number }; Returns: number
                            },
@@ -3897,6 +3972,9 @@ isOneToOne: false
                            },
 "review_kyc":
 { Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string
+                           },
+"review_sar_entry":
+{ Args: { "p_entry_id": string,"p_note": string,"p_outcome": string }; Returns: undefined
                            },
 "review_shift_opening":
 { Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined

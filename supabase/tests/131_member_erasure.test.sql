@@ -38,7 +38,7 @@ select set_eq(
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('academy_booking'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
      ('early_departure'), ('invoice'), ('jackpot_event'), ('league_finish'), ('ledger_account'), ('marker'), ('member_tier_change'),
-     ('points_earning'), ('promotion_grant'), ('redemption'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
+     ('points_earning'), ('promotion_grant'), ('redemption'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
      ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('visit'), ('waitlist_entry'), ('withdrawal_request') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'
 );

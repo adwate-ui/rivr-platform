@@ -38,6 +38,7 @@ src/
                       anomaly's reason from a manager (/end-of-day)
     members/          a member found by name, mobile or number; the record, early departures, a tier change, feature overrides and erasure on request (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); the full export archive and one member's data, locked to the owner's backup key (/exports, #103)
+    aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
     tablets/          dealer tablets and door kiosks: add and pair, fix a tablet to a table, revoke (/tablets)
     computers/        cage and admin computers: add with a code, enrol this one, revoke (/computers)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)

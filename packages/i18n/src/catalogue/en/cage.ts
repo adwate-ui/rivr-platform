@@ -86,6 +86,8 @@ export const cage = {
   walletShort: 'The wallet holds less than {amount}. Take cash at the cage or decline.',
   bonusShort: 'The bonus in force is less than {amount}. Take cash, UPI or the wallet instead.',
   utrUsed: 'That UTR already paid for another buy-in. Check the bank record.',
+  cashLimitVisit: 'That would take this member past the cash limit for one visit. Take UPI or the wallet instead.',
+  cashLimitDay: 'That would take this member past the cash limit for one club day. Take UPI or the wallet instead.',
   moved: 'The player is no longer in the seat that asked. Decline the request.',
   invalid: 'That request is not waiting for this member and amount.',
   unavailable: 'That did not go through. Check the connection and try again.',

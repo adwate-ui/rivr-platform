@@ -83,6 +83,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'sops', label: 'console.rail.items.sops', href: '/sops', anyOf: ['sops.acknowledge', 'sops.manage'] },
       { id: 'incidents', label: 'console.rail.items.incidents', href: '/incidents', anyOf: ['incidents.log', 'sops.manage'] },
       { id: 'shareholders', label: 'console.rail.items.shareholders', href: '/shareholders', anyOf: ['shareholding.manage'] },
+      { id: 'aml', label: 'console.rail.items.aml', href: '/aml', anyOf: ['aml.review'] },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', anyOf: ['purge.run'] },
       { id: 'exports', label: 'console.rail.items.exports', href: '/exports', anyOf: ['exports.full'] },

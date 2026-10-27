@@ -53,6 +53,7 @@ export const rail = {
     killSwitch: 'Kill switch',
     practiceReset: 'Practice reset',
     exports: 'Exports',
+    aml: 'AML register',
     tiers: 'Tiers',
   },
 };

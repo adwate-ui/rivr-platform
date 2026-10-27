@@ -9,6 +9,7 @@ import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
 import { practiceReset, practiceResetFailures } from './practiceReset.ts';
 import { exportArchive, exportArchiveFailures } from './exportArchive.ts';
+import { aml, amlFailures } from './aml.ts';
 import { members, tiers } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
 import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
@@ -178,6 +179,8 @@ export const consoleApp = {
   practiceResetFailures,
   exportArchive,
   exportArchiveFailures,
+  aml,
+  amlFailures,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   rail,

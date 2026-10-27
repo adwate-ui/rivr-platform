@@ -48,13 +48,16 @@ export interface BuyInRequest {
  * cash-out for a member not checked in, `call_time_owed` one before their call time without an admin's say-so (#79).
  */
 export type CageFailure = 'not_allowed' | 'no_member' | 'stopped' | 'paused' | 'kyc_needed' | 'under_age' | 'duplicate' | 'on_break' | 'not_seated'
-  | 'not_chips' | 'below_minimum' | 'wallet_short' | 'bonus_short' | 'utr_used' | 'moved' | 'not_in_room' | 'call_time_owed' | 'no_shift' | 'invalid' | 'unavailable';
+  | 'not_chips' | 'below_minimum' | 'wallet_short' | 'bonus_short' | 'utr_used' | 'moved' | 'not_in_room' | 'call_time_owed' | 'no_shift'
+  | 'cash_limit_visit' | 'cash_limit_day' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, CageFailure>> = {
   '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVAGE: 'under_age', RVDUP: 'duplicate', RVBRK: 'on_break',
   RVOUT: 'not_in_room',
   RVCTS: 'call_time_owed',
   RVNST: 'not_seated', RVCHP: 'not_chips', RVMIN: 'below_minimum', RVSHT: 'wallet_short', RVBON: 'bonus_short', RVUTR: 'utr_used', RVSTL: 'moved', RVNSH: 'no_shift', '22023': 'invalid',
+  // AML (#105): past the visit's, or the club day's, cash limit.
+  RVCLV: 'cash_limit_visit', RVCLD: 'cash_limit_day',
 };
 
 // The queue fills from the tables; the cashier sees a request within seconds.

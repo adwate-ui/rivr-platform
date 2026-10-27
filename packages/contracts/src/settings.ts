@@ -261,6 +261,23 @@ const exportsArchiveRecipient = {
   value: z.strictObject({ recipient: z.string().regex(/^age1(pq1)?[02-9ac-hj-np-z]{58,4000}$/) }),
 } as const satisfies SettingDefinition;
 
+const cageCashBuyInLimit = {
+  key: 'cage.cash_buy_in_limit',
+  description: 'AML (decision 0234): the most a member may buy in for cash in one visit and in one club day (06:00 to 06:00 IST); a cash buy-in past either is refused. Paise in whole ₹50 chips; nothing is no limit there.',
+  scope: 'venue',
+  value: z.strictObject({
+    per_visit_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE),
+    per_day_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE),
+  }),
+} as const satisfies SettingDefinition;
+
+const amlStructuring = {
+  key: 'aml.structuring',
+  description: 'AML (decision 0234): structuring is this many visits, or club days, within this many days whose cash buy-ins ended within this margin under the limit (1,000 basis points is 10%). 3 in 7 days within 10% unless set.',
+  scope: 'venue',
+  value: z.strictObject({ count: z.int().min(2).max(20), window_days: z.int().min(1).max(90), margin_basis_points: z.int().min(1).max(5000) }),
+} as const satisfies SettingDefinition;
+
 const reportsUnclaimedDays = {
   key: 'reports.unclaimed_days',
   description: 'Unclaimed balances (decision 0230): a balance is unclaimed after this many days with no money moved and no visit. 365 unless set.',
@@ -273,6 +290,7 @@ export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
+  cageCashBuyInLimit, amlStructuring,
 ] as const;
 
 /** A setting key declared in code. */
