@@ -30,3 +30,10 @@ export const rakebackRate = {
     expires_days: z.int().min(1).max(365),
   }),
 } as const satisfies SettingDefinition;
+
+export const accommodationHoursPerNight = {
+  key: 'accommodation.hours_per_night',
+  description: 'Accommodation rewards (decision 0246): the hours played at this table type that earn one hotel night; none set earns none.',
+  scope: 'table_type',
+  value: z.strictObject({ hours: z.int().min(1).max(1_000) }),
+} as const satisfies SettingDefinition;
