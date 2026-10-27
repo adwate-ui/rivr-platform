@@ -75,3 +75,16 @@ gh pr view "$pr" --json statusCheckRollup \
     echo "CI $name: $minutes min"
     if [ "$minutes" -gt 15 ]; then echo "  over 15 minutes: find the cause before the next pull request"; fi
   done
+
+# Main's own run after the merge mutates every money module, which catches what a pull request's run cannot: a change
+# to one module's tests that moves another's score. A red main is fixed before anything else lands.
+merge_sha="$(read_api "repos/$repo/pulls/$pr" --jq .merge_commit_sha)"
+main_deadline=$(($(date +%s) + 3600))
+echo "Waiting for CI on main at ${merge_sha:0:8}."
+until result="$(read_api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$merge_sha&event=push" \
+  --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // empty')"; [ -n "$result" ]; do
+  if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "CI on main at ${merge_sha:0:8} has not finished in an hour: look at it." >&2; exit 1; fi
+  sleep 60
+done
+if [ "$result" != success ]; then echo "#$pr merged, but CI on main at ${merge_sha:0:8} is $result: fix main before anything else lands." >&2; exit 1; fi
+echo "CI on main passed at ${merge_sha:0:8}."
