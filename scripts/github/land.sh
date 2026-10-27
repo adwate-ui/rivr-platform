@@ -132,8 +132,9 @@ while :; do
     exit 1
   fi
   behind="$(behind_main "$head")"
+  # Behind main, db_clash says: 0 a clash, 1 none, 2 GitHub unread. Its 0 must land in `clash` too, so it starts at 0.
   clash=1
-  if [ "${behind:-0}" -gt 0 ]; then db_clash "$head" || clash=$?; fi
+  if [ "${behind:-0}" -gt 0 ]; then clash=0; db_clash "$head" || clash=$?; fi
   if [ "$clash" = 2 ]; then sleep 30; continue; fi
   if [ "$clash" = 0 ]; then
     if ! gh api --method PUT "repos/$repo/pulls/$pr/update-branch" -f expected_head_sha="$head" >/dev/null 2>&1; then
@@ -172,7 +173,10 @@ until merge_sha="$(read_api "repos/$repo/pulls/$pr" --jq '.merge_commit_sha // e
   if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "#$pr merged, but its merge commit could not be read: check CI on main." >&2; exit 1; fi
   sleep 10
 done
-if [ -n "$fixes_main" ] && gh workflow run ci.yml --ref main >/dev/null 2>&1; then echo "Started CI's full run on main."; fi
+if [ -n "$fixes_main" ]; then
+  if gh workflow run ci.yml --ref main >/dev/null 2>&1; then echo "Started CI's full run on main."
+  else echo "Could not start CI's full run on main: start it (gh workflow run ci.yml --ref main), or merges wait for the next." >&2; fi
+fi
 echo "Waiting for CI on main at ${merge_sha:0:8}."
 until result="$(read_api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$merge_sha&event=push" \
   --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // empty')"; [ -n "$result" ]; do
