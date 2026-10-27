@@ -50,6 +50,12 @@ The packs hold members' names and balances, so the computer's disk must be encry
    The agent fetches tonight's pack at once, then checks every hour. Its log names each pack it fetched.
    - `<printer address>` is the bar printer's address on the club's network, such as `192.168.1.60` (port 9100) or `192.168.1.60:9100`. Leave `RIVR_BAR_PRINTER` out until the printer is installed: the agent then prints nothing, and the console's KOTs to print list carries the bar.
 7. **Turn on BitLocker** for the drive that holds `C:\RIVR`.
+8. **Lock the folder down** in an administrator's Command Prompt, so only the service and administrators can read the token or change the agent:
+   ```
+   icacls C:\RIVR /inheritance:r /grant:r SYSTEM:(OI)(CI)F Administrators:(OI)(CI)F
+   icacls C:\RIVR\agent\offline-pack /grant Users:(OI)(CI)RX
+   ```
+   The second line lets the cage's staff open the packs, and nothing else in the folder.
 
 ## Printing KOTs
 

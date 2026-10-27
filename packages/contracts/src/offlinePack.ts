@@ -17,7 +17,8 @@ export const offlinePackRowSchema = z.object({
   wallets_paise: paise,
   markers_paise: paise,
   chips_in_play_paise: paise,
-  cage_float_paise: paise,
+  /** Null when no cage shift was open as the pack was made. */
+  cage_float_paise: paise.nullable(),
   tables: z.array(z.object({
     name: z.string(), game: z.string(), seats: z.array(z.object({ seat: z.number().int(), name: z.string(), member_number: z.string() })),
   })),

@@ -11,6 +11,7 @@ export * from './Grid/index.ts';
 export * from './Spacer/index.ts';
 export * from './Divider/index.ts';
 export * from './ErrorMessage/index.ts';
+export * from './StatusMessage/index.ts';
 export * from './Container/index.ts';
 export * from './ScrollArea/index.ts';
 export * from './Screen/index.ts';

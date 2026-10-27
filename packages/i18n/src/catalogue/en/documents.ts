@@ -110,6 +110,8 @@ export const documents = {
     cage: 'The cage',
     amount: 'Amount',
     cageFloat: 'Cage float',
+    /** In the float's place when no cage shift was open as the pack was made. */
+    noShift: 'No shift open',
     chipsInPlay: 'Chips in play',
     floor: 'The floor',
     /** `{game}` as `NLH 100/200`. */

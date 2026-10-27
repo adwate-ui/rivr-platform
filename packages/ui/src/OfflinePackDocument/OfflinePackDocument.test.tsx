@@ -30,4 +30,9 @@ describe('OfflinePackDocument', () => {
     }
     expect(screen.getByText(/^No contacts are set/)).toBeInTheDocument();
   });
+
+  it('says no shift was open rather than a float of nothing', () => {
+    renderIn(<OfflinePackDocument pack={{ ...PACK, cageFloatPaise: null }} />);
+    expect(screen.getByRole('table', { name: 'The cage' })).toHaveTextContent('Cage floatNo shift open');
+  });
 });

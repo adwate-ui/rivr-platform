@@ -38,13 +38,17 @@ export function TonightOrders({ venueId }: { venueId: string }) {
       <Stack gap={3}>
         <Heading level={2}>{t('console.fnb.toPrint')}</Heading>
         <Text variant="small" tone="muted">{t('console.fnb.toPrintHint')}</Text>
-        {waiting.length === 0 ? <Text>{t('console.fnb.noneToPrint')}</Text> : waiting.map((order) => (
-          <OrderRow key={order.orderId} order={order} action={(
-            <Button variant="secondary" isLoading={markSent.isPending} onClick={() => void send(order.orderId)}>
-              {t('console.fnb.markSent', { kot: order.kotNumber })}
-            </Button>
-          )} />
-        ))}
+        {waiting.length === 0 ? <Text>{t('console.fnb.noneToPrint')}</Text> : (
+          <Stack gap={3} divided>
+            {waiting.map((order) => (
+              <OrderRow key={order.orderId} order={order} action={(
+                <Button variant="secondary" isLoading={markSent.isPending} onClick={() => void send(order.orderId)}>
+                  {t('console.fnb.markSent', { kot: order.kotNumber })}
+                </Button>
+              )} />
+            ))}
+          </Stack>
+        )}
         {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
       </Stack>
       <Stack gap={3}>

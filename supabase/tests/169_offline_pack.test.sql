@@ -31,8 +31,12 @@ select ok((select bool_and((b ->> 'wallet_paise')::bigint <> 0 or (b ->> 'marker
 select is((select (body ->> 'wallets_paise')::bigint from pack),
   (select coalesce(sum((b ->> 'wallet_paise')::bigint), 0)::bigint from pack, jsonb_array_elements(body -> 'balances') b), 'the wallets total their rows');
 select is((select (body ->> 'markers_paise')::bigint from pack),
-  (select coalesce(sum(outstanding_paise), 0)::bigint from public.marker where venue_id = '00000000-0000-4000-8000-000000000001' and settled_at is null),
-  'and the markers total what is outstanding');
+  (select coalesce(sum(e.amount), 0)::bigint from public.ledger_account a join public.ledger_entry e on e.account_id = a.id
+   where a.venue_id = '00000000-0000-4000-8000-000000000001' and a.code = 'member.receivable'),
+  'and the markers total the members'' receivable on the ledger');
+select is((select (body ->> 'cage_float_paise')::bigint from pack),
+  (select float_paise from public.cage_shift where venue_id = '00000000-0000-4000-8000-000000000001' and closed_at is null),
+  'the cage float is the open shift''s');
 
 select throws_ok($$ select public.offline_pack('00000000-0000-4000-8000-000000000002') $$, 'RVPRA', null, 'the practice venue has no pack');
 select is((select count(*)::integer from public.offline_pack_venues() where venue_id = '00000000-0000-4000-8000-000000000002'), 0,

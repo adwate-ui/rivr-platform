@@ -11,13 +11,16 @@ const failures = {
   unavailable: 'The order did not go through. Try again.',
 } as const;
 
+/** A venue's menu with nothing on offer, on every screen that shows it. */
+const empty = 'Nothing is on the menu just now.';
+
 /** Table-side food and drink in the player app (#123): from the member's seat, paid to Glaza. */
 export const playerFnb = {
   title: 'Food and drink',
   /** On Home while the member is seated. */
   order: 'Order food and drink',
   notSeated: 'Order from your seat: sit at a table first.',
-  empty: 'Nothing is on the menu just now.',
+  empty,
   paid: 'Paid to Glaza when it comes to your seat.',
   send: 'Send to the bar',
   /** `{kot}` is the KOT's number; `{table}` and `{seat}` where it goes. */
@@ -33,6 +36,7 @@ export const tabletFnb = {
   send: 'Send to the bar',
   sent: 'Sent to the bar: KOT {kot}.',
   close: 'Close',
+  empty,
   failures,
 } as const;
 
@@ -55,10 +59,10 @@ export const consoleFnb = {
   byStaff: 'Given to the bar by hand',
   waiting: 'Not at the bar yet',
   newOrder: 'Order for a seat',
-  table: 'Table',
   seat: 'Seat',
   /** A seat to order for: `Table 3, seat 5 · Yash Gupta`. */
   seatChoice: '{table}, seat {seat} · {name}',
+  nobodySeated: 'Nobody is seated just now.',
   isComp: 'Comp it: RIVR pays Glaza',
   send: 'Send to the bar',
   sent: 'Sent to the bar: KOT {kot}.',
@@ -66,12 +70,10 @@ export const consoleFnb = {
   itemName: 'Item',
   kind: 'Kind',
   kinds: { food: 'Food', soft_drink: 'Soft drink', alcohol: 'Alcohol' },
-  position: 'Place on the menu',
   onOffer: 'On offer',
   offMenu: 'Off the menu',
-  takeOff: 'Take {name} off the menu',
-  putOn: 'Put {name} on the menu',
   addItem: 'Add to the menu',
+  empty,
   invalidItem: 'An item needs a name of 1 to 60 characters and a place from 1 to 999.',
   failures,
 } as const;

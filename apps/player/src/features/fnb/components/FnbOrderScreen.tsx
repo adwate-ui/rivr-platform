@@ -1,7 +1,7 @@
 import { useFeature, useMySeat } from '@rivr/db';
 import { useMyFnbMenu, usePlaceFnbOrder, type FnbFailure } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, LoadState, QuantityStepper, Screen, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, FeatureGate, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /**
@@ -39,12 +39,12 @@ function FnbOrder() {
       <Stack gap={3}>
         {menu.data.map((item) => (
           <QuantityStepper key={item.itemId} label={item.name} value={counts[item.itemId] ?? 0}
-            onChange={(quantity) => setCounts({ ...counts, [item.itemId]: quantity })} />
+            onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); }} />
         ))}
       </Stack>
       <Text variant="small" tone="muted">{t('player.fnb.paid')}</Text>
       <Button variant="primary" isDisabled={lines.length === 0} isLoading={place.isPending} onClick={() => void send()}>{t('player.fnb.send')}</Button>
-      {sent === null ? null : <Text>{t('player.fnb.sent', { kot: sent, table: seat.tableName, seat: seat.seat })}</Text>}
+      <StatusMessage>{sent === null ? null : t('player.fnb.sent', { kot: sent, table: seat.tableName, seat: seat.seat })}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(`player.fnb.failures.${failure}`)}</ErrorMessage>}
     </Stack>
   );

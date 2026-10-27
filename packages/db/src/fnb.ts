@@ -47,7 +47,7 @@ export type FnbFailure = 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soo
 
 const FAILURE_BY_CODE: Readonly<Record<string, FnbFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVFNS: 'not_seated', RVFNI: 'not_on_menu', RVFST: 'too_soon', RVAGE: 'too_young',
-  RVDWN: 'no_dealer', RVFRZ: 'paused',
+  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'not_allowed',
 };
 
 // The console's KOTs to print and tonight's orders ask again every ten seconds: orders arrive from the tables.

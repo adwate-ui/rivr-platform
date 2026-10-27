@@ -40,8 +40,9 @@ begin
 end;
 $$;
 
--- The agent claims its code, signed out, with the hash of its token: the device and venue, or why not. Five wrong codes
--- from one address in ten minutes stop it for ten minutes (too_many), as a tablet's pairing.
+-- The agent claims its code, signed out, with the hash of its token: the device and venue, or why not. As a tablet's
+-- pairing (redeem_device_pairing): one claim at a time, so the limits hold under a burst; five wrong codes from one
+-- address, or fifty from all, in ten minutes stop every claim for ten minutes (too_many), with an alert for the owner.
 create function private.claim_agent(p_code text, p_token_hash text, p_client text)
 returns table (device_id uuid, venue_id uuid, refusal text)
 language plpgsql
@@ -56,8 +57,11 @@ begin
   if coalesce(p_token_hash, '') !~ '^[0-9a-f]{64}$' then
     raise exception 'The token''s hash is 64 hex digits' using errcode = '22023';
   end if;
+  perform pg_advisory_xact_lock(hashtext('device-pairing'));
   delete from private.device_pairing_miss m where m.missed_at < now() - interval '1 day';
-  if (select count(*) from private.device_pairing_miss m where m.client = v_client and m.missed_at > now() - interval '10 minutes') >= 5 then
+  if (select count(*) from private.device_pairing_miss m where m.client = v_client and m.missed_at > now() - interval '10 minutes') >= 5
+     or (select count(*) from private.device_pairing_miss m where m.missed_at > now() - interval '10 minutes') >= 50 then
+    perform private.raise_pairing_alert();
     return query select null::uuid, null::uuid, 'too_many'::text;
     return;
   end if;
@@ -74,6 +78,47 @@ begin
   update public.computer_enrolment e set claimed_at = now() where e.id = v_enrolment.id;
   perform private.audit(v_enrolment.venue_id, 'device.enrolled', 'device', v_enrolment.device_id::text, null, null);
   return query select v_enrolment.device_id, v_enrolment.venue_id, null::text;
+end;
+$$;
+
+-- As before (20261020170000_cage_computers.sql), but a browser claims only a cage or admin console's code: an agent's
+-- code is the agent's own, claimed through claim_agent, so no browser's token can stand for the agent.
+create or replace function private.claim_computer(p_venue_id uuid, p_code text, p_token_hash text)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_staff_id uuid := private.current_staff_id(p_venue_id);
+  v_client text;
+  v_enrolment public.computer_enrolment;
+begin
+  if v_staff_id is null or (private.enforces_computers(p_venue_id) and not private.on_staff_network(p_venue_id)) then
+    raise exception 'Only staff at the venue, on its networks, enrol a computer' using errcode = '42501';
+  end if;
+  v_client := 'computer:' || v_staff_id;
+  delete from private.device_pairing_miss m where m.missed_at < now() - interval '1 day';
+  if (select count(*) from private.device_pairing_miss m where m.client = v_client and m.missed_at > now() - interval '10 minutes') >= 5 then
+    raise exception 'Too many wrong codes: wait ten minutes' using errcode = 'RVMAX';
+  end if;
+  select e.* into v_enrolment from public.computer_enrolment e join public.device d on d.id = e.device_id
+  where e.venue_id = p_venue_id and e.code_hash = private.pairing_hash(coalesce(p_code, '')) and e.claimed_at is null and e.expires_at > now()
+    and d.kind in ('cage', 'console')
+  for update of e;
+  if v_enrolment.id is null then
+    -- Returned, not raised, so the miss is kept.
+    insert into private.device_pairing_miss (client) values (v_client);
+    return null;
+  end if;
+  update public.device d set token_hash = p_token_hash where d.id = v_enrolment.device_id and d.revoked_at is null;
+  if not found then
+    return null;
+  end if;
+  update public.computer_enrolment e set claimed_at = now() where e.id = v_enrolment.id;
+  perform private.audit(p_venue_id, 'device.enrolled', 'device', v_enrolment.device_id::text, null, null);
+  return v_enrolment.device_id;
 end;
 $$;
 

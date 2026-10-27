@@ -58,7 +58,8 @@ grant select (id, venue_id, visit_id, member_id, table_id, seat, club_day, kot_n
 create policy "staff who run F&B see the venue's orders" on public.fnb_order
   for select to authenticated using (venue_id in (select private.venues_where('fnb.manage')));
 create policy "members see their own orders" on public.fnb_order
-  for select to authenticated using (member_id = (select private.current_member_id()));
+  for select to authenticated using (member_id = (select private.current_member_id())
+                                      and private.has_feature((select private.current_member_id()), 'fnb.table_side'));
 
 -- A member's export gives their orders whole.
 insert into private.member_export_column (table_name, column_name, kind)
@@ -85,7 +86,7 @@ declare
   v_number integer;
   v_id uuid;
 begin
-  perform private.assert_writable(p_session.venue_id);
+  perform private.assert_writable(p_session.venue_id, null, p_session.member_id);
   if jsonb_typeof(p_lines) is distinct from 'array' or jsonb_array_length(p_lines) not between 1 and 20
      or exists (select 1 from jsonb_array_elements(p_lines) l
                 where jsonb_typeof(l -> 'quantity') is distinct from 'number' or (l ->> 'quantity')::numeric not in (1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -141,6 +142,7 @@ begin
   if v_session.id is null then
     raise exception 'Order from your seat: you are not seated' using errcode = 'RVFNS';
   end if;
+  perform pg_advisory_xact_lock(hashtextextended('fnb:' || v_member_id::text, 0));
   if exists (select 1 from public.fnb_order o where o.member_id = v_member_id and o.source = 'app' and o.created_at > now() - interval '1 minute') then
     raise exception 'One order a minute: the bar has your last one' using errcode = 'RVFST';
   end if;
@@ -232,6 +234,7 @@ begin
   if v_order.id is null or not private.has_permission(v_order.venue_id, 'fnb.manage') then
     raise exception 'Only staff who run F&B send a KOT' using errcode = '42501';
   end if;
+  perform private.assert_writable(v_order.venue_id);
   update public.fnb_order o set kot_sent_at = now(), kot_sent_by = 'staff', kot_sent_by_staff_id = private.current_staff_id(v_order.venue_id)
   where o.id = p_order_id and o.kot_sent_at is null;
 end;
@@ -264,7 +267,8 @@ begin
   set status = 'delivered', delivered_at = now(), locked_until = null,
       last_error = case when o.kot_sent_at is not null then 'given to the bar by hand' else 'too old to print' end
   from public.outbox_event e left join public.fnb_order o on o.id = (e.payload ->> 'order_id')::uuid
-  where d.event_id = e.id and d.venue_id = v_venue_id and d.consumer = 'bar_printer' and d.status in ('pending', 'failed')
+  where d.event_id = e.id and d.venue_id = v_venue_id and d.consumer = 'bar_printer'
+    and (d.status in ('pending', 'failed') or (d.status = 'processing' and d.locked_until < now()))
     and (o.kot_sent_at is not null or e.occurred_at < now() - interval '2 hours');
   return query
   with ready as (
@@ -299,7 +303,7 @@ begin
   from public.outbox_delivery d
   join public.outbox_event e on e.id = d.event_id
   join public.device a on a.id = p_device_id and a.kind = 'agent' and a.revoked_at is null and a.venue_id = d.venue_id
-  where d.id = p_delivery_id and d.consumer = 'bar_printer';
+  where d.id = p_delivery_id and d.consumer = 'bar_printer' and d.status = 'processing';
   if v_order_id is null then
     raise exception 'No such KOT for this agent' using errcode = '42501';
   end if;

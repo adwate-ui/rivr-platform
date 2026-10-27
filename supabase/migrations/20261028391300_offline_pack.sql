@@ -29,20 +29,16 @@ begin
   with ledger as (
     select a.code, a.member_id, sum(e.amount)::bigint as paise
     from public.ledger_account a join public.ledger_entry e on e.account_id = a.id
-    where a.venue_id = p_venue_id and a.unit = 'paise' and a.code in ('member.cash', 'venue.chips_outstanding')
+    where a.venue_id = p_venue_id and a.unit = 'paise' and a.code in ('member.cash', 'member.receivable', 'venue.chips_outstanding')
     group by a.code, a.member_id
   ),
-  owed as (
-    select k.member_id, sum(k.outstanding_paise)::bigint as paise
-    from public.marker k where k.venue_id = p_venue_id and k.settled_at is null
-    group by k.member_id
-  ),
-  -- A wallet is a liability, so it is the negative of its entries.
+  -- A wallet is a liability, so it is the negative of its entries; what a member owes on markers is their receivable,
+  -- as the cage, the Treasury and end of day read it.
   balance as (
     select m.full_name, m.member_number, coalesce(-w.paise, 0) as wallet, coalesce(o.paise, 0) as markers
     from public.member m
     left join ledger w on w.code = 'member.cash' and w.member_id = m.id
-    left join owed o on o.member_id = m.id
+    left join ledger o on o.code = 'member.receivable' and o.member_id = m.id
     where m.venue_id = p_venue_id and (coalesce(w.paise, 0) <> 0 or coalesce(o.paise, 0) <> 0)
   )
   select jsonb_build_object(
@@ -60,7 +56,8 @@ begin
     'wallets_paise', (select coalesce(sum(b.wallet), 0)::bigint from balance b),
     'markers_paise', (select coalesce(sum(b.markers), 0)::bigint from balance b),
     'chips_in_play_paise', coalesce((select -l.paise from ledger l where l.code = 'venue.chips_outstanding' and l.member_id is null), 0),
-    'cage_float_paise', coalesce((select s.float_paise from public.cage_shift s where s.venue_id = p_venue_id and s.closed_at is null), 0),
+    -- Null with no shift open, which the pack says, rather than a float of nothing.
+    'cage_float_paise', (select s.float_paise from public.cage_shift s where s.venue_id = p_venue_id and s.closed_at is null),
     'tables', coalesce((select jsonb_agg(jsonb_build_object(
                           'name', g.name, 'game', tt.name,
                           'seats', coalesce((select jsonb_agg(jsonb_build_object('seat', s.seat, 'name', m.full_name, 'member_number', m.member_number::text)

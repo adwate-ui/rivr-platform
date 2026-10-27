@@ -69,7 +69,8 @@ export interface OfflinePack {
   readonly walletsPaise: bigint;
   readonly markersPaise: bigint;
   readonly chipsInPlayPaise: bigint;
-  readonly cageFloatPaise: bigint;
+  /** Null when no cage shift was open as the pack was made. */
+  readonly cageFloatPaise: bigint | null;
   readonly tables: readonly OfflinePackTable[];
   readonly waitlist: readonly OfflinePackWaiting[];
   readonly sops: readonly OfflinePackSop[];
@@ -118,7 +119,7 @@ function Balances({ pack }: { pack: OfflinePack }) {
       )}
       <DocumentTable caption={t('documents.offlinePack.cage')}
         columns={[{ label: t('documents.offlinePack.cage') }, { label: t('documents.offlinePack.amount'), isAmount: true }]}
-        rows={[[t('documents.offlinePack.cageFloat'), pack.cageFloatPaise], [t('documents.offlinePack.chipsInPlay'), pack.chipsInPlayPaise]]} />
+        rows={[[t('documents.offlinePack.cageFloat'), pack.cageFloatPaise ?? t('documents.offlinePack.noShift')], [t('documents.offlinePack.chipsInPlay'), pack.chipsInPlayPaise]]} />
     </div>
   );
 }
