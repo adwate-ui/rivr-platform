@@ -26,8 +26,9 @@ export const cage = {
   payoutsEmpty: 'None waiting.',
   /** What the bank says of a UPI address (#503): compare it with the member's KYC name above it. */
   payoutBankName: 'Name at the bank: {name}',
+  payoutBankNoName: 'The bank knows this UPI address but gave no name.',
   payoutBankUnknown: 'The bank knows no such UPI address.',
-  payoutBankWaiting: 'Asking the bank whose this address is.',
+  payoutBankWaiting: 'Not checked with the bank yet.',
   payoutUpi: 'UPI {vpa} · {bank}',
   payoutBank: '{bank} · {number} · {ifsc} · {holder}',
   payoutAdded: 'Added {time} · {phone}',

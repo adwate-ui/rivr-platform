@@ -30,7 +30,7 @@ function claimedOf(row: unknown): Claimed {
   return { accountId: String(field('account_id')), vpa: String(field('vpa')), fullName: String(field('full_name')), isPractice: field('is_practice') !== false };
 }
 
-/** Asks for one address's holder; records found or not found, or leaves it for the next run. */
+/** Asks for one address's holder; records found, no name or not found, or leaves it for the next run. */
 async function check(live: UpiPayoutAdapter | undefined, claimed: Claimed): Promise<string> {
   const vpa = upiVpaSchema.safeParse(claimed.vpa);
   if (!vpa.success) {
@@ -41,6 +41,10 @@ async function check(live: UpiPayoutAdapter | undefined, claimed: Claimed): Prom
     ? createFakeUpiPayouts({ accountHolderName: claimed.fullName })
     : createAdapters({ isPracticeVenue: false, live: { upiPayouts: live } }).upiPayouts;
   const answer = await payouts.verifyVpa({ vpa: vpa.data });
+  if (answer.ok && answer.value.accountHolderName.trim() === '') {
+    await rpc('record_payout_name_check', { p_account_id: claimed.accountId, p_outcome: 'no_name' });
+    return 'no_name';
+  }
   if (answer.ok) {
     await rpc('record_payout_name_check', { p_account_id: claimed.accountId, p_outcome: 'found', p_holder_name: answer.value.accountHolderName });
     return 'found';
@@ -53,8 +57,9 @@ async function check(live: UpiPayoutAdapter | undefined, claimed: Claimed): Prom
 }
 
 async function checkAll(): Promise<Record<string, number>> {
-  const rows = await rpc('claim_payout_name_checks', {});
   const live = cashfree();
+  // Without Cashfree's keys only the practice venue's addresses are claimed, so a real venue's spend no tries.
+  const rows = await rpc('claim_payout_name_checks', { p_with_provider: live !== undefined });
   const outcomes: Record<string, number> = {};
   for (const claimed of (Array.isArray(rows) ? rows : []).map(claimedOf)) {
     // One address's trouble never stops the others; it is asked again on a later run.

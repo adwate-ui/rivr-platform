@@ -95,10 +95,14 @@ export function usePayoutAccountActions() {
 }
 
 /**
- * What the bank says of a UPI address (#503): whose it is, that it knows no such address, or not asked yet (a bank
- * account, or a UPI address still waiting for the answer).
+ * What the bank says of a UPI address (#503): whose it is, that it knows the address but gave no name, that it knows no
+ * such address, or not asked yet (a bank account, or a UPI address still waiting for the answer).
  */
-export type BankNameCheck = { readonly status: 'found'; readonly holderName: string } | { readonly status: 'not_found' } | { readonly status: 'waiting' };
+export type BankNameCheck =
+  | { readonly status: 'found'; readonly holderName: string }
+  | { readonly status: 'no_name' }
+  | { readonly status: 'not_found' }
+  | { readonly status: 'waiting' };
 
 /** A payout account waiting for the cage, with whose it is and, for a UPI address, the bank's name for it. */
 export interface PayoutAccountToVerify extends Omit<PayoutAccount, 'status' | 'rejectReason'> {
@@ -111,7 +115,8 @@ export interface PayoutAccountToVerify extends Omit<PayoutAccount, 'status' | 'r
 
 function bankCheckOf(nameCheck: string | null, holderName: string | null): BankNameCheck {
   if (nameCheck === 'found' && holderName !== null) return { status: 'found', holderName };
-  return nameCheck === 'not_found' ? { status: 'not_found' } : { status: 'waiting' };
+  if (nameCheck === 'no_name' || nameCheck === 'not_found') return { status: nameCheck };
+  return { status: 'waiting' };
 }
 
 /** The venue's payout accounts waiting for the cage (#19), oldest first; asked again every few seconds. */

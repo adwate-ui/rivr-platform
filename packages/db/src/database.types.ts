@@ -1905,14 +1905,14 @@ isOneToOne: false
                   ]
                 },"payout_account": {
                   Row: {
-                    "account_number": string | null,"bank_holder_name": string | null,"bank_name": string,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"holder_name": string | null,"id": string,"ifsc": string | null,"kind": string,"member_id": string,"name_check": string | null,"name_check_attempts": number,"name_check_claimed_at": string | null,"name_checked_at": string | null,"reject_reason": string | null,"removed_at": string | null,"status": string,"updated_at": string,"venue_id": string,"vpa": string | null
+                    "account_number": string | null,"bank_holder_name": string | null,"bank_name": string,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"holder_name": string | null,"id": string,"ifsc": string | null,"kind": string,"member_id": string,"name_check": string | null,"name_checked_at": string | null,"reject_reason": string | null,"removed_at": string | null,"status": string,"updated_at": string,"venue_id": string,"vpa": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "account_number"?: string | null,"bank_holder_name"?: string | null,"bank_name": string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind": string,"member_id": string,"name_check"?: string | null,"name_check_attempts"?: number,"name_check_claimed_at"?: string | null,"name_checked_at"?: string | null,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id": string,"vpa"?: string | null
+                    "account_number"?: string | null,"bank_holder_name"?: string | null,"bank_name": string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind": string,"member_id": string,"name_check"?: string | null,"name_checked_at"?: string | null,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id": string,"vpa"?: string | null
                   }
                   Update: {
-                    "account_number"?: string | null,"bank_holder_name"?: string | null,"bank_name"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind"?: string,"member_id"?: string,"name_check"?: string | null,"name_check_attempts"?: number,"name_check_claimed_at"?: string | null,"name_checked_at"?: string | null,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string,"vpa"?: string | null
+                    "account_number"?: string | null,"bank_holder_name"?: string | null,"bank_name"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind"?: string,"member_id"?: string,"name_check"?: string | null,"name_checked_at"?: string | null,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string,"vpa"?: string | null
                   }
                   Relationships: [
                     {
@@ -3537,7 +3537,7 @@ isOneToOne: false
             }[]
                            },
 "claim_payout_name_checks":
-{ Args: Record<PropertyKey, never>; Returns: {
+{ Args: { "p_with_provider": boolean }; Returns: {
               "account_id": string,"full_name": string,"is_practice": boolean,"vpa": string
             }[]
                            },

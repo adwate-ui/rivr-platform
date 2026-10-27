@@ -1,46 +1,70 @@
 -- The bank's name for a member's UPI address (#503; question #496 item 2, the owner's answer of 27 Oct; decision 0241).
--- When a member adds a UPI address, the payout-name-check function asks the payouts provider whose it is (Cashfree's
--- VPA check, through @rivr/adapters; the practice venue's fake answers with the member's own name), and the cage sees
--- that name beside the member's KYC name before verifying the account. Staff decide; nothing is refused for a mismatch.
+-- When a KYC-verified member adds a UPI address, the payout-name-check function asks the payouts provider whose it is
+-- (Cashfree's VPA check, through @rivr/adapters; the practice venue's fake answers with the member's own name), and the
+-- cage sees that name beside the member's KYC name before verifying the account. Staff decide; nothing is refused
+-- for a mismatch. Only the cage reads the bank's name, never the member: it is not a way to look up whose an address is.
 
 alter table public.payout_account
   -- The account holder's name as the bank gives it, or null until asked.
   add column bank_holder_name text check (bank_holder_name is null or length(btrim(bank_holder_name)) between 1 and 200),
-  -- found: the bank named its holder; not_found: the bank knows no such address.
-  add column name_check text check (name_check is null or name_check in ('found', 'not_found')),
+  -- found: the bank named its holder; no_name: the bank knows the address but gave no name; not_found: it knows none.
+  add column name_check text check (name_check is null or name_check in ('found', 'no_name', 'not_found')),
   add column name_checked_at timestamptz,
-  add column name_check_attempts integer not null default 0,
-  add column name_check_claimed_at timestamptz,
   add check ((name_check is null) = (name_checked_at is null)),
-  add check (name_check = 'found' or bank_holder_name is null);
+  add check ((name_check = 'found') = (bank_holder_name is not null));
 
--- The UPI addresses waiting for their name, for the payout-name-check function (service role): pending, in use, not
--- yet answered, tried fewer than five times, and not claimed in the last two minutes. Each is claimed as it is given.
-create function private.claim_payout_name_checks()
+-- A member reads their own accounts, as before, but not what the bank said of them.
+revoke select on public.payout_account from authenticated;
+grant select (id, venue_id, member_id, kind, bank_name, vpa, account_number, ifsc, holder_name, status, decided_at, decided_by_staff_id,
+              reject_reason, removed_at, created_at, updated_at) on public.payout_account to authenticated;
+
+-- The function's own bookkeeping, apart from the account (so asking writes no audit row): tries and the last claim.
+create table private.payout_name_check_claim (
+  account_id uuid primary key references public.payout_account (id) on delete cascade,
+  attempts integer not null default 0,
+  claimed_at timestamptz not null default now()
+);
+alter table private.payout_name_check_claim enable row level security;
+revoke all on private.payout_name_check_claim from public, anon, authenticated;
+
+-- The UPI addresses waiting for their name, for the payout-name-check function (service role): pending, in use, of a
+-- KYC-verified member, at a venue not frozen, not yet answered, tried fewer than five times, not claimed in the last two
+-- minutes. The practice venue's always; a real venue's only once the function can ask Cashfree (p_with_provider), so
+-- a venue without its keys spends no tries. Each is claimed as it is given.
+create function private.claim_payout_name_checks(p_with_provider boolean)
 returns table (account_id uuid, vpa text, full_name text, is_practice boolean)
-language sql
+language plpgsql
 volatile
 security definer
 set search_path = ''
 as $$
+begin
+  return query
   with due as (
-    select a.id from public.payout_account a
-    where a.kind = 'upi' and a.status = 'pending' and a.removed_at is null and a.name_checked_at is null and a.name_check_attempts < 5
-      and (a.name_check_claimed_at is null or a.name_check_claimed_at < now() - interval '2 minutes')
+    select a.id, a.vpa, m.full_name, v.is_practice
+    from public.payout_account a
+    join public.member m on m.id = a.member_id
+    join public.venue v on v.id = a.venue_id
+    left join private.payout_name_check_claim c on c.account_id = a.id
+    where a.kind = 'upi' and a.status = 'pending' and a.removed_at is null and a.name_checked_at is null
+      and (v.is_practice or p_with_provider)
+      and exists (select 1 from public.kyc_record k where k.member_id = a.member_id and k.status = 'verified')
+      and not exists (select 1 from public.control_state f where f.venue_id = a.venue_id and f.level = 'venue_freeze' and f.released_at is null)
+      and coalesce(c.attempts, 0) < 5 and (c.claimed_at is null or c.claimed_at < now() - interval '2 minutes')
     order by a.created_at
     limit 50
-    for update skip locked
   ),
   claimed as (
-    update public.payout_account a set name_check_claimed_at = now(), name_check_attempts = a.name_check_attempts + 1
-    from due where a.id = due.id
-    returning a.id, a.vpa, a.member_id, a.venue_id
+    insert into private.payout_name_check_claim as c (account_id, attempts, claimed_at)
+    select due.id, 1, now() from due
+    on conflict on constraint payout_name_check_claim_pkey do update set attempts = c.attempts + 1, claimed_at = now()
+    returning c.account_id
   )
-  select c.id, c.vpa, m.full_name, v.is_practice
-  from claimed c join public.member m on m.id = c.member_id join public.venue v on v.id = c.venue_id;
+  select due.id, due.vpa, due.full_name, due.is_practice from due join claimed on claimed.account_id = due.id;
+end;
 $$;
 
--- The provider's answer for one address: its holder's name, or that it knows no such address.
+-- The provider's answer for one address: its holder's name, that it gave none, or that it knows no such address.
 create function private.record_payout_name_check(p_account_id uuid, p_outcome text, p_holder_name text)
 returns void
 language plpgsql
@@ -48,16 +72,17 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_outcome not in ('found', 'not_found') or (p_outcome = 'found') <> (length(btrim(coalesce(p_holder_name, ''))) > 0) then
-    raise exception 'found with a name, or not_found' using errcode = '22023';
+  if p_outcome is null or p_outcome not in ('found', 'no_name', 'not_found')
+     or (p_outcome = 'found') <> (length(btrim(coalesce(p_holder_name, ''))) > 0) then
+    raise exception 'found with a name, no_name or not_found' using errcode = '22023';
   end if;
   update public.payout_account a
-  set name_check = p_outcome, bank_holder_name = case when p_outcome = 'found' then btrim(p_holder_name) end, name_checked_at = now()
+  set name_check = p_outcome, bank_holder_name = case when p_outcome = 'found' then left(btrim(p_holder_name), 200) end, name_checked_at = now()
   where a.id = p_account_id and a.name_checked_at is null;
 end;
 $$;
 
--- As before (20261020090100_payout_accounts.sql), with the bank's name for each, once known.
+-- As before (20261020090100_payout_accounts.sql), with what the bank said of each, once known.
 drop function public.payout_accounts_to_verify(uuid);
 drop function private.payout_accounts_to_verify(uuid);
 create function private.payout_accounts_to_verify(p_venue_id uuid)
@@ -81,19 +106,39 @@ returns table (account_id uuid, member_id uuid, full_name text, phone text, kind
 language sql stable security invoker set search_path = ''
 as $$ select * from private.payout_accounts_to_verify(p_venue_id); $$;
 
-create function public.claim_payout_name_checks()
+create function public.claim_payout_name_checks(p_with_provider boolean)
 returns table (account_id uuid, vpa text, full_name text, is_practice boolean)
 language sql volatile security invoker set search_path = ''
-as $$ select * from private.claim_payout_name_checks(); $$;
+as $$ select * from private.claim_payout_name_checks(p_with_provider); $$;
 create function public.record_payout_name_check(p_account_id uuid, p_outcome text, p_holder_name text default null)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.record_payout_name_check(p_account_id, p_outcome, p_holder_name); $$;
 
 revoke execute on function private.payout_accounts_to_verify(uuid), public.payout_accounts_to_verify(uuid) from public, anon;
 grant execute on function private.payout_accounts_to_verify(uuid), public.payout_accounts_to_verify(uuid) to authenticated;
-revoke execute on function private.claim_payout_name_checks(), private.record_payout_name_check(uuid, text, text),
-  public.claim_payout_name_checks(), public.record_payout_name_check(uuid, text, text) from public, anon, authenticated;
-grant execute on function private.claim_payout_name_checks(), private.record_payout_name_check(uuid, text, text),
-  public.claim_payout_name_checks(), public.record_payout_name_check(uuid, text, text) to service_role;
+revoke execute on function private.claim_payout_name_checks(boolean), private.record_payout_name_check(uuid, text, text),
+  public.claim_payout_name_checks(boolean), public.record_payout_name_check(uuid, text, text) from public, anon, authenticated;
+grant execute on function private.claim_payout_name_checks(boolean), private.record_payout_name_check(uuid, text, text),
+  public.claim_payout_name_checks(boolean), public.record_payout_name_check(uuid, text, text) to service_role;
+
+-- A member's export (#498) lists every column; the export's list becomes a table, so a later column is one row more.
+create table private.member_export_column (
+  table_name text not null,
+  column_name text not null,
+  kind text not null check (kind in ('owed', 'note', 'other', 'withheld')),
+  primary key (table_name, column_name)
+);
+insert into private.member_export_column (table_name, column_name, kind) select table_name, column_name, kind from private.member_export_columns();
+insert into private.member_export_column (table_name, column_name, kind) values
+  ('payout_account', 'bank_holder_name', 'owed'), ('payout_account', 'name_check', 'owed'), ('payout_account', 'name_checked_at', 'owed');
+create or replace function private.member_export_columns()
+returns table (table_name text, column_name text, kind text)
+language sql
+stable
+set search_path = ''
+as $$
+  select c.table_name, c.column_name, c.kind from private.member_export_column c;
+$$;
+revoke all on private.member_export_column from public, anon, authenticated;
 
 select private.schedule_outbox_consumer('payout-name-check', '* * * * *');

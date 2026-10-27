@@ -14,14 +14,20 @@ function lineOf(account: PayoutAccountToVerify): string {
   return t('console.cage.payoutBank', { bank: account.bankName, number: account.accountNumber ?? '', ifsc: account.ifsc ?? '', holder: account.holderName ?? '' });
 }
 
-/** Turning an account down: the reason the member will read, then Turn down. */
+const bankLineKeys = {
+  no_name: 'console.cage.payoutBankNoName',
+  not_found: 'console.cage.payoutBankUnknown',
+  waiting: 'console.cage.payoutBankWaiting',
+} as const;
+
 /** For a UPI address: the bank's name for it, beside the member's KYC name above; staff decide. */
 function bankLineOf(account: PayoutAccountToVerify): string | null {
   if (account.kind !== 'upi') return null;
   if (account.bankCheck.status === 'found') return t('console.cage.payoutBankName', { name: account.bankCheck.holderName });
-  return t(account.bankCheck.status === 'not_found' ? 'console.cage.payoutBankUnknown' : 'console.cage.payoutBankWaiting');
+  return t(bankLineKeys[account.bankCheck.status]);
 }
 
+/** Turning an account down: the reason the member will read, then Turn down. */
 function RejectForm({ onReject, isSaving }: { onReject: (reason: string) => void; isSaving: boolean }) {
   const [resolver] = useState(() => zodResolver(reasonForMemberSchema));
   const form = useForm<z.input<typeof reasonForMemberSchema>, unknown, z.output<typeof reasonForMemberSchema>>({ resolver, defaultValues: { reason: '' } });
