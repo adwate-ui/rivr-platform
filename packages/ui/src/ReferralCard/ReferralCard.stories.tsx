@@ -2,10 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ReferralCard } from './ReferralCard.tsx';
 
 const text = {
+  brand: 'RIVR',
   heading: 'Play with me at RIVR',
   codeLabel: 'My code',
   code: 'RIVR1042',
-  footer: 'Sign up with my code. On your first buy-in, we both get a bonus.',
+  footer: 'Sign up from my link. On your first buy-in, we both get a bonus.',
 };
 
 const meta = {

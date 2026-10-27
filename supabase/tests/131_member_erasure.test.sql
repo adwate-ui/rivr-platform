@@ -31,14 +31,14 @@ select set_eq(
   $$ values
      -- Deleted.
      ('feedback'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'), ('membership_card'),
-     ('notification_preference'), ('sign_up_attribution'),
+     ('notification_preference'), ('review_request'), ('sign_up_attribution'),
      -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted), a payout
      -- account a money record names kept and marked removed (others deleted), bonus grants closed by the forfeit.
      ('consent'), ('kyc_record'), ('payout_account'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('academy_booking'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
      ('early_departure'), ('invoice'), ('jackpot_event'), ('league_finish'), ('ledger_account'), ('marker'), ('member_tier_change'),
-     ('points_earning'), ('promotion_grant'), ('redemption'), ('referral'), ('review_request'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
+     ('points_earning'), ('promotion_grant'), ('redemption'), ('referral'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
      ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry'),
      ('withdrawal_request') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'

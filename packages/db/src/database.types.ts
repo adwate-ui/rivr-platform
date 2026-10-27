@@ -4059,7 +4059,7 @@ isOneToOne: false
                            },
 "my_referral":
 { Args: Record<PropertyKey, never>; Returns: {
-              "code": string,"referred": number
+              "bonus_paise": number,"code": string,"referred": number
             }[]
                            },
 "my_restrictions":

@@ -35,7 +35,10 @@ export const reviewsGoogleUrl = {
   key: 'reviews.google_url',
   description: 'The venue\'s Google review link, sent once to each member after their third visit, whatever their feedback and with no reward; none set asks for none.',
   scope: 'venue',
-  value: z.strictObject({ url: z.string().regex(/^https:\/\//).max(500) }),
+  // Only Google's review addresses, so the club's WhatsApp sender can carry no other link.
+  value: z.strictObject({
+    url: z.string().regex(/^https:\/\/(g\.page|search\.google\.com|www\.google\.com|maps\.google\.com|maps\.app\.goo\.gl)\//).max(500),
+  }),
 } as const satisfies SettingDefinition;
 
 export const accommodationHoursPerNight = {

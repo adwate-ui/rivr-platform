@@ -2,7 +2,8 @@
 -- member who signed up with it (the ?ref= of the link they opened, sign_up_attribution) completes the referral with
 -- their first buy-in, and the referral promotion credits each side: ₹1,000 of bonus each, from the template, while
 -- the owner runs it, within its budget and limits. One referral to a new member; never their own code, an erased
--- member's, or the practice venue's.
+-- member's, or the practice venue's. Referring is the feature referral.share_cards: a code counts only while its
+-- member's tier has it and they have not excluded themselves from play.
 create table public.referral (
   id uuid primary key default gen_random_uuid(),
   venue_id uuid not null references public.venue (id),
@@ -30,10 +31,9 @@ create trigger referral_audit after insert or update or delete on public.referra
 
 alter table public.referral enable row level security;
 grant select (id, venue_id, member_id, referrer_member_id, code, completed_at, created_at, updated_at) on public.referral to authenticated;
+-- Members read only their code and count, through my_referral, which never names who referred them.
 create policy "staff who read members see the venue's referrals" on public.referral
   for select to authenticated using (venue_id in (select private.venues_where('members.read')));
-create policy "members see their own referral" on public.referral
-  for select to authenticated using (member_id = (select private.current_member_id()));
 
 -- A member's export gives their referral; who referred them is another member.
 insert into private.member_export_column (table_name, column_name, kind)
@@ -49,21 +49,28 @@ immutable
 set search_path = ''
 as $$ select 'RIVR' || p_member_number::text; $$;
 
--- The signed-in member's code and how many they have referred, for Rewards.
+-- The signed-in member's code, how many they have referred, and the bonus each side gets now (none while the referral
+-- promotion is not running), for Rewards; nothing for a member whose tier does not have referrals.
 create function private.my_referral()
-returns table (code text, referred integer)
+returns table (code text, referred integer, bonus_paise bigint)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select private.referral_code(m.member_number), (select count(*)::integer from public.referral r where r.referrer_member_id = m.id)
+  select private.referral_code(m.member_number), (select count(*)::integer from public.referral r where r.referrer_member_id = m.id),
+         (select (r.effect ->> 'amount_paise')::bigint
+          from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
+          where p.venue_id = m.venue_id and p.status = 'live' and p.starts_at <= now() and (p.ends_at is null or p.ends_at > now())
+            and r.trigger = 'referral' and r.effect ->> 'kind' = 'bonus'
+          order by p.created_at
+          limit 1)
   from public.member m
-  where m.id = private.current_member_id() and m.erased_at is null;
+  where m.id = private.current_member_id() and m.erased_at is null and private.has_feature(m.id, 'referral.share_cards');
 $$;
 
 create function public.my_referral()
-returns table (code text, referred integer)
+returns table (code text, referred integer, bonus_paise bigint)
 language sql stable security invoker set search_path = ''
 as $$ select * from private.my_referral(); $$;
 
@@ -87,7 +94,9 @@ begin
   end if;
   select upper(btrim(a.referral_code)) into v_code from public.sign_up_attribution a where a.member_id = p_member_id;
   select m.* into v_referrer from public.member m
-  where m.venue_id = p_venue_id and m.id <> p_member_id and m.erased_at is null and private.referral_code(m.member_number) = v_code;
+  where m.venue_id = p_venue_id and m.id <> p_member_id and m.erased_at is null and private.referral_code(m.member_number) = v_code
+    and private.has_feature(m.id, 'referral.share_cards')
+    and not exists (select 1 from public.self_exclusion x where x.member_id = m.id and x.starts_at <= now() and x.ends_at > now());
   if v_referrer.id is null then
     return;
   end if;

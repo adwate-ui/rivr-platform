@@ -50,6 +50,8 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `sopVersionSchema`, `sopSchema` | The SOP library (#51): a version as the console publishes it (the owner's job title, the roles that must acknowledge it, its IST day as `2026-11-01`, and its text of up to 20,000 characters), and a new SOP, which adds its title. |
 | `handEntrySchema`, `HAND_VARIANTS` | A hand as the dealer enters it on the tablet (#42): the pot in whole rupees as the keypad types it (whole ₹50 chips, up to ₹1 crore) and the game (`holdem`, `plo`, `bomb_pot`); `log_hand` checks both again. |
 | `waitlistCalledSchema`, `receiptReadySchema` | The payloads of `waitlist.called` (member, table, seat, hold expiry) and `receipt.ready` (member, amount in paise, the link's suffix) that the WhatsApp consumer sends for (#62). They name the member, never a number. |
+| `reviewRequestedSchema`, `reviewsGoogleUrl` | The payload of `review.requested` (#159: the request, the member and the venue's review link), and the setting that holds the link, which only Google's review addresses pass. |
+| `cancelRedemptionSchema` | Why a redemption not yet handed over is cancelled (#462): 3 to 300 characters. |
 | `signInCodeSchema` | A one-time sign-in code: six digits. The sign-in form and the hook payload both use it. |
 | `sendSmsHookSchema`, `SignInCodeToSend` | Supabase Auth's Send SMS hook payload, parsed to the number being checked (`sms.phone`, E.164), and the six-digit code. |
 | `SOCIAL_CHANNELS`, `socialChannelSchema`, `SocialChannel` | The eight publishing channels. |

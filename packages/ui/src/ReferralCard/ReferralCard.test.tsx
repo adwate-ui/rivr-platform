@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { ReferralCard, referralCardSvg } from './ReferralCard.tsx';
 
-const text = { heading: 'Play with me at RIVR', codeLabel: 'My code', code: 'RIVR1042', footer: 'We both get a bonus.' };
+const text = { brand: 'RIVR', heading: 'Play with me at RIVR', codeLabel: 'My code', code: 'RIVR1042', footer: 'We both get a bonus.' };
 
 describe('ReferralCard', () => {
   it('draws the code large in gold on the club green, as one SVG document', () => {
@@ -12,6 +12,12 @@ describe('ReferralCard', () => {
     expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"')).toBe(true);
     expect(svg).toContain(`fill="${tokens.color.green}"`);
     expect(svg).toContain(`fill="${tokens.color.gold}">RIVR1042</text>`);
+  });
+
+  it('is a size.shareCard square, with the club name as the app gives it', () => {
+    const svg = referralCardSvg({ ...text, brand: 'RIVR Poker Club' });
+    expect(svg).toContain(`width="${tokens.size.shareCard}" height="${tokens.size.shareCard}"`);
+    expect(svg).toContain('>RIVR Poker Club</text>');
   });
 
   it('keeps words that look like markup as words', () => {

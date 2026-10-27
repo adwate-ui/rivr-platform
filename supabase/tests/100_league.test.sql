@@ -172,6 +172,18 @@ select is_empty($$ select * from public.public_league_table where venue_slug = '
 select is_empty($$ select * from public.public_league_table where display_name in ('Ritika D.', 'Neel B.') $$,
   'nor Ritika, whose tier has no League, nor Neel, who excluded himself');
 reset role;
+
+-- Who may be named is read at each visit, not cached: Mihir hiding his name hides it on the website at once.
+insert into public.member_preference (member_id, venue_id, name_on_tvs)
+values ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000001', false)
+on conflict (member_id) do update set name_on_tvs = false;
+set local role anon;
+select results_eq(
+  $$ select place, display_name, points from public.public_league_table where venue_slug = 'gurugram' and standing = 'month' and place = 1 $$,
+  $$ values (1, null::text, 100000::bigint) $$,
+  'Mihir hiding his name hides it on the website before the next refresh');
+reset role;
+update public.member_preference set name_on_tvs = true where member_id = '00000000-0000-4000-8000-000000000213';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select * from public.venue_league('00000000-0000-4000-8000-000000000001', (select first_month from this_month),
                                                      (select first_month from this_month))

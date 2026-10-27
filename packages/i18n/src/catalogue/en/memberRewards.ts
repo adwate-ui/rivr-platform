@@ -43,17 +43,22 @@ export const memberRewards = {
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {
     title: 'Refer a friend',
-    how: 'When a friend signs up with your code and first buys in, you both get a bonus.',
+    how: 'When a friend signs up from your link and first buys in, you both get a bonus.',
+    howAmount: 'When a friend signs up from your link and first buys in, you each get {amount} of bonus.',
     referredOne: 'You have referred 1 friend.',
     referred: 'You have referred {count} friends.',
-    /** The share card (#153): what it says, and the share. */
+    copy: 'Copy my link',
+    copied: 'Link copied',
+    copyFailed: 'The link could not be copied. Share your card instead.',
+    /** The share card (#153): what it says, and the share, which carries the member's link. */
     card: {
+      brand: 'RIVR',
       heading: 'Play with me at RIVR',
       codeLabel: 'My code',
-      footer: 'Sign up with my code. On your first buy-in, we both get a bonus.',
+      footer: 'Sign up from my link. On your first buy-in, we both get a bonus.',
       alt: 'Referral card with the code {code}',
       share: 'Share my card',
-      message: 'Join me at RIVR Poker Club with my code {code}.',
+      message: 'Join me at RIVR Poker Club. Sign up from this link.',
       failed: 'The card could not be shared. Try again.',
     },
   },

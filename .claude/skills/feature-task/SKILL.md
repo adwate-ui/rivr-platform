@@ -20,4 +20,4 @@ Tasks are worked one at a time in the main checkout, in issue-number order: the 
 11. Update the package READMEs. Push and open one PR for the batch: `git push -u origin batch/<area>` then `gh pr create --title "<type>(<scope>): <summary>"` with a body that has a section per issue (acceptance criteria → evidence), the gates' results, screenshots and the reviews, and a `Closes #<n>` line for each issue. Move every issue to `status:review`.
 12. When CI is green and every reviewer has passed: `scripts/github/post-agent-review.sh <pr> success "<who reviewed>"`, then `scripts/github/land.sh <pr>` in the background: it merges once CI is green, bringing the branch up to date with main only when both changed migrations or seed (decision 0253). The merge closes the issue.
 13. If something is unclear, open a `question` issue, take the safest reading, and say so in the PR.
-14. Take the next task.
+14. Take the next batch.

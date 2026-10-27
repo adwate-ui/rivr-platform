@@ -50,7 +50,7 @@ Use the `feature-task` skill. In short:
 6. Run `pnpm verify`. Paste the summary into the PR.
 7. Ask the `reviewer` subagent to review the diff against the task, once. Add the `security-reviewer` only for auth, money or database policies. Fix correctness and requirement gaps; ignore style preferences the linters do not enforce.
 8. Open one PR per batch with `gh pr create`, titled `type(scope): summary`, one commit per issue, and a body with a section per issue (its acceptance criteria and their evidence) and a `Closes #<issue>` line for each (`docs/decisions/0257`). Build only the acceptance criteria; polish and design nits become follow-up issues. An issue that stalls in review moves to the next batch rather than holding the others.
-9. When the review passes, post `agent-review` with `scripts/github/post-agent-review.sh`, then run `scripts/github/land.sh <pr>` in the background: it merges once CI is green, re-running CI on main's latest only when both changed migrations or seed (decisions 0243, 0253). Then take the next task.
+9. When the review passes, post `agent-review` with `scripts/github/post-agent-review.sh`, then run `scripts/github/land.sh <pr>` in the background: it merges once CI is green, re-running CI on main's latest only when both changed migrations or seed (decisions 0243, 0253). Then take the next batch.
 
 Show evidence, not claims: the command you ran and its output, or the screenshot.
 

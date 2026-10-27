@@ -1,9 +1,11 @@
 import { rewardKindOf, type RewardKind } from '@rivr/contracts/rewardKinds';
 import { err, ok, type Result } from '@rivr/contracts/result';
+import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import type { LeagueBoardRow } from './league.ts';
+import { toPaise } from './parse/hands.ts';
 import { rewardItemOf, type RewardFailure, type RewardItem } from './rewards.ts';
 
 export type { LeagueBoardRow } from './league.ts';
@@ -146,23 +148,31 @@ export function useMyLeague() {
   });
 }
 
-/** The signed-in member's referral code, RIVR and their number, and how many they have referred (#151). */
+/**
+ * The signed-in member's referral code, RIVR and their number, how many they have referred, and the bonus each side
+ * gets now, null while the referral promotion is not running (#151).
+ */
 export interface MyReferral {
   readonly code: string;
   readonly referred: number;
+  readonly bonus: Paise | null;
 }
 
-/** The member's referral code for Rewards and their share card; null for someone who is not a member. */
+/**
+ * The member's referral code for Rewards and their share card; null for someone who is not a member, or whose tier
+ * does not have referrals.
+ */
 export function useMyReferral() {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: ['user', userId ?? 'signed-out', 'my-referral'] as const,
+    queryKey: queryKeys.myReferral(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<MyReferral | null> => {
       const { data, error } = await client.rpc('my_referral');
       if (error) throw error;
       const [row] = data;
-      return row === undefined ? null : { code: row.code, referred: row.referred };
+      if (row === undefined) return null;
+      return { code: row.code, referred: row.referred, bonus: row.bonus_paise === null ? null : toPaise(row.bonus_paise) };
     },
   });
 }

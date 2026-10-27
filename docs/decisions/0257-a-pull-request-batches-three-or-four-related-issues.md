@@ -10,5 +10,6 @@ Date: 2026-10-27 · Owner's decision: "Now that we are not using any builder age
 - **One run of the local gates for every touched package.** That means coverage, mutation for a money module, the visual baselines for a new story, migration order, and the touched pgTAP and e2e.
 - **One review round for the batch:** `reviewer`, plus `security-reviewer`, `money-auditor` or `ui-guard` where an issue needs one.
 - **One pull request.** It has a section per issue, listing its acceptance criteria against their evidence, and a `Closes #n` line for each.
-- **No line cap.** Each issue's commit stays reviewable on its own.
+- **No line cap.** Each issue's commit stays reviewable on its own. A review round's fixes go in one more commit.
+- **`land.sh` squash-merges,** so main gets one commit for the batch. The commits per issue are for review; on main, the pull request's sections are the record of each issue.
 - **An issue that stalls in review moves to the next batch** rather than holding the others.
