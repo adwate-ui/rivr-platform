@@ -11,6 +11,28 @@ function refusal(httpCode: number, message: string) {
 }
 
 describe('handleSendSmsHook', () => {
+  it('sends no code for a phone change: a number other than the login\'s, or a change waiting', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const smsOtp = createFakeSmsOtp();
+    const refused = refusal(403, 'Your phone number is changed at the club. Please ask at the front desk.');
+    const toAnother = { user: { id: 'u1', phone: '919000000201' }, sms: { otp: '482913', phone: '919800000999' } };
+    const waiting = { user: { id: 'u1', phone: '919000000201', phone_change: '919800000999' }, sms: { otp: '482913', phone: '919000000201' } };
+
+    expect(await handleSendSmsHook(toAnother, { whatsapp, smsOtp })).toEqual(refused);
+    expect(await handleSendSmsHook(waiting, { whatsapp, smsOtp })).toEqual(refused);
+    expect([whatsapp.calls.length, smsOtp.calls.length]).toEqual([0, 0]);
+  });
+
+  it('still sends to a login whose number Auth gives with or without its plus, and to a new login with none yet', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const plus = { user: { id: 'u1', phone: '+919000000201' }, sms: { otp: '482913', phone: '919000000201' } };
+    const fresh = { user: { id: 'u2', phone: '' }, sms: { otp: '482913', phone: '919000000202' } };
+
+    expect(await handleSendSmsHook(plus, { whatsapp })).toEqual({ status: 200, body: {} });
+    expect(await handleSendSmsHook(fresh, { whatsapp })).toEqual({ status: 200, body: {} });
+    expect(whatsapp.calls.length).toBe(2);
+  });
+
   it('answers 200 with an empty body once a channel has delivered the code', async () => {
     const whatsapp = createFakeWhatsApp();
 

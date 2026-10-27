@@ -87,6 +87,24 @@ export const members = {
     },
   },
   /** Erasing one member's personal data on request, for super admins (#424, decision 0207). */
+  /** A super admin changes a member's phone number, their login (#502). */
+  changePhone: {
+    title: 'Phone number',
+    intro: 'The member\'s number is their login: they sign in with the new one from now on. Members cannot change it themselves.',
+    newNumber: 'New mobile number',
+    newNumberHint: 'With +91, as +919876543210.',
+    reason: 'Why it changes',
+    change: 'Change number',
+    changed: 'Changed. The member signs in with the new number.',
+    failures: {
+      not_allowed: 'Only a super admin changes a member\'s number.',
+      invalid: 'Give an Indian mobile number with +91, and a reason of 3 to 300 characters.',
+      taken: 'Another member or login already has that number.',
+      erased: 'This member was erased.',
+      paused: 'The venue or the member is frozen.',
+      unavailable: 'That did not go through. Check the connection and try again.',
+    },
+  },
   erase: {
     title: 'Erasure on request',
     intro: 'Removes this member\'s personal data for good: name, mobile number, login, KYC files and preferences. Money and tax records stay, by member number, without the person.',

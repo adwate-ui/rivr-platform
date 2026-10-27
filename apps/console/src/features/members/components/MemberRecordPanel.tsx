@@ -2,6 +2,7 @@ import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { formatDate, formatStakes, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Text } from '@rivr/ui';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
+import { ChangePhone } from './ChangePhone.tsx';
 import { EraseMember } from './EraseMember.tsx';
 import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { TierForm } from './TierForm.tsx';
@@ -12,6 +13,8 @@ export interface RecordAccess {
   readonly seePhoto: boolean;
   readonly override: boolean;
   readonly erase: boolean;
+  /** A super admin changes the member's phone number, their login (#502). */
+  readonly changePhone: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -53,6 +56,7 @@ function Record({ venueId, record, can }: { venueId: string; record: MemberRecor
       <EarlyDepartures venueId={venueId} memberId={record.memberId} />
       {can.manage ? <TierForm venueId={venueId} record={record} /> : null}
       {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
+      {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} /> : null}
       {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}
     </Stack>
   );
