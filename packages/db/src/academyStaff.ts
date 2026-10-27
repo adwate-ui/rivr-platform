@@ -33,12 +33,16 @@ export interface StaffAcademyBooking {
   readonly status: 'awaiting_payment' | 'payment_claimed' | 'paid';
   readonly utr: string | null;
   readonly recordedByStaffId: string | null;
+  /** When the student graduated (#128); null until then. */
+  readonly graduatedAt: string | null;
+  /** The classes the student was marked present at (#128). */
+  readonly classesAttended: number;
 }
 
 /** Why a staff step on the Academy did not go through, as the console tells it. */
 export type AcademyStaffFailure =
   | 'not_allowed' | 'no_member' | 'invalid' | 'full' | 'closed' | 'no_fee' | 'no_payment' | 'utr_mismatch' | 'utr_used'
-  | 'stopped' | 'no_shift' | 'no_gst' | 'unavailable';
+  | 'stopped' | 'no_shift' | 'no_gst' | 'not_a_student' | 'graduated' | 'unavailable';
 
 // Not a database code: the contact's number matched no member of the venue.
 const NO_MEMBER = 'no-member';
@@ -46,6 +50,7 @@ const NO_MEMBER = 'no-member';
 const FAILURE_BY_CODE: Readonly<Record<string, AcademyStaffFailure>> = {
   '42501': 'not_allowed', [NO_MEMBER]: 'no_member', '22023': 'invalid', RVFUL: 'full', RVBAT: 'closed', RVPRC: 'no_fee',
   RVPAY: 'no_payment', RVUTM: 'utr_mismatch', RVUTR: 'utr_used', RVFRZ: 'stopped', RVMBR: 'stopped', RVKIL: 'stopped', RVNSH: 'no_shift', RVGST: 'no_gst',
+  RVACD: 'not_a_student', RVDUP: 'graduated',
 };
 
 const STATUSES = ['awaiting_payment', 'payment_claimed', 'paid'] as const;
@@ -81,14 +86,22 @@ export function useStaffAcademyBookings(venueId: string) {
     queryKey: [...queryKeys.academyStaff(userId ?? 'signed-out', venueId), 'bookings'],
     enabled: userId !== null,
     queryFn: async (): Promise<StaffAcademyBooking[]> => {
-      const { data, error } = await client.from('academy_booking')
-        .select('id, batch_id, company_name, seats, amount, status, utr, recorded_by_staff_id, member (full_name)')
-        .eq('venue_id', venueId).neq('status', 'cancelled').order('created_at');
-      if (error) throw error;
+      const [bookings, attendance] = await Promise.all([
+        client.from('academy_booking')
+          .select('id, batch_id, company_name, seats, amount, status, utr, recorded_by_staff_id, graduated_at, member (full_name)')
+          .eq('venue_id', venueId).neq('status', 'cancelled').order('created_at'),
+        client.from('academy_attendance').select('booking_id').eq('venue_id', venueId),
+      ]);
+      if (bookings.error) throw bookings.error;
+      if (attendance.error) throw attendance.error;
+      const attended = new Map<string, number>();
+      for (const row of attendance.data) attended.set(row.booking_id, (attended.get(row.booking_id) ?? 0) + 1);
+      const data = bookings.data;
       // Every role that reads bookings also reads members (pgTAP 018), so the member is always there.
       return data.map((row) => ({
         id: row.id, batchId: row.batch_id, memberName: row.member.full_name, companyName: row.company_name, seats: row.seats,
         amount: BigInt(row.amount), status: toStatus(row.status), utr: row.utr, recordedByStaffId: row.recorded_by_staff_id,
+        graduatedAt: row.graduated_at, classesAttended: attended.get(row.id) ?? 0,
       }));
     },
   });
@@ -147,5 +160,8 @@ export function useStaffAcademyActions(venueId: string) {
     rejectPayment: useStaffAcademyStep(venueId, (client, payment: { bookingId: string; utr: string }) =>
       client.rpc('reject_academy_payment', { p_booking_id: payment.bookingId, p_utr: payment.utr })),
     cancelBooking: useStaffAcademyStep(venueId, (client, bookingId: string) => client.rpc('cancel_academy_booking', { p_booking_id: bookingId })),
+    // Attendance at today's class, and graduation to the Academy graduate tier (#128).
+    markPresent: useStaffAcademyStep(venueId, (client, bookingId: string) => client.rpc('mark_academy_attendance', { p_booking_id: bookingId })),
+    graduate: useStaffAcademyStep(venueId, (client, bookingId: string) => client.rpc('graduate_academy_member', { p_booking_id: bookingId })),
   };
 }

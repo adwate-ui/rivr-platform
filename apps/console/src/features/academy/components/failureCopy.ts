@@ -15,5 +15,7 @@ export const FAILURE_COPY: Readonly<Record<AcademyStaffFailure, MessageKey>> = {
   utr_mismatch: 'console.academyFailures.utrMismatch',
   utr_used: 'console.academyFailures.utrUsed',
   stopped: 'console.academyFailures.stopped',
+  not_a_student: 'console.academyFailures.notAStudent',
+  graduated: 'console.academyFailures.graduated',
   unavailable: 'console.academyFailures.unavailable',
 };

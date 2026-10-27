@@ -4,7 +4,9 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useMyLeague, useMyRedemptions, useMyReferral, useMyRewards, useRedeemReward, useRewardCatalogue } from './myRewards.ts';
+import {
+  useMyCab, useMyCabRequests, useMyLeague, useMyRedemptions, useMyReferral, useMyRewards, useRedeemReward, useRequestCab, useRewardCatalogue,
+} from './myRewards.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 import { useTvLeagueBoard, useTvRewardsTicker } from './rewards.ts';
@@ -29,6 +31,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
   const { result } = renderHook(() => ({
     rewards: useMyRewards(), catalogue: useRewardCatalogue(), redemptions: useMyRedemptions(), redeem: useRedeemReward(), league: useMyLeague(),
     ticker: useTvRewardsTicker(), board: useTvLeagueBoard(), referral: useMyReferral(),
+    cab: useMyCab(), cabRequests: useMyCabRequests(), requestCab: useRequestCab(),
   }), { wrapper });
   return { result, calls };
 }
@@ -103,5 +106,35 @@ describe('the TV\'s rewards boards', () => {
       redemptions: [{ name: null, rewardName: 'Bar upgrade', at: '2026-11-15T17:00:00Z' }],
     }));
     await waitFor(() => expect(result.current.board.data?.[0]).toMatchObject({ name: 'Riya S.', isMe: false }));
+  });
+});
+
+describe('the member’s cab', () => {
+  it('says whether a cab is offered, lists what was asked, and asks for one', async () => {
+    const { result, calls } = renderHooks({
+      '/rpc/my_cab': { body: [{ is_eligible: true, visits: 4, minimum_visits: 4 }] },
+      '/rest/v1/cab_request': { body: [{ id: 'c1', kind: 'drop', address: 'DLF Phase 3', wanted_at: '2026-11-15T17:30:00+00:00' }] },
+      '/rpc/request_cab': { body: 'c2' },
+    });
+    await waitFor(() => expect(result.current.cab.data).toEqual({ isEligible: true, visits: 4, minimumVisits: 4 }));
+    await waitFor(() => expect(result.current.cabRequests.data).toEqual([
+      { requestId: 'c1', kind: 'drop', address: 'DLF Phase 3', wantedAt: '2026-11-15T17:30:00+00:00' },
+    ]));
+    let asked: unknown;
+    await act(async () => {
+      asked = await result.current.requestCab.mutateAsync({ kind: 'pickup', address: 'Sector 54', time: '21:30' });
+    });
+    expect(asked).toEqual({ ok: true, value: 'c2' });
+    expect(calls.find((call) => call.url.includes('/rpc/request_cab'))?.body).toEqual({ p_kind: 'pickup', p_address: 'Sector 54', p_time: '21:30' });
+  });
+
+  it('gives no cab to a tier without it, and says why a request was refused', async () => {
+    const { result } = renderHooks({ '/rpc/my_cab': { body: [] }, '/rpc/request_cab': { status: 400, body: { code: 'RVCAB', message: 'visits' } } });
+    await waitFor(() => expect(result.current.cab.data).toBeNull());
+    let refused: unknown;
+    await act(async () => {
+      refused = await result.current.requestCab.mutateAsync({ kind: 'drop', address: 'DLF Phase 3', time: '23:00' });
+    });
+    expect(refused).toEqual({ ok: false, error: 'not_eligible' });
   });
 });
