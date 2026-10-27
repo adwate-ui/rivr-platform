@@ -156,6 +156,10 @@ select lives_ok($$ select public.save_league_season('00000000-0000-4000-8000-000
   'a season runs now');
 reset role;
 
+-- The website reads the boards as last cached (#462): stale until the ten-minute refresh, which runs here at once.
+select isnt((select jobid from cron.job where jobname = 'public-league-refresh'), null, 'the boards are cached every ten minutes');
+select private.refresh_public_league();
+
 set local role anon;
 select results_eq(
   $$ select standing, place, display_name, points from public.public_league_table where venue_slug = 'gurugram' and place <= 2 order by standing, place $$,
