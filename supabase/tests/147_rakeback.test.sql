@@ -56,7 +56,7 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
   ('00000000-0000-4000-8000-00000000d147', '00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet RB', '00000000-0000-4000-8000-00000000e147');
 insert into public.dealer_down (id, venue_id, table_id, staff_id, device_id, started_at, ended_at)
 select '00000000-0000-4000-8000-00000000c147', '00000000-0000-4000-8000-000000000001', pg_temp.table_id('Table 2'), s.id,
-       '00000000-0000-4000-8000-00000000d147', pg_temp.week() - interval '1 day', pg_temp.at(240)
+       '00000000-0000-4000-8000-00000000d147', pg_temp.week() - interval '40 days', pg_temp.at(240)
 from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000106' and s.venue_id = '00000000-0000-4000-8000-000000000001';
 create function pg_temp.hand(p_table text, p_rake bigint, p_at timestamptz, p_request text) returns void language sql as $$
   insert into public.hand (venue_id, table_id, down_id, staff_id, device_id, variant, pot_paise, rake_paise, drop_paise, is_cap_applied, played_at,
@@ -116,6 +116,26 @@ select is(private.give_rakeback('00000000-0000-4000-8000-000000000001', pg_temp.
   'the rate in force when the week began is the week''s, and nothing is given twice');
 select lives_ok($$ select private.give_rakeback_everywhere() $$, 'the daily run looks back over five weeks at every venue');
 select is((select sum(amount_paise)::bigint from public.bonus_grant where reason = 'Hourly rakeback'), 80000::bigint, 'and gives nothing more');
+
+-- Six weeks ago member 215 earned ₹1,000 of rake at Table 2 and has been frozen since: that week is no longer looked
+-- at, so the owner is told, once.
+insert into public.setting (venue_id, key, subject, value, effective_from)
+values ('00000000-0000-4000-8000-000000000001', 'rakeback.rate', 'nlh_100_200', '{"basis_points": 1000, "expires_days": 7}', pg_temp.week() - interval '60 days');
+insert into public.visit (id, venue_id, member_id, opened_at)
+values ('00000000-0000-4000-8000-0000000a1215', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000215', pg_temp.at(-35 * 24 * 60));
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason, away_seconds)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000215', '00000000-0000-4000-8000-0000000a1215', pg_temp.table_id('Table 2'),
+        1, pg_temp.at(-35 * 24 * 60), pg_temp.at(-35 * 24 * 60), pg_temp.at(-35 * 24 * 60 + 60), 'left', 0);
+select pg_temp.hand('Table 2', 100000, pg_temp.at(-35 * 24 * 60 + 30), 'rakeback-hand-7');
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000215', 'Test freeze');
+select private.give_rakeback_everywhere();
+select private.give_rakeback_everywhere();
+select results_eq(
+  $$ select detail from public.alert where venue_id = '00000000-0000-4000-8000-000000000001' and kind = 'rakeback.unpaid' $$,
+  $$ values (jsonb_build_object('week_from', pg_temp.week() - interval '35 days')) $$,
+  'rakeback still due for a week past the five is told to the owner, once');
+select is(pg_temp.given('215'), 0::bigint, 'and is not given');
 
 -- Only a super admin sets the rate; only the scheduler gives it.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

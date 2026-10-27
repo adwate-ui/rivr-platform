@@ -6,18 +6,10 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
+import { pointsPerHour, pointsRewardsRakeShare, rakebackRate } from './rewardSettings.ts';
+import type { SettingDefinition } from './settingDefinition.ts';
 
-/** What a setting applies to: the whole venue, or one table type, stake, tier or role. */
-export const SETTING_SCOPES = ['venue', 'table_type', 'stake', 'tier', 'role'] as const;
-export type SettingScope = (typeof SETTING_SCOPES)[number];
-
-/** One setting key: its scope and the schema its value must satisfy. */
-export interface SettingDefinition<Schema extends z.ZodType = z.ZodType> {
-  readonly key: string;
-  readonly description: string;
-  readonly scope: SettingScope;
-  readonly value: Schema;
-}
+export { SETTING_SCOPES, type SettingDefinition, type SettingScope } from './settingDefinition.ts';
 
 const callTimeMinutes = {
   key: 'call_time.minutes',
@@ -199,20 +191,6 @@ const academyGst = {
   value: z.strictObject({ rate_basis_points: z.int().min(0).max(10_000) }),
 } as const satisfies SettingDefinition;
 
-const pointsPerHour = {
-  key: 'points.per_hour',
-  description: 'Points a member earns for each hour played, per table type, so by stake (#89, decision 0161); none set earns none.',
-  scope: 'table_type',
-  value: z.strictObject({ points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
-
-const pointsRewardsRakeShare = {
-  key: 'points.rewards_rake_share',
-  description: 'RIVR Rewards (#89, decision 0161): the share of a member\'s rake, in basis points (500 is 5%), earned as points at one a rupee; none set earns none.',
-  scope: 'venue',
-  value: z.strictObject({ basis_points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
-
 const leaguePoints = {
   key: 'league.points',
   description: 'RIVR League points for a tournament finish (decision 0182): every finisher\'s for taking part, and more for first, second, third and the rest of the final table (fourth to ninth); none set earns none.',
@@ -283,17 +261,6 @@ const reportsUnclaimedDays = {
   description: 'Unclaimed balances (decision 0230): a balance is unclaimed after this many days with no money moved and no visit. 365 unless set.',
   scope: 'venue',
   value: z.strictObject({ days: z.int().min(30).max(3650) }),
-} as const satisfies SettingDefinition;
-
-const rakebackRate = {
-  key: 'rakeback.rate',
-  description: 'Hourly rakeback (#108, decision 0245): the share of a member\'s rake at this table type over a club week, in basis points (1000 is 10%), given as bonus each Monday at 06:00 IST, rounded down to whole ₹50 chips, held to the cap and ending after the days given. The rate in force when the week began applies to all of it; none set gives none. Only a super admin changes it, with a reason.',
-  scope: 'table_type',
-  value: z.strictObject({
-    basis_points: z.int().min(1).max(10_000),
-    cap_paise: z.int().min(CHIP_PAISE).max(10_000_000).multipleOf(CHIP_PAISE).optional(),
-    expires_days: z.int().min(1).max(365),
-  }),
 } as const satisfies SettingDefinition;
 
 /** Every setting key declared in code. */
