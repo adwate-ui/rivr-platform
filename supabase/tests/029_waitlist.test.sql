@@ -87,6 +87,15 @@ select is_empty($$ select * from public.my_waitlist() $$, 'and is on no list');
 reset role;
 select ok(exists (select 1 from public.outbox_event e where e.event_type = 'waitlist.joined'
                   and e.payload ->> 'member_id' = '00000000-0000-4000-8000-000000000201'), 'joining emits waitlist.joined');
+-- Joining and leaving again within the hour emits nothing more (#274), so nothing sent on it repeats.
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
+select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000a274'), null, 'Arjun joins again');
+select lives_ok($$ select public.leave_waitlist((select entry_id from public.my_waitlist())) $$, 'leaves again');
+select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000a275'), null, 'and joins a third time');
+reset role;
+select is((select count(*)::integer from public.outbox_event e where e.event_type = 'waitlist.joined'
+           and e.payload ->> 'member_id' = '00000000-0000-4000-8000-000000000201'), 1, 'within the hour, waitlist.joined once');
 
 
 -- Nobody else takes a place off a list: not a dealer, the investor, a sign-in that is no one, nor
