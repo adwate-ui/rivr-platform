@@ -49,7 +49,7 @@ export interface BuyInRequest {
  */
 export type CageFailure = 'not_allowed' | 'no_member' | 'stopped' | 'paused' | 'kyc_needed' | 'under_age' | 'duplicate' | 'on_break' | 'not_seated'
   | 'not_chips' | 'below_minimum' | 'wallet_short' | 'bonus_short' | 'utr_used' | 'moved' | 'not_in_room' | 'call_time_owed' | 'no_shift'
-  | 'cash_limit_visit' | 'cash_limit_day' | 'invalid' | 'unavailable';
+  | 'cash_limit_visit' | 'cash_limit_day' | 'own_record' | 'invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, CageFailure>> = {
   '42501': 'not_allowed', RVNOM: 'no_member', RVMBR: 'stopped', RVFRZ: 'paused', RVKYC: 'kyc_needed', RVAGE: 'under_age', RVDUP: 'duplicate', RVBRK: 'on_break',
@@ -58,6 +58,8 @@ const FAILURE_BY_CODE: Readonly<Record<string, CageFailure>> = {
   RVNST: 'not_seated', RVCHP: 'not_chips', RVMIN: 'below_minimum', RVSHT: 'wallet_short', RVBON: 'bonus_short', RVUTR: 'utr_used', RVSTL: 'moved', RVNSH: 'no_shift', '22023': 'invalid',
   // AML (#105): past the visit's, or the club day's, cash limit.
   RVCLV: 'cash_limit_visit', RVCLD: 'cash_limit_day',
+  // A cashier serving their own member record (#500).
+  RVOWN: 'own_record',
 };
 
 // The queue fills from the tables; the cashier sees a request within seconds.

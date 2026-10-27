@@ -24,6 +24,7 @@ export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
   cash_limit_visit: 'console.cage.cashLimitVisit',
   cash_limit_day: 'console.cage.cashLimitDay',
   invalid: 'console.cage.invalid',
+  own_record: 'console.cage.ownRecord',
   unavailable: 'console.cage.unavailable',
 };
 

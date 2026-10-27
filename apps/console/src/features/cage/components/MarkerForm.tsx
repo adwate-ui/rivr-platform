@@ -26,6 +26,7 @@ const FAILURE_COPY: Readonly<Record<MarkerFailure, MessageKey>> = {
   on_break: 'console.cage.onBreak',
   not_seated: 'console.cage.notSeatedBlock',
   invalid: 'console.cage.markerInvalid',
+  own_record: 'console.cage.ownRecord',
   unavailable: 'console.cage.unavailable',
 };
 
