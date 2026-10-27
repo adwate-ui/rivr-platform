@@ -8,14 +8,14 @@
  *   code       CI: quick, the generated-tokens check and the drill gates, for every package
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
- *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules to mutate. With MUTATION_SINCE=<ref>
- *              (a pull request) only those it changes, else every one (decision 0242). Each module must score 80 or
- *              more on its own, not only the run as a whole.
+ *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules' files to mutate. With
+ *              MUTATION_SINCE=<ref> (a pull request) only the modules it changes, else every one (decision 0242).
+ *              Each module must score 80 or more on its own, not only the run as a whole.
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
@@ -108,11 +108,31 @@ function moneyModulesToMutate(scope) {
   return everything ? modules : modules.filter((module) => moduleChanged(module, files));
 }
 
-/** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */
+/** A money module's files Stryker mutates (as `module/file.ts`): not its tests or its index. */
+function moduleFiles(module) {
+  return readdirSync(moduleFolder(module), { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('.ts') && !file.endsWith('.test.ts') && !/(^|\/)index\.ts$/.test(file))
+    .map((file) => `${module}/${file}`)
+    .sort();
+}
+
+/**
+ * The n-th of `count` shares of the modules' files ("2/6"), every file in exactly one share. Files, not modules: the
+ * tournament module alone took 20 minutes (#515). The largest file goes to the lightest share, then the next; a file's
+ * size follows its number of mutants closely enough.
+ */
 function mutationShare(modules, share) {
   const [n, count] = (share ?? '').split('/').map(Number);
   if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
-  return modules.filter((_, index) => index % count === n - 1);
+  const files = modules.flatMap(moduleFiles).map((file) => ({ file, size: statSync(`packages/domain/src/${file}`).size }));
+  files.sort((a, b) => b.size - a.size || a.file.localeCompare(b.file));
+  const shares = Array.from({ length: count }, () => ({ size: 0, files: [] }));
+  for (const { file, size } of files) {
+    const lightest = shares.reduce((least, next) => (next.size < least.size ? next : least));
+    lightest.files.push(file);
+    lightest.size += size;
+  }
+  return shares[n - 1].files.sort();
 }
 
 const DETECTED = new Set(['Killed', 'Timeout']);
@@ -143,8 +163,10 @@ function perModuleScoreStep(modules) {
   };
 }
 
-function mutationSteps(modules) {
-  const globs = modules.flatMap((module) => [`src/${module}/**/*.ts`, `!src/${module}/**/*.test.ts`]);
+/** Mutates the given money files (`module/file.ts`), then checks each of their modules' scores. */
+function mutationSteps(files) {
+  const modules = [...new Set(files.map((file) => file.split('/')[0]))];
+  const globs = files.map((file) => `src/${file}`);
   return [
     step(`mutation tests (${modules.join(', ')})`, 'pnpm', ['--filter', '@rivr/domain', 'exec', 'stryker', 'run', '--mutate', globs.join(',')]),
     perModuleScoreStep(modules),
@@ -195,7 +217,7 @@ function stepsFor(mode, scope) {
   const steps = quickSteps(scope);
   if (mode === 'quick') return steps;
   const money = moneyModulesToMutate(scope);
-  if (money.length > 0) steps.push(...mutationSteps(money));
+  if (money.length > 0) steps.push(...mutationSteps(money.flatMap(moduleFiles)));
   // A golden file is proved in SQL too (decision 0037).
   if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
   if (touched('packages/tokens/')) steps.push(tokensStep());
@@ -210,8 +232,8 @@ const CI_PARTS = {
   database: () => [pgtapStep()],
   storybook: () => [storybookStep()],
   mutation: (scope) => {
-    const modules = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
-    return modules.length > 0 ? mutationSteps(modules) : [];
+    const files = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
+    return files.length > 0 ? mutationSteps(files) : [];
   },
 };
 
