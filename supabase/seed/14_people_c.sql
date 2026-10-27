@@ -38,6 +38,8 @@ insert into seed_person_c (id, phone, full_name) values
   -- On staging, sign in and check with the sandbox's values (docs/runbooks/ci-and-release.md, step 8).
   ('00000000-0000-4000-8000-000000000612', '+919000000612', 'John Doe'),
   ('00000000-0000-4000-8000-000000000296', '+919000000296', 'Devansh Malik'),
+  -- The Share card flow's own member, who shares her referral card (#153).
+  ('00000000-0000-4000-8000-000000000299', '+919000000299', 'Zoya Merchant'),
   -- The Membership card flow's own member, whose card the door scans (#71).
   ('00000000-0000-4000-8000-000000000290', '+919000000290', 'Kavya Rao');
 
@@ -87,7 +89,8 @@ insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612')
+where p.id in ('00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
+               '00000000-0000-4000-8000-000000000299')
 on conflict (id) do nothing;
 
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values

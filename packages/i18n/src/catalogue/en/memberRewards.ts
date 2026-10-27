@@ -46,6 +46,16 @@ export const memberRewards = {
     how: 'When a friend signs up with your code and first buys in, you both get a bonus.',
     referredOne: 'You have referred 1 friend.',
     referred: 'You have referred {count} friends.',
+    /** The share card (#153): what it says, and the share. */
+    card: {
+      heading: 'Play with me at RIVR',
+      codeLabel: 'My code',
+      footer: 'Sign up with my code. On your first buy-in, we both get a bonus.',
+      alt: 'Referral card with the code {code}',
+      share: 'Share my card',
+      message: 'Join me at RIVR Poker Club with my code {code}.',
+      failed: 'The card could not be shared. Try again.',
+    },
   },
   failures: {
     not_allowed: 'The catalogue is not part of your tier.',
