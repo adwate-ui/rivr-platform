@@ -1,8 +1,8 @@
 # Runs on every pull request and every push to main, as parallel jobs (decision 0243). Branch protection on main
 # requires only `ci-ok`, which passes when every job below passed, and the `agent-review` status (decision 0024);
-# a pull request must also be up to date with main. A new or split job goes into ci-ok's `needs`, never into branch
-# protection. Each timeout is near twice the job's usual time, so a hang fails fast. CI restores no build cache:
-# a green run is a result from scratch.
+# a pull request is brought up to date with main only for a database clash (decision 0253). A new or split job goes
+# into ci-ok's `needs`, never into branch protection. Each timeout is near twice the job's usual time, so a hang fails
+# fast. CI restores no build cache: a green run is a result from scratch.
 name: CI
 
 on:
