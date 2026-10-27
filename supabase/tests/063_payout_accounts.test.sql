@@ -35,18 +35,18 @@ select throws_ok($$ select public.decide_payout_account((select id from ids wher
 
 -- Who sees them: the member his own, the venue's cage; not another member, a dealer or another venue.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select is_empty($$ select * from public.payout_account where member_id = '00000000-0000-4000-8000-000000000211' $$, 'another member sees none of his');
+select is_empty($$ select id from public.payout_account where member_id = '00000000-0000-4000-8000-000000000211' $$, 'another member sees none of his');
 select throws_ok($$ select public.remove_payout_account((select id from ids where name = 'upi')) $$, '22023', null, 'nor removes one');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select is_empty($$ select * from public.payout_account $$, 'a dealer sees none');
+select is_empty($$ select id from public.payout_account $$, 'a dealer sees none');
 select is_empty($$ select * from public.payout_accounts_to_verify('00000000-0000-4000-8000-000000000001') $$, 'nor the cage''s list');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000301');
-select is_empty($$ select * from public.payout_account $$, 'the practice venue''s member sees none of the club''s');
+select is_empty($$ select id from public.payout_account $$, 'the practice venue''s member sees none of the club''s');
 select is((select count(*)::integer from public.my_payout_accounts()), 0, 'nor has any of hers');
 reset role;
 update public.staff set is_active = false where user_id = '00000000-0000-4000-8000-000000000104' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.payout_account where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'the practice venue''s cashier sees none of the club''s');
+select is_empty($$ select id from public.payout_account where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'the practice venue''s cashier sees none of the club''s');
 select is_empty($$ select * from public.payout_accounts_to_verify('00000000-0000-4000-8000-000000000001') $$, 'nor its list');
 select throws_ok($$ select public.decide_payout_account((select id from ids where name = 'upi'), true) $$, '42501', null, 'and verifies none of them');
 reset role;

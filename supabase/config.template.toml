@@ -373,6 +373,10 @@ verify_jwt = false
 [functions.withdrawal-payout]
 verify_jwt = false
 
+# The bank's name for each new UPI payout address (#503); pg_cron calls it with the scheduler's secret.
+[functions.payout-name-check]
+verify_jwt = false
+
 # A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
 [functions.device-pair]
 verify_jwt = false

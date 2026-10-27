@@ -1905,14 +1905,14 @@ isOneToOne: false
                   ]
                 },"payout_account": {
                   Row: {
-                    "account_number": string | null,"bank_name": string,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"holder_name": string | null,"id": string,"ifsc": string | null,"kind": string,"member_id": string,"reject_reason": string | null,"removed_at": string | null,"status": string,"updated_at": string,"venue_id": string,"vpa": string | null
+                    "account_number": string | null,"bank_holder_name": string | null,"bank_name": string,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"holder_name": string | null,"id": string,"ifsc": string | null,"kind": string,"member_id": string,"name_check": string | null,"name_checked_at": string | null,"reject_reason": string | null,"removed_at": string | null,"status": string,"updated_at": string,"venue_id": string,"vpa": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "account_number"?: string | null,"bank_name": string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind": string,"member_id": string,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id": string,"vpa"?: string | null
+                    "account_number"?: string | null,"bank_holder_name"?: string | null,"bank_name": string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind": string,"member_id": string,"name_check"?: string | null,"name_checked_at"?: string | null,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id": string,"vpa"?: string | null
                   }
                   Update: {
-                    "account_number"?: string | null,"bank_name"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind"?: string,"member_id"?: string,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string,"vpa"?: string | null
+                    "account_number"?: string | null,"bank_holder_name"?: string | null,"bank_name"?: string,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"holder_name"?: string | null,"id"?: string,"ifsc"?: string | null,"kind"?: string,"member_id"?: string,"name_check"?: string | null,"name_checked_at"?: string | null,"reject_reason"?: string | null,"removed_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string,"vpa"?: string | null
                   }
                   Relationships: [
                     {
@@ -3536,6 +3536,11 @@ isOneToOne: false
               "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
             }[]
                            },
+"claim_payout_name_checks":
+{ Args: { "p_with_provider": boolean }; Returns: {
+              "account_id": string,"full_name": string,"is_practice": boolean,"vpa": string
+            }[]
+                           },
 "claim_tv_pairing":
 { Args: { "p_code": string,"p_mode": Database["public"]['Enums']["tv_mode"],"p_name": string,"p_venue_id": string }; Returns: string
                            },
@@ -3967,7 +3972,7 @@ isOneToOne: false
                            },
 "payout_accounts_to_verify":
 { Args: { "p_venue_id": string }; Returns: {
-              "account_id": string,"account_number": string,"added_at": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"phone": string,"vpa": string
+              "account_id": string,"account_number": string,"added_at": string,"bank_holder_name": string,"bank_name": string,"full_name": string,"holder_name": string,"ifsc": string,"kind": string,"member_id": string,"name_check": string,"phone": string,"vpa": string
             }[]
                            },
 "pot_data":
@@ -4026,6 +4031,9 @@ isOneToOne: false
                            },
 "record_kyc_started":
 { Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
+                           },
+"record_payout_name_check":
+{ Args: { "p_account_id": string,"p_holder_name"?: string,"p_outcome": string }; Returns: undefined
                            },
 "record_table_export":
 { Args: { "p_filter": string,"p_format": string,"p_rows": number,"p_venue_id": string,"p_what": string }; Returns: boolean
