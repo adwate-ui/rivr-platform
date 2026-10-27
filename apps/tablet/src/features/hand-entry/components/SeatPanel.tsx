@@ -3,6 +3,7 @@ import { times, type Paise } from '@rivr/domain/money';
 import { formatMoney, t, type MessageKey } from '@rivr/i18n';
 import { Button, CallTimeTimer, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { SeatFnbOrder } from './SeatFnbOrder.tsx';
 
 const FAILURE_COPY: Readonly<Record<SeatEventFailure, MessageKey>> = {
   not_allowed: 'tablet.seats.notAllowed',
@@ -29,6 +30,7 @@ export function SeatPanel({ seat, player, onLeft }: SeatPanelProps) {
   const [amount, setAmount] = useState<Paise>(seat.minimum);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [failure, setFailure] = useState<SeatEventFailure | null>(null);
+  const [isOrdering, setIsOrdering] = useState(false);
   const report = (done: { ok: true } | { ok: false; error: SeatEventFailure }) => setFailure(done.ok ? null : done.error);
   const request = async () => {
     const asked = await requestBuyIn.mutateAsync({ sessionId: player.sessionId, amount, requestId });
@@ -55,7 +57,9 @@ export function SeatPanel({ seat, player, onLeft }: SeatPanelProps) {
         <Button variant="text" isDisabled={leave.isPending} onClick={() => void leave.mutateAsync(player.sessionId).then((done) => { report(done); if (done.ok) onLeft(); })}>
           {t('tablet.seats.left')}
         </Button>
+        <Button variant="text" onClick={() => setIsOrdering(true)}>{t('tablet.fnb.open')}</Button>
       </Inline>
+      {isOrdering ? <SeatFnbOrder seat={seat.seat} onClose={() => setIsOrdering(false)} /> : null}
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );

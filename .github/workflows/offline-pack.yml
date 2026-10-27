@@ -1,0 +1,65 @@
+# The nightly offline pack (#168; decision 0260). Each evening, for staging and production, renders every real venue's
+# offline pack (packages/render/scripts/render-offline-packs.ts) into the private bucket offline-packs, where the cage
+# agent fetches it, keeping each venue's newest seven. It reuses each target's deploy environment, as the owner chose
+# on 27 Oct: the Supabase access token, the project's ref and its URL. The service-role key is read at run time from the
+# Supabase API with that token, masked, and never stored. A target without them skips with a notice.
+# docs/runbooks/cage-agent.md has the setup and what to do when a night's pack is missing.
+name: offline-pack
+
+on:
+  schedule:
+    # 11:30 UTC is 17:00 IST, before the doors open: the pack holds the SOPs and contacts in force tonight.
+    - cron: '30 11 * * *'
+  # "Run workflow" makes tonight's packs now, for example after an SOP changes.
+  workflow_dispatch:
+
+concurrency:
+  group: offline-pack
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  pack:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: staging
+            ref_secret: SUPABASE_STAGING_REF
+            url_var: STAGING_SUPABASE_URL
+          - target: production
+            ref_secret: SUPABASE_PROD_REF
+            url_var: PROD_SUPABASE_URL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ matrix.target }}
+    env:
+      TARGET: ${{ matrix.target }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets[matrix.ref_secret] }}
+      SUPABASE_URL: ${{ vars[matrix.url_var] }}
+    steps:
+      - if: env.SUPABASE_ACCESS_TOKEN == '' || env.PROJECT_REF == '' || env.SUPABASE_URL == ''
+        run: echo "::notice::Supabase settings for ${TARGET} are not set; skipping its offline pack. See docs/runbooks/cage-agent.md."
+      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+        uses: ./.github/actions/setup
+      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+        name: Install Chromium for the renderer
+        run: pnpm --filter @rivr/render exec playwright install --with-deps chromium
+      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+        name: Read the service-role key from the Supabase API, masked
+        run: |
+          key="$(pnpm -s supabase projects api-keys --project-ref "$PROJECT_REF" -o json | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          if [ -z "$key" ] || [ "$key" = "null" ]; then echo "::error::No service-role key for ${TARGET}."; exit 1; fi
+          echo "::add-mask::$key"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$key" >> "$GITHUB_ENV"
+      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+        name: Render tonight's packs and keep each venue's newest seven
+        run: pnpm --filter @rivr/render render:offline-packs

@@ -64,7 +64,7 @@ export function DocumentTable({ caption, columns, rows, totals = [] }: DocumentT
       </thead>
       <tbody>
         {rows.map((row, rowIndex) => (
-          <tr key={rowIndex} className="border-b border-hairline">
+          <tr key={rowIndex} className="break-inside-avoid border-b border-hairline">
             {row.map((cell, cellIndex) => (
               <td key={cellIndex} className={cx('py-2 align-top', cellIndex > 0 && 'pl-6', amountClass(columns[cellIndex]?.isAmount))}>
                 {cellText(cell)}

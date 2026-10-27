@@ -109,6 +109,11 @@ export const queryKeys = {
   rewardCatalogue: (userId: string) => ['user', userId, 'reward-catalogue'] as const,
   myRedemptions: (userId: string) => ['user', userId, 'my-redemptions'] as const,
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,
+  /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */
+  myFnbMenu: (userId: string) => ['user', userId, 'my-fnb-menu'] as const,
+  fnbMenu: (userId: string, venueId: string) => ['user', userId, 'fnb-menu', venueId] as const,
+  fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
+  fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   /** The member's referral code (#151). */
   myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
   /** The TV's rewards ticker and League leaderboard (#148, decision 0183). */

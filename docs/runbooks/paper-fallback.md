@@ -4,6 +4,8 @@ When the system cannot be used, the room runs on paper and the paper goes back i
 
 Print a stack of each form and keep it at the cage, with pens and the contact list (the escalation directory, #53, once it is on the console). A venue freeze (the kill switch) is run the same way: while the venue is frozen, the room is on paper.
 
+The cage computer keeps tonight's offline pack on its own disk (#168): who to call, every member with money held or owed, the cage, the floor as it stood at 17:00 and every SOP in force. When the system is down, print the newest PDF from `C:\RIVR\agent\offline-pack\`. The cage agent keeps it (docs/runbooks/cage-agent.md).
+
 ## The runbooks
 
 | Runbook | When | Paper | Back in the system |

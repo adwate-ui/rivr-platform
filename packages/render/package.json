@@ -11,9 +11,11 @@
     "test": "vitest run",
     "build": "vite build",
     "render:brand-kit": "tsx scripts/render-brand-kit.ts",
-    "render:logo": "tsx scripts/render-logo.ts"
+    "render:logo": "tsx scripts/render-logo.ts",
+    "render:offline-packs": "tsx scripts/render-offline-packs.ts"
   },
   "dependencies": {
+    "@rivr/contracts": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/tokens": "workspace:*",
     "@rivr/ui": "workspace:*",

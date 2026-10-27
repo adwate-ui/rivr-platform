@@ -30,6 +30,7 @@ src/
     waitlist/         the floor's waitlists: add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
+    fnb/              food and drink for staff who run F&B (#123): KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu (/fnb)
     check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (/check-in)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)

@@ -6,7 +6,8 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 /** What a computer is enrolled as (#384): the cage, or an admin console. */
-export type ComputerKind = 'cage' | 'console';
+/** A cage computer, an admin console, or the cage agent (#168): a service on the cage computer, never a browser. */
+export type ComputerKind = 'cage' | 'console' | 'agent';
 
 /** One of the venue's cage and admin computers: enrolled, or added and waiting for its code. */
 export interface Computer {
@@ -54,11 +55,16 @@ export function useComputers(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<Computer[]> => {
       const { data, error } = await client.from('device').select('id, kind, name, token_hash')
-        .eq('venue_id', venueId).in('kind', ['cage', 'console']).is('revoked_at', null).order('name');
+        .eq('venue_id', venueId).in('kind', ['cage', 'console', 'agent']).is('revoked_at', null).order('name');
       if (error) throw error;
-      return data.map((row) => ({ deviceId: row.id, kind: row.kind === 'cage' ? 'cage' : 'console', name: row.name, isEnrolled: row.token_hash !== null }));
+      return data.map((row) => ({ deviceId: row.id, kind: computerKindOf(row.kind), name: row.name, isEnrolled: row.token_hash !== null }));
     },
   });
+}
+
+/** A device's kind among the computers: the list asks for these three only. */
+function computerKindOf(kind: string): ComputerKind {
+  return kind === 'cage' || kind === 'agent' ? kind : 'console';
 }
 
 /** This browser at the venue, as the database sees the token it sends. */

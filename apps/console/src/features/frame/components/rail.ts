@@ -34,6 +34,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'rake', label: 'console.rail.items.rake', href: '/rake', anyOf: ['settings.manage'] },
       { id: 'potData', label: 'console.rail.items.potData', href: '/pot-data', anyOf: ['pot_data.read'] },
       { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'] },
+      { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', anyOf: ['fnb.manage'] },
     ],
   },
   {

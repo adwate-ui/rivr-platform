@@ -19,6 +19,11 @@ export interface RenderRequest<Name extends TemplateName> {
   height?: number | undefined;
   /** Device pixels to each CSS pixel, 1 unless set: the membership card is drawn at 3 for a sharp image. */
   scale?: number | undefined;
+  /**
+   * `one`, the default: what is drawn must fit one page of `height`. `all`: it runs onto as many pages of `height` as
+   * it needs, as the offline pack does (#167); a PNG is then its first page.
+   */
+  pages?: 'one' | 'all' | undefined;
 }
 
 /** The size a page was drawn at, in CSS pixels. */
@@ -43,13 +48,13 @@ async function waitUntilDrawn(page: Page): Promise<void> {
  * Without a requested height, makes the page exactly as tall as what it drew. With one, refuses a template
  * that drew more than fits, such as a statement too long for one A4 page, rather than cut its end off.
  */
-async function fitHeight(page: Page, width: number, height: number | undefined): Promise<DrawnSize> {
+async function fitHeight(page: Page, width: number, height: number | undefined, pages: 'one' | 'all'): Promise<DrawnSize> {
   const drawn = await page.evaluate(() => document.documentElement.scrollHeight);
   if (height === undefined) {
     await page.setViewportSize({ width, height: drawn });
     return { width, height: drawn };
   }
-  if (drawn > height) throw new Error(`The template drew ${String(drawn)} px, more than the ${String(height)} px page.`);
+  if (drawn > height && pages === 'one') throw new Error(`The template drew ${String(drawn)} px, more than the ${String(height)} px page.`);
   return { width, height };
 }
 
@@ -69,7 +74,7 @@ async function withDrawnPage<Name extends TemplateName, Result>(
     const job = encodeJob({ template: request.template, props: request.props });
     await page.goto(`${ORIGIN}/index.html?job=${encodeURIComponent(job)}`);
     await waitUntilDrawn(page);
-    return await capture(page, await fitHeight(page, request.width, request.height));
+    return await capture(page, await fitHeight(page, request.width, request.height, request.pages ?? 'one'));
   } finally {
     await browser.close();
   }
@@ -80,7 +85,7 @@ export function renderToPng<Name extends TemplateName>(request: RenderRequest<Na
   return withDrawnPage(request, (page) => page.screenshot({ type: 'png' }));
 }
 
-/** Draws a template to a one-page PDF of `width` by `height` CSS pixels, backgrounds included. */
+/** Draws a template to a PDF of `width` by `height` CSS pixels, backgrounds included: one page, or with `pages: 'all'` every page. */
 export function renderToPdf<Name extends TemplateName>(request: RenderRequest<Name>): Promise<Buffer> {
   return withDrawnPage(request, async (page, size) => {
     await page.emulateMedia({ media: 'screen' });
@@ -89,7 +94,7 @@ export function renderToPdf<Name extends TemplateName>(request: RenderRequest<Na
       height: `${size.height}px`,
       printBackground: true,
       margin: { top: '0', right: '0', bottom: '0', left: '0' },
-      pageRanges: '1',
+      ...(request.pages === 'all' ? {} : { pageRanges: '1' }),
     });
   });
 }

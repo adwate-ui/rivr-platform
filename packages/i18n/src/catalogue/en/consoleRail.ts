@@ -40,6 +40,7 @@ export const rail = {
     promotions: 'Promotions',
     jackpots: 'Jackpots',
     highHands: 'High hands',
+    fnb: 'Food and drink',
     rewards: 'Rewards',
     league: 'League',
     academy: 'Academy',

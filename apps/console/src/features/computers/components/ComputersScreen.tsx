@@ -4,7 +4,9 @@ import { Box, Heading, Screen, Stack, Text } from '@rivr/ui';
 import { ComputerRow } from './ComputerRow.tsx';
 import { AddComputerForm, EnrolForm } from './EnrolForm.tsx';
 
-const ENROLLED_AS = { cage: 'console.computers.enrolledAsCage', console: 'console.computers.enrolledAsConsole' } as const;
+const ENROLLED_AS = {
+  cage: 'console.computers.enrolledAsCage', console: 'console.computers.enrolledAsConsole', agent: 'console.computers.enrolledAsAgent',
+} as const;
 
 /** The venue's cage and admin computers (#384), for staff with devices.manage: add one, enrol this one, revoke one. */
 export function ComputersScreen() {

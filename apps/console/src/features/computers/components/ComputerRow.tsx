@@ -33,7 +33,7 @@ function RevokeForm({ venueId, computer, onDone }: { venueId: string; computer: 
   );
 }
 
-const KIND = { cage: 'console.computers.cage', console: 'console.computers.console' } as const;
+const KIND = { cage: 'console.computers.cage', console: 'console.computers.console', agent: 'console.computers.agent' } as const;
 
 /**
  * One computer: its name, what it is (or waits to be) enrolled as, and Revoke. The computer in use is
