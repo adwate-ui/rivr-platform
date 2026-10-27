@@ -1,0 +1,9 @@
+# 0251: Multi-flight events with a Day 2
+
+Date: 2026-10-28 · Task: #117 · Question: #489 (answered "as recommended"), #523 (placing players out on Day 1, open)
+
+- **An event** is a Day 2 tournament and its Day 1 flights, each a tournament of its own that the floor points at the Day 2 (`set_tournament_flight`) before anyone enters it. Neither has a bounty or is a satellite; Day 2 takes no buys of its own (`RVTRN` `day_two`). The event's guarantee is Day 2's; a flight's own is not used.
+- **Bagging a flight.** When a flight's play ends, the floor counts each player left's chips (`bag_tournament_flight`), as a deal's are counted, no more than were bought in it. The flight takes no more buys or busts, each run out keeps its place in the flight, and nothing is paid or earned there. A flight is bagged before Day 2 starts, never finished.
+- **Day 2's field** (`dayTwoField`, twin `private.tournament_day_two_field`, golden `tournamentSeating.json`). Everyone bagged goes through; one who goes through in two flights keeps the bigger stack. Each Day 2 player has one entry, seated at random as their flight is bagged (`RVTRN` `room_full` when Day 2's room is full: the floor makes it bigger). Every other player of the flights gets a Day 2 entry already out, placed below Day 2's field by their best run: the most players outlasted in its flight, then the smaller flight, then the earlier run (our reading, put to the owner in #523).
+- **Money.** The flights' buys stay in `venue.tournament_pool` and are Day 2's one pool. Day 2 is finished as any tournament: its places' shares over the event's players, a player out on Day 1 paid only when the shares reach their place, League points and `tournament.finished` once, at Day 2's finish. Once a Day 1 player is placed in the money the shares are fixed, so the floor sets them before the first flight is bagged.
+- **Not yet built.** The console's flight setting, bagging and Day 2 field screens (#524).

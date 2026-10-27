@@ -257,7 +257,7 @@ begin
 end;
 $$;
 
--- As 20261028330000_tournament_satellites.sql left it, a flight never finished: it is bagged.
+-- As 20261028350000_tournament_satellites.sql left it, a flight never finished: it is bagged.
 create or replace function private.tournament_finishers(p_tournament public.tournament, p_method text, p_stacks jsonb)
 returns uuid[]
 language plpgsql
