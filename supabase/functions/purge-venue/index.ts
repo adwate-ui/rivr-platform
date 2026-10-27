@@ -54,19 +54,26 @@ async function venueOf(request: Request): Promise<string | null> {
   return typeof venueId === 'string' && UUID.test(venueId) ? venueId : null;
 }
 
-Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+/** The caller's token and the venue, or the answer to a request that does not ask properly. */
+async function askedBy(request: Request): Promise<{ token: string; venueId: string } | Response> {
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
   const length = request.headers.get('content-length');
   if (length === null || length === '' || !(Number(length) <= MAX_BODY_BYTES)) return reply({ error: 'Too large' }, 413);
   const token = request.headers.get('authorization') ?? '';
   if (token === '') return reply({ code: '42501' }, 403);
   const venueId = await venueOf(request);
-  if (venueId === null) return reply({ code: '22023' }, 400);
-  try {
-    return await removeFiles(token, venueId);
-  } catch (error) {
-    const code: unknown = typeof error === 'object' && error !== null ? Reflect.get(error, 'code') : null;
-    return typeof code === 'string' && code in REFUSED ? reply({ code }, REFUSED[code]) : reply({ code: 'unavailable' }, 502);
-  }
+  return venueId === null ? reply({ code: '22023' }, 400) : { token, venueId };
+}
+
+/** A refusal from the database as its HTTP answer; any other trouble is unavailable. */
+function refusalOf(error: unknown): Response {
+  const code: unknown = typeof error === 'object' && error !== null ? Reflect.get(error, 'code') : null;
+  return typeof code === 'string' && code in REFUSED ? reply({ code }, REFUSED[code]) : reply({ code: 'unavailable' }, 502);
+}
+
+Deno.serve(async (request) => {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+  const asked = await askedBy(request);
+  if (asked instanceof Response) return asked;
+  return removeFiles(asked.token, asked.venueId).catch(refusalOf);
 });
