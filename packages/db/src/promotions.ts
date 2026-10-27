@@ -1,4 +1,4 @@
-import { promotionReplaySchema } from '@rivr/contracts/promotions';
+import { promotionReplaySchema, promotionRulesSchema, type PromotionRules } from '@rivr/contracts/promotions';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { fromPaise } from '@rivr/domain/money';
 import { simulatePromotion, type PromotionDraft, type PromotionSimulation } from '@rivr/domain/promotions';
@@ -33,10 +33,10 @@ export interface PromotionToSubmit {
 }
 
 /** Why a submission, approval, refusal, pause or resume did not go through; own_promotion: a super admin approving what they submitted. */
-export type PromotionFailure = 'not_allowed' | 'invalid' | 'own_promotion' | 'switched_off' | 'paused' | 'unavailable';
+export type PromotionFailure = 'not_allowed' | 'invalid' | 'own_promotion' | 'already_decided' | 'switched_off' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PromotionFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', '23514': 'invalid', RVTWO: 'own_promotion', RVKIL: 'switched_off', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', '23514': 'invalid', RVTWO: 'own_promotion', RVDEC: 'already_decided', RVKIL: 'switched_off', RVFRZ: 'paused',
 };
 
 /** A promotion waiting for a super admin (#144): who submitted it, when, and whether the signed-in staff member did. */
@@ -48,6 +48,23 @@ export interface PromotionAwaitingApproval {
   readonly requestedBy: string;
   readonly requestedAt: string;
   readonly isMine: boolean;
+  /** What it does, as stored: the approver reads these, not only the card words typed. Null when they cannot be read. */
+  readonly rules: PromotionRules | null;
+  readonly perPlayer: { readonly limit: number; readonly period: string } | null;
+  /** Its budget, in paise and in grants; null for either when there is none. */
+  readonly budget: { readonly paise: bigint | null; readonly count: number | null };
+}
+
+/** A promotion a super admin sent back in the last fortnight (#144), with who did and why. */
+export interface PromotionSentBack {
+  readonly id: string;
+  readonly name: string;
+  readonly detail: string | null;
+  readonly runs: string | null;
+  readonly isTemplate: boolean;
+  readonly refusedBy: string;
+  readonly refusedAt: string;
+  readonly reason: string;
 }
 
 /** The venue's promotions waiting for a super admin, oldest first, for staff who manage promotions. */
@@ -59,10 +76,15 @@ export function usePromotionsAwaitingApproval(venueId: string) {
     queryFn: async (): Promise<PromotionAwaitingApproval[]> => {
       const { data, error } = await client.rpc('promotions_awaiting_approval', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({
-        id: row.promotion_id, name: row.name, detail: row.detail, runs: row.runs, requestedBy: row.requested_by, requestedAt: row.requested_at,
-        isMine: row.is_mine,
-      }));
+      return data.map((row) => {
+        const rules = promotionRulesSchema.safeParse(row.rules);
+        return {
+          id: row.promotion_id, name: row.name, detail: row.detail, runs: row.runs, requestedBy: row.requested_by, requestedAt: row.requested_at,
+          isMine: row.is_mine, rules: rules.success ? rules.data : null,
+          perPlayer: row.per_player_limit === null || row.per_player_period === null ? null : { limit: row.per_player_limit, period: row.per_player_period },
+          budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count },
+        };
+      });
     },
   });
 }
@@ -146,12 +168,29 @@ export function usePromotionSimulation(venueId: string) {
   });
 }
 
+/** The venue's promotions sent back in the last fortnight, newest first, with who sent each back and why (#144). */
+export function usePromotionsSentBack(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.promotionsSentBack(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<PromotionSentBack[]> => {
+      const { data, error } = await client.rpc('promotions_sent_back', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        id: row.promotion_id, name: row.name, detail: row.detail, runs: row.runs, isTemplate: row.template_key !== null,
+        refusedBy: row.refused_by, refusedAt: row.refused_at, reason: row.refused_reason,
+      }));
+    },
+  });
+}
+
 /** Settles a promotion call: reloads the venue's promotion lists, then says how the call went. */
 function useSettle(venueId: string) {
   const { userId } = useRivrData();
   const queryClient = useQueryClient();
   return async <T>(value: T, error: { code: string } | null): Promise<Result<T, PromotionFailure>> => {
-    for (const key of [queryKeys.promotions, queryKeys.promotionTemplates, queryKeys.promotionsAwaitingApproval]) {
+    for (const key of [queryKeys.promotions, queryKeys.promotionTemplates, queryKeys.promotionsAwaitingApproval, queryKeys.promotionsSentBack]) {
       await queryClient.invalidateQueries({ queryKey: key(userId ?? 'signed-out', venueId) });
     }
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);

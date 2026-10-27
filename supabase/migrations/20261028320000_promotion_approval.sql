@@ -23,7 +23,7 @@ alter table public.promotion
   add column decided_by_staff_id uuid references public.staff (id),
   add column decided_at timestamptz,
   -- Why a super admin sent it back, for the one who submitted it.
-  add column refused_reason text check (refused_reason is null or length(btrim(refused_reason)) between 1 and 300),
+  add column refused_reason text check (refused_reason is null or length(btrim(refused_reason)) between 3 and 300),
   add constraint promotion_pending_has_requester check (status <> 'pending' or (requested_by_staff_id is not null and requested_at is not null));
 create index promotion_requested_by_staff_id_idx on public.promotion (requested_by_staff_id);
 create index promotion_decided_by_staff_id_idx on public.promotion (decided_by_staff_id);
@@ -114,15 +114,15 @@ begin
   end if;
   perform private.assert_writable(v_promotion.venue_id, 'promotions');
   if v_promotion.status <> 'pending' then
-    raise exception 'Only a promotion waiting for approval is approved' using errcode = '22023';
+    raise exception 'This promotion is not waiting: it was already decided' using errcode = 'RVDEC';
   end if;
   v_staff_id := private.current_staff_id(v_promotion.venue_id);
-  if v_staff_id = v_promotion.requested_by_staff_id then
+  if v_staff_id is null or v_staff_id = v_promotion.requested_by_staff_id then
     raise exception 'Another super admin approves the promotion you submitted' using errcode = 'RVTWO';
   end if;
   update public.promotion
   set status = 'live', decided_by_staff_id = v_staff_id, decided_at = now(),
-      starts_at = case when template_key is not null then now() else starts_at end
+      starts_at = case when template_key is not null then now() else coalesce(starts_at, now()) end
   where id = p_promotion_id;
   perform private.emit(v_promotion.venue_id, 'promotion.published',
                        jsonb_build_object('promotion_id', v_promotion.id, 'name', v_promotion.name, 'detail', v_promotion.detail,
@@ -145,11 +145,12 @@ begin
   if v_promotion.id is null or not private.has_permission(v_promotion.venue_id, 'promotions.approve') then
     raise exception 'Only a super admin refuses a promotion' using errcode = '42501';
   end if;
+  perform private.assert_writable(v_promotion.venue_id, 'promotions');
   if v_promotion.status <> 'pending' then
-    raise exception 'Only a promotion waiting for approval is refused' using errcode = '22023';
+    raise exception 'This promotion is not waiting: it was already decided' using errcode = 'RVDEC';
   end if;
-  if length(btrim(coalesce(p_reason, ''))) not between 1 and 300 then
-    raise exception 'A refusal says why, in 300 characters or fewer' using errcode = '22023';
+  if length(btrim(coalesce(p_reason, ''))) not between 3 and 300 then
+    raise exception 'A refusal says why, in 3 to 300 characters' using errcode = '22023';
   end if;
   update public.promotion
   set status = 'draft', decided_by_staff_id = private.current_staff_id(v_promotion.venue_id), decided_at = now(),
@@ -158,21 +159,45 @@ begin
 end;
 $$;
 
--- The venue's promotions waiting for a super admin, oldest first: who submitted each, and whether it was the caller.
+-- The venue's promotions waiting for a super admin, oldest first: who submitted each, whether it was the caller, and
+-- what each actually does: its rules as stored, its per-member limit and its budget. The approver reads those, not
+-- only the card words the submitter typed, which nothing ties to the rule.
 create function private.promotions_awaiting_approval(p_venue_id uuid)
 returns table (promotion_id uuid, name text, detail text, runs text, template_key text, requested_by text, requested_at timestamptz,
-               is_mine boolean)
+               is_mine boolean, rules jsonb, per_player_limit integer, per_player_period text, budget_paise bigint, budget_count integer)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
   select p.id, p.name, p.detail, p.runs, p.template_key, s.full_name, p.requested_at,
-         p.requested_by_staff_id = private.current_staff_id(p_venue_id)
+         p.requested_by_staff_id = private.current_staff_id(p_venue_id),
+         coalesce((select jsonb_agg(jsonb_build_object('trigger', r.trigger, 'conditions', r.conditions, 'effect', r.effect) order by r.position)
+                   from public.promotion_rule r where r.promotion_id = p.id), '[]'::jsonb),
+         p.per_player_limit, p.per_player_period, b.cap_paise, b.cap_count
   from public.promotion p
   join public.staff s on s.id = p.requested_by_staff_id
+  left join public.promotion_budget b on b.promotion_id = p.id
   where p.venue_id = p_venue_id and p.status = 'pending' and private.has_permission(p_venue_id, 'promotions.manage')
   order by p.requested_at, p.id;
+$$;
+
+-- The venue's promotions a super admin sent back in the last fortnight, newest first, with the reason: the one who
+-- submitted it reads why. A sent-back template is also a draft again under Templates; a builder's is built anew.
+create function private.promotions_sent_back(p_venue_id uuid)
+returns table (promotion_id uuid, name text, detail text, runs text, template_key text, refused_by text, refused_at timestamptz,
+               refused_reason text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.name, p.detail, p.runs, p.template_key, s.full_name, p.decided_at, p.refused_reason
+  from public.promotion p
+  join public.staff s on s.id = p.decided_by_staff_id
+  where p.venue_id = p_venue_id and p.status = 'draft' and p.refused_reason is not null and p.decided_at > now() - interval '14 days'
+    and private.has_permission(p_venue_id, 'promotions.manage')
+  order by p.decided_at desc, p.id;
 $$;
 
 -- As before (20261021130000_practice_reset.sql), announcing a promotion when it goes live from a draft or once approved.
@@ -217,19 +242,24 @@ as $$ select private.approve_promotion(p_promotion_id); $$;
 create function public.refuse_promotion(p_promotion_id uuid, p_reason text)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.refuse_promotion(p_promotion_id, p_reason); $$;
+create function public.promotions_sent_back(p_venue_id uuid)
+returns table (promotion_id uuid, name text, detail text, runs text, template_key text, refused_by text, refused_at timestamptz,
+               refused_reason text)
+language sql stable security invoker set search_path = ''
+as $$ select * from private.promotions_sent_back(p_venue_id); $$;
 create function public.promotions_awaiting_approval(p_venue_id uuid)
 returns table (promotion_id uuid, name text, detail text, runs text, template_key text, requested_by text, requested_at timestamptz,
-               is_mine boolean)
+               is_mine boolean, rules jsonb, per_player_limit integer, per_player_period text, budget_paise bigint, budget_count integer)
 language sql stable security invoker set search_path = ''
 as $$ select * from private.promotions_awaiting_approval(p_venue_id); $$;
 
 revoke execute on function private.submit_promotion(uuid, jsonb), private.submit_promotion_template(uuid), private.approve_promotion(uuid),
-  private.refuse_promotion(uuid, text), private.promotions_awaiting_approval(uuid), public.submit_promotion(uuid, jsonb),
-  public.submit_promotion_template(uuid), public.approve_promotion(uuid), public.refuse_promotion(uuid, text),
-  public.promotions_awaiting_approval(uuid) from public, anon;
+  private.refuse_promotion(uuid, text), private.promotions_awaiting_approval(uuid), private.promotions_sent_back(uuid),
+  public.submit_promotion(uuid, jsonb), public.submit_promotion_template(uuid), public.approve_promotion(uuid),
+  public.refuse_promotion(uuid, text), public.promotions_awaiting_approval(uuid), public.promotions_sent_back(uuid) from public, anon;
 grant execute on function private.submit_promotion(uuid, jsonb), private.submit_promotion_template(uuid), private.approve_promotion(uuid),
-  private.refuse_promotion(uuid, text), private.promotions_awaiting_approval(uuid), public.submit_promotion(uuid, jsonb),
-  public.submit_promotion_template(uuid), public.approve_promotion(uuid), public.refuse_promotion(uuid, text),
-  public.promotions_awaiting_approval(uuid) to authenticated;
+  private.refuse_promotion(uuid, text), private.promotions_awaiting_approval(uuid), private.promotions_sent_back(uuid),
+  public.submit_promotion(uuid, jsonb), public.submit_promotion_template(uuid), public.approve_promotion(uuid),
+  public.refuse_promotion(uuid, text), public.promotions_awaiting_approval(uuid), public.promotions_sent_back(uuid) to authenticated;
 
 select private.capture_practice_seed(v.id) from public.venue v where v.is_practice;

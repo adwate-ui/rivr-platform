@@ -26,6 +26,18 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 insert into ids select 'late', public.submit_promotion('00000000-0000-4000-8000-000000000001', (select promotion from body));
 select results_eq($$ select name, requested_by, is_mine from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001') $$,
   $$ values ('Late night points'::text, 'Ishita Bose'::text, true) $$, 'marketing''s submission waits, and the list says it is hers');
+select results_eq($$ select rules -> 0 -> 'effect', rules -> 0 ->> 'trigger', per_player_limit, budget_paise
+                     from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001') $$,
+  $$ values ('{"kind": "points", "points": 50}'::jsonb, 'hours_played'::text, null::integer, null::bigint) $$,
+  'with what it actually does: the rule as stored, its limit and its budget, not only the words typed');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select throws_ok($$ select public.set_promotion_live((select id from ids where name = 'late'), true) $$, '42501', null,
+  'a cashier resumes nothing');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select throws_ok($$ select public.set_promotion_live((select id from ids where name = 'late'), true) $$, '22023', null,
+  'and a waiting promotion is not put live by resuming it');
+select is_empty($$ select * from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000002') $$,
+  'nor does the club''s staff see the practice venue''s waiting list');
 reset role;
 select results_eq($$ select status, requested_by_staff_id from public.promotion where id = (select id from ids where name = 'late') $$,
   $$ select 'pending'::text, pg_temp.staff_of('107') $$, 'it is pending, with who submitted it');
@@ -45,7 +57,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select is_mine from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001') $$, $$ values (false) $$,
   'a super admin sees it is someone else''s');
 select lives_ok($$ select public.approve_promotion((select id from ids where name = 'late')) $$, 'and approves it');
-select throws_ok($$ select public.approve_promotion((select id from ids where name = 'late')) $$, '22023', null, 'once');
+select throws_ok($$ select public.approve_promotion((select id from ids where name = 'late')) $$, 'RVDEC', null,
+  'once: a second super admin is told it was already decided');
 reset role;
 select results_eq($$ select status, decided_by_staff_id from public.promotion where id = (select id from ids where name = 'late') $$,
   $$ select 'live'::text, pg_temp.staff_of('101') $$, 'it is live, with who approved it');
@@ -68,13 +81,20 @@ insert into ids select 'refused', public.submit_promotion('00000000-0000-4000-80
 select throws_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), 'No budget') $$, '42501', null,
   'marketing refuses nothing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), ' ') $$, '22023', null, 'a refusal says why');
+select throws_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), 'No') $$, '22023', null, 'a refusal says why');
 select lives_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), 'Fifty points a night is too many') $$,
   'a super admin refuses it');
-select throws_ok($$ select public.approve_promotion((select id from ids where name = 'refused')) $$, '22023', null, 'and it cannot then be approved');
+select throws_ok($$ select public.approve_promotion((select id from ids where name = 'refused')) $$, 'RVDEC', null, 'and it cannot then be approved');
 reset role;
 select results_eq($$ select status, refused_reason from public.promotion where id = (select id from ids where name = 'refused') $$,
   $$ values ('draft'::text, 'Fifty points a night is too many'::text) $$, 'it is a draft again, with the reason');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select results_eq($$ select name, refused_by, refused_reason from public.promotions_sent_back('00000000-0000-4000-8000-000000000001') $$,
+  $$ values ('Too generous'::text, 'Vikram Rao'::text, 'Fifty points a night is too many'::text) $$,
+  'and the one who submitted it reads who sent it back, and why');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select is_empty($$ select * from public.promotions_sent_back('00000000-0000-4000-8000-000000000001') $$, 'a cashier reads none of it');
+reset role;
 update public.promotion set status = 'draft' where template_key = 'referral' and venue_id = '00000000-0000-4000-8000-000000000001';
 insert into ids select 'referral', id from public.promotion where template_key = 'referral' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
@@ -92,6 +112,16 @@ insert into public.control_state (venue_id, level, feature, reason) values ('000
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.approve_promotion((select id from ids where name = 'referral')) $$, 'RVKIL', null,
   'nothing is approved while promotions are switched off');
+select throws_ok($$ select public.refuse_promotion((select id from ids where name = 'referral'), 'Not now') $$, 'RVKIL', null,
+  'nor refused');
+reset role;
+update public.control_state set released_at = now(), release_reason = 'Test over',
+  released_by_staff_id = (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000101' and venue_id = '00000000-0000-4000-8000-000000000001')
+where venue_id = '00000000-0000-4000-8000-000000000001' and level = 'feature_kill' and feature = 'promotions';
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.refuse_promotion((select id from ids where name = 'referral'), 'Not now') $$, 'RVFRZ', null,
+  'nor while the venue is frozen');
 reset role;
 select throws_ok($$ insert into public.role_permission (role, permission) values ('admin', 'promotions.approve') $$, '23514', null,
   'no role but super admin may hold promotions.approve');

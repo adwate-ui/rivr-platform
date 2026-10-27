@@ -59,6 +59,56 @@ export const promotions = {
     /** After Approve or Refuse: `{name}` is the promotion. */
     approved: '{name} is live.',
     refused: '{name} went back to draft.',
+    /** What it actually does, in words made from its stored rule: the approver reads these, not only the card words. */
+    does: 'What it does',
+    unreadable: 'Its rule cannot be read here, so it can only be refused.',
+  },
+  /** A rule in words (#144): `{when}` is its trigger, `{gives}` what it gives, `{who}` for whom. */
+  rule: {
+    line: '{when}: {gives}',
+    forWhom: 'Who and when: {who}',
+    everyone: 'anyone, any time',
+    trigger: {
+      buy_in: 'On a buy-in', hours_played: 'For hours played', hand_logged: 'When a hand is logged', tournament_entry: 'On a tournament entry',
+      referral: 'On a referral', check_in: 'On a check-in', graduation: 'On an Academy graduation', date_window: 'Once each club day in its window',
+    },
+    gives: {
+      bonusAmount: 'a {amount} bonus, ending after {days} days',
+      bonusShare: 'a bonus of {percent}% of the buy-in, ending after {days} days',
+      bonusShareCapped: 'a bonus of {percent}% of the buy-in, up to {cap}, ending after {days} days',
+      points: '{points} points',
+      pointsMultiplier: '{multiplier} times the points earned',
+      freerollTicket: 'a freeroll ticket to {tournament}',
+      cab: 'a cab home',
+      prize: '{prize}',
+      prizeWorth: '{prize}, worth {value}',
+      jackpot: '{amount} from the {pool} jackpot',
+      message: 'a message: {text}',
+      spin: 'a spin of the wheel',
+    },
+    pools: { main: 'main', season: 'season', freeroll: 'freeroll' },
+    conditions: {
+      days: 'on {days}', window: 'from {from} to {until}', firstPerTable: 'the first {count} at each table',
+      firstPerDay: 'the first {count} each club day', callTime: 'once call time is complete', minHours: 'after {hours} hours played',
+      stakes: 'at {stakes}', tables: 'at {count} chosen tables', tiers: '{count} chosen tiers', newPlayer: 'new players only',
+      lapsed: 'players back after {days} days away', minVisits: 'members with {count} visits this month', hands: 'for {hands}',
+    },
+    hands: { four_of_a_kind: 'four of a kind', straight_flush: 'a straight flush', royal_flush: 'a royal flush', bad_beat: 'a bad beat' },
+    noLimit: 'No limit per member',
+    limitPerDay: 'At most {limit} per member each club day',
+    limitInAll: 'At most {limit} per member in all',
+    noBudget: 'No budget: it gives without a cap',
+    budgetPaise: 'Budget: {amount}',
+    budgetCount: 'Budget: {count} grants',
+    budgetBoth: 'Budget: {amount} or {count} grants, whichever comes first',
+  },
+  /** Promotions a super admin sent back (#144), with why: the one who submitted each reads it here. */
+  sentBack: {
+    heading: 'Sent back',
+    /** `{name}` sent it back at `{time}`, saying `{reason}`. */
+    line: '{name}, {time}: {reason}',
+    template: 'A template again: send it from Templates once it is right.',
+    built: 'Build it again with the changes asked for.',
   },
   /** The simulation before publishing (#144): last week's seven club days replayed with the promotion. */
   simulate: 'Simulate last week',
@@ -89,6 +139,7 @@ export const promotions = {
     invalidCap: 'The most per buy-in is whole rupees in ₹50 chips, from ₹50 to ₹1,00,000.',
     not_allowed: 'Only staff who manage promotions submit one, and only a super admin approves or refuses one.',
     own_promotion: 'You submitted this one, so another super admin approves it.',
+    already_decided: 'Another super admin has already decided this one.',
     switched_off: 'Promotions are switched off.',
     paused: 'The club is frozen. Nothing changes until it is released.',
     unavailable: 'That did not go through. Try again.',

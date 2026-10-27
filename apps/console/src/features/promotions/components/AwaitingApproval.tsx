@@ -1,12 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { promotionRefusalSchema } from '@rivr/contracts';
-import { usePromotionDecisions, usePromotionsAwaitingApproval, type PromotionAwaitingApproval, type PromotionFailure } from '@rivr/db';
 import type { Result } from '@rivr/contracts/result';
+import { usePromotionDecisions, usePromotionsAwaitingApproval, type PromotionAwaitingApproval, type PromotionFailure, type PromotionStake } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
 import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
+import { approvalLines } from './promotionRule.ts';
+
+/** How a decision went, said at the list's head: the row itself goes once decided. */
+interface Outcome {
+  readonly ok: boolean;
+  readonly text: string;
+}
 
 /** Why the promotion is refused, and Refuse: `onRefuse` gets the reason once the schema accepts it. */
 function RefuseForm({ isPending, onRefuse, onCancel }: { isPending: boolean; onRefuse: (reason: string) => Promise<void>; onCancel: () => void }) {
@@ -22,70 +29,94 @@ function RefuseForm({ isPending, onRefuse, onCancel }: { isPending: boolean; onR
   );
 }
 
-interface RowProps {
-  venueId: string;
-  promotion: PromotionAwaitingApproval;
-  /** A super admin, who approves or refuses another's promotion. */
-  mayApprove: boolean;
-  onDecided: (text: string) => void;
-}
-
-/** Approve and refuse for one waiting promotion: what was decided goes up to the list, a failure stays on the row. */
-function useDecision(venueId: string, promotion: PromotionAwaitingApproval, onDecided: (text: string) => void) {
+/** Approve and refuse for one waiting promotion; how it went goes up to the list. */
+function useDecision(venueId: string, promotion: PromotionAwaitingApproval, onOutcome: (outcome: Outcome) => void) {
   const { approve, refuse } = usePromotionDecisions(venueId);
-  const [failure, setFailure] = useState<string | null>(null);
   const settle = (result: Result<null, PromotionFailure>, done: 'approved' | 'refused') =>
-    result.ok ? onDecided(t(`console.promotions.awaiting.${done}`, { name: promotion.name })) : setFailure(t(`console.promotions.failures.${result.error}`));
+    onOutcome(result.ok
+      ? { ok: true, text: t(`console.promotions.awaiting.${done}`, { name: promotion.name }) }
+      : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
   return {
-    failure, isApproving: approve.isPending, isRefusing: refuse.isPending,
+    isApproving: approve.isPending, isRefusing: refuse.isPending,
     approve: async () => settle(await approve.mutateAsync(promotion.id), 'approved'),
     refuse: async (reason: string) => settle(await refuse.mutateAsync({ id: promotion.id, reason }), 'refused'),
   };
 }
 
-function AwaitingRow({ venueId, promotion, mayApprove, onDecided }: RowProps) {
-  const decision = useDecision(venueId, promotion, onDecided);
+/** What it actually does, from its stored rules; when those cannot be read, only Refuse is offered. */
+function WhatItDoes({ lines }: { lines: readonly string[] | null }) {
+  if (lines === null) return <ErrorMessage>{t('console.promotions.awaiting.unreadable')}</ErrorMessage>;
+  return (
+    <Stack gap={1}>
+      <Text variant="small" weight="medium">{t('console.promotions.awaiting.does')}</Text>
+      {lines.map((line) => <Text key={line} variant="small">{line}</Text>)}
+    </Stack>
+  );
+}
+
+interface RowProps {
+  venueId: string;
+  promotion: PromotionAwaitingApproval;
+  stakes: readonly PromotionStake[];
+  /** A super admin, who approves or refuses another's promotion. */
+  mayApprove: boolean;
+  onOutcome: (outcome: Outcome) => void;
+}
+
+function AwaitingRow({ venueId, promotion, stakes, mayApprove, onOutcome }: RowProps) {
+  const decision = useDecision(venueId, promotion, onOutcome);
   const [isRefusing, setIsRefusing] = useState(false);
   const nameId = useId();
-  const line = [promotion.detail, promotion.runs].filter((part) => part !== null).join(' · ');
+  const words = [promotion.detail, promotion.runs].filter((part) => part !== null).join(' · ');
+  const lines = approvalLines(promotion, stakes);
   const decides = mayApprove && !promotion.isMine;
   return (
     <Stack gap={2}>
-      <Inline justify="between" align="center" gap={6}>
+      <Inline justify="between" align="start" gap={6}>
         <Stack gap={1} grow>
           <Text weight="medium" id={nameId}>{promotion.name}</Text>
-          {line === '' ? null : <Text variant="small" tone="muted">{line}</Text>}
+          {words === '' ? null : <Text variant="small" tone="muted">{words}</Text>}
           <Text variant="small" tone="muted">
             {t('console.promotions.awaiting.submittedBy', { name: promotion.requestedBy, time: formatDayTime(new Date(promotion.requestedAt)) })}
           </Text>
+          <WhatItDoes lines={lines} />
         </Stack>
         {decides ? (
           <Inline gap={2}>
             <Button variant="text" isDisabled={decision.isApproving} onClick={() => setIsRefusing(true)} aria-describedby={nameId}>
               {t('console.promotions.awaiting.refuse')}
             </Button>
-            <Button variant="primary" isLoading={decision.isApproving} onClick={() => void decision.approve()} aria-describedby={nameId}>
-              {t('console.promotions.awaiting.approve')}
-            </Button>
+            {lines === null ? null : (
+              <Button variant="primary" isLoading={decision.isApproving} onClick={() => void decision.approve()} aria-describedby={nameId}>
+                {t('console.promotions.awaiting.approve')}
+              </Button>
+            )}
           </Inline>
         ) : (
           <Text variant="small" tone="muted">{t(mayApprove ? 'console.promotions.awaiting.yours' : 'console.promotions.awaiting.waiting')}</Text>
         )}
       </Inline>
       {decides && isRefusing ? <RefuseForm isPending={decision.isRefusing} onRefuse={decision.refuse} onCancel={() => setIsRefusing(false)} /> : null}
-      {decision.failure === null ? null : <ErrorMessage>{decision.failure}</ErrorMessage>}
     </Stack>
   );
 }
 
+interface AwaitingApprovalProps {
+  venueId: string;
+  mayApprove: boolean;
+  /** The venue's stakes, to name a rule's stakes as the builder does. */
+  stakes: readonly PromotionStake[];
+}
+
 /**
- * Promotions waiting for a super admin (#144; decision 0244), oldest first, with who submitted each. A super admin
- * approves or refuses another's; the one who submitted it, and staff who are not super admins, see it waiting.
- * Nothing shows when none waits and nothing was just decided.
+ * Promotions waiting for a super admin (#144; decision 0244), oldest first, with who submitted each and what each
+ * actually does, in words made from its stored rule. A super admin approves or refuses another's; the one who
+ * submitted it, and staff who are not super admins, see it waiting. Nothing shows when none waits and nothing was
+ * just decided.
  */
-export function AwaitingApproval({ venueId, mayApprove }: { venueId: string; mayApprove: boolean }) {
+export function AwaitingApproval({ venueId, mayApprove, stakes }: AwaitingApprovalProps) {
   const awaiting = usePromotionsAwaitingApproval(venueId);
-  const [decided, setDecided] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const heading = <Heading level={2} variant="section">{t('console.promotions.awaiting.heading')}</Heading>;
   if (awaiting.data === undefined) {
     return (
@@ -96,14 +127,14 @@ export function AwaitingApproval({ venueId, mayApprove }: { venueId: string; may
       </Stack>
     );
   }
-  if (awaiting.data.length === 0 && decided === null) return null;
+  if (awaiting.data.length === 0 && outcome === null) return null;
   return (
     <Stack gap={4}>
       {heading}
-      {decided === null ? null : <Text>{decided}</Text>}
+      {outcome === null ? null : outcome.ok ? <Text>{outcome.text}</Text> : <ErrorMessage>{outcome.text}</ErrorMessage>}
       <Stack gap={4} divided>
         {awaiting.data.map((promotion) => (
-          <AwaitingRow key={promotion.id} venueId={venueId} promotion={promotion} mayApprove={mayApprove} onDecided={setDecided} />
+          <AwaitingRow key={promotion.id} venueId={venueId} promotion={promotion} stakes={stakes} mayApprove={mayApprove} onOutcome={setOutcome} />
         ))}
       </Stack>
     </Stack>

@@ -95,13 +95,15 @@ test.describe('Promotion simulation', () => {
     const approver = await browser.newPage();
     await signInToConsole(approver, '9000000760');
     await approver.getByRole('link', { name: 'Promotions' }).click();
-    const waiting = approver.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
+    const waitingList = approver.getByRole('heading', { name: 'Waiting for approval' }).locator('xpath=..');
+    const waiting = waitingList.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
     await waiting.getByRole('button', { name: 'Approve', exact: true }).click();
     await expect(approver.getByText('Triple points is live.')).toBeVisible({ timeout: 10_000 });
     expect(Date.now() - started).toBeLessThan(10 * 60_000);
 
     // Paused again, so no other flow meets it.
-    const running = approver.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
+    const runningList = approver.getByRole('heading', { name: 'Running' }).locator('xpath=..');
+    const running = runningList.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
     await running.getByRole('button', { name: 'Pause' }).click();
     await expect(running.getByText('Paused', { exact: true })).toBeVisible();
     await approver.close();

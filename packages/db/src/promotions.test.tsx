@@ -6,7 +6,7 @@ import type { PromotionDraft } from '@rivr/domain/promotions';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import {
-  usePromotionActions, usePromotionDecisions, usePromotions, usePromotionsAwaitingApproval, usePromotionSimulation, usePromotionStakes, usePromotionTemplates,
+  usePromotionActions, usePromotionDecisions, usePromotions, usePromotionsAwaitingApproval, usePromotionsSentBack, usePromotionSimulation, usePromotionStakes, usePromotionTemplates,
 } from './promotions.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -38,7 +38,7 @@ function renderPromotions(replies: Record<string, { status?: number; body: unkno
     () => ({
       list: usePromotions(VENUE), stakes: usePromotionStakes(VENUE), templates: usePromotionTemplates(VENUE), actions: usePromotionActions(VENUE),
       simulation: usePromotionSimulation(VENUE), awaiting: usePromotionsAwaitingApproval(VENUE),
-      decisions: usePromotionDecisions(VENUE),
+      decisions: usePromotionDecisions(VENUE), sentBack: usePromotionsSentBack(VENUE),
     }),
     { wrapper },
   );
@@ -114,14 +114,22 @@ describe('Promotions (#84)', () => {
     const { result, calls } = renderPromotions({
       '/rpc/promotions_awaiting_approval': {
         body: [{ promotion_id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', template_key: null, requested_by: 'Ishita Bose',
-                 requested_at: '2026-10-27T10:00:00Z', is_mine: false }],
+                 requested_at: '2026-10-27T10:00:00Z', is_mine: false, rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }],
+                 per_player_limit: 1, per_player_period: 'day', budget_paise: 500000, budget_count: null },
+               { promotion_id: 'p8', name: 'Odd', detail: null, runs: 'Any', template_key: null, requested_by: 'Ishita Bose',
+                 requested_at: '2026-10-27T11:00:00Z', is_mine: true, rules: [{ trigger: 'lunch', conditions: {}, effect: { kind: 'spin' } }],
+                 per_player_limit: null, per_player_period: null, budget_paise: null, budget_count: null }],
       },
       '/rpc/approve_promotion': { body: null },
       '/rpc/refuse_promotion': { body: null },
       '/rest/v1/': { body: [] },
     });
     await waitFor(() => expect(result.current.awaiting.data).toEqual([
-      { id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T10:00:00Z', isMine: false },
+      { id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T10:00:00Z', isMine: false,
+        rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }], perPlayer: { limit: 1, period: 'day' }, budget: { paise: 500000n, count: null } },
+      // A rule the console cannot read is null, so it can only be refused.
+      { id: 'p8', name: 'Odd', detail: null, runs: 'Any', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T11:00:00Z', isMine: true,
+        rules: null, perPlayer: null, budget: { paise: null, count: null } },
     ]));
     let approved: unknown;
     await act(async () => {
@@ -142,6 +150,26 @@ describe('Promotions (#84)', () => {
       refused = await result.current.decisions.approve.mutateAsync('p9');
     });
     expect(refused).toEqual({ ok: false, error: 'own_promotion' });
+  });
+
+  it('says when another super admin already decided it, and lists what was sent back', async () => {
+    const { result } = renderPromotions({
+      '/rpc/approve_promotion': { status: 400, body: { code: 'RVDEC', message: 'decided' } },
+      '/rpc/promotions_sent_back': {
+        body: [{ promotion_id: 'p7', name: 'Too generous', detail: null, runs: 'Every night', template_key: null, refused_by: 'Vikram Rao',
+                 refused_at: '2026-10-27T12:00:00Z', refused_reason: 'Fifty points a night is too many' }],
+      },
+      '/rest/v1/': { body: [] },
+    });
+    let refused: unknown;
+    await act(async () => {
+      refused = await result.current.decisions.approve.mutateAsync('p9');
+    });
+    expect(refused).toEqual({ ok: false, error: 'already_decided' });
+    await waitFor(() => expect(result.current.sentBack.data).toEqual([
+      { id: 'p7', name: 'Too generous', detail: null, runs: 'Every night', isTemplate: false, refusedBy: 'Vikram Rao', refusedAt: '2026-10-27T12:00:00Z',
+        reason: 'Fifty points a night is too many' },
+    ]));
   });
 });
 

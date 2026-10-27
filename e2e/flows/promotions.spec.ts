@@ -30,7 +30,8 @@ async function publishFlow7(floor: Page, approver: Page) {
   await floor.getByRole('button', { name: 'Submit for approval', exact: true }).click();
   await expect(floor.getByText('Double points waits for a super admin to approve it.')).toBeVisible({ timeout: 10_000 });
   await approver.getByRole('link', { name: 'Promotions' }).click();
-  const waiting = approver.getByText(RUNS, { exact: true }).first().locator('xpath=../..');
+  const waitingList = approver.getByRole('heading', { name: 'Waiting for approval' }).locator('xpath=..');
+  const waiting = waitingList.getByText(RUNS, { exact: true }).first().locator('xpath=../..');
   await waiting.getByRole('button', { name: 'Approve', exact: true }).click();
   await expect(approver.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
   await expect(approver.getByText('Live', { exact: true }).first()).toBeVisible();

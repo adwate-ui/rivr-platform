@@ -11,6 +11,7 @@ import { BuilderBlocks } from './BuilderBlocks.tsx';
 import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
 import { AwaitingApproval } from './AwaitingApproval.tsx';
 import { RunningList } from './RunningList.tsx';
+import { SentBack } from './SentBack.tsx';
 import { SimulationPanel } from './SimulationPanel.tsx';
 import { TemplatesList } from './TemplatesList.tsx';
 
@@ -102,7 +103,8 @@ function PromotionsBody({ venueId, mayApprove }: { venueId: string; mayApprove: 
   return (
     <Screen title={title}>
       <Stack gap={10}>
-        <AwaitingApproval venueId={venueId} mayApprove={mayApprove} />
+        <AwaitingApproval venueId={venueId} mayApprove={mayApprove} stakes={stakes.data} />
+        <SentBack venueId={venueId} />
         <RunningList venueId={venueId} />
         <TemplatesList venueId={venueId} />
         <Builder venueId={venueId} stakes={stakes.data} />
