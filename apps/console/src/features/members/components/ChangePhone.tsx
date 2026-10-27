@@ -10,6 +10,7 @@ const FAILURE_COPY: Readonly<Record<PhoneChangeFailure, MessageKey>> = {
   staff_login: 'console.members.changePhone.failures.staff_login',
   erased: 'console.members.changePhone.failures.erased',
   paused: 'console.members.changePhone.failures.paused',
+  too_many: 'console.members.changePhone.failures.too_many',
   unavailable: 'console.members.changePhone.failures.unavailable',
 };
 

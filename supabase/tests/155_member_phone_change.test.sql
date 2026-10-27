@@ -99,10 +99,12 @@ select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-0
 reset role;
 
 -- Ten changes in the hour, and no more (#545).
-select private.audit('00000000-0000-4000-8000-000000000001', 'member.change_phone', 'member', g::text, null, null, 'Test') from generate_series(1, 9) g;
+select private.audit('00000000-0000-4000-8000-000000000001', 'member.change_phone', 'member', g::text, null, null, 'Test') from generate_series(1, 8) g;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345613', 'Lost his phone') $$, 'RVRAT', null,
-  'an eleventh change in the hour waits');
+select lives_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345613', 'Lost his phone') $$,
+  'a tenth change in the hour goes through');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345615', 'Lost his phone') $$, 'RVRAT', null,
+  'an eleventh waits');
 reset role;
 -- A freeze is checked before the cap.
 -- Nor while the member or the venue is frozen.

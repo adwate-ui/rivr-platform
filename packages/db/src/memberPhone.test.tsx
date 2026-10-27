@@ -49,7 +49,7 @@ describe('changing a member phone number', () => {
   it('says why a change was refused', async () => {
     const refusals: [string, string][] = [
       ['42501', 'not_allowed'], ['22023', 'invalid'], ['RVPHN', 'taken'], ['RVSTF', 'staff_login'], ['RVERD', 'erased'],
-      ['RVFRZ', 'paused'], ['RVMBR', 'paused'], ['XX000', 'unavailable'],
+      ['RVFRZ', 'paused'], ['RVMBR', 'paused'], ['23505', 'taken'], ['RVRAT', 'too_many'], ['XX000', 'unavailable'],
     ];
     for (const [code, failure] of refusals) {
       const { result } = renderChange({ status: 400, body: { code, message: 'refused' } });
