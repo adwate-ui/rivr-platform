@@ -89,7 +89,7 @@ Tables and table types, seating, the waitlist and its priority, call time, the d
 
 ## Events
 
-- Emits: `waitlist.joined`, `waitlist.called`, `seat.taken`, `seat.moved`, `seat.left`, `seat.away`, `seat.back`, `call_time.completed`, `session.reminder`, `hand.logged`, `high_hand.claimed`, `high_hand.approved`, `high_hand.reversed` (a decided claim set aside: retract anything that announced it), `jackpot.paid`, `jackpot.reversed` (a payout taken back: retract anything that announced it), `tournament.starting`, `tournament.finished`, `tournament.entered`, `fnb.ordered`, `incident.logged`.
+- Emits: `waitlist.joined`, `waitlist.called`, `seat.taken`, `seat.moved`, `seat.left`, `seat.away`, `seat.back`, `call_time.completed`, `session.reminder`, `hand.logged`, `high_hand.claimed`, `high_hand.approved`, `high_hand.reversed` (a decided claim set aside: retract anything that announced it), `jackpot.paid`, `jackpot.reversed` (a payout taken back: retract anything that announced it), `tournament.starting`, `tournament.finished`, `tournament.entered`, `tournament.ticket_refunded` (`ticket_id`, `member_id`, `tournament_id`, `value_paise`: a satellite ticket lapsed to the wallet), `fnb.ordered`, `incident.logged`.
 - Consumes: `visit.opened` and `visit.closed` (lane C) for seat sessions; `promotion.published` (lane D) for the TV rotation.
 
 ## Uses from other lanes

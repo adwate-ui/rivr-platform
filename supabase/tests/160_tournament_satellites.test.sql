@@ -34,6 +34,14 @@ create function pg_temp.ticket_status(p_target text, p_member uuid) returns text
   select status from public.tournament_ticket where member_id = p_member and target_id = pg_temp.named(p_target);
 $$;
 grant execute on function pg_temp.named(text), pg_temp.run(text, uuid), pg_temp.balance(text), pg_temp.ticket_status(text, uuid) to authenticated;
+-- Releases the controls a test engaged, by the reason it gave them.
+create function pg_temp.release(p_reason text) returns void language sql as $$
+  update public.control_state
+  set released_at = now(), release_reason = 'Test over',
+      released_by_staff_id = (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000101' and venue_id = '00000000-0000-4000-8000-000000000001'),
+      release_second_staff_id = (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001')
+  where reason = p_reason and released_at is null;
+$$;
 
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
 insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
@@ -136,6 +144,31 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select 1 from public.tournament_ticket $$, 'a dealer sees none');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
 select is_empty($$ select 1 from public.tournament_ticket $$, 'nor does another venue''s admin');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000109');
+select is((select count(*)::integer from public.tournament_ticket), 2, 'an owner who reads the ledger sees both');
+
+-- No ticket is used while tournament registration is switched off, the venue is frozen, or the member is.
+reset role;
+insert into public.control_state (venue_id, level, feature, reason) values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'tournament_registration', 'Ticket kill');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select throws_ok($$ select public.use_tournament_ticket(pg_temp.named('Ticket Turbo'), '00000000-0000-4000-8000-000000000214',
+                                                      '00000000-0000-4000-8000-00000000f421') $$, 'RVKIL', null,
+  'no ticket is used with tournament registration switched off');
+reset role;
+select pg_temp.release('Ticket kill');
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Ticket freeze');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select throws_ok($$ select public.use_tournament_ticket(pg_temp.named('Ticket Turbo'), '00000000-0000-4000-8000-000000000214',
+                                                      '00000000-0000-4000-8000-00000000f422') $$, 'RVFRZ', null, 'nor in a frozen venue');
+reset role;
+select pg_temp.release('Ticket freeze');
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000214', 'Ticket member freeze');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select throws_ok($$ select public.use_tournament_ticket(pg_temp.named('Ticket Turbo'), '00000000-0000-4000-8000-000000000214',
+                                                      '00000000-0000-4000-8000-00000000f423') $$, 'RVMBR', null, 'nor by a frozen member');
+reset role;
+select pg_temp.release('Ticket member freeze');
 
 -- Yash enters the Turbo with his ticket from the app; Mihir, without one, cannot.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
@@ -207,6 +240,9 @@ select is(pg_temp.balance('venue.tournament_tickets') - (select tickets from bef
 select is((select count(*)::integer from public.ledger_transaction where kind = 'tournament_ticket_refund'
            and idempotency_key = 'tournament_ticket_refund:' || (select id from public.tournament_ticket where member_id = '00000000-0000-4000-8000-000000000215')),
   1, 'refunded once');
+select is((select count(*)::integer from public.outbox_event where event_type = 'tournament.ticket_refunded'
+           and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000215' and (payload ->> 'value_paise')::bigint = 300000),
+  1, 'and tournament.ticket_refunded goes out once, for Ritika to be told');
 select ok(exists (select 1 from cron.job where jobname = 'tournament-ticket-lapse' and schedule = '* * * * *'), 'tickets lapse each minute');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.create_tournament('00000000-0000-4000-8000-0000000007c3', 'Late Satellite', now(), true);
@@ -272,17 +308,34 @@ select public.finish_tournament(pg_temp.named('Second Turbo'));
 reset role;
 insert into public.control_state (venue_id, level, member_id, reason)
 values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000215', 'Under review');
-select private.lapse_tournament_tickets();
+-- Yash's refund fails, for now.
+create function public.fail_yash_refund() returns trigger language plpgsql as $$
+begin
+  if new.member_id = '00000000-0000-4000-8000-000000000214' and new.status = 'refunded' then
+    raise exception 'Refund failed';
+  end if;
+  return new;
+end;
+$$;
+create trigger fail_yash_refund before update on public.tournament_ticket for each row execute function public.fail_yash_refund();
+select lives_ok($$ select private.lapse_tournament_tickets() $$, 'a refund that fails stops the lapse of no other ticket');
 select results_eq($$ select m.full_name, k.status from public.tournament_ticket k join public.member m on m.id = k.member_id
                      where k.target_id = pg_temp.named('Second Turbo') order by m.full_name $$,
-  $$ values ('Mihir Shah'::text, 'used'::text), ('Ritika Das', 'held'), ('Yash Gupta', 'refunded') $$,
-  'the finished Turbo''s unused tickets lapse, a frozen member''s waiting');
+  $$ values ('Mihir Shah'::text, 'used'::text), ('Ritika Das', 'held'), ('Yash Gupta', 'held') $$,
+  'the finished Turbo''s unused tickets lapse, a frozen member''s waiting, and one whose refund failed held still');
 update public.control_state
 set released_at = now(), release_reason = 'Reviewed',
     released_by_staff_id = (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001')
 where member_id = '00000000-0000-4000-8000-000000000215' and released_at is null;
 select private.lapse_tournament_tickets();
 select is(pg_temp.ticket_status('Second Turbo', '00000000-0000-4000-8000-000000000215'), 'refunded', 'and hers once she is released');
+select is(pg_temp.ticket_status('Second Turbo', '00000000-0000-4000-8000-000000000214'), 'held', 'while Yash''s refund still fails');
+select results_eq($$ select detail ->> 'ticket_id' from public.alert where kind = 'tournaments.ticket_refund_failed' $$,
+  $$ select id::text from public.tournament_ticket where member_id = '00000000-0000-4000-8000-000000000214'
+     and target_id = pg_temp.named('Second Turbo') $$, 'one alert names the ticket, however often it fails');
+drop trigger fail_yash_refund on public.tournament_ticket;
+select private.lapse_tournament_tickets();
+select is(pg_temp.ticket_status('Second Turbo', '00000000-0000-4000-8000-000000000214'), 'refunded', 'and it is refunded once it can be');
 select is(pg_temp.balance('venue.tournament_tickets') - (select tickets from before), 0::bigint, 'no tickets are held');
 
 select * from finish();
