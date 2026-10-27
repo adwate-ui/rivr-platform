@@ -19,6 +19,7 @@ export const alerts = {
     'exports.key_changed': 'the export archive\'s key was changed',
     'invoice.rake_negative': 'a night’s rake and tournament fees came to less than nothing',
     'invoice.rake_refused': 'a night’s rake invoice could not be issued',
+    'member.phone_changed': 'a super admin changed a member\'s phone number, which is their login',
     'mis.not_stored': 'the monthly MIS could not be stored',
     'outbox.delivery_failed': 'a message or post could not be delivered',
     'outbox.failures': 'many messages or posts are failing',

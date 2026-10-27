@@ -3583,6 +3583,9 @@ isOneToOne: false
               "at": string,"camera_name": string,"channel": string,"is_practice": boolean
             }[]
                            },
+"change_member_phone":
+{ Args: { "p_member_id": string,"p_phone": string,"p_reason": string }; Returns: undefined
+                           },
 "check_in":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
                            },

@@ -3,27 +3,50 @@
 # a pull request is brought up to date with main only for a database clash (decision 0253). A new or split job goes
 # into ci-ok's `needs`, never into branch protection. Each timeout is near twice the job's usual time, so a hang fails
 # fast. CI restores no build cache: a green run is a result from scratch.
+# Main's runs (decision 0254): a push runs everything but mutation, and a newer commit's run replaces an older one, since
+# it tests that commit too. The full run, dispatched every three hours (full-run.yml) or before a release, adds the
+# mutation of every money module and is never cancelled: a release needs it green at the tagged commit (release.yml).
 name: CI
 
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
-  # A new push to a pull request replaces its run; each push to main has a run of its own, never cancelled, so a
-  # release can require that its commit passed (release.yml).
-  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.event_name == 'push' && 'main' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
 
 permissions:
   contents: read
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
+  # A pull request's target, from which verify.mjs measures what it changes (decisions 0242 and 0255); empty on main.
+  PR_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
 
 jobs:
-  # Typecheck, lint, unit and property tests for every package; root and e2e lint, Edge Function import maps,
+  # Which jobs this run needs (verify.mjs plan; decision 0255): a pull request runs those its changes touch, so one to the
+  # player app runs no pgTAP and one to SQL no Storybook. Main's runs run them all; a push to main mutates nothing.
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      database: ${{ steps.plan.outputs.database }}
+      storybook: ${{ steps.plan.outputs.storybook }}
+      e2e: ${{ steps.plan.outputs.e2e }}
+      budgets: ${{ steps.plan.outputs.budgets }}
+      mutate: ${{ steps.plan.outputs.mutate }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - id: plan
+        run: node scripts/verify.mjs plan
+
+  # Typecheck, lint, unit and property tests for the affected packages (every one on main); root and e2e lint, Edge Function import maps,
   # migration versions, dependency rules, stylesheets, generated tokens and the drill gates. Chromium is for
   # @rivr/render's tests, which draw in a real browser.
   code:
@@ -42,6 +65,8 @@ jobs:
   # pgTAP against the migrations and seed, and the generated database types.
   database:
     name: database
+    needs: plan
+    if: needs.plan.outputs.database == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -53,17 +78,17 @@ jobs:
 
   storybook:
     name: storybook
+    needs: plan
+    if: needs.plan.outputs.storybook == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+      # No browser here: the screenshots are taken in Playwright's own container (packages/ui/visual/run.mjs), which
+      # brings Chromium and its fonts. Installing them on the runner as well stalled for ten minutes on apt.
       - uses: ./.github/actions/setup
-        with:
-          playwright: 'true'
-          # Screenshots are compared with baselines taken with Chromium's fonts.
-          playwright-system-deps: 'true'
       - run: node scripts/verify.mjs storybook
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -72,30 +97,13 @@ jobs:
           path: packages/ui/visual/test-results/
           if-no-files-found: ignore
 
-  # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one.
+  # Mutation tests (decision 0242): on a pull request the money modules it changes, in the full run every one (0254).
   # Their files are shared six ways, balanced by size, so no runner carries them all (#515); mutation-score then
   # checks each module over every share's report.
-  # Whether this run has any money file to mutate (verify.mjs mutation-plan): a pull request that changes none starts
-  # no mutation runners, which held six of the account's job slots for nothing.
-  mutation-plan:
-    name: mutation plan
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      mutate: ${{ steps.plan.outputs.mutate }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-      - id: plan
-        run: node scripts/verify.mjs mutation-plan
-        env:
-          MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
-
   mutation:
     name: mutation ${{ matrix.share }}
-    needs: mutation-plan
-    if: needs.mutation-plan.outputs.mutate == 'true'
+    needs: plan
+    if: needs.plan.outputs.mutate == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -108,8 +116,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup
       - run: node scripts/verify.mjs mutation ${{ matrix.share }}
-        env:
-          MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -119,8 +125,8 @@ jobs:
 
   mutation-score:
     name: mutation score
-    needs: [mutation-plan, mutation]
-    if: needs.mutation-plan.outputs.mutate == 'true'
+    needs: [plan, mutation]
+    if: needs.plan.outputs.mutate == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -135,6 +141,8 @@ jobs:
   # flows tagged @practice-cage share the practice cage's one shift, so they run together, in file order, on a fourth.
   e2e:
     name: e2e ${{ matrix.part }}
+    needs: plan
+    if: needs.plan.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -158,6 +166,8 @@ jobs:
 
   budgets:
     name: budgets
+    needs: plan
+    if: needs.plan.outputs.budgets == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -195,16 +205,16 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [code, database, storybook, mutation-plan, mutation, mutation-score, e2e, budgets, security]
+    needs: [plan, code, database, storybook, mutation, mutation-score, e2e, budgets, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Every job passed
         env:
           NEEDS: ${{ toJSON(needs) }}
-          MUTATE: ${{ needs.mutation-plan.outputs.mutate }}
-        # The mutation jobs may be skipped only when the plan, itself passed, found nothing to mutate.
+          PLAN: ${{ toJSON(needs.plan.outputs) }}
+        # A job may be skipped only when the plan, itself passed, found the run did not need it.
         run: |
           jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
-          jq -e --arg mutate "$MUTATE" 'to_entries | all(.value.result == "success"
-            or ($mutate == "false" and (.key == "mutation" or .key == "mutation-score") and .value.result == "skipped"))' <<<"$NEEDS" > /dev/null
+          jq -e --argjson plan "$PLAN" 'to_entries | all(.value.result == "success" or (.value.result == "skipped"
+            and $plan[({"mutation": "mutate", "mutation-score": "mutate"}[.key] // .key)] == "false"))' <<<"$NEEDS" > /dev/null

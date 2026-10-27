@@ -9,10 +9,10 @@
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
  *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules' files to mutate. With
- *              MUTATION_SINCE=<ref> (a pull request) only the modules it changes, else every one (decision 0242).
+ *              PR_BASE=<ref> (a pull request) only the modules it changes, else every one (decision 0242).
  *   mutation-score   CI: each money module's score over every share's report together; 80 or more each.
- *   mutation-plan    CI: whether this run has any money file to mutate (mutate=true or false, to GITHUB_OUTPUT).
- *                    A pull request that changes none starts no mutation runners: they held runner slots for nothing.
+ *   plan             CI: which jobs this run needs (database, storybook, e2e, budgets, mutate: true or false, to
+ *                    GITHUB_OUTPUT; decision 0255).
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
@@ -24,7 +24,7 @@ const MODE = process.argv[2] ?? 'changed';
 // The money modules are the folders Stryker mutates (packages/domain/stryker.config.mjs): one list for both.
 const MONEY_MODULES = strykerConfig.mutate.filter((glob) => !glob.startsWith('!')).map((glob) => glob.split('/')[1]);
 // Shared tooling can break any package, so a change to it verifies everything.
-const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
+const TOOLING = /^(\.node-version|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
 // Tooling that can move any money module's mutation score.
 const MUTATION_TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.json|packages\/config\/)/;
 
@@ -49,6 +49,15 @@ function baseCommit() {
   return null;
 }
 
+/** Where HEAD left `ref`, or null where `ref` is not fetched: a job checked out at depth 1 needs no scope. */
+function mergeBaseWith(ref) {
+  try {
+    return git('merge-base', 'HEAD', ref);
+  } catch {
+    return null;
+  }
+}
+
 function changedFiles(base) {
   const committed = git('diff', '--name-only', base, 'HEAD').split('\n');
   // Not git(): its trim would take the first line's leading space, and the slice the path's first letter with it.
@@ -58,12 +67,17 @@ function changedFiles(base) {
   return [...new Set([...committed, ...working].filter(Boolean))];
 }
 
-/** What to verify: the changed packages measured from `base` (quick and changed), else every package. */
+/**
+ * What to verify: the changed packages measured from `base`, else every package. Locally (quick and changed) the base
+ * is where this branch left main; in CI on a pull request PR_BASE names its target branch (decision 0255). A change to
+ * shared tooling or to the workflows verifies everything.
+ */
 function scopeFor(mode) {
-  const base = baseCommit();
-  if (!['quick', 'changed'].includes(mode) || !base) return { everything: true, base, files: [] };
+  const target = process.env.PR_BASE;
+  const base = target ? mergeBaseWith(target) : baseCommit();
+  if ((!target && !['quick', 'changed'].includes(mode)) || !base) return { everything: true, base, files: [] };
   const files = changedFiles(base);
-  return { everything: files.some((file) => TOOLING.test(file)), base, files };
+  return { everything: files.some((file) => TOOLING.test(file) || file.startsWith('.github/')), base, files };
 }
 
 function run(command, args, env = {}) {
@@ -101,17 +115,17 @@ function moduleChanged(module, files) {
 }
 
 /**
- * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those it changes, every one when it
+ * The money modules to mutate. With PR_BASE (CI on a pull request) only those it changes, every one when it
  * changes shared code (decision 0242). A changed module's tests also kill the mutants of the modules it imports, nearly
  * always money, so a change to them can move money's score; mutating money on every such pull request took longer than
- * the rest of CI together. The push to main mutates every module, and a release needs that run green (release.yml).
+ * the rest of CI together. CI's full run on main mutates every module, and a release needs it green (release.yml).
  */
 function moneyModulesToMutate(scope) {
-  const since = process.env.MUTATION_SINCE;
-  const base = since ? git('merge-base', 'HEAD', since) : null;
-  const files = since ? changedFiles(base) : scope.files;
+  const since = process.env.PR_BASE;
+  const base = since ? mergeBaseWith(since) : null;
+  const files = base ? changedFiles(base) : scope.files;
   const config = base && files.includes(STRYKER_CONFIG) ? strykerConfigChange(base) : { everything: false, added: [] };
-  const everything = since ? config.everything || files.some(movesEveryScore) : scope.everything;
+  const everything = base ? config.everything || files.some(movesEveryScore) : scope.everything;
   const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
   return everything ? modules : modules.filter((module) => config.added.includes(module) || moduleChanged(module, files));
 }
@@ -275,12 +289,23 @@ const CI_PARTS = {
   },
 };
 
-/** CI's mutation plan: true when any money file is to be mutated, written for the workflow's later jobs. */
-function mutationPlan(scope) {
-  const mutate = moneyModulesToMutate(scope).flatMap(moduleFiles).length > 0;
-  const line = `mutate=${mutate}\n`;
-  process.stdout.write(line);
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, line);
+/**
+ * CI's plan (decision 0255): which jobs this run needs, written for the workflow's later jobs. A pull request needs those
+ * its changes touch; main's runs need them all, but a push to main mutates nothing (decision 0254). Code and security
+ * always run: code checks only the affected packages itself, and security scans every file for secrets.
+ */
+function ciPlan(scope) {
+  const touched = (...prefixes) => scope.everything || scope.files.some((file) => prefixes.some((prefix) => file.startsWith(prefix)));
+  const plan = {
+    database: touched('supabase/', 'packages/db/', 'packages/testing/golden/'),
+    storybook: touched('packages/ui/', 'packages/tokens/', 'packages/i18n/'),
+    e2e: touched('apps/', 'packages/', 'supabase/', 'e2e/', 'playwright.config.ts'),
+    budgets: touched('apps/player/', 'packages/'),
+    mutate: process.env.GITHUB_EVENT_NAME !== 'push' && moneyModulesToMutate(scope).flatMap(moduleFiles).length > 0,
+  };
+  const lines = Object.entries(plan).map(([job, needed]) => `${job}=${needed}\n`).join('');
+  process.stdout.write(lines);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, lines);
 }
 
 function main() {
@@ -301,5 +326,5 @@ function main() {
   process.exit(results.every((result) => result.ok) ? 0 : 1);
 }
 
-if (MODE === 'mutation-plan') mutationPlan(scopeFor(MODE));
+if (MODE === 'plan') ciPlan(scopeFor(MODE));
 else main();
