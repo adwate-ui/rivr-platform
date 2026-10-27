@@ -94,34 +94,17 @@ function moduleChanged(module, files) {
 }
 
 /**
- * The money modules a change touches: those that changed, and every module they import, directly or not, since
- * Stryker runs every test for each mutant and a changed module's tests kill its imports' mutants too.
- */
-function touchedModules(files) {
-  const touched = new Set(MONEY_MODULES.filter((module) => moduleChanged(module, files)));
-  for (let grew = true; grew; ) {
-    const imported = MONEY_MODULES.filter(
-      (module) => !touched.has(module) && [...touched].some((user) => mentions(moduleFolder(user), `'../${module}/`)),
-    );
-    imported.forEach((module) => touched.add(module));
-    grew = imported.length > 0;
-  }
-  return MONEY_MODULES.filter((module) => touched.has(module));
-}
-
-/**
- * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those its changes touch, every one when
- * it changes shared code: an untouched module keeps the score main proved, and the push to main runs every module
- * again (decision 0242).
+ * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those it changes, every one when it
+ * changes shared code (decision 0242). A changed module's tests also kill the mutants of the modules it imports, nearly
+ * always money, so a change to them can move money's score; mutating money on every such pull request took longer than
+ * the rest of CI together. The push to main mutates every module, and a release needs that run green (release.yml).
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;
   const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
   const everything = since ? files.some(movesEveryScore) : scope.everything;
   const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
-  if (everything) return modules;
-  const touched = touchedModules(files);
-  return modules.filter((module) => touched.includes(module));
+  return everything ? modules : modules.filter((module) => moduleChanged(module, files));
 }
 
 /** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */

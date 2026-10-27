@@ -21,6 +21,6 @@ The repository belongs to a personal account, so GitHub's merge queue is not ava
 - **Reviewed head only.** `land.sh` stops if a PR's head moves by anything but GitHub's merge of main onto the reviewed head. It stops on a cancelled check, and after two hours.
 - **Mutation scope.**
   - The money modules are the folders `stryker.config.mjs` mutates: one list. Before this, `ledger`, `points`, `league` and `tally` were never mutated in CI.
-  - A PR mutates the modules it changes and the modules they import, whose mutants their tests kill.
+  - A PR mutates only the modules it changes. A changed module's tests also kill the mutants of modules it imports, nearly always `money`, so a change can move `money`'s score. Mutating `money` on every such PR took longer than the rest of CI together. That effect is caught by the push to main, which mutates every module and must be green before a release.
   - A change to the testing helpers mutates them all.
 - **Every main commit is checked.** Each push to main has a CI run of its own, never cancelled. `release.yml` refuses a tag whose commit did not pass `ci-ok`.
