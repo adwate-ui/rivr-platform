@@ -128,3 +128,6 @@ export const promotionBuilderSchema = z
     path: ['until'],
   });
 export type PromotionBuilder = z.infer<typeof promotionBuilderSchema>;
+
+/** Why a super admin refuses a submitted promotion (#144): the one who submitted it reads it. */
+export const promotionRefusalSchema = z.object({ reason: z.string().trim().min(3).max(300) });

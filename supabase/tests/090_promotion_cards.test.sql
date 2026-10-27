@@ -1,6 +1,6 @@
 -- Promotion cards (#86): Home's with feature promotions.feed, a TV's its own venue's, the website's
 -- never the practice venue, and the WhatsApp offer to members who opted in to marketing, once, sent
--- only while it runs and marketing sends are on. 107 Ishita (marketing) publishes;
+-- only while it runs and marketing sends are on. 107 Ishita (marketing) submits and 101, a super admin, approves (#144);
 -- 212 Vihaan has opted in to marketing, 211 Ishaan has not.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -27,9 +27,11 @@ values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is_empty($$ select * from public.my_promotion_cards() $$, 'with nothing published, Home has no card');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-insert into ids select 'flow7', public.publish_promotion('00000000-0000-4000-8000-000000000001', jsonb_build_object(
+insert into ids select 'flow7', public.submit_promotion('00000000-0000-4000-8000-000000000001', jsonb_build_object(
   'name', 'Double points', 'runs', 'NLH 100/200 · Thursday, 14:00 to 20:00',
   'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{"days": [4]}'::jsonb, 'effect', '{"kind": "points", "multiplier_percent": 200}'::jsonb)));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select public.approve_promotion((select id from ids where name = 'flow7'));
 reset role;
 
 -- Home: the member's venue's live cards, with promotions.feed.
@@ -47,8 +49,10 @@ reset role;
 
 -- The website: every club's live cards, never the practice venue's.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select lives_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000002', jsonb_build_object('name', 'Practice points', 'runs', 'Every day',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "points", "points": 5}'::jsonb))) $$, 'a practice promotion goes live');
+insert into ids select 'practice', public.submit_promotion('00000000-0000-4000-8000-000000000002', jsonb_build_object('name', 'Practice points',
+  'runs', 'Every day', 'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "points", "points": 5}'::jsonb)));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.approve_promotion((select id from ids where name = 'practice')) $$, 'a practice promotion goes live');
 reset role;
 set local role anon;
 select results_eq($$ select venue_slug, title from public.public_promotion_cards $$, $$ values ('gurugram'::text, 'Double points'::text) $$,
@@ -81,12 +85,14 @@ reset role;
 select is_empty($$ select * from private.promotion_cards('00000000-0000-4000-8000-000000000001') $$, 'paused, it leaves Home and the TVs');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select public.set_promotion_live((select id from ids where name = 'flow7'), true);
-select public.publish_promotion_template((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral'));
+select public.submit_promotion_template((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral'));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select public.approve_promotion((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral'));
 reset role;
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.offered'
            and payload ->> 'promotion_id' = (select id::text from ids where name = 'flow7')), 1, 'resumed, it is not offered again');
 select is(pg_temp.offers((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral')), '212',
-  'a published template is offered too');
+  'an approved template is offered too');
 select is((select count(*)::integer from private.promotion_cards('00000000-0000-4000-8000-000000000001')), 2, 'and both cards are live');
 
 -- At send time, the WhatsApp consumer finds the member only while the offer may still be sent.
@@ -109,7 +115,9 @@ reset role;
 insert into public.consent (venue_id, member_id, purpose)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'marketing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select public.publish_promotion_template((select id from templates where template_key = 'tuesday_bonus'));
+select public.submit_promotion_template((select id from templates where template_key = 'tuesday_bonus'));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select public.approve_promotion((select id from templates where template_key = 'tuesday_bonus'));
 reset role;
 select is(pg_temp.offers((select id from templates where template_key = 'tuesday_bonus')), '212', 'a member without promotions.feed is not offered it');
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
@@ -121,11 +129,13 @@ values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'marketing_sends
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
   (select id from templates where template_key = 'tuesday_bonus')) $$, 'with marketing sends switched off, a waiting offer is not sent');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select public.publish_promotion_template((select id from templates where template_key = 'graduate_first_buy_in'));
+select public.submit_promotion_template((select id from templates where template_key = 'graduate_first_buy_in'));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select public.approve_promotion((select id from templates where template_key = 'graduate_first_buy_in'));
 reset role;
 select is(pg_temp.offers((select id from templates where template_key = 'graduate_first_buy_in')), 'none', 'and a new one is offered to nobody');
 
--- A frozen venue refuses a promotion put live straight into the table, as publish_promotion does.
+-- A frozen venue refuses a promotion put live straight into the table, as approve_promotion does.
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 select throws_ok($$ insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Straight in', 'live') $$,
   'RVFRZ', null, 'a frozen venue refuses a promotion put live straight into the table');

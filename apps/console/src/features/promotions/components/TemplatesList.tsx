@@ -4,12 +4,12 @@ import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useId, useState } from 'react';
 
 function TemplateRow({ venueId, template }: { venueId: string; template: ConsolePromotion }) {
-  const { publishTemplate } = usePromotionActions(venueId);
+  const { submitTemplate } = usePromotionActions(venueId);
   const [failure, setFailure] = useState<string | null>(null);
   const nameId = useId();
   const line = [template.detail, template.runs].filter((part) => part !== null).join(' · ');
-  const publish = async () => {
-    const result = await publishTemplate.mutateAsync(template.id);
+  const submit = async () => {
+    const result = await submitTemplate.mutateAsync(template.id);
     setFailure(result.ok ? null : t(`console.promotions.failures.${result.error}`));
   };
   return (
@@ -19,8 +19,8 @@ function TemplateRow({ venueId, template }: { venueId: string; template: Console
           <Text weight="medium" id={nameId}>{template.name}</Text>
           {line === '' ? null : <Text variant="small" tone="muted">{line}</Text>}
         </Stack>
-        <Button variant="text" isLoading={publishTemplate.isPending} onClick={() => void publish()} aria-describedby={nameId}>
-          {t('console.promotions.publishTemplate')}
+        <Button variant="text" isLoading={submitTemplate.isPending} onClick={() => void submit()} aria-describedby={nameId}>
+          {t('console.promotions.submitTemplate')}
         </Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
@@ -28,7 +28,7 @@ function TemplateRow({ venueId, template }: { venueId: string; template: Console
   );
 }
 
-/** Every scheme in the deck not yet published (#85), each published as it stands. Nothing shows once all are. */
+/** Every scheme in the deck still a draft (#85), each sent for approval as it stands (#144). Nothing shows once none is. */
 export function TemplatesList({ venueId }: { venueId: string }) {
   const templates = usePromotionTemplates(venueId);
   const heading = <Heading level={2} variant="section">{t('console.promotions.templates')}</Heading>;

@@ -6,7 +6,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 
 | Table | Purpose |
 |---|---|
-| `promotion`, `promotion_rule`, `promotion_grant`, `promotion_budget` | Rule builder: triggers, conditions, effects, controls (dates, budgets in rupees and count, per-player limits, stacking, second-role approval), grants and spend |
+| `promotion`, `promotion_rule`, `promotion_grant`, `promotion_budget` | Rule builder: triggers, conditions, effects, controls (dates, budgets in rupees and count, per-player limits, stacking, a super admin's approval, decision 0244), grants and spend |
 | `spin_wheel`, `spin` | Prizes and odds from configuration with a budget cap; spins and results |
 | `reward_item`, `redemption` | Catalogue (tournament seat, F&B upgrade, merchandise, hotel nights) and redemptions |
 | `points_earning` | What each visit earned in points, by table and from rake, as `private.close_visit` credits it (#89, decision 0161) |

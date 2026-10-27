@@ -138,8 +138,9 @@ export {
   type TableRules,
 } from './hands.ts';
 export {
-  usePromotionActions, usePromotions, usePromotionSimulation, usePromotionStakes, usePromotionTemplates, type ConsolePromotion, type PromotionFailure,
-  type PromotionSimulationResult, type PromotionStake, type PromotionToPublish, type SimulationFailure,
+  usePromotionActions, usePromotionDecisions, usePromotions, usePromotionsAwaitingApproval, usePromotionSimulation, usePromotionStakes, usePromotionTemplates,
+  type ConsolePromotion, type PromotionAwaitingApproval, type PromotionFailure, type PromotionSimulationResult, type PromotionStake,
+  type PromotionToSubmit, type SimulationFailure,
 } from './promotions.ts';
 export { useOnboardingChecklist, type OnboardingItem } from './onboarding.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';

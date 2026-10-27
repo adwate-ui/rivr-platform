@@ -1,5 +1,5 @@
 -- The promotions builder (#84, flow 7) and completed call time as a condition (#80). 107 Ishita
--- (marketing) publishes; 104 Sana (cashier) may not. 211 Ishaan sits at Table 3 (NLH 100/200, an
+-- (marketing) submits and 101, a super admin, approves (#144); 104 Sana (cashier) may do neither. 211 Ishaan sits at Table 3 (NLH 100/200, an
 -- hour of call time).
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -19,27 +19,33 @@ create temp table flow7 as select jsonb_build_object(
                              'effect', '{"kind": "points", "multiplier_percent": 200}'::jsonb)) as body;
 grant select on flow7 to authenticated;
 
--- Publish: live at once, with its rule and card words, and announced.
+-- Submitted, it waits with its rule and card words; approved by a super admin, it goes live and is announced.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-insert into ids select 'flow7', public.publish_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7));
+insert into ids select 'flow7', public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7));
 select results_eq($$ select p.name, p.status, p.runs, p.detail, r.trigger, r.effect ->> 'multiplier_percent'
                      from public.promotion p join public.promotion_rule r on r.promotion_id = p.id where p.id = (select id from ids where name = 'flow7') $$,
-  $$ values ('Double points'::text, 'live'::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text, null::text, 'hours_played'::text, '200'::text) $$,
-  'marketing publishes flow 7''s promotion live, with its rule and card words');
+  $$ values ('Double points'::text, 'pending'::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text, null::text, 'hours_played'::text, '200'::text) $$,
+  'marketing submits flow 7''s promotion, with its rule and card words, to wait for a super admin');
 reset role;
+select is_empty($$ select 1 from public.outbox_event where event_type = 'promotion.published'
+                   and idempotency_key = 'promotion.published:' || (select id from ids where name = 'flow7') $$, 'nothing is announced yet');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.approve_promotion((select id from ids where name = 'flow7')) $$, 'a super admin approves it');
+reset role;
+select is((select status from public.promotion where id = (select id from ids where name = 'flow7')), 'live', 'and it is live');
 select is((select payload ->> 'runs' from public.outbox_event where event_type = 'promotion.published'
            and idempotency_key = 'promotion.published:' || (select id from ids where name = 'flow7')), 'NLH 100/200 · Thursday, 14:00 to 20:00',
   'and promotion.published goes out for the cards and WhatsApp');
 
 -- Refusals: not a promotion manager, a rule the engine does not know, none at all, promotions switched off.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select throws_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, '42501', null,
-  'a cashier publishes nothing');
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, '42501', null,
+  'a cashier submits nothing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select throws_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000001',
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001',
   (select jsonb_set(body, '{rule,effect}', '{"kind": "points", "multiplier_percent": 50}') from flow7)) $$, '23514', null,
   'a rule the engine does not know is refused');
-select throws_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000001', (select body - 'rule' from flow7)) $$, '22023', null,
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body - 'rule' from flow7)) $$, '22023', null,
   'so is a promotion without its rule');
 select is((select count(*)::integer from public.promotion where name = 'Double points'), 1, 'and nothing is left of either');
 
@@ -88,19 +94,19 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000211', null, 
 
 -- Refusals: someone who is not staff, a frozen venue, promotions switched off.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select throws_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, '42501', null,
-  'a member publishes nothing');
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, '42501', null,
+  'a member submits nothing');
 reset role;
 insert into public.control_state (venue_id, level, feature, reason) values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select throws_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, 'RVKIL', null,
-  'nothing is published while promotions are switched off');
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, 'RVKIL', null,
+  'nothing is submitted while promotions are switched off');
 select throws_ok($$ select public.set_promotion_live((select id from ids where name = 'drink'), false) $$, 'RVKIL', null,
   'nor paused');
 reset role;
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select throws_ok($$ select public.publish_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, 'RVFRZ', null,
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7)) $$, 'RVFRZ', null,
   'nor while the venue is frozen');
 reset role;
 

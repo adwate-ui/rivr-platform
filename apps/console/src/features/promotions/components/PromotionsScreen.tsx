@@ -9,6 +9,7 @@ import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionC
 import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
 import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
+import { AwaitingApproval } from './AwaitingApproval.tsx';
 import { RunningList } from './RunningList.tsx';
 import { SimulationPanel } from './SimulationPanel.tsx';
 import { TemplatesList } from './TemplatesList.tsx';
@@ -56,7 +57,7 @@ function useSimulation(venueId: string) {
 }
 
 function Builder({ venueId, stakes }: { venueId: string; stakes: readonly PromotionStake[] }) {
-  const { publish } = usePromotionActions(venueId);
+  const { submit: submitPromotion } = usePromotionActions(venueId);
   const simulation = useSimulation(venueId);
   const [choices, setChoices] = useState(START);
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
@@ -68,21 +69,21 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
     return invalid === null ? then() : Promise.resolve(setOutcome({ ok: false, text: invalid }));
   };
   const submit = async () => {
-    const result = await publish.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices) });
+    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices) });
     if (result.ok) { setChoices(START); simulation.clear(); }
-    setOutcome(result.ok ? { ok: true, text: t('console.promotions.published', { name: title }) } : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
+    setOutcome(result.ok ? { ok: true, text: t('console.promotions.submitted', { name: title }) } : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
   };
-  const isBusy = publish.isPending || simulation.isPending;
+  const isBusy = submitPromotion.isPending || simulation.isPending;
   return (
     <Grid columns={2} gap={12}>
       <Stack gap={6}>
         <Heading level={2} variant="section">{t('console.promotions.newPromotion')}</Heading>
         <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { setChoices(next); setOutcome(null); simulation.clear(); }} />
-        <SimulationPanel simulation={simulation.simulation} failure={simulation.failure} isPending={simulation.isPending} isDisabled={publish.isPending}
+        <SimulationPanel simulation={simulation.simulation} failure={simulation.failure} isPending={simulation.isPending} isDisabled={submitPromotion.isPending}
           onSimulate={() => void check(() => simulation.run(choices))} />
         <Inline gap={4} align="center">
-          <Button variant="primary" isLoading={publish.isPending} isDisabled={simulation.simulation === null || simulation.isPending}
-            onClick={() => void check(submit)}>{t('console.promotions.publish')}</Button>
+          <Button variant="primary" isLoading={submitPromotion.isPending} isDisabled={simulation.simulation === null || simulation.isPending}
+            onClick={() => void check(submit)}>{t('console.promotions.submit')}</Button>
           {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
           {outcome === null && simulation.simulation === null ? <Text variant="small" tone="muted">{t('console.promotions.simulateFirst')}</Text> : null}
         </Inline>
@@ -93,7 +94,7 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
   );
 }
 
-function PromotionsBody({ venueId }: { venueId: string }) {
+function PromotionsBody({ venueId, mayApprove }: { venueId: string; mayApprove: boolean }) {
   const stakes = usePromotionStakes(venueId);
   const title = t('console.promotions.title');
   if (stakes.isPending) return <Screen title={title} status="loading" />;
@@ -101,6 +102,7 @@ function PromotionsBody({ venueId }: { venueId: string }) {
   return (
     <Screen title={title}>
       <Stack gap={10}>
+        <AwaitingApproval venueId={venueId} mayApprove={mayApprove} />
         <RunningList venueId={venueId} />
         <TemplatesList venueId={venueId} />
         <Builder venueId={venueId} stakes={stakes.data} />
@@ -112,8 +114,8 @@ function PromotionsBody({ venueId }: { venueId: string }) {
 /**
  * Promotions (#84; design prompt Promotions, flow 7): what is running, paused and resumed in place,
  * and the builder's four blocks with the player card and the TV slide previewed beside them. The
- * choices are simulated on last week first (#144); Publish then puts the promotion live. For staff
- * who manage promotions.
+ * choices are simulated on last week first (#144), then submitted for a super admin, who approves or refuses it
+ * (decision 0244). For staff who manage promotions.
  */
 export function PromotionsScreen() {
   const staff = useStaffVenue();
@@ -121,5 +123,5 @@ export function PromotionsScreen() {
   if (!staff.venue.permissions.includes('promotions.manage')) {
     return <Screen title={t('console.promotions.title')} status="error" errorText={t('console.promotions.notAllowed')} />;
   }
-  return <PromotionsBody venueId={staff.venue.venueId} />;
+  return <PromotionsBody venueId={staff.venue.venueId} mayApprove={staff.venue.permissions.includes('promotions.approve')} />;
 }

@@ -8,9 +8,11 @@ export const promotions = {
   paused: 'Paused',
   pause: 'Pause',
   resume: 'Resume',
-  /** Every scheme in the deck, ready to publish as it stands (#85). */
+  /** Every scheme in the deck, ready to send for approval as it stands (#85, #144). */
   templates: 'Templates',
-  publishTemplate: 'Publish template',
+  submitTemplate: 'Send for approval',
+  /** After a template is sent: `{name}` is the template. */
+  templateSubmitted: '{name} waits for a super admin.',
   newPromotion: 'New promotion',
   when: 'When',
   days: 'Days',
@@ -39,12 +41,28 @@ export const promotions = {
   tvSlide: 'TV slide',
   /** Above the title on the TV slide. */
   slideLabel: 'Promotion',
-  publish: 'Publish',
-  /** After Publish: `{name}` is the promotion. */
-  published: '{name} is live.',
+  submit: 'Submit for approval',
+  /** After Submit for approval: `{name}` is the promotion. */
+  submitted: '{name} waits for a super admin to approve it.',
+  /** Promotions waiting for a super admin (#144): only a super admin approves one, never their own. */
+  awaiting: {
+    heading: 'Waiting for approval',
+    /** Under each: `{name}` submitted it at `{time}`. */
+    submittedBy: 'Submitted by {name}, {time}',
+    waiting: 'Waiting for a super admin.',
+    yours: 'You submitted it, so another super admin approves it.',
+    approve: 'Approve',
+    refuse: 'Refuse',
+    refuseReason: 'Why it is refused',
+    refuseHint: 'The one who submitted it reads this.',
+    invalidReason: 'Say why, in 3 to 300 characters.',
+    /** After Approve or Refuse: `{name}` is the promotion. */
+    approved: '{name} is live.',
+    refused: '{name} went back to draft.',
+  },
   /** The simulation before publishing (#144): last week's seven club days replayed with the promotion. */
   simulate: 'Simulate last week',
-  simulateFirst: 'Simulate it on last week before publishing.',
+  simulateFirst: 'Simulate it on last week before submitting it.',
   simulation: {
     heading: 'Last week',
     /** The club days replayed: "12 Oct to 18 Oct". */
@@ -69,7 +87,8 @@ export const promotions = {
   failures: {
     invalid: 'Choose both times, the start before the end, within the night (it ends at 06:00).',
     invalidCap: 'The most per buy-in is whole rupees in ₹50 chips, from ₹50 to ₹1,00,000.',
-    not_allowed: 'Only staff who manage promotions publish one.',
+    not_allowed: 'Only staff who manage promotions submit one, and only a super admin approves or refuses one.',
+    own_promotion: 'You submitted this one, so another super admin approves it.',
     switched_off: 'Promotions are switched off.',
     paused: 'The club is frozen. Nothing changes until it is released.',
     unavailable: 'That did not go through. Try again.',

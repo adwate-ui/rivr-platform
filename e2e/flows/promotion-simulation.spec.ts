@@ -1,10 +1,10 @@
 /**
  * Promotion simulation (#144; scope-v1 module 7 acceptance): the floor builds a new Thursday scheme,
- * Thursday 14:00 to 20:00 in the Private Room, triple points, simulates it on last week and publishes it,
- * in under ten minutes. A member of the flow's own, Simran, played in the Private Room last Thursday 14:00
+ * Thursday 14:00 to 20:00 in the Private Room, triple points, simulates it on last week and submits it, and a
+ * super admin approves it (#144), in under ten minutes. A member of the flow's own, Simran, played in the Private Room last Thursday 14:00
  * to 20:00, so the simulation gives twice the points that time earned, at no rupee cost and no cap.
- * Publishing waits for a simulation of the choices as they stand. 107 Ishita (marketing, who manage
- * promotions) is the flow's own. Local stack only: it writes last week's visit in the local database.
+ * Submitting waits for a simulation of the choices as they stand. 107 Ishita (marketing, who manage
+ * promotions) and 760 Leela Varma (a super admin) are the flow's own. Local stack only: it writes last week's visit in the local database.
  */
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
@@ -55,7 +55,7 @@ function lastWeekInWindow(): { visits: number; points: number } {
 }
 
 test.describe('Promotion simulation', () => {
-  test('A new Thursday scheme simulated on last week and published in under ten minutes', async ({ page }) => {
+  test('A new Thursday scheme simulated on last week and published in under ten minutes', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'writes last week\'s visit in the local database');
     test.setTimeout(120_000);
     playedLastThursday();
@@ -72,9 +72,9 @@ test.describe('Promotion simulation', () => {
     await page.getByRole('group', { name: 'Who' }).getByRole('button', { name: 'Private Room' }).click();
     await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Triple points' }).click();
 
-    // Publishing waits for the simulation.
-    await expect(page.getByRole('button', { name: 'Publish', exact: true })).toBeDisabled();
-    await expect(page.getByText('Simulate it on last week before publishing.')).toBeVisible();
+    // Submitting waits for the simulation.
+    await expect(page.getByRole('button', { name: 'Submit for approval', exact: true })).toBeDisabled();
+    await expect(page.getByText('Simulate it on last week before submitting it.')).toBeVisible();
     await page.getByRole('button', { name: 'Simulate last week' }).click();
     const figure = (label: string, value: string) => page.getByText(label, { exact: true }).locator('xpath=..').getByText(value, { exact: true });
     await expect(figure('Times given', expected.visits.toLocaleString('en-IN'))).toBeVisible({ timeout: 10_000 });
@@ -82,19 +82,28 @@ test.describe('Promotion simulation', () => {
     await expect(figure('Bonus cost', '₹0')).toBeVisible();
     await expect(figure('Budget', 'No cap')).toBeVisible();
 
-    // A change clears the simulation; simulating again lets it publish.
+    // A change clears the simulation; simulating again lets it be submitted.
     await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Double points' }).click();
-    await expect(page.getByRole('button', { name: 'Publish', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Submit for approval', exact: true })).toBeDisabled();
     await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Triple points' }).click();
     await page.getByRole('button', { name: 'Simulate last week' }).click();
     await expect(figure('Extra points', (expected.points * 2).toLocaleString('en-IN'))).toBeVisible({ timeout: 10_000 });
-    await page.getByRole('button', { name: 'Publish', exact: true }).click();
-    await expect(page.getByText('Triple points is live.')).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Submit for approval', exact: true }).click();
+    await expect(page.getByText('Triple points waits for a super admin to approve it.')).toBeVisible({ timeout: 10_000 });
+
+    // Leela Varma, a super admin, approves it (#144).
+    const approver = await browser.newPage();
+    await signInToConsole(approver, '9000000760');
+    await approver.getByRole('link', { name: 'Promotions' }).click();
+    const waiting = approver.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
+    await waiting.getByRole('button', { name: 'Approve', exact: true }).click();
+    await expect(approver.getByText('Triple points is live.')).toBeVisible({ timeout: 10_000 });
     expect(Date.now() - started).toBeLessThan(10 * 60_000);
 
     // Paused again, so no other flow meets it.
-    const running = page.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
+    const running = approver.getByText('Private Room · Thursday, 14:00 to 20:00', { exact: true }).first().locator('xpath=../..');
     await running.getByRole('button', { name: 'Pause' }).click();
     await expect(running.getByText('Paused', { exact: true })).toBeVisible();
+    await approver.close();
   });
 });

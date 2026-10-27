@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { PromotionDraft } from '@rivr/domain/promotions';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { usePromotionActions, usePromotions, usePromotionSimulation, usePromotionStakes, usePromotionTemplates } from './promotions.ts';
+import {
+  usePromotionActions, usePromotionDecisions, usePromotions, usePromotionsAwaitingApproval, usePromotionSimulation, usePromotionStakes, usePromotionTemplates,
+} from './promotions.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -35,7 +37,8 @@ function renderPromotions(replies: Record<string, { status?: number; body: unkno
   const { result } = renderHook(
     () => ({
       list: usePromotions(VENUE), stakes: usePromotionStakes(VENUE), templates: usePromotionTemplates(VENUE), actions: usePromotionActions(VENUE),
-      simulation: usePromotionSimulation(VENUE),
+      simulation: usePromotionSimulation(VENUE), awaiting: usePromotionsAwaitingApproval(VENUE),
+      decisions: usePromotionDecisions(VENUE),
     }),
     { wrapper },
   );
@@ -60,14 +63,14 @@ describe('Promotions (#84)', () => {
     expect(calls.find((call) => call.url.includes('/rest/v1/promotion'))?.url).toContain('status=in.%28live%2Cpaused%29');
   });
 
-  it('publishes with the rule and a per-player limit, and pauses through set_promotion_live', async () => {
-    const { result, calls } = renderPromotions({ '/rpc/publish_promotion': { body: 'p9' }, '/rest/v1/': { body: [] } });
-    let published: unknown;
+  it('submits with the rule and a per-player limit, and pauses through set_promotion_live', async () => {
+    const { result, calls } = renderPromotions({ '/rpc/submit_promotion': { body: 'p9' }, '/rest/v1/': { body: [] } });
+    let submitted: unknown;
     await act(async () => {
-      published = await result.current.actions.publish.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
+      submitted = await result.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
     });
-    expect(published).toEqual({ ok: true, value: 'p9' });
-    expect(calls.find((call) => call.url.includes('publish_promotion'))?.body).toEqual({
+    expect(submitted).toEqual({ ok: true, value: 'p9' });
+    expect(calls.find((call) => call.url.includes('submit_promotion'))?.body).toEqual({
       p_venue_id: VENUE,
       p_promotion: { name: 'Double points', runs: 'Thursday', rule: DRAFT.rule, per_player_limit: 1, per_player_period: 'promotion' },
     });
@@ -77,34 +80,68 @@ describe('Promotions (#84)', () => {
     expect(calls.find((call) => call.url.includes('set_promotion_live'))?.body).toEqual({ p_promotion_id: 'p9', p_is_live: false });
   });
 
-  it('says why a publish was refused: promotions switched off, or not a promotion manager', async () => {
-    const { result } = renderPromotions({ '/rpc/publish_promotion': { status: 400, body: { code: 'RVKIL', message: 'off' } }, '/rest/v1/': { body: [] } });
+  it('says why a submission was refused: promotions switched off, or not a promotion manager', async () => {
+    const { result } = renderPromotions({ '/rpc/submit_promotion': { status: 400, body: { code: 'RVKIL', message: 'off' } }, '/rest/v1/': { body: [] } });
     let refused: unknown;
     await act(async () => {
-      refused = await result.current.actions.publish.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: { ...DRAFT, perPlayer: null } });
+      refused = await result.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: { ...DRAFT, perPlayer: null } });
     });
     expect(refused).toEqual({ ok: false, error: 'switched_off' });
-    const { result: other } = renderPromotions({ '/rpc/publish_promotion': { status: 403, body: { code: '42501', message: 'no' } }, '/rest/v1/': { body: [] } });
+    const { result: other } = renderPromotions({ '/rpc/submit_promotion': { status: 403, body: { code: '42501', message: 'no' } }, '/rest/v1/': { body: [] } });
     await act(async () => {
-      refused = await other.current.actions.publish.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
+      refused = await other.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
     });
     expect(refused).toEqual({ ok: false, error: 'not_allowed' });
   });
 
-  it('lists the draft templates and publishes one as it stands (#85)', async () => {
+  it('lists the draft templates and submits one as it stands (#85)', async () => {
     const { result, calls } = renderPromotions({
-      '/rpc/publish_promotion_template': { body: null },
+      '/rpc/submit_promotion_template': { body: null },
       '/rest/v1/promotion': { body: [{ id: 't1', name: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }] },
       '/rest/v1/': { body: [] },
     });
     await waitFor(() => expect(result.current.templates.data).toEqual([{ id: 't1', name: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', isLive: false }]));
     expect(calls.find((call) => call.url.includes('status=eq.draft'))?.url).toContain('template_key=not.is.null');
-    let published: unknown;
+    let submitted: unknown;
     await act(async () => {
-      published = await result.current.actions.publishTemplate.mutateAsync('t1');
+      submitted = await result.current.actions.submitTemplate.mutateAsync('t1');
     });
-    expect(published).toEqual({ ok: true, value: null });
-    expect(calls.find((call) => call.url.includes('publish_promotion_template'))?.body).toEqual({ p_promotion_id: 't1' });
+    expect(submitted).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.url.includes('submit_promotion_template'))?.body).toEqual({ p_promotion_id: 't1' });
+  });
+
+  it('lists the promotions waiting for a super admin, and approves or refuses one', async () => {
+    const { result, calls } = renderPromotions({
+      '/rpc/promotions_awaiting_approval': {
+        body: [{ promotion_id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', template_key: null, requested_by: 'Ishita Bose',
+                 requested_at: '2026-10-27T10:00:00Z', is_mine: false }],
+      },
+      '/rpc/approve_promotion': { body: null },
+      '/rpc/refuse_promotion': { body: null },
+      '/rest/v1/': { body: [] },
+    });
+    await waitFor(() => expect(result.current.awaiting.data).toEqual([
+      { id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T10:00:00Z', isMine: false },
+    ]));
+    let approved: unknown;
+    await act(async () => {
+      approved = await result.current.decisions.approve.mutateAsync('p9');
+    });
+    expect(approved).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.url.includes('approve_promotion'))?.body).toEqual({ p_promotion_id: 'p9' });
+    await act(async () => {
+      await result.current.decisions.refuse.mutateAsync({ id: 'p9', reason: 'Too generous' });
+    });
+    expect(calls.find((call) => call.url.includes('refuse_promotion'))?.body).toEqual({ p_promotion_id: 'p9', p_reason: 'Too generous' });
+  });
+
+  it('says a super admin does not approve their own promotion', async () => {
+    const { result } = renderPromotions({ '/rpc/approve_promotion': { status: 400, body: { code: 'RVTWO', message: 'own' } }, '/rest/v1/': { body: [] } });
+    let refused: unknown;
+    await act(async () => {
+      refused = await result.current.decisions.approve.mutateAsync('p9');
+    });
+    expect(refused).toEqual({ ok: false, error: 'own_promotion' });
   });
 });
 

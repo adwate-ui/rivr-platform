@@ -23,8 +23,8 @@ export interface PromotionStake {
   readonly name: string;
 }
 
-/** A promotion as the builder publishes it: its name and card's words, and its rule. */
-export interface PromotionToPublish {
+/** A promotion as the builder submits it: its name and card's words, and its rule. */
+export interface PromotionToSubmit {
   readonly name: string;
   readonly runs: string;
   /** What it gives, when the name does not say it all: "Up to ₹5,000 a buy-in". */
@@ -32,12 +32,40 @@ export interface PromotionToPublish {
   readonly draft: PromotionDraft;
 }
 
-/** Why a publish, pause or resume did not go through. */
-export type PromotionFailure = 'not_allowed' | 'invalid' | 'switched_off' | 'paused' | 'unavailable';
+/** Why a submission, approval, refusal, pause or resume did not go through; own_promotion: a super admin approving what they submitted. */
+export type PromotionFailure = 'not_allowed' | 'invalid' | 'own_promotion' | 'switched_off' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PromotionFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', '23514': 'invalid', RVKIL: 'switched_off', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', '23514': 'invalid', RVTWO: 'own_promotion', RVKIL: 'switched_off', RVFRZ: 'paused',
 };
+
+/** A promotion waiting for a super admin (#144): who submitted it, when, and whether the signed-in staff member did. */
+export interface PromotionAwaitingApproval {
+  readonly id: string;
+  readonly name: string;
+  readonly detail: string | null;
+  readonly runs: string | null;
+  readonly requestedBy: string;
+  readonly requestedAt: string;
+  readonly isMine: boolean;
+}
+
+/** The venue's promotions waiting for a super admin, oldest first, for staff who manage promotions. */
+export function usePromotionsAwaitingApproval(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.promotionsAwaitingApproval(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<PromotionAwaitingApproval[]> => {
+      const { data, error } = await client.rpc('promotions_awaiting_approval', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        id: row.promotion_id, name: row.name, detail: row.detail, runs: row.runs, requestedBy: row.requested_by, requestedAt: row.requested_at,
+        isMine: row.is_mine,
+      }));
+    },
+  });
+}
 
 /** The venue's live and paused promotions, newest first, for staff who manage promotions. */
 export function usePromotions(venueId: string) {
@@ -118,19 +146,29 @@ export function usePromotionSimulation(venueId: string) {
   });
 }
 
-/** Publishes a promotion live from the builder, and pauses or resumes one; the list reloads after each. */
-export function usePromotionActions(venueId: string) {
-  const { client, userId } = useRivrData();
+/** Settles a promotion call: reloads the venue's promotion lists, then says how the call went. */
+function useSettle(venueId: string) {
+  const { userId } = useRivrData();
   const queryClient = useQueryClient();
-  const settle = async <T>(value: T, error: { code: string } | null): Promise<Result<T, PromotionFailure>> => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.promotions(userId ?? 'signed-out', venueId) });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.promotionTemplates(userId ?? 'signed-out', venueId) });
+  return async <T>(value: T, error: { code: string } | null): Promise<Result<T, PromotionFailure>> => {
+    for (const key of [queryKeys.promotions, queryKeys.promotionTemplates, queryKeys.promotionsAwaitingApproval]) {
+      await queryClient.invalidateQueries({ queryKey: key(userId ?? 'signed-out', venueId) });
+    }
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
-  const publish = useMutation({
-    mutationFn: async ({ name, detail, runs, draft }: PromotionToPublish) => {
+}
+
+/**
+ * Submits a promotion from the builder or a template for a super admin (#144), and pauses or resumes a live one; the
+ * lists reload after each.
+ */
+export function usePromotionActions(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSettle(venueId);
+  const submit = useMutation({
+    mutationFn: async ({ name, detail, runs, draft }: PromotionToSubmit) => {
       const perPlayer = draft.perPlayer === null ? {} : { per_player_limit: draft.perPlayer.limit, per_player_period: draft.perPlayer.period };
-      const { data, error } = await client.rpc('publish_promotion', { p_venue_id: venueId, p_promotion: { name, detail, runs, rule: draft.rule, ...perPlayer } });
+      const { data, error } = await client.rpc('submit_promotion', { p_venue_id: venueId, p_promotion: { name, detail, runs, rule: draft.rule, ...perPlayer } });
       return settle(data, error);
     },
   });
@@ -140,11 +178,30 @@ export function usePromotionActions(venueId: string) {
       return settle(null, error);
     },
   });
-  const publishTemplate = useMutation({
+  const submitTemplate = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await client.rpc('publish_promotion_template', { p_promotion_id: id });
+      const { error } = await client.rpc('submit_promotion_template', { p_promotion_id: id });
       return settle(null, error);
     },
   });
-  return { publish, setLive, publishTemplate };
+  return { submit, setLive, submitTemplate };
+}
+
+/** A super admin approves a waiting promotion, never their own, or refuses it with a reason (#144); the lists reload. */
+export function usePromotionDecisions(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSettle(venueId);
+  const approve = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await client.rpc('approve_promotion', { p_promotion_id: id });
+      return settle(null, error);
+    },
+  });
+  const refuse = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { error } = await client.rpc('refuse_promotion', { p_promotion_id: id, p_reason: reason });
+      return settle(null, error);
+    },
+  });
+  return { approve, refuse };
 }
