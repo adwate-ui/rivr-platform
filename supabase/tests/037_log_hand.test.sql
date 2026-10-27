@@ -53,6 +53,17 @@ select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select results_eq($$ select rate_basis_points, cap_paise, is_jackpot_live, drop_paise, drop_above_paise, has_variation from public.tablet_rake_rules() $$,
   $$ values (500, 600000::bigint, true, 10000::bigint, 500000::bigint, true) $$,
   'the tablet reads Table 3''s rules: 5% to a ₹6,000 cap, a live jackpot taking ₹100 above ₹5,000, variations allowed');
+select is((select next_change_at from public.tablet_rake_rules()), null::timestamptz, 'with no change scheduled, none is due');
+reset role;
+-- A change scheduled for an hour from now: the tablet is told when, so it asks again then (#303).
+select set_config('request.jwt.claims', '', true);
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_100_200', '{"rate_basis_points": 500, "cap_paise": 500000}',
+        now() + interval '1 hour', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select results_eq($$ select cap_paise, next_change_at from public.tablet_rake_rules() $$,
+  $$ values (600000::bigint, now() + interval '1 hour') $$,
+  'a rake change scheduled for an hour from now is due then, and the cap stays ₹6,000 until it is');
 
 -- Flow 4: a ₹48,000 Hold'em pot.
 create temporary table flow4 on commit drop as

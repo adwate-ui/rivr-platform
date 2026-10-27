@@ -4452,7 +4452,7 @@ isOneToOne: false
                            },
 "tablet_rake_rules":
 { Args: Record<PropertyKey, never>; Returns: {
-              "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"rate_basis_points": number
+              "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"next_change_at": string,"rate_basis_points": number
             }[]
                            },
 "tablet_seats":
