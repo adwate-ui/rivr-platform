@@ -31,7 +31,7 @@ function TvList({ venue }: { venue: StaffVenue }) {
             {tvs.data.map((tv) => <TvRow key={tv.deviceId} venueId={venueId} tv={tv} />)}
           </Stack>
         )}
-        <PairingWindow venueId={venueId} canSwitch={venue.permissions.includes('venue.configure')} />
+        {venue.isPractice ? null : <PairingWindow venueId={venueId} canSwitch={venue.permissions.includes('venue.configure')} />}
         <PairTvForm venueId={venueId} venueName={venue.venueName} isPractice={venue.isPractice} />
       </Stack>
     </Screen>

@@ -21,7 +21,7 @@ interface SopFormProps {
 const EMPTY: SopValues = { title: '', owner: '', ackRoles: [], effectiveOn: '', body: '' };
 
 /** A new SOP starts empty; a new version starts from the version waiting for its day, else the one in force. */
-function startingValues(sop: Sop | undefined): SopValues {
+export function startingValues(sop: Sop | undefined): SopValues {
   if (sop === undefined) return EMPTY;
   // The latest published: the last waiting for its day (a later version never takes effect before an earlier one), or the one in force.
   const latest = sop.waiting.at(-1) ?? sop.current;

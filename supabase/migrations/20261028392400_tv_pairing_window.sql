@@ -35,7 +35,8 @@ begin
   -- Window-only pairing: a venue that has it gives codes only for ten minutes after staff press Pair a TV. A screen not
   -- yet paired has no venue, so a window at any club venue opens codes.
   if exists (select 1 from public.venue_config c join public.venue v on v.id = c.venue_id where c.tv_pairing_window_only and not v.is_practice)
-     and not exists (select 1 from public.venue_config c where c.tv_pairing_window_only and c.tv_pairing_window_at > now() - interval '10 minutes') then
+     and not exists (select 1 from public.venue_config c join public.venue v on v.id = c.venue_id
+                     where c.tv_pairing_window_only and not v.is_practice and c.tv_pairing_window_at > now() - interval '10 minutes') then
     return query select null::text, null::text, null::timestamptz, 'window_closed'::text;
     return;
   end if;

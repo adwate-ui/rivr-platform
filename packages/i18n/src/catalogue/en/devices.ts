@@ -161,7 +161,7 @@ export const tvPairing = {
   loading: 'Getting a code.',
   tooMany: 'Too many screens asked for a code. This one asks again in a minute.',
   /** The venue pairs TVs only after staff press Pair a TV (#325). */
-  windowClosed: 'Press Pair a TV on the console\u2019s TVs screen. This screen shows its code within a few seconds after.',
+  windowClosed: 'Press Pair a TV on the console\u2019s TVs screen. This screen shows its code within a minute after.',
   unavailable: 'RIVR cannot be reached. This screen tries again in a minute.',
 };
 
