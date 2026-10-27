@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { deviceRevokeSchema } from '@rivr/contracts';
 import { useDeviceActions, type Computer, type DeviceFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -25,14 +25,11 @@ function RevokeForm({ venueId, computer, onDone }: { venueId: string; computer: 
     const revoked = await revoke.mutateAsync({ deviceId: computer.deviceId, reason });
     onDone(revoked.ok ? null : revoked.error);
   });
-  const reasonField = form.register('reason');
   return (
-    <Inline gap={3} align="end">
-      <Input {...reasonField} label={t('console.computers.revokeReason')} autoComplete="off"
-        error={form.formState.errors.reason ? t('console.computers.invalidReason') : undefined} />
-      <Button variant="danger" isLoading={revoke.isPending} onClick={() => void submit()}>{t('console.computers.revokeConfirm')}</Button>
-      <Button variant="text" onClick={() => onDone(null)}>{t('common.cancel')}</Button>
-    </Inline>
+    <ReasonForm field={form.register('reason')} label={t('console.computers.revokeReason')}
+      error={form.formState.errors.reason ? t('console.computers.invalidReason') : undefined}
+      actions={[{ label: t('console.computers.revokeConfirm'), onClick: () => void submit() }]}
+      isLoading={revoke.isPending} onCancel={() => onDone(null)} />
   );
 }
 
