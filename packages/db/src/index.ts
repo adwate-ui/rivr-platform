@@ -64,6 +64,7 @@ export {
 } from './feedback.ts';
 export * from './rewards.ts';
 export * from './league.ts';
+export * from './dealers.ts';
 export * from './floorReports.ts';
 export {
   useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
@@ -75,6 +76,7 @@ export {
   isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
+export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
 export {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from './memberErasure.ts';

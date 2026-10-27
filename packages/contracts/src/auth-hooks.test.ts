@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sendSmsHookSchema } from './auth-hooks.ts';
+import { PHONE_CHANGE, sendSmsHookSchema } from './auth-hooks.ts';
 
 // What Supabase Auth posts to the Send SMS hook: the user, and in `sms` the code it generated and
 // the number it is checking (Supabase Auth v2.197, internal/api/phone.go).
@@ -13,12 +13,14 @@ describe('the Send SMS hook payload', () => {
     expect(sendSmsHookSchema.parse(payload)).toEqual({ to: '+919000000201', code: '482913' });
   });
 
-  it('sends a phone change to the new number, never the old one', () => {
-    const phoneChange = {
-      user: { ...payload.user, phone: '919811111111', new_phone: '919822222222' },
-      sms: { otp: '482913', phone: '919822222222' },
-    };
-    expect(sendSmsHookSchema.parse(phoneChange).to).toBe('+919822222222');
+  it('refuses any code but one to the login\'s own number: a phone change, or a login with no number', () => {
+    const toAnother = { user: { ...payload.user, phone: '919811111111' }, sms: { otp: '482913', phone: '919822222222' } };
+    const noNumber = { user: { ...payload.user, phone: '' }, sms: { otp: '482913', phone: '919822222222' } };
+    const noUser = { sms: { otp: '482913', phone: '919822222222' } };
+    for (const phoneChange of [toAnother, noNumber, noUser]) {
+      const parsed = sendSmsHookSchema.safeParse(phoneChange);
+      expect(parsed.success ? null : parsed.error.issues[0]?.message).toBe(PHONE_CHANGE);
+    }
   });
 
   it('refuses a number that is not an Indian mobile', () => {

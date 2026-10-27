@@ -3583,6 +3583,9 @@ isOneToOne: false
               "at": string,"camera_name": string,"channel": string,"is_practice": boolean
             }[]
                            },
+"change_member_phone":
+{ Args: { "p_member_id": string,"p_phone": string,"p_reason": string }; Returns: undefined
+                           },
 "check_in":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
                            },
@@ -3686,6 +3689,16 @@ isOneToOne: false
 "current_down":
 { Args: Record<PropertyKey, never>; Returns: {
               "down_id": string,"full_name": string,"staff_id": string,"started_at": string
+            }[]
+                           },
+"dealer_nights":
+{ Args: { "p_from": string,"p_until": string,"p_venue_id": string }; Returns: {
+              "counted_downs": number,"dealer_name": string,"dealt_seconds": number,"downs": number,"hands": number,"hands_per_hour": number,"rake_paise": number,"staff_id": string,"variance_paise": number
+            }[]
+                           },
+"dealer_rotation":
+{ Args: { "p_venue_id": string }; Returns: {
+              "dealer_name": string,"is_due": boolean,"minutes": number,"since": string,"staff_id": string,"state": string,"table_id": string,"table_name": string
             }[]
                            },
 "dealer_sign_in":

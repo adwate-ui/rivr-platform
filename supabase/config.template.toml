@@ -276,6 +276,10 @@ max_frequency = "60s"
 919000000757 = "123456"
 919000000759 = "123456"
 919000000760 = "123456"
+# The Phone change flow's super admin, supabase/seed/12_people_d.sql (#502).
+919000000780 = "123456"
+# Builder (lanes B to D): the Dealers flow's floor manager, supabase/seed/13_people_b.sql (#124).
+919000000770 = "123456"
 919000000201 = "123456"
 919000000202 = "123456"
 919000000203 = "123456"
