@@ -72,6 +72,63 @@ export const documents = {
     /** `{share}` as `12.5%`. */
     share: 'Share at {share}',
   },
+  /** A kitchen order ticket (#123), printed at Glaza's bar by the cage agent. Plain ASCII: the bar printer's own font. */
+  kot: {
+    title: 'KOT {number}',
+    seat: '{table}, seat {seat}',
+    paid: 'PAID BY THE MEMBER',
+    comp: 'COMP - RIVR',
+    line: '{quantity} x {name}',
+  },
+  /** The offline pack (#167), printed at the cage when the system is down. */
+  offlinePack: {
+    title: 'Offline pack',
+    venue: 'Venue',
+    made: 'Made',
+    intro: 'Use this pack while the system is down. Work from the paper forms, and enter everything once the system is back.',
+    note: 'Made automatically each night. Shred the previous night’s copy.',
+    contacts: 'Who to call',
+    noContacts: 'No contacts are set. Ask an admin to add them on the Incidents screen.',
+    who: 'Who',
+    kind: 'For',
+    phone: 'Phone',
+    contactKind: {
+      escalation: 'Escalation',
+      vendor: 'Vendor',
+      glaza: 'Glaza',
+      police: 'Police',
+      fire: 'Fire',
+      electricity: 'Electricity',
+    },
+    balances: 'Open balances',
+    noBalances: 'No member has money held or owed.',
+    member: 'Member',
+    wallet: 'Wallet',
+    markers: 'Markers owed',
+    walletsTotal: 'All wallets',
+    markersTotal: 'All markers owed',
+    cage: 'The cage',
+    amount: 'Amount',
+    cageFloat: 'Cage float',
+    /** In the float's place when no cage shift was open as the pack was made. */
+    noShift: 'No shift open',
+    chipsInPlay: 'Chips in play',
+    floor: 'The floor',
+    /** `{game}` as `NLH 100/200`. */
+    table: '{table} · {game}',
+    seatsAt: 'Who sits at {table}',
+    nobodySeated: 'Nobody seated.',
+    noTables: 'No table was open.',
+    seat: 'Seat',
+    waitlist: 'Waitlist',
+    nobodyWaiting: 'Nobody waiting.',
+    game: 'Game',
+    place: 'Place',
+    sops: 'Procedures in force',
+    noSops: 'No SOP is in force.',
+    /** `{day}` the day it took effect. */
+    sopVersion: 'Version {version}, in force from {day}',
+  },
   /** At the foot of every A4 document. */
   computerGenerated: 'Computer-generated.',
 } as const;

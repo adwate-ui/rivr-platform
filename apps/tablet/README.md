@@ -43,7 +43,8 @@ src/
     dealer-sign-in/   between downs: the dealer's name and PIN, which starts their down
     hand-entry/       during a down (#42): the pot keypad, the game, the rake, drop and pull as the pot is
                       typed (@rivr/domain potTake on the table's rules), Log hand, and the down's last hands,
-                      with what the floor made of each high-hand claim; the High hand switch sends one with a hand (#47)
+                      with what the floor made of each high-hand claim; the High hand switch sends one with a hand (#47);
+                      a seat's Food and drink orders to it, paid by the player (#123)
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

@@ -16,17 +16,17 @@ const FAILURE_COPY: Readonly<Record<ComputerFailure, MessageKey>> = {
   unavailable: 'console.computers.unavailable',
 };
 
-/** Adds a computer by name, as the cage or an admin console, and shows the code to enter on it. */
+/** Adds a computer by name, as the cage, an admin console or the cage agent (#168), and shows the code to enter on it. */
 export function AddComputerForm({ venueId }: { venueId: string }) {
   const { add } = useComputerActions(venueId);
   const [failure, setFailure] = useState<ComputerFailure | null>(null);
-  const [code, setCode] = useState<{ given: ComputerCode; name: string } | null>(null);
+  const [code, setCode] = useState<{ given: ComputerCode; name: string; kind: ComputerKind } | null>(null);
   const [resolver] = useState(() => zodResolver(computerEnrolSchema));
   const form = useForm<z.input<typeof computerEnrolSchema>, unknown, z.output<typeof computerEnrolSchema>>({ resolver, defaultValues: { name: '' } });
   const addAs = (kind: ComputerKind) => form.handleSubmit(async ({ name }) => {
     const added = await add.mutateAsync({ kind, name });
     setFailure(added.ok ? null : added.error);
-    setCode(added.ok ? { given: added.value, name } : null);
+    setCode(added.ok ? { given: added.value, name, kind } : null);
     if (added.ok) form.reset();
   });
   const nameField = form.register('name');
@@ -37,9 +37,11 @@ export function AddComputerForm({ venueId }: { venueId: string }) {
           error={form.formState.errors.name ? t('console.computers.invalid') : undefined} />
         <Button variant="secondary" isLoading={add.isPending} onClick={() => void addAs('cage')()}>{t('console.computers.addCage')}</Button>
         <Button variant="secondary" isLoading={add.isPending} onClick={() => void addAs('console')()}>{t('console.computers.addConsole')}</Button>
+        <Button variant="secondary" isLoading={add.isPending} onClick={() => void addAs('agent')()}>{t('console.computers.addAgent')}</Button>
       </Inline>
       {code === null ? null : (
-        <Text>{t('console.computers.code', { code: code.given.code, name: code.name, time: formatTime(new Date(code.given.expiresAt)) })}</Text>
+        <Text>{t(code.kind === 'agent' ? 'console.computers.agentCode' : 'console.computers.code',
+          { code: code.given.code, name: code.name, time: formatTime(new Date(code.given.expiresAt)) })}</Text>
       )}
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>

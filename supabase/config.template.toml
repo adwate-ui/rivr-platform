@@ -206,6 +206,8 @@ max_frequency = "60s"
 919000000613 = "123456"
 919000000297 = "123456"
 919000000299 = "123456"
+919000000615 = "123456"
+919000000288 = "123456"
 919000000290 = "123456"
 919000000113 = "123456"
 919000000114 = "123456"
@@ -392,6 +394,10 @@ verify_jwt = false
 
 # A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
 [functions.device-pair]
+verify_jwt = false
+
+# The cage agent (#168, #123): signed out, known by its own token.
+[functions.cage-agent]
 verify_jwt = false
 
 [analytics]

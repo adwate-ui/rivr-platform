@@ -37,7 +37,7 @@ select set_eq(
      ('consent'), ('kyc_record'), ('payout_account'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('academy_booking'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
-     ('early_departure'), ('invoice'), ('jackpot_event'), ('league_finish'), ('ledger_account'), ('marker'), ('member_tier_change'),
+     ('early_departure'), ('fnb_order'), ('invoice'), ('jackpot_event'), ('league_finish'), ('ledger_account'), ('marker'), ('member_tier_change'),
      ('points_earning'), ('promotion_grant'), ('redemption'), ('referral'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
      ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry'),
      ('withdrawal_request') $$,

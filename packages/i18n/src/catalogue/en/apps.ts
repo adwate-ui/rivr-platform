@@ -44,9 +44,11 @@ import { exportFilters } from './exportFilters.ts';
 import { tds } from './tds.ts';
 import { endOfDay, endOfDayFailures } from './endOfDay.ts';
 import { tonight, waitlist } from './waitlist.ts';
+import { consoleFnb, playerFnb } from './fnb.ts';
 
 export const playerApp = {
   tonight,
+  fnb: playerFnb,
   feedback: playerFeedback,
   promotions: playerPromotions,
   sessions: {
@@ -184,6 +186,7 @@ export const playerApp = {
 
 export const consoleApp = {
   liveFloor,
+  fnb: consoleFnb,
   settings,
   checkIn,
   cage,

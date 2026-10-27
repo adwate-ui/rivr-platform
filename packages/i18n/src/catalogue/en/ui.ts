@@ -23,6 +23,8 @@ export const ui = {
     /** The member's initial, top right, opens Profile. */
     open: 'Profile',
   },
+  /** QuantityStepper's buttons (#123): `{name}` is what it counts. */
+  quantity: { fewer: 'One fewer {name}', more: 'One more {name}' },
   consoleRail: {
     /** Accessible name of the console's left rail. */
     label: 'Sections',
