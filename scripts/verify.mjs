@@ -13,7 +13,6 @@
  *   mutation-score   CI: each money module's score over every share's report together; 80 or more each.
  *   plan             CI: which jobs this run needs (database, storybook, e2e, budgets, mutate: true or false, to
  *                    GITHUB_OUTPUT; decision 0255).
- *                    A pull request that changes none starts no mutation runners: they held runner slots for nothing.
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
@@ -25,7 +24,7 @@ const MODE = process.argv[2] ?? 'changed';
 // The money modules are the folders Stryker mutates (packages/domain/stryker.config.mjs): one list for both.
 const MONEY_MODULES = strykerConfig.mutate.filter((glob) => !glob.startsWith('!')).map((glob) => glob.split('/')[1]);
 // Shared tooling can break any package, so a change to it verifies everything.
-const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
+const TOOLING = /^(\.node-version|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
 // Tooling that can move any money module's mutation score.
 const MUTATION_TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.json|packages\/config\/)/;
 
@@ -50,6 +49,15 @@ function baseCommit() {
   return null;
 }
 
+/** Where HEAD left `ref`, or null where `ref` is not fetched: a job checked out at depth 1 needs no scope. */
+function mergeBaseWith(ref) {
+  try {
+    return git('merge-base', 'HEAD', ref);
+  } catch {
+    return null;
+  }
+}
+
 function changedFiles(base) {
   const committed = git('diff', '--name-only', base, 'HEAD').split('\n');
   // Not git(): its trim would take the first line's leading space, and the slice the path's first letter with it.
@@ -66,7 +74,7 @@ function changedFiles(base) {
  */
 function scopeFor(mode) {
   const target = process.env.PR_BASE;
-  const base = target ? git('merge-base', 'HEAD', target) : baseCommit();
+  const base = target ? mergeBaseWith(target) : baseCommit();
   if ((!target && !['quick', 'changed'].includes(mode)) || !base) return { everything: true, base, files: [] };
   const files = changedFiles(base);
   return { everything: files.some((file) => TOOLING.test(file) || file.startsWith('.github/')), base, files };
@@ -114,10 +122,10 @@ function moduleChanged(module, files) {
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.PR_BASE;
-  const base = since ? git('merge-base', 'HEAD', since) : null;
-  const files = since ? changedFiles(base) : scope.files;
+  const base = since ? mergeBaseWith(since) : null;
+  const files = base ? changedFiles(base) : scope.files;
   const config = base && files.includes(STRYKER_CONFIG) ? strykerConfigChange(base) : { everything: false, added: [] };
-  const everything = since ? config.everything || files.some(movesEveryScore) : scope.everything;
+  const everything = base ? config.everything || files.some(movesEveryScore) : scope.everything;
   const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
   return everything ? modules : modules.filter((module) => config.added.includes(module) || moduleChanged(module, files));
 }
