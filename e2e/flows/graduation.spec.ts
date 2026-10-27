@@ -12,7 +12,8 @@ import { signInToConsole } from '../support/signIn.ts';
 test.describe('Graduation', () => {
   test('Graduation: staff mark a student present and, once paid, graduate her to the Academy graduate tier', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'graduates a seeded student, so the local stack only');
-    await signInToConsole(page, '9000000615');
+    // Meera Iyer (super admin) by her own number, not the F&B flow's: Auth sends one code a minute to a number.
+    await signInToConsole(page, '9000000102');
     await page.getByRole('link', { name: 'Academy', exact: true }).click();
     const student = page.getByText('Ritu Malhotra', { exact: true }).locator('xpath=ancestor::*[.//button[normalize-space()="Graduate"]][1]');
     await expect(page.getByText('Ritu Malhotra', { exact: true })).toBeVisible();
