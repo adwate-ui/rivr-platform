@@ -13,6 +13,11 @@ export const promotions = {
   submitTemplate: 'Send for approval',
   /** After a template is sent: `{name}` is the template. */
   templateSubmitted: '{name} waits for a super admin.',
+  /** A template's optional budget as it is sent (#562): an amount in rupees, for the whole promotion or each month. */
+  budget: 'Budget in ₹ (optional)',
+  budgetFor: 'Budget for',
+  budgetPeriods: { promotion: 'The whole promotion', month: 'Each month' },
+  invalidBudget: 'Enter the budget in rupees, or leave it empty.',
   newPromotion: 'New promotion',
   when: 'When',
   days: 'Days',
@@ -102,6 +107,8 @@ export const promotions = {
     budgetPaise: 'Budget: {amount}',
     budgetCount: 'Budget: {count} grants',
     budgetBoth: 'Budget: {amount} or {count} grants, whichever comes first',
+    /** A monthly budget (#562): `Budget: ₹50,000, each month`. */
+    eachMonth: '{budget}, each month',
   },
   /** Promotions a super admin sent back (#144), with why: the one who submitted each reads it here. */
   sentBack: {

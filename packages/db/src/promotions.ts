@@ -1,6 +1,6 @@
 import { promotionReplaySchema, promotionRulesSchema, type PromotionRules } from '@rivr/contracts/promotions';
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { fromPaise } from '@rivr/domain/money';
+import { fromPaise, type Paise } from '@rivr/domain/money';
 import { simulatePromotion, type PromotionDraft, type PromotionSimulation } from '@rivr/domain/promotions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -32,6 +32,12 @@ export interface PromotionToSubmit {
   readonly draft: PromotionDraft;
 }
 
+/** A template sent for approval as it stands (#85), with a budget for the whole promotion or each month, or none (#562). */
+export interface TemplateSubmission {
+  readonly id: string;
+  readonly budget: { readonly paise: Paise; readonly period: 'promotion' | 'month' } | null;
+}
+
 /** Why a submission, approval, refusal, pause or resume did not go through; own_promotion: a super admin approving what they submitted. */
 export type PromotionFailure = 'not_allowed' | 'invalid' | 'own_promotion' | 'already_decided' | 'switched_off' | 'paused' | 'unavailable';
 
@@ -51,8 +57,8 @@ export interface PromotionAwaitingApproval {
   /** What it does, as stored: the approver reads these, not only the card words typed. Null when they cannot be read. */
   readonly rules: PromotionRules | null;
   readonly perPlayer: { readonly limit: number; readonly period: string } | null;
-  /** Its budget, in paise and in grants; null for either when there is none. */
-  readonly budget: { readonly paise: bigint | null; readonly count: number | null };
+  /** Its budget, in paise and in grants; null for either when there is none; for the whole promotion or each month (#562). */
+  readonly budget: { readonly paise: bigint | null; readonly count: number | null; readonly period: 'promotion' | 'month' };
 }
 
 /** A promotion a super admin sent back in the last fortnight (#144), with who did and why. */
@@ -82,7 +88,8 @@ export function usePromotionsAwaitingApproval(venueId: string) {
           id: row.promotion_id, name: row.name, detail: row.detail, runs: row.runs, requestedBy: row.requested_by, requestedAt: row.requested_at,
           isMine: row.is_mine, rules: rules.success ? rules.data : null,
           perPlayer: row.per_player_limit === null || row.per_player_period === null ? null : { limit: row.per_player_limit, period: row.per_player_period },
-          budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count },
+          budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count,
+            period: row.budget_period === 'month' ? 'month' : 'promotion' },
         };
       });
     },
@@ -218,8 +225,9 @@ export function usePromotionActions(venueId: string) {
     },
   });
   const submitTemplate = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await client.rpc('submit_promotion_template', { p_promotion_id: id });
+    mutationFn: async ({ id, budget }: TemplateSubmission) => {
+      const { error } = await client.rpc('submit_promotion_template', budget === null ? { p_promotion_id: id }
+        : { p_promotion_id: id, p_budget_paise: Number(budget.paise), p_budget_period: budget.period });
       return settle(null, error);
     },
   });

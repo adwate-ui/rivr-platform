@@ -143,7 +143,7 @@ export {
 export {
   usePromotionActions, usePromotionDecisions, usePromotions, usePromotionsAwaitingApproval, usePromotionsSentBack, usePromotionSimulation, usePromotionStakes, usePromotionTemplates,
   type ConsolePromotion, type PromotionAwaitingApproval, type PromotionFailure, type PromotionSentBack, type PromotionSimulationResult, type PromotionStake,
-  type PromotionToSubmit, type SimulationFailure,
+  type PromotionToSubmit, type SimulationFailure, type TemplateSubmission,
 } from './promotions.ts';
 export { useOnboardingChecklist, type OnboardingItem } from './onboarding.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';
