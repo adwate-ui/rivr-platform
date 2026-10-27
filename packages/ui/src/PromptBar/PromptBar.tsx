@@ -17,10 +17,11 @@ export interface PromptBarProps {
  */
 export function PromptBar({ message, actions, children }: PromptBarProps) {
   return (
-    <section role="alert" className="flex flex-col gap-3 border-b border-hairline bg-raised px-6 py-3">
+    <section className="flex flex-col gap-3 border-b border-hairline bg-raised px-6 py-3">
       <div className="flex flex-wrap items-center gap-4">
         <span className="text-money"><Icon name="alert" size="sm" /></span>
-        <Text as="span" weight="medium">{message}</Text>
+        {/* Only the line is announced: opening a form below does not read it all out again. */}
+        <div role="alert"><Text as="span" weight="medium">{message}</Text></div>
         <div className="ml-auto flex items-center gap-2">{actions}</div>
       </div>
       {children}

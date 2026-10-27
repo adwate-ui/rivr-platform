@@ -64,6 +64,19 @@ select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select results_eq($$ select cap_paise, next_change_at from public.tablet_rake_rules() $$,
   $$ values (600000::bigint, now() + interval '1 hour') $$,
   'a rake change scheduled for an hour from now is due then, and the cap stays ₹6,000 until it is');
+reset role;
+select set_config('request.jwt.claims', '', true);
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'rake.config', 'nlh_50_100', '{"rate_basis_points": 500, "cap_paise": 200000}',
+        now() + interval '10 minutes', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select is((select next_change_at from public.tablet_rake_rules()), now() + interval '1 hour', 'another table type''s change is not this table''s');
+reset role;
+select set_config('request.jwt.claims', '', true);
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'jackpot.drop', '', '{"drop_paise": 10000, "above_paise": 500000}', now() + interval '20 minutes', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
+select is((select next_change_at from public.tablet_rake_rules()), now() + interval '20 minutes', 'and a jackpot drop change at the venue is, the sooner');
 
 -- Flow 4: a ₹48,000 Hold'em pot.
 create temporary table flow4 on commit drop as

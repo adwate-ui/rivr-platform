@@ -103,6 +103,15 @@ export function useHighHands(venueId: string, isEnabled = true) {
 }
 
 /**
+ * The claims waiting for the floor, newest first, for the console's prompt and rail (#317): the High hands list, shared
+ * with that screen. None unless `isAllowed` (the staff member approves jackpots), whatever is already loaded.
+ */
+export function useWaitingHighHands(venueId: string, isAllowed: boolean): readonly HighHand[] {
+  const hands = useHighHands(venueId, isAllowed);
+  return isAllowed ? (hands.data ?? []).filter((hand) => hand.status === 'claimed') : [];
+}
+
+/**
  * The floor's actions on a claim: `approve` pays the amount the console showed, `reject` gives the
  * reason; before deciding, `correct` sets the hand, rank and seat (#324); once decided, `reverse` sets
  * it aside with the reason, posting back what was paid. Each resolves to a Result and reloads the list.

@@ -124,7 +124,12 @@ reset role;
 -- pays nothing (#309): the floor would hand out one split and the history record another.
 reset role;
 create temp table shown_rule as select private.setting_at('00000000-0000-4000-8000-000000000001', 'jackpot.payout', '', now()) as rule;
-grant select on shown_rule to authenticated;
+-- The total the console showed under it, which the swapped rule also comes to, so only the rule check can refuse.
+create temp table shown_total as
+select (private.bad_beat_payout(private.main_pool('00000000-0000-4000-8000-000000000001'), (rule ->> 'pool_basis_points')::integer,
+          (rule ->> 'loser_basis_points')::integer, (rule ->> 'winner_basis_points')::integer, (rule ->> 'table_basis_points')::integer, 0)).total
+from shown_rule;
+grant select on shown_rule, shown_total to authenticated;
 select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 select '00000000-0000-4000-8000-000000000001', 'jackpot.payout', '',
@@ -133,7 +138,8 @@ select '00000000-0000-4000-8000-000000000001', 'jackpot.payout', '',
 from shown_rule;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.pay_bad_beat('00000000-0000-4000-8000-000000000001', pg_temp.table3(), '+919000000201', '+919000000202',
-                     '{}', 1, (select rule from shown_rule), 'bad-beat-swapped-rule') $$, 'RVSTL', null,
+                     '{}', (select total from shown_total), (select rule from shown_rule), 'bad-beat-swapped-rule') $$,
+  'RVSTL', 'The payout rule has changed since the amounts were shown',
   'a payout shown under one rule is refused under another, even at the same total');
 reset role;
 

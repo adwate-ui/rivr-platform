@@ -49,7 +49,7 @@ test.describe('High hands', () => {
     // every ten seconds.
     const prompt = floor.getByRole('alert').filter({ hasText: /^High hand claim · Table 3, seat 4 · Four of a kind Queens · / });
     await expect(prompt).toBeVisible({ timeout: 15_000 });
-    await expect(prompt.getByRole('button', { name: 'Reject' })).toBeVisible();
+    await expect(floor.getByRole('button', { name: 'Reject', exact: true })).toBeVisible();
     await expect(floor.getByRole('link', { name: /^High hands \d+ waiting$/ })).toBeVisible();
 
     const before = await chipsInPlay(floor);

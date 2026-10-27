@@ -1,11 +1,11 @@
--- Hand logging is rate-limited per table (#298; security review of #294, L1; decision 0259). One tablet session logged
--- 300 hands back to back. A new hand is refused (RVFST) once its table has logged 30 in the last minute; the fastest
--- table plays about one a minute. The limit counts when hands arrive, not their played_at, so an offline tablet's
--- replay keeps its own times. The tablet's queue tries a refused hand again later, so a long replay waits rather than
--- losing hands. A replay of a hand already logged returns it before the limit is checked.
-create index hand_table_created_idx on public.hand (table_id, created_at);
+-- Hand logging is limited per table and minute of play (#298; security review of #294, L1; decision 0259). One tablet
+-- session logged 300 hands back to back. A hand is refused (RVFST) when its table already has 20 hands played within
+-- 30 seconds of it, so at most 40 in any minute of play; the fastest table plays about one a minute, so only a flood
+-- reaches it. It counts by played_at, so
+-- an offline tablet's replay, whose hands keep the times they were played, passes as they did live, and a replay of a
+-- hand already logged returns it before anything is checked.
 
--- As before (20261019090900_log_hand.sql), with the rate limit after the replay check.
+-- As before (20261019090900_log_hand.sql), with the limit once the hand's time is checked.
 create or replace function private.log_hand(p_pot bigint, p_variant public.hand_variant, p_played_at timestamptz, p_idempotency_key text)
 returns uuid
 language plpgsql
@@ -31,15 +31,18 @@ begin
   if v_down.id is null or not private.is_dealer_at(v_down.staff_id, v_tablet.o_venue_id) then
     raise exception 'Sign a dealer in before logging hands' using errcode = 'RVDWN';
   end if;
-  if (select count(*) from public.hand h where h.table_id = v_tablet.o_table_id and h.created_at > now() - interval '1 minute') >= 30 then
-    raise exception 'This table has logged 30 hands in the last minute; try again shortly' using errcode = 'RVFST';
-  end if;
   if p_pot is null or p_pot <= 0 or p_pot > 1000000000 or p_pot % 5000 <> 0 then
     raise exception 'A pot is a whole number of ₹50 chips, up to ₹1 crore' using errcode = '22023';
   end if;
   -- A minute either side for the tablet's clock.
   if p_played_at is null or p_played_at > now() + interval '1 minute' or p_played_at < v_down.started_at - interval '1 minute' then
     raise exception 'A hand is played during the down it is logged in' using errcode = '22023';
+  end if;
+  -- One hand at a time per table, so two sent at once cannot both pass the count.
+  perform pg_advisory_xact_lock(hashtextextended('hand:' || v_tablet.o_table_id::text, 0));
+  if (select count(*) from public.hand h
+      where h.table_id = v_tablet.o_table_id and h.played_at between p_played_at - interval '30 seconds' and p_played_at + interval '30 seconds') >= 20 then
+    raise exception 'This table already has 20 hands played within a minute of this one' using errcode = 'RVFST';
   end if;
   select * into v_rules from private.rake_rules_at(v_tablet.o_table_id, p_played_at);
   if v_rules.rate_basis_points is null then

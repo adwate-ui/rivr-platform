@@ -1,6 +1,8 @@
-import { useHighHandActions, type HighHand, type HighHandFailure } from '@rivr/db';
+import type { Permission } from '@rivr/contracts';
+import { useHighHandActions, useWaitingHighHands, type HighHand, type HighHandFailure } from '@rivr/db';
 import { formatMoney, t } from '@rivr/i18n';
 import { Button, ErrorMessage, PromptBar } from '@rivr/ui';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ClaimReasonForm } from './ClaimReasonForm.tsx';
 import { HIGH_HAND_FAILURE_COPY, promptText } from './highHandCopy.ts';
@@ -34,7 +36,7 @@ export function HighHandPrompt({ venueId, hand, waiting, onSeeAll }: HighHandPro
           {t('console.highHands.approve', { amount: formatMoney(payout) })}
         </Button>
       )}
-      <Button variant="text" onClick={() => setIsRejecting(true)}>{t('console.highHands.reject')}</Button>
+      <Button variant="text" isDisabled={approve.isPending} onClick={() => setIsRejecting(true)}>{t('console.highHands.reject')}</Button>
       {waiting > 1 ? <Button variant="text" onClick={onSeeAll}>{t('console.highHands.promptSeeAll', { count: waiting })}</Button> : null}
     </>
   );
@@ -47,4 +49,16 @@ export function HighHandPrompt({ venueId, hand, waiting, onSeeAll }: HighHandPro
       {failure === null ? null : <ErrorMessage>{t(HIGH_HAND_FAILURE_COPY[failure])}</ErrorMessage>}
     </PromptBar>
   );
+}
+
+/**
+ * The prompt the console's frame puts across the top of every screen (#317): the oldest claim waiting, for staff who
+ * approve jackpots, on every screen but High hands, which lists them all.
+ */
+export function WaitingHighHandPrompt({ venueId, permissions, pathname }: { venueId: string; permissions: readonly Permission[]; pathname: string }) {
+  const navigate = useNavigate();
+  const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
+  const oldest = pathname.toLowerCase().startsWith('/high-hands') ? undefined : waiting.at(-1);
+  if (oldest === undefined) return null;
+  return <HighHandPrompt key={oldest.claimId} venueId={venueId} hand={oldest} waiting={waiting.length} onSeeAll={() => void navigate({ to: '/high-hands' })} />;
 }

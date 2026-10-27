@@ -123,15 +123,6 @@ describe('the tablet\'s queue of hands', () => {
     await waitFor(() => expect(result.current).toMatchObject({ pending: 2, refusedHands: 0 }));
   });
 
-  it('keeps a hand refused by the table\'s hand rate limit, and sends it once the limit lets it through', async () => {
-    const { result, calls } = renderQueue({ log_hand: [{ code: 'RVFST' }, { value: 'h1' }] });
-    await act(async () => {
-      await result.current.log(HAND, 'r-1');
-    });
-    await waitFor(() => expect(result.current).toMatchObject({ pending: 0, refusedHands: 0 }));
-    expect(calls.map((call) => call.body['p_idempotency_key'])).toEqual(['r-1', 'r-1']);
-  });
-
   it('sets aside a hand refused for good, and the next one goes', async () => {
     const { result, calls } = renderQueue({ log_hand: [{ code: '22023' }, { value: 'h2' }] });
     await act(async () => {

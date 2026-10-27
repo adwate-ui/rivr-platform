@@ -19,8 +19,9 @@ describe('PromptBar', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('shows a form an action opened under the line', () => {
+  it('shows a form an action opened under the line, outside what is announced', () => {
     renderIn(<PromptBar message="High hand claim" actions={null}><p>Why it is not approved</p></PromptBar>);
-    expect(screen.getByRole('alert')).toHaveTextContent('Why it is not approved');
+    expect(screen.getByText('Why it is not approved')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/^High hand claim$/);
   });
 });

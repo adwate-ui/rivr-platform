@@ -84,6 +84,7 @@ export {
   useHighHandActions,
   useHighHands,
   useTabletHighHands,
+  useWaitingHighHands,
   type HighHand,
   type HighHandFailure,
   type TabletHighHand,

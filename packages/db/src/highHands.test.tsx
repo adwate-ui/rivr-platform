@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useHighHandActions, useHighHands, useTabletHighHands } from './highHands.ts';
+import { useHighHandActions, useHighHands, useTabletHighHands, useWaitingHighHands } from './highHands.ts';
 import { toPaise } from './parse/hands.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -28,7 +28,10 @@ function renderHighHands(replies: Record<string, { status?: number; body: unknow
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ mine: useTabletHighHands(), list: useHighHands(VENUE, isEnabled), floor: useHighHandActions(VENUE) }),
+    () => ({
+      mine: useTabletHighHands(), list: useHighHands(VENUE, isEnabled), floor: useHighHandActions(VENUE),
+      waiting: useWaitingHighHands(VENUE, isEnabled), notAllowed: useWaitingHighHands(VENUE, false),
+    }),
     { wrapper },
   );
   return { result, calls };
@@ -62,6 +65,12 @@ describe('High hands', () => {
     await waitFor(() => expect(result.current.mine.isSuccess).toBe(true));
     expect(result.current.list.fetchStatus).toBe('idle');
     expect(calls.some((call) => call.url.includes('/rpc/high_hands'))).toBe(false);
+  });
+
+  it('gives the claims waiting to staff who approve, and none to others even with the list loaded', async () => {
+    const { result } = renderHighHands({ ...EMPTY, '/rpc/high_hands': { body: [ROW, { ...ROW, claim_id: 'c2', status: 'rejected' }] } });
+    await waitFor(() => expect(result.current.waiting.map((hand) => hand.claimId)).toEqual(['c1']));
+    expect(result.current.notAllowed).toEqual([]);
   });
 
   it('says what the dealer claimed before a correction, and who reversed a claim and why', async () => {
