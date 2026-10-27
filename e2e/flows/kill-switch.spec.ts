@@ -80,6 +80,7 @@ test.describe('Kill switch', () => {
         await site.goto(`${appUrl('web')}${path}`);
         await expect(site.getByText(VISITOR_BANNER)).toBeVisible();
         await expect(site.getByText(/^\d+ tables? running/)).toHaveCount(0);
+        await expect(site.getByRole('link', { name: /^(Join the waitlist|Reserve a seat)$/ })).toHaveCount(0);
       }
 
       const second = await browser.newPage();

@@ -30,7 +30,7 @@ afterEach(cleanup);
 describe('the room plan', () => {
   it('shows rake tonight, the seated count, each room, and each table\'s figures; a card opens its table', () => {
     const onChoose = vi.fn();
-    render(<RoomPlan tables={TABLES} seats={[SEATED]} held={[]} night={NIGHT} chosenId="t3" onChoose={onChoose} />);
+    render(<RoomPlan tables={TABLES} seats={[SEATED]} held={[]} night={NIGHT} canSeeSeats chosenId="t3" onChoose={onChoose} />);
     expect(screen.getByText('₹4,11,750')).toBeDefined();
     expect(screen.getByText('1 seated')).toBeDefined();
     expect(screen.getByText('Main room')).toBeDefined();
@@ -49,8 +49,15 @@ describe('the room plan', () => {
 
   it('shows no rake to staff who do not read the ledger', () => {
     render(<RoomPlan tables={TABLES} seats={[]} held={[]} night={{ rake: null, tables: NIGHT.tables.map((table) => ({ ...table, rake: null })) }}
-      chosenId="t3" onChoose={() => undefined} />);
+      canSeeSeats chosenId="t3" onChoose={() => undefined} />);
     expect(screen.queryByText('Rake tonight')).toBeNull();
     expect(screen.queryByText(/₹/)).toBeNull();
+  });
+
+  it('shows no seat counts to a role that does not read members', () => {
+    render(<RoomPlan tables={TABLES} seats={[]} held={[]} night={NIGHT} canSeeSeats={false} chosenId="t3" onChoose={() => undefined} />);
+    expect(screen.getByText('Your role does not see the seat map.')).toBeDefined();
+    expect(screen.queryByText(/ of \d+$/)).toBeNull();
+    expect(screen.queryByText(/seated$/)).toBeNull();
   });
 });

@@ -39,6 +39,7 @@ declare
   v_table public.game_table := private.floor_table(p_table_id);
   v_member_id uuid;
   v_id uuid;
+  v_entry public.waitlist_entry;
 begin
   select m.id into v_member_id from public.member m
   where m.venue_id = v_table.venue_id and m.phone = '+91' || right(regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g'), 10);
@@ -46,9 +47,13 @@ begin
     raise exception 'No member has that number' using errcode = 'RVNOM';
   end if;
   v_id := private.start_seat_session(v_member_id, p_table_id, p_seat);
-  -- Seated at this game, so off its waitlist: the floor calls nobody already playing it.
-  update public.waitlist_entry e set status = 'left', left_at = now(), left_reason = 'seated'
-  where e.member_id = v_member_id and e.table_type_id = v_table.table_type_id and e.status = 'waiting';
+  -- Seated at this game, so off its waitlist: the floor calls nobody already playing it. A seat they were called to goes
+  -- to the next name, as when a member leaves the list (leave_waitlist).
+  for v_entry in update public.waitlist_entry e set status = 'left', left_at = now(), left_reason = 'seated'
+                 where e.member_id = v_member_id and e.table_type_id = v_table.table_type_id and e.status = 'waiting'
+                 returning e.* loop
+    if v_entry.called_at is not null then perform private.roll_call_on(v_entry); end if;
+  end loop;
   perform private.emit(v_table.venue_id, 'seat.taken',
                        jsonb_build_object('session_id', v_id, 'member_id', v_member_id, 'table_id', v_table.id, 'seat', p_seat), 'seat.taken:' || v_id);
   return v_id;

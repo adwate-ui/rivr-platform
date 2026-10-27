@@ -109,7 +109,7 @@ function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 't
       return <PromotionsBlock heading={block.content.heading} emptyText={t('web.noPromotions')}
         promotions={page.promotions.map((promotion) => ({ title: promotion.title, detail: promotion.detail ?? undefined, runs: promotion.runs ?? undefined }))} />;
     case 'links':
-      return <LinksBlock heading={block.content.heading} links={block.content.links.map((action) => ({ label: action.label, href: link(action)?.href ?? '' }))} />;
+      return <LinksBlock heading={block.content.heading} links={block.content.links.flatMap((action) => link(action) ?? [])} />;
   }
 }
 
@@ -141,11 +141,13 @@ export function Footer({ attribution }: { attribution: Attribution | null }) {
 /** A page of the website: the navigation and its one action, the page's blocks in their bands, and the footer. */
 export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   const links = page.navigation.map((link) => ({ label: link.title, href: siteHref(link.slug, attribution) }));
-  const link: Link = (action) => (action ? { label: action.label, href: playerHref(playerUrl, action.to, attribution) } : undefined);
+  // While the club is paused (#278) nothing leads to the waitlist: seating is refused.
+  const link: Link = (action) => (action && !(page.isPaused && action.to === 'waitlist')
+    ? { label: action.label, href: playerHref(playerUrl, action.to, attribution) } : undefined);
   const pageLink: PageLink = (target) => (target ? { label: target.label, href: siteHref(target.page, attribution) } : undefined);
   const reserve = { label: t('web.reserve'), href: playerHref(playerUrl, 'waitlist', attribution) };
   return (
-    <WebShell links={links} homeHref={siteHref('home', attribution)} action={reserve} footer={<Footer attribution={attribution} />}>
+    <WebShell links={links} homeHref={siteHref('home', attribution)} action={page.isPaused ? undefined : reserve} footer={<Footer attribution={attribution} />}>
       {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
       {page.blocks.map((block, position) => (
         <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]}>

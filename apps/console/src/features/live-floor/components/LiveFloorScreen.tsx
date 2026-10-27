@@ -47,7 +47,8 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
     <Screen title={title}>
       <Grid columns={2} gap={8}>
         <Stack gap={8}>
-          <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} chosenId={chosen.id} onChoose={setChosenId} />
+          <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
+            chosenId={chosen.id} onChoose={setChosenId} />
           <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
           {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
         </Stack>

@@ -123,6 +123,9 @@ export const liveFloor = {
   mustMoveInvalid: 'A must-move table feeds an open main table of the same game.',
   /** For staff whose role does not read members (#333): the dealer, marketing, the owner's view. */
   noSeatMap: 'Your role does not see the seat map.',
+  /** A table's card and ring for a role without the seat map. */
+  tableOpen: 'Open',
+  ringOpen: '{name}, open',
   kycNeeded: 'This member has not finished their identity check.',
   onBreak: 'This member is on a break from play. They cannot be seated until it ends.',
   noMember: 'No member has that number. Sign them up first.',
