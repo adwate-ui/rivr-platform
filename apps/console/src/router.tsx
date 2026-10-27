@@ -42,6 +42,7 @@ import { leagueRoute } from './routes/league.tsx';
 import { tournamentsRoute } from './routes/tournaments.tsx';
 import { rewardsRoute } from './routes/rewards.tsx';
 import { potDataRoute } from './routes/pot-data.tsx';
+import { dealersRoute } from './routes/dealers.tsx';
 import { incidentsRoute } from './routes/incidents.tsx';
 import { tiersRoute } from './routes/tiers.tsx';
 import { computersRoute } from './routes/computers.tsx';
@@ -68,6 +69,7 @@ const routeTree = rootRoute.addChildren([
     ownerRoute,
     shareholdersRoute,
     potDataRoute,
+    dealersRoute,
     promotionsRoute,
     tiersRoute,
   ]),

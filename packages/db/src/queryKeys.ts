@@ -115,6 +115,8 @@ export const queryKeys = {
   /** A venue's games not running and their interest (#113), and its hands over a period (#114). */
   interestLists: (userId: string, venueId: string) => ['user', userId, 'interest-lists', venueId] as const,
   potData: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'pot-data', venueId, start, end] as const,
+  dealerRotation: (userId: string, venueId: string) => ['user', userId, 'dealer-rotation', venueId] as const,
+  dealerNights: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'dealer-nights', venueId, start, end] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   membersOfTier: (userId: string, venueId: string, tierId: string) => ['user', userId, 'members-of-tier', venueId, tierId] as const,
