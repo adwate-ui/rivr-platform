@@ -4,7 +4,7 @@ import { approvalLines } from './promotionRule.ts';
 
 const waiting = (overrides: Partial<PromotionAwaitingApproval>): PromotionAwaitingApproval => ({
   id: 'p1', name: 'Ladies\' Night drinks', detail: 'A welcome drink', runs: 'Fridays', requestedBy: 'Ishita Bose',
-  requestedAt: '2026-10-27T10:00:00Z', isMine: false, rules: [], perPlayer: null, budget: { paise: null, count: null }, ...overrides,
+  requestedAt: '2026-10-27T10:00:00Z', isMine: false, rules: [], perPlayer: null, budget: { paise: null, count: null, period: 'promotion' }, ...overrides,
 });
 const STAKES = [{ code: 'nlh_100_200', name: 'NLH 100/200' }];
 
@@ -29,7 +29,7 @@ describe('what a waiting promotion does, for its approver', () => {
         effect: { kind: 'bonus', percent_bps: 2000, cap_paise: 500_000, expires_days: 7 },
       }],
       perPlayer: { limit: 1, period: 'day' },
-      budget: { paise: 5_000_000n, count: 100 },
+      budget: { paise: 5_000_000n, count: 100, period: 'promotion' },
     }), STAKES);
     expect(lines).toEqual([
       'On a buy-in: a bonus of 20% of the buy-in, up to ₹5,000, ending after 7 days',
@@ -47,7 +47,7 @@ describe('what a waiting promotion does, for its approver', () => {
         { trigger: 'check_in', conditions: { new_player: true }, effect: { kind: 'spin' } },
       ],
       perPlayer: { limit: 3, period: 'promotion' },
-      budget: { paise: null, count: 50 },
+      budget: { paise: null, count: 50, period: 'month' },
     }), STAKES);
     expect(lines).toEqual([
       'For hours played: 2 times the points earned',
@@ -57,7 +57,7 @@ describe('what a waiting promotion does, for its approver', () => {
       'On a check-in: a spin of the wheel',
       'Who and when: new players only',
       'At most 3 per member in all',
-      'Budget: 50 grants',
+      'Budget: 50 grants, each month',
     ]);
   });
 

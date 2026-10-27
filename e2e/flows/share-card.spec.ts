@@ -1,6 +1,6 @@
 /**
- * Share card (#153; tech plan item 9). Zoya Merchant, this flow's own member, opens Rewards: her referral code, RIVR
- * and her member number, and her card with it. Her link, which a friend signs up from, carries the code; she copies
+ * Share card (#153; tech plan item 9). Zoya Merchant, this flow's own member, opens Rewards: her referral code, her
+ * own random one (#562), and her card with it. Her link, which a friend signs up from, carries the code; she copies
  * it. Sharing draws the card as a PNG; a desktop browser cannot share a file, so it is saved, named for her code. The
  * referral itself (#151) is proved in supabase/tests/166_referral_programme.test.sql.
  */
@@ -15,7 +15,8 @@ test.describe('Share card', () => {
     await signInToPlayer(page, '9000000299');
     await page.goto(`${appUrl('player')}/rewards`);
     await expect(page.getByRole('heading', { name: 'Refer a friend' })).toBeVisible();
-    const code = await page.getByText(/^RIVR\d+$/).textContent();
+    // Her own random code (#562): eight letters and digits, with no 0, O, 1, I or L.
+    const code = await page.getByText(/^[2-9A-HJKMNP-Z]{8}$/).textContent();
 
     await page.getByRole('button', { name: 'Copy my link' }).click();
     await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();

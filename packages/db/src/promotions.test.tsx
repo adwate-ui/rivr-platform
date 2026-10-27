@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { fromPaise } from '@rivr/domain/money';
 import type { PromotionDraft } from '@rivr/domain/promotions';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
@@ -104,10 +105,15 @@ describe('Promotions (#84)', () => {
     expect(calls.find((call) => call.url.includes('status=eq.draft'))?.url).toContain('template_key=not.is.null');
     let submitted: unknown;
     await act(async () => {
-      submitted = await result.current.actions.submitTemplate.mutateAsync('t1');
+      submitted = await result.current.actions.submitTemplate.mutateAsync({ id: 't1', budget: null });
     });
     expect(submitted).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('submit_promotion_template'))?.body).toEqual({ p_promotion_id: 't1' });
+    await act(async () => {
+      await result.current.actions.submitTemplate.mutateAsync({ id: 't1', budget: { paise: fromPaise(5_000_000n), period: 'month' } });
+    });
+    expect(calls.filter((call) => call.url.includes('submit_promotion_template')).at(-1)?.body)
+      .toEqual({ p_promotion_id: 't1', p_budget_paise: 5_000_000, p_budget_period: 'month' });
   });
 
   it('lists the promotions waiting for a super admin, and approves or refuses one', async () => {
@@ -115,10 +121,10 @@ describe('Promotions (#84)', () => {
       '/rpc/promotions_awaiting_approval': {
         body: [{ promotion_id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', template_key: null, requested_by: 'Ishita Bose',
                  requested_at: '2026-10-27T10:00:00Z', is_mine: false, rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }],
-                 per_player_limit: 1, per_player_period: 'day', budget_paise: 500000, budget_count: null },
+                 per_player_limit: 1, per_player_period: 'day', budget_paise: 500000, budget_count: null, budget_period: 'month' },
                { promotion_id: 'p8', name: 'Odd', detail: null, runs: 'Any', template_key: null, requested_by: 'Ishita Bose',
                  requested_at: '2026-10-27T11:00:00Z', is_mine: true, rules: [{ trigger: 'lunch', conditions: {}, effect: { kind: 'spin' } }],
-                 per_player_limit: null, per_player_period: null, budget_paise: null, budget_count: null }],
+                 per_player_limit: null, per_player_period: null, budget_paise: null, budget_count: null, budget_period: null }],
       },
       '/rpc/approve_promotion': { body: null },
       '/rpc/refuse_promotion': { body: null },
@@ -126,10 +132,10 @@ describe('Promotions (#84)', () => {
     });
     await waitFor(() => expect(result.current.awaiting.data).toEqual([
       { id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T10:00:00Z', isMine: false,
-        rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }], perPlayer: { limit: 1, period: 'day' }, budget: { paise: 500000n, count: null } },
+        rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }], perPlayer: { limit: 1, period: 'day' }, budget: { paise: 500000n, count: null, period: 'month' } },
       // A rule the console cannot read is null, so it can only be refused.
       { id: 'p8', name: 'Odd', detail: null, runs: 'Any', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T11:00:00Z', isMine: true,
-        rules: null, perPlayer: null, budget: { paise: null, count: null } },
+        rules: null, perPlayer: null, budget: { paise: null, count: null, period: 'promotion' } },
     ]));
     let approved: unknown;
     await act(async () => {

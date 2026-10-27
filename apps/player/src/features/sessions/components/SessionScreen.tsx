@@ -1,21 +1,28 @@
 import { useFeature } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
-import { formatDuration, formatStakes, formatTime, t } from '@rivr/i18n';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, Divider, FeatureGate, Inline, Money, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { Net } from './Net.tsx';
-import { sessionDay, sessionTitle } from './naming.ts';
+import { sessionDay, sessionStake, sessionTitle } from './naming.ts';
 
 interface Row {
   label: string;
   value: ReactNode;
+  /** A line under the row, such as what the TDS was withheld on. */
+  note?: string;
+}
+
+/** What the TDS was withheld on, when it was a period's winnings rather than the session's alone (#563). */
+function tdsNote(session: MySession): { note?: string } {
+  return session.tdsBasis === 'day' || session.tdsBasis === 'financial_year' ? { note: t(`player.sessions.tdsOn.${session.tdsBasis}`) } : {};
 }
 
 /** The detail's rows (design prompt, "Sessions"): bonus chips, the TDS and what was paid only when they apply. */
 function rowsOf(session: MySession): Row[] {
   const rows: (Row | null)[] = [
-    { label: t('player.sessions.stake'), value: <Text>{formatStakes(session.smallBlind, session.bigBlind)}</Text> },
+    { label: t('player.sessions.stake'), value: <Text>{sessionStake(session)}</Text> },
     {
       label: t('player.sessions.time'),
       value: <Text>{t('player.sessions.timeRange', { from: formatTime(new Date(session.openedAt)), to: formatTime(new Date(session.closedAt)) })}</Text>,
@@ -23,8 +30,8 @@ function rowsOf(session: MySession): Row[] {
     { label: t('player.sessions.hours'), value: <Text>{formatDuration(session.playedSeconds)}</Text> },
     { label: t('player.sessions.buyIn'), value: <Money paise={session.buyIn} /> },
     session.bonus > 0n ? { label: t('player.sessions.bonus'), value: <Money paise={session.bonus} /> } : null,
-    { label: t('player.sessions.cashOut'), value: <Money paise={session.cashOut} /> },
-    session.tds > 0n ? { label: t('player.sessions.tdsLine'), value: <Money paise={session.tds} /> } : null,
+    { label: session.kind === 'tournament' ? t('player.sessions.prize') : t('player.sessions.cashOut'), value: <Money paise={session.cashOut} /> },
+    session.tds > 0n ? { label: t('player.sessions.tdsLine'), value: <Money paise={session.tds} />, ...tdsNote(session) } : null,
     session.paid === session.cashOut ? null : { label: t('player.sessions.paid'), value: <Money paise={session.paid} /> },
   ];
   return rows.filter((row): row is Row => row !== null);
@@ -38,10 +45,13 @@ function Detail({ session }: { session: MySession }) {
       <Stack gap={3}>
         <Stack gap={3} divided>
           {rowsOf(session).map((row) => (
-            <Inline key={row.label} gap={4} align="baseline" justify="between">
-              <Text tone="muted">{row.label}</Text>
-              {row.value}
-            </Inline>
+            <Stack key={row.label} gap={1}>
+              <Inline gap={4} align="baseline" justify="between">
+                <Text tone="muted">{row.label}</Text>
+                {row.value}
+              </Inline>
+              {row.note === undefined ? null : <Text variant="small" tone="muted">{row.note}</Text>}
+            </Stack>
           ))}
           <Inline gap={4} align="baseline" justify="between">
             <Text weight="semibold">{t('player.sessions.net')}</Text>

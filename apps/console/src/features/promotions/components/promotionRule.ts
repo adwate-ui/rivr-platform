@@ -83,10 +83,17 @@ function limitText(perPlayer: PromotionAwaitingApproval['perPlayer']): string {
   return t(perPlayer.period === 'day' ? 'console.promotions.rule.limitPerDay' : 'console.promotions.rule.limitInAll', { limit: perPlayer.limit });
 }
 
-function budgetText({ paise, count }: PromotionAwaitingApproval['budget']): string {
+function capText({ paise, count }: PromotionAwaitingApproval['budget']): string {
   if (paise !== null && count !== null) return t('console.promotions.rule.budgetBoth', { amount: formatMoney(paise), count });
   if (paise !== null) return t('console.promotions.rule.budgetPaise', { amount: formatMoney(paise) });
   return count === null ? t('console.promotions.rule.noBudget') : t('console.promotions.rule.budgetCount', { count });
+}
+
+/** The budget in words, and that it is each month's when it is (#562). */
+function budgetText(budget: PromotionAwaitingApproval['budget']): string {
+  const cap = capText(budget);
+  const hasCap = budget.paise !== null || budget.count !== null;
+  return hasCap && budget.period === 'month' ? t('console.promotions.rule.eachMonth', { budget: cap }) : cap;
 }
 
 /**
