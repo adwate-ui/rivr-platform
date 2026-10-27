@@ -3963,7 +3963,7 @@ isOneToOne: false
                            },
 "my_rewards":
 { Args: Record<PropertyKey, never>; Returns: {
-              "points": number,"tier_name": string
+              "nights": number,"points": number,"tier_name": string
             }[]
                            },
 "my_seat":
@@ -4578,7 +4578,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -4698,7 +4698,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
           }
         }
 } as const

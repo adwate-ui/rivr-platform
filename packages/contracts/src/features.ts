@@ -38,6 +38,7 @@ export const FEATURES = [
   gateable('balance.deposits', 'Deposits', 'UPI deposit details and UTR entry.', ['player:balance/deposit']),
   gateable('rewards.catalogue', 'Rewards catalogue', 'Redeeming points for seats, upgrades and merchandise.', ['player:rewards/catalogue']),
   gateable('rewards.points_history', 'Points history', 'The movements on a member’s points ledger.', ['player:rewards/points']),
+  gateable('rewards.accommodation', 'Hotel nights', 'Hotel nights earned by the hours played, at stakes with an hours-per-night rate.', ['player:rewards']),
   gateable('rewards.rakeback', 'Hourly rakeback', 'Bonus each Monday on a member’s share of last week’s rake, at stakes with a rakeback rate.', []),
   gateable('league.standings', 'League', 'RIVR League standings and season.', ['player:rewards/league']),
   gateable('referral.share_cards', 'Referral and share cards', 'Referral code and rendered share cards.', ['player:rewards/referral']),

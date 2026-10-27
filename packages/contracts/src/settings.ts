@@ -6,7 +6,7 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
-import { pointsPerHour, pointsRewardsRakeShare, rakebackRate } from './rewardSettings.ts';
+import { accommodationHoursPerNight, pointsPerHour, pointsRewardsRakeShare, rakebackRate } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
 
 export { SETTING_SCOPES, type SettingDefinition, type SettingScope } from './settingDefinition.ts';
@@ -268,7 +268,7 @@ export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate,
+  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight,
 ] as const;
 
 /** A setting key declared in code. */

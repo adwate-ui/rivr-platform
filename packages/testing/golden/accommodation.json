@@ -1,0 +1,54 @@
+{
+  "rule": "accommodation nights earned",
+  "about": "Accommodation rewards (#146; additions \"Accommodation rewards\"; question #486; decision 0246). A member earns hotel nights by the hours they play: when a visit closes, the time played at each table (the call-time clock's, as points by the hour use it) earns that table type's accommodation.hours_per_night share of a night. Nights are kept in thousandths, rounded down per table, so hours at different stakes and on different visits add up. A hotel-night reward in the catalogue costs whole nights. Inputs are seconds played and hours a night; expected is thousandths of a night.",
+  "cases": [
+    {
+      "description": "Twenty hours at a stake of twenty hours a night: one whole night.",
+      "operation": "nights",
+      "inputs": { "seconds": "72000", "hoursPerNight": "20" },
+      "expected": { "thousandths": "1000" }
+    },
+    {
+      "description": "Five hours at twenty hours a night: a quarter of a night.",
+      "operation": "nights",
+      "inputs": { "seconds": "18000", "hoursPerNight": "20" },
+      "expected": { "thousandths": "250" }
+    },
+    {
+      "description": "Two hours 59 minutes at twenty hours a night is 149.17 thousandths: rounded down to 149.",
+      "operation": "nights",
+      "inputs": { "seconds": "10740", "hoursPerNight": "20" },
+      "expected": { "thousandths": "149" }
+    },
+    {
+      "description": "Exactly 72 seconds at twenty hours a night: one thousandth.",
+      "operation": "nights",
+      "inputs": { "seconds": "72", "hoursPerNight": "20" },
+      "expected": { "thousandths": "1" }
+    },
+    {
+      "description": "A second short of 72 at twenty hours a night: nothing yet.",
+      "operation": "nights",
+      "inputs": { "seconds": "71", "hoursPerNight": "20" },
+      "expected": { "thousandths": "0" }
+    },
+    {
+      "description": "Ten hours in the Private Room at eight hours a night: a night and a quarter.",
+      "operation": "nights",
+      "inputs": { "seconds": "36000", "hoursPerNight": "8" },
+      "expected": { "thousandths": "1250" }
+    },
+    {
+      "description": "Nothing played earns nothing.",
+      "operation": "nights",
+      "inputs": { "seconds": "0", "hoursPerNight": "20" },
+      "expected": { "thousandths": "0" }
+    },
+    {
+      "description": "A whole week at the table, 168 hours, at 40 hours a night: 4.2 nights.",
+      "operation": "nights",
+      "inputs": { "seconds": "604800", "hoursPerNight": "40" },
+      "expected": { "thousandths": "4200" }
+    }
+  ]
+}
