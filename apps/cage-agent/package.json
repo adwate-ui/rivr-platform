@@ -9,6 +9,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@rivr/adapters": "workspace:*",
     "@rivr/contracts": "workspace:*"
   },
   "devDependencies": {

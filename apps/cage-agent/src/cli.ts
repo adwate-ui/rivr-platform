@@ -1,9 +1,13 @@
 import { join } from 'node:path';
-import { createAgentApi } from './api.ts';
+import type { KitchenPrinterAdapter } from '@rivr/adapters/kitchen-printer';
+import { createAgentApi, type AgentApi } from './api.ts';
 import { enrol, readToken } from './enrol.ts';
+import { barPrinterAt, printKots } from './kots.ts';
 import { syncPack } from './pack.ts';
 
 const HOUR = 60 * 60 * 1000;
+// KOTs go to the bar within seconds of an order.
+const KOT_EVERY = 5_000;
 
 /** What the agent runs with: its settings, the network, a clock to repeat on, and somewhere to say what it did. */
 export interface CliDeps {
@@ -11,6 +15,8 @@ export interface CliDeps {
   send: typeof fetch;
   every: (task: () => void, ms: number) => void;
   say: (line: string) => void;
+  /** The bar printer at an address, `host` or `host:port`: the live one unless a test gives another. */
+  printerAt?: (address: string) => KitchenPrinterAdapter;
 }
 
 function setting(deps: CliDeps, name: string): string {
@@ -26,11 +32,37 @@ async function runEnrol(deps: CliDeps, code: string | undefined): Promise<void> 
   deps.say('deviceId' in outcome ? `Enrolled as ${outcome.deviceId}.` : `Not enrolled: ${outcome.refusal}.`);
 }
 
+/**
+ * With RIVR_BAR_PRINTER set (#123), prints the venue's KOTs every five seconds, one run at a time; without it, the
+ * console's KOTs to print list carries the bar.
+ */
+async function startKotPrinting(deps: CliDeps, api: AgentApi, token: string): Promise<void> {
+  const address = deps.env['RIVR_BAR_PRINTER'] ?? '';
+  if (address === '') return;
+  const printer = (deps.printerAt ?? barPrinterAt)(address);
+  let isPrinting = false;
+  const printOnce = async () => {
+    if (isPrinting) return;
+    isPrinting = true;
+    try {
+      const done = await printKots(api, token, printer);
+      if (done.delivered + done.failed > 0) deps.say(`KOTs: ${JSON.stringify(done)}`);
+    } catch (error) {
+      deps.say(`KOTs not printed: ${String(error)}`);
+    } finally {
+      isPrinting = false;
+    }
+  };
+  await printOnce();
+  deps.every(() => void printOnce(), KOT_EVERY);
+}
+
 async function runForever(deps: CliDeps): Promise<void> {
   const home = setting(deps, 'RIVR_AGENT_HOME');
   const api = createAgentApi(setting(deps, 'RIVR_FUNCTIONS_URL'), deps.send);
   const token = await readToken(home);
   if (token === null) throw new Error('Not enrolled yet: run enrol with the code from the Computers screen.');
+  await startKotPrinting(deps, api, token);
   const syncOnce = async () => {
     try {
       deps.say(`Offline pack: ${JSON.stringify(await syncPack(api, token, join(home, 'offline-pack'), deps.send))}`);
@@ -45,7 +77,8 @@ async function runForever(deps: CliDeps): Promise<void> {
 
 /**
  * The agent's commands (#168, #123; decision 0260): `enrol <code>` claims the six-digit code staff read from the
- * Computers screen; `run` keeps the newest offline pack in RIVR_AGENT_HOME/offline-pack, checking every hour.
+ * Computers screen; `run` keeps the newest offline pack in RIVR_AGENT_HOME/offline-pack, checking every hour, and with
+ * RIVR_BAR_PRINTER set prints the venue's KOTs at the bar.
  */
 export async function runCli(argv: readonly string[], deps: CliDeps): Promise<void> {
   const [command, argument] = argv;

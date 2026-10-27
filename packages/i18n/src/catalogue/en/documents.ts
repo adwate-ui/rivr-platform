@@ -72,6 +72,14 @@ export const documents = {
     /** `{share}` as `12.5%`. */
     share: 'Share at {share}',
   },
+  /** A kitchen order ticket (#123), printed at Glaza's bar by the cage agent. Plain ASCII: the bar printer's own font. */
+  kot: {
+    title: 'KOT {number}',
+    seat: '{table}, seat {seat}',
+    paid: 'PAID BY THE MEMBER',
+    comp: 'COMP - RIVR',
+    line: '{quantity} x {name}',
+  },
   /** The offline pack (#167), printed at the cage when the system is down. */
   offlinePack: {
     title: 'Offline pack',

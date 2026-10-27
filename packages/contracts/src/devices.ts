@@ -35,11 +35,17 @@ export const dealerTabletAddSchema = z.object({ name: z.string().trim().min(1).m
 
 /**
  * What the cage agent asks the cage-agent function (#168, #123; decision 0260): to enrol, the six-digit code staff read
- * it and the SHA-256 of the token it keeps, in hex; then, sending the token itself, the newest offline pack.
+ * it and the SHA-256 of the token it keeps, in hex; then, sending the token itself, the newest offline pack, the KOTs to
+ * print as the outbox consumer bar_printer, and how each went (`retry_after_seconds` null fails it for good).
  */
 export const cageAgentRequestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('enrol'), code: pairingCodeSchema, token_hash: z.string().regex(/^[0-9a-f]{64}$/) }),
   z.object({ action: z.literal('pack') }),
+  z.object({ action: z.literal('claim_kots'), limit: z.int().min(1).max(20) }),
+  z.object({
+    action: z.literal('finish_kot'), delivery_id: z.uuid(), delivered: z.boolean(), error: z.string().max(200).nullable(),
+    retry_after_seconds: z.int().min(0).max(21_600).nullable(),
+  }),
 ]);
 export type CageAgentRequest = z.infer<typeof cageAgentRequestSchema>;
 

@@ -7,7 +7,7 @@ import { syncPack } from './pack.ts';
 
 /** An agent API whose newest pack is `link`, and a download that answers `bytes`. */
 function fakes(link: PackLink | null) {
-  const api: AgentApi = { enrol: vi.fn(), newestPack: vi.fn(() => Promise.resolve(link)) };
+  const api: AgentApi = { enrol: vi.fn(), newestPack: vi.fn(() => Promise.resolve(link)), claimKots: vi.fn(), finishKot: vi.fn() };
   const send = vi.fn<typeof fetch>(() => Promise.resolve(new Response('%PDF-1.7 pack')));
   return { api, send, downloads: send };
 }
@@ -34,7 +34,9 @@ describe('syncPack', () => {
   it('says when no pack is made yet, and passes a refusal on', async () => {
     const folder = await mkdtemp(join(tmpdir(), 'rivr-pack-'));
     expect(await syncPack(fakes(null).api, 'token', folder, fakes(null).send)).toEqual({ noneYet: true });
-    const refused: AgentApi = { enrol: vi.fn(), newestPack: vi.fn(() => Promise.resolve({ refusal: 'not_enrolled' as const })) };
+    const refused: AgentApi = {
+      enrol: vi.fn(), newestPack: vi.fn(() => Promise.resolve({ refusal: 'not_enrolled' as const })), claimKots: vi.fn(), finishKot: vi.fn(),
+    };
     expect(await syncPack(refused, 'token', folder, fakes(null).send)).toEqual({ refusal: 'not_enrolled' });
   });
 });

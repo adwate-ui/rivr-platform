@@ -42,13 +42,23 @@ The packs hold members' names and balances, so the computer's disk must be encry
 6. **Run it as a service:**
    ```
    nssm install RIVR-Agent "C:\Program Files\nodejs\node.exe" "C:\RIVR\agent\rivr-agent.mjs run"
-   nssm set RIVR-Agent AppEnvironmentExtra RIVR_FUNCTIONS_URL=https://<project>.supabase.co/functions/v1 RIVR_AGENT_HOME=C:\RIVR\agent
+   nssm set RIVR-Agent AppEnvironmentExtra RIVR_FUNCTIONS_URL=https://<project>.supabase.co/functions/v1 RIVR_AGENT_HOME=C:\RIVR\agent RIVR_BAR_PRINTER=<printer address>
    nssm set RIVR-Agent AppStdout C:\RIVR\agent\agent.log
    nssm set RIVR-Agent AppStderr C:\RIVR\agent\agent.log
    nssm start RIVR-Agent
    ```
    The agent fetches tonight's pack at once, then checks every hour. Its log names each pack it fetched.
+   - `<printer address>` is the bar printer's address on the club's network, such as `192.168.1.60` (port 9100) or `192.168.1.60:9100`. Leave `RIVR_BAR_PRINTER` out until the printer is installed: the agent then prints nothing, and the console's KOTs to print list carries the bar.
 7. **Turn on BitLocker** for the drive that holds `C:\RIVR`.
+
+## Printing KOTs
+
+With `RIVR_BAR_PRINTER` set, the agent checks for new KOTs every five seconds and prints each on the bar printer (ESC/POS over its raw port). A KOT shows its number, the table and seat, PAID BY THE MEMBER or COMP - RIVR, the time and each item.
+
+- Its log says `KOTs: {"delivered":1,"failed":0}` after each run that printed or failed.
+- A printer that is off or out of paper is tried again a little later, without losing the KOT.
+- On the console, Food and drink lists every KOT the bar does not have yet. A KOT given to the bar by hand is marked sent there, and the agent never prints it.
+- To test the printer, place an order for a seat on the console and watch for it at the bar and in the log.
 
 ## The nightly job
 
@@ -63,6 +73,9 @@ To make tonight's packs again, for example after an SOP changes, open Actions, t
   - Then check the agent's log. `{"noneYet":true}` means the job has not made one yet. A connection error is tried again within the hour.
   - Last night's pack is still in the folder and can be used.
 - **`not_enrolled` in the log:** the agent was revoked on Computers, or its token file was lost. Add it again (step 4) and enrol it with the new code (step 5).
+- **KOTs not printing:**
+  - Check the log for `failed`. Then check that the printer is on, has paper, and answers at its address from the cage computer.
+  - Meanwhile, read or hand each KOT to the bar from the console's KOTs to print and mark it sent.
 - **Moving to another computer:** revoke the old agent on Computers, then install and enrol it on the new one.
 
 ## Rollback

@@ -2,7 +2,9 @@
 // browser. It enrols once with the six-digit code staff read it from the Computers screen and the SHA-256 of a token
 // it keeps (claim_agent, wrong codes counted by address); after that it sends the token itself as x-rivr-computer,
 // and the database names its device and venue (agent_device) while it is not revoked. It may fetch its venue's newest
-// offline pack, as a link good for five minutes. No browser may call this: there are no CORS headers, and JSON only.
+// offline pack, as a link good for five minutes, and claim and finish its venue's KOTs as the outbox consumer
+// bar_printer (claim_agent_kots, finish_agent_kot: never the practice venue's). No browser may call this: there are no
+// CORS headers, and JSON only.
 import { cageAgentRequestSchema } from '@rivr/contracts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -21,7 +23,8 @@ async function call(path: string, body: object): Promise<unknown> {
     method: 'POST', headers: AS_SERVER, body: JSON.stringify(body), signal: AbortSignal.timeout(5_000),
   });
   if (!answer.ok) throw new Error(`${path} failed (${answer.status})`);
-  return await answer.json();
+  // A database function that returns nothing answers with no body.
+  return answer.status === 204 ? null : await answer.json();
 }
 
 /** The first row a database function returned. */
@@ -62,12 +65,20 @@ async function pack(venueId: string): Promise<Response> {
   return Response.json({ name, path: `/storage/v1${String(field(signed, 'signedURL'))}` });
 }
 
-/** The agent the request's token names: its venue, or null for none or a revoked one. */
-async function agentVenue(request: Request): Promise<string | null> {
+/** The agent the request's token names: its device and venue, or null for none or a revoked one. */
+async function agentOf(request: Request): Promise<{ deviceId: string; venueId: string } | null> {
   const token = request.headers.get('x-rivr-computer') ?? '';
   if (token.length < 32) return null;
-  const venueId = field(await rpc('agent_device', { p_token_hash: await sha256(token) }), 'venue_id');
-  return typeof venueId === 'string' ? venueId : null;
+  const row = await rpc('agent_device', { p_token_hash: await sha256(token) });
+  const deviceId = field(row, 'device_id');
+  const venueId = field(row, 'venue_id');
+  return typeof deviceId === 'string' && typeof venueId === 'string' ? { deviceId, venueId } : null;
+}
+
+/** The agent's KOTs to print, claimed for it, as claim_outbox_deliveries gives a consumer its deliveries. */
+async function claimKots(deviceId: string, limit: number): Promise<Response> {
+  const rows = await call('/rest/v1/rpc/claim_agent_kots', { p_device_id: deviceId, p_limit: limit });
+  return Response.json(Array.isArray(rows) ? rows : []);
 }
 
 Deno.serve(async (request) => {
@@ -77,9 +88,15 @@ Deno.serve(async (request) => {
   if (!input.success) return Response.json({ error: 'invalid' }, { status: 400 });
   try {
     if (input.data.action === 'enrol') return await enrol(input.data.code, input.data.token_hash, clientOf(request));
-    const venueId = await agentVenue(request);
-    if (venueId === null) return Response.json({ error: 'not_enrolled' }, { status: 401 });
-    return await pack(venueId);
+    const agent = await agentOf(request);
+    if (agent === null) return Response.json({ error: 'not_enrolled' }, { status: 401 });
+    if (input.data.action === 'pack') return await pack(agent.venueId);
+    if (input.data.action === 'claim_kots') return await claimKots(agent.deviceId, input.data.limit);
+    await call('/rest/v1/rpc/finish_agent_kot', {
+      p_device_id: agent.deviceId, p_delivery_id: input.data.delivery_id, p_delivered: input.data.delivered,
+      p_error: input.data.error, p_retry_after_seconds: input.data.retry_after_seconds,
+    });
+    return Response.json({ finished: true });
   } catch {
     return Response.json({ error: 'unavailable' }, { status: 502 });
   }
