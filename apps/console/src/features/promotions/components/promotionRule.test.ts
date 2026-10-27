@@ -61,6 +61,12 @@ describe('what a waiting promotion does, for its approver', () => {
     ]);
   });
 
+  it('says a card-only template gives nothing', () => {
+    expect(approvalLines(waiting({ rules: [] }), STAKES)).toEqual([
+      'Card only: the engine gives nothing, the floor runs it', 'No limit per member', 'No budget: it gives without a cap',
+    ]);
+  });
+
   it('cannot be read when its rules are not ones the console knows', () => {
     expect(approvalLines(waiting({ rules: null }), STAKES)).toBeNull();
   });

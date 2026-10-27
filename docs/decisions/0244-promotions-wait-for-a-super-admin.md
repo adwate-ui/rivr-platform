@@ -9,7 +9,7 @@ Date: 2026-10-27 · Task: #144 (the approval half; the simulation is decision 02
 
 **What.**
 - **Submitting.** `submit_promotion` and `submit_promotion_template` replace the two publish functions. A promotion goes in as `pending`, recording who submitted it and when. Nothing is announced yet.
-- **Approving.** `approve_promotion` (permission `promotions.approve`, super admin only) puts it live and emits `promotion.published` as publishing did. When it goes live from pending, `announce_promotion` offers it to members. Approving one's own submission is refused with RVTWO.
+- **Approving.** `approve_promotion` (permission `promotions.approve`, super admin only) puts it live from that moment and emits `promotion.published` as publishing did. When it goes live from pending, `announce_promotion` offers it to members. Approving one's own submission is refused with RVTWO.
 - **Refusing.** `refuse_promotion` sends it back to `draft` with a reason (3 to 300 characters) that the submitter reads. A template sent again starts afresh.
 - **Direct writes closed.** Inserts, updates and deletes on `promotion`, `promotion_rule` and `promotion_budget` are revoked from `authenticated` and their write policies dropped. Only these functions and the engine write them.
 - **Console.** The builder's button is "Submit for approval", and templates say "Send for approval". "Waiting for approval" lists each pending promotion with who submitted it. A super admin sees Approve and Refuse on others' submissions; everyone else sees it waiting.

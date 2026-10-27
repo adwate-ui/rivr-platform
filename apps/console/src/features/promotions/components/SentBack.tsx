@@ -1,6 +1,6 @@
 import { usePromotionsSentBack } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Heading, Stack, Text } from '@rivr/ui';
+import { Button, Heading, Inline, Stack, Text } from '@rivr/ui';
 
 /**
  * Promotions a super admin sent back in the last fortnight (#144; decision 0244), newest first, with who sent each
@@ -8,10 +8,20 @@ import { Heading, Stack, Text } from '@rivr/ui';
  */
 export function SentBack({ venueId }: { venueId: string }) {
   const sentBack = usePromotionsSentBack(venueId);
+  const heading = <Heading level={2} variant="section">{t('console.promotions.sentBack.heading')}</Heading>;
+  if (sentBack.isError) {
+    return (
+      <Stack gap={4}>
+        {heading}
+        <Text tone="muted">{t('common.loadFailed')}</Text>
+        <Inline><Button onClick={() => void sentBack.refetch()}>{t('common.retry')}</Button></Inline>
+      </Stack>
+    );
+  }
   if (sentBack.data === undefined || sentBack.data.length === 0) return null;
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.promotions.sentBack.heading')}</Heading>
+      {heading}
       <Stack gap={4} divided>
         {sentBack.data.map((promotion) => (
           <Stack key={promotion.id} gap={1}>

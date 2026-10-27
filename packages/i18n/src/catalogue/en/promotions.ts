@@ -68,6 +68,7 @@ export const promotions = {
     line: '{when}: {gives}',
     forWhom: 'Who and when: {who}',
     everyone: 'anyone, any time',
+    cardOnly: 'Card only: the engine gives nothing, the floor runs it',
     trigger: {
       buy_in: 'On a buy-in', hours_played: 'For hours played', hand_logged: 'When a hand is logged', tournament_entry: 'On a tournament entry',
       referral: 'On a referral', check_in: 'On a check-in', graduation: 'On an Academy graduation', date_window: 'Once each club day in its window',

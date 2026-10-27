@@ -49,7 +49,7 @@ function WhatItDoes({ lines }: { lines: readonly string[] | null }) {
   return (
     <Stack gap={1}>
       <Text variant="small" weight="medium">{t('console.promotions.awaiting.does')}</Text>
-      {lines.map((line) => <Text key={line} variant="small">{line}</Text>)}
+      {lines.map((line, index) => <Text key={index} variant="small">{line}</Text>)}
     </Stack>
   );
 }

@@ -122,7 +122,7 @@ begin
   end if;
   update public.promotion
   set status = 'live', decided_by_staff_id = v_staff_id, decided_at = now(),
-      starts_at = case when template_key is not null then now() else coalesce(starts_at, now()) end
+      starts_at = now()
   where id = p_promotion_id;
   perform private.emit(v_promotion.venue_id, 'promotion.published',
                        jsonb_build_object('promotion_id', v_promotion.id, 'name', v_promotion.name, 'detail', v_promotion.detail,

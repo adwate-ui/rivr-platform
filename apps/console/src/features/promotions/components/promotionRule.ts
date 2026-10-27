@@ -95,5 +95,6 @@ function budgetText({ paise, count }: PromotionAwaitingApproval['budget']): stri
  */
 export function approvalLines(promotion: PromotionAwaitingApproval, stakes: readonly PromotionStake[]): string[] | null {
   if (promotion.rules === null) return null;
-  return [...promotion.rules.flatMap((rule) => ruleLines(rule, stakes)), limitText(promotion.perPlayer), budgetText(promotion.budget)];
+  const does = promotion.rules.length === 0 ? [t('console.promotions.rule.cardOnly')] : promotion.rules.flatMap((rule) => ruleLines(rule, stakes));
+  return [...does, limitText(promotion.perPlayer), budgetText(promotion.budget)];
 }
