@@ -94,12 +94,24 @@ export function usePayoutAccountActions() {
   return { add, remove };
 }
 
-/** A payout account waiting for the cage, with whose it is. */
+/**
+ * What the bank says of a UPI address (#503): whose it is, that it knows no such address, or not asked yet (a bank
+ * account, or a UPI address still waiting for the answer).
+ */
+export type BankNameCheck = { readonly status: 'found'; readonly holderName: string } | { readonly status: 'not_found' } | { readonly status: 'waiting' };
+
+/** A payout account waiting for the cage, with whose it is and, for a UPI address, the bank's name for it. */
 export interface PayoutAccountToVerify extends Omit<PayoutAccount, 'status' | 'rejectReason'> {
   readonly memberId: string;
   readonly fullName: string;
   readonly phone: string;
   readonly addedAt: string;
+  readonly bankCheck: BankNameCheck;
+}
+
+function bankCheckOf(nameCheck: string | null, holderName: string | null): BankNameCheck {
+  if (nameCheck === 'found' && holderName !== null) return { status: 'found', holderName };
+  return nameCheck === 'not_found' ? { status: 'not_found' } : { status: 'waiting' };
 }
 
 /** The venue's payout accounts waiting for the cage (#19), oldest first; asked again every few seconds. */
@@ -115,6 +127,7 @@ export function usePayoutAccountsToVerify(venueId: string) {
       return data.map((row) => ({
         accountId: row.account_id, kind: kindOf(row.kind), bankName: row.bank_name, vpa: row.vpa, accountNumber: row.account_number, ifsc: row.ifsc,
         holderName: row.holder_name, memberId: row.member_id, fullName: row.full_name, phone: row.phone, addedAt: row.added_at,
+        bankCheck: bankCheckOf(row.name_check, row.bank_holder_name),
       }));
     },
   });
