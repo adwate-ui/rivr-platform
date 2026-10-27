@@ -31,19 +31,19 @@ describe('rakeback', () => {
   });
 
   it('is whole chips, never more than the rate of the rake, and never less for a higher rate', () => {
-    fc.assert(fc.property(fc.bigInt({ min: 0n, max: 100_000_000n }), fc.integer({ min: 1, max: 9_999 }), (paise, rate) => {
+    fc.assert(fc.property(fc.bigInt({ min: 0n, max: 100_000_000n }), fc.bigInt({ min: 0n, max: 9_999n }), (paise, rate) => {
       const share = fromPaise(paise);
       const bonus = rakebackBonus(share, rate);
       expect(bonus % CHIP).toBe(0n);
-      expect(bonus * 10_000n <= paise * BigInt(rate)).toBe(true);
-      expect(rakebackBonus(share, rate + 1) >= bonus).toBe(true);
+      expect(bonus * 10_000n <= paise * rate).toBe(true);
+      expect(rakebackBonus(share, rate + 1n) >= bonus).toBe(true);
     }));
   });
 
   it('is held to the cap', () => {
-    fc.assert(fc.property(fc.bigInt({ min: 0n, max: 100_000_000n }), fc.integer({ min: 1, max: 10_000 }), fc.integer({ min: 1, max: 200 }),
+    fc.assert(fc.property(fc.bigInt({ min: 0n, max: 100_000_000n }), fc.bigInt({ min: 0n, max: 10_000n }), fc.bigInt({ min: 1n, max: 200n }),
       (paise, rate, chips) => {
-        expect(rakebackBonus(fromPaise(paise), rate, chips * 5_000) <= BigInt(chips) * CHIP).toBe(true);
+        expect(rakebackBonus(fromPaise(paise), rate, fromPaise(chips * CHIP)) <= chips * CHIP).toBe(true);
       }));
   });
 });

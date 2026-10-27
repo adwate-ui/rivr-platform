@@ -10,13 +10,20 @@
 -- the week just ended, and a later run gives a hand the tablet sent late, or a member's week held by a freeze or the
 -- promotions kill switch once it is released. A week held more than five weeks is not given; the owner is alerted.
 --
--- What was given for a week is that week's bonus grants: their keys start rakeback:<Monday>:<stake>:<member>:.
+-- What was given for a week is that week's bonus grants: their keys start rakeback:<Monday>:<stake>:<member>:. Each
+-- grant emits rakeback.given. Only members whose tier has rewards.rakeback are given it, and never an erased member.
+--
+-- Like RIVR Rewards (decision 0161), the share reads lane B's seats, moves and hands and lane D's private.session_tables
+-- and private.rake_share directly: the same split, not a second one.
+
+insert into public.feature (key, name, description, screens, is_gateable) values
+  ('rewards.rakeback', 'Hourly rakeback', 'Bonus each Monday on a member''s share of last week''s rake, at stakes with a rakeback rate.', '{}', true);
 
 insert into public.setting_key (key, description, scope, value_schema) values
   ('rakeback.rate',
-   'Hourly rakeback (decision 0245): the share of a member''s rake at this table type over a club week, in basis points (1000 is 10%), given as bonus each Monday at 06:00 IST, rounded down to whole ₹50 chips, held to the cap and ending after the days given. The rate in force when the week began applies to all of it; none set gives none. Only a super admin changes it, with a reason.',
+   'Hourly rakeback (decision 0245): the share of a member''s rake at this table type over a club week, in basis points (1000 is 10%), given as bonus each Monday at 06:00 IST, rounded down to whole ₹50 chips, held to the cap and ending after the days given. The rate in force when the week began applies to all of it; none set, or 0, gives none. Only a super admin changes it, with a reason.',
    'table_type',
-   '{"type":"object","properties":{"basis_points":{"type":"integer","minimum":1,"maximum":10000},"cap_paise":{"type":"integer","minimum":5000,"maximum":10000000,"multipleOf":5000},"expires_days":{"type":"integer","minimum":1,"maximum":365}},"required":["basis_points","expires_days"],"additionalProperties":false}');
+   '{"type":"object","properties":{"basis_points":{"type":"integer","minimum":0,"maximum":10000},"cap_paise":{"type":"integer","minimum":5000,"maximum":10000000,"multipleOf":5000},"expires_days":{"type":"integer","minimum":1,"maximum":365}},"required":["basis_points","expires_days"],"additionalProperties":false}');
 
 -- As before (20261028140000_money_settings.sql), with rakeback.rate a control setting too: only a super admin changes
 -- it, with a reason, and the owner is alerted.
@@ -114,9 +121,10 @@ as $$
            (select coalesce(sum(g.amount_paise), 0)::bigint from public.bonus_grant g
             where g.venue_id = p_venue_id and g.member_id = s.member_id and starts_with(g.idempotency_key, k.key_start)) as already_given
     from private.week_rake_shares(p_venue_id, p_week_from, p_week_from + interval '7 days') s
+    join public.member m on m.id = s.member_id
     cross join lateral (select private.setting_at(p_venue_id, 'rakeback.rate', s.stake, p_week_from) as rate) r
     cross join lateral (select 'rakeback:' || private.rakeback_week_date(p_week_from) || ':' || s.stake || ':' || s.member_id || ':' as key_start) k
-    where r.rate is not null
+    where r.rate is not null and m.erased_at is null and private.has_feature(s.member_id, 'rewards.rakeback')
   ) d
   where d.owed > d.already_given;
 $$;
@@ -131,13 +139,18 @@ set search_path = ''
 as $$
 declare
   v_due record;
+  v_grant_id uuid;
   v_given integer := 0;
 begin
   for v_due in select * from private.rakeback_due(p_venue_id, p_week_from) order by member_id, stake loop
     begin
       perform private.assert_writable(p_venue_id, 'promotions', v_due.member_id);
-      perform private.credit_bonus(p_venue_id, v_due.member_id, v_due.due_paise, 'Hourly rakeback',
-                                   now() + make_interval(days => (v_due.rate ->> 'expires_days')::integer), v_due.key);
+      v_grant_id := private.credit_bonus(p_venue_id, v_due.member_id, v_due.due_paise, 'Hourly rakeback',
+                                         now() + make_interval(days => (v_due.rate ->> 'expires_days')::integer), v_due.key);
+      perform private.emit(p_venue_id, 'rakeback.given',
+                           jsonb_build_object('member_id', v_due.member_id, 'week', private.rakeback_week_date(p_week_from), 'stake', v_due.stake,
+                                              'amount_paise', v_due.due_paise, 'bonus_grant_id', v_grant_id),
+                           'rakeback.given:' || v_grant_id);
       v_given := v_given + 1;
     exception when sqlstate 'RVFRZ' or sqlstate 'RVKIL' or sqlstate 'RVMBR' then
       null; -- venue frozen, promotions switched off, member frozen: a later run gives it once released

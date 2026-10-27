@@ -86,14 +86,29 @@ select results_eq(
 select is(private.give_rakeback('00000000-0000-4000-8000-000000000001', pg_temp.week()), 0, 'no rakeback rate, no rakeback');
 insert into public.setting (venue_id, key, subject, value, effective_from)
 values ('00000000-0000-4000-8000-000000000001', 'rakeback.rate', 'nlh_100_200', '{"basis_points": 1000, "expires_days": 7}', pg_temp.week() - interval '1 day');
+select lives_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from)
+                   values ('00000000-0000-4000-8000-000000000001', 'rakeback.rate', 'nlh_50_100', '{"basis_points": 0, "expires_days": 7}',
+                           pg_temp.week() - interval '1 day') $$,
+  'a rate of 0 is a rate: none at 50/100');
+-- The seed gives every tier every feature; here no tier has rakeback, then every tier does.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, effective_from)
+select venue_id, id, 'rewards.rakeback', false, now() - interval '1 second' from public.tier where venue_id = '00000000-0000-4000-8000-000000000001';
+select is(private.give_rakeback('00000000-0000-4000-8000-000000000001', pg_temp.week()), 0, 'nothing for a tier without rewards.rakeback');
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, effective_from)
+select venue_id, id, 'rewards.rakeback', true, now() from public.tier where venue_id = '00000000-0000-4000-8000-000000000001';
+
+-- 217 has since been erased: never given anything.
+update public.member set erased_at = now(), phone = null, user_id = null, full_name = 'Erased member', qualifying_small_blind = null
+where id = '00000000-0000-4000-8000-000000000217';
 
 -- Yash is frozen at Monday's run: the others are given theirs, Yash not yet.
 insert into public.control_state (venue_id, level, member_id, reason)
 values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000214', 'Test freeze');
-select is(private.give_rakeback('00000000-0000-4000-8000-000000000001', pg_temp.week()), 3, 'Mihir, Kunal and 217 are given theirs, the frozen Yash not');
+select is(private.give_rakeback('00000000-0000-4000-8000-000000000001', pg_temp.week()), 2,
+  'Mihir and Kunal are given theirs; not the frozen Yash, nor the erased 217');
 select results_eq($$ select pg_temp.given(m) from unnest(array['213', '214', '216', '217']) m $$,
-  $$ values (25000::bigint), (0), (10000), (5000) $$,
-  '10% in ₹50 chips: ₹250 of ₹2,500, nothing yet for Yash, ₹100 of Kunal''s ₹1,000 at 100/200 (none at 50/100), ₹50 of ₹600');
+  $$ values (25000::bigint), (0), (10000), (0) $$,
+  '10% in ₹50 chips: ₹250 of ₹2,500, nothing yet for Yash, ₹100 of Kunal''s ₹1,000 at 100/200 (none at 50/100), none for 217');
 select is((select expires_at from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000213' and reason = 'Hourly rakeback'),
   now() + interval '7 days', 'ending after the rate''s seven days');
 
@@ -116,7 +131,12 @@ values ('00000000-0000-4000-8000-000000000001', 'rakeback.rate', 'nlh_100_200', 
 select is(private.give_rakeback('00000000-0000-4000-8000-000000000001', pg_temp.week()), 0,
   'the rate in force when the week began is the week''s, and nothing is given twice');
 select lives_ok($$ select private.give_rakeback_everywhere() $$, 'the daily run looks back over five weeks at every venue');
-select is((select sum(amount_paise)::bigint from public.bonus_grant where reason = 'Hourly rakeback'), 80000::bigint, 'and gives nothing more');
+select is((select sum(amount_paise)::bigint from public.bonus_grant where reason = 'Hourly rakeback'), 75000::bigint, 'and gives nothing more');
+select results_eq(
+  $$ select right(payload ->> 'member_id', 3), (payload ->> 'amount_paise')::bigint from public.outbox_event
+     where event_type = 'rakeback.given' order by 1, 2 $$,
+  $$ values ('213'::text, 5000::bigint), ('213', 25000), ('214', 30000), ('216', 5000), ('216', 10000) $$,
+  'each grant emits rakeback.given');
 
 -- Six weeks ago member 215 earned ₹1,000 of rake at Table 2 and has been frozen since: that week is no longer looked
 -- at, so the owner is told, once.

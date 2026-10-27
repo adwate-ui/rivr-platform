@@ -35,8 +35,8 @@ describe('rakeback golden fixtures (packages/testing/golden/rakeback.json)', () 
 
   it.each(casesFor(golden, 'rakeback'))('%s', (_description, goldenCase) => {
     const cap = goldenInput(goldenCase, 'cap');
-    const bonus = rakebackBonus(amount(goldenInput(goldenCase, 'share')), Number(goldenInput(goldenCase, 'rate')),
-      cap === '' ? undefined : Number(amount(cap)));
+    const bonus = rakebackBonus(amount(goldenInput(goldenCase, 'share')), BigInt(goldenInput(goldenCase, 'rate')),
+      cap === '' ? undefined : amount(cap));
     expect(bonus).toBe(amount(goldenExpected(goldenCase, 'bonus')));
   });
 });

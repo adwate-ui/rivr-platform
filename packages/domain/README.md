@@ -127,12 +127,12 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 ### `@rivr/domain/rakeback`
 
-Hourly rakeback (#108, decision 0245), in paise. Each is proved equal to its `private.` twin by `packages/testing/golden/rakeback.json`.
+Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeback.json` proves the split, the sum and the bonus against `private.rake_share` and `private.rakeback_bonus`; who sat where is tested by `147_rakeback`.
 
 | Export | What it does |
 |---|---|
 | `weekRakeShares(hands)`, `RakeHand` | Each member's rake for the week at each stake: every hand's rake split equally among the members seated at its table (`rakeShare`), summed by member and stake. |
-| `rakebackBonus(share, rateBasisPoints, capPaise?)` | The stake's `rakeback.rate` of that share, rounded down to whole ₹50 chips, then held to the cap. 10% of ₹2,500 is ₹250; 10% of ₹4,999 is ₹450. |
+| `rakebackBonus(share, rateBasisPoints, cap?)` | The stake's `rakeback.rate` of that share, rounded down to whole ₹50 chips, then held to the cap, as a promotion's percentage bonus is. 10% of ₹2,500 is ₹250; 10% of ₹4,999 is ₹450. |
 
 ### `@rivr/domain/promotions`
 

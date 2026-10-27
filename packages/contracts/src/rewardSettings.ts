@@ -22,10 +22,10 @@ export const pointsRewardsRakeShare = {
 // The cap is the most bonus one member gets at one stake in one club week, in whole ₹50 chips.
 export const rakebackRate = {
   key: 'rakeback.rate',
-  description: 'Hourly rakeback (decision 0245): the share of a member\'s rake at this table type over a club week, in basis points (1000 is 10%), given as bonus each Monday at 06:00 IST, rounded down to whole ₹50 chips, held to the cap and ending after the days given. The rate in force when the week began applies to all of it; none set gives none. Only a super admin changes it, with a reason.',
+  description: 'Hourly rakeback (decision 0245): the share of a member\'s rake at this table type over a club week, in basis points (1000 is 10%), given as bonus each Monday at 06:00 IST, rounded down to whole ₹50 chips, held to the cap and ending after the days given. The rate in force when the week began applies to all of it; none set, or 0, gives none. Only a super admin changes it, with a reason.',
   scope: 'table_type',
   value: z.strictObject({
-    basis_points: z.int().min(1).max(10_000),
+    basis_points: z.int().min(0).max(10_000),
     cap_paise: z.int().min(5_000).max(10_000_000).multipleOf(5_000).optional(),
     expires_days: z.int().min(1).max(365),
   }),
