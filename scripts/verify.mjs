@@ -17,8 +17,8 @@ const MODE = process.argv[2] ?? 'changed';
 const MONEY_MODULES = ['money', 'rake', 'jackpot', 'variance', 'eod', 'cage', 'callTime', 'tds', 'gst', 'markers', 'credit', 'payouts', 'bonus', 'wallet', 'promotions', 'tournament', 'aml'];
 // Shared tooling can break any package, so a change to it verifies everything.
 const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
-// A change to these can move any money module's mutation score, so it mutates them all.
-const MUTATION_SHARED = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.json|packages\/config\/|packages\/testing\/golden\/)/;
+// Tooling that can move any money module's mutation score.
+const MUTATION_TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.json|packages\/config\/)/;
 
 function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
@@ -67,6 +67,21 @@ function step(name, command, args, env) {
 
 const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`packages/domain/src/${module}/`));
 
+/** Tooling, or domain code and config outside the money modules (not its prose): either can move every module's score. */
+const movesEveryScore = (file) =>
+  MUTATION_TOOLING.test(file) || (file.startsWith('packages/domain/') && !inMoneyModule(file) && !file.endsWith('.md'));
+
+/** A money module's own files changed, or a golden file its tests import (`@rivr/testing/golden/<name>.json`). */
+function moduleChanged(module, files) {
+  const folder = `packages/domain/src/${module}`;
+  return files.some(
+    (file) =>
+      file.startsWith(`${folder}/`) ||
+      (file.startsWith('packages/testing/golden/') &&
+        spawnSync('git', ['grep', '-q', '--fixed-strings', file.replace('packages/testing/', ''), '--', folder]).status === 0),
+  );
+}
+
 /**
  * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those the pull request changes, all of
  * them when it changes shared domain code or tooling: an unchanged module keeps the score main proved, and the push to
@@ -75,14 +90,8 @@ const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;
   const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
-  const everything = since
-    ? files.some((file) => MUTATION_SHARED.test(file) || (file.startsWith('packages/domain/') && !inMoneyModule(file)))
-    : scope.everything;
-  return MONEY_MODULES.filter(
-    (module) =>
-      existsSync(`packages/domain/src/${module}`) &&
-      (everything || files.some((file) => file.startsWith(`packages/domain/src/${module}/`))),
-  );
+  const everything = since ? files.some(movesEveryScore) : scope.everything;
+  return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`) && (everything || moduleChanged(module, files)));
 }
 
 function mutationStep(modules) {
