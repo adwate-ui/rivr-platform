@@ -1,6 +1,6 @@
 {
-  "rule": "Tournament prize pool, payouts, deals and bounties",
-  "about": "What a tournament pays (#117, #121; decisions 0205, 0206). The prize pool is what the buys put in for prizes (prices less fees and bounties), or the guarantee when that is more, the club paying the difference as overlay. The floor sets each paid place's share of the pool for the tournament, in percent to two decimal places, each above nothing and none above the place before's, adding up to 100% (question #470); anything else is refused. With fewer runs (entries and re-entries not refunded) than paid places, the places that exist share the pool in the same proportions. Each prize is rounded down to ₹50 chips, the chips left over to first. A deal shares the prizes the players left would play for: each is sure of the smallest of them; chip-chop shares the rest in proportion to chips, ICM by what each player's chips are worth over the rest of each prize by Malmuth-Harville, chances worked to thirty decimal places and rounded down, each value to the nearest paisa; each rounded down to ₹50 chips, the chips left over to the biggest stack (the first on a tie). A bust's bounty is paid whole (standard) or half rounded down to ₹50 chips, the rest on the eliminator's own head (progressive). Prizes and lists are first place first; stacks are chips, in the order the amounts come back.",
+  "rule": "Tournament prize pool, payouts, deals, bounties and satellite seats",
+  "about": "What a tournament pays (#117, #121; decisions 0205, 0206). The prize pool is what the buys put in for prizes (prices less fees and bounties), or the guarantee when that is more, the club paying the difference as overlay. The floor sets each paid place's share of the pool for the tournament, in percent to two decimal places, each above nothing and none above the place before's, adding up to 100% (question #470); anything else is refused. With fewer runs (entries and re-entries not refunded) than paid places, the places that exist share the pool in the same proportions. Each prize is rounded down to ₹50 chips, the chips left over to first. A deal shares the prizes the players left would play for: each is sure of the smallest of them; chip-chop shares the rest in proportion to chips, ICM by what each player's chips are worth over the rest of each prize by Malmuth-Harville, chances worked to thirty decimal places and rounded down, each value to the nearest paisa; each rounded down to ₹50 chips, the chips left over to the biggest stack (the first on a tie). A bust's bounty is paid whole (standard) or half rounded down to ₹50 chips, the rest on the eliminator's own head (progressive). A satellite's prize pool buys seats in its target event at the target's buy-in, rounded down and never more than the runs (question #489): each of that many top finishers wins a ticket, and what is left is paid in cash to the next finisher, or to the last seat when every run has one. Prizes and lists are first place first; stacks are chips, in the order the amounts come back.",
   "cases": [
     {
       "description": "RIVR Sunday under its guarantee: 50 entries put in ₹4,50,000, so the club adds ₹50,000.",
@@ -199,6 +199,60 @@
       "operation": "bounty",
       "inputs": { "bounty": "₹75", "kind": "progressive" },
       "expected": { "paid": "refused", "head": "refused" }
+    },
+    {
+      "description": "A ₹2,000 satellite to RIVR Sunday (₹10,000): 23 runs put in ₹41,400, so four win a seat and fifth is paid the ₹1,400 left.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹41,400", "buyIn": "₹10,000", "runs": "23" },
+      "expected": { "seats": "4", "leftover": "₹1,400", "leftoverPlace": "5" }
+    },
+    {
+      "description": "Three entries and a rebuy put in ₹7,200 for a ₹3,000 target: two seats, ₹1,200 to third.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹7,200", "buyIn": "₹3,000", "runs": "3" },
+      "expected": { "seats": "2", "leftover": "₹1,200", "leftoverPlace": "3" }
+    },
+    {
+      "description": "The pool buys exactly five seats: nothing is left for sixth.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹50,000", "buyIn": "₹10,000", "runs": "30" },
+      "expected": { "seats": "5", "leftover": "₹0", "leftoverPlace": "6" }
+    },
+    {
+      "description": "A pool short of one seat: no ticket, and first is paid it all in cash.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹9,000", "buyIn": "₹10,000", "runs": "5" },
+      "expected": { "seats": "0", "leftover": "₹9,000", "leftoverPlace": "1" }
+    },
+    {
+      "description": "A guarantee buys more seats than there are runs: each of the three wins one, and the last seat is paid the ₹25,000 left.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹1,00,000", "buyIn": "₹25,000", "runs": "3" },
+      "expected": { "seats": "3", "leftover": "₹25,000", "leftoverPlace": "3" }
+    },
+    {
+      "description": "One seat for each run, with nothing left over.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹30,000", "buyIn": "₹10,000", "runs": "3" },
+      "expected": { "seats": "3", "leftover": "₹0", "leftoverPlace": "3" }
+    },
+    {
+      "description": "A target with a buy-in of nothing is refused.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹7,200", "buyIn": "₹0", "runs": "3" },
+      "expected": { "seats": "refused", "leftover": "refused", "leftoverPlace": "refused" }
+    },
+    {
+      "description": "A pool not in ₹50 chips is refused.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹7,225", "buyIn": "₹3,000", "runs": "3" },
+      "expected": { "seats": "refused", "leftover": "refused", "leftoverPlace": "refused" }
+    },
+    {
+      "description": "A satellite nobody played is refused.",
+      "operation": "satellite",
+      "inputs": { "pool": "₹0", "buyIn": "₹3,000", "runs": "0" },
+      "expected": { "seats": "refused", "leftover": "refused", "leftoverPlace": "refused" }
     }
   ]
 }

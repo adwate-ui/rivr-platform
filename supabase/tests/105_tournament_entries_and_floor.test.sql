@@ -39,8 +39,9 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role) values
 
 select results_eq($$ select code, kind::text, is_players_money from public.ledger_account
                      where venue_id = '00000000-0000-4000-8000-0000000000e1' and code like 'venue.tournament%' order by code $$,
-  $$ values ('venue.tournament_fees'::text, 'revenue'::text, false), ('venue.tournament_overlay', 'expense', false), ('venue.tournament_pool', 'liability', true) $$,
-  'a new venue opens with the tournament accounts: the pool is players'' money');
+  $$ values ('venue.tournament_fees'::text, 'revenue'::text, false), ('venue.tournament_overlay', 'expense', false), ('venue.tournament_pool', 'liability', true),
+            ('venue.tournament_tickets', 'liability', true) $$,
+  'a new venue opens with the tournament accounts: the pool and the satellite tickets held are players'' money');
 
 -- A RIVR Sunday in a room of one table of two seats, shown to members.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
