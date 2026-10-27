@@ -187,11 +187,14 @@ function perModuleScoreStep(reports) {
   };
 }
 
-/** Mutates the given money files (`module/file.ts`). */
-function mutationStep(files) {
+/**
+ * Mutates the given money files (`module/file.ts`) with a Stryker config in packages/domain: a CI share uses
+ * stryker.share.config.mjs, which leaves the floor to mutation-score (#515).
+ */
+function mutationStep(files, config = 'stryker.config.mjs') {
   const modules = [...new Set(files.map((file) => file.split('/')[0]))];
   const globs = files.map((file) => `src/${file}`);
-  return step(`mutation tests (${modules.join(', ')})`, 'pnpm', ['--filter', '@rivr/domain', 'exec', 'stryker', 'run', '--mutate', globs.join(',')]);
+  return step(`mutation tests (${modules.join(', ')})`, 'pnpm', ['--filter', '@rivr/domain', 'exec', 'stryker', 'run', config, '--mutate', globs.join(',')]);
 }
 
 /** Every share's mutation report, as the mutation-score job downloads them into mutation-reports/. */
@@ -262,7 +265,7 @@ const CI_PARTS = {
   storybook: () => [storybookStep()],
   mutation: (scope) => {
     const files = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
-    return files.length > 0 ? [mutationStep(files)] : [];
+    return files.length > 0 ? [mutationStep(files, 'stryker.share.config.mjs')] : [];
   },
   'mutation-score': () => {
     const reports = shareReports();
