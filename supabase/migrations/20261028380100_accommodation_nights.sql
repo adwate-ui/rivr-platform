@@ -1,7 +1,8 @@
 -- Accommodation rewards, earning (#146; additions "Accommodation rewards"; question #486, the owner's answer of 27 Oct;
 -- decision 0246). A member earns hotel nights by the hours they play: when a visit closes, the time played at each
 -- table (visit_table_time, the call-time clock's, as points by the hour use it) earns that table type's
--- accommodation.hours_per_night share of a night, rounded down to a thousandth per table, so hours at different
+-- accommodation.hours_per_night share of a night, rounded down to a thousandth per seat session at each table (as
+-- points by the hour are), so hours at different
 -- stakes and on different visits add up. Nights are a balance of their own, kept in the ledger as points are: the
 -- member's member.nights against the venue's venue.nights_issued, in thousandths of a night. @rivr/domain
 -- nightsForTime is proved equal by packages/testing/golden/accommodation.json. Spending nights on the catalogue's

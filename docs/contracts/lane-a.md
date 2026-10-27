@@ -71,7 +71,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 ## Events
 
 - Emits: `nights.earned` (member, visit, thousandths; #146), `rakeback.given` (member, week, stake, amount, bonus grant; #108), `cage.buy_in`, `cage.cash_out`, `withdrawal.requested`, `withdrawal.sent` (for the push), `withdrawal.declined`, `deposit.received`, `deposit.not_found`, `marker.issued`, `marker.settled`, `invoice.issued`, `eod.closed`, `control.engaged`, `control.released`, `alert.raised`.
-- Consumes: `hand.logged` (rake reports), `visit.closed` (hours for accommodation). The overlay is booked by the tournament's own finish (`finish_tournament`, key `tournament_overlay:<id>`), so lane A consumes no `tournament.finished`.
+- Consumes: `hand.logged` (rake reports). Accommodation nights are earned inside `close_visit`, not from `visit.closed`. The overlay is booked by the tournament's own finish (`finish_tournament`, key `tournament_overlay:<id>`), so lane A consumes no `tournament.finished`.
 
 ## Uses from other lanes
 
