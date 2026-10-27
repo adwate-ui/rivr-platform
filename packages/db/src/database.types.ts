@@ -4613,7 +4613,7 @@ isOneToOne: false
                            },
 "sop_library":
 { Args: { "p_venue_id": string }; Returns: {
-              "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"next_ack_roles": (Database["public"]['Enums']["staff_role"])[],"next_body": string,"next_effective_on": string,"next_owner": string,"next_version": number,"next_version_id": string,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string
+              "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string,"waiting": Json
             }[]
                            },
 "staff_academy_batches":

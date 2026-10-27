@@ -4,7 +4,7 @@ import { bodyLines, rolesText, sopFailureText, standingText, versionText, waitin
 
 const CURRENT: SopVersion = { versionId: 'v1', version: 2, owner: 'Duty manager', ackRoles: ['cashier'], effectiveOn: '2026-10-20', body: '1. Count.' };
 const SOP: Sop = {
-  sopId: 's1', title: 'Cage', current: CURRENT, next: null, mustAcknowledge: true, acknowledgedAt: null, acknowledgedCount: 1, requiredCount: 4,
+  sopId: 's1', title: 'Cage', current: CURRENT, waiting: [], mustAcknowledge: true, acknowledgedAt: null, acknowledgedCount: 1, requiredCount: 4,
 };
 
 describe('what the SOPs screen says', () => {

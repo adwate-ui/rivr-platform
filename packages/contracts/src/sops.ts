@@ -13,5 +13,11 @@ export const sopVersionSchema = z.object({
   body: z.string().trim().min(1).max(20000),
 });
 
+/** The versions waiting for their day, as `sop_library` gives them (#388), soonest first. */
+export const sopWaitingSchema = z.array(z.object({
+  version_id: z.string(), version: z.number().int(), owner: z.string(), ack_roles: z.array(z.enum(STAFF_ROLES)),
+  effective_on: z.string(), body: z.string(),
+}));
+
 /** A new SOP: its title and its first version. */
 export const sopSchema = sopVersionSchema.extend({ title: z.string().trim().min(1).max(120) });

@@ -65,14 +65,14 @@ interface SopDetailProps {
   onBack: () => void;
 }
 
-/** One SOP: its version in force to read and acknowledge, the next one waiting, and for managers who has acknowledged and New version. */
+/** One SOP: its version in force to read and acknowledge, each version waiting for its day, and for managers who has acknowledged and New version. */
 export function SopDetail({ venueId, sop, canManage, onBack }: SopDetailProps) {
   const [isPublishing, setIsPublishing] = useState(false);
   return (
     <Screen title={sop.title} actions={<Button variant="text" onClick={onBack}>{t('console.sops.back')}</Button>}>
       <Stack gap={8}>
         {sop.current === null ? null : <CurrentVersion venueId={venueId} sop={sop} current={sop.current} canAcknowledge={!isPublishing} />}
-        {sop.next === null ? null : <NextVersion next={sop.next} />}
+        {sop.waiting.map((version) => <NextVersion key={version.versionId} next={version} />)}
         {canManage && sop.current !== null ? <AckTable versionId={sop.current.versionId} /> : null}
         {canManage ? (
           <Stack gap={4}>
