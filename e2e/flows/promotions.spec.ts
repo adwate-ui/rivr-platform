@@ -1,9 +1,9 @@
 /**
  * Publish a promotion (#84, #86; design prompt flow 7): the floor manager opens Promotions, builds
  * Thursday 14:00 to 20:00, 100/200, double points, no limits, sees the player card and the TV slide
- * previewed, and publishes it; it runs live at once. The member's Home shows the card, and a TV on
- * Promotions shows the slide. 180 Tara and 280 Rhea are the flow's own: Auth sends one code a minute
- * to a number.
+ * previewed, and submits it; Arjun Batra, a super admin, approves it and it runs (#144). The member's Home shows
+ * the card, and a TV on Promotions shows the slide. 180 Tara, 759 Arjun and 280 Rhea are the flow's own: Auth sends
+ * one code a minute to a number.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
@@ -11,8 +11,8 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const RUNS = 'NLH 100/200 · Thursday, 14:00 to 20:00';
 
-/** Builds flow 7 in the builder and publishes it. */
-async function publishFlow7(floor: Page) {
+/** Builds flow 7 in the builder and submits it; a super admin approves it. */
+async function publishFlow7(floor: Page, approver: Page) {
   await floor.getByRole('link', { name: 'Promotions' }).click();
   await expect(floor.getByRole('heading', { name: 'New promotion' })).toBeVisible({ timeout: 5000 });
   await floor.getByRole('group', { name: 'Days' }).getByRole('button', { name: 'Thursday' }).click();
@@ -24,13 +24,17 @@ async function publishFlow7(floor: Page) {
   // The player card and the TV slide, as the choices would publish them.
   await expect(floor.getByRole('article', { name: 'Double points' })).toContainText(RUNS);
   await expect(floor.getByRole('group', { name: 'TV slide' })).toContainText(RUNS);
-  // Simulated on last week first (#144), then published.
+  // Simulated on last week first, then submitted; a super admin approves it (#144).
   await floor.getByRole('button', { name: 'Simulate last week' }).click();
   await expect(floor.getByText('Times given', { exact: true })).toBeVisible({ timeout: 10_000 });
-  await floor.getByRole('button', { name: 'Publish', exact: true }).click();
-  await expect(floor.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
-  await expect(floor.getByText(RUNS, { exact: true }).first()).toBeVisible();
-  await expect(floor.getByText('Live', { exact: true }).first()).toBeVisible();
+  await floor.getByRole('button', { name: 'Submit for approval', exact: true }).click();
+  await expect(floor.getByText('Double points waits for a super admin to approve it.')).toBeVisible({ timeout: 10_000 });
+  await approver.getByRole('link', { name: 'Promotions' }).click();
+  const waitingList = approver.getByRole('heading', { name: 'Waiting for approval' }).locator('xpath=..');
+  const waiting = waitingList.getByText(RUNS, { exact: true }).first().locator('xpath=../..');
+  await waiting.getByRole('button', { name: 'Approve', exact: true }).click();
+  await expect(approver.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
+  await expect(approver.getByText('Live', { exact: true }).first()).toBeVisible();
 }
 
 /** Pairs a TV on the console's TVs screen by the code it shows, and sets it to Promotions. */
@@ -53,7 +57,9 @@ test.describe('Promotions', () => {
     test.setTimeout(120_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000180');
-    await publishFlow7(floor);
+    const approver = await browser.newPage();
+    await signInToConsole(approver, '9000000759');
+    await publishFlow7(floor, approver);
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000280');

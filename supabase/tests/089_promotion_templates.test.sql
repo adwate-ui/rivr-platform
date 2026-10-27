@@ -1,5 +1,5 @@
 -- Templates for every scheme in the deck (#85). Every venue has the twelve as drafts; four carry the
--- engine's rule (the four-hour bonus since decision 0164), the rest are cards only. 107 Ishita (marketing) publishes; 104 Sana (cashier) may not.
+-- engine's rule (the four-hour bonus since decision 0164), the rest are cards only. 107 Ishita (marketing) submits one and 101, a super admin, approves it (#144); 104 Sana (cashier) may do neither.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -54,19 +54,24 @@ select is((select count(*)::integer from public.promotion p join public.promotio
            where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 4,
   'a new venue starts with every template and its rules');
 
--- Publishing a template: promotion managers only, from its draft, announced.
+-- Submitting a template: promotion managers only, from its draft; a super admin approves it, and it is announced.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select throws_ok($$ select public.publish_promotion_template(pg_temp.template('referral')) $$, '42501', null, 'a cashier publishes no template');
+select throws_ok($$ select public.submit_promotion_template(pg_temp.template('referral')) $$, '42501', null, 'a cashier submits no template');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select lives_ok($$ select public.publish_promotion_template(pg_temp.template('referral')) $$, 'marketing publishes the referral template');
-select throws_ok($$ select public.publish_promotion_template(pg_temp.template('referral')) $$, '22023', null, 'once');
-select lives_ok($$ select public.publish_promotion_template(pg_temp.template('high_hands')) $$, 'and the high-hands card');
+select lives_ok($$ select public.submit_promotion_template(pg_temp.template('referral')) $$, 'marketing submits the referral template');
+select throws_ok($$ select public.submit_promotion_template(pg_temp.template('referral')) $$, '22023', null, 'once');
+select lives_ok($$ select public.submit_promotion_template(pg_temp.template('high_hands')) $$, 'and the high-hands card');
+reset role;
+select is((select status from public.promotion where id = pg_temp.template('referral')), 'pending', 'the referral waits for a super admin');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.approve_promotion(pg_temp.template('referral')) $$, 'who approves it');
+select lives_ok($$ select public.approve_promotion(pg_temp.template('high_hands')) $$, 'and the high-hands card');
 reset role;
 select is((select status from public.promotion where id = pg_temp.template('referral')), 'live', 'the referral runs');
 select is((select payload ->> 'detail' from public.outbox_event where idempotency_key = 'promotion.published:' || pg_temp.template('referral')),
   '₹1,000 to each side', 'and promotion.published carries its card');
 
--- Published, a template runs: ₹1,000 bonus on a referral; a card alone gives nothing.
+-- Approved, a template runs: ₹1,000 bonus on a referral; a card alone gives nothing.
 select is((select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'referral',
   '{"member_id": "00000000-0000-4000-8000-000000000211", "key": "referral:test-1"}')), 1, 'a referral gives Ishaan a promotion');
 select is((select amount_paise from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211' and reason = 'Referral'), 100000::bigint,
@@ -75,7 +80,7 @@ select is((select count(*)::integer from public.promotion_grant where promotion_
 
 insert into public.control_state (venue_id, level, feature, reason) values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select throws_ok($$ select public.publish_promotion_template(pg_temp.template('league')) $$, 'RVKIL', null, 'nothing is published while promotions are off');
+select throws_ok($$ select public.submit_promotion_template(pg_temp.template('league')) $$, 'RVKIL', null, 'nothing is submitted while promotions are off');
 reset role;
 
 select * from finish();

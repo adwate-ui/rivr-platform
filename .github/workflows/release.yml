@@ -19,7 +19,7 @@ concurrency:
 permissions:
   contents: read
   deployments: read
-  checks: read
+  actions: read
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
@@ -44,10 +44,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          result="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=ci-ok" \
-            --jq '[.check_runs[] | select(.status == "completed")] | sort_by(.completed_at) | last | .conclusion // "none"')"
+          result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push" \
+            --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // "none"')"
           if [ "$result" != success ]; then
-            echo "::error::ci-ok on $GITHUB_SHA is $result. Tag a commit whose push to main passed CI."
+            echo "::error::CI on main for $GITHUB_SHA is $result. Tag a commit whose push to main passed CI."
             exit 1
           fi
       - name: Staging runs the tagged commit

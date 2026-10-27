@@ -3,8 +3,9 @@
 # post-agent-review.sh posted agent-review on the reviewed head. It turns on auto-merge (squash) and, whenever main
 # moves past the branch, has GitHub merge main into it and posts agent-review again on that merge: an update from main
 # leaves the reviewed diff as it was. It stops if the head moves any other way (a push nobody reviewed), on a failed
-# or cancelled required check, on a conflict, or after two hours. Once merged it prints each CI job's time: a job over
-# 15 minutes is a cause to find before the next pull request.
+# or cancelled required check, on a conflict, or after two hours. Once merged it prints each CI job's time (a job over
+# 15 minutes is a cause to find before the next pull request), then waits for CI on main at the merge and fails if it
+# is not green: that run mutates every money module.
 #   scripts/github/land.sh <pr-number>
 set -euo pipefail
 
@@ -75,3 +76,19 @@ gh pr view "$pr" --json statusCheckRollup \
     echo "CI $name: $minutes min"
     if [ "$minutes" -gt 15 ]; then echo "  over 15 minutes: find the cause before the next pull request"; fi
   done
+
+# Main's own run after the merge mutates every money module, which catches what a pull request's run cannot: a change
+# to one module's tests that moves another's score. A red main is fixed before anything else lands.
+main_deadline=$(($(date +%s) + 3600))
+until merge_sha="$(read_api "repos/$repo/pulls/$pr" --jq '.merge_commit_sha // empty')"; [ -n "$merge_sha" ]; do
+  if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "#$pr merged, but its merge commit could not be read: check CI on main." >&2; exit 1; fi
+  sleep 10
+done
+echo "Waiting for CI on main at ${merge_sha:0:8}."
+until result="$(read_api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$merge_sha&event=push" \
+  --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // empty')"; [ -n "$result" ]; do
+  if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "CI on main at ${merge_sha:0:8} has not finished in an hour: look at it." >&2; exit 1; fi
+  sleep 60
+done
+if [ "$result" != success ]; then echo "#$pr merged, but CI on main at ${merge_sha:0:8} is $result: fix main before anything else lands." >&2; exit 1; fi
+echo "CI on main passed at ${merge_sha:0:8}."

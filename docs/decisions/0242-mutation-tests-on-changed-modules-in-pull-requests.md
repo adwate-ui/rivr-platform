@@ -13,3 +13,5 @@ The push to main still mutates every module, in a separate `mutation` job split 
 **Watch.** The cut checklist now records the `verify`, `e2e` and `mutation` times, so a slow climb is seen early: `verify` went from 21 minutes on 26 Oct to 58 on 27 Oct without anyone noticing.
 
 **Why this is safe.** A module's score depends on its source and its tests. If neither changed, it scores what it scored when main last passed.
+
+**Correction (decision 0243).** Stryker's command runner runs the whole domain suite for every mutant, so a module's score also depends on other modules' tests, `money`'s most of all. The push to main, which mutates every module and must be green before a release, catches that.
