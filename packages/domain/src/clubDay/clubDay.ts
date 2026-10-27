@@ -23,3 +23,14 @@ export function lastDayOfMonth(first: string): string {
   const [year = 0, month = 1] = first.split('-').map(Number);
   return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
 }
+
+/** The day `count` days after a club day (`2026-11-15`), or before it for a negative count. */
+export function dayAfter(day: string, count: number): string {
+  return new Date(Date.parse(`${day}T00:00:00Z`) + count * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** The club week a club day falls in, Monday to Sunday, by its Monday: `2026-11-18`, a Wednesday, is in `2026-11-16`'s. */
+export function weekOf(day: string): string {
+  const weekday = new Date(`${day}T00:00:00Z`).getUTCDay();
+  return dayAfter(day, -((weekday + 6) % 7));
+}

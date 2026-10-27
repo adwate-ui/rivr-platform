@@ -78,6 +78,7 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.team',
     entries: [
       { id: 'staff', label: 'console.rail.items.staff', href: '/staff', anyOf: ['staff.manage'] },
+      { id: 'roster', label: 'console.rail.items.roster', href: '/roster', anyOf: ['staff.manage'] },
       { id: 'dealerPins', label: 'console.rail.items.dealerPins', href: '/dealer-pins', anyOf: ['staff.manage'] },
       { id: 'certification', label: 'console.rail.items.certification', href: '/certification', anyOf: [] },
       { id: 'sops', label: 'console.rail.items.sops', href: '/sops', anyOf: ['sops.acknowledge', 'sops.manage'] },
