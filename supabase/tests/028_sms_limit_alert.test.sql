@@ -5,6 +5,8 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 
 delete from public.alert where kind = 'auth.sms_rate_limit';
+-- Codes went out within the hour, so the limit can be used up (140_security_review has the hour with none).
+insert into private.sign_in_code_send (phone_hash, sent_at) values ('a number', now()) on conflict (phone_hash) do update set sent_at = now();
 set local role service_role;
 select public.raise_sms_limit_alert();
 select public.raise_sms_limit_alert();

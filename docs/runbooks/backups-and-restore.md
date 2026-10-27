@@ -137,6 +137,20 @@ You need, on the computer you restore from:
 | Date | Backup | Where it was restored | Result |
 |---|---|---|---|
 | 20 Oct 2026 | The local stack's seed data (`--local`), as the backup job makes it. Staging's and production's are the owner's first run (setup step 8). | Scratch local stack (550) | PASS: every ledger transaction sums to zero; all 10 account totals match the CSV; row counts match for 70 tables; all 6 cron jobs back |
+| 27 Oct 2026 | The local stack's seed data (`--local`), 152 migrations (#112) | Scratch local stack (550) | First run FAIL: `restore.sh` no longer parsed. Since #409, an apostrophe inside `"${...:?...}"` was read as a quote by bash, so a real restore would have failed too. Fixed, and CI's `check-backup.sh` now parses every backup script. Rerun PASS: every ledger transaction sums to zero; all 100 account totals match the CSV; row counts match for 107 tables; all 13 cron jobs back; the scratch stack removed (99 s) |
+
+**On staging and production (hardening week, by the owner).** The drill needs the backup key's private half, which lives offline with the owner (setup step 3), so no workflow can run it, and none should. The `nightly-backup` workflow makes the backups it restores.
+1. Check that Actions → nightly-backup shows a green run for the target in the last day.
+2. On a computer with Docker, `age`, `psql` 17, the AWS CLI and a checkout of `main` (`pnpm i`), give the shell that target's bucket token. Type the secret at the prompt, so it stays out of the shell's history. Then run:
+   ```
+   export AWS_ACCESS_KEY_ID=<the target's R2 token id> AWS_DEFAULT_REGION=auto
+   read -rs AWS_SECRET_ACCESS_KEY && export AWS_SECRET_ACCESS_KEY
+   export BACKUP_S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com BACKUP_BUCKET=rivr-backups-staging
+   bash scripts/backup/restore-drill.sh --latest staging --key rivr-backup-key.txt
+   ```
+3. Then do the same for production: `BACKUP_BUCKET=rivr-backups-production` and `--latest production`.
+4. Add each result to the table above: the date, the night's file, and the PASS or FAIL lines.
+5. `unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY` afterwards. The drill restores into a scratch stack on this computer and removes it. Nothing is written to staging or production.
 
 ## Restoring production in place
 

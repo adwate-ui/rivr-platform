@@ -52,7 +52,8 @@ psql --single-transaction --quiet --variable ON_ERROR_STOP=1 \
 if ! $with_files; then
   [[ -d "$backup/storage" ]] && echo "The backup's Storage files were left out (no --files). The runbook's restore says how to copy them on their own."
 elif [[ -d "$backup/storage" ]]; then
-  : "${STORAGE_S3_ENDPOINT:?the new project's Storage S3 endpoint}"
+  # No apostrophe in these messages: bash takes one inside "${...:?...}" as a quote, and the script stops parsing.
+  : "${STORAGE_S3_ENDPOINT:?the Storage S3 endpoint of the new project}"
   export AWS_ACCESS_KEY_ID="${STORAGE_S3_ACCESS_KEY_ID:?the S3 access key for Storage}" AWS_SECRET_ACCESS_KEY="${STORAGE_S3_SECRET_ACCESS_KEY:?its secret}"
   export AWS_DEFAULT_REGION="${STORAGE_S3_REGION:-auto}" AWS_REQUEST_CHECKSUM_CALCULATION=when_required AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
   for bucket in "$backup"/storage/*/; do

@@ -50,6 +50,7 @@ select throws_ok($$ select public.issue_marker('00000000-0000-4000-8000-00000000
 select throws_ok($$ select public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 1000000, '<script>alert(1)</script>', gen_random_uuid()) $$,
   'RVSIG', null, 'with path data, nothing else');
 reset role;
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'credit.config', '', '{"approval_threshold_paise": 10000000, "minimum_visits": 3, "exposure_cap_paise": 9000000}',
         now(), 'Test');
@@ -57,6 +58,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 2000000, 'M0 0 L 10 10', gen_random_uuid()) $$,
   'RVEXP', null, 'within his limit but past a ₹90,000 room cap (₹80,000 open): refused');
 reset role;
+select set_config('request.jwt.claims', '', true);
 delete from public.setting where venue_id = '00000000-0000-4000-8000-000000000001' and key = 'credit.config' and reason = 'Test';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select lives_ok($$ select public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 2000000, 'M0 0 L 10 10', gen_random_uuid()) $$,
@@ -118,6 +120,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 1000000, 'M0 0 L 10 10', gen_random_uuid()) $$,
   'RVKIL', null, 'while credit is switched off, no markers');
 reset role;
+select set_config('request.jwt.claims', '', true);
 delete from public.setting where venue_id = '00000000-0000-4000-8000-000000000002' and key = 'credit.config';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select public.issue_marker('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000301', 1000000, 'M0 0 L 10 10', gen_random_uuid()) $$,

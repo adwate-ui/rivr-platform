@@ -68,7 +68,8 @@ if $local_backup; then
 elif [[ -n "$latest" ]]; then
   step "Download the latest nightly backup of $latest"
   if ! $dry_run; then
-    : "${BACKUP_S3_ENDPOINT:?the bucket's endpoint}" "${BACKUP_BUCKET:?the target's bucket}"
+    # No apostrophe in these messages: bash takes one inside "${...:?...}" as a quote (restore.sh says more).
+    : "${BACKUP_S3_ENDPOINT:?the endpoint of the bucket}" "${BACKUP_BUCKET:?the bucket of the target}"
     night="$(aws s3 ls "s3://$BACKUP_BUCKET/$latest/nightly/" --endpoint-url "$BACKUP_S3_ENDPOINT" | awk '{print $2}' | sort | tail -1)"
     [[ -n "$night" ]] || { echo "No nightly backup of $latest yet"; exit 1; }
     aws s3 cp "s3://$BACKUP_BUCKET/$latest/nightly/$night" "$work/in/" --recursive --no-progress --endpoint-url "$BACKUP_S3_ENDPOINT" >/dev/null

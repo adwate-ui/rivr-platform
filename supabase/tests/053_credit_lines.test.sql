@@ -155,7 +155,8 @@ select throws_ok($$ select public.set_credit_limit('00000000-0000-4000-8000-0000
   'and while the venue is frozen, none');
 reset role;
 
--- A venue with no credit rules set has no credit (the practice venue's are removed here).
+-- A venue with no credit rules set has no credit (the practice venue's are removed here, by the database).
+select set_config('request.jwt.claims', '', true);
 delete from public.setting where venue_id = '00000000-0000-4000-8000-000000000002' and key = 'credit.config';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.set_credit_limit('00000000-0000-4000-8000-000000000002', '9000000301', 5000000, 'Trainee') $$, 'RVCFG', null,
