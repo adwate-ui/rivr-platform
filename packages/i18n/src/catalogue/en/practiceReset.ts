@@ -38,16 +38,22 @@ export const purge = {
   intro: 'Purging deletes the venue\'s play for good: members, visits, seats, hands, tournaments, the ledger\'s entries, promotions and messages. Its setup, staff, accounts and the audit log stay.',
   freezeFirst: 'Freeze the venue on Kill switch first, so nothing changes between the archive and the purge.',
   archiveTitle: 'The archive',
-  archiveHint: 'Make the full encrypted archive and keep the file. The purge waits for one made in the last 30 minutes.',
+  archiveHint: 'Make the full encrypted archive, with the KYC photos and receipts, and keep the file: it is the only copy once the purge removes them. The purge waits for one made in the last 30 minutes.',
+  kycReason: 'Why the KYC photos go in the archive',
+  kycReasonHint: 'At least 10 characters, kept in the audit log: "Purging the venue: the archive keeps the only copy".',
   tableLabel: 'What the purge deletes',
   table: 'Table',
   rows: 'Rows',
   empty: 'Nothing to delete.',
   typeName: 'Type the venue\'s name to purge it',
   purge: 'Purge the venue',
-  done: 'Purged: {count} rows deleted, and {files} files.',
-  filesLeft: 'The rows are purged, but some of the venue\'s files are still in storage.',
-  filesAgain: 'Remove the files',
+  /** After the purge: `{count}` rows deleted. */
+  purged: 'Purged: {count} rows deleted.',
+  /** The files the archive holds, removed from storage: `{files}` of them. */
+  filesRemoved: '{files} files removed from storage. Only the archive holds them now.',
+  /** Some did not go: `{left}` of them. Asked again within seven days of the purge. */
+  filesLeft: '{left} of the venue\'s files are still in storage. Remove them within seven days.',
+  filesAgain: 'Remove the files again',
 };
 
 /** Why a purge did not go through. */
@@ -58,5 +64,7 @@ export const purgeFailures = {
   noArchive: 'Make and save the full archive after freezing the venue. It counts for 30 minutes, while nothing changes.',
   wrongName: 'Type the venue\'s name exactly as it is.',
   held: 'A kill-switch control names a member. Release it, then purge.',
+  busy: 'Another change held the tables. Try the purge again in a moment.',
+  tooOften: 'Too many tries in a minute. Wait a moment and try again.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };

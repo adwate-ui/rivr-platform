@@ -42,7 +42,7 @@ export function useArchiveExport(venueId: string) {
       const fileName = fileNameOf(memberNumber, madeAt);
       saveFile(new Blob([new Uint8Array(archive.file)], { type: 'application/octet-stream' }), fileName);
       // A full archive, written, is one a purge may follow (#432): the database keeps its SHA-256 and size.
-      if (memberId === null) await source.complete(archive.archiveId, await sha256Of(archive.file), archive.file.byteLength);
+      if (memberId === null) await source.complete(archive.archiveId, await sha256Of(archive.file), archive.file.byteLength, archive.unread);
       setState({ status: 'done', archive, fileName });
     } catch (error) {
       setState({ status: 'failed', failure: archiveFailureOf(error) });

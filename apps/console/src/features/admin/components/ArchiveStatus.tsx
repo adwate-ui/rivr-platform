@@ -14,7 +14,7 @@ const FAILURE_COPY: Readonly<Record<ArchiveFailure, MessageKey>> = {
 function progressText(progress: ArchiveProgress | null): string {
   if (progress === null) return t('common.loading');
   if (progress.step === 'table') return t('console.exportArchive.readingTable', { name: progress.name, done: String(progress.done), of: String(progress.of) });
-  if (progress.step === 'photos') return t('console.exportArchive.readingPhotos', { done: String(progress.done), of: String(progress.of) });
+  if (progress.step === 'files') return t('console.exportArchive.readingFiles', { done: String(progress.done), of: String(progress.of) });
   return t('console.exportArchive.locking');
 }
 
@@ -27,9 +27,9 @@ export function ArchiveStatus({ state }: { state: ArchiveState }) {
   return (
     <Stack gap={2}>
       <Text>{t('console.exportArchive.done', {
-        file: fileName, rows: formatNumber(archive.rows), tables: formatNumber(archive.tables), photos: formatNumber(archive.photos),
+        file: fileName, rows: formatNumber(archive.rows), tables: formatNumber(archive.tables), files: formatNumber(archive.files),
       })}</Text>
-      {archive.unread.length > 0 ? <Text tone="muted">{t('console.exportArchive.photosUnread', { count: String(archive.unread.length) })}</Text> : null}
+      {archive.unread.length > 0 ? <Text tone="muted">{t('console.exportArchive.filesUnread', { count: String(archive.unread.length) })}</Text> : null}
     </Stack>
   );
 }

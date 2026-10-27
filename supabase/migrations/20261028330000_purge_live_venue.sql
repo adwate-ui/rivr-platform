@@ -1,10 +1,13 @@
 -- Purge a live venue (#432; features "Purge"; the owner's approval of the plan and answer on what goes, 27 Oct; decision
 -- 0239). A super admin with purge.run, at a venue that is not the practice one (that one resets to its seed, #104) and
--- that is frozen. The console first makes the full encrypted archive (#103), reading every table to its end, saves it
--- and says so with the file's SHA-256 and size; the purge needs such an archive of that venue, by the same super admin,
--- started after the freeze, saved within 30 minutes, and every table still holding the rows the archive counted. With
--- the rows go the purged members' logins (as member erasure removes one) and their personal fields in the audit log;
--- the purge-venue Edge Function then removes the venue's files (KYC photos, expense receipts).
+-- that is frozen. The console first makes the full encrypted archive (#103) with the KYC photos: every table read to its
+-- end through pages the server hands out in order, and every file the server listed for the venue (KYC photos, expense
+-- receipts), then saves it and says so with the file's SHA-256 and size and the files it could not read. The purge, run
+-- from the console itself so its computer is checked, needs such an archive of that venue, by the same super admin,
+-- started after the freeze, saved within 30 minutes, and no row added, removed or changed since. With the rows go the
+-- purged members' logins (as member erasure removes one) and their personal fields in the audit log. The purge-venue
+-- Edge Function then removes, as the super admin asks within seven days, only the files the archive holds and no row
+-- still names.
 -- The dry run counts each table's rows; the venue's name is typed. In one transaction one statement deletes the
 -- venue's play (foreign keys checked at its end), as the practice reset does; the ledger is checked; the audit log,
 -- which a purge never deletes, records it; the owner is alerted.
@@ -23,7 +26,13 @@ alter table private.export_archive
   add column tables_read text[] not null default '{}',
   -- The file the console saved, as it says.
   add column file_sha256 text check (file_sha256 is null or file_sha256 ~ '^[0-9a-f]{64}$'),
-  add column file_bytes bigint check (file_bytes is null or file_bytes > 0);
+  add column file_bytes bigint check (file_bytes is null or file_bytes > 0),
+  -- The venue's files the server listed when a full archive started (<bucket>/<path>), and those the saved file holds.
+  add column files_listed text[] not null default '{}',
+  add column files_held text[],
+  -- Where each table's reading has got to: the page last handed out ("prev") and the next one ("next"), so a table is
+  -- marked read only when the server's own pages reach its end.
+  add column cursors jsonb not null default '{}';
 
 -- A freeze goes with its member: a purge or practice reset that removes a member removes its freezes too. Nothing else
 -- deletes a member.
@@ -61,6 +70,7 @@ declare
   v_rows bigint;
   v_counts jsonb := '{}'::jsonb;
   v_tables jsonb := '[]'::jsonb;
+  v_files text[] := '{}';
   v_id uuid;
 begin
   perform private.assert_may_export_archive(p_venue_id, p_member_id);
@@ -78,24 +88,34 @@ begin
   end loop;
   -- A staff-notes entry is rows already counted with its table, and not a table of its own.
   v_rows := (select coalesce(sum(c.value::bigint), 0) from jsonb_each(v_counts) c where c.key not like 'staff-notes/%');
-  insert into private.export_archive (venue_id, member_id, started_by, kyc_reason, counts)
-  values (p_venue_id, p_member_id, (select auth.uid()), v_reason, v_counts)
+  -- A full archive holds the venue's files as Storage has them, each named <bucket>/<path>: expense receipts always,
+  -- KYC photos when a reason is given. Listed here, so the console can neither add nor leave one out unseen.
+  if p_member_id is null then
+    v_files := array(select o.bucket_id || '/' || o.name from storage.objects o
+                     where o.name like p_venue_id::text || '/%'
+                       and (o.bucket_id = 'expense-receipts' or (o.bucket_id = 'kyc' and v_reason is not null))
+                     order by 1);
+  end if;
+  insert into private.export_archive (venue_id, member_id, started_by, kyc_reason, counts, files_listed)
+  values (p_venue_id, p_member_id, (select auth.uid()), v_reason, v_counts, v_files)
   returning id into v_id;
   perform private.audit(p_venue_id, case when p_member_id is null then 'export.archive' else 'export.member' end,
                         case when p_member_id is null then 'venue' else 'member' end, coalesce(p_member_id, p_venue_id)::text, null,
                         jsonb_build_object('archive', v_id, 'tables', (select count(*) from jsonb_array_elements(v_tables) e where e ->> 'name' not like 'staff-notes/%'), 'rows', v_rows,
-                                           'kyc_photos', v_reason is not null, 'counts', v_counts),
+                                           'kyc_photos', v_reason is not null, 'counts', v_counts, 'files', cardinality(v_files)),
                         v_reason);
   if v_rows >= v_alert_rows then
     -- No personal data in an alert: the audit log holds who, and which member.
     perform private.raise_alert(p_venue_id, 'export.large', jsonb_build_object(
       'what', case when p_member_id is null then 'Full archive' else 'Member export' end, 'format', 'archive', 'rows', v_rows));
   end if;
-  return jsonb_build_object('archive_id', v_id, 'recipient', v_recipient, 'tables', v_tables);
+  return jsonb_build_object('archive_id', v_id, 'recipient', v_recipient, 'tables', v_tables, 'files', to_jsonb(v_files));
 end;
 $$;
 
--- As before (20261028200000_member_export_owed.sql), noting each table read to its last page, which saving it needs.
+-- As before (20261028200000_member_export_owed.sql), handing out each table's pages in order: the next page from where
+-- the server left off, or the last page again (a lost answer). A table is noted read when the server's own next page
+-- comes back short, which saving the archive needs.
 create or replace function private.export_archive_rows(p_archive_id uuid, p_table text, p_after jsonb, p_limit integer)
 returns jsonb
 language plpgsql
@@ -113,6 +133,9 @@ declare
   v_after text := '';
   v_rows jsonb;
   v_last jsonb;
+  v_given jsonb := coalesce(p_after, 'null'::jsonb);
+  v_cursor jsonb;
+  v_is_next boolean;
 begin
   select * into v_archive from private.export_archive a
   where a.id = p_archive_id and a.started_by = (select auth.uid()) and a.expires_at > now();
@@ -127,6 +150,11 @@ begin
   if not found then
     raise exception 'Not a table this archive holds' using errcode = '22023';
   end if;
+  v_cursor := v_archive.cursors -> p_table;
+  v_is_next := v_given = coalesce(v_cursor -> 'next', 'null'::jsonb);
+  if not v_is_next and v_given is distinct from v_cursor -> 'prev' then
+    raise exception 'Read each table''s pages in order' using errcode = '22023';
+  end if;
   select array_agg(a.attname::text order by k.position) into v_key
   from pg_index i
   cross join unnest(i.indkey) with ordinality k(attnum, position)
@@ -135,7 +163,7 @@ begin
   v_order := (select string_agg(format('t.%I', c), ', ') from unnest(v_key) c);
   -- Descending on every key column, so the page's last row is its last by the whole key.
   v_last_first := (select string_agg(format('t.%I desc', c), ', ') from unnest(v_key) c);
-  if p_after is not null and p_after <> 'null'::jsonb then
+  if v_given <> 'null'::jsonb then
     v_after := format(' and (%s) > (select %s from jsonb_populate_record(null::public.%I, $3) a)',
                       v_order, (select string_agg(format('a.%I', c), ', ') from unnest(v_key) c), v_table.source_table);
   end if;
@@ -154,9 +182,17 @@ begin
     v_table.source_table, v_table.predicate, v_after, v_order)
   using v_archive.venue_id, v_archive.member_id, p_after, p_limit
   into v_rows, v_last;
-  if jsonb_array_length(v_rows) < p_limit then
-    update private.export_archive a set tables_read = array_append(a.tables_read, p_table)
-    where a.id = p_archive_id and not p_table = any(a.tables_read);
+  if v_is_next then
+    -- Compare and advance in one statement, so two calls at once cannot both take the next page.
+    update private.export_archive a
+    set cursors = jsonb_set(a.cursors, array[p_table], jsonb_build_object('prev', v_given,
+                    'next', case when jsonb_array_length(v_rows) = p_limit then v_last else 'null'::jsonb end)),
+        tables_read = case when jsonb_array_length(v_rows) < p_limit and not p_table = any(a.tables_read)
+                           then array_append(a.tables_read, p_table) else a.tables_read end
+    where a.id = p_archive_id and a.cursors -> p_table is not distinct from v_cursor;
+    if not found then
+      raise exception 'Read each table''s pages one at a time' using errcode = '22023';
+    end if;
   end if;
   return jsonb_build_object('rows', v_rows, 'after', case when jsonb_array_length(v_rows) = p_limit then v_last end);
 end;
@@ -164,8 +200,9 @@ $$;
 
 
 -- The console says a full archive is saved, once the browser has written the file: its maker, still allowed to export,
--- every table read to its last page, with the file's SHA-256 and size, which the audit log keeps.
-create function private.complete_export_archive(p_archive_id uuid, p_sha256 text, p_bytes bigint)
+-- every table read to its last page, with the file's SHA-256 and size and the listed files it could not read; the
+-- archive holds the rest, which the audit log keeps with the rest.
+create function private.complete_export_archive(p_archive_id uuid, p_sha256 text, p_bytes bigint, p_unread text[])
 returns void
 language plpgsql
 security definer
@@ -186,9 +223,16 @@ begin
   if coalesce(p_sha256, '') !~ '^[0-9a-f]{64}$' or coalesce(p_bytes, 0) <= 0 then
     raise exception 'The saved file''s SHA-256 and size' using errcode = '22023';
   end if;
-  update private.export_archive a set completed_at = now(), file_sha256 = p_sha256, file_bytes = p_bytes where a.id = p_archive_id;
+  if p_unread is null or not p_unread <@ v_archive.files_listed then
+    raise exception 'The files not read are ones the archive listed' using errcode = '22023';
+  end if;
+  update private.export_archive a
+  set completed_at = now(), file_sha256 = p_sha256, file_bytes = p_bytes,
+      files_held = array(select f from unnest(a.files_listed) f where f <> all(p_unread))
+  where a.id = p_archive_id;
   perform private.audit(v_archive.venue_id, 'export.archive_saved', 'export_archive', p_archive_id::text, null,
-                        jsonb_build_object('sha256', p_sha256, 'bytes', p_bytes));
+                        jsonb_build_object('sha256', p_sha256, 'bytes', p_bytes, 'files_held', cardinality(v_archive.files_listed) - cardinality(p_unread),
+                                           'files_unread', cardinality(p_unread)));
 end;
 $$;
 
@@ -275,6 +319,40 @@ begin
 end;
 $$;
 
+-- Whether any of a table's rows at a venue changed after a time, for tables that keep updated_at.
+create function private.venue_changed_since(p_venue_id uuid, p_table text, p_since timestamptz)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_changed boolean;
+begin
+  if not exists (select 1 from pg_attribute a where a.attrelid = format('public.%I', p_table)::regclass and a.attname = 'updated_at'
+                 and not a.attisdropped) then
+    return false;
+  end if;
+  execute format('select exists (select 1 from public.%I where venue_id = $1 and updated_at > $2)', p_table) into v_changed using p_venue_id, p_since;
+  return v_changed;
+end;
+$$;
+
+-- A venue's purges, and the files each leaves to remove: those the archive held, as the super admin removes them.
+create table private.venue_purge (
+  id uuid primary key default gen_random_uuid(),
+  venue_id uuid not null references public.venue (id),
+  archive_id uuid not null,
+  purged_at timestamptz not null default now(),
+  purged_by uuid,
+  files text[] not null,
+  removed text[] not null default '{}',
+  done_at timestamptz
+);
+alter table private.venue_purge enable row level security;
+revoke all on private.venue_purge from public, anon, authenticated;
+
 -- The dry run: each table a purge deletes from, with the rows it would delete.
 create function private.live_purge_preview(p_venue_id uuid)
 returns table (table_name text, current_rows bigint)
@@ -298,6 +376,8 @@ set search_path = ''
 as $$
 declare
   v_archive private.export_archive;
+  v_table text;
+  v_members text[];
   v_parts text;
   v_counts text;
   v_deleted jsonb;
@@ -315,10 +395,21 @@ begin
   if not found then
     raise exception 'Make and save the full archive after freezing the venue' using errcode = 'RVARC';
   end if;
+  if v_archive.kyc_reason is null then
+    raise exception 'The archive must hold the KYC photos: make it again with the reason' using errcode = 'RVARC';
+  end if;
+  -- Nothing written from here to the delete: every table it deletes from, locked in name order, waiting five seconds
+  -- at most. The freeze stops the venue's writes, but not every write passes the freeze's check.
+  perform set_config('lock_timeout', '5s', true);
+  for v_table in select t from private.live_purge_tables() t order by t loop
+    execute format('lock table public.%I in share row exclusive mode', v_table);
+  end loop;
   if exists (select 1 from private.live_purge_tables() t
-             where coalesce((v_archive.counts ->> t)::bigint, -1) <> private.venue_row_count(p_venue_id, t)) then
+             where coalesce((v_archive.counts ->> t)::bigint, -1) <> private.venue_row_count(p_venue_id, t)
+                or private.venue_changed_since(p_venue_id, t, v_archive.started_at)) then
     raise exception 'The venue changed since the archive: make it again' using errcode = 'RVARC';
   end if;
+  v_members := array(select m.id::text from public.member m where m.venue_id = p_venue_id);
 
   -- Purge's own way past the append-only and guarded tables: this venue, this transaction.
   perform set_config('rivr.purge', 'on', true);
@@ -331,10 +422,11 @@ begin
   into v_parts, v_counts
   from (select t, row_number() over (order by t) as n from private.live_purge_tables() t) tables;
   execute format('with %s select jsonb_object_agg(k, v) from (values %s) c (k, v)', v_parts, v_counts) into v_deleted using p_venue_id;
-  -- Then the personal fields of the audit rows about what it deleted, those the deletes just wrote included, as an
-  -- erasure strips them.
+  -- Then the personal fields of the audit rows about what it deleted, those the deletes just wrote included, and of
+  -- any row naming a purged member (a kept table's, such as a member's freeze), as an erasure strips them.
   update public.audit_log a set before = private.strip_erased_fields(a.before), after = private.strip_erased_fields(a.after)
-  where a.venue_id = p_venue_id and a.entity in (select private.live_purge_tables())
+  where a.venue_id = p_venue_id
+    and (a.entity in (select private.live_purge_tables()) or a.before ->> 'member_id' = any(v_members) or a.after ->> 'member_id' = any(v_members))
     and (a.before is distinct from private.strip_erased_fields(a.before) or a.after is distinct from private.strip_erased_fields(a.after));
   perform set_config('rivr.purge', 'off', true);
   perform set_config('rivr.purge_venue', '', true);
@@ -344,30 +436,91 @@ begin
      or exists (select 1 from public.ledger_entry e where e.venue_id = p_venue_id) then
     raise exception 'Purge left rows behind' using errcode = 'RVPRG';
   end if;
-  perform private.audit(p_venue_id, 'venue.purge', 'venue', p_venue_id::text, null, jsonb_build_object('deleted', v_deleted), 'Purged');
+  insert into private.venue_purge (venue_id, archive_id, purged_by, files)
+  values (p_venue_id, v_archive.id, (select auth.uid()), coalesce(v_archive.files_held, '{}'));
+  perform private.audit(p_venue_id, 'venue.purge', 'venue', p_venue_id::text, null,
+                        jsonb_build_object('deleted', v_deleted, 'files_to_remove', cardinality(v_archive.files_held)), 'Purged');
   perform private.raise_alert(p_venue_id, 'venue.purged', jsonb_build_object('tables', (select count(*) from jsonb_object_keys(v_deleted))));
 
   return query select d.key, (d.value)::text::bigint from jsonb_each(v_deleted) d order by d.key;
 end;
 $$;
 
--- The files a purged venue leaves in Storage, for the purge-venue Edge Function alone (service role): KYC photos and
--- expense receipts live under the venue's id. Only once the venue has been purged.
-create function public.purged_venue_files(p_venue_id uuid)
-returns table (bucket_id text, name text)
+-- The files a venue's latest purge still leaves (<bucket>/<path>): those its archive held, not yet removed, under the
+-- venue's own folder, and named by no row (a reopened venue's new KYC photo or receipt stays). Within seven days of the
+-- purge; none once it is done.
+create function private.purge_files_left(p_venue_id uuid)
+returns setof text
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select o.bucket_id, o.name from storage.objects o
-  where o.bucket_id in ('kyc', 'expense-receipts') and o.name like p_venue_id::text || '/%'
-    and exists (select 1 from public.audit_log a where a.venue_id = p_venue_id and a.action = 'venue.purge');
+  select f
+  from (select * from private.venue_purge p where p.venue_id = p_venue_id order by p.purged_at desc limit 1) p
+  cross join unnest(p.files) f
+  where p.done_at is null and p.purged_at > now() - interval '7 days' and f <> all(p.removed)
+    and (f like 'kyc/' || p_venue_id::text || '/%' or f like 'expense-receipts/' || p_venue_id::text || '/%')
+    and not exists (select 1 from public.kyc_record k where k.venue_id = p_venue_id and 'kyc/' || k.photo_path = f)
+    and not exists (select 1 from public.expense e where e.venue_id = p_venue_id and 'expense-receipts/' || e.receipt_path = f);
 $$;
 
-create function public.complete_export_archive(p_archive_id uuid, p_sha256 text, p_bytes bigint)
+-- For the purge-venue Edge Function, asked as the caller: the files to remove now. A super admin of the venue (by role,
+-- since the function's request carries no console's mark), within the rate limit.
+create function private.purge_files_due(p_venue_id uuid)
+returns setof text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if p_venue_id is null or not private.is_super_admin(p_venue_id) then
+    raise exception 'Only a super admin of this venue removes its purge''s files' using errcode = '42501';
+  end if;
+  perform private.assert_rate(p_venue_id, 'purge.files', 10, 20);
+  return query select * from private.purge_files_left(p_venue_id);
+end;
+$$;
+
+-- What the function removed, and how many it could not: noted, the purge done once none is left, the audit log told.
+create function private.purge_files_done(p_venue_id uuid, p_removed text[], p_failed integer)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_purge private.venue_purge;
+  v_left integer;
+begin
+  if p_venue_id is null or not private.is_super_admin(p_venue_id) then
+    raise exception 'Only a super admin of this venue removes its purge''s files' using errcode = '42501';
+  end if;
+  select * into v_purge from private.venue_purge p where p.venue_id = p_venue_id order by p.purged_at desc limit 1 for update;
+  if not found or p_removed is null or p_failed is null or p_failed < 0
+     or exists (select 1 from unnest(p_removed) f where f not in (select private.purge_files_left(p_venue_id))) then
+    raise exception 'Only files the purge left to remove' using errcode = '22023';
+  end if;
+  update private.venue_purge p set removed = p.removed || p_removed where p.id = v_purge.id;
+  v_left := (select count(*) from private.purge_files_left(p_venue_id));
+  if v_left = 0 then
+    update private.venue_purge p set done_at = now() where p.id = v_purge.id;
+  end if;
+  perform private.audit(p_venue_id, 'venue.purge_files', 'venue', p_venue_id::text, null,
+                        jsonb_build_object('removed', cardinality(p_removed), 'failed', p_failed, 'left', v_left), 'Purge files');
+  return v_left;
+end;
+$$;
+
+create function public.complete_export_archive(p_archive_id uuid, p_sha256 text, p_bytes bigint, p_unread text[] default '{}')
 returns void language sql volatile security invoker set search_path = ''
-as $$ select private.complete_export_archive(p_archive_id, p_sha256, p_bytes); $$;
+as $$ select private.complete_export_archive(p_archive_id, p_sha256, p_bytes, p_unread); $$;
+create function public.purge_files_due(p_venue_id uuid)
+returns setof text language sql volatile security invoker set search_path = ''
+as $$ select * from private.purge_files_due(p_venue_id); $$;
+create function public.purge_files_done(p_venue_id uuid, p_removed text[], p_failed integer)
+returns integer language sql volatile security invoker set search_path = ''
+as $$ select private.purge_files_done(p_venue_id, p_removed, p_failed); $$;
 create function public.live_purge_preview(p_venue_id uuid)
 returns table (table_name text, current_rows bigint)
 language sql stable security invoker set search_path = ''
@@ -378,10 +531,13 @@ language sql volatile security invoker set search_path = ''
 as $$ select * from private.purge_live_venue(p_venue_id, p_venue_name); $$;
 
 revoke execute on function private.live_purge_keeps(), private.live_purge_tables(), private.assert_live_purge(uuid),
-  private.live_purge_count(uuid, text), private.venue_row_count(uuid, text) from public, anon, authenticated;
-revoke execute on function public.purged_venue_files(uuid) from public, anon, authenticated;
-grant execute on function public.purged_venue_files(uuid) to service_role;
-revoke execute on function private.complete_export_archive(uuid, text, bigint), private.live_purge_preview(uuid), private.purge_live_venue(uuid, text),
-  public.complete_export_archive(uuid, text, bigint), public.live_purge_preview(uuid), public.purge_live_venue(uuid, text) from public, anon;
-grant execute on function private.complete_export_archive(uuid, text, bigint), private.live_purge_preview(uuid), private.purge_live_venue(uuid, text),
-  public.complete_export_archive(uuid, text, bigint), public.live_purge_preview(uuid), public.purge_live_venue(uuid, text) to authenticated;
+  private.live_purge_count(uuid, text), private.venue_row_count(uuid, text), private.venue_changed_since(uuid, text, timestamptz),
+  private.purge_files_left(uuid) from public, anon, authenticated;
+revoke execute on function private.complete_export_archive(uuid, text, bigint, text[]), private.live_purge_preview(uuid),
+  private.purge_live_venue(uuid, text), private.purge_files_due(uuid), private.purge_files_done(uuid, text[], integer),
+  public.complete_export_archive(uuid, text, bigint, text[]), public.live_purge_preview(uuid), public.purge_live_venue(uuid, text),
+  public.purge_files_due(uuid), public.purge_files_done(uuid, text[], integer) from public, anon;
+grant execute on function private.complete_export_archive(uuid, text, bigint, text[]), private.live_purge_preview(uuid),
+  private.purge_live_venue(uuid, text), private.purge_files_due(uuid), private.purge_files_done(uuid, text[], integer),
+  public.complete_export_archive(uuid, text, bigint, text[]), public.live_purge_preview(uuid), public.purge_live_venue(uuid, text),
+  public.purge_files_due(uuid), public.purge_files_done(uuid, text[], integer) to authenticated;

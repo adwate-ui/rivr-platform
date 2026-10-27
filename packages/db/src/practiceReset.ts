@@ -58,16 +58,21 @@ export interface LivePurgeRow {
   readonly rows: number;
 }
 
-/** Why a purge did not go through: the venue not frozen, no saved archive, the practice venue, or a control naming a member. */
-export type LivePurgeFailure = 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'wrong_name' | 'held' | 'unavailable';
+/**
+ * Why a purge or its files' removal did not go through: the venue not frozen, no saved archive with its KYC photos, the
+ * practice venue, a control naming a member, the tables busy, or too many tries at once.
+ */
+export type LivePurgeFailure = 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'wrong_name' | 'held' | 'busy' | 'too_often' | 'unavailable';
 
 const PURGE_FAILURE_BY_CODE: Readonly<Record<string, LivePurgeFailure>> = {
-  '42501': 'not_allowed', RVPRC: 'practice', RVNFZ: 'not_frozen', RVARC: 'no_archive', RVNAM: 'wrong_name',
+  '42501': 'not_allowed', RVPRC: 'practice', RVNFZ: 'not_frozen', RVARC: 'no_archive', RVNAM: 'wrong_name', RVRAT: 'too_often',
   // foreign_key_violation: a kill-switch control, which a purge keeps, names a member the purge removes.
   '23503': 'held',
+  // lock_not_available and deadlock_detected: another write held a table the purge locks.
+  '55P03': 'busy', '40P01': 'busy',
 };
 
-/** The failure a refused purge preview or purge stands for. */
+/** The failure a refused purge preview, purge or file removal stands for. */
 export function livePurgeFailureOf(error: { code: string }): LivePurgeFailure {
   return PURGE_FAILURE_BY_CODE[error.code] ?? 'unavailable';
 }
@@ -89,10 +94,10 @@ export function useLivePurgePreview(venueId: string, isFrozen: boolean) {
   });
 }
 
-/** What a purge did: the rows deleted, and the files removed, or null when they did not all go (ask again for the files). */
-export interface LivePurgeDone {
-  readonly rows: number;
-  readonly files: number | null;
+/** What removing a purge's files did: how many went, and how many are left to try again. */
+export interface PurgedFiles {
+  readonly removed: number;
+  readonly left: number;
 }
 
 /** The refusal's code in the purge-venue function's answer, from supabase-js's error. */
@@ -103,25 +108,38 @@ async function purgeCodeOf(error: unknown): Promise<string> {
   return typeof code === 'string' ? code : '';
 }
 
-/** What the purge-venue function answered: the rows deleted and the files removed. */
-function purgeDoneOf(data: unknown): LivePurgeDone {
-  const rows: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'rows') : null;
-  const files: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'files') : null;
-  return { rows: typeof rows === 'number' ? rows : 0, files: typeof files === 'number' ? files : null };
+function purgedFilesOf(data: unknown): PurgedFiles {
+  const removed: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'removed') : null;
+  const left: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'left') : null;
+  return { removed: typeof removed === 'number' ? removed : 0, left: typeof left === 'number' ? left : 0 };
 }
 
 /**
- * Purges a live venue through the purge-venue Edge Function, once its full archive is saved and its name typed exactly;
- * `filesOnly` removes the files of a venue already purged, when they did not all go the first time.
+ * Purges a live venue (#432), once its full archive with the KYC photos is saved and its name typed exactly: from the
+ * console itself, so the database checks this computer. The rows deleted, in all.
  */
 export function usePurgeLiveVenue(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ venueName, filesOnly }: { venueName: string; filesOnly: boolean }): Promise<Result<LivePurgeDone, LivePurgeFailure>> => {
-      const { data, error } = await client.functions.invoke('purge-venue', { body: { venueId, venueName, filesOnly } });
-      return error ? err(livePurgeFailureOf({ code: await purgeCodeOf(error) })) : ok(purgeDoneOf(data));
+    mutationFn: async ({ venueName }: { venueName: string }): Promise<Result<number, LivePurgeFailure>> => {
+      const { data, error } = await client.rpc('purge_live_venue', { p_venue_id: venueId, p_venue_name: venueName });
+      return error ? err(livePurgeFailureOf(error)) : ok(data.reduce((total, row) => total + row.deleted_rows, 0));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] }),
+  });
+}
+
+/**
+ * Removes the files a purge left (#432): those its archive held, through the purge-venue Edge Function, within seven
+ * days of the purge. Asked again, it removes those that did not go the first time.
+ */
+export function useRemovePurgedFiles(venueId: string) {
+  const { client } = useRivrData();
+  return useMutation({
+    mutationFn: async (): Promise<Result<PurgedFiles, LivePurgeFailure>> => {
+      const { data, error } = await client.functions.invoke('purge-venue', { body: { venueId } });
+      return error ? err(livePurgeFailureOf({ code: await purgeCodeOf(error) })) : ok(purgedFilesOf(data));
+    },
   });
 }
