@@ -4,7 +4,8 @@
  *   quick    typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
  *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
  *            the generated-tokens check, the drill gates, Storybook build and visual tests
- *   all      every step for every package
+ *   all      every step for every package; with MUTATION_SINCE=<ref>, mutation tests only on the money modules
+ *            changed since that ref (CI on a pull request, decision 0242)
  * quick and changed cover packages changed against origin/main (or main), uncommitted work
  * included, plus the packages that depend on them. Stops at the first failure and prints a
  * summary to paste into the PR.
@@ -16,6 +17,8 @@ const MODE = process.argv[2] ?? 'changed';
 const MONEY_MODULES = ['money', 'rake', 'jackpot', 'variance', 'eod', 'cage', 'callTime', 'tds', 'gst', 'markers', 'credit', 'payouts', 'bonus', 'wallet', 'promotions', 'tournament', 'aml'];
 // Shared tooling can break any package, so a change to it verifies everything.
 const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
+// A change to these can move any money module's mutation score, so it mutates them all.
+const MUTATION_SHARED = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.json|packages\/config\/|packages\/testing\/golden\/)/;
 
 function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
@@ -62,11 +65,23 @@ function step(name, command, args, env) {
   return { name, run: () => run(command, args, env) };
 }
 
+const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`packages/domain/src/${module}/`));
+
+/**
+ * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those the pull request changes, all of
+ * them when it changes shared domain code or tooling: an unchanged module keeps the score main proved, and the push to
+ * main runs every module again (decision 0242).
+ */
 function moneyModulesToMutate(scope) {
+  const since = process.env.MUTATION_SINCE;
+  const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
+  const everything = since
+    ? files.some((file) => MUTATION_SHARED.test(file) || (file.startsWith('packages/domain/') && !inMoneyModule(file)))
+    : scope.everything;
   return MONEY_MODULES.filter(
     (module) =>
       existsSync(`packages/domain/src/${module}`) &&
-      (scope.everything || scope.files.some((file) => file.startsWith(`packages/domain/src/${module}/`))),
+      (everything || files.some((file) => file.startsWith(`packages/domain/src/${module}/`))),
   );
 }
 
