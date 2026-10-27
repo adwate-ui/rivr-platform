@@ -60,7 +60,8 @@ select results_eq(
   $$ select o.visit_id, o.is_comp, o.source, o.seat from public.fnb_order o where o.id = (select order_id from app_order) $$,
   $$ select s.visit_id, false, 'app'::text, 5 from public.seat_session s where s.member_id = '00000000-0000-4000-8000-000000000214' and s.ended_at is null $$,
   'posted to his seat''s visit, paid, from the app');
-select is((select lines -> 0 ->> 'note' from public.fnb_order where id = (select order_id from app_order)), 'Less sugar', 'with the line''s note, trimmed');
+select is((select lines -> 0 ->> 'note' from public.fnb_order where id = (select order_id from app_order)), null,
+  'and no line note is kept, so none outlives an erasure (#567)');
 select results_eq(
   $$ select payload ->> 'kot_number', payload ->> 'table_name', (payload ->> 'seat')::integer, jsonb_array_length(payload -> 'items'), payload ? 'member_id'
      from public.outbox_event where event_type = 'fnb.ordered' and payload ->> 'order_id' = (select order_id::text from app_order) $$,
