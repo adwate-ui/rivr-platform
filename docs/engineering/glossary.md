@@ -5,12 +5,15 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Term | Meaning |
 |---|---|
 | Blinds | Forced bets that set a game's stake; written small/big, e.g. 100/200 |
-| Stake | The blinds level of a cash game |
+| Stake | The blinds level of a cash game. In code, a table type's `code`, such as `nlh_100_200`; settings by stake use the `table_type` scope |
 | Buy-in | Money a player converts into chips to sit at a table |
 | Cash-out | Chips converted back to money when a player leaves |
 | Pot | All chips bet in one hand |
 | Rake | The house's fee: 5% of the pot, capped per table type, rounded down to ₹50 |
-| Cap | Maximum rake on one hand |
+| Cap | Maximum rake on one hand. A rakeback rate's cap is different: the most bonus one member gets at one stake in one club week |
+| Club week | Monday 06:00 IST to the next Monday 06:00 IST, as the club day runs 06:00 to 06:00 |
+| Rakeback | Bonus each Monday on a member's share of last club week's rake at each stake, at the stake's `rakeback.rate` (decision 0245) |
+| RIVR Rewards | Points from a member's share of the rake, 5% at one point a rupee, earned as each visit closes (decision 0161) |
 | Drop box | Box under the table where the dealer puts rake and jackpot chips |
 | Down | One dealer's shift at one table |
 | Pull | Total chips the dealer takes from a pot: rake plus jackpot drop |
