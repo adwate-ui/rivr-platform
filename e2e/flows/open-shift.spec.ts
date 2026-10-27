@@ -6,6 +6,8 @@
  * end-of-day.spec.ts, which closes the practice cage's shift, and before paper-fallback.spec.ts, which
  * uses the one this flow leaves open; a local rerun needs `pnpm db:reset`. That every cage move is refused without a shift, and the opening against the last
  * close, are proved in supabase/tests/083.
+ * It shares the practice cage's one shift with end-of-day.spec.ts and paper-fallback.spec.ts: the three carry the
+ * @practice-cage tag, and CI runs them together, in that order, on one runner (decision 0243).
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -31,7 +33,7 @@ async function buyIn(page: Page) {
   await page.getByRole('button', { name: 'Issue chips' }).click();
 }
 
-test.describe('Cage shift', () => {
+test.describe('Cage shift', { tag: '@practice-cage' }, () => {
   test('Cage shift: with no shift open the cage refuses a cashier\'s buy-in; once the cashier opens one, it goes through', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'opens the practice cage\'s shift, so the local stack only');
     test.setTimeout(120_000);

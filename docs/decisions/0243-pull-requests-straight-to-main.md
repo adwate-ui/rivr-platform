@@ -17,3 +17,10 @@ The repository belongs to a personal account, so GitHub's merge queue is not ava
 - **Timeouts and caching.** Each timeout is near twice the job's usual time, so a hang fails fast. CI restores no build cache, so a green run is a result from scratch.
 - **Speed.** `land.sh` prints each job's time after a merge. A job over 15 minutes is a cause to find before the next pull request.
 - **Flaky tests.** A flaky test still fails the run (`.claude/rules/testing.md`); CI never retries one into green.
+- **Flows that share state.** The flows tagged `@practice-cage` (End of day, Cage shift, Paper fallback) share the practice cage's one shift, so they run together, in file order, on a fourth runner. The shards were hiding that coupling.
+- **Reviewed head only.** `land.sh` stops if a PR's head moves by anything but GitHub's merge of main onto the reviewed head. It stops on a cancelled check, and after two hours.
+- **Mutation scope.**
+  - The money modules are the folders `stryker.config.mjs` mutates: one list. Before this, `ledger`, `points`, `league` and `tally` were never mutated in CI.
+  - A PR mutates the modules it changes and the modules they import, whose mutants their tests kill.
+  - A change to the testing helpers mutates them all.
+- **Every main commit is checked.** Each push to main has a CI run of its own, never cancelled. `release.yml` refuses a tag whose commit did not pass `ci-ok`.

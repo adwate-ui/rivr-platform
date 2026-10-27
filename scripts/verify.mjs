@@ -2,22 +2,24 @@
 /**
  * pnpm verify | verify:quick | verify:all, and CI's parallel parts (decision 0243)
  *   quick      typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
- *   changed    quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
- *              the generated-tokens check, the drill gates, Storybook build and visual tests
+ *   changed    quick, plus: mutation tests on the money modules a change touches, pgTAP when supabase/ or a golden
+ *              file changed, the generated-tokens check, the drill gates, Storybook build and visual tests
  *   all        every step for every package
  *   code       CI: quick, the generated-tokens check and the drill gates, for every package
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
  *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules to mutate. With MUTATION_SINCE=<ref>
- *              (a pull request) only those changed since that ref, else every one (decision 0242).
+ *              (a pull request) only those its changes touch, else every one (decision 0242).
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
-const MONEY_MODULES = ['money', 'rake', 'jackpot', 'variance', 'eod', 'cage', 'callTime', 'tds', 'gst', 'markers', 'credit', 'payouts', 'bonus', 'wallet', 'promotions', 'tournament', 'aml'];
+// The money modules are the folders Stryker mutates (packages/domain/stryker.config.mjs): one list for both.
+const MONEY_MODULES = strykerConfig.mutate.filter((glob) => !glob.startsWith('!')).map((glob) => glob.split('/')[1]);
 // Shared tooling can break any package, so a change to it verifies everything.
 const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
 // Tooling that can move any money module's mutation score.
@@ -25,6 +27,11 @@ const MUTATION_TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|t
 
 function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
+}
+
+/** Whether any file under `folder` contains `text`. */
+function mentions(folder, text) {
+  return spawnSync('git', ['grep', '-q', '--fixed-strings', text, '--', folder]).status === 0;
 }
 
 /** The commit this branch left main at, or null when there is nothing to compare with (decision 0243). */
@@ -64,33 +71,52 @@ function step(name, command, args, env) {
   return { name, run: () => run(command, args, env) };
 }
 
-const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`packages/domain/src/${module}/`));
+const moduleFolder = (module) => `packages/domain/src/${module}`;
+const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`${moduleFolder(module)}/`));
 
-/** Tooling, or domain code and config outside the money modules (not its prose): either can move every module's score. */
+/**
+ * Shared code every money module's tests run on: tooling, domain code outside the money modules and the testing
+ * helpers (golden files aside: they count for the modules whose tests import them). Prose does not count.
+ */
 const movesEveryScore = (file) =>
-  MUTATION_TOOLING.test(file) || (file.startsWith('packages/domain/') && !inMoneyModule(file) && !file.endsWith('.md'));
+  !file.endsWith('.md') &&
+  (MUTATION_TOOLING.test(file) ||
+    (file.startsWith('packages/domain/') && !inMoneyModule(file)) ||
+    (file.startsWith('packages/testing/') && !file.startsWith('packages/testing/golden/')));
 
 /** A money module's own files changed, or a golden file its tests import (`@rivr/testing/golden/<name>.json`). */
 function moduleChanged(module, files) {
-  const folder = `packages/domain/src/${module}`;
   return files.some(
     (file) =>
-      file.startsWith(`${folder}/`) ||
-      (file.startsWith('packages/testing/golden/') &&
-        spawnSync('git', ['grep', '-q', '--fixed-strings', file.replace('packages/testing/', ''), '--', folder]).status === 0),
+      file.startsWith(`${moduleFolder(module)}/`) ||
+      (file.startsWith('packages/testing/golden/') && mentions(moduleFolder(module), file.replace('packages/testing/', ''))),
   );
 }
 
 /**
- * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those the pull request changes, all of
- * them when it changes shared domain code or tooling: an unchanged module keeps the score main proved, and the push to
- * main runs every module again (decision 0242).
+ * The money modules a change touches: those that changed, and those they import, since Stryker runs every test for
+ * each mutant and a changed module's tests kill its imports' mutants too.
+ */
+function touchedModules(files) {
+  const changed = MONEY_MODULES.filter((module) => moduleChanged(module, files));
+  return MONEY_MODULES.filter(
+    (module) => changed.includes(module) || changed.some((user) => mentions(moduleFolder(user), `'../${module}/`)),
+  );
+}
+
+/**
+ * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those its changes touch, every one when
+ * it changes shared code: an untouched module keeps the score main proved, and the push to main runs every module
+ * again (decision 0242).
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;
   const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
   const everything = since ? files.some(movesEveryScore) : scope.everything;
-  return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`) && (everything || moduleChanged(module, files)));
+  const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
+  if (everything) return modules;
+  const touched = touchedModules(files);
+  return modules.filter((module) => touched.includes(module));
 }
 
 /** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */
