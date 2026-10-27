@@ -70,8 +70,9 @@ jobs:
           path: packages/ui/visual/test-results/
           if-no-files-found: ignore
 
-  # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one,
-  # split four ways so no runner carries them all.
+  # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one.
+  # Their files are shared six ways, balanced by size, so no runner carries them all (#515); mutation-score then
+  # checks each module over every share's report.
   mutation:
     name: mutation ${{ matrix.share }}
     runs-on: ubuntu-latest
@@ -88,12 +89,25 @@ jobs:
       - run: node scripts/verify.mjs mutation ${{ matrix.share }}
         env:
           MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
-      - if: failure()
+      - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: mutation-reports-${{ strategy.job-index }}
           path: packages/domain/reports/
           if-no-files-found: ignore
+
+  mutation-score:
+    name: mutation score
+    needs: mutation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: mutation-reports-*
+          path: mutation-reports
+      - run: node scripts/verify.mjs mutation-score
 
   # The Playwright flows against a seeded local stack, a third on each of three runners, each with its own stack. The
   # flows tagged @practice-cage share the practice cage's one shift, so they run together, in file order, on a fourth.
@@ -159,7 +173,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [code, database, storybook, mutation, e2e, budgets, security]
+    needs: [code, database, storybook, mutation, mutation-score, e2e, budgets, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
