@@ -91,8 +91,9 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
       <TableHeader table={table} night={night} />
       {permissions.includes('floor.manage') ? <TableControls venueId={venueId} table={table} tables={tables} isEmpty={seats.length === 0} onResult={report} /> : null}
       {failure === null ? null : <ErrorMessage>{t(SEAT_FAILURE_COPY[failure])}</ErrorMessage>}
+      {permissions.includes('members.read') ? null : <Text tone="muted">{t('console.liveFloor.noSeatMap')}</Text>}
       <Stack gap={2} divided>
-        {Array.from({ length: table.seats }, (_, index) => {
+        {permissions.includes('members.read') ? Array.from({ length: table.seats }, (_, index) => {
           const player = seats.find((seat) => seat.seat === index + 1);
           return (
             <Inline key={index} justify="between" align="center">
@@ -104,7 +105,7 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
               ) : null}
             </Inline>
           );
-        })}
+        }) : null}
       </Stack>
       {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
       {leavingEarly === null ? null : (

@@ -34,10 +34,11 @@ export interface HeldSeat {
  * Why a seating change did not go through: not the floor, the seat taken or held for a waitlist call,
  * the player already seated, no finished identity check, on a break, no member with that number, the
  * member or venue frozen, a table closed or a seat it does not have (`invalid`), no call time owed to let a player leave
- * early (`call_time_done`, #79), or anything else.
+ * early (`call_time_done`, #79), a table to close that still has players or held calls (`table_in_use`), a must-move
+ * link to anything but an open main table of the same game (`must_move_invalid`), or anything else (#333).
  */
 export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid'
-  | 'call_time_done' | 'unavailable';
+  | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
   '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
@@ -116,10 +117,10 @@ export function useSeatActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const user = userId ?? 'signed-out';
-  const settle = async (error: { code: string } | null): Promise<Result<null, SeatFailure>> => {
+  const settle = async (error: { code: string } | null, codes: Readonly<Record<string, SeatFailure>> = FAILURE_BY_CODE): Promise<Result<null, SeatFailure>> => {
     const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user)];
     await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
-    return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+    return error ? err(codes[error.code] ?? 'unavailable') : ok(null);
   };
   const seat = useMutation({
     mutationFn: async ({ tableId, seat: number, phone }: { tableId: string; seat: number; phone: string }) =>
@@ -134,11 +135,12 @@ export function useSeatActions(venueId: string) {
   });
   const setOpen = useMutation({
     mutationFn: async ({ tableId, isOpen }: { tableId: string; isOpen: boolean }) =>
-      settle((await client.rpc('set_table_open', { p_table_id: tableId, p_is_open: isOpen })).error),
+      settle((await client.rpc('set_table_open', { p_table_id: tableId, p_is_open: isOpen })).error, { ...FAILURE_BY_CODE, RVSTD: 'table_in_use' }),
   });
   const setMustMove = useMutation({
     mutationFn: async ({ tableId, mainTableId }: { tableId: string; mainTableId: string | null }) =>
-      settle((await client.rpc('set_must_move', mainTableId === null ? { p_table_id: tableId } : { p_table_id: tableId, p_main_table_id: mainTableId })).error),
+      settle((await client.rpc('set_must_move', mainTableId === null ? { p_table_id: tableId } : { p_table_id: tableId, p_main_table_id: mainTableId })).error,
+        { ...FAILURE_BY_CODE, '22023': 'must_move_invalid' }),
   });
   const letLeaveEarly = useMutation({
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) =>

@@ -49,6 +49,27 @@ describe('Leaving before call time', () => {
     expect(calls.find((call) => call.rpc === 'let_leave_early')?.body).toEqual({ p_venue_id: VENUE, p_member_id: 'm1', p_reason: 'Family emergency' });
   });
 
+  it('names why seating did not go through, and closing or linking a table in their own words', async () => {
+    const { result } = renderSeats({
+      seat_member: { status: 400, body: { code: 'RVSTD', message: 'seated' } },
+      set_table_open: { status: 400, body: { code: 'RVSTD', message: 'players' } },
+      set_must_move: { status: 400, body: { code: '22023', message: 'feeds a main table' } },
+      move_seat: { status: 400, body: { code: '22023', message: 'closed' } },
+    });
+    let outcomes: unknown[] = [];
+    await act(async () => {
+      outcomes = [
+        await result.current.seat.mutateAsync({ tableId: 't3', seat: 4, phone: '9000000211' }),
+        await result.current.setOpen.mutateAsync({ tableId: 't3', isOpen: false }),
+        await result.current.setMustMove.mutateAsync({ tableId: 't5', mainTableId: 't5' }),
+        await result.current.move.mutateAsync({ sessionId: 's1', tableId: 't4', seat: 1 }),
+      ];
+    });
+    expect(outcomes).toEqual([
+      { ok: false, error: 'seated' }, { ok: false, error: 'table_in_use' }, { ok: false, error: 'must_move_invalid' }, { ok: false, error: 'invalid' },
+    ]);
+  });
+
   it('says when no call time is owed', async () => {
     const { result } = renderSeats({ let_leave_early: { status: 400, body: { code: 'RVCTD', message: 'none owed' } } });
     let outcome: unknown;
