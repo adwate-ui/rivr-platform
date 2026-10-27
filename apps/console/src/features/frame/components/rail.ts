@@ -33,6 +33,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'cameras', label: 'console.rail.items.cameras', href: '/cameras', anyOf: ['devices.manage'] },
       { id: 'rake', label: 'console.rail.items.rake', href: '/rake', anyOf: ['settings.manage'] },
       { id: 'potData', label: 'console.rail.items.potData', href: '/pot-data', anyOf: ['pot_data.read'] },
+      { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'] },
     ],
   },
   {

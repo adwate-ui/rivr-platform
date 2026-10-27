@@ -22,6 +22,7 @@ import { incidents, sops } from './sops.ts';
 import { feedback, playerFeedback } from './feedback.ts';
 import { league, rewards } from './rewards.ts';
 import { tournaments } from './tournaments.ts';
+import { dealers } from './dealers.ts';
 import { potData } from './potData.ts';
 import { academy, academyFailures, academyPayments } from './academy.ts';
 import { playerPromotions } from './playerPromotions.ts';
@@ -212,6 +213,7 @@ export const consoleApp = {
   league,
   tournaments,
   potData,
+  dealers,
   promotions,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',
