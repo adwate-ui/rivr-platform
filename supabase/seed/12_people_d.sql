@@ -27,8 +27,8 @@ on conflict do nothing;
 -- The Rewards flow's member, who redeems from the app, and its floor manager, who pairs a TV on the rewards
 -- ticker and hands the redemption over (#148, #152). The Pot data flow's super admin (#114). The Tournament clock flow's floor manager and
 -- member, who watches the clock on Home (#119). The Tournament registration flow's member, who registers and re-enters
--- from the app, and its floor manager (#118, #120). The Member erasure flow's super admin (#424). A row with no
--- role is a member.
+-- from the app, and its floor manager (#118, #120). The Member erasure flow's super admin (#424). The super admins who
+-- approve the Publish a promotion and Promotion simulation flows' promotions (#144). A row with no role is a member.
 create temporary table lane_d_person (
   id uuid primary key,
   phone text not null,
@@ -52,7 +52,9 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-0000000d0754', '+919000000754', 'Rhea Kapoor', 'Floor manager', 'admin'),
   ('00000000-0000-4000-8000-0000000d0755', '+919000000755', 'Tara Malhotra', null, null),
   ('00000000-0000-4000-8000-0000000d0756', '+919000000756', 'Dev Khanna', null, null),
-  ('00000000-0000-4000-8000-0000000d0757', '+919000000757', 'Nisha Bhatt', 'Duty manager', 'super_admin');
+  ('00000000-0000-4000-8000-0000000d0757', '+919000000757', 'Nisha Bhatt', 'Duty manager', 'super_admin'),
+  ('00000000-0000-4000-8000-0000000d0759', '+919000000759', 'Arjun Batra', 'Owner', 'super_admin'),
+  ('00000000-0000-4000-8000-0000000d0760', '+919000000760', 'Leela Varma', 'Owner', 'super_admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,

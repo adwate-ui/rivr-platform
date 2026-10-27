@@ -58,7 +58,7 @@ src/
                       bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
                       the finish, deals, what was paid), tournaments from templates, templates, and blind
                       structures with the calculator (/tournaments; #115 to #121, #149)
-    promotions/       what is running, paused and resumed in place; the deck's templates, each published as it stands; and the builder's four blocks with the player card and TV slide previews; Publish (/promotions)
+    promotions/       what is running, paused and resumed in place; the deck's templates, each sent for approval as it stands; and the builder's four blocks with the player card and TV slide previews; Submit for approval (/promotions). A super admin approves or refuses each waiting promotion, never their own, reading what it does in words made from its stored rule; sent-back ones show who sent them back and why (#144, decision 0244). |
 ```
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.
