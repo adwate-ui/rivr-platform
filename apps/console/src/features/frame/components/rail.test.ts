@@ -22,6 +22,12 @@ describe('the console rail and who may open each screen', () => {
     expect(isAllowedAt(ROLE_PERMISSIONS.host, '/academy/payments')).toBe(false);
   });
 
+  it('shows beside an entry how many wait on its screen, and nothing beside the others', () => {
+    const rail = railFor(ROLE_PERMISSIONS.admin, { highHands: 2 }).flatMap((section) => section.items);
+    expect(rail.find((item) => item.id === 'highHands')?.count).toBe(2);
+    expect(rail.find((item) => item.id === 'jackpots')?.count).toBeUndefined();
+  });
+
   it('knows the cage\'s screens, which lock after ten idle minutes', () => {
     for (const cage of ['/cage', '/Markers', '/withdrawals', '/academy/payments']) expect(isCageScreen(cage)).toBe(true);
     for (const other of ['/', '/academy', '/computers', '/settings']) expect(isCageScreen(other)).toBe(false);

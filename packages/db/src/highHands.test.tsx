@@ -12,8 +12,8 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 const SIGNED_IN = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
 
-/** A fake API: each path answers with its reply. */
-function renderHighHands(replies: Record<string, { status?: number; body: unknown }>) {
+/** A fake API: each path answers with its reply. The venue's list is asked for unless `isEnabled` is false. */
+function renderHighHands(replies: Record<string, { status?: number; body: unknown }>, isEnabled = true) {
   const calls: { url: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
@@ -28,7 +28,7 @@ function renderHighHands(replies: Record<string, { status?: number; body: unknow
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ mine: useTabletHighHands(), list: useHighHands(VENUE), floor: useHighHandActions(VENUE) }),
+    () => ({ mine: useTabletHighHands(), list: useHighHands(VENUE, isEnabled), floor: useHighHandActions(VENUE) }),
     { wrapper },
   );
   return { result, calls };
@@ -55,6 +55,13 @@ describe('High hands', () => {
     await waitFor(() => expect(result.current.list.data?.map((hand) => [hand.claimId, hand.payout, hand.reason])).toEqual([
       ['c1', toPaise(1000000), null], ['c2', null, 'Misread'],
     ]));
+  });
+
+  it('asks nothing for the venue\'s list when not enabled, as for staff who may not approve', async () => {
+    const { result, calls } = renderHighHands(EMPTY, false);
+    await waitFor(() => expect(result.current.mine.isSuccess).toBe(true));
+    expect(result.current.list.fetchStatus).toBe('idle');
+    expect(calls.some((call) => call.url.includes('/rpc/high_hands'))).toBe(false);
   });
 
   it('says what the dealer claimed before a correction, and who reversed a claim and why', async () => {

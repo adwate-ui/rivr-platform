@@ -99,12 +99,16 @@ const RAIL: readonly RailGroup[] = [
 const isAllowed = (entry: RailEntry, permissions: readonly Permission[]) =>
   entry.anyOf.length === 0 || entry.anyOf.some((permission) => permissions.includes(permission));
 
-/** The rail for a staff member: the screens their role allows, with no empty group. */
-export function railFor(permissions: readonly Permission[]): SideNavSection[] {
+/**
+ * The rail for a staff member: the screens their role allows, with no empty group, and beside an entry how many
+ * wait on its screen, by entry id (#317: High hands' claims).
+ */
+export function railFor(permissions: readonly Permission[], counts: Readonly<Record<string, number>> = {}): SideNavSection[] {
   return RAIL.map((group) => ({
     id: group.id,
     label: t(group.label),
-    items: group.entries.filter((entry) => isAllowed(entry, permissions)).map((entry) => ({ id: entry.id, label: t(entry.label), href: entry.href })),
+    items: group.entries.filter((entry) => isAllowed(entry, permissions))
+      .map((entry) => ({ id: entry.id, label: t(entry.label), href: entry.href, count: counts[entry.id] })),
   })).filter((section) => section.items.length > 0);
 }
 
