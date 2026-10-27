@@ -63,8 +63,8 @@ begin
 end;
 $$;
 
--- As 20261027120100_tournament_bounties_and_prizes.sql left it, with Day 2: its field is its flights', so their
--- buys make its pool and its entries, and its chips are those its players bagged.
+-- As 20261027120100_tournament_bounties_and_prizes.sql left it, with Day 2: its field is its bagged flights', so
+-- their buys make its pool and its entries, and its chips are those its players bagged.
 create or replace function private.tournament_counts(p_tournament_id uuid)
 returns table (entries integer, re_entries integer, players_left integer, chips_in_play bigint, pool_paise bigint)
 language sql
@@ -80,11 +80,13 @@ as $$
          (coalesce(sum(p.price_paise - p.fee_paise), 0)
           - count(*) filter (where p.kind in ('entry', 're_entry')) * coalesce((select t.bounty_paise from public.tournament t where t.id = p_tournament_id), 0))::bigint
   from public.tournament_purchase p join public.tournament_entry e on e.id = p.entry_id
-  where (p.tournament_id = p_tournament_id or p.tournament_id in (select f.id from public.tournament f where f.day_two_id = p_tournament_id))
+  where (p.tournament_id = p_tournament_id
+         or p.tournament_id in (select f.id from public.tournament f where f.day_two_id = p_tournament_id and f.finished_at is not null))
     and e.status <> 'refunded';
 $$;
 
--- As 20261026235200_tournament_entries.sql left it, with Day 2: its players come only from its flights (day_two).
+-- As 20261026235200_tournament_entries.sql left it, with Day 2: its players come only from its flights (day_two),
+-- and a flight takes no buys once its Day 2 has started (day_two_started).
 create or replace function private.tournament_buy_refusal(p_tournament public.tournament, p_member_id uuid, p_purchase text)
 returns text
 language sql
@@ -99,6 +101,8 @@ as $$
     order by e.entry_number desc limit 1
   )
   select case when exists (select 1 from public.tournament f where f.day_two_id = p_tournament.id) then 'day_two'
+              when exists (select 1 from public.tournament d where d.id = p_tournament.day_two_id and d.clock_started_at is not null)
+                then 'day_two_started'
               else private.tournament_purchase_refusal(
     p_purchase, p_tournament.format, p_tournament.last_registration_level, p_tournament.max_buys, p_tournament.add_on_paise is not null,
     private.tournament_level_now(p_tournament),
@@ -110,7 +114,7 @@ $$;
 
 -- Makes a tournament a Day 1 flight of p_day_two_id, or an ordinary one again (null), for tournaments.manage
 -- before anyone has entered it or its clock has started. The Day 2 is another tournament at the venue with levels,
--- not started, nobody's entered it but from its flights, and it is neither a flight nor a satellite; neither has a
+-- not started, no buys of its own, and it is neither a flight, a satellite nor a satellite's target; neither has a
 -- bounty. Refusals: 42501; 22023 any of those; RVFRZ.
 create function private.set_tournament_flight(p_flight_id uuid, p_day_two_id uuid)
 returns void
@@ -125,16 +129,16 @@ begin
   perform private.assert_runs_tournaments(v_venue_id);
   perform private.assert_writable(v_venue_id);
   perform 1 from public.tournament t where t.id = p_flight_id for update;
-  select * into v_day_two from public.tournament t where t.id = p_day_two_id for update;
+  select * into v_day_two from public.tournament t where t.id = p_day_two_id and t.venue_id = v_venue_id for update;
   if (select t.clock_started_at from public.tournament t where t.id = p_flight_id) is not null or p_day_two_id = p_flight_id
      or exists (select 1 from public.tournament_entry e where e.tournament_id = p_flight_id and e.status <> 'refunded')
      or exists (select 1 from public.tournament f where f.day_two_id = p_flight_id)
      or (p_day_two_id is not null
-         and (v_day_two.levels is null or v_day_two.clock_started_at is not null or v_day_two.day_two_id is not null
-              or v_day_two.satellite_target_id is not null or v_day_two.bounty_paise is not null
-              or exists (select 1 from public.tournament_entry e where e.tournament_id = p_day_two_id and e.status <> 'refunded'
-                         and e.flight_entry_id is null))) then
-    raise exception 'Before anyone enters, a flight of a Day 2 not yet started, neither a flight nor a satellite' using errcode = '22023';
+         and (v_day_two.id is null or v_day_two.levels is null or v_day_two.clock_started_at is not null
+              or v_day_two.day_two_id is not null or v_day_two.satellite_target_id is not null or v_day_two.bounty_paise is not null
+              or exists (select 1 from public.tournament s where s.satellite_target_id = p_day_two_id)
+              or exists (select 1 from public.tournament_purchase p where p.tournament_id = p_day_two_id))) then
+    raise exception 'Before anyone enters, a flight of a Day 2 at this venue not yet started, no flight or satellite' using errcode = '22023';
   end if;
   begin
     update public.tournament set day_two_id = p_day_two_id where id = p_flight_id;
@@ -168,7 +172,8 @@ begin
   v_out := (select count(*)::integer from private.tournament_day_two_field(private.flight_runs(v_runs)) d where not d.goes_through);
   for v_pick in select d.run_index, d.goes_through, d.out_rank from private.tournament_day_two_field(private.flight_runs(v_runs)) d loop
     v_run := (select e from public.tournament_entry e where e.id = v_runs[v_pick.run_index + 1]);
-    v_entry := (select e from public.tournament_entry e where e.tournament_id = p_day_two.id and e.member_id = v_run.member_id);
+    v_entry := (select e from public.tournament_entry e where e.tournament_id = p_day_two.id and e.member_id = v_run.member_id
+                and e.flight_entry_id is not null);
     if v_entry.id is null then
       insert into public.tournament_entry (venue_id, tournament_id, member_id, entry_number, status, flight_entry_id, busted_at, bust_order)
       values (p_day_two.venue_id, p_day_two.id, v_run.member_id, 1, case when v_pick.goes_through then 'alternate' else 'busted' end, v_run.id,
@@ -257,7 +262,8 @@ begin
 end;
 $$;
 
--- As 20261028350000_tournament_satellites.sql left it, a flight never finished: it is bagged.
+-- As 20261028350000_tournament_satellites.sql left it, a flight never finished: it is bagged. And a satellite finishes
+-- whether TDS is on or off: the owner answered question #517, a ticket carries no TDS.
 create or replace function private.tournament_finishers(p_tournament public.tournament, p_method text, p_stacks jsonb)
 returns uuid[]
 language plpgsql
@@ -282,10 +288,6 @@ begin
     raise exception 'Refund the alternates who never sat first' using errcode = 'RVTRN', hint = 'alternates_waiting';
   end if;
   if p_tournament.satellite_target_id is not null then
-    if coalesce((private.setting_at(p_tournament.venue_id, 'tds.config', '', now()) ->> 'enabled')::boolean, false) then
-      raise exception 'A satellite finishes while TDS is switched off, until question #517 is answered'
-        using errcode = 'RVTRN', hint = 'tds_switched_on';
-    end if;
     v_most_left := greatest((select s.seats from private.tournament_satellite_result(p_tournament) s), 1);
   end if;
   if (p_method is null and v_left > v_most_left) or (p_method is not null and v_left not between 2 and 9)
@@ -305,6 +307,136 @@ begin
   end if;
   return array(select e.id from public.tournament_entry e where e.tournament_id = p_tournament.id and e.status = 'seated'
                order by case when v_is_counted then (p_stacks ->> e.id::text)::bigint else 0 end desc, e.created_at, e.id);
+end;
+$$;
+
+-- As 20261026231200_tournament_clock.sql left it, a Day 2 starting only once each flight anyone entered is bagged
+-- (RVTRN flights_unbagged). Its flights are locked first, the order a buy into a flight and a bag lock them in.
+create or replace function private.start_tournament_clock(p_tournament_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_row public.tournament;
+begin
+  perform private.assert_runs_tournaments((select t.venue_id from public.tournament t where t.id = p_tournament_id));
+  perform 1 from public.tournament f where f.day_two_id = p_tournament_id order by f.id for update;
+  v_row := private.tournament_for_clock(p_tournament_id);
+  if v_row.levels is null or v_row.clock_started_at is not null then
+    raise exception 'A clock starts once, on a tournament with levels' using errcode = '22023';
+  end if;
+  if exists (select 1 from public.tournament f where f.day_two_id = p_tournament_id and f.finished_at is null
+             and exists (select 1 from public.tournament_entry e where e.tournament_id = f.id and e.status <> 'refunded')) then
+    raise exception 'Bag every flight players entered before Day 2 starts' using errcode = 'RVTRN', hint = 'flights_unbagged';
+  end if;
+  update public.tournament set clock_started_at = now(), clock_paused_at = null, clock_shift = '0' where id = p_tournament_id;
+end;
+$$;
+
+-- As 20261027120200_tournament_finish.sql left it, with Day 2: until it starts, its players out on Day 1 are not yet
+-- out in the money, as a later flight's bag can still move them, so the floor sets its shares once the field is known.
+create or replace function private.set_tournament_payouts(p_tournament_id uuid, p_shares integer[])
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_venue_id uuid := (select t.venue_id from public.tournament t where t.id = p_tournament_id);
+begin
+  perform private.assert_runs_tournaments(v_venue_id);
+  perform private.assert_writable(v_venue_id);
+  perform 1 from public.tournament t where t.id = p_tournament_id for update;
+  if not coalesce(private.tournament_shares_whole(p_shares), false) then
+    raise exception 'One to a hundred shares above nothing, adding up to 100%%' using errcode = '22023';
+  end if;
+  if (select t.finished_at from public.tournament t where t.id = p_tournament_id) is not null then
+    raise exception 'The tournament is finished' using errcode = 'RVTRN', hint = 'finished';
+  end if;
+  -- Once a player is out in the money, what each place pays stays as it was.
+  if exists (select 1 from private.tournament_places(p_tournament_id) p join public.tournament_entry e on e.id = p.entry_id
+             where p.place <= greatest(cardinality(p_shares),
+                                       coalesce((select cardinality(t.payout_shares) from public.tournament t where t.id = p_tournament_id), 0))
+               and (e.flight_entry_id is null or (select t.clock_started_at from public.tournament t where t.id = p_tournament_id) is not null)) then
+    raise exception 'A player is already out in the money' using errcode = 'RVTRN', hint = 'shares_locked';
+  end if;
+  update public.tournament set payout_shares = p_shares, places_paid = cardinality(p_shares) where id = p_tournament_id;
+end;
+$$;
+
+-- As 20261028350000_tournament_satellites.sql left it, never for a Day 2 on either side (its pool is its flights'),
+-- the target looked for at the venue alone.
+create or replace function private.set_tournament_satellite(p_tournament_id uuid, p_target_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_venue_id uuid := (select t.venue_id from public.tournament t where t.id = p_tournament_id);
+  v_target public.tournament;
+begin
+  perform private.assert_runs_tournaments(v_venue_id);
+  perform private.assert_writable(v_venue_id);
+  perform 1 from public.tournament t where t.id = p_tournament_id for update;
+  select * into v_target from public.tournament t where t.id = p_target_id and t.venue_id = v_venue_id for update;
+  if (select t.clock_started_at from public.tournament t where t.id = p_tournament_id) is not null or p_target_id = p_tournament_id
+     or exists (select 1 from public.tournament_entry e where e.tournament_id = p_tournament_id and e.status <> 'refunded')
+     or exists (select 1 from public.tournament f where f.day_two_id in (p_tournament_id, p_target_id))
+     or (p_target_id is not null
+         and (v_target.levels is null or v_target.finished_at is not null
+              or not coalesce(private.tournament_level_now(v_target) <= v_target.last_registration_level, false))) then
+    raise exception 'Before anyone enters, a satellite for another tournament whose registration is open' using errcode = '22023';
+  end if;
+  begin
+    update public.tournament set satellite_target_id = p_target_id where id = p_tournament_id;
+  exception when check_violation or foreign_key_violation then
+    raise exception 'A satellite, with no bounty, for a tournament at this venue' using errcode = '22023';
+  end;
+end;
+$$;
+
+-- As 20261027120100_tournament_bounties_and_prizes.sql left it, a Day 2 player busting only once Day 2 is under way,
+-- so a later flight's bag never undoes a bust.
+create or replace function private.bust_tournament_entry(p_entry_id uuid, p_eliminator_id uuid default null)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_entry public.tournament_entry := private.entry_for_floor(p_entry_id);
+  v_kind text := (select t.bounty_kind from public.tournament t where t.id = v_entry.tournament_id);
+  v_split record;
+  v_place integer;
+begin
+  if v_entry.status is distinct from 'seated' or (v_kind is null) <> (p_eliminator_id is null)
+     or (p_eliminator_id is not null and not exists (select 1 from public.tournament_entry e where e.id = p_eliminator_id and e.id <> p_entry_id
+                                                     and e.tournament_id = v_entry.tournament_id and e.status = 'seated'
+                                                     and e.table_number = v_entry.table_number))
+     or (v_entry.flight_entry_id is not null
+         and (select t.clock_started_at from public.tournament t where t.id = v_entry.tournament_id) is null) then
+    raise exception 'A seated player, and in a bounty tournament the player at their table who knocked them out (on Day 2, once it starts)'
+      using errcode = '22023';
+  end if;
+  if coalesce(private.is_own_kyc_check((select e.member_id from public.tournament_entry e where e.id = p_eliminator_id)), false) then
+    raise exception 'Staff never pay a bounty to themselves' using errcode = '42501';
+  end if;
+  if v_kind is not null then
+    select * into v_split from private.tournament_bounty_split(private.tournament_bounty_on(p_entry_id), v_kind);
+    perform private.pay_tournament_run(p_eliminator_id, null, 0, v_split.paid_paise, v_split.head_paise, p_entry_id);
+  end if;
+  update public.tournament_entry
+  set status = 'busted', busted_at = now(), table_number = null, seat_number = null,
+      bust_order = coalesce((select max(e.bust_order) from public.tournament_entry e where e.tournament_id = v_entry.tournament_id), 0) + 1
+  where id = p_entry_id;
+  v_place := (select r.place from private.tournament_places(v_entry.tournament_id) r where r.entry_id = p_entry_id);
+  perform private.seat_tournament_entry(e.id) from public.tournament_entry e
+  where e.id = (select a.id from public.tournament_entry a where a.tournament_id = v_entry.tournament_id and a.status = 'alternate'
+                order by a.created_at, a.id limit 1);
+  return v_place;
 end;
 $$;
 
