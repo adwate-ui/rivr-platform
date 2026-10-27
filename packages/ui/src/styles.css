@@ -38,6 +38,11 @@
     outline: none;
   }
 
+  /* The stream overlay (#125) is drawn over OBS's video: the page behind it shows nothing. */
+  html:has([data-stream-overlay]) {
+    background-color: transparent;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

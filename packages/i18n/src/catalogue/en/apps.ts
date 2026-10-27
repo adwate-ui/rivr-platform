@@ -14,7 +14,7 @@ import { roster, rosterFailures } from './roster.ts';
 import { cameraFailures, cameras } from './cameras.ts';
 import { members, tiers } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
-import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { computers, dealerPins, streamOverlay, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
@@ -233,6 +233,7 @@ export { tabletApp } from './tablet.ts';
 export const displayApp = {
   pairing: tvPairing,
   screen: tvScreen,
+  overlay: streamOverlay,
 } as const;
 
 export const driverApp = {

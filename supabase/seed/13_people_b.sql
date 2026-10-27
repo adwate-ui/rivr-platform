@@ -21,7 +21,9 @@ insert into lane_b_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-000000000280', '+919000000280', 'Rhea Sood', null, null),
   ('00000000-0000-4000-8000-000000000281', '+919000000281', 'Kiran Joshi', null, null),
   -- The Dealers flow's own floor manager (#124).
-  ('00000000-0000-4000-8000-000000000770', '+919000000770', 'Sameer Kohli', 'Floor manager', 'admin');
+  ('00000000-0000-4000-8000-000000000770', '+919000000770', 'Sameer Kohli', 'Floor manager', 'admin'),
+  -- The Stream overlay flow's own floor manager (#125).
+  ('00000000-0000-4000-8000-000000000771', '+919000000771', 'Neha Batra', 'Floor manager', 'admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,

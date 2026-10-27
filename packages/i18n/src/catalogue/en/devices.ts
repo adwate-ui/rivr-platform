@@ -163,6 +163,15 @@ export const tvScreen = {
   unavailable: 'RIVR cannot be reached. This screen tries again in a few seconds.',
 };
 
+/** The final-table stream's overlay for OBS (#125, decision 0256). */
+export const streamOverlay = {
+  title: 'Stream overlay',
+  /** The overlay's address has no hole-card delay, or one it does not take. */
+  noDelay: 'This address has no hole-card delay. Add it in seconds, up to 3,600: /overlay?delay=900 holds the clock 15 minutes behind the table, and /overlay?delay=0 shows it live when OBS delays the whole stream.',
+  /** For a screen reader only, until the delay has passed since the overlay opened. `{seconds}` is the delay. */
+  waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
+};
+
 /** End of down on the tablet (#44): the drop-box count, and what the down closed with. */
 export const endOfDown = {
   title: 'End of down',

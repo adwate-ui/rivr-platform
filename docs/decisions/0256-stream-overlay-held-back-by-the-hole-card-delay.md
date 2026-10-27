@@ -1,0 +1,12 @@
+# 0256: The stream overlay is the TV's clock, held back by the hole-card delay in its address
+
+Date: 2026-10-27 · Task: #125
+
+The final-table stream (tech plan item 12) runs from OBS on the production machine. The platform gives OBS a browser source, `display` at `/overlay?delay=<seconds>`: the TV's tournament clock in one bar across the foot of a transparent 1920 by 1080 page (`StreamOverlay`).
+
+- **What the delay is for.** A hole-card stream holds the table's video back, so nobody watching can pass a hand to a player still in it. The commentary over it is live, so OBS cannot hold back its whole output, and the video is delayed before it reaches OBS. The overlay must then be held back by the same delay, or it shows a level change, a pause or a player out before the video does.
+- **How.** The overlay keeps what it heard from the server and when, and shows what it had heard `delay` seconds ago, its clock run on to then (`useDelayedTournament`). Every change reaches the stream exactly the delay after it reached the overlay. With OBS's own stream delay instead, the address says `delay=0`.
+- **The address sets it.** It is configured where the stream is, in OBS's source, so no table or console screen is needed. Whole seconds up to an hour; with none, or anything else, the overlay says so on the TV's green, in OBS's preview, before the stream starts. It never guesses a delay.
+- **A reload shows nothing for the delay.** The overlay keeps nothing between loads, so after a reload it waits out the delay rather than show anything ahead of the video. Set it up before the final table.
+- **Paired as a TV.** It pairs with a code like any TV and needs the tournament clock (as its mode or in its rotation) on the console's TVs screen; the database's rule for what a TV may read is unchanged. It listens on the venue's TV topic, so it hears changes within seconds.
+- **Nothing else reaches the stream.** Loading, an error, no tournament running or the wait for the delay draw nothing: their words are for a screen reader only. The kill-switch banner still shows above the clock (`.claude/rules/apps.md`).
