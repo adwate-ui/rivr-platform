@@ -1,6 +1,6 @@
 -- Growth funnel (#166; S-G3): of the venue's members, how many finished KYC, came in and bought in, by where they
 -- came from: a referral, a creator's code, a link's utm_source, or none (direct). From our own data, with no
--- analytics vendor, and counts only. Staff who read reports (reports.read); the practice venue has none.
+-- analytics vendor, and counts only. An erased member is no longer counted: their source went with them. Staff who read reports (reports.read); the practice venue has none.
 create function private.growth_funnel(p_venue_id uuid)
 returns table (source_kind text, source_code text, signed_up integer, kyc_done integer, visited integer, bought_in integer)
 language plpgsql
@@ -18,7 +18,7 @@ begin
            case when a.referral_code is null then coalesce(a.creator_code::text, a.utm_source::text) end as code
     from public.member m
     left join public.sign_up_attribution a on a.member_id = m.id
-    where m.venue_id = p_venue_id
+    where m.venue_id = p_venue_id and m.erased_at is null
   )
   select s.kind, s.code, count(*)::integer,
          (count(*) filter (where exists (select 1 from public.kyc_record k where k.member_id = s.id and k.status = 'verified')))::integer,

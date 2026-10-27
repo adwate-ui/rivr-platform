@@ -53,6 +53,13 @@ reset role;
 update public.sign_up_attribution set referral_code = null where member_id = (select id from newbie);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select * from pg_temp.stages('creator', 'zoya') $$, $$ values (1, 1, 1, 0) $$, 'a creator''s code by the code');
+-- Erasure takes their source and anonymises them; they are counted nowhere, not as direct.
+create temp table direct_before as select signed_up from pg_temp.stages('direct', null);
+reset role;
+delete from public.sign_up_attribution where member_id = (select id from newbie);
+update public.member set erased_at = now(), phone = null, user_id = null, full_name = 'Erased member' where id = (select id from newbie);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is((select signed_up from pg_temp.stages('direct', null)), (select signed_up from direct_before), 'an erased member is no longer counted');
 
 -- Only staff who read reports, and never for the practice venue.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');

@@ -42,28 +42,3 @@ begin
   end loop;
 end;
 $$;
-
--- As before (20261028350000_tournament_satellites.sql), but a frozen member uses no ticket (RVMBR), as a frozen
--- member buys nothing from the wallet.
-create or replace function private.use_tournament_ticket(p_tournament_id uuid, p_member_id uuid, p_idempotency_key uuid)
-returns uuid
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_venue_id uuid := (select t.venue_id from public.tournament t where t.id = p_tournament_id);
-  v_is_own boolean := coalesce(p_member_id = private.current_member_id() and private.has_feature(p_member_id, 'tournaments.register')
-                               and exists (select 1 from public.tournament t where t.id = p_tournament_id and t.is_published
-                                           and t.venue_id = private.current_member_venue_id()), false);
-begin
-  if v_venue_id is null or not (v_is_own or coalesce(private.has_permission(v_venue_id, 'cage.transact'), false)) then
-    raise exception 'A member enters with their own ticket, or a cashier for them' using errcode = '42501';
-  end if;
-  if not v_is_own and private.is_own_cage_record(p_member_id) then
-    raise exception 'A cashier never serves their own member record' using errcode = 'RVOWN';
-  end if;
-  perform private.assert_writable(v_venue_id, 'tournament_registration', p_member_id);
-  return private.tournament_buy(p_tournament_id, p_member_id, 'entry', 'ticket', p_idempotency_key);
-end;
-$$;
