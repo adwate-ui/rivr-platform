@@ -8,10 +8,14 @@ import { queryKeys } from './queryKeys.ts';
 /** A hand's variant: Hold'em, PLO or a bomb pot. */
 export type HandVariant = 'holdem' | 'plo' | 'bomb_pot';
 
-/** The tablet's table rules now: its rake (with @rivr/domain's RakeRules, for potTake) and whether it plays variations. */
+/**
+ * The tablet's table rules now: its rake (with @rivr/domain's RakeRules, for potTake), whether it plays variations, and
+ * when a scheduled change next takes effect (null with none).
+ */
 export interface TableRules {
   readonly rake: RakeRules;
   readonly hasVariation: boolean;
+  readonly nextChangeAt: string | null;
 }
 
 /** One hand of the down at the tablet's table. */
@@ -25,9 +29,19 @@ export interface DownHand {
   readonly isCapApplied: boolean;
 }
 
-// A rule change takes effect from its own time, so the tablet asks again every minute: the take it
-// shows is the one the hand is logged with.
+// A rule change takes effect from its own time, so the tablet asks again every minute, and at once when a scheduled
+// change starts (#303): the take it shows is the one the hand is logged with.
 const RULES_CHECK = 60_000;
+// Asked half a second after a change starts, so the database already gives the new rules.
+const AFTER_CHANGE = 500;
+// Never sooner than a second, whatever the clocks say.
+const SOONEST_CHECK = 1_000;
+
+/** How long until the tablet asks for its rules again: a minute, or just after the next scheduled change if sooner. */
+export function nextRulesCheck(nextChangeAt: string | null, now: number): number {
+  if (nextChangeAt === null) return RULES_CHECK;
+  return Math.min(RULES_CHECK, Math.max(SOONEST_CHECK, Date.parse(nextChangeAt) - now + AFTER_CHANGE));
+}
 
 /**
  * The rules for the tablet's table now, so it shows the rake, drop and pull as the pot is typed.
@@ -38,12 +52,12 @@ export function useTableRules(tableId: string | null) {
   return useQuery({
     queryKey: queryKeys.tableRules(userId ?? 'signed-out', tableId ?? 'no-table'),
     enabled: userId !== null && tableId !== null,
-    refetchInterval: RULES_CHECK,
+    refetchInterval: (query) => nextRulesCheck(query.state.data?.nextChangeAt ?? null, Date.now()),
     queryFn: async (): Promise<TableRules | null> => {
       const { data, error } = await client.rpc('tablet_rake_rules');
       if (error) throw error;
       const row = data[0];
-      return row ? { rake: toRakeRules(row), hasVariation: row.has_variation } : null;
+      return row ? { rake: toRakeRules(row), hasVariation: row.has_variation, nextChangeAt: row.next_change_at } : null;
     },
   });
 }

@@ -35,6 +35,10 @@ export const highHands = {
   reject: 'Reject',
   rejectReason: 'Why it is not approved',
   rejectConfirm: 'Reject the claim',
+  /** The prompt on every other console screen while a claim waits (#317), the oldest first. */
+  prompt: 'High hand claim · {table}, seat {seat} · {category} · {amount}',
+  promptPaysNothing: 'High hand claim · {table}, seat {seat} · {category} · pays nothing now',
+  promptSeeAll: 'See all {count}',
   invalidReason: 'Say why, in at least three characters.',
   approvedBy: 'Paid {amount}, approved by {name}',
   rejectedBy: 'Rejected by {name}: {reason}',

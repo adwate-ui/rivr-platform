@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { highHandRejectSchema } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
 import { ReasonForm } from '@rivr/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -26,6 +26,8 @@ export function ClaimReasonForm({ label, confirm, isPending, onSubmit, onCancel 
   const form = useForm<z.input<typeof highHandRejectSchema>, unknown, z.output<typeof highHandRejectSchema>>({
     resolver, defaultValues: { reason: '' },
   });
+  // Opened by Reject or Reverse: the reason is the next thing to type.
+  useEffect(() => form.setFocus('reason'), [form]);
   const submit = form.handleSubmit(async ({ reason }) => onSubmit(reason));
   return (
     <ReasonForm field={form.register('reason')} label={label}

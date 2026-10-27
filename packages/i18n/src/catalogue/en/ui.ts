@@ -26,6 +26,8 @@ export const ui = {
   consoleRail: {
     /** Accessible name of the console's left rail. */
     label: 'Sections',
+    /** Read after a rail entry's name when things wait on its screen, such as high-hand claims (#317). */
+    waiting: '{count} waiting',
   },
   web: {
     /** Accessible name of the public website's main navigation. */

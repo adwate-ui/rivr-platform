@@ -63,7 +63,8 @@ describe('the jackpot on the console (#48)', () => {
   it('pays a bad beat with its request id, and says why one is refused', async () => {
     const paid = renderJackpot({ ...READS, '/rpc/pay_bad_beat': { body: 'e2' } });
     const beat = {
-      tableId: 't3', loserPhone: '+919000000201', winnerPhone: '+919000000202', otherPhones: ['+919000000203'], expectedTotal: fromPaise(34255000n), requestId: 'r-1',
+      tableId: 't3', loserPhone: '+919000000201', winnerPhone: '+919000000202', otherPhones: ['+919000000203'], expectedTotal: fromPaise(34255000n),
+      expectedRule: { poolShare: 10_000n, loser: 5_000n, winner: 2_500n, table: 2_500n }, requestId: 'r-1',
     };
     let outcome: unknown;
     await act(async () => { outcome = await paid.result.current.actions.pay.mutateAsync(beat); });
@@ -71,6 +72,7 @@ describe('the jackpot on the console (#48)', () => {
     expect(paid.calls.find((call) => call.path === '/rpc/pay_bad_beat')?.body).toEqual({
       p_venue_id: VENUE, p_table_id: 't3', p_loser_phone: '+919000000201', p_winner_phone: '+919000000202',
       p_table_phones: ['+919000000203'], p_expected_total: 34255000, p_idempotency_key: 'r-1',
+      p_expected_rule: { pool_basis_points: 10000, loser_basis_points: 5000, winner_basis_points: 2500, table_basis_points: 2500 },
     });
     for (const [code, failure] of [['RVNMB', 'not_member'], ['RVMBR', 'frozen_member'], ['RVSTL', 'changed'], ['23505', 'invalid']] as const) {
       cleanup();

@@ -9,6 +9,7 @@ import { HandForm } from './HandForm.tsx';
 const RULES: TableRules = {
   rake: { rateBasisPoints: 500n, cap: fromPaise(600000n), isJackpotLive: true, drop: fromPaise(10000n), dropAbove: fromPaise(500000n) },
   hasVariation: true,
+  nextChangeAt: null,
 };
 
 /** What log_hand is sent. */

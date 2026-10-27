@@ -75,12 +75,15 @@ export function useTabletHighHands() {
   });
 }
 
-/** The venue's high hands, for staff who approve jackpots or read the ledger. */
-export function useHighHands(venueId: string) {
+/**
+ * The venue's high hands, for staff who approve jackpots or read the ledger. The console's frame asks with
+ * `isEnabled` false for anyone else (#317), and then nothing is asked.
+ */
+export function useHighHands(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.highHands(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
+    enabled: userId !== null && isEnabled,
     refetchInterval: LIST_CHECK,
     queryFn: async (): Promise<HighHand[]> => {
       const { data, error } = await client.rpc('high_hands', { p_venue_id: venueId });
@@ -97,6 +100,15 @@ export function useHighHands(venueId: string) {
       }));
     },
   });
+}
+
+/**
+ * The claims waiting for the floor, newest first, for the console's prompt and rail (#317): the High hands list, shared
+ * with that screen. None unless `isAllowed` (the staff member approves jackpots), whatever is already loaded.
+ */
+export function useWaitingHighHands(venueId: string, isAllowed: boolean): readonly HighHand[] {
+  const hands = useHighHands(venueId, isAllowed);
+  return isAllowed ? (hands.data ?? []).filter((hand) => hand.status === 'claimed') : [];
 }
 
 /**

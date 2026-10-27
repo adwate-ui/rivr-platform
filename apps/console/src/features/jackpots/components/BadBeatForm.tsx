@@ -77,7 +77,7 @@ export function BadBeatForm({ venueId, pool, rule }: { venueId: string; pool: Pa
     setRequestId(crypto.randomUUID());
   };
   const submit = form.handleSubmit(async (beat) => {
-    const paid = await pay.mutateAsync({ ...beat, expectedTotal: payout.total, requestId });
+    const paid = await pay.mutateAsync({ ...beat, expectedTotal: payout.total, expectedRule: rule, requestId });
     setFailure(paid.ok ? null : paid.error);
     setPaidSplit(paid.ok ? previewText(payout, others) : null);
     if (paid.ok) form.reset(EMPTY);

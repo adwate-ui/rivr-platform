@@ -1,3 +1,4 @@
+import { t } from '@rivr/i18n';
 import { useId } from 'react';
 import { cx } from '../internal/classes.ts';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
@@ -7,6 +8,8 @@ export interface SideNavItem {
   /** Already translated, for example `t('console.rail.items.cage')`. */
   label: string;
   href: string;
+  /** How many things wait on the screen, such as high-hand claims (#317); shown beside the label when above 0. */
+  count?: number | undefined;
 }
 
 export interface SideNavSection {
@@ -57,20 +60,32 @@ function RailSection({ section, current, onNavigate }: RailSectionProps) {
       <ul aria-labelledby={section.label ? headingId : undefined} className="flex flex-col">
         {section.items.map((item) => (
           <li key={item.id}>
-            <a
-              href={item.href}
-              aria-current={item.id === current ? 'page' : undefined}
-              onClick={(event) => routeClick(event, item.href, onNavigate)}
-              className={cx(
-                'flex min-h-8 items-center rounded-md px-3 font-text text-16 transition-colors',
-                item.id === current ? 'font-medium text-content' : 'text-content-muted hover:text-content',
-              )}
-            >
-              {item.label}
-            </a>
+            <RailLink item={item} isCurrent={item.id === current} onNavigate={onNavigate} />
           </li>
         ))}
       </ul>
     </div>
+  );
+}
+
+/** One entry; with things waiting on its screen, the number in gold beside it, and its name says how many. */
+function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurrent: boolean; onNavigate: Navigate | undefined }) {
+  const waiting = item.count !== undefined && item.count > 0 ? item.count : null;
+  return (
+    <a
+      href={item.href}
+      aria-current={isCurrent ? 'page' : undefined}
+      aria-label={waiting === null ? undefined : `${item.label} ${t('ui.consoleRail.waiting', { count: waiting })}`}
+      onClick={(event) => routeClick(event, item.href, onNavigate)}
+      className={cx(
+        'flex min-h-8 items-center gap-2 rounded-md px-3 font-text text-16 transition-colors',
+        isCurrent ? 'font-medium text-content' : 'text-content-muted hover:text-content',
+      )}
+    >
+      {item.label}
+      {waiting === null ? null : (
+        <span className="ml-auto rounded-md bg-action px-2 font-text text-13 font-medium tabular-nums text-on-action">{waiting}</span>
+      )}
+    </a>
   );
 }

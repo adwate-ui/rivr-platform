@@ -9,6 +9,13 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Pays as the console does, sending the rule it showed: the one in force (#309).
+create function pg_temp.pay(p_venue uuid, p_table uuid, p_loser text, p_winner text, p_others text[], p_total bigint, p_key text)
+returns uuid language sql as $$
+  select public.pay_bad_beat(p_venue, p_table, p_loser, p_winner, p_others, p_total, private.setting_at(p_venue, 'jackpot.payout', '', now()), p_key);
+$$;
+grant execute on function pg_temp.pay(uuid, uuid, text, text, text[], bigint, text) to authenticated;
+
 -- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
 -- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).
 delete from public.tablet_assignment;
@@ -62,7 +69,7 @@ begin
       -- What the console would show on the pool now, under the seeded rule, with two others dealt in.
       select * into v_preview from private.bad_beat_payout(private.main_pool('00000000-0000-4000-8000-000000000001'), 10000, 5000, 2500, 2500, 2);
       perform pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-      v_payout := public.pay_bad_beat('00000000-0000-4000-8000-000000000001',
+      v_payout := pg_temp.pay('00000000-0000-4000-8000-000000000001',
         (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'),
         '+919000000201', '+919000000202', array['+919000000203', '+919000000204'], v_preview.total, 'property-payout-' || v_step);
       update run set payout_id = v_payout where step = v_step;

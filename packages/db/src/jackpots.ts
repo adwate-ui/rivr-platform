@@ -92,6 +92,8 @@ export interface BadBeat {
   readonly winnerPhone: string;
   readonly otherPhones: readonly string[];
   readonly expectedTotal: Paise;
+  /** The payout rule the console showed: a rule saved since is refused, even at the same total (#309). */
+  readonly expectedRule: PayoutRule;
   readonly requestId: string;
 }
 
@@ -108,6 +110,10 @@ export function useJackpotActions(venueId: string) {
       const { data, error } = await client.rpc('pay_bad_beat', {
         p_venue_id: venueId, p_table_id: beat.tableId, p_loser_phone: beat.loserPhone, p_winner_phone: beat.winnerPhone,
         p_table_phones: [...beat.otherPhones], p_expected_total: Number(beat.expectedTotal), p_idempotency_key: beat.requestId,
+        p_expected_rule: {
+          pool_basis_points: Number(beat.expectedRule.poolShare), loser_basis_points: Number(beat.expectedRule.loser),
+          winner_basis_points: Number(beat.expectedRule.winner), table_basis_points: Number(beat.expectedRule.table),
+        },
       });
       await reload();
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);

@@ -4,6 +4,8 @@
  * dealing on a tablet at Table 3:
  * - Pema logs a hand with a high-hand claim, tapping four of a kind, Queens, seat 4, for what was a
  *   straight flush, and it goes to the floor;
+ * - on whatever screen it is on, the floor is prompted with the claim, Approve and Reject, and the rail
+ *   counts it (#317); the High hands screen lists it instead;
  * - the floor corrects it to a straight flush before deciding, the dealer's claim kept beside it, and
  *   approves ₹10,000: the chips in play rise by ₹10,000;
  * - the floor then reverses it with the reason: the payout is posted back, so the chips in play are as
@@ -43,8 +45,17 @@ test.describe('High hands', () => {
     await expect(tablet.getByText('High hand sent to the floor.')).toBeVisible();
     await expect(tablet.getByText('High hand claimed, waiting for the floor')).toBeVisible();
 
+    // Whatever screen the floor is on, it is prompted with the claim, and the rail counts it (#317). The console asks
+    // every ten seconds.
+    const prompt = floor.getByRole('alert').filter({ hasText: /^High hand claim · Table 3, seat 4 · Four of a kind Queens · / });
+    await expect(prompt).toBeVisible({ timeout: 15_000 });
+    await expect(floor.getByRole('button', { name: 'Reject', exact: true })).toBeVisible();
+    await expect(floor.getByRole('link', { name: /^High hands \d+ waiting$/ })).toBeVisible();
+
     const before = await chipsInPlay(floor);
     await floor.getByRole('link', { name: 'High hands' }).click();
+    // High hands lists the claims itself, so it shows no prompt.
+    await expect(floor.getByRole('alert').filter({ hasText: 'High hand claim' })).toHaveCount(0);
     await expect(floor.getByText(/^Four of a kind Queens, seat 4, Table 3 · .+ · dealt by Pema Lepcha$/).first()).toBeVisible();
     await floor.getByRole('button', { name: 'Correct', exact: true }).first().click();
     await floor.getByRole('group', { name: 'Hand' }).getByRole('button', { name: 'Straight flush', exact: true }).click();

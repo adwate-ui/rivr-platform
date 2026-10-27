@@ -32,6 +32,15 @@ describe('SideNav', () => {
     expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(['Live floor', 'Waitlist', 'Cage', 'Reports']);
   });
 
+  it('shows how many wait on an entry\'s screen, read with its name, and nothing for none', () => {
+    renderIn(<SideNav label="Sections" sections={[{ id: 'growth', label: 'Growth', items: [
+      { id: 'highHands', label: 'High hands', href: '#high-hands', count: 2 },
+      { id: 'jackpots', label: 'Jackpots', href: '#jackpots', count: 0 },
+    ] }]} />);
+    expect(screen.getByRole('link', { name: 'High hands 2 waiting' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Jackpots' })).toHaveTextContent(/^Jackpots$/);
+  });
+
   it('marks the current screen', () => {
     renderIn(<SideNav label="Sections" sections={sections} current="cage" />);
     expect(screen.getByRole('link', { name: 'Cage' })).toHaveAttribute('aria-current', 'page');
