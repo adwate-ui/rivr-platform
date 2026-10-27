@@ -8,6 +8,7 @@
     "./site": "./src/site.ts",
     "./myRewards": "./src/myRewards.ts",
     "./tds": "./src/tds.ts",
+    "./sessions": "./src/sessions.ts",
     "./shareholding": "./src/shareholding.ts",
     "./tally": "./src/tally.ts",
     "./reports": "./src/reports.ts",
