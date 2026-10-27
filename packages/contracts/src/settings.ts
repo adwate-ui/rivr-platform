@@ -6,18 +6,10 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
+import { pointsPerHour, pointsRewardsRakeShare, rakebackRate } from './rewardSettings.ts';
+import type { SettingDefinition } from './settingDefinition.ts';
 
-/** What a setting applies to: the whole venue, or one table type, stake, tier or role. */
-export const SETTING_SCOPES = ['venue', 'table_type', 'stake', 'tier', 'role'] as const;
-export type SettingScope = (typeof SETTING_SCOPES)[number];
-
-/** One setting key: its scope and the schema its value must satisfy. */
-export interface SettingDefinition<Schema extends z.ZodType = z.ZodType> {
-  readonly key: string;
-  readonly description: string;
-  readonly scope: SettingScope;
-  readonly value: Schema;
-}
+export { SETTING_SCOPES, type SettingDefinition, type SettingScope } from './settingDefinition.ts';
 
 const callTimeMinutes = {
   key: 'call_time.minutes',
@@ -199,20 +191,6 @@ const academyGst = {
   value: z.strictObject({ rate_basis_points: z.int().min(0).max(10_000) }),
 } as const satisfies SettingDefinition;
 
-const pointsPerHour = {
-  key: 'points.per_hour',
-  description: 'Points a member earns for each hour played, per table type, so by stake (#89, decision 0161); none set earns none.',
-  scope: 'table_type',
-  value: z.strictObject({ points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
-
-const pointsRewardsRakeShare = {
-  key: 'points.rewards_rake_share',
-  description: 'RIVR Rewards (#89, decision 0161): the share of a member\'s rake, in basis points (500 is 5%), earned as points at one a rupee; none set earns none.',
-  scope: 'venue',
-  value: z.strictObject({ basis_points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
-
 const leaguePoints = {
   key: 'league.points',
   description: 'RIVR League points for a tournament finish (decision 0182): every finisher\'s for taking part, and more for first, second, third and the rest of the final table (fourth to ninth); none set earns none.',
@@ -290,7 +268,7 @@ export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring,
+  cageCashBuyInLimit, amlStructuring, rakebackRate,
 ] as const;
 
 /** A setting key declared in code. */
