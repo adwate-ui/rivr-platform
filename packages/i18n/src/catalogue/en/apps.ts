@@ -57,6 +57,27 @@ export const playerApp = {
     tdsFrom: '{quarter} · {legalName} · TAN {tan}',
     tdsAmount: '{tds} under section {section}, from {count} payments',
     noTan: 'not yet given',
+    /** A session in the history (#127): `100/200 · 6 h 30 min`. */
+    sub: '{stakes} · {hours}',
+    /** A session at several tables, named by the one played longest: `Table 2 and 1 more`. */
+    moreTables: '{table} and {count} more',
+    /** A club month's totals above its sessions: `3 sessions · 12 h 40 min`. */
+    monthSummary: '{count} sessions · {hours}',
+    monthSummaryOne: '1 session · {hours}',
+    /** A session's detail (design prompt, "Sessions"): bonus chips, TDS and what was paid only when they apply. */
+    back: 'Back',
+    stake: 'Stake',
+    time: 'Time',
+    timeRange: '{from} to {to}',
+    hours: 'Hours',
+    buyIn: 'Buy-in',
+    bonus: 'Bonus chips',
+    cashOut: 'Cash-out',
+    tdsLine: 'TDS',
+    paid: 'Paid to you',
+    net: 'Net',
+    receipt: 'Receipt {reference}',
+    notFound: 'This session is not in your history.',
   },
   balance,
   learn: { title: 'Learn', empty: 'No sources yet.' },
