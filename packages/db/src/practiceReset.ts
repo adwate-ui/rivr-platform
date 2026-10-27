@@ -51,3 +51,53 @@ export function usePracticeReset(venueId: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] }),
   });
 }
+
+/** One table a live venue's purge deletes from (#432): the rows it would delete. */
+export interface LivePurgeRow {
+  readonly table: string;
+  readonly rows: number;
+}
+
+/** Why a purge did not go through: the venue not frozen, no saved archive, the practice venue, or a control naming a member. */
+export type LivePurgeFailure = 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'wrong_name' | 'held' | 'unavailable';
+
+const PURGE_FAILURE_BY_CODE: Readonly<Record<string, LivePurgeFailure>> = {
+  '42501': 'not_allowed', RVPRC: 'practice', RVNFZ: 'not_frozen', RVARC: 'no_archive', RVNAM: 'wrong_name',
+  // foreign_key_violation: a kill-switch control, which a purge keeps, names a member the purge removes.
+  '23503': 'held',
+};
+
+/** The failure a refused purge preview or purge stands for. */
+export function livePurgeFailureOf(error: { code: string }): LivePurgeFailure {
+  return PURGE_FAILURE_BY_CODE[error.code] ?? 'unavailable';
+}
+
+// Kept here, not in queryKeys: only the Purge screen reads it.
+const livePurgeKey = (userId: string, venueId: string) => ['user', userId, 'livePurgePreview', venueId] as const;
+
+/** The dry run, for a super admin at a frozen live venue: each table a purge deletes from, with its rows. */
+export function useLivePurgePreview(venueId: string, isFrozen: boolean) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: livePurgeKey(userId ?? 'signed-out', venueId),
+    enabled: userId !== null && isFrozen,
+    queryFn: async (): Promise<LivePurgeRow[]> => {
+      const { data, error } = await client.rpc('live_purge_preview', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({ table: row.table_name, rows: row.current_rows }));
+    },
+  });
+}
+
+/** Purges a live venue, once its full archive is saved and its name typed exactly; gives the rows deleted. */
+export function usePurgeLiveVenue(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (venueName: string): Promise<Result<number, LivePurgeFailure>> => {
+      const { data, error } = await client.rpc('purge_live_venue', { p_venue_id: venueId, p_venue_name: venueName });
+      return error ? err(livePurgeFailureOf(error)) : ok(data.reduce((total, row) => total + row.deleted_rows, 0));
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] }),
+  });
+}

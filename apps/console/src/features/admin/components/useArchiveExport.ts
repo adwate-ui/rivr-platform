@@ -35,6 +35,8 @@ export function useArchiveExport(venueId: string) {
       const archive = await makeArchive(source, { venueId, memberId, kycReason, madeAt }, (progress) => setState({ status: 'running', progress }));
       const fileName = fileNameOf(memberNumber, madeAt);
       saveFile(new Blob([new Uint8Array(archive.file)], { type: 'application/octet-stream' }), fileName);
+      // A full archive, written, is one a purge may follow (#432).
+      if (memberId === null) await source.complete(archive.archiveId);
       setState({ status: 'done', archive, fileName });
     } catch (error) {
       setState({ status: 'failed', failure: archiveFailureOf(error) });

@@ -42,6 +42,10 @@ function fakeSource(recipient: string, start: () => Promise<void> = () => Promis
       const rows = pages[table] ?? [];
       return Promise.resolve({ rows: rows.slice(from, from + 2), after: from + 2 < rows.length ? from + 2 : null });
     },
+    complete: (archiveId) => {
+      log.push(`complete ${archiveId}`);
+      return Promise.resolve();
+    },
     kycPhoto: (path) => {
       log.push(`photo ${path}`);
       return path.endsWith('gone.jpg') ? Promise.reject(new Error('HTTP 403')) : Promise.resolve(new Uint8Array([0xff, 0xd8, 0xff]));

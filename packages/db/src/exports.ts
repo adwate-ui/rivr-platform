@@ -98,6 +98,11 @@ function archiveSource(client: RivrClient, venueId: string) {
       if (error) throw error;
       return pageOf(data);
     },
+    /** Says a full archive is saved, once the browser has written it: a purge needs one (#432). */
+    complete: async (archiveId: string): Promise<void> => {
+      const { error } = await client.rpc('complete_export_archive', { p_archive_id: archiveId });
+      if (error) throw error;
+    },
     kycPhoto: async (path: string): Promise<Uint8Array> => {
       const response = await fetch(await signedKycImageUrl(client, path));
       if (!response.ok) throw new Error(`KYC photo ${path}: HTTP ${response.status}`);

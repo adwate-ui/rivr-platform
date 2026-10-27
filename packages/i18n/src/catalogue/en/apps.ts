@@ -7,7 +7,7 @@ import { rail } from './consoleRail.ts';
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
-import { practiceReset, practiceResetFailures } from './practiceReset.ts';
+import { practiceReset, practiceResetFailures, purge, purgeFailures } from './practiceReset.ts';
 import { exportArchive, exportArchiveFailures } from './exportArchive.ts';
 import { aml, amlFailures } from './aml.ts';
 import { roster, rosterFailures } from './roster.ts';
@@ -178,6 +178,8 @@ export const consoleApp = {
   tiers,
   killSwitch,
   practiceReset,
+  purge,
+  purgeFailures,
   practiceResetFailures,
   exportArchive,
   exportArchiveFailures,

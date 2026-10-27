@@ -34,6 +34,8 @@ export interface ArchiveRequest {
 }
 
 export interface Archive {
+  /** The archive as the database recorded it as started. */
+  readonly archiveId: string;
   /** The zip, locked to the owner's backup key. */
   readonly file: Uint8Array;
   readonly tables: number;
@@ -125,5 +127,5 @@ export async function makeArchive(source: ArchiveSource, request: ArchiveRequest
   // A staff-notes entry is rows of a table already counted (#498).
   const rows = Object.entries(counts).filter(([name]) => !name.startsWith('staff-notes/')).reduce((total, [, count]) => total + count, 0);
   const tables = plan.tables.filter((table) => !table.name.startsWith('staff-notes/')).length;
-  return { file, tables, rows, photos: paths.length - unread.length, unread };
+  return { archiveId: plan.archiveId, file, tables, rows, photos: paths.length - unread.length, unread };
 }
