@@ -216,8 +216,9 @@ end;
 $$;
 
 -- Makes a tournament a satellite for p_target_id, or an ordinary one again (null), for tournaments.manage
--- before its clock starts. Refusals: 42501; 22023 the clock started, the tournament itself as its target, a
--- target finished or at another venue, or a satellite with a bounty; RVFRZ.
+-- before anyone has entered it or its clock has started, so no player's buy-in changes what it pays. The
+-- target is another tournament at the venue with levels, not finished, its registration open. Refusals: 42501;
+-- 22023 any of those, or a satellite with a bounty; RVFRZ.
 create function private.set_tournament_satellite(p_tournament_id uuid, p_target_id uuid)
 returns void
 language plpgsql
@@ -226,13 +227,18 @@ set search_path = ''
 as $$
 declare
   v_venue_id uuid := (select t.venue_id from public.tournament t where t.id = p_tournament_id);
+  v_target public.tournament;
 begin
   perform private.assert_runs_tournaments(v_venue_id);
   perform private.assert_writable(v_venue_id);
   perform 1 from public.tournament t where t.id = p_tournament_id for update;
+  select * into v_target from public.tournament t where t.id = p_target_id for update;
   if (select t.clock_started_at from public.tournament t where t.id = p_tournament_id) is not null or p_target_id = p_tournament_id
-     or exists (select 1 from public.tournament t where t.id = p_target_id and t.finished_at is not null) then
-    raise exception 'Before the clock starts, a satellite for another tournament not finished' using errcode = '22023';
+     or exists (select 1 from public.tournament_entry e where e.tournament_id = p_tournament_id and e.status <> 'refunded')
+     or (p_target_id is not null
+         and (v_target.levels is null or v_target.finished_at is not null
+              or not coalesce(private.tournament_level_now(v_target) <= v_target.last_registration_level, false))) then
+    raise exception 'Before anyone enters, a satellite for another tournament whose registration is open' using errcode = '22023';
   end if;
   begin
     update public.tournament set satellite_target_id = p_target_id where id = p_tournament_id;
@@ -272,7 +278,9 @@ end;
 $$;
 
 -- As 20261027120200_tournament_finish.sql left it, with satellites: one needs no places' shares, takes no deal,
--- and is played out once no more players are left than it has seats (one, when it has none).
+-- and is played out once no more players are left than it has seats (one, when it has none). With more than one
+-- left, the floor counts their chips, as for a deal, and the chips give their places. A ticket carries no TDS
+-- until question #517 is answered, so a satellite finishes only while TDS is switched off (RVTRN tds_switched_on).
 create or replace function private.tournament_finishers(p_tournament public.tournament, p_method text, p_stacks jsonb)
 returns uuid[]
 language plpgsql
@@ -283,6 +291,8 @@ as $$
 declare
   v_left integer := (select count(*)::integer from public.tournament_entry e where e.tournament_id = p_tournament.id and e.status = 'seated');
   v_most_left integer := 1;
+  -- A deal, or a satellite finished with more than one left: the chips of each player left are counted.
+  v_is_counted boolean := p_method is not null or v_left > 1;
 begin
   if p_tournament.clock_started_at is null or p_method not in ('icm', 'chip_chop')
      or (p_tournament.satellite_target_id is not null and p_method is not null) then
@@ -295,6 +305,10 @@ begin
     raise exception 'Refund the alternates who never sat first' using errcode = 'RVTRN', hint = 'alternates_waiting';
   end if;
   if p_tournament.satellite_target_id is not null then
+    if coalesce((private.setting_at(p_tournament.venue_id, 'tds.config', '', now()) ->> 'enabled')::boolean, false) then
+      raise exception 'A satellite finishes while TDS is switched off, until question #517 is answered'
+        using errcode = 'RVTRN', hint = 'tds_switched_on';
+    end if;
     v_most_left := greatest((select s.seats from private.tournament_satellite_result(p_tournament) s), 1);
   end if;
   if (p_method is null and v_left > v_most_left) or (p_method is not null and v_left not between 2 and 9)
@@ -302,7 +316,7 @@ begin
     raise exception 'Played out with one player left (no more than the seats in a satellite), or a deal among two to nine'
       using errcode = 'RVTRN', hint = 'players_left';
   end if;
-  if p_method is not null and (jsonb_typeof(p_stacks) is distinct from 'object' or (select count(*) from jsonb_object_keys(p_stacks)) <> v_left
+  if v_is_counted and (jsonb_typeof(p_stacks) is distinct from 'object' or (select count(*) from jsonb_object_keys(p_stacks)) <> v_left
      or exists (select 1 from public.tournament_entry e where e.tournament_id = p_tournament.id and e.status = 'seated'
                 and coalesce(p_stacks ->> e.id::text, '') !~ '^[1-9][0-9]{0,11}$')
      or (select sum((s.value)::text::bigint) from jsonb_each(p_stacks) s) > (select c.chips_in_play from private.tournament_counts(p_tournament.id) c)) then
@@ -313,7 +327,7 @@ begin
     raise exception 'Staff never finish a tournament they are still playing' using errcode = '42501';
   end if;
   return array(select e.id from public.tournament_entry e where e.tournament_id = p_tournament.id and e.status = 'seated'
-               order by case when p_method is null then 0 else (p_stacks ->> e.id::text)::bigint end desc, e.created_at, e.id);
+               order by case when v_is_counted then (p_stacks ->> e.id::text)::bigint else 0 end desc, e.created_at, e.id);
 end;
 $$;
 
@@ -421,29 +435,33 @@ declare
   v_to jsonb := (select jsonb_agg(jsonb_build_object('code', l.code, 'amount', l.amount)) from (values
                    ('venue.tournament_pool', private.tournament_pool_share(p_price, p_fee)), ('venue.tournament_fees', p_fee)) as l (code, amount)
                  where l.amount > 0);
-  v_ticket_id uuid;
+  v_ticket public.tournament_ticket;
   v_transaction_id uuid;
 begin
   if p_paid_by = 'wallet' then
     return private.debit_wallet(p_tournament.venue_id, p_member_id, p_price, 'tournament_buy', p_key, v_to);
   end if;
-  perform private.assert_tournament_player(p_tournament.venue_id, p_member_id);
+  -- The ticket before the member, the order the minute's lapse locks them in.
   if p_paid_by = 'ticket' then
-    select k.id into v_ticket_id from public.tournament_ticket k
+    select * into v_ticket from public.tournament_ticket k
     where k.target_id = p_tournament.id and k.member_id = p_member_id and k.status = 'held'
     order by k.created_at, k.id limit 1
     for update;
-    if v_ticket_id is null then
+    if v_ticket.id is null then
       raise exception 'No ticket to this tournament' using errcode = 'RVTRN', hint = 'no_ticket';
     end if;
+    if v_ticket.value_paise <> p_price then
+      raise exception 'A ticket pays the buy-in it was won for' using errcode = '22023';
+    end if;
   end if;
+  perform private.assert_tournament_player(p_tournament.venue_id, p_member_id);
   v_transaction_id := private.post_ledger_transaction(p_tournament.venue_id, 'tournament_buy', p_key,
     (select jsonb_agg(jsonb_build_object('account_id', a.id, 'amount', l.amount::text))
      from (select case when p_paid_by = 'ticket' then 'venue.tournament_tickets' else 'venue.cash_drawer' end as code, p_price as amount
            union all select t.value ->> 'code', -(t.value ->> 'amount')::bigint from jsonb_array_elements(v_to) t) l
      join public.ledger_account a on a.venue_id = p_tournament.venue_id and a.member_id is null and a.code = l.code),
     'tournament_registration', case when p_paid_by = 'ticket' then 'A tournament entry paid with a satellite ticket' else 'A tournament buy at the cage' end);
-  update public.tournament_ticket set status = 'used', use_transaction_id = v_transaction_id where id = v_ticket_id;
+  update public.tournament_ticket set status = 'used', use_transaction_id = v_transaction_id where id = v_ticket.id;
   return v_transaction_id;
 end;
 $$;
@@ -555,7 +573,8 @@ end;
 $$;
 
 -- Refunds to the wallet, from the tickets held, each ticket still held once its target's registration has
--- closed or the target has finished. Each minute; a frozen venue's or member's waits until released.
+-- closed, the target has finished, or a day has passed since its start with its clock never started. Each
+-- minute; a frozen venue's or member's waits until released.
 create function private.lapse_tournament_tickets()
 returns void
 language plpgsql
@@ -568,7 +587,8 @@ begin
   for v_ticket in
     select k.* from public.tournament_ticket k join public.tournament t on t.id = k.target_id
     where k.status = 'held'
-      and (t.finished_at is not null or private.tournament_level_now(t) > t.last_registration_level)
+      and (t.finished_at is not null or private.tournament_level_now(t) > t.last_registration_level
+           or (t.clock_started_at is null and t.starts_at < now() - interval '1 day'))
       and not exists (select 1 from public.control_state c where c.venue_id = k.venue_id and c.released_at is null
                       and (c.level = 'venue_freeze' or (c.level = 'member_freeze' and c.member_id = k.member_id)))
     order by k.created_at
