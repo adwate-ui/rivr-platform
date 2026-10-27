@@ -282,6 +282,8 @@ max_frequency = "60s"
 919000000780 = "123456"
 # Builder (lanes B to D): the Dealers flow's floor manager, supabase/seed/13_people_b.sql (#124).
 919000000770 = "123456"
+# Builder (lanes B to D): the Stream overlay flow's floor manager, supabase/seed/13_people_b.sql (#125).
+919000000771 = "123456"
 919000000201 = "123456"
 919000000202 = "123456"
 919000000203 = "123456"

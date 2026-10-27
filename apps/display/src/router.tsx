@@ -1,8 +1,9 @@
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
 import { homeRoute } from './routes/home.tsx';
-import { rootRoute } from './routes/root.tsx';
+import { overlayRoute } from './routes/overlay.tsx';
+import { rootRoute, tvRoute } from './routes/root.tsx';
 
-const routeTree = rootRoute.addChildren([homeRoute]);
+const routeTree = rootRoute.addChildren([tvRoute.addChildren([homeRoute]), overlayRoute]);
 
 /** The display app's router; tests pass a memory history. */
 export function createAppRouter(history?: RouterHistory) {

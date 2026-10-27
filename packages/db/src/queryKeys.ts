@@ -155,6 +155,8 @@ export const queryKeys = {
   tvClaim: (code: string) => ['tv-code', code, 'claim'] as const,
   /** The signed-in TV's name and mode. */
   myTvScreen: (userId: string) => ['user', userId, 'my-tv-screen'] as const,
+  /** Whether a venue is one the public may see: not the practice venue (#125). */
+  isPublicVenue: (userId: string, venueId: string) => ['user', userId, 'is-public-venue', venueId] as const,
   /** A venue's TVs, for staff who manage devices. */
   venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
   /** The tablet's own high-hand claims. */
