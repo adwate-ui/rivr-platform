@@ -130,6 +130,8 @@ export const cage = {
   /** Under the cash-out done line: `{amount}` is what the chips paid off. */
   cashedOutSettled: 'Markers settled: {amount}.',
   notInRoom: 'Not checked in, so there are no chips to cash out. Check them in at the door first.',
+  /** A cashier who is also a member is served by another cashier (#500). */
+  ownRecord: 'A cashier never serves their own member record. Another cashier serves them.',
   /** The cage takes and pays nothing while no shift is open (#376). */
   noShift: 'The cage has no shift open. Open one on Treasury with the float and the chips, then try again.',
   /** A cage transaction's thermal receipt (#69), printed from the cage computer. */

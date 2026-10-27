@@ -217,6 +217,7 @@ export const tournaments = {
     on_break: 'On a break: no buy-ins until it ends.',
     switched_off: 'Tournament registration is switched off.',
     no_shift: 'Open the cage’s shift first.',
+    own_record: 'A cashier never serves their own member record. Another cashier serves them.',
     not_allowed: 'Your role does not take this.',
     invalid: 'That buy is not possible here.',
     taken: 'That buy was already made.',

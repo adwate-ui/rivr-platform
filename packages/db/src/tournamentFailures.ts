@@ -29,10 +29,10 @@ export function toFinishFailure(error: { code: string; hint?: string | null }): 
 
 /** Why a buy was refused: the rules' reason (decision 0202), no free seat for a busted player's rebuy, or the wallet's or the cage's. */
 export type BuyFailure =
-  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift';
+  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift' | 'own_record';
 
 const BUY_FAILURE_BY_CODE: Readonly<Record<string, BuyFailure>> = {
-  RVSHT: 'short', RVKYC: 'identity', RVAGE: 'identity', RVDUP: 'identity', RVBRK: 'on_break', RVKIL: 'switched_off', RVNSH: 'no_shift',
+  RVSHT: 'short', RVKYC: 'identity', RVAGE: 'identity', RVDUP: 'identity', RVBRK: 'on_break', RVKIL: 'switched_off', RVNSH: 'no_shift', RVOWN: 'own_record',
 };
 const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full', 'finished'];
 
