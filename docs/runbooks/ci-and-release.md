@@ -4,7 +4,7 @@ All workflows run on GitHub-hosted runners (`docs/decisions/0001-hosted-ci-runne
 
 | Workflow | When | What |
 |---|---|---|
-| `ci.yml` | Every PR and push to `main` | Four required jobs. `verify` runs `pnpm verify:all`. `e2e` runs the Playwright flows against a seeded local stack. `budgets` checks player initial JavaScript is under 200 KB gzipped. `security` runs `supabase db lint`, the Supabase security advisors, the nightly backup against the local stack as its read-only role (`scripts/backup/check-backup.sh`), `pnpm audit` and gitleaks. |
+| `ci.yml` | Every PR and push to `main` | Parallel jobs (decision 0243): `code` (typecheck, lint, unit and property tests, root lint, import maps, migration versions, dependency rules, stylesheets, tokens, drill gates), `database` (pgTAP and generated types), `storybook` (build and visual tests), `mutation 1/4`–`4/4` (a pull request's changed money modules; every module on `main`, decision 0242), `e2e 1/3`–`3/3` (the Playwright flows against a seeded local stack, one stack per runner), `budgets` (player initial JavaScript under 200 KB gzipped) and `security` (`supabase db lint`, the Supabase security advisors, the nightly backup against the local stack as its read-only role (`scripts/backup/check-backup.sh`), `pnpm audit` and gitleaks). `ci-ok` passes only when every job passed; it is the one CI check branch protection requires. |
 | `nightly-backup.yml` | 08:00 IST daily, or by hand | For staging and production: an encrypted logical dump and CSV export to the target's R2 bucket. Skips until its environment is set up. See `docs/runbooks/backups-and-restore.md`. |
 | `preview.yml` | Every PR from this repository | Builds every web surface against staging data and deploys a Cloudflare Pages preview per app (`pr-<n>` branch of `rivr-<app>-staging`). |
 | `deploy-staging.yml` | Every merge to `main` | Migrations and seed, Edge Functions, every web surface and Storybook to staging. |
@@ -107,4 +107,4 @@ Outbox consumers (#215, decision 0038), on staging and production, once:
 
 ## First-time repository setup
 
-Run `scripts/github/setup-repo.sh` once with admin rights: labels, branch protection on `main` (requires `verify`, `e2e`, `budgets`, `security` and `agent-review`), squash-only merges, approval for workflows from outside contributors, the three environments and the `release-*` tag rule. Safe to run again.
+Run `scripts/github/setup-repo.sh` once with admin rights: labels, branch protection on `main` (requires `ci-ok` and `agent-review`, a pull request up to date with `main`, admins included), squash-only merges with auto-merge, approval for workflows from outside contributors, the three environments and the `release-*` tag rule. Safe to run again.

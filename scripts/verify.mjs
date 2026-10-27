@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 /**
- * pnpm verify | verify:quick | verify:all
- *   quick    typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
- *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
- *            the generated-tokens check, the drill gates, Storybook build and visual tests
- *   all      every step for every package; with MUTATION_SINCE=<ref>, mutation tests only on the money modules
- *            changed since that ref (CI on a pull request, decision 0242)
- *   mutation <n>/<count>   mutation tests alone, on the n-th of `count` even shares of the money modules (CI's
- *            mutation job on main, one share per runner)
- * quick and changed cover packages changed against origin/main (or main), uncommitted work
- * included, plus the packages that depend on them. Stops at the first failure and prints a
- * summary to paste into the PR.
+ * pnpm verify | verify:quick | verify:all, and CI's parallel parts (decision 0243)
+ *   quick      typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
+ *   changed    quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
+ *              the generated-tokens check, the drill gates, Storybook build and visual tests
+ *   all        every step for every package
+ *   code       CI: quick, the generated-tokens check and the drill gates, for every package
+ *   database   CI: pgTAP and the generated types
+ *   storybook  CI: Storybook build and visual tests
+ *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules to mutate. With MUTATION_SINCE=<ref>
+ *              (a pull request) only those changed since that ref, else every one (decision 0242).
+ * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
+ * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -26,13 +27,9 @@ function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
 }
 
-/**
- * The commit this branch started from, or null when there is nothing to compare with. A task branch starts
- * from `integration` (decision 0193), which runs ahead of main between release cuts: measured from main, every
- * task integrated since the last cut would count as this branch's change, and verify would check it all again.
- */
+/** The commit this branch left main at, or null when there is nothing to compare with (decision 0243). */
 function baseCommit() {
-  for (const ref of ['origin/integration', 'origin/main', 'main']) {
+  for (const ref of ['origin/main', 'main']) {
     try {
       return git('merge-base', 'HEAD', ref);
     } catch {
@@ -50,10 +47,10 @@ function changedFiles(base) {
   return [...new Set([...committed, ...working].filter(Boolean))];
 }
 
-/** What to verify: every package, or the changed ones measured from `base`. */
+/** What to verify: the changed packages measured from `base` (quick and changed), else every package. */
 function scopeFor(mode) {
   const base = baseCommit();
-  if (mode === 'all' || !base) return { everything: true, base, files: [] };
+  if (!['quick', 'changed'].includes(mode) || !base) return { everything: true, base, files: [] };
   const files = changedFiles(base);
   return { everything: files.some((file) => TOOLING.test(file)), base, files };
 }
@@ -96,6 +93,13 @@ function moneyModulesToMutate(scope) {
   return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`) && (everything || moduleChanged(module, files)));
 }
 
+/** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */
+function mutationShare(modules, share) {
+  const [n, count] = (share ?? '').split('/').map(Number);
+  if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
+  return modules.filter((_, index) => index % count === n - 1);
+}
+
 function mutationStep(modules) {
   const globs = modules.flatMap((module) => [`src/${module}/**/*.ts`, `!src/${module}/**/*.test.ts`]);
   return step(`mutation tests (${modules.join(', ')})`, 'pnpm', [
@@ -124,18 +128,15 @@ function pgtapStep() {
   };
 }
 
-/** The n-th of `count` shares of the money modules, every module in exactly one share ("2/4"). */
-function mutationShare(share) {
-  const [n, count] = (share ?? '').split('/').map(Number);
-  if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
-  return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`)).filter((_, index) => index % count === n - 1);
-}
+const tokensStep = () => step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']);
+const drillsStep = () => step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']);
+const storybookStep = () =>
+  step('Storybook build and visual tests', 'node', ['scripts/turbo.mjs', 'run', 'build-storybook', 'visual', '--filter', 'ui']);
 
-function stepsFor(mode, scope) {
-  const touched = (prefix) => scope.everything || scope.files.some((file) => file.startsWith(prefix));
+function quickSteps(scope) {
   const turboScope = scope.everything ? [] : ['--affected'];
   const turboEnv = scope.base ? { TURBO_SCM_BASE: scope.base } : {};
-  const steps = [
+  return [
     step('typecheck, lint, unit and property tests', 'node', ['scripts/turbo.mjs', 'run', 'typecheck', 'lint', 'test', ...turboScope], turboEnv),
     step('root scripts and e2e lint', 'pnpm', ['-s', 'lint:root']),
     step('Edge Function import maps', 'node', ['scripts/ci/check-function-imports.mjs']),
@@ -143,25 +144,40 @@ function stepsFor(mode, scope) {
     step('dependency rules', 'pnpm', ['-s', 'lint:deps']),
     step('stylesheets', 'pnpm', ['-s', 'lint:css']),
   ];
+}
+
+function stepsFor(mode, scope) {
+  const touched = (prefix) => scope.everything || scope.files.some((file) => file.startsWith(prefix));
+  const steps = quickSteps(scope);
   if (mode === 'quick') return steps;
   const money = moneyModulesToMutate(scope);
   if (money.length > 0) steps.push(mutationStep(money));
   // A golden file is proved in SQL too (decision 0037).
   if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
-  if (touched('packages/tokens/')) steps.push(step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']));
-  if (touched('packages/drills/')) steps.push(step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']));
-  if (touched('packages/ui/') || touched('packages/tokens/')) {
-    steps.push(step('Storybook build and visual tests', 'node', ['scripts/turbo.mjs', 'run', 'build-storybook', 'visual', '--filter', 'ui']));
-  }
+  if (touched('packages/tokens/')) steps.push(tokensStep());
+  if (touched('packages/drills/')) steps.push(drillsStep());
+  if (touched('packages/ui/') || touched('packages/tokens/')) steps.push(storybookStep());
   return steps;
 }
+
+/** CI's parallel parts, one job each (decision 0243). */
+const CI_PARTS = {
+  code: (scope) => [...quickSteps(scope), tokensStep(), drillsStep()],
+  database: () => [pgtapStep()],
+  storybook: () => [storybookStep()],
+  mutation: (scope) => {
+    const modules = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
+    return modules.length > 0 ? [mutationStep(modules)] : [];
+  },
+};
 
 function main() {
   const scope = scopeFor(MODE);
   const what = scope.everything ? 'every package' : `packages changed since ${scope.base?.slice(0, 8)}`;
   process.stdout.write(`\nverify (${MODE}): ${what}\n\n`);
+  const steps = Object.hasOwn(CI_PARTS, MODE) ? CI_PARTS[MODE](scope) : stepsFor(MODE, scope);
+  if (steps.length === 0) process.stdout.write('nothing to run here\n');
   const results = [];
-  const steps = MODE === 'mutation' ? [mutationStep(mutationShare(process.argv[3]))] : stepsFor(MODE, scope);
   for (const { name, run: runStep } of steps) {
     const started = Date.now();
     const status = runStep();
