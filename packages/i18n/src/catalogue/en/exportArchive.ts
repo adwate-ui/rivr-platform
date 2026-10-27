@@ -14,11 +14,11 @@ export const exportArchive = {
   memberNone: 'No member found.',
   memberExport: 'Export {name}, No. {number}',
   readingTable: 'Reading {name}: table {done} of {of}',
-  readingPhotos: 'Reading KYC photos: {done} of {of}',
+  readingFiles: 'Reading the files (KYC photos and receipts): {done} of {of}',
   locking: 'Locking the archive to the owner\'s key',
-  done: 'Saved {file}. Rows: {rows}. Tables: {tables}. KYC photos: {photos}.',
+  done: 'Saved {file}. Rows: {rows}. Tables: {tables}. Files: {files}.',
   /** KYC photos that could not be read: the manifest lists them. */
-  photosUnread: 'KYC photos not read: {count}. The manifest lists them.',
+  filesUnread: 'Files not read: {count}. The manifest lists them, and a purge leaves them in storage.',
 };
 
 /** Why an archive was not made. Nothing is saved. */

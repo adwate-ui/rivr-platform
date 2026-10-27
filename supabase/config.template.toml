@@ -248,6 +248,8 @@ max_frequency = "60s"
 919000000182 = "123456"
 # The AML flow's own admin, supabase/seed/10_people.sql (#105).
 919000000183 = "123456"
+# The Purge flow's own super admin of a throwaway venue, supabase/seed/10_people.sql (#432).
+919000000186 = "123456"
 # The Roster flow's own admin, supabase/seed/10_people.sql (#106).
 919000000184 = "123456"
 # The CCTV flow's own admin, supabase/seed/10_people.sql (#122).

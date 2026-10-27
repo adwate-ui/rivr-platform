@@ -61,7 +61,7 @@ test.describe('Export', () => {
     expect(file.suggestedFilename()).toMatch(/^rivr-archive-\d{4}-\d{2}-\d{2}\.zip\.age$/);
     // An age file, locked to one X25519 key.
     expect((await readFile(await file.path())).subarray(0, 32).toString('latin1')).toMatch(/^age-encryption\.org\/v1\n-> X25519 /);
-    await expect(page.getByText(/^Saved rivr-archive-.*\. KYC photos: 0\.$/)).toBeVisible();
+    await expect(page.getByText(/^Saved rivr-archive-.*\. Files: [\d,]+\.$/)).toBeVisible();
     const full = JSON.parse(sql(`select after::text from public.audit_log where action = 'export.archive'
       and actor_user_id = '00000000-0000-4000-8000-000000000182' order by id desc limit 1`));
     expect(full.tables).toBeGreaterThan(90);
