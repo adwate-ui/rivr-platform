@@ -104,7 +104,7 @@ function moduleChanged(module, files) {
  * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those it changes, every one when it
  * changes shared code (decision 0242). A changed module's tests also kill the mutants of the modules it imports, nearly
  * always money, so a change to them can move money's score; mutating money on every such pull request took longer than
- * the rest of CI together. The push to main mutates every module, and a release needs that run green (release.yml).
+ * the rest of CI together. CI's full run on main mutates every module, and a release needs it green (release.yml).
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;

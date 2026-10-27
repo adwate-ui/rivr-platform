@@ -8,8 +8,8 @@
 # except the pull request that fixes main (--fixes-main). It stops if the head moves any other way (a push nobody
 # reviewed), on a failed or cancelled required check, on a conflict, or after two hours. Once merged it prints each CI
 # job's time (a job over 15 minutes is a cause to find before the next pull request), then waits for CI on main at the
-# merge and fails if it is not green: that run mutates every money module and catches whatever two pull requests break
-# together.
+# merge and fails if it is not green: that run catches whatever two pull requests break together. A newer commit's run
+# replaces it and tests this one too (decision 0254).
 #   scripts/github/land.sh <pr-number> [--fixes-main]
 set -euo pipefail
 
@@ -43,7 +43,10 @@ checks_passed() {
   [ -n "$required" ] && [ "$passed" = "$required" ]
 }
 # The conclusion of the newest finished CI run on main; empty when it cannot be read.
-main_ci() { read_api "repos/$repo/actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=1" --jq '.workflow_runs[0].conclusion // empty'; }
+# A push's run or the full run counts; one a newer commit's run replaced says nothing about main (decision 0254).
+main_ci() {
+  read_api "repos/$repo/actions/workflows/ci.yml/runs?branch=main&status=completed&per_page=20"     --jq '[.workflow_runs[] | select(.conclusion != "cancelled")][0].conclusion // empty'
+}
 # Whether the pull request and main, since the commit left it, both changed migrations or seed: 0 when they did, 1 when
 # not, 2 when GitHub could not be read. A comparison lists at most 300 files, so a full list counts as a clash.
 db_clash() {
@@ -152,5 +155,6 @@ until result="$(read_api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$me
   if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "CI on main at ${merge_sha:0:8} has not finished in an hour: look at it." >&2; exit 1; fi
   sleep 60
 done
+if [ "$result" = cancelled ]; then echo "CI on main at ${merge_sha:0:8} gave way to a newer commit's run, which tests it too."; exit 0; fi
 if [ "$result" != success ]; then echo "#$pr merged, but CI on main at ${merge_sha:0:8} is $result: fix main before anything else lands." >&2; exit 1; fi
 echo "CI on main passed at ${merge_sha:0:8}."
