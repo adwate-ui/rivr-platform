@@ -117,7 +117,9 @@ export function createCashfreePayouts(options: CashfreeOptions): UpiPayoutAdapte
         json: { transfer_id: `rivrvpa_${crypto.randomUUID().replaceAll('-', '')}`, vpa },
       }));
       if (!reply.ok) return reply;
-      if (reply.value.account_status !== 'VALID') return err({ code: 'rejected', reason: `${VPA_ANSWER}${reply.value.account_status}` });
+      // INVALID is the bank's answer about the address; any other status (the bank or NPCI unreachable) is trouble asking.
+      if (reply.value.account_status === 'INVALID') return err({ code: 'rejected', reason: `${VPA_ANSWER}INVALID` });
+      if (reply.value.account_status !== 'VALID') return err({ code: 'unavailable' });
       return ok({ accountHolderName: reply.value.name_at_bank ?? '', bankName: reply.value.ifsc_details?.bank ?? '' });
     },
   };

@@ -2,7 +2,7 @@
 -- When a KYC-verified member adds a UPI address, the payout-name-check function asks the payouts provider whose it is
 -- (Cashfree's VPA check, through @rivr/adapters; the practice venue's fake answers with the member's own name), and the
 -- cage sees that name beside the member's KYC name before verifying the account. Staff decide; nothing is refused
--- for a mismatch. Only the cage reads the bank's name, never the member: it is not a way to look up whose an address is.
+-- for a mismatch. In the app only the cage reads the bank's name, never the member; a member's own export includes it.
 
 alter table public.payout_account
   -- The account holder's name as the bank gives it, or null until asked.

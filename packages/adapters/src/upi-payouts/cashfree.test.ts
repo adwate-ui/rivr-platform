@@ -122,5 +122,7 @@ describe('Cashfree Payouts', () => {
     const trouble = await wrongKey.payouts.verifyVpa({ vpa: upiVpaSchema.parse('success@upi') });
     expect(trouble.ok).toBe(false);
     expect(!trouble.ok && isVpaAnswer(trouble.error)).toBe(false);
+    const unreachable = await cashfree({ 'POST /payout/validatePayout': [{ body: { account_status: 'PENDING', vpa: 'success@upi' } }] });
+    expect(await unreachable.payouts.verifyVpa({ vpa: upiVpaSchema.parse('success@upi') })).toEqual({ ok: false, error: { code: 'unavailable' } });
   });
 });
