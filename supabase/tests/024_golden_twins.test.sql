@@ -478,7 +478,7 @@ create function pg_temp.seats(p_text text) returns jsonb language sql immutable 
   from unnest(string_to_array(nullif(p_text, ''), ' ')) s;
 $$;
 select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentSeating.json'), 'the tournament seating cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tournamentSeating.json' and operation not in ('eligible', 'balance', 'place') $$,
+select is_empty($$ select operation from golden.golden_case where file = 'tournamentSeating.json' and operation not in ('eligible', 'balance', 'place', 'day_two') $$,
   'every operation in tournamentSeating.json is proved here');
 select results_eq(
   $$ select description, coalesce((select string_agg(e.table_number || '/' || e.seat_number, ' ' order by e.table_number, e.seat_number)
@@ -505,6 +505,32 @@ select results_eq(
      from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
   $$ select description, expected ->> 'place' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
   'private.tournament_finish_place places every bust in the golden file');
+
+-- Day 2's field: private.tournament_day_two_field and @rivr/domain dayTwoField (tournamentSeating.json). Runs are
+-- written 'player bags chips' or 'player out place of runs'.
+create function pg_temp.flight_runs(p_text text) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_agg(case when m[2] is not null then jsonb_build_object('member', m[1], 'chips', m[2]::bigint)
+                                 else jsonb_build_object('member', m[1], 'place', m[3]::integer, 'runs', m[4]::integer) end order by u.n), '[]')
+  from unnest(string_to_array(nullif(p_text, ''), ' | ')) with ordinality u (run, n)
+  cross join lateral regexp_match(u.run, '^(\S+) (?:bags (\d+)|out (\d+) of (\d+))$') m;
+$$;
+create function pg_temp.day_two_or_refused(p_runs jsonb) returns text language plpgsql as $$
+begin
+  return (select coalesce(string_agg((p_runs -> f.run_index ->> 'member') || ' ' || (p_runs -> f.run_index ->> 'chips'), ' | ' order by f.run_index)
+                            filter (where f.goes_through), '')
+                 || ' / ' || coalesce(string_agg((p_runs -> f.run_index ->> 'member') || ' ' || (p_runs -> f.run_index ->> 'place') || ' of '
+                                                 || (p_runs -> f.run_index ->> 'runs'), ' | ' order by f.out_rank) filter (where not f.goes_through), '')
+          from private.tournament_day_two_field(p_runs) f);
+exception when invalid_parameter_value then
+  return 'refused';
+end;
+$$;
+select results_eq(
+  $$ select description, pg_temp.day_two_or_refused(pg_temp.flight_runs(inputs ->> 'runs'))
+     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'day_two' order by position $$,
+  $$ select description, case when expected ->> 'through' = 'refused' then 'refused' else (expected ->> 'through') || ' / ' || (expected ->> 'out') end
+     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'day_two' order by position $$,
+  'private.tournament_day_two_field picks Day 2''s field as the golden file does');
 
 -- Tournament payouts, deals and bounties: private.tournament_prize_pool, tournament_payout_table,
 -- tournament_chip_chop, tournament_icm and tournament_bounty_split, and @rivr/domain prizePool, payoutTable,

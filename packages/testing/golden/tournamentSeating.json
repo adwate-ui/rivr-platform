@@ -1,6 +1,6 @@
 {
-  "rule": "Tournament seating and balancing",
-  "about": "Random seating and balancing prompts (#120; decision 0204). A new player may be given any free seat at the tables with the fewest players, and seating picks one of those at random; with every seat taken the player is an alternate (no seats). Tables balance by moves: while the fullest table has two or more players than the emptiest, one player moves from the fullest to the emptiest, the lowest-numbered table of each on a tie. A bust finishes in the place of the runs (entries and re-entries not refunded) less where it stands among the busts, plus one: the first out of 58 is 58th. Seats are written 'table/seat'; counts list each table's players in table order; moves are written 'from>to'.",
+  "rule": "Tournament seating, balancing and Day 2's field",
+  "about": "Random seating and balancing prompts (#120; decision 0204). A new player may be given any free seat at the tables with the fewest players, and seating picks one of those at random; with every seat taken the player is an alternate (no seats). Tables balance by moves: while the fullest table has two or more players than the emptiest, one player moves from the fullest to the emptiest, the lowest-numbered table of each on a tie. A bust finishes in the place of the runs (entries and re-entries not refunded) less where it stands among the busts, plus one: the first out of 58 is 58th. Seats are written 'table/seat'; counts list each table's players in table order; moves are written 'from>to'. Day 2 of a multi-flight event (#117, question #489): every player left when their flight is bagged goes through, keeping their bigger stack if they went through twice (the earlier on a tie); each other player is placed below Day 2's field by their best run, the one that outlasted the most players in its flight, then the one in the smaller flight, then the earlier. Runs are written 'player bags chips' or 'player out place of runs', in the order they were made; those who go through are listed in that order, those out best first.",
   "cases": [
     {
       "description": "An empty room of two 3-seat tables: every seat of both.",
@@ -156,6 +156,60 @@
       "expected": {
         "place": "refused"
       }
+    },
+    {
+      "description": "Mihir goes through in both flights and keeps his bigger stack.",
+      "operation": "day_two",
+      "inputs": { "runs": "Mihir bags 40000 | Mihir bags 55000" },
+      "expected": { "through": "Mihir 55000", "out": "" }
+    },
+    {
+      "description": "Out in Flight 1A, Yash goes through in 1B and plays Day 2.",
+      "operation": "day_two",
+      "inputs": { "runs": "Yash out 7 of 9 | Yash bags 30000" },
+      "expected": { "through": "Yash 30000", "out": "" }
+    },
+    {
+      "description": "Out in both flights: Ritika's run that outlasted more players places her.",
+      "operation": "day_two",
+      "inputs": { "runs": "Ritika out 3 of 9 | Ritika out 5 of 12" },
+      "expected": { "through": "", "out": "Ritika 5 of 12" }
+    },
+    {
+      "description": "Players out on Day 1 are placed by how many players they outlasted in their flight, the most first.",
+      "operation": "day_two",
+      "inputs": { "runs": "Aditi out 4 of 9 | Mihir bags 20000 | Kabir out 10 of 50" },
+      "expected": { "through": "Mihir 20000", "out": "Kabir 10 of 50 | Aditi 4 of 9" }
+    },
+    {
+      "description": "Outlasting as many players, the one from the smaller flight is placed higher.",
+      "operation": "day_two",
+      "inputs": { "runs": "Kabir out 6 of 12 | Aditi out 3 of 9" },
+      "expected": { "through": "", "out": "Aditi 3 of 9 | Kabir 6 of 12" }
+    },
+    {
+      "description": "Tied in every way, the earlier run is placed higher.",
+      "operation": "day_two",
+      "inputs": { "runs": "Aditi out 2 of 5 | Kabir out 2 of 5" },
+      "expected": { "through": "", "out": "Aditi 2 of 5 | Kabir 2 of 5" }
+    },
+    {
+      "description": "Two flights with nobody in them: nobody plays Day 2.",
+      "operation": "day_two",
+      "inputs": { "runs": "" },
+      "expected": { "through": "", "out": "" }
+    },
+    {
+      "description": "A bag of no chips is refused.",
+      "operation": "day_two",
+      "inputs": { "runs": "Mihir bags 0" },
+      "expected": { "through": "refused", "out": "refused" }
+    },
+    {
+      "description": "A place outside its flight is refused.",
+      "operation": "day_two",
+      "inputs": { "runs": "Yash out 10 of 9" },
+      "expected": { "through": "refused", "out": "refused" }
     }
   ]
 }
