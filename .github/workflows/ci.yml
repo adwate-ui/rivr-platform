@@ -1,5 +1,8 @@
-# Runs on every pull request and every push to main. Branch protection requires all four
-# jobs plus the `agent-review` status, posted once the review subagents pass (decision 0024).
+# Runs on every pull request and every push to main, as parallel jobs (decision 0243). Branch protection on main
+# requires only `ci-ok`, which passes when every job below passed, and the `agent-review` status (decision 0024);
+# a pull request must also be up to date with main. A new or split job goes into ci-ok's `needs`, never into branch
+# protection. Each timeout is near twice the job's usual time, so a hang fails fast. CI restores no build cache:
+# a green run is a result from scratch.
 name: CI
 
 on:
@@ -8,8 +11,10 @@ on:
     branches: [main]
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A new push to a pull request replaces its run; each push to main has a run of its own, never cancelled, so a
+  # release can require that its commit passed (release.yml).
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -18,10 +23,13 @@ env:
   TURBO_TELEMETRY_DISABLED: '1'
 
 jobs:
-  verify:
-    name: verify
+  # Typecheck, lint, unit and property tests for every package; root and e2e lint, Edge Function import maps,
+  # migration versions, dependency rules, stylesheets, generated tokens and the drill gates. Chromium is for
+  # @rivr/render's tests, which draw in a real browser.
+  code:
+    name: code
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -29,28 +37,45 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           playwright: 'true'
-      # Typecheck, lint, unit, property and mutation tests, pgTAP, generated tokens,
-      # drill gates, Storybook build and visual tests, for every package. On a pull request,
-      # mutation tests cover the money modules it changes; on a push to main, none here: the
-      # mutation job below runs them all, in parallel shares (decision 0242).
-      - run: pnpm verify:all
-        env:
-          MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.sha }}
+      - run: node scripts/verify.mjs code
+
+  # pgTAP against the migrations and seed, and the generated database types.
+  database:
+    name: database
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - run: node scripts/verify.mjs database
+
+  storybook:
+    name: storybook
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          playwright: 'true'
+      - run: node scripts/verify.mjs storybook
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: verify-reports
-          path: |
-            packages/ui/visual/test-results/
-            packages/domain/reports/
+          name: visual-results
+          path: packages/ui/visual/test-results/
           if-no-files-found: ignore
 
-  # Every money module's mutation tests on each push to main, a quarter on each of four runners (decision 0242).
+  # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one,
+  # split four ways so no runner carries them all.
   mutation:
     name: mutation ${{ matrix.share }}
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -61,6 +86,8 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup
       - run: node scripts/verify.mjs mutation ${{ matrix.share }}
+        env:
+          MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -68,10 +95,16 @@ jobs:
           path: packages/domain/reports/
           if-no-files-found: ignore
 
+  # The Playwright flows against a seeded local stack, a third on each of three runners, each with its own stack. The
+  # flows tagged @practice-cage share the practice cage's one shift, so they run together, in file order, on a fourth.
   e2e:
-    name: e2e
+    name: e2e ${{ matrix.part }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        part: ['1/3', '2/3', '3/3', 'practice-cage']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup
@@ -79,18 +112,18 @@ jobs:
           playwright: 'true'
       - run: pnpm db:start
       - run: pnpm build
-      - run: pnpm e2e
+      - run: pnpm e2e ${{ matrix.part == 'practice-cage' && '--grep @practice-cage' || format('--grep-invert @practice-cage --shard={0}', matrix.part) }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ strategy.job-index }}
           path: playwright-report/
           if-no-files-found: ignore
 
   budgets:
     name: budgets
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup
@@ -101,7 +134,7 @@ jobs:
   security:
     name: security
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -121,3 +154,18 @@ jobs:
         run: pnpm audit --audit-level high
       - name: Secret scanning
         run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --verbose
+
+  # The one check branch protection requires: every job above passed.
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [code, database, storybook, mutation, e2e, budgets, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
+          jq -e 'all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null

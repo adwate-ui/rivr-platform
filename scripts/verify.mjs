@@ -1,22 +1,25 @@
 #!/usr/bin/env node
 /**
- * pnpm verify | verify:quick | verify:all
- *   quick    typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
- *   changed  quick, plus: mutation tests on changed money modules, pgTAP when supabase/ or a golden file changed,
- *            the generated-tokens check, the drill gates, Storybook build and visual tests
- *   all      every step for every package; with MUTATION_SINCE=<ref>, mutation tests only on the money modules
- *            changed since that ref (CI on a pull request, decision 0242)
- *   mutation <n>/<count>   mutation tests alone, on the n-th of `count` even shares of the money modules (CI's
- *            mutation job on main, one share per runner)
- * quick and changed cover packages changed against origin/main (or main), uncommitted work
- * included, plus the packages that depend on them. Stops at the first failure and prints a
- * summary to paste into the PR.
+ * pnpm verify | verify:quick | verify:all, and CI's parallel parts (decision 0243)
+ *   quick      typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
+ *   changed    quick, plus: mutation tests on the money modules a change touches, pgTAP when supabase/ or a golden
+ *              file changed, the generated-tokens check, the drill gates, Storybook build and visual tests
+ *   all        every step for every package
+ *   code       CI: quick, the generated-tokens check and the drill gates, for every package
+ *   database   CI: pgTAP and the generated types
+ *   storybook  CI: Storybook build and visual tests
+ *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules to mutate. With MUTATION_SINCE=<ref>
+ *              (a pull request) only those its changes touch, else every one (decision 0242).
+ * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
+ * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
-const MONEY_MODULES = ['money', 'rake', 'jackpot', 'variance', 'eod', 'cage', 'callTime', 'tds', 'gst', 'markers', 'credit', 'payouts', 'bonus', 'wallet', 'promotions', 'tournament', 'aml'];
+// The money modules are the folders Stryker mutates (packages/domain/stryker.config.mjs): one list for both.
+const MONEY_MODULES = strykerConfig.mutate.filter((glob) => !glob.startsWith('!')).map((glob) => glob.split('/')[1]);
 // Shared tooling can break any package, so a change to it verifies everything.
 const TOOLING = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
 // Tooling that can move any money module's mutation score.
@@ -26,13 +29,14 @@ function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
 }
 
-/**
- * The commit this branch started from, or null when there is nothing to compare with. A task branch starts
- * from `integration` (decision 0193), which runs ahead of main between release cuts: measured from main, every
- * task integrated since the last cut would count as this branch's change, and verify would check it all again.
- */
+/** Whether any file under `folder` contains `text`. */
+function mentions(folder, text) {
+  return spawnSync('git', ['grep', '-q', '--fixed-strings', text, '--', folder]).status === 0;
+}
+
+/** The commit this branch left main at, or null when there is nothing to compare with (decision 0243). */
 function baseCommit() {
-  for (const ref of ['origin/integration', 'origin/main', 'main']) {
+  for (const ref of ['origin/main', 'main']) {
     try {
       return git('merge-base', 'HEAD', ref);
     } catch {
@@ -50,10 +54,10 @@ function changedFiles(base) {
   return [...new Set([...committed, ...working].filter(Boolean))];
 }
 
-/** What to verify: every package, or the changed ones measured from `base`. */
+/** What to verify: the changed packages measured from `base` (quick and changed), else every package. */
 function scopeFor(mode) {
   const base = baseCommit();
-  if (mode === 'all' || !base) return { everything: true, base, files: [] };
+  if (!['quick', 'changed'].includes(mode) || !base) return { everything: true, base, files: [] };
   const files = changedFiles(base);
   return { everything: files.some((file) => TOOLING.test(file)), base, files };
 }
@@ -67,33 +71,64 @@ function step(name, command, args, env) {
   return { name, run: () => run(command, args, env) };
 }
 
-const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`packages/domain/src/${module}/`));
+const moduleFolder = (module) => `packages/domain/src/${module}`;
+const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`${moduleFolder(module)}/`));
 
-/** Tooling, or domain code and config outside the money modules (not its prose): either can move every module's score. */
+/**
+ * Shared code every money module's tests run on: tooling, domain code outside the money modules and the testing
+ * helpers (golden files aside: they count for the modules whose tests import them). Prose does not count.
+ */
 const movesEveryScore = (file) =>
-  MUTATION_TOOLING.test(file) || (file.startsWith('packages/domain/') && !inMoneyModule(file) && !file.endsWith('.md'));
+  !file.endsWith('.md') &&
+  (MUTATION_TOOLING.test(file) ||
+    (file.startsWith('packages/domain/') && !inMoneyModule(file)) ||
+    (file.startsWith('packages/testing/') && !file.startsWith('packages/testing/golden/')));
 
 /** A money module's own files changed, or a golden file its tests import (`@rivr/testing/golden/<name>.json`). */
 function moduleChanged(module, files) {
-  const folder = `packages/domain/src/${module}`;
   return files.some(
     (file) =>
-      file.startsWith(`${folder}/`) ||
-      (file.startsWith('packages/testing/golden/') &&
-        spawnSync('git', ['grep', '-q', '--fixed-strings', file.replace('packages/testing/', ''), '--', folder]).status === 0),
+      file.startsWith(`${moduleFolder(module)}/`) ||
+      (file.startsWith('packages/testing/golden/') && mentions(moduleFolder(module), file.replace('packages/testing/', ''))),
   );
 }
 
 /**
- * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those the pull request changes, all of
- * them when it changes shared domain code or tooling: an unchanged module keeps the score main proved, and the push to
- * main runs every module again (decision 0242).
+ * The money modules a change touches: those that changed, and every module they import, directly or not, since
+ * Stryker runs every test for each mutant and a changed module's tests kill its imports' mutants too.
+ */
+function touchedModules(files) {
+  const touched = new Set(MONEY_MODULES.filter((module) => moduleChanged(module, files)));
+  for (let grew = true; grew; ) {
+    const imported = MONEY_MODULES.filter(
+      (module) => !touched.has(module) && [...touched].some((user) => mentions(moduleFolder(user), `'../${module}/`)),
+    );
+    imported.forEach((module) => touched.add(module));
+    grew = imported.length > 0;
+  }
+  return MONEY_MODULES.filter((module) => touched.has(module));
+}
+
+/**
+ * The money modules to mutate. With MUTATION_SINCE (CI on a pull request) only those its changes touch, every one when
+ * it changes shared code: an untouched module keeps the score main proved, and the push to main runs every module
+ * again (decision 0242).
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;
   const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
   const everything = since ? files.some(movesEveryScore) : scope.everything;
-  return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`) && (everything || moduleChanged(module, files)));
+  const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
+  if (everything) return modules;
+  const touched = touchedModules(files);
+  return modules.filter((module) => touched.includes(module));
+}
+
+/** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */
+function mutationShare(modules, share) {
+  const [n, count] = (share ?? '').split('/').map(Number);
+  if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
+  return modules.filter((_, index) => index % count === n - 1);
 }
 
 function mutationStep(modules) {
@@ -124,18 +159,15 @@ function pgtapStep() {
   };
 }
 
-/** The n-th of `count` shares of the money modules, every module in exactly one share ("2/4"). */
-function mutationShare(share) {
-  const [n, count] = (share ?? '').split('/').map(Number);
-  if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
-  return MONEY_MODULES.filter((module) => existsSync(`packages/domain/src/${module}`)).filter((_, index) => index % count === n - 1);
-}
+const tokensStep = () => step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']);
+const drillsStep = () => step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']);
+const storybookStep = () =>
+  step('Storybook build and visual tests', 'node', ['scripts/turbo.mjs', 'run', 'build-storybook', 'visual', '--filter', 'ui']);
 
-function stepsFor(mode, scope) {
-  const touched = (prefix) => scope.everything || scope.files.some((file) => file.startsWith(prefix));
+function quickSteps(scope) {
   const turboScope = scope.everything ? [] : ['--affected'];
   const turboEnv = scope.base ? { TURBO_SCM_BASE: scope.base } : {};
-  const steps = [
+  return [
     step('typecheck, lint, unit and property tests', 'node', ['scripts/turbo.mjs', 'run', 'typecheck', 'lint', 'test', ...turboScope], turboEnv),
     step('root scripts and e2e lint', 'pnpm', ['-s', 'lint:root']),
     step('Edge Function import maps', 'node', ['scripts/ci/check-function-imports.mjs']),
@@ -143,25 +175,40 @@ function stepsFor(mode, scope) {
     step('dependency rules', 'pnpm', ['-s', 'lint:deps']),
     step('stylesheets', 'pnpm', ['-s', 'lint:css']),
   ];
+}
+
+function stepsFor(mode, scope) {
+  const touched = (prefix) => scope.everything || scope.files.some((file) => file.startsWith(prefix));
+  const steps = quickSteps(scope);
   if (mode === 'quick') return steps;
   const money = moneyModulesToMutate(scope);
   if (money.length > 0) steps.push(mutationStep(money));
   // A golden file is proved in SQL too (decision 0037).
   if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
-  if (touched('packages/tokens/')) steps.push(step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']));
-  if (touched('packages/drills/')) steps.push(step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']));
-  if (touched('packages/ui/') || touched('packages/tokens/')) {
-    steps.push(step('Storybook build and visual tests', 'node', ['scripts/turbo.mjs', 'run', 'build-storybook', 'visual', '--filter', 'ui']));
-  }
+  if (touched('packages/tokens/')) steps.push(tokensStep());
+  if (touched('packages/drills/')) steps.push(drillsStep());
+  if (touched('packages/ui/') || touched('packages/tokens/')) steps.push(storybookStep());
   return steps;
 }
+
+/** CI's parallel parts, one job each (decision 0243). */
+const CI_PARTS = {
+  code: (scope) => [...quickSteps(scope), tokensStep(), drillsStep()],
+  database: () => [pgtapStep()],
+  storybook: () => [storybookStep()],
+  mutation: (scope) => {
+    const modules = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
+    return modules.length > 0 ? [mutationStep(modules)] : [];
+  },
+};
 
 function main() {
   const scope = scopeFor(MODE);
   const what = scope.everything ? 'every package' : `packages changed since ${scope.base?.slice(0, 8)}`;
   process.stdout.write(`\nverify (${MODE}): ${what}\n\n`);
+  const steps = Object.hasOwn(CI_PARTS, MODE) ? CI_PARTS[MODE](scope) : stepsFor(MODE, scope);
+  if (steps.length === 0) process.stdout.write('nothing to run here\n');
   const results = [];
-  const steps = MODE === 'mutation' ? [mutationStep(mutationShare(process.argv[3]))] : stepsFor(MODE, scope);
   for (const { name, run: runStep } of steps) {
     const started = Date.now();
     const status = runStep();

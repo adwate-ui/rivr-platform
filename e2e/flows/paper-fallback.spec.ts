@@ -7,6 +7,8 @@
  * play rise by the log's total, so no buy-in is lost. Whatever happens, the freeze is released and the
  * players leave, so a run after this one finds the practice venue as it was. Each person is the flow's
  * own: Auth sends one code a minute to a number.
+ * It shares the practice cage's one shift with end-of-day.spec.ts and open-shift.spec.ts: the three carry the
+ * @practice-cage tag, and CI runs them together, in that order, on one runner (decision 0243).
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -90,7 +92,7 @@ async function tidyUp(lead: Page, second: Page) {
   }
 }
 
-test.describe('Paper fallback', () => {
+test.describe('Paper fallback', { tag: '@practice-cage' }, () => {
   test('Paper fallback: the practice venue runs on paper while frozen, and every buy-in on paper goes back into the system', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'freezes the practice venue and seats players, so the local stack only');
     test.setTimeout(150_000);
