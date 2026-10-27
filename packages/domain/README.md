@@ -32,6 +32,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `grantableRoles(permissions)` | The roles a staff member may give (#28, decision 0073), as `private.can_grant_role` decides: every role for a super admin (`venue.configure`), otherwise only roles whose every permission they hold. An admin gives admin or host. |
+| `hourShares(seconds)`, `WHOLE_TIP_POOL` | Each dealer's share of the tip pool by time dealt, in basis points adding up to 10,000, the points left after rounding down to the largest remainders, the earlier dealer first on a tie (#124, decision 0252; tips belong to dealers). |
 
 ### `@rivr/domain/identity`
 

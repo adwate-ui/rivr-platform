@@ -8,13 +8,20 @@
  * but Vitest 5 names them "suite > test", so every filtered run skips its tests and every mutant
  * "survives". The command runner runs the whole suite per mutant in a fresh process, activating the
  * mutant through an environment variable. Slower, but the score is real.
+ *
+ * Why one Vitest worker a run and a minute's timeout (#516, decision 0247): Stryker runs several mutants at once, and
+ * each run's Vitest started a worker per core, so the machine ran far more tests than it had cores. A mutant no test
+ * kills runs the whole suite (--bail stops only at a failure), the slowest run of all, so under that load survivors
+ * crossed Stryker's timeout and were counted as caught: on main every module scored 100% with 156 timeouts, and
+ * promotions really scores about 94. One worker a run keeps the load to the cores; the minute lets a survivor finish.
  * @type {import('@stryker-mutator/api/core').PartialStrykerOptions}
  */
 export default {
   testRunner: 'command',
   // Coverage is measured by the normal test run; inside Stryker's sandbox the injected mutant
   // switches lower the line count, so the coverage threshold would fail every run.
-  commandRunner: { command: 'npx vitest run --bail=1 --reporter=dot --coverage.enabled=false' },
+  commandRunner: { command: 'npx vitest run --bail=1 --reporter=dot --coverage.enabled=false --maxWorkers=1' },
+  timeoutMS: 60_000,
   coverageAnalysis: 'off',
   mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/eod/**/*.ts', 'src/cage/**/*.ts', 'src/callTime/**/*.ts', 'src/tds/**/*.ts', 'src/gst/**/*.ts','src/credit/**/*.ts', 'src/markers/**/*.ts', 'src/bonus/**/*.ts', 'src/wallet/**/*.ts', 'src/points/**/*.ts', 'src/league/**/*.ts', 'src/promotions/**/*.ts', 'src/rakeback/**/*.ts', 'src/accommodation/**/*.ts', 'src/shareholding/**/*.ts', 'src/academy/**/*.ts', 'src/tally/**/*.ts', 'src/tournament/**/*.ts', 'src/aml/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
   thresholds: { high: 95, low: 85, break: 80 },

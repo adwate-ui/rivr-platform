@@ -1,8 +1,8 @@
 # Runs on every pull request and every push to main, as parallel jobs (decision 0243). Branch protection on main
 # requires only `ci-ok`, which passes when every job below passed, and the `agent-review` status (decision 0024);
-# a pull request must also be up to date with main. A new or split job goes into ci-ok's `needs`, never into branch
-# protection. Each timeout is near twice the job's usual time, so a hang fails fast. CI restores no build cache:
-# a green run is a result from scratch.
+# a pull request is brought up to date with main only for a database clash (decision 0253). A new or split job goes
+# into ci-ok's `needs`, never into branch protection. Each timeout is near twice the job's usual time, so a hang fails
+# fast. CI restores no build cache: a green run is a result from scratch.
 name: CI
 
 on:
@@ -75,8 +75,27 @@ jobs:
   # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one.
   # Their files are shared six ways, balanced by size, so no runner carries them all (#515); mutation-score then
   # checks each module over every share's report.
+  # Whether this run has any money file to mutate (verify.mjs mutation-plan): a pull request that changes none starts
+  # no mutation runners, which held six of the account's job slots for nothing.
+  mutation-plan:
+    name: mutation plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mutate: ${{ steps.plan.outputs.mutate }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - id: plan
+        run: node scripts/verify.mjs mutation-plan
+        env:
+          MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+
   mutation:
     name: mutation ${{ matrix.share }}
+    needs: mutation-plan
+    if: needs.mutation-plan.outputs.mutate == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -100,7 +119,8 @@ jobs:
 
   mutation-score:
     name: mutation score
-    needs: mutation
+    needs: [mutation-plan, mutation]
+    if: needs.mutation-plan.outputs.mutate == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -175,13 +195,16 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [code, database, storybook, mutation, mutation-score, e2e, budgets, security]
+    needs: [code, database, storybook, mutation-plan, mutation, mutation-score, e2e, budgets, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Every job passed
         env:
           NEEDS: ${{ toJSON(needs) }}
+          MUTATE: ${{ needs.mutation-plan.outputs.mutate }}
+        # The mutation jobs may be skipped only when the plan, itself passed, found nothing to mutate.
         run: |
           jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
-          jq -e 'all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null
+          jq -e --arg mutate "$MUTATE" 'to_entries | all(.value.result == "success"
+            or ($mutate == "false" and (.key == "mutation" or .key == "mutation-score") and .value.result == "skipped"))' <<<"$NEEDS" > /dev/null

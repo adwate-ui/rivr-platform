@@ -13,6 +13,11 @@ inputs:
 runs:
   using: composite
   steps:
+    # The local stack and the apps serve on 543xx (portBlock in @rivr/config/worktree), inside Linux's ephemeral range
+    # (32768-60999). An outgoing connection that happened to be given 54340 kept vite preview off it, and 54322 the
+    # database; reserved, those ports are never handed out to a connection.
+    - run: sudo sysctl -q -w net.ipv4.ip_local_reserved_ports=54300-54399
+      shell: bash
     - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
     - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
       with:
