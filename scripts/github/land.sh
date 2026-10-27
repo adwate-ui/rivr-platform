@@ -17,6 +17,17 @@ pr="${1:?pull request number}"
 fixes_main="${2:-}"
 [[ "$pr" =~ ^[0-9]+$ ]] || { echo "The pull request number must be digits." >&2; exit 1; }
 [ -z "$fixes_main" ] || [ "$fixes_main" = --fixes-main ] || { echo "The only option is --fixes-main." >&2; exit 1; }
+# Lands by main's rules, whatever branch this copy is on: a copy from before a change to them held merges main's would
+# make (a run a newer commit's replaced, read as main failing, 0254). Main's land.sh and the review poster it calls
+# run from a folder of their own.
+if [ -z "${RIVR_LAND_BY_MAIN:-}" ]; then
+  git fetch -q origin main
+  mains="$(mktemp -d)"
+  git show origin/main:scripts/github/land.sh > "$mains/land.sh"
+  git show origin/main:scripts/github/post-agent-review.sh > "$mains/post-agent-review.sh"
+  chmod +x "$mains/land.sh" "$mains/post-agent-review.sh"
+  RIVR_LAND_BY_MAIN=1 exec "$mains/land.sh" "$@"
+fi
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
 deadline=$(($(date +%s) + 2 * 3600))
