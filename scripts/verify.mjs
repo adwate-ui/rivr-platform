@@ -8,14 +8,14 @@
  *   code       CI: quick, the generated-tokens check and the drill gates, for every package
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
- *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules to mutate. With MUTATION_SINCE=<ref>
- *              (a pull request) only those it changes, else every one (decision 0242). Each module must score 80 or
- *              more on its own, not only the run as a whole.
+ *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules' files to mutate. With
+ *              MUTATION_SINCE=<ref> (a pull request) only the modules it changes, else every one (decision 0242).
+ *   mutation-score   CI: each money module's score over every share's report together; 80 or more each.
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
@@ -49,7 +49,8 @@ function baseCommit() {
 
 function changedFiles(base) {
   const committed = git('diff', '--name-only', base, 'HEAD').split('\n');
-  const working = git('status', '--porcelain', '--untracked-files=all')
+  // Not git(): its trim would take the first line's leading space, and the slice the path's first letter with it.
+  const working = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], { encoding: 'utf8' })
     .split('\n')
     .map((line) => line.slice(3).split(' -> ').pop());
   return [...new Set([...committed, ...working].filter(Boolean))];
@@ -73,6 +74,8 @@ function step(name, command, args, env) {
 }
 
 const moduleFolder = (module) => `packages/domain/src/${module}`;
+const STRYKER_CONFIG = 'packages/domain/stryker.config.mjs';
+const MUTATION_REPORT = 'packages/domain/reports/mutation/mutation.json';
 const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`${moduleFolder(module)}/`));
 
 /**
@@ -81,6 +84,7 @@ const inMoneyModule = (file) => MONEY_MODULES.some((module) => file.startsWith(`
  */
 const movesEveryScore = (file) =>
   !file.endsWith('.md') &&
+  file !== STRYKER_CONFIG &&
   (MUTATION_TOOLING.test(file) ||
     (file.startsWith('packages/domain/') && !inMoneyModule(file)) ||
     (file.startsWith('packages/testing/') && !file.startsWith('packages/testing/golden/')));
@@ -102,39 +106,79 @@ function moduleChanged(module, files) {
  */
 function moneyModulesToMutate(scope) {
   const since = process.env.MUTATION_SINCE;
-  const files = since ? changedFiles(git('merge-base', 'HEAD', since)) : scope.files;
-  const everything = since ? files.some(movesEveryScore) : scope.everything;
+  const base = since ? git('merge-base', 'HEAD', since) : null;
+  const files = since ? changedFiles(base) : scope.files;
+  const config = base && files.includes(STRYKER_CONFIG) ? strykerConfigChange(base) : { everything: false, added: [] };
+  const everything = since ? config.everything || files.some(movesEveryScore) : scope.everything;
   const modules = MONEY_MODULES.filter((module) => existsSync(moduleFolder(module)));
-  return everything ? modules : modules.filter((module) => moduleChanged(module, files));
+  return everything ? modules : modules.filter((module) => config.added.includes(module) || moduleChanged(module, files));
 }
 
-/** The n-th of `count` shares of `modules` ("2/4"), every module in exactly one share. */
+/**
+ * What a change to Stryker's config means for a pull request: the modules it adds to the mutate list are mutated as
+ * changed ones; any other change (a threshold, the runner) moves every score. Adding a module mutated every module,
+ * about 25 minutes, before (#515).
+ */
+function strykerConfigChange(base) {
+  const mutateList = (text) => text.match(/mutate: \[([^\]]*)\]/)?.[1] ?? '';
+  const modulesIn = (text) => [...mutateList(text).matchAll(/'src\/([^/']+)\/\*\*\/\*\.ts'/g)].map((match) => match[1]);
+  const before = git('show', `${base}:${STRYKER_CONFIG}`);
+  const after = readFileSync(STRYKER_CONFIG, 'utf8').trim(); // as git() trims the text before
+  if (before.replace(mutateList(before), '') !== after.replace(mutateList(after), '')) return { everything: true, added: [] };
+  return { everything: false, added: modulesIn(after).filter((module) => !modulesIn(before).includes(module)) };
+}
+
+/** A money module's files Stryker mutates (as `module/file.ts`): not its tests or its index. */
+function moduleFiles(module) {
+  return readdirSync(moduleFolder(module), { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('.ts') && !file.endsWith('.test.ts') && !/(^|\/)index\.ts$/.test(file))
+    .map((file) => `${module}/${file}`)
+    .sort();
+}
+
+/**
+ * The n-th of `count` shares of the modules' files ("2/6"), every file in exactly one share. Files, not modules: the
+ * tournament module alone took 20 minutes (#515). The largest file goes to the lightest share, then the next; a file's
+ * size follows its number of mutants closely enough.
+ */
 function mutationShare(modules, share) {
   const [n, count] = (share ?? '').split('/').map(Number);
   if (!(Number.isInteger(n) && Number.isInteger(count) && n >= 1 && n <= count)) throw new Error(`mutation needs <n>/<count>, not ${share}`);
-  return modules.filter((_, index) => index % count === n - 1);
+  const files = modules.flatMap(moduleFiles).map((file) => ({ file, size: statSync(`packages/domain/src/${file}`).size }));
+  files.sort((a, b) => b.size - a.size || (a.file < b.file ? -1 : 1));
+  const shares = Array.from({ length: count }, () => ({ size: 0, files: [] }));
+  for (const { file, size } of files) {
+    const lightest = shares.reduce((least, next) => (next.size < least.size ? next : least));
+    lightest.files.push(file);
+    lightest.size += size;
+  }
+  return shares[n - 1].files.sort();
 }
 
 const DETECTED = new Set(['Killed', 'Timeout']);
 const SCORED = new Set(['Killed', 'Timeout', 'Survived', 'NoCoverage']);
 
 /**
- * Fails when any one module scores under Stryker's break threshold. Stryker's own check is for the run as a whole, so
- * in a run of several modules a weak one could pass behind strong ones; the money rules set the floor per module.
+ * Fails when any one module scores under Stryker's break threshold, over the given reports together. Stryker's own
+ * check is for a run as a whole, so in a run of several modules a weak one could pass behind strong ones; the money
+ * rules set the floor per module. CI shares a module's files among several runs, so it scores their reports together
+ * in one job (mutation-score, #515), never a share's part of a module alone.
  */
-function perModuleScoreStep(modules) {
+function perModuleScoreStep(reports) {
   const floor = strykerConfig.thresholds.break;
   return {
     name: `mutation score of each module, ${floor} or more`,
     run: () => {
-      const report = JSON.parse(readFileSync('packages/domain/reports/mutation/mutation.json', 'utf8'));
-      const tally = new Map(modules.map((module) => [module, { detected: 0, scored: 0 }]));
-      for (const [file, { mutants }] of Object.entries(report.files)) {
-        const counts = tally.get(file.match(/(?:^|\/)src\/([^/]+)\//)?.[1] ?? '');
-        for (const { status } of counts ? mutants : []) {
+      const tally = new Map();
+      const files = reports.flatMap((report) => Object.entries(JSON.parse(readFileSync(report, 'utf8')).files));
+      for (const [file, { mutants }] of files) {
+        const module = file.match(/(?:^|\/)src\/([^/]+)\//)?.[1];
+        const counts = tally.get(module) ?? { detected: 0, scored: 0 };
+        for (const { status } of mutants) {
           counts.detected += DETECTED.has(status) ? 1 : 0;
           counts.scored += SCORED.has(status) ? 1 : 0;
         }
+        tally.set(module, counts);
       }
       const scores = [...tally].map(([module, { detected, scored }]) => [module, scored === 0 ? 100 : (100 * detected) / scored]);
       for (const [module, score] of scores) process.stdout.write(`  ${module}: ${score.toFixed(2)}\n`);
@@ -143,12 +187,22 @@ function perModuleScoreStep(modules) {
   };
 }
 
-function mutationSteps(modules) {
-  const globs = modules.flatMap((module) => [`src/${module}/**/*.ts`, `!src/${module}/**/*.test.ts`]);
-  return [
-    step(`mutation tests (${modules.join(', ')})`, 'pnpm', ['--filter', '@rivr/domain', 'exec', 'stryker', 'run', '--mutate', globs.join(',')]),
-    perModuleScoreStep(modules),
-  ];
+/**
+ * Mutates the given money files (`module/file.ts`) with a Stryker config in packages/domain: a CI share uses
+ * stryker.share.config.mjs, which leaves the floor to mutation-score (#515).
+ */
+function mutationStep(files, config = 'stryker.config.mjs') {
+  const modules = [...new Set(files.map((file) => file.split('/')[0]))];
+  const globs = files.map((file) => `src/${file}`);
+  return step(`mutation tests (${modules.join(', ')})`, 'pnpm', ['--filter', '@rivr/domain', 'exec', 'stryker', 'run', config, '--mutate', globs.join(',')]);
+}
+
+/** Every share's mutation report, as the mutation-score job downloads them into mutation-reports/. */
+function shareReports() {
+  if (!existsSync('mutation-reports')) return [];
+  return readdirSync('mutation-reports', { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('mutation.json'))
+    .map((file) => `mutation-reports/${file}`);
 }
 
 /**
@@ -194,8 +248,8 @@ function stepsFor(mode, scope) {
   const touched = (prefix) => scope.everything || scope.files.some((file) => file.startsWith(prefix));
   const steps = quickSteps(scope);
   if (mode === 'quick') return steps;
-  const money = moneyModulesToMutate(scope);
-  if (money.length > 0) steps.push(...mutationSteps(money));
+  const money = moneyModulesToMutate(scope).flatMap(moduleFiles);
+  if (money.length > 0) steps.push(mutationStep(money), perModuleScoreStep([MUTATION_REPORT]));
   // A golden file is proved in SQL too (decision 0037).
   if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
   if (touched('packages/tokens/')) steps.push(tokensStep());
@@ -210,8 +264,12 @@ const CI_PARTS = {
   database: () => [pgtapStep()],
   storybook: () => [storybookStep()],
   mutation: (scope) => {
-    const modules = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
-    return modules.length > 0 ? mutationSteps(modules) : [];
+    const files = mutationShare(moneyModulesToMutate(scope), process.argv[3]);
+    return files.length > 0 ? [mutationStep(files, 'stryker.share.config.mjs')] : [];
+  },
+  'mutation-score': () => {
+    const reports = shareReports();
+    return reports.length > 0 ? [perModuleScoreStep(reports)] : [];
   },
 };
 
