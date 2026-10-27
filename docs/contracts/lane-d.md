@@ -31,6 +31,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `public.my_league()` | player app (C screens) | This month's and this season's top ten, and the member's own place; feature `league.standings` |
 | `public.my_rewards()`, `public.my_redemptions()` | player app (Rewards tab, #152) | The member's points and tier; their redemptions with where to collect them, feature `rewards.catalogue` |
 | `public.tv_rewards_ticker()`, `public.tv_league_board()` | TVs (B, #148) | The rewards ticker and the League leaderboard for a TV showing them; first name and initial only (decision 0183) |
+| `public.growth_funnel(venue)` | console (Reports, #166) | Every member of the venue by source (`referral`, `creator` with its code, `link` with its utm_source, or `direct`) and how many finished KYC, came in and bought in; counts only, for `reports.read`, never the practice venue (22023) |
 | `public.give_card_consent(card)`, `public.withdraw_card_consent(card)` | player app | Consent per winner card; withdrawal takes the post down |
 | Views `public_promotion_cards`, `public_league_table`, `public_wall_posts` | web (C), TVs (B) | No personal data beyond first name and initial; never the practice venue |
 | `@rivr/render` templates | B (TVs), C (share and membership cards), A (receipts, statements, offline pack) | Every graphic from `@rivr/ui` |
@@ -48,7 +49,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 
 ## Screens
 
-Console: `features/promotions` (builder with When, Who, Reward, Limits, simulation, player-card and TV-slide previews), `features/rewards`, `features/league`, `features/social` (publishing, inbox, wall moderation, analytics), `features/creators`, `features/host-queue`, `features/growth-funnel`, `features/feedback`. Player app: `features/rewards`, `features/promotions`, `features/winner-cards` (inside lane C's tabs). Feature keys: `rewards.catalogue`, `rewards.points_history`, `league.standings`, `promotions.feed`, `push.promotion_published` (shared with C).
+Console: `features/promotions` (builder with When, Who, Reward, Limits, simulation, player-card and TV-slide previews), `features/rewards`, `features/league`, `features/social` (publishing, inbox, wall moderation, analytics), `features/creators`, `features/host-queue`, the growth funnel on Reports (#166), `features/feedback`. Player app: `features/rewards`, `features/promotions`, `features/winner-cards` (inside lane C's tabs). Feature keys: `rewards.catalogue`, `rewards.points_history`, `league.standings`, `promotions.feed`, `push.promotion_published` (shared with C).
 
 ## Settings keys added
 

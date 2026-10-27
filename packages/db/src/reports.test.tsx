@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
-import { useMisReport } from './reports.ts';
+import { useGrowthFunnel, useMisReport } from './reports.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const OWNER = '00000000-0000-4000-8000-000000000101';
@@ -53,5 +53,26 @@ describe('the monthly MIS, with promotion cost and cohorts', () => {
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(result.current.data?.promotions).toEqual([]);
     expect(result.current.data?.cohorts).toEqual([]);
+  });
+});
+
+describe('the growth funnel', () => {
+  it('gives each source\'s members at each stage, as the database counts them', async () => {
+    const rows = [
+      { source_kind: 'direct', source_code: null, signed_up: 5, kyc_done: 4, visited: 3, bought_in: 2 },
+      { source_kind: 'link', source_code: 'instagram', signed_up: 2, kyc_done: 1, visited: 1, bought_in: 0 },
+    ];
+    const fetch: typeof globalThis.fetch = async () => Response.json(rows);
+    const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+      global: { fetch },
+      auth: { storage: sessionStorageFor(OWNER), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+    const { result } = renderHook(() => useGrowthFunnel(VENUE), { wrapper });
+    await waitFor(() => expect(result.current.data).toBeDefined());
+    expect(result.current.data).toEqual([
+      { sourceKind: 'direct', sourceCode: null, signedUp: 5, kycDone: 4, visited: 3, boughtIn: 2 },
+      { sourceKind: 'link', sourceCode: 'instagram', signedUp: 2, kycDone: 1, visited: 1, boughtIn: 0 },
+    ]);
   });
 });

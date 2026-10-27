@@ -40,26 +40,29 @@ jobs:
     environment: ${{ matrix.target }}
     env:
       TARGET: ${{ matrix.target }}
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      # Whether the token is set; the token itself goes only to the step that reads the key (#567).
+      HAS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
       PROJECT_REF: ${{ secrets[matrix.ref_secret] }}
       SUPABASE_URL: ${{ vars[matrix.url_var] }}
     steps:
-      - if: env.SUPABASE_ACCESS_TOKEN == '' || env.PROJECT_REF == '' || env.SUPABASE_URL == ''
+      - if: env.HAS_TOKEN != 'true' || env.PROJECT_REF == '' || env.SUPABASE_URL == ''
         run: echo "::notice::Supabase settings for ${TARGET} are not set; skipping its offline pack. See docs/runbooks/cage-agent.md."
-      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+      - if: env.HAS_TOKEN == 'true' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+      - if: env.HAS_TOKEN == 'true' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
         uses: ./.github/actions/setup
-      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+      - if: env.HAS_TOKEN == 'true' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
         name: Install Chromium for the renderer
         run: pnpm --filter @rivr/render exec playwright install --with-deps chromium
-      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+      - if: env.HAS_TOKEN == 'true' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
         name: Read the service-role key from the Supabase API, masked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           key="$(pnpm -s supabase projects api-keys --project-ref "$PROJECT_REF" -o json | jq -r '.[] | select(.name == "service_role") | .api_key')"
           if [ -z "$key" ] || [ "$key" = "null" ]; then echo "::error::No service-role key for ${TARGET}."; exit 1; fi
           echo "::add-mask::$key"
           echo "SUPABASE_SERVICE_ROLE_KEY=$key" >> "$GITHUB_ENV"
-      - if: env.SUPABASE_ACCESS_TOKEN != '' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
+      - if: env.HAS_TOKEN == 'true' && env.PROJECT_REF != '' && env.SUPABASE_URL != ''
         name: Render tonight's packs and keep each venue's newest seven
         run: pnpm --filter @rivr/render render:offline-packs

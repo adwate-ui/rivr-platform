@@ -4040,6 +4040,11 @@ isOneToOne: false
 "graduate_academy_member":
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
+"growth_funnel":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bought_in": number,"kyc_done": number,"signed_up": number,"source_code": string,"source_kind": string,"visited": number
+            }[]
+                           },
 "hand_over_redemption":
 { Args: { "p_redemption_id": string }; Returns: undefined
                            },
