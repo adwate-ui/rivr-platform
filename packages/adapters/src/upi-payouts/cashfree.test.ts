@@ -7,12 +7,19 @@ const request = {
   idempotencyKey: key, to: upiVpaSchema.parse('success@upi'), payeeName: "Rhea D'Souza", amount: paiseSchema.parse(123_450n), note: 'RIVR withdrawal #12',
 };
 
-async function publicKey() {
+async function makePublicKey() {
   const pair = await crypto.subtle.generateKey(
     { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-1' }, true, ['encrypt', 'decrypt'],
   );
   const spki = new Uint8Array(await crypto.subtle.exportKey('spki', pair.publicKey));
   return `-----BEGIN PUBLIC KEY-----\n${btoa(String.fromCharCode(...spki))}\n-----END PUBLIC KEY-----`;
+}
+
+// One key for the file: making a 2,048-bit RSA key for every case is slow enough to time out on a busy runner.
+let publicKeyMade: Promise<string> | undefined;
+function publicKey(): Promise<string> {
+  publicKeyMade ??= makePublicKey();
+  return publicKeyMade;
 }
 
 /** Cashfree Payouts as its API reference documents it; each `METHOD path` answers in turn with the replies given. */
