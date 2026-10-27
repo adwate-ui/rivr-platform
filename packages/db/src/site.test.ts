@@ -26,6 +26,18 @@ const PAGES = [
 ];
 
 describe('fetchSitePage', () => {
+  it('pauses the page during a venue freeze, with no table running', async () => {
+    const { client } = siteClient(PAGES, [{ kind: 'games', content: {} }], {
+      public_venue_status: { body: [{ is_frozen: true }] },
+      public_table_status: { body: [{ table_type_code: 'nlh_50_100', table_type_name: 'NLH 50/100', is_open: true, small_blind_paise: 5000,
+        big_blind_paise: 10000, buy_in_min_paise: 500000, buy_in_max_paise: 500000, straddle_paise: null }] },
+      public_waitlist_length: { body: [] },
+    });
+    const page = await fetchSitePage(client, 'home');
+    expect(page.ok && page.value?.isPaused).toBe(true);
+    expect(page.ok && page.value?.games.map((game) => game.tablesOpen)).toEqual([0]);
+  });
+
   it('gives a page\'s blocks in order and the website\'s navigation, leaving out a block it cannot read', async () => {
     const { client, urls } = siteClient(PAGES, [
       { kind: 'hero', content: { heading: 'RIVR Poker Club', action: { label: 'Join RIVR', to: 'sign-up' } } },
@@ -42,6 +54,7 @@ describe('fetchSitePage', () => {
       games: [],
       tournaments: [],
       promotions: [],
+      isPaused: false,
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
     // A page without live blocks reads no live view.

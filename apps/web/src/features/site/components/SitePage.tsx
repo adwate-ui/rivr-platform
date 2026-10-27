@@ -2,7 +2,7 @@ import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts'
 import type { SitePage as SitePageData } from '@rivr/db/site';
 import { t } from '@rivr/i18n';
 import {
-  CalendarBlock, CardsBlock, CareersBlock, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, LinksBlock, MapBlock, MarqueeBlock,
+  CalendarBlock, CardsBlock, CareersBlock, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock, MarqueeBlock,
   PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone,
 } from '@rivr/ui';
 import { playerHref, siteHref } from '../links.ts';
@@ -146,6 +146,7 @@ export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   const reserve = { label: t('web.reserve'), href: playerHref(playerUrl, 'waitlist', attribution) };
   return (
     <WebShell links={links} homeHref={siteHref('home', attribution)} action={reserve} footer={<Footer attribution={attribution} />}>
+      {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
       {page.blocks.map((block, position) => (
         <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]}>
           <Block block={block} page={page} link={link} pageLink={pageLink} />

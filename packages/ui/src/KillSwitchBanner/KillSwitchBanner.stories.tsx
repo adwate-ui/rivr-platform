@@ -13,3 +13,5 @@ type Story = StoryObj<typeof meta>;
 export const Member: Story = {};
 
 export const Staff: Story = { args: { audience: 'staff' } };
+
+export const Visitor: Story = { args: { audience: 'visitor' } };

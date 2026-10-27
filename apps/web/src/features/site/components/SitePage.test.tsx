@@ -14,7 +14,7 @@ const PAGE = {
   ],
   navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
   games: [],
-  tournaments: [], promotions: [],
+  tournaments: [], promotions: [], isPaused: false,
 };
 
 describe('a website page', () => {
