@@ -161,6 +161,15 @@ Points (#89, decision 0161, question #395), in whole points (bigint); they never
 | `rakeShare(rake, seated)` | RIVR Rewards: a hand's rake split equally among the members seated at its table, rounded down to the paisa. |
 | `rakePoints(share, rate)` | A share (basis points, 500 is 5%) of a member's rake for a visit, as points at one a rupee, rounded down. ₹612.40 at 5% is 30. |
 
+### `@rivr/domain/aml`
+
+AML cash limits and structuring (#105, decision 0234; golden `aml.json`; SQL twins `private.cash_limit_hit` and `private.is_near_limit`).
+
+| Export | What it does |
+|---|---|
+| `cashLimitHit(limits, visitSoFar, daySoFar, amount)`, `CashLimits`, `CashLimitHit` | Which limit a cash buy-in would take the member past, the visit's checked first (`visit`, `day`), or null within both. Reaching a limit exactly is within it; nothing, or null, is no limit. |
+| `isNearLimit(total, limit, marginBasisPoints)` | Whether a total ended just under a limit: within the margin of it (1,000 is 10%), the limit itself included, the margin rounded down to the paisa. ₹36,000 is near ₹40,000 at 10%; ₹35,950 is not. |
+
 ### `@rivr/domain/clubDay`
 
 The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the day it began.

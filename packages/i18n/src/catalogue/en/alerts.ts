@@ -6,6 +6,7 @@ export const alerts = {
   kinds: {
     'auth.sms_rate_limit': 'sign-in codes are being refused because the hourly limit is used up',
     'cage.rate_limit': 'a cashier, or the venue, reached the limit of cage money calls in a minute',
+    'aml.structuring': 'a member\'s cash buy-ins ended just under the limit several times: the AML register has an entry to review',
     'control.engaged': 'the kill switch was engaged',
     'control.release_asked': 'a release of the kill switch was asked for',
     'control.released': 'the kill switch was released',

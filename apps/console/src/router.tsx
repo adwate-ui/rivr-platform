@@ -17,6 +17,7 @@ import { tvsRoute } from './routes/tvs.tsx';
 import { highHandsRoute } from './routes/high-hands.tsx';
 import { markersRoute } from './routes/markers.tsx';
 import { membersRoute } from './routes/members.tsx';
+import { amlRoute } from './routes/aml.tsx';
 import { exportsRoute } from './routes/exports.tsx';
 import { killSwitchRoute } from './routes/kill-switch.tsx';
 import { practiceResetRoute } from './routes/practice-reset.tsx';
@@ -48,7 +49,7 @@ const routeTree = rootRoute.addChildren([
   frameRoute.addChildren([
     settingsRoute,
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
-    highHandsRoute, markersRoute, membersRoute, killSwitchRoute, practiceResetRoute, exportsRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute,
+    highHandsRoute, markersRoute, membersRoute, killSwitchRoute, practiceResetRoute, exportsRoute, amlRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute,
     certificationRoute,
     sopsRoute,
     incidentsRoute,

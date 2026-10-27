@@ -1,0 +1,90 @@
+{
+  "rule": "AML cash limits and structuring",
+  "about": "Cash buy-in limits and structuring detection (#105; scope-v1 module 12; decision 0234). A cash buy-in is refused when it would take the member's cash buy-ins past the visit's limit (checked first) or the club day's (06:00 to 06:00 IST); reaching a limit exactly is within it. A limit of nothing, or none set, is no limit. A total ended just under a limit when it is within the margin of it (1,000 basis points is 10%), the limit itself included; the margin is rounded down to the paisa, so a total must be at least the limit less that margin. Structuring is that several times in the window (3 in 7 days unless set).",
+  "cases": [
+    {
+      "description": "₹10,000 in cash with ₹20,000 bought this visit, at ₹40,000 a visit and ₹1,00,000 a day: within both.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹40,000", "perDay": "₹1,00,000", "visitSoFar": "₹20,000", "daySoFar": "₹20,000", "amount": "₹10,000" },
+      "expected": { "hit": "none" }
+    },
+    {
+      "description": "₹10,000 more with ₹30,000 bought this visit: exactly the visit's ₹40,000, which is within it.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹40,000", "perDay": "₹1,00,000", "visitSoFar": "₹30,000", "daySoFar": "₹30,000", "amount": "₹10,000" },
+      "expected": { "hit": "none" }
+    },
+    {
+      "description": "One chip more, ₹10,050: ₹50 past the visit's limit.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹40,000", "perDay": "₹1,00,000", "visitSoFar": "₹30,000", "daySoFar": "₹30,000", "amount": "₹10,050" },
+      "expected": { "hit": "visit" }
+    },
+    {
+      "description": "A new visit the same night: ₹20,000 this visit, but ₹90,000 already today, past the day's ₹1,00,000.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹40,000", "perDay": "₹1,00,000", "visitSoFar": "₹0", "daySoFar": "₹90,000", "amount": "₹20,000" },
+      "expected": { "hit": "day" }
+    },
+    {
+      "description": "Past both: the visit's is named first.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹40,000", "perDay": "₹1,00,000", "visitSoFar": "₹40,000", "daySoFar": "₹1,00,000", "amount": "₹50" },
+      "expected": { "hit": "visit" }
+    },
+    {
+      "description": "No visit limit set (nothing): only the day's counts.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹0", "perDay": "₹1,00,000", "visitSoFar": "₹80,000", "daySoFar": "₹80,000", "amount": "₹20,000" },
+      "expected": { "hit": "none" }
+    },
+    {
+      "description": "Nothing bought, nothing asked: within.",
+      "operation": "cash_limit",
+      "inputs": { "perVisit": "₹40,000", "perDay": "₹1,00,000", "visitSoFar": "₹0", "daySoFar": "₹0", "amount": "₹0" },
+      "expected": { "hit": "none" }
+    },
+    {
+      "description": "₹36,000 at a ₹40,000 limit, 10%: exactly the limit less ₹4,000, so just under it.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹36,000", "limit": "₹40,000", "marginBasisPoints": "1000" },
+      "expected": { "near": "true" }
+    },
+    {
+      "description": "₹35,950: ₹50 short of the margin, so not.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹35,950", "limit": "₹40,000", "marginBasisPoints": "1000" },
+      "expected": { "near": "false" }
+    },
+    {
+      "description": "₹40,000: the limit itself is just under it.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹40,000", "limit": "₹40,000", "marginBasisPoints": "1000" },
+      "expected": { "near": "true" }
+    },
+    {
+      "description": "A margin that is not whole paise is rounded down: 3.33% of ₹1,00,001 is ₹3,330.0333, taken as ₹3,330.03, so ₹96,670.97 is near.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹96,670.97", "limit": "₹1,00,001", "marginBasisPoints": "333" },
+      "expected": { "near": "true" }
+    },
+    {
+      "description": "The paisa below it is not.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹96,670.96", "limit": "₹1,00,001", "marginBasisPoints": "333" },
+      "expected": { "near": "false" }
+    },
+    {
+      "description": "No limit (nothing): nothing is near it.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹0", "limit": "₹0", "marginBasisPoints": "1000" },
+      "expected": { "near": "false" }
+    },
+    {
+      "description": "Nothing bought is not near any limit.",
+      "operation": "near_limit",
+      "inputs": { "total": "₹0", "limit": "₹40,000", "marginBasisPoints": "10000" },
+      "expected": { "near": "false" }
+    }
+  ]
+}

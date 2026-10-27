@@ -21,6 +21,8 @@ export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
   moved: 'console.cage.moved',
   not_in_room: 'console.cage.notInRoom',
   call_time_owed: 'console.cage.callTimeOwedBlock',
+  cash_limit_visit: 'console.cage.cashLimitVisit',
+  cash_limit_day: 'console.cage.cashLimitDay',
   invalid: 'console.cage.invalid',
   unavailable: 'console.cage.unavailable',
 };

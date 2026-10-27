@@ -12,6 +12,7 @@
     "./tally": "./src/tally.ts",
     "./reports": "./src/reports.ts",
     "./exports": "./src/exports.ts",
+    "./aml": "./src/aml.ts",
     "./ownerDashboard": "./src/ownerDashboard.ts"
   },
   "scripts": {
