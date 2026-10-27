@@ -34,7 +34,7 @@ function TournamentsView({ venueId, tournaments, templates, access }: ViewProps)
   return (
     <Grid columns={2} gap={12}>
       {chosen === undefined ? <Text tone="muted">{t('console.tournaments.none')}</Text>
-        : <TournamentDetail key={chosen.id} venueId={venueId} tournament={chosen} canRun={access.canRun} canTakeCash={access.canTakeCash} />}
+        : <TournamentDetail key={chosen.id} venueId={venueId} tournament={chosen} tournaments={tournaments} canRun={access.canRun} canTakeCash={access.canTakeCash} />}
       <Stack gap={10}>
         <TournamentList tournaments={tournaments} chosenId={chosen?.id} onChoose={setChosenId} />
         {access.canRun ? <NewTournamentForm venueId={venueId} templates={templates} onMade={setChosenId} /> : null}

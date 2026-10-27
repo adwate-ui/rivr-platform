@@ -133,6 +133,11 @@ select results_eq($$ select * from pg_temp.day_two() $$,
   $$ values ('Kunal Mehra'::text, 'busted'::text, null::bigint, 4), ('Mihir Shah', 'seated', 20000, null), ('Ritika Das', 'busted', null, 3),
             ('Yash Gupta', 'seated', 25000, null) $$,
   'Mihir and Yash go through with their bags; Ritika, who outlasted one, is third and Kunal fourth');
+select results_eq($$ select full_name, chips, place from public.tournament_seating(pg_temp.named('Event Day 2')) order by full_name $$,
+  $$ values ('Kunal Mehra'::text, 0::bigint, 4), ('Mihir Shah', 20000, null), ('Ritika Das', 0, 3), ('Yash Gupta', 25000, null) $$,
+  'the floor''s list of Day 2 gives each player through their bag, and those out their place');
+select is((select day_two_id from public.venue_tournaments('00000000-0000-4000-8000-000000000001') where id = pg_temp.named('Flight 1A')),
+  pg_temp.named('Event Day 2'), 'and the venue''s tournaments say which Day 2 a flight is of');
 select throws_ok($$ select public.bust_tournament_entry(pg_temp.run('Event Day 2', '00000000-0000-4000-8000-000000000213')) $$, '22023', null,
   'no one busts on Day 2 before it starts');
 -- Four places at 40, 30, 20 and 10%: with Day 2 not started, a later flight can still move Ritika and Kunal.

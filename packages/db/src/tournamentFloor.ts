@@ -113,5 +113,15 @@ export function useTournamentFloorActions(venueId: string, tournamentId: string)
       return error ? err(toBuyFailure(error)) : ok(data);
     },
   });
-  return { floor, room, cash };
+  // A ticket pays the member's entry, with no cash taken (#519).
+  const ticket = useMutation({
+    mutationFn: async (order: { memberId: string; requestId: string }): Promise<Result<string, BuyFailure>> => {
+      const { data, error } = await client.rpc('use_tournament_ticket', {
+        p_tournament_id: tournamentId, p_member_id: order.memberId, p_idempotency_key: order.requestId,
+      });
+      await reload();
+      return error ? err(toBuyFailure(error)) : ok(data);
+    },
+  });
+  return { floor, room, cash, ticket };
 }

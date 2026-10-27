@@ -124,6 +124,11 @@ export const payoutSharesSchema = z.object({ shares: z.array(z.object({ percent:
 /** How a deal shares the prizes left (#121): by the Independent Chip Model, or chip-chop. */
 export const DEAL_METHODS = ['icm', 'chip_chop'] as const;
 
+/** Each player left's chips as counted (#519, #524): a satellite's finish places them by it, a flight's bag takes them to Day 2. */
+export const chipCountsSchema = z.object({
+  stacks: z.array(z.object({ entryId: z.uuid(), chips: z.string().trim().regex(/^[1-9]\d{0,11}$/).transform(BigInt) })).min(1),
+});
+
 /** A deal among the players left (#121): its method, and each player's chips as counted. */
 export const dealSchema = z.object({
   method: z.enum(DEAL_METHODS),

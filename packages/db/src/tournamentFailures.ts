@@ -18,8 +18,11 @@ export function tournamentFailure(code: string): TournamentFailure {
  * an alternate waiting, the wrong number of players left for how it finishes, finished already), or why
  * any tournament change is.
  */
-export type FinishFailure = TournamentFailure | 'payouts_unset' | 'alternates_waiting' | 'players_left' | 'shares_locked' | 'finished';
-const FINISH_STATES: readonly FinishFailure[] = ['payouts_unset', 'alternates_waiting', 'players_left', 'shares_locked', 'finished'];
+export type FinishFailure =
+  | TournamentFailure | 'payouts_unset' | 'alternates_waiting' | 'players_left' | 'shares_locked' | 'finished' | 'tds_switched_on' | 'room_full';
+const FINISH_STATES: readonly FinishFailure[] = [
+  'payouts_unset', 'alternates_waiting', 'players_left', 'shares_locked', 'finished', 'tds_switched_on', 'room_full',
+];
 
 /** What a refused finish or payout setting means: the state from the hint, or the code's. */
 export function toFinishFailure(error: { code: string; hint?: string | null }): FinishFailure {
@@ -29,12 +32,13 @@ export function toFinishFailure(error: { code: string; hint?: string | null }): 
 
 /** Why a buy was refused: the rules' reason (decision 0202), no free seat for a busted player's rebuy, or the wallet's or the cage's. */
 export type BuyFailure =
-  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift' | 'own_record';
+  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'no_ticket' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift'
+  | 'own_record';
 
 const BUY_FAILURE_BY_CODE: Readonly<Record<string, BuyFailure>> = {
   RVSHT: 'short', RVKYC: 'identity', RVAGE: 'identity', RVDUP: 'identity', RVBRK: 'on_break', RVKIL: 'switched_off', RVNSH: 'no_shift', RVOWN: 'own_record',
 };
-const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full', 'finished'];
+const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full', 'finished', 'no_ticket'];
 
 /** What a refused buy means: the rules' reason from the hint, or the code's. */
 export function toBuyFailure(error: { code: string; hint?: string | null }): BuyFailure {

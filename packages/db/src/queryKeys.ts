@@ -209,6 +209,10 @@ export const queryKeys = {
   tournamentBalance: (userId: string, tournamentId: string) => ['user', userId, 'tournament-balance', tournamentId] as const,
   /** What a tournament paid: prizes and bounties (#117, #121). */
   tournamentPayouts: (userId: string, tournamentId: string) => ['user', userId, 'tournament-payouts', tournamentId] as const,
+  /** The tickets a satellite issued (#519). */
+  satelliteTickets: (userId: string, tournamentId: string) => ['user', userId, 'satellite-tickets', tournamentId] as const,
+  /** The tickets the member holds, for Home (#519). */
+  myTournamentTickets: (userId: string) => ['user', userId, 'my-tournament-tickets'] as const,
   /** The paired TV's tournament clock (#119). */
   tvTournamentClock: (userId: string) => ['user', userId, 'tv-tournament-clock'] as const,
 };

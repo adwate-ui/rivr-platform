@@ -67,6 +67,10 @@ export interface VenueTournament {
   /** When it finished and paid out, and the overlay its guarantee needed then; both null until then. */
   readonly finishedAt: string | null;
   readonly overlay: Paise | null;
+  /** The tournament this one is a satellite for (#519, decision 0250); null for any other. */
+  readonly satelliteTargetId: string | null;
+  /** The Day 2 this one is a Day 1 flight of (#524, decision 0251); null for any other. */
+  readonly dayTwoId: string | null;
 }
 
 /** A change to a tournament's clock (decision 0201). */
@@ -88,7 +92,7 @@ interface TournamentRow {
   add_on_paise: number | null; add_on_fee_paise: number | null; add_on_chips: number | null; places_paid: number | null;
   clock_started_at: string | null; is_paused: boolean; elapsed_seconds: number; tables: number; seats_per_table: number; entries: number;
   re_entries: number; players_left: number; chips_in_play: number; pool_paise: number; bounty_paise: number | null; bounty_kind: string | null;
-  finished_at: string | null; overlay_paise: number | null; payout_shares: number[] | null;
+  finished_at: string | null; overlay_paise: number | null; payout_shares: number[] | null; satellite_target_id: string | null; day_two_id: string | null;
 }
 
 /** A field as the database reads it. */
@@ -114,6 +118,7 @@ function toTournament(row: TournamentRow, readAtMs: number): VenueTournament {
     clock: row.clock_started_at === null ? null : { elapsedSeconds: row.elapsed_seconds, isRunning: !row.is_paused, readAtMs },
     tables: row.tables, seatsPerTable: row.seats_per_table, field: toField(row), bounty: toBounty(row.bounty_paise, row.bounty_kind),
     payoutShares: row.payout_shares, finishedAt: row.finished_at, overlay: row.overlay_paise === null ? null : fromPaise(BigInt(row.overlay_paise)),
+    satelliteTargetId: row.satellite_target_id, dayTwoId: row.day_two_id,
   };
 }
 
@@ -190,5 +195,15 @@ export function useTournamentActions(venueId: string) {
       return error ? err(tournamentFailure(error.code)) : ok(null);
     },
   });
-  return { create, list, remove };
+  // Before anyone enters (#519, #524): a satellite for another tournament, or a Day 1 flight of a Day 2.
+  const link = useMutation({
+    mutationFn: async (order: { tournamentId: string; kind: 'satellite' | 'flight'; targetId: string }): Promise<Result<null, TournamentFailure>> => {
+      const { error } = order.kind === 'satellite'
+        ? await client.rpc('set_tournament_satellite', { p_tournament_id: order.tournamentId, p_target_id: order.targetId })
+        : await client.rpc('set_tournament_flight', { p_flight_id: order.tournamentId, p_day_two_id: order.targetId });
+      await reload();
+      return error ? err(tournamentFailure(error.code)) : ok(null);
+    },
+  });
+  return { create, list, remove, link };
 }

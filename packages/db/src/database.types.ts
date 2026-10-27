@@ -4293,6 +4293,11 @@ isOneToOne: false
               "buy_in_paise": number,"elapsed_seconds": number,"entries": number,"guarantee_paise": number,"id": string,"is_paused": boolean,"is_running": boolean,"levels": Json,"my_seat": number,"my_status": string,"my_table": number,"name": string,"offer": string,"players_left": number,"pool_paise": number,"starts_at": string
             }[]
                            },
+"my_tournament_tickets":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "member_id": string,"starts_at": string,"ticket_id": string,"tournament_id": string,"tournament_name": string,"value_paise": number
+            }[]
+                           },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
               "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"venue_id": string
@@ -4555,6 +4560,11 @@ isOneToOne: false
 "roster_week":
 { Args: { "p_venue_id": string,"p_week": string }; Returns: {
               "attendance": string,"club_day": string,"ends_at": string,"full_name": string,"job_title": string,"note": string,"shift_id": string,"staff_id": string,"starts_at": string
+            }[]
+                           },
+"satellite_tickets":
+{ Args: { "p_tournament_id": string }; Returns: {
+              "full_name": string,"status": string,"value_paise": number
             }[]
                            },
 "save_blind_structure":
@@ -4890,7 +4900,7 @@ isOneToOne: false
                            },
 "venue_tournaments":
 { Args: { "p_venue_id": string }; Returns: {
-              "add_on_chips": number,"add_on_fee_paise": number,"add_on_paise": number,"bounty_kind": string,"bounty_paise": number,"buy_in_paise": number,"chips_in_play": number,"clock_started_at": string,"elapsed_seconds": number,"entries": number,"fee_paise": number,"finished_at": string,"format": string,"guarantee_paise": number,"id": string,"is_paused": boolean,"is_published": boolean,"last_registration_level": number,"levels": Json,"max_buys": number,"name": string,"overlay_paise": number,"payout_shares": (number)[],"places_paid": number,"players_left": number,"pool_paise": number,"re_entries": number,"seats_per_table": number,"starting_stack": number,"starts_at": string,"tables": number
+              "add_on_chips": number,"add_on_fee_paise": number,"add_on_paise": number,"bounty_kind": string,"bounty_paise": number,"buy_in_paise": number,"chips_in_play": number,"clock_started_at": string,"day_two_id": string,"elapsed_seconds": number,"entries": number,"fee_paise": number,"finished_at": string,"format": string,"guarantee_paise": number,"id": string,"is_paused": boolean,"is_published": boolean,"last_registration_level": number,"levels": Json,"max_buys": number,"name": string,"overlay_paise": number,"payout_shares": (number)[],"places_paid": number,"players_left": number,"pool_paise": number,"re_entries": number,"satellite_target_id": string,"seats_per_table": number,"starting_stack": number,"starts_at": string,"tables": number
             }[]
                            },
 "waiting_deposits":
