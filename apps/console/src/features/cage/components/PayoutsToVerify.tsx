@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { reasonForMemberSchema } from '@rivr/contracts';
 import { usePayoutAccountDecisions, usePayoutAccountsToVerify, type PayoutAccountToVerify } from '@rivr/db';
 import { formatDayTime, formatMobile, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -79,7 +79,7 @@ export function PayoutsToVerify({ venueId }: { venueId: string }) {
   return (
     <Stack gap={3} divided>
       <Heading level={2}>{t('console.cage.payoutsToVerify')}</Heading>
-      {waiting.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {waiting.isPending ? <LoadState /> : null}
       {waiting.isError ? (
         <Stack gap={2} align="start">
           <ErrorMessage>{t('console.cage.unavailable')}</ErrorMessage>

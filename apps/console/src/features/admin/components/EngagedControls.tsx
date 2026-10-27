@@ -1,6 +1,6 @@
 import { useControlActions, useEngagedControls, type ControlFailure, type EngagedControl } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { controlName } from './controlCopy.ts';
 
@@ -50,7 +50,7 @@ function Body({ venueId, onOutcome }: { venueId: string; onOutcome: (outcome: Re
   const controls = useEngagedControls(venueId);
   const [releasing, setReleasing] = useState<EngagedControl | null>(null);
   if (controls.isError) return <Text tone="muted">{t('common.loadFailed')}</Text>;
-  if (controls.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (controls.data === undefined) return <LoadState />;
   if (controls.data.length === 0) return <Text tone="muted">{t('console.killSwitch.noneEngaged')}</Text>;
   return (
     <Stack gap={4}>

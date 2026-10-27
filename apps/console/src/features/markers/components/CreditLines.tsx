@@ -1,6 +1,6 @@
 import { useCreditActions, useCreditLines, type CreditFailure, type CreditLine } from '@rivr/db';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { CREDIT_FAILURE_COPY } from './creditCopy.ts';
 
@@ -43,7 +43,7 @@ export function CreditLines({ venueId, isSuperAdmin }: { venueId: string; isSupe
     <Stack gap={3}>
       <Heading level={2}>{t('console.markers.lines')}</Heading>
       {failure === null ? null : <ErrorMessage>{t(CREDIT_FAILURE_COPY[failure])}</ErrorMessage>}
-      {lines.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {lines.isPending ? <LoadState /> : null}
       {lines.isError ? (
         <Stack gap={2} align="start">
           <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>

@@ -1,6 +1,6 @@
 import { useTableHands, type HandVariant } from '@rivr/db';
 import { formatMoney, formatTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text, LoadState } from '@rivr/ui';
 
 const VARIANT: Readonly<Record<HandVariant, MessageKey>> = {
   holdem: 'console.liveFloor.holdem',
@@ -24,7 +24,7 @@ export function RecentHands({ tableId }: { tableId: string }) {
   return (
     <Stack gap={2}>
       {title}
-      {hands.data === undefined ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {hands.data === undefined ? <LoadState /> : null}
       {hands.data?.length === 0 ? <Text tone="muted">{t('console.liveFloor.noHands')}</Text> : null}
       <Stack gap={2} divided>
         {(hands.data ?? []).map((hand) => (

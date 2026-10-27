@@ -1,6 +1,6 @@
 import { useMemberActions, useVenueTiers, type MemberFailure, type MemberRecord } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<MemberFailure, MessageKey>> = {
@@ -29,7 +29,7 @@ function TierChoice({ tiers, options, tierId, onChange }: {
       </Stack>
     );
   }
-  if (tiers.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (tiers.data === undefined) return <LoadState />;
   return (
     <ChoiceChips label={t('console.members.newTier')} mode="one" options={options} selected={tierId === null ? [] : [tierId]}
       onChange={([chosen]) => onChange(chosen ?? null)} />

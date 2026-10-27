@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { expenseRejectionSchema } from '@rivr/contracts/treasury';
 import { useExpenseActions, useReceiptUrl, useVenueExpenses, type ExpenseFailure, type VenueExpense } from '@rivr/db';
 import { formatDate, formatMoney, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Money, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -73,7 +73,7 @@ export function ExpenseList({ venueId, canDecide }: { venueId: string; canDecide
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('console.expenses.list')}</Heading>
-      {expenses.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {expenses.isPending ? <LoadState /> : null}
       {expenses.isError ? (
         <Stack gap={2} align="start">
           <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>

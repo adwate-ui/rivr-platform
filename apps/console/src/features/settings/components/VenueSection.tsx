@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { venueConfigSchema, type VenueConfigChange, type VenueConfigInput } from '@rivr/contracts/venueConfig';
 import { useVenueConfig, useVenueConfigActions, type VenueConfig, type VenueConfigFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { LogoField } from './LogoField.tsx';
@@ -78,7 +78,7 @@ export function VenueSection({ venueId }: { venueId: string }) {
     <Stack gap={6}>
       <Heading level={2}>{t('console.settings.venue')}</Heading>
       <Text tone="muted">{t('console.settings.venueHint')}</Text>
-      {config.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {config.isPending ? <LoadState /> : null}
       {config.isError && config.data === undefined ? (
         <Stack gap={3}>
           <ErrorMessage>{t('console.settings.loadFailed')}</ErrorMessage>

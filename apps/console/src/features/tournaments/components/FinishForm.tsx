@@ -4,7 +4,7 @@ import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type 
 import { ZERO, type Paise } from '@rivr/domain/money';
 import { dealAmounts, MOST_DEAL_PLAYERS } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { ConfirmButton } from './ConfirmButton.tsx';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -102,7 +102,7 @@ export function FinishForm({ venueId, tournament, prizes }: FinishFormProps) {
   const seating = useTournamentSeating(tournament.id);
   const { finish } = useTournamentPayoutActions(venueId, tournament.id);
   const [failure, setFailure] = useState<string | null>(null);
-  if (seating.isPending) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (seating.isPending) return <LoadState />;
   if (seating.data === undefined) {
     return (
       <Inline gap={4} align="center">
