@@ -35,6 +35,7 @@ export const PERMISSIONS = [
   'eod.review', // give the reason for an end-of-day variance (#45), never on a shift one opened or closed
   'tournaments.manage',
   'promotions.manage',
+  'promotions.approve', // approve or refuse a submitted promotion, super_admin only (decision 0244)
   'jackpots.approve', // high hands and jackpot payouts
   'marketing.publish',
   'website.edit',
@@ -89,6 +90,6 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
 /** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */
 export const SUPER_ADMIN_ONLY: readonly Permission[] = [
   'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure', 'shareholding.manage',
-  'members.erase',
+  'members.erase', 'promotions.approve',
 ];
 

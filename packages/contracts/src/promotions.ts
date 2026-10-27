@@ -128,3 +128,12 @@ export const promotionBuilderSchema = z
     path: ['until'],
   });
 export type PromotionBuilder = z.infer<typeof promotionBuilderSchema>;
+
+/** A waiting promotion's rules as stored, which its approver reads (#144): what sets each off, for whom, and what it gives. */
+export const promotionRulesSchema = z.array(
+  z.strictObject({ trigger: z.enum(PROMOTION_TRIGGERS), conditions: promotionConditionsSchema, effect: promotionEffectSchema }),
+);
+export type PromotionRules = z.infer<typeof promotionRulesSchema>;
+
+/** Why a super admin refuses a submitted promotion (#144): the one who submitted it reads it. */
+export const promotionRefusalSchema = z.object({ reason: z.string().trim().min(3).max(300) });

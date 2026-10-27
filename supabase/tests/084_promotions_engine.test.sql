@@ -38,24 +38,27 @@ $$;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 
--- Who shapes promotions: staff who manage them, at their venue.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+-- Who shapes promotions (#144): nobody writes a promotion, rule or budget straight into the tables, not even staff who
+-- manage them; a promotion is submitted and a super admin approves it (146_promotion_approval.test.sql). The test's
+-- three go in as the database's owner, and the tables still refuse a rule the engine cannot run.
 with p as (insert into public.promotion (venue_id, name, status, stacks, priority)
             values ('00000000-0000-4000-8000-000000000001', 'Graduate first buy-in', 'live', false, 20) returning id)
 insert into ids select 'graduate', id from p;
 with p as (insert into public.promotion (venue_id, name, status, priority)
             values ('00000000-0000-4000-8000-000000000001', 'Buy-in bonus Tuesday', 'live', 10) returning id)
 insert into ids select 'tuesday', id from p;
-select lives_ok($$
-  insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-    ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), 'buy_in', '{"new_player": true}',
-     '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'),
-    ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"first_n": {"count": 2, "per": "table"}}',
-     '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}');
-  insert into public.promotion_budget (venue_id, promotion_id, cap_paise, cap_count) values
-    ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), null, 1),
-    ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 500000, null) $$,
-  'an admin writes rules and budgets');
+with p as (insert into public.promotion (venue_id, name, status, priority, per_player_limit, per_player_period)
+            values ('00000000-0000-4000-8000-000000000001', 'Double points', 'live', 5, 1, 'day') returning id)
+insert into ids select 'points', id from p;
+insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), 'buy_in', '{"new_player": true}',
+   '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'),
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"first_n": {"count": 2, "per": "table"}}',
+   '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}'),
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'points'), 'buy_in', '{}', '{"kind": "points", "points": 500}');
+insert into public.promotion_budget (venue_id, promotion_id, cap_paise, cap_count) values
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), null, 1),
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 500000, null);
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in',
    '{"kind": "bonus", "amount_paise": 100000, "percent_bps": 2000, "expires_days": 7}') $$, '23514', null,
@@ -78,32 +81,29 @@ select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, t
 select lives_ok($$ insert into public.promotion_rule (venue_id, promotion_id, position, trigger, conditions, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 9, 'check_in', '{"from": "22:00", "until": "04:00"}', '{"kind": "spin"}') $$,
   'a late window is one window');
-update public.promotion_rule set effect = '{"kind": "cab_eligibility"}' where position = 9;
-select is((select effect ->> 'kind' from public.promotion_rule where position = 9), 'cab_eligibility', 'an admin changes a rule');
-update public.promotion_budget set cap_count = 1 where promotion_id = (select id from ids where name = 'graduate');
-update public.promotion set priority = 20 where id = (select id from ids where name = 'graduate');
-select is((select priority from public.promotion where id = (select id from ids where name = 'graduate')), 20, 'and a promotion');
+delete from public.promotion_rule where position = 9;
+
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Straight to live', 'live') $$,
+  '42501', null, 'an admin inserts no promotion straight into the table, live or not');
+select throws_ok($$ update public.promotion set status = 'live' where id = (select id from ids where name = 'points') $$, '42501', null,
+  'nor changes one');
+select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"kind": "points", "points": 1}') $$,
+  '42501', null, 'nor writes a rule');
+select throws_ok($$ update public.promotion_budget set cap_paise = null $$, '42501', null, 'or a budget');
+select throws_ok($$ delete from public.promotion_rule $$, '42501', null, 'or removes a rule');
+select is((select count(*)::integer from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key is null), 3,
+  'but sees the venue''s promotions');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-with p as (insert into public.promotion (venue_id, name, status, priority, per_player_limit, per_player_period)
-            values ('00000000-0000-4000-8000-000000000001', 'Double points', 'live', 5, 1, 'day') returning id)
-insert into ids select 'points', id from p;
-insert into public.promotion_rule (venue_id, promotion_id, trigger, effect)
-values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'points'), 'buy_in', '{"kind": "points", "points": 500}');
-select is((select count(*)::integer from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key is null), 3, 'marketing adds promotions too, and sees the venue''s');
+select throws_ok($$ insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Marketing special') $$,
+  '42501', null, 'nor does marketing add one directly');
+select is((select count(*)::integer from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key is null), 3,
+  'though marketing sees them too');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Cashier special') $$,
   '42501', null, 'a cashier adds none');
 select is_empty($$ select * from public.promotion $$, 'and sees none');
-update public.promotion set priority = 1000;
-update public.promotion_budget set cap_paise = null;
-delete from public.promotion_rule;
-reset role;
-select is((select count(*)::integer from public.promotion where priority = 1000), 0, 'nor changes a promotion');
-select is((select count(*)::integer from public.promotion_budget where cap_paise is null and cap_count is null), 0, 'or a budget');
-select is((select count(*)::integer from public.promotion_rule r join public.promotion p on p.id = r.promotion_id where p.template_key is null), 4, 'or removes a rule');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-delete from public.promotion_rule where position = 9;
-select is((select count(*)::integer from public.promotion_rule r join public.promotion p on p.id = r.promotion_id where p.template_key is null), 3, 'an admin removes one');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.promotion_rule $$, 'nor does a dealer see a rule');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
@@ -115,11 +115,7 @@ select is_empty($$ select * from public.promotion where venue_id = '00000000-000
   'staff of the practice venue alone see none of the club''s promotions');
 select is_empty($$ select * from public.promotion_rule where venue_id = '00000000-0000-4000-8000-000000000001' $$, 'rules');
 select is_empty($$ select * from public.promotion_budget $$, 'or budgets');
-select throws_ok($$ insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Practice night') $$,
-  '42501', null, 'and add none to it');
-update public.promotion set priority = 1000;
 reset role;
-select is((select count(*)::integer from public.promotion where priority = 1000 and venue_id = '00000000-0000-4000-8000-000000000001'), 0, 'nor change one');
 update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001';
 
 -- Seated at Table 3: Ishaan and Kunal, then Neel; Vihaan at Table 3 too.
