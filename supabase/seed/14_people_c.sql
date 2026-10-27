@@ -38,6 +38,10 @@ insert into seed_person_c (id, phone, full_name) values
   -- On staging, sign in and check with the sandbox's values (docs/runbooks/ci-and-release.md, step 8).
   ('00000000-0000-4000-8000-000000000612', '+919000000612', 'John Doe'),
   ('00000000-0000-4000-8000-000000000296', '+919000000296', 'Devansh Malik'),
+  -- The Sessions flow's own duty manager, who seats Rhea Kaul and cashes her out, and Rhea, identity checked, who
+  -- then reads the session in her history (#127).
+  ('00000000-0000-4000-8000-000000000613', '+919000000613', 'Sahil Arora'),
+  ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
   -- The Membership card flow's own member, whose card the door scans (#71).
   ('00000000-0000-4000-8000-000000000290', '+919000000290', 'Kavya Rao');
 
@@ -80,19 +84,23 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000198'::uuid, 'Owner', 'owner_view'),
              ('00000000-0000-4000-8000-000000000199'::uuid, 'Managing partner', 'super_admin'),
              ('00000000-0000-4000-8000-000000000610'::uuid, 'Operations manager', 'admin'),
-             ('00000000-0000-4000-8000-000000000611'::uuid, 'Owner', 'owner_view')) as j (id, job_title, role) on j.id = p.id
+             ('00000000-0000-4000-8000-000000000611'::uuid, 'Owner', 'owner_view'),
+             ('00000000-0000-4000-8000-000000000613'::uuid, 'Duty manager', 'super_admin')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612')
+where p.id in ('00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
+               '00000000-0000-4000-8000-000000000297')
 on conflict (id) do nothing;
 
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', 'verified', 'digilocker', '1990-02-11', 'ABCPM2961D',
-   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000296/selfie.jpg', now())
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000296/selfie.jpg', now()),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000297', 'verified', 'digilocker', '1994-08-23', 'ABCPK2971R',
+   '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000297/selfie.jpg', now())
 on conflict do nothing;
 
 insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
