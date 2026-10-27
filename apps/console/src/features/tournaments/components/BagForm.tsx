@@ -27,7 +27,7 @@ export function BagForm({ venueId, flight, dayTwo }: { venueId: string; flight: 
       <Heading level={3} variant="subsection">{t('console.tournaments.payouts.bagTitle')}</Heading>
       {dayTwo !== undefined && dayTwo.payoutShares === null
         ? <Text>{t('console.tournaments.payouts.setDayTwoPayouts', { name: dayTwo.name })}</Text> : null}
-      {flight.clock === null ? <Text tone="muted">{t('console.tournaments.payouts.notReady')}</Text> : (
+      {flight.clock === null ? <Text tone="muted">{t('console.tournaments.payouts.bagNotReady')}</Text> : (
         <ChipCountForm key={left.map((row) => row.entryId).join()} left={left} hint={t('console.tournaments.payouts.bagHint')}
           label={t('console.tournaments.payouts.bag')} confirm={t('console.tournaments.payouts.confirmBag')} isBusy={bag.isPending}
           onCount={(stacks) => void bag.mutateAsync(stacks)

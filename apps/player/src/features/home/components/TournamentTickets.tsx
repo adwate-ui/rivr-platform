@@ -1,6 +1,6 @@
 import { useEnterWithTicket, useFeature, useMyTournamentTickets, type MyTournamentTicket } from '@rivr/db';
 import { formatDayTime, formatMoney, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, ErrorMessage, FeatureGate, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 const SHOWN_FAILURES = ['registration_closed', 'identity', 'on_break', 'switched_off', 'room_full', 'no_ticket'] as const;
@@ -35,7 +35,6 @@ export function TournamentTickets() {
   const register = useFeature('tournaments.register');
   const tickets = useMyTournamentTickets();
   const [enteredName, setEnteredName] = useState<string | null>(null);
-  if (register.state !== 'enabled') return null;
   if (tickets.isError) {
     return (
       <Inline gap={3} align="center">
@@ -45,11 +44,14 @@ export function TournamentTickets() {
     );
   }
   const held = tickets.data ?? [];
+  // A member without tournament registration holds no tickets here, and Home's tournament says the feature is locked.
   return (
-    <Stack gap={3}>
-      {held.length === 0 ? null : <Text weight="medium">{t('player.tonight.tickets')}</Text>}
-      {held.map((ticket) => <TicketCard key={ticket.ticketId} ticket={ticket} onEntered={setEnteredName} />)}
-      <StatusMessage>{enteredName === null ? null : t('player.tonight.enteredWithTicket', { name: enteredName })}</StatusMessage>
-    </Stack>
+    <FeatureGate access={register}>
+      <Stack gap={3}>
+        {held.length === 0 ? null : <Text weight="medium">{t('player.tonight.tickets')}</Text>}
+        {held.map((ticket) => <TicketCard key={ticket.ticketId} ticket={ticket} onEntered={setEnteredName} />)}
+        <StatusMessage>{enteredName === null ? null : t('player.tonight.enteredWithTicket', { name: enteredName })}</StatusMessage>
+      </Stack>
+    </FeatureGate>
   );
 }

@@ -2,7 +2,7 @@ import type { CageFailure, CageMember } from '@rivr/db';
 import { walletAfter, type BuyInMethod } from '@rivr/domain/cage';
 import type { Paise } from '@rivr/domain/money';
 import { formatMoney, t } from '@rivr/i18n';
-import { ErrorMessage, Inline, Money, Stack, Text } from '@rivr/ui';
+import { ErrorMessage, Inline, Money, Stack, Text, StatusMessage } from '@rivr/ui';
 import { CAGE_FAILURE_COPY } from './cageCopy.ts';
 
 interface BuyInPreviewProps {
@@ -26,7 +26,7 @@ export function BuyInPreview({ member, amount, method, failure, issued }: BuyInP
         )}
       </Stack>
       {failure === null ? null : <ErrorMessage>{t(CAGE_FAILURE_COPY[failure], { amount: formatMoney(amount) })}</ErrorMessage>}
-      {issued === null ? null : <Text>{t('console.cage.issued', { amount: issued })}</Text>}
+      <StatusMessage>{issued === null ? null : t('console.cage.issued', { amount: issued })}</StatusMessage>
     </Stack>
   );
 }

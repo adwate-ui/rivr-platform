@@ -8,6 +8,14 @@ const FAILURE_BY_CODE: Readonly<Record<string, TournamentFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', '23505': 'taken', '23503': 'in_use', RVFRZ: 'paused', RVMBR: 'paused',
 };
 
+/** Why the clock did not change: as any tournament change, or Day 2 with a flight still to bag (#524). */
+export type ClockFailure = TournamentFailure | 'flights_unbagged';
+
+/** What a refused clock change means: Day 2's flights unbagged from the hint, or the code's. */
+export function toClockFailure(error: { code: string; hint?: string | null }): ClockFailure {
+  return error.code === 'RVTRN' && error.hint === 'flights_unbagged' ? 'flights_unbagged' : tournamentFailure(error.code);
+}
+
 /** The failure a database error code means. */
 export function tournamentFailure(code: string): TournamentFailure {
   return FAILURE_BY_CODE[code] ?? 'unavailable';
@@ -32,13 +40,13 @@ export function toFinishFailure(error: { code: string; hint?: string | null }): 
 
 /** Why a buy was refused: the rules' reason (decision 0202), no free seat for a busted player's rebuy, or the wallet's or the cage's. */
 export type BuyFailure =
-  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'no_ticket' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift'
+  | TournamentFailure | PurchaseRefusal | 'room_full' | 'finished' | 'no_ticket' | 'day_two' | 'day_two_started' | 'short' | 'identity' | 'on_break' | 'switched_off' | 'no_shift'
   | 'own_record';
 
 const BUY_FAILURE_BY_CODE: Readonly<Record<string, BuyFailure>> = {
   RVSHT: 'short', RVKYC: 'identity', RVAGE: 'identity', RVDUP: 'identity', RVBRK: 'on_break', RVKIL: 'switched_off', RVNSH: 'no_shift', RVOWN: 'own_record',
 };
-const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full', 'finished', 'no_ticket'];
+const RULE_REFUSALS: readonly BuyFailure[] = [...PURCHASE_REFUSALS, 'room_full', 'finished', 'no_ticket', 'day_two', 'day_two_started'];
 
 /** What a refused buy means: the rules' reason from the hint, or the code's. */
 export function toBuyFailure(error: { code: string; hint?: string | null }): BuyFailure {

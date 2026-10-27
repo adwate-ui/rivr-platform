@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { staffAddSchema, type StaffRole } from '@rivr/contracts';
 import { useStaffActions, type StaffFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, type Control } from 'react-hook-form';
 import type { z } from 'zod';
@@ -55,7 +55,7 @@ export function AddStaffForm({ venueId, grantable }: { venueId: string; grantabl
       <Input {...phoneField} type="tel" inputMode="numeric" prefix="+91" label={t('console.staff.phone')} hint={t('console.staff.phoneHint')}
         autoComplete="off" error={errors.phone ? t('console.staff.invalidPhone') : undefined} />
       <Button isLoading={add.isPending} onClick={() => void submit()}>{t('console.staff.add')}</Button>
-      {added === null ? null : <Text>{t('console.staff.added', { name: added })}</Text>}
+      <StatusMessage>{added === null ? null : t('console.staff.added', { name: added })}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(STAFF_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );

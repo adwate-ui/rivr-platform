@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DEAL_METHODS, dealSchema } from '@rivr/contracts/tournaments';
-import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type TournamentSeatRow, type VenueTournament } from '@rivr/db';
+import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type FinishFailure, type TournamentSeatRow, type VenueTournament } from '@rivr/db';
 import { ZERO, type Paise } from '@rivr/domain/money';
 import { dealAmounts, MOST_DEAL_PLAYERS } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
@@ -123,12 +123,15 @@ export function FinishForm({ venueId, tournament, prizes }: FinishFormProps) {
   }
   const left = seating.data.filter((row) => row.status === 'seated');
   const hasRuns = seating.data.some((row) => row.status === 'seated' || row.status === 'busted');
-  const run = (deal: DealOrder | null) => void finish.mutateAsync(deal)
-    .then((done) => setFailure(done.ok ? null : t(`console.tournaments.payouts.failures.${done.error}`)));
+  const isSatellite = tournament.satelliteTargetId !== null;
+  // A satellite takes no deal: too many left means more than its seats.
+  const failureText = (error: FinishFailure) => isSatellite && error === 'players_left' ? t('console.tournaments.payouts.satellitePlayersLeft')
+    : t(`console.tournaments.payouts.failures.${error}`);
+  const run = (deal: DealOrder | null) => void finish.mutateAsync(deal).then((done) => setFailure(done.ok ? null : failureText(done.error)));
   return (
     <Stack gap={3}>
       <Heading level={3} variant="subsection">{t('console.tournaments.payouts.finishTitle')}</Heading>
-      <FinishChoice left={left} hasRuns={hasRuns} isStarted={tournament.clock !== null} isSatellite={tournament.satelliteTargetId !== null}
+      <FinishChoice left={left} hasRuns={hasRuns} isStarted={tournament.clock !== null} isSatellite={isSatellite}
         prizes={prizes} isBusy={finish.isPending} onFinish={run} />
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>

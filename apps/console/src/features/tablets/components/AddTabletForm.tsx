@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerTabletAddSchema } from '@rivr/contracts';
 import { useDeviceActions, type DeviceFailure, type PairingCode } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Switch, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, Switch, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -45,7 +45,7 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
         <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
       </Inline>
       <Switch label={t('console.tablets.isDoor')} hint={t('console.tablets.isDoorHint')} isOn={isDoor} onChange={setIsDoor} />
-      {isAddedWithoutCode ? <Text variant="small">{t('console.tablets.addedWithoutCode')}</Text> : null}
+      <StatusMessage>{isAddedWithoutCode ? t('console.tablets.addedWithoutCode') : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(DEVICE_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );

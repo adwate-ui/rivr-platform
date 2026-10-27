@@ -18,8 +18,12 @@ interface Outcome {
 }
 
 function OutcomeLine({ outcome }: { outcome: Outcome }) {
-  if (outcome.failure !== null) return <ErrorMessage>{t(ACCOUNT_FAILURE_COPY[outcome.failure])}</ErrorMessage>;
-  return <StatusMessage>{outcome.done}</StatusMessage>;
+  return (
+    <>
+      <StatusMessage>{outcome.done}</StatusMessage>
+      {outcome.failure === null ? null : <ErrorMessage>{t(ACCOUNT_FAILURE_COPY[outcome.failure])}</ErrorMessage>}
+    </>
+  );
 }
 
 /** The two accounts, the amount and a note. Any change is a new transfer, with a new request id. */

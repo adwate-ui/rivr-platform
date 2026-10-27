@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-import { tournamentFailure, type TournamentFailure } from './tournamentFailures.ts';
+import { toClockFailure, tournamentFailure, type ClockFailure, type TournamentFailure } from './tournamentFailures.ts';
 
 export { tournamentFailure, type TournamentFailure } from './tournamentFailures.ts';
 
@@ -146,13 +146,13 @@ export function useTournamentClock(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ tournamentId, change }: { tournamentId: string; change: ClockChange }): Promise<Result<null, TournamentFailure>> => {
+    mutationFn: async ({ tournamentId, change }: { tournamentId: string; change: ClockChange }): Promise<Result<null, ClockFailure>> => {
       const id = { p_tournament_id: tournamentId };
       const { error } = change === 'start' ? await client.rpc('start_tournament_clock', id)
         : change === 'pause' || change === 'resume' ? await client.rpc('pause_tournament_clock', { ...id, p_is_paused: change === 'pause' })
         : await client.rpc('move_tournament_level', { ...id, p_step: change === 'next' ? 1 : -1 });
       await queryClient.invalidateQueries({ queryKey: queryKeys.venueTournaments(userId ?? 'signed-out', venueId) });
-      return error ? err(tournamentFailure(error.code)) : ok(null);
+      return error ? err(toClockFailure(error)) : ok(null);
     },
   });
 }

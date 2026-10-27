@@ -32,6 +32,7 @@ export const payouts = {
   /** A satellite (#519): the players left placed by their chips, and the tickets it issued. */
   satelliteChips: 'Count the chips of each player left. The most chips takes the first ticket.',
   finishByChips: 'Finish by chips',
+  satellitePlayersLeft: 'A satellite finishes once no more players are left than it has seats.',
   confirmByChips: 'Finish the satellite with these chips?',
   tickets: 'Tickets issued',
   ticketLine: '{name} · {amount} ticket · {status}',
@@ -39,6 +40,7 @@ export const payouts = {
   noTickets: 'No tickets: the pool was too small for a seat.',
   /** A Day 1 flight (#524): the players left go through to Day 2 with their chips. */
   bagTitle: 'Bagging',
+  bagNotReady: 'Start the flight’s clock first. Bag it when its play ends.',
   bagHint: 'Count the chips of each player left. They go through to Day 2 with them.',
   bag: 'Bag the flight',
   confirmBag: 'Bag this flight with these chips?',
