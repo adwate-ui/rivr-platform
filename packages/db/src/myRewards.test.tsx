@@ -60,9 +60,17 @@ describe('the member\'s Rewards', () => {
   it('redeems at the price shown, once per request id, and says why not', async () => {
     const { result, calls } = renderHooks({ '/rpc/redeem_reward': { status: 400, body: { code: 'RVPRC', message: 'price changed' } } });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.redeem.mutateAsync({ itemId: 'r1', points: 2500n, requestId: 'q1' }); });
+    await act(async () => { outcome = await result.current.redeem.mutateAsync({ itemId: 'r1', points: 2500n, nights: null, requestId: 'q1' }); });
     expect(outcome).toEqual({ ok: false, error: 'price_changed' });
     expect(calls.find((call) => call.url.includes('/rpc/redeem_reward'))?.body).toEqual({ p_item_id: 'r1', p_points: 2500, p_idempotency_key: 'q1' });
+  });
+
+  it('redeems a hotel night for the nights shown, and says when there are not enough', async () => {
+    const { result, calls } = renderHooks({ '/rpc/redeem_reward': { status: 400, body: { code: 'RVNGT', message: 'not enough nights' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.redeem.mutateAsync({ itemId: 'r2', points: null, nights: 2, requestId: 'q2' }); });
+    expect(outcome).toEqual({ ok: false, error: 'not_enough_nights' });
+    expect(calls.find((call) => call.url.includes('/rpc/redeem_reward'))?.body).toEqual({ p_item_id: 'r2', p_nights: 2, p_idempotency_key: 'q2' });
   });
 });
 

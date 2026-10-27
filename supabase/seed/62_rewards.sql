@@ -2,18 +2,18 @@
 -- for the real League points; production is never seeded). One reward of each kind at the club and one
 -- at the practice venue; League points of 100, 70 and 50 for the podium, 20 for the rest of the final
 -- table and 5 for taking part, in both venues; and a six-month season at the club from this month.
-insert into public.reward_item (id, venue_id, kind, name, detail, points, stock)
+insert into public.reward_item (id, venue_id, kind, name, detail, points, nights, stock)
 values
   ('00000000-0000-4000-8000-000000145001', '00000000-0000-4000-8000-000000000001', 'tournament_seat', 'Sunday Main Event seat',
-   'Registered to you at the cage', 12000, 18),
+   'Registered to you at the cage', 12000, null, 18),
   ('00000000-0000-4000-8000-000000145002', '00000000-0000-4000-8000-000000000001', 'fnb_upgrade', 'Bar upgrade, one night',
-   'At the Glaza bar', 2500, null),
+   'At the Glaza bar', 2500, null, null),
   ('00000000-0000-4000-8000-000000145003', '00000000-0000-4000-8000-000000000001', 'merchandise', 'RIVR hoodie',
-   'At the host desk', 4000, 42),
+   'At the host desk', 4000, null, 42),
   ('00000000-0000-4000-8000-000000145004', '00000000-0000-4000-8000-000000000001', 'hotel_night', 'Partner hotel suite, one night',
-   'The host confirms by text', 45000, 6),
+   'The host confirms by text', null, 1, 6),
   ('00000000-0000-4000-8000-000000145005', '00000000-0000-4000-8000-000000000002', 'merchandise', 'Practice T-shirt',
-   'At the practice desk', 100, null)
+   'At the practice desk', 100, null, null)
 on conflict (id) do nothing;
 
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
