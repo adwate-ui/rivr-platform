@@ -43,6 +43,8 @@ export const rail = {
     fnb: 'Food and drink',
     rewards: 'Rewards',
     league: 'League',
+    creators: 'Creators',
+    events: 'Events',
     academy: 'Academy',
     academyPayments: 'Academy payments',
     withdrawals: 'Withdrawals',
