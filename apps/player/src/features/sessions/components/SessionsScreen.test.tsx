@@ -17,6 +17,7 @@ const SESSION = {
   small_blind_paise: 10000, big_blind_paise: 20000, other_tables: 0, played_seconds: 21600, buy_in_paise: 1000000, bonus_paise: 0,
   cash_out_paise: 5000000, tds_paise: 1200000, paid_paise: 3800000, net_paise: 2800000, receipt: 'A1B2C3D4', month: '2026-02-01',
   month_sessions: 1, month_played_seconds: 21600, month_net_paise: 2800000, tds_basis: 'session',
+  kind: 'cash', place: null, entrants: null,
 };
 
 interface Api {
@@ -95,6 +96,12 @@ describe('a session', () => {
     renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'session' }] });
     expect(await screen.findByText('TDS withheld')).toBeDefined();
     expect(screen.queryByText(/winnings$/)).toBeNull();
+  });
+
+  it('shows a tournament with its place in the field, and its prize', async () => {
+    renderAt('/sessions/t1', { sessions: [{ ...SESSION, visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: 4, entrants: 61 }] });
+    expect(await screen.findByText('Tournament · place 4 of 61')).toBeDefined();
+    expect(screen.getByText('Prize')).toBeDefined();
   });
 
   it('has no TDS line, nor what was paid, when none was withheld', async () => {

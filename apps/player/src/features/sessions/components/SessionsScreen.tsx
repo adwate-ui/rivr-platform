@@ -1,11 +1,11 @@
 import { useFeature } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
 import { useMyTdsCertificates, type TdsCertificate } from '@rivr/db/tds';
-import { formatDuration, formatMoney, formatMonth, formatNumber, formatQuarter, formatStakes, t } from '@rivr/i18n';
+import { formatDuration, formatMoney, formatMonth, formatNumber, formatQuarter, t } from '@rivr/i18n';
 import { FeatureGate, Heading, HistoryRow, Inline, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { Net } from './Net.tsx';
-import { sessionDay, sessionTitle } from './naming.ts';
+import { sessionDay, sessionStake, sessionTitle } from './naming.ts';
 
 /** One quarter's TDS from one venue: when, who withheld it and their TAN, and how much from how many payments: cash-outs, tournament prizes and bounties. */
 function Certificate({ certificate }: { certificate: TdsCertificate }) {
@@ -69,7 +69,7 @@ function Month({ sessions, onOpen }: { sessions: readonly MySession[]; onOpen: (
         {sessions.map((session) => (
           <HistoryRow key={session.visitId} when={sessionDay(session)} title={sessionTitle(session)}
             value={<Net paise={session.net} />}
-            detail={t('player.sessions.sub', { stakes: formatStakes(session.smallBlind, session.bigBlind), hours: formatDuration(session.playedSeconds) })}
+            detail={t('player.sessions.sub', { stakes: sessionStake(session), hours: formatDuration(session.playedSeconds) })}
             onOpen={() => onOpen(session.visitId)} />
         ))}
       </Stack>

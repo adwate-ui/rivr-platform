@@ -30,9 +30,10 @@ describe('the member\'s sessions', () => {
       small_blind_paise: 10000, big_blind_paise: 20000, other_tables: 1, played_seconds: 23400, buy_in_paise: 2000000, bonus_paise: 0,
       cash_out_paise: 4650000, tds_paise: 0, paid_paise: 4650000, net_paise: 2650000, receipt: 'A1B2C3D4', month: '2026-10-01',
       month_sessions: 3, month_played_seconds: 45600, month_net_paise: -1000000, tds_basis: null,
+      kind: 'cash', place: null, entrants: null,
     }]);
     await waitFor(() => expect(result.current.data).toEqual([{
-      visitId: 'v1', openedAt: '2026-10-27T15:40:00+00:00', closedAt: '2026-10-27T22:10:00+00:00', tableName: 'Table 2',
+      visitId: 'v1', kind: 'cash', place: null, entrants: null, openedAt: '2026-10-27T15:40:00+00:00', closedAt: '2026-10-27T22:10:00+00:00', tableName: 'Table 2',
       smallBlind: 10000n, bigBlind: 20000n, otherTables: 1, playedSeconds: 23400, buyIn: 2000000n, bonus: 0n, cashOut: 4650000n, tds: 0n,
       paid: 4650000n, net: 2650000n, receipt: 'A1B2C3D4', month: '2026-10-01', monthSessions: 3, monthPlayedSeconds: 45600, monthNet: -1000000n,
       tdsBasis: null,

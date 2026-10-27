@@ -1,11 +1,11 @@
 import { useFeature } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
-import { formatDuration, formatStakes, formatTime, t } from '@rivr/i18n';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, Divider, FeatureGate, Inline, Money, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { Net } from './Net.tsx';
-import { sessionDay, sessionTitle } from './naming.ts';
+import { sessionDay, sessionStake, sessionTitle } from './naming.ts';
 
 interface Row {
   label: string;
@@ -22,7 +22,7 @@ function tdsNote(session: MySession): { note?: string } {
 /** The detail's rows (design prompt, "Sessions"): bonus chips, the TDS and what was paid only when they apply. */
 function rowsOf(session: MySession): Row[] {
   const rows: (Row | null)[] = [
-    { label: t('player.sessions.stake'), value: <Text>{formatStakes(session.smallBlind, session.bigBlind)}</Text> },
+    { label: t('player.sessions.stake'), value: <Text>{sessionStake(session)}</Text> },
     {
       label: t('player.sessions.time'),
       value: <Text>{t('player.sessions.timeRange', { from: formatTime(new Date(session.openedAt)), to: formatTime(new Date(session.closedAt)) })}</Text>,
@@ -30,7 +30,7 @@ function rowsOf(session: MySession): Row[] {
     { label: t('player.sessions.hours'), value: <Text>{formatDuration(session.playedSeconds)}</Text> },
     { label: t('player.sessions.buyIn'), value: <Money paise={session.buyIn} /> },
     session.bonus > 0n ? { label: t('player.sessions.bonus'), value: <Money paise={session.bonus} /> } : null,
-    { label: t('player.sessions.cashOut'), value: <Money paise={session.cashOut} /> },
+    { label: session.kind === 'tournament' ? t('player.sessions.prize') : t('player.sessions.cashOut'), value: <Money paise={session.cashOut} /> },
     session.tds > 0n ? { label: t('player.sessions.tdsLine'), value: <Money paise={session.tds} />, ...tdsNote(session) } : null,
     session.paid === session.cashOut ? null : { label: t('player.sessions.paid'), value: <Money paise={session.paid} /> },
   ];

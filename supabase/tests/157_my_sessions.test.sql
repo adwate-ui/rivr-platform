@@ -102,6 +102,36 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from public.my_sessions() where visit_id in (select id from ishaan_visits)), 0, 'Arjun does not see Ishaan''s');
 reset role;
 
+-- A tournament is a session of its own (#549): Mihir plays a knockout, places first of one and wins ₹3,000 (under the
+-- ₹10,000 TDS threshold); once it finishes, his history has it with what he paid in and won.
+create function pg_temp.named(p_name text) returns uuid language sql security definer as $$ select id from public.tournament where name = p_name; $$;
+grant execute on function pg_temp.named(text) to authenticated;
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'deposit', 'test-fund:sessions', jsonb_build_array(
+  jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = '00000000-0000-4000-8000-000000000001'
+                                    and a.code = 'venue.bank' and a.member_id is null), 'amount', '5000000'),
+  jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = '00000000-0000-4000-8000-000000000213'
+                                    and a.code = 'member.cash'), 'amount', '-5000000')), null, 'Test deposit') is not null as funded;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.create_tournament('00000000-0000-4000-8000-0000000007c8', 'Sessions Knockout', now(), true) $$, 'a knockout');
+select public.set_tournament_room(pg_temp.named('Sessions Knockout'), 2, 9);
+select public.start_tournament_clock(pg_temp.named('Sessions Knockout'));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
+select public.register_tournament_entry(pg_temp.named('Sessions Knockout'), 'entry', '00000000-0000-4000-8000-00000000f157');
+select is((select count(*)::integer from public.my_sessions() where kind = 'tournament'), 0, 'a tournament not yet finished is not a session');
+reset role;
+select private.pay_tournament_run((select id from public.tournament_entry where tournament_id = pg_temp.named('Sessions Knockout')
+                                   and member_id = '00000000-0000-4000-8000-000000000213'), 1, 300000, 0, 0, null);
+update public.tournament set finished_at = now(), overlay_paise = 0 where id = pg_temp.named('Sessions Knockout');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
+select results_eq(
+  $$ select table_name, kind, place, entrants, buy_in_paise, cash_out_paise, tds_paise, paid_paise, net_paise
+     from public.my_sessions() where kind = 'tournament' $$,
+  $$ select 'Sessions Knockout'::text, 'tournament'::text, 1, 1, sum(p.price_paise)::bigint, 300000::bigint, 0::bigint, 300000::bigint,
+            (300000 - sum(p.price_paise))::bigint
+     from public.tournament_purchase p where p.tournament_id = pg_temp.named('Sessions Knockout') $$,
+  'his tournament: first of one, what he paid in, ₹3,000 won and paid');
+reset role;
+
 -- A tier without session history reads none.
 insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode)
 select m.venue_id, m.tier_id, 'sessions.history', false, 'locked' from public.member m where m.id = '00000000-0000-4000-8000-000000000211';

@@ -17,7 +17,13 @@ const TDS_BASES = ['session', 'day', 'financial_year'] as const;
 export type TdsBasis = (typeof TDS_BASES)[number];
 
 export interface MySession {
+  /** The visit's id, or the tournament's for a tournament (#549). */
   readonly visitId: string;
+  /** A cash-table visit, or a tournament the member played (#549): its name is `tableName`, its stakes nothing. */
+  readonly kind: 'cash' | 'tournament';
+  /** A tournament's place, when known, and how many played it; null for a cash visit. */
+  readonly place: number | null;
+  readonly entrants: number | null;
   readonly openedAt: string;
   readonly closedAt: string;
   readonly tableName: string;
@@ -54,7 +60,8 @@ export function useMySessions() {
       const { data, error } = await client.rpc('my_sessions');
       if (error) throw error;
       return data.map((row) => ({
-        visitId: row.visit_id, openedAt: row.opened_at, closedAt: row.closed_at, tableName: row.table_name,
+        visitId: row.visit_id, kind: row.kind === 'tournament' ? 'tournament' : 'cash', place: row.place, entrants: row.entrants,
+        openedAt: row.opened_at, closedAt: row.closed_at, tableName: row.table_name,
         smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise), otherTables: row.other_tables,
         playedSeconds: Number(row.played_seconds), buyIn: toPaise(row.buy_in_paise), bonus: toPaise(row.bonus_paise),
         cashOut: toPaise(row.cash_out_paise), tds: toPaise(row.tds_paise), paid: toPaise(row.paid_paise), net: toPaise(row.net_paise),

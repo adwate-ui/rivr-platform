@@ -59,6 +59,10 @@ export const playerApp = {
     noTan: 'not yet given',
     /** A session in the history (#127): `100/200 · 6 h 30 min`. */
     sub: '{stakes} · {hours}',
+    /** A tournament in the history, in place of the stakes (#549): `Tournament · place 4 of 61`. */
+    tournament: 'Tournament',
+    tournamentPlace: 'Tournament · place {place} of {entrants}',
+    prize: 'Prize',
     /** A session at several tables, named by the one played longest: `Table 2 and 1 more`. */
     moreTables: '{table} and {count} more',
     /** A club month's totals above its sessions: `3 sessions · 12 h 40 min`. */
