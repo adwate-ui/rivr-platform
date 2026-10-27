@@ -107,6 +107,8 @@ export const promotions = {
     budgetPaise: 'Budget: {amount}',
     budgetCount: 'Budget: {count} grants',
     budgetBoth: 'Budget: {amount} or {count} grants, whichever comes first',
+    /** A monthly budget (#562): `Budget: ₹50,000, each month`. */
+    eachMonth: '{budget}, each month',
   },
   /** Promotions a super admin sent back (#144), with why: the one who submitted each reads it here. */
   sentBack: {

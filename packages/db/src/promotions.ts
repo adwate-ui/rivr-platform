@@ -57,8 +57,8 @@ export interface PromotionAwaitingApproval {
   /** What it does, as stored: the approver reads these, not only the card words typed. Null when they cannot be read. */
   readonly rules: PromotionRules | null;
   readonly perPlayer: { readonly limit: number; readonly period: string } | null;
-  /** Its budget, in paise and in grants; null for either when there is none. */
-  readonly budget: { readonly paise: bigint | null; readonly count: number | null };
+  /** Its budget, in paise and in grants; null for either when there is none; for the whole promotion or each month (#562). */
+  readonly budget: { readonly paise: bigint | null; readonly count: number | null; readonly period: 'promotion' | 'month' };
 }
 
 /** A promotion a super admin sent back in the last fortnight (#144), with who did and why. */
@@ -88,7 +88,8 @@ export function usePromotionsAwaitingApproval(venueId: string) {
           id: row.promotion_id, name: row.name, detail: row.detail, runs: row.runs, requestedBy: row.requested_by, requestedAt: row.requested_at,
           isMine: row.is_mine, rules: rules.success ? rules.data : null,
           perPlayer: row.per_player_limit === null || row.per_player_period === null ? null : { limit: row.per_player_limit, period: row.per_player_period },
-          budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count },
+          budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count,
+            period: row.budget_period === 'month' ? 'month' : 'promotion' },
         };
       });
     },

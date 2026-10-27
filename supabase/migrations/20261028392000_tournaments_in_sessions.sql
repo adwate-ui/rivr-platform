@@ -1,7 +1,7 @@
 -- Tournaments in a member's sessions (#549; the prototype's history has "RIVR Sunday · Tournament · 4th of 61"): each
--- finished tournament the member played is a session of its own, kind 'tournament', from their first buy-in to their
--- last bust (or the finish), with what they paid in, won and had withheld, their place and the field. Tournament
--- purchases are not cage transactions, so nothing is counted twice. The club month stays the night's start, as before
+-- finished tournament the member played is a session of its own, kind 'tournament', from when it started for them to
+-- their last bust (or the finish), with what they paid in, won (a satellite's ticket among it) and had withheld, their
+-- place and the field of runs. Tournament purchases are not cage transactions, so nothing is counted twice. The club month stays the night's start, as before
 -- (decision 0262). Otherwise as 20261028391900_session_tds_basis.sql; cash sessions are kind 'cash'.
 drop function public.my_sessions();
 drop function private.my_sessions();
@@ -64,25 +64,32 @@ as $$
     select private.current_member_id() as member_id
     where private.has_feature(private.current_member_id(), 'sessions.history')
   ),
-  -- Each finished tournament the member played: from their first buy-in to their last bust, or the finish if they were
-  -- still in; what they paid in (entries, re-entries, rebuys and add-ons), won (prizes and bounties) and had withheld.
+  -- Each finished tournament the member played (an entry that sat, or a payout), from the later of the clock's start and
+  -- their first buy (a Day 2 has none of its own) to their last bust, or the finish if they were still in. In: every buy
+  -- of an entry not refunded, an entry paid with a satellite's ticket at its value. Won: prizes, bounties, and the
+  -- tickets a satellite gave, which the target's buy or the ticket's refund then spends. And the TDS withheld.
   tournaments as (
     select t.id, t.name,
-           (select min(p.created_at) from public.tournament_purchase p where p.tournament_id = t.id and p.member_id = me.member_id) as opened_at,
+           greatest((select min(p.created_at) from public.tournament_purchase p where p.tournament_id = t.id and p.member_id = me.member_id),
+                    t.clock_started_at) as opened_at,
            coalesce((select max(e.busted_at) from public.tournament_entry e where e.tournament_id = t.id and e.member_id = me.member_id
-                     having bool_and(e.status = 'busted')), t.finished_at) as closed_at,
-           (select coalesce(sum(p.price_paise), 0) from public.tournament_purchase p
-            where p.tournament_id = t.id and p.member_id = me.member_id)::bigint as bought,
+                       and e.status <> 'refunded' having bool_and(e.status = 'busted')), t.finished_at) as closed_at,
+           (select coalesce(sum(p.price_paise), 0) from public.tournament_purchase p join public.tournament_entry e on e.id = p.entry_id
+            where p.tournament_id = t.id and p.member_id = me.member_id and e.status <> 'refunded')::bigint as bought,
            (select coalesce(sum(o.prize_paise + o.bounty_paise), 0) from public.tournament_payout o
-            where o.tournament_id = t.id and o.member_id = me.member_id)::bigint as won,
+            where o.tournament_id = t.id and o.member_id = me.member_id)::bigint
+           + (select coalesce(sum(k.value_paise), 0) from public.tournament_ticket k
+              where k.satellite_id = t.id and k.member_id = me.member_id)::bigint as won,
            (select coalesce(sum(o.tds_paise) filter (where not o.is_tds_shadow), 0) from public.tournament_payout o
             where o.tournament_id = t.id and o.member_id = me.member_id)::bigint as tds,
-           coalesce((select min(o.place) from public.tournament_payout o where o.tournament_id = t.id and o.member_id = me.member_id and o.kind = 'prize'),
-                    (select min(f.place) from public.league_finish f where f.tournament_id = t.id and f.member_id = me.member_id)) as place,
-           (select count(distinct e.member_id) from public.tournament_entry e where e.tournament_id = t.id and e.status <> 'refunded')::integer as entrants
+           coalesce((select min(e.place) from public.tournament_entry e where e.tournament_id = t.id and e.member_id = me.member_id and e.status <> 'refunded'),
+                    (select min(o.place) from public.tournament_payout o where o.tournament_id = t.id and o.member_id = me.member_id and o.kind = 'prize')) as place,
+           -- The field as places count it: every run, each entry not refunded.
+           (select count(*) from public.tournament_entry e where e.tournament_id = t.id and e.status <> 'refunded')::integer as entrants
     from me
     join public.tournament t on t.finished_at is not null
-      and exists (select 1 from public.tournament_entry e where e.tournament_id = t.id and e.member_id = me.member_id and e.status <> 'refunded')
+      and (exists (select 1 from public.tournament_entry e where e.tournament_id = t.id and e.member_id = me.member_id and e.status in ('seated', 'busted'))
+           or exists (select 1 from public.tournament_payout o where o.tournament_id = t.id and o.member_id = me.member_id))
   ),
   sessions as (
     select m.id, m.opened_at, m.closed_at, l.name, l.small_blind_paise, l.big_blind_paise, l.others, l.seconds,
@@ -94,7 +101,7 @@ as $$
     join cage c on c.visit_id = m.id
     join credit k on k.visit_id = m.id
     union all
-    select t.id, t.opened_at, t.closed_at, t.name, 0::bigint, 0::bigint, 0, extract(epoch from t.closed_at - t.opened_at)::bigint,
+    select t.id, t.opened_at, t.closed_at, t.name, 0::bigint, 0::bigint, 0, greatest(0, extract(epoch from t.closed_at - t.opened_at))::bigint,
            t.bought, 0::bigint, t.won, t.tds, t.won - t.tds, t.won - t.tds - t.bought, null::text, private.league_month(t.opened_at), null::text,
            'tournament'::text, t.place, t.entrants
     from tournaments t

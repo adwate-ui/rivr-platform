@@ -4186,7 +4186,7 @@ isOneToOne: false
                            },
 "promotions_awaiting_approval":
 { Args: { "p_venue_id": string }; Returns: {
-              "budget_count": number,"budget_paise": number,"detail": string,"is_mine": boolean,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string
+              "budget_count": number,"budget_paise": number,"budget_period": string,"detail": string,"is_mine": boolean,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string
             }[]
                            },
 "promotions_sent_back":
