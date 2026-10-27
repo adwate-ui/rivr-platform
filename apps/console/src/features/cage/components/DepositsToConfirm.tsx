@@ -3,7 +3,7 @@ import { bankAmountSchema } from '@rivr/contracts';
 import { useDepositDecisions, useKycImageUrl, useStaffVenue, useWaitingDeposits, type DepositFailure, type WaitingDeposit } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { formatDayTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -87,7 +87,7 @@ export function DepositsToConfirm({ venueId }: { venueId: string }) {
   return (
     <Stack gap={3} divided>
       <Heading level={2}>{t('console.cage.depositsToConfirm')}</Heading>
-      {waiting.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {waiting.isPending ? <LoadState /> : null}
       {waiting.isError ? (
         <Stack gap={2} align="start">
           <ErrorMessage>{t('console.cage.unavailable')}</ErrorMessage>

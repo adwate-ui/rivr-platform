@@ -1,6 +1,6 @@
 import { useCageActions, useCageQueue, useKycImageUrl, type BuyInRequest, type CageFailure } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Money, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Money, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { CAGE_FAILURE_COPY } from './cageCopy.ts';
 
@@ -41,7 +41,7 @@ export function CageQueue({ venueId }: { venueId: string }) {
     <Stack gap={3} divided>
       <Heading level={2}>{t('console.cage.queue')}</Heading>
       {failure === null ? null : <ErrorMessage>{t(CAGE_FAILURE_COPY[failure])}</ErrorMessage>}
-      {queue.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {queue.isPending ? <LoadState /> : null}
       {queue.isError ? (
         <Stack gap={2} align="start">
           <ErrorMessage>{t('console.cage.unavailable')}</ErrorMessage>

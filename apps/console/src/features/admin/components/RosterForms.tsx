@@ -4,7 +4,7 @@ import { useVenueStaff, type StaffMember } from '@rivr/db';
 import { useRosterActions, type RosterFailure } from '@rivr/db/roster';
 import { dayAfter } from '@rivr/domain/clubDay';
 import { formatDayMonth, formatNumber, formatWeekday, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -92,8 +92,7 @@ export function AddShiftsForm({ venueId, days }: { venueId: string; days: readon
   const active = (staff.data ?? []).filter((member) => member.isActive);
   const body = staff.data === undefined ? (
     <Stack gap={2} align="start">
-      <Text tone="muted">{t(staff.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-      {staff.isError ? <Inline><Button onClick={() => void staff.refetch()}>{t('common.retry')}</Button></Inline> : null}
+      <LoadState isError={staff.isError} onRetry={() => void staff.refetch()} />
     </Stack>
   ) : active.length === 0 ? <Text tone="muted">{t('console.roster.noStaff')}</Text> : <ShiftsFields venueId={venueId} days={days} active={active} />;
   return (

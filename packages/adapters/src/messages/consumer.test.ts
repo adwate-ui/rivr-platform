@@ -18,9 +18,9 @@ function delivery(eventType: string, payload: unknown): ClaimedDelivery {
 }
 
 describe('the WhatsApp consumer', () => {
-  it('is a messaging consumer of the seat call, the receipt notice and promotion offers, so a messaging stop holds it', () => {
+  it('is a messaging consumer of the seat call, the receipt notice, promotion offers and review requests, so a messaging stop holds it', () => {
     const consumer = createWhatsAppConsumer({ whatsapp: createFakeWhatsApp(), findRecipient, now });
-    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered']]);
+    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested']]);
   });
 
   it('sends the seat call: the table, the seat and when the hold expires, in IST', async () => {
@@ -76,6 +76,21 @@ describe('the WhatsApp consumer', () => {
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
     const called = { member_id: MEMBER, table_name: 'Table 3', seat: 9, hold_until: '2026-11-15T19:00:00+00:00' };
     expect(await consumer.deliver(delivery('waitlist.called', called))).toEqual({ ok: false, error: { code: 'unavailable' } });
+  });
+
+  it('asks for a Google review as a marketing message, with the venue\'s link, only to a member who opted in', async () => {
+    const optedIn = new Date('2026-10-01T10:00:00Z');
+    const whatsapp = createFakeWhatsApp();
+    const review = { review_request_id: '00000000-0000-4000-8000-000000000b01', member_id: MEMBER, url: 'https://g.page/r/rivr-gurugram/review' };
+
+    const asking = createWhatsAppConsumer({ whatsapp, now, findRecipient: async () => ({ phone, marketingOptedInAt: optedIn }) });
+    expect((await asking.deliver(delivery('review.requested', review))).ok).toBe(true);
+    expect(whatsapp.calls).toEqual([{ category: 'marketing', optedInAt: optedIn, to: phone, template: 'review_request', params: [review.url] }]);
+
+    const notOptedIn = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    expect(await notOptedIn.deliver(delivery('review.requested', review))).toEqual({ ok: true, value: null });
+    expect(await notOptedIn.deliver(delivery('review.requested', { ...review, url: 'http://insecure.example' }))).toMatchObject({ ok: false });
+    expect(whatsapp.calls).toHaveLength(1);
   });
 
   it('sends a promotion offer as the marketing template, with the member\'s opt-in, and nothing once they opted out or it stopped running (#86)', async () => {

@@ -109,6 +109,8 @@ export const queryKeys = {
   rewardCatalogue: (userId: string) => ['user', userId, 'reward-catalogue'] as const,
   myRedemptions: (userId: string) => ['user', userId, 'my-redemptions'] as const,
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,
+  /** The member's referral code (#151). */
+  myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
   /** The TV's rewards ticker and League leaderboard (#148, decision 0183). */
   tvRewardsTicker: (userId: string) => ['user', userId, 'tv-rewards-ticker'] as const,
   tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,

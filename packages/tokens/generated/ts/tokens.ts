@@ -110,7 +110,8 @@ export const tokens = {
     "photo": 160,
     "card": 342,
     "receipt": 576,
-    "chart": 192
+    "chart": 192,
+    "shareCard": 1080
   },
   "print": {
     "receiptScale": 0.4729

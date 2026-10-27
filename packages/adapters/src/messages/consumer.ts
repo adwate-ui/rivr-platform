@@ -1,4 +1,4 @@
-import { err, ok, promotionOfferedSchema, receiptReadySchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
+import { err, ok, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
 import { formatMoney, formatTime } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
@@ -18,7 +18,7 @@ export interface MessageRecipient {
 export type FindRecipient = (venueId: string, memberId: string, offeredPromotionId?: string) => Promise<MessageRecipient | null>;
 
 /** The events the WhatsApp consumer sends a message for. */
-export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered'] as const;
+export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested'] as const;
 
 const rejected = (reason: string) => err<AdapterFailure>({ code: 'rejected', reason });
 
@@ -36,6 +36,18 @@ async function offerMessage(delivery: ClaimedDelivery, findRecipient: FindRecipi
   if (!recipient || recipient.marketingOptedInAt === null) return ok(HANDLED);
   const card = [offer.data.title, offer.data.detail, offer.data.runs].filter((part) => part !== null).join(' · ');
   return ok({ category: 'marketing', optedInAt: recipient.marketingOptedInAt, to: recipient.phone, template: 'promotion', params: [`${card}.`] });
+}
+
+/**
+ * A Google review asked after a member's third visit (#159): a marketing message, so only while their marketing opt-in
+ * stands; otherwise nothing to send, and nothing wrong.
+ */
+async function reviewMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
+  const review = reviewRequestedSchema.safeParse(delivery.payload);
+  if (!review.success) return rejected('review.requested payload is not a review request');
+  const recipient = await findRecipient(delivery.venueId, review.data.member_id);
+  if (!recipient || recipient.marketingOptedInAt === null) return ok(HANDLED);
+  return ok({ category: 'marketing', optedInAt: recipient.marketingOptedInAt, to: recipient.phone, template: 'review_request', params: [review.data.url] });
 }
 
 /**
@@ -62,6 +74,7 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'receipt_ready', params: [amount], urlButton: receipt.data.link } };
   }
   if (delivery.eventType === 'promotion.offered') return offerMessage(delivery, findRecipient);
+  if (delivery.eventType === 'review.requested') return reviewMessage(delivery, findRecipient);
   return rejected(`no WhatsApp message for ${delivery.eventType}`);
 }
 

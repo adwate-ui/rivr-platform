@@ -17,7 +17,9 @@
       "Bash(scripts/github/post-agent-review.sh *)",
       "Bash(bash scripts/github/post-agent-review.sh *)",
       "Bash(git switch -c task/*)",
-      "Bash(git push -u origin task/*)"
+      "Bash(git push -u origin task/*)",
+      "Bash(git switch -c batch/*)",
+      "Bash(git push -u origin batch/*)"
     ],
     "deny": [
       "Bash(git push --force*)",

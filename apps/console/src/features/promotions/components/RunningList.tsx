@@ -1,6 +1,6 @@
 import { usePromotionActions, usePromotions, type ConsolePromotion } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Stack, Text, LoadState } from '@rivr/ui';
 import { useId, useState } from 'react';
 
 function PromotionRow({ venueId, promotion }: { venueId: string; promotion: ConsolePromotion }) {
@@ -37,8 +37,7 @@ export function RunningList({ venueId }: { venueId: string }) {
     return (
       <Stack gap={4}>
         {heading}
-        <Text tone="muted">{t(promotions.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-        {promotions.isError ? <Inline><Button onClick={() => void promotions.refetch()}>{t('common.retry')}</Button></Inline> : null}
+        <LoadState isError={promotions.isError} onRetry={() => void promotions.refetch()} />
       </Stack>
     );
   }

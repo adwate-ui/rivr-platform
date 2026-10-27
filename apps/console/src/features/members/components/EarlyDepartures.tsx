@@ -1,6 +1,6 @@
 import { useMemberEarlyDepartures, type EarlyDeparture } from '@rivr/db';
 import { formatDate, formatDuration, t } from '@rivr/i18n';
-import { Heading, Stack, Text } from '@rivr/ui';
+import { Heading, Stack, Text, LoadState } from '@rivr/ui';
 
 function line(departure: EarlyDeparture): string {
   return t('console.members.earlyDeparture', {
@@ -10,7 +10,7 @@ function line(departure: EarlyDeparture): string {
 
 function Body({ list }: { list: ReturnType<typeof useMemberEarlyDepartures> }) {
   if (list.isError) return <Text tone="muted">{t('common.loadFailed')}</Text>;
-  if (list.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (list.data === undefined) return <LoadState />;
   if (list.data.length === 0) return <Text tone="muted">{t('console.members.noEarlyDepartures')}</Text>;
   return <Stack gap={2} divided>{list.data.map((departure) => <Text key={departure.earlyDepartureId}>{line(departure)}</Text>)}</Stack>;
 }

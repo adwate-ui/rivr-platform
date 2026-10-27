@@ -1,6 +1,6 @@
 import { isMemberQuery, useMemberSearch, type MemberRow } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Input, Stack, Switch, Text, TextArea } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Input, Stack, Switch, Text, TextArea, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The full archive: KYC photos only with a written reason of ten characters or more. */
@@ -33,7 +33,7 @@ export function FullArchiveForm({ isRunning, onMake }: { isRunning: boolean; onM
 function MemberChoices({ query, isRunning, onExport, venueId }: { query: string; isRunning: boolean; onExport: (member: MemberRow) => void; venueId: string }) {
   const found = useMemberSearch(venueId, query);
   if (!isMemberQuery(query)) return null;
-  if (found.isPending) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (found.isPending) return <LoadState />;
   if (found.isError) return <ErrorMessage>{t('console.exportArchiveFailures.unavailable')}</ErrorMessage>;
   if (found.data.length === 0) return <Text tone="muted">{t('console.exportArchive.memberNone')}</Text>;
   return (

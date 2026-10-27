@@ -1,6 +1,6 @@
 import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { formatDate, formatStakes, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Text, LoadState } from '@rivr/ui';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
 import { ChangePhone } from './ChangePhone.tsx';
 import { EraseMember } from './EraseMember.tsx';
@@ -76,7 +76,7 @@ export function MemberRecordPanel({ venueId, memberId, can }: { venueId: string;
       </Stack>
     );
   }
-  if (record.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (record.data === undefined) return <LoadState />;
   if (record.data === null) return <ErrorMessage>{t('console.members.failures.noMember')}</ErrorMessage>;
   return <Record venueId={venueId} record={record.data} can={can} />;
 }
