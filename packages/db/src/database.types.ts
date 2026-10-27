@@ -3808,6 +3808,11 @@ isOneToOne: false
               "marketing_opted_in_at": string,"phone": string
             }[]
                            },
+"onboarding_checklists":
+{ Args: { "p_venue_id": string }; Returns: {
+              "acknowledged_at": string,"sop_id": string,"staff_id": string,"title": string,"version": number,"version_id": string
+            }[]
+                           },
 "open_cage_shift":
 { Args: { "p_counts": Json,"p_float_paise": number,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
                            },

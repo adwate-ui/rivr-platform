@@ -54,4 +54,15 @@ export const staff = {
   jobTitleSaved: 'Job title saved.',
   changed: 'That did not save. Check the details and try again.',
   unavailable: 'That did not go through. Check the connection and try again.',
+  /** A hire's onboarding checklist (#107): each SOP in force that asks their role, ticked once they acknowledge that version. */
+  onboarding: {
+    progress: 'Onboarding: {count} of {total} SOPs acknowledged.',
+    none: 'No SOP in force asks this role.',
+    show: 'Onboarding checklist for {name}',
+    hide: 'Hide onboarding checklist for {name}',
+    sop: 'SOP',
+    version: 'Version',
+    acknowledged: 'Acknowledged',
+    notYet: 'Not yet',
+  },
 };
