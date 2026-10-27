@@ -8,6 +8,8 @@ export const memberRewards = {
   /** Someone signed in who is not a member. */
   notMember: 'Rewards are for members.',
   points: 'Points',
+  /** Hotel nights earned by the hours played (#146), shown as `1.25`. */
+  nights: 'Hotel nights',
   /** The member's tier, beside their points: `Member`, `Black card`. */
   tier: 'Your tier: {tier}',
   catalogue: 'Catalogue',
@@ -24,6 +26,9 @@ export const memberRewards = {
   /** A reward's price: `4,000 points`. */
   price: '{points} points',
   onePoint: '1 point',
+  /** A hotel night's price: `2 nights`. */
+  nightsPrice: '{nights} nights',
+  oneNight: '1 night',
   /** How many are left, and where to collect it: `42 left · At the host desk`. */
   leftLine: '{count} left · {detail}',
   redeem: 'Redeem',
@@ -43,14 +48,15 @@ export const memberRewards = {
     not_on_offer: 'That reward is no longer on offer, or none are left.',
     price_changed: 'The price changed. The catalogue now shows it.',
     not_enough_points: 'You do not have enough points for that yet.',
+    not_enough_nights: 'You do not have enough hotel nights for that yet.',
     stopped: 'Your account is paused. Please speak to the front desk.',
     paused: 'The club is paused. Please try again later.',
     unavailable: 'That did not go through. Check your connection and try again.',
   },
   yourRedemptions: 'Your redemptions',
   noRedemptions: 'Nothing redeemed yet.',
-  /** A redemption: `RIVR hoodie · 4,000 points`. */
-  redemptionLine: '{name} · {points} points',
+  /** A redemption and its price: `RIVR hoodie · 4,000 points`, `Partner hotel · 2 nights`. */
+  redemptionLine: '{name} · {price}',
   /** Still to collect: where. */
   waiting: 'To collect: {detail}',
   /** Handed over, and when: `Collected 15 Nov`. */

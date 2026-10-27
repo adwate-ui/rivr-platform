@@ -5,14 +5,18 @@ import { useRivrData } from './provider.tsx';
 import type { LeagueBoardRow } from './league.ts';
 import { queryKeys } from './queryKeys.ts';
 
-/** A reward in the catalogue (#145, decision 0181): its price in points and, if limited, how many are left (null for no limit). */
+/**
+ * A reward in the catalogue (#145, decision 0181): its price, in points or, for a hotel night, whole nights (#146,
+ * decision 0246; the other is null), and, if limited, how many are left (null for no limit).
+ */
 export interface RewardItem {
   readonly id: string;
   readonly kind: RewardKind;
   readonly name: string;
   /** Where and how the member collects it: "At the host desk". */
   readonly detail: string;
-  readonly points: bigint;
+  readonly points: bigint | null;
+  readonly nights: number | null;
   readonly stock: number | null;
   readonly isLive: boolean;
 }
@@ -26,7 +30,9 @@ export interface RewardItemOrder {
   readonly kind: RewardKind;
   readonly name: string;
   readonly detail: string;
-  readonly points: number;
+  /** Its price: points, or for a hotel night whole nights; the other is null. */
+  readonly points: number | null;
+  readonly nights: number | null;
   readonly stock: number | null;
   readonly stockWas: number | null;
   readonly isLive: boolean;
@@ -40,7 +46,9 @@ export interface Redemption {
   readonly memberNumber: number;
   readonly rewardName: string;
   readonly kind: RewardKind;
-  readonly points: bigint;
+  /** What it took: points, or for a hotel night whole nights; the other is null. */
+  readonly points: bigint | null;
+  readonly nights: number | null;
   readonly createdAt: string;
   readonly handedOverAt: string | null;
   readonly handedOverBy: string | null;
@@ -49,15 +57,15 @@ export interface Redemption {
 /**
  * Why a rewards action did not go through: the role does not allow it, a value out of bounds, the stock
  * changed since the editor saw it, handed over already, the reward not on offer or none left, its price
- * changed since the member saw it, not enough points, the member or the venue frozen, or anything else.
+ * changed since the member saw it, not enough points or nights, the member or the venue frozen, or anything else.
  */
 export type RewardFailure =
-  | 'not_allowed' | 'invalid' | 'stock_changed' | 'handed_over' | 'not_on_offer' | 'price_changed' | 'not_enough_points' | 'stopped' | 'paused'
-  | 'unavailable';
+  | 'not_allowed' | 'invalid' | 'stock_changed' | 'handed_over' | 'not_on_offer' | 'price_changed' | 'not_enough_points' | 'not_enough_nights'
+  | 'stopped' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVCHG: 'stock_changed', RVHND: 'handed_over', RVRWD: 'not_on_offer', RVPRC: 'price_changed',
-  RVPTS: 'not_enough_points', RVMBR: 'stopped', RVFRZ: 'paused',
+  RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
 // The console's list of redemptions asks again every half minute: members redeem from the app at any time.
@@ -68,13 +76,17 @@ interface RewardItemRow {
   kind: string;
   name: string;
   detail: string;
-  points: number;
+  points: number | null;
+  nights: number | null;
   stock: number | null;
   is_live: boolean;
 }
 
-function rewardItemOf(row: RewardItemRow): RewardItem {
-  return { id: row.id, kind: rewardKindOf(row.kind), name: row.name, detail: row.detail, points: BigInt(row.points), stock: row.stock, isLive: row.is_live };
+export function rewardItemOf(row: RewardItemRow): RewardItem {
+  return {
+    id: row.id, kind: rewardKindOf(row.kind), name: row.name, detail: row.detail, points: row.points === null ? null : BigInt(row.points), nights: row.nights,
+    stock: row.stock, isLive: row.is_live,
+  };
 }
 
 /** A venue's catalogue as the console keeps it (rewards.manage or rewards.hand_over): live first, cheapest first. */
@@ -84,7 +96,7 @@ export function useRewardItems(venueId: string) {
     queryKey: queryKeys.rewardItems(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<RewardItem[]> => {
-      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, stock, is_live')
+      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, nights, stock, is_live')
         .eq('venue_id', venueId).order('is_live', { ascending: false }).order('points').order('name');
       if (error) throw error;
       return data.map(rewardItemOf);
@@ -98,10 +110,11 @@ export function useSaveRewardItem(venueId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (order: RewardItemOrder): Promise<Result<string, RewardFailure>> => {
-      // A new reward sends no id, and one with no limit no stock: the database reads either left out as none.
+      // A new reward sends no id, one with no limit no stock, and each price only its own unit: the database reads one left out as none.
       const { data, error } = await client.rpc('save_reward_item', {
-        p_venue_id: venueId, p_kind: order.kind, p_name: order.name.trim(), p_detail: order.detail.trim(), p_points: order.points,
-        p_is_live: order.isLive, ...(order.itemId === null ? {} : { p_item_id: order.itemId }), ...(order.stock === null ? {} : { p_stock: order.stock }),
+        p_venue_id: venueId, p_kind: order.kind, p_name: order.name.trim(), p_detail: order.detail.trim(), p_is_live: order.isLive,
+        ...(order.points === null ? {} : { p_points: order.points }), ...(order.nights === null ? {} : { p_nights: order.nights }),
+        ...(order.itemId === null ? {} : { p_item_id: order.itemId }), ...(order.stock === null ? {} : { p_stock: order.stock }),
         ...(order.stockWas === null ? {} : { p_stock_was: order.stockWas }),
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.rewardItems(userId ?? 'signed-out', venueId) });
@@ -122,7 +135,8 @@ export function useVenueRedemptions(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         id: row.id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, rewardName: row.reward_name,
-        kind: rewardKindOf(row.kind), points: BigInt(row.points), createdAt: row.created_at, handedOverAt: row.handed_over_at, handedOverBy: row.handed_over_by,
+        kind: rewardKindOf(row.kind), points: row.points === null ? null : BigInt(row.points), nights: row.nights, createdAt: row.created_at,
+        handedOverAt: row.handed_over_at, handedOverBy: row.handed_over_by,
       }));
     },
   });
