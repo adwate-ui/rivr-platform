@@ -1,4 +1,4 @@
-import { useControlState, useIsPublicVenue, useMyTvScreen, useTvSignals, useTvTournamentClock } from '@rivr/db';
+import { useControlState, useIsPublicVenue, useMyTvScreen, useTvSignals, useTvTournamentClock, type MyTvScreen } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
 import { DisplayShell, Heading, KillSwitchBanner, Stack, StreamOverlay, Text } from '@rivr/ui';
 import { useDelayedTournament, type DelayedTournament } from '../hooks/useDelayedTournament.ts';
@@ -34,6 +34,16 @@ function SetupPage({ message }: { message: string }) {
   );
 }
 
+/**
+ * What is wrong with a paired overlay's setup, or null: at the practice venue, or given another mode than the
+ * tournament clock (#559), said at once, listening on so the clock shows as soon as it is chosen.
+ */
+function setupOf(isPublic: boolean | undefined, screen: MyTvScreen | null | undefined) {
+  if (isPublic === false) return <SetupPage message={t('display.overlay.practice')} />;
+  if (!screen || screen.mode === 'tournament_clock') return null;
+  return <><Signals venueId={screen.venueId} /><SetupPage message={t('display.overlay.notClock')} /></>;
+}
+
 /** Why the stream shows no clock, for a screen reader only; undefined while it shows one. */
 function statusOf(isRead: boolean, isError: boolean, shown: DelayedTournament | undefined, delaySeconds: number): string | undefined {
   if (!isRead) return t(isError ? 'display.screen.unavailable' : 'common.loading');
@@ -43,7 +53,8 @@ function statusOf(isRead: boolean, isError: boolean, shown: DelayedTournament | 
 
 /**
  * The clock as it was `delaySeconds` ago; with nothing to show, why, for a screen reader only. Paired
- * at the practice venue, which never reaches anyone outside the club, it shows no clock and says so.
+ * at the practice venue, which never reaches anyone outside the club, or given another mode than the
+ * tournament clock (#559), it shows no clock and says so.
  */
 function DelayedClock({ delaySeconds }: { delaySeconds: number }) {
   const screen = useMyTvScreen();
@@ -51,7 +62,8 @@ function DelayedClock({ delaySeconds }: { delaySeconds: number }) {
   const clock = useTvTournamentClock();
   const { isVenueFrozen } = useControlState();
   const shown = useDelayedTournament(clock.data, clock.dataUpdatedAt, delaySeconds);
-  if (isPublic === false) return <SetupPage message={t('display.overlay.practice')} />;
+  const setup = setupOf(isPublic, screen.data);
+  if (setup !== null) return setup;
   const statusText = statusOf(clock.data !== undefined && isPublic !== undefined, clock.isError, shown, delaySeconds);
   return (
     <>

@@ -1,10 +1,12 @@
 /**
  * The final-table stream's overlay (#125, decision 0256). Neha Batra, this flow's own floor manager,
  * makes a tournament from the RIVR Sunday template and starts its clock. The overlay opens as OBS opens
- * it, at /overlay?delay=20, and is paired as a TV on the tournament clock. Its page is transparent, and
+ * it, at /overlay?delay=20, and is paired as a TV: until it is given the tournament clock it says so at once
+ * (#559), then its page is transparent, and
  * it shows nothing until what it heard is 20 seconds old, then level 1. She moves the clock to level 2;
  * a TV would follow within seconds, but the overlay stays on level 1 for the delay, then moves. The
- * overlay is unpaired, and shows no pairing code on the stream, and the tournament is removed. The delay itself is proved in
+ * overlay is unpaired, and shows no pairing code on the stream, and the tournament is removed. Another overlay paired
+ * at the practice venue shows no clock and says so (#559). The delay itself is proved in
  * apps/display's useDelayedTournament.test.ts.
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
@@ -40,6 +42,8 @@ async function openAndPair(overlay: Page, floor: Page, tvName: string) {
   await floor.getByRole('textbox', { name: 'TV name' }).fill(tvName);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
   await expect(floor.getByText(`${tvName} is paired. It shows its mode within a few seconds.`)).toBeVisible();
+  // Not yet on the tournament clock, it says so at once rather than staying blank through the delay (#559).
+  await expect(overlay.getByText(/^This overlay is paired, but not on the tournament clock\./)).toBeVisible({ timeout: 15_000 });
   const chip = floor.getByRole('group', { name: `What ${tvName} shows`, exact: true }).getByRole('button', { name: 'Tournament clock', exact: true });
   await chip.click();
   await expect(chip).toHaveAttribute('aria-pressed', 'true');
@@ -103,6 +107,38 @@ async function runFlow(browser: Browser, floor: Page, name: string) {
   expect(await background()).toBe('rgba(0, 0, 0, 0)');
 }
 
+/** Unpairs the flow's overlay on the console's TVs screen. */
+async function unpair(floor: Page, tvName: string) {
+  await floor.getByRole('link', { name: 'TVs' }).click();
+  await floor.getByRole('button', { name: `Unpair ${tvName}`, exact: true }).click();
+  await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
+  await floor.getByRole('button', { name: 'Unpair the TV' }).click();
+  await expect(floor.getByText(tvName, { exact: true })).toHaveCount(0);
+}
+
+/**
+ * The console turned to the practice venue pairs another overlay there: it shows no clock and says so (#559), and is
+ * unpaired again. On the same console page, as Auth sends one code a minute to a number.
+ */
+async function practiceOverlay(browser: Browser, floor: Page) {
+  const rail = floor.getByRole('complementary');
+  await rail.getByRole('switch', { name: 'Practice venue' }).click();
+  await expect(rail.getByText('RIVR Practice')).toBeVisible();
+  const overlay = await browser.newPage();
+  await overlay.setViewportSize(VIEWPORT.display);
+  await overlay.goto(`${appUrl('display')}/overlay?delay=${DELAY_SECONDS}`);
+  const shown = overlay.getByRole('heading', { level: 2, name: /^\d{6}$/ });
+  await expect(shown).toBeVisible();
+  const tvName = `Practice stream ${String(Date.now() % 100_000).padStart(5, '0')}`;
+  await floor.getByRole('link', { name: 'TVs' }).click();
+  await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
+  await floor.getByRole('textbox', { name: 'TV name' }).fill(tvName);
+  await floor.getByRole('button', { name: 'Pair the TV' }).click();
+  await expect(overlay.getByText(/^This overlay is paired at the practice venue, which never reaches a stream\./)).toBeVisible({ timeout: 15_000 });
+  await unpair(floor, tvName);
+  await rail.getByRole('switch', { name: 'Practice venue' }).click();
+}
+
 test.describe('Stream overlay', () => {
   test('Stream overlay: the tournament clock on a transparent page, held back by the hole-card delay', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'runs a tournament and pairs a TV, so the local stack only');
@@ -118,5 +154,6 @@ test.describe('Stream overlay', () => {
       throw failure;
     }
     await removeTournament(floor, name);
+    await practiceOverlay(browser, floor);
   });
 });

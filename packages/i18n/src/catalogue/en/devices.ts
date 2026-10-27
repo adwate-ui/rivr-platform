@@ -170,6 +170,8 @@ export const streamOverlay = {
   noDelay: 'This address has no hole-card delay. Add it in seconds, up to 3,600: /overlay?delay=900 holds the clock 15 minutes behind the table, and /overlay?delay=0 shows it live when OBS delays the whole stream.',
   /** The overlay was paired at the practice venue, which never reaches anyone outside the club. */
   practice: 'This overlay is paired at the practice venue, which never reaches a stream. Unpair it on the console, reload it in OBS, and pair it at the club.',
+  /** Paired, but given another mode than the tournament clock (#559): said at once, not after the delay. */
+  notClock: 'This overlay is paired, but not on the tournament clock. On the console\u2019s TVs screen, choose Tournament clock for it.',
   /** For a screen reader only, until the delay has passed since the overlay opened. `{seconds}` is the delay. */
   waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
 };
