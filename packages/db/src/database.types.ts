@@ -2179,6 +2179,38 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"referral": {
+                  Row: {
+                    "code": string,"completed_at": string,"created_at": string,"id": string,"member_id": string,"referrer_member_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"completed_at"?: string,"created_at"?: string,"id"?: string,"member_id": string,"referrer_member_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "code"?: string,"completed_at"?: string,"created_at"?: string,"id"?: string,"member_id"?: string,"referrer_member_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "referral_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "referral_referrer_member_id_venue_id_fkey"
+      columns: ["referrer_member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "referral_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"reward_item": {
                   Row: {
                     "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string
@@ -3991,6 +4023,11 @@ isOneToOne: false
 "my_redemptions":
 { Args: Record<PropertyKey, never>; Returns: {
               "created_at": string,"detail": string,"handed_over_at": string,"id": string,"kind": string,"nights": number,"points": number,"reward_name": string
+            }[]
+                           },
+"my_referral":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "code": string,"referred": number
             }[]
                            },
 "my_restrictions":

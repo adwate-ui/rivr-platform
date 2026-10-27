@@ -145,3 +145,24 @@ export function useMyLeague() {
     },
   });
 }
+
+/** The signed-in member's referral code, RIVR and their number, and how many they have referred (#151). */
+export interface MyReferral {
+  readonly code: string;
+  readonly referred: number;
+}
+
+/** The member's referral code for Rewards and their share card; null for someone who is not a member. */
+export function useMyReferral() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: ['user', userId ?? 'signed-out', 'my-referral'] as const,
+    enabled: userId !== null,
+    queryFn: async (): Promise<MyReferral | null> => {
+      const { data, error } = await client.rpc('my_referral');
+      if (error) throw error;
+      const [row] = data;
+      return row === undefined ? null : { code: row.code, referred: row.referred };
+    },
+  });
+}

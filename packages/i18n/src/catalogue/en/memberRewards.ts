@@ -40,6 +40,13 @@ export const memberRewards = {
   cancel: 'Cancel',
   /** After a redemption: where to collect it. */
   redeemed: 'Redeemed. Collect it: {detail}',
+  /** Refer a friend (#151): the code is RIVR and the member's number. */
+  referral: {
+    title: 'Refer a friend',
+    how: 'When a friend signs up with your code and first buys in, you both get a bonus.',
+    referredOne: 'You have referred 1 friend.',
+    referred: 'You have referred {count} friends.',
+  },
   failures: {
     not_allowed: 'The catalogue is not part of your tier.',
     invalid: 'That did not go through. Please try again.',
