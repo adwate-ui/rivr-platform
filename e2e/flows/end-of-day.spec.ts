@@ -6,6 +6,8 @@
  * shows it. After this, the Cage shift flow (open-shift.spec.ts) opens the practice cage's next shift, which
  * the Paper fallback flow then uses. A clean close, the figures the ledger expects and who sees what are
  * proved in supabase/tests/069. A local rerun needs `pnpm db:reset` first; CI always starts fresh.
+ * It shares the practice cage's one shift with open-shift.spec.ts and paper-fallback.spec.ts: the three carry the
+ * @practice-cage tag, and CI runs them together, in that order, on one runner (decision 0243).
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -27,7 +29,7 @@ async function countChips(page: Page) {
   }
 }
 
-test.describe('End of day', () => {
+test.describe('End of day', { tag: '@practice-cage' }, () => {
   test('End of day: Pooja closes the practice cage ₹500 short, an anomaly whose reason Rahul gives', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'closes the practice cage\'s shift, so the local stack only');
     test.setTimeout(120_000);

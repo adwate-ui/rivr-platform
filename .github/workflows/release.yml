@@ -19,6 +19,7 @@ concurrency:
 permissions:
   contents: read
   deployments: read
+  actions: read
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
@@ -39,6 +40,16 @@ jobs:
           fetch-depth: 0
       - name: The tagged commit is on main
         run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::Tag a commit that is on main."; exit 1; }
+      - name: The tagged commit passed CI on main, every mutation share included
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push" \
+            --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // "none"')"
+          if [ "$result" != success ]; then
+            echo "::error::CI on main for $GITHUB_SHA is $result. Tag a commit whose push to main passed CI."
+            exit 1
+          fi
       - name: Staging runs the tagged commit
         env:
           GH_TOKEN: ${{ github.token }}
