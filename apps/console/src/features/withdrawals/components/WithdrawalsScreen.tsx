@@ -1,6 +1,6 @@
 import { useStaffVenue, useWaitingWithdrawals } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack, Text } from '@rivr/ui';
+import { Screen, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { WithdrawalRow } from './WithdrawalRow.tsx';
 
@@ -29,7 +29,7 @@ function Withdrawals({ title, venueId, canDecide, canSecond }: { title: string; 
   return (
     <Screen title={title}>
       <Stack gap={6} divided>
-        {sentUtr === null ? null : <Text tone="money">{t('console.withdrawals.sent', { utr: sentUtr })}</Text>}
+        <StatusMessage>{sentUtr === null ? null : t('console.withdrawals.sent', { utr: sentUtr })}</StatusMessage>
         {waiting.data.length === 0 ? <Text tone="muted">{t('console.withdrawals.empty')}</Text> : null}
         {waiting.data.map((withdrawal) => (
           <WithdrawalRow key={withdrawal.withdrawalId} venueId={venueId} withdrawal={withdrawal} canDecide={canDecide} canSecond={canSecond} onSent={setSentUtr} />

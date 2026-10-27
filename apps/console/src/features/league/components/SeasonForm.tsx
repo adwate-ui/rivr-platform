@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { leagueSeasonSchema } from '@rivr/contracts';
 import { useSaveLeagueSeason, type LeagueSeason } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import type { z } from 'zod';
@@ -48,7 +48,7 @@ export function SeasonForm({ venueId, season, onDone }: { venueId: string; seaso
       <Inline gap={4} align="center">
         <Button variant="primary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.league.save')}</Button>
         {season === null ? null : <Button variant="text" onClick={onDone}>{t('console.league.cancel')}</Button>}
-        {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       </Inline>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>

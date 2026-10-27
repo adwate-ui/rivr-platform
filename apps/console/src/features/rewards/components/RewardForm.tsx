@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { REWARD_KINDS, rewardItemSchema } from '@rivr/contracts';
 import { useSaveRewardItem, type RewardItem, type RewardItemOrder } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -89,7 +89,7 @@ export function RewardForm({ venueId, item, onDone }: { venueId: string; item: R
       <Inline gap={4} align="center">
         <Button variant="primary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.rewards.save')}</Button>
         {item === null ? null : <Button variant="text" onClick={onDone}>{t('console.rewards.cancel')}</Button>}
-        {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       </Inline>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>

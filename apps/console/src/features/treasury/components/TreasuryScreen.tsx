@@ -1,6 +1,6 @@
 import { useChipInventory, useStaffVenue, useTreasury, type ChipInventory, type Treasury } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Heading, Inline, Money, Screen, Stack, Text } from '@rivr/ui';
+import { Grid, Heading, Inline, Money, Screen, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { OpenShiftForm } from './ChipCountForm.tsx';
 import { ChipsInCage } from './ChipsInCage.tsx';
@@ -33,7 +33,7 @@ function TreasuryView({ title, venueId, canCount }: { title: string; venueId: st
       <Grid columns={2} gap={8}>
         <Balances treasury={treasury.data} />
         <Stack gap={8}>
-          {notice === null ? null : <Text tone="money">{notice}</Text>}
+          <StatusMessage>{notice === null ? null : notice}</StatusMessage>
           <Shift venueId={venueId} treasury={treasury.data} inventory={chips.data} canCount={canCount} onOpened={() => setNotice(t('console.treasury.opened'))} />
           {treasury.data.shift === null ? null : (
             <ChipsInCage venueId={venueId} inventory={chips.data} canCount={canCount} onCounted={() => setNotice(t('console.treasury.saved'))} />

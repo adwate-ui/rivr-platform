@@ -3,7 +3,7 @@ import { paymentAccountSchema, transferSchema } from '@rivr/contracts/treasury';
 import { usePaymentAccountActions, type AccountFailure, type PaymentAccount } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -19,7 +19,7 @@ interface Outcome {
 
 function OutcomeLine({ outcome }: { outcome: Outcome }) {
   if (outcome.failure !== null) return <ErrorMessage>{t(ACCOUNT_FAILURE_COPY[outcome.failure])}</ErrorMessage>;
-  return outcome.done === null ? null : <Text tone="money">{outcome.done}</Text>;
+  return <StatusMessage>{outcome.done}</StatusMessage>;
 }
 
 /** The two accounts, the amount and a note. Any change is a new transfer, with a new request id. */

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerPinSchema } from '@rivr/contracts';
 import { useSetDealerPin, type DealerPinFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -34,7 +34,7 @@ export function PinForm({ venueId, staffId, name }: { venueId: string; staffId: 
           hint={t('console.dealerPins.pinHint')} error={form.formState.errors.pin ? t('console.dealerPins.invalid') : undefined} />
         <Button variant="secondary" isLoading={setPin.isPending} onClick={() => void submit()}>{t('console.dealerPins.save', { name })}</Button>
       </Inline>
-      {isSaved ? <Text variant="small">{t('console.dealerPins.saved', { name })}</Text> : null}
+      <StatusMessage>{isSaved ? t('console.dealerPins.saved', { name }) : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
