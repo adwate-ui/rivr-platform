@@ -22,6 +22,7 @@ export function MembersScreen() {
     seePhoto: permissions.includes('kyc.review') || permissions.includes('cage.transact'),
     override: permissions.includes('members.override_features'),
     erase: permissions.includes('members.erase'),
+    changePhone: permissions.includes('members.change_phone'),
   };
   return <Members title={title} venueId={venueId} can={can} />;
 }

@@ -40,14 +40,17 @@ jobs:
           fetch-depth: 0
       - name: The tagged commit is on main
         run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::Tag a commit that is on main."; exit 1; }
-      - name: The tagged commit passed CI on main, every mutation share included
+      # A push to main mutates nothing; the full run, every three hours or dispatched, mutates every money module
+      # (decision 0254).
+      - name: The tagged commit passed CI's full run on main, every mutation share included
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push" \
-            --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // "none"')"
+          result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA" \
+            --jq '[.workflow_runs[] | select(.status == "completed" and (.event == "schedule" or .event == "workflow_dispatch"))]
+                  | sort_by(.created_at) | last | .conclusion // "none"')"
           if [ "$result" != success ]; then
-            echo "::error::CI on main for $GITHUB_SHA is $result. Tag a commit whose push to main passed CI."
+            echo "::error::CI's full run on main for $GITHUB_SHA is $result. Run it (gh workflow run ci.yml --ref main) and tag the commit it passed at."
             exit 1
           fi
       - name: Staging runs the tagged commit

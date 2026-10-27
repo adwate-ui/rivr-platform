@@ -8,8 +8,8 @@
 # except the pull request that fixes main (--fixes-main). It stops if the head moves any other way (a push nobody
 # reviewed), on a failed or cancelled required check, on a conflict, or after two hours. Once merged it prints each CI
 # job's time (a job over 15 minutes is a cause to find before the next pull request), then waits for CI on main at the
-# merge and fails if it is not green: that run mutates every money module and catches whatever two pull requests break
-# together.
+# merge and fails if it is not green: that run catches whatever two pull requests break together. A newer commit's run
+# replaces it and tests this one too (decision 0254).
 #   scripts/github/land.sh <pr-number> [--fixes-main]
 set -euo pipefail
 
@@ -17,6 +17,17 @@ pr="${1:?pull request number}"
 fixes_main="${2:-}"
 [[ "$pr" =~ ^[0-9]+$ ]] || { echo "The pull request number must be digits." >&2; exit 1; }
 [ -z "$fixes_main" ] || [ "$fixes_main" = --fixes-main ] || { echo "The only option is --fixes-main." >&2; exit 1; }
+# Lands by main's rules, whatever branch this copy is on: a copy from before a change to them held merges main's would
+# make (a run a newer commit's replaced, read as main failing, 0254). Main's land.sh and the review poster it calls
+# run from a folder of their own.
+if [ -z "${RIVR_LAND_BY_MAIN:-}" ]; then
+  git fetch -q origin main
+  mains="$(mktemp -d)"
+  git show origin/main:scripts/github/land.sh > "$mains/land.sh"
+  git show origin/main:scripts/github/post-agent-review.sh > "$mains/post-agent-review.sh"
+  chmod +x "$mains/land.sh" "$mains/post-agent-review.sh"
+  RIVR_LAND_BY_MAIN=1 exec "$mains/land.sh" "$@"
+fi
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
 deadline=$(($(date +%s) + 2 * 3600))
@@ -42,8 +53,22 @@ checks_passed() {
   passed="$( (gh pr checks "$pr" --required 2>/dev/null || true) | awk -F'\t' '$2 == "pass" { print $1 }' | LC_ALL=C sort -u | paste -sd, -)"
   [ -n "$required" ] && [ "$passed" = "$required" ]
 }
-# The conclusion of the newest finished CI run on main; empty when it cannot be read.
-main_ci() { read_api "repos/$repo/actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=1" --jq '.workflow_runs[0].conclusion // empty'; }
+# The newest finished run on main of the events given, newest commit first; one a newer commit's run replaced says
+# nothing (decision 0254). A pull request's run never counts, a fork's from its own main included.
+newest_on_main() {
+  read_api "repos/$repo/actions/workflows/ci.yml/runs?branch=main&status=completed&per_page=50" \
+    --jq "[.workflow_runs[] | select(.conclusion != \"cancelled\" and ($1))][0].conclusion // empty"
+}
+# Main has passed: its newest push run, and its newest full run, the only one that mutates every money module. Empty
+# when GitHub cannot be read; until a full run has finished, the push run's alone.
+main_ci() {
+  local push full
+  push="$(newest_on_main '.event == "push"')"
+  full="$(newest_on_main '.event == "schedule" or .event == "workflow_dispatch"')"
+  if [ -z "$push" ] || [ "$push" != success ]; then echo "$push"; return; fi
+  if [ -n "$full" ] && [ "$full" != success ]; then echo "$full in the full run"; return; fi
+  echo success
+}
 # Whether the pull request and main, since the commit left it, both changed migrations or seed: 0 when they did, 1 when
 # not, 2 when GitHub could not be read. A comparison lists at most 300 files, so a full list counts as a clash.
 db_clash() {
@@ -107,8 +132,9 @@ while :; do
     exit 1
   fi
   behind="$(behind_main "$head")"
+  # Behind main, db_clash says: 0 a clash, 1 none, 2 GitHub unread. Its 0 must land in `clash` too, so it starts at 0.
   clash=1
-  if [ "${behind:-0}" -gt 0 ]; then db_clash "$head" || clash=$?; fi
+  if [ "${behind:-0}" -gt 0 ]; then clash=0; db_clash "$head" || clash=$?; fi
   if [ "$clash" = 2 ]; then sleep 30; continue; fi
   if [ "$clash" = 0 ]; then
     if ! gh api --method PUT "repos/$repo/pulls/$pr/update-branch" -f expected_head_sha="$head" >/dev/null 2>&1; then
@@ -139,18 +165,24 @@ gh pr view "$pr" --json statusCheckRollup \
     if [ "$minutes" -gt 15 ]; then echo "  over 15 minutes: find the cause before the next pull request"; fi
   done
 
-# Main's own run after the merge mutates every money module, which catches what a pull request's run cannot: a change
-# to one module's tests that moves another's score. A red main is fixed before anything else lands.
+# Main's own run after the merge catches what two pull requests break together, and the full run every three hours a
+# change to one module's tests that moves another's score (decision 0254). A red main is fixed before anything else
+# lands: a fix landed with --fixes-main starts the full run at once, so merges need not wait for the next one.
 main_deadline=$(($(date +%s) + 3600))
 until merge_sha="$(read_api "repos/$repo/pulls/$pr" --jq '.merge_commit_sha // empty')"; [ -n "$merge_sha" ]; do
   if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "#$pr merged, but its merge commit could not be read: check CI on main." >&2; exit 1; fi
   sleep 10
 done
+if [ -n "$fixes_main" ]; then
+  if gh workflow run ci.yml --ref main >/dev/null 2>&1; then echo "Started CI's full run on main."
+  else echo "Could not start CI's full run on main: start it (gh workflow run ci.yml --ref main), or merges wait for the next." >&2; fi
+fi
 echo "Waiting for CI on main at ${merge_sha:0:8}."
 until result="$(read_api "repos/$repo/actions/workflows/ci.yml/runs?head_sha=$merge_sha&event=push" \
   --jq '[.workflow_runs[] | select(.status == "completed")] | sort_by(.created_at) | last | .conclusion // empty')"; [ -n "$result" ]; do
   if [ "$(date +%s)" -ge "$main_deadline" ]; then echo "CI on main at ${merge_sha:0:8} has not finished in an hour: look at it." >&2; exit 1; fi
   sleep 60
 done
+if [ "$result" = cancelled ]; then echo "CI on main at ${merge_sha:0:8} gave way to a newer commit's run, which tests it too."; exit 0; fi
 if [ "$result" != success ]; then echo "#$pr merged, but CI on main at ${merge_sha:0:8} is $result: fix main before anything else lands." >&2; exit 1; fi
 echo "CI on main passed at ${merge_sha:0:8}."

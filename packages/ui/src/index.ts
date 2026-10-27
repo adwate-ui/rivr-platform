@@ -18,6 +18,7 @@ export * from './Screen/index.ts';
 // Type
 export * from './Text/index.ts';
 export * from './Heading/index.ts';
+export * from './HistoryRow/index.ts';
 export * from './Label/index.ts';
 export * from './Money/index.ts';
 export * from './Number/index.ts';
