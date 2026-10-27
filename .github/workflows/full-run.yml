@@ -1,0 +1,28 @@
+# Starts CI's full run on main every three hours (decision 0254): everything, the mutation of every money module
+# included. Only when main's newest commit has not passed one or got one going, so a quiet night costs no runners.
+name: Full run
+
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  start:
+    name: start the full run
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: CI's full run on main's newest commit, unless it has one passed or going
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          have="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=workflow_dispatch" \
+            --jq '[.workflow_runs[] | select(.status != "completed" or .conclusion == "success")] | length')"
+          if [ "$have" -gt 0 ]; then echo "Main at ${sha:0:8} has its full run already."; exit 0; fi
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Started CI's full run on main at ${sha:0:8}."

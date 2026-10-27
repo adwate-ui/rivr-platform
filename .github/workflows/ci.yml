@@ -3,18 +3,20 @@
 # a pull request is brought up to date with main only for a database clash (decision 0253). A new or split job goes
 # into ci-ok's `needs`, never into branch protection. Each timeout is near twice the job's usual time, so a hang fails
 # fast. CI restores no build cache: a green run is a result from scratch.
+# Main's runs (decision 0254): a push runs everything but mutation, and a newer commit's run replaces an older one, since
+# it tests that commit too. The full run, dispatched every three hours (full-run.yml) or before a release, adds the
+# mutation of every money module and is never cancelled: a release needs it green at the tagged commit (release.yml).
 name: CI
 
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
-  # A new push to a pull request replaces its run; each push to main has a run of its own, never cancelled, so a
-  # release can require that its commit passed (release.yml).
-  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.event_name == 'push' && 'main' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
 
 permissions:
   contents: read
@@ -72,7 +74,7 @@ jobs:
           path: packages/ui/visual/test-results/
           if-no-files-found: ignore
 
-  # Mutation tests (decision 0242): on a pull request the money modules it changes, on a push to main every one.
+  # Mutation tests (decision 0242): on a pull request the money modules it changes, in the full run every one (0254).
   # Their files are shared six ways, balanced by size, so no runner carries them all (#515); mutation-score then
   # checks each module over every share's report.
   # Whether this run has any money file to mutate (verify.mjs mutation-plan): a pull request that changes none starts
@@ -82,12 +84,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      mutate: ${{ steps.plan.outputs.mutate }}
+      mutate: ${{ steps.plan.outputs.mutate || 'false' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+      # A push to main mutates nothing: its full run does (decision 0254).
       - id: plan
+        if: github.event_name != 'push'
         run: node scripts/verify.mjs mutation-plan
         env:
           MUTATION_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
