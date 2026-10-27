@@ -138,6 +138,7 @@ reset role;
 
 -- TDS switched on, withheld above ₹5,000. A progressive knockout: ₹5,000 with a ₹500 fee and ₹1,000 on each head.
 reset role;
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
         '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 500000, "basis": "financial_year", "pan_required": true, "no_pan_rate_basis_points": 3000}',

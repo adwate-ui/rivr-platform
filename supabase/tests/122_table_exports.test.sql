@@ -32,6 +32,8 @@ reset role;
 select results_eq($$ select detail from public.alert where kind = 'export.large' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
   $$ values ('{"what": "Pot data", "format": "xlsx", "rows": 1000}'::jsonb) $$, 'and alerts the owner, with no personal data');
 
+-- Set by the database: only a super admin changes it from the console (#112).
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'exports.alert_rows', '', '{"rows": 10}', now() - interval '1 minute', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

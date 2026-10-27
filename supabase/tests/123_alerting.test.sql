@@ -23,6 +23,8 @@ select ok(has_function_privilege('service_role', 'public.alert_recipient(uuid, u
 select is((select detail from public.alert where id = (select club from raised)), '{"close_id": "x"}'::jsonb, 'a free-text reason stays out of an alert');
 select ok(exists (select 1 from public.outbox_event where event_type = 'alert.raised' and payload ->> 'alert_id' = (select club from raised)::text),
   'and the alert is raised for the owner''s WhatsApp');
+-- Codes went out within the hour, so the limit can be used up (#112).
+insert into private.sign_in_code_send (phone_hash, sent_at) values ('a number', now()) on conflict (phone_hash) do update set sent_at = now();
 select private.raise_sms_limit_alert();
 select ok(exists (select 1 from public.outbox_event e join public.alert a on a.id::text = e.payload ->> 'alert_id'
                   where e.event_type = 'alert.raised' and a.kind = 'auth.sms_rate_limit'), 'the sign-in code limit''s alert reaches WhatsApp too');

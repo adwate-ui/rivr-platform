@@ -12,6 +12,10 @@
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
+# The restore runs only in a drill or a disaster, so check here that every backup script still parses. An
+# apostrophe inside "${...:?...}" is read as a quote: restore.sh stopped parsing that way and the drill found it (#112).
+for script in scripts/backup/*.sh; do bash -n "$script"; done
+if grep -nE "[$][{][A-Za-z_][A-Za-z0-9_]*:[-?=+][^}]*'" scripts/backup/*.sh; then echo "An apostrophe inside \${...:?...} above: reword it"; exit 1; fi
 status="$(pnpm -s supabase status -o env)"
 setting() { sed -n "s/^$1=\"\(.*\)\"$/\1/p" <<<"$status"; }
 admin_url="$(setting DB_URL)"

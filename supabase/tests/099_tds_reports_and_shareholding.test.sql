@@ -30,6 +30,7 @@ select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000
 select isnt((select to_member_paise from public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
   5000000, 'cash', gen_random_uuid(), false)), null, 'and cashes out ₹50,000 while TDS is off');
 reset role;
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
         '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "session", "pan_required": true, "no_pan_rate_basis_points": 3000}',

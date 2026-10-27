@@ -51,6 +51,7 @@ select is(pg_temp.balance('venue.cash_drawer') - (select paise from held where n
 
 -- Switched on, per session: a ₹20,000 cash-out makes ₹60,000 won this visit, owing ₹18,000. The ₹12,000
 -- of shadow already counts, so ₹6,000 is withheld: Ishaan gets ₹14,000 and the ledger holds ₹6,000 for the government.
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
         '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "session", "pan_required": true, "no_pan_rate_basis_points": 3000}',
@@ -106,6 +107,7 @@ select is(private.tds_period_start('00000000-0000-4000-8000-000000000001', '0000
 -- Where a PAN is required and the member has none, the no-PAN rate: 40% of Arjun's ₹70,000 won this visit is ₹28,000,
 -- of which his ₹50,000 cash-out can bear the ₹20,000 left after his ₹30,000 of markers. The cashier is told so.
 reset role;
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
         '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "session", "pan_required": true, "no_pan_rate_basis_points": 4000}',
@@ -122,6 +124,7 @@ select results_eq($$ select has_pan, rate_basis_points, winnings_paise, due_pais
 -- On the day basis, a visit that began before midnight counts whole: Ishaan's ₹10,000 bought at 23:30 is money in,
 -- so ₹70,000 won owes ₹21,000, and with ₹18,000 recorded this visit his ₹10,000 cash-out bears ₹3,000.
 reset role;
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
         '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "day", "pan_required": true, "no_pan_rate_basis_points": 3000}',

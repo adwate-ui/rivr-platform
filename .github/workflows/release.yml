@@ -97,6 +97,10 @@ jobs:
         env:
           ORIGINS: ${{ vars.PROD_TABLET_URL }},${{ vars.PROD_DISPLAY_URL }}
         run: pnpm supabase secrets set "DEVICE_APP_ORIGINS=$ORIGINS" --project-ref "$PROJECT_REF"
+      # Production never talks to Cashfree's sandbox, even with staging's TEST keys copied over by mistake: the live
+      # system refuses those keys, so KYC and payouts stay closed instead of taking sandbox answers (#112).
+      - name: Cashfree's live system on production (#112)
+        run: pnpm supabase secrets set "CASHFREE_ENVIRONMENT=production" --project-ref "$PROJECT_REF"
       - name: Auth settings (sessions only from a code, #187)
         run: node scripts/ci/check-auth-config.mjs
 
