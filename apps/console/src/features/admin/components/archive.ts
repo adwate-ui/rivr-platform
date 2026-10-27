@@ -69,7 +69,8 @@ async function readTables(source: ArchiveSource, plan: ArchivePlan, withPhotos: 
   for (const [index, table] of plan.tables.entries()) {
     onProgress({ step: 'table', name: table.name, done: index + 1, of: plan.tables.length });
     const rows = await readTable(source, plan.archiveId, table);
-    files[`tables/${table.name}.csv`] = archiveCsv(table.columns, rows);
+    // A member's staff notes (`staff-notes/<table>`, #498) sit in their own folder, apart from the tables.
+    files[table.name.startsWith('staff-notes/') ? `${table.name}.csv` : `tables/${table.name}.csv`] = archiveCsv(table.columns, rows);
     counts[table.name] = rows.length;
     if (withPhotos) paths.push(...photoPaths(table, rows));
   }
@@ -95,6 +96,10 @@ function manifestOf(request: ArchiveRequest, counts: Readonly<Record<string, num
     member_id: request.memberId,
     made_at: request.madeAt.toISOString(),
     format: 'One CSV per table in tables/, quoted as PostgreSQL\'s COPY writes CSV: a header row, cells quoted only when they must be, an empty unquoted cell for null. Each value as the database casts it to text: true and false in full, times in UTC. Secrets (hashes, KYC keys) are left out.',
+    // A member's export (#498, decision 0240): what staff wrote about the member is apart, for the owner to decide on.
+    ...(request.memberId === null ? {} : {
+      staff_notes: 'staff-notes/ holds what staff wrote about this member (freeze, override, KYC review and credit reasons, face-match scores), each row by its id. It is for the owner: remove it before sending the archive to the member unless the owner decides otherwise.',
+    }),
     tables: counts,
     kyc_photos: photos,
     kyc_photos_unread: unread,
@@ -117,6 +122,8 @@ export async function makeArchive(source: ArchiveSource, request: ArchiveRequest
   files['manifest.json'] = manifestOf(request, counts, paths.length - unread.length, unread);
   onProgress({ step: 'locking' });
   const file = await lockTo(zipStored(files), plan.recipient);
-  const rows = Object.values(counts).reduce((total, count) => total + count, 0);
-  return { file, tables: plan.tables.length, rows, photos: paths.length - unread.length, unread };
+  // A staff-notes entry is rows of a table already counted (#498).
+  const rows = Object.entries(counts).filter(([name]) => !name.startsWith('staff-notes/')).reduce((total, [, count]) => total + count, 0);
+  const tables = plan.tables.filter((table) => !table.name.startsWith('staff-notes/')).length;
+  return { file, tables, rows, photos: paths.length - unread.length, unread };
 }
