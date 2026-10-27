@@ -23,4 +23,4 @@ The repository belongs to a personal account, so GitHub's merge queue is not ava
   - The money modules are the folders `stryker.config.mjs` mutates: one list. Before this, `ledger`, `points`, `league` and `tally` were never mutated in CI.
   - A PR mutates only the modules it changes. A changed module's tests also kill the mutants of modules it imports, nearly always `money`, so a change can move `money`'s score. Mutating `money` on every such PR took longer than the rest of CI together. That effect is caught by the push to main, which mutates every module and must be green before a release.
   - A change to the testing helpers mutates them all.
-- **Every main commit is checked.** Each push to main has a CI run of its own, never cancelled. `release.yml` refuses a tag whose commit's push run on main did not succeed.
+- **Every main commit is checked.** Each push to main has a CI run of its own, never cancelled (since 0254, a newer commit's run replaces an older one, and every module is mutated in the full run every three hours). `release.yml` refuses a tag whose commit's push run on main did not succeed.
