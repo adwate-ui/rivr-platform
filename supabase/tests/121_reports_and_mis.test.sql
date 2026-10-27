@@ -139,5 +139,49 @@ select is_empty($$ select 1 from public.mis_report where venue_id = '00000000-00
 select pg_temp.as_person('00000000-0000-4000-8000-000000000190');
 select is_empty($$ select 1 from public.mis_report $$, 'and the front desk sees none');
 
+-- Promotion cost and cohort retention (#111; decision 0235). A promotion capped at ₹1,000 gives ₹500 on 10 February,
+-- ₹300 on 25 January and ₹200 on 1 March (March's); another gives only in January. Devansh (296), Vihaan (212) and
+-- Ritika (215) first visit in January. Devansh comes back at 05:00 on 1 March, still February's club month; Vihaan at
+-- 07:00 on 1 February, February's too; Ritika does not: two of three, 66%. 216's first visit, in August 2025, is older
+-- than the six months. Kavya's first visit is February's.
+reset role;
+create temporary table promo as
+  select p.id, p.name, r.id as rule_id, r.trigger from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
+  where p.venue_id = '00000000-0000-4000-8000-000000000001' order by p.created_at, p.id, r.id limit 1;
+create temporary table other_promo as
+  select p.id, r.id as rule_id, r.trigger from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
+  where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.id <> (select id from promo) order by p.created_at, p.id, r.id limit 1;
+insert into public.promotion_budget (venue_id, promotion_id, cap_paise)
+select '00000000-0000-4000-8000-000000000001', id, 100000 from promo
+on conflict (promotion_id) do update set cap_paise = excluded.cap_paise, cap_count = null;
+insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, points, source_key, club_day)
+select '00000000-0000-4000-8000-000000000001'::uuid, p.id, p.rule_id, '00000000-0000-4000-8000-000000000290'::uuid, p.trigger, '{}'::jsonb, g.cost, 0,
+       g.source_key, g.club_day
+from promo p, (values (50000::bigint, 'mis-test:feb', '2026-02-10'::date), (30000, 'mis-test:jan', '2026-01-25'), (20000, 'mis-test:mar', '2026-03-01'))
+  as g (cost, source_key, club_day)
+union all
+select '00000000-0000-4000-8000-000000000001'::uuid, o.id, o.rule_id, '00000000-0000-4000-8000-000000000290'::uuid, o.trigger, '{}'::jsonb, 40000::bigint,
+       0, 'mis-test:other', '2026-01-15'::date
+from other_promo o;
+insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', '2026-01-10T20:00:00+05:30', '2026-01-11T01:00:00+05:30', 'door'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', '2026-03-01T05:00:00+05:30', '2026-03-01T05:30:00+05:30', 'door'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', '2026-01-20T20:00:00+05:30', '2026-01-21T01:00:00+05:30', 'door'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', '2026-02-01T07:00:00+05:30', '2026-02-01T09:00:00+05:30', 'door'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000215', '2026-01-25T20:00:00+05:30', '2026-01-26T01:00:00+05:30', 'door'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', '2025-08-20T20:00:00+05:30', '2025-08-21T01:00:00+05:30', 'door'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', '2026-02-20T20:00:00+05:30', '2026-02-21T01:00:00+05:30', 'door');
+create temporary table february_now as select private.mis_for('00000000-0000-4000-8000-000000000001', '2026-02-01') as report;
+select results_eq($$ select r ->> 'id', r ->> 'name', (r ->> 'grants')::integer, (r ->> 'cost_paise')::bigint, (r ->> 'cost_to_date_paise')::bigint,
+                            (r ->> 'budget_paise')::bigint, r -> 'budget_grants'
+                     from february_now, jsonb_array_elements(report -> 'promotions') r $$,
+  $$ select id::text, name, 1, 50000::bigint, 80000::bigint, 100000::bigint, 'null'::jsonb from promo $$,
+  'promotion cost: one grant of ₹500 in February, ₹800 to its end (not March''s ₹200), against its ₹1,000 cap; the January-only promotion is not this month''s');
+select results_eq($$ select r ->> 'month', (r ->> 'members')::integer, r -> 'months' from february_now, jsonb_array_elements(report -> 'cohorts') r $$,
+  $$ values ('2026-02-01'::text, 1, '[{"month": "2026-02-01", "percent": 100, "returned": 1}]'::jsonb),
+            ('2026-01-01', 3, '[{"month": "2026-01-01", "percent": 100, "returned": 3}, {"month": "2026-02-01", "percent": 66, "returned": 2}]') $$,
+  'cohorts by month of first visit: February''s Kavya; January''s three, two back in February (66%, rounded down), one at 05:00 on 1 March and one at 07:00 on 1 February; August''s is too old');
+select is((select report -> 'promotions' from february), '[]'::jsonb, 'the February read before the grants had no promotion cost');
+
 select * from finish();
 rollback;

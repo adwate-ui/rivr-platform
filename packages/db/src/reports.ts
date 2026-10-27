@@ -37,6 +37,31 @@ export interface AccountLine {
   readonly amount: Paise;
 }
 
+/** A promotion's cost in a club month (#111): its grants and cost then, its cost to the month's end, and its budget: a cap in rupees, on grants, or null for none. */
+export interface PromotionCost {
+  readonly id: string;
+  readonly name: string;
+  readonly grants: number;
+  readonly cost: Paise;
+  readonly costToDate: Paise;
+  readonly budget: Paise | null;
+  readonly budgetGrants: number | null;
+}
+
+/** One month of a cohort: how many of its members visited, and what share of them, in whole percent rounded down (the database's). */
+export interface CohortMonth {
+  readonly month: string;
+  readonly returned: number;
+  readonly percent: number;
+}
+
+/** The members whose first visit fell in a club month (#111), and how many came back each month from then. */
+export interface Cohort {
+  readonly month: string;
+  readonly members: number;
+  readonly months: readonly CohortMonth[];
+}
+
 /** A club month's investor MIS (#99): stored on the 1st, or the month so far as a preview. */
 export interface MisReport extends RakeBreakdown {
   /** The month's first day, `2026-11-01`. */
@@ -51,6 +76,8 @@ export interface MisReport extends RakeBreakdown {
   readonly net: Paise;
   readonly visits: number;
   readonly members: number;
+  readonly promotions: readonly PromotionCost[];
+  readonly cohorts: readonly Cohort[];
   /** When it was stored, or null for a preview. */
   readonly generatedAt: string | null;
   readonly isPreview: boolean;
@@ -67,13 +94,21 @@ interface RakeRowJson {
 const rakeRow = (row: RakeRowJson): RakeRow => ({ key: row.key, label: row.label, hands: row.hands, rake: toPaise(row.rake_paise), drop: toPaise(row.drop_paise) });
 const accountLine = (row: MisReportJson['revenue'][number]): AccountLine => ({ code: row.code, name: row.name, amount: toPaise(row.paise) });
 
+const promotionCost = (row: MisReportJson['promotions'][number]): PromotionCost => ({
+  id: row.id, name: row.name, grants: row.grants, cost: toPaise(row.cost_paise), costToDate: toPaise(row.cost_to_date_paise),
+  budget: row.budget_paise === null ? null : toPaise(row.budget_paise), budgetGrants: row.budget_grants,
+});
+
+const cohort = (row: MisReportJson['cohorts'][number]): Cohort => ({ month: row.month, members: row.members, months: row.months });
+
 function misReport(json: MisReportJson, generatedAt: string | null, isPreview: boolean): MisReport {
   return {
     month: json.month, hands: json.hands, rake: toPaise(json.rake_paise), drop: toPaise(json.drop_paise),
     byTable: json.rake_by_table.map(rakeRow), byDealer: json.rake_by_dealer.map(rakeRow), byVariant: json.rake_by_variant.map(rakeRow),
     revenue: json.revenue.map(accountLine), expenses: json.expenses.map(accountLine),
     totalRevenue: toPaise(json.revenue_paise), totalExpenses: toPaise(json.expense_paise), net: toPaise(json.net_paise),
-    visits: json.visits, members: json.members, generatedAt, isPreview,
+    visits: json.visits, members: json.members, promotions: json.promotions.map(promotionCost), cohorts: json.cohorts.map(cohort),
+    generatedAt, isPreview,
   };
 }
 

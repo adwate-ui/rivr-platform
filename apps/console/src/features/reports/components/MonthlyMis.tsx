@@ -4,6 +4,7 @@ import type { Paise } from '@rivr/domain/money';
 import { formatDayTime, formatMonth, formatNumber, t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Grid, Heading, Money, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
+import { CohortTable, PromotionCostTable } from './MisRetention.tsx';
 import { RakeTable } from './RakeTable.tsx';
 
 /** One of the month's figures: a count or an amount. */
@@ -31,7 +32,7 @@ const accountColumns = (): readonly DataTableColumn<AccountLine>[] => [
   { key: 'amount', header: t('console.reports.amount'), align: 'end', sortValue: (row) => row.amount, cell: (row) => <Money paise={row.amount} /> },
 ];
 
-/** The month's tables: its figures, revenue and expenses by account, and rake by table, dealer and game. */
+/** The month's tables: its figures, revenue and expenses by account, rake by table, dealer and game, promotion cost and cohorts. */
 function MisTables({ mis }: { mis: MisReport }) {
   const exportFilter = t('console.exportFilters.month', { month: formatMonth(mis.month) });
   const rake = { isError: false, onRetry: () => undefined, emptyText: t('console.reports.noHandsMonth'), exportFilter };
@@ -46,6 +47,8 @@ function MisTables({ mis }: { mis: MisReport }) {
       <RakeTable {...rake} label={t('console.reports.monthByTable')} nameHeader={t('console.reports.table')} rows={mis.byTable} />
       <RakeTable {...rake} label={t('console.reports.monthByDealer')} nameHeader={t('console.reports.dealer')} rows={mis.byDealer} />
       <RakeTable {...rake} label={t('console.reports.monthByVariant')} nameHeader={t('console.reports.variant')} rows={mis.byVariant} />
+      <PromotionCostTable rows={mis.promotions} exportFilter={exportFilter} />
+      <CohortTable rows={mis.cohorts} exportFilter={exportFilter} />
     </Grid>
   );
 }

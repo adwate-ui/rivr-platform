@@ -54,4 +54,21 @@ export const reports = {
   amount: 'Amount',
   noRevenue: 'No revenue this month.',
   noExpenses: 'No expenses this month.',
+  /** Promotion cost (#111). */
+  promotions: 'Promotion cost',
+  promotion: 'Promotion',
+  grants: 'Grants',
+  costMonth: 'This month',
+  costToDate: 'To the month\'s end',
+  budget: 'Budget',
+  noBudget: 'No cap',
+  budgetGrants: '{count} grants',
+  noPromotions: 'No promotion gave anything this month.',
+  /** Cohort retention (#111). */
+  cohorts: 'Cohort retention',
+  cohort: 'First visit',
+  cohortMembers: 'Members',
+  monthNumber: 'Month {number}',
+  retained: '{count} ({percent}%)',
+  noCohorts: 'No first visits in these six months.',
 } as const;

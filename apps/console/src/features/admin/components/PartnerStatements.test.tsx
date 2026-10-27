@@ -14,7 +14,7 @@ const NOVEMBER: MisReport = {
   month: '2026-11-01', hands: 0, rake: fromPaise(0n), drop: fromPaise(0n), byTable: [], byDealer: [], byVariant: [],
   revenue: [{ code: 'venue.rake', name: 'Rake', amount: fromPaise(300_000n) }],
   expenses: [{ code: 'venue.bonus_expense', name: 'Bonus issued', amount: fromPaise(20_000n) }],
-  totalRevenue: fromPaise(300_000n), totalExpenses: fromPaise(20_000n), net: fromPaise(280_000n), visits: 0, members: 0,
+  totalRevenue: fromPaise(300_000n), totalExpenses: fromPaise(20_000n), net: fromPaise(280_000n), visits: 0, members: 0, promotions: [], cohorts: [],
   generatedAt: '2026-12-01T01:30:00Z', isPreview: false,
 };
 const ISSUER = { legalName: 'RIVR Hospitality LLP', address: 'Sector 65, Gurugram' };
