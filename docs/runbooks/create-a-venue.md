@@ -23,6 +23,8 @@ Production is never seeded. The real venue, and any later room, is created once 
    ```
 5. Everything else (GSTIN, UPI payee and VPA, bank details, logo, the IP allowlist, staff, the tier matrix) is set from the console. The UPI payee and VPA must be set before the first Academy booking: they are where players pay. The GSTIN, the SAC codes of both invoice series and the authorised signatory must be set before the first Academy payment is confirmed or the first nightly invoice is due (07:00 after the first night): without the GSTIN or the series' SAC code a tax invoice is refused, and the cage cannot confirm an Academy payment (#423, decision 0194).
 
+6. The alert WhatsApp number (venue configuration in the console) must be a super admin's, never an investor's: every alert goes to it, AML ones included (decision 0237).
+
 The practice venue is created the same way with `is_practice = true`.
 
 ## Waitlist priority (#40)
