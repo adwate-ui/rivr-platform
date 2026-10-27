@@ -2211,6 +2211,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"review_request": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "review_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "review_request_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "review_request_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"reward_item": {
                   Row: {
                     "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string

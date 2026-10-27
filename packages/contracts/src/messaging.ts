@@ -38,6 +38,14 @@ export type WaitlistCalled = z.infer<typeof waitlistCalledSchema>;
 export type ReceiptReady = z.infer<typeof receiptReadySchema>;
 
 /** promotion.offered (#86): a published promotion's card, offered to one member who opted in to marketing. */
+/** A Google review asked of a member after their third visit (#159): the venue's link, and no reward. */
+export const reviewRequestedSchema = z.object({
+  review_request_id: z.uuid(),
+  member_id: z.uuid(),
+  url: z.url({ protocol: /^https$/ }),
+});
+export type ReviewRequested = z.infer<typeof reviewRequestedSchema>;
+
 export const promotionOfferedSchema = z.object({
   promotion_id: z.uuid(),
   member_id: z.uuid(),

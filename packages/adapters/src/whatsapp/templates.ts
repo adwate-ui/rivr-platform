@@ -32,6 +32,12 @@ export const WHATSAPP_TEMPLATES = {
     body: 'News from RIVR Poker Club: {{1}} To stop these messages, turn them off in Profile in the RIVR app.',
     urlButton: false,
   },
+  // After a member's third visit (#159): once, whatever their feedback, and with no reward.
+  review_request: {
+    category: 'marketing',
+    body: 'Thank you for playing at RIVR Poker Club. If you have a minute, we would value your Google review: {{1}} To stop these messages, turn them off in Profile in the RIVR app.',
+    urlButton: false,
+  },
 } as const;
 
 /** The name of a template RIVR sends. */
