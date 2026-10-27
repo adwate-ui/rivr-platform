@@ -20,6 +20,14 @@ function handName(category: HighHand['category'], rank: string | null): string {
   return `${t(`tv.highHand.${category}`)}${known === undefined ? '' : ` ${t(`tv.ranks.${known}`)}`}`;
 }
 
+/** A waiting claim as the console's prompt says it (#317): `High hand claim · Table 3, seat 4 · Straight flush · ₹10,000`. */
+export function promptText(hand: HighHand): string {
+  const parts = { table: hand.tableName, seat: hand.seat, category: handName(hand.category, hand.rank) };
+  return hand.payout === null
+    ? t('console.highHands.promptPaysNothing', parts)
+    : t('console.highHands.prompt', { ...parts, amount: formatMoney(hand.payout) });
+}
+
 /** A claim in one line: the hand (with the rank of a four of a kind), the seat, the table, the day and time, and the dealer. */
 export function claimText(hand: HighHand): string {
   return t('console.highHands.claim', {

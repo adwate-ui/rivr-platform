@@ -23,6 +23,20 @@ export const Default: Story = {};
 
 export const Empty: Story = { args: { sections: [] } };
 
+/** High hands with two claims waiting for the floor (#317). */
+export const WithCount: Story = {
+  args: {
+    current: 'liveFloor',
+    sections: [
+      { id: 'floor', label: 'Floor', items: [{ id: 'liveFloor', label: 'Live floor', href: '#floor' }] },
+      { id: 'growth', label: 'Growth', items: [
+        { id: 'jackpots', label: 'Jackpots', href: '#jackpots' },
+        { id: 'highHands', label: 'High hands', href: '#high-hands', count: 2 },
+      ] },
+    ],
+  },
+};
+
 export const LongText: Story = {
   args: {
     current: 'long',

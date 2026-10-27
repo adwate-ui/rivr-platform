@@ -4153,7 +4153,7 @@ isOneToOne: false
 { Args: { "p_is_paused": boolean,"p_tournament_id": string }; Returns: undefined
                            },
 "pay_bad_beat":
-{ Args: { "p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
+{ Args: { "p_expected_rule": Json,"p_expected_total": number,"p_idempotency_key": string,"p_loser_phone": string,"p_table_id": string,"p_table_phones": (string)[],"p_venue_id": string,"p_winner_phone": string }; Returns: string
                            },
 "pay_withdrawal_in_cash":
 { Args: { "p_request_id": string }; Returns: undefined
@@ -4530,7 +4530,7 @@ isOneToOne: false
                            },
 "tablet_rake_rules":
 { Args: Record<PropertyKey, never>; Returns: {
-              "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"rate_basis_points": number
+              "cap_paise": number,"drop_above_paise": number,"drop_paise": number,"has_variation": boolean,"is_jackpot_live": boolean,"next_change_at": string,"rate_basis_points": number
             }[]
                            },
 "tablet_seats":

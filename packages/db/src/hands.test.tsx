@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useDownHands, useTableRules } from './hands.ts';
+import { nextRulesCheck, useDownHands, useTableRules } from './hands.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -29,10 +29,26 @@ function renderHands(replies: Record<string, { status?: number; body: unknown }>
   return { result, calls };
 }
 
-const RULES = { rate_basis_points: 500, cap_paise: 600000, is_jackpot_live: true, drop_paise: 10000, drop_above_paise: 500000, has_variation: true };
+const RULES = { rate_basis_points: 500, cap_paise: 600000, is_jackpot_live: true, drop_paise: 10000, drop_above_paise: 500000, has_variation: true, next_change_at: null };
 const EMPTY = { '/rpc/tablet_rake_rules': { body: [RULES] }, '/rpc/down_hands': { body: [] } };
 
 afterEach(cleanup);
+
+describe('When the tablet asks for its rules again', () => {
+  const NOW = Date.parse('2026-11-15T20:00:00+05:30');
+  it('is a minute with no change scheduled, or a change more than a minute away', () => {
+    expect(nextRulesCheck(null, NOW)).toBe(60_000);
+    expect(nextRulesCheck('2026-11-15T20:05:00+05:30', NOW)).toBe(60_000);
+  });
+
+  it('is half a second after a change due within the minute', () => {
+    expect(nextRulesCheck('2026-11-15T20:00:10+05:30', NOW)).toBe(10_500);
+  });
+
+  it('is never sooner than a second, even for a change already due', () => {
+    expect(nextRulesCheck('2026-11-15T19:59:00+05:30', NOW)).toBe(1_000);
+  });
+});
 
 describe('Hand entry data', () => {
   it('gives the table\'s rules as @rivr/domain RakeRules, money in paise as bigint', async () => {
@@ -40,7 +56,19 @@ describe('Hand entry data', () => {
     await waitFor(() => expect(result.current.rules.data).toEqual({
       rake: { rateBasisPoints: 500n, cap: 600000n, isJackpotLive: true, drop: 10000n, dropAbove: 500000n },
       hasVariation: true,
+      nextChangeAt: null,
     }));
+  });
+
+  it('asks again just after a scheduled change starts, not a minute later', async () => {
+    const changeAt = new Date(Date.now() + 200).toISOString();
+    const replies: Record<string, { body: unknown }> = { ...EMPTY, '/rpc/tablet_rake_rules': { body: [{ ...RULES, next_change_at: changeAt }] } };
+    const { result, calls } = renderHands(replies);
+    await waitFor(() => expect(result.current.rules.data?.nextChangeAt).toBe(changeAt));
+    // The change starts: the rate goes up to 6%.
+    replies['/rpc/tablet_rake_rules'] = { body: [{ ...RULES, rate_basis_points: 600 }] };
+    await waitFor(() => expect(result.current.rules.data?.rake.rateBasisPoints).toBe(600n), { timeout: 3_000 });
+    expect(calls.filter((call) => call.url.includes('/rpc/tablet_rake_rules'))).toHaveLength(2);
   });
 
   it('gives the down\'s hands, latest first as the database orders them', async () => {
