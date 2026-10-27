@@ -77,6 +77,8 @@ export const ui = {
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
     member: 'The club is paused. Staff will assist you.',
+    /** At the top of every website page while the venue is frozen (#278). */
+    visitor: 'The club is paused just now. Please check back soon.',
     /** Shown to staff on every screen while the venue is frozen. */
     staff: 'Venue frozen. Money, seating and hand entries are refused until it is released.',
   },

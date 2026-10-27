@@ -2,18 +2,19 @@
  * Kill switch (#27; additions flow 15). Neha Kulkarni and Arvind Rao, this flow's own super admins
  * (Auth sends one code a minute to a number). Neha seats Kunal Mehra at Table 3 and pairs its tablet,
  * then freezes the venue with a reason, confirming it: the console, the tablet and Yash Gupta's app
- * (signed in for this flow alone) show the banner within seconds, and the tablet's buy-in for Kunal is
- * refused. She asks to release it and cannot alone; Arvind releases it, and the banners go. Kunal leaves
+ * (signed in for this flow alone) show the banner within seconds, the website's pages say the club is
+ * paused (#278), and the tablet's buy-in for Kunal is refused. She asks to release it and cannot alone; Arvind releases it, and the banners go. Kunal leaves
  * and the tablet is revoked at the end; if the flow fails midway the freeze is still released, so later
  * flows find the club open. Every level and every alert are proved in supabase/tests/060_kill_switch.test.sql.
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { isRemoteTarget } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
 const MEMBER_BANNER = 'The club is paused. Staff will assist you.';
 const STAFF_BANNER = 'Venue frozen. Money, seating and hand entries are refused until it is released.';
+const VISITOR_BANNER = 'The club is paused just now. Please check back soon.';
 
 /** Asks to release the freeze on one super admin's console, and releases it on the other's. */
 async function release(first: Page, second: Page) {
@@ -72,6 +73,15 @@ test.describe('Kill switch', () => {
       const member = await browser.newPage();
       await signInToPlayer(member, '9000000214');
       await expect(member.getByText(MEMBER_BANNER)).toBeVisible({ timeout: 15_000 });
+
+      // The website (#278): the front page and link-in-bio say the club is paused, with no table running.
+      const site = await browser.newPage();
+      for (const path of ['', '/links']) {
+        await site.goto(`${appUrl('web')}${path}`);
+        await expect(site.getByText(VISITOR_BANNER)).toBeVisible();
+        await expect(site.getByText(/^\d+ tables? running/)).toHaveCount(0);
+        await expect(site.getByRole('link', { name: /^(Join the waitlist|Reserve a seat)$/ })).toHaveCount(0);
+      }
 
       const second = await browser.newPage();
       await signInToConsole(second, '9000000136');

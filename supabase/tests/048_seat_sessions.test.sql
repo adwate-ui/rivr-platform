@@ -14,6 +14,23 @@ create function pg_temp.t(p_name text) returns uuid language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text), pg_temp.t(text) to authenticated;
 
+-- Live floor follow-ups (#333): a table is added only with named columns, never a must-move link; seating takes the
+-- member off that game's list; a table never shrinks below a taken seat. Yash leaves again, so the rest is as before.
+select is(has_column_privilege('authenticated', 'public.game_table', 'must_move_to_table_id', 'insert'), false,
+  'a new table cannot be added with a must-move link');
+select is(has_column_privilege('authenticated', 'public.game_table', 'name', 'insert'), true, 'only with the columns named');
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, idempotency_key)
+select venue_id, '00000000-0000-4000-8000-000000000214', table_type_id, gen_random_uuid() from public.game_table where id = pg_temp.t('Table 1');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+create temp table yash as select public.seat_member(pg_temp.t('Table 1'), 7, '9000000214') as session;
+reset role;
+select results_eq($$ select status, left_reason from public.waitlist_entry where member_id = '00000000-0000-4000-8000-000000000214'
+                     and table_type_id = (select table_type_id from public.game_table where id = pg_temp.t('Table 1')) $$,
+  $$ values ('left'::text, 'seated'::text) $$, 'seated by the floor, Yash is off that game''s list');
+select throws_ok($$ update public.game_table set seats = 6 where id = pg_temp.t('Table 1') $$, 'RVOCC', null,
+  'and Table 1 cannot shrink below his seat');
+update public.seat_session set ended_at = now(), end_reason = 'left' where id = (select session from yash);
+
 -- Seating starts a session inside a visit.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table ishaan as select public.seat_member(pg_temp.t('Table 3'), 4, '9000000211') as session;
@@ -85,7 +102,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
 select is((select count(*)::integer from public.seat_session), 1, 'Vihaan sees his own session');
 select throws_ok($$ select public.seat_member(pg_temp.t('Table 3'), 1, '9000000212') $$, '42501', null, 'and seats no one');
 reset role;
-select is((select count(*)::integer from public.outbox_event where event_type = 'seat.taken'), 3, 'seat.taken for each seating');
+select is((select count(*)::integer from public.outbox_event where event_type = 'seat.taken'
+                    and payload ->> 'member_id' <> '00000000-0000-4000-8000-000000000214'), 3, 'seat.taken for each seating');
 select is((select count(*)::integer from public.outbox_event where event_type = 'seat.moved'), 1, 'seat.moved for the move');
 
 -- A seat held for a waitlist call and a taken seat know about each other (#63). Rohan finishes his
