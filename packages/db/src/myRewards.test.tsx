@@ -38,9 +38,9 @@ const BOARD_ROW = { standing: 'month', season_name: null, first_month: '2026-11-
 afterEach(cleanup);
 
 describe('the member\'s Rewards', () => {
-  it('reads points and tier, the catalogue, the redemptions and the League', async () => {
+  it('reads points, tier and hotel nights, the catalogue, the redemptions and the League', async () => {
     const { result } = renderHooks({
-      '/rpc/my_rewards': { body: [{ points: 20000, tier_name: 'Member' }] },
+      '/rpc/my_rewards': { body: [{ points: 20000, tier_name: 'Member', nights: 1250 }] },
       '/reward_item': { body: [{ id: 'r1', kind: 'fnb_upgrade', name: 'Bar upgrade', detail: 'At the bar', points: 2500, stock: null, is_live: true }] },
       '/rpc/my_redemptions': {
         body: [{ id: 'd1', reward_name: 'Bar upgrade', kind: 'fnb_upgrade', detail: 'At the bar', points: 2500, created_at: '2026-11-15T17:00:00Z', handed_over_at: null }],
@@ -49,7 +49,7 @@ describe('the member\'s Rewards', () => {
       '/rpc/tv_rewards_ticker': { body: [] },
       '/rpc/tv_league_board': { body: [] },
     });
-    await waitFor(() => expect(result.current.rewards.data).toEqual({ points: 20000n, tierName: 'Member' }));
+    await waitFor(() => expect(result.current.rewards.data).toEqual({ points: 20000n, tierName: 'Member', nights: 1250n }));
     await waitFor(() => expect(result.current.catalogue.data?.[0]).toMatchObject({ kind: 'fnb_upgrade', points: 2500n, stock: null }));
     await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ rewardName: 'Bar upgrade', points: 2500n, handedOverAt: null }));
     await waitFor(() => expect(result.current.league.data).toEqual([{

@@ -125,6 +125,14 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `gstIncluded(inclusive, rate)`, `GstSplit` | GST taken out of an amount that includes it (#23, decision 0071): equal CGST and SGST halves, each rounded to the nearest paisa (a half up), and the taxable value as what is left, so the three add up to the amount. Throws on a negative amount or a rate outside 0 to 10,000 basis points (bugs). The database's `private.gst_included` is proved equal by `packages/testing/golden/gst.json`. |
 | `igstIncluded(inclusive, rate)`, `IgstSplit` | IGST taken out of an amount that includes it, for a buyer registered in another state (#380, decision 0102): the whole tax at the full rate, rounded once to the nearest paisa (a half up), and the taxable value as the rest. Same refusals as `gstIncluded`. The database's `private.igst_included` is proved equal on the same golden file. |
 
+### `@rivr/domain/accommodation`
+
+Accommodation rewards (#146, decision 0246): hotel nights, kept in thousandths. Proved equal to `private.nights_for_time` by `packages/testing/golden/accommodation.json`.
+
+| Export | What it does |
+|---|---|
+| `nightsForTime(playedSeconds, hoursPerNight)`, `NIGHT` | The thousandths of a night (`NIGHT` is 1,000) a table type's hours a night gives for the seconds played there, rounded down. At 20 hours a night, 5 hours is 250. |
+
 ### `@rivr/domain/rakeback`
 
 Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeback.json` proves the split, the sum and the bonus against `private.rake_share` and `private.rakeback_bonus`; who sat where is tested by `147_rakeback`.

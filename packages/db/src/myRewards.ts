@@ -12,6 +12,8 @@ export type { LeagueBoardRow } from './league.ts';
 export interface MyRewards {
   readonly points: bigint;
   readonly tierName: string;
+  /** Hotel nights earned (#146), in thousandths of a night: 1250 is a night and a quarter. */
+  readonly nights: bigint;
 }
 
 /** One of the member's redemptions: the reward, where to collect it, the points it took, and when it was handed over (null while it waits). */
@@ -47,7 +49,7 @@ export function useMyRewards() {
       const { data, error } = await client.rpc('my_rewards');
       if (error) throw error;
       const row = data[0];
-      return row === undefined ? null : { points: BigInt(row.points), tierName: row.tier_name };
+      return row === undefined ? null : { points: BigInt(row.points), tierName: row.tier_name, nights: BigInt(row.nights) };
     },
   });
 }

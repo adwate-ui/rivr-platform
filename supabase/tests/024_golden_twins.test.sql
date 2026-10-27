@@ -639,5 +639,15 @@ select results_eq(
   $$ select description, pg_temp.paise(expected ->> 'bonus') from golden.golden_case where file = 'rakeback.json' and operation = 'rakeback' order by position $$,
   'private.rakeback_bonus gives every rakeback in the golden file');
 
+-- Accommodation nights: private.nights_for_time, and @rivr/domain nightsForTime (packages/testing/golden/accommodation.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'accommodation.json'), 'the accommodation cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'accommodation.json' and operation <> 'nights' $$,
+  'every operation in accommodation.json is proved here');
+select results_eq(
+  $$ select description, private.nights_for_time((inputs ->> 'seconds')::bigint, (inputs ->> 'hoursPerNight')::integer)
+     from golden.golden_case where file = 'accommodation.json' order by position $$,
+  $$ select description, (expected ->> 'thousandths')::bigint from golden.golden_case where file = 'accommodation.json' order by position $$,
+  'private.nights_for_time gives every case in the golden file');
+
 select * from finish();
 rollback;
