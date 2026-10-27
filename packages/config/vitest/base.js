@@ -22,7 +22,8 @@ export function vitestConfig(options = {}) {
       setupFiles: options.setupFiles ?? [],
       testTimeout: options.testTimeout ?? (environment === 'jsdom' ? JSDOM_TIMEOUT : 5000),
       include: ['**/*.test.{ts,tsx,js}'],
-      exclude: ['**/node_modules/**', '**/dist/**'],
+      // A Stryker run cut short leaves its sandbox, a stale copy of the tests, under .stryker-tmp; never collect it.
+      exclude: ['**/node_modules/**', '**/dist/**', '**/.stryker-tmp/**'],
       ...(coverageLines === undefined
         ? {}
         : {
