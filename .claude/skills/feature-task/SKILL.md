@@ -18,6 +18,6 @@ Tasks are worked one at a time in the main checkout, in issue-number order: the 
 9. Ask the `reviewer` subagent to review `git diff origin/main...HEAD` against the issue. Money tasks also ask `money-auditor`; UI tasks `ui-guard`; database, adapter or admin tasks `security-reviewer`. Then ask `junior-reader`.
 10. Fix findings that affect correctness, the acceptance criteria, the rules or readability. Do not add abstraction, defensive code or tests for impossible cases to satisfy a reviewer. Ask the reviewers that found something to confirm the fix.
 11. Update the package README. Push and open the PR: `git push -u origin task/<n>` then `gh pr create --title "<type>(<scope>): <summary>" --body "Closes #<n> ..."` with the verify summary, screenshots and the review verdicts. Move the issue to `status:review`.
-12. When CI is green and every reviewer has passed: `scripts/github/post-agent-review.sh <pr> success "<who reviewed>"`, then `scripts/github/land.sh <pr>` in the background: it keeps the branch up to date with main and merges once CI is green (decision 0243). The merge closes the issue.
+12. When CI is green and every reviewer has passed: `scripts/github/post-agent-review.sh <pr> success "<who reviewed>"`, then `scripts/github/land.sh <pr>` in the background: it merges once CI is green, bringing the branch up to date with main only when both changed migrations or seed (decision 0253). The merge closes the issue.
 13. If something is unclear, open a `question` issue, take the safest reading, and say so in the PR.
 14. Take the next task.

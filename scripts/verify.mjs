@@ -11,11 +11,13 @@
  *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules' files to mutate. With
  *              MUTATION_SINCE=<ref> (a pull request) only the modules it changes, else every one (decision 0242).
  *   mutation-score   CI: each money module's score over every share's report together; 80 or more each.
+ *   mutation-plan    CI: whether this run has any money file to mutate (mutate=true or false, to GITHUB_OUTPUT).
+ *                    A pull request that changes none starts no mutation runners: they held runner slots for nothing.
  * quick and changed cover packages changed since this branch left main, uncommitted work included, plus the
  * packages that depend on them. Stops at the first failure and prints a summary to paste into the PR.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
@@ -273,6 +275,14 @@ const CI_PARTS = {
   },
 };
 
+/** CI's mutation plan: true when any money file is to be mutated, written for the workflow's later jobs. */
+function mutationPlan(scope) {
+  const mutate = moneyModulesToMutate(scope).flatMap(moduleFiles).length > 0;
+  const line = `mutate=${mutate}\n`;
+  process.stdout.write(line);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, line);
+}
+
 function main() {
   const scope = scopeFor(MODE);
   const what = scope.everything ? 'every package' : `packages changed since ${scope.base?.slice(0, 8)}`;
@@ -291,4 +301,5 @@ function main() {
   process.exit(results.every((result) => result.ok) ? 0 : 1);
 }
 
-main();
+if (MODE === 'mutation-plan') mutationPlan(scopeFor(MODE));
+else main();

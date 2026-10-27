@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # One-time GitHub setup for the repository (run by a person with admin rights):
 #   1. the task labels from docs/tasks/README.md
-#   2. branch protection on main (decision 0243): CI's ci-ok job and the agent-review status are required, a pull
-#      request must be up to date with main, admins are held to it too; squash-only merges, auto-merge on,
-#      no force pushes, no deletion
+#   2. branch protection on main (decisions 0243 and 0253): CI's ci-ok job and the agent-review status are required,
+#      admins are held to it too; a pull request need not be up to date with main (land.sh brings one up to date only
+#      for a database clash); squash-only merges, no force pushes, no deletion
 #   3. Actions on pull requests from outside contributors wait for approval
 #   4. the preview, staging and production environments, and release-* tags for admins only
 # Safe to run again. Usage: scripts/github/setup-repo.sh [owner/repo]
@@ -25,7 +25,7 @@ label 'release:freeze' 'b60205' 'Feature freeze, 10 Nov'
 
 gh api --method PUT "repos/$repo/branches/main/protection" --input - >/dev/null <<'JSON'
 {
-  "required_status_checks": { "strict": true, "contexts": ["ci-ok", "agent-review"] },
+  "required_status_checks": { "strict": false, "contexts": ["ci-ok", "agent-review"] },
   "enforce_admins": true,
   "required_pull_request_reviews": null,
   "restrictions": null,
@@ -37,9 +37,9 @@ gh api --method PUT "repos/$repo/branches/main/protection" --input - >/dev/null 
 JSON
 echo "branch protection on main"
 
-gh api --method PATCH "repos/$repo" -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_auto_merge=true \
+gh api --method PATCH "repos/$repo" -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_auto_merge=false \
   -F delete_branch_on_merge=true >/dev/null
-echo "squash merges only, auto-merge on, branches deleted after merge"
+echo "squash merges only, no auto-merge (land.sh merges), branches deleted after merge"
 
 gh api --method PUT "repos/$repo/actions/permissions/fork-pr-contributor-approval" -f approval_policy=all_external_contributors >/dev/null
 echo "workflows from outside contributors need approval"

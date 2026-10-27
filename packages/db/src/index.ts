@@ -64,6 +64,7 @@ export {
 } from './feedback.ts';
 export * from './rewards.ts';
 export * from './league.ts';
+export * from './dealers.ts';
 export * from './floorReports.ts';
 export {
   useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
