@@ -35,7 +35,8 @@ describe('Academy fee golden fixtures (packages/testing/golden/academy.json)', (
 describe('academyFee', () => {
   it('refuses an individual booking of more than one seat, or a booking of none', () => {
     const prices = { individual: fromPaise(200_000n), corporatePerHead: fromPaise(150_000n) };
-    expect(() => academyFee('individual', 2n, prices)).toThrow(RangeError);
-    expect(() => academyFee('corporate', 0n, prices)).toThrow(RangeError);
+    const why = new RangeError('An individual booking is one seat; a corporate booking is one or more heads');
+    expect(() => academyFee('individual', 2n, prices)).toThrow(why);
+    expect(() => academyFee('corporate', 0n, prices)).toThrow(why);
   });
 });
