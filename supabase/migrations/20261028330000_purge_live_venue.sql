@@ -70,7 +70,7 @@ declare
   v_rows bigint;
   v_counts jsonb := '{}'::jsonb;
   v_tables jsonb := '[]'::jsonb;
-  v_files text[] := '{}';
+  v_files text[] := array[]::text[];
   v_id uuid;
 begin
   perform private.assert_may_export_archive(p_venue_id, p_member_id);
