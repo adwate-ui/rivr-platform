@@ -5,12 +5,19 @@ import { createCashfreeKyc } from './cashfree.ts';
 const memberId = memberIdSchema.parse('8d0c7b6a-5f4e-4d3c-9b2a-1e0f9d8c7b6a');
 const SELFIE = 'https://storage.rivr.test/kyc/selfie.jpg?token=signed';
 
-async function publicKey() {
+async function makePublicKey() {
   const pair = await crypto.subtle.generateKey(
     { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-1' }, true, ['encrypt', 'decrypt'],
   );
   const spki = new Uint8Array(await crypto.subtle.exportKey('spki', pair.publicKey));
   return `-----BEGIN PUBLIC KEY-----\n${btoa(String.fromCharCode(...spki))}\n-----END PUBLIC KEY-----`;
+}
+
+// One key for the file: making a 2,048-bit RSA key for every case is slow enough to time out on a busy runner.
+let publicKeyMade: Promise<string> | undefined;
+function publicKey(): Promise<string> {
+  publicKeyMade ??= makePublicKey();
+  return publicKeyMade;
 }
 
 /** Cashfree's sandbox as its API reference documents it: each path answers with the reply given. */

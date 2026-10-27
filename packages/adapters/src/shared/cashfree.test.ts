@@ -2,13 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { cashfreeFailure, cashfreeSignature, createCashfreeClient } from './cashfree.ts';
 
 // A key pair made for the test, as Cashfree's dashboard makes one: the client gets the public half.
-async function keyPair() {
+async function makeKeyPair() {
   const pair = await crypto.subtle.generateKey(
     { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-1' }, true, ['encrypt', 'decrypt'],
   );
   const spki = new Uint8Array(await crypto.subtle.exportKey('spki', pair.publicKey));
   const body = btoa(String.fromCharCode(...spki)).replace(/(.{64})/g, '$1\n');
   return { pem: `-----BEGIN PUBLIC KEY-----\n${body}\n-----END PUBLIC KEY-----\n`, privateKey: pair.privateKey };
+}
+
+// One key for the file: making a 2,048-bit RSA key for every case is slow enough to time out on a busy runner.
+let keyPairMade: Promise<{ pem: string; privateKey: CryptoKey }> | undefined;
+function keyPair(): Promise<{ pem: string; privateKey: CryptoKey }> {
+  keyPairMade ??= makeKeyPair();
+  return keyPairMade;
 }
 
 async function decrypt(privateKey: CryptoKey, signature: string) {
