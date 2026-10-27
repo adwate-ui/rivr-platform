@@ -58,10 +58,10 @@ describe('Incidents', () => {
   it('logs an incident with no camera as none, and says why a drill was not marked held', async () => {
     const { result, calls } = renderIncidents({ ...EMPTY, '/rpc/hold_drill': { status: 400, body: { code: 'RVDUP', message: 'held' } } });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.actions.log.mutateAsync({ severity: 'low', summary: ' A spill ', cctvReference: ' ', sopId: null }); });
+    await act(async () => { outcome = await result.current.actions.log.mutateAsync({ severity: 'low', summary: ' A spill ', occurredAt: null, cctvReference: ' ', cameraId: null, sopId: null }); });
     expect(outcome).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('/rest/v1/incident') && call.method === 'POST')?.body)
-      .toEqual({ venue_id: VENUE, severity: 'low', summary: 'A spill', cctv_reference: null, sop_id: null });
+      .toEqual({ venue_id: VENUE, severity: 'low', summary: 'A spill', cctv_reference: null, camera_id: null, sop_id: null });
     await act(async () => { outcome = await result.current.actions.holdDrill.mutateAsync('d1'); });
     expect(outcome).toEqual({ ok: false, error: 'held' });
   });

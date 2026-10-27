@@ -353,14 +353,14 @@ isOneToOne: false
                   ]
                 },"cage_transaction": {
                   Row: {
-                    "amount_paise": number,"buy_in_request_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"is_final": boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string | null,"updated_at": string,"utr": string | null,"venue_id": string
+                    "amount_paise": number,"buy_in_request_id": string | null,"camera_id": string | null,"cashier_staff_id": string,"created_at": string,"id": string,"idempotency_key": string,"is_final": boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id": string | null,"updated_at": string,"utr": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"buy_in_request_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"is_final"?: boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
+                    "amount_paise": number,"buy_in_request_id"?: string | null,"camera_id"?: string | null,"cashier_staff_id": string,"created_at"?: string,"id"?: string,"idempotency_key": string,"is_final"?: boolean,"kind": string,"ledger_transaction_id": string,"member_id": string,"method": string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"is_final"?: boolean,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
+                    "amount_paise"?: number,"buy_in_request_id"?: string | null,"camera_id"?: string | null,"cashier_staff_id"?: string,"created_at"?: string,"id"?: string,"idempotency_key"?: string,"is_final"?: boolean,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"method"?: string,"session_id"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -369,6 +369,12 @@ isOneToOne: false
 isOneToOne: true
       referencedRelation: "buy_in_request"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cage_transaction_camera_id_venue_id_fkey"
+      columns: ["camera_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "camera"
+      referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "cage_transaction_cashier_staff_id_venue_id_fkey"
       columns: ["cashier_staff_id","venue_id"]
@@ -392,6 +398,32 @@ isOneToOne: false
       columns: ["session_id"]
 isOneToOne: false
       referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"camera": {
+                  Row: {
+                    "channel": string,"created_at": string,"id": string,"is_active": boolean,"is_cage": boolean,"name": string,"table_id": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": string,"created_at"?: string,"id"?: string,"is_active"?: boolean,"is_cage"?: boolean,"name": string,"table_id"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "channel"?: string,"created_at"?: string,"id"?: string,"is_active"?: boolean,"is_cage"?: boolean,"name"?: string,"table_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "camera_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "camera_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
       referencedColumns: ["id"]
     }
                   ]
@@ -1081,17 +1113,23 @@ isOneToOne: false
                   ]
                 },"hand": {
                   Row: {
-                    "created_at": string,"device_id": string,"down_id": string,"drop_paise": number,"id": string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at": string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
+                    "camera_id": string | null,"created_at": string,"device_id": string,"down_id": string,"drop_paise": number,"id": string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at": string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"device_id": string,"down_id": string,"drop_paise": number,"id"?: string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at"?: string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
+                    "camera_id"?: string | null,"created_at"?: string,"device_id": string,"down_id": string,"drop_paise": number,"id"?: string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at"?: string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"device_id"?: string,"down_id"?: string,"drop_paise"?: number,"id"?: string,"idempotency_key"?: string,"is_cap_applied"?: boolean,"played_at"?: string,"pot_paise"?: number,"rake_paise"?: number,"staff_id"?: string,"table_id"?: string,"updated_at"?: string,"variant"?: Database["public"]['Enums']["hand_variant"],"venue_id"?: string
+                    "camera_id"?: string | null,"created_at"?: string,"device_id"?: string,"down_id"?: string,"drop_paise"?: number,"id"?: string,"idempotency_key"?: string,"is_cap_applied"?: boolean,"played_at"?: string,"pot_paise"?: number,"rake_paise"?: number,"staff_id"?: string,"table_id"?: string,"updated_at"?: string,"variant"?: Database["public"]['Enums']["hand_variant"],"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "hand_camera_id_venue_id_fkey"
+      columns: ["camera_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "camera"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "hand_device_id_venue_id_fkey"
       columns: ["device_id","venue_id"]
 isOneToOne: false
@@ -1175,17 +1213,23 @@ isOneToOne: false
                   ]
                 },"incident": {
                   Row: {
-                    "cctv_reference": string | null,"created_at": string,"id": string,"logged_by_staff_id": string | null,"occurred_at": string,"severity": Database["public"]['Enums']["incident_severity"],"sop_id": string | null,"summary": string,"updated_at": string,"venue_id": string
+                    "camera_id": string | null,"cctv_reference": string | null,"created_at": string,"id": string,"logged_by_staff_id": string | null,"occurred_at": string,"severity": Database["public"]['Enums']["incident_severity"],"sop_id": string | null,"summary": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cctv_reference"?: string | null,"created_at"?: string,"id"?: string,"logged_by_staff_id"?: string | null,"occurred_at"?: string,"severity": Database["public"]['Enums']["incident_severity"],"sop_id"?: string | null,"summary": string,"updated_at"?: string,"venue_id": string
+                    "camera_id"?: string | null,"cctv_reference"?: string | null,"created_at"?: string,"id"?: string,"logged_by_staff_id"?: string | null,"occurred_at"?: string,"severity": Database["public"]['Enums']["incident_severity"],"sop_id"?: string | null,"summary": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "cctv_reference"?: string | null,"created_at"?: string,"id"?: string,"logged_by_staff_id"?: string | null,"occurred_at"?: string,"severity"?: Database["public"]['Enums']["incident_severity"],"sop_id"?: string | null,"summary"?: string,"updated_at"?: string,"venue_id"?: string
+                    "camera_id"?: string | null,"cctv_reference"?: string | null,"created_at"?: string,"id"?: string,"logged_by_staff_id"?: string | null,"occurred_at"?: string,"severity"?: Database["public"]['Enums']["incident_severity"],"sop_id"?: string | null,"summary"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "incident_camera_id_venue_id_fkey"
+      columns: ["camera_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "camera"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "incident_logged_by_staff_id_venue_id_fkey"
       columns: ["logged_by_staff_id","venue_id"]
 isOneToOne: false
@@ -3434,8 +3478,18 @@ isOneToOne: false
 "call_from_waitlist":
 { Args: { "p_entry_id": string,"p_seat": number,"p_table_id": string }; Returns: undefined
                            },
+"cameras":
+{ Args: { "p_venue_id": string }; Returns: {
+              "camera_id": string,"channel": string,"is_active": boolean,"is_cage": boolean,"name": string,"table_id": string,"table_name": string
+            }[]
+                           },
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
+                           },
+"cctv_reference":
+{ Args: { "p_id": string,"p_kind": string }; Returns: {
+              "at": string,"camera_name": string,"channel": string,"is_practice": boolean
+            }[]
                            },
 "check_in":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
@@ -4067,6 +4121,9 @@ isOneToOne: false
                            },
 "save_blind_structure":
 { Args: { "p_levels": Json,"p_name": string,"p_structure_id"?: string,"p_venue_id": string }; Returns: string
+                           },
+"save_camera":
+{ Args: { "p_camera_id"?: string,"p_channel": string,"p_is_active": boolean,"p_is_cage": boolean,"p_name": string,"p_table_id"?: string,"p_venue_id": string }; Returns: string
                            },
 "save_league_season":
 { Args: { "p_first_month": string,"p_last_month": string,"p_name": string,"p_season_id"?: string,"p_venue_id": string }; Returns: string

@@ -106,4 +106,16 @@ describe('Button', () => {
     renderIn(<Button href="blob:https://console.invalid/1" download="tds-return.csv">Download the extract</Button>);
     expect(screen.getByRole('link', { name: 'Download the extract' })).toHaveAttribute('download', 'tds-return.csv');
   });
+
+  it('as a link that opens a new tab, keeps the screen and gives the page no hold on it', () => {
+    renderIn(<Button href="https://cctv.invalid/playback" opensNewTab>Open the recording</Button>);
+    const link = screen.getByRole('link', { name: 'Open the recording' });
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('as a plain link, opens in place', () => {
+    renderIn(<Button href="https://rivr.invalid/">Home</Button>);
+    expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('target');
+  });
 });

@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, PrintSheet, ThermalReceipt, type ReceiptLine } from '@rivr/ui';
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
+import { Playback } from './Playback.tsx';
 
 interface CageReceiptProps {
   venueId: string;
@@ -43,6 +44,7 @@ export function CageReceipt({ venueId, title, lines, total, transactionId }: Cag
   return (
     <>
       <Button variant="secondary" onClick={print}>{t('console.cage.printReceipt')}</Button>
+      <Playback kind="cage_transaction" id={transactionId} />
       {isPrinting ? (
         <PrintSheet>
           <ThermalReceipt issuer={issuer.data} isPractice={staff.venue.isPractice} title={title} at={at} lines={lines} total={total}

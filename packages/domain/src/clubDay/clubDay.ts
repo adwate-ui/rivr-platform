@@ -7,6 +7,12 @@ export function clubDay(at: Date): string {
   return new Date(at.getTime() + CLUB_CLOCK_OFFSET_MS).toISOString().slice(0, 10);
 }
 
+/** The moment a time (`23:10`, India's clock) falls on a club day: 06:00 to 23:59 that date, 00:00 to 05:59 the next morning. */
+export function clubDayMoment(day: string, time: string): Date {
+  const at = new Date(`${day}T${time}:00+05:30`);
+  return time < '06:00' ? new Date(at.getTime() + DAY_MS) : at;
+}
+
 /** The club's days from `first` to `last` (`2026-11-15`), as the moments they begin and end: 06:00 IST on the first to 06:00 IST after the last. */
 export function clubDaysPeriod(first: string, last: string): { start: Date; end: Date } {
   return { start: new Date(`${first}T06:00:00+05:30`), end: new Date(new Date(`${last}T06:00:00+05:30`).getTime() + DAY_MS) };

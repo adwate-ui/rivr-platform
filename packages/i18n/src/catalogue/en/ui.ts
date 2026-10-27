@@ -102,6 +102,16 @@ export const ui = {
   },
   /** The digital membership card (#67): `{number}` is the membership number. */
   membershipCard: { label: 'Membership card', number: 'No. {number}' },
+  /** A CCTV recording's playback (#122): asked for, then opened in a new tab at the moment. */
+  playback: {
+    label: 'Playback',
+    open: 'Open {camera} at this moment',
+    failures: {
+      no_camera: 'No camera saw this.',
+      not_allowed: 'You cannot see this recording.',
+      unavailable: 'The recording link did not come.',
+    },
+  },
   /** Printed matter, receipts and A4 documents: the club's registration beneath its address. */
   paper: { gstin: 'GSTIN {gstin}' },
 } as const;

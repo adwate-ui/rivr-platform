@@ -1,10 +1,12 @@
 import { useContacts, useDrills, useIncidents, useSopLibrary, useStaffVenue, type Incident } from '@rivr/db';
+import { useCameras } from '@rivr/db/cctv';
 import { t } from '@rivr/i18n';
 import { Heading, Screen, Stack, Text } from '@rivr/ui';
 import { ContactList } from './ContactList.tsx';
 import { DrillList } from './DrillList.tsx';
 import { IncidentForm } from './IncidentForm.tsx';
 import { incidentText } from './incidentCopy.ts';
+import { Playback } from './Playback.tsx';
 
 /**
  * Incidents (#53; scope-v1 module 11): every staff member logs an incident and reads the club's contacts;
@@ -32,6 +34,7 @@ function IncidentLog({ incidents }: { incidents: readonly Incident[] }) {
             <Text variant="small" tone="muted">{incidentText(incident)}</Text>
             <Text>{incident.summary}</Text>
             {incident.cctvReference === null ? null : <Text variant="small">{t('console.incidents.incidentCctv', { cctv: incident.cctvReference })}</Text>}
+            {incident.cameraId === null ? null : <Stack gap={1} align="start"><Playback kind="incident" id={incident.incidentId} label={t('console.incidents.playbackLabel', { when: incidentText(incident) })} /></Stack>}
             {incident.sopTitle === null ? null : <Text variant="small">{t('console.incidents.incidentSop', { title: incident.sopTitle })}</Text>}
           </Stack>
         ))}
@@ -45,16 +48,17 @@ function Incidents({ venueId, canManage }: { venueId: string; canManage: boolean
   const contacts = useContacts(venueId);
   const drills = useDrills(venueId);
   const sops = useSopLibrary(venueId);
+  const cameras = useCameras(venueId);
   const title = t('console.incidents.title');
-  const queries = [incidents, contacts, drills, sops];
+  const queries = [incidents, contacts, drills, sops, cameras];
   if (queries.some((query) => query.isPending)) return <Screen title={title} status="loading" />;
-  if (incidents.data === undefined || contacts.data === undefined || drills.data === undefined || sops.data === undefined) {
+  if (incidents.data === undefined || contacts.data === undefined || drills.data === undefined || sops.data === undefined || cameras.data === undefined) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all(queries.map((query) => query.refetch()))} />;
   }
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <IncidentForm venueId={venueId} sops={sops.data} />
+        <IncidentForm venueId={venueId} sops={sops.data} cameras={cameras.data} />
         <IncidentLog incidents={incidents.data} />
         <ContactList venueId={venueId} contacts={contacts.data} canManage={canManage} />
         <DrillList venueId={venueId} drills={drills.data} sops={sops.data} canManage={canManage} />
