@@ -2137,17 +2137,23 @@ isOneToOne: false
                   ]
                 },"redemption": {
                   Row: {
-                    "created_at": string,"handed_over_at": string | null,"handed_over_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights": number | null,"points": number | null,"reward_item_id": string,"updated_at": string,"venue_id": string
+                    "cancel_reason": string | null,"cancelled_at": string | null,"cancelled_by_staff_id": string | null,"created_at": string,"handed_over_at": string | null,"handed_over_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights": number | null,"points": number | null,"reward_item_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights"?: number | null,"points"?: number | null,"reward_item_id": string,"updated_at"?: string,"venue_id": string
+                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights"?: number | null,"points"?: number | null,"reward_item_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"nights"?: number | null,"points"?: number | null,"reward_item_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"nights"?: number | null,"points"?: number | null,"reward_item_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "redemption_cancelled_by_staff_id_venue_id_fkey"
+      columns: ["cancelled_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "redemption_handed_over_by_staff_id_venue_id_fkey"
       columns: ["handed_over_by_staff_id","venue_id"]
 isOneToOne: false
@@ -3577,6 +3583,9 @@ isOneToOne: false
                            },
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
+                           },
+"cancel_redemption":
+{ Args: { "p_reason": string,"p_redemption_id": string }; Returns: undefined
                            },
 "cctv_reference":
 { Args: { "p_id": string,"p_kind": string }; Returns: {

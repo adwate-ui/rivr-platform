@@ -61,11 +61,11 @@ export interface Redemption {
  */
 export type RewardFailure =
   | 'not_allowed' | 'invalid' | 'stock_changed' | 'handed_over' | 'not_on_offer' | 'price_changed' | 'not_enough_points' | 'not_enough_nights'
-  | 'stopped' | 'paused' | 'unavailable';
+  | 'stopped' | 'paused' | 'switched_off' | 'cancelled' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVCHG: 'stock_changed', RVHND: 'handed_over', RVRWD: 'not_on_offer', RVPRC: 'price_changed',
-  RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped', RVFRZ: 'paused',
+  RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped', RVFRZ: 'paused', RVKIL: 'switched_off', RVCNL: 'cancelled',
 };
 
 // The console's list of redemptions asks again every half minute: members redeem from the app at any time.
@@ -138,6 +138,19 @@ export function useVenueRedemptions(venueId: string) {
         kind: rewardKindOf(row.kind), points: row.points === null ? null : BigInt(row.points), nights: row.nights, createdAt: row.created_at,
         handedOverAt: row.handed_over_at, handedOverBy: row.handed_over_by,
       }));
+    },
+  });
+}
+
+/** Cancels a redemption not yet handed over (rewards.hand_over), with a reason: what it took goes back (#462). */
+export function useCancelRedemption(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ redemptionId, reason }: { redemptionId: string; reason: string }): Promise<Result<null, RewardFailure>> => {
+      const { error } = await client.rpc('cancel_redemption', { p_redemption_id: redemptionId, p_reason: reason.trim() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.venueRedemptions(userId ?? 'signed-out', venueId) });
+      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
 }

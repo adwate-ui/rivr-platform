@@ -40,7 +40,7 @@ export interface RedeemOrder {
 }
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPRC: 'price_changed', RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped',
+  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPRC: 'price_changed', RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped', RVKIL: 'switched_off',
   RVFRZ: 'paused',
 };
 

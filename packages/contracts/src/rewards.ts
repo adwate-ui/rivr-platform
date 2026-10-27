@@ -22,6 +22,9 @@ export const rewardItemSchema = z
 const MONTH = /^[0-9]{4}-(0[1-9]|1[0-2])$/;
 
 /** A RIVR League season (#147): a name, and its first and last months as `2026-11`, the last not before the first. */
+/** Why a redemption not yet handed over is cancelled (#462): 3 to 300 characters, kept in the audit log. */
+export const cancelRedemptionSchema = z.object({ reason: z.string().trim().min(3).max(300) });
+
 export const leagueSeasonSchema = z
   .object({
     name: z.string().trim().min(1).max(80),

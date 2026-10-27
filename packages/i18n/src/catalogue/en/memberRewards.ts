@@ -51,6 +51,8 @@ export const memberRewards = {
     not_enough_nights: 'You do not have enough hotel nights for that yet.',
     stopped: 'Your account is paused. Please speak to the front desk.',
     paused: 'The club is paused. Please try again later.',
+    switched_off: 'Redemptions are switched off for now. Try again later.',
+    cancelled: 'That redemption was cancelled, and its points went back.',
     unavailable: 'That did not go through. Check your connection and try again.',
   },
   yourRedemptions: 'Your redemptions',
