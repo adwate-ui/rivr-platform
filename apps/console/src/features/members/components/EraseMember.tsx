@@ -1,7 +1,7 @@
 import {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from '@rivr/db';
-import { formatDate, formatList, formatMoney, formatNumber, t, type MessageKey } from '@rivr/i18n';
+import { formatDate, formatList, formatMoney, formatNights, formatNumber, t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -34,14 +34,17 @@ type Outcome = { readonly erasure: Erasure } | { readonly failure: ErasureFailur
 function OutcomeLine({ outcome }: { outcome: Outcome }) {
   if (outcome === null) return null;
   if ('failure' in outcome) return <ErrorMessage>{t(FAILURE_COPY[outcome.failure])}</ErrorMessage>;
-  const { forfeitedPoints, forfeitedBonus, filesRemoved } = outcome.erasure;
+  const { forfeitedPoints, forfeitedBonus, forfeitedNights, filesRemoved } = outcome.erasure;
   const forfeit = { points: formatNumber(forfeitedPoints), bonus: formatMoney(forfeitedBonus) };
   return (
-    <Text>
-      {filesRemoved === null
-        ? t('console.members.erase.doneFilesLeft', forfeit)
-        : t('console.members.erase.done', { ...forfeit, files: formatNumber(filesRemoved) })}
-    </Text>
+    <Stack gap={1}>
+      <Text>
+        {filesRemoved === null
+          ? t('console.members.erase.doneFilesLeft', forfeit)
+          : t('console.members.erase.done', { ...forfeit, files: formatNumber(filesRemoved) })}
+      </Text>
+      {forfeitedNights > 0n ? <Text>{t('console.members.erase.nightsForfeit', { nights: formatNights(forfeitedNights) })}</Text> : null}
+    </Stack>
   );
 }
 
@@ -55,6 +58,7 @@ function Consequences({ preview }: { preview: ErasurePreview }) {
     <Stack gap={2}>
       {preview.blockers.length > 0 ? <ErrorMessage>{t('console.members.erase.settleFirst', { items: open })}</ErrorMessage> : null}
       <Text>{forfeit}</Text>
+      {preview.nights > 0n ? <Text>{t('console.members.erase.nightsForfeit', { nights: formatNights(preview.nights) })}</Text> : null}
       {preview.blockedUntil === null ? null : (
         <Text tone="muted">{t('console.members.erase.blockNote', { date: formatDate(new Date(preview.blockedUntil)) })}</Text>
       )}

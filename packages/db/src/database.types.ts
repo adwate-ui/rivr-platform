@@ -3751,7 +3751,7 @@ isOneToOne: false
                            },
 "erase_member":
 { Args: { "p_full_name": string,"p_member_id": string,"p_reason": string }; Returns: {
-              "blocked_until": string,"forfeited_bonus_paise": number,"forfeited_points": number,"venue_id": string
+              "blocked_until": string,"forfeited_bonus_paise": number,"forfeited_nights": number,"forfeited_points": number,"venue_id": string
             }[]
                            },
 "erased_member_kyc_folder":
@@ -3874,7 +3874,7 @@ isOneToOne: false
                            },
 "member_erasure_preview":
 { Args: { "p_member_id": string }; Returns: {
-              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"kyc_files": number,"points": number
+              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"kyc_files": number,"nights": number,"points": number
             }[]
                            },
 "member_feature_overrides":
