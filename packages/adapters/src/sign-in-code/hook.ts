@@ -1,4 +1,4 @@
-import { sendSmsHookSchema, type IndianMobile } from '@rivr/contracts';
+import { PHONE_CHANGE, sendSmsHookSchema, type IndianMobile } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
 import { SEND_BUDGET_MS, sendSignInCode, type SignInCodeChannels } from './send.ts';
 
@@ -45,6 +45,10 @@ export async function handleSendSmsHook(payload: unknown, channels: SignInCodeCh
   // Counted from the call, so noting the send comes out of the same 5 seconds Auth waits.
   const deadline = Date.now() + SEND_BUDGET_MS;
   const hook = sendSmsHookSchema.safeParse(payload);
+  // A member's own phone change through PUT /user: no code goes out (#502); the club changes numbers.
+  if (!hook.success && hook.error.issues.some((issue) => issue.message === PHONE_CHANGE)) {
+    return hookError(403, 'Your phone number is changed at the club. Please ask at the front desk.');
+  }
   if (!hook.success) return hookError(400, 'The hook payload is not a sign-in code for an Indian mobile.');
   const preferSms = noteSend ? await noteSend(hook.data.to) : false;
   const sent = await sendSignInCode(channels, { ...hook.data, preferSms, deadline });

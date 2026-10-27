@@ -54,7 +54,8 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-0000000d0756', '+919000000756', 'Dev Khanna', null, null),
   ('00000000-0000-4000-8000-0000000d0757', '+919000000757', 'Nisha Bhatt', 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-0000000d0759', '+919000000759', 'Arjun Batra', 'Owner', 'super_admin'),
-  ('00000000-0000-4000-8000-0000000d0760', '+919000000760', 'Leela Varma', 'Owner', 'super_admin');
+  ('00000000-0000-4000-8000-0000000d0760', '+919000000760', 'Leela Varma', 'Owner', 'super_admin'),
+  ('00000000-0000-4000-8000-0000000d0780', '+919000000780', 'Kiran Joshi', 'Duty manager', 'super_admin');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -129,3 +130,8 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
 on conflict do nothing;
 select private.credit_points('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000d0758', 500, 'Seed',
                              'seed:member-erasure-flow:0d0758');
+
+-- The practice member whose number the Phone change flow changes (#502). Practice records never sign in.
+insert into public.member (id, venue_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000d0781', '00000000-0000-4000-8000-000000000002', 'Omar Sheikh', '+919000000781')
+on conflict (id) do nothing;
