@@ -45,6 +45,7 @@ export const rail = {
     academyPayments: 'Academy payments',
     withdrawals: 'Withdrawals',
     staff: 'Staff',
+    roster: 'Roster',
     dealers: 'Dealers',
     sops: 'SOPs',
     incidents: 'Incidents',

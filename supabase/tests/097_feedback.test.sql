@@ -54,7 +54,9 @@ select throws_ok($$ select public.resolve_feedback((select id from public.feedba
   'nor resolves any');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select full_name, score, note, is_ticket, resolved_at is null from public.venue_feedback('00000000-0000-4000-8000-000000000001')
-                     where full_name = 'Mihir Shah' or member_id = '00000000-0000-4000-8000-000000000213' order by created_at $$,
+                     where full_name = 'Mihir Shah' or member_id = '00000000-0000-4000-8000-000000000213'
+                     -- Both were written in one transaction, so they share created_at: the score breaks the tie.
+                     order by created_at, score nulls last $$,
   $$ values ('Mihir Shah'::text, 2::smallint, 'The dealer at Table 3 was slow.'::text, true, true),
             ('Mihir Shah', null, 'Please add PLO on Mondays.', true, true) $$,
   'the floor manager sees both of Mihir''s, each an open ticket');

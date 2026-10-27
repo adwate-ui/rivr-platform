@@ -65,6 +65,7 @@ insert into seed_person (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000177', '+919000000177', 'Aarav Saxena'),
   ('00000000-0000-4000-8000-000000000182', '+919000000182', 'Rhea Kapur'),
   ('00000000-0000-4000-8000-000000000183', '+919000000183', 'Meera Pillai'),
+  ('00000000-0000-4000-8000-000000000184', '+919000000184', 'Ritu Malhotra'),
   ('00000000-0000-4000-8000-000000000201', '+919000000201', 'Arjun Mehta'),
   ('00000000-0000-4000-8000-000000000202', '+919000000202', 'Kabir Sethi'),
   ('00000000-0000-4000-8000-000000000203', '+919000000203', 'Naina Kapoor'),
@@ -155,6 +156,8 @@ from (values
   ('00000000-0000-4000-8000-000000000182'::uuid, 'Duty manager', 'super_admin'),
   -- The AML flow's own admin, who reviews the register (#105).
   ('00000000-0000-4000-8000-000000000183'::uuid, 'Floor manager', 'admin'),
+  -- The Roster flow's own admin, who rosters the cashiers and records tonight's attendance (#106).
+  ('00000000-0000-4000-8000-000000000184'::uuid, 'Floor manager', 'admin'),
   -- The Withdrawal flow's own cashier, who sends it with its UTR, and floor manager, its second approver (#21; flow 9).
   ('00000000-0000-4000-8000-000000000137'::uuid, 'Cashier', 'cashier'),
   ('00000000-0000-4000-8000-000000000138'::uuid, 'Floor manager', 'admin'),

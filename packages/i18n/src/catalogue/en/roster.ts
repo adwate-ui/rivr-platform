@@ -1,0 +1,51 @@
+/** The console's Roster screen (#106; scope-v1 module 10; decision 0236), for staff who manage staff. */
+export const roster = {
+  title: 'Roster',
+  notAllowed: 'Only staff who manage staff keep the roster.',
+  week: 'Week',
+  weekOf: 'From {day}',
+  tableLabel: 'The week\'s roster',
+  name: 'Name',
+  jobTitle: 'Job title',
+  shiftTimes: 'Shift',
+  empty: 'No one is rostered this week yet.',
+  day: '{weekday} {day}',
+  shift: '{starts}–{ends}',
+  shiftWithAttendance: '{starts}–{ends}, {attendance}',
+  off: 'Off',
+  /** Between two shifts on one day. */
+  between: '; ',
+  addTitle: 'Add shifts',
+  noStaff: 'There are no active staff to roster yet.',
+  staff: 'Staff',
+  invalidStaff: 'Choose a job title and at least one of its staff.',
+  days: 'Days',
+  invalidDays: 'Choose at least one day.',
+  starts: 'Starts',
+  startsHint: '24-hour time, such as 18:00.',
+  ends: 'Ends',
+  endsHint: 'An end at or before the start is the next morning, such as 02:00. A shift runs at most 16 hours.',
+  invalidTime: 'Write the time as HH:MM, such as 18:00.',
+  add: 'Add the shifts',
+  added: 'Shifts added: {count}.',
+  copy: 'Copy the week before into this one',
+  copied: 'Shifts copied from the week before: {count}.',
+  tonightTitle: 'Tonight\'s attendance',
+  tonightLabel: 'Tonight\'s shifts',
+  tonightEmpty: 'No one is rostered tonight.',
+  attendanceFor: 'Attendance for {name}',
+  attendance: {
+    present: 'Present',
+    late: 'Late',
+    absent: 'Absent',
+  },
+};
+
+/** Why a roster change did not go through. */
+export const rosterFailures = {
+  notAllowed: 'Only staff who manage staff keep the roster.',
+  invalid: 'Choose who and which days from today on, and write the times as HH:MM, such as 18:00. A shift runs at most 16 hours.',
+  overlap: 'That would overlap a shift already rostered for one of them. Check the roster and try again.',
+  paused: 'The venue is frozen. Release it, then change the roster.',
+  unavailable: 'That did not go through. Check the connection and try again.',
+};

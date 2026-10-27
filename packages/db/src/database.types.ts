@@ -2593,6 +2593,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"staff_attendance": {
+                  Row: {
+                    "created_at": string,"id": string,"note": string | null,"recorded_at": string,"recorded_by_staff_id": string | null,"shift_id": string,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"note"?: string | null,"recorded_at"?: string,"recorded_by_staff_id"?: string | null,"shift_id": string,"status": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"note"?: string | null,"recorded_at"?: string,"recorded_by_staff_id"?: string | null,"shift_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "staff_attendance_recorded_by_staff_id_fkey"
+      columns: ["recorded_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_attendance_shift_id_fkey"
+      columns: ["shift_id"]
+isOneToOne: true
+      referencedRelation: "staff_shift"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_attendance_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"staff_credential": {
                   Row: {
                     "created_at": string,"failed_attempts": number,"locked_until": string | null,"pin_hash": string,"staff_id": string,"updated_at": string,"venue_id": string
@@ -2613,6 +2645,38 @@ isOneToOne: true
       referencedColumns: ["id"]
     },{
       foreignKeyName: "staff_credential_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"staff_shift": {
+                  Row: {
+                    "club_day": string,"created_at": string,"created_by_staff_id": string | null,"ends_at": string,"id": string,"job_title": string,"staff_id": string,"starts_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "club_day": string,"created_at"?: string,"created_by_staff_id"?: string | null,"ends_at": string,"id"?: string,"job_title": string,"staff_id": string,"starts_at": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "club_day"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string,"id"?: string,"job_title"?: string,"staff_id"?: string,"starts_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "staff_shift_created_by_staff_id_fkey"
+      columns: ["created_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_shift_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_shift_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -3300,6 +3364,9 @@ isOneToOne: false
 "add_shareholder":
 { Args: { "p_kind": string,"p_name": string,"p_venue_id": string }; Returns: string
                            },
+"add_shifts":
+{ Args: { "p_days": (string)[],"p_ends": string,"p_staff_ids": (string)[],"p_starts": string,"p_venue_id": string }; Returns: number
+                           },
 "add_sop":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_title": string,"p_venue_id": string }; Returns: string
                            },
@@ -3431,6 +3498,9 @@ isOneToOne: false
                            },
 "confirm_deposit":
 { Args: { "p_bank_amount_paise": number,"p_request_id": string }; Returns: undefined
+                           },
+"copy_roster_week":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: number
                            },
 "correct_high_hand":
 { Args: { "p_category": Database["public"]['Enums']["high_hand_category"],"p_claim_id": string,"p_rank": string,"p_seat": number }; Returns: undefined
@@ -3879,6 +3949,9 @@ isOneToOne: false
 "record_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
+"record_attendance":
+{ Args: { "p_note"?: string,"p_shift_id": string,"p_status": string }; Returns: undefined
+                           },
 "record_holding":
 { Args: { "p_basis_points": number,"p_effective_from": string,"p_note": string,"p_shareholder_id": string,"p_venue_id": string }; Returns: undefined
                            },
@@ -3935,6 +4008,9 @@ isOneToOne: false
 "remove_payout_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },
+"remove_shift":
+{ Args: { "p_shift_id": string }; Returns: undefined
+                           },
 "remove_tournament":
 { Args: { "p_tournament_id": string }; Returns: undefined
                            },
@@ -3983,6 +4059,11 @@ isOneToOne: false
                            },
 "review_shift_opening":
 { Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined
+                           },
+"roster_week":
+{ Args: { "p_venue_id": string,"p_week": string }; Returns: {
+              "attendance": string,"club_day": string,"ends_at": string,"full_name": string,"job_title": string,"note": string,"shift_id": string,"staff_id": string,"starts_at": string
+            }[]
                            },
 "save_blind_structure":
 { Args: { "p_levels": Json,"p_name": string,"p_structure_id"?: string,"p_venue_id": string }; Returns: string
