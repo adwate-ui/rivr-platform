@@ -94,14 +94,19 @@ function moduleChanged(module, files) {
 }
 
 /**
- * The money modules a change touches: those that changed, and those they import, since Stryker runs every test for
- * each mutant and a changed module's tests kill its imports' mutants too.
+ * The money modules a change touches: those that changed, and every module they import, directly or not, since
+ * Stryker runs every test for each mutant and a changed module's tests kill its imports' mutants too.
  */
 function touchedModules(files) {
-  const changed = MONEY_MODULES.filter((module) => moduleChanged(module, files));
-  return MONEY_MODULES.filter(
-    (module) => changed.includes(module) || changed.some((user) => mentions(moduleFolder(user), `'../${module}/`)),
-  );
+  const touched = new Set(MONEY_MODULES.filter((module) => moduleChanged(module, files)));
+  for (let grew = true; grew; ) {
+    const imported = MONEY_MODULES.filter(
+      (module) => !touched.has(module) && [...touched].some((user) => mentions(moduleFolder(user), `'../${module}/`)),
+    );
+    imported.forEach((module) => touched.add(module));
+    grew = imported.length > 0;
+  }
+  return MONEY_MODULES.filter((module) => touched.has(module));
 }
 
 /**
