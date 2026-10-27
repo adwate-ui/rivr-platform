@@ -1,0 +1,66 @@
+{
+  "rule": "hourly rakeback",
+  "about": "Hourly rakeback (#108; additions \"Rakeback\"; question #485; decision 0245). Each Monday at 06:00 IST, for the club week before, each member is given bonus on their rake at each stake: every hand's rake split equally among the members seated at its table when it was played, rounded down to the paisa per hand (as RIVR Rewards splits it, decision 0161), summed by member and stake. The stake's rakeback.rate (basis points, 1,000 is 10%) of that rake is the bonus, rounded down to whole ₹50 chips and held to the rate's cap. It is on top of RIVR Rewards' rake-share points. A week_share case's hands are rake among seated members at one stake, each hand separated by a semicolon.",
+  "cases": [
+    {
+      "description": "Two hands: a third of ₹1,000 is ₹333.33 (rounded down), half of ₹500 is ₹250; ₹583.33 for the week.",
+      "operation": "week_share",
+      "inputs": { "hands": "₹1,000 among 3; ₹500 among 2" },
+      "expected": { "share": "₹583.33" }
+    },
+    {
+      "description": "Three hands shared by four and then two: ₹500 each time, ₹1,500 for the week.",
+      "operation": "week_share",
+      "inputs": { "hands": "₹2,000 among 4; ₹2,000 among 4; ₹1,000 among 2" },
+      "expected": { "share": "₹1,500" }
+    },
+    {
+      "description": "Seated alone: the whole rake is the member's.",
+      "operation": "week_share",
+      "inputs": { "hands": "₹750.50 among 1" },
+      "expected": { "share": "₹750.50" }
+    },
+    {
+      "description": "No hands with rake: nothing.",
+      "operation": "week_share",
+      "inputs": { "hands": "₹0 among 5" },
+      "expected": { "share": "₹0" }
+    },
+    {
+      "description": "10% of ₹1,500 is ₹150: three whole chips.",
+      "operation": "rakeback",
+      "inputs": { "share": "₹1,500", "rate": "1000", "cap": "" },
+      "expected": { "bonus": "₹150" }
+    },
+    {
+      "description": "10% of ₹12,345.67 is ₹1,234.57: rounded down to ₹1,200 in ₹50 chips.",
+      "operation": "rakeback",
+      "inputs": { "share": "₹12,345.67", "rate": "1000", "cap": "" },
+      "expected": { "bonus": "₹1,200" }
+    },
+    {
+      "description": "Exactly one chip: 10% of ₹500.",
+      "operation": "rakeback",
+      "inputs": { "share": "₹500", "rate": "1000", "cap": "" },
+      "expected": { "bonus": "₹50" }
+    },
+    {
+      "description": "A paisa short of a chip: 10% of ₹499.99 gives nothing.",
+      "operation": "rakeback",
+      "inputs": { "share": "₹499.99", "rate": "1000", "cap": "" },
+      "expected": { "bonus": "₹0" }
+    },
+    {
+      "description": "Held to the cap: 20% of ₹1,00,000 would be ₹20,000; the rule caps it at ₹5,000.",
+      "operation": "rakeback",
+      "inputs": { "share": "₹1,00,000", "rate": "2000", "cap": "₹5,000" },
+      "expected": { "bonus": "₹5,000" }
+    },
+    {
+      "description": "No rake, no rakeback.",
+      "operation": "rakeback",
+      "inputs": { "share": "₹0", "rate": "1000", "cap": "" },
+      "expected": { "bonus": "₹0" }
+    }
+  ]
+}
