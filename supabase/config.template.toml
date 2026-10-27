@@ -394,6 +394,10 @@ verify_jwt = false
 [functions.device-pair]
 verify_jwt = false
 
+# The cage agent (#168, #123): signed out, known by its own token.
+[functions.cage-agent]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = {{BLOCK}}27

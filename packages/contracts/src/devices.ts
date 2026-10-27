@@ -33,6 +33,16 @@ export const tvPairSchema = z.object({
 /** Staff add a dealer tablet by name, on the console. */
 export const dealerTabletAddSchema = z.object({ name: z.string().trim().min(1).max(60) });
 
+/**
+ * What the cage agent asks the cage-agent function (#168, #123; decision 0260): to enrol, the six-digit code staff read
+ * it and the SHA-256 of the token it keeps, in hex; then, sending the token itself, the newest offline pack.
+ */
+export const cageAgentRequestSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('enrol'), code: pairingCodeSchema, token_hash: z.string().regex(/^[0-9a-f]{64}$/) }),
+  z.object({ action: z.literal('pack') }),
+]);
+export type CageAgentRequest = z.infer<typeof cageAgentRequestSchema>;
+
 /** A cage or admin computer's name as it is enrolled (#384): as a tablet's. */
 export const computerEnrolSchema = dealerTabletAddSchema;
 

@@ -1,5 +1,6 @@
 import { tokens } from '@rivr/tokens';
 import { describe, expect, it } from 'vitest';
+import { offlinePackFromRow } from './offlinePack.ts';
 import { renderToPdf, renderToPng } from './render.ts';
 import { OFFLINE_PACK } from './test/paper.ts';
 import { allowedDifference, differenceFromBaseline, pngSize } from './test/png.ts';
@@ -16,6 +17,21 @@ function pageSizes(pdf: Buffer): { width: number; height: number }[] {
 // The offline pack (#167). After a deliberate design change,
 // RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test -- offlinePack rewrites its baseline.
 describe('the offline pack', () => {
+  it('reads the database row: amounts in paise as bigints, and a venue not yet configured headed by its name', () => {
+    const pack = offlinePackFromRow({
+      issuer: null, venue_name: 'RIVR Gurugram', generated_at: '2026-11-15T11:30:00Z', contacts: [],
+      balances: [{ name: 'Mihir Shah', member_number: '1042', wallet_paise: 2_500_000, markers_paise: 0 }],
+      wallets_paise: 2_500_000, markers_paise: 0, chips_in_play_paise: 48_600_000, cage_float_paise: 0,
+      tables: [{ name: 'Table 3', game: 'NLH 100/200', seats: [{ seat: 2, name: 'Mihir Shah', member_number: '1042' }] }],
+      waitlist: [], sops: [{ title: 'Cash-out', version: 1, in_force_from: '2026-11-01', body: 'Count the chips.' }],
+    });
+    expect(pack.issuer).toEqual({ legalName: 'RIVR Gurugram', address: '' });
+    expect(pack.balances).toEqual([{ name: 'Mihir Shah', memberNumber: '1042', walletPaise: 2_500_000n, markersPaise: 0n }]);
+    expect(pack.chipsInPlayPaise).toBe(48_600_000n);
+    expect(pack.tables[0]?.seats).toEqual([{ seat: 2, name: 'Mihir Shah', memberNumber: '1042' }]);
+    expect(pack.sops[0]?.inForceFrom).toBe('2026-11-01');
+  });
+
   it('draws its first page as a PNG of an A4 page that matches its baseline', async () => {
     const png = await renderToPng({ ...job, ...A4 });
     expect(pngSize(png)).toEqual({ chunk: 'IHDR', ...A4 });

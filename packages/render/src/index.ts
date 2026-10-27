@@ -5,3 +5,4 @@
 export { renderFrameToPng, renderToMp4, renderToPdf, renderToPng, type RenderRequest, type VideoTiming } from './render.ts';
 export { templates, type TemplateName, type TemplateProps } from './templates/index.ts';
 export { renderInvoicePdf, storedInvoiceFromRow, type InvoiceRow, type StoredInvoice } from './invoice.ts';
+export { offlinePackFromRow, renderOfflinePackPdf, type OfflinePack, type OfflinePackRow } from './offlinePack.ts';

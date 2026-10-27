@@ -235,6 +235,8 @@ export const computers = {
   thisComputer: 'This computer',
   enrolledAsCage: 'Enrolled as the cage: {name}.',
   enrolledAsConsole: 'Enrolled as an admin console: {name}.',
+  /** Never this browser: the cage agent is a service, not a browser (#168). */
+  enrolledAsAgent: 'Enrolled as the cage agent: {name}.',
   notEnrolled: 'Not enrolled. Enter the code an admin console gave for this computer.',
   enrolCode: 'Enrolment code',
   enrol: 'Enrol this computer',
@@ -251,10 +253,14 @@ export const computers = {
   nameHint: 'For example, Cage 1 or Office.',
   addCage: 'Add as the cage',
   addConsole: 'Add as an admin console',
+  /** The cage agent (#168, #123): a service on the cage computer that keeps the offline pack and prints KOTs. */
+  addAgent: 'Add the cage agent',
+  agentCode: 'Code {code} for {name}, until {time}. Give it to the cage agent: rivr-agent enrol {code}.',
   enrolled: 'Cage and admin computers',
   empty: 'No computers are added.',
   cage: 'Cage',
   console: 'Admin console',
+  agent: 'Cage agent',
   revoke: 'Revoke {name}',
   revokeReason: 'Why it is revoked',
   revokeConfirm: 'Revoke',

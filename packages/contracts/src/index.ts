@@ -39,6 +39,7 @@ export { doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSc
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
+  cageAgentRequestSchema,
   cameraSchema,
   computerEnrolSchema,
   dealerTabletAddSchema,
@@ -49,6 +50,7 @@ export {
   TV_MODES,
   tvPairingSchema,
   tvPairSchema,
+  type CageAgentRequest,
   type DevicePairRequest,
   type TvMode,
 } from './devices.ts';
@@ -65,6 +67,7 @@ export {
   type IncidentSeverity,
 } from './incidents.ts';
 export { rakeChangeSchema } from './rake.ts';
+export { offlinePackRowSchema, offlinePackVenuesSchema, storedPacksSchema, type OfflinePackRow } from './offlinePack.ts';
 export { feedbackNoteSchema, feedbackResolveSchema, visitRatingSchema } from './feedback.ts';
 export { leagueSeasonSchema, REWARD_KINDS, rewardItemSchema, type RewardKind, cancelRedemptionSchema } from './rewards.ts';
 export {

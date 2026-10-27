@@ -52,6 +52,8 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `waitlistCalledSchema`, `receiptReadySchema` | The payloads of `waitlist.called` (member, table, seat, hold expiry) and `receipt.ready` (member, amount in paise, the link's suffix) that the WhatsApp consumer sends for (#62). They name the member, never a number. |
 | `reviewRequestedSchema`, `reviewsGoogleUrl` | The payload of `review.requested` (#159: the request, the member and the venue's review link), and the setting that holds the link, which only Google's review addresses pass. |
 | `cancelRedemptionSchema` | Why a redemption not yet handed over is cancelled (#462): 3 to 300 characters. |
+| `cageAgentRequestSchema`, `CageAgentRequest` | What the cage agent asks the `cage-agent` function (#168, decision 0260): to enrol, the six-digit code and the SHA-256 of its token; then the newest offline pack. |
+| `offlinePackRowSchema`, `OfflinePackRow`, `offlinePackVenuesSchema`, `storedPacksSchema` | The offline pack as `public.offline_pack(venue)` returns it, the venues the nightly job packs (never the practice venue), and what Storage lists of a venue's packs (#168). |
 | `signInCodeSchema` | A one-time sign-in code: six digits. The sign-in form and the hook payload both use it. |
 | `sendSmsHookSchema`, `SignInCodeToSend` | Supabase Auth's Send SMS hook payload, parsed to the number being checked (`sms.phone`, E.164), and the six-digit code. |
 | `SOCIAL_CHANNELS`, `socialChannelSchema`, `SocialChannel` | The eight publishing channels. |

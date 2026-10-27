@@ -13,6 +13,7 @@ A small Vite page, the render host (`src/host/`), loads `@rivr/ui/styles.css`, m
 | `renderToMp4(request, { fps, durationMs, leadMs })` | An H.264 MP4 of the template's CSS animations: each frame captured with every animation held at its time, after `leadMs` of still frames, encoded in Chromium (WebCodecs) and written by Mediabunny (`docs/decisions/0039`). |
 | `templates`, `TemplateName`, `TemplateProps<Name>` | The template registry; props are type-checked per template. |
 | `RenderRequest<Name>` | The request type. |
+| `offlinePackFromRow(row)`, `renderOfflinePackPdf(pack)` | The offline pack (#168) from `public.offline_pack`'s row, and as a PDF of A4 pages. `pnpm --filter @rivr/render render:offline-packs` (`scripts/render-offline-packs.ts`, with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`) makes every real venue's pack into the private bucket `offline-packs` and keeps each venue's newest seven: `.github/workflows/offline-pack.yml` runs it nightly. |
 | `renderInvoicePdf(invoice)`, `storedInvoiceFromRow(row)`, `StoredInvoice` | A stored invoice (#68), read from its `invoice` row with the SAC code, place of supply and signatory it was issued with (#423), as a one-page A4 PDF through `document.invoice`: `@rivr/ui`'s `InvoiceDocument`, which the player app shows too (#249) (decision 0111). |
 
 Templates:
