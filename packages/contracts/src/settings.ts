@@ -111,6 +111,13 @@ const dealerVarianceThreshold = {
   value: z.strictObject({ threshold_paise: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE) }),
 } as const satisfies SettingDefinition;
 
+const dealerRotationMinutes = {
+  key: 'dealer.rotation_minutes',
+  description: 'How long a dealer deals at one table before the floor rotates them, in minutes (scope-v1 module 10). 30 when not set.',
+  scope: 'venue',
+  value: z.strictObject({ minutes: z.int().min(10).max(120) }),
+} as const satisfies SettingDefinition;
+
 const waitlistPriorityWeights = {
   key: 'waitlist.priority_weights',
   description: "A tier's waitlist priority: its weight (higher goes first; 0 or unset is none) and whether it counts only on the list for the member's qualifying stake, as the black card's does (scope-v1 module 2).",
@@ -265,7 +272,7 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
   cageCashBuyInLimit, amlStructuring, rakebackRate,
