@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { PromotionDraft } from '@rivr/domain/promotions';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { usePromotionActions, usePromotions, usePromotionStakes, usePromotionTemplates } from './promotions.ts';
+import { usePromotionActions, usePromotions, usePromotionSimulation, usePromotionStakes, usePromotionTemplates } from './promotions.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -33,7 +33,10 @@ function renderPromotions(replies: Record<string, { status?: number; body: unkno
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ list: usePromotions(VENUE), stakes: usePromotionStakes(VENUE), templates: usePromotionTemplates(VENUE), actions: usePromotionActions(VENUE) }),
+    () => ({
+      list: usePromotions(VENUE), stakes: usePromotionStakes(VENUE), templates: usePromotionTemplates(VENUE), actions: usePromotionActions(VENUE),
+      simulation: usePromotionSimulation(VENUE),
+    }),
     { wrapper },
   );
   return { result, calls };
@@ -102,5 +105,48 @@ describe('Promotions (#84)', () => {
     });
     expect(published).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('publish_promotion_template'))?.body).toEqual({ p_promotion_id: 't1' });
+  });
+});
+
+// The simulation before publishing (#144).
+describe('Promotion simulation', () => {
+  const WEEK = { from: '2026-11-12T00:30:00+00:00', to: '2026-11-19T00:30:00+00:00' };
+  const visit = (member: number, points: number) => ({
+    at: '2026-11-13T15:00:00+00:00', member, tier_id: null, table_id: 't3', stake: 'nlh_100_200', amount_paise: 0, points, hours_played: 3,
+  });
+
+  it('replays last week with the rule, as the engine would: once per member', async () => {
+    const { result, calls } = renderPromotions({
+      '/rpc/promotion_replay': { body: { ...WEEK, events: [visit(1, 60), visit(1, 40), visit(2, 30)] } },
+      '/rest/v1/': { body: [] },
+    });
+    let simulated: unknown;
+    await act(async () => {
+      simulated = await result.current.simulation.mutateAsync(DRAFT);
+    });
+    expect(simulated).toEqual({
+      ok: true,
+      value: {
+        events: 3, grants: 2, members: 2, cost: 0n, points: 90n, budgetLeft: null, isBudgetReached: false,
+        from: new Date(WEEK.from), to: new Date(WEEK.to),
+      },
+    });
+    expect(calls.find((call) => call.url.includes('promotion_replay'))?.body).toEqual({
+      p_venue_id: VENUE, p_trigger: 'hours_played', p_conditions: { days: [4] },
+    });
+  });
+
+  it.each([
+    [{ status: 403, body: { code: '42501', message: 'no' } }, 'not_allowed'],
+    [{ status: 400, body: { code: '22023', message: 'no' } }, 'not_replayable'],
+    [{ status: 500, body: { code: 'XX000', message: 'down' } }, 'unavailable'],
+    [{ body: { from: 'yesterday', events: [] } }, 'unavailable'],
+  ])('says why a simulation did not run (%#)', async (reply, failure) => {
+    const { result } = renderPromotions({ '/rpc/promotion_replay': reply, '/rest/v1/': { body: [] } });
+    let refused: unknown;
+    await act(async () => {
+      refused = await result.current.simulation.mutateAsync(DRAFT);
+    });
+    expect(refused).toEqual({ ok: false, error: failure });
   });
 });

@@ -1,5 +1,7 @@
+import { promotionReplaySchema } from '@rivr/contracts/promotions';
 import { err, ok, type Result } from '@rivr/contracts/result';
-import type { PromotionDraft } from '@rivr/domain/promotions';
+import { fromPaise } from '@rivr/domain/money';
+import { simulatePromotion, type PromotionDraft, type PromotionSimulation } from '@rivr/domain/promotions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -78,6 +80,40 @@ export function usePromotionStakes(venueId: string) {
         .order('small_blind_paise').order('name');
       if (error) throw error;
       return data.map((row) => ({ code: row.code, name: row.name }));
+    },
+  });
+}
+
+/** A promotion replayed on last week (#144): what it would have given, and the club days replayed. */
+export interface PromotionSimulationResult extends PromotionSimulation {
+  readonly from: Date;
+  readonly to: Date;
+}
+
+/** Why a simulation did not run: not a promotion manager, a rule last week cannot replay, or no answer. */
+export type SimulationFailure = 'not_allowed' | 'not_replayable' | 'unavailable';
+
+const SIMULATION_FAILURE_BY_CODE: Readonly<Record<string, SimulationFailure>> = { '42501': 'not_allowed', '22023': 'not_replayable' };
+
+/**
+ * Replays a promotion on last week's events before it is published (#144; decision 0214): the database
+ * gives the seven whole club days' buy-ins or hours played (`promotion_replay`), and @rivr/domain
+ * simulatePromotion weighs them with the engine's own rules. The builder's promotions have no budget.
+ */
+export function usePromotionSimulation(venueId: string) {
+  const { client } = useRivrData();
+  return useMutation({
+    mutationFn: async (draft: PromotionDraft): Promise<Result<PromotionSimulationResult, SimulationFailure>> => {
+      const { data, error } = await client.rpc('promotion_replay', { p_venue_id: venueId, p_trigger: draft.rule.trigger, p_conditions: draft.rule.conditions });
+      if (error) return err(SIMULATION_FAILURE_BY_CODE[error.code] ?? 'unavailable');
+      const replay = promotionReplaySchema.safeParse(data);
+      if (!replay.success) return err('unavailable');
+      const events = replay.data.events.map((event) => ({
+        at: new Date(event.at), memberId: String(event.member), tierId: event.tier_id, tableId: event.table_id, stake: event.stake,
+        amount: fromPaise(BigInt(event.amount_paise)), points: BigInt(event.points), hoursPlayed: event.hours_played,
+      }));
+      const simulation = simulatePromotion(draft, events);
+      return simulation.ok ? ok({ ...simulation.value, from: new Date(replay.data.from), to: new Date(replay.data.to) }) : err(simulation.error);
     },
   });
 }

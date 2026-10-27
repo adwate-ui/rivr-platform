@@ -1,0 +1,146 @@
+{
+  "rule": "promotionSimulation",
+  "about": "Simulating a promotion on last week (scope-v1 module 7 controls; #144). The builder's choices become the promotion's rule, as publishing makes it. Each of last week's events is weighed in time order, as the engine weighs it live: a buy-in (its own money; one paid from bonus is ₹0) or a closed visit's hours played (its points earned, and for a rule with days or times only the time inside its window, so such a rule's days, times and stake are then met). A grant is given when the rule applies and its reward comes to something, while the first-N count for the club day, the per-player limit and the budget allow: a grant is whole or not at all. Club days run 06:00 to 06:00 IST. The result is the grants, the members who got one, the rupee cost (a bonus; points cost nothing), the extra points, what is left of a rupee budget and whether the budget stopped a grant. An event with \"times\": N stands for N such events by N different members, m1 to mN.",
+  "cases": [
+    {
+      "description": "Flow 7's Thursday scheme: double points at 100/200, 14:00 to 20:00. Two players' time inside the window earned 120 and 30 points: 150 more, at no rupee cost.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\", \"stake\": \"nlh_100_200\", \"reward\": \"double_points\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-19T20:30:00+05:30\", \"member\": \"arjun\", \"table\": \"t3\", \"stake\": \"nlh_100_200\", \"points\": 120, \"hours_played\": 6}, {\"at\": \"2026-11-19T21:10:00+05:30\", \"member\": \"kabir\", \"table\": \"t3\", \"stake\": \"nlh_100_200\", \"points\": 30, \"hours_played\": 1.5}]"
+      },
+      "expected": { "grants": "2", "members": "2", "cost": "₹0", "points": "150", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "Triple points on 60 points earned is 120 more.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"triple_points\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-17T23:00:00+05:30\", \"member\": \"naina\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"points\": 60, \"hours_played\": 3}]"
+      },
+      "expected": { "grants": "1", "members": "1", "cost": "₹0", "points": "120", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "A visit that earned no points gets no extra points, and is no grant.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"double_points\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-17T23:00:00+05:30\", \"member\": \"naina\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"points\": 0, \"hours_played\": 0.5}]"
+      },
+      "expected": { "grants": "0", "members": "0", "cost": "₹0", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "10% buy-in bonus up to ₹5,000: ₹20,000 gives ₹2,000; ₹1,00,000 gives ₹10,000, held to ₹5,000; ₹12,350 gives ₹1,235, rounded down to ₹1,200 in ₹50 chips. ₹8,200 in all.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹20,000\"}, {\"at\": \"2026-11-17T21:00:00+05:30\", \"member\": \"kabir\", \"table\": \"t3\", \"stake\": \"nlh_100_200\", \"amount\": \"₹1,00,000\"}, {\"at\": \"2026-11-18T01:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹12,350\"}]"
+      },
+      "expected": { "grants": "3", "members": "2", "cost": "₹8,200", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "A buy-in paid from bonus is ₹0 of the member's own money: no bonus on it.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹0\"}]"
+      },
+      "expected": { "grants": "0", "members": "0", "cost": "₹0", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "A buy-in bonus on Thursdays 14:00 to 20:00 at 100/200: only the Thursday 15:00 buy-in at 100/200 counts, not one at 21:00, one at another stake or one on Friday.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\", \"stake\": \"nlh_100_200\", \"reward\": \"buy_in_bonus\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-19T15:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t3\", \"stake\": \"nlh_100_200\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-19T21:00:00+05:30\", \"member\": \"kabir\", \"table\": \"t3\", \"stake\": \"nlh_100_200\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-19T15:30:00+05:30\", \"member\": \"naina\", \"table\": \"t5\", \"stake\": \"plo_200_400\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-20T15:00:00+05:30\", \"member\": \"rohan\", \"table\": \"t3\", \"stake\": \"nlh_100_200\", \"amount\": \"₹10,000\"}]"
+      },
+      "expected": { "grants": "1", "members": "1", "cost": "₹1,000", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "First 50 members a day: 52 members buy in on Monday evening, so 50 get the bonus. One more at 02:00 on Tuesday is still Monday night: none. One at 07:00 on Tuesday starts a new club day: yes.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"first_50\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-16T20:00:00+05:30\", \"member\": \"m\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹5,000\", \"times\": 52}, {\"at\": \"2026-11-17T02:00:00+05:30\", \"member\": \"late\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹5,000\"}, {\"at\": \"2026-11-17T07:00:00+05:30\", \"member\": \"early\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹5,000\"}]"
+      },
+      "expected": { "grants": "51", "members": "51", "cost": "₹25,500", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "First 50 members a day is one each: a member's second buy-in that day gets nothing, the next day's does.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"first_50\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-16T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-16T23:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}]"
+      },
+      "expected": { "grants": "2", "members": "1", "cost": "₹2,000", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "Once per member: Arjun's buy-ins on two days get one bonus, the first.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"once_per_member\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹30,000\"}, {\"at\": \"2026-11-16T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}]"
+      },
+      "expected": { "grants": "1", "members": "1", "cost": "₹1,000", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    },
+    {
+      "description": "A ₹3,000 budget: ₹2,000 is given, the next ₹2,000 is not (a grant is never part of one), and a later ₹500 still fits. ₹500 is left, and the budget stopped a grant.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "{\"cap\": \"₹3,000\"}",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹20,000\"}, {\"at\": \"2026-11-17T21:00:00+05:30\", \"member\": \"kabir\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹20,000\"}, {\"at\": \"2026-11-17T22:00:00+05:30\", \"member\": \"naina\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹5,000\"}]"
+      },
+      "expected": { "grants": "2", "members": "2", "cost": "₹2,500", "points": "0", "budget_left": "₹500", "budget_reached": "yes" }
+    },
+    {
+      "description": "A budget spent to the rupee: ₹1,000 of ₹1,000 is given, nothing is left, and nothing was refused.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "{\"cap\": \"₹1,000\"}",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}]"
+      },
+      "expected": { "grants": "1", "members": "1", "cost": "₹1,000", "points": "0", "budget_left": "₹0", "budget_reached": "no" }
+    },
+    {
+      "description": "Once per member with a ₹1,000 budget: Arjun's first buy-in spends it all; his second is stopped by once per member, so the budget stopped nothing.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"once_per_member\", \"bonus_cap_rupees\": 5000}",
+        "budget": "{\"cap\": \"₹1,000\"}",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-17T21:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}]"
+      },
+      "expected": { "grants": "1", "members": "1", "cost": "₹1,000", "points": "0", "budget_left": "₹0", "budget_reached": "no" }
+    },
+    {
+      "description": "A budget of one grant: the first buy-in gets it, the second is stopped by the budget.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [], \"from\": null, \"until\": null, \"stake\": null, \"reward\": \"buy_in_bonus\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "{\"count\": 1}",
+        "events": "[{\"at\": \"2026-11-17T20:00:00+05:30\", \"member\": \"arjun\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}, {\"at\": \"2026-11-17T21:00:00+05:30\", \"member\": \"kabir\", \"table\": \"t1\", \"stake\": \"nlh_25_50\", \"amount\": \"₹10,000\"}]"
+      },
+      "expected": { "grants": "1", "members": "1", "cost": "₹1,000", "points": "0", "budget_left": "no cap", "budget_reached": "yes" }
+    },
+    {
+      "description": "A quiet week: nothing to replay, nothing given.",
+      "operation": "simulate",
+      "inputs": {
+        "choices": "{\"days\": [4], \"from\": \"14:00\", \"until\": \"20:00\", \"stake\": \"nlh_100_200\", \"reward\": \"double_points\", \"limit\": \"none\", \"bonus_cap_rupees\": 5000}",
+        "budget": "none",
+        "events": "[]"
+      },
+      "expected": { "grants": "0", "members": "0", "cost": "₹0", "points": "0", "budget_left": "no cap", "budget_reached": "no" }
+    }
+  ]
+}

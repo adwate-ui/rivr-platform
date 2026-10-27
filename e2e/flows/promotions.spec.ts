@@ -24,6 +24,9 @@ async function publishFlow7(floor: Page) {
   // The player card and the TV slide, as the choices would publish them.
   await expect(floor.getByRole('article', { name: 'Double points' })).toContainText(RUNS);
   await expect(floor.getByRole('group', { name: 'TV slide' })).toContainText(RUNS);
+  // Simulated on last week first (#144), then published.
+  await floor.getByRole('button', { name: 'Simulate last week' }).click();
+  await expect(floor.getByText('Times given', { exact: true })).toBeVisible({ timeout: 10_000 });
   await floor.getByRole('button', { name: 'Publish', exact: true }).click();
   await expect(floor.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
   await expect(floor.getByText(RUNS, { exact: true }).first()).toBeVisible();
