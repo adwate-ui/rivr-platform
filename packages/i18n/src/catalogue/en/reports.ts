@@ -71,4 +71,21 @@ export const reports = {
   monthNumber: 'Month {number}',
   retained: '{count} ({percent}%)',
   noCohorts: 'No first visits in these six months.',
+  /** The growth funnel (#166). */
+  funnel: 'Growth funnel',
+  funnelHint: 'Every member by where they came from, and how many have finished KYC, come in and bought in. From our own records.',
+  funnelTable: 'Growth funnel',
+  noFunnel: 'No members yet.',
+  source: 'Source',
+  signedUp: 'Signed up',
+  kycDone: 'KYC done',
+  visited: 'Came in',
+  boughtIn: 'Bought in',
+  stage: '{count} ({percent}%)',
+  sources: {
+    referral: 'Referral',
+    creator: 'Creator {code}',
+    link: 'Link {code}',
+    direct: 'Direct',
+  },
 } as const;

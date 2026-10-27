@@ -9,6 +9,7 @@ const keys = {
   rakeTonight: (userId: string, venueId: string) => ['user', userId, 'rake-tonight', venueId] as const,
   misReport: (userId: string, venueId: string, month: string) => ['user', userId, 'mis-report', venueId, month] as const,
   unclaimed: (userId: string, venueId: string) => ['user', userId, 'unclaimed-balances', venueId] as const,
+  growthFunnel: (userId: string, venueId: string) => ['user', userId, 'growth-funnel', venueId] as const,
 };
 
 // Tonight's figures move as hands are logged; a minute is fresh enough for a report.
@@ -167,6 +168,38 @@ export function useUnclaimedBalances(venueId: string) {
       return data.map((row) => ({
         memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name,
         cash: toPaise(row.cash_paise), bonus: toPaise(row.bonus_paise), lastSeenAt: row.last_seen_at,
+      }));
+    },
+  });
+}
+
+/** Where members came from (#166): a referral, a creator's code, a link's utm_source, or none. */
+export type FunnelSourceKind = 'referral' | 'creator' | 'link' | 'direct';
+const SOURCE_KINDS: readonly FunnelSourceKind[] = ['referral', 'creator', 'link', 'direct'];
+
+/** One source's members and how many of them reached each stage. */
+export interface FunnelRow {
+  readonly sourceKind: FunnelSourceKind;
+  /** The creator's code or the link's utm_source; null for a referral or direct. */
+  readonly sourceCode: string | null;
+  readonly signedUp: number;
+  readonly kycDone: number;
+  readonly visited: number;
+  readonly boughtIn: number;
+}
+
+/** The growth funnel (#166): sign-up, KYC, a first visit and a first buy-in by source, for staff who read reports. */
+export function useGrowthFunnel(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.growthFunnel(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<FunnelRow[]> => {
+      const { data, error } = await client.rpc('growth_funnel', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        sourceKind: SOURCE_KINDS.find((kind) => kind === row.source_kind) ?? 'direct', sourceCode: row.source_code,
+        signedUp: row.signed_up, kycDone: row.kyc_done, visited: row.visited, boughtIn: row.bought_in,
       }));
     },
   });
