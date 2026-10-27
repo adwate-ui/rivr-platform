@@ -46,6 +46,10 @@ select throws_ok($$ select public.log_hand(100000, 'holdem', now() + interval '2
   'so is one played 29 seconds after them');
 select isnt(public.log_hand(100000, 'holdem', now() + interval '31 seconds', 'rate-hand-31s'), null,
   'one played 31 seconds after them is logged: they are more than 30 seconds away');
+select throws_ok($$ select public.log_hand(100000, 'holdem', now() - interval '29 seconds', 'rate-hand-minus-29s') $$, 'RVFST', null,
+  'one played 29 seconds before them is refused too: the window runs both ways');
+select isnt(public.log_hand(100000, 'holdem', now() - interval '31 seconds', 'rate-hand-minus-31s'), null,
+  'and one played 31 seconds before them is logged');
 select isnt(public.log_hand(100000, 'holdem', now() - interval '2 minutes', 'rate-hand-replayed'), null,
   'a hand played two minutes before, as an offline replay brings it, is logged');
 select isnt(public.log_hand(100000, 'holdem', now(), 'rate-hand-1'), null, 'a replay of a hand already logged still returns it');

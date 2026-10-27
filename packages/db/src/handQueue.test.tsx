@@ -123,8 +123,8 @@ describe('the tablet\'s queue of hands', () => {
     await waitFor(() => expect(result.current).toMatchObject({ pending: 2, refusedHands: 0 }));
   });
 
-  it('sets aside a hand refused for good, and the next one goes', async () => {
-    const { result, calls } = renderQueue({ log_hand: [{ code: '22023' }, { value: 'h2' }] });
+  it.each(['22023', 'RVFST'])('sets aside a hand refused for good (%s), and the next one goes', async (code) => {
+    const { result, calls } = renderQueue({ log_hand: [{ code }, { value: 'h2' }] });
     await act(async () => {
       await result.current.log(HAND, 'r-1');
       await result.current.log(HAND, 'r-2');

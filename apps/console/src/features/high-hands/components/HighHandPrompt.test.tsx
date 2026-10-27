@@ -50,6 +50,8 @@ describe('HighHandPrompt', () => {
   it('rejects only with the reason, as on the High hands screen', async () => {
     const sent = renderPrompt(1);
     fireEvent.click(screen.getByRole('button', { name: 'Reject' }));
+    // The reason is the next thing to type.
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Why it is not approved' })));
     fireEvent.change(screen.getByRole('textbox', { name: 'Why it is not approved' }), { target: { value: ' The board was misread ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Reject the claim' }));
     await waitFor(() => expect(sent).toEqual([
