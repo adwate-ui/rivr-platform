@@ -70,13 +70,13 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 ## Events
 
 - Emits: `cage.buy_in`, `cage.cash_out`, `withdrawal.requested`, `withdrawal.sent` (for the push), `withdrawal.declined`, `deposit.received`, `deposit.not_found`, `marker.issued`, `marker.settled`, `invoice.issued`, `eod.closed`, `control.engaged`, `control.released`, `alert.raised`.
-- Consumes: `hand.logged` (rake reports), `visit.closed` (hours for rakeback and accommodation). The overlay is booked by the tournament's own finish (`finish_tournament`, key `tournament_overlay:<id>`), so lane A consumes no `tournament.finished`.
+- Consumes: `hand.logged` (rake reports), `visit.closed` (hours for accommodation). The overlay is booked by the tournament's own finish (`finish_tournament`, key `tournament_overlay:<id>`), so lane A consumes no `tournament.finished`.
 
 ## Uses from other lanes
 
 - C: `private.is_kyc_complete(member)`, `private.member_restrictions(member, at)` (limits, cool-off, self-exclusion), `private.close_visit(member, at, reason)`.
 - B: `private.call_time_shortfall(member, at)`, `buy_in_request` rows through `public.request_buy_in`.
-- D: `private.evaluate_promotions(venue, trigger, context)` at buy-in.
+- D: `private.evaluate_promotions(venue, trigger, context)` at buy-in, and each Monday with trigger `rake_week` for hourly rakeback: the cron job `rakeback-weekly` runs `private.give_rakeback_everywhere()` at 06:00 IST, one event per member and table with the week's rake share as its amount, key `rake_week:<Monday>:<table>` (#108, decision 0245). The rate by stake is a rakeback promotion's rule, not a setting.
 
 ## Screens
 
@@ -84,4 +84,4 @@ Console: `features/cage`, `features/markers`, `features/treasury`, `features/end
 
 ## Settings keys added
 
-`cage.second_approver_threshold` (`threshold_paise`: a withdrawal of this or more needs a second approver; none set, every amount does; #20, decision 0063), `cage.cash_buy_in_limit` (`per_visit_paise`, `per_day_paise`: a cash buy-in past either is refused; nothing is no limit; #105, decision 0234), `aml.structuring` (`count`, `window_days`, `margin_basis_points`: 3 in 7 days within 10% unless set), `tds.config` (switch, section, rate, threshold, basis `session`/`day`/`financial_year`, PAN required and the no-PAN rate; #22, decision 0068), `gst.config` (rate in basis points taken out of what is collected, basis `rake` or `table_fee`; 18% of the rake as a placeholder, question #378; #23, decision 0071), `credit.config` (approval threshold, minimum visits, exposure cap; decision 0058), `markers.due_days`, `bonus.expiry_days`, `rakeback.rate` (by stake), `accommodation.hours_per_night` (by stake), `alert.thresholds`. Only a super admin changes `cage.second_approver_threshold`, `credit.config`, `tds.config`, `alert.thresholds` and `exports.alert_rows`, as for the AML keys: with a reason, the owner alerted `settings.control_changed`, and an admin refused `42501` (#112, decision 0213).
+`cage.second_approver_threshold` (`threshold_paise`: a withdrawal of this or more needs a second approver; none set, every amount does; #20, decision 0063), `cage.cash_buy_in_limit` (`per_visit_paise`, `per_day_paise`: a cash buy-in past either is refused; nothing is no limit; #105, decision 0234), `aml.structuring` (`count`, `window_days`, `margin_basis_points`: 3 in 7 days within 10% unless set), `tds.config` (switch, section, rate, threshold, basis `session`/`day`/`financial_year`, PAN required and the no-PAN rate; #22, decision 0068), `gst.config` (rate in basis points taken out of what is collected, basis `rake` or `table_fee`; 18% of the rake as a placeholder, question #378; #23, decision 0071), `credit.config` (approval threshold, minimum visits, exposure cap; decision 0058), `markers.due_days`, `bonus.expiry_days`, `accommodation.hours_per_night` (by stake), `alert.thresholds`. Only a super admin changes `cage.second_approver_threshold`, `credit.config`, `tds.config`, `alert.thresholds` and `exports.alert_rows`, as for the AML keys: with a reason, the owner alerted `settings.control_changed`, and an admin refused `42501` (#112, decision 0213).

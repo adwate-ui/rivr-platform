@@ -125,6 +125,15 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `gstIncluded(inclusive, rate)`, `GstSplit` | GST taken out of an amount that includes it (#23, decision 0071): equal CGST and SGST halves, each rounded to the nearest paisa (a half up), and the taxable value as what is left, so the three add up to the amount. Throws on a negative amount or a rate outside 0 to 10,000 basis points (bugs). The database's `private.gst_included` is proved equal by `packages/testing/golden/gst.json`. |
 | `igstIncluded(inclusive, rate)`, `IgstSplit` | IGST taken out of an amount that includes it, for a buyer registered in another state (#380, decision 0102): the whole tax at the full rate, rounded once to the nearest paisa (a half up), and the taxable value as the rest. Same refusals as `gstIncluded`. The database's `private.igst_included` is proved equal on the same golden file. |
 
+### `@rivr/domain/rakeback`
+
+Hourly rakeback (#108, decision 0245), in paise. Each is proved equal to its `private.` twin by `packages/testing/golden/rakeback.json`.
+
+| Export | What it does |
+|---|---|
+| `weekRakeShares(hands)`, `RakeHand` | Each member's rake for the week at each table: every hand's rake split equally among the members seated there (`rakeShare`), summed by member and table. |
+| `rakebackBonus(share, rateBasisPoints, capPaise?)` | A rakeback promotion's bonus on that share: the rate's part, rounded down to whole ₹50 chips, then held to the cap, as `promotionReward` gives a percentage bonus. 10% of ₹2,500 is ₹250; 10% of ₹4,999 is ₹450. |
+
 ### `@rivr/domain/promotions`
 
 | Export | What it does |
