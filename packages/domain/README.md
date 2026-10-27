@@ -131,8 +131,8 @@ Hourly rakeback (#108, decision 0245), in paise. Each is proved equal to its `pr
 
 | Export | What it does |
 |---|---|
-| `weekRakeShares(hands)`, `RakeHand` | Each member's rake for the week at each table: every hand's rake split equally among the members seated there (`rakeShare`), summed by member and table. |
-| `rakebackBonus(share, rateBasisPoints, capPaise?)` | A rakeback promotion's bonus on that share: the rate's part, rounded down to whole ₹50 chips, then held to the cap, as `promotionReward` gives a percentage bonus. 10% of ₹2,500 is ₹250; 10% of ₹4,999 is ₹450. |
+| `weekRakeShares(hands)`, `RakeHand` | Each member's rake for the week at each stake: every hand's rake split equally among the members seated at its table (`rakeShare`), summed by member and stake. |
+| `rakebackBonus(share, rateBasisPoints, capPaise?)` | The stake's `rakeback.rate` of that share, rounded down to whole ₹50 chips, then held to the cap. 10% of ₹2,500 is ₹250; 10% of ₹4,999 is ₹450. |
 
 ### `@rivr/domain/promotions`
 

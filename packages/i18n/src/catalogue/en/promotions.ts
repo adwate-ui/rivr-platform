@@ -72,7 +72,6 @@ export const promotions = {
     trigger: {
       buy_in: 'On a buy-in', hours_played: 'For hours played', hand_logged: 'When a hand is logged', tournament_entry: 'On a tournament entry',
       referral: 'On a referral', check_in: 'On a check-in', graduation: 'On an Academy graduation', date_window: 'Once each club day in its window',
-      rake_week: 'Each Monday, on the week\'s rake at a table',
     },
     gives: {
       bonusAmount: 'a {amount} bonus, ending after {days} days',

@@ -3,8 +3,6 @@ import { z } from 'zod';
 /** What sets a promotion rule off (scope-v1 module 7): the event a lane passes to `private.evaluate_promotions`. */
 export const PROMOTION_TRIGGERS = [
   'buy_in', 'hours_played', 'hand_logged', 'tournament_entry', 'referral', 'check_in', 'graduation', 'date_window',
-  // Each Monday 06:00 IST, each member's rake for the week at each table: hourly rakeback (#108, decision 0245).
-  'rake_week',
 ] as const;
 export type PromotionTrigger = (typeof PROMOTION_TRIGGERS)[number];
 

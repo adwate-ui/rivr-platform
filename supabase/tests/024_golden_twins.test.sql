@@ -577,7 +577,7 @@ select results_eq(
   $$ select description, expected ->> 'near' from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
   'private.is_near_limit gives every total in the golden file');
 
--- Hourly rakeback: private.rake_share summed over the week and private.promotion_reward's percentage bonus, and
+-- Hourly rakeback: private.rake_share summed over the week and private.rakeback_bonus, and
 -- @rivr/domain weekRakeShares and rakebackBonus (packages/testing/golden/rakeback.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'rakeback.json'), 'the rakeback cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'rakeback.json' and operation not in ('week_share', 'rakeback') $$,
@@ -591,13 +591,11 @@ select results_eq(
   'private.rake_share, summed over the week, gives every share in the golden file');
 select results_eq(
   $$ select description,
-            coalesce((select r.cost_paise from private.promotion_reward(
-                        jsonb_build_object('kind', 'bonus', 'percent_bps', (inputs ->> 'rate')::integer, 'expires_days', 7)
-                          || case when inputs ->> 'cap' = '' then '{}'::jsonb else jsonb_build_object('cap_paise', pg_temp.paise(inputs ->> 'cap')) end,
-                        pg_temp.paise(inputs ->> 'share'), null) r), 0)
+            private.rakeback_bonus(pg_temp.paise(inputs ->> 'share'), (inputs ->> 'rate')::integer,
+                                   case when inputs ->> 'cap' = '' then null else pg_temp.paise(inputs ->> 'cap') end)
      from golden.golden_case where file = 'rakeback.json' and operation = 'rakeback' order by position $$,
   $$ select description, pg_temp.paise(expected ->> 'bonus') from golden.golden_case where file = 'rakeback.json' and operation = 'rakeback' order by position $$,
-  'private.promotion_reward gives every rakeback in the golden file');
+  'private.rakeback_bonus gives every rakeback in the golden file');
 
 select * from finish();
 rollback;

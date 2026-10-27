@@ -285,12 +285,23 @@ const reportsUnclaimedDays = {
   value: z.strictObject({ days: z.int().min(30).max(3650) }),
 } as const satisfies SettingDefinition;
 
+const rakebackRate = {
+  key: 'rakeback.rate',
+  description: 'Hourly rakeback (#108, decision 0245): the share of a member\'s rake at this table type over a club week, in basis points (1000 is 10%), given as bonus each Monday at 06:00 IST, rounded down to whole ₹50 chips, held to the cap and ending after the days given. The rate in force when the week began applies to all of it; none set gives none. Only a super admin changes it, with a reason.',
+  scope: 'table_type',
+  value: z.strictObject({
+    basis_points: z.int().min(1).max(10_000),
+    cap_paise: z.int().min(CHIP_PAISE).max(10_000_000).multipleOf(CHIP_PAISE).optional(),
+    expires_days: z.int().min(1).max(365),
+  }),
+} as const satisfies SettingDefinition;
+
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring,
+  cageCashBuyInLimit, amlStructuring, rakebackRate,
 ] as const;
 
 /** A setting key declared in code. */

@@ -14,12 +14,12 @@ function amount(text: string): Paise {
   return parsed.value;
 }
 
-/** "₹1,000 among 3; ₹500 among 2": hands at one table, each with the member and the others seated. */
+/** "₹1,000 among 3; ₹500 among 2": hands at one stake, each with the member and the others seated. */
 function handsOf(text: string): RakeHand[] {
   return text.split(';').map((part, index) => {
     const [rake = '', seated = '1'] = part.trim().split(' among ');
     const others = Array.from({ length: Number(seated) - 1 }, (_, other) => `other-${index}-${other}`);
-    return { tableId: 'table', rake: amount(rake), seated: ['member', ...others] };
+    return { stake: 'nlh_100_200', rake: amount(rake), seated: ['member', ...others] };
   });
 }
 
@@ -29,7 +29,7 @@ describe('rakeback golden fixtures (packages/testing/golden/rakeback.json)', () 
   });
 
   it.each(casesFor(golden, 'week_share'))('%s', (_description, goldenCase) => {
-    const share = weekRakeShares(handsOf(goldenInput(goldenCase, 'hands'))).get('member')?.get('table');
+    const share = weekRakeShares(handsOf(goldenInput(goldenCase, 'hands'))).get('member')?.get('nlh_100_200');
     expect(share).toBe(amount(goldenExpected(goldenCase, 'share')));
   });
 
