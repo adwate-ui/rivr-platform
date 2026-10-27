@@ -1,7 +1,7 @@
 import { useFeature } from '@rivr/db';
 import { useMyCab, useMyCabRequests, useRequestCab, type CabFailure, type MyCab } from '@rivr/db/myRewards';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, FeatureGate, Heading, Input, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, FeatureGate, Heading, Input, LoadState, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 type Kind = 'pickup' | 'drop';
@@ -18,6 +18,7 @@ export function CabSection() {
 
 function Cab() {
   const cab = useMyCab();
+  if (cab.data === undefined) return <LoadState isError={cab.isError} onRetry={() => void cab.refetch()} />;
   if (!cab.data?.isEligible) return null;
   return <CabForm cab={cab.data} />;
 }
@@ -42,7 +43,7 @@ function CabForm({ cab }: { cab: MyCab }) {
         options={KINDS.map((value) => ({ value, label: t(`memberRewards.cab.kinds.${value}`) }))}
         onChange={([picked]) => { const found = KINDS.find((known) => known === picked); if (found) setKind(found); }} />
       <Input label={t('memberRewards.cab.address')} value={address} maxLength={200} onChange={(event) => setAddress(event.target.value)} />
-      <Input label={t('memberRewards.cab.time')} value={time} inputMode="numeric" maxLength={5} onChange={(event) => setTime(event.target.value)} />
+      <Input label={t('memberRewards.cab.time')} value={time} maxLength={5} onChange={(event) => setTime(event.target.value)} />
       <Button variant="secondary" isLoading={request.isPending} onClick={() => void ask()}>{t('memberRewards.cab.request')}</Button>
       {failure === null ? null : <ErrorMessage>{t(`memberRewards.cab.failures.${failure}`)}</ErrorMessage>}
       <StatusMessage>

@@ -6,7 +6,7 @@ import { PaymentRow } from './PaymentRow.tsx';
 // Kabir's seat, his UTR given and waiting for the cage.
 const claimed: StaffAcademyBooking = {
   id: 'k1', batchId: 'b1', memberName: 'Kabir Sethi', companyName: null, seats: 1, amount: 200000n, status: 'payment_claimed',
-  utr: '412345678901', recordedByStaffId: null,
+  utr: '412345678901', recordedByStaffId: null, graduatedAt: null, classesAttended: 0,
 };
 
 /** The row for cashier s105, against a fake API that records each function called and its arguments. */

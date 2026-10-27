@@ -86,22 +86,15 @@ export function useStaffAcademyBookings(venueId: string) {
     queryKey: [...queryKeys.academyStaff(userId ?? 'signed-out', venueId), 'bookings'],
     enabled: userId !== null,
     queryFn: async (): Promise<StaffAcademyBooking[]> => {
-      const [bookings, attendance] = await Promise.all([
-        client.from('academy_booking')
-          .select('id, batch_id, company_name, seats, amount, status, utr, recorded_by_staff_id, graduated_at, member (full_name)')
-          .eq('venue_id', venueId).neq('status', 'cancelled').order('created_at'),
-        client.from('academy_attendance').select('booking_id').eq('venue_id', venueId),
-      ]);
-      if (bookings.error) throw bookings.error;
-      if (attendance.error) throw attendance.error;
-      const attended = new Map<string, number>();
-      for (const row of attendance.data) attended.set(row.booking_id, (attended.get(row.booking_id) ?? 0) + 1);
-      const data = bookings.data;
+      const { data, error } = await client.from('academy_booking')
+        .select('id, batch_id, company_name, seats, amount, status, utr, recorded_by_staff_id, graduated_at, member (full_name), academy_attendance (count)')
+        .eq('venue_id', venueId).neq('status', 'cancelled').order('created_at');
+      if (error) throw error;
       // Every role that reads bookings also reads members (pgTAP 018), so the member is always there.
       return data.map((row) => ({
         id: row.id, batchId: row.batch_id, memberName: row.member.full_name, companyName: row.company_name, seats: row.seats,
         amount: BigInt(row.amount), status: toStatus(row.status), utr: row.utr, recordedByStaffId: row.recorded_by_staff_id,
-        graduatedAt: row.graduated_at, classesAttended: attended.get(row.id) ?? 0,
+        graduatedAt: row.graduated_at, classesAttended: row.academy_attendance[0]?.count ?? 0,
       }));
     },
   });

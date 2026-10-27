@@ -28,6 +28,17 @@ reset role;
 select is((select count(*)::integer from public.academy_attendance where member_id = '00000000-0000-4000-8000-000000000622'), 1,
   'one class attended');
 
+select pg_temp.as_person('00000000-0000-4000-8000-000000000622');
+select is((select count(*)::integer from public.academy_attendance), 1, 'Ritu sees her own attendance');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select is((select count(*)::integer from public.academy_attendance), 0, 'another member sees none of it');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is((select count(*)::integer from public.academy_attendance where member_id = '00000000-0000-4000-8000-000000000622'), 1,
+  'staff who manage members see it');
+select throws_ok($$ select public.graduate_academy_member((select id from ritu)) $$, 'RVACD', null,
+  'she graduates only once the cage has confirmed her payment');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select isnt(public.confirm_academy_payment((select id from ritu), '600000000622'), null, 'the cashier confirms it');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.graduate_academy_member((select id from ritu)) $$, 'she graduates');
 select throws_ok($$ select public.graduate_academy_member((select id from ritu)) $$, 'RVDUP', null, 'once');

@@ -97,6 +97,8 @@ begin
   insert into public.cab_request (venue_id, member_id, kind, address, wanted_at)
   values (v_member.venue_id, v_member.id, p_kind, btrim(coalesce(p_address, '')), v_wanted)
   returning id into v_id;
+  perform private.emit(v_member.venue_id, 'cab.requested',
+    jsonb_build_object('cab_request_id', v_id, 'member_id', v_member.id, 'kind', p_kind, 'wanted_at', v_wanted), 'cab.requested:' || v_id);
   return v_id;
 exception
   when check_violation then
@@ -142,4 +144,18 @@ begin
     and not exists (select 1 from public.withdrawal_request w where w.payout_account_id = p.id)
     and not exists (select 1 from public.deposit_request d where d.payout_account_id = p.id);
 end;
+$$;
+
+-- As before (20261027130000_member_erasure.sql), stripping a cab request's address too (#140).
+create or replace function private.strip_erased_fields(p_state jsonb)
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select case when jsonb_typeof(p_state) = 'object'
+    then p_state - array['full_name', 'phone', 'note', 'resolution', 'reason', 'release_reason', 'lift_reason', 'proposal_reason',
+                         'decline_reason', 'reject_reason', 'buyer_name', 'signature_svg', 'vendor_reference', 'digilocker_session_id',
+                         'address']
+    else p_state end;
 $$;

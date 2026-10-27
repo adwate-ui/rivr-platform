@@ -39,9 +39,10 @@ select 'academy_attendance', c.column_name, 'owed'
 from unnest(array['id', 'venue_id', 'booking_id', 'member_id', 'class_on', 'marked_by_staff_id', 'created_at', 'updated_at']) c (column_name);
 insert into private.member_export_column (table_name, column_name, kind) values ('academy_booking', 'graduated_at', 'owed');
 
--- An individual booking whose payment is given (its UTR) or confirmed, for staff who manage members at its venue; RVACD
--- otherwise. Attendance and graduation are the Academy's; checking the payment stays the cage's.
-create function private.academy_student(p_booking_id uuid)
+-- An individual booking whose payment is given (its UTR) or confirmed, and confirmed when `p_must_be_paid`, for staff
+-- who manage members at its venue; RVACD otherwise. A student attends once their UTR is given, and graduates only once
+-- the cage has confirmed it: a graduation brings the tier, the freeroll and the first buy-in bonus.
+create function private.academy_student(p_booking_id uuid, p_must_be_paid boolean)
 returns public.academy_booking
 language plpgsql
 stable
@@ -55,8 +56,9 @@ begin
   if v_booking.id is null or not private.has_permission(v_booking.venue_id, 'members.manage') then
     raise exception 'Only staff who manage members mark attendance and graduate' using errcode = '42501';
   end if;
-  if v_booking.status not in ('payment_claimed', 'paid') or v_booking.kind <> 'individual' then
-    raise exception 'An individual booking with its payment given' using errcode = 'RVACD';
+  if v_booking.kind <> 'individual' or v_booking.status not in ('payment_claimed', 'paid')
+     or (p_must_be_paid and v_booking.status <> 'paid') then
+    raise exception 'An individual booking with its payment given, and paid to graduate' using errcode = 'RVACD';
   end if;
   return v_booking;
 end;
@@ -70,7 +72,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_booking public.academy_booking := private.academy_student(p_booking_id);
+  v_booking public.academy_booking := private.academy_student(p_booking_id, false);
   v_today date := (now() at time zone 'Asia/Kolkata')::date;
 begin
   perform private.assert_writable(v_booking.venue_id);
@@ -92,7 +94,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_booking public.academy_booking := private.academy_student(p_booking_id);
+  v_booking public.academy_booking := private.academy_student(p_booking_id, true);
   v_tier uuid;
 begin
   perform private.assert_writable(v_booking.venue_id, null, v_booking.member_id);
@@ -116,7 +118,7 @@ create function public.graduate_academy_member(p_booking_id uuid)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.graduate_academy_member(p_booking_id); $$;
 
-revoke execute on function private.academy_student(uuid) from public, anon, authenticated;
+revoke execute on function private.academy_student(uuid, boolean) from public, anon, authenticated;
 revoke execute on function private.mark_academy_attendance(uuid), private.graduate_academy_member(uuid),
   public.mark_academy_attendance(uuid), public.graduate_academy_member(uuid) from public, anon;
 grant execute on function private.mark_academy_attendance(uuid), private.graduate_academy_member(uuid),
@@ -167,3 +169,6 @@ end;
 $$;
 
 select private.add_promotion_templates(v.id) from public.venue v;
+
+-- The practice venue's reset keeps the new template (decision 0117).
+select private.capture_practice_seed(v.id) from public.venue v where v.is_practice;

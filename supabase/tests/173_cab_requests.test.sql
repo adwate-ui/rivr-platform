@@ -32,6 +32,27 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000621');
 select is((select is_eligible from public.my_cab()), true, 'with the club asking three, Tara is offered one');
 reset role;
 
+select is((select count(*)::integer from public.outbox_event where event_type = 'cab.requested'
+           and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000620'), 1, 'cab.requested goes out for the club to send it');
+
+-- Staff who read members see the venue's requests, and none of another venue's.
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000ab', 'RIVR Cab Test', 'cab-test', false, 'RIVR test', 'Test', 'TCB');
+insert into public.member (id, venue_id, full_name, phone) values
+  ('00000000-0000-4000-8000-0000000000c7', '00000000-0000-4000-8000-0000000000ab', 'Elsewhere Rider', '+919000000989');
+insert into public.cab_request (venue_id, member_id, kind, address, wanted_at)
+values ('00000000-0000-4000-8000-0000000000ab', '00000000-0000-4000-8000-0000000000c7', 'drop', 'Elsewhere address', now() + interval '1 hour');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select is((select count(*)::integer from public.cab_request where venue_id = '00000000-0000-4000-8000-000000000001'), 1,
+  'a cashier, who reads members, sees the club''s request');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is((select count(*)::integer from public.cab_request), 0, 'a dealer, who does not, sees none');
+reset role;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select is((select count(*)::integer from public.cab_request where venue_id = '00000000-0000-4000-8000-0000000000ab'), 0,
+  'and no venue''s staff see another venue''s');
+reset role;
+
 select is(has_function_privilege('anon', 'public.request_cab(text, text, text)', 'execute'), false, 'nobody signed out asks for a cab');
 
 select * from finish();
