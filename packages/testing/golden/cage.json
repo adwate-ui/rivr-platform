@@ -137,6 +137,7 @@
         "debit": "member_bonus"
       }
     },
+    {"description": "A bonus buy-in of exactly the whole bonus in force goes through: ₹4,000 from a ₹4,000 bonus at a ₹2,000 table.", "operation": "buy_in", "inputs": {"method": "bonus", "amount": "₹4,000", "minimum": "₹2,000", "wallet": "₹0", "bonus": "₹4,000"}, "expected": {"result": "ok", "debit": "member_bonus"}},
     {
       "description": "A bonus buy-in above the bonus in force is refused, whatever the wallet holds.",
       "operation": "buy_in",
