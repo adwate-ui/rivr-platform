@@ -1,13 +1,16 @@
 -- Hourly rakeback (#108; additions "Rakeback"; question #485, the owner's answer of 27 Oct; decision 0245). Each
 -- Monday at 06:00 IST, for the club week before, each member is given bonus on their rake at each stake: every hand's
 -- rake split equally among the members seated at its table when it was played (RIVR Rewards' share, decision 0161),
--- summed by member and stake. The stake's rakeback.rate in force when the week began is the share given: rounded down
--- to whole ₹50 chips, held to its cap, ending after its days. It is on top of RIVR Rewards' rake-share points.
--- @rivr/domain weekRakeShares and rakebackBonus are proved equal by packages/testing/golden/rakeback.json.
+-- summed by member and stake (a stake is a table type's code, such as nlh_100_200). The stake's rakeback.rate in force
+-- when the week began is the share given: rounded down to whole ₹50 chips, held to its cap, expiring after its
+-- expires_days. It is on top of RIVR Rewards' rake-share points. @rivr/domain weekRakeShares and rakebackBonus are
+-- proved equal by packages/testing/golden/rakeback.json.
 --
 -- The job runs every day and looks back five weeks, giving only what is due and not yet given: Monday's run gives
 -- the week just ended, and a later run gives a hand the tablet sent late, or a member's week held by a freeze or the
--- promotions kill switch once it is released. A week held more than five weeks is not given; the owner is alerted. What was given is the week's bonus grants, keyed by week, stake and member.
+-- promotions kill switch once it is released. A week held more than five weeks is not given; the owner is alerted.
+--
+-- What was given for a week is that week's bonus grants: their keys start rakeback:<Monday>:<stake>:<member>:.
 
 insert into public.setting_key (key, description, scope, value_schema) values
   ('rakeback.rate',
@@ -29,17 +32,21 @@ create trigger setting_control_removed before delete on public.setting
   execute function private.guard_control_settings();
 
 -- @rivr/domain rakebackBonus: the rate's share of the rake, rounded down to whole ₹50 chips, then held to the cap.
+-- 10000 basis points is 100%; 5000 paise is a ₹50 chip; integer division rounds down. least() passes over a null cap.
 create function private.rakeback_bonus(p_share bigint, p_basis_points integer, p_cap bigint)
 returns bigint
 language sql
 immutable
 set search_path = ''
 as $$
-  select least(p_share * p_basis_points / 10000 / 5000 * 5000, p_cap); -- least() passes over a cap of null
+  select least(p_share * p_basis_points / 10000 / 5000 * 5000, p_cap);
 $$;
 
 -- Each member's rake at each of a venue's stakes between two moments: every hand's rake split among the members
 -- seated at its table when it was played, rounded down to the paisa per hand, as private.visit_rake_share splits it.
+-- private.session_tables gives each seat session's spells at each table, a move starting the next. The number of
+-- members seated at a hand (count over the hand) is what its rake is split by. It reads every member's seats and
+-- hands, so it is the definer's.
 create function private.week_rake_shares(p_venue_id uuid, p_from timestamptz, p_to timestamptz)
 returns table (member_id uuid, stake text, share_paise bigint)
 language sql
@@ -64,20 +71,35 @@ as $$
   select s.member_id, s.stake, sum(s.share)::bigint from shares s group by s.member_id, s.stake having sum(s.share) > 0;
 $$;
 
--- The club week before a moment: Monday 06:00 IST to Monday 06:00 IST.
+-- The last club week ended by a moment: Monday 06:00 IST to Monday 06:00 IST. week_end is the latest Monday 06:00 IST
+-- at or before it: in IST clock time, 6 hours back (so 05:59 on a Monday is still the week before), back to Monday
+-- 00:00, 6 hours on again, then back to a moment.
 create function private.rakeback_week(p_at timestamptz)
 returns table (week_from timestamptz, week_to timestamptz)
 language sql
 stable
 set search_path = ''
 as $$
-  select w - interval '7 days', w
-  from (select (date_trunc('week', (p_at at time zone 'Asia/Kolkata') - interval '6 hours') + interval '6 hours') at time zone 'Asia/Kolkata' as w) x;
+  select week_end - interval '7 days', week_end
+  from (select (date_trunc('week', (p_at at time zone 'Asia/Kolkata') - interval '6 hours') + interval '6 hours') at time zone 'Asia/Kolkata'
+               as week_end) x;
+$$;
+
+-- A club week's Monday in IST, as its keys and alerts name it: the same whatever the session's time zone.
+create function private.rakeback_week_date(p_week_from timestamptz)
+returns text
+language sql
+stable
+set search_path = ''
+as $$
+  select to_char(p_week_from at time zone 'Asia/Kolkata', 'YYYY-MM-DD');
 $$;
 
 -- What a venue's members are still due for the club week from p_week_from: for each member and stake with a rate,
--- the rate in force when the week began of the week's rake there, less what was given for it before. The bonus's key
--- ends with what was given before, so a second run finding the same still due gives it once.
+-- what the week's rake there comes to at the rate in force when the week began (owed), less what was given for it
+-- before (already_given). The bonus's key is rakeback:<Monday>:<stake>:<member>:<already_given>: a second run that
+-- finds the same already given builds the same key, and private.credit_bonus gives a key only once; after a top-up,
+-- already_given has changed, so the next key is new.
 create function private.rakeback_due(p_venue_id uuid, p_week_from timestamptz)
 returns table (member_id uuid, stake text, rate jsonb, due_paise bigint, key text)
 language sql
@@ -85,19 +107,18 @@ stable
 security definer
 set search_path = ''
 as $$
-  select d.member_id, d.stake, d.rate, d.bonus - d.given, d.key_start || d.given
+  select d.member_id, d.stake, d.rate, d.owed - d.already_given, d.key_start || d.already_given
   from (
     select s.member_id, s.stake, r.rate, k.key_start,
-           private.rakeback_bonus(s.share_paise, (r.rate ->> 'basis_points')::integer, (r.rate ->> 'cap_paise')::bigint) as bonus,
+           private.rakeback_bonus(s.share_paise, (r.rate ->> 'basis_points')::integer, (r.rate ->> 'cap_paise')::bigint) as owed,
            (select coalesce(sum(g.amount_paise), 0)::bigint from public.bonus_grant g
-            where g.venue_id = p_venue_id and g.member_id = s.member_id and starts_with(g.idempotency_key, k.key_start)) as given
+            where g.venue_id = p_venue_id and g.member_id = s.member_id and starts_with(g.idempotency_key, k.key_start)) as already_given
     from private.week_rake_shares(p_venue_id, p_week_from, p_week_from + interval '7 days') s
     cross join lateral (select private.setting_at(p_venue_id, 'rakeback.rate', s.stake, p_week_from) as rate) r
-    cross join lateral (select 'rakeback:' || to_char(p_week_from at time zone 'Asia/Kolkata', 'YYYY-MM-DD') || ':' || s.stake || ':'
-                               || s.member_id || ':' as key_start) k
+    cross join lateral (select 'rakeback:' || private.rakeback_week_date(p_week_from) || ':' || s.stake || ':' || s.member_id || ':' as key_start) k
     where r.rate is not null
   ) d
-  where d.bonus > d.given;
+  where d.owed > d.already_given;
 $$;
 
 -- Gives a venue's rakeback still due for the club week from p_week_from. A frozen member or venue, or promotions
@@ -119,16 +140,18 @@ begin
                                    now() + make_interval(days => (v_due.rate ->> 'expires_days')::integer), v_due.key);
       v_given := v_given + 1;
     exception when sqlstate 'RVFRZ' or sqlstate 'RVKIL' or sqlstate 'RVMBR' then
-      null;
+      null; -- venue frozen, promotions switched off, member frozen: a later run gives it once released
     end;
   end loop;
   return v_given;
 end;
 $$;
 
--- Every venue's rakeback for the five club weeks before, each day at 06:00 IST (00:30 UTC). A venue refused is alerted
--- to its owner and tried again the next day; the other venues still get theirs. A week no longer looked at with
--- rakeback still due (held more than five weeks) is told to the owner once, as rakeback.unpaid.
+-- Every venue's rakeback for the five club weeks before, oldest first, each day at 06:00 IST (00:30 UTC). A week
+-- refused (any error) gives nothing for that venue and week, is alerted to the owner and is tried again the next day;
+-- the venue's other weeks and the other venues still get theirs. The week just past the five is checked too: rakeback
+-- still due there (held more than five weeks) is not given, and is told to the owner as rakeback.unpaid. It is the
+-- same week for seven days, so it is told once.
 create function private.give_rakeback_everywhere()
 returns void
 language plpgsql
@@ -138,7 +161,7 @@ as $$
 declare
   v_venue_id uuid;
   v_week timestamptz;
-  v_past timestamptz := (select w.week_from - interval '35 days' from private.rakeback_week(now()) w);
+  v_week_dropped timestamptz := (select w.week_from - interval '35 days' from private.rakeback_week(now()) w);
 begin
   for v_venue_id in select v.id from public.venue v loop
     for v_week in
@@ -147,21 +170,20 @@ begin
       begin
         perform private.give_rakeback(v_venue_id, v_week);
       exception when others then
-        perform private.raise_alert(v_venue_id, 'rakeback.refused', jsonb_build_object('week_from', v_week, 'reason', sqlerrm));
-        exit;
+        perform private.raise_alert(v_venue_id, 'rakeback.refused', jsonb_build_object('week', private.rakeback_week_date(v_week), 'reason', sqlerrm));
       end;
     end loop;
-    if exists (select 1 from private.rakeback_due(v_venue_id, v_past))
+    if exists (select 1 from private.rakeback_due(v_venue_id, v_week_dropped))
        and not exists (select 1 from public.alert a where a.venue_id = v_venue_id and a.kind = 'rakeback.unpaid'
-                         and a.detail @> jsonb_build_object('week_from', v_past)) then
-      perform private.raise_alert(v_venue_id, 'rakeback.unpaid', jsonb_build_object('week_from', v_past));
+                         and a.detail @> jsonb_build_object('week', private.rakeback_week_date(v_week_dropped))) then
+      perform private.raise_alert(v_venue_id, 'rakeback.unpaid', jsonb_build_object('week', private.rakeback_week_date(v_week_dropped)));
     end if;
   end loop;
 end;
 $$;
 
 revoke execute on function private.rakeback_bonus(bigint, integer, bigint), private.week_rake_shares(uuid, timestamptz, timestamptz),
-  private.rakeback_week(timestamptz), private.rakeback_due(uuid, timestamptz), private.give_rakeback(uuid, timestamptz),
+  private.rakeback_week(timestamptz), private.rakeback_week_date(timestamptz), private.rakeback_due(uuid, timestamptz), private.give_rakeback(uuid, timestamptz),
   private.give_rakeback_everywhere()
   from public, anon, authenticated;
 

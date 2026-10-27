@@ -8,6 +8,7 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 
 create function pg_temp.week() returns timestamptz language sql as $$ select week_from from private.rakeback_week(now()) $$;
+-- Last club week's Wednesday 06:00 IST, and some minutes after it.
 create function pg_temp.at(p_minutes integer) returns timestamptz language sql as $$
   select pg_temp.week() + interval '2 days' + make_interval(mins => p_minutes);
 $$;
@@ -133,7 +134,7 @@ select private.give_rakeback_everywhere();
 select private.give_rakeback_everywhere();
 select results_eq(
   $$ select detail from public.alert where venue_id = '00000000-0000-4000-8000-000000000001' and kind = 'rakeback.unpaid' $$,
-  $$ values (jsonb_build_object('week_from', pg_temp.week() - interval '35 days')) $$,
+  $$ values (jsonb_build_object('week', to_char((pg_temp.week() - interval '35 days') at time zone 'Asia/Kolkata', 'YYYY-MM-DD'))) $$,
   'rakeback still due for a week past the five is told to the owner, once');
 select is(pg_temp.given('215'), 0::bigint, 'and is not given');
 
