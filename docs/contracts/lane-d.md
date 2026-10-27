@@ -26,7 +26,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 |---|---|---|
 | `private.evaluate_promotions(venue, trigger, context)` | A (buy-in), B (hand logged, tournament entry), C (check-in, Academy graduation) | Applies every live promotion whose trigger and conditions match; posts effects (bonus through lane A's `private.credit_bonus`, points, freeroll ticket, cab eligibility, spin); respects budgets and limits |
 | `private.credit_points(venue, member, points, reason, idempotency_key)`, `private.debit_points(...)` | C (Learn, capped daily) | The points ledger; points never convert to cash |
-| `public.redeem_reward(item, points, idempotency_key)` | player app (C screens) | Redemption from the catalogue at the price the member was shown; feature `rewards.catalogue` |
+| `public.redeem_reward(item, points, idempotency_key, nights)` | player app (C screens) | Redemption from the catalogue at the price the member was shown; feature `rewards.catalogue`. A hotel night is priced in whole nights and redeemed from the member's nights (question #486, decision 0246; RVNGT not enough) |
 | `private.award_league_points(tournament, member, place, at)` | B (tournament finish, #149) | A finish's League points, once, from `league.points` (decision 0182) |
 | `public.my_league()` | player app (C screens) | This month's and this season's top ten, and the member's own place; feature `league.standings` |
 | `public.my_rewards()`, `public.my_redemptions()` | player app (Rewards tab, #152) | The member's points and tier; their redemptions with where to collect them, feature `rewards.catalogue` |

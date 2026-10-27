@@ -2,7 +2,7 @@ import { useHandOverRedemption, useVenueRedemptions, type Redemption } from '@ri
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, DataTable, ErrorMessage, Heading, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
-import { pointsText } from './CatalogueList.tsx';
+import { priceText } from './CatalogueList.tsx';
 
 /** Hands one redemption over; a refusal shows under the button. */
 function HandOverButton({ venueId, redemption }: { venueId: string; redemption: Redemption }) {
@@ -23,7 +23,7 @@ function HandOverButton({ venueId, redemption }: { venueId: string; redemption: 
   );
 }
 
-/** Member, reward and points, then when it was redeemed and, once handed over, who did it and when. */
+/** Member, reward and what it took, then when it was redeemed and, once handed over, who did it and when. */
 function columns(venueId: string, isWaiting: boolean): readonly DataTableColumn<Redemption>[] {
   const common: DataTableColumn<Redemption>[] = [
     {
@@ -31,7 +31,7 @@ function columns(venueId: string, isWaiting: boolean): readonly DataTableColumn<
       cell: (row) => t('console.rewards.memberLine', { name: row.fullName, number: row.memberNumber }),
     },
     { key: 'reward', header: t('console.rewards.reward'), cell: (row) => row.rewardName, sortValue: (row) => row.rewardName },
-    { key: 'points', header: t('console.rewards.price'), align: 'end', cell: (row) => pointsText(row.points), sortValue: (row) => row.points },
+    { key: 'price', header: t('console.rewards.priceColumn'), align: 'end', cell: (row) => priceText(row), sortValue: (row) => row.points ?? 0n },
     { key: 'redeemed', header: t('console.rewards.redeemed'), cell: (row) => formatDayTime(new Date(row.createdAt)), sortValue: (row) => row.createdAt },
   ];
   if (isWaiting) return [...common, { key: 'handOver', header: t('console.rewards.handOver'), cell: (row) => <HandOverButton venueId={venueId} redemption={row} /> }];
