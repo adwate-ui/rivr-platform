@@ -54,6 +54,8 @@ export const purge = {
   /** Some did not go: `{left}` of them. Asked again within seven days of the purge. */
   filesLeft: '{left} of the venue\'s files are still in storage. Remove them within seven days.',
   filesAgain: 'Remove the files again',
+  /** On opening the screen again: `{left}` files the last purge still leaves in storage. */
+  lastPurgeFiles: 'The last purge left {left} files in storage. Remove them within seven days of it.',
 };
 
 /** Why a purge did not go through. */
@@ -64,6 +66,7 @@ export const purgeFailures = {
   noArchive: 'Make and save the full archive after freezing the venue. It counts for 30 minutes, while nothing changes.',
   wrongName: 'Type the venue\'s name exactly as it is.',
   held: 'A kill-switch control names a member. Release it, then purge.',
+  changed: 'The venue changed after the archive began, often a waitlist hold moving or a sign-up. Clear the waitlist, make the archive again, then purge.',
   busy: 'Another change held the tables. Try the purge again in a moment.',
   tooOften: 'Too many tries in a minute. Wait a moment and try again.',
   unavailable: 'That did not go through. Check the connection and try again.',

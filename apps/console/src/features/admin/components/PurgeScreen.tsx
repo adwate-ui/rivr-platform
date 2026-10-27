@@ -1,6 +1,6 @@
 import {
-  useControlState, useLivePurgePreview, usePurgeLiveVenue, useRemovePurgedFiles, useStaffVenue, type LivePurgeFailure, type LivePurgeRow,
-  type PurgedFiles,
+  useControlState, useLivePurgePreview, usePurgeFilesLeft, usePurgeLiveVenue, useRemovePurgedFiles, useStaffVenue, type LivePurgeFailure,
+  type LivePurgeRow, type PurgedFiles,
 } from '@rivr/db';
 import { formatNumber, t, type MessageKey } from '@rivr/i18n';
 import { Button, DataTable, ErrorMessage, Heading, Input, Screen, Stack, Text, TextArea, type DataTableColumn } from '@rivr/ui';
@@ -13,6 +13,7 @@ const FAILURE_COPY: Readonly<Record<LivePurgeFailure, MessageKey>> = {
   practice: 'console.purgeFailures.practice',
   not_frozen: 'console.purgeFailures.notFrozen',
   no_archive: 'console.purgeFailures.noArchive',
+  changed: 'console.purgeFailures.changed',
   wrong_name: 'console.purgeFailures.wrongName',
   held: 'console.purgeFailures.held',
   busy: 'console.purgeFailures.busy',
@@ -108,11 +109,31 @@ function PurgeStep({ venueId }: { venueId: string }) {
   );
 }
 
+/** Files an earlier purge left, offered again when the screen opens: a lost answer or a closed tab loses nothing. */
+function LastPurgeFiles({ venueId }: { venueId: string }) {
+  const left = usePurgeFilesLeft(venueId);
+  const removeFiles = useRemovePurgedFiles(venueId);
+  const [failure, setFailure] = useState<LivePurgeFailure | null>(null);
+  if (left.data === undefined || left.data === 0) return null;
+  const again = async () => {
+    const done = await removeFiles.mutateAsync();
+    setFailure(done.ok ? null : done.error);
+  };
+  return (
+    <Stack gap={2} align="start">
+      <ErrorMessage>{t('console.purge.lastPurgeFiles', { left: formatNumber(left.data) })}</ErrorMessage>
+      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
+      <Button isLoading={removeFiles.isPending} onClick={() => void again()}>{t('console.purge.filesAgain')}</Button>
+    </Stack>
+  );
+}
+
 function PurgePanel({ venueId }: { venueId: string }) {
   const controls = useControlState(venueId);
   return (
     <Stack gap={8}>
       <Text>{t('console.purge.intro')}</Text>
+      <LastPurgeFiles venueId={venueId} />
       {controls.isVenueFrozen ? null : <ErrorMessage>{t('console.purge.freezeFirst')}</ErrorMessage>}
       <ArchiveStep venueId={venueId} />
       {controls.isVenueFrozen ? <PurgeStep venueId={venueId} /> : null}

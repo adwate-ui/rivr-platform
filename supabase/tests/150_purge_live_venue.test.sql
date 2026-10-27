@@ -129,7 +129,7 @@ reset role;
 update private.export_archive set kyc_reason = 'Purging the test room: the only copy', started_at = now() - interval '1 minute'
 where id = '00000000-0000-4000-8000-0000000000f5';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
-select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVARC', null,
+select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVCHG', null,
   'nor once a row changed after the archive began');
 reset role;
 update private.export_archive set started_at = now() where id = '00000000-0000-4000-8000-0000000000f5';
@@ -137,7 +137,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 reset role;
 update private.export_archive set counts = counts || '{"member": 99}' where id = '00000000-0000-4000-8000-0000000000f5';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
-select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVARC', null, 'not once the venue has changed since the archive');
+select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVCHG', null, 'not once the venue has changed since the archive');
 reset role;
 update private.export_archive set counts = counts || jsonb_build_object('member', private.venue_row_count('00000000-0000-4000-8000-0000000000f3', 'member')) where id = '00000000-0000-4000-8000-0000000000f5';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
@@ -180,6 +180,17 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select * from public.purge_files_due('00000000-0000-4000-8000-0000000000f3') $$, '42501', null, 'a cashier removes no file');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select * from public.purge_files_due('00000000-0000-4000-8000-0000000000f3') $$, '42501', null, 'nor another venue''s super admin');
+reset role;
+insert into public.control_state (venue_id, level, staff_id, reason)
+select '00000000-0000-4000-8000-0000000000f3', 'access_revoke', s.id, 'Test revoke' from public.staff s
+where s.user_id = '00000000-0000-4000-8000-000000000134' and s.venue_id = '00000000-0000-4000-8000-0000000000f3';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select throws_ok($$ select * from public.purge_files_due('00000000-0000-4000-8000-0000000000f3') $$, '42501', null,
+  'nor the venue''s super admin while their access is revoked');
+reset role;
+update public.control_state set released_at = now(), release_reason = 'Test over',
+  released_by_staff_id = (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000134' and venue_id = '00000000-0000-4000-8000-0000000000f3')
+where venue_id = '00000000-0000-4000-8000-0000000000f3' and level = 'access_revoke' and released_at is null;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select set_eq($$ select * from public.purge_files_due('00000000-0000-4000-8000-0000000000f3') $$,
   $$ values ('expense-receipts/00000000-0000-4000-8000-0000000000f3/00000000-0000-4000-8000-0000000000e1.jpg') $$,
@@ -187,12 +198,65 @@ select set_eq($$ select * from public.purge_files_due('00000000-0000-4000-8000-0
 select throws_ok($$ select public.purge_files_done('00000000-0000-4000-8000-0000000000f3',
   array['kyc/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg'], 0) $$, '22023', null,
   'only files the purge left are noted removed');
+select throws_ok($$ select public.purge_files_done('00000000-0000-4000-8000-0000000000f3',
+  array['expense-receipts/00000000-0000-4000-8000-0000000000f3/00000000-0000-4000-8000-0000000000e1.jpg'], 0) $$, '22023', null,
+  'nor one still in Storage');
+select throws_ok($$ select public.purge_files_done('00000000-0000-4000-8000-0000000000f3', array[null]::text[], 0) $$, '22023', null,
+  'nor nothing dressed as a file');
+select is(public.purge_files_left_count('00000000-0000-4000-8000-0000000000f3'), 1, 'the Purge screen, opened again, sees one file left');
+-- Storage removes the receipt, as the Edge Function asks it to.
+reset role;
+select set_config('storage.allow_delete_query', 'true', true);
+delete from storage.objects where bucket_id = 'expense-receipts' and name = '00000000-0000-4000-8000-0000000000f3/00000000-0000-4000-8000-0000000000e1.jpg';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select is(public.purge_files_done('00000000-0000-4000-8000-0000000000f3',
   array['expense-receipts/00000000-0000-4000-8000-0000000000f3/00000000-0000-4000-8000-0000000000e1.jpg'], 0), 0, 'once removed, none is left');
 select is_empty($$ select * from public.purge_files_due('00000000-0000-4000-8000-0000000000f3') $$, 'and none is due again');
 reset role;
 select ok(exists (select 1 from public.audit_log where venue_id = '00000000-0000-4000-8000-0000000000f3' and action = 'venue.purge_files'),
   'the audit log says what went');
+
+-- The whole way, as the console goes: the archive started (so it alerts the owner of a large export, writing to the
+-- venue's alerts and outbox), every table read in order, saved, then the purge. Those writes do not block it.
+reset role;
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000f8', 'Test Room Two', 'test-room-two', false, 'Test Room Two LLP', 'Gurugram', 'TSB');
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-0000000000f8', s.user_id, s.full_name, s.job_title, 'super_admin', s.phone
+from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000134' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+insert into public.setting (venue_id, key, subject, value, effective_from, reason) values
+  ('00000000-0000-4000-8000-0000000000f8', 'exports.archive_recipient', '', '{"recipient": "age1wy5nka0c35w4a47qnvvwcsedlatfs5y67uzqhwrnd5pmae56h9vs77k5za"}', now(), 'Test key'),
+  ('00000000-0000-4000-8000-0000000000f8', 'exports.alert_rows', '', '{"rows": 1}', now(), 'Alert on any export');
+insert into public.control_state (venue_id, level, reason, engaged_at)
+values ('00000000-0000-4000-8000-0000000000f8', 'venue_freeze', 'Purging test room two', now() - interval '10 minutes');
+create function pg_temp.read_whole(p_plan jsonb) returns void language plpgsql as $$
+declare
+  v_table text;
+  v_after jsonb;
+  v_page jsonb;
+begin
+  for v_table in select t ->> 'name' from jsonb_array_elements(p_plan -> 'tables') t loop
+    v_after := null;
+    loop
+      v_page := public.export_archive_rows((p_plan ->> 'archive_id')::uuid, v_table, v_after, 5000);
+      v_after := v_page -> 'after';
+      exit when v_after is null or v_after = 'null'::jsonb;
+    end loop;
+  end loop;
+end;
+$$;
+grant execute on function pg_temp.read_whole(jsonb) to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+create temp table plan as select public.start_export_archive('00000000-0000-4000-8000-0000000000f8', null, 'Purging test room two: the only copy') as plan;
+select lives_ok($$ select pg_temp.read_whole((select plan from plan)) $$, 'every table is read, page by page');
+select lives_ok($$ select public.complete_export_archive(((select plan from plan) ->> 'archive_id')::uuid,
+  'cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd', 2048, '{}') $$, 'and the archive saved');
+reset role;
+select ok(exists (select 1 from public.alert where venue_id = '00000000-0000-4000-8000-0000000000f8' and kind = 'export.large'),
+  'making it alerted the owner, after counting');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select lives_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f8', 'Test Room Two') $$,
+  'and the purge goes through all the same');
 
 select * from finish();
 rollback;

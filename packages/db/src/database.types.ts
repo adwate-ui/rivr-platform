@@ -4011,6 +4011,9 @@ isOneToOne: false
 "purge_files_due":
 { Args: { "p_venue_id": string }; Returns: string[]
                            },
+"purge_files_left_count":
+{ Args: { "p_venue_id": string }; Returns: number
+                           },
 "purge_live_venue":
 { Args: { "p_venue_id": string,"p_venue_name": string }; Returns: {
               "deleted_rows": number,"table_name": string

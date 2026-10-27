@@ -339,6 +339,33 @@ begin
 end;
 $$;
 
+-- The venue's own logs a purge deletes but does not hold to the archive's count: alerts and the outbox carry no personal
+-- data, and making the archive itself writes to them (the export.large alert, a delivery's progress), so rows made
+-- after the archive started go unarchived.
+create function private.live_purge_logs()
+returns text[]
+language sql
+immutable
+set search_path = ''
+as $$
+  select array['alert', 'outbox_delivery', 'outbox_event'];
+$$;
+
+-- Who may remove a purge's files: an active super admin of the venue whose access is not revoked, by role, as member
+-- erasure's files are (the Edge Function's request carries no console's mark).
+create function private.may_remove_purge_files(p_venue_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.staff s
+                 where s.user_id = (select auth.uid()) and s.venue_id = p_venue_id and s.is_active and s.role = 'super_admin'
+                   and not exists (select 1 from public.control_state c
+                                   where c.level = 'access_revoke' and c.staff_id = s.id and c.released_at is null));
+$$;
+
 -- A venue's purges, and the files each leaves to remove: those the archive held, as the super admin removes them.
 create table private.venue_purge (
   id uuid primary key default gen_random_uuid(),
@@ -377,6 +404,7 @@ as $$
 declare
   v_archive private.export_archive;
   v_table text;
+  v_changed text[];
   v_members text[];
   v_parts text;
   v_counts text;
@@ -404,10 +432,14 @@ begin
   for v_table in select t from private.live_purge_tables() t order by t loop
     execute format('lock table public.%I in share row exclusive mode', v_table);
   end loop;
-  if exists (select 1 from private.live_purge_tables() t
-             where coalesce((v_archive.counts ->> t)::bigint, -1) <> private.venue_row_count(p_venue_id, t)
-                or private.venue_changed_since(p_venue_id, t, v_archive.started_at)) then
-    raise exception 'The venue changed since the archive: make it again' using errcode = 'RVARC';
+  v_changed := array(select t from private.live_purge_tables() t
+                     where t <> all(private.live_purge_logs())
+                       and (coalesce((v_archive.counts ->> t)::bigint, -1) <> private.venue_row_count(p_venue_id, t)
+                            or private.venue_changed_since(p_venue_id, t, v_archive.started_at))
+                     order by t);
+  if cardinality(v_changed) > 0 then
+    raise exception 'The venue changed since the archive: make it again'
+      using errcode = 'RVCHG', detail = 'Changed: ' || array_to_string(v_changed, ', ');
   end if;
   v_members := array(select m.id::text from public.member m where m.venue_id = p_venue_id);
 
@@ -461,6 +493,8 @@ as $$
   cross join unnest(p.files) f
   where p.done_at is null and p.purged_at > now() - interval '7 days' and f <> all(p.removed)
     and (f like 'kyc/' || p_venue_id::text || '/%' or f like 'expense-receipts/' || p_venue_id::text || '/%')
+    -- Still in Storage: a file removed when its answer was lost is not left for ever.
+    and exists (select 1 from storage.objects o where o.bucket_id || '/' || o.name = f)
     and not exists (select 1 from public.kyc_record k where k.venue_id = p_venue_id and 'kyc/' || k.photo_path = f)
     and not exists (select 1 from public.expense e where e.venue_id = p_venue_id and 'expense-receipts/' || e.receipt_path = f);
 $$;
@@ -474,7 +508,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_venue_id is null or not private.is_super_admin(p_venue_id) then
+  if p_venue_id is null or not private.may_remove_purge_files(p_venue_id) then
     raise exception 'Only a super admin of this venue removes its purge''s files' using errcode = '42501';
   end if;
   perform private.assert_rate(p_venue_id, 'purge.files', 10, 20);
@@ -493,13 +527,15 @@ declare
   v_purge private.venue_purge;
   v_left integer;
 begin
-  if p_venue_id is null or not private.is_super_admin(p_venue_id) then
+  if p_venue_id is null or not private.may_remove_purge_files(p_venue_id) then
     raise exception 'Only a super admin of this venue removes its purge''s files' using errcode = '42501';
   end if;
   select * into v_purge from private.venue_purge p where p.venue_id = p_venue_id order by p.purged_at desc limit 1 for update;
-  if not found or p_removed is null or p_failed is null or p_failed < 0
-     or exists (select 1 from unnest(p_removed) f where f not in (select private.purge_files_left(p_venue_id))) then
-    raise exception 'Only files the purge left to remove' using errcode = '22023';
+  if not found or p_removed is null or array_position(p_removed, null) is not null or p_failed is null or p_failed < 0
+     or exists (select 1 from unnest(p_removed) f
+                where f <> all(v_purge.files) or f = any(v_purge.removed)
+                   or exists (select 1 from storage.objects o where o.bucket_id || '/' || o.name = f)) then
+    raise exception 'Only files the purge left, and that are gone from Storage' using errcode = '22023';
   end if;
   update private.venue_purge p set removed = p.removed || p_removed where p.id = v_purge.id;
   v_left := (select count(*) from private.purge_files_left(p_venue_id));
@@ -515,6 +551,25 @@ $$;
 create function public.complete_export_archive(p_archive_id uuid, p_sha256 text, p_bytes bigint, p_unread text[] default '{}')
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.complete_export_archive(p_archive_id, p_sha256, p_bytes, p_unread); $$;
+-- How many files the venue's latest purge still leaves, for the Purge screen when it opens again.
+create function private.purge_files_left_count(p_venue_id uuid)
+returns integer
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_venue_id is null or not private.may_remove_purge_files(p_venue_id) then
+    raise exception 'Only a super admin of this venue removes its purge''s files' using errcode = '42501';
+  end if;
+  return (select count(*) from private.purge_files_left(p_venue_id));
+end;
+$$;
+
+create function public.purge_files_left_count(p_venue_id uuid)
+returns integer language sql stable security invoker set search_path = ''
+as $$ select private.purge_files_left_count(p_venue_id); $$;
 create function public.purge_files_due(p_venue_id uuid)
 returns setof text language sql volatile security invoker set search_path = ''
 as $$ select * from private.purge_files_due(p_venue_id); $$;
@@ -532,12 +587,14 @@ as $$ select * from private.purge_live_venue(p_venue_id, p_venue_name); $$;
 
 revoke execute on function private.live_purge_keeps(), private.live_purge_tables(), private.assert_live_purge(uuid),
   private.live_purge_count(uuid, text), private.venue_row_count(uuid, text), private.venue_changed_since(uuid, text, timestamptz),
-  private.purge_files_left(uuid) from public, anon, authenticated;
+  private.purge_files_left(uuid), private.live_purge_logs(), private.may_remove_purge_files(uuid) from public, anon, authenticated;
 revoke execute on function private.complete_export_archive(uuid, text, bigint, text[]), private.live_purge_preview(uuid),
   private.purge_live_venue(uuid, text), private.purge_files_due(uuid), private.purge_files_done(uuid, text[], integer),
   public.complete_export_archive(uuid, text, bigint, text[]), public.live_purge_preview(uuid), public.purge_live_venue(uuid, text),
-  public.purge_files_due(uuid), public.purge_files_done(uuid, text[], integer) from public, anon;
+  public.purge_files_due(uuid), public.purge_files_done(uuid, text[], integer), private.purge_files_left_count(uuid),
+  public.purge_files_left_count(uuid) from public, anon;
 grant execute on function private.complete_export_archive(uuid, text, bigint, text[]), private.live_purge_preview(uuid),
   private.purge_live_venue(uuid, text), private.purge_files_due(uuid), private.purge_files_done(uuid, text[], integer),
   public.complete_export_archive(uuid, text, bigint, text[]), public.live_purge_preview(uuid), public.purge_live_venue(uuid, text),
-  public.purge_files_due(uuid), public.purge_files_done(uuid, text[], integer) to authenticated;
+  public.purge_files_due(uuid), public.purge_files_done(uuid, text[], integer), private.purge_files_left_count(uuid),
+  public.purge_files_left_count(uuid) to authenticated;

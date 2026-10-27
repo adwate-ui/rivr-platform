@@ -62,10 +62,12 @@ export interface LivePurgeRow {
  * Why a purge or its files' removal did not go through: the venue not frozen, no saved archive with its KYC photos, the
  * practice venue, a control naming a member, the tables busy, or too many tries at once.
  */
-export type LivePurgeFailure = 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'wrong_name' | 'held' | 'busy' | 'too_often' | 'unavailable';
+export type LivePurgeFailure =
+  | 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'changed' | 'wrong_name' | 'held' | 'busy' | 'too_often' | 'unavailable';
 
 const PURGE_FAILURE_BY_CODE: Readonly<Record<string, LivePurgeFailure>> = {
-  '42501': 'not_allowed', RVPRC: 'practice', RVNFZ: 'not_frozen', RVARC: 'no_archive', RVNAM: 'wrong_name', RVRAT: 'too_often',
+  '42501': 'not_allowed', RVPRC: 'practice', RVNFZ: 'not_frozen', RVARC: 'no_archive', RVCHG: 'changed', RVNAM: 'wrong_name',
+  RVRAT: 'too_often',
   // foreign_key_violation: a kill-switch control, which a purge keeps, names a member the purge removes.
   '23503': 'held',
   // lock_not_available and deadlock_detected: another write held a table the purge locks.
@@ -130,16 +132,35 @@ export function usePurgeLiveVenue(venueId: string) {
   });
 }
 
+// Kept here, not in queryKeys: only the Purge screen reads it.
+const purgeFilesLeftKey = (userId: string, venueId: string) => ['user', userId, 'purgeFilesLeft', venueId] as const;
+
+/** How many files the venue's latest purge still leaves, so the Purge screen offers them again when it opens. */
+export function usePurgeFilesLeft(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: purgeFilesLeftKey(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<number> => {
+      const { data, error } = await client.rpc('purge_files_left_count', { p_venue_id: venueId });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 /**
  * Removes the files a purge left (#432): those its archive held, through the purge-venue Edge Function, within seven
  * days of the purge. Asked again, it removes those that did not go the first time.
  */
 export function useRemovePurgedFiles(venueId: string) {
-  const { client } = useRivrData();
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (): Promise<Result<PurgedFiles, LivePurgeFailure>> => {
       const { data, error } = await client.functions.invoke('purge-venue', { body: { venueId } });
       return error ? err(livePurgeFailureOf({ code: await purgeCodeOf(error) })) : ok(purgedFilesOf(data));
     },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: purgeFilesLeftKey(userId ?? 'signed-out', venueId) }),
   });
 }
