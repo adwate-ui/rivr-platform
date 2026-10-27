@@ -1,8 +1,9 @@
 /**
  * Reports (#99; decision 0188). Arjun Mehra, the owner (owner_view), opens Reports: tonight's rake by
  * table, dealer and game, or that no hands are logged yet, then the monthly investor MIS for this month
- * (a preview until the 1st) and the month before. The figures, the club month's bounds, the stored MIS
- * and who may are proved in supabase/tests/121_reports_and_mis.test.sql.
+ * (a preview until the 1st), with its promotion cost and cohort retention (#111), and the month before. The
+ * figures, the club month's bounds, the stored MIS, promotion cost, cohorts and who may are proved in
+ * supabase/tests/121_reports_and_mis.test.sql.
  */
 import { expect, test } from '@playwright/test';
 import { signInToConsole } from '../support/signIn.ts';
@@ -18,6 +19,10 @@ test.describe('Reports', () => {
     }
     await expect(page.getByText(/so far\. It is stored on the 1st/)).toBeVisible();
     await expect(page.getByRole('table', { name: 'The month' }).getByRole('row').filter({ hasText: 'Net' })).toBeVisible();
+    // Promotion cost (#111): each promotion's cost, or that none gave anything yet this month. Cohort retention: the
+    // seed's members first visited this month, so this month's cohort is there, all of it back this month.
+    await expect(page.getByRole('table', { name: 'Promotion cost' }).or(page.getByText('No promotion gave anything this month.')).first()).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Cohort retention' }).getByRole('row').filter({ hasText: /\(100%\)/ }).first()).toBeVisible();
 
     const months = page.getByRole('group', { name: 'Month' }).getByRole('button');
     await months.nth(1).click();
