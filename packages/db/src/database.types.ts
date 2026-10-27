@@ -1613,14 +1613,14 @@ isOneToOne: false
                   ]
                 },"member": {
                   Row: {
-                    "created_at": string,"erased_at": string | null,"full_name": string,"id": string,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
+                    "created_at": string,"erased_at": string | null,"full_name": string,"id": string,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"referral_code": string,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2001,14 +2001,14 @@ isOneToOne: false
                   ]
                 },"promotion_budget": {
                   Row: {
-                    "cap_count": number | null,"cap_paise": number | null,"created_at": string,"id": string,"promotion_id": string,"updated_at": string,"venue_id": string
+                    "cap_count": number | null,"cap_paise": number | null,"created_at": string,"id": string,"period": string,"promotion_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cap_count"?: number | null,"cap_paise"?: number | null,"created_at"?: string,"id"?: string,"promotion_id": string,"updated_at"?: string,"venue_id": string
+                    "cap_count"?: number | null,"cap_paise"?: number | null,"created_at"?: string,"id"?: string,"period"?: string,"promotion_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "cap_count"?: number | null,"cap_paise"?: number | null,"created_at"?: string,"id"?: string,"promotion_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "cap_count"?: number | null,"cap_paise"?: number | null,"created_at"?: string,"id"?: string,"period"?: string,"promotion_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4511,7 +4511,7 @@ isOneToOne: false
 { Args: { "p_promotion": Json,"p_venue_id": string }; Returns: string
                            },
 "submit_promotion_template":
-{ Args: { "p_promotion_id": string }; Returns: undefined
+{ Args: { "p_budget_paise"?: number,"p_budget_period"?: string,"p_promotion_id": string }; Returns: undefined
                            },
 "submit_quiz":
 { Args: { "p_answers": (number)[],"p_quiz_id": string }; Returns: {

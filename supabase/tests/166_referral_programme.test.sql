@@ -19,12 +19,12 @@ $$;
 select is((select count(*)::integer from public.cage_transaction where member_id = '00000000-0000-4000-8000-000000000214' and kind = 'buy_in'), 0,
   'Yash has never bought in');
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)
-select '00000000-0000-4000-8000-000000000214', venue_id, 'rivr' || member_number from public.member where id = '00000000-0000-4000-8000-000000000213'
+select '00000000-0000-4000-8000-000000000214', venue_id, lower(referral_code) from public.member where id = '00000000-0000-4000-8000-000000000213'
 on conflict (member_id) do update set referral_code = excluded.referral_code;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select results_eq($$ select code, referred from public.my_referral() $$,
-  $$ select 'RIVR' || member_number, 0 from public.member where id = '00000000-0000-4000-8000-000000000213' $$, 'Mihir''s code is RIVR and his number');
+  $$ select referral_code, 0 from public.member where id = '00000000-0000-4000-8000-000000000213' $$, 'Mihir''s code is his own (#562)');
 select is((select bonus_paise from public.my_referral()), 100000::bigint, 'and a referral gives each side ₹1,000 while the promotion runs');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -70,7 +70,7 @@ reset role;
 insert into public.member (id, venue_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000000f1', '00000000-0000-4000-8000-000000000001', 'Referral Newcomer', '+919000000995');
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)
-select '00000000-0000-4000-8000-0000000000f1', venue_id, 'RIVR' || member_number from public.member where id = '00000000-0000-4000-8000-000000000213';
+select '00000000-0000-4000-8000-0000000000f1', venue_id, referral_code from public.member where id = '00000000-0000-4000-8000-000000000213';
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 'referral.share_cards', false, 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
@@ -88,11 +88,35 @@ select is((select count(*)::integer from public.referral where member_id = '0000
 
 -- A member's own code, or one no member has, completes nothing.
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)
-select '00000000-0000-4000-8000-000000000211', venue_id, 'RIVR' || member_number from public.member where id = '00000000-0000-4000-8000-000000000211'
+select '00000000-0000-4000-8000-000000000211', venue_id, referral_code from public.member where id = '00000000-0000-4000-8000-000000000211'
 on conflict (member_id) do update set referral_code = excluded.referral_code;
 select private.complete_referral('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', gen_random_uuid());
 select is((select count(*)::integer from public.referral where member_id = '00000000-0000-4000-8000-000000000211'), 0, 'never one''s own code');
 select is(has_function_privilege('authenticated', 'private.complete_referral(uuid, uuid, uuid)', 'execute'), false, 'and no app completes one');
+
+-- Codes are random (#562): eight letters and digits with no 0, O, 1, I or L, each member's own, never their number.
+select is((select count(*)::integer from public.member where referral_code !~ '^[2-9A-HJKMNP-Z]{8}$'), 0,
+  'every code is eight letters and digits, with no 0, O, 1, I or L');
+select is((select count(distinct referral_code)::integer from public.member), (select count(*)::integer from public.member), 'no two members share one');
+select is((select count(*)::integer from public.member where referral_code = 'RIVR' || member_number::text), 0, 'and none is the member number');
+select isnt((select referral_code from public.member where id = '00000000-0000-4000-8000-0000000000e3'), null, 'a new member gets one as they join');
+
+-- A monthly budget counts this month's grants only (#562): the referral's two ₹1,000 grants use a ₹2,000 monthly budget
+-- up this month, and next month it is whole again; a budget for the whole promotion stays used.
+insert into public.promotion_budget (venue_id, promotion_id, cap_paise, period)
+select venue_id, id, 200000, 'month' from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral';
+create function pg_temp.budget_left(p_day date) returns bigint language sql as $$
+  select (private.promotion_candidate(p, 'referral', jsonb_build_object('club_day', p_day),
+          jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000213', 'key', 'test:budget')) ->> 'budget_left_paise')::bigint
+  from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'referral';
+$$;
+select is(pg_temp.budget_left((select max(club_day) from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+                               where p.template_key = 'referral')), 0::bigint, 'this month''s referrals have used the monthly budget');
+select is(pg_temp.budget_left(((select max(club_day) from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+                                where p.template_key = 'referral') + interval '1 month')::date), 200000::bigint, 'next month it is whole again');
+update public.promotion_budget set period = 'promotion' where promotion_id = (select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral');
+select is(pg_temp.budget_left(((select max(club_day) from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+                                where p.template_key = 'referral') + interval '1 month')::date), 0::bigint, 'a budget for the whole promotion stays used');
 
 select * from finish();
 rollback;

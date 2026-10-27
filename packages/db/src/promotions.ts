@@ -1,6 +1,6 @@
 import { promotionReplaySchema, promotionRulesSchema, type PromotionRules } from '@rivr/contracts/promotions';
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { fromPaise } from '@rivr/domain/money';
+import { fromPaise, type Paise } from '@rivr/domain/money';
 import { simulatePromotion, type PromotionDraft, type PromotionSimulation } from '@rivr/domain/promotions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -30,6 +30,12 @@ export interface PromotionToSubmit {
   /** What it gives, when the name does not say it all: "Up to ₹5,000 a buy-in". */
   readonly detail?: string | undefined;
   readonly draft: PromotionDraft;
+}
+
+/** A template sent for approval as it stands (#85), with a budget for the whole promotion or each month, or none (#562). */
+export interface TemplateSubmission {
+  readonly id: string;
+  readonly budget: { readonly paise: Paise; readonly period: 'promotion' | 'month' } | null;
 }
 
 /** Why a submission, approval, refusal, pause or resume did not go through; own_promotion: a super admin approving what they submitted. */
@@ -218,8 +224,9 @@ export function usePromotionActions(venueId: string) {
     },
   });
   const submitTemplate = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await client.rpc('submit_promotion_template', { p_promotion_id: id });
+    mutationFn: async ({ id, budget }: TemplateSubmission) => {
+      const { error } = await client.rpc('submit_promotion_template', budget === null ? { p_promotion_id: id }
+        : { p_promotion_id: id, p_budget_paise: Number(budget.paise), p_budget_period: budget.period });
       return settle(null, error);
     },
   });

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { fromPaise } from '@rivr/domain/money';
 import type { PromotionDraft } from '@rivr/domain/promotions';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
@@ -104,10 +105,15 @@ describe('Promotions (#84)', () => {
     expect(calls.find((call) => call.url.includes('status=eq.draft'))?.url).toContain('template_key=not.is.null');
     let submitted: unknown;
     await act(async () => {
-      submitted = await result.current.actions.submitTemplate.mutateAsync('t1');
+      submitted = await result.current.actions.submitTemplate.mutateAsync({ id: 't1', budget: null });
     });
     expect(submitted).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('submit_promotion_template'))?.body).toEqual({ p_promotion_id: 't1' });
+    await act(async () => {
+      await result.current.actions.submitTemplate.mutateAsync({ id: 't1', budget: { paise: fromPaise(5_000_000n), period: 'month' } });
+    });
+    expect(calls.filter((call) => call.url.includes('submit_promotion_template')).at(-1)?.body)
+      .toEqual({ p_promotion_id: 't1', p_budget_paise: 5_000_000, p_budget_period: 'month' });
   });
 
   it('lists the promotions waiting for a super admin, and approves or refuses one', async () => {
