@@ -43,8 +43,10 @@ from (select pg_temp.as_user('00000000-0000-4000-8000-000000000301')) signed_in;
 select pg_temp.as_user('00000000-0000-4000-8000-000000000301');
 select public.claim_academy_payment(pg_temp.id('asha'), '412345678904');
 
--- The rake's GST rises to 40%; the Academy's stays at 18% (academy.gst, question #431).
+-- The rake's GST rises to 40%; the Academy's stays at 18% (academy.gst, question #431). Written as the seed writes it,
+-- with no one signed in: only a super admin changes GST (#499).
 reset role;
+select set_config('request.jwt.claims', '', true);
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'gst.config', '', '{"rate_basis_points": 4000, "basis": "rake"}', now(), 'The rake taxed at 40%');
 

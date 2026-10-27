@@ -12,4 +12,4 @@ Date: 2026-10-27 · Task: #112 (security review, `docs/security/2026-10-review.m
 
 Other keys stay with `settings.manage`. The Settings screen still lists these five to admins, and the database refuses an admin's change (42501), as it already does for the AML keys.
 
-**Next (the owner's answer to #494).** A raise of these thresholds will wait 24 hours, and `high_hand.payouts`, `jackpot.payout` and `gst.config` will become super-admin only too. Both are #499.
+**Then (the owner's answer to #494; #499).** `high_hand.payouts`, `jackpot.payout` and `gst.config` follow the five keys above; `tier.default` stays with admins. A raise of the second-approver threshold or of the credit approval threshold takes effect 24 hours after it is made (its start moves to a day from now if sooner; no threshold in force counts as the lowest); a cut takes effect as set. Their Settings descriptions say so.
