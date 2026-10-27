@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fromPaise, fromRupees } from '../money/index.ts';
 import { chipChop, dealAmounts, icmDeal } from './deals.ts';
-import { areSharesWhole, bountyOnBust, payoutTable, prizePool } from './payouts.ts';
+import { areSharesWhole, bountyOnBust, payoutTable, prizePool, satelliteSeats } from './payouts.ts';
 
 const rupees = (...amounts: bigint[]) => amounts.map(fromRupees);
 
@@ -63,5 +63,21 @@ describe('deals', () => {
 describe('bountyOnBust', () => {
   it('refuses a bounty below nothing', () => {
     expect(() => bountyOnBust(fromPaise(-5000n), 'standard')).toThrow('A bounty in ₹50 chips');
+  });
+});
+
+describe('satelliteSeats', () => {
+  it('refuses a pool or a buy-in not in ₹50 chips, a buy-in of nothing, and runs that are not a whole number above nothing', () => {
+    expect(() => satelliteSeats(fromPaise(-5000n), fromRupees(3_000n), 3)).toThrow('A pool and a buy-in in ₹50 chips, and a run');
+    expect(() => satelliteSeats(fromPaise(2500n), fromRupees(3_000n), 3)).toThrow(RangeError);
+    expect(() => satelliteSeats(fromRupees(7_200n), fromRupees(0n), 3)).toThrow(RangeError);
+    expect(() => satelliteSeats(fromRupees(7_200n), fromPaise(302_500n), 3)).toThrow(RangeError);
+    expect(() => satelliteSeats(fromRupees(7_200n), fromRupees(3_000n), 0)).toThrow(RangeError);
+    expect(() => satelliteSeats(fromRupees(7_200n), fromRupees(3_000n), 2.5)).toThrow(RangeError);
+  });
+
+  it('gives the seats the pool buys and the cash left to the next finisher', () => {
+    expect(satelliteSeats(fromRupees(7_200n), fromRupees(3_000n), 4))
+      .toEqual({ seats: 2, leftover: fromRupees(1_200n), leftoverPlace: 3 });
   });
 });

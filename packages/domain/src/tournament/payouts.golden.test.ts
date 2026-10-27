@@ -3,7 +3,7 @@ import tournamentPayoutsJson from '@rivr/testing/golden/tournamentPayouts.json';
 import { describe, expect, it } from 'vitest';
 import { fromPaise, type Paise } from '../money/index.ts';
 import { chipChop, icmDeal } from './deals.ts';
-import { BOUNTY_KINDS, bountyOnBust, payoutTable, prizePool, type BountyKind } from './payouts.ts';
+import { BOUNTY_KINDS, bountyOnBust, payoutTable, prizePool, satelliteSeats, type BountyKind } from './payouts.ts';
 
 const golden = readGolden(tournamentPayoutsJson);
 
@@ -32,7 +32,21 @@ function kind(goldenCase: GoldenCase): BountyKind {
 
 describe('Tournament payouts golden fixtures (packages/testing/golden/tournamentPayouts.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['pool', 'payouts', 'chop', 'icm', 'bounty'])).not.toThrow();
+    expect(() => assertOperations(golden, ['pool', 'payouts', 'chop', 'icm', 'bounty', 'satellite'])).not.toThrow();
+  });
+
+  it.each(casesFor(golden, 'satellite'))('%s', (_description, goldenCase) => {
+    const seats = () => satelliteSeats(paise(goldenInput(goldenCase, 'pool')), paise(goldenInput(goldenCase, 'buyIn')),
+      Number(goldenInput(goldenCase, 'runs')));
+    expect({
+      seats: orRefused(() => String(seats().seats)),
+      leftover: orRefused(() => rupees(seats().leftover)),
+      leftoverPlace: orRefused(() => String(seats().leftoverPlace)),
+    }).toEqual({
+      seats: goldenExpected(goldenCase, 'seats'),
+      leftover: goldenExpected(goldenCase, 'leftover'),
+      leftoverPlace: goldenExpected(goldenCase, 'leftoverPlace'),
+    });
   });
 
   it.each(casesFor(golden, 'pool'))('%s', (_description, goldenCase) => {

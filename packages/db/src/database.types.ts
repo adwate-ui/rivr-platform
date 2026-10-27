@@ -2909,17 +2909,23 @@ isOneToOne: false
                   ]
                 },"tournament": {
                   Row: {
-                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"deal_method": string | null,"deal_stacks": Json | null,"fee_paise": number,"finished_at": string | null,"format": string,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"overlay_paise": number | null,"payout_shares": (number)[] | null,"places_paid": number | null,"seats_per_table": number,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string
+                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"deal_method": string | null,"deal_stacks": Json | null,"fee_paise": number,"finished_at": string | null,"format": string,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"overlay_paise": number | null,"payout_shares": (number)[] | null,"places_paid": number | null,"satellite_target_id": string | null,"seats_per_table": number,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise": number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"deal_method"?: string | null,"deal_stacks"?: Json | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise": number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"deal_method"?: string | null,"deal_stacks"?: Json | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"deal_method"?: string | null,"deal_stacks"?: Json | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"deal_method"?: string | null,"deal_stacks"?: Json | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "tournament_satellite_target_fkey"
+      columns: ["satellite_target_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "tournament_template_fk"
       columns: ["template_id","venue_id"]
 isOneToOne: false
@@ -3065,6 +3071,62 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "venue"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"tournament_ticket": {
+                  Row: {
+                    "created_at": string,"entry_id": string,"id": string,"issue_transaction_id": string,"member_id": string,"refund_transaction_id": string | null,"satellite_id": string,"status": string,"target_id": string,"updated_at": string,"use_transaction_id": string | null,"value_paise": number,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"entry_id": string,"id"?: string,"issue_transaction_id": string,"member_id": string,"refund_transaction_id"?: string | null,"satellite_id": string,"status"?: string,"target_id": string,"updated_at"?: string,"use_transaction_id"?: string | null,"value_paise": number,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"entry_id"?: string,"id"?: string,"issue_transaction_id"?: string,"member_id"?: string,"refund_transaction_id"?: string | null,"satellite_id"?: string,"status"?: string,"target_id"?: string,"updated_at"?: string,"use_transaction_id"?: string | null,"value_paise"?: number,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tournament_ticket_entry_id_venue_id_fkey"
+      columns: ["entry_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament_entry"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_ticket_issue_transaction_id_venue_id_fkey"
+      columns: ["issue_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_ticket_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_ticket_refund_transaction_id_venue_id_fkey"
+      columns: ["refund_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_ticket_satellite_id_venue_id_fkey"
+      columns: ["satellite_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_ticket_target_id_venue_id_fkey"
+      columns: ["target_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_ticket_use_transaction_id_venue_id_fkey"
+      columns: ["use_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
     }
                   ]
                 },"tv_screen": {
@@ -4267,6 +4329,9 @@ isOneToOne: false
 "set_tournament_room":
 { Args: { "p_seats_per_table": number,"p_tables": number,"p_tournament_id": string }; Returns: undefined
                            },
+"set_tournament_satellite":
+{ Args: { "p_target_id": string,"p_tournament_id": string }; Returns: undefined
+                           },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
                            },
@@ -4454,6 +4519,9 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "bonus_paise": number,"cash_paise": number,"full_name": string,"last_seen_at": string,"member_id": string,"member_number": number
             }[]
+                           },
+"use_tournament_ticket":
+{ Args: { "p_idempotency_key": string,"p_member_id": string,"p_tournament_id": string }; Returns: string
                            },
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {

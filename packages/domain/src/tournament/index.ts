@@ -5,7 +5,8 @@ export {
 } from './entry.ts';
 export { chipChop, DEAL_METHODS, dealAmounts, icmDeal, MOST_DEAL_PLAYERS, type DealMethod } from './deals.ts';
 export {
-  areSharesWhole, BOUNTY_KINDS, bountyOnBust, MOST_PLACES, payoutTable, prizePool, WHOLE_POOL, type BountyKind, type BountySplit, type PrizePool,
+  areSharesWhole, BOUNTY_KINDS, bountyOnBust, MOST_PLACES, payoutTable, prizePool, satelliteSeats, WHOLE_POOL, type BountyKind, type BountySplit,
+  type PrizePool, type SatelliteSeats,
 } from './payouts.ts';
 export { poolShare } from './pool.ts';
 export { averageStack, balancingMoves, eligibleSeats, finishPlace, type BalancingMove, type TournamentSeat } from './seating.ts';

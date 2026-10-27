@@ -534,7 +534,7 @@ end;
 $$;
 select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentPayouts.json'), 'the tournament payout cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'tournamentPayouts.json'
-                   and operation not in ('pool', 'payouts', 'chop', 'icm', 'bounty') $$,
+                   and operation not in ('pool', 'payouts', 'chop', 'icm', 'bounty', 'satellite') $$,
   'every operation in tournamentPayouts.json is proved here');
 select results_eq(
   $$ select description, p.pool_paise, p.overlay_paise from golden.golden_case
@@ -557,6 +557,22 @@ select results_eq(
                               else pg_temp.paise(expected ->> 'paid') || ' ' || pg_temp.paise(expected ->> 'head') end
      from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'bounty' order by position $$,
   'private.tournament_bounty_split splits every bounty in the golden file');
+
+-- Satellite seats: private.tournament_satellite_seats and @rivr/domain satelliteSeats (tournamentPayouts.json).
+create function pg_temp.seats_or_refused(p_pool bigint, p_buy_in bigint, p_runs integer) returns text language plpgsql as $$
+begin
+  return (select s.seats || ' ' || s.leftover_paise || ' ' || s.leftover_place from private.tournament_satellite_seats(p_pool, p_buy_in, p_runs) s);
+exception when invalid_parameter_value then
+  return 'refused';
+end;
+$$;
+select results_eq(
+  $$ select description, pg_temp.seats_or_refused(pg_temp.paise(inputs ->> 'pool'), pg_temp.paise(inputs ->> 'buyIn'), (inputs ->> 'runs')::integer)
+     from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'satellite' order by position $$,
+  $$ select description, case when expected ->> 'seats' = 'refused' then 'refused'
+                              else (expected ->> 'seats') || ' ' || pg_temp.paise(expected ->> 'leftover') || ' ' || (expected ->> 'leftoverPlace') end
+     from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'satellite' order by position $$,
+  'private.tournament_satellite_seats seats every satellite in the golden file');
 
 -- AML cash limits and structuring: private.cash_limit_hit and private.is_near_limit, and @rivr/domain cashLimitHit and
 -- isNearLimit (packages/testing/golden/aml.json).
