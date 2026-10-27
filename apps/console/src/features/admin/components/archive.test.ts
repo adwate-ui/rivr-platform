@@ -22,25 +22,36 @@ describe('archiveCell', () => {
 
 const MEMBERS: ArchivePage['rows'] = [['m1', 'Arjun Mehta'], ['m2', 'Meera, Iyer'], ['m3', null]];
 const KYC: ArchivePage['rows'] = [['k1', 'v/m1/photo.jpg'], ['k2', null], ['k3', 'v/m3/gone.jpg']];
+const FILES = ['expense-receipts/v/e1.jpg', 'kyc/v/m1/photo.jpg', 'kyc/v/m3/gone.jpg'];
 
 /** A source of two tables, two rows a page, as the database answers; it logs what is asked of it, in order. */
 function fakeSource(recipient: string, start: () => Promise<void> = () => Promise.resolve()) {
   const log: string[] = [];
   const pages: Record<string, ArchivePage['rows']> = { member: MEMBERS, kyc_record: KYC };
-  const plan: ArchivePlan = {
+  const plan = (kycReason: string | null): ArchivePlan => ({
     archiveId: 'a1', recipient, tables: [{ name: 'kyc_record', columns: ['id', 'photo_path'] }, { name: 'member', columns: ['id', 'full_name'] }],
-  };
+    // As the server lists them: receipts always, KYC photos with a reason.
+    files: FILES.filter((file) => kycReason !== null || !file.startsWith('kyc/')),
+  });
   const source: ArchiveSource = {
     start: async (memberId, kycReason) => {
       log.push(`start ${memberId ?? 'venue'} ${kycReason ?? 'no photos'}`);
       await start();
-      return plan;
+      return plan(kycReason);
     },
     page: (archiveId, table, after) => {
       const from = typeof after === 'number' ? after : 0;
       log.push(`page ${archiveId} ${table} ${from}`);
       const rows = pages[table] ?? [];
       return Promise.resolve({ rows: rows.slice(from, from + 2), after: from + 2 < rows.length ? from + 2 : null });
+    },
+    complete: (archiveId, sha256, bytes, unread) => {
+      log.push(`complete ${archiveId} ${sha256} ${bytes} ${unread.join(' ')}`);
+      return Promise.resolve();
+    },
+    receipt: (path) => {
+      log.push(`receipt ${path}`);
+      return Promise.resolve(new Uint8Array([0x89, 0x50, 0x4e]));
     },
     kycPhoto: (path) => {
       log.push(`photo ${path}`);
@@ -73,25 +84,27 @@ describe('makeArchive', () => {
     expect(log).toEqual([
       'start venue Police request, case 41 of 2026',
       'page a1 kyc_record 0', 'page a1 kyc_record 2', 'page a1 member 0', 'page a1 member 2',
-      'photo v/m1/photo.jpg', 'photo v/m3/gone.jpg',
+      'receipt v/e1.jpg', 'photo v/m1/photo.jpg', 'photo v/m3/gone.jpg',
     ]);
-    expect(archive).toMatchObject({ tables: 2, rows: 6, photos: 1, unread: ['v/m3/gone.jpg'] });
+    expect(archive).toMatchObject({ tables: 2, rows: 6, files: 2, unread: ['kyc/v/m3/gone.jpg'] });
     const zip = await opened(archive.file, identity);
     expect(zip).toContain('tables/member.csv');
     expect(zip).toContain('id,full_name\nm1,Arjun Mehta\nm2,"Meera, Iyer"\nm3,\n');
-    expect(zip).toContain('kyc/v/m1/photo.jpg');
-    expect(zip).toContain('"kyc_photos": 1');
-    expect(zip).toContain('"kyc_photos_unread": [\n    "v/m3/gone.jpg"\n  ]');
+    expect(zip).toContain('files/kyc/v/m1/photo.jpg');
+    expect(zip).toContain('files/expense-receipts/v/e1.jpg');
+    expect(zip).toContain('"files": 2');
+    expect(zip).toContain('"files_unread": [\n    "kyc/v/m3/gone.jpg"\n  ]');
     expect(zip).toContain('"made_at": "2026-10-26T18:30:00.000Z"');
   });
 
-  it('leaves the KYC photos out without a reason', async () => {
+  it('leaves the KYC photos out without a reason, keeping the receipts', async () => {
     const { recipient } = await keyPair();
     const { source, log } = fakeSource(recipient);
     const archive = await makeArchive(source, { ...REQUEST, kycReason: null }, () => undefined);
     expect(log[0]).toBe('start venue no photos');
     expect(log.some((line) => line.startsWith('photo'))).toBe(false);
-    expect(archive.photos).toBe(0);
+    expect(log).toContain('receipt v/e1.jpg');
+    expect(archive.files).toBe(1);
   });
 
   it('reads nothing when the start is refused', async () => {

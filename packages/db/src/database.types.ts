@@ -3629,6 +3629,9 @@ isOneToOne: false
 "close_cage_shift":
 { Args: { "p_cash_paise": number,"p_counts": Json,"p_idempotency_key": string,"p_markers_paise": number,"p_receipts_paise": number,"p_venue_id": string }; Returns: string
                            },
+"complete_export_archive":
+{ Args: { "p_archive_id": string,"p_bytes": number,"p_sha256": string,"p_unread"?: (string)[] }; Returns: undefined
+                           },
 "confirm_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: string
                            },
@@ -3840,6 +3843,11 @@ isOneToOne: false
                            },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"live_purge_preview":
+{ Args: { "p_venue_id": string }; Returns: {
+              "current_rows": number,"table_name": string
+            }[]
                            },
 "log_hand":
 { Args: { "p_idempotency_key": string,"p_played_at": string,"p_pot": number,"p_variant": Database["public"]['Enums']["hand_variant"] }; Returns: string
@@ -4077,6 +4085,20 @@ isOneToOne: false
                            },
 "publish_sop_version":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_sop_id": string }; Returns: number
+                           },
+"purge_files_done":
+{ Args: { "p_failed": number,"p_removed": (string)[],"p_venue_id": string }; Returns: number
+                           },
+"purge_files_due":
+{ Args: { "p_venue_id": string }; Returns: string[]
+                           },
+"purge_files_left_count":
+{ Args: { "p_venue_id": string }; Returns: number
+                           },
+"purge_live_venue":
+{ Args: { "p_venue_id": string,"p_venue_name": string }; Returns: {
+              "deleted_rows": number,"table_name": string
+            }[]
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
