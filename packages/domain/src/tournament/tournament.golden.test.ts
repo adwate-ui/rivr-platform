@@ -13,6 +13,7 @@ import { planStructure } from './calculator.ts';
 import { clockAt } from './clock.ts';
 import { checkPurchase, TOURNAMENT_FORMATS, type Purchase, type TournamentFormat } from './entry.ts';
 import { poolShare } from './pool.ts';
+import { dayTwoField, type FlightRun } from './flights.ts';
 import { balancingMoves, eligibleSeats, finishPlace } from './seating.ts';
 
 const clockGolden = readGolden(tournamentClockJson);
@@ -24,6 +25,16 @@ const seatingGolden = readGolden(tournamentSeatingJson);
 const whole = (goldenCase: GoldenCase, name: string) => Number(goldenInput(goldenCase, name));
 const yes = (goldenCase: GoldenCase, name: string) => goldenInput(goldenCase, name) === 'yes';
 const PURCHASES: readonly Purchase[] = ['entry', 're_entry', 'rebuy', 'add_on'];
+
+/** A golden list of flight runs: "Mihir bags 40000 | Yash out 3 of 9". */
+function flightRuns(text: string): FlightRun[] {
+  return text.split(' | ').filter(Boolean).map((written) => {
+    const found = /^(\S+) (?:bags (\d+)|out (\d+) of (\d+))$/.exec(written);
+    if (found?.[1] === undefined) throw new Error(`A golden run is "player bags chips" or "player out place of runs": ${written}`);
+    if (found[2] !== undefined) return { player: found[1], chips: BigInt(found[2]) };
+    return { player: found[1], place: Number(found[3]), flightRuns: Number(found[4]) };
+  });
+}
 
 function format(goldenCase: GoldenCase): TournamentFormat {
   const found = TOURNAMENT_FORMATS.find((each) => each === goldenInput(goldenCase, 'format'));
@@ -109,7 +120,22 @@ describe('Tournament money golden fixtures (packages/testing/golden/tournamentMo
 
 describe('Tournament seating golden fixtures (packages/testing/golden/tournamentSeating.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(seatingGolden, ['eligible', 'balance', 'place'])).not.toThrow();
+    expect(() => assertOperations(seatingGolden, ['eligible', 'balance', 'place', 'day_two'])).not.toThrow();
+  });
+
+  it.each(casesFor(seatingGolden, 'day_two'))('%s', (_description, goldenCase) => {
+    const runs = flightRuns(goldenInput(goldenCase, 'runs'));
+    const field = () => dayTwoField(runs);
+    const named = (index: number) => {
+      const run = runs[index];
+      if (run === undefined) throw new Error('Day 2 is chosen from the runs');
+      return 'chips' in run ? `${run.player} ${String(run.chips)}` : `${run.player} ${String(run.place)} of ${String(run.flightRuns)}`;
+    };
+    if (goldenExpected(goldenCase, 'through') === 'refused') expect(field).toThrow(RangeError);
+    else {
+      expect({ through: field().through.map(named).join(' | '), out: field().out.map(named).join(' | ') })
+        .toEqual({ through: goldenExpected(goldenCase, 'through'), out: goldenExpected(goldenCase, 'out') });
+    }
   });
 
   it.each(casesFor(seatingGolden, 'eligible'))('%s', (_description, goldenCase) => {
