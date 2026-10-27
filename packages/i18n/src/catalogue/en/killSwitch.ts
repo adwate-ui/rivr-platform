@@ -19,6 +19,7 @@ export const killSwitch = {
     social_publishing: 'Social posts',
     promotions: 'Promotions',
     tournament_registration: 'Tournament registration',
+    redemptions: 'Rewards redemptions',
   },
   /** One engaged control: what it is (`{what}`: Venue freeze, or Feature off: Credit), why, and who engaged it when. */
   line: '{what} · {reason} · by {name}, {time}',

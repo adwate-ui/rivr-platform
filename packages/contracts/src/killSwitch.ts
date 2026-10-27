@@ -6,7 +6,7 @@ export const CONTROL_LEVELS = ['venue_freeze', 'feature_kill', 'messaging_stop',
 
 /** The features the kill switch can switch off. */
 export const KILLABLE_FEATURES = [
-  'withdrawals', 'credit', 'kyc_signup', 'marketing_sends', 'social_publishing', 'promotions', 'tournament_registration',
+  'withdrawals', 'credit', 'kyc_signup', 'marketing_sends', 'social_publishing', 'promotions', 'tournament_registration', 'redemptions',
 ] as const;
 
 /**

@@ -91,6 +91,6 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
 /** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */
 export const SUPER_ADMIN_ONLY: readonly Permission[] = [
   'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure', 'shareholding.manage',
-  'members.erase', 'promotions.approve', 'members.change_phone',
+  'members.erase', 'promotions.approve', 'members.change_phone', 'pot_data.read',
 ];
 
