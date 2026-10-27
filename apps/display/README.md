@@ -2,6 +2,8 @@
 
 The TV app at 1920 px: waitlist and call-time boards, jackpot and high hand, the tournament clock, the promotions rotation and the other TV modes. A TV pairs with a six-digit code and then shows the mode a manager assigns it.
 
+The final-table stream's overlay (#125, decision 0256) is an OBS browser source at `/overlay?delay=<seconds>`, 1920 by 1080: the tournament clock on a transparent page, held back by the hole-card delay (`delay=900` for 15 minutes; `delay=0` when OBS delays the whole stream). Pair it like a TV, at the club (never the practice venue), and give it the tournament clock on the console's TVs screen. Set it up before the final table, with OBS's "Shutdown source when not visible" and "Refresh browser when scene becomes active" off: after a reload it shows nothing until the delay has passed, and once paired it never shows a code again until OBS reloads it.
+
 ## Run it
 
 ```
@@ -28,7 +30,8 @@ src/
                       seats opening (decision 0163), the rewards ticker and the League leaderboard (#148,
                       decision 0183), and the tournament clock counting down from the server's reading
                       (#119, decision 0201), live through Realtime; in between, the boards the console
-                      chose for it to turn to, half a minute each, the promotions one after another; other modes show their name
+                      chose for it to turn to, half a minute each, the promotions one after another; other modes show their name;
+                      and the stream overlay, the tournament clock held back by the hole-card delay (#125)
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

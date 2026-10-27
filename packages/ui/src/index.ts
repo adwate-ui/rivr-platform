@@ -18,6 +18,7 @@ export * from './Screen/index.ts';
 // Type
 export * from './Text/index.ts';
 export * from './Heading/index.ts';
+export * from './HistoryRow/index.ts';
 export * from './Label/index.ts';
 export * from './Money/index.ts';
 export * from './Number/index.ts';
@@ -75,6 +76,8 @@ export * from './TvCallTimeBoard/index.ts';
 // The door kiosk's scanner (decision 0164).
 export * from './QrScanView/index.ts';
 export * from './TvTournamentClock/index.ts';
+// The final-table stream's overlay for OBS (#125).
+export * from './StreamOverlay/index.ts';
 export * from './TournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
 export * from './DisplayPreview/index.ts';

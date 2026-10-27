@@ -6,7 +6,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider, useAuthStatus } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useMyTvScreen, useTvActions, useTvPairing, useVenueTvs } from './tvScreens.ts';
+import { useIsPublicVenue, useMyTvScreen, useTvActions, useTvPairing, useVenueTvs } from './tvScreens.ts';
 
 const STAFF = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -111,6 +111,18 @@ describe('A paired TV', () => {
     const { result } = renderHook(() => ({ screen: useMyTvScreen(), auth: useAuthStatus() }), { wrapper });
     await waitFor(() => expect(result.current.auth).toBe('signed-out'));
     expect(calls.some((call) => call.url.includes('/auth/v1/logout'))).toBe(true);
+  });
+
+  it('knows whether its venue is public, so the stream overlay never shows the practice venue', async () => {
+    const club = renderTvs('tv-login', { '/rest/v1/public_venue': { body: [{ id: VENUE }] } });
+    const atClub = renderHook(() => useIsPublicVenue(VENUE), { wrapper: club.wrapper });
+    expect(atClub.result.current).toBeUndefined();
+    await waitFor(() => expect(atClub.result.current).toBe(true));
+    expect(club.calls.find((call) => call.url.includes('/rest/v1/public_venue'))?.url).toContain(`id=eq.${VENUE}`);
+    cleanup();
+    const practice = renderTvs('tv-login', { '/rest/v1/public_venue': { body: [] } });
+    const atPractice = renderHook(() => useIsPublicVenue(VENUE), { wrapper: practice.wrapper });
+    await waitFor(() => expect(atPractice.result.current).toBe(false));
   });
 });
 
