@@ -132,8 +132,9 @@ while :; do
     exit 1
   fi
   behind="$(behind_main "$head")"
+  # Behind main, db_clash says: 0 a clash, 1 none, 2 GitHub unread. Its 0 must land in `clash` too, so it starts at 0.
   clash=1
-  if [ "${behind:-0}" -gt 0 ]; then db_clash "$head" || clash=$?; fi
+  if [ "${behind:-0}" -gt 0 ]; then clash=0; db_clash "$head" || clash=$?; fi
   if [ "$clash" = 2 ]; then sleep 30; continue; fi
   if [ "$clash" = 0 ]; then
     if ! gh api --method PUT "repos/$repo/pulls/$pr/update-branch" -f expected_head_sha="$head" >/dev/null 2>&1; then
