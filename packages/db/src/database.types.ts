@@ -307,6 +307,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"cab_request": {
+                  Row: {
+                    "address": string,"created_at": string,"id": string,"kind": string,"member_id": string,"updated_at": string,"venue_id": string,"wanted_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address": string,"created_at"?: string,"id"?: string,"kind": string,"member_id": string,"updated_at"?: string,"venue_id": string,"wanted_at": string
+                  }
+                  Update: {
+                    "address"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"updated_at"?: string,"venue_id"?: string,"wanted_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cab_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "cab_request_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"cage_shift": {
                   Row: {
                     "closed_at": string | null,"closed_by_staff_id": string | null,"created_at": string,"float_paise": number,"id": string,"idempotency_key": string,"last_close_id": string | null,"opened_after_entry_id": number,"opened_at": string,"opened_by_staff_id": string,"opening_cash_variance_paise": number | null,"opening_chips_variance_paise": number | null,"opening_is_anomaly": boolean,"opening_reason": string | null,"opening_reviewed_at": string | null,"opening_reviewed_by_staff_id": string | null,"updated_at": string,"venue_id": string
@@ -4124,6 +4150,11 @@ isOneToOne: false
               "buyer_gstin": string,"buyer_name": string,"cgst_paise": number,"description": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"number": string,"place_of_supply": string,"rate_basis_points": number,"sac_code": string,"sgst_paise": number,"signatory_designation": string,"signatory_name": string,"supplier_address": string,"supplier_gstin": string,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number
             }[]
                            },
+"my_cab":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "is_eligible": boolean,"minimum_visits": number,"visits": number
+            }[]
+                           },
 "my_deposits":
 { Args: Record<PropertyKey, never>; Returns: {
               "amount_paise": number,"decided_at": string,"id": string,"requested_at": string,"status": string,"utr": string
@@ -4439,6 +4470,9 @@ isOneToOne: false
                            },
 "request_buy_in":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string
+                           },
+"request_cab":
+{ Args: { "p_address": string,"p_kind": string,"p_time": string }; Returns: string
                            },
 "request_deposit":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string,"p_utr": string }; Returns: string

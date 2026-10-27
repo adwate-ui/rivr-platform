@@ -41,6 +41,14 @@ export const reviewsGoogleUrl = {
   }),
 } as const satisfies SettingDefinition;
 
+/** The visits a member needs this month before the app offers them a cab (#140); none set is four. */
+export const cabMinimumVisits = {
+  key: 'cab.minimum_visits',
+  description: 'The visits a member needs this month before the app offers them a cab; none set is four.',
+  scope: 'venue',
+  value: z.strictObject({ visits: z.int().min(1).max(31) }),
+} as const satisfies SettingDefinition;
+
 export const accommodationHoursPerNight = {
   key: 'accommodation.hours_per_night',
   description: 'Accommodation rewards (decision 0246): the hours played at this table type that earn one hotel night; none set earns none.',

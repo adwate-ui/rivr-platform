@@ -116,6 +116,8 @@ export const queryKeys = {
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   /** The member's referral code (#151). */
   myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
+  myCab: (userId: string) => ['user', userId, 'my-cab'] as const,
+  myCabRequests: (userId: string) => ['user', userId, 'my-cab-requests'] as const,
   /** The TV's rewards ticker and League leaderboard (#148, decision 0183). */
   tvRewardsTicker: (userId: string) => ['user', userId, 'tv-rewards-ticker'] as const,
   tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,

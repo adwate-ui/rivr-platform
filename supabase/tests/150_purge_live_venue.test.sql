@@ -18,7 +18,7 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 
 -- What a purge deletes from is a decision for each venue table: a new one fails here until it is listed or kept.
 select set_eq($$ select private.live_purge_tables() $$,
-  $$ select unnest(array['academy_batch', 'academy_booking', 'academy_utr_rejection', 'account_transfer', 'alert', 'bonus_grant', 'buy_in_request',
+  $$ select unnest(array['academy_batch', 'academy_booking', 'academy_utr_rejection', 'account_transfer', 'alert', 'bonus_grant', 'buy_in_request', 'cab_request',
      'cage_shift', 'cage_transaction', 'chip_inventory_count', 'chip_inventory_line', 'consent', 'credit_line', 'dealer_down', 'deposit_request',
      'down_count', 'early_departure', 'eod_close', 'expense', 'feedback', 'fnb_order', 'hand', 'high_hand_claim', 'incident', 'invoice', 'invoice_counter',
      'jackpot_event', 'kyc_record', 'kyc_review', 'league_finish', 'ledger_account', 'ledger_entry', 'ledger_transaction', 'marker',
