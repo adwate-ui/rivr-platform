@@ -16,8 +16,8 @@ export interface ControlState {
   readonly killedFeatures: readonly KillableFeature[];
   /**
    * In a member's app: the signed-in member cannot transact or join a waitlist (row-level
-   * security shows a member only their own freeze). Staff apps see every frozen member, so they
-   * read member freezes per member instead of this flag.
+   * security shows a member only their own freeze). Staff see member freezes only with
+   * control.engage (#497), so staff apps never read this flag.
    */
   readonly isMemberFrozen: boolean;
 }
