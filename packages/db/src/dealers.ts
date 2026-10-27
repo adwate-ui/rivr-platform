@@ -49,8 +49,8 @@ export interface DealerNight {
   /** To one place; null with no time dealt. */
   readonly handsPerHour: number | null;
   readonly rake: Paise;
-  /** The downs counted: what the drop box held less what their hands logged. */
-  readonly variance: Paise;
+  /** The downs that ended in the period and were counted: what the drop box held less what their hands logged; null with none counted. */
+  readonly variance: Paise | null;
   readonly countedDowns: number;
 }
 
@@ -67,7 +67,7 @@ export function useDealerNights(venueId: string, from: string, to: string) {
       if (error) throw error;
       return data.map((row) => ({
         staffId: row.staff_id, dealerName: row.dealer_name, downs: row.downs, dealtSeconds: row.dealt_seconds, hands: row.hands,
-        handsPerHour: row.hands_per_hour, rake: toPaise(row.rake_paise), variance: toPaise(row.variance_paise), countedDowns: row.counted_downs,
+        handsPerHour: row.hands_per_hour, rake: toPaise(row.rake_paise), variance: row.counted_downs > 0 ? toPaise(row.variance_paise) : null, countedDowns: row.counted_downs,
       }));
     },
   });

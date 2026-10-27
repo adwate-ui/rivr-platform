@@ -38,8 +38,8 @@ function nightColumns(): readonly DataTableColumn<NightRow>[] {
     },
     { key: 'rake', header: t('console.dealers.rake'), align: 'end', cell: (row) => formatMoney(row.rake), sortValue: (row) => row.rake,
       exportValue: (row) => Number(formatRupeesForFile(row.rake)) },
-    { key: 'variance', header: t('console.dealers.variance'), align: 'end', cell: (row) => formatMoney(row.variance), sortValue: (row) => row.variance,
-      exportValue: (row) => Number(formatRupeesForFile(row.variance)) },
+    { key: 'variance', header: t('console.dealers.variance'), align: 'end', cell: (row) => (row.variance === null ? '' : formatMoney(row.variance)),
+      sortValue: (row) => row.variance ?? 0n, exportValue: (row) => (row.variance === null ? '' : Number(formatRupeesForFile(row.variance))) },
     { key: 'tipShare', header: t('console.dealers.tipShare'), align: 'end', cell: (row) => percent(row.tipShare), sortValue: (row) => row.tipShare,
       exportValue: (row) => row.tipShare / 100 },
   ];

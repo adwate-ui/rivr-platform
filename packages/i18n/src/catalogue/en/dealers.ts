@@ -26,7 +26,7 @@ export const dealers = {
   rake: 'Rake logged',
   variance: 'Drop-box variance',
   /** The dealer's share of the tip pool by time dealt, in percent. Tips belong to dealers. */
-  tipShare: 'Tip-pool share',
+  tipShare: 'Tip-pool share (%)',
   tipShareHint: 'Tips belong to dealers. The export shares the tip pool by time dealt.',
   percent: '{value}%',
   noNights: 'No downs in this period.',

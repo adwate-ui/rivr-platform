@@ -12,7 +12,7 @@ insert into public.setting_key (key, description, scope, value_schema) values
 
 -- The board: every dealer dealing now (state dealing: their table, since their down began, due once past the
 -- rotation's minutes), then every active dealer resting who dealt in the last twelve hours or is on a rostered shift
--- now (state resting: since their last down ended, or their shift began). Dealing, the due first and the longest at
+-- now not marked absent (state resting: since their last down ended, or their shift began). Dealing, the due first and the longest at
 -- the table first; then resting, the longest rested first. Nothing without floor.manage there.
 create function private.dealer_rotation(p_venue_id uuid)
 returns table (state text, staff_id uuid, dealer_name text, table_id uuid, table_name text, since timestamptz, minutes integer, is_due boolean)
@@ -34,7 +34,8 @@ as $$
            coalesce((select max(d.ended_at) from public.dealer_down d
                      where d.staff_id = s.id and d.venue_id = p_venue_id and d.ended_at > now() - interval '12 hours'),
                     (select min(h.starts_at) from public.staff_shift h
-                     where h.staff_id = s.id and h.venue_id = p_venue_id and now() >= h.starts_at and now() < h.ends_at)) as since
+                     where h.staff_id = s.id and h.venue_id = p_venue_id and now() >= h.starts_at and now() < h.ends_at
+                       and not exists (select 1 from public.staff_attendance a where a.shift_id = h.id and a.status = 'absent'))) as since
     from public.staff s
     where s.venue_id = p_venue_id and s.is_active and s.role = 'dealer'
       and not exists (select 1 from dealing x where x.staff_id = s.id)
@@ -53,9 +54,11 @@ as $$
   order by b.state, b.is_due desc, b.since, b.dealer_name;
 $$;
 
--- Each dealer's downs over [p_from, p_until), for floor.manage: how many, the seconds of them inside the period (a
--- down still open runs to now), the hands they dealt then and per hour dealt (to one place), the rake those hands
--- logged, and the drop-box variance of the downs counted (count less logged). By name; nothing without floor.manage.
+-- Each dealer's downs over [p_from, p_until), for staff who run the floor and read the ledger (floor.manage and
+-- ledger.read): how many, the seconds of them inside the period (a down still open runs to now), the hands they dealt
+-- then and per hour dealt (to one place), the rake those hands logged, and the drop-box variance of the downs that
+-- ended in the period and were counted (count less logged; null with none counted), so a down across two periods
+-- counts its variance once. By name.
 create function private.dealer_nights(p_venue_id uuid, p_from timestamptz, p_until timestamptz)
 returns table (staff_id uuid, dealer_name text, downs integer, dealt_seconds integer, hands integer, hands_per_hour numeric,
                rake_paise bigint, variance_paise bigint, counted_downs integer)
@@ -65,14 +68,15 @@ security definer
 set search_path = ''
 as $$
   with downs as (
-    select d.id, d.staff_id,
+    select d.id, d.staff_id, d.ended_at >= p_from and d.ended_at < p_until as ended_inside,
            greatest(0, floor(extract(epoch from least(coalesce(d.ended_at, now()), p_until) - greatest(d.started_at, p_from))))::integer as seconds
     from public.dealer_down d
     where d.venue_id = p_venue_id and d.started_at < p_until and coalesce(d.ended_at, now()) > p_from
   ),
   dealt as (
     select w.staff_id, count(*)::integer as downs, sum(w.seconds)::integer as seconds,
-           count(c.down_id)::integer as counted, coalesce(sum(c.variance_paise), 0)::bigint as variance
+           (count(c.down_id) filter (where w.ended_inside))::integer as counted,
+           (sum(c.variance_paise) filter (where w.ended_inside))::bigint as variance
     from downs w left join public.down_count c on c.down_id = w.id
     group by w.staff_id
   ),
@@ -86,7 +90,7 @@ as $$
          case when w.seconds > 0 then round(coalesce(p.hands, 0) * 3600.0 / w.seconds, 1) end,
          coalesce(p.rake, 0), w.variance, w.counted
   from dealt w join public.staff s on s.id = w.staff_id left join played p on p.staff_id = w.staff_id
-  where private.has_permission(p_venue_id, 'floor.manage')
+  where private.has_permission(p_venue_id, 'floor.manage') and private.has_permission(p_venue_id, 'ledger.read')
   order by s.full_name, s.id;
 $$;
 
