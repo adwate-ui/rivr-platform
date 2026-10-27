@@ -55,6 +55,12 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
 select results_eq($$ select visits, seats, cage, markers, settlements from pg_temp.seen() $$, $$ values (1, 1, 0, 0, 0) $$,
   'without it, only tonight''s visit and seat: no past visit or seat, no buy-in or cash-out, no settled marker');
 select is((select closed_at from public.visit), null, 'the visit he reads is tonight''s, still open');
+select ok((select count(*) from public.my_wallet_movement where table_name = 'Table 3') > 0,
+  'his Balance still names the table his marker was at, though he reads no seat');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
+select is(private.movement_table_name((select ledger_transaction_id from public.marker
+                                       where member_id = '00000000-0000-4000-8000-000000000216' limit 1)), null,
+  'and no one else learns the table of a transaction that is not theirs');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from public.marker where settled_at is null), 1, 'Arjun still reads the marker he owes');
 reset role;
