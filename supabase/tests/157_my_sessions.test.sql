@@ -1,5 +1,7 @@
 -- A member's own session history (#127). Ishaan (211) checks in, sits at Table 3 for three hours, buys in ₹10,000 and
 -- cashes out ₹50,000 with TDS on per session: ₹40,000 won owes ₹12,000, so he is paid ₹38,000 and is up ₹28,000.
+-- Kunal (216) plays on a ₹50,000 marker and ₹10,000 of bonus chips and cashes out ₹80,000: ₹30,000 won owes ₹9,000,
+-- the marker settles first, so he is paid ₹21,000 and is up ₹21,000, his bonus chips shown apart.
 -- 103 Aditya is the floor manager; 104 Sana a cashier; 201 Arjun another member.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -61,10 +63,42 @@ select isnt(public.seat_member((select id from public.game_table where venue_id 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select count(*)::integer from public.my_sessions()), 1, 'his open visit is not listed');
 
--- No one reads another member's sessions.
+-- Markers count as money in, bonus chips apart; the marker settles from the cash-out first.
+reset role;
+select set_config('request.jwt.claims', '', true);
+select private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 1000000, 'Sessions test',
+  now() + interval '2 days', 'test:sessions:bonus') is not null as credited;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000216', 5000000, 'A regular'), 'active', 'Kunal has ₹50,000 of credit');
+select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 4, '9000000216'),
+  null, 'and sits at Table 3');
+select isnt(public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 'Sessions test'), null,
+  'he may leave before his call time');
+reset role;
+update public.visit set opened_at = now() - interval '2 hours' where member_id = '00000000-0000-4000-8000-000000000216' and closed_at is null;
+update public.seat_session set started_at = now() - interval '2 hours', seated_here_at = now() - interval '2 hours'
+where member_id = '00000000-0000-4000-8000-000000000216' and ended_at is null;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select isnt(public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 5000000,
+  'M10 40 C 30 10, 50 70, 70 40', gen_random_uuid()), null, 'Sana issues him ₹50,000 on a marker');
+select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 1000000, 'bonus', gen_random_uuid()),
+  null, 'and ₹10,000 of chips from his bonus');
+select is((select to_member_paise from public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216',
+  8000000, 'cash', '00000000-0000-4000-8000-0000000c5702', true)), 2100000::bigint, 'he cashes out ₹80,000: ₹21,000 after the marker and ₹9,000 of TDS');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
+select results_eq(
+  $$ select buy_in_paise, bonus_paise, cash_out_paise, tds_paise, paid_paise, net_paise from public.my_sessions() $$,
+  $$ values (5000000::bigint, 1000000::bigint, 8000000::bigint, 900000::bigint, 2100000::bigint, 2100000::bigint) $$,
+  'his session: the marker is money in, the bonus chips apart; paid ₹21,000, up ₹21,000');
+select is((select count(*)::integer from public.my_sessions()), 1, 'his earlier visits, at which he never sat, are not sessions');
+reset role;
+
+-- No one reads another member's sessions: Ishaan's visits, kept before reading as Arjun, whose own policy hides them.
+create temp table ishaan_visits as select id from public.visit where member_id = '00000000-0000-4000-8000-000000000211';
+grant select on ishaan_visits to authenticated;
+select ok((select count(*) from ishaan_visits) >= 1, 'Ishaan has visits to hide');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
-select is((select count(*)::integer from public.my_sessions() where visit_id in (select id from public.visit where member_id = '00000000-0000-4000-8000-000000000211')),
-  0, 'Arjun does not see Ishaan''s');
+select is((select count(*)::integer from public.my_sessions() where visit_id in (select id from ishaan_visits)), 0, 'Arjun does not see Ishaan''s');
 reset role;
 
 -- A tier without session history reads none.

@@ -1,12 +1,13 @@
 -- A member's own sessions (#127): each closed visit at which they sat, newest first, with the table they played longest
 -- (and how many others), the hours, what went in and came out, the TDS withheld, and the club month's totals.
---   * A visit's money is every buy-in, cash-out and marker of the member's from check-in to check-out: a cash-out after
---     their last seat ended has no seat to tie it to.
+--   * A visit's money is every buy-in, cash-out and marker of the member's after check-in, up to check-out: a cash-out
+--     after their last seat ended has no seat to tie it to, and one at the instant a visit closes and the next opens
+--     counts once, in the visit it closed.
 --   * Net is what came out, less the TDS withheld and what went in. What went in counts chips on credit (markers) and
 --     not bonus chips, as net winnings do for TDS (20261020090800_tds.sql); bonus chips show on their own.
 --   * Paid is what the cage handed over: the cash-outs less the markers they settled and the TDS.
 --   * The receipt is the last cash-out's, as the cage printed it: the first eight characters of its id.
---   * The month is the club's: a night that runs past midnight belongs to the day it began (06:00 to 06:00 IST).
+--   * The month is the club's, as League's (private.league_month): a night past midnight belongs to the day it began.
 -- Gated by tier (sessions.history): without it a member reads no history.
 create function private.my_sessions()
 returns table (visit_id uuid, opened_at timestamptz, closed_at timestamptz, table_name text, small_blind_paise bigint,
@@ -49,20 +50,20 @@ as $$
            (array_agg(upper(left(c.id::text, 8)) order by c.created_at desc) filter (where c.kind = 'cash_out'))[1] as receipt
     from mine m
     left join public.cage_transaction c
-      on c.member_id = m.member_id and c.kind in ('buy_in', 'cash_out') and c.created_at between m.opened_at and m.closed_at
+      on c.member_id = m.member_id and c.kind in ('buy_in', 'cash_out') and c.created_at > m.opened_at and c.created_at <= m.closed_at
     left join lateral private.cash_out_outcome(c.id) o on c.kind = 'cash_out'
     group by m.id
   ),
   credit as (
     select m.id as visit_id, coalesce(sum(k.amount_paise), 0)::bigint as markers
     from mine m
-    left join public.marker k on k.member_id = m.member_id and k.issued_at between m.opened_at and m.closed_at
+    left join public.marker k on k.member_id = m.member_id and k.issued_at > m.opened_at and k.issued_at <= m.closed_at
     group by m.id
   ),
   sessions as (
     select m.id, m.opened_at, m.closed_at, l.name, l.small_blind_paise, l.big_blind_paise, l.others, l.seconds,
            c.bought + k.markers as buy_in, c.bonus, c.cashed, c.tds, c.paid, c.cashed - c.tds - c.bought - k.markers as net,
-           c.receipt, date_trunc('month', (m.opened_at at time zone 'Asia/Kolkata') - interval '6 hours')::date as month
+           c.receipt, private.league_month(m.opened_at) as month
     from mine m
     join longest l on l.visit_id = m.id
     join cage c on c.visit_id = m.id
