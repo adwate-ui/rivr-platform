@@ -90,7 +90,7 @@ export {
 } from './highHands.ts';
 export {
   practiceResetFailureOf, usePracticeReset, usePracticeResetPreview, type PracticeResetFailure, type PracticeResetRow,
-  livePurgeFailureOf, useLivePurgePreview, usePurgeLiveVenue, type LivePurgeFailure, type LivePurgeRow,
+  livePurgeFailureOf, useLivePurgePreview, usePurgeLiveVenue, type LivePurgeDone, type LivePurgeFailure, type LivePurgeRow,
 } from './practiceReset.ts';
 export {
   useChipDenominations, useVenueConfig, useVenueConfigActions, useVenueLogoUpload, type ChipDenomination, type VenueConfig, type VenueConfigFailure,

@@ -20,13 +20,14 @@ function reply(body: object, status: number): Response {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FILES_AT_ONCE = 100;
 
-/** The venue and the name typed, from the request body, or null. */
-async function askedFor(request: Request): Promise<{ venueId: string; venueName: string } | null> {
+/** The venue, the name typed and whether only the files are asked for, from the request body, or null. */
+async function askedFor(request: Request): Promise<{ venueId: string; venueName: string; filesOnly: boolean } | null> {
   const body: unknown = await request.json().catch(() => null);
   if (typeof body !== 'object' || body === null) return null;
   const venueId: unknown = Reflect.get(body, 'venueId');
   const venueName: unknown = Reflect.get(body, 'venueName');
-  return typeof venueId === 'string' && UUID.test(venueId) && typeof venueName === 'string' ? { venueId, venueName } : null;
+  const filesOnly = Reflect.get(body, 'filesOnly') === true;
+  return typeof venueId === 'string' && UUID.test(venueId) && typeof venueName === 'string' ? { venueId, venueName, filesOnly } : null;
 }
 
 /** Calls a database function with the given key: the caller's, or the service role's. */
@@ -64,24 +65,39 @@ async function removeFiles(venueId: string): Promise<number> {
   return removed;
 }
 
-Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
-  if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
-  const asked = await askedFor(request);
-  if (asked === null) return reply({ error: 'venueId must be a uuid and venueName text' }, 400);
+/** The venue's files, after its rows: how many went, or why not all did. */
+async function filesAnswer(venueId: string, rows: number): Promise<Response> {
+  try {
+    return reply({ rows, files: await removeFiles(venueId) }, 200);
+  } catch (error) {
+    return reply({ rows, files: null, filesError: String(error) }, 200);
+  }
+}
 
-  // The purge itself, as the caller, so the database decides whether they may.
-  const purged = await rpc('purge_live_venue', { p_venue_id: asked.venueId, p_venue_name: asked.venueName }, request.headers.get('authorization') ?? '');
+/** The files again, for a venue already purged: only for someone the database lets run its purge's dry run. */
+async function filesAgain(venueId: string, authorization: string): Promise<Response> {
+  const allowed = await rpc('live_purge_preview', { p_venue_id: venueId }, authorization);
+  return allowed.ok ? filesAnswer(venueId, 0) : reply({ code: 'not_allowed' }, 400);
+}
+
+/** The purge itself, as the caller, so the database decides whether they may; then the files. */
+async function purge(venueId: string, venueName: string, authorization: string): Promise<Response> {
+  const purged = await rpc('purge_live_venue', { p_venue_id: venueId, p_venue_name: venueName }, authorization);
   const body: unknown = await purged.json().catch(() => null);
   if (!purged.ok) {
     const code: unknown = typeof body === 'object' && body !== null ? Reflect.get(body, 'code') : null;
     return reply({ code: typeof code === 'string' ? code : 'unavailable' }, 400);
   }
   const rows = (Array.isArray(body) ? body : []).reduce((total: number, row: unknown) => total + Number(Reflect.get(Object(row), 'deleted_rows') ?? 0), 0);
-  // The rows are gone; a file left behind can be removed by running the purge's file step again (purged_venue_files).
-  try {
-    return reply({ rows, files: await removeFiles(asked.venueId) }, 200);
-  } catch (error) {
-    return reply({ rows, files: null, filesError: String(error) }, 200);
-  }
+  // The rows are gone; a file left behind is removed by asking again with filesOnly.
+  return filesAnswer(venueId, rows);
+}
+
+Deno.serve(async (request) => {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+  if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
+  const asked = await askedFor(request);
+  if (asked === null) return reply({ error: 'venueId must be a uuid and venueName text' }, 400);
+  const authorization = request.headers.get('authorization') ?? '';
+  return asked.filesOnly ? filesAgain(asked.venueId, authorization) : purge(asked.venueId, asked.venueName, authorization);
 });

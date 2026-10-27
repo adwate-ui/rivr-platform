@@ -45,7 +45,9 @@ export const purge = {
   empty: 'Nothing to delete.',
   typeName: 'Type the venue\'s name to purge it',
   purge: 'Purge the venue',
-  done: 'Purged: {count} rows deleted.',
+  done: 'Purged: {count} rows deleted, and {files} files.',
+  filesLeft: 'The rows are purged, but some of the venue\'s files are still in storage.',
+  filesAgain: 'Remove the files',
 };
 
 /** Why a purge did not go through. */
@@ -53,7 +55,7 @@ export const purgeFailures = {
   notAllowed: 'Only a super admin purges a venue.',
   practice: 'The practice venue resets to its seed instead, on Practice reset.',
   notFrozen: 'Freeze the venue on Kill switch first.',
-  noArchive: 'Make and save the full archive first. It counts for 30 minutes.',
+  noArchive: 'Make and save the full archive after freezing the venue. It counts for 30 minutes, while nothing changes.',
   wrongName: 'Type the venue\'s name exactly as it is.',
   held: 'A kill-switch control names a member. Release it, then purge.',
   unavailable: 'That did not go through. Check the connection and try again.',

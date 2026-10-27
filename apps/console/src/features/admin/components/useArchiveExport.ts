@@ -18,6 +18,12 @@ function fileNameOf(memberNumber: number | null, madeAt: Date): string {
   return `rivr-${what}-${IST_DAY.format(madeAt)}.zip.age`;
 }
 
+/** A file's SHA-256 in hex, as `sha256sum` prints it. */
+async function sha256Of(file: Uint8Array): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(file)));
+  return Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 /** Who an archive is of: the whole venue, or one member for an access request. */
 export interface ArchiveSubject {
   readonly memberId: string | null;
@@ -35,8 +41,8 @@ export function useArchiveExport(venueId: string) {
       const archive = await makeArchive(source, { venueId, memberId, kycReason, madeAt }, (progress) => setState({ status: 'running', progress }));
       const fileName = fileNameOf(memberNumber, madeAt);
       saveFile(new Blob([new Uint8Array(archive.file)], { type: 'application/octet-stream' }), fileName);
-      // A full archive, written, is one a purge may follow (#432).
-      if (memberId === null) await source.complete(archive.archiveId);
+      // A full archive, written, is one a purge may follow (#432): the database keeps its SHA-256 and size.
+      if (memberId === null) await source.complete(archive.archiveId, await sha256Of(archive.file), archive.file.byteLength);
       setState({ status: 'done', archive, fileName });
     } catch (error) {
       setState({ status: 'failed', failure: archiveFailureOf(error) });

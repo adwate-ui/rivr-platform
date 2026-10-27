@@ -89,14 +89,38 @@ export function useLivePurgePreview(venueId: string, isFrozen: boolean) {
   });
 }
 
-/** Purges a live venue, once its full archive is saved and its name typed exactly; gives the rows deleted. */
+/** What a purge did: the rows deleted, and the files removed, or null when they did not all go (ask again for the files). */
+export interface LivePurgeDone {
+  readonly rows: number;
+  readonly files: number | null;
+}
+
+/** The refusal's code in the purge-venue function's answer, from supabase-js's error. */
+async function purgeCodeOf(error: unknown): Promise<string> {
+  const response: unknown = typeof error === 'object' && error !== null ? Reflect.get(error, 'context') : undefined;
+  const body: unknown = response instanceof Response ? await response.json().catch(() => null) : null;
+  const code: unknown = typeof body === 'object' && body !== null ? Reflect.get(body, 'code') : null;
+  return typeof code === 'string' ? code : '';
+}
+
+/** What the purge-venue function answered: the rows deleted and the files removed. */
+function purgeDoneOf(data: unknown): LivePurgeDone {
+  const rows: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'rows') : null;
+  const files: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'files') : null;
+  return { rows: typeof rows === 'number' ? rows : 0, files: typeof files === 'number' ? files : null };
+}
+
+/**
+ * Purges a live venue through the purge-venue Edge Function, once its full archive is saved and its name typed exactly;
+ * `filesOnly` removes the files of a venue already purged, when they did not all go the first time.
+ */
 export function usePurgeLiveVenue(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (venueName: string): Promise<Result<number, LivePurgeFailure>> => {
-      const { data, error } = await client.rpc('purge_live_venue', { p_venue_id: venueId, p_venue_name: venueName });
-      return error ? err(livePurgeFailureOf(error)) : ok(data.reduce((total, row) => total + row.deleted_rows, 0));
+    mutationFn: async ({ venueName, filesOnly }: { venueName: string; filesOnly: boolean }): Promise<Result<LivePurgeDone, LivePurgeFailure>> => {
+      const { data, error } = await client.functions.invoke('purge-venue', { body: { venueId, venueName, filesOnly } });
+      return error ? err(livePurgeFailureOf({ code: await purgeCodeOf(error) })) : ok(purgeDoneOf(data));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] }),
   });

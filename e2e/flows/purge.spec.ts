@@ -82,7 +82,7 @@ test.describe('Purge', () => {
     await expect(page.getByText('Type the venue\'s name exactly as it is.')).toBeVisible();
     await name.fill('E2E Purge Room');
     await page.getByRole('button', { name: 'Purge the venue' }).click();
-    await expect(page.getByText(/^Purged: [\d,]+ rows deleted\.$/)).toBeVisible();
+    await expect(page.getByText(/^Purged: [\d,]+ rows deleted, and \d+ files\.$/)).toBeVisible();
 
     expect(sql(`select count(*) from public.member where venue_id = '${ROOM}'`)).toBe('0');
     expect(Number(sql(`select count(*) from public.audit_log where venue_id = '${ROOM}' and action = 'venue.purge' and actor_user_id = '${IRA}'`)))

@@ -3553,7 +3553,7 @@ isOneToOne: false
 { Args: { "p_cash_paise": number,"p_counts": Json,"p_idempotency_key": string,"p_markers_paise": number,"p_receipts_paise": number,"p_venue_id": string }; Returns: string
                            },
 "complete_export_archive":
-{ Args: { "p_archive_id": string }; Returns: undefined
+{ Args: { "p_archive_id": string,"p_bytes": number,"p_sha256": string }; Returns: undefined
                            },
 "confirm_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: string
@@ -4008,6 +4008,11 @@ isOneToOne: false
 "purge_live_venue":
 { Args: { "p_venue_id": string,"p_venue_name": string }; Returns: {
               "deleted_rows": number,"table_name": string
+            }[]
+                           },
+"purged_venue_files":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bucket_id": string,"name": string
             }[]
                            },
 "raise_sms_limit_alert":

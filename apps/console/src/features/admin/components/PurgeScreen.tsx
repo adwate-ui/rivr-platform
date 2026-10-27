@@ -1,4 +1,4 @@
-import { useControlState, useLivePurgePreview, usePurgeLiveVenue, useStaffVenue, type LivePurgeFailure, type LivePurgeRow } from '@rivr/db';
+import { useControlState, useLivePurgePreview, usePurgeLiveVenue, useStaffVenue, type LivePurgeDone, type LivePurgeFailure, type LivePurgeRow } from '@rivr/db';
 import { formatNumber, t, type MessageKey } from '@rivr/i18n';
 import { Button, DataTable, ErrorMessage, Heading, Input, Screen, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
@@ -35,16 +35,31 @@ function ArchiveStep({ venueId }: { venueId: string }) {
   );
 }
 
+type Outcome = { ok: true; done: LivePurgeDone } | { ok: false; failure: LivePurgeFailure } | null;
+
+/** What the purge did: the rows and files gone, the files again if some stayed, or why it did not go through. */
+function PurgeOutcome({ outcome, isPending, onFilesAgain }: { outcome: Outcome; isPending: boolean; onFilesAgain: () => void }) {
+  if (outcome === null) return null;
+  if (!outcome.ok) return <ErrorMessage>{t(FAILURE_COPY[outcome.failure])}</ErrorMessage>;
+  const { rows, files } = outcome.done;
+  if (files !== null) return <Text>{t('console.purge.done', { count: formatNumber(rows), files: formatNumber(files) })}</Text>;
+  return (
+    <Stack gap={2} align="start">
+      <ErrorMessage>{t('console.purge.filesLeft')}</ErrorMessage>
+      <Button isLoading={isPending} onClick={onFilesAgain}>{t('console.purge.filesAgain')}</Button>
+    </Stack>
+  );
+}
+
 /** The dry run, then the typed name and Purge the venue. */
 function PurgeStep({ venueId }: { venueId: string }) {
   const preview = useLivePurgePreview(venueId, true);
   const purge = usePurgeLiveVenue(venueId);
   const [name, setName] = useState('');
-  const [outcome, setOutcome] = useState<{ ok: true; count: number } | { ok: false; failure: LivePurgeFailure } | null>(null);
-  const submit = async () => {
-    const done = await purge.mutateAsync(name);
-    setOutcome(done.ok ? { ok: true, count: done.value } : { ok: false, failure: done.error });
-    if (done.ok) setName('');
+  const [outcome, setOutcome] = useState<Outcome>(null);
+  const submit = async (filesOnly: boolean) => {
+    const done = await purge.mutateAsync({ venueName: name, filesOnly });
+    setOutcome(done.ok ? { ok: true, done: done.value } : { ok: false, failure: done.error });
   };
   const state = preview.isPending ? { status: 'loading' as const }
     : preview.isError ? { status: 'error' as const, onRetry: () => void preview.refetch() }
@@ -53,9 +68,8 @@ function PurgeStep({ venueId }: { venueId: string }) {
     <Stack gap={4} align="start">
       <DataTable label={t('console.purge.tableLabel')} columns={COLUMNS} rowKey={(row) => row.table} {...state} />
       <Input label={t('console.purge.typeName')} value={name} onChange={(event) => setName(event.target.value)} autoComplete="off" />
-      {outcome === null ? null : outcome.ok ? <Text>{t('console.purge.done', { count: formatNumber(outcome.count) })}</Text>
-        : <ErrorMessage>{t(FAILURE_COPY[outcome.failure])}</ErrorMessage>}
-      <Button variant="danger" isLoading={purge.isPending} onClick={() => void submit()}>{t('console.purge.purge')}</Button>
+      <PurgeOutcome outcome={outcome} isPending={purge.isPending} onFilesAgain={() => void submit(true)} />
+      <Button variant="danger" isLoading={purge.isPending} onClick={() => void submit(false)}>{t('console.purge.purge')}</Button>
     </Stack>
   );
 }

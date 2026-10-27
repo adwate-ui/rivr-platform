@@ -1,8 +1,9 @@
 -- Purge a live venue (#432; decision 0239). A throwaway venue, "Test Room", with Kunal (134) as its super admin and one
--- member with a deposit. Kunal cannot purge it before it is frozen, nor without a saved archive, nor with the wrong
--- name; then he purges it: the member, the deposit and its ledger entries go, the venue's own accounts, its setup and
--- the audit log stay, the owner is alerted, and the club is untouched. The practice venue resets instead; a cashier
--- purges nothing.
+-- member, with a login, a deposit and a freeze. Kunal cannot purge it before it is frozen, nor without an archive made
+-- after the freeze, read to its end and saved, nor once the venue has changed since, nor with the wrong name; then he
+-- purges it: the member, the deposit, its ledger entries, the freeze and the member's login go, and the audit log keeps
+-- no member's name; the venue's own accounts, its setup and the audit log stay, the owner is alerted, and the club is
+-- untouched. The practice venue resets instead; a cashier purges nothing.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -31,8 +32,10 @@ select private.bootstrap_venue('00000000-0000-4000-8000-0000000000f3', 'Test Roo
 insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 select '00000000-0000-4000-8000-0000000000f3', s.user_id, s.full_name, s.job_title, 'super_admin', s.phone
 from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000134' and s.venue_id = '00000000-0000-4000-8000-000000000001';
-insert into public.member (id, venue_id, full_name, phone)
-values ('00000000-0000-4000-8000-0000000000f4', '00000000-0000-4000-8000-0000000000f3', 'Test Member', '+919000000994');
+insert into auth.users (id, instance_id, aud, role, phone) values
+  ('00000000-0000-4000-8000-00000000e150', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '919000000994');
+insert into public.member (id, venue_id, user_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000000f4', '00000000-0000-4000-8000-0000000000f3', '00000000-0000-4000-8000-00000000e150', 'Test Member', '+919000000994');
 select private.post_ledger_transaction('00000000-0000-4000-8000-0000000000f3', 'deposit', 'purge-test-deposit',
   jsonb_build_array(jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-0000000000f3'
                                                       and code = 'venue.bank' and member_id is null), 'amount', '500000'),
@@ -52,21 +55,46 @@ select throws_ok($$ select * from public.live_purge_preview('00000000-0000-4000-
 select throws_ok($$ select * from public.live_purge_preview('00000000-0000-4000-8000-0000000000f3') $$, 'RVNFZ', null,
   'a venue is frozen before it is purged');
 reset role;
-insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-0000000000f3', 'venue_freeze', 'Purging the test room');
+-- Frozen ten minutes ago (a test's clock stands still), and the member frozen too.
+insert into public.control_state (venue_id, level, reason, engaged_at)
+values ('00000000-0000-4000-8000-0000000000f3', 'venue_freeze', 'Purging the test room', now() - interval '10 minutes');
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-0000000000f3', 'member_freeze', '00000000-0000-4000-8000-0000000000f4', 'Test freeze');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select results_eq($$ select current_rows from public.live_purge_preview('00000000-0000-4000-8000-0000000000f3') where table_name in ('member', 'ledger_entry') order by table_name $$,
   $$ values (2::bigint), (1::bigint) $$, 'the dry run counts the member and the deposit''s two entries');
 select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVARC', null,
   'not without a saved archive');
 
--- The archive, made and saved.
+-- An archive made before the freeze does not count.
 reset role;
-insert into private.export_archive (id, venue_id, started_by) values ('00000000-0000-4000-8000-0000000000f5', '00000000-0000-4000-8000-0000000000f3',
-  '00000000-0000-4000-8000-000000000134');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5') $$, '22023', null, 'only its maker marks it saved');
+insert into private.export_archive (venue_id, started_by, started_at, completed_at, counts)
+values ('00000000-0000-4000-8000-0000000000f3', '00000000-0000-4000-8000-000000000134', now() - interval '20 minutes', now(),
+        (select jsonb_object_agg(t, private.venue_row_count('00000000-0000-4000-8000-0000000000f3', t)) from private.live_purge_tables() t));
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
-select lives_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5') $$, 'its maker marks it saved');
+select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVARC', null, 'an archive made before the freeze does not count');
+
+-- The archive, made after the freeze, read and saved.
+reset role;
+insert into private.export_archive (id, venue_id, started_by, counts)
+values ('00000000-0000-4000-8000-0000000000f5', '00000000-0000-4000-8000-0000000000f3', '00000000-0000-4000-8000-000000000134',
+        (select jsonb_object_agg(t, private.venue_row_count('00000000-0000-4000-8000-0000000000f3', t)) from private.live_purge_tables() t));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024) $$, '22023', null, 'only its maker marks it saved');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024) $$, '22023', null, 'and only once every table is read to its end');
+reset role;
+update private.export_archive set tables_read = array(select jsonb_object_keys(counts)) where id = '00000000-0000-4000-8000-0000000000f5';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'not a hash', 1024) $$, '22023', null, 'with the file''s SHA-256 and size');
+select lives_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024) $$, 'its maker marks it saved');
+reset role;
+update private.export_archive set counts = counts || '{"member": 99}' where id = '00000000-0000-4000-8000-0000000000f5';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVARC', null, 'not once the venue has changed since the archive');
+reset role;
+update private.export_archive set counts = counts || jsonb_build_object('member', private.venue_row_count('00000000-0000-4000-8000-0000000000f3', 'member')) where id = '00000000-0000-4000-8000-0000000000f5';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test room') $$, 'RVNAM', null,
   'the name is typed exactly');
 create temp table purged as select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room');
@@ -84,6 +112,12 @@ select ok(exists (select 1 from public.tier where venue_id = '00000000-0000-4000
 select ok(exists (select 1 from public.audit_log where venue_id = '00000000-0000-4000-8000-0000000000f3' and action = 'venue.purge'),
   'the purge is in the audit log, which it never deletes');
 select ok(exists (select 1 from public.alert where venue_id = '00000000-0000-4000-8000-0000000000f3' and kind = 'venue.purged'), 'and the owner is alerted');
+select ok(not exists (select 1 from public.control_state where member_id = '00000000-0000-4000-8000-0000000000f4'), 'the member''s freeze went with it');
+select ok(not exists (select 1 from auth.users where id = '00000000-0000-4000-8000-00000000e150'), 'and the member''s login');
+select ok(not exists (select 1 from public.audit_log where venue_id = '00000000-0000-4000-8000-0000000000f3' and (before::text like '%Test Member%' or after::text like '%Test Member%')),
+  'and the audit log keeps no member''s name');
+select ok(exists (select 1 from public.audit_log where venue_id = '00000000-0000-4000-8000-0000000000f3' and entity = 'member'), 'though it keeps the rows that say what happened');
+select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-000000000134'), 'a staff member''s login stays');
 select is((select (count(*), (select count(*) from public.ledger_entry where venue_id = '00000000-0000-4000-8000-000000000001'))::text
            from public.member where venue_id = '00000000-0000-4000-8000-000000000001'),
           (select (members, entries)::text from club_before), 'the club is untouched');

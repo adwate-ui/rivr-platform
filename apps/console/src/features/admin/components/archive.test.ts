@@ -42,8 +42,8 @@ function fakeSource(recipient: string, start: () => Promise<void> = () => Promis
       const rows = pages[table] ?? [];
       return Promise.resolve({ rows: rows.slice(from, from + 2), after: from + 2 < rows.length ? from + 2 : null });
     },
-    complete: (archiveId) => {
-      log.push(`complete ${archiveId}`);
+    complete: (archiveId, sha256, bytes) => {
+      log.push(`complete ${archiveId} ${sha256} ${bytes}`);
       return Promise.resolve();
     },
     kycPhoto: (path) => {

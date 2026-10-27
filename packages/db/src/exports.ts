@@ -98,9 +98,9 @@ function archiveSource(client: RivrClient, venueId: string) {
       if (error) throw error;
       return pageOf(data);
     },
-    /** Says a full archive is saved, once the browser has written it: a purge needs one (#432). */
-    complete: async (archiveId: string): Promise<void> => {
-      const { error } = await client.rpc('complete_export_archive', { p_archive_id: archiveId });
+    /** Says a full archive is saved, once the browser has written it, with the file's SHA-256 and size: a purge needs one (#432). */
+    complete: async (archiveId: string, sha256: string, bytes: number): Promise<void> => {
+      const { error } = await client.rpc('complete_export_archive', { p_archive_id: archiveId, p_sha256: sha256, p_bytes: bytes });
       if (error) throw error;
     },
     kycPhoto: async (path: string): Promise<Uint8Array> => {
