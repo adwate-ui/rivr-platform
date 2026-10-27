@@ -3,8 +3,10 @@ import type { Paise } from '@rivr/domain/money';
 import { payoutTable, prizePool } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
 import { DataTable, Heading, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { BagForm } from './BagForm.tsx';
 import { FinishForm } from './FinishForm.tsx';
 import { PayoutResults } from './PayoutResults.tsx';
+import { SatelliteTickets } from './SatelliteTickets.tsx';
 import { SharesForm } from './SharesForm.tsx';
 
 /** The prizes as things stand, first place first: the shares of the pool, the guarantee's overlay in it; none until the shares are set or anyone has entered. */
@@ -37,11 +39,19 @@ const prizeColumns = (): DataTableColumn<PrizeRow>[] => [
   { key: 'prize', header: t('console.tournaments.payouts.prize'), align: 'end', cell: (row) => formatMoney(row.prize) },
 ];
 
+interface PayoutsPanelProps {
+  venueId: string;
+  tournament: VenueTournament;
+  /** The venue's tournaments, among them a flight's Day 2. */
+  others: readonly VenueTournament[];
+  canRun: boolean;
+}
+
 /**
  * A tournament's payouts (#117, #121; decisions 0205, 0206): the prize pool and the prizes as things stand,
  * the places' shares and the finish for staff who run tournaments, and what was paid.
  */
-export function PayoutsPanel({ venueId, tournament, canRun }: { venueId: string; tournament: VenueTournament; canRun: boolean }) {
+function PrizePayouts({ venueId, tournament, canRun }: { venueId: string; tournament: VenueTournament; canRun: boolean }) {
   const prizes = prizesNow(tournament);
   const isOpen = tournament.finishedAt === null;
   return (
@@ -55,6 +65,21 @@ export function PayoutsPanel({ venueId, tournament, canRun }: { venueId: string;
       {isOpen && canRun ? <SharesForm venueId={venueId} tournament={tournament} /> : null}
       {isOpen && canRun ? <FinishForm venueId={venueId} tournament={tournament} prizes={prizes} /> : null}
       <PayoutResults tournament={tournament} />
+    </Stack>
+  );
+}
+
+/** A tournament's payouts; a Day 1 flight's bag instead, and a finished satellite's tickets too (#519, #524). */
+export function PayoutsPanel({ venueId, tournament, others, canRun }: PayoutsPanelProps) {
+  const isOpen = tournament.finishedAt === null;
+  if (tournament.dayTwoId !== null) {
+    // A Day 1 flight pays nothing itself: its players left are bagged and go through to Day 2 (#524).
+    return isOpen && canRun ? <BagForm venueId={venueId} flight={tournament} dayTwo={others.find((each) => each.id === tournament.dayTwoId)} /> : null;
+  }
+  return (
+    <Stack gap={6}>
+      <PrizePayouts venueId={venueId} tournament={tournament} canRun={canRun} />
+      {tournament.satelliteTargetId !== null && !isOpen ? <SatelliteTickets tournamentId={tournament.id} /> : null}
     </Stack>
   );
 }

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { venueConfigSchema, type VenueConfigChange, type VenueConfigInput } from '@rivr/contracts/venueConfig';
 import { useVenueConfig, useVenueConfigActions, type VenueConfig, type VenueConfigFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { LogoField } from './LogoField.tsx';
@@ -63,7 +63,7 @@ function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }
       </Grid>
       <Inline gap={4}>
         <Button variant="secondary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.settings.saveVenue')}</Button>
-        {outcome === 'saved' ? <Text variant="small">{t('console.settings.venueSaved')}</Text> : null}
+        <StatusMessage>{outcome === 'saved' ? t('console.settings.venueSaved') : null}</StatusMessage>
       </Inline>
       {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{venueFailureText(outcome)}</ErrorMessage> : null}
     </Stack>

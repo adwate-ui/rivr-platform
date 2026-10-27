@@ -4,7 +4,7 @@ import { useFloorTables, useJackpotActions, type JackpotFailure } from '@rivr/db
 import { badBeatPayout, type PayoutRule } from '@rivr/domain/jackpot';
 import type { Paise } from '@rivr/domain/money';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -92,7 +92,7 @@ export function BadBeatForm({ venueId, pool, rule }: { venueId: string; pool: Pa
       <Button variant="primary" isLoading={pay.isPending} isDisabled={payout.total === 0n} onClick={() => void submit()}>
         {t('console.jackpots.pay', { total: formatMoney(payout.total) })}
       </Button>
-      {paidSplit === null ? null : <Text variant="small">{t('console.jackpots.paid', { split: paidSplit })}</Text>}
+      <StatusMessage>{paidSplit === null ? null : t('console.jackpots.paid', { split: paidSplit })}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{jackpotFailureText(failure)}</ErrorMessage>}
     </Stack>
   );

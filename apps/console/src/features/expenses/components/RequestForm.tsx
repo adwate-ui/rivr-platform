@@ -3,7 +3,7 @@ import { expenseRequestSchema } from '@rivr/contracts/treasury';
 import { useExpenseActions, type ExpenseCategory, type ExpenseFailure, type PaymentAccount } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { t } from '@rivr/i18n';
-import { Button, CameraButton, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, CameraButton, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -71,7 +71,7 @@ export function RequestForm({ venueId, categories, accounts }: RequestFormProps)
       {receipt === null ? null : <Text variant="small" tone="muted">{t('console.expenses.receiptReady')}</Text>}
       <Button variant="primary" isLoading={request.isPending} onClick={() => void submit()}>{t('console.expenses.requestSave')}</Button>
       {outcome.failure === null ? null : <ErrorMessage>{t(EXPENSE_FAILURE_COPY[outcome.failure])}</ErrorMessage>}
-      {outcome.isSent ? <Text tone="money">{t('console.expenses.requested')}</Text> : null}
+      <StatusMessage>{outcome.isSent ? t('console.expenses.requested') : null}</StatusMessage>
     </Stack>
   );
 }

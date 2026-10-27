@@ -3,7 +3,7 @@ import { cameraSchema } from '@rivr/contracts';
 import type { FloorTable } from '@rivr/db';
 import { useSaveCamera, type CameraFailure } from '@rivr/db/cctv';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -43,8 +43,8 @@ export function AddCameraForm({ venueId, tables }: { venueId: string; tables: re
       <Input {...channelField} label={t('console.cameras.channel')} hint={t('console.cameras.channelHint')} autoComplete="off"
         error={errors.channel ? t('console.cameras.invalidChannel') : undefined} />
       <ChoiceChips label={t('console.cameras.watches')} mode="one" options={places} selected={[where]} onChange={([picked]) => setWhere(picked ?? ELSEWHERE)} />
-      {outcome === null ? null : outcome.ok ? <Text>{t('console.cameras.added', { name: outcome.name })}</Text>
-        : <ErrorMessage>{t(CAMERA_FAILURE_COPY[outcome.failure])}</ErrorMessage>}
+      <StatusMessage>{outcome?.ok === true ? t('console.cameras.added', { name: outcome.name }) : null}</StatusMessage>
+      {outcome === null || outcome.ok ? null : <ErrorMessage>{t(CAMERA_FAILURE_COPY[outcome.failure])}</ErrorMessage>}
       <Button variant="primary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.cameras.add')}</Button>
     </Stack>
   );

@@ -171,7 +171,7 @@ export {
   type ClockChange, type NewTournament, type TournamentAddOn, type TournamentBounty, type TournamentFailure, type TournamentField, type VenueTournament,
 } from './tournaments.ts';
 export {
-  useTournamentPayoutActions, useTournamentPayouts, type DealOrder, type TournamentPayout,
+  useSatelliteTickets, useTournamentPayoutActions, useTournamentPayouts, type DealOrder, type SatelliteTicket, type TournamentPayout,
 } from './tournamentPayouts.ts';
 export {
   useTournamentBalance, useTournamentFloorActions, useTournamentSeating,
@@ -182,6 +182,6 @@ export {
   useBlindStructures, useTournamentSetupActions, useTournamentTemplates, type BlindStructure, type TemplateOrder, type TournamentTemplate,
 } from './tournamentSetup.ts';
 export {
-  useElapsedNow, useMyTournament, useRegisterTournamentEntry, useTvTournamentClock, type AppPurchase, type LiveField, type LiveTournament, type MyStanding,
-  type MyTournament,
+  useElapsedNow, useEnterWithTicket, useMyTournament, useMyTournamentTickets, useRegisterTournamentEntry, useTvTournamentClock, type AppPurchase,
+  type LiveField, type LiveTournament, type MyStanding, type MyTournament, type MyTournamentTicket,
 } from './liveTournament.ts';

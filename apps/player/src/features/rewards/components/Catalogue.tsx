@@ -2,7 +2,7 @@ import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 /** A price, or what a redemption took: "1 point", "4,000 points", or for a hotel night "1 night", "2 nights". */
@@ -64,7 +64,7 @@ function RewardRow({ item }: { item: RewardItem }) {
         {isAsking ? null : action}
       </Inline>
       {isAsking ? <Confirm item={item} requestId={requestId} onDone={finish} /> : null}
-      {outcome?.ok === true ? <Text tone="money">{outcome.text}</Text> : null}
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>
   );

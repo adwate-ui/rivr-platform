@@ -41,6 +41,12 @@ insert into seed_person_c (id, phone, full_name) values
   -- The Sessions flow's own duty manager, who seats Rhea Kaul and cashes her out, and Rhea, identity checked, who
   -- then reads the session in her history (#127).
   ('00000000-0000-4000-8000-000000000613', '+919000000613', 'Sahil Arora'),
+  -- The Tournament events flow's own floor manager, who makes satellites and flights (#519, #524).
+  ('00000000-0000-4000-8000-000000000623', '+919000000623', 'Neel Desai'),
+  -- The Graduation flow's own super admin, who marks a student present and graduates her (#128).
+  ('00000000-0000-4000-8000-000000000624', '+919000000624', 'Anika Rao'),
+  -- And its own cashier, who confirms the student's UTR in the bank.
+  ('00000000-0000-4000-8000-000000000625', '+919000000625', 'Omar Siddiqui'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
   -- The Share card flow's own member, who shares her referral card (#153).
   ('00000000-0000-4000-8000-000000000299', '+919000000299', 'Zoya Merchant'),
@@ -87,7 +93,10 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000199'::uuid, 'Managing partner', 'super_admin'),
              ('00000000-0000-4000-8000-000000000610'::uuid, 'Operations manager', 'admin'),
              ('00000000-0000-4000-8000-000000000611'::uuid, 'Owner', 'owner_view'),
-             ('00000000-0000-4000-8000-000000000613'::uuid, 'Duty manager', 'super_admin')) as j (id, job_title, role) on j.id = p.id
+             ('00000000-0000-4000-8000-000000000613'::uuid, 'Duty manager', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000623'::uuid, 'Floor manager', 'admin'),
+             ('00000000-0000-4000-8000-000000000624'::uuid, 'Academy manager', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000625'::uuid, 'Cashier', 'cashier')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)

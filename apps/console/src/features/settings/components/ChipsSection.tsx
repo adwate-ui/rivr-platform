@@ -3,7 +3,7 @@ import { chipAddSchema } from '@rivr/contracts/venueConfig';
 import { useChipDenominations, useVenueConfigActions, type ChipDenomination, type VenueConfigFailure } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Money, Stack, Switch, Text, LoadState } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Money, Stack, Switch, Text, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -67,7 +67,7 @@ export function ChipsSection({ venueId }: { venueId: string }) {
         {(chips.data ?? []).map((chip) => <ChipRow key={chip.chipId} venueId={venueId} chip={chip} onOutcome={setOutcome} />)}
       </Stack>
       <AddChipForm venueId={venueId} onOutcome={setOutcome} />
-      {outcome === 'added' ? <Text variant="small">{t('console.settings.chipAdded')}</Text> : null}
+      <StatusMessage>{outcome === 'added' ? t('console.settings.chipAdded') : null}</StatusMessage>
       {outcome !== null && outcome !== 'added' ? <ErrorMessage>{venueFailureText(outcome)}</ErrorMessage> : null}
     </Stack>
   );

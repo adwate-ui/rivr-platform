@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DEAL_METHODS, dealSchema } from '@rivr/contracts/tournaments';
-import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type TournamentSeatRow, type VenueTournament } from '@rivr/db';
+import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type FinishFailure, type TournamentSeatRow, type VenueTournament } from '@rivr/db';
 import { ZERO, type Paise } from '@rivr/domain/money';
 import { dealAmounts, MOST_DEAL_PLAYERS } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { ChipCountForm } from './ChipCountForm.tsx';
 import { ConfirmButton } from './ConfirmButton.tsx';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -64,14 +65,16 @@ interface FinishChoiceProps {
   /** Whether anyone has played: with nobody left, the last out wins. */
   hasRuns: boolean;
   isStarted: boolean;
+  /** A satellite takes no deal: with more than one left, their chips place them (#519). */
+  isSatellite: boolean;
   prizes: readonly Paise[];
   isBusy: boolean;
   onFinish: (deal: DealOrder | null) => void;
 }
 
-/** Played out with one player left, a deal among two to nine, or why it cannot finish yet. */
-function FinishChoice({ left, hasRuns, isStarted, prizes, isBusy, onFinish }: FinishChoiceProps) {
-  if (!isStarted || !hasRuns || left.length > MOST_DEAL_PLAYERS) return <Text tone="muted">{t('console.tournaments.payouts.notReady')}</Text>;
+/** Played out with one player left, a deal among two to nine (a satellite's placed by chips), or why it cannot finish yet. */
+function FinishChoice({ left, hasRuns, isStarted, isSatellite, prizes, isBusy, onFinish }: FinishChoiceProps) {
+  if (!isStarted || !hasRuns || (left.length > MOST_DEAL_PLAYERS && !isSatellite)) return <Text tone="muted">{t('console.tournaments.payouts.notReady')}</Text>;
   if (left.length <= 1) {
     const only = left[0];
     return (
@@ -82,6 +85,13 @@ function FinishChoice({ left, hasRuns, isStarted, prizes, isBusy, onFinish }: Fi
             isBusy={isBusy} onConfirm={() => onFinish(null)} />
         </Inline>
       </Stack>
+    );
+  }
+  if (isSatellite) {
+    return (
+      <ChipCountForm key={left.map((row) => row.entryId).join()} left={left} hint={t('console.tournaments.payouts.satelliteChips')}
+        label={t('console.tournaments.payouts.finishByChips')} confirm={t('console.tournaments.payouts.confirmByChips')} isBusy={isBusy}
+        onCount={(stacks) => onFinish({ method: null, stacks })} />
     );
   }
   return <DealForm key={left.map((row) => row.entryId).join()} left={left} prizes={prizes} isBusy={isBusy} onFinish={onFinish} />;
@@ -113,12 +123,16 @@ export function FinishForm({ venueId, tournament, prizes }: FinishFormProps) {
   }
   const left = seating.data.filter((row) => row.status === 'seated');
   const hasRuns = seating.data.some((row) => row.status === 'seated' || row.status === 'busted');
-  const run = (deal: DealOrder | null) => void finish.mutateAsync(deal)
-    .then((done) => setFailure(done.ok ? null : t(`console.tournaments.payouts.failures.${done.error}`)));
+  const isSatellite = tournament.satelliteTargetId !== null;
+  // A satellite takes no deal: too many left means more than its seats.
+  const failureText = (error: FinishFailure) => isSatellite && error === 'players_left' ? t('console.tournaments.payouts.satellitePlayersLeft')
+    : t(`console.tournaments.payouts.failures.${error}`);
+  const run = (deal: DealOrder | null) => void finish.mutateAsync(deal).then((done) => setFailure(done.ok ? null : failureText(done.error)));
   return (
     <Stack gap={3}>
       <Heading level={3} variant="subsection">{t('console.tournaments.payouts.finishTitle')}</Heading>
-      <FinishChoice left={left} hasRuns={hasRuns} isStarted={tournament.clock !== null} prizes={prizes} isBusy={finish.isPending} onFinish={run} />
+      <FinishChoice left={left} hasRuns={hasRuns} isStarted={tournament.clock !== null} isSatellite={isSatellite}
+        prizes={prizes} isBusy={finish.isPending} onFinish={run} />
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

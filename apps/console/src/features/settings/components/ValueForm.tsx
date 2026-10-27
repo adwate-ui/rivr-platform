@@ -1,6 +1,6 @@
 import { useSettingActions, type SettingFailure, type SettingValue, type VenueSetting } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver, type UseFormReturn } from 'react-hook-form';
 import { FieldInput, type FieldDraft } from './FieldInput.tsx';
@@ -120,7 +120,7 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers }: ValueFo
       <Input {...reason} label={t('console.settings.reason')} error={form.formState.errors.reason ? t('console.settings.invalidReason') : undefined} />
       <Inline gap={4}>
         <Button variant="primary" isLoading={schedule.isPending} onClick={() => void submit()}>{t('console.settings.schedule')}</Button>
-        {outcome === 'saved' ? <Text variant="small">{t('console.settings.saved')}</Text> : null}
+        <StatusMessage>{outcome === 'saved' ? t('console.settings.saved') : null}</StatusMessage>
       </Inline>
       {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
     </Stack>

@@ -16,6 +16,23 @@ export const tournaments = {
     in_use: 'Something already refers to this tournament, so it stays.',
     paused: 'The venue is frozen. Try again once it is released.',
     unavailable: 'That did not save. Try again.',
+    flights_unbagged: 'Bag every flight players entered before Day 2 starts.',
+  },
+
+  /** Satellites and multi-flight events (#519, #524; decisions 0250, 0251). */
+  event: 'Event',
+  /** A Day 1 flight once bagged: its players went through to Day 2 (#524). */
+  bagged: 'Bagged',
+  events: {
+    satelliteFor: 'Satellite for {name}',
+    flightOf: 'Day 1 flight of {name}',
+    dayTwo: 'Day 2',
+  },
+  link: {
+    title: 'Part of an event',
+    hint: 'Before anyone enters: a satellite whose winners get tickets to another tournament, or a Day 1 flight of a Day 2.',
+    satelliteFor: 'Satellite for',
+    flightOf: 'Day 1 flight of',
   },
 
   /** The clock (decision 0201). */
@@ -196,6 +213,9 @@ export const tournaments = {
   noMemberFound: 'No member matches that.',
   purchase: 'Buy',
   purchases: { entry: 'Entry', re_entry: 'Re-entry', rebuy: 'Rebuy', add_on: 'Add-on' },
+  /** A satellite ticket paying a member's entry at the cage (#519). */
+  useTicket: 'Enter with their ticket',
+  takenWithTicket: '{name} entered with their ticket.',
   takeCash: 'Take {amount} in cash',
   taken: '{name}’s {purchase} is paid.',
   /** Why a buy was refused, at the cage or in the app. */
@@ -218,6 +238,9 @@ export const tournaments = {
     switched_off: 'Tournament registration is switched off.',
     no_shift: 'Open the cage’s shift first.',
     own_record: 'A cashier never serves their own member record. Another cashier serves them.',
+    no_ticket: 'No ticket to this tournament.',
+    day_two: 'Day 2 takes no buys of its own: players come through from its flights.',
+    day_two_started: 'Day 2 has started, so its flights take no more buys.',
     not_allowed: 'Your role does not take this.',
     invalid: 'That buy is not possible here.',
     taken: 'That buy was already made.',

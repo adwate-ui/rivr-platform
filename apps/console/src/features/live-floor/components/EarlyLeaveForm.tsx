@@ -1,6 +1,6 @@
 import { useSeatActions, type SeatFailure } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
-import { Button, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, Heading, Inline, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 /** Who leaves early: a seated player, or one who has already left their seat (#79). */
@@ -35,7 +35,8 @@ export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeave
     <Stack gap={3}>
       <Heading level={3}>{t('console.liveFloor.leaveEarlyTitle', { name: member.fullName })}</Heading>
       <Text tone="muted">{t('console.liveFloor.leaveEarlyOwed', { time: formatDuration(member.owed) })}</Text>
-      {isDone ? <Text>{t('console.liveFloor.leftEarly')}</Text> : (
+      <StatusMessage>{isDone ? t('console.liveFloor.leftEarly') : null}</StatusMessage>
+      {isDone ? null : (
         <Input label={t('console.liveFloor.leaveEarlyReason')} hint={t('console.liveFloor.leaveEarlyHint')} value={reason} maxLength={500}
           autoComplete="off" onChange={(event) => setReason(event.target.value)} />
       )}

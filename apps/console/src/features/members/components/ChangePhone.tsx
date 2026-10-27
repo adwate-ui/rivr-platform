@@ -1,6 +1,6 @@
 import { useChangeMemberPhone, type PhoneChangeFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<PhoneChangeFailure, MessageKey>> = {
@@ -42,7 +42,7 @@ export function ChangePhone({ venueId, memberId }: { venueId: string; memberId: 
           {t('console.members.changePhone.change')}
         </Button>
       </Stack>
-      {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>
   );

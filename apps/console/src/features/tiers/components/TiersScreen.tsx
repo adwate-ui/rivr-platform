@@ -1,6 +1,6 @@
 import { cellKey, useStaffVenue, useTierActions, useTierMatrix, type TierFailure, type TierMatrix } from '@rivr/db';
 import { formatDate, formatList, t } from '@rivr/i18n';
-import { ErrorMessage, Screen, Stack, Text } from '@rivr/ui';
+import { ErrorMessage, Screen, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { MatrixTable } from './MatrixTable.tsx';
 import { SaveBar } from './SaveBar.tsx';
@@ -73,7 +73,7 @@ function TiersBody({ venueId, matrix }: { venueId: string; matrix: TierMatrix })
       <MatrixTable matrix={matrix} pending={new Map([...pending].map(([key, cell]) => [key, cell.state]))} isBusy={schedule.isPending || withdraw.isPending}
         onChange={choose} onWithdraw={(cellId) => void withdrawCell(cellId)} />
       {pending.size > 0 ? <SaveBar count={pending.size} isSaving={schedule.isPending} onSave={(from) => void save(from)} onDiscard={() => { setPending(new Map()); setOutcome(null); }} /> : null}
-      {outcome?.ok === true ? <Text>{outcome.text}</Text> : null}
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{t(TIER_FAILURE_COPY[outcome.failure])}</ErrorMessage> : null}
       <TierPreview matrix={matrix} />
     </Stack>

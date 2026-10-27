@@ -7,6 +7,7 @@ import { HomePromotions } from './HomePromotions.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
 import { TonightHighlights } from './TonightHighlights.tsx';
+import { TournamentTickets } from './TournamentTickets.tsx';
 import { YourWaitlist } from './YourWaitlist.tsx';
 
 /**
@@ -16,7 +17,7 @@ import { YourWaitlist } from './YourWaitlist.tsx';
  * Seated, Home says where, and the call time left (#78). The live promotions page beneath (#86). The
  * jackpot and the next tournament above the tables, each table's open seats, and Join held until the
  * member's identity check is done (#87); these come quietly, and the database refuses Join without it anyway.
- * After a visit, Home asks how it was (#160, decision 0165).
+ * After a visit, Home asks how it was (#160, decision 0165). The satellite tickets the member holds, to enter with (#519).
  */
 export function HomeScreen() {
   const liveView = useFeature('floor.live_view');
@@ -38,6 +39,7 @@ export function HomeScreen() {
         <RateVisit />
         <YourWaitlist places={places.data} />
         <TonightHighlights />
+        <TournamentTickets />
         <FeatureGate access={liveView}>
           <FloorList tables={tables.data} places={places.data} />
         </FeatureGate>

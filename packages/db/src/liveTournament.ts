@@ -151,3 +151,45 @@ export function useElapsedNow(reading: ClockReading | null | undefined): number 
   }, [isTicking]);
   return reading ? elapsedNow(reading, now) : 0;
 }
+
+/** A satellite ticket the member holds (#519): the tournament it enters, when that starts, and its value. */
+export interface MyTournamentTicket {
+  readonly ticketId: string;
+  readonly memberId: string;
+  readonly tournamentId: string;
+  readonly tournamentName: string;
+  readonly startsAt: string;
+  readonly value: Paise;
+}
+
+/** The tickets the member holds, the soonest first (tournaments.register). */
+export function useMyTournamentTickets() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myTournamentTickets(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<MyTournamentTicket[]> => {
+      const { data, error } = await client.rpc('my_tournament_tickets');
+      if (error) throw error;
+      return data.map((row) => ({
+        ticketId: row.ticket_id, memberId: row.member_id, tournamentId: row.tournament_id, tournamentName: row.tournament_name,
+        startsAt: row.starts_at, value: fromPaise(BigInt(row.value_paise)),
+      }));
+    },
+  });
+}
+
+/** The member enters a tournament with their ticket (#519): a Result with the entry, and what they see reloads. */
+export function useEnterWithTicket() {
+  const { client } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (order: { ticket: MyTournamentTicket; requestId: string }): Promise<Result<string, BuyFailure>> => {
+      const { data, error } = await client.rpc('use_tournament_ticket', {
+        p_tournament_id: order.ticket.tournamentId, p_member_id: order.ticket.memberId, p_idempotency_key: order.requestId,
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.personal });
+      return error ? err(toBuyFailure(error)) : ok(data);
+    },
+  });
+}
