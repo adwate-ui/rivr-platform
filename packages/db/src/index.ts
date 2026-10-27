@@ -102,6 +102,7 @@ export {
   type PairingCode,
 } from './devices.ts';
 export {
+  useIsPublicVenue,
   useMyTvScreen,
   useTvActions,
   useTvPairing,

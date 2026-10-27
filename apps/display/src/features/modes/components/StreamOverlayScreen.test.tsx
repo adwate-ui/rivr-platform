@@ -1,8 +1,12 @@
+import { createRivrClient, RivrDataProvider } from '@rivr/db';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { overlayDelay, StreamOverlayScreen } from './StreamOverlayScreen.tsx';
 
 afterEach(cleanup);
+
+// Nothing answers at this address: the setup page needs no data.
+const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 
 describe('the stream overlay’s address (decision 0256)', () => {
   it('takes a delay of whole seconds up to an hour', () => {
@@ -14,7 +18,7 @@ describe('the stream overlay’s address (decision 0256)', () => {
   });
 
   it('without a delay, says how to add one, where OBS shows it before the stream starts', () => {
-    render(<StreamOverlayScreen delaySeconds={undefined} />);
+    render(<RivrDataProvider client={client}><StreamOverlayScreen delaySeconds={undefined} /></RivrDataProvider>);
     expect(screen.getByRole('heading', { level: 1, name: 'Stream overlay' })).toBeDefined();
     expect(screen.getByText(/This address has no hole-card delay/)).toBeDefined();
   });

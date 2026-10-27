@@ -64,6 +64,19 @@ describe('the stream overlay’s hole-card delay (decision 0256)', () => {
     expect(result.current?.elapsedSeconds).toBe(1205);
   });
 
+  it('keeps the reading on the stream when a later one arrives, and drops only those before it', () => {
+    const { result, rerender } = render({ latest: heard(START, 500), atMs: START, delay: 10 });
+    tickTo(START + 5_000);
+    rerender({ latest: heard(START + 5_000, 600), atMs: START + 5_000, delay: 10 });
+    tickTo(START + 20_000);
+    rerender({ latest: heard(START + 20_000, 900), atMs: START + 20_000, delay: 10 });
+    expect(result.current?.elapsedSeconds).toBe(605);
+    tickTo(START + 25_000);
+    expect(result.current?.elapsedSeconds).toBe(610);
+    tickTo(START + 30_000);
+    expect(result.current?.elapsedSeconds).toBe(900);
+  });
+
   it('shows that none is running only once the delay has passed', () => {
     const { result, rerender } = render({ latest: heard(START, 500), atMs: START, delay: 20 });
     tickTo(START + 5_000);

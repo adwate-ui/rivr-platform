@@ -1,5 +1,5 @@
 import { createRoute } from '@tanstack/react-router';
-import { Frame } from '../features/frame/index.ts';
+import { OverlayFrame } from '../features/frame/index.ts';
 import { overlayDelay, StreamOverlayScreen } from '../features/modes/index.ts';
 import { PairingScreen } from '../features/pairing/index.ts';
 import { rootRoute } from './root.tsx';
@@ -7,9 +7,9 @@ import { rootRoute } from './root.tsx';
 function Overlay() {
   const { delay } = overlayRoute.useSearch();
   return (
-    <Frame unpaired={<PairingScreen />} isOverlay>
+    <OverlayFrame unpaired={<PairingScreen />}>
       <StreamOverlayScreen delaySeconds={delay} />
-    </Frame>
+    </OverlayFrame>
   );
 }
 
