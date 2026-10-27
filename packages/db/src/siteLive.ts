@@ -11,6 +11,8 @@ export interface SiteGame {
   readonly straddle: bigint | null;
   /** Its tables open now. */
   readonly tablesOpen: number;
+  /** Seats free at its open tables (#130). */
+  readonly openSeats: number;
   /** Members waiting for it. */
   readonly waiting: number;
 }
@@ -32,6 +34,8 @@ interface TableRow {
   readonly buy_in_min_paise: number | null;
   readonly buy_in_max_paise: number | null;
   readonly straddle_paise: number | null;
+  readonly seats: number | null;
+  readonly seats_taken: number | null;
 }
 
 function gameOf(row: TableRow): SiteGame | null {
@@ -39,17 +43,18 @@ function gameOf(row: TableRow): SiteGame | null {
   if (name === null || small === null || big === null || min === null || max === null) return null;
   return {
     name, smallBlind: BigInt(small), bigBlind: BigInt(big), buyInMin: BigInt(min), buyInMax: BigInt(max),
-    straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), tablesOpen: 0, waiting: 0,
+    straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), tablesOpen: 0, openSeats: 0, waiting: 0,
   };
 }
 
-/** Each game once, in the floor order of its first table, with how many of its tables are open. */
+/** Each game once, in the floor order of its first table, with how many of its tables are open and their free seats. */
 export function gamesFrom(rows: readonly TableRow[]): (SiteGame & { readonly code: string })[] {
   const games = new Map<string, SiteGame>();
   for (const row of rows) {
     const game = row.table_type_code === null ? null : (games.get(row.table_type_code) ?? gameOf(row));
     if (row.table_type_code === null || game === null) continue;
-    games.set(row.table_type_code, { ...game, tablesOpen: game.tablesOpen + (row.is_open ? 1 : 0) });
+    const free = row.is_open ? Math.max(0, (row.seats ?? 0) - (row.seats_taken ?? 0)) : 0;
+    games.set(row.table_type_code, { ...game, tablesOpen: game.tablesOpen + (row.is_open ? 1 : 0), openSeats: game.openSeats + free });
   }
   return [...games].map(([code, game]) => ({ ...game, code }));
 }
@@ -58,7 +63,7 @@ export function gamesFrom(rows: readonly TableRow[]): (SiteGame & { readonly cod
 export async function fetchSiteGames(client: RivrClient): Promise<Result<SiteGame[], 'unavailable'>> {
   const [tables, lengths] = await Promise.all([
     client.from('public_table_status')
-      .select('table_type_code, table_type_name, is_open, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise, straddle_paise')
+      .select('table_type_code, table_type_name, is_open, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise, straddle_paise, seats, seats_taken')
       .order('table_position'),
     client.from('public_waitlist_length').select('table_type_code, waiting'),
   ]);

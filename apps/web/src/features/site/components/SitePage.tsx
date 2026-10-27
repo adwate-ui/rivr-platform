@@ -150,7 +150,7 @@ export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
     <WebShell links={links} homeHref={siteHref('home', attribution)} action={page.isPaused ? undefined : reserve} footer={<Footer attribution={attribution} />}>
       {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
       {page.blocks.map((block, position) => (
-        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]}>
+        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} live={block.kind === 'games' ? `games-${String(position)}` : undefined}>
           <Block block={block} page={page} link={link} pageLink={pageLink} />
         </WebBand>
       ))}

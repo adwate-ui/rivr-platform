@@ -3556,7 +3556,7 @@ isOneToOne: false
                   ]
                 },"public_table_status": {
                   Row: {
-                    "big_blind_paise": number | null,"buy_in_max_paise": number | null,"buy_in_min_paise": number | null,"game": string | null,"is_open": boolean | null,"small_blind_paise": number | null,"straddle_paise": number | null,"table_name": string | null,"table_position": number | null,"table_type_code": string | null,"table_type_name": string | null,"venue_slug": string | null
+                    "big_blind_paise": number | null,"buy_in_max_paise": number | null,"buy_in_min_paise": number | null,"game": string | null,"is_open": boolean | null,"seats": number | null,"seats_taken": number | null,"small_blind_paise": number | null,"straddle_paise": number | null,"table_name": string | null,"table_position": number | null,"table_type_code": string | null,"table_type_name": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [

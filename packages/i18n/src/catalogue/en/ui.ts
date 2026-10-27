@@ -45,6 +45,9 @@ export const ui = {
     notRunning: 'Not running now',
     oneTable: '1 table running',
     tables: '{count} tables running',
+    /** Seats free at a game's open tables (#130). */
+    oneOpenSeat: '1 open seat',
+    openSeats: '{count} open seats',
     waiting: '{count} waiting',
     noGames: 'No games are set up yet.',
     /** A tournament's start in IST: `Sunday 15 Nov 2026, 16:00`. */

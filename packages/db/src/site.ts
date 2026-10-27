@@ -67,6 +67,6 @@ export async function fetchSitePage(client: RivrClient, slug: string): Promise<R
   });
   const live = await fetchLive(client, readable);
   if (!live.ok) return live;
-  const games = isPaused ? live.value.games.map((game) => ({ ...game, tablesOpen: 0 })) : live.value.games;
+  const games = isPaused ? live.value.games.map((game) => ({ ...game, tablesOpen: 0, openSeats: 0 })) : live.value.games;
   return ok({ slug: page.slug, title: page.title, description: page.description, blocks: readable, navigation, ...live.value, games, isPaused });
 }

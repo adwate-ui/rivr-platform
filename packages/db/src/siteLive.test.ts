@@ -4,7 +4,7 @@ import { gamesFrom } from './siteLive.ts';
 /** A row of public_table_status for a table of game `code`, with a buy-in of 100 small blinds. */
 const row = (code: string, name: string, isOpen: boolean, small: number) => ({
   table_type_code: code, table_type_name: name, is_open: isOpen, small_blind_paise: small, big_blind_paise: small * 2,
-  buy_in_min_paise: small * 100, buy_in_max_paise: small * 100, straddle_paise: null,
+  buy_in_min_paise: small * 100, buy_in_max_paise: small * 100, straddle_paise: null, seats: 9, seats_taken: 0,
 });
 
 describe('gamesFrom', () => {
@@ -19,6 +19,12 @@ describe('gamesFrom', () => {
       ['nlh_50_100', 1, 10000n],
       ['nlh_100_200', 2, 20000n],
     ]);
+  });
+
+  it('counts the free seats at a game\u2019s open tables only', () => {
+    const rows = [{ ...row('nlh_100_200', 'NLH 100/200', true, 10000), seats_taken: 6 }, { ...row('nlh_100_200', 'NLH 100/200', true, 10000), seats_taken: 9 },
+      row('nlh_100_200', 'NLH 100/200', false, 10000)];
+    expect(gamesFrom(rows).map((game) => game.openSeats)).toEqual([3]);
   });
 
   it('leaves out a row the view could not fill', () => {
