@@ -1,5 +1,6 @@
 import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
+import { cx } from '../internal/classes.ts';
 
 /** Who issues a receipt, invoice or statement, as venue configuration holds it. */
 export interface Issuer {
@@ -27,6 +28,11 @@ export interface DocumentPageProps {
   children: ReactNode;
   /** One line at the foot. */
   note?: string | undefined;
+  /**
+   * `page`, the default: one A4 page, as an invoice is. `pages`: as many A4 pages as the body needs, as the offline pack
+   * (#167), each page with the cream ground and the margins.
+   */
+  flow?: 'page' | 'pages' | undefined;
 }
 
 /**
@@ -34,9 +40,12 @@ export interface DocumentPageProps {
  * the inch) to PDF and PNG. It fills the page it is drawn on. Printed matter is ink on cream, the colours
  * of the wordmark's tiles, so it prints on office paper without a dark page (docs/decisions/0160).
  */
-export function DocumentPage({ issuer, title, details, children, note }: DocumentPageProps) {
+export function DocumentPage({ issuer, title, details, children, note, flow = 'page' }: DocumentPageProps) {
+  // A page is a column filling its A4; pages flow as blocks, where a section may start a new page.
   return (
-    <article aria-label={title} className="flex min-h-dvh w-full flex-col gap-10 bg-cream p-16 font-text text-14 leading-normal text-on-cream">
+    <article aria-label={title}
+      className={cx('w-full bg-cream p-16 font-text text-14 leading-normal text-on-cream',
+        flow === 'page' ? 'flex min-h-dvh flex-col gap-10' : 'space-y-10 box-decoration-clone')}>
       <header className="flex flex-wrap items-start justify-between gap-8 border-b border-on-cream pb-6">
         <div className="flex min-w-0 flex-1 flex-col gap-1 text-16">
           <p className="font-semibold">{issuer.legalName}</p>
@@ -53,7 +62,7 @@ export function DocumentPage({ issuer, title, details, children, note }: Documen
           </div>
         ))}
       </dl>
-      <div className="flex-1">{children}</div>
+      <div className={cx(flow === 'page' && 'flex-1')}>{children}</div>
       {note ? <p className="text-12">{note}</p> : null}
     </article>
   );

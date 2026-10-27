@@ -9,7 +9,7 @@ A small Vite page, the render host (`src/host/`), loads `@rivr/ui/styles.css`, m
 | Export | What it does |
 |---|---|
 | `renderToPng({ template, props, width, height, scale })` | A `Buffer` holding a PNG of exactly `width` × `height` pixels, times `scale` (1 unless set). Without `height`, the page is as tall as what it draws, as a receipt is; with it, a template that draws more than fits is refused, never cut off. |
-| `renderToPdf({ template, props, width, height })` | A one-page PDF of `width` × `height` CSS pixels, backgrounds printed. |
+| `renderToPdf({ template, props, width, height, pages })` | A PDF of `width` × `height` CSS pixels, backgrounds printed: one page, or with `pages: 'all'` as many as the template draws (the offline pack, #167). A one-page request refuses a template that draws more than fits. |
 | `renderToMp4(request, { fps, durationMs, leadMs })` | An H.264 MP4 of the template's CSS animations: each frame captured with every animation held at its time, after `leadMs` of still frames, encoded in Chromium (WebCodecs) and written by Mediabunny (`docs/decisions/0039`). |
 | `templates`, `TemplateName`, `TemplateProps<Name>` | The template registry; props are type-checked per template. |
 | `RenderRequest<Name>` | The request type. |
@@ -33,6 +33,7 @@ Templates:
 | `document.invoice` | `tokens.viewport.a4` (794 × 1123) | `invoice`: a `StoredInvoice` (`@rivr/ui`'s `InvoiceDocument`), its amounts and supplier exactly as stored |
 | `document.statement` | `tokens.viewport.a4` | `issuer`, `holder`, `from` and `to` (ISO dates), `openingPaise`, `movements` (`at`, `description`, `amountPaise`, `balancePaise`), `closingPaise` |
 | `document.partnerStatement` | `tokens.viewport.a4` | `statement`: a `PartnerStatement` (`@rivr/ui`'s `PartnerStatementDocument`, which the console shows too, #98): the holder, month and holding, revenue and expenses by account, the net and the holder's share |
+| `document.offlinePack` | `tokens.viewport.a4`, `pages: 'all'` | `pack`: an `OfflinePack` (`@rivr/ui`'s `OfflinePackDocument`, #167): who to call, open balances and the cage, the floor as it stood, and every SOP in force, each part from a new A4 page. |
 
 The brand kit (`docs/brand/README.md`) is `brand.art` at every size in `src/brandKit.ts`. `pnpm --filter @rivr/render render:brand-kit` rebuilds the tokens, `@rivr/ui` and the host, then writes all of it into the repository, 83 files in under a minute. `src/brand.test.ts` compares six of them with `baselines/brand-*.png`.
 

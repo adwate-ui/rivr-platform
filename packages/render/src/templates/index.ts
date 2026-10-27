@@ -1,4 +1,4 @@
-import { BrandArt, InvoiceDocument, PartnerStatementDocument, ThermalReceipt } from '@rivr/ui';
+import { BrandArt, InvoiceDocument, OfflinePackDocument, PartnerStatementDocument, ThermalReceipt } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { BadBeatJackpotSlide } from './BadBeatJackpotSlide.tsx';
 import { MembershipCardImage } from './paper/MembershipCardImage.tsx';
@@ -34,6 +34,8 @@ export const templates = {
   'document.statement': StatementDocument,
   // A partner's or investor's monthly statement (#98).
   'document.partnerStatement': PartnerStatementDocument,
+  // The offline pack for the cage computer (#167), on as many A4 pages as it needs.
+  'document.offlinePack': OfflinePackDocument,
 };
 
 export type TemplateName = keyof typeof templates;
