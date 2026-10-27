@@ -13,10 +13,11 @@ describe('the Send SMS hook payload', () => {
     expect(sendSmsHookSchema.parse(payload)).toEqual({ to: '+919000000201', code: '482913' });
   });
 
-  it('refuses a phone change: a code for another number than the login\'s, or with a change waiting', () => {
+  it('refuses any code but one to the login\'s own number: a phone change, or a login with no number', () => {
     const toAnother = { user: { ...payload.user, phone: '919811111111' }, sms: { otp: '482913', phone: '919822222222' } };
-    const waiting = { user: { ...payload.user, phone: '919811111111', phone_change: '919822222222' }, sms: { otp: '482913', phone: '919811111111' } };
-    for (const phoneChange of [toAnother, waiting]) {
+    const noNumber = { user: { ...payload.user, phone: '' }, sms: { otp: '482913', phone: '919822222222' } };
+    const noUser = { sms: { otp: '482913', phone: '919822222222' } };
+    for (const phoneChange of [toAnother, noNumber, noUser]) {
       const parsed = sendSmsHookSchema.safeParse(phoneChange);
       expect(parsed.success ? null : parsed.error.issues[0]?.message).toBe(PHONE_CHANGE);
     }

@@ -3,11 +3,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** Why a number was not changed: not a super admin, a number or reason out of bounds, a number another holds, an erased member, a freeze, or anything else. */
-export type PhoneChangeFailure = 'not_allowed' | 'invalid' | 'taken' | 'erased' | 'paused' | 'unavailable';
+/**
+ * Why a number was not changed: not a super admin, a number or reason out of bounds, a number another holds, a login that
+ * is also staff's, an erased member, a freeze, or anything else.
+ */
+export type PhoneChangeFailure = 'not_allowed' | 'invalid' | 'taken' | 'staff_login' | 'erased' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PhoneChangeFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVPHN: 'taken', RVERD: 'erased', RVFRZ: 'paused', RVMBR: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', RVPHN: 'taken', RVSTF: 'staff_login', RVERD: 'erased', RVFRZ: 'paused', RVMBR: 'paused',
 };
 
 /**

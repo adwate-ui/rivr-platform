@@ -26,7 +26,7 @@ test.describe('Phone change', () => {
     await number.fill('9000000782');
     await page.getByRole('textbox', { name: 'Why it changes' }).fill('Lost his phone; new SIM');
     await change.click();
-    await expect(page.getByText('Give an Indian mobile number with +91, and a reason of 3 to 300 characters.')).toBeVisible();
+    await expect(page.getByText('Give an Indian mobile number with +91, and a reason of 3 to 300 characters with no name or number in it.')).toBeVisible();
 
     await number.fill('+919000000782');
     await change.click();

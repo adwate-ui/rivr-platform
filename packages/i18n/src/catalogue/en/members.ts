@@ -98,8 +98,9 @@ export const members = {
     changed: 'Changed. The member signs in with the new number.',
     failures: {
       not_allowed: 'Only a super admin changes a member\'s number.',
-      invalid: 'Give an Indian mobile number with +91, and a reason of 3 to 300 characters.',
+      invalid: 'Give an Indian mobile number with +91, and a reason of 3 to 300 characters with no name or number in it.',
       taken: 'Another member or login already has that number.',
+      staff_login: 'This member also signs in as staff. Change the number where staff are kept.',
       erased: 'This member was erased.',
       paused: 'The venue or the member is frozen.',
       unavailable: 'That did not go through. Check the connection and try again.',

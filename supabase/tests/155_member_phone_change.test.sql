@@ -12,6 +12,10 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 
 select is((select u.phone from auth.users u join public.member m on m.user_id = u.id where m.id = '00000000-0000-4000-8000-000000000213'),
   substr((select phone from public.member where id = '00000000-0000-4000-8000-000000000213'), 2), 'Mihir signs in with the number on his record');
+select is(private.computer_kind_for('members.change_phone'), 'console'::public.device_kind, 'changing a number is admin-computer work');
+-- Mihir is signed in on his lost phone.
+insert into auth.sessions (id, user_id, created_at, updated_at)
+select gen_random_uuid(), user_id, now(), now() from public.member where id = '00000000-0000-4000-8000-000000000213';
 
 -- An admin may not; a super admin may, with a reason and a real number, not one another member holds.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -22,9 +26,23 @@ select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-0
   'a number is +91 and ten digits');
 select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345678', 'no') $$, '22023', null,
   'with a reason');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345678', 'Mihir lost his phone') $$,
+  '22023', null, 'a reason naming nothing of him, since the audit log keeps it');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345678', 'Old number 98123 45670 lost') $$,
+  '22023', null, 'nor a phone number');
 select throws_ok(format($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', %L, 'Lost his phone') $$,
                         (select phone from public.member where id = '00000000-0000-4000-8000-000000000214')), 'RVPHN', null,
   'not a number another member holds');
+reset role;
+-- Were Yash's login also a member of staff's, moving it would sign Vikram in as them.
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select venue_id, user_id, full_name, 'Dealer', 'dealer', phone from public.member where id = '00000000-0000-4000-8000-000000000214';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000214', '+919812345670', 'Lost his phone') $$, 'RVSTF', null,
+  'not a login that is also staff''s');
+reset role;
+delete from public.staff where user_id = (select user_id from public.member where id = '00000000-0000-4000-8000-000000000214');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select lives_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345678', 'Lost his phone; new SIM') $$,
   'Vikram changes Mihir''s number');
 reset role;
@@ -34,6 +52,8 @@ select results_eq(
   $$ select u.phone, u.phone_confirmed_at is not null, coalesce(u.phone_change, '') from auth.users u
      join public.member m on m.user_id = u.id where m.id = '00000000-0000-4000-8000-000000000213' $$,
   $$ values ('919812345678'::text, true, ''::text) $$, 'and his login: he signs in with the new number from now on');
+select is((select count(*)::integer from auth.sessions s join public.member m on m.user_id = s.user_id
+           where m.id = '00000000-0000-4000-8000-000000000213'), 0, 'and the lost phone is signed out');
 select results_eq(
   $$ select action, reason from public.audit_log where entity = 'member' and entity_id = '00000000-0000-4000-8000-000000000213'
        and action = 'member.change_phone' $$,

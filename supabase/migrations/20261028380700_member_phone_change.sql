@@ -15,9 +15,27 @@ alter table public.role_permission add constraint super_admin_only_permissions c
                         'members.erase', 'promotions.approve', 'members.change_phone')
 );
 
+-- As before (20261027130000_member_erasure.sql), with changing a member's number admin-computer work, as erasing one is.
+create or replace function private.computer_kind_for(p_permission text)
+returns public.device_kind
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_permission in ('cage.transact', 'cage.second_approve', 'markers.issue', 'withdrawals.approve') then 'cage'::public.device_kind
+    when p_permission in ('settings.manage', 'staff.manage', 'devices.manage', 'tiers.manage', 'venue.configure', 'control.engage',
+                          'purge.run', 'exports.full', 'treasury.manage', 'shareholding.manage', 'exports.table', 'members.erase',
+                          'members.change_phone')
+      then 'console'::public.device_kind
+  end;
+$$;
+
 -- Changes a member's number, and their login's. Refusals: 42501 not a super admin of the member's venue; 22023 a
--- number that is not an Indian mobile, or a reason of under 3 or over 300 characters; RVPHN another member of the
--- venue, or another login, holds the number; RVERD the member was erased; RVFRZ/RVMBR the venue or the member frozen.
+-- number that is not an Indian mobile, or a reason of 3 to 300 characters with nothing of the person in it (it stays in
+-- the audit log, which erasure does not scrub); RVPHN another member of the venue, or another login, holds the number;
+-- RVSTF the login is also a staff member's or a device's, so moving it would sign someone in as staff; RVERD the member
+-- was erased; RVFRZ/RVMBR the venue or the member frozen. The login's sessions end, so a lost phone is signed out.
 create function private.change_member_phone(p_member_id uuid, p_phone text, p_reason text)
 returns void
 language plpgsql
@@ -36,10 +54,16 @@ begin
   if v_member.erased_at is not null then
     raise exception 'This member was erased' using errcode = 'RVERD';
   end if;
-  if v_phone !~ '^\+91[6-9][0-9]{9}$' or length(v_reason) not between 3 and 300 then
-    raise exception 'An Indian mobile number (+91 and ten digits) and a reason of 3 to 300 characters' using errcode = '22023';
+  if v_phone !~ '^\+91[6-9][0-9]{9}$' or not private.is_safe_erasure_reason(v_reason, v_member.full_name) then
+    raise exception 'An Indian mobile number (+91 and ten digits), and a reason of 3 to 300 characters with nothing of the person in it'
+      using errcode = '22023';
   end if;
   perform private.assert_writable(v_member.venue_id, null, v_member.id);
+  if v_member.user_id is not null
+     and (exists (select 1 from public.staff s where s.user_id = v_member.user_id)
+          or exists (select 1 from public.device d where d.auth_user_id = v_member.user_id)) then
+    raise exception 'This member''s login is also a staff member''s: change it where staff are kept' using errcode = 'RVSTF';
+  end if;
   if v_phone = v_member.phone then
     return;
   end if;
@@ -54,6 +78,9 @@ begin
     where id = v_member.user_id;
     update auth.identities set identity_data = jsonb_set(identity_data, '{phone}', to_jsonb(substr(v_phone, 2))), updated_at = now()
     where user_id = v_member.user_id and provider = 'phone';
+    -- Every session of the login ends (its refresh tokens with it), so a lost or stolen phone is signed out. A token
+    -- already issued lasts until it expires, within the hour.
+    delete from auth.sessions where user_id = v_member.user_id;
   end if;
   -- The audit row names the change, not the numbers: the member row's own audit has those.
   perform private.audit(v_member.venue_id, 'member.change_phone', 'member', v_member.id::text, null, null, v_reason);
