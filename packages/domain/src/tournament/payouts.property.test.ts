@@ -2,7 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { CHIP, fromPaise, type Paise } from '../money/index.ts';
 import { chipChop, DEAL_METHODS, dealAmounts, MOST_DEAL_PLAYERS } from './deals.ts';
-import { areSharesWhole, BOUNTY_KINDS, bountyOnBust, MOST_PLACES, payoutTable, prizePool, WHOLE_POOL } from './payouts.ts';
+import { areSharesWhole, BOUNTY_KINDS, bountyOnBust, MOST_PLACES, payoutTable, prizePool, satelliteSeats, WHOLE_POOL } from './payouts.ts';
 
 /** An amount of ₹50 chips, up to ₹1 crore. */
 const chips = fc.bigInt({ min: 0n, max: 200_000n }).map((count) => fromPaise(count * CHIP));
@@ -78,6 +78,19 @@ describe('bountyOnBust properties', () => {
       expect(split.paid % CHIP).toBe(0n);
       if (kind === 'standard') expect(split.toHead).toBe(0n);
       else expect(split.paid * 2n <= bounty && split.toHead - split.paid <= CHIP).toBe(true);
+    }));
+  });
+});
+
+describe('satelliteSeats properties', () => {
+  it('pays the whole pool as seats and cash left over, a seat for no more runs than there are, and less than a seat in cash while a run has none', () => {
+    const buyIn = fc.bigInt({ min: 1n, max: 20_000n }).map((count) => fromPaise(count * CHIP));
+    fc.assert(fc.property(chips, buyIn, fc.integer({ min: 1, max: 500 }), (pool, price, runs) => {
+      const found = satelliteSeats(pool, price, runs);
+      expect(BigInt(found.seats) * price + found.leftover).toBe(pool);
+      expect(found.seats >= 0 && found.seats <= runs && found.leftover % CHIP === 0n).toBe(true);
+      if (found.seats < runs) expect(found.leftover < price && found.leftoverPlace === found.seats + 1).toBe(true);
+      else expect(found.leftoverPlace).toBe(runs);
     }));
   });
 });

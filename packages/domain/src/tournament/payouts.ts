@@ -1,5 +1,5 @@
 import { BOUNTY_KINDS } from '@rivr/contracts/tournaments';
-import { CHIP, fromPaise, isChipMultiple, roundDownToChip, subtract, type Paise } from '../money/index.ts';
+import { CHIP, fromPaise, isChipMultiple, roundDownToChip, subtract, times, type Paise } from '../money/index.ts';
 
 export { BOUNTY_KINDS };
 
@@ -73,4 +73,31 @@ export function bountyOnBust(bounty: Paise, kind: BountyKind): BountySplit {
   if (bounty < 0n || !isChipMultiple(bounty)) throw new RangeError('A bounty in ₹50 chips');
   const paid = kind === 'standard' ? bounty : roundDownToChip(fromPaise(bounty / 2n));
   return { paid, toHead: subtract(bounty, paid) };
+}
+
+/** What a satellite pays: how many top finishers win a ticket to its target event, and the cash left over and the place it goes to. */
+export interface SatelliteSeats {
+  readonly seats: number;
+  readonly leftover: Paise;
+  readonly leftoverPlace: number;
+}
+
+/**
+ * A satellite's seats (#117; decision 0250, question #489): its prize pool divided by the target event's
+ * buy-in, rounded down, and never more than the runs. Each of that many top finishers wins a ticket worth
+ * the buy-in. What is left of the pool is paid in cash to the next finisher, or to the last seat when every
+ * run has one. A pool or a buy-in not in ₹50 chips, a buy-in of nothing, or no runs is a bug and throws.
+ * The database's private.tournament_satellite_seats is proved equal on tournamentPayouts.json.
+ */
+export function satelliteSeats(pool: Paise, targetBuyIn: Paise, runs: number): SatelliteSeats {
+  if (pool < 0n || !isChipMultiple(pool) || targetBuyIn <= 0n || !isChipMultiple(targetBuyIn) || !Number.isInteger(runs) || runs < 1) {
+    throw new RangeError('A pool and a buy-in in ₹50 chips, and a run');
+  }
+  const bought = pool / targetBuyIn;
+  const seats = bought < BigInt(runs) ? Number(bought) : runs;
+  return {
+    seats,
+    leftover: subtract(pool, times(targetBuyIn, BigInt(seats))),
+    leftoverPlace: seats < runs ? seats + 1 : seats,
+  };
 }

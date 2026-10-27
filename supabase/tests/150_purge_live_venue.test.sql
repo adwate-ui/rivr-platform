@@ -26,7 +26,7 @@ select set_eq($$ select private.live_purge_tables() $$,
      'mis_report', 'notification_preference', 'outbox_delivery', 'outbox_event', 'payout_account', 'points_earning', 'promotion',
      'promotion_budget', 'promotion_grant', 'promotion_rule', 'redemption', 'sar_entry', 'sar_entry_transaction', 'seat_move', 'seat_session',
      'second_approval', 'self_exclusion', 'sign_up_attribution', 'staff_attendance', 'staff_shift', 'tds_withholding', 'tournament',
-     'tournament_entry', 'tournament_payout', 'tournament_purchase', 'visit', 'waitlist_entry', 'withdrawal_request']) $$,
+     'tournament_entry', 'tournament_payout', 'tournament_purchase', 'tournament_ticket', 'visit', 'waitlist_entry', 'withdrawal_request']) $$,
   'a purge deletes these tables'' rows, and keeps every other venue table');
 
 -- The throwaway venue, its super admin and a member with a deposit.
