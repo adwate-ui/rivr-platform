@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { REWARD_KINDS, rewardItemSchema } from '@rivr/contracts';
-import { useSaveRewardItem, type RewardItem } from '@rivr/db';
+import { useSaveRewardItem, type RewardItem, type RewardItemOrder } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -10,12 +10,22 @@ import type { z } from 'zod';
 type RewardValues = z.input<typeof rewardItemSchema>;
 type RewardFormApi = UseFormReturn<RewardValues, unknown, z.output<typeof rewardItemSchema>>;
 
-const EMPTY: RewardValues = { kind: 'merchandise', name: '', detail: '', points: '', stock: '', isLive: true };
+const EMPTY: RewardValues = { kind: 'merchandise', name: '', detail: '', price: '', stock: '', isLive: true };
 
 /** The form's values for a reward being changed, or a new one. */
 function valuesOf(item: RewardItem | null): RewardValues {
   if (item === null) return EMPTY;
-  return { kind: item.kind, name: item.name, detail: item.detail, points: String(item.points), stock: item.stock === null ? '' : String(item.stock), isLive: item.isLive };
+  return {
+    kind: item.kind, name: item.name, detail: item.detail, price: String(item.nights ?? item.points ?? ''), stock: item.stock === null ? '' : String(item.stock),
+    isLive: item.isLive,
+  };
+}
+
+/** What the form saves: the price in nights for a hotel night, else in points, and the stock the editor was shown. */
+function orderOf(values: z.output<typeof rewardItemSchema>, item: RewardItem | null): RewardItemOrder {
+  const { price, ...rest } = values;
+  const isNights = values.kind === 'hotel_night';
+  return { ...rest, points: isNights ? null : price, nights: isNights ? price : null, itemId: item?.id ?? null, stockWas: item?.stock ?? null };
 }
 
 /** The kind, chosen from the catalogue's four, and whether it is on offer. */
@@ -34,19 +44,20 @@ function Choices({ form }: { form: RewardFormApi }) {
   );
 }
 
-/** The name, where to collect it, the price and the stock. */
+/** The name, where to collect it, the price (in nights for a hotel night, else points) and the stock. */
 function Fields({ form }: { form: RewardFormApi }) {
   const errors = form.formState.errors;
-  const error = (isWrong: boolean, key: 'invalidName' | 'invalidDetail' | 'invalidPrice' | 'invalidStock') => (isWrong ? t(`console.rewards.${key}`) : undefined);
-  const fields = { name: form.register('name'), detail: form.register('detail'), points: form.register('points'), stock: form.register('stock') };
+  const isNights = form.watch('kind') === 'hotel_night';
+  const error = (isWrong: boolean, key: 'invalidName' | 'invalidDetail' | 'invalidPrice' | 'invalidNights' | 'invalidStock') => (isWrong ? t(`console.rewards.${key}`) : undefined);
+  const fields = { name: form.register('name'), detail: form.register('detail'), price: form.register('price'), stock: form.register('stock') };
   return (
     <>
       <Input {...fields.name} label={t('console.rewards.name')} autoComplete="off" error={error(errors.name !== undefined, 'invalidName')} />
       <Input {...fields.detail} label={t('console.rewards.detail')} hint={t('console.rewards.detailHint')} autoComplete="off"
         error={error(errors.detail !== undefined, 'invalidDetail')} />
       <Inline gap={4} align="start" wrap>
-        <Input {...fields.points} label={t('console.rewards.price')} inputMode="numeric" autoComplete="off"
-          error={error(errors.points !== undefined, 'invalidPrice')} />
+        <Input {...fields.price} label={t(isNights ? 'console.rewards.priceNights' : 'console.rewards.price')} inputMode="numeric" autoComplete="off"
+          error={error(errors.price !== undefined, isNights ? 'invalidNights' : 'invalidPrice')} />
         <Input {...fields.stock} label={t('console.rewards.stock')} hint={t('console.rewards.stockHint')} inputMode="numeric" autoComplete="off"
           error={error(errors.stock !== undefined, 'invalidStock')} />
       </Inline>
@@ -56,7 +67,8 @@ function Fields({ form }: { form: RewardFormApi }) {
 
 /**
  * Adds a reward to the catalogue, or changes the one chosen (`item`): its kind, name, where to collect it,
- * its points and how many are left. `onDone` runs once it is saved or the change is cancelled.
+ * its price (nights for a hotel night, else points) and how many are left. `onDone` runs once it is saved or the
+ * change is cancelled.
  */
 export function RewardForm({ venueId, item, onDone }: { venueId: string; item: RewardItem | null; onDone: () => void }) {
   const save = useSaveRewardItem(venueId);
@@ -64,7 +76,7 @@ export function RewardForm({ venueId, item, onDone }: { venueId: string; item: R
   const [resolver] = useState(() => zodResolver(rewardItemSchema));
   const form = useForm<RewardValues, unknown, z.output<typeof rewardItemSchema>>({ resolver, defaultValues: valuesOf(item) });
   const submit = form.handleSubmit(async (values) => {
-    const saved = await save.mutateAsync({ ...values, itemId: item?.id ?? null, stockWas: item?.stock ?? null });
+    const saved = await save.mutateAsync(orderOf(values, item));
     setOutcome(saved.ok ? { ok: true, text: t('console.rewards.saved', { name: values.name }) } : { ok: false, text: t(`console.rewards.failures.${saved.error}`) });
     if (saved.ok && item === null) form.reset(EMPTY);
     if (saved.ok && item !== null) onDone();
