@@ -3,6 +3,7 @@ import { clubDay } from '@rivr/domain/clubDay';
 import { formatDayTime, formatMoney, formatNumber, formatRupeesForFile, t, type MessageKey } from '@rivr/i18n';
 import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, Screen, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useMemo, useState } from 'react';
+import { Playback } from './Playback.tsx';
 
 const VARIANT_COPY: Readonly<Record<PotVariant, MessageKey>> = {
   holdem: 'console.liveFloor.holdem', plo: 'console.liveFloor.plo', bomb_pot: 'console.liveFloor.bombPot',
@@ -29,6 +30,10 @@ function columns(): readonly DataTableColumn<PotHand>[] {
       exportValue: (hand) => Number(formatRupeesForFile(hand.drop)) },
     { key: 'cap', header: t('console.potData.cap'), cell: (hand) => t(hand.isCapApplied ? 'console.potData.capYes' : 'console.potData.capNo') },
     { key: 'highHand', header: t('console.potData.highHand'), cell: highHandText },
+    // The recording of the hand (#122): no heading, so exports leave it out.
+    { key: 'playback', header: '', cell: (hand) => (
+      <Playback kind="hand" id={hand.handId} label={t('console.potData.playbackLabel', { table: hand.tableName, when: formatDayTime(new Date(hand.playedAt)) })} />
+    ) },
   ];
 }
 

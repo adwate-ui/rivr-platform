@@ -44,12 +44,13 @@ import { potDataRoute } from './routes/pot-data.tsx';
 import { incidentsRoute } from './routes/incidents.tsx';
 import { tiersRoute } from './routes/tiers.tsx';
 import { computersRoute } from './routes/computers.tsx';
+import { camerasRoute } from './routes/cameras.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     settingsRoute,
-    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
+    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, markersRoute, membersRoute, killSwitchRoute, practiceResetRoute, exportsRoute, amlRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute, rosterRoute,
     certificationRoute,
     sopsRoute,

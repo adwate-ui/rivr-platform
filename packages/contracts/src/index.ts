@@ -39,6 +39,7 @@ export { doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSc
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
+  cameraSchema,
   computerEnrolSchema,
   dealerTabletAddSchema,
   devicePairRequestSchema,

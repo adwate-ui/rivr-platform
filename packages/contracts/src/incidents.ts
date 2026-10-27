@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { clockTimeSchema } from './staff.ts';
 
 /** Who the club calls (#53), as public.contact_kind lists them: the escalation matrix first. */
 export const CONTACT_KINDS = ['escalation', 'vendor', 'glaza', 'police', 'fire', 'electricity'] as const;
@@ -20,11 +21,15 @@ export const contactSchema = z.object({
   phone: z.string().trim().regex(/^\+?[0-9][0-9 ]{2,19}$/),
 });
 
-/** An incident as staff log it: the severity, what happened, the camera and time if one saw it, and the SOP followed. */
+/** An incident as staff log it: the severity, what happened, when tonight (empty for now), the camera that saw it, and the SOP followed. */
 export const incidentSchema = z.object({
   severity: z.enum(INCIDENT_SEVERITIES),
   summary: z.string().trim().min(3).max(2000),
+  /** When it happened tonight, `23:10` on India's clock; empty for now. */
+  at: z.union([z.literal(''), clockTimeSchema]),
   cctvReference: z.string().trim().max(200),
+  /** The camera that saw it, if one did (#122): its playback opens at the moment it happened. */
+  cameraId: z.uuid().nullable(),
   sopId: z.uuid().nullable(),
 });
 

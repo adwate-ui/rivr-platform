@@ -39,6 +39,12 @@ export const computerEnrolSchema = dealerTabletAddSchema;
 /** Staff revoke a device, and say why. */
 export const deviceRevokeSchema = z.object({ reason: z.string().trim().min(1).max(200) });
 
+/** A CCTV camera as staff add it (#122): a name, and the recorder's channel for its feed (`private.save_camera` checks the same). */
+export const cameraSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  channel: z.string().trim().regex(/^[A-Za-z0-9_.:-]{1,40}$/).refine((channel) => !/^\.+$/.test(channel)),
+});
+
 /** A dealer's PIN, as the console sets it (#41): four digits, not one digit four times. */
 export const dealerPinSchema = z.object({
   pin: z.string().regex(/^\d{4}$/).refine((pin) => !/^(\d)\1{3}$/.test(pin)),

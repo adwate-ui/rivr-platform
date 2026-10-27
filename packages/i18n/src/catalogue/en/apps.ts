@@ -11,6 +11,7 @@ import { practiceReset, practiceResetFailures } from './practiceReset.ts';
 import { exportArchive, exportArchiveFailures } from './exportArchive.ts';
 import { aml, amlFailures } from './aml.ts';
 import { roster, rosterFailures } from './roster.ts';
+import { cameraFailures, cameras } from './cameras.ts';
 import { members, tiers } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
 import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
@@ -184,6 +185,8 @@ export const consoleApp = {
   amlFailures,
   roster,
   rosterFailures,
+  cameras,
+  cameraFailures,
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   rail,

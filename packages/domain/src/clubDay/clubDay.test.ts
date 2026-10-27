@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clubDay, clubDaysPeriod, dayAfter, lastDayOfMonth, recentClubMonths, weekOf } from './clubDay.ts';
+import { clubDay, clubDayMoment, clubDaysPeriod, dayAfter, lastDayOfMonth, recentClubMonths, weekOf } from './clubDay.ts';
 
 describe('the club\'s day, 06:00 to 06:00 IST', () => {
   it('holds the night past midnight, and turns at 06:00 IST', () => {
@@ -39,5 +39,14 @@ describe('the club\'s day, 06:00 to 06:00 IST', () => {
     expect(weekOf('2026-11-16')).toBe('2026-11-16');
     expect(weekOf('2026-11-22')).toBe('2026-11-16');
     expect(weekOf('2027-01-01')).toBe('2026-12-28');
+  });
+});
+
+describe('clubDayMoment', () => {
+  it('puts an evening time on the club day\'s date and a small-hours time on the next morning', () => {
+    expect(clubDayMoment('2026-11-15', '23:10').toISOString()).toBe('2026-11-15T17:40:00.000Z');
+    expect(clubDayMoment('2026-11-15', '06:00').toISOString()).toBe('2026-11-15T00:30:00.000Z');
+    expect(clubDayMoment('2026-11-15', '05:59').toISOString()).toBe('2026-11-16T00:29:00.000Z');
+    expect(clubDayMoment('2026-11-15', '02:00').toISOString()).toBe('2026-11-15T20:30:00.000Z');
   });
 });

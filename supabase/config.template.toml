@@ -250,6 +250,8 @@ max_frequency = "60s"
 919000000183 = "123456"
 # The Roster flow's own admin, supabase/seed/10_people.sql (#106).
 919000000184 = "123456"
+# The CCTV flow's own admin, supabase/seed/10_people.sql (#122).
+919000000185 = "123456"
 # Lane D builder: the Rewards catalogue flow's marketing and floor managers, supabase/seed/12_people_d.sql (#145, #147).
 919000000700 = "123456"
 919000000701 = "123456"

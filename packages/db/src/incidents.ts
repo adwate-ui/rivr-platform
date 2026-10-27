@@ -21,6 +21,8 @@ export interface Incident {
   readonly severity: IncidentSeverity;
   readonly summary: string;
   readonly cctvReference: string | null;
+  /** The camera that saw it, chosen as it was logged (#122): its playback link comes from @rivr/db/cctv. */
+  readonly cameraId: string | null;
   readonly sopTitle: string | null;
   readonly loggedByName: string | null;
 }
@@ -64,11 +66,11 @@ export function useIncidents(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<Incident[]> => {
       const { data, error } = await client.from('incident')
-        .select('id, occurred_at, severity, summary, cctv_reference, sop!incident_sop_id_venue_id_fkey(title), staff!incident_logged_by_staff_id_venue_id_fkey(full_name)')
+        .select('id, occurred_at, severity, summary, cctv_reference, camera_id, sop!incident_sop_id_venue_id_fkey(title), staff!incident_logged_by_staff_id_venue_id_fkey(full_name)')
         .eq('venue_id', venueId).order('occurred_at', { ascending: false }).limit(100);
       if (error) throw error;
       return data.map((row) => ({
-        incidentId: row.id, occurredAt: row.occurred_at, severity: row.severity, summary: row.summary, cctvReference: row.cctv_reference,
+        incidentId: row.id, occurredAt: row.occurred_at, severity: row.severity, summary: row.summary, cctvReference: row.cctv_reference, cameraId: row.camera_id,
         sopTitle: row.sop?.title ?? null, loggedByName: row.staff?.full_name ?? null,
       }));
     },
@@ -103,10 +105,11 @@ export function useIncidentActions(venueId: string) {
   };
   const who = userId ?? 'signed-out';
   const log = useMutation({
-    mutationFn: async (incident: { severity: IncidentSeverity; summary: string; cctvReference: string; sopId: string | null }) =>
+    mutationFn: async (incident: { severity: IncidentSeverity; summary: string; occurredAt: string | null; cctvReference: string; cameraId: string | null; sopId: string | null }) =>
       settle(queryKeys.incidents(who, venueId), (await client.from('incident').insert({
         venue_id: venueId, severity: incident.severity, summary: incident.summary.trim(),
-        cctv_reference: incident.cctvReference.trim() || null, sop_id: incident.sopId,
+        cctv_reference: incident.cctvReference.trim() || null, camera_id: incident.cameraId, sop_id: incident.sopId,
+        ...(incident.occurredAt === null ? {} : { occurred_at: incident.occurredAt }),
       })).error),
   });
   const addContact = useMutation({

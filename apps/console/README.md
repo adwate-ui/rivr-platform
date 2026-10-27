@@ -41,6 +41,7 @@ src/
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
     tablets/          dealer tablets and door kiosks: add and pair, fix a tablet to a table, revoke (/tablets)
     computers/        cage and admin computers: add with a code, enrol this one, revoke (/computers)
+    cameras/          CCTV cameras for staff who manage devices: add one over a table, on the cage or elsewhere, retire one (/cameras, #122); Pot data, Incidents and the cage's receipt each have Playback (@rivr/ui's PlaybackLink)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
     tables/           each table type's rake now and changes from a time, scheduled and withdrawn (/rake)

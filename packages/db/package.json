@@ -13,6 +13,7 @@
     "./reports": "./src/reports.ts",
     "./exports": "./src/exports.ts",
     "./roster": "./src/roster.ts",
+    "./cctv": "./src/cctv.ts",
     "./aml": "./src/aml.ts",
     "./ownerDashboard": "./src/ownerDashboard.ts"
   },

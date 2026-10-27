@@ -6,7 +6,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 
 | Table | Purpose |
 |---|---|
-| `cage_transaction` | Buy-ins and cash-outs at the cage: method (cash, UPI with UTR, wallet, marker), amount, member, ledger transaction, idempotency key; a second approver, where one is needed, is a `second_approval` |
+| `cage_transaction` | Buy-ins and cash-outs at the cage: method (cash, UPI with UTR, wallet, marker), amount, member, ledger transaction, idempotency key; a second approver, where one is needed, is a `second_approval`; `camera_id`, the cage's CCTV camera as it is written (lane B, #122, decision 0238) |
 | `buy_in_request` | A buy-in the dealer tablet or the floor sends to the cage queue (lane B inserts through `public.request_buy_in`) |
 | `second_approval` | Dual control (#20, decision 0063): a second approver's approval of a cage write at or above `cage.second_approver_threshold`, by subject (a withdrawal, #21) and amount, each approver once, with who approved and when; never changed; seen by the cage and its approvers. The one place a second approver is recorded |
 | `bonus_grant` | Each credit to a member's bonus (#17): amount, what is left, its end and reason, its ledger transaction, and when it expired with the entry reversing what was left; seen by the member and by staff who transact at the cage or read the ledger |

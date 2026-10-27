@@ -27,6 +27,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `academyBatchSchema` | A new Academy batch from the console: name, first and last day (in order), 1 to 500 seats as typed in a field. |
 | `companyBookingSchema` | A company's Academy booking: the contact's mobile number, the company, 1 to 100 heads as typed in a field, and the company's GSTIN if it has one, empty if not (#249). |
 | `pairingCodeSchema`, `devicePairSchema`, `dealerTabletAddSchema`, `deviceRevokeSchema` | A dealer tablet's six-digit pairing code, as the tablet sends it to device-pair; a tablet's name and a revocation's reason from the console (#41). |
+| `cameraSchema` | A CCTV camera as staff add it: a name and the recorder's channel for its feed, letters, digits and `. _ : -`, never dots alone (#122, decision 0238). |
 | `dealerPinSchema`, `dealerPinEntrySchema` | A dealer's PIN as the console sets it (four digits, not one digit four times) and as a dealer enters it on the tablet (four digits; the database checks it) (#41). |
 | `rakeChangeSchema` | A rake change as the console schedules it (#37): table type, rate in percent (at most 10%, two decimals), cap in whole rupees (whole ₹50 chips), IST date and 24-hour time, and a reason; out come the rate in basis points, the cap still in rupees (the console makes it paise with `fromRupees`) and the time with `+05:30`. |
 | `creditLimitSchema` | The floor's credit limit form (#73): mobile number, the limit in whole rupees (0 closes the line), and why. |

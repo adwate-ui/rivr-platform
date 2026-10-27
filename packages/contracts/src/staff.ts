@@ -22,7 +22,7 @@ export type StaffAdd = z.output<typeof staffAddSchema>;
 export const staffJobTitleSchema = z.object({ jobTitle: jobTitleSchema });
 
 /** A time of day on India's 24-hour clock, as the roster writes it: `18:00`. */
-const clockTimeSchema = z.string().trim().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+export const clockTimeSchema = z.string().trim().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 
 /**
  * Shifts for some staff on some days, from a start to an end (#106, decision 0236): an end at or before the start is

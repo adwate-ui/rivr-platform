@@ -24,5 +24,6 @@ export const potData = {
   capYes: 'Yes',
   capNo: 'No',
   highHand: 'High hand',
+  playbackLabel: 'Playback: {table}, {when}',
   noHighHand: 'None',
 } as const;

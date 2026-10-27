@@ -42,6 +42,8 @@ interface LinkButtonProps extends ButtonLookProps {
   href: string;
   /** Saves what the link points at as a file of this name instead of opening it: a report the console has made. */
   download?: string;
+  /** Opens the link in a new tab, so the screen stays: the CCTV recorder's playback page. */
+  opensNewTab?: boolean;
   type?: never;
   onClick?: never;
   isLoading?: never;
@@ -65,19 +67,26 @@ const BASE =
   'inline-flex min-w-touch items-center justify-center gap-2 rounded-lg font-text text-16 leading-snug ' +
   'select-none transition-colors disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress aria-busy:opacity-disabled';
 
+/** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
+function LinkButton({ children, variant = 'secondary', size = 'regular', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
+  return (
+    <a href={href} download={download} className={cx(BASE, SIZE[size], VARIANT[variant], fullWidth && 'w-full')}
+      target={opensNewTab ? '_blank' : undefined} rel={opensNewTab ? 'noopener noreferrer' : undefined}
+      aria-label={rest['aria-label']}
+      aria-describedby={rest['aria-describedby']}>
+      <ButtonLabel icon={icon} isLoading={false}>
+        {children}
+      </ButtonLabel>
+    </a>
+  );
+}
+
 /** A button with a 44 px minimum touch target; a link that looks like one when it has an `href`. */
-export function Button({ children, variant = 'secondary', size = 'regular', type = 'button', onClick, isLoading, isDisabled, icon, fullWidth, href, ...rest }: ButtonProps) {
-  if (href !== undefined) {
-    return (
-      <a href={href} download={'download' in rest ? rest.download : undefined} className={cx(BASE, SIZE[size], VARIANT[variant], fullWidth && 'w-full')}
-        aria-label={rest['aria-label']}
-        aria-describedby={rest['aria-describedby']}>
-        <ButtonLabel icon={icon} isLoading={false}>
-          {children}
-        </ButtonLabel>
-      </a>
-    );
-  }
+export function Button(props: ButtonProps) {
+  return props.href === undefined ? <ActionButton {...props} /> : <LinkButton {...props} />;
+}
+
+function ActionButton({ children, variant = 'secondary', size = 'regular', type = 'button', onClick, isLoading, isDisabled, icon, fullWidth, ...rest }: ActionButtonProps) {
   const busy = isLoading ? true : undefined;
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (isLoading) {

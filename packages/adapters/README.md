@@ -28,7 +28,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 | `googleAds` | `@rivr/adapters/google-ads` | `GoogleAdsConversionsAdapter` | Offline conversion import, phone hashed by `toClickConversion`; enabled |
 | `cachePurge` | `@rivr/adapters/cache-purge` | `CachePurgeAdapter` | Cloudflare purge after a website publish |
 | `store` | `@rivr/adapters/store` | `StoreAdapter` | Products of the hosted accessories store |
-| `cctv` | `@rivr/adapters/cctv` | `CctvAdapter` | Playback link for a camera at a moment |
+| `cctv` | `@rivr/adapters/cctv` | `CctvAdapter` | Playback link for a camera at a moment. `createTemplateCctv({ template })` is the recorder whose playback address takes `{channel}` and `{utc}`, `{ist}` or `{epoch}` (#122, decision 0238); `isRecorderTemplate` checks one |
 | `receiptPrinter` | `@rivr/adapters/receipt-printer` | `ReceiptPrinterAdapter` | Prints a rendered receipt image at exactly `widthPx` |
 | `kitchenPrinter` | `@rivr/adapters/kitchen-printer` | `KitchenPrinterAdapter` | Prints a KOT at the bar |
 
