@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useMyLeague, useMyRedemptions, useMyRewards, useRedeemReward, useRewardCatalogue } from './myRewards.ts';
+import { useMyLeague, useMyRedemptions, useMyReferral, useMyRewards, useRedeemReward, useRewardCatalogue } from './myRewards.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 import { useTvLeagueBoard, useTvRewardsTicker } from './rewards.ts';
@@ -28,7 +28,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
     rewards: useMyRewards(), catalogue: useRewardCatalogue(), redemptions: useMyRedemptions(), redeem: useRedeemReward(), league: useMyLeague(),
-    ticker: useTvRewardsTicker(), board: useTvLeagueBoard(),
+    ticker: useTvRewardsTicker(), board: useTvLeagueBoard(), referral: useMyReferral(),
   }), { wrapper });
   return { result, calls };
 }
@@ -55,6 +55,19 @@ describe('the member\'s Rewards', () => {
     await waitFor(() => expect(result.current.league.data).toEqual([{
       standing: 'month', seasonName: null, firstMonth: '2026-11-01', lastMonth: '2026-11-01', place: 1, name: 'Riya S.', points: 135n, isMe: true,
     }]));
+  });
+
+  it('reads the referral code, how many were referred and the bonus each side gets now', async () => {
+    const { result } = renderHooks({ '/rpc/my_referral': { body: [{ code: 'RIVR1042', referred: 2, bonus_paise: 100000 }] } });
+    await waitFor(() => expect(result.current.referral.data).toEqual({ code: 'RIVR1042', referred: 2, bonus: 100000n }));
+  });
+
+  it('reads no bonus while the referral promotion is not running, and no code without referrals', async () => {
+    const running = renderHooks({ '/rpc/my_referral': { body: [{ code: 'RIVR1042', referred: 0, bonus_paise: null }] } });
+    await waitFor(() => expect(running.result.current.referral.data).toEqual({ code: 'RIVR1042', referred: 0, bonus: null }));
+    cleanup();
+    const without = renderHooks({ '/rpc/my_referral': { body: [] } });
+    await waitFor(() => expect(without.result.current.referral.data).toBeNull());
   });
 
   it('redeems at the price shown, once per request id, and says why not', async () => {

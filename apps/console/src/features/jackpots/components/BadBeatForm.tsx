@@ -4,7 +4,7 @@ import { useFloorTables, useJackpotActions, type JackpotFailure } from '@rivr/db
 import { badBeatPayout, type PayoutRule } from '@rivr/domain/jackpot';
 import type { Paise } from '@rivr/domain/money';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -29,7 +29,7 @@ function TableChoice({ form, venueId, onEdit }: { form: BadBeatFormApi; venueId:
       </Inline>
     );
   }
-  if (tables.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (tables.data === undefined) return <LoadState />;
   const venueTables = tables.data.filter((table) => table.venueId === venueId);
   if (venueTables.length === 0) return <Text tone="muted">{t('console.jackpots.noTables')}</Text>;
   return (

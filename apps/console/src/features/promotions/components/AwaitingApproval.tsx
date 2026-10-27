@@ -3,7 +3,7 @@ import { promotionRefusalSchema } from '@rivr/contracts';
 import type { Result } from '@rivr/contracts/result';
 import { usePromotionDecisions, usePromotionsAwaitingApproval, type PromotionAwaitingApproval, type PromotionFailure, type PromotionStake } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, ReasonForm, Stack, Text, LoadState } from '@rivr/ui';
 import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -122,8 +122,7 @@ export function AwaitingApproval({ venueId, mayApprove, stakes }: AwaitingApprov
     return (
       <Stack gap={4}>
         {heading}
-        <Text tone="muted">{t(awaiting.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-        {awaiting.isError ? <Inline><Button onClick={() => void awaiting.refetch()}>{t('common.retry')}</Button></Inline> : null}
+        <LoadState isError={awaiting.isError} onRetry={() => void awaiting.refetch()} />
       </Stack>
     );
   }

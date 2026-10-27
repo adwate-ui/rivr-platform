@@ -1,7 +1,11 @@
-import { useHandOverRedemption, useVenueRedemptions, type Redemption } from '@rivr/db';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { cancelRedemptionSchema } from '@rivr/contracts';
+import { useCancelRedemption, useHandOverRedemption, useVenueRedemptions, type Redemption } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Heading, Stack, type DataTableColumn } from '@rivr/ui';
+import { Button, DataTable, ErrorMessage, Heading, ReasonForm, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
 import { priceText } from './CatalogueList.tsx';
 
 /** Hands one redemption over; a refusal shows under the button. */
@@ -23,6 +27,45 @@ function HandOverButton({ venueId, redemption }: { venueId: string; redemption: 
   );
 }
 
+/** Cancels one redemption not yet handed over, with a reason, after Cancel opens the form (#462). */
+function CancelRedemption({ venueId, redemption }: { venueId: string; redemption: Redemption }) {
+  const cancel = useCancelRedemption(venueId);
+  const [isOpen, setIsOpen] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [resolver] = useState(() => zodResolver(cancelRedemptionSchema));
+  const form = useForm<z.input<typeof cancelRedemptionSchema>, unknown, z.output<typeof cancelRedemptionSchema>>({ resolver, defaultValues: { reason: '' } });
+  const submit = form.handleSubmit(async ({ reason }) => {
+    const done = await cancel.mutateAsync({ redemptionId: redemption.id, reason });
+    setFailure(done.ok ? null : t(`console.rewards.failures.${done.error}`));
+  });
+  const names = { reward: redemption.rewardName, name: redemption.fullName };
+  if (!isOpen) {
+    return (
+      <Button variant="text" onClick={() => setIsOpen(true)} aria-label={t('console.rewards.cancelRedemptionName', names)}>
+        {t('console.rewards.cancelRedemption')}
+      </Button>
+    );
+  }
+  return (
+    <Stack gap={2}>
+      <ReasonForm field={form.register('reason')} label={t('console.rewards.cancelRedemptionReason', names)}
+        error={form.formState.errors.reason ? t('console.rewards.invalidCancelReason') : undefined}
+        actions={[{ label: t('console.rewards.cancelRedemptionConfirm'), onClick: () => void submit() }]} isLoading={cancel.isPending} />
+      {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
+    </Stack>
+  );
+}
+
+/** A redemption waiting at the desk: hand it over, or cancel it. */
+function WaitingActions({ venueId, redemption }: { venueId: string; redemption: Redemption }) {
+  return (
+    <Stack gap={2}>
+      <HandOverButton venueId={venueId} redemption={redemption} />
+      <CancelRedemption venueId={venueId} redemption={redemption} />
+    </Stack>
+  );
+}
+
 /** Member, reward and what it took, then when it was redeemed and, once handed over, who did it and when. */
 function columns(venueId: string, isWaiting: boolean): readonly DataTableColumn<Redemption>[] {
   const common: DataTableColumn<Redemption>[] = [
@@ -34,7 +77,7 @@ function columns(venueId: string, isWaiting: boolean): readonly DataTableColumn<
     { key: 'price', header: t('console.rewards.priceColumn'), align: 'end', cell: (row) => priceText(row), sortValue: (row) => row.points ?? 0n },
     { key: 'redeemed', header: t('console.rewards.redeemed'), cell: (row) => formatDayTime(new Date(row.createdAt)), sortValue: (row) => row.createdAt },
   ];
-  if (isWaiting) return [...common, { key: 'handOver', header: t('console.rewards.handOver'), cell: (row) => <HandOverButton venueId={venueId} redemption={row} /> }];
+  if (isWaiting) return [...common, { key: 'handOver', header: t('console.rewards.handOver'), cell: (row) => <WaitingActions venueId={venueId} redemption={row} /> }];
   return [...common, {
     key: 'handedOver', header: t('console.rewards.handedOverBy'),
     cell: (row) => t('console.rewards.handedOverLine', { name: row.handedOverBy ?? '', when: row.handedOverAt === null ? '' : formatDayTime(new Date(row.handedOverAt)) }),

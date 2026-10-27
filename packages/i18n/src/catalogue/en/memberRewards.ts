@@ -40,6 +40,28 @@ export const memberRewards = {
   cancel: 'Cancel',
   /** After a redemption: where to collect it. */
   redeemed: 'Redeemed. Collect it: {detail}',
+  /** Refer a friend (#151): the code is RIVR and the member's number. */
+  referral: {
+    title: 'Refer a friend',
+    how: 'When a friend signs up from your link and first buys in, you both get a bonus.',
+    howAmount: 'When a friend signs up from your link and first buys in, you each get {amount} of bonus.',
+    referredOne: 'You have referred 1 friend.',
+    referred: 'You have referred {count} friends.',
+    copy: 'Copy my link',
+    copied: 'Link copied',
+    copyFailed: 'The link could not be copied. Share your card instead.',
+    /** The share card (#153): what it says, and the share, which carries the member's link. */
+    card: {
+      brand: 'RIVR',
+      heading: 'Play with me at RIVR',
+      codeLabel: 'My code',
+      footer: 'Sign up from my link. On your first buy-in, we both get a bonus.',
+      alt: 'Referral card with the code {code}',
+      share: 'Share my card',
+      message: 'Join me at RIVR Poker Club. Sign up from this link.',
+      failed: 'The card could not be shared. Try again.',
+    },
+  },
   failures: {
     not_allowed: 'The catalogue is not part of your tier.',
     invalid: 'That did not go through. Please try again.',
@@ -51,6 +73,8 @@ export const memberRewards = {
     not_enough_nights: 'You do not have enough hotel nights for that yet.',
     stopped: 'Your account is paused. Please speak to the front desk.',
     paused: 'The club is paused. Please try again later.',
+    switched_off: 'Redemptions are switched off for now. Try again later.',
+    cancelled: 'That redemption was cancelled, and its points went back.',
     unavailable: 'That did not go through. Check your connection and try again.',
   },
   yourRedemptions: 'Your redemptions',

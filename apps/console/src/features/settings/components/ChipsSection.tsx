@@ -3,7 +3,7 @@ import { chipAddSchema } from '@rivr/contracts/venueConfig';
 import { useChipDenominations, useVenueConfigActions, type ChipDenomination, type VenueConfigFailure } from '@rivr/db';
 import { fromRupees } from '@rivr/domain/money';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Money, Stack, Switch, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Money, Stack, Switch, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -59,7 +59,7 @@ export function ChipsSection({ venueId }: { venueId: string }) {
     <Stack gap={6}>
       <Heading level={2}>{t('console.settings.chips')}</Heading>
       <Text tone="muted">{t('console.settings.chipsHint')}</Text>
-      {chips.isPending ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {chips.isPending ? <LoadState /> : null}
       {chips.isError && chips.data === undefined ? (
         <Inline gap={3}><ErrorMessage>{t('console.settings.loadFailed')}</ErrorMessage><Button variant="text" onClick={() => void chips.refetch()}>{t('common.retry')}</Button></Inline>
       ) : null}

@@ -2,7 +2,7 @@ import {
   useFeatureOverrideActions, useGateableFeatures, useMemberFeatureOverrides, type FeatureOverride, type OverrideFailure,
 } from '@rivr/db';
 import { formatDate, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<OverrideFailure, MessageKey>> = {
@@ -80,7 +80,7 @@ function OverrideList({ venueId, memberId, onOutcome }: { venueId: string; membe
   const overrides = useMemberFeatureOverrides(venueId, memberId);
   const [lifting, setLifting] = useState<FeatureOverride | null>(null);
   if (overrides.isError) return <Text tone="muted">{t('common.loadFailed')}</Text>;
-  if (overrides.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (overrides.data === undefined) return <LoadState />;
   if (overrides.data.length === 0) return <Text tone="muted">{t('console.members.overrides.none')}</Text>;
   return (
     <Stack gap={3}>
@@ -106,7 +106,7 @@ function FeatureChoice({ featureKey, onChange }: { featureKey: string | null; on
       </Stack>
     );
   }
-  if (features.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (features.data === undefined) return <LoadState />;
   return (
     <ChoiceChips label={t('console.members.overrides.feature')} mode="one" selected={featureKey === null ? [] : [featureKey]}
       options={features.data.map((feature) => ({ value: feature.key, label: feature.name }))} onChange={([chosen]) => onChange(chosen ?? null)} />

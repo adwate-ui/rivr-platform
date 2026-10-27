@@ -1,6 +1,6 @@
 import { usePromotionActions, usePromotionTemplates, type ConsolePromotion } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Stack, Text, LoadState } from '@rivr/ui';
 import { useId, useState } from 'react';
 
 function TemplateRow({ venueId, template, onSubmitted }: { venueId: string; template: ConsolePromotion; onSubmitted: (name: string) => void }) {
@@ -38,8 +38,7 @@ export function TemplatesList({ venueId }: { venueId: string }) {
     return (
       <Stack gap={4}>
         {heading}
-        <Text tone="muted">{t(templates.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-        {templates.isError ? <Inline><Button onClick={() => void templates.refetch()}>{t('common.retry')}</Button></Inline> : null}
+        <LoadState isError={templates.isError} onRetry={() => void templates.refetch()} />
       </Stack>
     );
   }

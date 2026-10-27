@@ -72,6 +72,12 @@ export const rewards = {
   handedOverLine: '{name}, {when}',
   handOver: 'Hand over',
   handOverName: 'Hand {reward} over to {name}',
+  /** Cancelling a redemption not yet handed over (#462): what it took goes back to the member. */
+  cancelRedemption: 'Cancel',
+  cancelRedemptionName: 'Cancel {reward} for {name}',
+  cancelRedemptionReason: 'Why {reward} for {name} is cancelled',
+  cancelRedemptionConfirm: 'Cancel and give back what it took',
+  invalidCancelReason: 'Give a reason of 3 to 300 characters.',
   failures: {
     not_allowed: 'Your role does not allow this.',
     invalid: 'That did not save. Check the values and try again.',
@@ -83,6 +89,8 @@ export const rewards = {
     not_enough_nights: 'Not enough nights.',
     stopped: 'That member is frozen.',
     paused: 'The venue is frozen. Rewards change again once it is released.',
+    switched_off: 'Redemptions are switched off for now.',
+    cancelled: 'That redemption was cancelled. What it took went back to the member.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },
 } as const;

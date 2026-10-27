@@ -2137,17 +2137,23 @@ isOneToOne: false
                   ]
                 },"redemption": {
                   Row: {
-                    "created_at": string,"handed_over_at": string | null,"handed_over_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights": number | null,"points": number | null,"reward_item_id": string,"updated_at": string,"venue_id": string
+                    "cancel_reason": string | null,"cancelled_at": string | null,"cancelled_by_staff_id": string | null,"created_at": string,"handed_over_at": string | null,"handed_over_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights": number | null,"points": number | null,"reward_item_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights"?: number | null,"points"?: number | null,"reward_item_id": string,"updated_at"?: string,"venue_id": string
+                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights"?: number | null,"points"?: number | null,"reward_item_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"nights"?: number | null,"points"?: number | null,"reward_item_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"nights"?: number | null,"points"?: number | null,"reward_item_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "redemption_cancelled_by_staff_id_venue_id_fkey"
+      columns: ["cancelled_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "redemption_handed_over_by_staff_id_venue_id_fkey"
       columns: ["handed_over_by_staff_id","venue_id"]
 isOneToOne: false
@@ -2171,6 +2177,70 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "reward_item"
       referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"referral": {
+                  Row: {
+                    "code": string,"completed_at": string,"created_at": string,"id": string,"member_id": string,"referrer_member_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"completed_at"?: string,"created_at"?: string,"id"?: string,"member_id": string,"referrer_member_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "code"?: string,"completed_at"?: string,"created_at"?: string,"id"?: string,"member_id"?: string,"referrer_member_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "referral_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "referral_referrer_member_id_venue_id_fkey"
+      columns: ["referrer_member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "referral_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"review_request": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "review_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "review_request_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "review_request_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
     }
                   ]
                 },"reward_item": {
@@ -3578,6 +3648,9 @@ isOneToOne: false
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
+"cancel_redemption":
+{ Args: { "p_reason": string,"p_redemption_id": string }; Returns: undefined
+                           },
 "cctv_reference":
 { Args: { "p_id": string,"p_kind": string }; Returns: {
               "at": string,"camera_name": string,"channel": string,"is_practice": boolean
@@ -3982,6 +4055,11 @@ isOneToOne: false
 "my_redemptions":
 { Args: Record<PropertyKey, never>; Returns: {
               "created_at": string,"detail": string,"handed_over_at": string,"id": string,"kind": string,"nights": number,"points": number,"reward_name": string
+            }[]
+                           },
+"my_referral":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "bonus_paise": number,"code": string,"referred": number
             }[]
                            },
 "my_restrictions":
@@ -4614,7 +4692,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone","feature_display_mode": "hidden"|"locked","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -4734,7 +4812,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone"],"feature_display_mode": ["hidden", "locked"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
           }
         }
 } as const

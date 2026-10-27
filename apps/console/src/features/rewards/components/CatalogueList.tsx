@@ -1,7 +1,7 @@
 import { REWARD_KINDS, type RewardKind } from '@rivr/contracts';
 import { useRewardItems, type RewardItem } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, Heading, Inline, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
 /** A price, or what a redemption took: "1 point", "4,000 points", or for a hotel night "1 night", "2 nights". */
@@ -37,8 +37,7 @@ function Rows({ venueId, kind, canEdit, onEdit }: { venueId: string; kind: Rewar
   if (items.data === undefined) {
     return (
       <Stack gap={3}>
-        <Text tone="muted">{t(items.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-        {items.isError ? <Inline><Button onClick={() => void items.refetch()}>{t('common.retry')}</Button></Inline> : null}
+        <LoadState isError={items.isError} onRetry={() => void items.refetch()} />
       </Stack>
     );
   }

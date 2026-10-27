@@ -2,7 +2,7 @@ import {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from '@rivr/db';
 import { formatDate, formatList, formatMoney, formatNights, formatNumber, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
 const BLOCKER_COPY: Readonly<Record<ErasureBlocker, MessageKey>> = {
@@ -160,7 +160,7 @@ export function EraseMember({ venueId, memberId }: { venueId: string; memberId: 
           <Button variant="secondary" onClick={() => void preview.refetch()}>{t('common.retry')}</Button>
         </Stack>
       ) : null}
-      {preview.data === undefined && !preview.isError ? <Text tone="muted">{t('common.loading')}</Text> : null}
+      {preview.data === undefined && !preview.isError ? <LoadState /> : null}
       {preview.data === undefined ? null : <EraseBody venueId={venueId} memberId={memberId} preview={preview.data} />}
     </Stack>
   );

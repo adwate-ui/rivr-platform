@@ -1,9 +1,11 @@
 import { rewardKindOf, type RewardKind } from '@rivr/contracts/rewardKinds';
 import { err, ok, type Result } from '@rivr/contracts/result';
+import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import type { LeagueBoardRow } from './league.ts';
+import { toPaise } from './parse/hands.ts';
 import { rewardItemOf, type RewardFailure, type RewardItem } from './rewards.ts';
 
 export type { LeagueBoardRow } from './league.ts';
@@ -40,7 +42,7 @@ export interface RedeemOrder {
 }
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPRC: 'price_changed', RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped',
+  '42501': 'not_allowed', '22023': 'invalid', RVRWD: 'not_on_offer', RVPRC: 'price_changed', RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped', RVKIL: 'switched_off',
   RVFRZ: 'paused',
 };
 
@@ -142,6 +144,35 @@ export function useMyLeague() {
       const { data, error } = await client.rpc('my_league');
       if (error) throw error;
       return data.map(toLeagueBoardRow);
+    },
+  });
+}
+
+/**
+ * The signed-in member's referral code, RIVR and their number, how many they have referred, and the bonus each side
+ * gets now, null while the referral promotion is not running (#151).
+ */
+export interface MyReferral {
+  readonly code: string;
+  readonly referred: number;
+  readonly bonus: Paise | null;
+}
+
+/**
+ * The member's referral code for Rewards and their share card; null for someone who is not a member, or whose tier
+ * does not have referrals.
+ */
+export function useMyReferral() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myReferral(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<MyReferral | null> => {
+      const { data, error } = await client.rpc('my_referral');
+      if (error) throw error;
+      const [row] = data;
+      if (row === undefined) return null;
+      return { code: row.code, referred: row.referred, bonus: row.bonus_paise === null ? null : toPaise(row.bonus_paise) };
     },
   });
 }
