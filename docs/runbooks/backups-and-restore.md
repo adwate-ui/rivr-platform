@@ -2,6 +2,8 @@
 
 Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scripted restore drill is #26. Storage's files are in the backup since #386 (decision 0108).
 
+**The club launches with no backups** (decision 0278, the owner's choice). The org is on Supabase's Free plan, which keeps none, and the nightly backup below is not set up: it skips each night with its notice. Everything below applies once the owner sets it up, or moves the org to Pro for Supabase's own daily backups.
+
 ## What is kept
 
 | Backup | Where | Kept for |
