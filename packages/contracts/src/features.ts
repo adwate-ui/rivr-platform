@@ -44,6 +44,7 @@ export const FEATURES = [
   gateable('referral.share_cards', 'Referral and share cards', 'Referral code and rendered share cards.', ['player:rewards/referral']),
   gateable('cab.requests', 'Cab requests', 'Pickup and drop requests when eligible.', ['player:rewards/cab']),
   gateable('events.book', 'Events', 'The events calendar: pro nights, corporate tables and Academy batches, booked from the app.', ['player:events']),
+  gateable('social.winner_cards', 'Winner cards', 'Cards celebrating a member’s wins, posted on the club’s social only while they share them.', ['player:profile']),
   gateable('waitlist.join', 'Join waitlist from the app', 'Joining a waitlist before arrival.', ['player:home']),
   gateable('call_time.view', 'Call-time view', 'Time remaining before the member may leave the game.', ['player:home']),
   gateable('tournaments.register', 'Tournament registration', 'Registering and re-entering from the app.', ['player:home/tournament']),

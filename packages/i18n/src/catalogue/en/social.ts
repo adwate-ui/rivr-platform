@@ -13,6 +13,8 @@ export const social = {
   },
   winner: {
     label: 'Winner',
+    /** What a jackpot's winner card says they won (#155). */
+    badBeatJackpot: 'Bad-beat jackpot',
   },
   highHand: {
     label: 'High hand',

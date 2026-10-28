@@ -6,3 +6,4 @@ export { renderFrameToPng, renderToMp4, renderToPdf, renderToPng, type RenderReq
 export { templates, type TemplateName, type TemplateProps } from './templates/index.ts';
 export { renderInvoicePdf, storedInvoiceFromRow, type InvoiceRow, type StoredInvoice } from './invoice.ts';
 export { offlinePackFromRow, renderOfflinePackPdf, type OfflinePack, type OfflinePackRow } from './offlinePack.ts';
+export { drawWinnerCard, highHandCardProps, winnerCardProps } from './winnerCards.ts';

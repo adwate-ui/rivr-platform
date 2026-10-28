@@ -68,6 +68,9 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000637', '+919000000637', 'Sara Iqbal'),
   -- The Push flow's own member, who turns notifications on for her phone (#139).
   ('00000000-0000-4000-8000-000000000638', '+919000000638', 'Leela Menon'),
+  -- The Winner card flow's own member, whose card the seed draws, and marketing manager, who downloads it (#155).
+  ('00000000-0000-4000-8000-000000000639', '+919000000639', 'Kavya Rao'),
+  ('00000000-0000-4000-8000-000000000640', '+919000000640', 'Nikhil Batra'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -125,6 +128,7 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000635'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000636'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000637'::uuid, 'Marketing manager', 'marketing'),
+             ('00000000-0000-4000-8000-000000000640'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000632'::uuid, 'Finance manager', 'super_admin'),
@@ -135,7 +139,7 @@ insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000638', '00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000634', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
+where p.id in ('00000000-0000-4000-8000-000000000639', '00000000-0000-4000-8000-000000000638', '00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000634', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
                '00000000-0000-4000-8000-000000000297', '00000000-0000-4000-8000-000000000299')
 on conflict (id) do nothing;
 

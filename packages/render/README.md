@@ -67,3 +67,7 @@ Adding a template: a component in `src/templates/` that composes `@rivr/ui` and 
 - Use Satori or any renderer other than Chromium; it would drift from the apps (`docs/engineering/stack.md`).
 - Compute money. Templates show amounts they are given.
 - Be imported by browser code. It is Node only and launches Chromium per call; a long-running render service should keep one browser open (not built yet).
+
+## Winner cards
+
+`render:offline-packs` also draws each winner card won since the last run (#155; decision 0273), after the packs. `drawWinnerCard(row)` gives the PNG as a 4:5 feed post: the high-hand card for a high hand, the winner card for the rest. It goes into the private bucket `winner-cards`.

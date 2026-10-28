@@ -19,6 +19,16 @@ export const profile = {
   notifications: 'Notifications',
   /** The switch for push on this phone (#139). */
   phonePush: 'Notifications on this phone',
+  /** Winner cards (#155): each win as a card, shared on the club's social only while the member says so. */
+  winnerCards: 'Winner cards',
+  winnerCardsHint: "RIVR posts a card of your win only while you share it. Stop sharing and it comes down.",
+  winnerCardTournament: '{event}: {prize}',
+  winnerCardHighHand: 'High hand: {prize}',
+  winnerCardJackpot: 'Bad-beat jackpot: {prize}',
+  winnerCardDrawing: 'Your card is being drawn. It is ready by 17:00 the day after your win at the latest.',
+  winnerCardSee: 'See the card',
+  /** Named by the card and its date, so each card's switch is told apart. */
+  winnerCardShare: "Share {what} from {date} on RIVR's social",
   phonePushHint: 'Turn on to get the notifications below on this phone.',
   phonePushBlocked: "Notifications are blocked for RIVR. Allow them in your phone's settings, then try again.",
   phonePushUnsupported: 'This browser cannot show notifications. Add RIVR to your home screen and open it from there.',

@@ -35,6 +35,21 @@ export const consoleSocial = {
     image: 'Image',
     captionFile: 'Caption',
   },
+  /** Winner cards their players share (#155), to download and post. */
+  winnerCards: {
+    title: 'Winner cards',
+    table: 'Winner cards shared by their players',
+    none: 'No winner has shared a card yet.',
+    player: 'Player',
+    won: 'Won',
+    prize: 'Prize',
+    shared: 'Shared',
+    download: 'Download',
+    /** The download link, named by its player. */
+    card: 'Card for {name}',
+    highHand: 'High hand',
+    jackpot: 'Bad-beat jackpot',
+  },
   leads: {
     title: 'Leads',
     hint: 'Each conversation on Instagram, Facebook or WhatsApp, the latest first. A WhatsApp lead is linked to the member with that number, now or when they sign up. Reply in the app the message came in.',

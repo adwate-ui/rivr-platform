@@ -3919,6 +3919,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"winner_card": {
+                  Row: {
+                    "created_at": string,"details": NonNullable<Json>,"id": string,"image_path": string | null,"kind": string,"member_id": string,"prize_paise": number,"shared_at": string | null,"source_id": string,"updated_at": string,"venue_id": string,"won_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"details"?: NonNullable<Json>,"id"?: string,"image_path"?: string | null,"kind": string,"member_id": string,"prize_paise": number,"shared_at"?: string | null,"source_id": string,"updated_at"?: string,"venue_id": string,"won_at": string
+                  }
+                  Update: {
+                    "created_at"?: string,"details"?: NonNullable<Json>,"id"?: string,"image_path"?: string | null,"kind"?: string,"member_id"?: string,"prize_paise"?: number,"shared_at"?: string | null,"source_id"?: string,"updated_at"?: string,"venue_id"?: string,"won_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "winner_card_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"withdrawal_request": {
                   Row: {
                     "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decline_reason": string | null,"hold_transaction_id": string,"id": string,"idempotency_key": string,"member_id": string,"method": string | null,"outcome_transaction_id": string | null,"payout_account_id": string,"payout_attempted_at": string | null,"payout_failure": string | null,"payout_id": string | null,"payout_key": string | null,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
@@ -4808,6 +4828,11 @@ isOneToOne: false
               "cash_paise": number,"credit_limit_paise": number,"member_id": string,"points": number
             }[]
                            },
+"my_winner_cards":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "card_id": string,"details": Json,"image_path": string,"is_shared": boolean,"kind": string,"prize_paise": number,"won_at": string
+            }[]
+                           },
 "my_withdrawals":
 { Args: Record<PropertyKey, never>; Returns: {
               "amount_paise": number,"bank_name": string,"decided_at": string,"decline_reason": string,"id": string,"kind": string,"requested_at": string,"status": string,"utr": string
@@ -4978,6 +5003,9 @@ isOneToOne: false
                            },
 "record_wall_posts":
 { Args: { "p_posts": Json,"p_venue_id": string }; Returns: number
+                           },
+"record_winner_card_image":
+{ Args: { "p_card_id": string }; Returns: undefined
                            },
 "record_withdrawal_payout":
 { Args: { "p_failure": string,"p_payout_id": string,"p_payout_key": string,"p_request_id": string,"p_status": string,"p_utr": string }; Returns: string
@@ -5216,6 +5244,9 @@ isOneToOne: false
                            },
 "set_venue_logo":
 { Args: { "p_path": string,"p_venue_id": string }; Returns: undefined
+                           },
+"share_winner_card":
+{ Args: { "p_card_id": string,"p_is_shared": boolean }; Returns: undefined
                            },
 "shareholding_history":
 { Args: { "p_venue_id": string }; Returns: {
@@ -5495,6 +5526,21 @@ isOneToOne: false
 "waitlist_lengths":
 { Args: Record<PropertyKey, never>; Returns: {
               "table_type_id": string,"waiting": number
+            }[]
+                           },
+"winner_card_images_to_remove":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string
+            }[]
+                           },
+"winner_cards_to_draw":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "card_id": string,"details": Json,"kind": string,"player_name": string,"prize_paise": number,"venue_address": string,"venue_id": string,"won_at": string
+            }[]
+                           },
+"winner_cards_to_post":
+{ Args: { "p_venue_id": string }; Returns: {
+              "card_id": string,"details": Json,"image_path": string,"kind": string,"player_name": string,"prize_paise": number,"shared_at": string,"won_at": string
             }[]
                            },
 "withdraw_consent":
