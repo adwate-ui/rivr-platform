@@ -8,8 +8,11 @@
  */
 import { resolve } from 'node:path';
 
-export const GATE_NAMES = ['sources', 'generator', 'winnable', 'overclaim', 'feedback', 'variety', 'lines', 'mece'] as const;
-export type GateName = typeof GATE_NAMES[number];
+import { GATE_NAMES, type GateName } from './all.ts';
+
+// The gate names live with the gates, so the console's check needs nothing of the command line (#131).
+export { GATE_NAMES };
+export type { GateName };
 
 export interface GateOptions {
     /** The folder whose `*.json` files are the encodings to gate. */

@@ -3,9 +3,25 @@
  * gate's report is plain text a CI log keeps and a person can read top to bottom.
  */
 
+let sink = (line: string): void => {
+    process.stdout.write(`${line}\n`);
+};
+
 /** Writes one line of a gate's report. */
 export function say(line = ''): void {
-    process.stdout.write(`${line}\n`);
+    sink(line);
+}
+
+/** Runs `work` with every line it says kept rather than printed: how the console shows an upload's report (#131). */
+export function collecting<T>(work: () => T): { readonly result: T; readonly lines: readonly string[] } {
+    const lines: string[] = [];
+    const before = sink;
+    sink = (line) => lines.push(line);
+    try {
+        return { result: work(), lines };
+    } finally {
+        sink = before;
+    }
 }
 
 /** A share as a percentage with one decimal. */

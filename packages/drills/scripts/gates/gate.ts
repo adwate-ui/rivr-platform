@@ -5,10 +5,15 @@ import type { ParsedSource } from './sources.ts';
 import { say } from './output.ts';
 import { stateSuppression } from './state.ts';
 
+/** Writes one named report file and says where it went; the command line's writes to its `--report` folder. */
+export interface ReportWriter {
+    readonly write: (name: string, text: string) => string;
+}
+
 export interface GateRun {
     readonly source: ParsedSource;
     /** Where to write reports, or null to print only. */
-    readonly reportDir: string | null;
+    readonly reports: ReportWriter | null;
 }
 
 export interface Gate {

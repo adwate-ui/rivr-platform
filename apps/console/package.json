@@ -14,6 +14,7 @@
     "@hookform/resolvers": "^5.2.0",
     "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
+    "@rivr/drills": "workspace:*",
     "@rivr/domain": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/ui": "workspace:*",

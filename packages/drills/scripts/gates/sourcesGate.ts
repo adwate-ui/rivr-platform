@@ -90,7 +90,7 @@ export const sourcesGate: Gate = {
         const measures = measuresFor(payload, result);
         printHeadline(measures);
         printDiagnostics(payload, measures);
-        if (run.reportDir !== null) writeSourceReports(run.reportDir, run.source, measures);
+        if (run.reports !== null) writeSourceReports(run.reports, run.source, measures);
         return verdict(payload, measures);
     },
 };

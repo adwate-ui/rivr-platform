@@ -42,6 +42,7 @@ import { feedbackRoute } from './routes/feedback.tsx';
 import { leagueRoute } from './routes/league.tsx';
 import { creatorsRoute } from './routes/creators.tsx';
 import { eventsRoute } from './routes/events.tsx';
+import { learnSourcesRoute } from './routes/learn-sources.tsx';
 import { tournamentsRoute } from './routes/tournaments.tsx';
 import { rewardsRoute } from './routes/rewards.tsx';
 import { potDataRoute } from './routes/pot-data.tsx';
@@ -65,6 +66,7 @@ const routeTree = rootRoute.addChildren([
     leagueRoute,
     creatorsRoute,
     eventsRoute,
+    learnSourcesRoute,
     tournamentsRoute,
     accountsRoute,
     expensesRoute,

@@ -14,26 +14,27 @@
  * Exit 0 when every source passes every gate (or its findings are suppressed by
  * its state), 1 when any fails, 2 on a usage error.
  */
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GATE_NAMES, parseArgs, UsageError, type GateName, type GateOptions } from './gates/cli.ts';
+import { GATE_NAMES, parseArgs, UsageError, type GateOptions } from './gates/cli.ts';
 import { isParsed, loadSources, sourceIdOf, type LoadedSource } from './gates/sources.ts';
 import { staleAllowlistSources } from './gates/allowlists.ts';
 import { validateLoaded } from './gates/validation.ts';
 import { say } from './gates/output.ts';
-import type { Gate } from './gates/gate.ts';
-import { sourcesGate } from './gates/sourcesGate.ts';
-import { generatorGate } from './gates/generatorGate.ts';
-import { winnableGate } from './gates/winnableGate.ts';
-import { overclaimGate } from './gates/overclaimGate.ts';
-import { feedbackGate } from './gates/feedbackGate.ts';
-import { varietyGate } from './gates/varietyGate.ts';
-import { linesGate } from './gates/linesGate.ts';
-import { meceGate } from './gates/meceGate.ts';
+import type { ReportWriter } from './gates/gate.ts';
+import { GATES } from './gates/all.ts';
 
-const GATES: Readonly<Record<GateName, Gate>> = {
-    sources: sourcesGate, generator: generatorGate, winnable: winnableGate, overclaim: overclaimGate,
-    feedback: feedbackGate, variety: varietyGate, lines: linesGate, mece: meceGate,
-};
+/** Writes each report into the `--report` folder. */
+function folderWriter(dir: string): ReportWriter {
+    return {
+        write: (name, text) => {
+            mkdirSync(dir, { recursive: true });
+            const path = join(dir, name);
+            writeFileSync(path, text, 'utf8');
+            return path;
+        },
+    };
+}
 
 const FIXTURES = join(import.meta.dirname, '..', 'fixtures');
 
@@ -47,7 +48,7 @@ function gateSource(source: LoadedSource, options: GateOptions): string[] {
     }
     return options.gates.filter((name) => {
         say(`\n--- ${name} ---`);
-        return !GATES[name].run({ source, reportDir: options.reportDir });
+        return !GATES[name].run({ source, reports: options.reportDir === null ? null : folderWriter(options.reportDir) });
     });
 }
 

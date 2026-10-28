@@ -239,6 +239,9 @@ importers:
       '@rivr/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@rivr/drills':
+        specifier: workspace:*
+        version: link:../../packages/drills
       '@rivr/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
