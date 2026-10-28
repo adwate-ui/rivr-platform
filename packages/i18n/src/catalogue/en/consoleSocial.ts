@@ -1,4 +1,4 @@
-/** The console's Social screen (#154, #157; decisions 0267, 0269): publishing, and the social wall's moderation. */
+/** The console's Social screen (#154, #157, #587; decisions 0267 to 0269): publishing, the inbox's leads, and the social wall's moderation. */
 export const consoleSocial = {
   title: 'Social',
   notAllowed: 'Your role does not include social. Ask an admin if you need it.',
@@ -34,6 +34,20 @@ export const consoleSocial = {
     download: 'Download',
     image: 'Image',
     captionFile: 'Caption',
+  },
+  leads: {
+    title: 'Leads',
+    hint: 'Each conversation on Instagram, Facebook or WhatsApp, the latest first. A WhatsApp lead is linked to the member with that number, now or when they sign up. Reply in the app the message came in.',
+    table: 'Leads',
+    none: 'No messages yet.',
+    channel: 'Channel',
+    channels: { instagram: 'Instagram', facebook: 'Facebook', whatsapp: 'WhatsApp' },
+    handle: 'From',
+    firstMessage: 'First message',
+    lastMessage: 'Last message',
+    messages: 'Messages',
+    member: 'Member',
+    notMember: 'Not a member yet',
   },
   wall: {
     title: 'Social wall',

@@ -3011,6 +3011,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"site_revision": {
+                  Row: {
+                    "blocks": NonNullable<Json>,"created_at": string,"created_by_staff_id": string,"id": string,"page_id": string,"preview_token": string,"publish_at": string | null,"published_at": string | null,"scheduled_by_staff_id": string | null,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "blocks": NonNullable<Json>,"created_at"?: string,"created_by_staff_id": string,"id"?: string,"page_id": string,"preview_token"?: string,"publish_at"?: string | null,"published_at"?: string | null,"scheduled_by_staff_id"?: string | null,"status": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by_staff_id"?: string,"id"?: string,"page_id"?: string,"preview_token"?: string,"publish_at"?: string | null,"published_at"?: string | null,"scheduled_by_staff_id"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "site_revision_created_by_staff_id_venue_id_fkey"
+      columns: ["created_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "site_revision_page_id_venue_id_fkey"
+      columns: ["page_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "site_page"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "site_revision_scheduled_by_staff_id_venue_id_fkey"
+      columns: ["scheduled_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"social_post": {
                   Row: {
                     "caption": string,"created_at": string,"created_by_staff_id": string,"id": string,"image_path": string,"updated_at": string,"venue_id": string
@@ -3998,6 +4030,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_site_preview": {
+                  Row: {
+                    "content": Json | null,"description": string | null,"kind": string | null,"page_slug": string | null,"position": number | null,"title": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_table_status": {
                   Row: {
                     "big_blind_paise": number | null,"buy_in_max_paise": number | null,"buy_in_min_paise": number | null,"game": string | null,"is_open": boolean | null,"seats": number | null,"seats_taken": number | null,"small_blind_paise": number | null,"straddle_paise": number | null,"table_name": string | null,"table_position": number | null,"table_type_code": string | null,"table_type_name": string | null,"venue_slug": string | null
@@ -4833,6 +4873,9 @@ isOneToOne: false
               "detail": string,"name": string,"promotion_id": string,"refused_at": string,"refused_by": string,"refused_reason": string,"runs": string,"template_key": string
             }[]
                            },
+"publish_site_draft":
+{ Args: { "p_page_id": string,"p_publish_at"?: string,"p_venue_id": string }; Returns: string
+                           },
 "publish_social_post":
 { Args: { "p_caption": string,"p_channels": (string)[],"p_image_path": string,"p_venue_id": string }; Returns: string
                            },
@@ -4999,6 +5042,9 @@ isOneToOne: false
 "review_shift_opening":
 { Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined
                            },
+"rollback_site_page":
+{ Args: { "p_page_id": string,"p_revision_id": string,"p_venue_id": string }; Returns: undefined
+                           },
 "roster_week":
 { Args: { "p_venue_id": string,"p_week": string }; Returns: {
               "attendance": string,"club_day": string,"ends_at": string,"full_name": string,"job_title": string,"note": string,"shift_id": string,"staff_id": string,"starts_at": string
@@ -5029,6 +5075,9 @@ isOneToOne: false
                            },
 "save_reward_item":
 { Args: { "p_detail": string,"p_is_live"?: boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_nights"?: number,"p_points"?: number,"p_stock"?: number,"p_stock_was"?: number,"p_venue_id": string }; Returns: string
+                           },
+"save_site_draft":
+{ Args: { "p_blocks": Json,"p_page_id": string,"p_venue_id": string }; Returns: string
                            },
 "save_tournament_template":
 { Args: { "p_template": Json,"p_template_id"?: string,"p_venue_id": string }; Returns: string
@@ -5359,6 +5408,11 @@ isOneToOne: false
 "venue_feedback":
 { Args: { "p_venue_id": string }; Returns: {
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"visit_closed_at": string
+            }[]
+                           },
+"venue_leads":
+{ Args: { "p_venue_id": string }; Returns: {
+              "channel": string,"first_message": string,"handle": string,"last_message_at": string,"lead_id": string,"member_name": string,"messages": number
             }[]
                            },
 "venue_league":

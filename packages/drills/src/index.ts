@@ -55,7 +55,7 @@ export { gradeAnswer, type AnyAnswer } from './grading/grade.ts';
 export {
     ERROR_CLASS_LABEL, legalActions, type Answer, type ErrorClass, type Grade as AnswerGrade,
 } from './grading/classifyError.ts';
-export { explain, type Explanation } from './grading/feedback.ts';
+export { explain, NEUTRAL_FALLBACK, type Explanation } from './grading/feedback.ts';
 export {
     ACTION_LABEL, PAD_SIZINGS, PAD_SLOTS, describeAnswer, describeOutcome, sizingHints, takesSizing,
 } from './grading/pad.ts';

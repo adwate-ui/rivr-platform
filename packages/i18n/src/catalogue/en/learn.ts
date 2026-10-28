@@ -44,6 +44,19 @@ export const playerLearn = {
     wrong_sizing: 'Right action, wrong size', right_idea_wrong_spot: 'Right idea, wrong spot', wrong_label: 'Wrong label', too_few: 'Too few',
     too_many: 'Too many',
   },
+  /** RIVR Academy's feedback where the book wrote none for the answer (#584), by the verdict's class. */
+  fallback: {
+    correct: 'Right.',
+    too_loose: 'This source plays a narrower hand here than the one you chose.',
+    too_tight: 'This source keeps going here rather than giving up.',
+    too_passive: 'This source takes the aggressive line here.',
+    too_aggressive: 'This source takes the passive line here.',
+    wrong_sizing: 'The action is right; the size is not the one this source uses.',
+    right_idea_wrong_spot: 'The reasoning fits a different spot in this same rule.',
+    wrong_label: 'This source reads the spot as the other one.',
+    too_few: 'The range holds more of these than you counted.',
+    too_many: 'The range holds fewer of these than you counted.',
+  },
   verdict: {
     youSaid: 'You said · {answer}',
     bookSays: 'Book says · {answer}',

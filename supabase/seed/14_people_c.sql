@@ -64,6 +64,8 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000635', '+919000000635', 'Ira Sethi'),
   -- The Publishing flow's own marketing manager, who publishes a post (#154).
   ('00000000-0000-4000-8000-000000000636', '+919000000636', 'Arjun Kohli'),
+  -- The Website edit flow's own marketing manager, who edits, publishes and rolls back a page (#129).
+  ('00000000-0000-4000-8000-000000000637', '+919000000637', 'Sara Iqbal'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -120,6 +122,7 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000628'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000635'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000636'::uuid, 'Marketing manager', 'marketing'),
+             ('00000000-0000-4000-8000-000000000637'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000632'::uuid, 'Finance manager', 'super_admin'),

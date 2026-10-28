@@ -27,6 +27,9 @@ Pages come from `site_page` and `site_block` through the `public_site_page` and 
 
 `astro check` runs as the typecheck. Every visible element comes from `@rivr/ui`, every word from `@rivr/i18n`.
 
+
+A draft's preview (#129, decision 0270): `src/pages/preview/[token].astro` loads it with `loadPreview`, through a client made with the draft's `previewToken`, which `public_site_preview` reads from the `x-site-preview` header. It is never indexed (`X-Robots-Tag: noindex`) and never shows the practice venue's drafts.
+
 ## Who builds what
 
 Lane C owns every page and block.

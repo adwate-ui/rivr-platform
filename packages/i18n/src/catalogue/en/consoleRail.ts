@@ -46,6 +46,7 @@ export const rail = {
     creators: 'Creators',
     spinWheel: 'Spin wheel',
     social: 'Social',
+    website: 'Website',
     events: 'Events',
     learnSources: 'Learn sources',
     academy: 'Academy',

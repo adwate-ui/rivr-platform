@@ -80,6 +80,7 @@ select is((select member_id from public.lead where thread_id = (select phone fro
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.lead $$, 'a cashier sees no leads');
 select is_empty($$ select * from public.inbox_message $$, 'nor their messages');
+select throws_ok($$ select * from public.venue_leads('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'nor reads the console''s list');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select results_eq(
@@ -89,6 +90,13 @@ select results_eq(
   'marketing reads the leads, their messages, and the member each became');
 select is_empty($$ select * from public.lead where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'and no other club''s leads');
 select is_empty($$ select * from public.inbox_message where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'nor its messages');
+select results_eq(
+  $$ select channel, messages, member_name from public.venue_leads('00000000-0000-4000-8000-000000000001') where handle in ('1784', '+919999918501') order by last_message_at $$,
+  $$ values ('instagram'::text, 2, null::text), ('whatsapp', 1, 'Neha Lead') $$,
+  'the console lists the leads, with how many messages and the member each became (#587)');
+select results_eq(
+  $$ select handle from public.venue_leads('00000000-0000-4000-8000-000000000001') where handle in ('1784', '+919999918501') $$,
+  $$ values ('+919999918501'::text), ('1784') $$, 'the latest conversation first');
 
 -- Erasure deletes a member's leads and their messages.
 select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);

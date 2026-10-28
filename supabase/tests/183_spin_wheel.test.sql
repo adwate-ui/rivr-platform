@@ -119,6 +119,8 @@ select results_eq($$ select s.bonus_grant_id, g.bonus_grant_id, b.amount_paise f
                      join public.bonus_grant b on b.id = s.bonus_grant_id where s.grant_id = (select mihir from grants) $$,
   $$ select s.bonus_grant_id, s.bonus_grant_id, 50000::bigint from public.spin s where s.grant_id = (select mihir from grants) $$,
   'posted as his bonus, and named on his grant');
+select is((select cost_paise from public.promotion_grant where id = (select mihir from grants)), 50000::bigint,
+  'and its cost, so the promotion''s budget counts it');
 select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select yash_again from grants)) $$, 'RVSPN', null,
   'and once the month''s budget is spent the bonus is off the wheel');
 

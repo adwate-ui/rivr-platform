@@ -53,25 +53,57 @@ async function fetchLive(client: RivrClient, blocks: readonly SiteBlock[]) {
  * database cannot be read.
  */
 export async function fetchSitePage(client: RivrClient, slug: string): Promise<Result<SitePage | null, 'unavailable'>> {
-  const [pages, blocks, status] = await Promise.all([
-    client.from('public_site_page').select('slug, title, description, nav_position'),
+  const [frame, blocks] = await Promise.all([
+    fetchFrame(client),
     client.from('public_site_block').select('kind, content').eq('page_slug', slug).order('position'),
+  ]);
+  if (!frame.ok || blocks.error) return err('unavailable');
+  const page = frame.value.pages.find((row) => row.slug === slug);
+  if (!page?.slug || !page.title) return ok(null);
+  return pageWith(client, frame.value, { slug: page.slug, title: page.title, description: page.description }, blocks.data);
+}
+
+/**
+ * A page's draft as the website will show it (#129, decision 0270): the website's navigation and live rows around the
+ * draft's blocks, for a client made with the draft's preview token (`createRivrClient({ previewToken })`); null when the
+ * token is no draft's. For the website's server.
+ */
+export async function fetchSitePreview(client: RivrClient): Promise<Result<SitePage | null, 'unavailable'>> {
+  const [frame, draft] = await Promise.all([
+    fetchFrame(client),
+    client.from('public_site_preview').select('page_slug, title, description, kind, content').order('position'),
+  ]);
+  if (!frame.ok || draft.error) return err('unavailable');
+  const first = draft.data[0];
+  if (!first?.page_slug || !first.title) return ok(null);
+  return pageWith(client, frame.value, { slug: first.page_slug, title: first.title, description: first.description }, draft.data);
+}
+
+/** The website around a page: its pages, for the navigation, and whether a venue freeze pauses it. */
+async function fetchFrame(client: RivrClient) {
+  const [pages, status] = await Promise.all([
+    client.from('public_site_page').select('slug, title, description, nav_position'),
     client.from('public_venue_status').select('is_frozen'),
   ]);
-  if (pages.error || blocks.error || status.error) return err('unavailable');
-  const isPaused = status.data.some((row) => row.is_frozen === true);
-  const page = pages.data.find((row) => row.slug === slug);
-  if (!page?.slug || !page.title) return ok(null);
-  const navigation = pages.data
+  if (pages.error || status.error) return err('unavailable' as const);
+  return ok({ pages: pages.data, isPaused: status.data.some((row) => row.is_frozen === true) });
+}
+
+type Frame = Extract<Awaited<ReturnType<typeof fetchFrame>>, { ok: true }>['value'];
+
+/** A page from its blocks as read: those the website can show, in order, with the live rows they need. */
+async function pageWith(client: RivrClient, frame: Frame, page: { slug: string; title: string; description: string | null },
+  rows: readonly { kind: string | null; content: unknown }[]): Promise<Result<SitePage, 'unavailable'>> {
+  const navigation = frame.pages
     .flatMap((row) => (row.slug && row.title && row.nav_position !== null ? [{ slug: row.slug, title: row.title, at: row.nav_position }] : []))
     .sort((a, b) => a.at - b.at)
     .map(({ slug: linked, title }) => ({ slug: linked, title }));
-  const readable = blocks.data.flatMap((row) => {
+  const readable = rows.flatMap((row) => {
     const block = siteBlockSchema.safeParse({ kind: row.kind, content: row.content });
     return block.success ? [block.data] : [];
   });
   const live = await fetchLive(client, readable);
   if (!live.ok) return live;
-  const games = isPaused ? live.value.games.map((game) => ({ ...game, tablesOpen: 0, openSeats: 0 })) : live.value.games;
-  return ok({ slug: page.slug, title: page.title, description: page.description, blocks: readable, navigation, ...live.value, games, isPaused });
+  const games = frame.isPaused ? live.value.games.map((game) => ({ ...game, tablesOpen: 0, openSeats: 0 })) : live.value.games;
+  return ok({ ...page, blocks: readable, navigation, ...live.value, games, isPaused: frame.isPaused });
 }

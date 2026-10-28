@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./site": "./src/site.ts",
+    "./siteEditor": "./src/siteEditor.ts",
     "./myRewards": "./src/myRewards.ts",
     "./tds": "./src/tds.ts",
     "./sessions": "./src/sessions.ts",
