@@ -64,13 +64,17 @@ export function useModerateWallPost(venueId: string) {
   });
 }
 
-/** A published post: its caption and image, and each channel's state: to download and post, or published with its link. */
+/** Where a post stands on a channel: to download and post, being sent to a connected channel (#586), or published. */
+export type PostChannelStatus = 'download' | 'sending' | 'published';
+const POST_CHANNEL_STATUSES: readonly PostChannelStatus[] = ['download', 'sending', 'published'];
+
+/** A published post: its caption and image, and each channel's state, with the post's link once published. */
 export interface SocialPost {
   readonly postId: string;
   readonly caption: string;
   readonly imageUrl: string;
   readonly createdAt: string;
-  readonly channels: readonly { readonly channel: SocialChannel; readonly postUrl: string | null }[];
+  readonly channels: readonly { readonly channel: SocialChannel; readonly status: PostChannelStatus; readonly postUrl: string | null }[];
 }
 
 /** Why a post was not published: the role, no image or channel, social publishing off or the venue frozen, or anything else. */
@@ -86,14 +90,15 @@ export function useSocialPosts(venueId: string) {
     queryKey: keys.posts(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<SocialPost[]> => {
-      const { data, error } = await client.from('social_post').select('id, caption, image_path, created_at, social_post_channel(channel, post_url)')
+      const { data, error } = await client.from('social_post').select('id, caption, image_path, created_at, social_post_channel(channel, status, post_url)')
         .eq('venue_id', venueId).order('created_at', { ascending: false }).limit(20);
       if (error) throw error;
       return data.map((row) => ({
         postId: row.id, caption: row.caption, createdAt: row.created_at, imageUrl: client.storage.from(MEDIA_BUCKET).getPublicUrl(row.image_path, { download: true }).data.publicUrl,
         channels: row.social_post_channel.flatMap((each) => {
           const channel = SOCIAL_CHANNELS.find((known) => known === each.channel);
-          return channel === undefined ? [] : [{ channel, postUrl: each.post_url }];
+          const status = POST_CHANNEL_STATUSES.find((known) => known === each.status) ?? 'download';
+          return channel === undefined ? [] : [{ channel, status, postUrl: each.post_url }];
         }),
       }));
     },

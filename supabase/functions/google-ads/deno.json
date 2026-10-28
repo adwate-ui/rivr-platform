@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "@rivr/contracts": "../../../packages/contracts/src/index.ts",
+    "@rivr/adapters": "../../../packages/adapters/src/index.ts",
+    "@rivr/adapters/conversions": "../../../packages/adapters/src/conversions/index.ts",
+    "@rivr/adapters/google-ads": "../../../packages/adapters/src/google-ads/index.ts",
+    "@rivr/i18n": "../../../packages/i18n/src/index.ts",
+    "zod": "npm:zod@^4.6.7"
+  }
+}

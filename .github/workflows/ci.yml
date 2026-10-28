@@ -154,6 +154,9 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           playwright: 'true'
+      # The worktree port blocks sit inside Linux's ephemeral range, so Playwright's own connection could take an app's
+      # port while it waits for the server (#204). Reserve them before anything starts.
+      - run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54300-54999
       - run: pnpm db:start
       - run: pnpm build
       - run: pnpm e2e ${{ matrix.part == 'practice-cage' && '--grep @practice-cage' || format('--grep-invert @practice-cage --shard={0}', matrix.part) }}

@@ -5,7 +5,7 @@ import { createFakeMetaConversions, toMetaServerEvent, type MetaConversionEvent 
 
 const visit: MetaConversionEvent = {
   eventId: idempotencyKeySchema.parse('6a1f9c2e-3b4d-4e5f-8a6b-7c8d9e0f1a2b'),
-  eventName: 'Visit',
+  eventName: 'FirstVisit',
   eventTime: new Date('2026-11-16T18:40:00Z'),
   memberId: memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3e'),
   phone: indianMobileSchema.parse('+919000000001'),
@@ -16,7 +16,7 @@ describe('Meta Conversions API event', () => {
     const event = await toMetaServerEvent(visit);
 
     expect(event).toMatchObject({
-      event_name: 'Visit',
+      event_name: 'FirstVisit',
       event_time: 1_794_854_400,
       event_id: visit.eventId,
       action_source: 'physical_store',

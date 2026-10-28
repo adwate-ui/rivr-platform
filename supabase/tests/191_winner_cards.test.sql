@@ -13,7 +13,19 @@ create function pg_temp.cards(p_member uuid) returns table (kind text, prize_pai
   select kind, prize_paise, details from public.winner_card where member_id = p_member order by kind;
 $$;
 
--- Kabir wins the Weeknight Turbo (a freeroll here: no prize paid); his high hand at Table 2, seat 5; a jackpot he lost and Naina won.
+-- Kabir wins the Weeknight Turbo, paid ₹5,000; Naina wins RIVR Sunday, a freeroll here (no prize paid); Kabir's high hand
+-- at Table 2, seat 5; a jackpot he lost and Naina won.
+insert into public.tournament_entry (id, venue_id, tournament_id, member_id, entry_number, status, table_number, seat_number)
+values ('00000000-0000-4000-8000-0000000009b1', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2',
+        '00000000-0000-4000-8000-000000000202', 9191, 'seated', 1, 1);
+-- A paid prize names its ledger transaction; any of the club's stands in, as the card reads only the payout.
+insert into public.tournament_payout (venue_id, tournament_id, entry_id, member_id, kind, place, prize_paise, bounty_paise, tds_paise, is_tds_shadow,
+                                      ledger_transaction_id)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2', '00000000-0000-4000-8000-0000000009b1',
+        '00000000-0000-4000-8000-000000000202', 'prize', 1, 500000, 0, 0, false,
+        (select id from public.ledger_transaction where venue_id = '00000000-0000-4000-8000-000000000001' order by created_at limit 1));
+select private.emit('00000000-0000-4000-8000-000000000001', 'tournament.finished',
+  jsonb_build_object('tournament_id', '00000000-0000-4000-8000-0000000007a1', 'winner_member_id', '00000000-0000-4000-8000-000000000203'), 'test:freeroll');
 select private.emit('00000000-0000-4000-8000-000000000001', 'tournament.finished',
   jsonb_build_object('tournament_id', '00000000-0000-4000-8000-0000000007a2', 'winner_member_id', '00000000-0000-4000-8000-000000000202'), 'test:finished');
 
@@ -36,10 +48,10 @@ select private.emit('00000000-0000-4000-8000-000000000001', 'jackpot.paid', json
 
 select results_eq($$ select * from pg_temp.cards('00000000-0000-4000-8000-000000000202') $$,
   $$ values ('high_hand'::text, 1000000::bigint, '{"category": "four_of_a_kind", "rank": "A", "table_name": "Table 2"}'::jsonb),
-            ('jackpot', 6000000, '{}'), ('tournament', 0, '{"event_name": "Weeknight Turbo"}') $$,
+            ('jackpot', 6000000, '{}'), ('tournament', 500000, '{"event_name": "Weeknight Turbo"}') $$,
   'a tournament win, the high hand in his seat and his jackpot share each make Kabir a card, once');
 select results_eq($$ select * from pg_temp.cards('00000000-0000-4000-8000-000000000203') $$,
-  $$ values ('jackpot'::text, 3000000::bigint, '{}'::jsonb) $$, 'and Naina one for her share of the jackpot');
+  $$ values ('jackpot'::text, 3000000::bigint, '{}'::jsonb) $$, 'and Naina one for her share of the jackpot, none for a freeroll that paid nothing');
 select private.emit('00000000-0000-4000-8000-000000000002', 'tournament.finished',
   jsonb_build_object('tournament_id', '00000000-0000-4000-8000-0000000007a3', 'winner_member_id', '00000000-0000-4000-8000-000000000202'), 'test:practice');
 select is((select count(*)::integer from public.winner_card where source_id = '00000000-0000-4000-8000-0000000007a3'), 0, 'never at the practice venue');
@@ -70,7 +82,7 @@ select throws_ok($$ select public.share_winner_card((select id from public.winne
 select is((select count(*)::integer from storage.objects where bucket_id = 'winner-cards'), 0, 'nor see his images');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000636');
 select results_eq($$ select player_name, kind, prize_paise from public.winner_cards_to_post('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('Kabir S.'::text, 'tournament'::text, 0::bigint) $$, 'marketing sees the shared card only');
+  $$ values ('Kabir S.'::text, 'tournament'::text, 500000::bigint) $$, 'marketing sees the shared card only');
 select is((select count(*)::integer from storage.objects where bucket_id = 'winner-cards'), 1, 'and its image only');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
 select public.share_winner_card((select card_id from public.my_winner_cards() where kind = 'tournament'), false);

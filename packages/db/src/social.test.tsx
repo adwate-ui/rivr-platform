@@ -47,14 +47,17 @@ describe('social', () => {
         { lead_id: 'l2', channel: 'tiktok', handle: 'x', first_message: 'Hi', last_message_at: '2026-11-15T18:00:00+00:00', messages: 1, member_name: null },
       ] },
       '/rest/v1/social_post': { body: [{ id: 'p1', caption: 'RIVR Sunday', image_path: `${VENUE}/a.png`, created_at: '2026-11-15T10:00:00+00:00',
-        social_post_channel: [{ channel: 'instagram', post_url: null }, { channel: 'myspace', post_url: null }] }] },
+        social_post_channel: [{ channel: 'instagram', status: 'published', post_url: 'https://www.instagram.com/p/C1/' }, { channel: 'telegram', status: 'sending', post_url: null },
+          { channel: 'myspace', status: 'download', post_url: null }] }] },
       '/rpc/tv_social_wall': { body: [{ handle: 'zoya.plays', caption: 'Final table', posted_at: '2026-11-15T18:00:00+00:00' }] },
     });
     await waitFor(() => expect(result.current.wall.data).toEqual([{ postId: 'w1', handle: 'zoya.plays', caption: 'Final table', mediaUrl: 'https://cdn.example/1.jpg',
       permalink: 'https://www.instagram.com/p/1/', postedAt: '2026-11-15T18:00:00+00:00', status: 'approved' }]));
     await waitFor(() => expect(result.current.leads.data).toEqual([{ leadId: 'l1', channel: 'whatsapp', handle: '+919876543210', firstMessage: 'Hi',
       lastMessageAt: '2026-11-15T18:10:00+00:00', messages: 2, memberName: 'Yash Gupta' }]));
-    await waitFor(() => expect(result.current.posts.data?.[0]?.channels).toEqual([{ channel: 'instagram', postUrl: null }]));
+    await waitFor(() => expect(result.current.posts.data?.[0]?.channels).toEqual([
+      { channel: 'instagram', status: 'published', postUrl: 'https://www.instagram.com/p/C1/' }, { channel: 'telegram', status: 'sending', postUrl: null },
+    ]));
     expect(result.current.posts.data?.[0]?.imageUrl).toMatch(/\/social-media\/.*a\.png\?download=/);
     await waitFor(() => expect(result.current.tv.data).toEqual([{ handle: 'zoya.plays', caption: 'Final table' }]));
   });

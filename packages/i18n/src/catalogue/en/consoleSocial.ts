@@ -8,13 +8,13 @@ export const consoleSocial = {
   },
   publish: {
     title: 'Publish',
-    hint: 'One image and its caption to every channel chosen. A channel the club has not connected offers the image and caption to download and post by hand; none is connected yet.',
+    hint: 'One image and its caption to every channel chosen. A connected channel posts it by itself; any other offers the image and caption to download and post by hand.',
     chooseImage: 'Choose the image',
     imageChosen: 'Image: {name}',
     caption: 'Caption',
     channels: 'Channels',
     publish: 'Publish',
-    done: 'Published. Download the image and caption below for each channel to post.',
+    done: 'Published. Connected channels post it by themselves; download the image and caption below for the others.',
     failures: {
       not_allowed: 'Your role does not include social. Ask an admin if you need it.',
       invalid: 'Choose an image (JPEG, PNG or WebP), write a caption and choose at least one channel.',
@@ -30,6 +30,8 @@ export const consoleSocial = {
     caption: 'Caption',
     channels: 'Channels',
     toDownload: '{channel}: download and post',
+    /** A connected channel, before the post has gone out (#586). */
+    sending: '{channel}: publishing',
     published: '{channel}: published',
     download: 'Download',
     image: 'Image',

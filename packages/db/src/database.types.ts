@@ -485,6 +485,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"channel_metric": {
+                  Row: {
+                    "channel": string,"created_at": string,"followers": number,"id": string,"measured_on": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": string,"created_at"?: string,"followers": number,"id"?: string,"measured_on": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "channel"?: string,"created_at"?: string,"followers"?: number,"id"?: string,"measured_on"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "channel_metric_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"chip_denomination": {
                   Row: {
                     "created_at": string,"id": string,"is_active": boolean,"name": string,"updated_at": string,"value_paise": number,"venue_id": string
@@ -4324,6 +4344,11 @@ isOneToOne: false
 "change_member_phone":
 { Args: { "p_member_id": string,"p_phone": string,"p_reason": string }; Returns: undefined
                            },
+"channel_funnel":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bought_in": number,"channel": string,"followers": number,"followers_30_days_ago": number,"kyc_done": number,"signed_up": number
+            }[]
+                           },
 "check_in":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
                            },
@@ -4381,7 +4406,7 @@ isOneToOne: false
                            },
 "claim_outbox_deliveries":
 { Args: { "p_consumer": string,"p_event_types": (string)[],"p_is_messaging"?: boolean,"p_limit"?: number }; Returns: {
-              "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
+              "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"occurred_at": string,"payload": Json,"venue_id": string
             }[]
                            },
 "claim_payout_name_checks":
@@ -4421,6 +4446,11 @@ isOneToOne: false
 "console_fnb_order":
 { Args: { "p_is_comp": boolean,"p_lines": Json,"p_seat": number,"p_table_id": string,"p_venue_id": string }; Returns: {
               "kot_number": number,"order_id": string
+            }[]
+                           },
+"conversion_for":
+{ Args: { "p_event_type": string,"p_payload": Json,"p_venue_id": string }; Returns: {
+              "conversion": string,"member_id": string,"phone": string
             }[]
                            },
 "copy_roster_week":
@@ -5028,6 +5058,9 @@ isOneToOne: false
 "record_attendance":
 { Args: { "p_note"?: string,"p_shift_id": string,"p_status": string }; Returns: undefined
                            },
+"record_channel_followers":
+{ Args: { "p_counts": Json,"p_venue_id": string }; Returns: number
+                           },
 "record_holding":
 { Args: { "p_basis_points": number,"p_effective_from": string,"p_note": string,"p_shareholder_id": string,"p_venue_id": string }; Returns: undefined
                            },
@@ -5057,6 +5090,9 @@ isOneToOne: false
                            },
 "record_payout_name_check":
 { Args: { "p_account_id": string,"p_holder_name"?: string,"p_outcome": string }; Returns: undefined
+                           },
+"record_social_post_channel":
+{ Args: { "p_channel": string,"p_post_id": string,"p_post_url": string }; Returns: undefined
                            },
 "record_table_export":
 { Args: { "p_filter": string,"p_format": string,"p_rows": number,"p_venue_id": string,"p_what": string }; Returns: boolean
@@ -5325,6 +5361,11 @@ isOneToOne: false
                            },
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
+                           },
+"social_post_to_send":
+{ Args: { "p_post_id": string }; Returns: {
+              "caption": string,"channels": (string)[],"image_path": string
+            }[]
                            },
 "sop_acknowledgements":
 { Args: { "p_version_id": string }; Returns: {

@@ -1,14 +1,26 @@
-import { useSocialPosts, type SocialPost } from '@rivr/db/social';
-import { formatDayTime, t } from '@rivr/i18n';
-import { Button, DataTable, Heading, Inline, Stack, type DataTableColumn } from '@rivr/ui';
+import { useSocialPosts, type PostChannelStatus, type SocialPost } from '@rivr/db/social';
+import { formatDayTime, t, type MessageKey } from '@rivr/i18n';
+import { Button, DataTable, Heading, Inline, Stack, Text, type DataTableColumn } from '@rivr/ui';
 
 /** A caption as a file to download: its text, as a data link. */
 const captionLink = (caption: string) => `data:text/plain;charset=utf-8,${encodeURIComponent(caption)}`;
 
-/** Where a post went: each channel, published or to download and post. */
-function channelsOf(post: SocialPost): string {
-  return post.channels.map(({ channel, postUrl }) => t(postUrl === null ? 'console.social.posts.toDownload' : 'console.social.posts.published',
-    { channel: t(`console.social.channels.${channel}`) })).join(', ');
+const STATUS_COPY: Readonly<Record<PostChannelStatus, MessageKey>> = {
+  download: 'console.social.posts.toDownload',
+  sending: 'console.social.posts.sending',
+  published: 'console.social.posts.published',
+};
+
+/** Where a post went: each channel to download and post, being sent, or published with a link to the post (#586). */
+function channelsOf(post: SocialPost) {
+  return (
+    <Inline gap={2}>
+      {post.channels.map(({ channel, status, postUrl }) => {
+        const label = t(STATUS_COPY[status], { channel: t(`console.social.channels.${channel}`) });
+        return postUrl === null ? <Text key={channel}>{label}</Text> : <Button key={channel} variant="text" href={postUrl}>{label}</Button>;
+      })}
+    </Inline>
+  );
 }
 
 const COLUMNS: readonly DataTableColumn<SocialPost>[] = [

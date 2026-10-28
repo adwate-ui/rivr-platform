@@ -7,7 +7,7 @@
 // venue reaches nothing outside either.
 import { kycInPersonSchema } from '@rivr/contracts';
 import { jpegFromBase64 } from '../kyc/jpeg.ts';
-import { CORS, field, putPhoto, refusal, removePhoto, reply, rpc } from '../kyc/server.ts';
+import { CORS, currentRecord, field, putPhoto, refusal, removePhoto, reply, rpc } from '../kyc/server.ts';
 
 // A photo of at most 2 MB, in base64, and the rest of the body.
 const MAX_BODY_BYTES = 3 * 1024 * 1024;
@@ -28,8 +28,10 @@ async function checkInPerson(token: string, body: unknown): Promise<Response> {
     }, token);
     return reply({ status });
   } catch (error) {
-    // The photo is this check's alone, and no check holds it.
-    await removePhoto(path);
+    // The photo is this check's alone: remove it unless the record was committed before the failure and names it
+    // (#595). If the record cannot be read, keep the photo: a stray file is better than a record whose photo is gone.
+    const record = await currentRecord(memberId).catch(() => undefined);
+    if (record !== undefined && record?.photo_path !== path) await removePhoto(path);
     throw error;
   }
 }

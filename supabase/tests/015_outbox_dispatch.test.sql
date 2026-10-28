@@ -13,7 +13,9 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000eb', 'Practice owner', 'Owner', 'owner_view', '+919000000997');
 
 select private.emit('00000000-0000-4000-8000-000000000001', 'visit.closed', '{"visit_id": "v1"}', 'test-visit-1');
-select is((select count(*)::int from public.claim_outbox_deliveries('feedback', array['visit.closed'])), 1, 'a consumer claims its delivery');
+select results_eq($$ select event_type, occurred_at from public.claim_outbox_deliveries('feedback', array['visit.closed']) $$,
+  $$ select event_type, occurred_at from public.outbox_event where idempotency_key = 'test-visit-1' $$,
+  'a consumer claims its delivery, with when the event happened');
 select lives_ok(
   $$ select public.finish_outbox_delivery((select id from public.outbox_delivery where consumer = 'feedback'), false, 'vendor down', interval '2 minutes') $$,
   'and finishes it as failed');

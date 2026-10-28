@@ -1,8 +1,11 @@
 import type { IdempotencyKey, IndianMobile, MemberId, Result } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
 
-/** The events RIVR reports: KYC complete, an Academy booking, and a visit (check-in at the door). */
-export type MetaEventName = 'CompleteRegistration' | 'Schedule' | 'Visit';
+/**
+ * The events RIVR reports (#161): Meta's standard Schedule (an Academy booking) and CompleteRegistration (KYC complete),
+ * and custom events for a first visit, a first buy-in, a tournament entry and a repeat visit.
+ */
+export type MetaEventName = 'Schedule' | 'CompleteRegistration' | 'FirstVisit' | 'FirstBuyIn' | 'TournamentEntry' | 'RepeatVisit';
 
 /** A business event to report to Meta. The adapter hashes the identifiers before anything leaves. */
 export interface MetaConversionEvent {

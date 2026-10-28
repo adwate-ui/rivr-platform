@@ -13,8 +13,8 @@ const phone = (name: string): WebPushSubscription => ({ endpoint: `https://fcm.g
 // Ten minutes before the hold in these calls runs out.
 const now = () => new Date('2026-11-15T18:50:00Z');
 
-function delivery(eventType: string, payload: unknown): ClaimedDelivery {
-  return { deliveryId: 'd1', eventId: 'e1', venueId: VENUE, eventType, payload, attempts: 1 };
+function delivery(eventType: string, payload: unknown, occurredAt?: Date): ClaimedDelivery {
+  return { deliveryId: 'd1', eventId: 'e1', venueId: VENUE, eventType, payload, attempts: 1, ...(occurredAt ? { occurredAt } : {}) };
 }
 
 /** The member's phones for every kind but those turned off; what was asked, and what was forgotten. */
@@ -85,6 +85,21 @@ describe('the push consumer', () => {
     const late = createPushConsumer({ push, ...members([phone('a')]), now: () => new Date('2026-11-15T19:00:00Z') });
     expect((await late.deliver(delivery('waitlist.called', called))).ok).toBe(true);
     expect(push.calls).toEqual([]);
+  });
+
+  it('finishes unsent a push older than its kind is worth: an hour for call time and tournaments, a day for withdrawals', async () => {
+    const push = createFakePush();
+    const consumer = createPushConsumer({ push, ...members([phone('a')]), now });
+    const hoursAgo = (hours: number) => new Date(now().getTime() - hours * 60 * 60 * 1000);
+    const starting = { member_id: MEMBER, tournament_id: OTHER, name: 'RIVR Sunday' };
+    const withdrawal = { member_id: MEMBER, withdrawal_request_id: OTHER, amount_paise: 1000000, utr: null, method: 'upi' };
+
+    expect(await consumer.deliver(delivery('tournament.starting', starting, hoursAgo(2)))).toEqual({ ok: true, value: null });
+    expect(await consumer.deliver(delivery('withdrawal.sent', withdrawal, hoursAgo(25)))).toEqual({ ok: true, value: null });
+    expect(push.calls).toEqual([]);
+    await consumer.deliver(delivery('tournament.starting', starting, hoursAgo(0.5)));
+    await consumer.deliver(delivery('withdrawal.sent', withdrawal, hoursAgo(2)));
+    expect(push.calls.map((call) => call.title)).toEqual(['RIVR Sunday is starting', 'Withdrawal sent']);
   });
 
   it('forgets a phone whose browser dropped its subscription, and still sends to the others', async () => {

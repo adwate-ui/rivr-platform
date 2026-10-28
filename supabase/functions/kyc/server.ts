@@ -71,6 +71,8 @@ export function refusal(error: unknown): Response {
 export async function currentRecord(memberId: string): Promise<Record<string, unknown> | null> {
   const columns = 'status,method,digilocker_session_id,date_of_birth,photo_path';
   const answer = await fetch(`${supabaseUrl}/rest/v1/kyc_record?member_id=eq.${memberId}&select=${columns}`, { headers: AS_SERVER });
+  // A failed read is not "no record".
+  if (!answer.ok) throw new Error(`The KYC record was not read (${answer.status})`);
   const rows: unknown = await answer.json();
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 }

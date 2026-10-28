@@ -30,6 +30,7 @@ function toDelivery(row: unknown): ClaimedDelivery {
     eventType: String(field('event_type')),
     payload: field('payload'),
     attempts: Number(field('attempts')),
+    occurredAt: new Date(String(field('occurred_at'))),
   };
 }
 

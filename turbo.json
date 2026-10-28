@@ -11,6 +11,7 @@
       ],
       "env": [
         "RIVR_PORT_BLOCK",
+        "RIVR_SHELL_URL",
         "VITE_*",
         "PUBLIC_*"
       ],

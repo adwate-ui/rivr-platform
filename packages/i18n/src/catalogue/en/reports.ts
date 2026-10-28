@@ -82,6 +82,15 @@ export const reports = {
   visited: 'Came in',
   boughtIn: 'Bought in',
   stage: '{count} ({percent}%)',
+  /** Channel analytics (#164). */
+  channels: 'Channels',
+  channelsHint: "Each channel's followers, counted every night once the club connects it, and the members who signed up from its links, with how many finished KYC and bought in.",
+  channelsTable: 'Channels',
+  channel: 'Channel',
+  followers: 'Followers',
+  followersChange: 'In 30 days',
+  signedUpFromLinks: 'Signed up from its links',
+  notCounted: 'Not counted',
   sources: {
     referral: 'Referral',
     creator: 'Creator {code}',
