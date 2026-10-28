@@ -1,3 +1,4 @@
+import type { LearnAnswer } from '@rivr/db/learn';
 import {
   abstainsOn, deriveSeed, effectiveRule, expandRangeSets, explain, FAST_ANSWER_MS, generateScenario, gradeAnswer, gradeFor, hashSource,
   newCard, parsePayload, rangeSideFor, resolveGoverningAny, review, toAttemptRow, type Action, type AnswerGrade, type AnyResolution,
@@ -86,8 +87,9 @@ export function markAnswer(book: Book, spot: Spot, { answer, id, sessionId, late
 }
 
 /** A value as JSON, for the server: the engine's rows and cards are plain data. */
-export function asJson(value: unknown): ReturnType<typeof JSON.parse> {
-  return JSON.parse(JSON.stringify(value));
+export function asJson(value: unknown): LearnAnswer['attempt'] {
+  const json: LearnAnswer['attempt'] = JSON.parse(JSON.stringify(value));
+  return json;
 }
 
 /** Whether a kept answer is an attempt row this app wrote. */

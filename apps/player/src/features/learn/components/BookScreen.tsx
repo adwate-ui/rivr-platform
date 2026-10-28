@@ -28,14 +28,17 @@ function useTitle(sourceKey: string) {
   }, [cards.data]);
   const rows = useMemo(() => {
     const kept: AttemptRow[] = [];
-    for (const answer of answers.data ?? []) if (isAttemptRow(answer)) kept.push(answer);
+    for (const answer of answers.data?.latest ?? []) if (isAttemptRow(answer)) kept.push(answer);
     return kept;
   }, [answers.data]);
   const queries = [library, encoding, cards, answers];
   return {
-    title: source?.title ?? t('player.learn.title'), book, cardMap, rows,
-    isError: queries.some((query) => query.isError),
-    isLoading: source === undefined || queries.some((query) => query.isPending),
+    title: source?.title ?? t('player.learn.title'), book, cardMap, rows, answered: answers.data?.total ?? 0,
+    // A title not in the member's library: unknown, or its licence or their tier no longer has it.
+    isMissing: library.isSuccess && source === undefined,
+    // Only a first load failing: a background refetch that fails keeps what was read, so a drill goes on.
+    isError: queries.some((query) => query.isLoadingError),
+    isLoading: queries.some((query) => query.isPending),
     retry: () => void Promise.all(queries.map((query) => query.refetch())),
   };
 }
@@ -45,18 +48,23 @@ interface ViewsProps {
   sourceKey: string;
   cards: ReadonlyMap<string, CardState>;
   rows: readonly AttemptRow[];
+  answered: number;
 }
 
 /** The hub, a drill, or the review, and the way between them. */
-function Views({ book, sourceKey, cards, rows }: ViewsProps) {
+function Views({ book, sourceKey, cards, rows, answered }: ViewsProps) {
   const [view, setView] = useState<View>({ name: 'hub' });
+  // The cards as this device's drills left them, over the server's, so a drill again offline starts from them.
+  const [drilled, setDrilled] = useState<ReadonlyMap<string, CardState>>(new Map());
+  const current = useMemo(() => new Map([...cards, ...drilled]), [cards, drilled]);
+  const keep = (card: CardState) => setDrilled((before) => new Map(before).set(card.cardKey, card));
   const drill = (length: number) => setView({ name: 'drill', length, run: Date.now() });
   if (view.name === 'drill') {
-    return <Session key={view.run} book={book} sourceKey={sourceKey} length={view.length} cards={cards} onAgain={() => drill(view.length)}
-      onReview={() => setView({ name: 'review' })} onHub={() => setView({ name: 'hub' })} />;
+    return <Session key={view.run} book={book} sourceKey={sourceKey} length={view.length} cards={current} onCard={keep}
+      onAgain={() => drill(view.length)} onReview={() => setView({ name: 'review' })} onHub={() => setView({ name: 'hub' })} />;
   }
   if (view.name === 'review') return <ReviewView rows={rows} onBack={() => setView({ name: 'hub' })} />;
-  return <Hub book={book} cards={cards} rows={rows} onStart={drill} onReview={() => setView({ name: 'review' })} />;
+  return <Hub book={book} cards={current} rows={rows} answered={answered} onStart={drill} onReview={() => setView({ name: 'review' })} />;
 }
 
 /**
@@ -67,13 +75,14 @@ export function BookScreen() {
   const sourceKey = useParams({ strict: false }).sourceKey ?? '';
   const drills = useFeature('learn.drills');
   const title = useTitle(sourceKey);
+  if (title.isMissing) return <Screen title={title.title} status="error" errorText={t('player.learn.missing')} />;
   if (title.isError) return <Screen title={title.title} status="error" onRetry={title.retry} />;
   if (title.isLoading) return <Screen title={title.title} status="loading" />;
   if (title.book === null) return <Screen title={title.title} status="error" errorText={t('player.learn.unreadable')} />;
   return (
     <FeatureGate access={drills}>
       <Screen title={title.title}>
-        <Views book={title.book} sourceKey={sourceKey} cards={title.cardMap} rows={title.rows} />
+        <Views book={title.book} sourceKey={sourceKey} cards={title.cardMap} rows={title.rows} answered={title.answered} />
       </Screen>
     </FeatureGate>
   );

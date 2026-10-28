@@ -115,6 +115,8 @@ export function useCompleteLearnSession() {
   const { client } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
+    // Sent whether the browser says it is online or not: offline it fails, and the caller queues it.
+    networkMode: 'always',
     mutationFn: async ({ sessionId, principles }: { sessionId: string; principles: readonly string[] }): Promise<Result<number, LearnFailure>> => {
       const { data, error } = await client.rpc('complete_learn_session', { p_session_id: sessionId, p_principles: [...principles] });
       await queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -160,16 +162,24 @@ export function useLearnEncoding(source: LibrarySource | undefined) {
   });
 }
 
-/** The member's answers in a source, oldest first, each the attempt row the app kept (learn.drills). */
+/** The member's answers in a source: how many in all, and the latest, each the attempt row the app kept (learn.drills). */
+export interface LearnAnswers {
+  readonly total: number;
+  /** The latest answers, newest first, up to the server's page. */
+  readonly latest: readonly Json[];
+}
+
+/** The member's answers in a source, for the hub's figures and the review. */
 export function useLearnAnswers(sourceKey: string) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: keys.answers(userId ?? 'signed-out', sourceKey),
     enabled: userId !== null,
-    queryFn: async (): Promise<Json[]> => {
-      const { data, error } = await client.from('learn_attempt').select('attempt').eq('source_key', sourceKey).order('answered_at');
+    queryFn: async (): Promise<LearnAnswers> => {
+      const { data, error, count } = await client.from('learn_attempt').select('attempt', { count: 'exact' }).eq('source_key', sourceKey)
+        .order('answered_at', { ascending: false });
       if (error) throw error;
-      return data.map((row) => row.attempt);
+      return { total: count ?? data.length, latest: data.map((row) => row.attempt) };
     },
   });
 }

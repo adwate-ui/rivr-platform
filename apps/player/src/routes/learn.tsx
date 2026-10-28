@@ -12,5 +12,5 @@ export const learnRoute = createRoute({
 export const learnBookRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: '/learn/$sourceKey',
-  component: lazyRouteComponent(() => import('../features/learn/book.ts'), 'BookScreen'),
+  component: lazyRouteComponent(() => import('../features/learn/index.ts'), 'BookScreen'),
 });

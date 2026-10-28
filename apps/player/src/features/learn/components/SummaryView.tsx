@@ -1,6 +1,7 @@
+import { useFeature } from '@rivr/db';
 import { useCompleteLearnSession, useLearnProgressQueue } from '@rivr/db/learn';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, Grid, Heading, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, FeatureGate, Grid, Heading, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useEffect, useRef, useState } from 'react';
 import type { Book, Marked } from '../drill.ts';
 
@@ -37,11 +38,17 @@ function useSessionPoints(sessionId: string, principles: readonly string[]): num
   useEffect(() => {
     if (isStarted.current) return;
     isStarted.current = true;
-    void queue.flush().then(() => complete.mutateAsync({ sessionId, principles })).then((done) => {
-      if (done.ok) { setPoints(done.value); return; }
+    const later = () => {
       void queue.enqueue({ answers: [], cards: [], completed: { sessionId, principles } }, `${sessionId}:completed`);
       setPoints('pending');
-    });
+    };
+    void queue.flush().then(async (flushed) => {
+      // Only once every answer is on the server, or the session would close on part of them.
+      if (flushed.pending > 0) { later(); return; }
+      const done = await complete.mutateAsync({ sessionId, principles });
+      if (done.ok) setPoints(done.value);
+      else later();
+    }).catch(later);
   }, [queue, complete, sessionId, principles]);
   return points;
 }
@@ -51,6 +58,7 @@ export function SummaryView({ book, sessionId, results, onAgain, onReview, onHub
   const correct = results.filter((result) => result.grade.correct);
   const points = useSessionPoints(sessionId, [...new Set(correct.map((result) => result.attempt.principleId))]);
   const missed = mostMissed(book, results);
+  const review = useFeature('learn.review');
   return (
     <Stack gap={6}>
       <Heading level={2}>{t('player.learn.summary.title')}</Heading>
@@ -70,7 +78,7 @@ export function SummaryView({ book, sessionId, results, onAgain, onReview, onHub
       </Stack>
       <Inline gap={3} wrap>
         <Button variant="primary" onClick={onAgain}>{t('player.learn.summary.again')}</Button>
-        <Button variant="secondary" onClick={onReview}>{t('player.learn.summary.review')}</Button>
+        <FeatureGate access={review}><Button variant="secondary" onClick={onReview}>{t('player.learn.summary.review')}</Button></FeatureGate>
         <Button variant="text" onClick={onHub}>{t('player.learn.summary.hub')}</Button>
       </Inline>
     </Stack>

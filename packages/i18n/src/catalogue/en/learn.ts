@@ -1,7 +1,6 @@
 /** The player's Learn (#133, #136): the library, a book's hub, the drill, its verdict and summary, and the review. */
 export const playerLearn = {
   title: 'Learn',
-  empty: 'No sources yet.',
   academy: 'RIVR Academy levels',
   levels: { one: 'Level 1', two: 'Level 2', three: 'Level 3' },
   levelsSoon: 'Lessons and quizzes arrive with the Academy lessons.',
@@ -10,6 +9,7 @@ export const playerLearn = {
   by: 'by {author}',
   failed: 'Learn did not load.',
   unreadable: 'This title could not be opened. Ask the club to upload it again.',
+  missing: 'This title is not in your library.',
   hub: {
     due: 'Due now',
     mastery: 'Mastery',
@@ -20,7 +20,6 @@ export const playerLearn = {
     length: 'Spots',
     start: 'Start drill',
     review: 'Review',
-    back: 'Library',
   },
   spot: {
     progress: '{number} of {total}',
@@ -70,6 +69,7 @@ export const playerLearn = {
     heatmap: 'Accuracy by street and position',
     street: 'Street',
     empty: 'Answer some spots to see where you are strong and weak.',
+    cellDetail: '{right}/{total}',
     streets: { preflop: 'Preflop', flop: 'Flop', turn: 'Turn', river: 'River' },
     back: 'Back to the title',
   },

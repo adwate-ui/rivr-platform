@@ -47,7 +47,7 @@ function AnswerPad({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: PadAnswe
 /** One spot (#133): the table drawing, the spot in words for screen readers, the action so far, and the pad. */
 export function SpotView({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: PadAnswer) => void }) {
   const history = handHistory(spot.scenario);
-  const rows = history.rows.filter((row) => row.pending !== true);
+  const { rows } = history;
   return (
     <Stack gap={4}>
       <DrillTable seats={seatsOf(spot)} board={spot.scenario.board.map(cardLabel)} hole={spot.scenario.hole.map(cardLabel)}

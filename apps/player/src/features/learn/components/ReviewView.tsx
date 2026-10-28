@@ -1,6 +1,7 @@
 import { crosstab2, type AttemptRow, type MatrixCell } from '@rivr/drills';
 import { t } from '@rivr/i18n';
-import { Button, Heading, Heatmap, Stack, type HeatmapBand, type HeatmapRow } from '@rivr/ui';
+import { useFeature } from '@rivr/db';
+import { Button, FeatureGate, Heading, Heatmap, Stack, type HeatmapBand, type HeatmapRow } from '@rivr/ui';
 
 const STREETS = ['preflop', 'flop', 'turn', 'river'] as const;
 const POSITIONS = ['UTG', 'UTG1', 'UTG2', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
@@ -25,7 +26,10 @@ function heatmapOf(rows: readonly AttemptRow[]): { columns: string[]; rows: Heat
         const cell = cells.find((each) => each.row === street && each.column === column);
         if (cell === undefined) return null;
         const right = cell.attempts - cell.errors;
-        return { value: `${String(Math.round((right * 100) / cell.attempts))}%`, detail: `${String(right)}/${String(cell.attempts)}`, band: bandOf(cell) };
+        return {
+          value: t('player.learn.summary.accuracyValue', { percent: Math.round((right * 100) / cell.attempts) }),
+          detail: t('player.learn.review.cellDetail', { right, total: cell.attempts }), band: bandOf(cell),
+        };
       }),
     })),
   };
@@ -37,8 +41,10 @@ export function ReviewView({ rows, onBack }: { rows: readonly AttemptRow[]; onBa
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('player.learn.review.title')}</Heading>
-      <Heatmap label={t('player.learn.review.heatmap')} corner={t('player.learn.review.street')} columns={heatmap.columns} rows={heatmap.rows}
-        emptyText={t('player.learn.review.empty')} />
+      <FeatureGate access={useFeature('learn.review')}>
+        <Heatmap label={t('player.learn.review.heatmap')} corner={t('player.learn.review.street')} columns={heatmap.columns} rows={heatmap.rows}
+          emptyText={t('player.learn.review.empty')} />
+      </FeatureGate>
       <Button variant="secondary" onClick={onBack}>{t('player.learn.review.back')}</Button>
     </Stack>
   );

@@ -9,6 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
+const VERDICT = /^(Correct|Too loose|Too tight|Too passive|Too aggressive|Right action, wrong size|Right idea, wrong spot)$/;
 const EXAMPLE = join(import.meta.dirname, '..', '..', 'packages', 'drills', 'fixtures', 'example-encoding.json');
 
 /** The member's points on Rewards. */
@@ -24,6 +25,7 @@ async function answerSpot(member: Page, isLast: boolean) {
   const size = member.getByRole('group', { name: 'How much' });
   if (await size.count() > 0) await size.getByRole('button').first().click();
   await member.getByRole('button', { name: 'Answer' }).click();
+  await expect(member.getByRole('status').filter({ hasText: VERDICT })).toBeVisible();
   await member.getByRole('button', { name: isLast ? 'See summary' : 'Next spot' }).click();
 }
 
@@ -45,8 +47,10 @@ test.describe('Learn', () => {
     await expect(member.getByRole('heading', { name: 'RIVR Academy levels' })).toBeVisible();
     await member.getByRole('button', { name: 'Schema Demonstration' }).click();
     await expect(member.getByText('Due now')).toBeVisible({ timeout: 20_000 });
+    for (const tile of ['Mastery', 'Answered', 'Accuracy']) await expect(member.getByText(tile, { exact: true })).toBeVisible();
     await member.getByRole('group', { name: 'Spots' }).getByRole('button', { name: '10' }).click();
     await member.getByRole('button', { name: 'Start drill' }).click();
+    await expect(member.getByRole('heading', { name: 'Action so far' })).toBeVisible();
     for (let spot = 1; spot <= 10; spot += 1) await answerSpot(member, spot === 10);
     await expect(member.getByRole('heading', { name: 'Summary' })).toBeVisible();
     const earned = member.getByText('Points earned').locator('xpath=following-sibling::*[1]');

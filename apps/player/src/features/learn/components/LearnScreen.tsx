@@ -32,6 +32,7 @@ function LicensedTitles() {
 export function LearnScreen() {
   const navigate = useNavigate();
   const academy = useFeature('academy.booking');
+  const lessons = useFeature('learn.academy_lessons');
   return (
     <FeatureGate access={useFeature('learn.library')}>
       <Screen title={t('player.learn.title')}>
@@ -42,11 +43,13 @@ export function LearnScreen() {
               <Button variant="secondary" onClick={() => void navigate({ to: '/academy' })}>{t('player.academy.seeBatches')}</Button>
             </Stack>
           </FeatureGate>
-          <Stack gap={2}>
-            <Heading level={2}>{t('player.learn.academy')}</Heading>
-            {LEVELS.map((level) => <Text key={level}>{t(`player.learn.levels.${level}`)}</Text>)}
-            <Text variant="small" tone="muted">{t('player.learn.levelsSoon')}</Text>
-          </Stack>
+          <FeatureGate access={lessons}>
+            <Stack gap={2}>
+              <Heading level={2}>{t('player.learn.academy')}</Heading>
+              {LEVELS.map((level) => <Text key={level}>{t(`player.learn.levels.${level}`)}</Text>)}
+              <Text variant="small" tone="muted">{t('player.learn.levelsSoon')}</Text>
+            </Stack>
+          </FeatureGate>
           <Stack gap={3}>
             <Heading level={2}>{t('player.learn.licensed')}</Heading>
             <LicensedTitles />

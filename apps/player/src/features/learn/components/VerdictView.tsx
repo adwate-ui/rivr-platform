@@ -3,6 +3,11 @@ import { t } from '@rivr/i18n';
 import { Button, Heading, Stack, StatusMessage, Text } from '@rivr/ui';
 import type { Marked, PadAnswer, Spot } from '../drill.ts';
 
+/** Whose feedback it is: the book's, by its title, or RIVR Academy's when the engine wrote it (#136). */
+export function feedbackLabel(isAuthored: boolean, bookTitle: string): string {
+  return isAuthored ? bookTitle : t('player.learn.verdict.academyLabel');
+}
+
 /** An answer in words: "Raise · Large". */
 function said(answer: { action: Action; sizing?: SizingBucket | undefined }): string {
   const action = t(`player.learn.actions.${answer.action}`);
@@ -31,7 +36,7 @@ export function VerdictView({ spot, answer, marked, bookTitle, isLast, onNext }:
       <Text>{t('player.learn.verdict.youSaid', { answer: said(answer) })}</Text>
       <Text>{t('player.learn.verdict.bookSays', { answer: said(spot.resolution.outcome) })}</Text>
       <Stack gap={1}>
-        <Text variant="small" tone="muted">{marked.explanation.authored ? bookTitle : t('player.learn.verdict.academyLabel')}</Text>
+        <Text variant="small" tone="muted">{feedbackLabel(marked.explanation.authored, bookTitle)}</Text>
         <Text>{marked.explanation.text}</Text>
       </Stack>
       <Stack gap={1}>

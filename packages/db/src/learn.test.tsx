@@ -96,7 +96,7 @@ describe('the Learn library', () => {
     const { result } = renderHook(() => ({ library: useLearnLibrary(), encoding: useLearnEncoding(source), answers: useLearnAnswers('src_book') }), { wrapper });
     await waitFor(() => expect(result.current.library.data).toEqual([source]));
     await waitFor(() => expect(JSON.parse(result.current.encoding.data ?? '{}')).toEqual({ source: { id: 'src_book' } }));
-    await waitFor(() => expect(result.current.answers.data).toEqual([{ correct: true }]));
-    expect(calls.some((call) => call.url.includes('learn_attempt') && call.url.includes('source_key=eq.src_book'))).toBe(true);
+    await waitFor(() => expect(result.current.answers.data).toEqual({ total: 1, latest: [{ correct: true }] }));
+    expect(calls.some((call) => call.url.includes('learn_attempt') && call.url.includes('source_key=eq.src_book') && call.url.includes('order=answered_at.desc'))).toBe(true);
   });
 });
