@@ -17,6 +17,11 @@ describe('Grid', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(3);
   });
 
+  it('stacks into one column below 768 px, and holds its columns from there up', () => {
+    renderIn(<Grid columns={2} stackBelow="medium" aria-label="Form" as="ul"><li>Name</li></Grid>);
+    expect(screen.getByRole('list', { name: 'Form' })).toHaveClass('grid-cols-1', 'medium:grid-cols-2');
+  });
+
   it('takes a gap from the spacing scale', () => {
     renderIn(
       <Grid columns={2} gap={8} aria-label="Stats" as="ul">

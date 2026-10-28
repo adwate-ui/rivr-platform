@@ -95,4 +95,19 @@ describe('the setting keys', () => {
       expect(inDatabase.get(setting.key)).toEqual({ scope: setting.scope, schema: settingValueJsonSchema(setting) });
     }
   });
+
+  it('marks as super admin only exactly the keys the database guards, for adding and withdrawing alike', () => {
+    // A guard is a pair of triggers on public.setting: _set on adding a change, _removed on withdrawing one. The last
+    // definition of each wins.
+    const guards = new Map<string, string[]>();
+    for (const [, name = '', when = ''] of sql.matchAll(/create trigger (setting_[a-z_]+_(?:set|removed)) [\s\S]*?when \(([\s\S]*?)\)\s*execute/g)) {
+      guards.set(name, [...when.matchAll(/'([a-z_.]+)'/g)].map(([, key]) => key ?? '').sort());
+    }
+    const guarded = ['setting_control', 'setting_aml', 'setting_archive_recipient'].flatMap((guard) => {
+      expect([guard, guards.get(`${guard}_removed`)]).toEqual([guard, guards.get(`${guard}_set`)]);
+      return guards.get(`${guard}_set`) ?? [];
+    });
+    expect(guarded.length).toBeGreaterThan(0);
+    expect(SETTINGS.filter((setting) => 'superAdminOnly' in setting).map((setting) => setting.key).sort()).toEqual(guarded.sort());
+  });
 });

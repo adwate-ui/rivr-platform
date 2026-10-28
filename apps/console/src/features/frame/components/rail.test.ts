@@ -8,7 +8,7 @@ describe('the console rail and who may open each screen', () => {
   it('keeps a cashier out of admin screens, whether from the rail or by address', () => {
     const cashier = ROLE_PERMISSIONS.cashier;
     expect(items(cashier)).not.toEqual(expect.arrayContaining(['/staff']));
-    for (const admin of ['/staff', '/dealer-pins', '/kill-switch', '/rake', '/tablets', '/tvs', '/computers', '/academy']) {
+    for (const admin of ['/staff', '/dealer-pins', '/kill-switch', '/settings', '/tablets', '/tvs', '/computers', '/academy']) {
       expect(isAllowedAt(cashier, admin)).toBe(false);
     }
     expect(isAllowedAt(cashier, '/cage')).toBe(true);

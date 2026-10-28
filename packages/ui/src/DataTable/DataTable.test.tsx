@@ -196,4 +196,32 @@ describe('DataTable', () => {
       created.mockRestore();
     });
   });
+
+  it('names each column in its cells for a phone, where rows are cards, and leaves optional columns out there', () => {
+    type Row = { id: string; name: string; seat: number; note: string };
+    const rows: Row[] = [{ id: 'r1', name: 'Arjun Mehta', seat: 4, note: 'Regular' }];
+    renderIn(
+      <DataTable<Row> label="Players" rowKey={(row) => row.id} rows={rows} emptyText="None"
+        columns={[
+          { key: 'name', header: 'Player', cell: (row) => row.name },
+          { key: 'seat', header: 'Seat', cell: (row) => String(row.seat), align: 'end' },
+          { key: 'note', header: 'Note', cell: (row) => row.note, priority: 'optional' },
+        ]} />,
+    );
+    const [name, seat, note] = screen.getAllByRole('cell');
+    expect(name).not.toHaveAttribute('data-label');
+    expect(seat).toHaveAttribute('data-label', 'Seat');
+    expect(note).toHaveClass('hidden', 'medium:block');
+  });
+
+  it('opens a row from its title when rows open', async () => {
+    type Row = { id: string; name: string };
+    const onRowOpen = vi.fn();
+    renderIn(
+      <DataTable<Row> label="Members" rowKey={(row) => row.id} rows={[{ id: 'm1', name: 'Arjun Mehta' }]} emptyText="None"
+        columns={[{ key: 'name', header: 'Member', cell: (row) => row.name }]} onRowOpen={onRowOpen} />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Arjun Mehta' }));
+    expect(onRowOpen).toHaveBeenCalledWith({ id: 'm1', name: 'Arjun Mehta' });
+  });
 });

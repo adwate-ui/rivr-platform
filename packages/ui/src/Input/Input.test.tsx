@@ -102,4 +102,11 @@ describe('Input', () => {
     const { container } = renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('reads a unit after the value with the field, such as % for a rate', () => {
+    renderIn(<Input label="Rake rate" suffix="%" defaultValue="5" />);
+    const field = screen.getByRole('textbox', { name: 'Rake rate' });
+    expect(field).toHaveAccessibleDescription('%');
+    expect(screen.getByText('%')).toBeInTheDocument();
+  });
 });

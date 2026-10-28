@@ -66,6 +66,8 @@ export * from './InstallOffer/index.ts';
 // Navigation and shells
 export * from './BottomNav/index.ts';
 export * from './SideNav/index.ts';
+export * from './SplitView/index.ts';
+export * from './Tabs/index.ts';
 export * from './PinPad/index.ts';
 export * from './Keypad/index.ts';
 export * from './PlayerShell/index.ts';

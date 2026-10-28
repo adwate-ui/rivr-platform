@@ -46,7 +46,9 @@ src/
     cameras/          CCTV cameras for staff who manage devices: add one over a table, on the cage or elsewhere, retire one (/cameras, #122); Pot data, Incidents and the cage's receipt each have Playback (@rivr/ui's PlaybackLink)
     tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
     dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
-    tables/           each table type's rake now and changes from a time, scheduled and withdrawn (/rake)
+    settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
+                      each table type's rake, scheduled and withdrawn, in the Rake area (/rake leads there); the
+                      club's details and chips for super admins (/settings, #604)
     jackpots/         the jackpot's pools and payout rule, paying a bad beat in chips, and reversing a payout (/jackpots)
     high-hands/       high hands claimed on the tablets: approve and pay in chips, or reject; the history (/high-hands)
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)

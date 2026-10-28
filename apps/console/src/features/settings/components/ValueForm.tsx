@@ -3,9 +3,9 @@ import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver, type UseFormReturn } from 'react-hook-form';
-import { FieldInput, type FieldDraft } from './FieldInput.tsx';
+import { FieldInput } from './FieldInput.tsx';
 import { settingFailureText } from './settingsCopy.ts';
-import { draftsFrom, readValue } from './valueDraft.ts';
+import { draftsFrom, readValue, type FieldDraft } from './valueDraft.ts';
 
 type When = 'now' | 'date';
 
@@ -42,9 +42,10 @@ function resolverFor(setting: VenueSetting): Resolver<ValueFormValues, unknown, 
     const reason = values.reason.trim();
     const errors: FieldErrors<ValueFormValues> = {};
     if ('invalid' in read) errors.drafts = Object.fromEntries(read.invalid.map((name) => [name, { type: 'value', message: '' }]));
+    if ('notTogether' in read) errors.root = { together: { type: 'together', message: '' } };
     if (effectiveFrom === undefined) errors.date = { type: 'date', message: '' };
     if (reason === '' || reason.length > 200) errors.reason = { type: 'reason', message: '' };
-    if ('invalid' in read || effectiveFrom === undefined || errors.reason) return { values: {}, errors };
+    if (!('value' in read) || effectiveFrom === undefined || errors.reason) return { values: {}, errors };
     return { values: { value: read.value, effectiveFrom, reason }, errors: {} };
   };
 }
@@ -57,10 +58,10 @@ type Form = UseFormReturn<ValueFormValues, unknown, ValueFormOutput>;
 function SettingFields({ form, setting, tiers, onEdit }: { form: Form; setting: VenueSetting; tiers: ValueFormProps['tiers']; onEdit: () => void }) {
   const invalid = form.formState.errors.drafts ?? {};
   return (
-    <Grid columns={3} gap={4}>
+    <Grid columns={2} gap={4} stackBelow="medium">
       {setting.fields.map((field) => (
         <Controller key={field.name} control={form.control} name={draftPath(field.name)} render={({ field: draft }) => (
-          <FieldInput field={field} draft={draft.value} isInvalid={invalid[field.name] !== undefined} tiers={tiers}
+          <FieldInput settingKey={setting.key} field={field} draft={draft.value} isInvalid={invalid[field.name] !== undefined} tiers={tiers}
             onChange={(next) => { onEdit(); draft.onChange(next); }} />
         )} />
       ))}
@@ -116,6 +117,7 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers }: ValueFo
     <Stack gap={4}>
       <Heading level={3}>{t('console.settings.newValue')}</Heading>
       <SettingFields form={form} setting={setting} tiers={tiers} onEdit={() => setOutcome(null)} />
+      {form.formState.errors.root?.['together'] ? <ErrorMessage>{t('console.settings.notTogether')}</ErrorMessage> : null}
       <WhenField form={form} />
       <Input {...reason} label={t('console.settings.reason')} error={form.formState.errors.reason ? t('console.settings.invalidReason') : undefined} />
       <Inline gap={4}>

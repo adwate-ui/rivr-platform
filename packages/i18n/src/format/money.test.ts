@@ -60,8 +60,11 @@ describe('formatRupeesForFile', () => {
 });
 
 describe('formatRupeesForInput', () => {
-  it('gives whole rupees as a field holds them', () => {
+  it('gives rupees as a field holds them, with paise only when there are some', () => {
     expect(formatRupeesForInput(1_000_000n)).toBe('10000');
     expect(formatRupeesForInput(0n)).toBe('0');
+    expect(formatRupeesForInput(250_050n)).toBe('2500.50');
+    expect(formatRupeesForInput(250_005n)).toBe('2500.05');
+    expect(formatRupeesForInput(-150n)).toBe('-1.50');
   });
 });

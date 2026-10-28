@@ -4,6 +4,7 @@ import type { SettingScope } from '@rivr/contracts/settings';
 import { ruleAt } from '@rivr/domain/settings';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
+import type { Json } from './database.types.ts';
 import { toSettingFields, toSettingValue, type SettingField, type SettingValue } from './parse/settings.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -17,6 +18,8 @@ export interface SettingEntry {
   /** Null for a value in force since the venue opened (stored as -infinity). */
   readonly effectiveFrom: string | null;
   readonly reason: string | null;
+  /** Who set it: the staff member's name, or null for a value the venue opened with (#604). */
+  readonly createdBy: string | null;
 }
 
 /** A setting for one subject (a table type, tier, stake or role; empty for the venue): now, to come, and before. */
@@ -81,9 +84,15 @@ interface SettingRow {
   readonly value: SettingValue;
   readonly effectiveFrom: string | null;
   readonly reason: string | null;
+  readonly createdBy: string | null;
 }
 
-const toEntry = ({ id, value, effectiveFrom, reason }: SettingRow): SettingEntry => ({ settingId: id, value, effectiveFrom, reason });
+const toEntry = ({ id, value, effectiveFrom, reason, createdBy }: SettingRow): SettingEntry => ({ settingId: id, value, effectiveFrom, reason, createdBy });
+
+/** A value as the database stores it: a list field copied, as stored JSON is not read-only. */
+function toJson(value: SettingValue): Record<string, Json> {
+  return Object.fromEntries(Object.entries(value).map(([name, field]) => [name, typeof field === 'object' ? [...field] : field]));
+}
 
 /** The subjects of one key: those its scope offers, then any others its rows name (a table type since removed). */
 function subjectsOf(known: readonly Subject[], rows: readonly SettingRow[], now: Date): SettingSubjectRules[] {
@@ -101,7 +110,7 @@ function subjectsOf(known: readonly Subject[], rows: readonly SettingRow[], now:
 async function readSettings(client: RivrClient, venueId: string): Promise<VenueSettings> {
   const [keys, rows, types, tiers] = await Promise.all([
     client.from('setting_key').select('key, description, scope, value_schema').order('key'),
-    client.from('setting').select('id, key, subject, value, effective_from, reason').eq('venue_id', venueId),
+    client.from('setting').select('id, key, subject, value, effective_from, reason, creator:staff!created_by_staff_id(full_name)').eq('venue_id', venueId),
     client.from('table_type').select('code, name').eq('venue_id', venueId).order('small_blind_paise').order('name'),
     client.from('tier').select('id, name').eq('venue_id', venueId).order('rank'),
   ]);
@@ -116,7 +125,7 @@ async function readSettings(client: RivrClient, venueId: string): Promise<VenueS
   };
   const settingRows = (rows.data ?? []).map((row) => ({
     id: row.id, key: row.key, subject: row.subject, value: toSettingValue(row.value), reason: row.reason,
-    effectiveFrom: row.effective_from === '-infinity' ? null : row.effective_from,
+    effectiveFrom: row.effective_from === '-infinity' ? null : row.effective_from, createdBy: row.creator?.full_name ?? null,
   }));
   const now = new Date();
   const settings = (keys.data ?? []).map((definition) => ({
@@ -149,7 +158,7 @@ export function useSettingActions(venueId: string) {
     mutationFn: async (change: SettingChange): Promise<Result<null, SettingFailure>> => {
       // From now is by the database's clock (the column's default), which this device's may not match.
       const { error } = await client.from('setting').insert({
-        venue_id: venueId, key: change.key, subject: change.subject, value: change.value, reason: change.reason,
+        venue_id: venueId, key: change.key, subject: change.subject, value: toJson(change.value), reason: change.reason,
         ...(change.effectiveFrom === null ? {} : { effective_from: change.effectiveFrom }),
       });
       await reload();

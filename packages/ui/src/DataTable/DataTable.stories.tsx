@@ -87,3 +87,15 @@ export const LongText: Story = {
 
 /** Ten thousand rows: past 200, only the rows in view are drawn, so it scrolls smoothly (the @perf check). */
 export const ManyRows: Story = { args: { rows: markers(10_000), initialSort: { key: 'name', direction: 'ascending' } } };
+
+/** At a desk: a line per row under the column headers. */
+export const AtADesk: Story = { tags: ['viewport-console'] };
+
+/** On a phone each row is a card: the marker as its title, then each column named beside its value (#603). */
+export const OnAPhone: Story = { tags: ['viewport-phone'] };
+
+/** On a tablet held upright (768 px) rows are lines again. */
+export const OnAPortraitTablet: Story = { tags: ['viewport-portrait'] };
+
+/** Ten thousand rows as cards on a phone: still only the cards in view are drawn (the @perf check). */
+export const ManyRowsOnAPhone: Story = { ...ManyRows, tags: ['viewport-phone'] };

@@ -1,7 +1,7 @@
-/** The console's Pot data screen (#114, decision 0185): every hand by table, dealer, variant and period, for the super admin. */
+/** The console's Hands screen, once Pot data (#114, decision 0185): every hand by table, dealer, variant and period, for the super admin. */
 export const potData = {
   title: 'Hands',
-  notAllowed: 'Pot data is for the super admin.',
+  notAllowed: 'Hands are for the super admin.',
   /** The period: the club's days from and to, each 06:00 to 06:00 IST. */
   from: 'From',
   to: 'To',

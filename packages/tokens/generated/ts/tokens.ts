@@ -165,6 +165,10 @@ export const tokens = {
       "width": 1180,
       "height": 820
     },
+    "portrait": {
+      "width": 768,
+      "height": 1024
+    },
     "console": {
       "width": 1440,
       "height": 900
@@ -198,6 +202,7 @@ export const tokens = {
   },
   "breakpoint": {
     "phone": 390,
+    "medium": 768,
     "tablet": 1180,
     "console": 1440,
     "tv": 1920

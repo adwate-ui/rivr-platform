@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { en } from './catalogue/en/index.ts';
+import { settingKeys } from './catalogue/en/settingKeys.ts';
 
 const BANNED_WORDS = [
   'unlock', 'elevate', 'seamless', 'effortless', 'experience', 'journey', 'discover', 'explore',
@@ -20,7 +21,8 @@ function messages(node: object, prefix = ''): [string, string][] {
   });
 }
 
-const english = messages(en);
+// The setting names and help (#604) sit beside the catalogue, and keep its rules.
+const english = [...messages(en), ...messages(settingKeys, 'settingKeys')];
 
 describe('copy rules', () => {
   it.each(BANNED_WORDS)('never uses the banned word "%s"', (word) => {

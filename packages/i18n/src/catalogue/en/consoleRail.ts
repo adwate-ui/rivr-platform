@@ -23,7 +23,6 @@ export const rail = {
     tvs: 'TVs',
     computers: 'Computers',
     cameras: 'Cameras',
-    rake: 'Rake',
     hands: 'Hands',
     dealerPins: 'Dealer PINs',
     certification: 'Certification',
