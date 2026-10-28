@@ -4170,7 +4170,7 @@ isOneToOne: false
                   ]
                 },"public_venue_status": {
                   Row: {
-                    "is_frozen": boolean | null,"venue_id": string | null
+                    "is_frozen": boolean | null,"venue_id": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [
