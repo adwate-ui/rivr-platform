@@ -6,6 +6,7 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
+import { hostLapse } from './hostQueue.ts';
 import {
   accommodationHoursPerNight, cabMinimumVisits, learnDailyPointsCap, learnSessionPoints, pointsPerHour, pointsRewardsRakeShare, rakebackRate,
   reviewsGoogleUrl, spinBudget,
@@ -278,7 +279,7 @@ export const SETTINGS = [
   callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget,
+  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse,
 ] as const;
 
 /** A setting key declared in code. */

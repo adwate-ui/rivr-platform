@@ -1469,6 +1469,32 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"host_queue_item": {
+                  Row: {
+                    "churn_reason": string | null,"created_at": string,"handled_at": string | null,"handled_by_staff_id": string | null,"id": string,"last_visit_at": string,"member_id": string,"note": string | null,"offer": Json | null,"status": string,"updated_at": string,"venue_id": string,"visits": number,"won_back_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "churn_reason"?: string | null,"created_at"?: string,"handled_at"?: string | null,"handled_by_staff_id"?: string | null,"id"?: string,"last_visit_at": string,"member_id": string,"note"?: string | null,"offer"?: Json | null,"status"?: string,"updated_at"?: string,"venue_id": string,"visits": number,"won_back_at"?: string | null
+                  }
+                  Update: {
+                    "churn_reason"?: string | null,"created_at"?: string,"handled_at"?: string | null,"handled_by_staff_id"?: string | null,"id"?: string,"last_visit_at"?: string,"member_id"?: string,"note"?: string | null,"offer"?: Json | null,"status"?: string,"updated_at"?: string,"venue_id"?: string,"visits"?: number,"won_back_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "host_queue_item_handled_by_staff_id_venue_id_fkey"
+      columns: ["handled_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "host_queue_item_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"inbox_message": {
                   Row: {
                     "created_at": string,"id": string,"lead_id": string,"received_at": string,"source_id": string,"text": string,"updated_at": string,"venue_id": string
@@ -1795,6 +1821,26 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "learn_card_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"learn_lesson": {
+                  Row: {
+                    "asked": number,"completed_at": string,"correct": number,"created_at": string,"id": string,"member_id": string,"source_key": string,"unit_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "asked": number,"completed_at"?: string,"correct": number,"created_at"?: string,"id"?: string,"member_id": string,"source_key": string,"unit_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "asked"?: number,"completed_at"?: string,"correct"?: number,"created_at"?: string,"id"?: string,"member_id"?: string,"source_key"?: string,"unit_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learn_lesson_member_id_venue_id_fkey"
       columns: ["member_id","venue_id"]
 isOneToOne: false
       referencedRelation: "member"
@@ -4354,8 +4400,14 @@ isOneToOne: false
 "close_cage_shift":
 { Args: { "p_cash_paise": number,"p_counts": Json,"p_idempotency_key": string,"p_markers_paise": number,"p_receipts_paise": number,"p_venue_id": string }; Returns: string
                            },
+"close_host_item":
+{ Args: { "p_item_id": string }; Returns: undefined
+                           },
 "complete_export_archive":
 { Args: { "p_archive_id": string,"p_bytes": number,"p_sha256": string,"p_unread"?: (string)[] }; Returns: undefined
+                           },
+"complete_learn_lesson":
+{ Args: { "p_asked": number,"p_correct": number,"p_source_key": string,"p_unit_id": string }; Returns: undefined
                            },
 "complete_learn_session":
 { Args: { "p_principles": (string)[],"p_session_id": string }; Returns: number
@@ -4567,6 +4619,11 @@ isOneToOne: false
                            },
 "hold_drill":
 { Args: { "p_drill_id": string,"p_notes": string }; Returns: undefined
+                           },
+"host_queue":
+{ Args: { "p_venue_id": string }; Returns: {
+              "churn_reason": string,"full_name": string,"handled_at": string,"item_id": string,"last_visit_at": string,"member_id": string,"note": string,"offer": Json,"phone": string,"status": string,"visits": number
+            }[]
                            },
 "import_glaza_lines":
 { Args: { "p_lines": Json,"p_month": string,"p_venue_id": string }; Returns: string
@@ -4973,6 +5030,9 @@ isOneToOne: false
                            },
 "record_holding":
 { Args: { "p_basis_points": number,"p_effective_from": string,"p_note": string,"p_shareholder_id": string,"p_venue_id": string }; Returns: undefined
+                           },
+"record_host_contact":
+{ Args: { "p_churn_reason": string,"p_item_id": string,"p_note"?: string,"p_offer"?: Json }; Returns: undefined
                            },
 "record_inbox_messages":
 { Args: { "p_messages": Json,"p_venue_id": string }; Returns: number

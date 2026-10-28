@@ -18,6 +18,8 @@ export {
     type Finding, type FindingCode, type Severity, type StageNumber, type ValidationReport,
 } from './validator/report.ts';
 export { runHarness, type HarnessReport, type QuizResult } from './harness/quizHarness.ts';
+// A quiz hand as a spot the pad can show (#134's lessons ask the book's own hands).
+export { scenarioFromQuizHand } from './harness/parse/quizScenario.ts';
 
 // Cards.
 export {

@@ -1,0 +1,3653 @@
+{
+  "ontology_version": "2.0",
+  "source": {
+    "id": "src_read_hands",
+    "title": "How To Read Hands At No-Limit Hold'em",
+    "author": "Ed Miller",
+    "kind": "book",
+    "state": "draft",
+    "table_size": 9,
+    "bet_size_brackets": {
+      "small_max": 0.4,
+      "standard_max": 0.63
+    },
+    "quiz_pass_threshold": 0.7,
+    "state_changed_on": "2026-09-13"
+  },
+  "opponent_types": [
+    {
+      "id": "opp_nit",
+      "label": "The Nit",
+      "aliases": [
+        "Tight and passive player",
+        "Nitty player"
+      ],
+      "canonical_archetype": "nit",
+      "behavioural_tags": [
+        "primarily driven by the fear of losing their stack",
+        "folds to big bets even when suspecting a bluff",
+        "calling range is relatively strong, so calls carry information"
+      ]
+    },
+    {
+      "id": "opp_fish",
+      "label": "The Fish",
+      "aliases": [
+        "Bad player",
+        "Loose player"
+      ],
+      "canonical_archetype": "loose_passive",
+      "behavioural_tags": [
+        "primarily driven by the thrill of winning pots",
+        "calls with all sorts of hands hoping to get lucky",
+        "calls carry much less information than other types"
+      ]
+    },
+    {
+      "id": "opp_regular",
+      "label": "The Regular",
+      "aliases": [
+        "Solid player",
+        "Live cash-game regular",
+        "The shark in most home games"
+      ],
+      "canonical_archetype": "unknown",
+      "behavioural_tags": [
+        "plays a predictable game that makes reading their hands fairly easy",
+        "makes plenty of poor plays as a matter of habit",
+        "neither plays in constant fear nor chases longshots"
+      ]
+    }
+  ],
+  "range_sets": [
+    {
+      "id": "rs_nit_3bet",
+      "label": "The nit's 3-betting range at 1-2 (p.27)",
+      "hands": [
+        "AA-KK"
+      ]
+    },
+    {
+      "id": "rs_reraiser_p23",
+      "label": "The range he reraised with (p.23)",
+      "hands": [
+        "AA-TT",
+        "AKs-AQs",
+        "AKo-AQo"
+      ]
+    },
+    {
+      "id": "rs_suited_flush_range_p118",
+      "label": "Suited hands down to K5s, no suited three-gapper below Q8s, no ace (p.118)",
+      "hands": [
+        "KQs-K5s",
+        "QJs-Q8s",
+        "JTs-J8s",
+        "T9s-T7s",
+        "98s-96s",
+        "87s-85s",
+        "76s-74s",
+        "65s-63s",
+        "54s-52s",
+        "43s-42s",
+        "32s"
+      ]
+    },
+    {
+      "id": "rs_any_two_suited_and_any_ace_p165",
+      "label": "Any two suited cards, and any ace (p.165)",
+      "hands": [
+        "AA",
+        "A2s+",
+        "K2s+",
+        "Q2s+",
+        "J2s+",
+        "T2s+",
+        "92s+",
+        "82s+",
+        "72s+",
+        "62s+",
+        "52s+",
+        "42s+",
+        "32s",
+        "A2o+"
+      ]
+    }
+  ],
+  "source_units": [
+    {
+      "id": "unit_rh_player_types",
+      "label": "Player Types",
+      "order": 1,
+      "page_ref": "11-13"
+    },
+    {
+      "id": "unit_rh_principles",
+      "label": "The Three Principles Of Hand Reading",
+      "order": 2,
+      "page_ref": "14-16"
+    },
+    {
+      "id": "unit_rh_ranges",
+      "label": "Hand Ranges",
+      "order": 3,
+      "page_ref": "17-21"
+    },
+    {
+      "id": "unit_rh_combos",
+      "label": "Hand Combinations",
+      "order": 4,
+      "page_ref": "22-23"
+    },
+    {
+      "id": "unit_rh_preflop",
+      "label": "Preflop Hand Reading",
+      "order": 5,
+      "page_ref": "24-33"
+    },
+    {
+      "id": "unit_rh_flop",
+      "label": "Hand Reading On The Flop",
+      "order": 6,
+      "page_ref": "34-55"
+    },
+    {
+      "id": "unit_rh_turn",
+      "label": "Hand Reading On The Turn",
+      "order": 7,
+      "page_ref": "56-77"
+    },
+    {
+      "id": "unit_rh_river",
+      "label": "Hand Reading On The River",
+      "order": 8,
+      "page_ref": "78-87"
+    },
+    {
+      "id": "unit_rh_uncooperative",
+      "label": "When Your Opponents Don't Cooperate",
+      "order": 9,
+      "page_ref": "91-99"
+    },
+    {
+      "id": "unit_rh_no_bet",
+      "label": "When Don't They Bet?",
+      "order": 10,
+      "page_ref": "100-108"
+    },
+    {
+      "id": "unit_rh_getting_raised",
+      "label": "Getting Raised",
+      "order": 11,
+      "page_ref": "109-125"
+    },
+    {
+      "id": "unit_rh_discounting",
+      "label": "Discounting Hand Combos",
+      "order": 12,
+      "page_ref": "126-127"
+    },
+    {
+      "id": "unit_rh_polarized",
+      "label": "Polarized Hand Ranges",
+      "order": 13,
+      "page_ref": "128-134"
+    },
+    {
+      "id": "unit_rh_multiway",
+      "label": "Hand Reading In Multiway Pots",
+      "order": 14,
+      "page_ref": "135-139"
+    },
+    {
+      "id": "unit_rh_bayesian",
+      "label": "Profiling Players Using Bayesian Inference",
+      "order": 15,
+      "page_ref": "148-159"
+    },
+    {
+      "id": "unit_rh_concepts",
+      "label": "Quick Concepts And Key Points",
+      "order": 16,
+      "page_ref": "160-166"
+    }
+  ],
+  "principles": [
+    {
+      "id": "fold_to_a_nit_reraise_without_aces_or_kings",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_preflop",
+      "page_ref": "27",
+      "name": "Fold to a nit's reraise unless you hold aces or kings",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"It's not 100 percent, every time reliable, but it's true enough that you should simply fold when a nit 3-bets or 4-bets you unless you have AA or KK.\" (p.27). The range is the one the page prints for the nit in \"our live 9-handed $1-$2 game\": [AA-KK], with the note that \"Some might get frisky with QQ or AK\" — which is why the rule declines to say what to do INSIDE the range rather than inventing a call or a four-bet the page never gives. The sentence also covers a four-bet; that half is not encoded, because p.27 prints a 3-betting range [AA-KK] and no 4-betting range, and a four-bet spot at the depths the drill deals is not a hand the book contains.",
+      "feedback": {
+        "correct": "\"You should simply fold when a nit 3-bets or 4-bets you unless you have AA or KK\" (p.27). A nit reraising is the most reliable read in the book — their reraising range is [AA-KK].",
+        "too_loose": "This is the one spot the book calls almost perfectly readable. \"You gain more information from their calls than you would against other player types\" (p.11), and a nit's reraise is stronger still: [AA-KK].",
+        "too_aggressive": "Reraising a nit's reraise builds a pot against [AA-KK]. The page's instruction is to fold, not to contest it.",
+        "right_idea_wrong_spot": "The read is about a NIT's 3-bet or 4-bet. Against another type the page makes no such claim."
+      },
+      "rule": {
+        "kind": "range_lookup",
+        "situation": {
+          "street": "preflop",
+          "preflop_facing_state": [
+            "facing_3bet"
+          ],
+          "villain_types": [
+            "opp_nit"
+          ],
+          "stakes": [
+            "1/2"
+          ]
+        },
+        "range_set_id": "rs_nit_3bet",
+        "out_of_range": {
+          "action": "fold",
+          "sizing": "unspecified",
+          "feedback": {
+            "correct": "Fold. \"You should simply fold when a nit 3-bets or 4-bets you unless you have AA or KK\" (p.27)."
+          }
+        }
+      }
+    },
+    {
+      "id": "bet_rag_flops",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_flop",
+      "page_ref": "48",
+      "name": "Bet rag flops when the pot is small",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Tip No. 10. You should often bet rag flops. Your opponents won't give you much credit for hitting the little cards, but they will have missed with most of their ranges as well, and players tend to give up rather than play back.\" (p.48). The tip names no hand, so the rule is narrowed to the hands the reasoning is about — the ones that need the fold equity — rather than claiming every holding on every rag flop. The player count is the book's own distinction: p.138 endorses checking a miss in a five-handed pot, so this claim is scoped to the heads-up and three-way pots the chapter's own examples are played in.",
+      "feedback": {
+        "correct": "\"You should often bet rag flops\" (p.48). Your opponents \"will have missed with most of their ranges as well, and players tend to give up rather than play back.\"",
+        "too_passive": "\"You should often bet rag flops.\" Checking gives up the fold equity the tip is built on: \"players tend to give up rather than play back\" (p.48).",
+        "too_tight": "A rag flop misses their range more often than it misses yours. \"Your opponents won't give you much credit for hitting the little cards\" (p.48).",
+        "right_idea_wrong_spot": "Tip No. 10 is about RAG flops. On a board with broadway cards their range connects, and p.48's reasoning does not carry."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "board_require": [
+            "low"
+          ],
+          "hand_class_any": [
+            "no_pair",
+            "ace_high"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "player_count": [
+            "heads_up",
+            "three_way"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "bet",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "check_a_miss_in_a_multiway_pot",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_multiway",
+      "page_ref": "138",
+      "name": "Check when you miss in a multiway pot",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Most players tighten up their betting standards in multiway pots. Players who continuation bet nearly every heads-up flop will instead check when they miss in five-handed pots. Again, this is the correct adjustment to make.\" (p.138). The endorsement is explicit, which is what makes this an answer rather than a description. It is also the one claim in Parts I-II that restrains c-betting, and the player count is what separates it from Tip No. 10 on p.48.",
+      "feedback": {
+        "correct": "\"Players who continuation bet nearly every heads-up flop will instead check when they miss in five-handed pots. Again, this is the correct adjustment to make.\" (p.138).",
+        "too_aggressive": "Four opponents is four chances to have hit. \"Most players tighten up their betting standards in multiway pots\" — and p.138 calls that \"the correct adjustment to make.\"",
+        "too_loose": "Betting a miss into a multiway field prices in every pair and draw behind you. The book's endorsed adjustment is to check (p.138).",
+        "right_idea_wrong_spot": "This is the MULTIWAY adjustment. Heads-up, p.48's Tip No. 10 points the other way."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "hand_class_any": [
+            "no_pair"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "player_count": [
+            "multiway"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ],
+          "draw_class_exclude": [
+            "open_ended",
+            "flush_draw",
+            "combo_draw"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "barrel_an_overcard_only_on_a_dry_flop",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_turn",
+      "page_ref": "68-69, 75, 163",
+      "name": "An overcard is a barrelling card only where it misses their range",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "One rule, because the book states one rule and then splits it across three pages. p.68-69 is the qualification: \"a card can be scary only if it doesn't improve your opponent's hand … Count the strong fits and the weak fits. That will tell you which scare cards to bet and which ones should be scaring you.\" p.163 is the dry-flop case — on J♣7♦2♠, \"an overcard on the turn is nearly always a big underdog to have hit your opponent … Overcards are very often good barrelling cards.\" p.75 is the connected two-tone case — on Q♥J♣7♣, \"The ace, therefore, is a poor card to bluff. It improves a lot of your opponent's turn range.\" Encoded as two rules, the p.163 claim would fire on p.75's spot; the branch is the flop texture the two examples actually differ on.",
+      "feedback": {
+        "correct": "\"A card can be scary only if it doesn't improve your opponent's hand\" (p.68). The flop decides which kind of card this is.",
+        "too_aggressive": "\"It's easy to look at an ace on the turn and think, 'Ha, scare card! I bet.' But that's not enough. What if your opponent's range is rich with hands that are improved by the ace?\" (p.68).",
+        "too_passive": "On a dry flop the overcard misses them: after a flop call the range held 51 combos and only 12 of them contained the king — \"under 25 percent\" (p.163).",
+        "wrong_sizing": "The pages state no size for the barrel. What they state is whether to fire at all.",
+        "right_idea_wrong_spot": "The flop is the premise. A rainbow, disconnected flop and a connected two-tone one give the same overcard opposite meanings (pp.75, 163)."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "turn"
+          ],
+          "hand_class_any": [
+            "no_pair"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "node_path": [
+            "hero_flop_bet",
+            "villain_flop_call"
+          ],
+          "player_count": [
+            "heads_up"
+          ],
+          "runout_any": [
+            "overcard"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ],
+          "draw_class_exclude": [
+            "open_ended",
+            "flush_draw",
+            "combo_draw"
+          ]
+        },
+        "branches": [
+          {
+            "when": {
+              "board_require": [
+                "rainbow",
+                "disconnected"
+              ]
+            },
+            "then": {
+              "action": "bet",
+              "sizing": "unspecified",
+              "feedback": {
+                "correct": "Fire. On a dry flop \"an overcard on the turn is nearly always a big underdog to have hit your opponent. It's much more likely to be a scare card\" (p.163)."
+              }
+            }
+          },
+          {
+            "when": {
+              "board_require": [
+                "two_tone",
+                "connected"
+              ]
+            },
+            "then": {
+              "action": "check",
+              "sizing": "unspecified",
+              "feedback": {
+                "correct": "Give it up. On this flop the overcard \"improves a lot of your opponent's turn range\" — it is \"a poor card to bluff\" (p.75)."
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bluff_the_river_only_when_the_card_bricked",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_turn",
+      "page_ref": "63",
+      "name": "After your turn bluff is called, fire the river only if it bricked",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"You want to bluff most river cards, but not all of them. To decide whether to bluff a river card or not, count how many of the turn weak fits have improved. If few of them have improved, bluff. If many have improved, however, then you're toast, and you just have to give up (and eat the loss of your turn bet).\" (p.63). The engine cannot count a range's weak fits, so the branch is the observable the count is about: a card that completes a straight or a flush is the card those weak fits were drawing to, and a brick is not. The all-in size is the book's own model of the line — \"On the river you bet your last $150\" (p.62).",
+      "feedback": {
+        "correct": "\"You want to bluff most river cards, but not all of them\" (p.63). The card decides: the weak fits that called the turn were drawing, so a brick leaves them behind and a completed draw does not.",
+        "too_aggressive": "\"If many have improved, however, then you're toast, and you just have to give up (and eat the loss of your turn bet)\" (p.63). Firing into the card they were drawing to pays off the hand that got there.",
+        "too_passive": "Checking a brick wastes the turn bet you already made. \"Bluffing the turn and river\" beats \"bluffing just the turn\" by the book's own arithmetic — +$14 against -$70 (p.63).",
+        "wrong_sizing": "The book's model of this line is the stack: \"On the river you bet your last $150\" into $170 (p.62).",
+        "right_idea_wrong_spot": "This is the river after YOUR turn bluff was called. Without that turn bet there is nothing to follow through on."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "no_pair"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "node_path": [
+            "hero_flop_bet",
+            "villain_flop_call",
+            "hero_turn_bet",
+            "villain_turn_call"
+          ],
+          "player_count": [
+            "heads_up"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [
+          {
+            "when": {
+              "runout_any": [
+                "straight_completing",
+                "flush_completing",
+                "four_straight",
+                "four_flush"
+              ]
+            },
+            "then": {
+              "action": "check",
+              "sizing": "unspecified",
+              "feedback": {
+                "correct": "\"If many have improved, however, then you're toast, and you just have to give up (and eat the loss of your turn bet)\" (p.63). The card they were drawing to arrived."
+              }
+            }
+          }
+        ],
+        "default": {
+          "action": "bet",
+          "sizing": "all_in",
+          "feedback": {
+            "correct": "\"You want to bluff most river cards, but not all of them … If few of them have improved, bluff\" (p.63)."
+          }
+        }
+      }
+    },
+    {
+      "id": "fold_when_your_river_bet_gets_raised",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_getting_raised",
+      "page_ref": "42, 122-123",
+      "name": "Respect a raise of your river bet",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"So the general rule is to respect turn and river raises.\" (p.123), applied to the case the book works twice. p.42: \"This is a large raise, late in a hand, from a tight and passive player. He has the nuts. Period … the only thing you can do with the read in this case is to fold.\" p.122, after a $50 river bet into $240: \"If our opponent raises all-in, I'd tend to give him credit for having one of the 66 hands that beat us and lay down.\" Neither passage prints a hero hand, so the rule reads the one thing that always decides it — whether you hold the nuts — rather than a hand class the pages never state.",
+      "feedback": {
+        "correct": "\"The general rule is to respect turn and river raises\" (p.123). A big raise on the last street is the cleanest read in the book.",
+        "too_loose": "\"Small stakes players tend to be much less likely to bluff-raise the river than they are to bluff bet if you check\" (p.122). Paying it off calls the one range that is almost never bluffing.",
+        "too_passive": "Folding IS the play here. \"Unfortunately, the only thing you can do with the read in this case is to fold\" (p.42).",
+        "right_idea_wrong_spot": "This is about a raise of YOUR river bet. A river bet into you is a different question, worked on p.132."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "postflop_facing_state": [
+            "facing_raise"
+          ],
+          "villain_raise_size": [
+            "large",
+            "all_in"
+          ],
+          "relative_strength_any": [
+            "strong",
+            "medium",
+            "weak"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "fold",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "get_it_in_with_a_set_on_a_monotone_flop",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_getting_raised",
+      "page_ref": "113-115",
+      "name": "Get it in with a set on a monotone flop",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"The general rule when you have a set on a monotone flop is that it's right to get all the money in, whether you're calling the bet or raising all-in yourself. This is because there are usually nearly as many flush draws in your opponent's range as there are flushes. When you add in the other possible hands like two pair, overpairs, and top pairs as well as the odds the pot is laying, a set will nearly always be in fine shape.\" (p.115). The worked case is pp.112-114 on K♦J♦3♦: 45 made-flush combos against 37 bare-A♦ combos plus the pairs and two pairs, and \"since you're getting nearly 2-to-1 to call, and since well more than half the hand combos in your opponent's range are behind your set, this is an easy call.\"",
+      "feedback": {
+        "correct": "\"The general rule when you have a set on a monotone flop is that it's right to get all the money in\" (p.115).",
+        "too_tight": "The flush is not the only hand in their range. \"There are usually nearly as many flush draws in your opponent's range as there are flushes\" — and the pot odds do the rest (p.115).",
+        "too_passive": "A set on a monotone flop is a hand to play for stacks, \"whether you're calling the bet or raising all-in yourself\" (p.115).",
+        "wrong_sizing": "The money goes in. That is the claim — not a sizing question.",
+        "right_idea_wrong_spot": "This is a set on a MONOTONE flop. On a rainbow board the argument about flush draws in their range has nothing to bite on.",
+        "too_aggressive": "The money is going in either way here, so there is no such thing as overplaying it: \"it's right to get all the money in, whether you're calling the bet or raising all-in yourself\" (p.115). What the page rules out is folding, not aggression."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "hand_class_any": [
+            "set"
+          ],
+          "board_require": [
+            "monotone"
+          ],
+          "postflop_facing_state": [
+            "facing_bet",
+            "facing_raise"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [
+          {
+            "when": {
+              "postflop_facing_state": [
+                "facing_raise"
+              ]
+            },
+            "then": {
+              "action": "call",
+              "sizing": "unspecified",
+              "feedback": {
+                "correct": "Call. \"Well more than half the hand combos in your opponent's range are behind your set\" and the pot is laying you nearly 2-to-1 (p.114)."
+              }
+            }
+          },
+          {
+            "when": {
+              "postflop_facing_state": [
+                "facing_bet"
+              ]
+            },
+            "then": {
+              "action": "raise",
+              "sizing": "all_in",
+              "feedback": {
+                "correct": "Raise it in. The rule holds \"whether you're calling the bet or raising all-in yourself\" (p.115)."
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fold_top_pair_to_a_raise_on_a_dry_ace_flop",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_getting_raised",
+      "page_ref": "111-112",
+      "name": "Fold top pair to a raise on a dry ace-high flop",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Even with the fudge factor, A♠T♠ is likely well behind our opponent's hand range. Reraising the flop is suicidal, since nearly every hand we'd get it in against would have a big edge … Therefore we should fold to the flop raise.\" (p.112). The flop is what makes the read work: A♦K♠6♥ is \"an unusually dry flop. There are no flush draws, nor are there any open-ended straight draws\" (p.111), so a raise is not a draw and the raising range the page enumerates is all value. The author names the dependency himself: \"This is an exploitative fold. Its correctness depends on our assumption that our opponent will tend to raise the flop only with hands he would also call with.\"",
+      "feedback": {
+        "correct": "\"Therefore we should fold to the flop raise\" (p.112). On a dry ace-high flop a raise is not a draw, and top pair is behind nearly all of it.",
+        "too_loose": "Calling keeps you in against a range that has you crushed, and \"the most likely outcome by far if we call the flop is that we'd check and fold the turn\" (p.112).",
+        "too_aggressive": "\"Reraising the flop is suicidal, since nearly every hand we'd get it in against would have a big edge\" (p.112).",
+        "right_idea_wrong_spot": "The dryness is the premise. \"There are no flush draws, nor are there any open-ended straight draws\" (p.111) — on a wet board the raise could be a draw and the read does not hold."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "hand_class_any": [
+            "top_pair_good_kicker",
+            "top_pair_weak_kicker"
+          ],
+          "board_require": [
+            "ace_high",
+            "static"
+          ],
+          "postflop_facing_state": [
+            "facing_raise"
+          ],
+          "villain_types": [
+            "opp_regular"
+          ],
+          "node_path": [
+            "hero_preflop_raise",
+            "hero_flop_bet"
+          ],
+          "pot_type": [
+            "single_raised"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "fold",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "bet_small_with_the_bottom_of_a_straight_against_a_fish",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_river",
+      "page_ref": "82-84",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "name": "Bet small with the bottom end of a straight against a fish",
+      "rationale": "\"With the bottom end of the straight, you certainly wouldn't want to shove all-in. That bet size tends to fold out all the hands you beat while keeping in those that beat you\" (p.84). The two answers are the author's own, split on the only distinction the book's own vocabulary carries: \"It's a close decision. I'd tend to bet my hand for value (for about $200-$300) against a fish, while checking it against a more competent player.\" Both branches share the ceiling: \"Either way, a larger bet makes no sense because it folds out too many of the weak hands we need to keep in.\"",
+      "feedback": {
+        "correct": "\"I'd tend to bet my hand for value (for about $200-$300) against a fish\" (p.84) — small, because the point is to be called by the hands you beat.",
+        "wrong_sizing": "\"With the bottom end of the straight, you certainly wouldn't want to shove all-in. That bet size tends to fold out all the hands you beat while keeping in those that beat you\" (p.84). $200-$300 into a pot just over $1,250 is the band the page gives.",
+        "too_aggressive": "\"Either way, a larger bet makes no sense because it folds out too many of the weak hands we need to keep in\" (p.84).",
+        "too_passive": "Against a fish there is value to collect here: the page bets \"for about $200-$300\" (p.84).",
+        "right_idea_wrong_spot": "This is the BOTTOM end of the straight. With the nuts the same page bets $600, and shoves at $5,000 stacks (p.82)."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "straight"
+          ],
+          "relative_strength_any": [
+            "medium",
+            "weak"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "villain_types": [
+            "opp_fish"
+          ],
+          "pot_type": [
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "bet",
+          "sizing": "small"
+        }
+      }
+    },
+    {
+      "id": "check_the_bottom_of_a_straight_against_a_regular",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_river",
+      "page_ref": "82-84",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "name": "Check the bottom end of a straight against a regular",
+      "rationale": "\"With the bottom end of the straight, you certainly wouldn't want to shove all-in. That bet size tends to fold out all the hands you beat while keeping in those that beat you\" (p.84). The two answers are the author's own, split on the only distinction the book's own vocabulary carries: \"It's a close decision. I'd tend to bet my hand for value (for about $200-$300) against a fish, while checking it against a more competent player.\" Both branches share the ceiling: \"Either way, a larger bet makes no sense because it folds out too many of the weak hands we need to keep in.\"",
+      "feedback": {
+        "correct": "\"It's a close decision. I'd tend to bet my hand for value (for about $200-$300) against a fish, while checking it against a more competent player\" (p.84).",
+        "too_aggressive": "A competent player folds everything you beat and calls with everything that beats you. \"A larger bet makes no sense because it folds out too many of the weak hands we need to keep in\" (p.84).",
+        "too_loose": "Betting into a player who can fold the worse hands and raise the better ones is the losing half of this spot; p.84 checks it.",
+        "right_idea_wrong_spot": "Against a fish the same hand is a small value bet (p.84)."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "straight"
+          ],
+          "relative_strength_any": [
+            "medium",
+            "weak"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "villain_types": [
+            "opp_regular"
+          ],
+          "pot_type": [
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "check_the_turn_when_it_improves_the_range_behind_you",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_turn",
+      "page_ref": "64-65",
+      "name": "Check a turn that improves their range when they have position",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Because my opponent was a bit on the nitty side, had position on me, and caught a good turn card for his hand range, I probably should have checked the turn.\" (p.65). The three premises are the author's own and are named as the whole basis. On 9♦9♣5♦ with a 6♥ turn the weak fits \"have all improved on the turn\" and \"there are very few hands that my opponent would have called with on the flop that he's folding on this turn card\" — so the fold equity the flop bet had is gone, and the hand is a draw without one.",
+      "feedback": {
+        "correct": "\"I probably should have checked the turn\" (p.65) — out of position, against a nit, on a card that improved the very hands that called your flop bet.",
+        "too_aggressive": "\"Since my opponent is so likely to call the turn, even with my big flush draw I'm just throwing money away betting the turn and giving up on a blank river\" (p.65).",
+        "too_passive": "Checking IS the answer here.",
+        "right_idea_wrong_spot": "The premises are all three together: a nit, in position, on a card that helped their range. Change any one and p.65 does not decide it."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "turn"
+          ],
+          "hand_class_any": [
+            "no_pair"
+          ],
+          "draw_class_any": [
+            "flush_draw"
+          ],
+          "postflop_facing_state": [
+            "first_to_act"
+          ],
+          "villain_types": [
+            "opp_nit"
+          ],
+          "runout_any": [
+            "straight_completing"
+          ],
+          "node_path": [
+            "hero_flop_bet",
+            "villain_flop_call"
+          ],
+          "player_count": [
+            "heads_up"
+          ],
+          "pot_type": [
+            "single_raised"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "fold_a_bluff_catcher_to_a_third_barrel",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_polarized",
+      "page_ref": "128-132",
+      "name": "Fold a bluff catcher to the third barrel",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"At small stakes no-limit, players don't bluff enough. This goes double for the river. Therefore, when someone bets the river and you have a hand in the bluff-catching range, you usually have a clear fold.\" (p.132). The claim is about the small-stakes population, not about a player type, which is why the rule states none. The worked hand is pp.128-131: three streets of betting into you, 45 value combos against 23 busted ones, and \"for the purposes of deciding whether to call this river bet, all hands between AJ and 77 are roughly equal in value\" — a bluff catcher is whatever sits in that band, and the band is what three barrels leaves you holding.",
+      "feedback": {
+        "correct": "\"When someone bets the river and you have a hand in the bluff-catching range, you usually have a clear fold\" (p.132).",
+        "too_loose": "Three barrels is a value range. The page counts 45 combos of value against 23 busted draws, and \"at small stakes no-limit, players don't bluff enough. This goes double for the river\" (p.132).",
+        "too_passive": "Folding is the action. There is nothing passive about laying down a bluff catcher to the third barrel.",
+        "right_idea_wrong_spot": "The premise is three streets of betting. One bet on the river from a range that has checked before is not the same range."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "top_pair_good_kicker",
+            "top_pair_weak_kicker",
+            "two_pair"
+          ],
+          "postflop_facing_state": [
+            "facing_bet"
+          ],
+          "node_path": [
+            "villain_flop_bet",
+            "hero_flop_call",
+            "villain_turn_bet",
+            "hero_turn_call",
+            "villain_river_bet"
+          ],
+          "player_count": [
+            "heads_up"
+          ],
+          "pot_type": [
+            "limped",
+            "single_raised",
+            "three_bet"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "fold",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "fold_to_a_nit_who_fires_turn_and_river",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_no_bet",
+      "page_ref": "105",
+      "name": "Don't pay off nits",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"If your opponent were a nit who would rarely bluff both the turn and river, then after this action he likely would hold two pair (probably top two) or a set. Don't pay off nits.\" (p.105). The action the page means is its own: hero bet the flop, checked the turn, called a turn bet, and now faces a river bet. A nit who fires twice after that has a range the page names, and one pair is not in it.",
+      "feedback": {
+        "correct": "\"Don't pay off nits\" (p.105). A nit who bets the turn and the river \"likely would hold two pair (probably top two) or a set.\"",
+        "too_loose": "\"Nits are conservative. They are primarily driven by the fear of losing their stack\" (p.11). Two barrels from one is value, and one pair does not beat the range on p.105.",
+        "too_passive": "Folding is the instruction. \"Don't pay off nits.\"",
+        "right_idea_wrong_spot": "The read is about a NIT firing twice. The same line from a regular is the hand p.103-105 actually works, and the page reaches a different answer there."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "weak_pair",
+            "second_pair",
+            "top_pair_weak_kicker",
+            "top_pair_good_kicker",
+            "underpair"
+          ],
+          "postflop_facing_state": [
+            "facing_bet"
+          ],
+          "villain_types": [
+            "opp_nit"
+          ],
+          "node_path": [
+            "hero_flop_bet",
+            "villain_flop_call",
+            "hero_turn_check",
+            "villain_turn_bet",
+            "hero_turn_call",
+            "hero_river_check"
+          ],
+          "player_count": [
+            "heads_up"
+          ],
+          "pot_type": [
+            "single_raised"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "fold",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "fold_an_overpair_when_the_river_fills_the_straight",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_ranges",
+      "page_ref": "20-21",
+      "name": "Fold an overpair when the river fills the board's straight",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Would I call the river bet? I'd probably fold … I'd estimate that I'm beaten often enough that I should fold. Since I'm calling $40 to win $82, I have to win only one time in three to make the call worth it, but I don't think a regular is bluffing quite often enough in this situation to make it a good call.\" (pp.20-21). The regular checked the turn and then bet a river that put four to a straight out; of his turn range, seven hands \"make trips or a straight\", \"approximately 30 percent\" — and the rest of the range is the part that would have bet the turn.",
+      "feedback": {
+        "correct": "\"I'd estimate that I'm beaten often enough that I should fold\" (p.21). An overpair is a bluff catcher once the board can make a straight and they have bet it.",
+        "too_loose": "\"I don't think a regular is bluffing quite often enough in this situation to make it a good call\" (p.21) — even getting 2-to-1.",
+        "too_passive": "There is no passive option left: it is call or fold, and the page folds.",
+        "too_aggressive": "Raising turns an overpair into a bluff against a range that just represented a straight.",
+        "right_idea_wrong_spot": "The premise is the river card completing the board's straight after the turn checked through."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "overpair"
+          ],
+          "postflop_facing_state": [
+            "facing_bet"
+          ],
+          "villain_types": [
+            "opp_regular"
+          ],
+          "runout_any": [
+            "four_straight",
+            "straight_completing"
+          ],
+          "board_require": [
+            "straight_possible"
+          ],
+          "node_path": [
+            "hero_flop_bet",
+            "villain_flop_call",
+            "hero_turn_check",
+            "villain_turn_check",
+            "hero_river_check"
+          ],
+          "player_count": [
+            "heads_up"
+          ],
+          "pot_type": [
+            "limped"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "fold",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "bet_a_flush_draw_when_the_flop_checks_to_you",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_no_bet",
+      "page_ref": "102",
+      "name": "Bet a big flush draw when the flop is checked to you",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"For example, say someone open-raises from four off the button, a player holding J♥T♥ calls from the cutoff, and the small blind calls. The flop comes K♥8♥6♦. The small blind checks, and the raiser checks. I would expect many players to bet their flush draw (and here a bet is nearly mandatory), but some players will check.\" (p.102). The premise is the check-through: it puts the draw last to act with the pot unclaimed. The chapter’s wider point is that a player who checks a draw has told you something — \"In reality, betting and getting raised off a draw is a bad thing, but often the benefits of betting the draw outweigh the risks\" — and this spot is the case where the page stops hedging.",
+      "feedback": {
+        "correct": "\"Here a bet is nearly mandatory\" (p.102). Checked through to you with a big draw, in position: the pot is there and your hand improves on half the deck.",
+        "too_passive": "Checking behind takes a free card and gives up the pot everyone just declined. p.102 calls the bet \"nearly mandatory\".",
+        "too_tight": "A flush draw is not a hand you have to have hit to bet. \"Often the benefits of betting the draw outweigh the risks\" (p.102).",
+        "wrong_sizing": "The page states no size, only that the bet goes in.",
+        "right_idea_wrong_spot": "The premise is that it was CHECKED to you. Facing a bet, p.102 is about reading the checker’s draw, not about betting yours."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "hand_class_any": [
+            "no_pair"
+          ],
+          "draw_class_any": [
+            "flush_draw",
+            "combo_draw"
+          ],
+          "postflop_facing_state": [
+            "facing_check"
+          ],
+          "pot_type": [
+            "single_raised"
+          ],
+          "player_count": [
+            "three_way",
+            "multiway"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "bet",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "bet_a_full_house_on_a_four_flush_river",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_river",
+      "page_ref": "86-87",
+      "name": "Bet a full house when the river puts four to a flush out",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Obviously you are going to bet in this situation. Which size is most profitable?\" (p.87). The hand is Exercise No. 16: hero holds J♣J♠ on K♦J♦3♣3♦2♦, jacks full, with a fourth diamond on the river and the opponent checking. The page treats the bet as beyond argument and asks only about the size, which it never answers — so the rule states the action and leaves the size where the book left it.",
+      "feedback": {
+        "correct": "\"Obviously you are going to bet in this situation\" (p.87). Four to a flush on board scares the money, but a full house is not the hand that should be scared of it.",
+        "too_passive": "Checking a full house because the board looks frightening gives up the whole value of it. The page does not treat betting as a question (p.87).",
+        "wrong_sizing": "The page asks \"Which size is most profitable?\" and never answers it, so no size is claimed here.",
+        "right_idea_wrong_spot": "This is a FULL HOUSE on a four-flush river. With a flush or worse the same board is the reason to be careful, not the reason to bet."
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {
+          "street": [
+            "river"
+          ],
+          "hand_class_any": [
+            "full_house_plus"
+          ],
+          "runout_any": [
+            "four_flush"
+          ],
+          "postflop_facing_state": [
+            "first_to_act",
+            "facing_check"
+          ],
+          "pot_type": [
+            "single_raised"
+          ],
+          "player_count": [
+            "heads_up"
+          ]
+        },
+        "branches": [],
+        "default": {
+          "action": "bet",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_three_player_types",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_player_types",
+      "page_ref": "11-13",
+      "name": "Three player types, and the one the book refuses",
+      "confidence": "high",
+      "status": "active",
+      "drillable": false,
+      "rationale": "\"In this book we'll discuss hand reading against three specific player types\" (p.11): the Nit, \"primarily driven by the fear of losing their stack\"; the Fish, \"someone primarily driven by the thrill of winning pots\"; and the Regular, the \"'solid' players who fill out $1-$2, $2-$5, and $5-$10 games in cardrooms\". The fourth is named and then declined: \"There's another important player type that I'm avoiding in this book: The Tough Player … Learning to spar with these players is beyond the scope of this book\" (pp.12-13).",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_strong_and_weak_fits",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_flop",
+      "page_ref": "35-37",
+      "name": "Strong fits and weak fits",
+      "confidence": "high",
+      "status": "active",
+      "drillable": false,
+      "rationale": "The flop chapter's whole method: sort the hands that called into the ones that fit the board strongly and the ones that fit it weakly, and let the ratio decide what the bet is doing. \"If you are considering a bluff, you want to try it against a range heavy with weak fits\" (p.37). Encoded as a concept because the claim names no street, no hand and no board — it is the procedure the action rules are built out of, not itself an answer to a spot.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_overpair_rank_on_a_rag_flop",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_flop",
+      "page_ref": "47",
+      "name": "Which overpair you hold decides a rag-flop raise",
+      "confidence": "high",
+      "status": "active",
+      "drillable": false,
+      "rationale": "On 6♣5♥2♦ facing a raise, the book gives three different answers to three different overpairs: \"With 99 on this flop, I'd tend to fold to a raise, since that's 12 extra hand combos that now beat me\"; \"With KK, I'd be inclined to play for stacks since I could be getting it in good against all the lower overpairs\"; and with JJ \"it's a reasonably close decision between playing for stacks on the flop, folding on the flop, and calling the flop to get more information on the turn.\" A concept rather than a rule because the engine classifies 99, JJ and KK on that flop identically — all three are an overpair of strength `strong` — so the coordinate the author is deciding on does not exist here. Encoding any one of the three answers would apply it to the other two.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_muscle_rag_flops_by_the_river",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_concepts",
+      "page_ref": "163",
+      "name": "Rag flops produce few hands strong enough to call three streets",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": false,
+      "rationale": "\"Concept No. 4. Rag flops produce few hands strong enough to call three streets … When you get called on a flop like this one, your opponents' ranges will be heavy with mediocre holdings like 66, AQ, and sometimes even worse. Unless the board peels off something like 6-4 on the turn and river, you will frequently be able to muscle players off nearly their entire flop calling range by the river.\" (p.163). A concept because its two streets are already claimed by rules that say the same thing more narrowly — the turn barrel on p.163's own dry-flop terms and the river follow-through on p.63 — and a third rule over the same spots would answer them twice.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_bet_sizing_manipulates_ranges",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_river",
+      "page_ref": "80-82",
+      "name": "Your size chooses which hands call",
+      "confidence": "high",
+      "status": "active",
+      "drillable": false,
+      "rationale": "\"You can manipulate your opponents' hand ranges with your bet sizing. By betting a large amount, you can force your opponents to view certain hands differently than they would if you had bet a small amount\" (p.80) — $10 into $100 makes any pair of aces a value call, while $200 into $100 makes any one pair a bluff catcher. The choice between $600 and an all-in $1,175 on p.82 turns on a supposed calling model: \"Say you suspect that your opponent will call $600 with any two pair or better, but will call an all-in $1,175 bet only with a queen.\" That supposition is the premise, and it is not a coordinate the drill can state.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_value_bet_a_turn_that_misses_a_loose_range",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_getting_raised",
+      "page_ref": "120",
+      "name": "Bet the turn for value when the card misses their range",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": false,
+      "rationale": "\"The offsuit jack hits very few of the hands in this range. This is a range heavy in weaker aces and draws. Against a loose player, it's worth it to bet the turn to get these weaker hands to call.\" (p.120). A concept rather than a rule because the load-bearing premise is \"against a loose player\", and a loose-playing regular is not one of the three types the book defines — it is an adjective applied to one villain in one hand. Keying the rule on the regular type instead would widen the claim to every regular, which is the opposite of what the page says.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_check_raise_a_flat_call_in_the_pivot_seat",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_multiway",
+      "page_ref": "135-136",
+      "name": "A flat call with players behind discounts the monsters",
+      "confidence": "medium",
+      "status": "active",
+      "drillable": false,
+      "rationale": "\"I would expect almost all nits and regulars to raise with JJ, TT, 77, or JT … No one wants to flat call with their set only to see the 9♠ roll off on the turn\" (p.136), so a flat call directly behind the bettor with players still to act is a range missing its own best hands — \"This is a great situation to checkraise presuming the stacks are deep enough to allow for some fold equity.\" A concept because the page states no hero hand and quantifies no stack depth, and a postflop action rule that never examines the hand is exactly the failure the engine's own guard exists to catch.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "concept_bayesian_profiling",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_bayesian",
+      "page_ref": "148-159",
+      "name": "Profiling a stranger, one data point at a time",
+      "confidence": "high",
+      "status": "active",
+      "drillable": false,
+      "rationale": "Start from what the population does — \"nearly all of them don't bet or raise enough\" (p.150) — form a hypothesis about the player in front of you, and move your certainty with each hand you see: \"Score a point for loose-aggressive fish. Adjust your certainty upward\" (p.152). The chapter warns about the failure mode too: \"if you have someone pegged as loose-aggressive, you might not even notice if he goes a whole round without playing a hand\" (p.159). A concept because its premises are a player's history and the table's population, neither of which is a property of a hand.",
+      "feedback": {
+        "correct": "n/a — concept rule"
+      },
+      "rule": {
+        "kind": "predicate",
+        "situation": {},
+        "branches": [],
+        "default": {
+          "action": "check",
+          "sizing": "unspecified"
+        }
+      }
+    },
+    {
+      "id": "count_top_pair_or_better_in_a_reraising_range",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_combos",
+      "page_ref": "22-23",
+      "name": "Count top pair or better in a reraising range",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Say someone reraises preflop and you assign him the following hand range [AA-TT AKs-AQs AKo-AQo] The flop comes K♦9♦4♣. What percentage of the time does he have a pair of kings or better? … There are 27 combos of pocket pairs, 12 combos of AK, and 16 of AQ for 55 total hand combos. Of these, 21 make a pair of kings or better (AA, KK, AKs, and AKo). Thus, there is a 21/55 chance, or about 38 percent, that this player made a pair of kings or better.\" (p.23)",
+      "feedback": {
+        "correct": "\"There are 27 combos of pocket pairs, 12 combos of AK, and 16 of AQ for 55 total hand combos. Of these, 21 make a pair of kings or better\" (p.23).",
+        "too_few": "\"any suited hand can be made four ways, any pocket pair six ways, and any offsuit hand twelve ways\" (p.22).",
+        "too_many": "\"Once cards hit the board, these numbers change. The board cards can no longer appear in anyone's hand\" (p.22)."
+      },
+      "rule": {
+        "kind": "count",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "pot_type": [
+            "three_bet"
+          ],
+          "node_path": [
+            "villain_preflop_3bet"
+          ]
+        },
+        "range_set_id": "rs_reraiser_p23",
+        "dead_cards": "board",
+        "filter": {
+          "kind": "hand_class_min",
+          "hand_class": "top_pair_weak_kicker"
+        },
+        "prompt": "He reraised preflop with this range. On this flop, how many of those combinations make top pair or better?"
+      }
+    },
+    {
+      "id": "count_the_flushes_behind_a_monotone_flop_raise",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_getting_raised",
+      "page_ref": "118-119",
+      "name": "Count the flushes behind a monotone flop raise",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Even though there are 45 flush combos on any monotone flop, this particular flop removes many of those possible combos since it eliminates many suited connectors and one- and two-gappers. If we assume our opponent will slowplay the nut flush, and that our opponent will play down to K5s, but won't play suited three-gappers below Q8s, there are only 19 possible flush combos\" (p.118, on J♠9♠6♠). \"Compare this to a flop like J♠3♠2♠ where if we use the same criteria, we get 25 flush combos … In general, your opponents will have more possible flush combos on boards like J♠3♠2♠ with two or three low cards, fewer flush combos on boards like J♠9♠6♠ with three middle cards, and even fewer combos on boards like A♠Q♠8♠ with the ace on board and one or two other medium-high cards.\" (p.119)",
+      "feedback": {
+        "correct": "\"In general, your opponents will have more possible flush combos on boards like J♠3♠2♠ with two or three low cards, fewer flush combos on boards like J♠9♠6♠ with three middle cards\" (p.119).",
+        "too_few": "\"Compare this to a flop like J♠3♠2♠ where if we use the same criteria, we get 25 flush combos\" (p.119).",
+        "too_many": "\"Even though there are 45 flush combos on any monotone flop, this particular flop removes many of those possible combos since it eliminates many suited connectors and one- and two-gappers. If we assume our opponent will slowplay the nut flush … there are only 19 possible flush combos\" (p.118)."
+      },
+      "rule": {
+        "kind": "count",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "board_require": [
+            "monotone"
+          ],
+          "postflop_facing_state": [
+            "facing_raise"
+          ]
+        },
+        "range_set_id": "rs_suited_flush_range_p118",
+        "dead_cards": "board",
+        "filter": {
+          "kind": "hand_class_min",
+          "hand_class": "flush"
+        },
+        "prompt": "He raised this monotone flop. He plays suited hands down to K5s, no suited three-gapper below Q8s, and would slowplay the nut flush. How many flush combinations can he have?"
+      }
+    },
+    {
+      "id": "count_the_bare_ace_of_the_flush_suit",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_concepts",
+      "page_ref": "112-113, 165",
+      "name": "Count the bare ace of the flush suit",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Concept No. 7. On monotone flops (without an ace), loose players are roughly equally likely to hold a flush or the bare ace of the flush suit. The flop is K♥9♥6♥. Assuming your opponent plays any two suited cards and also plays any ace, there are 45 combos of the flush and 39 combos of A♥X (where X isn't a heart).\" (p.165) \"Of the 51 possible cards besides the A♦, 5 are now accounted for (three on the flop and two in your hand), leaving 46 possible hand combos including the A♦. Nine of these combos are suited aces which we counted already among the flushes. So there are 37 hand combos of the bare A♦.\" (p.113)",
+      "feedback": {
+        "correct": "\"On monotone flops (without an ace), loose players are roughly equally likely to hold a flush or the bare ace of the flush suit\" (p.165).",
+        "too_few": "\"Of the 51 possible cards besides the A♦, 5 are now accounted for (three on the flop and two in your hand)\" (p.113).",
+        "too_many": "\"Nine of these combos are suited aces which we counted already among the flushes. So there are 37 hand combos of the bare A♦\" (p.113)."
+      },
+      "rule": {
+        "kind": "count",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "board_require": [
+            "monotone"
+          ],
+          "board_exclude": [
+            "ace_high"
+          ],
+          "villain_types": [
+            "opp_fish"
+          ]
+        },
+        "range_set_id": "rs_any_two_suited_and_any_ace_p165",
+        "dead_cards": "hero",
+        "filter": {
+          "kind": "bare_ace_of_suit"
+        },
+        "prompt": "He plays any two suited cards and any ace. On this monotone flop, how many combinations hold the ace of the flop's suit and no second card of it?"
+      }
+    },
+    {
+      "id": "read_a_nit_flop_call_as_a_strong_or_weak_fit",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_flop",
+      "page_ref": "36-37, 44",
+      "name": "Read a nit's flop call as a strong or a weak fit",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Nits will typically fold pairs lower than kings to further betting while hanging on with top pair or better\" (p.36, on K♦8♠4♥). Strong fits: \"[AA-KK, 88, 44, AKs, KQs-KTs, AKo, KQo-KTo]\"; weak fits: \"[QQ-99, A8s, 98s-87s]\" (p.37). \"Tip No. 4. On a dry flop with one high card and two low ones, if a nit calls you on the flop he's more likely than not to have top pair or better.\" (p.37) \"But if a nit flops A♦8♠4♥ to his A♣3♣, it's a weak fit. Fearing a better kicker, nits will typically fold weak kicker aces to pressure on the turn … Use your judgement about how high a kicker a nit might need to consider a pair of aces a strong fit rather than a weak one.\" (p.44)",
+      "feedback": {
+        "correct": "\"A strong fit is a hand that your opponent is likely to call with again on the turn, and a weak fit is one that he's likely to fold to continued pressure\" (p.36).",
+        "wrong_label": "\"Nits will typically fold pairs lower than kings to further betting while hanging on with top pair or better\" (p.36)."
+      },
+      "rule": {
+        "kind": "classify",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "pot_type": [
+            "single_raised"
+          ],
+          "node_path": [
+            "hero_preflop_raise"
+          ],
+          "postflop_facing_state": [
+            "facing_check"
+          ],
+          "villain_types": [
+            "opp_nit"
+          ],
+          "board_require": [
+            "high",
+            "static",
+            "disconnected"
+          ],
+          "board_exclude": [
+            "broadway_heavy"
+          ]
+        },
+        "labels": [
+          {
+            "id": "strong_fit",
+            "label": "Strong fit"
+          },
+          {
+            "id": "weak_fit",
+            "label": "Weak fit"
+          }
+        ],
+        "perspective": "villain",
+        "prompt": "You bet and the nit calls. If this is his hand, is it a strong fit or a weak fit?",
+        "branches": [
+          {
+            "when": {
+              "hand_class_any": [
+                "two_pair",
+                "set",
+                "straight",
+                "flush",
+                "full_house_plus"
+              ]
+            },
+            "then": {
+              "label": "strong_fit"
+            }
+          },
+          {
+            "when": {
+              "hand_class_any": [
+                "overpair",
+                "top_pair_good_kicker"
+              ],
+              "board_exclude": [
+                "ace_high"
+              ]
+            },
+            "then": {
+              "label": "strong_fit"
+            }
+          },
+          {
+            "when": {
+              "hand_class_any": [
+                "second_pair"
+              ],
+              "board_exclude": [
+                "ace_high"
+              ]
+            },
+            "then": {
+              "label": "weak_fit"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "read_a_regular_flop_call_as_a_strong_or_weak_fit",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_flop",
+      "page_ref": "40-41, 45-46",
+      "name": "Read a regular's flop call as a strong or a weak fit",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "On K♦8♠4♥, strong fits: \"[44, KTs-K9s, KJo-K9o]\"; weak fits: \"[A4s, 98s-65s, T8s, 86s, J8s, A8o, A4o, 98o]\" (p.41). On A♦8♠4♥, strong fits: \"[44, A7s-A2s, A9o-A2o]\"; weak fits: \"[98s-65s, T8s, 86s, J8s, 98o]\". \"Regulars will also sometimes fold ace-rag to turn pressure, but they do so much less reliably than nits. So for these purposes I would consider even A2o to be a strong fit\" (p.46). \"Tip No. 9. When a regular calls your flop bet on a dry ace-high flop, you are very frequently looking at a pair of aces or better.\" (p.46)",
+      "feedback": {
+        "correct": "\"A strong fit is a hand that your opponent is likely to call with again on the turn, and a weak fit is one that he's likely to fold to continued pressure\" (p.36).",
+        "wrong_label": "\"If you count the hand combinations, the regular's flop calling range divides roughly equally into strong and weak fits\" (p.41)."
+      },
+      "rule": {
+        "kind": "classify",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "pot_type": [
+            "single_raised"
+          ],
+          "node_path": [
+            "hero_preflop_raise"
+          ],
+          "postflop_facing_state": [
+            "facing_check"
+          ],
+          "villain_types": [
+            "opp_regular"
+          ],
+          "board_require": [
+            "high",
+            "static",
+            "disconnected"
+          ],
+          "board_exclude": [
+            "broadway_heavy"
+          ]
+        },
+        "labels": [
+          {
+            "id": "strong_fit",
+            "label": "Strong fit"
+          },
+          {
+            "id": "weak_fit",
+            "label": "Weak fit"
+          }
+        ],
+        "perspective": "villain",
+        "prompt": "You bet and the regular calls. If this is his hand, is it a strong fit or a weak fit?",
+        "branches": [
+          {
+            "when": {
+              "hand_class_any": [
+                "top_pair_weak_kicker",
+                "top_pair_good_kicker",
+                "overpair",
+                "two_pair",
+                "set",
+                "straight",
+                "flush",
+                "full_house_plus"
+              ]
+            },
+            "then": {
+              "label": "strong_fit",
+              "feedback": {
+                "wrong_label": "\"So for these purposes I would consider even A2o to be a strong fit\" (p.46)."
+              }
+            }
+          },
+          {
+            "when": {
+              "hand_class_any": [
+                "second_pair"
+              ]
+            },
+            "then": {
+              "label": "weak_fit",
+              "feedback": {
+                "wrong_label": "\"And the weak fits. [A4s, 98s-65s, T8s, 86s, J8s, A8o, A4o, 98o]\" (p.41)."
+              }
+            }
+          },
+          {
+            "when": {
+              "hand_class_any": [
+                "no_pair",
+                "ace_high"
+              ],
+              "draw_class_any": [
+                "gutshot"
+              ]
+            },
+            "then": {
+              "label": "weak_fit",
+              "feedback": {
+                "wrong_label": "\"I included the gutshot hands (76s and 65s), but left out bottom pair, no kicker (54s). Some regulars would fold the gutshots and call with the pair.\" (p.40)"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "read_a_fish_flop_call_as_a_strong_or_weak_fit",
+      "source_id": "src_read_hands",
+      "source_unit_id": "unit_rh_flop",
+      "page_ref": "38-39",
+      "name": "Read a fish's flop call as a strong or a weak fit",
+      "confidence": "high",
+      "status": "active",
+      "drillable": true,
+      "rationale": "\"Most fish will call the flop with any pair … Finally, many fish would call a dry flop like this one with ace-high, two big unpaired cards, or possibly a couple of backdoor draws. I'd expect many fish to call this flop of K♦8♠4♥ with hands like A♦T♠\" (p.38). \"Breaking down the fish's flop calling range into strong fits and weak fits isn't as straightforward as it was with the nit. Obviously top pair and better will be strong fits. No pair, no good draw hands are weak fits. The smaller pairs, however, are player-dependent.\" (p.39)",
+      "feedback": {
+        "correct": "\"A strong fit is a hand that your opponent is likely to call with again on the turn, and a weak fit is one that he's likely to fold to continued pressure\" (p.36).",
+        "wrong_label": "\"Obviously top pair and better will be strong fits. No pair, no good draw hands are weak fits\" (p.39)."
+      },
+      "rule": {
+        "kind": "classify",
+        "situation": {
+          "street": [
+            "flop"
+          ],
+          "pot_type": [
+            "single_raised"
+          ],
+          "node_path": [
+            "hero_preflop_raise"
+          ],
+          "postflop_facing_state": [
+            "facing_check"
+          ],
+          "villain_types": [
+            "opp_fish"
+          ],
+          "board_require": [
+            "high",
+            "static",
+            "disconnected"
+          ],
+          "board_exclude": [
+            "broadway_heavy"
+          ]
+        },
+        "labels": [
+          {
+            "id": "strong_fit",
+            "label": "Strong fit"
+          },
+          {
+            "id": "weak_fit",
+            "label": "Weak fit"
+          }
+        ],
+        "perspective": "villain",
+        "prompt": "You bet and the fish calls. If this is his hand, is it a strong fit or a weak fit?",
+        "branches": [
+          {
+            "when": {
+              "hand_class_any": [
+                "top_pair_weak_kicker",
+                "top_pair_good_kicker",
+                "overpair",
+                "two_pair",
+                "set",
+                "straight",
+                "flush",
+                "full_house_plus"
+              ]
+            },
+            "then": {
+              "label": "strong_fit"
+            }
+          },
+          {
+            "when": {
+              "hand_class_any": [
+                "ace_high"
+              ],
+              "draw_class_exclude": [
+                "gutshot",
+                "open_ended",
+                "flush_draw",
+                "combo_draw"
+              ]
+            },
+            "then": {
+              "label": "weak_fit"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "quiz_hands": [
+    {
+      "id": "rh_ranges_1",
+      "source_id": "src_read_hands",
+      "page_ref": "17-21",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_cards": [
+          "Ah",
+          "Ad"
+        ],
+        "board": [
+          "Qd",
+          "Td",
+          "9s",
+          "2c",
+          "8c"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "hero_turn_check",
+          "villain_turn_check",
+          "hero_river_check",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "hero_position": "BB",
+        "pot_type": "limped",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "action": "fold",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_ranges_2",
+      "source_id": "src_read_hands",
+      "page_ref": "53-54",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 180,
+        "hero_position": "SB",
+        "hero_cards": [
+          "Jh",
+          "Jd"
+        ],
+        "board": [
+          "Tc",
+          "9h",
+          "7s",
+          "2s",
+          "Qh"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "villain_preflop_raise",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "hero_turn_bet",
+          "villain_turn_call"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "three_bet",
+        "player_count": "heads_up",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "small"
+      }
+    },
+    {
+      "id": "rh_flop_1",
+      "source_id": "src_read_hands",
+      "page_ref": "47",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "hero_cards": [
+          "Jh",
+          "Jd"
+        ],
+        "board": [
+          "6c",
+          "5h",
+          "2d"
+        ],
+        "action_log": [
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "postflop_facing_state": "facing_raise"
+      },
+      "indeterminate": true,
+      "indeterminate_reason": "p.47: \"With JJ, it's a reasonably close decision between playing for stacks on the flop, folding on the flop, and calling the flop to get more information on the turn.\" Three lines are named and none is chosen."
+    },
+    {
+      "id": "rh_turn_1",
+      "source_id": "src_read_hands",
+      "page_ref": "64-65",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_cards": [
+          "Kd",
+          "Jd"
+        ],
+        "board": [
+          "9d",
+          "9c",
+          "5d",
+          "6h"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_call"
+        ],
+        "villain_notes": "opp_nit",
+        "villain_type_id": "opp_nit",
+        "villain_position": "BTN",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "action": "check",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_river_1",
+      "source_id": "src_read_hands",
+      "page_ref": "80-82",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 360,
+        "hero_cards": [
+          "Kc",
+          "Qd"
+        ],
+        "board": [
+          "Jh",
+          "Th",
+          "2s",
+          "8s",
+          "9c"
+        ],
+        "action_log": [
+          "villain_preflop_raise",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_check",
+          "hero_turn_bet",
+          "villain_turn_call",
+          "villain_river_check"
+        ],
+        "villain_notes": "A loose and aggressive regular who plays a large number of hands and raises nearly every one of them (p.80). The book's three types do not carry that description, so no villain_type_id is claimed.",
+        "hero_position": "BTN",
+        "pot_type": "three_bet",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "medium"
+      }
+    },
+    {
+      "id": "rh_river_2",
+      "source_id": "src_read_hands",
+      "page_ref": "83-84",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 235,
+        "hero_cards": [
+          "Ac",
+          "7d"
+        ],
+        "board": [
+          "Jh",
+          "Th",
+          "2s",
+          "8s",
+          "9c"
+        ],
+        "action_log": [
+          "villain_preflop_raise",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_check",
+          "hero_turn_bet",
+          "villain_turn_call",
+          "villain_river_check"
+        ],
+        "villain_notes": "A loose and aggressive regular (p.80), which is neither of the two types the p.84 verdict splits on.",
+        "hero_position": "BTN",
+        "pot_type": "three_bet",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_check"
+      },
+      "indeterminate": true,
+      "indeterminate_reason": "p.84: \"It's a close decision. I'd tend to bet my hand for value (for about $200-$300) against a fish, while checking it against a more competent player.\" The villain in this hand is described as a loose and aggressive regular, which is neither branch, so the page gives no answer for the player actually at the table."
+    },
+    {
+      "id": "rh_river_3",
+      "source_id": "src_read_hands",
+      "page_ref": "86-87",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 500,
+        "hero_cards": [
+          "Jc",
+          "Js"
+        ],
+        "board": [
+          "Kd",
+          "Jd",
+          "3c",
+          "3d",
+          "2d"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "villain_preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_check",
+          "hero_turn_bet",
+          "villain_turn_call",
+          "villain_river_check"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_getting_raised_1",
+      "source_id": "src_read_hands",
+      "page_ref": "111-112",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "effective_stack_bb": 100,
+        "hero_cards": [
+          "As",
+          "Ts"
+        ],
+        "board": [
+          "Ad",
+          "Ks",
+          "6h"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "villain_position": "BTN",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "standard"
+      },
+      "author_answer": {
+        "action": "fold",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_getting_raised_2",
+      "source_id": "src_read_hands",
+      "page_ref": "112-114",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "effective_stack_bb": 150,
+        "hero_cards": [
+          "3s",
+          "3c"
+        ],
+        "board": [
+          "Kd",
+          "Jd",
+          "3d"
+        ],
+        "action_log": [
+          "villain_preflop_raise",
+          "preflop_call",
+          "hero_preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "opp_fish",
+        "villain_type_id": "opp_fish",
+        "hero_position": "BTN",
+        "pot_type": "single_raised",
+        "player_count": "multiway",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_getting_raised_3",
+      "source_id": "src_read_hands",
+      "page_ref": "120-122",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "effective_stack_bb": 150,
+        "hero_cards": [
+          "Ad",
+          "Ks"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jh",
+          "Tc"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "hero_turn_bet",
+          "villain_turn_call",
+          "hero_river_bet",
+          "villain_river_raise"
+        ],
+        "villain_notes": "A loose-playing regular (p.120). The book's three types do not carry that description, so no villain_type_id is claimed.",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "author_answer": {
+        "action": "fold",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_polarized_1",
+      "source_id": "src_read_hands",
+      "page_ref": "128-132",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 140,
+        "hero_cards": [
+          "Ad",
+          "Jd"
+        ],
+        "board": [
+          "Jc",
+          "Tc",
+          "6s",
+          "8d",
+          "8h"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "villain_preflop_raise",
+          "hero_preflop_call",
+          "preflop_call",
+          "flop_check",
+          "villain_flop_bet",
+          "hero_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "A fairly tight and aggressive regular (p.128). The adjective is the page's, not a type the book defines.",
+        "hero_position": "BTN",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "action": "fold",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_count_23",
+      "source_id": "src_read_hands",
+      "page_ref": "23",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "board": [
+          "Kd",
+          "9d",
+          "4c"
+        ],
+        "action_log": [
+          "villain_preflop_3bet"
+        ],
+        "pot_type": "three_bet"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 21
+      }
+    },
+    {
+      "id": "rh_count_118",
+      "source_id": "src_read_hands",
+      "page_ref": "118",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "board": [
+          "Js",
+          "9s",
+          "6s"
+        ],
+        "postflop_facing_state": "facing_raise"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 19
+      }
+    },
+    {
+      "id": "rh_count_119",
+      "source_id": "src_read_hands",
+      "page_ref": "119",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "board": [
+          "Js",
+          "3s",
+          "2s"
+        ],
+        "postflop_facing_state": "facing_raise"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 25
+      }
+    },
+    {
+      "id": "rh_count_113",
+      "source_id": "src_read_hands",
+      "page_ref": "112-113",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "effective_stack_bb": 150,
+        "hero_cards": [
+          "3s",
+          "3c"
+        ],
+        "board": [
+          "Kd",
+          "Jd",
+          "3d"
+        ],
+        "action_log": [
+          "villain_preflop_raise",
+          "preflop_call",
+          "hero_preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "opp_fish",
+        "villain_type_id": "opp_fish",
+        "hero_position": "BTN",
+        "pot_type": "single_raised",
+        "player_count": "multiway",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 37
+      }
+    },
+    {
+      "id": "rh_count_165",
+      "source_id": "src_read_hands",
+      "page_ref": "165",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "board": [
+          "Kh",
+          "9h",
+          "6h"
+        ],
+        "villain_type_id": "opp_fish",
+        "villain_notes": "opp_fish"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 39
+      }
+    },
+    {
+      "id": "rh_fit_37_nit_kq",
+      "source_id": "src_read_hands",
+      "page_ref": "36-37",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Kh",
+          "Qc"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_nit",
+        "villain_notes": "opp_nit",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "strong_fit"
+      }
+    },
+    {
+      "id": "rh_fit_37_nit_aa",
+      "source_id": "src_read_hands",
+      "page_ref": "36-37",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Ah",
+          "Ac"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_nit",
+        "villain_notes": "opp_nit",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "strong_fit"
+      }
+    },
+    {
+      "id": "rh_fit_37_nit_98",
+      "source_id": "src_read_hands",
+      "page_ref": "36-37",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "9h",
+          "8h"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_nit",
+        "villain_notes": "opp_nit",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "weak_fit"
+      }
+    },
+    {
+      "id": "rh_fit_41_reg_k9",
+      "source_id": "src_read_hands",
+      "page_ref": "40-41",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Kh",
+          "9c"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_regular",
+        "villain_notes": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "strong_fit"
+      }
+    },
+    {
+      "id": "rh_fit_41_reg_98",
+      "source_id": "src_read_hands",
+      "page_ref": "40-41",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "9h",
+          "8c"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_regular",
+        "villain_notes": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "weak_fit"
+      }
+    },
+    {
+      "id": "rh_fit_41_reg_76",
+      "source_id": "src_read_hands",
+      "page_ref": "40-41",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "7h",
+          "6h"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_regular",
+        "villain_notes": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "weak_fit"
+      }
+    },
+    {
+      "id": "rh_fit_46_reg_a2",
+      "source_id": "src_read_hands",
+      "page_ref": "45-46",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Ah",
+          "2c"
+        ],
+        "board": [
+          "Ad",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_regular",
+        "villain_notes": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "strong_fit"
+      }
+    },
+    {
+      "id": "rh_fit_46_reg_t8",
+      "source_id": "src_read_hands",
+      "page_ref": "45-46",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Th",
+          "8h"
+        ],
+        "board": [
+          "Ad",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_regular",
+        "villain_notes": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "weak_fit"
+      }
+    },
+    {
+      "id": "rh_fit_39_fish_at",
+      "source_id": "src_read_hands",
+      "page_ref": "38-39",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Ad",
+          "Ts"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_fish",
+        "villain_notes": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "weak_fit"
+      }
+    },
+    {
+      "id": "rh_fit_39_fish_kq",
+      "source_id": "src_read_hands",
+      "page_ref": "38-39",
+      "provenance": {
+        "kind": "worked_example",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "1/2",
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Kh",
+          "Qc"
+        ],
+        "board": [
+          "Kd",
+          "8s",
+          "4h"
+        ],
+        "action_log": [
+          "villain_preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "villain_preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "flop_check"
+        ],
+        "villain_type_id": "opp_fish",
+        "villain_notes": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "kind": "classify",
+        "label": "strong_fit"
+      }
+    },
+    {
+      "id": "rh_p3_h1_river",
+      "source_id": "src_read_hands",
+      "page_ref": "169-171",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 120,
+        "hero_cards": [
+          "Ad",
+          "Ac"
+        ],
+        "board": [
+          "Kh",
+          "8h",
+          "5c",
+          "7s",
+          "Jc"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_check",
+          "hero_turn_bet",
+          "villain_turn_call",
+          "villain_river_check"
+        ],
+        "villain_notes": "A loose regular (p.169), which is not one of the three types the book defines. The page says he calls from the small blind and then p.170 calls him the big blind; the stated $80 pot fits the small blind. Recorded as printed, not resolved.",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h2_flop",
+      "source_id": "src_read_hands",
+      "page_ref": "172",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 120,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Js",
+          "Ts"
+        ],
+        "board": [
+          "Kd",
+          "9d",
+          "8s"
+        ],
+        "action_log": [
+          "villain_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "hero_preflop_call",
+          "villain_flop_bet"
+        ],
+        "villain_notes": "opp_nit",
+        "villain_type_id": "opp_nit",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h2_river",
+      "source_id": "src_read_hands",
+      "page_ref": "173-174",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 120,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Js",
+          "Ts"
+        ],
+        "board": [
+          "Kd",
+          "9d",
+          "8s",
+          "Tc",
+          "5d"
+        ],
+        "action_log": [
+          "villain_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "hero_preflop_call",
+          "villain_flop_bet",
+          "hero_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_nit. Hero’s turn call is not stated in words on p.172; it is implied by the printed $347 river pot, and is recorded here because the board and pot require it.",
+        "villain_type_id": "opp_nit",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "indeterminate": true,
+      "indeterminate_reason": "p.173: \"Given everything, I would consider bluff-raising this river.\" The raise is only considered. What the page states firmly is the rejection of a call — \"Calling with the pair of tens is right out\" — and p.174 leaves the size open: \"It’s also not required to shove if you want to bluff.\""
+    },
+    {
+      "id": "rh_p3_h3_flop",
+      "source_id": "src_read_hands",
+      "page_ref": "174-175",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "hero_cards": [
+          "4c",
+          "4s"
+        ],
+        "board": [
+          "Kh",
+          "Th",
+          "8s"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call"
+        ],
+        "villain_notes": "Two tight regulars (p.174), an adjective rather than one of the book’s three types. This is the only hand in Part III that states no stack size, so effective_stack_bb is omitted.",
+        "pot_type": "single_raised",
+        "player_count": "multiway",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "action": "check",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h4_flop",
+      "source_id": "src_read_hands",
+      "page_ref": "175, 178",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "CO",
+        "hero_cards": [
+          "Tc",
+          "9c"
+        ],
+        "board": [
+          "8d",
+          "8s",
+          "7d"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check"
+        ],
+        "villain_notes": "Two opponents to the flop — a fish and a loose regular (p.175) — so no single villain type is claimed here.",
+        "pot_type": "single_raised",
+        "player_count": "multiway",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "medium"
+      }
+    },
+    {
+      "id": "rh_p3_h4_turn",
+      "source_id": "src_read_hands",
+      "page_ref": "176",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "CO",
+        "hero_cards": [
+          "Tc",
+          "9c"
+        ],
+        "board": [
+          "8d",
+          "8s",
+          "7d",
+          "Th"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_check"
+        ],
+        "villain_notes": "opp_fish",
+        "villain_type_id": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h4_river",
+      "source_id": "src_read_hands",
+      "page_ref": "177",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "CO",
+        "hero_cards": [
+          "Tc",
+          "9c"
+        ],
+        "board": [
+          "8d",
+          "8s",
+          "7d",
+          "Th",
+          "Ah"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_check",
+          "hero_turn_bet",
+          "villain_turn_call",
+          "villain_river_check"
+        ],
+        "villain_notes": "opp_fish",
+        "villain_type_id": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_check"
+      },
+      "author_answer": {
+        "action": "check",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h5_flop",
+      "source_id": "src_read_hands",
+      "page_ref": "178-180",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 60,
+        "hero_cards": [
+          "Ks",
+          "Jd"
+        ],
+        "board": [
+          "Kh",
+          "Th",
+          "5c"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "A loose-aggressive regular in the big blind (p.178), not one of the book’s three types. The verdict adds a trait beyond the label: \"Against a loose-aggressive player who would shove a flush draw, this is a call.\"",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h5_flop_ak",
+      "source_id": "src_read_hands",
+      "page_ref": "180",
+      "provenance": {
+        "kind": "held_out",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 60,
+        "hero_cards": [
+          "As",
+          "Kd"
+        ],
+        "board": [
+          "Kh",
+          "Th",
+          "5c"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "Same spot as p.178, with the holding the author substitutes: \"AK is a snap call\". The page names the ranks only; the suits are the transcriber’s, chosen to add no flush draw the author did not state.",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h5_flop_kq",
+      "source_id": "src_read_hands",
+      "page_ref": "180",
+      "provenance": {
+        "kind": "held_out",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 60,
+        "hero_cards": [
+          "Kd",
+          "Qs"
+        ],
+        "board": [
+          "Kh",
+          "Th",
+          "5c"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "Same spot as p.178: \"KQ is also a clear call.\" Ranks are the author’s, suits the transcriber’s.",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h5_flop_k9",
+      "source_id": "src_read_hands",
+      "page_ref": "180",
+      "provenance": {
+        "kind": "held_out",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 60,
+        "hero_cards": [
+          "Kd",
+          "9s"
+        ],
+        "board": [
+          "Kh",
+          "Th",
+          "5c"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_raise"
+        ],
+        "villain_notes": "Same spot as p.178. Ranks are the author’s, suits the transcriber’s.",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_raise",
+        "villain_raise_size": "all_in"
+      },
+      "indeterminate": true,
+      "indeterminate_reason": "p.180: \"K9, on the other hand, is close to a fold.\" Close to a fold is explicitly short of a fold, and the page gives no other line for it."
+    },
+    {
+      "id": "rh_p3_h6_flop",
+      "source_id": "src_read_hands",
+      "page_ref": "181",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 80,
+        "hero_position": "BB",
+        "hero_cards": [
+          "As",
+          "Ks"
+        ],
+        "board": [
+          "Qc",
+          "9s",
+          "8c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call"
+        ],
+        "villain_notes": "Two opponents to the flop — a fish and a nit (p.180) — so no single villain type is claimed here.",
+        "pot_type": "single_raised",
+        "player_count": "multiway",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "action": "check",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h6_river",
+      "source_id": "src_read_hands",
+      "page_ref": "181-183",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 80,
+        "hero_position": "BB",
+        "hero_cards": [
+          "As",
+          "Ks"
+        ],
+        "board": [
+          "Qc",
+          "9s",
+          "8c",
+          "Ad",
+          "7c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "hero_flop_check",
+          "flop_check",
+          "flop_check",
+          "hero_turn_bet",
+          "villain_turn_call"
+        ],
+        "villain_notes": "opp_fish",
+        "villain_type_id": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "action": "check",
+        "sizing": "unspecified",
+        "acceptable_alternatives": [
+          {
+            "action": "bet",
+            "sizing": "small"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rh_p3_h6_river_a8",
+      "source_id": "src_read_hands",
+      "page_ref": "183",
+      "provenance": {
+        "kind": "held_out",
+        "form": "instantiated"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 80,
+        "hero_position": "BB",
+        "hero_cards": [
+          "Ah",
+          "8d"
+        ],
+        "board": [
+          "Qc",
+          "9s",
+          "8c",
+          "Ad",
+          "7c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "hero_flop_check",
+          "flop_check",
+          "flop_check",
+          "hero_turn_bet",
+          "villain_turn_call"
+        ],
+        "villain_notes": "opp_fish. The holding is the author’s substitution: \"if you had two pair, say A8, instead of AK this would be a solid river value bet\". Ranks his, suits the transcriber’s.",
+        "villain_type_id": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "action": "bet",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h7_turn",
+      "source_id": "src_read_hands",
+      "page_ref": "184",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Tc",
+          "8c"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jd"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h7_river",
+      "source_id": "src_read_hands",
+      "page_ref": "185",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Tc",
+          "8c"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jd",
+          "2c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "action": "call",
+        "sizing": "unspecified"
+      }
+    },
+    {
+      "id": "rh_p3_h8_river",
+      "source_id": "src_read_hands",
+      "page_ref": "186-188",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 140,
+        "hero_cards": [
+          "Kd",
+          "Ks"
+        ],
+        "board": [
+          "Kc",
+          "8s",
+          "6c",
+          "As",
+          "9h"
+        ],
+        "action_log": [
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "preflop_call",
+          "flop_check",
+          "hero_flop_bet",
+          "flop_call",
+          "flop_call",
+          "villain_turn_check",
+          "hero_turn_bet",
+          "turn_call",
+          "turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "The small blind, whose type is hypothesised rather than asserted: \"Say the small blind is a nit\" (p.187), and p.188 then asks the reader to re-examine that classification. A second player is still to act behind. No villain_type_id is claimed.",
+        "pot_type": "single_raised",
+        "player_count": "three_way",
+        "postflop_facing_state": "facing_bet"
+      },
+      "indeterminate": true,
+      "indeterminate_reason": "p.188: \"So should you fold? That answer isn’t so easy.\" The page then gives three different answers on a premise that is not a property of the hand — how well you know the player. Certain of the read, \"I’d actually fold the set\"; unsure of it, \"I’d probably hold my nose and call\"; against an unknown player, the call is profitable."
+    },
+    {
+      "id": "rh_p3_count_182_flushes",
+      "source_id": "src_read_hands",
+      "page_ref": "182",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 80,
+        "hero_position": "BB",
+        "hero_cards": [
+          "As",
+          "Ks"
+        ],
+        "board": [
+          "Qc",
+          "9s",
+          "8c",
+          "Ad",
+          "7c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "preflop_call",
+          "hero_flop_check",
+          "flop_check",
+          "flop_check",
+          "hero_turn_bet",
+          "villain_turn_call"
+        ],
+        "villain_notes": "opp_fish",
+        "villain_type_id": "opp_fish",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "first_to_act"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 45
+      }
+    },
+    {
+      "id": "rh_p3_count_185_beat_you",
+      "source_id": "src_read_hands",
+      "page_ref": "185",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Tc",
+          "8c"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jd",
+          "2c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 18
+      }
+    },
+    {
+      "id": "rh_p3_count_185_beat_you_in_range",
+      "source_id": "src_read_hands",
+      "page_ref": "185",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Tc",
+          "8c"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jd",
+          "2c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 12
+      }
+    },
+    {
+      "id": "rh_p3_count_185_flushes_you_beat",
+      "source_id": "src_read_hands",
+      "page_ref": "185",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Tc",
+          "8c"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jd",
+          "2c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 5
+      }
+    },
+    {
+      "id": "rh_p3_count_186_sets",
+      "source_id": "src_read_hands",
+      "page_ref": "186",
+      "provenance": {
+        "kind": "held_out",
+        "form": "literal"
+      },
+      "situation_instance": {
+        "stakes": "2/5",
+        "effective_stack_bb": 200,
+        "hero_position": "BTN",
+        "hero_cards": [
+          "Tc",
+          "8c"
+        ],
+        "board": [
+          "Ac",
+          "7c",
+          "6s",
+          "Jd",
+          "2c"
+        ],
+        "action_log": [
+          "preflop_limp",
+          "preflop_limp",
+          "hero_preflop_raise",
+          "preflop_call",
+          "villain_flop_check",
+          "hero_flop_bet",
+          "villain_flop_call",
+          "villain_turn_bet",
+          "hero_turn_call",
+          "villain_river_bet"
+        ],
+        "villain_notes": "opp_regular",
+        "villain_type_id": "opp_regular",
+        "pot_type": "single_raised",
+        "player_count": "heads_up",
+        "postflop_facing_state": "facing_bet"
+      },
+      "author_answer": {
+        "kind": "count",
+        "value": 9
+      }
+    }
+  ]
+}

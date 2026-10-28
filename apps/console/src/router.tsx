@@ -43,6 +43,7 @@ import { leagueRoute } from './routes/league.tsx';
 import { creatorsRoute } from './routes/creators.tsx';
 import { spinWheelRoute } from './routes/spin-wheel.tsx';
 import { socialRoute } from './routes/social.tsx';
+import { hostQueueRoute } from './routes/host-queue.tsx';
 import { websiteRoute } from './routes/website.tsx';
 import { eventsRoute } from './routes/events.tsx';
 import { learnSourcesRoute } from './routes/learn-sources.tsx';
@@ -70,6 +71,7 @@ const routeTree = rootRoute.addChildren([
     creatorsRoute,
     spinWheelRoute,
     socialRoute,
+    hostQueueRoute,
     websiteRoute,
     eventsRoute,
     learnSourcesRoute,

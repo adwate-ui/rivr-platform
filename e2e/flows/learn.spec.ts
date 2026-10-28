@@ -60,5 +60,11 @@ test.describe('Learn', () => {
     await member.getByRole('button', { name: 'Review' }).click();
     await expect(member.getByRole('table', { name: 'Accuracy by street and position' })).toBeVisible();
     expect(await pointsOf(member)).toBe(before + points);
+
+    // A book that ships with RIVR (decision 0274) opens at its hub, with no upload.
+    await member.goto(`${appUrl('player')}/learn`);
+    await member.getByRole('button', { name: "How To Read Hands At No-Limit Hold'em" }).click();
+    await expect(member.getByRole('heading', { name: "How To Read Hands At No-Limit Hold'em", level: 1 })).toBeVisible();
+    await expect(member.getByText('Mastery', { exact: true })).toBeVisible();
   });
 });

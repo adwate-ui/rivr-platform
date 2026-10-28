@@ -1,4 +1,6 @@
-import { describeScenario, handHistory, legalActions, PAD_SIZINGS, takesSizing, type Action, type Card, type Position, type SizingBucket } from '@rivr/drills';
+import {
+  describeScenario, handHistory, legalActions, PAD_SIZINGS, takesSizing, type Action, type Card, type Position, type Scenario, type SizingBucket,
+} from '@rivr/drills';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, DrillTable, Heading, Stack, Text, type DrillSeat } from '@rivr/ui';
 import { useState } from 'react';
@@ -29,8 +31,8 @@ function villainOf(label: string): string {
 export const cardLabel = (card: Card) => `${card.rank === 'T' ? '10' : card.rank}${SUIT_GLYPH[card.suit]}`;
 
 /** The nine seats as the hand stands: plates, who is in, and the bets in front. */
-function seatsOf(spot: Spot): DrillSeat[] {
-  const history = handHistory(spot.scenario);
+function seatsOf(scenario: Scenario): DrillSeat[] {
+  const history = handHistory(scenario);
   return SEATS.map((position) => {
     const state = history.roles.get(position) ?? 'folded';
     const bet = history.bets[position];
@@ -61,15 +63,15 @@ function AnswerPad({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: PadAnswe
   );
 }
 
-/** One spot (#133): the table drawing, the spot in words for screen readers, the action so far, and the pad. */
-export function SpotView({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: PadAnswer) => void }) {
-  const history = handHistory(spot.scenario);
+/** A spot as the felt shows it (#133): the table drawing, the spot in words for screen readers, and the action so far. */
+export function SpotTable({ scenario }: { scenario: Scenario }) {
+  const history = handHistory(scenario);
   const { rows } = history;
   return (
     <Stack gap={4}>
-      <DrillTable seats={seatsOf(spot)} board={spot.scenario.board.map(cardLabel)} hole={spot.scenario.hole.map(cardLabel)}
+      <DrillTable seats={seatsOf(scenario)} board={scenario.board.map(cardLabel)} hole={scenario.hole.map(cardLabel)}
         pot={history.potBb === undefined ? null : t('player.learn.spot.pot', { amount: String(history.potBb) })} />
-      <Text variant="small" tone="muted">{describeScenario(spot.scenario, bb, drillWords())}</Text>
+      <Text variant="small" tone="muted">{describeScenario(scenario, bb, drillWords())}</Text>
       <Stack gap={1}>
         <Heading level={2}>{t('player.learn.spot.history')}</Heading>
         {rows.length === 0 ? <Text tone="muted">{t('player.learn.spot.noHistory')}</Text> : rows.map((row, index) => (
@@ -78,6 +80,15 @@ export function SpotView({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: Pa
           </Text>
         ))}
       </Stack>
+    </Stack>
+  );
+}
+
+/** One spot (#133): the table, and the pad. */
+export function SpotView({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: PadAnswer) => void }) {
+  return (
+    <Stack gap={4}>
+      <SpotTable scenario={spot.scenario} />
       <AnswerPad key={spot.scenario.seed} spot={spot} onAnswer={onAnswer} />
     </Stack>
   );

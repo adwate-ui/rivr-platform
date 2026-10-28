@@ -45,13 +45,17 @@ for (const principle of payload.principles.filter((p) => p.drillable !== false))
 
 ## Gates
 
-`pnpm --filter @rivr/drills gates` runs the eight encoding gates (sources, generator, winnable, overclaim, feedback, variety, lines, mece) over every encoding in `fixtures/`. `--dir <folder>` gates a licensed encoding kept outside the repository, `--source <file|id>` narrows the run, `--report <folder>` writes the work-list reports. How to write an encoding that passes them: `docs/spec/learn/encoding-guide.md`.
+`pnpm --filter @rivr/drills gates` runs the eight encoding gates (sources, generator, winnable, overclaim, feedback, variety, lines, mece) over every encoding in `fixtures/` and `sources/`. `--dir <folder>` gates a licensed encoding kept outside the repository, `--source <file|id>` narrows the run, `--report <folder>` writes the work-list reports. How to write an encoding that passes them: `docs/spec/learn/encoding-guide.md`.
 
 `@rivr/drills/gates` exports `checkEncoding(raw)`: the validator and all eight gates over one encoding's text, with nothing read from or written to disk, and the report as lines (`EncodingCheck`). The console runs it on a super admin's upload before the file is accepted (#131). The command line writes its `--report` files through a `ReportWriter` it passes the gates.
 
 ## Must not
 
-- Contain book content: no quote, page reference, worked hand, printed count or principle id from any book, in code, comments, tests, fixtures or allowlists. Licensed encodings are uploaded at runtime and never committed (`docs/decisions/0015`).
+- Contain book content outside `sources/`: no quote, page reference, worked hand, printed count or principle id from any book, in code, comments, tests, fixtures or allowlists. Apart from the two books in `sources/` (`docs/decisions/0274`), licensed encodings are uploaded at runtime and never committed (`docs/decisions/0015`).
 - Grow beyond hold'em. The ontology, classifiers and grader are hold'em only; PLO and bomb pots need new classifiers in a later phase.
 - Format money, read storage, call the network or import app, UI or i18n code.
 - Cast parsed JSON outside `src/parse/` (and `src/harness/parse/` for quiz hands).
+
+## Books that ship with RIVR
+
+`sources/` holds the two Ed Miller encodings moved from poker-settle on 28 Oct 2026 (decision 0274, superseding 0015 for these books): "The Course" (`src_course`) and "How To Read Hands" (`src_read_hands`). `@rivr/drills/sources` lists them as `BUILT_IN_SOURCES`, each loaded lazily (`load()`), so the app's entry does not grow. `pnpm --filter @rivr/drills gates` checks `sources/` with `fixtures/` in one run. Any other licensed encoding is still uploaded at runtime (#131).
