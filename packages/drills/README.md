@@ -12,7 +12,7 @@ Everything is exported from `src/index.ts`.
 | Reading an encoding | `parsePayload`, `payloadOrThrow`, `validateSource`, `CODES`, `groupByObject`, `runHarness` |
 | Generating a spot | `generateScenario`, `rangeSideFor`, `preflopPlayable`, `lineFits`, `expandRangeSets`, `deriveSeed` |
 | Telling a spot | `describeScenario(scenario, formatMoney, words?)`, `describeStep(step, words?)`, `ENGLISH_WORDS`, `DrillWords`, `DrillSentences`, `describeShort`, `potLabel`, `stackLabel`, `handHistory`, `preflopStrategy`, `postflopStrategy` |
-| Grading | `governingPrinciple`, `resolveGoverningAny`, `abstainsOn`, `gradeAnswer`, `legalActions`, `explain`, `PAD_SIZINGS`, `describeAnswer` |
+| Grading | `governingPrinciple`, `resolveGoverningAny`, `abstainsOn`, `gradeAnswer`, `legalActions`, `explain`, `NEUTRAL_FALLBACK` (the engine's feedback where a principle wrote none; the player shows the catalogue's, #584), `PAD_SIZINGS`, `describeAnswer` |
 | Scheduling | `newCard`, `review`, `gradeFor`, `isDue`, `buildQueue`, `inScope`, `masteryOf` |
 | Analytics | `toAttemptRow`, `hashSource`, `crosstab`, `crosstab2`, `findLeaks`, `summarise` |
 
