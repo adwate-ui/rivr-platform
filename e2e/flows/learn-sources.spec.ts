@@ -14,7 +14,7 @@ const nextYear = () => `${String(new Date().getFullYear() + 1)}-03-31`;
 test.describe('Learn sources', () => {
   test('Learn sources: a super admin uploads an encoding that passes the validator and the gates', async ({ page }) => {
     await signInToConsole(page, '9000000629');
-    await page.getByRole('link', { name: 'Learn sources' }).click();
+    await page.getByRole('link', { name: 'Learn content' }).click();
     const file = page.locator('input[type="file"]');
     await file.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"not": "an encoding"}') });
     await expect(page.getByText('Refused by: validator.')).toBeVisible({ timeout: 20_000 });
@@ -25,6 +25,6 @@ test.describe('Learn sources', () => {
     await page.getByRole('textbox', { name: 'Licence terms' }).fill('Licensed to the club for its members');
     await page.getByRole('button', { name: 'Upload source' }).click();
     await expect(page.getByText(/is added\. Members have it until /)).toBeVisible();
-    await expect(page.getByRole('table', { name: 'Learn sources' }).getByRole('cell', { name: 'On', exact: true })).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Learn content' }).getByRole('cell', { name: 'On', exact: true })).toBeVisible();
   });
 });

@@ -11,17 +11,19 @@ type RailItem = keyof typeof en.console.rail.items;
 // The rail's labels are the console's own copy, which the console registers at start; the stories and tests do the same.
 registerMessages({ console: consoleApp });
 
-/** The console rail: Floor, Money, Players, Growth, Team and Reports. */
+/** The console rail, grouped by the job (#602): Overview, Tonight, Cage, Players, Marketing, Money, Team and Reports. */
 export function consoleSections(): SideNavSection[] {
   const item = (id: RailItem): SideNavItem => ({ id, label: t(`console.rail.items.${id}`), href: `#${id}` });
   return [
-    { id: 'floor', label: t('console.rail.groups.floor'), items: [item('liveFloor'), item('waitlist'), item('checkIn'), item('tournaments')] },
-    { id: 'money', label: t('console.rail.groups.money'), items: [item('cage'), item('markers'), item('treasury'), item('endOfDay')] },
+    // Overview is a single link, so it has no heading of its own.
+    { id: 'overview', items: [item('overview')] },
+    { id: 'tonight', label: t('console.rail.groups.tonight'), items: [item('liveFloor'), item('waitlist'), item('checkIn'), item('tournaments'), item('jackpots')] },
+    { id: 'cage', label: t('console.rail.groups.cage'), items: [item('cage'), item('endOfDay')] },
     { id: 'players', label: t('console.rail.groups.players'), items: [item('members'), item('kycReview'), item('hostQueue')] },
-    { id: 'growth', label: t('console.rail.groups.growth'), items: [item('promotions'), item('jackpots'), item('rewards'), item('academy')] },
-    { id: 'team', label: t('console.rail.groups.team'), items: [item('staff'), item('dealers'), item('sops')] },
-    // Reports is a single link, so it has no heading of its own.
-    { id: 'reports', items: [item('reports')] },
+    { id: 'marketing', label: t('console.rail.groups.marketing'), items: [item('promotions'), item('rewards'), item('academy')] },
+    { id: 'money', label: t('console.rail.groups.money'), items: [item('markers'), item('treasury')] },
+    { id: 'team', label: t('console.rail.groups.team'), items: [item('staff'), item('sops')] },
+    { id: 'reports', label: t('console.rail.groups.reports'), items: [item('reports'), item('hands')] },
   ];
 }
 

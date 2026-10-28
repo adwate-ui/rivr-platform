@@ -48,8 +48,8 @@ test.describe('Tally', () => {
     test.skip(isRemoteTarget(), 'posts the flow\'s day in the local database, so the local stack only');
     postTheFlowsDay();
     await signInToConsole(page, '9000000197');
-    await page.getByRole('link', { name: 'Tally' }).click();
-    await expect(page.getByRole('heading', { name: 'Tally', level: 1 })).toBeVisible();
+    await page.getByRole('link', { name: 'Tally export' }).click();
+    await expect(page.getByRole('heading', { name: 'Tally export', level: 1 })).toBeVisible();
     await mapAccount(page, 'venue.tally_flow_cash', 'Cash');
     await mapAccount(page, 'venue.tally_flow_sales', 'Sales');
 

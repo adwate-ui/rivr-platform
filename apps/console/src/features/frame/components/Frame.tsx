@@ -6,7 +6,7 @@ import { ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen } from 
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
-import { isAllowedAt, isCageScreen, railFor, railItemAt } from './rail.ts';
+import { isAllowedAt, locksWhenIdle, railFor, railItemAt } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffFooter } from './StaffFooter.tsx';
 import { useIdleLock } from './useIdleLock.ts';
@@ -53,8 +53,8 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const signOut = useSignOut();
-  // Ten idle minutes on a cage screen sign the cashier out (#384).
-  useIdleLock(isCageScreen(pathname), signOut.mutate);
+  // Ten idle minutes on a cage or money screen sign the staff member out (#384).
+  useIdleLock(locksWhenIdle(pathname), signOut.mutate);
   // The rail counts the high-hand claims waiting for staff who approve them (#317).
   const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
   const sections = railFor(permissions, { highHands: waiting.length });

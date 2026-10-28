@@ -9,9 +9,9 @@ import { signInToConsole } from '../support/signIn.ts';
 test.describe('Owner dashboard', () => {
   test('Owner dashboard: the owner reads tonight, the room, the cash position and alerts on a phone', async ({ page }) => {
     await signInToConsole(page, '9000000611');
-    await page.getByRole('link', { name: 'Owner', exact: true }).click();
+    await page.getByRole('link', { name: 'Overview', exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(page.getByRole('heading', { name: 'Owner', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Overview', level: 1 })).toBeVisible();
     await expect(page.getByText('Rake tonight', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Tables running')).toBeVisible();
     await expect(page.getByRole('table', { name: 'Accounts and what they hold' }).or(page.getByText('No payment accounts yet.'))).toBeVisible();

@@ -1,6 +1,6 @@
 import { ROLE_PERMISSIONS } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { isAllowedAt, isCageScreen, railFor } from './rail.ts';
+import { isAllowedAt, locksWhenIdle, railFor } from './rail.ts';
 
 const items = (permissions: Parameters<typeof railFor>[0]) => railFor(permissions).flatMap((section) => section.items.map((item) => item.href));
 
@@ -28,9 +28,19 @@ describe('the console rail and who may open each screen', () => {
     expect(rail.find((item) => item.id === 'jackpots')?.count).toBeUndefined();
   });
 
-  it('knows the cage\'s screens, which lock after ten idle minutes', () => {
-    for (const cage of ['/cage', '/Markers', '/withdrawals', '/academy/payments']) expect(isCageScreen(cage)).toBe(true);
-    for (const other of ['/', '/academy', '/computers', '/settings']) expect(isCageScreen(other)).toBe(false);
+  it('locks the same eleven cage and money screens after ten idle minutes, wherever the rail groups them', () => {
+    const locked = ['/cage', '/markers', '/treasury', '/accounts', '/expenses', '/tds', '/tally', '/reports', '/end-of-day', '/withdrawals', '/academy/payments'];
+    for (const screen of locked) expect(locksWhenIdle(screen)).toBe(true);
+    expect(locksWhenIdle('/Markers')).toBe(true);
+    const everyScreen = railFor(ROLE_PERMISSIONS.super_admin).flatMap((section) => section.items.map((item) => item.href));
+    expect(everyScreen.filter((href) => locksWhenIdle(href)).sort()).toEqual([...locked].sort());
+  });
+
+  it('groups the rail by the job, with Overview first as a single link', () => {
+    const rail = railFor(ROLE_PERMISSIONS.super_admin);
+    expect(rail.map((section) => section.label ?? section.items[0]?.label)).toEqual(
+      ['Overview', 'Tonight', 'Cage', 'Players', 'Marketing', 'Money', 'Reports', 'Team', 'Admin'],
+    );
   });
 
   it('gives Settings to setting managers and super admins, and keeps cashiers and dealers out of it (#33)', () => {

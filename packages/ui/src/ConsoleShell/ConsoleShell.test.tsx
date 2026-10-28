@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { consoleSections } from '../storybook/fixtures.ts';
@@ -42,13 +42,57 @@ describe('ConsoleShell', () => {
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });
 
-  it('groups the rail as the design prompt lists it and marks the current screen', () => {
+  it('groups the rail by the job and marks the current screen', () => {
     renderShell();
-    for (const group of ['Floor', 'Money', 'Players', 'Growth', 'Team']) {
+    for (const group of ['Tonight', 'Cage', 'Players', 'Marketing', 'Money', 'Team', 'Reports']) {
       expect(screen.getByRole('list', { name: group })).toBeInTheDocument();
     }
-    expect(screen.getByRole('link', { name: 'Reports' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Cage' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('names the screen in the top bar, whose menu opens the rail and closes on choosing a screen', async () => {
+    const onNavigate = vi.fn();
+    renderShell(onNavigate);
+    expect(screen.getByRole('banner')).toHaveTextContent('Cage');
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    const menu = screen.getByRole('dialog', { name: 'Sections' });
+    expect(within(menu).getByText('Sana Qureshi')).toBeInTheDocument();
+    await userEvent.click(within(menu).getByRole('link', { name: 'KYC review' }));
+    expect(onNavigate).toHaveBeenCalledWith('#kycReview');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('closes the menu with Escape or its Close button', async () => {
+    renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Close the menu' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('finds a screen by name with Go to, and Enter opens the first found', async () => {
+    const onNavigate = vi.fn();
+    renderShell(onNavigate);
+    const rail = screen.getByRole('complementary');
+    await userEvent.type(within(rail).getByRole('searchbox', { name: 'Go to' }), 'kyc');
+    expect(within(rail).getAllByRole('link').map((link) => link.textContent)).toEqual(['KYC review']);
+    await userEvent.keyboard('{Enter}');
+    expect(onNavigate).toHaveBeenCalledWith('#kycReview');
+    await userEvent.type(within(rail).getByRole('searchbox', { name: 'Go to' }), 'zzz');
+    expect(within(rail).getByText('No screen by that name.')).toBeInTheDocument();
+  });
+
+  it('moves to Go to with Ctrl+K, or / outside a field', async () => {
+    renderShell();
+    const goTo = within(screen.getByRole('complementary')).getByRole('searchbox', { name: 'Go to' });
+    await userEvent.keyboard('{Control>}k{/Control}');
+    expect(goTo).toHaveFocus();
+    goTo.blur();
+    await userEvent.keyboard('/');
+    expect(goTo).toHaveFocus();
   });
 
   it('routes rail links through the app', async () => {

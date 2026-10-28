@@ -1,6 +1,6 @@
 /** The console's Tally screen (#96, decision 0187): each club day's vouchers as a file Tally imports, and which Tally ledger each account posts to. */
 export const tally = {
-  title: 'Tally',
+  title: 'Tally export',
   notAllowed: 'Only treasury managers take the Tally export.',
   practice: 'The practice venue is never exported to Tally.',
   dayFile: 'Day’s vouchers',

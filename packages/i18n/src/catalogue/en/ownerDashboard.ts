@@ -1,6 +1,6 @@
 /** The console's owner dashboard (#101, decision 0192): a phone's view of tonight, the room, the cash and alerts. */
 export const ownerDashboard = {
-  title: 'Owner',
+  title: 'Overview',
   notAllowed: 'The owner dashboard is for the owner and super admins.',
   practice: 'The practice venue has no owner dashboard.',
   live: 'Live: it updates as hands are logged and money moves.',
