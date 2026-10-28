@@ -1311,6 +1311,64 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"glaza_import": {
+                  Row: {
+                    "created_at": string,"id": string,"imported_by_staff_id": string,"month": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"imported_by_staff_id": string,"month": string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"imported_by_staff_id"?: string,"month"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "glaza_import_imported_by_staff_id_venue_id_fkey"
+      columns: ["imported_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "glaza_import_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"glaza_import_line": {
+                  Row: {
+                    "created_at": string,"id": string,"import_id": string,"is_comp": boolean,"item": string,"kind": string,"line_number": number,"quantity": number,"seat": number | null,"sold_at": string,"table_id": string | null,"table_name": string,"unit_cost_paise": number,"unit_price_paise": number,"venue_id": string,"visit_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"import_id": string,"is_comp": boolean,"item": string,"kind": string,"line_number": number,"quantity": number,"seat"?: number | null,"sold_at": string,"table_id"?: string | null,"table_name": string,"unit_cost_paise": number,"unit_price_paise": number,"venue_id": string,"visit_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"import_id"?: string,"is_comp"?: boolean,"item"?: string,"kind"?: string,"line_number"?: number,"quantity"?: number,"seat"?: number | null,"sold_at"?: string,"table_id"?: string | null,"table_name"?: string,"unit_cost_paise"?: number,"unit_price_paise"?: number,"venue_id"?: string,"visit_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "glaza_import_line_import_id_venue_id_fkey"
+      columns: ["import_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "glaza_import"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "glaza_import_line_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "glaza_import_line_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"hand": {
                   Row: {
                     "camera_id": string | null,"created_at": string,"device_id": string,"down_id": string,"drop_paise": number,"id": string,"idempotency_key": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"staff_id": string,"table_id": string,"updated_at": string,"variant": Database["public"]['Enums']["hand_variant"],"venue_id": string
@@ -2979,6 +3037,70 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"spin": {
+                  Row: {
+                    "amount": number,"bonus_grant_id": string | null,"created_at": string,"grant_id": string,"id": string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id": string,"id"?: string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"venue_id": string
+                  }
+                  Update: {
+                    "amount"?: number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"odds"?: number,"prize_id"?: string,"roll"?: number,"spun_by_staff_id"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "spin_bonus_grant_id_fkey"
+      columns: ["bonus_grant_id"]
+isOneToOne: false
+      referencedRelation: "bonus_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "spin_grant_id_fkey"
+      columns: ["grant_id"]
+isOneToOne: true
+      referencedRelation: "promotion_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "spin_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "spin_prize_id_venue_id_fkey"
+      columns: ["prize_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "spin_wheel"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "spin_spun_by_staff_id_venue_id_fkey"
+      columns: ["spun_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"spin_wheel": {
+                  Row: {
+                    "amount": number,"created_at": string,"id": string,"kind": string,"removed_at": string | null,"venue_id": string,"weight": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"id"?: string,"kind": string,"removed_at"?: string | null,"venue_id": string,"weight": number
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"id"?: string,"kind"?: string,"removed_at"?: string | null,"venue_id"?: string,"weight"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "spin_wheel_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"staff": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"is_active": boolean,"job_title": string,"phone": string | null,"role": Database["public"]['Enums']["staff_role"],"updated_at": string,"user_id": string | null,"venue_id": string
@@ -3850,6 +3972,9 @@ isOneToOne: false
 "add_sop":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_title": string,"p_venue_id": string }; Returns: string
                            },
+"add_spin_prize":
+{ Args: { "p_amount": number,"p_kind": string,"p_venue_id": string,"p_weight": number }; Returns: string
+                           },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
                            },
@@ -4197,6 +4322,11 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
+"glaza_statement":
+{ Args: { "p_month": string,"p_venue_id": string }; Returns: {
+              "alcohol_comps_paise": number,"alcohol_cost_paise": number,"alcohol_margin_paise": number,"alcohol_sales_paise": number,"comps_paise": number,"food_comps_paise": number,"import_id": string,"imported_at": string,"lines": number,"matched": number,"payable_paise": number,"rivr_share_paise": number,"soft_drink_comps_paise": number
+            }[]
+                           },
 "graduate_academy_member":
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
@@ -4223,6 +4353,9 @@ isOneToOne: false
                            },
 "hold_drill":
 { Args: { "p_drill_id": string,"p_notes": string }; Returns: undefined
+                           },
+"import_glaza_lines":
+{ Args: { "p_lines": Json,"p_month": string,"p_venue_id": string }; Returns: string
                            },
 "interest_lists":
 { Args: { "p_venue_id": string }; Returns: {
@@ -4673,6 +4806,9 @@ isOneToOne: false
 "remove_shift":
 { Args: { "p_shift_id": string }; Returns: undefined
                            },
+"remove_spin_prize":
+{ Args: { "p_prize_id": string,"p_venue_id": string }; Returns: undefined
+                           },
 "remove_tournament":
 { Args: { "p_tournament_id": string }; Returns: undefined
                            },
@@ -4880,6 +5016,11 @@ isOneToOne: false
               "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string,"waiting": Json
             }[]
                            },
+"spin_the_wheel":
+{ Args: { "p_grant_id": string,"p_venue_id": string }; Returns: {
+              "amount": number,"kind": string,"spin_id": string
+            }[]
+                           },
 "staff_academy_batches":
 { Args: { "p_venue_id": string }; Returns: {
               "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
@@ -5029,6 +5170,11 @@ isOneToOne: false
               "at": string,"display_name": string,"kind": string,"place": number,"points": number,"reward_name": string
             }[]
                            },
+"tv_spin_wheel":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "amount": number,"at": string,"display_name": string,"place": number,"prize_kind": string,"row_kind": string,"weight": number
+            }[]
+                           },
 "tv_tournament_clock":
 { Args: Record<PropertyKey, never>; Returns: {
               "chips_in_play": number,"elapsed_seconds": number,"entries": number,"is_paused": boolean,"levels": Json,"name": string,"players_left": number,"pool_paise": number
@@ -5085,6 +5231,11 @@ isOneToOne: false
 "waiting_deposits":
 { Args: { "p_venue_id": string }; Returns: {
               "approved_by": (string)[],"from_bank": string,"from_vpa": string,"full_name": string,"member_id": string,"needs_second": boolean,"photo_path": string,"request_id": string,"requested_at": string,"utr": string
+            }[]
+                           },
+"waiting_spins":
+{ Args: { "p_venue_id": string }; Returns: {
+              "grant_id": string,"granted_at": string,"member_id": string,"member_name": string,"promotion_name": string
             }[]
                            },
 "waiting_withdrawals":

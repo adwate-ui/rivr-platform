@@ -57,6 +57,14 @@ export const learnDailyPointsCap = {
   value: z.strictObject({ points: z.int().min(0).max(10000) }),
 } as const satisfies SettingDefinition;
 
+/** The spin wheel's budget (#150, decision 0266): the most bonus its spins give in a club month, in whole ₹50 chips. */
+export const spinBudget = {
+  key: 'spin.budget',
+  description: 'The most bonus the spin wheel gives in a club month, in paise; a bonus prize more than what is left is off the wheel for that spin. None set gives no bonus prizes.',
+  scope: 'venue',
+  value: z.strictObject({ monthly_paise: z.int().min(0).max(100_000_000).multipleOf(5_000) }),
+} as const satisfies SettingDefinition;
+
 /** The visits a member needs this month before the app offers them a cab (#140); none set is four. */
 export const cabMinimumVisits = {
   key: 'cab.minimum_visits',

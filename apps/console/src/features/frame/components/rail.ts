@@ -74,6 +74,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', anyOf: ['rewards.manage', 'rewards.hand_over'] },
       { id: 'league', label: 'console.rail.items.league', href: '/league', anyOf: ['rewards.manage', 'members.read'] },
       { id: 'creators', label: 'console.rail.items.creators', href: '/creators', anyOf: ['promotions.manage'] },
+      { id: 'spinWheel', label: 'console.rail.items.spinWheel', href: '/spin-wheel', anyOf: ['floor.manage', 'promotions.manage'] },
       { id: 'events', label: 'console.rail.items.events', href: '/events', anyOf: ['promotions.manage'] },
       { id: 'academy', label: 'console.rail.items.academy', href: '/academy', anyOf: ['members.manage'] },
       { id: 'learnSources', label: 'console.rail.items.learnSources', href: '/learn-sources', anyOf: ['learn.manage_sources'] },

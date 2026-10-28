@@ -20,12 +20,12 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 select set_eq($$ select private.live_purge_tables() $$,
   $$ select unnest(array['academy_attendance', 'academy_batch', 'academy_booking', 'academy_utr_rejection', 'account_transfer', 'alert', 'bonus_grant', 'buy_in_request', 'cab_request', 'club_event', 'club_event_booking', 'creator', 'learn_attempt', 'learn_card', 'learn_session', 'learn_source',
      'cage_shift', 'cage_transaction', 'chip_inventory_count', 'chip_inventory_line', 'consent', 'credit_line', 'dealer_down', 'deposit_request',
-     'down_count', 'early_departure', 'eod_close', 'expense', 'feedback', 'fnb_order', 'hand', 'high_hand_claim', 'incident', 'invoice', 'invoice_counter',
+     'down_count', 'early_departure', 'eod_close', 'expense', 'feedback', 'fnb_order', 'glaza_import', 'glaza_import_line', 'hand', 'high_hand_claim', 'incident', 'invoice', 'invoice_counter',
      'jackpot_event', 'kyc_record', 'kyc_review', 'league_finish', 'ledger_account', 'ledger_entry', 'ledger_transaction', 'marker',
      'marker_settlement', 'member', 'member_feature_override', 'member_limit', 'member_preference', 'member_tier_change', 'membership_card',
      'mis_report', 'notification_preference', 'outbox_delivery', 'outbox_event', 'payout_account', 'points_earning', 'promotion',
      'promotion_budget', 'promotion_grant', 'promotion_rule', 'redemption', 'referral', 'review_request', 'sar_entry', 'sar_entry_transaction', 'seat_move', 'seat_session',
-     'second_approval', 'self_exclusion', 'sign_up_attribution', 'staff_attendance', 'staff_shift', 'tds_withholding', 'tournament',
+     'second_approval', 'self_exclusion', 'sign_up_attribution', 'spin', 'spin_wheel', 'staff_attendance', 'staff_shift', 'tds_withholding', 'tournament',
      'tournament_entry', 'tournament_payout', 'tournament_purchase', 'tournament_ticket', 'visit', 'waitlist_entry', 'withdrawal_request']) $$,
   'a purge deletes these tables'' rows, and keeps every other venue table');
 

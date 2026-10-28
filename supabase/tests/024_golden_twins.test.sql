@@ -619,6 +619,39 @@ select results_eq(
   $$ select description, expected ->> 'near' from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
   'private.is_near_limit gives every total in the golden file');
 
+-- The spin wheel: private.spin_prize and @rivr/domain spinPrize (packages/testing/golden/spin.json). A wheel such as
+-- "100 points ×3; ₹500 bonus ×1; nothing ×1" as private.spin_prize takes it.
+create function pg_temp.wheel(p_text text) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_agg(case
+      when split_part(w.prize, ' ×', 1) = 'nothing' then jsonb_build_object('kind', 'nothing', 'amount', 0)
+      when split_part(w.prize, ' ×', 1) like '% points' then jsonb_build_object('kind', 'points', 'amount', split_part(w.prize, ' ', 1)::bigint)
+      else jsonb_build_object('kind', 'bonus', 'amount', pg_temp.paise(split_part(w.prize, ' ', 1))) end
+      || jsonb_build_object('weight', split_part(w.prize, ' ×', 2)::bigint) order by w.n), '[]'::jsonb)
+  from unnest(string_to_array(p_text, ';')) with ordinality as u (raw, n) cross join lateral (select btrim(u.raw) as prize, u.n) w
+  where w.prize <> '';
+$$;
+select ok((select count(*) > 0 from golden.golden_case where file = 'spin.json'), 'the spin wheel cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'spin.json' and operation <> 'draw' $$,
+  'every operation in spin.json is proved here');
+select results_eq(
+  $$ select description, coalesce(private.spin_prize(pg_temp.wheel(inputs ->> 'prizes'), pg_temp.paise(inputs ->> 'budgetLeft'), (inputs ->> 'roll')::bigint)::text, 'none')
+     from golden.golden_case where file = 'spin.json' order by position $$,
+  $$ select description, expected ->> 'prize' from golden.golden_case where file = 'spin.json' order by position $$,
+  'private.spin_prize lands every roll in the golden file on its prize');
+
+-- The Glaza statement: private.glaza_payable and @rivr/domain glazaPayable (packages/testing/golden/glaza.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'glaza.json'), 'the Glaza statement cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'glaza.json' and operation <> 'payable' $$,
+  'every operation in glaza.json is proved here');
+select results_eq(
+  $$ select description, p.rivr_share_paise, p.payable_paise
+     from golden.golden_case
+     cross join lateral private.glaza_payable(pg_temp.paise(inputs ->> 'comps'), pg_temp.paise(inputs ->> 'alcoholMargin')) p
+     where file = 'glaza.json' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'rivrShare'), pg_temp.paise(expected ->> 'payable')
+     from golden.golden_case where file = 'glaza.json' order by position $$,
+  'private.glaza_payable gives every Glaza statement in the golden file');
+
 -- Hourly rakeback: private.rake_share summed over the week and private.rakeback_bonus, and
 -- @rivr/domain weekRakeShares and rakebackBonus (packages/testing/golden/rakeback.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'rakeback.json'), 'the rakeback cases are loaded');
