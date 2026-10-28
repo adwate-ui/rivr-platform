@@ -1,0 +1,118 @@
+{
+  "rule": "Learn points per session",
+  "about": "Learn points (#135; scope-v1 module 9). A completed drill session earns the venue's learn.session_points per_session, and each principle the member masters in it for the first time its per_principle. A member's Learn points for the IST day stop at learn.daily_points_cap: a session earns what it would, but no more than the cap less what Learn already gave them that day, and never below nothing, so re-drilling an easy chapter cannot farm points. Inputs are the principles newly mastered, the points already earned today, and the three rates; expected is the points the session earns.",
+  "cases": [
+    {
+      "description": "A session with no principle mastered earns the session's points.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "0",
+        "earnedToday": "0",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "10"
+      }
+    },
+    {
+      "description": "Two principles mastered for the first time add theirs.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "2",
+        "earnedToday": "0",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "60"
+      }
+    },
+    {
+      "description": "Near the cap, a session earns only what is left of the day's allowance.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "2",
+        "earnedToday": "60",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "40"
+      }
+    },
+    {
+      "description": "A session that reaches the cap exactly earns all of it.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "0",
+        "earnedToday": "90",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "10"
+      }
+    },
+    {
+      "description": "At the cap, a session earns nothing.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "1",
+        "earnedToday": "100",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "0"
+      }
+    },
+    {
+      "description": "Over the cap, as when it was lowered today, still nothing, never a debit.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "3",
+        "earnedToday": "120",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "0"
+      }
+    },
+    {
+      "description": "With no points set for sessions or principles, nothing.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "4",
+        "earnedToday": "0",
+        "perSession": "0",
+        "perPrinciple": "0",
+        "dailyCap": "100"
+      },
+      "expected": {
+        "points": "0"
+      }
+    },
+    {
+      "description": "A cap of zero switches Learn points off.",
+      "operation": "points",
+      "inputs": {
+        "mastered": "2",
+        "earnedToday": "0",
+        "perSession": "10",
+        "perPrinciple": "25",
+        "dailyCap": "0"
+      },
+      "expected": {
+        "points": "0"
+      }
+    }
+  ]
+}

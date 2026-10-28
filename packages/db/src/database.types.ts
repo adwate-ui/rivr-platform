@@ -1159,14 +1159,14 @@ isOneToOne: false
                   ]
                 },"feature": {
                   Row: {
-                    "created_at": string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens": (string)[],"updated_at": string
+                    "available_until": string | null,"created_at": string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens": (string)[],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens"?: (string)[],"updated_at"?: string
+                    "available_until"?: string | null,"created_at"?: string,"description": string,"is_gateable": boolean,"key": string,"name": string,"screens"?: (string)[],"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"description"?: string,"is_gateable"?: boolean,"key"?: string,"name"?: string,"screens"?: (string)[],"updated_at"?: string
+                    "available_until"?: string | null,"created_at"?: string,"description"?: string,"is_gateable"?: boolean,"key"?: string,"name"?: string,"screens"?: (string)[],"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -1651,6 +1651,86 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "league_season_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"learn_attempt": {
+                  Row: {
+                    "answered_at": string,"attempt": NonNullable<Json>,"created_at": string,"id": string,"member_id": string,"principle_id": string,"session_id": string,"source_key": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answered_at": string,"attempt": NonNullable<Json>,"created_at"?: string,"id": string,"member_id": string,"principle_id": string,"session_id": string,"source_key": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "answered_at"?: string,"attempt"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"member_id"?: string,"principle_id"?: string,"session_id"?: string,"source_key"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learn_attempt_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"learn_card": {
+                  Row: {
+                    "card_key": string,"created_at": string,"due_at": string,"id": string,"member_id": string,"source_key": string,"state": NonNullable<Json>,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "card_key": string,"created_at"?: string,"due_at": string,"id"?: string,"member_id": string,"source_key": string,"state": NonNullable<Json>,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "card_key"?: string,"created_at"?: string,"due_at"?: string,"id"?: string,"member_id"?: string,"source_key"?: string,"state"?: NonNullable<Json>,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learn_card_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"learn_session": {
+                  Row: {
+                    "completed_at": string,"created_at": string,"id": string,"member_id": string,"points": number,"principles": (string)[],"source_key": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed_at"?: string,"created_at"?: string,"id": string,"member_id": string,"points": number,"principles"?: (string)[],"source_key": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "completed_at"?: string,"created_at"?: string,"id"?: string,"member_id"?: string,"points"?: number,"principles"?: (string)[],"source_key"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learn_session_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"learn_source": {
+                  Row: {
+                    "author": string | null,"created_at": string,"id": string,"licence_ends_on": string,"licence_terms": string,"source_hash": string,"source_key": string,"title": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author"?: string | null,"created_at"?: string,"id"?: string,"licence_ends_on": string,"licence_terms": string,"source_hash": string,"source_key": string,"title": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "author"?: string | null,"created_at"?: string,"id"?: string,"licence_ends_on"?: string,"licence_terms"?: string,"source_hash"?: string,"source_key"?: string,"title"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learn_source_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -3941,6 +4021,9 @@ isOneToOne: false
 "complete_export_archive":
 { Args: { "p_archive_id": string,"p_bytes": number,"p_sha256": string,"p_unread"?: (string)[] }; Returns: undefined
                            },
+"complete_learn_session":
+{ Args: { "p_principles": (string)[],"p_session_id": string }; Returns: number
+                           },
 "confirm_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: string
                            },
@@ -4563,6 +4646,9 @@ isOneToOne: false
 "refuse_promotion":
 { Args: { "p_promotion_id": string,"p_reason": string }; Returns: undefined
                            },
+"register_learn_source":
+{ Args: { "p_author": string,"p_licence_ends_on": string,"p_licence_terms": string,"p_source_hash": string,"p_source_key": string,"p_title": string,"p_venue_id": string }; Returns: string
+                           },
 "register_tournament_entry":
 { Args: { "p_idempotency_key": string,"p_purchase": string,"p_tournament_id": string }; Returns: string
                            },
@@ -4828,6 +4914,9 @@ isOneToOne: false
 { Args: { "p_answers": (number)[],"p_quiz_id": string }; Returns: {
               "correct_count": number,"is_passed": boolean,"question_count": number
             }[]
+                           },
+"sync_learn_progress":
+{ Args: { "p_attempts": Json,"p_cards": Json }; Returns: number
                            },
 "table_hands":
 { Args: { "p_limit": number,"p_table_id": string }; Returns: {

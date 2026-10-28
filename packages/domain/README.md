@@ -132,6 +132,7 @@ Accommodation rewards (#146, decision 0246): hotel nights, kept in thousandths. 
 
 | Export | What it does |
 |---|---|
+| `learnPoints(mastered, earnedToday, rates)`, `LearnPointRates` | Learn points (#135, `@rivr/domain/learnPoints`): a completed session's `perSession`, and `perPrinciple` for each principle first mastered in it, but no more than `dailyCap` less what Learn gave that IST day, never below nothing. The database's `private.learn_points` is proved equal on `golden/learnPoints.json`. |
 | `nightsForTime(playedSeconds, hoursPerNight)`, `NIGHT` | The thousandths of a night (`NIGHT` is 1,000) a table type's hours a night gives for the seconds played there, rounded down. At 20 hours a night, 5 hours is 250. |
 
 ### `@rivr/domain/rakeback`
