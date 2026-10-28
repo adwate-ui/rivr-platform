@@ -52,7 +52,8 @@ test.describe('CCTV', () => {
     const incident = page.getByText(summary).locator('..');
     await incident.getByRole('button', { name: 'Playback' }).click();
     const link = incident.getByRole('link', { name: 'Open E2E Table 1 at this moment' });
-    await expect(link).toHaveAttribute('target', '_blank');
+    // The link comes from the cctv-playback Edge Function, which a fresh runner starts cold on this first call.
+    await expect(link).toHaveAttribute('target', '_blank', { timeout: 15_000 });
     // The second it happened, as the database keeps it.
     const at = sql(`select to_char(occurred_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from public.incident where summary = '${summary}'`);
     await expect(link).toHaveAttribute('href', `https://cctv.invalid/playback?camera=e2e%3A1&at=${encodeURIComponent(at)}`);
