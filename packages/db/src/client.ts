@@ -8,6 +8,8 @@ export interface RivrClientOptions {
   readonly url: string;
   /** The project's publishable (anon) key. Never the service-role key. */
   readonly publishableKey: string;
+  /** For the website's preview of a draft (#129): its token, sent as x-site-preview so public_site_preview gives that draft. */
+  readonly previewToken?: string;
 }
 
 /** Where the browser keeps the signed-in session. Sign-out removes it even when Auth cannot be reached. */
@@ -46,9 +48,9 @@ export const fetchWithComputerToken: typeof fetch = (input, init) => {
  * Sign-in is by phone code only, so a session carried in a link is never taken: it could sign a
  * shared cage computer in as someone else.
  */
-export function createRivrClient({ url, publishableKey }: RivrClientOptions): RivrClient {
+export function createRivrClient({ url, publishableKey, previewToken }: RivrClientOptions): RivrClient {
   return createClient<Database>(url, publishableKey, {
     auth: { storageKey: SESSION_STORAGE_KEY, detectSessionInUrl: false },
-    global: { fetch: fetchWithComputerToken },
+    global: { fetch: fetchWithComputerToken, ...(previewToken === undefined ? {} : { headers: { 'x-site-preview': previewToken } }) },
   });
 }

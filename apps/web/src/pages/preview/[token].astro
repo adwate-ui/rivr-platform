@@ -1,0 +1,13 @@
+---
+// A page's draft, for the console's preview (#129): reached only by the draft's preview token, never indexed.
+import { loadPreview, Website } from '../../features/site/index.ts';
+import Document from '../../layouts/Document.astro';
+
+const view = await loadPreview(Astro.params.token, Astro.url);
+Astro.response.status = view.status;
+Astro.response.headers.set('X-Robots-Tag', 'noindex');
+---
+
+<Document title={view.title} description={view.description}>
+  <Website view={view} />
+</Document>

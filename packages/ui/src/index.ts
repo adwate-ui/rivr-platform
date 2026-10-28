@@ -130,3 +130,4 @@ export * from './PrintSheet/index.ts';
 export * from './ThermalReceipt/index.ts';
 export * from './DrillTable/index.ts';
 export * from './Heatmap/index.ts';
+export * from './WebPreview/index.ts';

@@ -37,7 +37,7 @@ export interface InputProps extends NativeInputProps {
   hint?: string | undefined;
   /** What is wrong and what to do, in one or two lines. Marks the field invalid. */
   error?: string | undefined;
-  type?: 'text' | 'tel' | 'email' | 'password' | 'search' | 'url' | 'date';
+  type?: 'text' | 'tel' | 'email' | 'password' | 'search' | 'url' | 'date' | 'datetime-local';
   variant?: InputVariant;
   /** Fixed text before the value that is not typed, such as `+91`. Read out with the field. */
   prefix?: string | undefined;

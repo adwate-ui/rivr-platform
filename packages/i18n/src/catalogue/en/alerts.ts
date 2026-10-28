@@ -26,6 +26,7 @@ export const alerts = {
     'rakeback.refused': 'a week\'s rakeback could not be given',
     'rakeback.unpaid': 'a week\'s rakeback held by a freeze or the kill switch for over five weeks was not given',
     'settings.control_changed': 'a super admin changed a control setting: credit, second approval, TDS, alert thresholds, GST, high-hand or jackpot payouts, or rakeback',
+    'website.publish_failed': 'a website page scheduled to publish could not be published: its draft is waiting in the console',
     'withdrawal.payout_orphaned': 'Cashfree paid a withdrawal the cage had already paid another way or given up on',
     'withdrawal.payout_stuck': 'a Cashfree payout of a withdrawal is stuck: it could not be recorded, or has waited half an hour',
   },
