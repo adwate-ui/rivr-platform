@@ -1,0 +1,192 @@
+{
+  "rule": "Glaza monthly statement",
+  "about": "The Glaza statement (#109; scope-v1 module 13; question #580; decision 0265). For a club month of Glaza's lines: the food, soft drinks and alcohol RIVR comped are owed to Glaza at cost; the margin on alcohol sold (price less cost) is split 50:50, RIVR's half the margin divided by two and rounded toward nothing to the paisa, so Glaza keeps an odd paisa; NewCo's payable to Glaza is the comps less RIVR's half, below nothing when Glaza owes RIVR. A payable case's inputs are the comps at cost and the alcohol margin; expected is RIVR's share and the payable. A statement case's lines are separated by semicolons, each its quantity, kind, unit cost and unit price, and comp when RIVR comped it; food and soft drinks sold are Glaza's alone.",
+  "cases": [
+    {
+      "description": "A month of comps and alcohol: half the margin comes off the comps.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹10,000",
+        "alcoholMargin": "₹4,000"
+      },
+      "expected": {
+        "rivrShare": "₹2,000",
+        "payable": "₹8,000"
+      }
+    },
+    {
+      "description": "An odd paisa of margin stays with Glaza.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹1,000",
+        "alcoholMargin": "₹0.01"
+      },
+      "expected": {
+        "rivrShare": "₹0",
+        "payable": "₹1,000"
+      }
+    },
+    {
+      "description": "Three paise of margin: RIVR takes one, Glaza two.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹500",
+        "alcoholMargin": "₹0.03"
+      },
+      "expected": {
+        "rivrShare": "₹0.01",
+        "payable": "₹499.99"
+      }
+    },
+    {
+      "description": "No comps and no alcohol: nothing either way.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹0",
+        "alcoholMargin": "₹0"
+      },
+      "expected": {
+        "rivrShare": "₹0",
+        "payable": "₹0"
+      }
+    },
+    {
+      "description": "Half the margin equal to the comps: nothing either way.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹2,000",
+        "alcoholMargin": "₹4,000"
+      },
+      "expected": {
+        "rivrShare": "₹2,000",
+        "payable": "₹0"
+      }
+    },
+    {
+      "description": "More alcohol margin than comps: Glaza owes RIVR.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹100",
+        "alcoholMargin": "₹1,000"
+      },
+      "expected": {
+        "rivrShare": "₹500",
+        "payable": "-₹400"
+      }
+    },
+    {
+      "description": "Alcohol sold below cost: RIVR bears half the loss.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹1,000",
+        "alcoholMargin": "-₹200"
+      },
+      "expected": {
+        "rivrShare": "-₹100",
+        "payable": "₹1,100"
+      }
+    },
+    {
+      "description": "Three paise below cost: RIVR bears one, Glaza two.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹0",
+        "alcoholMargin": "-₹0.03"
+      },
+      "expected": {
+        "rivrShare": "-₹0.01",
+        "payable": "₹0.01"
+      }
+    },
+    {
+      "description": "Comps of each kind at cost, and alcohol sold with its margin: Glaza owes RIVR.",
+      "operation": "statement",
+      "inputs": {
+        "lines": "2 × soft_drink ₹20 cost ₹60 price comp; 3 × alcohol ₹150 cost ₹400 price; 1 × food ₹180 cost ₹450 price comp; 1 × alcohol ₹300 cost ₹900 price; 1 × alcohol ₹300 cost ₹900 price comp"
+      },
+      "expected": {
+        "foodComps": "₹180",
+        "softDrinkComps": "₹40",
+        "alcoholComps": "₹300",
+        "comps": "₹520",
+        "alcoholSales": "₹2,100",
+        "alcoholCost": "₹750",
+        "alcoholMargin": "₹1,350",
+        "rivrShare": "₹675",
+        "payable": "-₹155"
+      }
+    },
+    {
+      "description": "Food and soft drinks sold are Glaza's alone: nothing either way.",
+      "operation": "statement",
+      "inputs": {
+        "lines": "4 × food ₹180 cost ₹450 price; 2 × soft_drink ₹20 cost ₹60 price"
+      },
+      "expected": {
+        "foodComps": "₹0",
+        "softDrinkComps": "₹0",
+        "alcoholComps": "₹0",
+        "comps": "₹0",
+        "alcoholSales": "₹0",
+        "alcoholCost": "₹0",
+        "alcoholMargin": "₹0",
+        "rivrShare": "₹0",
+        "payable": "₹0"
+      }
+    },
+    {
+      "description": "An odd paisa of margin on alcohol sold stays with Glaza.",
+      "operation": "statement",
+      "inputs": {
+        "lines": "1 × alcohol ₹100 cost ₹100.01 price; 1 × food ₹50 cost ₹50 price comp"
+      },
+      "expected": {
+        "foodComps": "₹50",
+        "softDrinkComps": "₹0",
+        "alcoholComps": "₹0",
+        "comps": "₹50",
+        "alcoholSales": "₹100.01",
+        "alcoholCost": "₹100",
+        "alcoholMargin": "₹0.01",
+        "rivrShare": "₹0",
+        "payable": "₹50"
+      }
+    },
+    {
+      "description": "Comped alcohol is owed at cost, with no margin.",
+      "operation": "statement",
+      "inputs": {
+        "lines": "2 × alcohol ₹300 cost ₹900 price comp"
+      },
+      "expected": {
+        "foodComps": "₹0",
+        "softDrinkComps": "₹0",
+        "alcoholComps": "₹600",
+        "comps": "₹600",
+        "alcoholSales": "₹0",
+        "alcoholCost": "₹0",
+        "alcoholMargin": "₹0",
+        "rivrShare": "₹0",
+        "payable": "₹600"
+      }
+    },
+    {
+      "description": "No lines: nothing.",
+      "operation": "statement",
+      "inputs": {
+        "lines": ""
+      },
+      "expected": {
+        "foodComps": "₹0",
+        "softDrinkComps": "₹0",
+        "alcoholComps": "₹0",
+        "comps": "₹0",
+        "alcoholSales": "₹0",
+        "alcoholCost": "₹0",
+        "alcoholMargin": "₹0",
+        "rivrShare": "₹0",
+        "payable": "₹0"
+      }
+    }
+  ]
+}

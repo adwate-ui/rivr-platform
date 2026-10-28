@@ -41,6 +41,22 @@ export const tv = {
     /** A member who hid their name on the TVs (#326). */
     hiddenName: 'A member',
   },
+  /** The spin wheel (#150, decision 0266): the prizes and their odds, and tonight's spins as they happen. */
+  spin: {
+    title: 'Spin wheel',
+    wheel: 'On the wheel',
+    wheelDetail: 'Odds',
+    spins: 'Tonight’s spins',
+    spinsDetail: 'Newest first',
+    empty: 'Nothing yet.',
+    /** `3 in 10`. */
+    odds: '{weight} in {odds}',
+    points: '{points} points',
+    bonus: '{amount} bonus',
+    nothing: 'Nothing',
+    /** A member who hid their name on the TVs (#326). */
+    hiddenName: 'A member',
+  },
   /** The League leaderboard (#148, decision 0182): this month's places, and the season's. */
   league: {
     title: 'RIVR League',

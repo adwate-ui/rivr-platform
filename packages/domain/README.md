@@ -230,6 +230,24 @@ Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` and `checkPurc
 | `satelliteSeats(pool, targetBuyIn, runs)`, `SatelliteSeats` | A satellite's seats in its target event: the pool at the target's buy-in, rounded down and never more than the runs, and the cash left over with the place it goes to (#117, decision 0250; golden `tournamentPayouts.json`). |
 | `eligibleSeats(occupied, tables, seatsPerTable)`, `balancingMoves(counts)`, `averageStack(chips, players)`, `TournamentSeat`, `BalancingMove` | Seating and balancing (#120, decision 0204; golden `tournamentSeating.json`): the free seats at the emptiest tables a new player may be given; the moves that bring every table within one player of the others; the chips per player left. |
 
+### `@rivr/domain/glaza`
+
+Glaza's monthly statement (#109, decision 0265, question #580), in paise. `packages/testing/golden/glaza.json` proves both against `private.glaza_statement_of` and `private.glaza_payable`.
+
+| Export | What it does |
+|---|---|
+| `glazaStatement(lines)`, `GlazaStatementLine`, `GlazaStatement`, `GlazaKind` | A month of Glaza's lines as its statement: comped lines owed at cost by kind, alcohol sold with its cost and margin; food and soft drinks sold are Glaza's alone. |
+| `glazaPayable(comps, alcoholMargin)`, `GlazaPayable` | RIVR's half of the alcohol margin, rounded toward nothing to the paisa (Glaza keeps an odd paisa), and NewCo's payable: the comps less that half, below nothing when Glaza owes RIVR. |
+
+### `@rivr/domain/spin`
+
+The spin wheel (#150, decision 0266). `packages/testing/golden/spin.json` proves `spinPrize` against `private.spin_prize`.
+
+| Export | What it does |
+|---|---|
+| `spinPrize(prizes, budgetLeft, roll)`, `SpinPrize` | The prize a roll lands on (from 0), among those that can be drawn in the wheel's order, each taking as many rolls as its weight; null when none can be drawn. |
+| `isDrawable(prize, budgetLeft)`, `spinOdds(prizes, budgetLeft)` | A bonus can be drawn only while what is left of the month's `spin.budget` covers it; the odds are the weights of the prizes that can be drawn. |
+
 ## Usage
 
 ```ts

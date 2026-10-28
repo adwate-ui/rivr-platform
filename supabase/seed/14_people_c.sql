@@ -55,6 +55,11 @@ insert into seed_person_c (id, phone, full_name) values
   -- The Learn flow's own member, who drills a licensed title, and super admin, who uploads it (#133, #136).
   ('00000000-0000-4000-8000-000000000630', '+919000000630', 'Mira Shah'),
   ('00000000-0000-4000-8000-000000000631', '+919000000631', 'Dev Malhotra'),
+  -- The Glaza flow's own finance manager, who imports Glaza's CSV (#109).
+  ('00000000-0000-4000-8000-000000000632', '+919000000632', 'Neha Gill'),
+  -- The Spin wheel flow's own duty manager, who spins the wheel, and member, whose spin the seed gives (#150).
+  ('00000000-0000-4000-8000-000000000633', '+919000000633', 'Kunal Sethi'),
+  ('00000000-0000-4000-8000-000000000634', '+919000000634', 'Tara Bose'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -110,14 +115,16 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000626'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000628'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin'),
-             ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin')) as j (id, job_title, role) on j.id = p.id
+             ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000632'::uuid, 'Finance manager', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000633'::uuid, 'Duty manager', 'super_admin')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
+where p.id in ('00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000634', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
                '00000000-0000-4000-8000-000000000297', '00000000-0000-4000-8000-000000000299')
 on conflict (id) do nothing;
 
@@ -133,3 +140,9 @@ select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-00000000
 from (values (interval '3 days'), (interval '10 days'), (interval '17 days')) as d (ago)
 where not exists (select 1 from public.visit v where v.member_id = '00000000-0000-4000-8000-000000000296');
 
+-- The Spin wheel flow's member has a spin waiting, from Spin the wheel (#150).
+insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, points, source_key, club_day)
+select p.venue_id, p.id, r.id, '00000000-0000-4000-8000-000000000634', r.trigger, r.effect, 0, 0, 'seed:spin-wheel-flow', (now() at time zone 'Asia/Kolkata')::date
+from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
+where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'spin_wheel'
+on conflict do nothing;

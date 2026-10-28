@@ -41,6 +41,7 @@ import { tally } from './tally.ts';
 import { ownerDashboard } from './ownerDashboard.ts';
 import { reports } from './reports.ts';
 import { creators } from './creators.ts';
+import { spin } from './spin.ts';
 import { learnSources } from './learnSources.ts';
 import { playerLearn } from './learn.ts';
 import { consoleEvents, playerEvents } from './events.ts';
@@ -206,6 +207,7 @@ export const consoleApp = {
   tally,
   reports,
   creators,
+  spin,
   events: consoleEvents,
   learnSources,
   ownerDashboard,

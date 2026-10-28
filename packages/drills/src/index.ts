@@ -41,6 +41,7 @@ export {
     type MoneyFormatter,
 } from './describeScenario.ts';
 export { handHistory, type HandHistory, type HistoryRow, type SeatRole } from './handHistory.ts';
+export { ENGLISH_WORDS, type DrillSentences, type DrillWords } from './words.ts';
 export {
     handCell, postflopStrategy, preflopStrategy, type StrategyCell, type StrategyRow,
 } from './strategy.ts';

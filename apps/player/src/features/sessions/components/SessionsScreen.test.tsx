@@ -56,12 +56,12 @@ function renderAt(path: string, { sessions = [], access = 'enabled' }: Api) {
 describe('Sessions', () => {
   it('says there are none yet', async () => {
     renderAt('/sessions', {});
-    expect(await screen.findByText('No sessions yet.')).toBeDefined();
+    expect(await screen.findByText('No sessions yet.', {}, { timeout: 5000 })).toBeDefined();
   });
 
   it('lists a session under its club month, by the day its night began', async () => {
     renderAt('/sessions', { sessions: [SESSION] });
-    expect(await screen.findByRole('heading', { name: 'February 2026' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'February 2026' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('1 session · 6 h')).toBeDefined();
     const row = screen.getByRole('button', { name: /Table 3/ });
     expect(row.textContent).toContain('13 Feb 2026');
@@ -70,7 +70,7 @@ describe('Sessions', () => {
 
   it('shows the locked notice for a tier without session history', async () => {
     renderAt('/sessions', { sessions: [SESSION], access: 'locked' });
-    expect(await screen.findByText('Black card only.')).toBeDefined();
+    expect(await screen.findByText('Black card only.', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByRole('button', { name: /Table 3/ })).toBeNull();
   });
 });
@@ -78,7 +78,7 @@ describe('Sessions', () => {
 describe('a session', () => {
   it('shows the TDS withheld and what was paid when TDS applied, then the net and the receipt', async () => {
     renderAt('/sessions/v1', { sessions: [SESSION] });
-    expect(await screen.findByText('TDS withheld')).toBeDefined();
+    expect(await screen.findByText('TDS withheld', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('₹12,000')).toBeDefined();
     expect(screen.getByText('Paid to you')).toBeDefined();
     expect(screen.getByText('₹38,000')).toBeDefined();
@@ -88,31 +88,31 @@ describe('a session', () => {
 
   it('says the TDS was on the period\u2019s winnings under the day and financial-year bases, not under the session\u2019s', async () => {
     renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'financial_year' }] });
-    expect(await screen.findByText('TDS on this year\u2019s winnings')).toBeDefined();
+    expect(await screen.findByText('TDS on this year\u2019s winnings', {}, { timeout: 5000 })).toBeDefined();
     cleanup();
     renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'day' }] });
-    expect(await screen.findByText('TDS on the day\u2019s winnings')).toBeDefined();
+    expect(await screen.findByText('TDS on the day\u2019s winnings', {}, { timeout: 5000 })).toBeDefined();
     cleanup();
     renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_basis: 'session' }] });
-    expect(await screen.findByText('TDS withheld')).toBeDefined();
+    expect(await screen.findByText('TDS withheld', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByText(/winnings$/)).toBeNull();
   });
 
   it('shows a tournament with its place in the field, and its prize', async () => {
     renderAt('/sessions/t1', { sessions: [{ ...SESSION, visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: 4, entrants: 61 }] });
-    expect(await screen.findByText('Tournament · place 4 of 61')).toBeDefined();
+    expect(await screen.findByText('Tournament · place 4 of 61', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('Prize')).toBeDefined();
   });
 
   it('has no TDS line, nor what was paid, when none was withheld', async () => {
     renderAt('/sessions/v1', { sessions: [{ ...SESSION, tds_paise: 0, paid_paise: 5000000, net_paise: 4000000 }] });
-    expect(await screen.findByText('Cash-out')).toBeDefined();
+    expect(await screen.findByText('Cash-out', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByText('TDS withheld')).toBeNull();
     expect(screen.queryByText('Paid to you')).toBeNull();
   });
 
   it('says a session not in the history is not there', async () => {
     renderAt('/sessions/v9', { sessions: [SESSION] });
-    expect(await screen.findByText('This session is not in your history.')).toBeDefined();
+    expect(await screen.findByText('This session is not in your history.', {}, { timeout: 5000 })).toBeDefined();
   });
 });

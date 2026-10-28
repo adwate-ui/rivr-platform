@@ -3,10 +3,27 @@ import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, DrillTable, Heading, Stack, Text, type DrillSeat } from '@rivr/ui';
 import { useState } from 'react';
 import type { PadAnswer, Spot } from '../drill.ts';
+import { drillWords } from '../words.ts';
 
 const SEATS: readonly Position[] = ['UTG', 'UTG1', 'UTG2', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 const SUIT_GLYPH = { s: '\u2660', h: '\u2665', d: '\u2666', c: '\u2663' } as const;
 const bb = (amount: number) => t('player.learn.spot.bb', { amount: String(amount) });
+const VERB_KEYS: Readonly<Record<string, 'posts' | 'folds' | 'checks' | 'bets' | 'raisesTo' | 'calls' | 'limps' | 'threeBetsTo' | 'fourBetsTo' | 'allIn' | 'foldToYou'>> = {
+  posts: 'posts', folds: 'folds', checks: 'checks', bets: 'bets', 'raises to': 'raisesTo', calls: 'calls', limps: 'limps', '3-bets to': 'threeBetsTo',
+  '4-bets to': 'fourBetsTo', 'moves all in': 'allIn', 'fold to you': 'foldToYou',
+};
+
+/** A history row's verb in the catalogue's words; the engine's own for one it has no word for. */
+function verbOf(action: string): string {
+  const key = VERB_KEYS[action];
+  return key === undefined ? action : t(`player.learn.spot.verbs.${key}`);
+}
+
+/** A seat in the hand by the catalogue's name: "Villain 2"; the engine numbers them. */
+function villainOf(label: string): string {
+  const number = /^Villain (\d+)$/.exec(label)?.[1];
+  return number === undefined ? label : t('player.learn.spot.villain', { number });
+}
 
 /** A card as the felt shows it: "10♠". */
 export const cardLabel = (card: Card) => `${card.rank === 'T' ? '10' : card.rank}${SUIT_GLYPH[card.suit]}`;
@@ -17,7 +34,7 @@ function seatsOf(spot: Spot): DrillSeat[] {
   return SEATS.map((position) => {
     const state = history.roles.get(position) ?? 'folded';
     const bet = history.bets[position];
-    const plate = state === 'hero' ? `${t('player.learn.spot.you')} · ${position}` : state === 'in_pot' ? `${history.labels[position]} · ${position}` : position;
+    const plate = state === 'hero' ? `${t('player.learn.spot.you')} · ${position}` : state === 'in_pot' ? `${villainOf(history.labels[position])} · ${position}` : position;
     return { plate, state, bet: bet === undefined ? null : bb(bet) };
   });
 }
@@ -52,12 +69,12 @@ export function SpotView({ spot, onAnswer }: { spot: Spot; onAnswer: (answer: Pa
     <Stack gap={4}>
       <DrillTable seats={seatsOf(spot)} board={spot.scenario.board.map(cardLabel)} hole={spot.scenario.hole.map(cardLabel)}
         pot={history.potBb === undefined ? null : t('player.learn.spot.pot', { amount: String(history.potBb) })} />
-      <Text variant="small" tone="muted">{describeScenario(spot.scenario, bb)}</Text>
+      <Text variant="small" tone="muted">{describeScenario(spot.scenario, bb, drillWords())}</Text>
       <Stack gap={1}>
         <Heading level={2}>{t('player.learn.spot.history')}</Heading>
         {rows.length === 0 ? <Text tone="muted">{t('player.learn.spot.noHistory')}</Text> : rows.map((row, index) => (
           <Text key={`${row.street}-${String(index)}`} variant="small">
-            {`${row.seat ?? ''} ${row.action}${row.amountBb === undefined ? '' : ` ${bb(row.amountBb)}`}`.trim()}
+            {`${row.seat ?? ''} ${verbOf(row.action)}${row.amountBb === undefined ? '' : ` ${bb(row.amountBb)}`}`.trim()}
           </Text>
         ))}
       </Stack>

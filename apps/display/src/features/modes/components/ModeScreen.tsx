@@ -8,6 +8,7 @@ import { JackpotMode } from './JackpotMode.tsx';
 import { LeagueMode } from './LeagueMode.tsx';
 import { PromotionsMode } from './PromotionsMode.tsx';
 import { RewardsMode } from './RewardsMode.tsx';
+import { SpinMode } from './SpinMode.tsx';
 import { TournamentClockMode } from './TournamentClockMode.tsx';
 import { WaitlistMode } from './WaitlistMode.tsx';
 
@@ -21,7 +22,7 @@ interface BoardProps {
   onDone?: (() => void) | undefined;
 }
 
-/** One board. The waitlist board and the jackpot are built (#65), the promotions (#86), the call-time board (decision 0163), the rewards ticker and League leaderboard (#148), and the tournament clock (#119); the other modes show their name under the TV's until they are. */
+/** One board. The waitlist board and the jackpot are built (#65), the promotions (#86), the call-time board (decision 0163), the rewards ticker and League leaderboard (#148), the tournament clock (#119), and the spin wheel (#150); the other modes show their name under the TV's until they are. */
 function Board({ mode, name, onDone }: BoardProps) {
   if (mode === 'waitlist') return <WaitlistMode />;
   if (mode === 'call_time') return <CallTimeMode />;
@@ -30,6 +31,7 @@ function Board({ mode, name, onDone }: BoardProps) {
   if (mode === 'rewards') return <RewardsMode />;
   if (mode === 'league') return <LeagueMode />;
   if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
+  if (mode === 'spin_wheel') return <SpinMode />;
   return (
     <Stack gap={4}>
       <Heading level={1} variant="display">{t(`tv.modes.${mode}`)}</Heading>

@@ -1,0 +1,114 @@
+{
+  "rule": "spin wheel",
+  "about": "The spin wheel (#150; additions \"Spin wheel\"; decision 0266). The wheel's prizes are points, bonus in whole ₹50 chips, or nothing, each with a weight: its odds among the others. A spin draws a roll from 0 to the odds less one, the odds being the weights of the prizes that can be drawn; the roll lands on those prizes in the wheel's order, each taking as many rolls as its weight. A bonus prize more than what is left of the club month's spin.budget is left off the wheel for that spin; with nothing that can be drawn there is no spin. A case's prizes are separated by semicolons, each with its weight after ×; the expected prize is its place on the wheel, or none.",
+  "cases": [
+    {
+      "description": "The first roll lands on the first prize.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "100 points ×3; ₹500 bonus ×1; nothing ×1",
+        "budgetLeft": "₹1,000",
+        "roll": "0"
+      },
+      "expected": {
+        "prize": "1"
+      }
+    },
+    {
+      "description": "The last of the first prize's three rolls.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "100 points ×3; ₹500 bonus ×1; nothing ×1",
+        "budgetLeft": "₹1,000",
+        "roll": "2"
+      },
+      "expected": {
+        "prize": "1"
+      }
+    },
+    {
+      "description": "The next roll moves to the second prize.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "100 points ×3; ₹500 bonus ×1; nothing ×1",
+        "budgetLeft": "₹1,000",
+        "roll": "3"
+      },
+      "expected": {
+        "prize": "2"
+      }
+    },
+    {
+      "description": "The last roll lands on the last prize.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "100 points ×3; ₹500 bonus ×1; nothing ×1",
+        "budgetLeft": "₹1,000",
+        "roll": "4"
+      },
+      "expected": {
+        "prize": "3"
+      }
+    },
+    {
+      "description": "A bonus equal to what is left of the budget can still be drawn.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "100 points ×3; ₹500 bonus ×1; nothing ×1",
+        "budgetLeft": "₹500",
+        "roll": "3"
+      },
+      "expected": {
+        "prize": "2"
+      }
+    },
+    {
+      "description": "A bonus a paisa past the budget is left off: the rolls skip it.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "100 points ×3; ₹500 bonus ×1; nothing ×1",
+        "budgetLeft": "₹499.99",
+        "roll": "3"
+      },
+      "expected": {
+        "prize": "3"
+      }
+    },
+    {
+      "description": "No budget left: points and nothing are still drawn.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "₹500 bonus ×5; 50 points ×1",
+        "budgetLeft": "₹0",
+        "roll": "0"
+      },
+      "expected": {
+        "prize": "2"
+      }
+    },
+    {
+      "description": "Only bonus prizes and no budget left: no spin.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "₹500 bonus ×1; ₹1,000 bonus ×2",
+        "budgetLeft": "₹0",
+        "roll": "0"
+      },
+      "expected": {
+        "prize": "none"
+      }
+    },
+    {
+      "description": "An empty wheel: no spin.",
+      "operation": "draw",
+      "inputs": {
+        "prizes": "",
+        "budgetLeft": "₹1,000",
+        "roll": "0"
+      },
+      "expected": {
+        "prize": "none"
+      }
+    }
+  ]
+}

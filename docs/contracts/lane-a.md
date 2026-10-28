@@ -25,7 +25,7 @@ Ledger rules, cage, wallet, withdrawals, markers and credit, TDS, GST, treasury 
 | `staff_shift`, `staff_attendance` | Rosters, shifts and attendance by job title. Onboarding checklists need no table: they are read from the SOP library (lane B) by `public.onboarding_checklists` below (#107, decision 0212) |
 | `purge_run` | Every purge, audited. Every table export is recorded in the audit log (`export.table`: who, what, filters, format, rows; decision 0190), not a table of its own |
 | `alert` | Alerts for the owner dashboard and the alert WhatsApp number |
-| `glaza_import_line`, `glaza_statement` | Monthly F&B CSV import from Glaza, matched to visits; statements |
+| `glaza_import`, `glaza_import_line` | Monthly F&B CSV import from Glaza (#109, decision 0265): each import of a club month and its lines, matched to visits by table and time; `public.import_glaza_lines(venue, month, lines)` and `public.glaza_statement(venue, month)`, which reads the month's latest import |
 
 ## Functions offered to other lanes
 
