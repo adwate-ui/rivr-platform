@@ -15,6 +15,7 @@
     "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
     "@rivr/domain": "workspace:*",
+    "@rivr/drills": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/tokens": "workspace:*",
     "@rivr/ui": "workspace:*",

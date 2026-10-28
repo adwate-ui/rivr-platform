@@ -6,7 +6,10 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { sendLearnProgress, useCompleteLearnSession, useLearnCards, useLearnProgressQueue, type LearnProgress } from './learn.ts';
+import {
+  sendLearnProgress, useCompleteLearnSession, useLearnAnswers, useLearnCards, useLearnEncoding, useLearnLibrary, useLearnProgressQueue,
+  type LearnProgress,
+} from './learn.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -78,5 +81,22 @@ describe('the Learn progress queue', () => {
     await waitFor(() => expect(calls.map((call) => call.url.split('/rpc/')[1])).toEqual(['sync_learn_progress', 'complete_learn_session']));
     expect(calls[1]?.body).toEqual({ p_session_id: 's1', p_principles: ['p_open'] });
     await waitFor(async () => expect(await result.current.pendingCount()).toBe(0));
+  });
+});
+
+describe('the Learn library', () => {
+  it('reads the sources the member has, a source\'s encoding, and their answers in it', async () => {
+    const { client, calls } = clientFor({
+      '/rest/v1/learn_source': { body: [{ source_key: 'src_book', title: 'The Book', author: null, venue_id: 'v1' }] },
+      '/storage/v1/object/learn-sources/v1/src_book.json': { body: { source: { id: 'src_book' } } },
+      '/rest/v1/learn_attempt': { body: [{ attempt: { correct: true } }] },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+    const source = { sourceKey: 'src_book', title: 'The Book', author: null, venueId: 'v1' };
+    const { result } = renderHook(() => ({ library: useLearnLibrary(), encoding: useLearnEncoding(source), answers: useLearnAnswers('src_book') }), { wrapper });
+    await waitFor(() => expect(result.current.library.data).toEqual([source]));
+    await waitFor(() => expect(JSON.parse(result.current.encoding.data ?? '{}')).toEqual({ source: { id: 'src_book' } }));
+    await waitFor(() => expect(result.current.answers.data).toEqual([{ correct: true }]));
+    expect(calls.some((call) => call.url.includes('learn_attempt') && call.url.includes('source_key=eq.src_book'))).toBe(true);
   });
 });

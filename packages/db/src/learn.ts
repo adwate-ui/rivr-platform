@@ -6,7 +6,12 @@ import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/learn).
-const keys = { cards: (userId: string, sourceKey: string) => ['user', userId, 'learn-cards', sourceKey] as const };
+const keys = {
+  cards: (userId: string, sourceKey: string) => ['user', userId, 'learn-cards', sourceKey] as const,
+  library: (userId: string) => ['user', userId, 'learn-library'] as const,
+  encoding: (userId: string, sourceKey: string) => ['user', userId, 'learn-encoding', sourceKey] as const,
+  answers: (userId: string, sourceKey: string) => ['user', userId, 'learn-answers', sourceKey] as const,
+};
 
 /** One answer as the app keeps it for the server (#132): its own id, so a resend is the same answer, and @rivr/drills' attempt row. */
 export interface LearnAnswer {
@@ -114,6 +119,57 @@ export function useCompleteLearnSession() {
       const { data, error } = await client.rpc('complete_learn_session', { p_session_id: sessionId, p_principles: [...principles] });
       await queryClient.invalidateQueries({ queryKey: ['user'] });
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
+    },
+  });
+}
+
+/** A licensed source the member has (#133): its key, title and author, and the club whose folder keeps it. */
+export interface LibrarySource {
+  readonly sourceKey: string;
+  readonly title: string;
+  readonly author: string | null;
+  readonly venueId: string;
+}
+
+/** The licensed sources the member's tier has, until each licence ends (learn.library). */
+export function useLearnLibrary() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.library(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<LibrarySource[]> => {
+      const { data, error } = await client.from('learn_source').select('source_key, title, author, venue_id').order('title');
+      if (error) throw error;
+      return data.map((row) => ({ sourceKey: row.source_key, title: row.title, author: row.author, venueId: row.venue_id }));
+    },
+  });
+}
+
+/** A source's encoding as text, for the drill engine in the app; read once, as it changes only with a new upload. */
+export function useLearnEncoding(source: LibrarySource | undefined) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.encoding(userId ?? 'signed-out', source?.sourceKey ?? ''),
+    enabled: userId !== null && source !== undefined,
+    staleTime: Infinity,
+    queryFn: async (): Promise<string> => {
+      const { data, error } = await client.storage.from('learn-sources').download(`${source?.venueId ?? ''}/${source?.sourceKey ?? ''}.json`);
+      if (error) throw error;
+      return await data.text();
+    },
+  });
+}
+
+/** The member's answers in a source, oldest first, each the attempt row the app kept (learn.drills). */
+export function useLearnAnswers(sourceKey: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.answers(userId ?? 'signed-out', sourceKey),
+    enabled: userId !== null,
+    queryFn: async (): Promise<Json[]> => {
+      const { data, error } = await client.from('learn_attempt').select('attempt').eq('source_key', sourceKey).order('answered_at');
+      if (error) throw error;
+      return data.map((row) => row.attempt);
     },
   });
 }

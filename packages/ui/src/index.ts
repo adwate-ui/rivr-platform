@@ -128,3 +128,5 @@ export * from './PartnerStatementDocument/index.ts';
 export * from './OfflinePackDocument/index.ts';
 export * from './PrintSheet/index.ts';
 export * from './ThermalReceipt/index.ts';
+export * from './DrillTable/index.ts';
+export * from './Heatmap/index.ts';
