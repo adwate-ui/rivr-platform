@@ -18,6 +18,12 @@ export const tabletApp = {
   queue,
   seats,
   highHand,
+  /** The page the APK shows when the tablet starts before the network is up (#292). */
+  offlineStart: {
+    title: 'Waiting for the network',
+    body: "RIVR Dealer opens as soon as the club Wi-Fi and the internet are up. It tries again every few seconds, so you don't need to do anything.",
+    retry: 'Retry',
+  },
   /** The door kiosk (decision 0164): a member scans their card to check in and out. `{name}` is their first name. */
   door: {
     prompt: 'Hold your RIVR card up to the camera',

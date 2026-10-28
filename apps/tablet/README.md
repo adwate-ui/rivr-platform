@@ -27,6 +27,8 @@ cd apps/tablet/android && ./gradlew assembleDebug
 
 The release workflow builds the signed APK from a `release-*` tag (`docs/runbooks/ci-and-release.md`). Colours come from `@rivr/tokens`' generated Android resources.
 
+A release APK that starts before the club Wi-Fi or the internet is up shows `offline.html` from the APK (Capacitor's `server.errorPath`, #292). It says the tablet is waiting for the network, tries the hosted bundle every five seconds (or at once with Retry), and opens RIVR Dealer by itself. Capacitor serves only that one file from the APK, so `vite.offline.config.ts` builds it with its script, styles and fonts inside it.
+
 At the club each tablet runs in kiosk mode (Android lock task, #41): provisioned as the device owner over adb, the app locks the tablet to itself, is its home screen and keeps the screen on (`docs/runbooks/dealer-tablet.md`). On a device that is not provisioned, such as a developer's phone, it runs as a normal app.
 
 ## Structure
