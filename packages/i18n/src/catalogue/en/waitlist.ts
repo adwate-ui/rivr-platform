@@ -116,6 +116,8 @@ export const waitlist = {
   seatTaken: 'Someone sits in that seat. Choose another seat.',
   tooLate: 'The hold has run out. The place goes to the next name within a minute.',
   noTimeAway: 'This member has used all their time away for this place.',
+  /** Back refused: the member was away past their time, so the place has gone (#287). */
+  awayTooLong: 'Away too long: this place has gone. Add them to the list again if they are here.',
   /** Call, Seat, Skip or Back refused because someone else changed the place or the table first. */
   changed: 'That place or table has just changed. Check the list and try again.',
   seat: 'Seat {name}',

@@ -133,4 +133,31 @@ test.describe('Waitlist', () => {
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
     await expect(joinButton(player, 'Table 2')).toBeVisible();
   });
+
+  test('Skip, Back, Step away and I\u2019m back: the floor and the member move a place to away and back (#287)', async () => {
+    await player.reload();
+    await joinButton(player, 'Table 2').click();
+    await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+
+    await host.reload();
+    const higher = gameList(host, 'NLH 100/200');
+    await higher.getByRole('button', { name: `Call ${MEMBER}` }).click();
+    await higher.getByRole('button', { name: 'Table 3', exact: true }).click();
+    await higher.getByRole('textbox', { name: 'Seat', exact: true }).fill('8');
+    await higher.getByRole('button', { name: 'Call to this seat' }).click();
+    await higher.getByRole('button', { name: `Skip ${MEMBER}` }).click();
+    await expect(higher.getByRole('button', { name: `${MEMBER} is back` })).toBeVisible();
+    await higher.getByRole('button', { name: `${MEMBER} is back` }).click();
+    await expect(higher.getByRole('button', { name: `Call ${MEMBER}` })).toBeVisible();
+
+    await player.reload();
+    await player.getByRole('button', { name: 'Step away' }).click();
+    await host.reload();
+    await expect(gameList(host, 'NLH 100/200').getByRole('button', { name: `${MEMBER} is back` })).toBeVisible();
+    await player.getByRole('button', { name: "I'm back" }).click();
+    await host.reload();
+    await expect(gameList(host, 'NLH 100/200').getByRole('button', { name: `Call ${MEMBER}` })).toBeVisible();
+
+    await pressEvery(player, 'Leave');
+  });
 });
