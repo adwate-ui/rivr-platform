@@ -201,6 +201,8 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   }),
   // Live: the club's promotions, as their cards (public_promotion_cards).
   z.object({ kind: z.literal('promotions'), content: z.object({ heading: headingSchema }) }),
+  // Live: the club's approved Instagram posts (public_wall_posts, #157).
+  z.object({ kind: z.literal('social_wall'), content: z.object({ heading: headingSchema }) }),
 ]);
 
 /** A website block the website can show. */

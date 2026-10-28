@@ -54,6 +54,7 @@ describe('fetchSitePage', () => {
       games: [],
       tournaments: [],
       promotions: [],
+      wallPosts: [],
       isPaused: false,
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');

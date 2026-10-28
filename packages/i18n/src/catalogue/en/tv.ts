@@ -57,6 +57,14 @@ export const tv = {
     /** A member who hid their name on the TVs (#326). */
     hiddenName: 'A member',
   },
+  /** The social wall (#158, decision 0267): the club's approved Instagram posts, one after another. */
+  socialWall: {
+    label: 'On Instagram',
+    handle: '@{handle}',
+    none: 'No posts on the wall yet.',
+    /** `Post 2 of 6`. */
+    pager: 'Post {current} of {count}',
+  },
   /** The League leaderboard (#148, decision 0182): this month's places, and the season's. */
   league: {
     title: 'RIVR League',

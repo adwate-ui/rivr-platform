@@ -12,6 +12,7 @@
     "./fnb": "./src/fnb.ts",
     "./glaza": "./src/glaza.ts",
     "./spin": "./src/spin.ts",
+    "./social": "./src/social.ts",
     "./shareholding": "./src/shareholding.ts",
     "./tally": "./src/tally.ts",
     "./reports": "./src/reports.ts",

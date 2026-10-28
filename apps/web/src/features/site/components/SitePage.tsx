@@ -23,7 +23,7 @@ const BAND: Record<SiteBlock['kind'], WebBandTone> = {
   hero: 'dark', statement: 'deep', gallery: 'cream', feature: 'dark', games: 'cream', calendar: 'deep', map: 'cream',
   text: 'deep', rules: 'deep', faq: 'cream', careers: 'deep', links: 'deep',
   // The bands added in decision 0166.
-  story: 'cream', cards: 'dark', marquee: 'deep', timeline: 'deep', table: 'cream', promotions: 'deep',
+  story: 'cream', cards: 'dark', marquee: 'deep', timeline: 'deep', table: 'cream', promotions: 'deep', social_wall: 'cream',
 };
 
 type Link = (action: { label: string; to: PlayerDestination } | undefined) => { label: string; href: string } | undefined;
@@ -96,8 +96,11 @@ function isKind<K extends SiteBlock['kind']>(block: SiteBlock, kinds: readonly K
   return kinds.some((kind) => kind === block.kind);
 }
 
-/** A block of the club's own text, or one of its live rows: games, tournaments, promotions, or links into the app. */
-function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 'text' | 'games' | 'calendar' | 'promotions' | 'links' }>; page: SitePageData; link: Link }) {
+// A wall post's caption on the website, at most as long as a card's text.
+const WALL_CAPTION = 300;
+
+/** A block of the club's own text, or one of its live rows: games, tournaments, promotions, links into the app, or the social wall. */
+function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 'text' | 'games' | 'calendar' | 'promotions' | 'links' | 'social_wall' }>; page: SitePageData; link: Link }) {
   switch (block.kind) {
     case 'text':
       return <TextBlock heading={block.content.heading} body={block.content.body} />;
@@ -110,6 +113,13 @@ function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 't
         promotions={page.promotions.map((promotion) => ({ title: promotion.title, detail: promotion.detail ?? undefined, runs: promotion.runs ?? undefined }))} />;
     case 'links':
       return <LinksBlock heading={block.content.heading} links={block.content.links.flatMap((action) => link(action) ?? [])} />;
+    case 'social_wall':
+      // The club's approved Instagram posts (#157); with none yet, the block is not shown.
+      return page.wallPosts.length === 0 ? null : (
+        <CardsBlock heading={block.content.heading} cards={page.wallPosts.map((post) => ({
+          title: t('web.wallHandle', { handle: post.handle }), text: post.caption.slice(0, WALL_CAPTION), link: { label: t('web.wallOpen'), href: post.permalink },
+        }))} />
+      );
   }
 }
 
@@ -117,7 +127,7 @@ function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 't
 function Block({ block, page, link, pageLink }: { block: SiteBlock; page: SitePageData; link: Link; pageLink: PageLink }) {
   if (isKind(block, ['hero', 'statement', 'gallery', 'feature'])) return <MediaBlock block={block} link={link} />;
   if (isKind(block, ['story', 'cards', 'marquee', 'timeline', 'table'])) return <WordsBlock block={block} link={link} pageLink={pageLink} />;
-  if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links'])) return <LiveBlock block={block} page={page} link={link} />;
+  if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links', 'social_wall'])) return <LiveBlock block={block} page={page} link={link} />;
   return <InfoBlock block={block} />;
 }
 

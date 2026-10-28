@@ -7,6 +7,9 @@ export const webApp = {
   reserve: 'Reserve a seat',
   /** A promotions block while none runs (decision 0166). */
   noPromotions: 'No promotions are running just now. Check back soon.',
+  /** A post on the website's social wall (#157). */
+  wallHandle: '@{handle}',
+  wallOpen: 'See it on Instagram',
   /** The footer on every page (#441): where the club is, how to reach it, and its 18+ line. */
   footer: {
     address: 'Upper floor, Glaza, M3M 65th Avenue, Gurugram',

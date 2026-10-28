@@ -60,6 +60,10 @@ insert into seed_person_c (id, phone, full_name) values
   -- The Spin wheel flow's own duty manager, who spins the wheel, and member, whose spin the seed gives (#150).
   ('00000000-0000-4000-8000-000000000633', '+919000000633', 'Kunal Sethi'),
   ('00000000-0000-4000-8000-000000000634', '+919000000634', 'Tara Bose'),
+  -- The Social wall flow's own marketing manager, who approves a tagged post (#157).
+  ('00000000-0000-4000-8000-000000000635', '+919000000635', 'Ira Sethi'),
+  -- The Publishing flow's own marketing manager, who publishes a post (#154).
+  ('00000000-0000-4000-8000-000000000636', '+919000000636', 'Arjun Kohli'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -114,6 +118,8 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000625'::uuid, 'Cashier', 'cashier'),
              ('00000000-0000-4000-8000-000000000626'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000628'::uuid, 'Marketing manager', 'marketing'),
+             ('00000000-0000-4000-8000-000000000635'::uuid, 'Marketing manager', 'marketing'),
+             ('00000000-0000-4000-8000-000000000636'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000632'::uuid, 'Finance manager', 'super_admin'),
@@ -145,4 +151,12 @@ insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, m
 select p.venue_id, p.id, r.id, '00000000-0000-4000-8000-000000000634', r.trigger, r.effect, 0, 0, 'seed:spin-wheel-flow', (now() at time zone 'Asia/Kolkata')::date
 from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
 where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'spin_wheel'
+on conflict do nothing;
+
+-- The Social wall flow's posts waiting for moderation, as Instagram's pull would record them (#157).
+insert into public.wall_post (venue_id, source_id, handle, caption, media_url, media_kind, permalink, posted_at) values
+  ('00000000-0000-4000-8000-000000000001', 'seed-wall-1', 'zoya.plays', 'Final table at RIVR tonight', 'https://cdn.example/seed-wall-1.jpg', 'image',
+   'https://www.instagram.com/p/seedwall1/', now() - interval '2 hours'),
+  ('00000000-0000-4000-8000-000000000001', 'seed-wall-2', 'kabir.s', 'Sunday at the club', 'https://cdn.example/seed-wall-2.jpg', 'image',
+   'https://www.instagram.com/p/seedwall2/', now() - interval '1 hour')
 on conflict do nothing;

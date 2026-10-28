@@ -23,8 +23,8 @@ select results_eq(
   $$ select position, kind from public.public_site_block where venue_slug = 'gurugram' and page_slug = 'home' order by position $$,
   $$ values (1, 'hero'::text), (2, 'marquee'::text), (3, 'story'), (4, 'cards'), (5, 'statement'), (6, 'gallery'), (7, 'cards'), (8, 'games'),
             (9, 'cards'), (10, 'cards'), (11, 'timeline'), (12, 'cards'), (13, 'feature'), (14, 'cards'), (15, 'calendar'), (16, 'cards'),
-            (17, 'faq'), (18, 'statement'), (19, 'map') $$,
-  'and their blocks, in order');
+            (17, 'faq'), (18, 'statement'), (19, 'map'), (20, 'social_wall') $$,
+  'and their blocks, in order, the social wall last (#157)');
 select is_empty($$ select * from public.public_site_block where page_slug = 'careers' or venue_slug = 'practice' $$,
   'never a draft''s blocks or the practice venue''s');
 select throws_ok($$ select * from public.site_page $$, '42501', null, 'nobody signed out reads the tables');

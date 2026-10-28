@@ -21,8 +21,8 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 | `upiPayouts` | `@rivr/adapters/upi-payouts` | `UpiPayoutAdapter` | Withdrawals; one payout per idempotency key. Live on Cashfree Payouts (`createCashfreePayouts`, decision 0198), which looks a transfer up before sending it; not wired to a flow yet |
 | `push` | `@rivr/adapters/push` | `PushAdapter` | Web push; `subscription_gone` means delete the subscription |
 | `socialPublishing` | `@rivr/adapters/social-publishing` | `SocialPublishing` | One `SocialPublishingTarget` per channel; `published` or `download_and_post` |
-| `socialInbox` | `@rivr/adapters/social-inbox` | `SocialInboxAdapter` | Instagram, Facebook and WhatsApp messages and replies |
-| `instagramGraph` | `@rivr/adapters/instagram-graph` | `InstagramGraphAdapter` | Posts tagging RIVR, for the social wall |
+| `socialInbox` | `@rivr/adapters/social-inbox` | `SocialInboxAdapter` | Instagram, Facebook and WhatsApp messages and replies. Meta's webhook: `isMetaSignature(body, header, appSecret)` and `inboxMessagesFrom(payload)` (#156) |
+| `instagramGraph` | `@rivr/adapters/instagram-graph` | `InstagramGraphAdapter` | Posts tagging RIVR, for the social wall: live `createInstagramGraph({ instagramUserId, accessToken })`, and one pull, `pullWallPosts({ instagram, since, record })` (#157) |
 | `channelAnalytics` | `@rivr/adapters/channel-analytics` | `ChannelAnalyticsAdapter` | Follower count per channel |
 | `metaConversions` | `@rivr/adapters/meta-conversions` | `MetaConversionsAdapter` | `action_source: physical_store`, identifiers SHA-256 hashed by `toMetaServerEvent` |
 | `googleAds` | `@rivr/adapters/google-ads` | `GoogleAdsConversionsAdapter` | Offline conversion import, phone hashed by `toClickConversion`; enabled |
