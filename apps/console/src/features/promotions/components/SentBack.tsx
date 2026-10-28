@@ -1,6 +1,6 @@
 import { usePromotionsSentBack } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Heading, Stack, Text, LoadState } from '@rivr/ui';
 
 /**
  * Promotions a super admin sent back in the last fortnight (#144; decision 0244), newest first, with who sent each
@@ -13,8 +13,7 @@ export function SentBack({ venueId }: { venueId: string }) {
     return (
       <Stack gap={4}>
         {heading}
-        <Text tone="muted">{t('common.loadFailed')}</Text>
-        <Inline><Button onClick={() => void sentBack.refetch()}>{t('common.retry')}</Button></Inline>
+        <LoadState isError onRetry={() => void sentBack.refetch()} />
       </Stack>
     );
   }

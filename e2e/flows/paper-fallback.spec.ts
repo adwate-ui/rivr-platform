@@ -47,7 +47,7 @@ async function seat(page: Page, mobile: string, seatNumber: string) {
 
 /** The practice venue's chips in play on Treasury, in rupees. */
 async function chipsInPlay(page: Page): Promise<number> {
-  await page.getByRole('link', { name: 'Treasury' }).click();
+  await page.getByRole('link', { name: 'Shift', exact: true }).click();
   const label = page.getByText('Chips in play', { exact: true });
   await expect(label).toBeVisible();
   const figure = (await label.locator('xpath=..').innerText()).replace('Chips in play', '');

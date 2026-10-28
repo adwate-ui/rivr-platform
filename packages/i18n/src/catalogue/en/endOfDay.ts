@@ -3,10 +3,9 @@
  * anomaly needs before the day closes.
  */
 export const endOfDay = {
-  title: 'End of day',
-  notAllowed: 'Your role does not include End of day. Cashiers, managers and owners see it.',
+  notAllowed: 'Your role does not include the cage\'s shift. Cashiers, managers and owners see it.',
   close: 'Close the shift',
-  noShift: 'No shift open. A cashier opens one on Treasury with the float and the chips.',
+  noShift: 'No shift open. A cashier opens one under Opening and counts, with the float and the chips.',
   openNotYours: 'A shift is open. A cashier closes it here.',
   /** Above the form: what to count, before any expected figure is shown. */
   closeIntro: 'Count the drawer and the chips, with the drop boxes in the cage, and take the receipts from the bank statement. Each is set against the ledger when you close.',

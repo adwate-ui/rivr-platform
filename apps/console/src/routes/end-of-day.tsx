@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { EndOfDayScreen } from '../features/treasury/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** End of day (#45): closing the cage's shift against the ledger, and an anomaly's review. */
-export const endOfDayRoute = createRoute({ getParentRoute: () => frameRoute, path: '/end-of-day', component: EndOfDayScreen });
+/** End of day moved into Shift (#606): an old link or bookmark opens its tab there. */
+export const endOfDayRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/end-of-day', component: () => <Navigate to="/shift" search={{ tab: 'close' }} replace />,
+});

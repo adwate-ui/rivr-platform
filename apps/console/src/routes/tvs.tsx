@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { TvScreensScreen } from '../features/tv-screens/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The venue's TVs: pair one by the code it shows, change what it shows, unpair it (#49). */
-export const tvsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/tvs', component: TvScreensScreen });
+/** TVs moved into Devices (#606): an old link or bookmark opens its tab there. */
+export const tvsRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/tvs', component: () => <Navigate to="/devices" search={{ tab: 'tvs' }} replace />,
+});

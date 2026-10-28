@@ -46,6 +46,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
@@ -80,6 +81,7 @@ async function expectTvAt(tv: Page, level: string, blinds: string, ante: string)
 
 /** Unpairs the flow's TV on the console's TVs screen. */
 async function unpairTv(floor: Page, tvName: string) {
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('button', { name: `Unpair ${tvName}`, exact: true }).click();
   await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');

@@ -7,6 +7,8 @@ export const notStaff = {
 /** The console's Staff screen (#28): the venue's staff, with job titles apart from roles. */
 export const staff = {
   title: 'Staff',
+  /** The tabs (#606); Dealer PINs takes its own title. */
+  tabs: { staff: 'Staff members' },
   notAllowed: 'Your role does not manage staff. Ask an admin if you need it.',
   empty: 'No staff yet.',
   /** The seven permission roles, as the screen names them. */

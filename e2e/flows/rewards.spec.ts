@@ -33,6 +33,7 @@ async function pairTv(tv: Page, floor: Page, name: string, board: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
@@ -66,6 +67,8 @@ test.describe('Rewards', () => {
 
     await member.reload();
     await expect(member.getByText(/^Collected /).first()).toBeVisible({ timeout: 10_000 });
+
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
 
     await floor.getByRole('link', { name: 'TVs' }).click();
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();

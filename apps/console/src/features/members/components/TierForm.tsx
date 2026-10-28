@@ -26,10 +26,7 @@ function TierChoice({ tiers, options, tierId, onChange }: {
 }) {
   if (tiers.isError) {
     return (
-      <Stack gap={2}>
-        <ErrorMessage>{t('console.members.tiersUnavailable')}</ErrorMessage>
-        <Button variant="text" onClick={() => void tiers.refetch()}>{t('common.retry')}</Button>
-      </Stack>
+      <LoadState isError errorText={t('console.members.tiersUnavailable')} onRetry={() => void tiers.refetch()} />
     );
   }
   if (tiers.data === undefined) return <LoadState />;

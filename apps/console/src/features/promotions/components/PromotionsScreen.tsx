@@ -76,7 +76,7 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
   };
   const isBusy = submitPromotion.isPending || simulation.isPending;
   return (
-    <Grid columns={2} gap={12}>
+    <Grid columns={2} gap={12} stackBelow="medium">
       <Stack gap={6}>
         <Heading level={2} variant="section">{t('console.promotions.newPromotion')}</Heading>
         <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { setChoices(next); setOutcome(null); simulation.clear(); }} />

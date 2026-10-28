@@ -11,7 +11,7 @@ export function RakeTonight({ venueId }: { venueId: string }) {
     <Stack gap={4}>
       <Heading level={2}>{t('console.reports.tonight')}</Heading>
       <Text variant="small" tone="muted">{t('console.reports.tonightHint')}</Text>
-      <Grid columns={3} gap={6}>
+      <Grid columns={3} gap={6} stackBelow="medium">
         <RakeTable {...state} label={t('console.reports.tonightByTable')} nameHeader={t('console.reports.table')} rows={tonight.data?.byTable} />
         <RakeTable {...state} label={t('console.reports.tonightByDealer')} nameHeader={t('console.reports.dealer')} rows={tonight.data?.byDealer} />
         <RakeTable {...state} label={t('console.reports.tonightByVariant')} nameHeader={t('console.reports.variant')} rows={tonight.data?.byVariant} />

@@ -11,12 +11,12 @@ import { CAMERA_FAILURE_COPY } from './cameraCopy.ts';
  * recorder's channel, over a table, on the cage or elsewhere. A hand carries its table's camera, a cage transaction
  * the cage's, so their recording opens from Pot data and the cage's receipt.
  */
-export function CamerasScreen() {
+export function CamerasSection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   if (!staff.venue.permissions.includes('devices.manage')) {
-    return <Screen title={t('console.cameras.title')} status="error" errorText={t('console.cameras.notAllowed')} />;
+    return <Screen level={2} title={t('console.cameras.title')} status="error" errorText={t('console.cameras.notAllowed')} />;
   }
   return <Cameras venueId={staff.venue.venueId} />;
 }
@@ -52,13 +52,13 @@ function Cameras({ venueId }: { venueId: string }) {
   const tables = useFloorTables();
   const [failure, setFailure] = useState<CameraFailure | null>(null);
   const title = t('console.cameras.title');
-  if (cameras.isPending || tables.isPending) return <Screen title={title} status="loading" />;
+  if (cameras.isPending || tables.isPending) return <Screen level={2} title={title} status="loading" />;
   if (cameras.data === undefined || tables.data === undefined) {
-    return <Screen title={title} status="error" onRetry={() => void Promise.all([cameras.refetch(), tables.refetch()])} />;
+    return <Screen level={2} title={title} status="error" onRetry={() => void Promise.all([cameras.refetch(), tables.refetch()])} />;
   }
   const venueTables: readonly FloorTable[] = tables.data.filter((table) => table.venueId === venueId);
   return (
-    <Screen title={title}>
+    <Screen level={2} title={title}>
       <Stack gap={8}>
         <Stack gap={3}>
           {failure === null ? null : <ErrorMessage>{t(CAMERA_FAILURE_COPY[failure])}</ErrorMessage>}

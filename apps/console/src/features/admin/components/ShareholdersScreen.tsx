@@ -86,7 +86,7 @@ export function ShareholdersScreen() {
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <Grid columns={2} gap={8}>
+        <Grid columns={2} gap={8} stackBelow="medium">
           <Stack gap={8}>
             <Register venueId={venueId} on={on} onDay={setOn} />
             <History venueId={venueId} />

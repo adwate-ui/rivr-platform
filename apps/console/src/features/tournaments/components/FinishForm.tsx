@@ -4,7 +4,7 @@ import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type 
 import { ZERO, type Paise } from '@rivr/domain/money';
 import { dealAmounts, MOST_DEAL_PLAYERS } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { ChipCountForm } from './ChipCountForm.tsx';
 import { ConfirmButton } from './ConfirmButton.tsx';
 import { useState } from 'react';
@@ -115,10 +115,7 @@ export function FinishForm({ venueId, tournament, prizes }: FinishFormProps) {
   if (seating.isPending) return <LoadState />;
   if (seating.data === undefined) {
     return (
-      <Inline gap={4} align="center">
-        <ErrorMessage>{t('console.tournaments.payouts.failures.unavailable')}</ErrorMessage>
-        <Button variant="text" onClick={() => void seating.refetch()}>{t('common.retry')}</Button>
-      </Inline>
+      <LoadState isError errorText={t('console.tournaments.payouts.failures.unavailable')} onRetry={() => void seating.refetch()} />
     );
   }
   const left = seating.data.filter((row) => row.status === 'seated');

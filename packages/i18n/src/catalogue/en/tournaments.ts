@@ -6,7 +6,10 @@ export const tournaments = {
   title: 'Tournaments',
   notAllowed: 'Tournaments are for staff who run them.',
   show: 'Show',
-  views: { tournaments: 'Tournaments', templates: 'Templates', structures: 'Blind structures' },
+  /** A phone's way from a tournament back to the list, and the desk's line while none is chosen (#605). */
+  backToList: 'Back to Tournaments',
+  chooseOne: 'Choose a tournament to see its clock and floor.',
+  views: { tournaments: 'Running and upcoming', templates: 'Templates', structures: 'Blind structures' },
   formats: { freezeout: 'Freezeout', re_entry: 'Re-entry', rebuy: 'Rebuy' },
   /** What went wrong saving or changing anything here. */
   failures: {
@@ -57,6 +60,8 @@ export const tournaments = {
   addOnLine: 'Add-on {price} for {chips} chips',
   placesPaid: 'Top {count} paid',
   shown: 'Shown to members',
+  /** The open tournament's own switch, named apart from the new tournament's beside it. */
+  shownNamed: '{name} shown to members',
   shownHint: 'On the website’s calendar and in the app.',
   remove: 'Remove',
   removeConfirm: 'Remove {name}? Nothing has been entered in it yet.',

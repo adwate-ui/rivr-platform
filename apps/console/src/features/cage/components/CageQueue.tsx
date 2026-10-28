@@ -43,10 +43,7 @@ export function CageQueue({ venueId }: { venueId: string }) {
       {failure === null ? null : <ErrorMessage>{t(CAGE_FAILURE_COPY[failure])}</ErrorMessage>}
       {queue.isPending ? <LoadState /> : null}
       {queue.isError ? (
-        <Stack gap={2} align="start">
-          <ErrorMessage>{t('console.cage.unavailable')}</ErrorMessage>
-          <Button onClick={() => void queue.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError errorText={t('console.cage.unavailable')} onRetry={() => void queue.refetch()} />
       ) : null}
       {queue.data?.length === 0 ? <Text tone="muted">{t('console.cage.queueEmpty')}</Text> : null}
       {(queue.data ?? []).map((request) => <RequestRow key={request.requestId} venueId={venueId} request={request} onResult={setFailure} />)}

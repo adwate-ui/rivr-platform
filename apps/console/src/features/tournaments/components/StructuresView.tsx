@@ -23,7 +23,7 @@ function structureColumns(onEdit: (structure: BlindStructure) => void): DataTabl
 export function StructuresView({ venueId, structures }: { venueId: string; structures: readonly BlindStructure[] }) {
   const [editing, setEditing] = useState<BlindStructure | null>(null);
   return (
-    <Grid columns={2} gap={12}>
+    <Grid columns={2} gap={12} stackBelow="medium">
       <DataTable label={t('console.tournaments.structures')} columns={structureColumns(setEditing)} rowKey={(row) => row.id} rows={structures}
         emptyText={t('console.tournaments.noStructureList')} />
       <StructureEditor key={editing?.id ?? 'new'} venueId={venueId} structure={editing} onDone={() => setEditing(null)} />

@@ -30,12 +30,13 @@ export interface TierMatrixProps {
 /**
  * The tier x feature matrix (additions "Tier-gated features", console Tiers screen): a real table, so a
  * screen reader names each cell by its feature (row header) and tier (column header), with rows that grow
- * to fit what their cells hold. Wider than the screen, it scrolls sideways on its own.
+ * to fit what their cells hold. Wider than the screen, it scrolls sideways on its own; the box is positioned, so a
+ * cell's screen-reader-only label (absolutely placed) stays inside it rather than widening the page.
  */
 export function TierMatrix({ label, featureHeader, tiers, rows, emptyText }: TierMatrixProps) {
   if (rows.length === 0) return <Text tone="muted">{emptyText}</Text>;
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table aria-label={label} className="w-full border-collapse">
         <thead>
           <tr>

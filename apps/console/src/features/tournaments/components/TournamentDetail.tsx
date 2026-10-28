@@ -67,7 +67,7 @@ export function TournamentDetail({ venueId, tournament, tournaments, canRun, can
         ? <EventLink venueId={venueId} tournament={tournament} others={tournaments} /> : null}
       {canRun ? (
         <>
-          <Switch label={t('console.tournaments.shown')} hint={t('console.tournaments.shownHint')} isOn={tournament.isPublished}
+          <Switch label={t('console.tournaments.shownNamed', { name: tournament.name })} hint={t('console.tournaments.shownHint')} isOn={tournament.isPublished}
             isDisabled={actions.list.isPending}
             onChange={(isPublished) => void actions.list.mutateAsync({ tournament, isPublished }).then(report)} />
           <RemoveTournament tournament={tournament} isBusy={actions.remove.isPending}

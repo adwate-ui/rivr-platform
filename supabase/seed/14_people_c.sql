@@ -78,6 +78,10 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000643', '+919000000643', 'Sameer Joshi'),
   -- The Console fits flow's own floor manager, who opens the console on a phone, a tablet and a desk (#601).
   ('00000000-0000-4000-8000-000000000644', '+919000000644', 'Rhea Kapur'),
+  -- Its own super admin, cashier and owner, who each open every screen at three sizes (#605).
+  ('00000000-0000-4000-8000-000000000645', '+919000000645', 'Arnav Sood'),
+  ('00000000-0000-4000-8000-000000000646', '+919000000646', 'Tara Menezes'),
+  ('00000000-0000-4000-8000-000000000647', '+919000000647', 'Kunal Bajaj'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -126,6 +130,9 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000199'::uuid, 'Managing partner', 'super_admin'),
              ('00000000-0000-4000-8000-000000000610'::uuid, 'Operations manager', 'admin'),
              ('00000000-0000-4000-8000-000000000611'::uuid, 'Owner', 'owner_view'),
+             ('00000000-0000-4000-8000-000000000645'::uuid, 'Duty manager', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000646'::uuid, 'Cashier', 'cashier'),
+             ('00000000-0000-4000-8000-000000000647'::uuid, 'Owner', 'owner_view'),
              ('00000000-0000-4000-8000-000000000613'::uuid, 'Duty manager', 'super_admin'),
              ('00000000-0000-4000-8000-000000000623'::uuid, 'Floor manager', 'admin'),
              ('00000000-0000-4000-8000-000000000624'::uuid, 'Academy manager', 'super_admin'),

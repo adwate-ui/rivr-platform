@@ -2,7 +2,7 @@
  * Cage shift (#376; the owner's answer to #367): the cage takes no money while no shift is open. In the
  * practice venue, after End of day has closed its shift, Gauri Sehgal, this flow's floor manager, seats
  * Ishita Bhalla. Zubin Mistry, its cashier, is refused her buy-in at the cage, which says a shift must be
- * opened first; he opens one on Treasury, and the buy-in goes through. The file sorts after
+ * opened first; he opens one on Shift, and the buy-in goes through. The file sorts after
  * end-of-day.spec.ts, which closes the practice cage's shift, and before paper-fallback.spec.ts, which
  * uses the one this flow leaves open; a local rerun needs `pnpm db:reset`. That every cage move is refused without a shift, and the opening against the last
  * close, are proved in supabase/tests/083.
@@ -14,7 +14,7 @@ import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 const CHIPS: Record<string, string> = { '₹50': '100', '₹100': '100', '₹500': '20', '₹1,000': '10', '₹5,000': '4', '₹25,000': '0' };
-const NO_SHIFT = 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Treasury.';
+const NO_SHIFT = 'No shift is open, so the cage takes and pays nothing. A cashier opens one on Shift.';
 
 async function signInToPractice(page: Page, number: string) {
   await signInToConsole(page, number);
@@ -49,9 +49,9 @@ test.describe('Cage shift', { tag: '@practice-cage' }, () => {
     await signInToPractice(cashier, '9000000156');
     await buyIn(cashier);
     await expect(cashier.getByText(NO_SHIFT)).toBeVisible();
-    await expect(cashier.getByText('The cage has no shift open. Open one on Treasury with the float and the chips, then try again.')).toBeVisible();
+    await expect(cashier.getByText('The cage has no shift open. Open one on Shift with the float and the chips, then try again.')).toBeVisible();
 
-    await cashier.getByRole('link', { name: 'Treasury' }).click();
+    await cashier.getByRole('link', { name: 'Shift', exact: true }).click();
     await cashier.getByRole('textbox', { name: 'Float in the drawer' }).fill('100000');
     for (const [chip, quantity] of Object.entries(CHIPS)) {
       await cashier.getByRole('textbox', { name: `${chip} chips` }).fill(quantity);

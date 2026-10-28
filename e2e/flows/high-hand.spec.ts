@@ -20,7 +20,7 @@ import { dealerSignsIn, press, revoke, tabletAtTable3 } from '../support/tablet.
 
 /** The Treasury's chips in play, in rupees: what the cage owes the room. */
 async function chipsInPlay(page: Page): Promise<number> {
-  await page.getByRole('link', { name: 'Treasury' }).click();
+  await page.getByRole('link', { name: 'Shift', exact: true }).click();
   const label = page.getByText('Chips in play', { exact: true });
   await expect(label).toBeVisible();
   const figure = (await label.locator('xpath=..').innerText()).replace('Chips in play', '');
@@ -50,9 +50,10 @@ test.describe('High hands', () => {
     const prompt = floor.getByRole('alert').filter({ hasText: /^High hand claim · Table 3, seat 4 · Four of a kind Queens · / });
     await expect(prompt).toBeVisible({ timeout: 15_000 });
     await expect(floor.getByRole('button', { name: 'Reject', exact: true })).toBeVisible();
-    await expect(floor.getByRole('link', { name: /^High hands \d+ waiting$/ })).toBeVisible();
+    await expect(floor.getByRole('link', { name: /^Jackpots \d+ waiting$/ })).toBeVisible();
 
     const before = await chipsInPlay(floor);
+    await floor.getByRole('link', { name: /^Jackpots/ }).click();
     await floor.getByRole('link', { name: 'High hands' }).click();
     // High hands lists the claims itself, so it shows no prompt.
     await expect(floor.getByRole('alert').filter({ hasText: 'High hand claim' })).toHaveCount(0);
@@ -74,6 +75,7 @@ test.describe('High hands', () => {
     await expect.poll(async () => Math.abs(await chipsInPlay(floor) - before)).toBe(10_000);
 
     // The latest decided claim is first in the history: this one.
+    await floor.getByRole('link', { name: /^Jackpots/ }).click();
     await floor.getByRole('link', { name: 'High hands' }).click();
     await floor.getByRole('button', { name: 'Reverse', exact: true }).first().click();
     await floor.getByRole('textbox', { name: 'Why it is reversed' }).fill('The board was misread');

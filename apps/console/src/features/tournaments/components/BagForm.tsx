@@ -1,6 +1,6 @@
 import { useTournamentPayoutActions, useTournamentSeating, type VenueTournament } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, LoadState, Stack, Text } from '@rivr/ui';
+import { ErrorMessage, Heading, LoadState, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { ChipCountForm } from './ChipCountForm.tsx';
 
@@ -15,10 +15,7 @@ export function BagForm({ venueId, flight, dayTwo }: { venueId: string; flight: 
   if (seating.isPending) return <LoadState />;
   if (seating.data === undefined) {
     return (
-      <Inline gap={4} align="center">
-        <ErrorMessage>{t('console.tournaments.payouts.failures.unavailable')}</ErrorMessage>
-        <Button variant="text" onClick={() => void seating.refetch()}>{t('common.retry')}</Button>
-      </Inline>
+      <LoadState isError errorText={t('console.tournaments.payouts.failures.unavailable')} onRetry={() => void seating.refetch()} />
     );
   }
   const left = seating.data.filter((row) => row.status === 'seated');

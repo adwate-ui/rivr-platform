@@ -1,6 +1,6 @@
 import { useOpenMarkers, type OpenMarker } from '@rivr/db';
 import { formatDate, formatMoney, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text, LoadState } from '@rivr/ui';
+import { Heading, Inline, Money, Stack, Text, LoadState } from '@rivr/ui';
 
 /** How old a marker is and when it falls due: today, a day, or days; past due says so. */
 function ageOf(marker: OpenMarker): string {
@@ -18,10 +18,7 @@ export function OpenMarkers({ venueId }: { venueId: string }) {
       <Heading level={2}>{t('console.markers.open')}</Heading>
       {markers.isPending ? <LoadState /> : null}
       {markers.isError ? (
-        <Stack gap={2} align="start">
-          <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-          <Button onClick={() => void markers.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError onRetry={() => void markers.refetch()} />
       ) : null}
       {markers.data?.length === 0 ? <Text tone="muted">{t('console.markers.noOpen')}</Text> : null}
       <Stack gap={2} divided>

@@ -14,7 +14,7 @@ import { roster, rosterFailures } from './roster.ts';
 import { cameraFailures, cameras } from './cameras.ts';
 import { members, tiers } from './members.ts';
 import { checkIn, liveFloor } from './floor.ts';
-import { computers, dealerPins, streamOverlay, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { computers, dealerPins, devices, streamOverlay, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
@@ -208,6 +208,7 @@ export const consoleApp = {
   waitlist,
   // Each member named, never spread: a spread can run a getter, so the bundler would keep this whole
   // object, and the console's copy would ship in the player (#344).
+  devices,
   tablets,
   dealerPins,
   staff,

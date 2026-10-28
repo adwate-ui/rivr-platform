@@ -1,3 +1,4 @@
+import { tokens } from '@rivr/tokens';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { cx } from '../internal/classes.ts';
@@ -13,22 +14,29 @@ export interface SplitViewProps {
   onBack: () => void;
   /** From 1180 px, beside the list while no record is open: what to do, such as "Choose a member to see their record." */
   emptyText: string;
+  /**
+   * Whether the record was chosen (#605); true unless said. A record shown only because none is chosen yet, such as the
+   * floor's first table, sits beside the list from 1180 px, and below it the list stays until one is chosen.
+   */
+  isChosen?: boolean;
 }
 
 /**
  * A list and the record opened from it (#603). From 1180 px they sit side by side, the record taking three parts in
  * five. Below, one shows at a time: the record replaces the list, with a way back to it.
  */
-export function SplitView({ list, detail, backLabel, onBack, emptyText }: SplitViewProps) {
+export function SplitView({ list, detail, backLabel, onBack, emptyText, isChosen = true }: SplitViewProps) {
   const record = useRef<HTMLDivElement>(null);
   const openedFrom = useRef<HTMLElement | null>(null);
-  const isOpen = detail !== null;
+  const isOpen = detail !== null && isChosen;
   const wasOpen = useRef(isOpen);
   // Below 1180 px the record replaces the list, so focus goes to the record as it opens and back to what opened it as
   // it closes: a keyboard or a screen reader is never left on a hidden list. A record open from the start keeps the page's focus.
   useEffect(() => {
     if (isOpen === wasOpen.current) return;
     wasOpen.current = isOpen;
+    // From 1180 px the list stays beside the record, so focus stays where it is.
+    if (typeof window.matchMedia === 'function' && window.matchMedia(`(min-width: ${tokens.breakpoint.tablet}px)`).matches) return;
     if (isOpen) {
       openedFrom.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       record.current?.focus();
@@ -39,13 +47,13 @@ export function SplitView({ list, detail, backLabel, onBack, emptyText }: SplitV
   }, [isOpen]);
   return (
     <div className="grid gap-6 tablet:grid-cols-5">
-      <div className={cx('min-w-0 tablet:col-span-2', detail === null ? '' : 'hidden tablet:block')}>{list}</div>
+      <div className={cx('min-w-0 tablet:col-span-2', isOpen ? 'hidden tablet:block' : '')}>{list}</div>
       {detail === null ? (
         <div className="hidden tablet:col-span-3 tablet:block">
           <Text tone="muted">{emptyText}</Text>
         </div>
       ) : (
-        <div className="flex min-w-0 flex-col items-start gap-4 tablet:col-span-3">
+        <div className={cx('min-w-0 flex-col items-start gap-4 tablet:col-span-3 tablet:flex', isOpen ? 'flex' : 'hidden')}>
           <div className="tablet:hidden">
             <Button variant="text" onClick={onBack}>{backLabel}</Button>
           </div>

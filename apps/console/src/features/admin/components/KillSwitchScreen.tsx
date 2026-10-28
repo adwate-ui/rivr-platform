@@ -32,7 +32,7 @@ export function KillSwitchScreen() {
     <Screen title={title}>
       <Stack gap={6}>
         <OutcomeLine outcome={outcome} />
-        <Grid columns={2} gap={8}>
+        <Grid columns={2} gap={8} stackBelow="medium">
           <EngagedControls venueId={staff.venue.venueId} onOutcome={setOutcome} />
           <EngageForm venueId={staff.venue.venueId} onOutcome={setOutcome} />
         </Grid>

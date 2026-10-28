@@ -80,7 +80,8 @@ test.describe('Staff', () => {
     await signInToConsole(cashier, '9000000151');
     await expect(cashier.getByRole('link', { name: 'Cage', exact: true })).toBeVisible();
     await expect(cashier.getByRole('link', { name: 'Staff', exact: true })).toHaveCount(0);
-    for (const screen of ['/staff', '/kill-switch', '/rake']) {
+    // Old addresses lead to their merged screen (#606), which refuses a cashier just the same.
+    for (const screen of ['/staff', '/kill-switch', '/rake', '/dealer-pins', '/tablets']) {
       await cashier.goto(`${appUrl('console')}${screen}`);
       await expect(cashier.getByText(REFUSED)).toBeVisible();
     }

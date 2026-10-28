@@ -35,8 +35,9 @@ test.describe('End of day', { tag: '@practice-cage' }, () => {
     test.setTimeout(120_000);
     const pooja = await browser.newPage();
     await signInToPractice(pooja, '9000000141');
-    await pooja.getByRole('link', { name: 'End of day' }).click();
-    await expect(pooja.getByRole('heading', { name: 'End of day', level: 1 })).toBeVisible();
+    await pooja.getByRole('link', { name: 'Shift', exact: true }).click();
+    await pooja.getByRole('link', { name: 'Closing and history' }).click();
+    await expect(pooja.getByRole('heading', { name: 'Closing and history', level: 2 })).toBeVisible();
     await pooja.getByRole('textbox', { name: 'Cash in the drawer' }).fill('99500');
     await pooja.getByRole('textbox', { name: 'UPI and bank receipts' }).fill('0');
     await pooja.getByRole('textbox', { name: 'Signed markers held' }).fill('0');
@@ -50,7 +51,8 @@ test.describe('End of day', { tag: '@practice-cage' }, () => {
 
     const rahul = await browser.newPage();
     await signInToPractice(rahul, '9000000142');
-    await rahul.getByRole('link', { name: 'End of day' }).click();
+    await rahul.getByRole('link', { name: 'Shift', exact: true }).click();
+    await rahul.getByRole('link', { name: 'Closing and history' }).click();
     await rahul.getByRole('textbox', { name: 'Reason for the variance' }).fill(REASON);
     await rahul.getByRole('button', { name: 'Record reason' }).click();
     await expect(rahul.getByText(`Reviewed by Rahul Verma: ${REASON}`)).toBeVisible();

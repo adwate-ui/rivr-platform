@@ -41,8 +41,7 @@ async function takeOffCalendar(floor: Page, name: string) {
   await floor.getByRole('link', { name: 'Tournaments' }).click();
   const open = floor.getByRole('button', { name: `Open ${name}` });
   if (await open.isEnabled()) await open.click();
-  // The tournament's own switch comes first; the new-tournament form has one too.
-  const shown = floor.getByRole('switch', { name: 'Shown to members' }).first();
+  const shown = floor.getByRole('switch', { name: `${name} shown to members` });
   await shown.click();
   await expect(shown).not.toBeChecked();
 }

@@ -61,7 +61,7 @@ export function ChipsSection({ venueId }: { venueId: string }) {
       <Text tone="muted">{t('console.settings.chipsHint')}</Text>
       {chips.isPending ? <LoadState /> : null}
       {chips.isError && chips.data === undefined ? (
-        <Inline gap={3}><ErrorMessage>{t('console.settings.loadFailed')}</ErrorMessage><Button variant="text" onClick={() => void chips.refetch()}>{t('common.retry')}</Button></Inline>
+        <LoadState isError errorText={t('console.settings.loadFailed')} onRetry={() => void chips.refetch()} />
       ) : null}
       <Stack gap={3} divided>
         {(chips.data ?? []).map((chip) => <ChipRow key={chip.chipId} venueId={venueId} chip={chip} onOutcome={setOutcome} />)}

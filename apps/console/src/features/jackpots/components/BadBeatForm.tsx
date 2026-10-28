@@ -23,10 +23,7 @@ function TableChoice({ form, venueId, onEdit }: { form: BadBeatFormApi; venueId:
   const tables = useFloorTables();
   if (tables.data === undefined && tables.isError) {
     return (
-      <Inline gap={3}>
-        <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-        <Button onClick={() => void tables.refetch()}>{t('common.retry')}</Button>
-      </Inline>
+      <LoadState isError onRetry={() => void tables.refetch()} />
     );
   }
   if (tables.data === undefined) return <LoadState />;

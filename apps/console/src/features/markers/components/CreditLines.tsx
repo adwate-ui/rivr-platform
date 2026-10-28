@@ -45,10 +45,7 @@ export function CreditLines({ venueId, isSuperAdmin }: { venueId: string; isSupe
       {failure === null ? null : <ErrorMessage>{t(CREDIT_FAILURE_COPY[failure])}</ErrorMessage>}
       {lines.isPending ? <LoadState /> : null}
       {lines.isError ? (
-        <Stack gap={2} align="start">
-          <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-          <Button onClick={() => void lines.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError onRetry={() => void lines.refetch()} />
       ) : null}
       {lines.data?.length === 0 ? <Text tone="muted">{t('console.markers.noLines')}</Text> : null}
       <Stack gap={2} divided>

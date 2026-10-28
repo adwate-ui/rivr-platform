@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { CamerasScreen } from '../features/cameras/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The venue's CCTV cameras: each over a table, on the cage or elsewhere (#122). */
-export const camerasRoute = createRoute({ getParentRoute: () => frameRoute, path: '/cameras', component: CamerasScreen });
+/** Cameras moved into Devices (#606): an old link or bookmark opens its tab there. */
+export const camerasRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/cameras', component: () => <Navigate to="/devices" search={{ tab: 'cameras' }} replace />,
+});
