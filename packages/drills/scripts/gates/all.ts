@@ -11,8 +11,7 @@ import { varietyGate } from './varietyGate.ts';
 import { linesGate } from './linesGate.ts';
 import { meceGate } from './meceGate.ts';
 
-export const GATE_NAMES = ['sources', 'generator', 'winnable', 'overclaim', 'feedback', 'variety', 'lines', 'mece'] as const;
-export type GateName = typeof GATE_NAMES[number];
+import type { GateName } from './names.ts';
 
 export const GATES: Readonly<Record<GateName, Gate>> = {
     sources: sourcesGate, generator: generatorGate, winnable: winnableGate, overclaim: overclaimGate,

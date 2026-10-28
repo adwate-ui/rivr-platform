@@ -8,7 +8,7 @@
  */
 import { resolve } from 'node:path';
 
-import { GATE_NAMES, type GateName } from './all.ts';
+import { GATE_NAMES, type GateName } from './names.ts';
 
 // The gate names live with the gates, so the console's check needs nothing of the command line (#131).
 export { GATE_NAMES };

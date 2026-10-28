@@ -3,7 +3,8 @@
  * upload is accepted (#131, decision 0016). Nothing is read from or written to disk; the report comes back as lines.
  */
 import { parsePayload } from '../../src/parse/payload.ts';
-import { GATE_NAMES, GATES, type GateName } from './all.ts';
+import { GATES } from './all.ts';
+import { GATE_NAMES, type GateName } from './names.ts';
 import { collecting } from './output.ts';
 import type { LoadedSource, ParsedSource } from './sources.ts';
 import { validateLoaded } from './validation.ts';
