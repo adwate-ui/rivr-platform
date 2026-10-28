@@ -75,10 +75,7 @@ export function ExpenseList({ venueId, canDecide }: { venueId: string; canDecide
       <Heading level={2}>{t('console.expenses.list')}</Heading>
       {expenses.isPending ? <LoadState /> : null}
       {expenses.isError ? (
-        <Stack gap={2} align="start">
-          <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-          <Button onClick={() => void expenses.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError onRetry={() => void expenses.refetch()} />
       ) : null}
       {expenses.data?.length === 0 ? <Text tone="muted">{t('console.expenses.listEmpty')}</Text> : null}
       <Stack gap={4} divided>

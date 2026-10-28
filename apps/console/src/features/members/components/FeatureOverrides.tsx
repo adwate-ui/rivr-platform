@@ -103,10 +103,7 @@ function FeatureChoice({ featureKey, onChange }: { featureKey: string | null; on
   const features = useGateableFeatures();
   if (features.isError) {
     return (
-      <Stack gap={2}>
-        <ErrorMessage>{t('console.members.overrides.featuresUnavailable')}</ErrorMessage>
-        <Button variant="text" onClick={() => void features.refetch()}>{t('common.retry')}</Button>
-      </Stack>
+      <LoadState isError errorText={t('console.members.overrides.featuresUnavailable')} onRetry={() => void features.refetch()} />
     );
   }
   if (features.data === undefined) return <LoadState />;

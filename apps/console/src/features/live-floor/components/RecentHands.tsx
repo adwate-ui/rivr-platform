@@ -1,6 +1,6 @@
 import { useTableHands, type HandVariant } from '@rivr/db';
 import { formatMoney, formatTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text, LoadState } from '@rivr/ui';
+import { Heading, Inline, Money, Stack, Text, LoadState } from '@rivr/ui';
 
 const VARIANT: Readonly<Record<HandVariant, MessageKey>> = {
   holdem: 'console.liveFloor.holdem',
@@ -16,8 +16,7 @@ export function RecentHands({ tableId }: { tableId: string }) {
     return (
       <Stack gap={2} align="start">
         {title}
-        <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-        <Button onClick={() => void hands.refetch()}>{t('common.retry')}</Button>
+        <LoadState isError onRetry={() => void hands.refetch()} />
       </Stack>
     );
   }

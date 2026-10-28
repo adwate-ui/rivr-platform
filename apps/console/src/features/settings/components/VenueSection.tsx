@@ -80,10 +80,7 @@ export function VenueSection({ venueId }: { venueId: string }) {
       <Text tone="muted">{t('console.settings.venueHint')}</Text>
       {config.isPending ? <LoadState /> : null}
       {config.isError && config.data === undefined ? (
-        <Stack gap={3}>
-          <ErrorMessage>{t('console.settings.loadFailed')}</ErrorMessage>
-          <Button variant="text" onClick={() => void config.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError errorText={t('console.settings.loadFailed')} onRetry={() => void config.refetch()} />
       ) : null}
       {config.data === null ? <ErrorMessage>{notSuperAdmin}</ErrorMessage> : null}
       {config.data ? <VenueForm venueId={venueId} config={config.data} /> : null}
