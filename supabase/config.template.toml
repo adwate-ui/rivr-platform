@@ -416,6 +416,10 @@ verify_jwt = false
 [functions.payout-name-check]
 verify_jwt = false
 
+# Re-checks each KYC check made in person with the vendor, run by the scheduler with its secret (#259).
+[functions.kyc-recheck]
+verify_jwt = false
+
 # A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
 [functions.device-pair]
 verify_jwt = false

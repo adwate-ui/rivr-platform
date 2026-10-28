@@ -11,6 +11,10 @@ export const kycReview = {
   waitNothingKept: 'DigiLocker gave another name or face, so nothing was kept. Check the original Aadhaar and PAN card.',
   waitNoDateOfBirth: 'DigiLocker gave no date of birth. Check the original document.',
   waitClash: 'Another check holds the same PAN, Aadhaar or face, or the same name, date of birth and last four Aadhaar digits.',
+  /** A check made in person, re-checked with the vendor once one was live (#259). */
+  waitRecheckPanInvalid: 'Checked in person, then with the vendor: the vendor does not know this PAN. Check the PAN card again.',
+  waitRecheckNameDiffers: 'Checked in person, then with the vendor: this PAN is in another name. Check the PAN card again.',
+  waitRecheckDateOfBirthDiffers: 'Checked in person, then with the vendor: this PAN has another date of birth. Check the original documents again.',
   /** `{date}` and `{time}` are when the check began to wait. */
   since: 'In the queue since {date}, {time}',
   vendorReference: 'Vendor reference',
