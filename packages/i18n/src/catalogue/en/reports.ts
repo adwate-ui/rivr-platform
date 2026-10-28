@@ -1,6 +1,9 @@
 /** The console's Reports screen (#99, decision 0188): tonight's rake by table, dealer and game, and the monthly investor MIS. */
 export const reports = {
   title: 'Reports',
+  /** One report at a time (#605). */
+  tabsLabel: 'Reports',
+  tabs: { tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth and channels' },
   notAllowed: 'Reports are for managers and the owner.',
   practice: 'The practice venue has no reports.',
   tonight: 'Tonight',

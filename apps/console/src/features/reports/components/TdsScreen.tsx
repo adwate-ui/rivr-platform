@@ -66,7 +66,7 @@ export function TdsScreen() {
   const today = IST_DAY.format(new Date());
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <Ledger venueId={venueId} today={today} />
         {permissions.includes('exports.table') ? <ReturnExtract venueId={venueId} quarters={recentQuarters(today)} /> : null}
       </Grid>

@@ -82,7 +82,7 @@ function LeagueBody({ venueId, canRead, canKeep }: { venueId: string; canRead: b
   if (seasons.data === undefined) return <Screen title={title} status="error" onRetry={() => void seasons.refetch()} />;
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={12}>
+      <Grid columns={2} gap={12} stackBelow="medium">
         {canRead ? <Standings venueId={venueId} seasons={seasons.data} /> : <Text tone="muted">{t('console.league.noNames')}</Text>}
         <Seasons venueId={venueId} seasons={seasons.data} canKeep={canKeep} />
       </Grid>

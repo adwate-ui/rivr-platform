@@ -214,6 +214,23 @@ describe('DataTable', () => {
     expect(note).toHaveClass('hidden', 'medium:block');
   });
 
+  it('sorts on a phone from a bar above the cards, where the header row is hidden, and draws no bar at a desk', async () => {
+    const desk = table();
+    expect(screen.queryByRole('group', { name: 'Sort Members' })).toBeNull();
+    desk.unmount();
+    // Below 768 px.
+    vi.stubGlobal('matchMedia', (media: string) => ({ matches: false, media, addEventListener: () => undefined, removeEventListener: () => undefined }));
+    try {
+      table();
+      const bar = screen.getByRole('group', { name: 'Sort Members' });
+      await userEvent.click(within(bar).getByRole('button', { name: 'Sort by Hours' }));
+      expect(within(bar).getByRole('button', { name: 'Sorted by Hours, ascending' })).toHaveAttribute('aria-pressed', 'true');
+      expect(names()).toEqual(['Kabir Sethi', 'Naina Kapoor', 'Arjun Mehta']);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('opens a row from its title when rows open', async () => {
     type Row = { id: string; name: string };
     const onRowOpen = vi.fn();

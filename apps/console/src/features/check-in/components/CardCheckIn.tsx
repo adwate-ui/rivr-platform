@@ -31,7 +31,7 @@ export function CardCheckIn({ venueId }: { venueId: string }) {
   const code = form.register('code');
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end">
+      <Inline gap={3} align="end" wrap>
         <Input {...code} label={t('console.checkIn.card')} autoComplete="off" autoFocus onKeyDown={onKeyDown} />
         <Button variant="secondary" isLoading={checkInByCard.isPending} onClick={() => void submit()}>{t('console.checkIn.checkInByCard')}</Button>
       </Inline>

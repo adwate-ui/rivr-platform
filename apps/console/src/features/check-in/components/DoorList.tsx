@@ -14,9 +14,9 @@ interface DoorListProps {
 /** A member in the room: name, tier, when they checked in, and Check out (#82). */
 function InRoomRow({ member, isBusy, onCheckOut }: { member: DoorMember; isBusy: boolean; onCheckOut: () => void }) {
   return (
-    <Inline justify="between" align="center">
+    <Inline justify="between" align="center" wrap>
       <Text>{member.fullName}</Text>
-      <Inline gap={8} align="center">
+      <Inline gap={8} align="center" wrap>
         <Text tone="muted">{member.tierName}</Text>
         <Text tone="muted">{formatTime(new Date(member.since))}</Text>
         <Button variant="text" isDisabled={isBusy} aria-label={t('console.checkIn.checkOutMember', { name: member.fullName })}
@@ -29,8 +29,8 @@ function InRoomRow({ member, isBusy, onCheckOut }: { member: DoorMember; isBusy:
 /** A member expected at the door: name, tier, and Check in. */
 function ExpectedRow({ member, isBusy, onCheckIn }: { member: DoorMember; isBusy: boolean; onCheckIn: () => void }) {
   return (
-    <Inline justify="between" align="center">
-      <Inline gap={2} align="center">
+    <Inline justify="between" align="center" wrap>
+      <Inline gap={2} align="center" wrap>
         <Text>{member.fullName}</Text>
         <Text tone="muted">{member.tierName}</Text>
       </Inline>

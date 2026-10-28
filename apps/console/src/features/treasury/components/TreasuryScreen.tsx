@@ -30,7 +30,7 @@ function TreasuryView({ title, venueId, canCount }: { title: string; venueId: st
   }
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <Balances treasury={treasury.data} />
         <Stack gap={8}>
           <StatusMessage>{notice === null ? null : notice}</StatusMessage>

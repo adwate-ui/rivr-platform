@@ -46,7 +46,7 @@ function JackpotBody({ venueId, canPay }: { venueId: string; canPay: boolean }) 
     <Screen title={title}>
       <Stack gap={10}>
         <Stack gap={3}>
-          <Grid columns={3} gap={6}>
+          <Grid columns={3} gap={6} stackBelow="medium">
             <Pool label={t('console.jackpots.main')} paise={jackpot.data.main} isMain />
             <Pool label={t('console.jackpots.season')} paise={jackpot.data.season} />
             <Pool label={t('console.jackpots.freeroll')} paise={jackpot.data.freeroll} />

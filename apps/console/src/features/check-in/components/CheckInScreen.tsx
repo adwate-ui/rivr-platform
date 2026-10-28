@@ -29,11 +29,11 @@ function Door({ venueId }: { venueId: string }) {
   const inRoom: DoorMember[] = board.data.filter((member) => member.isInRoom);
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <CardCheckIn venueId={venueId} />
         <PhoneCheckIn venueId={venueId} />
       </Grid>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <DoorList venueId={venueId} title={t('console.checkIn.expected')} members={expected} emptyText={t('console.checkIn.noneExpected')} />
         <DoorList venueId={venueId} title={t('console.checkIn.inRoom')} members={inRoom} emptyText={t('console.checkIn.noneInRoom')} />
       </Grid>

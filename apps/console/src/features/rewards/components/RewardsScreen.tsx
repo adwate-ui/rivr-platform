@@ -15,7 +15,7 @@ function RewardsBody({ venueId, canKeep, canHandOver }: { venueId: string; canKe
     <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
       <Stack gap={10}>
         {canKeep ? (
-          <Grid columns={2} gap={12}>
+          <Grid columns={2} gap={12} stackBelow="medium">
             {catalogue}
             <RewardForm key={editing?.id ?? 'new'} venueId={venueId} item={editing} onDone={() => setEditing(null)} />
           </Grid>

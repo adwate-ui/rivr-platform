@@ -104,6 +104,13 @@ export const ui = {
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {
     noMatch: 'Nothing matches {query}.',
+    /** Sorting on a phone, where the header row is hidden (#605). */
+    sortBy: 'Sort by',
+    sortTable: 'Sort {table}',
+    sortByColumn: 'Sort by {column}',
+    sortedBy: 'Sorted by {column}, {direction}',
+    ascending: 'ascending',
+    descending: 'descending',
     /** A console table's export (#102): the rows as shown, recorded in the audit log first. */
     exportCsv: 'Export CSV',
     exportXlsx: 'Export XLSX',

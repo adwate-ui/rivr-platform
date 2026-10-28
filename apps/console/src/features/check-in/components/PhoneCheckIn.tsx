@@ -34,7 +34,7 @@ export function PhoneCheckIn({ venueId }: { venueId: string }) {
   const isFailure = outcome !== null && outcome !== 'checked_out';
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end">
+      <Inline gap={3} align="end" wrap>
         <Input {...phone} type="tel" label={t('console.checkIn.phone')} prefix={t('common.signIn.countryCode')} inputMode="tel" autoComplete="off" />
         <Button variant="secondary" isLoading={checkInByPhone.isPending} onClick={() => void admit()}>{t('console.checkIn.checkIn')}</Button>
         <Button variant="text" isLoading={checkOutByPhone.isPending} onClick={() => void release()}>{t('console.checkIn.checkOut')}</Button>

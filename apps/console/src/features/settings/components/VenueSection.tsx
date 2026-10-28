@@ -55,7 +55,7 @@ function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }
   const errors = form.formState.errors;
   return (
     <Stack gap={4}>
-      <Grid columns={2} gap={4}>
+      <Grid columns={2} gap={4} stackBelow="medium">
         {FIELDS.map((field) => (
           <Input key={field.name} {...form.register(field.name, { onChange: () => setOutcome(null) })} label={t(field.label)}
             hint={field.hint === undefined ? undefined : t(field.hint)} error={errors[field.name] ? t('console.settings.invalidVenueField') : undefined} />

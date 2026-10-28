@@ -31,7 +31,7 @@ function Members({ title, venueId, can }: { title: string; venueId: string; can:
   const [chosenId, setChosenId] = useState<string | null>(null);
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <MemberList venueId={venueId} onOpen={setChosenId} />
         {chosenId === null ? null : <MemberRecordPanel key={chosenId} venueId={venueId} memberId={chosenId} can={can} />}
       </Grid>

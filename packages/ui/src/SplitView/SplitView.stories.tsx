@@ -54,3 +54,6 @@ export const LongText: Story = {
     ),
   },
 };
+
+/** On a phone, a record shown only because none is chosen yet (the floor's first table) leaves the list in place. */
+export const NotChosenOnAPhone: Story = { args: { isChosen: false }, tags: ['!viewport-console', 'viewport-phone'] };

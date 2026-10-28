@@ -27,7 +27,7 @@ function templateColumns(structures: readonly BlindStructure[], onEdit: (templat
 export function TemplatesView({ venueId, templates, structures }: { venueId: string; templates: readonly TournamentTemplate[]; structures: readonly BlindStructure[] }) {
   const [editing, setEditing] = useState<TournamentTemplate | null>(null);
   return (
-    <Grid columns={2} gap={12}>
+    <Grid columns={2} gap={12} stackBelow="medium">
       <DataTable label={t('console.tournaments.templates')} columns={templateColumns(structures, setEditing)} rowKey={(row) => row.id} rows={templates}
         emptyText={t('console.tournaments.noTemplateList')} />
       <TemplateForm key={editing?.id ?? 'new'} venueId={venueId} template={editing} structures={structures} onDone={() => setEditing(null)} />
