@@ -26,12 +26,14 @@ interface HubProps {
   answered: number;
   onStart: (length: number) => void;
   onReview: () => void;
+  onLessons: () => void;
 }
 
-/** A title's hub (#133): due now, mastery across the book, answers and accuracy; then a drill of 10, 20 or 50 spots, or the review. */
-export function Hub({ book, cards, rows, answered, onStart, onReview }: HubProps) {
+/** A title's hub (#133): due now, mastery across the book, answers and accuracy; then a drill of 10, 20 or 50 spots, the review, or the lessons (#134). */
+export function Hub({ book, cards, rows, answered, onStart, onReview, onLessons }: HubProps) {
   const [length, setLength] = useState<(typeof LENGTHS)[number]>('10');
   const review = useFeature('learn.review');
+  const lessons = useFeature('learn.academy_lessons');
   const [now] = useState(() => Date.now());
   const due = book.principles.filter((principle) => {
     const card = cards.get(principle.id);
@@ -54,6 +56,7 @@ export function Hub({ book, cards, rows, answered, onStart, onReview }: HubProps
       <Inline gap={3} wrap>
         <Button variant="primary" onClick={() => onStart(Number(length))}>{t('player.learn.hub.start')}</Button>
         <FeatureGate access={review}><Button variant="secondary" onClick={onReview}>{t('player.learn.hub.review')}</Button></FeatureGate>
+        <FeatureGate access={lessons}><Button variant="secondary" onClick={onLessons}>{t('player.learn.lessons.open')}</Button></FeatureGate>
       </Inline>
     </Stack>
   );

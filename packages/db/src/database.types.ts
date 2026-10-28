@@ -1801,6 +1801,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"learn_lesson": {
+                  Row: {
+                    "asked": number,"completed_at": string,"correct": number,"created_at": string,"id": string,"member_id": string,"source_key": string,"unit_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "asked": number,"completed_at"?: string,"correct": number,"created_at"?: string,"id"?: string,"member_id": string,"source_key": string,"unit_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "asked"?: number,"completed_at"?: string,"correct"?: number,"created_at"?: string,"id"?: string,"member_id"?: string,"source_key"?: string,"unit_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learn_lesson_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"learn_session": {
                   Row: {
                     "completed_at": string,"created_at": string,"id": string,"member_id": string,"points": number,"principles": (string)[],"source_key": string,"updated_at": string,"venue_id": string
@@ -4356,6 +4376,9 @@ isOneToOne: false
                            },
 "complete_export_archive":
 { Args: { "p_archive_id": string,"p_bytes": number,"p_sha256": string,"p_unread"?: (string)[] }; Returns: undefined
+                           },
+"complete_learn_lesson":
+{ Args: { "p_asked": number,"p_correct": number,"p_source_key": string,"p_unit_id": string }; Returns: undefined
                            },
 "complete_learn_session":
 { Args: { "p_principles": (string)[],"p_session_id": string }; Returns: number

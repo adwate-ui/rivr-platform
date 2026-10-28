@@ -11,6 +11,7 @@ const keys = {
   library: (userId: string) => ['user', userId, 'learn-library'] as const,
   encoding: (userId: string, sourceKey: string) => ['user', userId, 'learn-encoding', sourceKey] as const,
   answers: (userId: string, sourceKey: string) => ['user', userId, 'learn-answers', sourceKey] as const,
+  lessons: (userId: string, sourceKey: string) => ['user', userId, 'learn-lessons', sourceKey] as const,
 };
 
 /** One answer as the app keeps it for the server (#132): its own id, so a resend is the same answer, and @rivr/drills' attempt row. */
@@ -180,6 +181,41 @@ export function useLearnAnswers(sourceKey: string) {
         .order('answered_at', { ascending: false });
       if (error) throw error;
       return { total: count ?? data.length, latest: data.map((row) => row.attempt) };
+    },
+  });
+}
+
+/** A lesson the member finished (#134): the book's unit, and their quiz's right answers of those asked. */
+export interface LearnLesson {
+  readonly unitId: string;
+  readonly correct: number;
+  readonly asked: number;
+  readonly completedAt: string;
+}
+
+/** The lessons of a book the member has finished (learn.academy_lessons). */
+export function useLearnLessons(sourceKey: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.lessons(userId ?? 'signed-out', sourceKey),
+    enabled: userId !== null,
+    queryFn: async (): Promise<LearnLesson[]> => {
+      const { data, error } = await client.from('learn_lesson').select('unit_id, correct, asked, completed_at').eq('source_key', sourceKey);
+      if (error) throw error;
+      return data.map((row) => ({ unitId: row.unit_id, correct: row.correct, asked: row.asked, completedAt: row.completed_at }));
+    },
+  });
+}
+
+/** Keeps a finished lesson and its quiz's result; a Result, and the book's lessons reload. */
+export function useCompleteLearnLesson(sourceKey: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ unitId, correct, asked }: { unitId: string; correct: number; asked: number }): Promise<Result<null, LearnFailure>> => {
+      const { error } = await client.rpc('complete_learn_lesson', { p_source_key: sourceKey, p_unit_id: unitId, p_correct: correct, p_asked: asked });
+      await queryClient.invalidateQueries({ queryKey: keys.lessons(userId ?? 'signed-out', sourceKey) });
+      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
 }

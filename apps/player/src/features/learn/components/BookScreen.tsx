@@ -8,12 +8,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { isAttemptRow, isCardState, openBook, type Book } from '../drill.ts';
+import type { Lesson } from '../lessons.ts';
 import { Hub } from './Hub.tsx';
+import { LessonsView } from './LessonsView.tsx';
+import { LessonView } from './LessonView.tsx';
 import { ReviewView } from './ReviewView.tsx';
 import { Session } from './Session.tsx';
 
 /** Where the member is in a title: its hub, a drill of so many spots, or the review. */
-type View = { readonly name: 'hub' } | { readonly name: 'drill'; readonly length: number; readonly run: number } | { readonly name: 'review' };
+type View =
+  | { readonly name: 'hub' } | { readonly name: 'drill'; readonly length: number; readonly run: number } | { readonly name: 'review' }
+  | { readonly name: 'lessons' } | { readonly name: 'lesson'; readonly lesson: Lesson };
 
 /**
  * A built-in book's encoding (decision 0274), fetched once when it is opened; nothing for a licensed title. A chunk of
@@ -73,7 +78,7 @@ interface ViewsProps {
   answered: number;
 }
 
-/** The hub, a drill, or the review, and the way between them. */
+/** The hub, a drill, the review, or the lessons, and the way between them. */
 function Views({ book, sourceKey, cards, rows, answered }: ViewsProps) {
   const [view, setView] = useState<View>({ name: 'hub' });
   // The cards as this device's drills left them, over the server's, so a drill again offline starts from them.
@@ -86,7 +91,14 @@ function Views({ book, sourceKey, cards, rows, answered }: ViewsProps) {
       onAgain={() => drill(view.length)} onReview={() => setView({ name: 'review' })} onHub={() => setView({ name: 'hub' })} />;
   }
   if (view.name === 'review') return <ReviewView rows={rows} onBack={() => setView({ name: 'hub' })} />;
-  return <Hub book={book} cards={current} rows={rows} answered={answered} onStart={drill} onReview={() => setView({ name: 'review' })} />;
+  if (view.name === 'lessons') {
+    return <LessonsView book={book} sourceKey={sourceKey} onOpen={(lesson) => setView({ name: 'lesson', lesson })} onBack={() => setView({ name: 'hub' })} />;
+  }
+  if (view.name === 'lesson') {
+    return <LessonView key={view.lesson.unitId} book={book} sourceKey={sourceKey} lesson={view.lesson} onBack={() => setView({ name: 'lessons' })} />;
+  }
+  return <Hub book={book} cards={current} rows={rows} answered={answered} onStart={drill} onReview={() => setView({ name: 'review' })}
+    onLessons={() => setView({ name: 'lessons' })} />;
 }
 
 /**
