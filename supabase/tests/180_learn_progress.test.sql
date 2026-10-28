@@ -18,6 +18,12 @@ create function pg_temp.points(p_member uuid) returns bigint language sql securi
   select coalesce(sum(s.points), 0)::bigint from public.learn_session s where s.member_id = p_member;
 $$;
 grant execute on function pg_temp.points(uuid) to authenticated;
+-- Another venue, made first as its settings take effect when the test begins, with its own member.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e3', 'authenticated', 'authenticated', '919000000997', now(), now());
+insert into public.member (venue_id, user_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e3', 'Elsewhere Member', '+919000000997');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is(public.sync_learn_progress(
@@ -56,12 +62,29 @@ select is((select count(*)::integer from public.ledger_transaction where idempot
 -- Each member sees only their own; without learn.drills, nothing.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
 select is_empty($$ select 1 from public.learn_attempt $$, 'Yash sees none of Mihir''s answers');
+select is_empty($$ select 1 from public.learn_card $$, 'nor his cards');
 select is_empty($$ select 1 from public.learn_session $$, 'nor his sessions');
+-- Yash, with room under the cap, claims a principle he never answered in the session: it earns nothing.
+select public.sync_learn_progress(jsonb_build_array(pg_temp.answer('00000000-0000-4000-8000-00000000a006', '00000000-0000-4000-8000-00000000b005', 'p_q')), '[]');
+select is(public.complete_learn_session('00000000-0000-4000-8000-00000000b005', array['p_q', 'p_r']), 35::bigint,
+  'only a principle answered in the session counts: 10 and 25, not 60');
+select results_eq($$ select principles from public.learn_session where id = '00000000-0000-4000-8000-00000000b005' $$,
+  $$ values (array['p_q']) $$, 'and only it is kept as mastered');
+-- The same principle id in another book is a principle of its own.
+select public.sync_learn_progress(jsonb_build_array(pg_temp.answer('00000000-0000-4000-8000-00000000a007', '00000000-0000-4000-8000-00000000b006', 'p_q')
+                                                    || '{"source_key": "src_other"}'), '[]');
+select is(public.complete_learn_session('00000000-0000-4000-8000-00000000b006', array['p_q']), 35::bigint,
+  'p_q mastered in another source earns its own 25');
 reset role;
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'learn.drills', false, 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
 select throws_ok($$ select public.sync_learn_progress('[]', '[]') $$, '42501', null, 'a member without Learn drills syncs nothing');
+reset role;
+-- Another venue's member, with Learn drills there, sees nothing of this venue's.
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e3');
+select is_empty($$ select 1 from public.learn_attempt union all select 1 from public.learn_card union all select 1 from public.learn_session $$,
+  'another venue''s member sees none of it');
 reset role;
 
 -- The points rule as a venue might set it: 5 a session, nothing a principle.

@@ -32,7 +32,6 @@
     "@rivr/contracts": "workspace:*",
     "@rivr/domain": "workspace:*",
     "@rivr/offline": "workspace:*",
-    "@rivr/offline": "workspace:*",
     "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.104.4"
   },

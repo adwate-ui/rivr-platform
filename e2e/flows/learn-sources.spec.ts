@@ -25,6 +25,6 @@ test.describe('Learn sources', () => {
     await page.getByRole('textbox', { name: 'Licence terms' }).fill('Licensed to the club for its members');
     await page.getByRole('button', { name: 'Upload source' }).click();
     await expect(page.getByText(/is added\. Members have it until /)).toBeVisible();
-    await expect(page.getByRole('table', { name: 'Learn sources' }).getByRole('row').filter({ hasText: 'On' })).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Learn sources' }).getByRole('cell', { name: 'On', exact: true })).toBeVisible();
   });
 });

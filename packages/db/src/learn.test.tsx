@@ -1,10 +1,12 @@
+import { createOfflineQueue } from '@rivr/offline';
 import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { IDBFactory } from 'fake-indexeddb';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { sendLearnProgress, useCompleteLearnSession, useLearnCards } from './learn.ts';
+import { sendLearnProgress, useCompleteLearnSession, useLearnCards, useLearnProgressQueue, type LearnProgress } from './learn.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -27,7 +29,10 @@ function clientFor(replies: Record<string, { status?: number; body: unknown }>) 
 const ANSWER = { id: 'a1', sessionId: 's1', sourceKey: 'src_example', principleId: 'p_open', answeredAt: '2026-11-20T10:00:00Z', attempt: { correct: true } };
 const CARD = { sourceKey: 'src_example', cardKey: 'p_open#1', state: { reps: 1 }, dueAt: '2026-11-21T10:00:00Z' };
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe('Learn progress', () => {
   it('sends answers and cards as the server keeps them, and says which refusals are for good', async () => {
@@ -55,5 +60,23 @@ describe('Learn progress', () => {
     await act(async () => { completed = await result.current.complete.mutateAsync({ sessionId: 's1', principles: ['p_open'] }); });
     expect(completed).toEqual({ ok: true, value: 60 });
     expect(calls.find((call) => call.url.includes('/rpc/complete_learn_session'))?.body).toEqual({ p_session_id: 's1', p_principles: ['p_open'] });
+  });
+});
+
+describe('the Learn progress queue', () => {
+  it('sends what it kept through a reload as soon as the app opens, and completes the session it carries', async () => {
+    const indexedDB = new IDBFactory();
+    vi.stubGlobal('indexedDB', indexedDB);
+    // Before the reload: an answer and its session's completion kept on the phone, offline.
+    const before = createOfflineQueue<LearnProgress>({ name: 'learn-progress', indexedDB, send: async () => 'retry' });
+    await before.enqueue({ answers: [ANSWER], cards: [CARD], completed: { sessionId: 's1', principles: ['p_open'] } }, 'a1');
+    await before.flush();
+    before.close();
+    const { client, calls } = clientFor({ '/rpc/sync_learn_progress': { body: 1 }, '/rpc/complete_learn_session': { body: 35 } });
+    const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+    const { result } = renderHook(() => useLearnProgressQueue(), { wrapper });
+    await waitFor(() => expect(calls.map((call) => call.url.split('/rpc/')[1])).toEqual(['sync_learn_progress', 'complete_learn_session']));
+    expect(calls[1]?.body).toEqual({ p_session_id: 's1', p_principles: ['p_open'] });
+    await waitFor(async () => expect(await result.current.pendingCount()).toBe(0));
   });
 });

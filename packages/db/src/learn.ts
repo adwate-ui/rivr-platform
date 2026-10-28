@@ -1,7 +1,6 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { createOfflineQueue, type OfflineQueue, type SendOutcome } from '@rivr/offline';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
 import type { RivrClient } from './client.ts';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
@@ -27,19 +26,25 @@ export interface LearnCard {
   readonly dueAt: string;
 }
 
-/** What one write to the server carries: answers and the cards they moved. */
+/** What one write to the server carries: answers and the cards they moved, and the session completed with them. */
 export interface LearnProgress {
   readonly answers: readonly LearnAnswer[];
   readonly cards: readonly LearnCard[];
+  /** A session finished with these answers, and the principles the member mastered in it (#135). */
+  readonly completed?: { readonly sessionId: string; readonly principles: readonly string[] } | undefined;
 }
 
 /** Why a session was not completed: no Learn drills, no answers kept, a freeze, or anything else. */
 export type LearnFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
 const FAILURE_BY_CODE: Readonly<Record<string, LearnFailure>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'paused' };
 
+/** What a refusal means for a queued write: never passes (no Learn drills, malformed), or may pass later. */
+const outcomeOf = (error: { code: string }): SendOutcome => (error.code === '42501' || error.code === '22023' ? 'rejected' : 'retry');
+
 /**
- * Sends one queued write of Learn progress: 'sent'; 'rejected' for a refusal that never passes (no Learn drills, a
- * malformed answer); 'retry' for anything that may pass later (offline, a freeze, a server error).
+ * Sends one queued write of Learn progress, then completes its session if it carries one: 'sent'; 'rejected' for a
+ * refusal that never passes; 'retry' for anything that may pass later (offline, a freeze, a server error). Both
+ * calls are idempotent, so a retry repeats them safely.
  */
 export async function sendLearnProgress(client: RivrClient, progress: LearnProgress): Promise<SendOutcome> {
   const { error } = await client.rpc('sync_learn_progress', {
@@ -49,23 +54,35 @@ export async function sendLearnProgress(client: RivrClient, progress: LearnProgr
     })),
     p_cards: progress.cards.map((card) => ({ source_key: card.sourceKey, card_key: card.cardKey, state: card.state, due_at: card.dueAt })),
   });
-  if (!error) return 'sent';
-  return error.code === '42501' || error.code === '22023' ? 'rejected' : 'retry';
+  if (error) return outcomeOf(error);
+  if (progress.completed === undefined) return 'sent';
+  const completed = await client.rpc('complete_learn_session', { p_session_id: progress.completed.sessionId, p_principles: [...progress.completed.principles] });
+  return completed.error ? outcomeOf(completed.error) : 'sent';
+}
+
+// One queue per client, as the tablet's hands: every Learn screen writes through the same outbox, in order.
+const QUEUES = new WeakMap<RivrClient, OfflineQueue<LearnProgress>>();
+
+function learnQueueFor(client: RivrClient): OfflineQueue<LearnProgress> {
+  const known = QUEUES.get(client);
+  if (known) return known;
+  const queue = createOfflineQueue<LearnProgress>({ name: 'learn-progress', send: ({ payload }) => sendLearnProgress(client, payload) });
+  QUEUES.set(client, queue);
+  // Progress kept from before a reload goes now, not with the next answer; and once the connection is back, at once.
+  const resend = () => void queue.flush().catch(() => undefined);
+  resend();
+  window.addEventListener('online', resend);
+  return queue;
 }
 
 /**
- * The device's queue of Learn progress (#132): kept in IndexedDB while offline, sent in order once the connection is
- * back. Enqueue each answer with its card under the answer's id. Null until the queue has opened.
+ * The device's queue of Learn progress (#132): kept in IndexedDB while offline, sent in order now, after a reload and
+ * once the connection is back. Enqueue each answer with its card under the answer's id, and a finished session with
+ * its last answers under the session's id, so its points are earned even when it ends offline.
  */
-export function useLearnProgressQueue(): OfflineQueue<LearnProgress> | null {
+export function useLearnProgressQueue(): OfflineQueue<LearnProgress> {
   const { client } = useRivrData();
-  const [queue, setQueue] = useState<OfflineQueue<LearnProgress> | null>(null);
-  useEffect(() => {
-    const opened = createOfflineQueue<LearnProgress>({ name: 'learn-progress', send: ({ payload }) => sendLearnProgress(client, payload) });
-    setQueue(opened);
-    return () => { opened.close(); };
-  }, [client]);
-  return queue;
+  return learnQueueFor(client);
 }
 
 /** The member's cards for one source, as the server last kept them (learn.drills). */

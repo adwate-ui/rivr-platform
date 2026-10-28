@@ -121,7 +121,8 @@ create policy "super admins see the venue's learn sources" on public.learn_sourc
 
 -- Records an uploaded, checked encoding and its licence, once the file is in the bucket; again for a new file or
 -- licence. Adds learn.source.<key>, on for each of the venue's tiers, ending with the licence. Refusals: 42501 not a
--- super admin; 22023 out of bounds, or no file uploaded at <venue>/<key>.json; RVFRZ the venue frozen.
+-- super admin; 22023 out of bounds, a key another venue holds, or no file uploaded at <venue>/<key>.json; RVFRZ the
+-- venue frozen.
 create function private.register_learn_source(p_venue_id uuid, p_source_key text, p_title text, p_author text, p_source_hash text,
                                               p_licence_terms text, p_licence_ends_on date)
 returns uuid
@@ -137,6 +138,10 @@ begin
     raise exception 'A super admin keeps the Learn sources' using errcode = '42501';
   end if;
   perform private.assert_writable(p_venue_id);
+  -- Its feature key is the whole platform's, so one venue's licence decides it: a key is one venue's.
+  if exists (select 1 from public.learn_source s where s.source_key = p_source_key and s.venue_id <> p_venue_id) then
+    raise exception 'Another venue holds that source' using errcode = '22023';
+  end if;
   if not exists (select 1 from storage.objects o where o.bucket_id = 'learn-sources' and o.name = p_venue_id || '/' || p_source_key || '.json') then
     raise exception 'Upload the encoding first' using errcode = '22023';
   end if;

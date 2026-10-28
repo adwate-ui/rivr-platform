@@ -10,6 +10,13 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
+-- Another venue, made first as its settings take effect when the test begins, with its own super admin.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e2', 'authenticated', 'authenticated', '919000000998', now(), now());
+insert into public.staff (venue_id, user_id, full_name, job_title, role) values
+  ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e2', 'Elsewhere Owner', 'Owner', 'super_admin');
+
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.register_learn_source('00000000-0000-4000-8000-000000000001', 'src_test', 'Test book', null, 'abc123',
                                                        'Licensed for the club', current_date + 30) $$, '22023', 'Upload the encoding first',
@@ -26,6 +33,19 @@ select ok(not private.may_handle_learn_sources('../src_test.json'), 'at a venue'
 select isnt(public.register_learn_source('00000000-0000-4000-8000-000000000001', 'src_test', 'Test book', 'A. Author', 'abc123', 'Licensed for the club',
                                          current_date + 30), null, 'a super admin registers the uploaded source');
 select is((select count(*)::integer from public.learn_source), 1, 'and sees it');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is_empty($$ select 1 from public.learn_source $$, 'an admin does not');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
+select is_empty($$ select 1 from public.learn_source $$, 'nor does a member');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
+select is_empty($$ select 1 from public.learn_source $$, 'nor another venue''s super admin');
+select ok(not private.may_handle_learn_sources('00000000-0000-4000-8000-000000000001/src_test.json'), 'who reaches none of its files');
+reset role;
+insert into storage.objects (bucket_id, name) values ('learn-sources', '00000000-0000-4000-8000-0000000000e1/src_test.json');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
+select throws_ok($$ select public.register_learn_source('00000000-0000-4000-8000-0000000000e1', 'src_test', 'Test book', null, 'abc123',
+                                                       'Ours', current_date + 1) $$, '22023', 'Another venue holds that source',
+  'nor registers a key another venue holds, so its licence never decides theirs');
 reset role;
 
 select is((select available_until from public.feature where key = 'learn.source.src_test'), current_date + 30, 'its feature ends with the licence');

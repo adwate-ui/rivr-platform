@@ -19,6 +19,7 @@ create function private.learn_points(p_mastered bigint, p_earned_today bigint, p
 returns bigint
 language sql
 immutable
+strict
 set search_path = ''
 as $$
   select greatest(0, least(p_per_session + p_mastered * p_per_principle, p_daily_cap - p_earned_today));
@@ -151,7 +152,7 @@ end;
 $$;
 
 -- Completes a session the member answered in, once: credits the session's points and each principle given that the
--- member had not mastered before, within the IST day's cap. Returns the points earned (again, the same, for a session
+-- member answered in it and had not mastered before in that source, within the IST day's cap. Returns the points earned (again, the same, for a session
 -- already completed). Refusals: 42501; 22023 a session with no answer kept; RVFRZ/RVMBR a freeze.
 create function private.complete_learn_session(p_session_id uuid, p_principles text[])
 returns bigint
@@ -183,7 +184,9 @@ begin
   select coalesce(array_agg(distinct p), '{}') into v_new
   from unnest(coalesce(p_principles, '{}')) p
   where length(p) between 1 and 200
-    and not exists (select 1 from public.learn_session s where s.member_id = v_member.id and p = any (s.principles));
+    and not exists (select 1 from public.learn_session s where s.member_id = v_member.id and s.source_key = v_source and p = any (s.principles))
+    -- Only a principle the member answered in this session.
+    and exists (select 1 from public.learn_attempt a where a.session_id = p_session_id and a.member_id = v_member.id and a.principle_id = p);
   v_rates := private.setting_at(v_member.venue_id, 'learn.session_points', '', now());
   v_cap := coalesce((private.setting_at(v_member.venue_id, 'learn.daily_points_cap', '', now()) ->> 'points')::bigint, 100);
   select coalesce(sum(s.points), 0) into v_today from public.learn_session s
