@@ -2,3 +2,4 @@
 // @rivr/i18n, which only the functions that send them map (#283).
 export { ALERT_EVENT_TYPES, createAlertConsumer, type FindAlertNumber } from './alertConsumer.ts';
 export { createWhatsAppConsumer, WHATSAPP_EVENT_TYPES, type FindRecipient, type MessageRecipient } from './consumer.ts';
+export { createPushConsumer, PUSH_EVENT_TYPES, type FindPushTargets, type ForgetPushTarget } from './pushConsumer.ts';

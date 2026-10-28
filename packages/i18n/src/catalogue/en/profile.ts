@@ -17,6 +17,11 @@ export const profile = {
   plo: 'PLO',
   tournaments: 'Tournaments',
   notifications: 'Notifications',
+  /** The switch for push on this phone (#139). */
+  phonePush: 'Notifications on this phone',
+  phonePushHint: 'Turn on to get the notifications below on this phone.',
+  phonePushBlocked: "Notifications are blocked for RIVR. Allow them in your phone's settings, then try again.",
+  phonePushUnsupported: 'This browser cannot show notifications. Add RIVR to your home screen and open it from there.',
   seatCalls: 'Seat calls',
   seatCallsHint: 'When your seat is ready.',
   callTime: 'Call time',

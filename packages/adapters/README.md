@@ -15,6 +15,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 
 | Key | Import | Interface | What it does |
 |---|---|---|---|
+| `web-push` | `@rivr/adapters/web-push` | `PushAdapter` | Web push through each browser's push service (`createWebPush`, the web-push library, decision 0272); the push consumer is `createPushConsumer` in `@rivr/adapters/messages` |
 | `kyc` | `@rivr/adapters/kyc` | `KycAdapter` | DigiLocker pull (masked Aadhaar, PAN, an Aadhaar reference when the vendor has one), PAN verification fallback, selfie liveness and face match; live on Cashfree Secure ID (`createCashfreeKyc`, signed through `shared/cashfree.ts`, decision 0197), which has no face search; `panRecheckOutcome` reads a PAN answer for re-checking a check made in person (#259) |
 | `smsOtp` | `@rivr/adapters/sms-otp` | `SmsOtpAdapter` | Sign-in codes by SMS; live: `createMsg91SmsOtp({ authKey, templateId })` on a DLT template, the key as a header, a refusal inside HTTP 200 read from `type` |
 | `whatsapp` | `@rivr/adapters/whatsapp` | `WhatsAppAdapter` | Utility, authentication and marketing templates; marketing needs `optedInAt`; `urlButton` for a template whose button opens a link (a payment link, a receipt). `WHATSAPP_TEMPLATES` lists every template as submitted to Meta (decision 0043) |

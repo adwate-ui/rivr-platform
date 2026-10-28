@@ -1,6 +1,7 @@
 import { PUSH_CHOICES, useFeature, usePreferenceActions, type Preferences, type PushChoice } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { FeatureGate, Heading, Stack, Switch, Text } from '@rivr/ui';
+import { PhonePushSwitch } from './PhonePushSwitch.tsx';
 
 const PUSH_COPY: Readonly<Record<PushChoice, { label: MessageKey; hint: MessageKey }>> = {
   'push.seat_ready': { label: 'player.profile.seatCalls', hint: 'player.profile.seatCallsHint' },
@@ -37,6 +38,7 @@ export function NotificationsSection({ preferences }: { preferences: Preferences
     <Stack gap={3}>
       <Heading level={2}>{t('player.profile.notifications')}</Heading>
       <Stack gap={1}>
+        <PhonePushSwitch />
         {PUSH_CHOICES.map((type) => (
           <NotificationSwitch key={type} type={type} isOn={!preferences.notificationsOff.includes(type)} />
         ))}

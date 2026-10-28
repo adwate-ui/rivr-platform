@@ -2467,6 +2467,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"push_subscription": {
+                  Row: {
+                    "auth": string,"created_at": string,"endpoint": string,"id": string,"member_id": string,"p256dh": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth": string,"created_at"?: string,"endpoint": string,"id"?: string,"member_id": string,"p256dh": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "auth"?: string,"created_at"?: string,"endpoint"?: string,"id"?: string,"member_id"?: string,"p256dh"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_subscription_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"quiz": {
                   Row: {
                     "answer_key": (number)[],"created_at": string,"id": string,"pass_percent": number,"questions": NonNullable<Json>,"role": Database["public"]['Enums']["staff_role"],"title": string,"updated_at": string,"venue_id": string
@@ -4490,6 +4510,9 @@ isOneToOne: false
               "created_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
             }[]
                            },
+"forget_push_subscription":
+{ Args: { "p_endpoint": string }; Returns: undefined
+                           },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
@@ -4901,6 +4924,11 @@ isOneToOne: false
               "deleted_rows": number,"table_name": string
             }[]
                            },
+"push_targets":
+{ Args: { "p_member_id": string,"p_promotion_id"?: string,"p_push_type"?: string,"p_venue_id": string }; Returns: {
+              "auth": string,"endpoint": string,"p256dh": string
+            }[]
+                           },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -4992,6 +5020,9 @@ isOneToOne: false
 "remove_payout_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },
+"remove_push_subscription":
+{ Args: { "p_endpoint": string }; Returns: undefined
+                           },
 "remove_shift":
 { Args: { "p_shift_id": string }; Returns: undefined
                            },
@@ -5080,6 +5111,9 @@ isOneToOne: false
                            },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
+                           },
+"save_push_subscription":
+{ Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string }; Returns: undefined
                            },
 "save_reward_item":
 { Args: { "p_detail": string,"p_is_live"?: boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_nights"?: number,"p_points"?: number,"p_stock"?: number,"p_stock_was"?: number,"p_venue_id": string }; Returns: string

@@ -31,7 +31,7 @@ select set_eq(
   $$ values
      -- Deleted.
      ('feedback'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'), ('membership_card'),
-     ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('club_event_booking'), ('learn_attempt'), ('learn_card'), ('learn_session'), ('lead'),
+     ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('club_event_booking'), ('learn_attempt'), ('learn_card'), ('learn_session'), ('lead'), ('push_subscription'),
      -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted), a payout
      -- account a money record names kept and marked removed (others deleted), bonus grants closed by the forfeit.
      ('consent'), ('kyc_record'), ('payout_account'), ('bonus_grant'),

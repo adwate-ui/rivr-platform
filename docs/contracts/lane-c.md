@@ -53,7 +53,7 @@ The player app (sign-in, KYC, Home, Sessions, Balance, Rewards and Learn screens
 ## Events
 
 - Emits: `member.signed_up` (`member_id`, and `referral_code`, `creator_code`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` when the link had them), `kyc.completed`, `visit.opened`, `visit.closed`, `member.break_started` (`member_id`, `ends_at`), `academy.booked`, `academy.graduated`, `learn.session_completed`, `learn.principle_mastered`, `share_card.rendered`, `cab.requested`, `site.published`.
-- Consumes: `seat.taken`, `waitlist.called`, `call_time.completed`, `withdrawal.sent`, `tournament.starting`, `promotion.published` (push through the `push` adapter); `site.published` (Cloudflare cache purge through the adapter).
+- Consumes: `waitlist.called`, `call_time.completed`, `withdrawal.sent`, `session.reminder`, `tournament.starting`, `promotion.offered` (push through the `push` consumer, decision 0272); `site.published` (Cloudflare cache purge through the adapter).
 
 ## Uses from other lanes
 

@@ -56,3 +56,15 @@ export const promotionOfferedSchema = z.object({
 
 /** A promotion.offered payload. */
 export type PromotionOffered = z.infer<typeof promotionOfferedSchema>;
+
+/** call_time.completed (#56): the member's call time at their seat is complete. */
+export const callTimeCompletedSchema = z.object({ member_id: z.uuid(), session_id: z.uuid() });
+
+/** session.reminder (#56; decision 0053): the member has been seated as long as their own reminder. */
+export const sessionReminderSchema = z.object({ member_id: z.uuid(), session_id: z.uuid(), hours: z.int().min(1).max(24) });
+
+/** withdrawal.sent: the cage sent the member's withdrawal. */
+export const withdrawalSentSchema = z.object({ member_id: z.uuid(), withdrawal_request_id: z.uuid(), amount_paise: z.int().min(1) });
+
+/** tournament.starting (#139): the tournament's clock started, told to each member with a place in it. */
+export const tournamentStartingSchema = z.object({ member_id: z.uuid(), tournament_id: z.uuid(), name: z.string().trim().min(1).max(80) });
