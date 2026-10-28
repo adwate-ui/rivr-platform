@@ -4381,7 +4381,7 @@ isOneToOne: false
                            },
 "claim_outbox_deliveries":
 { Args: { "p_consumer": string,"p_event_types": (string)[],"p_is_messaging"?: boolean,"p_limit"?: number }; Returns: {
-              "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
+              "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"occurred_at": string,"payload": Json,"venue_id": string
             }[]
                            },
 "claim_payout_name_checks":

@@ -93,6 +93,26 @@ function promotionOffered(payload: unknown): Built {
   return ok({ memberId, pushType: 'push.promotion_published', promotionId, title, body, url: '/', tag: `promotion-${promotionId}` });
 }
 
+const HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * How long each kind stays worth sending (#593). A push claimed later, after a backfill, is finished unsent. A seat call
+ * checks its own hold instead.
+ */
+const USEFUL_FOR_MS: Readonly<Partial<Record<(typeof PUSH_EVENT_TYPES)[number], number>>> = {
+  'call_time.completed': HOUR_MS,
+  'session.reminder': HOUR_MS,
+  'tournament.starting': HOUR_MS,
+  'withdrawal.sent': 24 * HOUR_MS,
+  'promotion.offered': 24 * HOUR_MS,
+};
+
+function isStale(eventType: (typeof PUSH_EVENT_TYPES)[number], occurredAt: Date | undefined, now: Date): boolean {
+  const usefulFor = USEFUL_FOR_MS[eventType];
+  if (usefulFor === undefined || occurredAt === undefined) return false;
+  return now.getTime() - occurredAt.getTime() > usefulFor;
+}
+
 const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unknown, now: Date) => Built>> = {
   'waitlist.called': seatReady,
   'call_time.completed': callTimeDone,
@@ -105,6 +125,7 @@ const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unk
 function pushFor(delivery: ClaimedDelivery, now: Date): Built {
   const eventType = PUSH_EVENT_TYPES.find((type) => type === delivery.eventType);
   if (eventType === undefined) return err({ code: 'rejected', reason: `no push for ${delivery.eventType}` });
+  if (isStale(eventType, delivery.occurredAt, now)) return ok(null);
   return BUILDERS[eventType](delivery.payload, now);
 }
 

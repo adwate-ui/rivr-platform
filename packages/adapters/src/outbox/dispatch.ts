@@ -10,6 +10,8 @@ export interface ClaimedDelivery {
   readonly payload: unknown;
   /** Which attempt this is, from 1 to MAX_ATTEMPTS. */
   readonly attempts: number;
+  /** When the event happened, for a consumer whose message goes stale (#593). */
+  readonly occurredAt?: Date;
 }
 
 /** Where deliveries come from and go back to: the database's claim and finish functions. */
