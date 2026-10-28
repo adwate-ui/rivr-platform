@@ -18,6 +18,7 @@
  */
 
 import { STREETS, type Street } from './ontology/types.ts';
+import { ENGLISH_WORDS, type DrillWords } from './words.ts';
 
 export type Actor = 'hero' | 'villain';
 
@@ -93,16 +94,11 @@ export function hasEarlierStep(
  * An unmapped step is still somebody's word for something, so it is printed
  * with its underscores softened rather than dropped.
  */
-const PAST: Readonly<Record<string, string>> = {
-    bet: 'bet', call: 'called', check: 'checked', raise: 'raised', fold: 'folded',
-    limp: 'limped', all_in: 'went all in', '3bet': '3-bet', '4bet': '4-bet',
-    three_bet: '3-bet', four_bet: '4-bet',
-};
 
 /** A step as past-tense words, with the street it happened on. */
-export function describeStep(step: string): { street?: Street | undefined; text: string } {
+export function describeStep(step: string, words: DrillWords = ENGLISH_WORDS): { street?: Street | undefined; text: string } {
     const parsed = parseStep(step);
-    const verb = PAST[parsed.action] ?? parsed.action.replace(/_/g, ' ');
+    const verb = words.past[parsed.action] ?? parsed.action.replace(/_/g, ' ');
     if (parsed.actor === undefined) return { street: parsed.street, text: parsed.action.replace(/_/g, ' ') };
-    return { street: parsed.street, text: `${parsed.actor === 'hero' ? 'you' : 'they'} ${verb}` };
+    return { street: parsed.street, text: words.say.step(parsed.actor === 'hero' ? 'hero' : 'villain', verb) };
 }
