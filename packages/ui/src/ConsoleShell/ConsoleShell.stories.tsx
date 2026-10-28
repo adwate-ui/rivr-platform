@@ -42,6 +42,18 @@ export const WithError: Story = {
 
 export const KillSwitchBanner: Story = { args: { banner: <Banner audience="staff" /> } };
 
+/** On a phone the rail becomes the menu: the top bar names the screen (#601). */
+export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
+
+export const OnAPhoneLongTitle: Story = {
+  tags: ['!viewport-console', 'viewport-phone'],
+  args: {
+    sections: [{ id: 'tonight', label: 'Tonight', items: [{ id: 'long', label: 'Tournament registrations and late entries', href: '#long' }] }],
+    currentItem: 'long',
+    children: <Screen title="Tournament registrations and late entries" actions={<Button variant="primary">New tournament</Button>} />,
+  },
+};
+
 /** The foot of the rail as the console fills it: the staff member, the venue, the practice switch, sign out. */
 function staffFooter(name: string, venue: string) {
   return (

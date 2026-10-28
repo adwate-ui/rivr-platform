@@ -32,7 +32,7 @@ async function answerSpot(member: Page, isLast: boolean) {
 test.describe('Learn', () => {
   test('Learn: a member drills ten spots of a licensed title and earns its points', async ({ page, browser }) => {
     await signInToConsole(page, '9000000631');
-    await page.getByRole('link', { name: 'Learn sources' }).click();
+    await page.getByRole('link', { name: 'Learn content' }).click();
     await page.locator('input[type="file"]').setInputFiles(EXAMPLE);
     await expect(page.getByText(/passed the validator and all eight gates\.$/)).toBeVisible({ timeout: 20_000 });
     await page.getByLabel('Licence ends on').fill(`${String(new Date().getFullYear() + 1)}-03-31`);

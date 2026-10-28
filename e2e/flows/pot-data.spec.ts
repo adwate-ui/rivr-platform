@@ -17,8 +17,8 @@ test.describe('Pot data', () => {
   test('Pot data: the super admin reads the week\'s hands by table, dealer and variant', async ({ page }) => {
     test.skip(isRemoteTarget(), 'signs in as this flow\'s own super admin, so the local stack only');
     await signInToConsole(page, '9000000704');
-    await page.getByRole('link', { name: 'Pot data', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Pot data', level: 1 })).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('link', { name: 'Hands', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Hands', level: 1 })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByLabel('From')).toHaveValue(clubDay(0));
 
     // The seed's floor (56_floor.sql) has Pema Lepcha deal a four of a kind at Table 2 on the night it loads.

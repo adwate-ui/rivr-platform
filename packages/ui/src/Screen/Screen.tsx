@@ -23,7 +23,8 @@ export function Screen(props: ScreenProps) {
   const headingId = useId();
   return (
     <section aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
+      {/* The heading and its actions wrap onto two lines on a narrow screen. */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <Heading level={1} id={headingId}>
           {props.title}
         </Heading>

@@ -32,7 +32,7 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 - Tailwind classes only from the token preset. No hex, px or font name.
 - One component per folder: `Component.tsx`, `Component.stories.tsx`, `Component.test.tsx`, `index.ts`.
 - Stories for default, loading, empty, error and long text. RIVR is English only (#186).
-- Accessible: labels, focus order, 4.5:1 contrast, 44 px touch targets for player and tablet.
+- Accessible: labels, focus order, 4.5:1 contrast, 44 px touch targets for player and tablet, and for the console below 1180 px (decision 0282).
 - Prefer a prop or variant on an existing component over a new component.
 - `@rivr/render` templates compose `@rivr/ui`; they define no styles.
 

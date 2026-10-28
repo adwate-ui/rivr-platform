@@ -12,6 +12,7 @@ import {
   IdCard,
   LayoutGrid,
   Lock,
+  Menu,
   Star,
   TrendingUp,
   TriangleAlert,
@@ -25,7 +26,7 @@ import {
 
 /**
  * The only icons RIVR draws, by meaning. Icons appear only where they carry meaning a word
- * cannot: the tab bar, the console rail, chevrons, close, lock, alert and offline.
+ * cannot: the tab bar, the console rail, chevrons, close, the console's menu, lock, alert and offline.
  */
 const ICONS = {
   home: House,
@@ -46,6 +47,7 @@ const ICONS = {
   chevronUp: ChevronUp,
   close: X,
   lock: Lock,
+  menu: Menu,
   alert: TriangleAlert,
   offline: WifiOff,
 } satisfies Record<string, LucideIcon>;

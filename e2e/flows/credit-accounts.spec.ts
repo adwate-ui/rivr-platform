@@ -98,7 +98,7 @@ test.describe('Credit and accounts', () => {
     const [account, category, payee] = [`Club UPI ${run}`, `Fruit ${run}`, `Fresh Fruits ${run}`];
     const karan = await browser.newPage();
     await signInToConsole(karan, '9000000192');
-    await karan.getByRole('link', { name: 'Accounts' }).click();
+    await karan.getByRole('link', { name: 'Payment accounts' }).click();
     await karan.getByRole('group', { name: 'Kind' }).getByRole('button', { name: 'UPI' }).click();
     await karan.getByRole('textbox', { name: 'Name' }).fill(account);
     await karan.getByRole('textbox', { name: 'UPI handle, or bank and last four digits' }).fill('rivr@okhdfc');
@@ -132,7 +132,7 @@ test.describe('Credit and accounts', () => {
     await expect(meher.getByText('Approved by Meher Gill · Asked by Karan Ahuja').first()).toBeVisible();
     await meher.getByRole('button', { name: `Receipt for ${payee}` }).click();
     await expect(meher.getByRole('img', { name: `Receipt for ${payee}` })).toBeVisible();
-    await meher.getByRole('link', { name: 'Accounts' }).click();
+    await meher.getByRole('link', { name: 'Payment accounts' }).click();
     await expect(meher.getByRole('table', { name: 'Payment accounts' }).getByRole('row').filter({ hasText: account })).toContainText('₹500');
   });
 });

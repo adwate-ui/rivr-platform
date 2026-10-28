@@ -78,7 +78,8 @@ function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurren
       aria-label={waiting === null ? undefined : `${item.label} ${t('ui.consoleRail.waiting', { count: waiting })}`}
       onClick={(event) => routeClick(event, item.href, onNavigate)}
       className={cx(
-        'flex min-h-8 items-center gap-2 rounded-md px-3 font-text text-16 transition-colors',
+        // A finger's width below a desk, where the rail is the console's menu.
+        'flex min-h-touch items-center gap-2 rounded-md px-3 font-text text-16 transition-colors tablet:min-h-8',
         isCurrent ? 'font-medium text-content' : 'text-content-muted hover:text-content',
       )}
     >

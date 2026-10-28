@@ -1,8 +1,8 @@
 /** The console's Learn sources (#131): licensed encodings, checked by the drill engine before they are taken. */
 export const learnSources = {
-  title: 'Learn sources',
+  title: 'Learn content',
   notAllowed: 'Learn sources are for super admins.',
-  table: 'Learn sources',
+  table: 'Learn content',
   none: 'No licensed sources yet.',
   sourceTitle: 'Title',
   key: 'Key',

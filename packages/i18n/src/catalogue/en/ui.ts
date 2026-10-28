@@ -30,6 +30,12 @@ export const ui = {
     label: 'Sections',
     /** Read after a rail entry's name when things wait on its screen, such as high-hand claims (#317). */
     waiting: '{count} waiting',
+    /** Below a desk the rail is a menu (#601): the button that opens it, and the one that closes it. */
+    open: 'Menu',
+    close: 'Close the menu',
+    /** Finds a screen by name, at the top of the rail. */
+    goTo: 'Go to',
+    noMatch: 'No screen by that name.',
   },
   web: {
     /** Accessible name of the public website's main navigation. */

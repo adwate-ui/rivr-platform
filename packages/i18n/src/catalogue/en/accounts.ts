@@ -1,6 +1,6 @@
 /** The console's Accounts screen (#94): where the club's money is, transfers between accounts, and a statement for each. */
 export const accounts = {
-  title: 'Accounts',
+  title: 'Payment accounts',
   notAllowed: 'Your role does not see the accounts. Duty managers, cashiers and the owner do.',
   list: 'Payment accounts',
   noAccounts: 'No payment accounts yet.',
