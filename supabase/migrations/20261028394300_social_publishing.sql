@@ -7,7 +7,8 @@
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('social-media', 'social-media', true, 10485760, array['image/jpeg', 'image/png', 'image/webp']);
 
--- Whether the caller publishes marketing at the venue a bucket path starts with; any other name is refused.
+-- Whether the caller publishes marketing at the venue a bucket path starts with, while the venue is not frozen and
+-- social publishing is not switched off; any other name is refused.
 create function private.may_upload_social_media(p_name text)
 returns boolean
 language sql
@@ -17,6 +18,9 @@ set search_path = ''
 as $$
   select case when p_name ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[a-z0-9-]{1,80}\.(jpg|png|webp)$'
               then coalesce(private.has_permission(split_part(p_name, '/', 1)::uuid, 'marketing.publish'), false)
+                   and not exists (select 1 from public.control_state c
+                                   where c.venue_id = split_part(p_name, '/', 1)::uuid and c.released_at is null
+                                     and (c.level = 'venue_freeze' or (c.level = 'feature_kill' and c.feature = 'social_publishing')))
               else false end;
 $$;
 create policy "staff who publish marketing upload social media" on storage.objects

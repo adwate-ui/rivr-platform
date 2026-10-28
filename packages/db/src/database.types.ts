@@ -1691,14 +1691,14 @@ isOneToOne: false
                   ]
                 },"lead": {
                   Row: {
-                    "channel": string,"created_at": string,"first_message": string,"handle": string,"id": string,"last_message_at": string,"linked_at": string | null,"member_id": string | null,"thread_id": string,"updated_at": string,"venue_id": string
+                    "channel": string,"closed_at": string | null,"created_at": string,"first_message": string,"handle": string,"id": string,"last_message_at": string,"linked_at": string | null,"member_id": string | null,"thread_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "channel": string,"created_at"?: string,"first_message": string,"handle": string,"id"?: string,"last_message_at": string,"linked_at"?: string | null,"member_id"?: string | null,"thread_id": string,"updated_at"?: string,"venue_id": string
+                    "channel": string,"closed_at"?: string | null,"created_at"?: string,"first_message": string,"handle": string,"id"?: string,"last_message_at": string,"linked_at"?: string | null,"member_id"?: string | null,"thread_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "channel"?: string,"created_at"?: string,"first_message"?: string,"handle"?: string,"id"?: string,"last_message_at"?: string,"linked_at"?: string | null,"member_id"?: string | null,"thread_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "channel"?: string,"closed_at"?: string | null,"created_at"?: string,"first_message"?: string,"handle"?: string,"id"?: string,"last_message_at"?: string,"linked_at"?: string | null,"member_id"?: string | null,"thread_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -5361,11 +5361,6 @@ isOneToOne: false
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"visit_closed_at": string
             }[]
                            },
-"venue_leads":
-{ Args: { "p_venue_id": string }; Returns: {
-              "channel": string,"first_message": string,"handle": string,"last_message_at": string,"lead_id": string,"member_name": string,"messages": number
-            }[]
-                           },
 "venue_league":
 { Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
               "cash_points": number,"full_name": string,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
@@ -5405,9 +5400,6 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "table_type_id": string,"waiting": number
             }[]
-                           },
-"wall_posts_since":
-{ Args: { "p_venue_id": string }; Returns: string
                            },
 "withdraw_consent":
 { Args: { "p_purpose": string }; Returns: undefined

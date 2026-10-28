@@ -45,7 +45,6 @@ select is(public.record_wall_posts('00000000-0000-4000-8000-000000000001',
   'and only the new one of a post it already holds');
 select throws_ok($$ select public.record_wall_posts('00000000-0000-4000-8000-000000000002', jsonb_build_array(pg_temp.post('t184-9', 'x', '2026-11-15T20:00:00Z'))) $$,
   '22023', null, 'never for the practice venue');
-select ok(public.wall_posts_since('00000000-0000-4000-8000-000000000001') >= '2026-11-15T20:00:00Z', 'the next pull asks from the newest held');
 select set_config('role', 'postgres', true);
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');

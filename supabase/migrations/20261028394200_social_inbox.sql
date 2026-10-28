@@ -1,8 +1,9 @@
 -- The social inbox (#156; decision 0268). Meta's webhook (the social-inbox Edge Function, its signature checked against
 -- the app secret) brings Instagram and Facebook messages and WhatsApp messages. Each conversation is a lead, with its
--- messages; a WhatsApp lead is linked to the member with that number, at once or when they sign up, and to whoever
--- takes the number on a phone change. Staff who publish marketing read the leads in the console. Never the practice
--- venue. A member's erasure deletes their leads and messages.
+-- messages; a WhatsApp lead is linked to the member with that number, at once or when they sign up. When a member's
+-- number changes, the conversation on the old number is closed and stays theirs; a later message from that number
+-- opens a new lead, linked to whoever holds the number then. Staff who publish marketing may read the leads; a
+-- console view of them is #587. Never the practice venue. A member's erasure deletes the leads linked to them and their messages.
 
 create table public.lead (
   id uuid primary key default gen_random_uuid(),
@@ -16,17 +17,20 @@ create table public.lead (
   last_message_at timestamptz not null,
   member_id uuid,
   linked_at timestamptz,
+  -- Closed when its member's number changed: the next message from the number opens a new lead.
+  closed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (id, venue_id),
-  unique (venue_id, channel, thread_id),
   foreign key (member_id, venue_id) references public.member (id, venue_id),
   check ((member_id is null) = (linked_at is null))
 );
 comment on table public.lead is 'A conversation on Instagram, Facebook or WhatsApp (#156): a lead, linked to the member it became.';
+-- One open conversation a channel and sender.
+create unique index lead_open_thread_idx on public.lead (venue_id, channel, thread_id) where closed_at is null;
 create index lead_last_idx on public.lead (venue_id, last_message_at desc);
 create index lead_member_idx on public.lead (member_id, venue_id);
-create index lead_whatsapp_idx on public.lead (venue_id, handle) where channel = 'whatsapp' and member_id is null;
+create index lead_whatsapp_idx on public.lead (venue_id, handle) where channel = 'whatsapp' and member_id is null and closed_at is null;
 create trigger lead_touch_updated_at before update on public.lead
   for each row execute function private.touch_updated_at();
 
@@ -59,8 +63,8 @@ create policy "staff who publish marketing see the leads' messages" on public.in
 -- A member's export gives the leads linked to them whole (decision 0240).
 insert into private.member_export_column (table_name, column_name, kind)
 select 'lead', c.column_name, 'owed'
-from unnest(array['id', 'venue_id', 'channel', 'thread_id', 'handle', 'first_message', 'last_message_at', 'member_id', 'linked_at', 'created_at',
-                  'updated_at']) c (column_name);
+from unnest(array['id', 'venue_id', 'channel', 'thread_id', 'handle', 'first_message', 'last_message_at', 'member_id', 'linked_at', 'closed_at',
+                  'created_at', 'updated_at']) c (column_name);
 
 -- Records the webhook's messages for a venue: each conversation a lead (a WhatsApp one linked to the member with that
 -- number), each message once. The service role only, never the practice venue (22023). The number of new messages.
@@ -82,12 +86,13 @@ begin
   ),
   leads as (
     insert into public.lead as target (venue_id, channel, thread_id, handle, first_message, last_message_at, member_id, linked_at)
-    select distinct on (m.channel, m.thread_id) p_venue_id, m.channel, m.thread_id, m.handle, left(m.text, 1000), m.received_at, who.id,
+    select distinct on (m.channel, m.thread_id) p_venue_id, m.channel, m.thread_id, m.handle, left(m.text, 1000),
+           max(m.received_at) over (partition by m.channel, m.thread_id), who.id,
            case when who.id is not null then now() end
     from messages m
     left join public.member who on m.channel = 'whatsapp' and who.venue_id = p_venue_id and who.phone = m.handle and who.erased_at is null
     order by m.channel, m.thread_id, m.received_at
-    on conflict (venue_id, channel, thread_id) do update set last_message_at = greatest(target.last_message_at, excluded.last_message_at)
+    on conflict (venue_id, channel, thread_id) where closed_at is null do update set last_message_at = greatest(target.last_message_at, excluded.last_message_at)
     returning target.id, target.channel, target.thread_id
   )
   insert into public.inbox_message (venue_id, lead_id, source_id, text, received_at)
@@ -99,7 +104,9 @@ begin
 end;
 $$;
 
--- A member who signs up, or whose number changes, is linked to the WhatsApp leads from that number not yet linked.
+-- A member who signs up, or whose number changes, is linked to the open WhatsApp leads from that number not yet
+-- linked. On a change, their conversation on the old number is closed first, so whoever holds that number next is
+-- never shown as them.
 create function private.link_member_leads()
 returns trigger
 language plpgsql
@@ -107,36 +114,17 @@ security definer
 set search_path = ''
 as $$
 begin
+  if tg_op = 'UPDATE' and old.phone is distinct from new.phone then
+    update public.lead l set closed_at = now()
+    where l.venue_id = new.venue_id and l.channel = 'whatsapp' and l.member_id = new.id and l.handle = old.phone and l.closed_at is null;
+  end if;
   update public.lead l set member_id = new.id, linked_at = now()
-  where l.venue_id = new.venue_id and l.channel = 'whatsapp' and l.handle = new.phone and l.member_id is null;
+  where l.venue_id = new.venue_id and l.channel = 'whatsapp' and l.handle = new.phone and l.member_id is null and l.closed_at is null;
   return null;
 end;
 $$;
 create trigger member_link_leads after insert or update of phone on public.member
   for each row execute function private.link_member_leads();
-
--- The venue's leads, the latest conversation first, with how many messages and the member each became. Refusal: 42501
--- not staff who publish marketing.
-create function private.venue_leads(p_venue_id uuid)
-returns table (lead_id uuid, channel text, handle text, first_message text, last_message_at timestamptz, messages integer, member_name text)
-language plpgsql
-stable
-security definer
-set search_path = ''
-as $$
-begin
-  if not coalesce(private.has_permission(p_venue_id, 'marketing.publish'), false) then
-    raise exception 'Staff who publish marketing read the leads' using errcode = '42501';
-  end if;
-  return query
-  select l.id, l.channel, l.handle, l.first_message, l.last_message_at, (select count(*)::integer from public.inbox_message i where i.lead_id = l.id),
-         m.full_name
-  from public.lead l left join public.member m on m.id = l.member_id
-  where l.venue_id = p_venue_id
-  order by l.last_message_at desc, l.id
-  limit 200;
-end;
-$$;
 
 -- As 20261028393700_learn_progress.sql left it, with a member's leads and their messages deleted.
 create or replace function private.delete_member_records(p_member public.member)
@@ -173,13 +161,7 @@ $$;
 create function public.record_inbox_messages(p_venue_id uuid, p_messages jsonb)
 returns integer language sql volatile security invoker set search_path = ''
 as $$ select private.record_inbox_messages(p_venue_id, p_messages); $$;
-create function public.venue_leads(p_venue_id uuid)
-returns table (lead_id uuid, channel text, handle text, first_message text, last_message_at timestamptz, messages integer, member_name text)
-language sql stable security invoker set search_path = ''
-as $$ select * from private.venue_leads(p_venue_id); $$;
 
 revoke execute on function private.record_inbox_messages(uuid, jsonb), public.record_inbox_messages(uuid, jsonb), private.link_member_leads()
   from public, anon, authenticated;
 grant execute on function private.record_inbox_messages(uuid, jsonb), public.record_inbox_messages(uuid, jsonb) to service_role;
-revoke execute on function private.venue_leads(uuid), public.venue_leads(uuid) from public, anon;
-grant execute on function private.venue_leads(uuid), public.venue_leads(uuid) to authenticated;

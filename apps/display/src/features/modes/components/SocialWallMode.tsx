@@ -14,11 +14,11 @@ export function wallSlide(post: TvWallPost, current: number, count: number): TvP
 
 /**
  * The TV's social wall (#158; decision 0267): the club's approved Instagram posts, one every 12 seconds with a quiet
- * pager beneath, as the promotions turn. In a TV's rotation, `onDone` once each has shown, or at once when there are none.
+ * pager beneath, as the promotions turn. In a TV's rotation it shows for the board's half minute, like the others.
  */
-export function SocialWallMode({ onDone }: { onDone?: (() => void) | undefined }) {
+export function SocialWallMode() {
   const wall = useTvSocialWall();
-  const shown = useSlides(wall.data?.length ?? (wall.isError ? 0 : undefined), onDone);
+  const shown = useSlides(wall.data?.length ?? (wall.isError ? 0 : undefined), undefined);
   if (wall.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(wall.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }

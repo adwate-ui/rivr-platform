@@ -33,7 +33,7 @@ function Board({ mode, name, onDone }: BoardProps) {
   if (mode === 'league') return <LeagueMode />;
   if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
   if (mode === 'spin_wheel') return <SpinMode />;
-  if (mode === 'social_wall') return <SocialWallMode onDone={onDone} />;
+  if (mode === 'social_wall') return <SocialWallMode />;
   return (
     <Stack gap={4}>
       <Heading level={1} variant="display">{t(`tv.modes.${mode}`)}</Heading>
@@ -48,8 +48,7 @@ function Rotation({ boards, name }: { boards: readonly TvMode[]; name: string })
   const next = useCallback(() => setTurn((current) => current + 1), []);
   const mode = boards[turn % boards.length] ?? 'waitlist';
   useEffect(() => {
-    // The promotions and the social wall say when each of theirs has shown.
-    if (mode === 'promotions' || mode === 'social_wall') return undefined;
+    if (mode === 'promotions') return undefined;
     const timer = setTimeout(next, BOARD_MS);
     return () => clearTimeout(timer);
   }, [mode, turn, next]);

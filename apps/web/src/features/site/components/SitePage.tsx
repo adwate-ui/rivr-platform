@@ -114,8 +114,8 @@ function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 't
     case 'links':
       return <LinksBlock heading={block.content.heading} links={block.content.links.flatMap((action) => link(action) ?? [])} />;
     case 'social_wall':
-      // The club's approved Instagram posts (#157); with none yet, the block is not shown.
-      return page.wallPosts.length === 0 ? null : (
+      // The club's approved Instagram posts (#157).
+      return (
         <CardsBlock heading={block.content.heading} cards={page.wallPosts.map((post) => ({
           title: t('web.wallHandle', { handle: post.handle }), text: post.caption.slice(0, WALL_CAPTION), link: { label: t('web.wallOpen'), href: post.permalink },
         }))} />
@@ -159,7 +159,8 @@ export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   return (
     <WebShell links={links} homeHref={siteHref('home', attribution)} action={page.isPaused ? undefined : reserve} footer={<Footer attribution={attribution} />}>
       {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
-      {page.blocks.map((block, position) => (
+      {/* A social wall with no approved posts yet is left out, band and all. */}
+      {page.blocks.filter((block) => block.kind !== 'social_wall' || page.wallPosts.length > 0).map((block, position) => (
         <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} live={block.kind === 'games' ? `games-${String(position)}` : undefined}>
           <Block block={block} page={page} link={link} pageLink={pageLink} />
         </WebBand>

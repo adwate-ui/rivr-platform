@@ -23,7 +23,7 @@ test.describe('Publishing', () => {
     const row = page.getByRole('table', { name: 'Posts' }).getByRole('row').filter({ hasText: caption });
     await expect(row).toContainText('Instagram: download and post');
     await expect(row).toContainText('WhatsApp: download and post');
-    await expect(row.getByRole('link', { name: 'Image' })).toHaveAttribute('href', /\/social-media\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.png$/);
+    await expect(row.getByRole('link', { name: 'Image' })).toHaveAttribute('href', /\/social-media\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.png\?download=/);
     await expect(row.getByRole('link', { name: 'Caption' })).toHaveAttribute('href', /^data:text\/plain/);
   });
 });

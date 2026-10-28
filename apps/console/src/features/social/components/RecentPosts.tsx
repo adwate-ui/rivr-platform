@@ -17,7 +17,7 @@ const COLUMNS: readonly DataTableColumn<SocialPost>[] = [
   { key: 'channels', header: t('console.social.posts.channels'), cell: (row) => channelsOf(row) },
   { key: 'download', header: t('console.social.posts.download'), align: 'end', cell: (row) => (
     <Inline gap={2}>
-      <Button variant="text" href={row.imageUrl} download="" opensNewTab>{t('console.social.posts.image')}</Button>
+      <Button variant="text" href={row.imageUrl}>{t('console.social.posts.image')}</Button>
       <Button variant="text" href={captionLink(row.caption)} download="caption.txt">{t('console.social.posts.captionFile')}</Button>
     </Inline>
   ) },

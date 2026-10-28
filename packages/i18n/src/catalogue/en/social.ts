@@ -1,77 +1,20 @@
-/** The console's Social screen (#154, #156, #157; decisions 0267 to 0269): publishing, the inbox's leads, and the social wall's moderation. */
+/** Copy on the social posts and stories @rivr/render draws. Names, hands and amounts come with the card. */
 export const social = {
-  title: 'Social',
-  notAllowed: 'Your role does not include social. Ask an admin if you need it.',
-  channels: {
-    instagram: 'Instagram', facebook: 'Facebook', x: 'X', linkedin: 'LinkedIn', youtube: 'YouTube', telegram: 'Telegram',
-    google_business_profile: 'Google Business Profile', whatsapp: 'WhatsApp',
+  /** When something happens or happened: `Sunday 15 Nov 2026, 19:00`, in IST. */
+  when: '{weekday} {date}, {time}',
+  tournament: {
+    label: 'Tournament',
+    /** Beneath the guarantee figure. */
+    guaranteed: 'Guaranteed',
+    buyIn: 'Buy-in {amount}',
   },
-  publish: {
-    title: 'Publish',
-    hint: 'One image and its caption to every channel chosen. A channel the club has not connected offers the image and caption to download and post by hand; none is connected yet.',
-    chooseImage: 'Choose the image',
-    imageChosen: 'Image: {name}',
-    caption: 'Caption',
-    channels: 'Channels',
-    publish: 'Publish',
-    done: 'Published. Download the image and caption below for each channel to post.',
-    failures: {
-      not_allowed: 'Your role does not include social. Ask an admin if you need it.',
-      invalid: 'Choose an image (JPEG, PNG or WebP), write a caption and choose at least one channel.',
-      paused: 'Social publishing is switched off, or the club is paused.',
-      unavailable: 'The post did not go through. Try again.',
-    },
+  promotion: {
+    label: 'Promotion',
   },
-  posts: {
-    title: 'Posts',
-    table: 'Posts',
-    none: 'No posts yet.',
-    when: 'Published',
-    caption: 'Caption',
-    channels: 'Channels',
-    toDownload: '{channel}: download and post',
-    published: '{channel}: published',
-    download: 'Download',
-    image: 'Image',
-    captionFile: 'Caption',
+  winner: {
+    label: 'Winner',
   },
-  leads: {
-    title: 'Leads',
-    hint: 'Each conversation on Instagram, Facebook or WhatsApp, the latest first. A WhatsApp lead is linked to the member with that number, now or when they sign up. Reply in the app the message came in.',
-    table: 'Leads',
-    none: 'No messages yet.',
-    channel: 'Channel',
-    channels: { instagram: 'Instagram', facebook: 'Facebook', whatsapp: 'WhatsApp' },
-    handle: 'From',
-    firstMessage: 'First message',
-    lastMessage: 'Last message',
-    messages: 'Messages',
-    member: 'Member',
-    notMember: 'Not a member yet',
-  },
-  wall: {
-    title: 'Social wall',
-    hint: 'Public Instagram posts that tag the club, newest first. Approved posts rotate on the TVs and the website; open a post to see it before approving.',
-    table: 'Tagged posts',
-    none: 'No posts tag the club yet.',
-    handle: 'Posted by',
-    handleValue: '@{handle}',
-    caption: 'Caption',
-    posted: 'Posted',
-    status: 'Status',
-    statuses: { pending: 'Waiting', approved: 'On the wall', rejected: 'Not shown' },
-    actions: 'Moderate',
-    open: 'Open',
-    openName: 'Open @{handle}’s post on Instagram',
-    approve: 'Approve',
-    approveName: 'Approve @{handle}’s post',
-    reject: 'Reject',
-    rejectName: 'Reject @{handle}’s post',
-    failures: {
-      not_allowed: 'Your role does not include social. Ask an admin if you need it.',
-      gone: 'That post is no longer here.',
-      paused: 'The club is paused: moderate when it reopens.',
-      unavailable: 'That did not go through. Try again.',
-    },
+  highHand: {
+    label: 'High hand',
   },
 } as const;

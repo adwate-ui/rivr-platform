@@ -1,4 +1,4 @@
-import { SOCIAL_CHANNELS } from '@rivr/contracts';
+import { SOCIAL_CHANNELS, type SocialChannel } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -7,7 +7,6 @@ import { queryKeys } from './queryKeys.ts';
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/social). The TV's wall is in queryKeys, for useTvSignals.
 const keys = {
   wall: (userId: string, venueId: string) => ['user', userId, 'wall-posts', venueId] as const,
-  leads: (userId: string, venueId: string) => ['user', userId, 'leads', venueId] as const,
   posts: (userId: string, venueId: string) => ['user', userId, 'social-posts', venueId] as const,
 };
 
@@ -64,38 +63,6 @@ export function useModerateWallPost(venueId: string) {
   });
 }
 
-/** A conversation on Instagram, Facebook or WhatsApp (#156), and the member it became, if any. */
-export interface Lead {
-  readonly leadId: string;
-  readonly channel: 'instagram' | 'facebook' | 'whatsapp';
-  readonly handle: string;
-  readonly firstMessage: string;
-  readonly lastMessageAt: string;
-  readonly messages: number;
-  readonly memberName: string | null;
-}
-const CHANNELS: readonly Lead['channel'][] = ['instagram', 'facebook', 'whatsapp'];
-
-/** The venue's leads, the latest conversation first, for staff who publish marketing. */
-export function useLeads(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: keys.leads(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    queryFn: async (): Promise<Lead[]> => {
-      const { data, error } = await client.rpc('venue_leads', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
-        leadId: row.lead_id, channel: CHANNELS.find((channel) => channel === row.channel) ?? 'whatsapp', handle: row.handle, firstMessage: row.first_message,
-        lastMessageAt: row.last_message_at, messages: row.messages, memberName: row.member_name,
-      }));
-    },
-  });
-}
-
-/** The social channels a post goes to (#154), as packages/contracts lists them. */
-export type SocialChannel = (typeof SOCIAL_CHANNELS)[number];
-
 /** A published post: its caption and image, and each channel's state: to download and post, or published with its link. */
 export interface SocialPost {
   readonly postId: string;
@@ -122,7 +89,7 @@ export function useSocialPosts(venueId: string) {
         .eq('venue_id', venueId).order('created_at', { ascending: false }).limit(20);
       if (error) throw error;
       return data.map((row) => ({
-        postId: row.id, caption: row.caption, createdAt: row.created_at, imageUrl: client.storage.from(MEDIA_BUCKET).getPublicUrl(row.image_path).data.publicUrl,
+        postId: row.id, caption: row.caption, createdAt: row.created_at, imageUrl: client.storage.from(MEDIA_BUCKET).getPublicUrl(row.image_path, { download: true }).data.publicUrl,
         channels: row.social_post_channel.flatMap((each) => {
           const channel = SOCIAL_CHANNELS.find((known) => known === each.channel);
           return channel === undefined ? [] : [{ channel, postUrl: each.post_url }];

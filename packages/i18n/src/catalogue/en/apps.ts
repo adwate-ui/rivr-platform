@@ -42,7 +42,7 @@ import { ownerDashboard } from './ownerDashboard.ts';
 import { reports } from './reports.ts';
 import { creators } from './creators.ts';
 import { spin } from './spin.ts';
-import { social } from './social.ts';
+import { consoleSocial } from './consoleSocial.ts';
 import { learnSources } from './learnSources.ts';
 import { playerLearn } from './learn.ts';
 import { consoleEvents, playerEvents } from './events.ts';
@@ -209,7 +209,7 @@ export const consoleApp = {
   reports,
   creators,
   spin,
-  social,
+  social: consoleSocial,
   events: consoleEvents,
   learnSources,
   ownerDashboard,

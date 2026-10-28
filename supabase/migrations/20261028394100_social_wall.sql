@@ -59,17 +59,6 @@ begin
 end;
 $$;
 
--- Since when to ask Instagram: the newest post held, or a week back for a venue with none.
-create function private.wall_posts_since(p_venue_id uuid)
-returns timestamptz
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select coalesce(max(p.posted_at), now() - interval '7 days') from public.wall_post p where p.venue_id = p_venue_id;
-$$;
-
 -- Approves a post for the wall, or rejects it; either can be changed later. Refusals: 42501 not staff who publish
 -- marketing; P0002 no such post; RVFRZ the venue frozen.
 create function private.moderate_wall_post(p_venue_id uuid, p_post_id uuid, p_is_approved boolean)
@@ -212,9 +201,6 @@ where p.slug = 'home' and not exists (select 1 from public.site_block b where b.
 create function public.record_wall_posts(p_venue_id uuid, p_posts jsonb)
 returns integer language sql volatile security invoker set search_path = ''
 as $$ select private.record_wall_posts(p_venue_id, p_posts); $$;
-create function public.wall_posts_since(p_venue_id uuid)
-returns timestamptz language sql stable security invoker set search_path = ''
-as $$ select private.wall_posts_since(p_venue_id); $$;
 create function public.moderate_wall_post(p_venue_id uuid, p_post_id uuid, p_is_approved boolean)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.moderate_wall_post(p_venue_id, p_post_id, p_is_approved); $$;
@@ -223,10 +209,8 @@ returns table (handle text, caption text, posted_at timestamptz)
 language sql stable security invoker set search_path = ''
 as $$ select * from private.tv_social_wall(); $$;
 
-revoke execute on function private.record_wall_posts(uuid, jsonb), private.wall_posts_since(uuid), public.record_wall_posts(uuid, jsonb),
-  public.wall_posts_since(uuid) from public, anon, authenticated;
-grant execute on function private.record_wall_posts(uuid, jsonb), private.wall_posts_since(uuid), public.record_wall_posts(uuid, jsonb),
-  public.wall_posts_since(uuid) to service_role;
+revoke execute on function private.record_wall_posts(uuid, jsonb), public.record_wall_posts(uuid, jsonb) from public, anon, authenticated;
+grant execute on function private.record_wall_posts(uuid, jsonb), public.record_wall_posts(uuid, jsonb) to service_role;
 revoke execute on function private.public_wall_post_rows(), private.signal_social_wall() from public, anon, authenticated;
 grant execute on function private.public_wall_post_rows() to anon, authenticated;
 revoke execute on function private.moderate_wall_post(uuid, uuid, boolean), private.tv_social_wall(), public.moderate_wall_post(uuid, uuid, boolean),

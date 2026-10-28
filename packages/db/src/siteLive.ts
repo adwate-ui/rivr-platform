@@ -91,7 +91,6 @@ export interface SitePromotion {
   readonly runs: string | null;
 }
 
-/** The club's live promotion cards from the public view (`public_promotion_cards`), highest priority first. */
 /** An approved post on the website's social wall (#157): its poster's handle and caption, and the post's link. */
 export interface SiteWallPost {
   readonly handle: string;
@@ -106,6 +105,7 @@ export async function fetchSiteWall(client: RivrClient): Promise<Result<SiteWall
   return ok(data.flatMap((row) => (row.handle && row.permalink ? [{ handle: row.handle, caption: row.caption ?? '', permalink: row.permalink }] : [])));
 }
 
+/** The club's live promotion cards from the public view (`public_promotion_cards`), highest priority first. */
 export async function fetchSitePromotions(client: RivrClient): Promise<Result<SitePromotion[], 'unavailable'>> {
   const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs');
   if (error) return err('unavailable');

@@ -6,13 +6,13 @@ const PULL_LIMIT = 50;
 
 export interface WallPull {
   readonly instagram: InstagramGraphAdapter;
-  /** The newest post the venue holds, or a week back. */
+  /** How far back to ask: the database skips the posts it already holds. */
   readonly since: () => Promise<Date>;
   /** Records the posts for moderation; the number new. */
   readonly record: (posts: readonly TaggedPost[]) => Promise<number>;
 }
 
-/** One pull of the social wall (#157): the posts that tag the club since the newest held, recorded for moderation. */
+/** One pull of the social wall (#157): the posts that tagged the club since a time, recorded for moderation. */
 export async function pullWallPosts({ instagram, since, record }: WallPull): Promise<{ readonly recorded: number } | { readonly failure: AdapterFailure }> {
   const posts = await instagram.listTaggedPosts({ since: await since(), limit: PULL_LIMIT });
   if (!posts.ok) return { failure: posts.error };

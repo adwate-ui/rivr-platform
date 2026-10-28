@@ -18,9 +18,11 @@ grant execute on function pg_temp.message(text, text, text, text, text) to servi
 create temporary table yash on commit drop as select phone from public.member where id = '00000000-0000-4000-8000-000000000214';
 grant select on yash to service_role, authenticated;
 
--- Another club's lead.
+-- Another club's lead and its message.
 insert into public.lead (venue_id, channel, thread_id, handle, first_message, last_message_at)
 values ('00000000-0000-4000-8000-0000000000aa', 'instagram', 'aa-1', 'aa-1', 'Elsewhere', now());
+insert into public.inbox_message (venue_id, lead_id, source_id, text, received_at)
+select venue_id, id, 'aa-m1', 'Elsewhere', now() from public.lead where thread_id = 'aa-1';
 
 select set_config('role', 'service_role', true);
 select is(public.record_inbox_messages('00000000-0000-4000-8000-000000000001', jsonb_build_array(
@@ -43,6 +45,8 @@ select results_eq(
   $$ values ('instagram'::text, 'Is there a game tonight?'::text, null::uuid), ('whatsapp', 'Hi, can I book a seat?', '00000000-0000-4000-8000-000000000214'::uuid),
             ('whatsapp', 'How do I join?', null) $$,
   'each conversation is a lead, with its first message; a WhatsApp one from a member''s number is linked to them');
+select is((select last_message_at from public.lead where thread_id = '1784'), '2026-11-15T18:05:00Z'::timestamptz,
+  'and its last message is the latest of them');
 
 -- The sender of the last one signs up.
 insert into auth.users (id, instance_id, aud, role, phone) values
@@ -53,16 +57,38 @@ select '00000000-0000-4000-8000-00000000e185', '00000000-0000-4000-8000-00000000
 select is((select member_id from public.lead where thread_id = '+919999918501'), '00000000-0000-4000-8000-00000000e185'::uuid,
   'a lead is linked to its sender when they sign up');
 
+-- Yash changes his number; then someone else, holding his old one, writes in and signs up.
+update public.member set phone = '+919999918599' where id = '00000000-0000-4000-8000-000000000214';
+update auth.users set phone = '919999918599' where id = (select user_id from public.member where id = '00000000-0000-4000-8000-000000000214');
+select is((select closed_at is not null from public.lead where thread_id = (select phone from yash) and member_id = '00000000-0000-4000-8000-000000000214'), true,
+  'a member''s conversation on their old number is closed when their number changes, and stays theirs');
+select set_config('role', 'service_role', true);
+select is(public.record_inbox_messages('00000000-0000-4000-8000-000000000001',
+            jsonb_build_array(pg_temp.message('t185-5', 'whatsapp', (select phone from yash), 'Hello, new here', '2026-11-16T18:00:00Z'))), 1,
+  'a message from that number later');
+select set_config('role', 'postgres', true);
+select results_eq($$ select member_id, first_message from public.lead where thread_id = (select phone from yash) and closed_at is null $$,
+  $$ values (null::uuid, 'Hello, new here'::text) $$, 'opens a new lead, not shown as the old member');
+insert into auth.users (id, instance_id, aud, role, phone)
+select '00000000-0000-4000-8000-00000000e186', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', ltrim(phone, '+') from yash;
+insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
+select '00000000-0000-4000-8000-00000000e186', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-00000000e186', 'Ravi Newnumber', y.phone,
+       (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member') from yash y;
+select is((select member_id from public.lead where thread_id = (select phone from yash) and closed_at is null), '00000000-0000-4000-8000-00000000e186'::uuid,
+  'which is linked to the number''s new holder when they sign up');
+
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.lead $$, 'a cashier sees no leads');
-select throws_ok($$ select * from public.venue_leads('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'nor reads them');
+select is_empty($$ select * from public.inbox_message $$, 'nor their messages');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select results_eq(
-  $$ select channel, messages, member_name from public.venue_leads('00000000-0000-4000-8000-000000000001') where handle in ('1784', '+919999918501') order by last_message_at $$,
-  $$ values ('instagram'::text, 2, null::text), ('whatsapp', 1, 'Neha Lead') $$,
-  'marketing reads the leads, how many messages, and the member each became');
-select is_empty($$ select * from public.lead where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'and no other club''s');
+  $$ select l.channel, (select count(*)::integer from public.inbox_message i where i.lead_id = l.id), l.member_id
+     from public.lead l where l.handle in ('1784', '+919999918501') order by l.last_message_at $$,
+  $$ values ('instagram'::text, 2, null::uuid), ('whatsapp', 1, '00000000-0000-4000-8000-00000000e185'::uuid) $$,
+  'marketing reads the leads, their messages, and the member each became');
+select is_empty($$ select * from public.lead where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'and no other club''s leads');
+select is_empty($$ select * from public.inbox_message where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'nor its messages');
 
 -- Erasure deletes a member's leads and their messages.
 select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
