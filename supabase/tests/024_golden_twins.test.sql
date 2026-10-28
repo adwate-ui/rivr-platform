@@ -639,6 +639,17 @@ select results_eq(
   $$ select description, pg_temp.paise(expected ->> 'bonus') from golden.golden_case where file = 'rakeback.json' and operation = 'rakeback' order by position $$,
   'private.rakeback_bonus gives every rakeback in the golden file');
 
+-- Learn points: private.learn_points, and @rivr/domain learnPoints (packages/testing/golden/learnPoints.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'learnPoints.json'), 'the Learn points cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'learnPoints.json' and operation <> 'points' $$,
+  'every operation in learnPoints.json is proved here');
+select results_eq(
+  $$ select description, private.learn_points((inputs ->> 'mastered')::bigint, (inputs ->> 'earnedToday')::bigint, (inputs ->> 'perSession')::bigint,
+                                              (inputs ->> 'perPrinciple')::bigint, (inputs ->> 'dailyCap')::bigint)
+     from golden.golden_case where file = 'learnPoints.json' order by position $$,
+  $$ select description, (expected ->> 'points')::bigint from golden.golden_case where file = 'learnPoints.json' order by position $$,
+  'private.learn_points gives every case in the golden file');
+
 -- Accommodation nights: private.nights_for_time, and @rivr/domain nightsForTime (packages/testing/golden/accommodation.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'accommodation.json'), 'the accommodation cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'accommodation.json' and operation <> 'nights' $$,

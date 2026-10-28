@@ -14,14 +14,13 @@
  * do not tune it to make a principle pass. Watch the median across runs too: a
  * collapsing median is a fit in progress even before anything crosses the floor.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import type { Principle } from '../../src/ontology/types.ts';
 import type { Scenario } from '../../src/generator/types.ts';
 import { abstainsOn } from '../../src/grading/resolve.ts';
 import { comboIndex } from '../../src/range/comboSet.ts';
 import { cellForCombo } from '../../src/range/grid.ts';
 import { samplerFor, spotsFor, type Sampler } from './sampling.ts';
+import type { ReportWriter } from './gate.ts';
 import { say } from './output.ts';
 import { verdictForFindings, type Gate } from './gate.ts';
 
@@ -60,11 +59,9 @@ function distribution(rows: readonly VarietyRow[]): Record<'min' | 'q1' | 'media
     return { min: at(0), q1: at(0.25), median: at(0.5), q3: at(0.75), max: at(1) };
 }
 
-function writeReport(reportDir: string, reportBase: string, rows: readonly VarietyRow[]): void {
-    mkdirSync(reportDir, { recursive: true });
-    const path = join(reportDir, `${reportBase}.variety.json`);
+function writeReport(reports: ReportWriter, reportBase: string, rows: readonly VarietyRow[]): void {
     const body = { floor: VARIETY_FLOOR, seeds: SEEDS.count, distribution: distribution(rows), perPrinciple: rows };
-    writeFileSync(path, `${JSON.stringify(body, null, 2)}\n`, 'utf8');
+    const path = reports.write(`${reportBase}.variety.json`, `${JSON.stringify(body, null, 2)}\n`);
     say(`wrote ${path}`);
 }
 
@@ -79,7 +76,7 @@ export const varietyGate: Gate = {
         say(`  at or above ${VARIETY_FLOOR} distinct questions: ${rows.length - thin.length}; below it: ${thin.length}`);
         say(`  distribution: min ${d.min} / q1 ${d.q1} / median ${d.median} / q3 ${d.q3} / max ${d.max}`);
         thin.forEach((row) => say(`  ${row.id.padEnd(36)} ref ${row.pageRef.padEnd(10)} ${String(row.distinct).padStart(4)} distinct of ${row.produced} generated`));
-        if (run.reportDir !== null) writeReport(run.reportDir, run.source.reportBase, rows);
+        if (run.reports !== null) writeReport(run.reports, run.source.reportBase, rows);
         if (thin.length === 0) {
             say(`Every principle can ask at least ${VARIETY_FLOOR} different questions.`);
             return true;

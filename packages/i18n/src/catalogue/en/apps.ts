@@ -41,6 +41,7 @@ import { tally } from './tally.ts';
 import { ownerDashboard } from './ownerDashboard.ts';
 import { reports } from './reports.ts';
 import { creators } from './creators.ts';
+import { learnSources } from './learnSources.ts';
 import { consoleEvents, playerEvents } from './events.ts';
 import { exportFilters } from './exportFilters.ts';
 import { tds } from './tds.ts';
@@ -205,6 +206,7 @@ export const consoleApp = {
   reports,
   creators,
   events: consoleEvents,
+  learnSources,
   ownerDashboard,
   shareholders,
   endOfDay,

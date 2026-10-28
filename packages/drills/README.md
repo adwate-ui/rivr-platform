@@ -47,6 +47,8 @@ for (const principle of payload.principles.filter((p) => p.drillable !== false))
 
 `pnpm --filter @rivr/drills gates` runs the eight encoding gates (sources, generator, winnable, overclaim, feedback, variety, lines, mece) over every encoding in `fixtures/`. `--dir <folder>` gates a licensed encoding kept outside the repository, `--source <file|id>` narrows the run, `--report <folder>` writes the work-list reports. How to write an encoding that passes them: `docs/spec/learn/encoding-guide.md`.
 
+`@rivr/drills/gates` exports `checkEncoding(raw)`: the validator and all eight gates over one encoding's text, with nothing read from or written to disk, and the report as lines (`EncodingCheck`). The console runs it on a super admin's upload before the file is accepted (#131). The command line writes its `--report` files through a `ReportWriter` it passes the gates.
+
 ## Must not
 
 - Contain book content: no quote, page reference, worked hand, printed count or principle id from any book, in code, comments, tests, fixtures or allowlists. Licensed encodings are uploaded at runtime and never committed (`docs/decisions/0015`).

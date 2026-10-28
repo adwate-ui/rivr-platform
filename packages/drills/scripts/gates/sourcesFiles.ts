@@ -6,11 +6,10 @@
  * Written to files rather than only printed because the work list is worked
  * THROUGH, with the source open beside it, and a build log scrolls away.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { scopeGaps, type ScopeGap } from '../../src/harness/scopeGap.ts';
 import type { ParsedSource } from './sources.ts';
 import type { Measures } from './sourcesReport.ts';
+import type { ReportWriter } from './gate.ts';
 import { pct, say } from './output.ts';
 
 function gapSection(gap: ScopeGap): string[] {
@@ -50,12 +49,9 @@ function gapReport(source: ParsedSource, measures: Measures): string {
     return `${lines.join('\n')}\n`;
 }
 
-/** Writes `<base>.decomposition.json` and `<base>.scope-gaps.md` into `reportDir`. */
-export function writeSourceReports(reportDir: string, source: ParsedSource, measures: Measures): void {
-    mkdirSync(reportDir, { recursive: true });
-    const gapPath = join(reportDir, `${source.reportBase}.scope-gaps.md`);
-    writeFileSync(gapPath, gapReport(source, measures), 'utf8');
-    const jsonPath = join(reportDir, `${source.reportBase}.decomposition.json`);
+/** Writes `<base>.decomposition.json` and `<base>.scope-gaps.md` through the run's report writer. */
+export function writeSourceReports(reports: ReportWriter, source: ParsedSource, measures: Measures): void {
+    const gapPath = reports.write(`${source.reportBase}.scope-gaps.md`, gapReport(source, measures));
     const body = {
         aggregates: { ...measures.totals, untestedPrincipleIds: measures.untested, unverifiablePrincipleIds: measures.unverifiable },
         provenance: { byProvenance: measures.result.byProvenance, outOfSample: measures.result.outOfSample },
@@ -64,6 +60,6 @@ export function writeSourceReports(reportDir: string, source: ParsedSource, meas
         claimVolume: measures.claims,
         rows: measures.rows,
     };
-    writeFileSync(jsonPath, `${JSON.stringify(body, null, 2)}\n`, 'utf8');
+    const jsonPath = reports.write(`${source.reportBase}.decomposition.json`, `${JSON.stringify(body, null, 2)}\n`);
     say(`  wrote ${gapPath} and ${jsonPath}`);
 }

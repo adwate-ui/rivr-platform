@@ -104,7 +104,9 @@ select is_empty($$
     and c not in (
       -- Reviewed as safe in #112: ids, names of things, and keys that only make a write happen once.
       'idempotency_key', 'payout_key', 'session_id', 'key', 'feature_key', 'template_key', 'source_key', 'answer_key',
-      'code', 'sac_code', 'account_code', 'creator_code', 'referral_code', 'cctv_reference', 'signature_svg', 'session_reminder_hours')
+      'code', 'sac_code', 'account_code', 'creator_code', 'referral_code', 'cctv_reference', 'signature_svg', 'session_reminder_hours',
+      -- Reviewed as safe in #131 and #132: an encoding's fingerprint, and the name of a drill spot.
+      'source_hash', 'card_key')
 $$, 'no column that may hold a secret reaches the export archive unreviewed');
 
 select * from finish();

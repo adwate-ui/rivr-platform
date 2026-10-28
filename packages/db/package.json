@@ -15,6 +15,8 @@
     "./reports": "./src/reports.ts",
     "./creators": "./src/creators.ts",
     "./clubEvents": "./src/clubEvents.ts",
+    "./learnSources": "./src/learnSources.ts",
+    "./learn": "./src/learn.ts",
     "./exports": "./src/exports.ts",
     "./roster": "./src/roster.ts",
     "./cctv": "./src/cctv.ts",

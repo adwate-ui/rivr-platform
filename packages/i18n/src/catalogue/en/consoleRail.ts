@@ -45,6 +45,7 @@ export const rail = {
     league: 'League',
     creators: 'Creators',
     events: 'Events',
+    learnSources: 'Learn sources',
     academy: 'Academy',
     academyPayments: 'Academy payments',
     withdrawals: 'Withdrawals',
