@@ -5,8 +5,15 @@ export const website = {
   hint: 'Change a page\u2019s words in place, save a draft and preview it as the website shows it, then publish it now or at a time. Every version is kept: publish an earlier one again from its history.',
   page: 'Page',
   choosePage: 'Choose a page to edit.',
-  /** `Block 2 · cards`. */
+  noPages: 'The website has no pages yet.',
+  /** `Block 2 · Cards`. */
   block: 'Block {number} · {kind}',
+  /** Each kind of block, as the editor names it. */
+  kinds: {
+    hero: 'Hero', statement: 'Statement', gallery: 'Gallery', feature: 'Feature', text: 'Text', rules: 'Rules', faq: 'Questions',
+    careers: 'Careers', map: 'Map', games: 'Games', calendar: 'Calendar', links: 'Links', story: 'Story', cards: 'Cards',
+    marquee: 'Phrases', timeline: 'Timeline', table: 'Table', promotions: 'Promotions', social_wall: 'Social wall', other: 'Block',
+  },
   /** `Title 2`: the second in a list. */
   fieldNumber: '{field} {number}',
   fields: {
@@ -16,17 +23,19 @@ export const website = {
     paragraphs: 'Paragraph',
   },
   save: 'Save draft',
-  saved: 'Draft saved. The preview shows it as the website will.',
+  saved: 'Draft saved. The preview shows it as the website will. A scheduled draft stays scheduled.',
   publish: 'Publish now',
   published: 'Published. The website shows it now.',
-  publishAt: 'Publish at',
+  publishOn: 'Publish on',
+  publishAt: 'At',
+  timeHint: '24-hour, IST, such as 18:00.',
   schedule: 'Schedule',
   scheduled: 'Scheduled for {when}.',
   restored: 'That version is published again.',
   /** `Preview of House rules`. */
   preview: 'Preview of {page}',
   saveToPreview: 'Save a draft to preview it.',
-  noPreview: 'The preview needs the website\u2019s address set for the console. Publishing works without it.',
+  noPreview: 'The preview shows where the console knows the website\u2019s address. Saving, scheduling and publishing work without it.',
   history: {
     title: 'History',
     none: 'No versions yet: the first save keeps what the page shows now.',

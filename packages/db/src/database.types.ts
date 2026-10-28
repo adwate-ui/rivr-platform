@@ -3013,14 +3013,14 @@ isOneToOne: false
                   ]
                 },"site_revision": {
                   Row: {
-                    "blocks": NonNullable<Json>,"created_at": string,"created_by_staff_id": string,"id": string,"page_id": string,"preview_token": string,"publish_at": string | null,"published_at": string | null,"status": string,"updated_at": string,"venue_id": string
+                    "blocks": NonNullable<Json>,"created_at": string,"created_by_staff_id": string,"id": string,"page_id": string,"preview_token": string,"publish_at": string | null,"published_at": string | null,"scheduled_by_staff_id": string | null,"status": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "blocks": NonNullable<Json>,"created_at"?: string,"created_by_staff_id": string,"id"?: string,"page_id": string,"preview_token"?: string,"publish_at"?: string | null,"published_at"?: string | null,"status": string,"updated_at"?: string,"venue_id": string
+                    "blocks": NonNullable<Json>,"created_at"?: string,"created_by_staff_id": string,"id"?: string,"page_id": string,"preview_token"?: string,"publish_at"?: string | null,"published_at"?: string | null,"scheduled_by_staff_id"?: string | null,"status": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by_staff_id"?: string,"id"?: string,"page_id"?: string,"preview_token"?: string,"publish_at"?: string | null,"published_at"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by_staff_id"?: string,"id"?: string,"page_id"?: string,"preview_token"?: string,"publish_at"?: string | null,"published_at"?: string | null,"scheduled_by_staff_id"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3034,6 +3034,12 @@ isOneToOne: false
       columns: ["page_id","venue_id"]
 isOneToOne: false
       referencedRelation: "site_page"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "site_revision_scheduled_by_staff_id_venue_id_fkey"
+      columns: ["scheduled_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
     }
                   ]

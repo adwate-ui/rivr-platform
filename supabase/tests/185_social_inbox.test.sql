@@ -93,7 +93,10 @@ select is_empty($$ select * from public.inbox_message where venue_id = '00000000
 select results_eq(
   $$ select channel, messages, member_name from public.venue_leads('00000000-0000-4000-8000-000000000001') where handle in ('1784', '+919999918501') order by last_message_at $$,
   $$ values ('instagram'::text, 2, null::text), ('whatsapp', 1, 'Neha Lead') $$,
-  'the console lists the leads, the latest last here, with how many messages and the member each became (#587)');
+  'the console lists the leads, with how many messages and the member each became (#587)');
+select results_eq(
+  $$ select handle from public.venue_leads('00000000-0000-4000-8000-000000000001') where handle in ('1784', '+919999918501') $$,
+  $$ values ('+919999918501'::text), ('1784') $$, 'the latest conversation first');
 
 -- Erasure deletes a member's leads and their messages.
 select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);

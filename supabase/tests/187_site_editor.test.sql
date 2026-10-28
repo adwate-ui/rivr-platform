@@ -64,9 +64,19 @@ select lives_ok($$ select public.save_site_draft('00000000-0000-4000-8000-000000
   'marketing saves another draft');
 select lives_ok($$ select public.publish_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), now() + interval '1 hour') $$,
   'and schedules it');
+select lives_ok($$ select public.save_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), pg_temp.headed('Tonight''s rules')) $$,
+  'saving it again');
+select is((select status from public.site_revision where page_id = (select page_id from rules) and status in ('draft', 'scheduled')), 'scheduled',
+  'keeps it scheduled');
 select is(pg_temp.live_heading(), 'Rules of the house', 'which waits for its time');
 select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
 update public.site_revision set publish_at = now() - interval '1 minute' where status = 'scheduled';
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select is(private.publish_due_site_revisions(), 0, 'while the venue is frozen a scheduled page waits');
+update public.control_state set released_at = now(), release_reason = 'Test over',
+  released_by_staff_id = (select s.id from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001'),
+  release_second_staff_id = (select s.id from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000102' and s.venue_id = '00000000-0000-4000-8000-000000000001')
+where reason = 'Test' and level = 'venue_freeze';
 select is(private.publish_due_site_revisions(), 1, 'pg_cron''s run publishes it when its time has come');
 select is(pg_temp.live_heading(), 'Tonight''s rules', 'and the website shows it');
 
@@ -79,13 +89,48 @@ select is(pg_temp.live_heading(), (select heading from original), 'and the websi
 select is((select count(*)::integer from public.site_revision where page_id = (select page_id from rules) and status = 'published'), 1,
   'one version is on the website at a time');
 
--- A block the website cannot show is refused at publishing.
+-- A block the website cannot show is refused at publishing, and at scheduling.
 select lives_ok($$ select public.save_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules),
                      '[{"kind": "nonsense", "content": {}}]'::jsonb) $$, 'a draft with a block of no kind the website knows is saved');
 select throws_ok($$ select public.publish_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), null) $$,
   '22023', null, 'but not published');
+select throws_ok($$ select public.publish_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), now() + interval '1 hour') $$,
+  '22023', null, 'nor scheduled');
+
+-- A scheduled draft that cannot go ahead goes back to being a draft, with one alert, not one a minute.
+select lives_ok($$ select public.save_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), pg_temp.headed('Late rules')) $$,
+  'marketing saves a good draft');
+select lives_ok($$ select public.publish_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), now() + interval '1 hour') $$,
+  'and schedules it');
+select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
+update public.site_revision set publish_at = now() - interval '1 minute' where status = 'scheduled';
+update public.staff set is_active = false where user_id = '00000000-0000-4000-8000-000000000107';
+create temporary table alerts_before on commit drop as select count(*)::integer as alerts from public.alert where kind = 'website.publish_failed';
+select is(private.publish_due_site_revisions(), 0, 'a page its scheduler can no longer edit is not published');
+select is((select status from public.site_revision where page_id = (select page_id from rules) and status in ('draft', 'scheduled')), 'draft',
+  'it goes back to being a draft');
+select is((select count(*)::integer from public.alert where kind = 'website.publish_failed') - (select alerts from alerts_before), 1, 'with one alert');
+select is(private.publish_due_site_revisions(), 0, 'and the next run does nothing');
+select is((select count(*)::integer from public.alert where kind = 'website.publish_failed') - (select alerts from alerts_before), 1, 'and alerts no more');
+update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000107';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select public.save_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), '[]'::jsonb) $$,
   '22023', null, 'and a page needs a block');
+
+-- A super admin edits the website too.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000629');
+select lives_ok($$ select public.save_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), pg_temp.headed('Super admin''s rules')) $$,
+  'a super admin saves a draft');
+
+-- The practice venue's drafts are never on the website's preview.
+select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
+insert into public.site_revision (venue_id, page_id, blocks, status, created_by_staff_id, preview_token)
+select p.venue_id, p.id, '[{"kind": "text", "content": {"heading": "Practice draft", "body": "x"}}]'::jsonb, 'draft', s.id, '00000000-0000-4000-8000-0000000f1870'
+from public.site_page p join public.staff s on s.venue_id = p.venue_id
+where p.venue_id = '00000000-0000-4000-8000-000000000002' limit 1;
+select set_config('role', 'anon', true), set_config('request.headers', '{"x-site-preview": "00000000-0000-4000-8000-0000000f1870"}', true);
+select is_empty($$ select * from public.public_site_preview $$, 'the practice venue''s drafts are never previewed');
+select set_config('request.headers', '{}', true), set_config('role', 'postgres', true);
 
 select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
 insert into public.site_page (venue_id, slug, title, is_published) values ('00000000-0000-4000-8000-0000000000aa', 'elsewhere', 'Elsewhere', true);

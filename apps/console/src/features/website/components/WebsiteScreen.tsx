@@ -1,7 +1,7 @@
 import { useStaffVenue } from '@rivr/db';
 import { useSitePages } from '@rivr/db/siteEditor';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, ErrorMessage, Screen, Stack, Text } from '@rivr/ui';
+import { ChoiceChips, LoadState, Screen, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { PageEditor } from './PageEditor.tsx';
 
@@ -9,9 +9,8 @@ import { PageEditor } from './PageEditor.tsx';
 function Pages({ venueId }: { venueId: string }) {
   const pages = useSitePages(venueId);
   const [pageId, setPageId] = useState<string | null>(null);
-  if (pages.data === undefined) {
-    return pages.isError ? <ErrorMessage>{t('console.website.failures.unavailable')}</ErrorMessage> : <Text tone="muted">{t('common.loading')}</Text>;
-  }
+  if (pages.data === undefined) return <LoadState isError={pages.isError} onRetry={() => void pages.refetch()} />;
+  if (pages.data.length === 0) return <Text tone="muted">{t('console.website.noPages')}</Text>;
   const page = pages.data.find((each) => each.pageId === pageId);
   return (
     <Stack gap={6}>

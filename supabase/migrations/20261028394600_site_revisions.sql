@@ -18,13 +18,17 @@ create table public.site_revision (
   -- The website's preview of a draft is reached by this token alone.
   preview_token uuid not null default gen_random_uuid() unique,
   created_by_staff_id uuid not null,
+  -- Who scheduled it: the publish goes ahead only while they still edit the website.
+  scheduled_by_staff_id uuid,
   -- The clock, so revisions made in one transaction keep their order.
   created_at timestamptz not null default clock_timestamp(),
   updated_at timestamptz not null default now(),
   unique (id, venue_id),
   foreign key (page_id, venue_id) references public.site_page (id, venue_id),
   foreign key (created_by_staff_id, venue_id) references public.staff (id, venue_id),
+  foreign key (scheduled_by_staff_id, venue_id) references public.staff (id, venue_id),
   check ((status = 'scheduled') = (publish_at is not null)),
+  check ((status = 'scheduled') = (scheduled_by_staff_id is not null)),
   check (status not in ('published', 'replaced') or published_at is not null)
 );
 comment on table public.site_revision is 'A version of a website page (#129): a draft, scheduled, published, or replaced by a later one.';
@@ -32,6 +36,9 @@ comment on table public.site_revision is 'A version of a website page (#129): a 
 create unique index site_revision_draft_idx on public.site_revision (page_id) where status in ('draft', 'scheduled');
 create index site_revision_page_idx on public.site_revision (page_id, venue_id, created_at desc);
 create index site_revision_staff_idx on public.site_revision (created_by_staff_id, venue_id);
+create index site_revision_scheduler_idx on public.site_revision (scheduled_by_staff_id, venue_id);
+-- One version on the website a page.
+create unique index site_revision_published_idx on public.site_revision (page_id) where status = 'published';
 create index site_revision_due_idx on public.site_revision (publish_at) where status = 'scheduled';
 create trigger site_revision_touch_updated_at before update on public.site_revision
   for each row execute function private.touch_updated_at();
@@ -64,13 +71,14 @@ as $$
 declare
   v_revision public.site_revision;
 begin
-  select * into v_revision from public.site_revision r where r.id = p_revision_id for update;
+  select * into v_revision from public.site_revision r where r.id = p_revision_id;
+  perform 1 from public.site_page p where p.id = v_revision.page_id for update;
   update public.site_revision r set status = 'replaced' where r.page_id = v_revision.page_id and r.status = 'published';
   delete from public.site_block b where b.page_id = v_revision.page_id;
   insert into public.site_block (venue_id, page_id, position, kind, content)
   select v_revision.venue_id, v_revision.page_id, e.n, e.block ->> 'kind', e.block -> 'content'
   from jsonb_array_elements(v_revision.blocks) with ordinality as e (block, n);
-  update public.site_revision r set status = 'published', published_at = now(), publish_at = null where r.id = v_revision.id;
+  update public.site_revision r set status = 'published', published_at = now(), publish_at = null, scheduled_by_staff_id = null where r.id = v_revision.id;
 end;
 $$;
 
@@ -93,8 +101,8 @@ begin
 end;
 $$;
 
--- Saves a page's draft: its blocks, each {kind, content}. The first edit of a page keeps what it showed as its first
--- revision. The draft's preview token. Refusals: 42501; P0002; 22023 no blocks, more than 100, or one without a kind
+-- Saves a page's draft: its blocks, each {kind, content}. A scheduled draft stays scheduled. The first edit of a page
+-- keeps what it showed as its first revision. The draft's preview token. Refusals: 42501; P0002; 22023 no blocks, more than 100, or one without a kind
 -- and content; RVFRZ the venue frozen.
 create function private.save_site_draft(p_venue_id uuid, p_page_id uuid, p_blocks jsonb)
 returns uuid
@@ -116,7 +124,7 @@ begin
     insert into public.site_revision (venue_id, page_id, blocks, status, published_at, created_by_staff_id)
     values (p_venue_id, p_page_id, private.site_page_blocks(p_page_id), 'published', now(), v_staff_id);
   end if;
-  update public.site_revision r set blocks = p_blocks, status = 'draft', publish_at = null
+  update public.site_revision r set blocks = p_blocks
   where r.page_id = p_page_id and r.status in ('draft', 'scheduled')
   returning r.preview_token into v_token;
   if v_token is null then
@@ -128,7 +136,7 @@ begin
 end;
 $$;
 
--- Publishes a page's draft now, or at a time to come (pg_cron publishes it within the minute). When it goes live.
+-- Publishes a page's draft now, or at a time to come (pg_cron publishes it within the minute, once tried now). When it goes live.
 -- Refusals: 42501; P0002 no such page or no draft; 22023 a block the website cannot show (an unknown kind, or a
 -- second hero); RVFRZ.
 create function private.publish_site_draft(p_venue_id uuid, p_page_id uuid, p_publish_at timestamptz default null)
@@ -146,7 +154,15 @@ begin
     raise exception 'The page has no draft' using errcode = 'P0002';
   end if;
   if p_publish_at is not null and p_publish_at > now() then
-    update public.site_revision r set status = 'scheduled', publish_at = p_publish_at where r.id = v_draft_id;
+    -- The draft must be one the website can show: tried, then undone.
+    begin
+      perform private.apply_site_revision(v_draft_id);
+      raise exception 'tried' using errcode = 'RVTRY';
+    exception when sqlstate 'RVTRY' then
+      null;
+    end;
+    update public.site_revision r set status = 'scheduled', publish_at = p_publish_at, scheduled_by_staff_id = private.current_staff_id(p_venue_id)
+    where r.id = v_draft_id;
     return p_publish_at;
   end if;
   perform private.apply_site_revision(v_draft_id);
@@ -181,8 +197,9 @@ begin
 end;
 $$;
 
--- Publishes the scheduled drafts whose time has come; pg_cron runs it every minute. A draft the website cannot show
--- stays scheduled, with an alert, and the others go on.
+-- Publishes the scheduled drafts whose time has come; pg_cron runs it every minute. A venue's drafts wait while it is
+-- frozen, as its edits do. One whose scheduler no longer edits the website (left, revoked or moved off it), or that the
+-- website cannot show, goes back to being a draft with one alert, rather than failing every minute.
 create function private.publish_due_site_revisions()
 returns integer
 language plpgsql
@@ -193,11 +210,22 @@ declare
   v_due record;
   v_count integer := 0;
 begin
-  for v_due in select r.id, r.venue_id from public.site_revision r where r.status = 'scheduled' and r.publish_at <= now() order by r.publish_at loop
+  for v_due in
+    select r.id, r.venue_id, r.scheduled_by_staff_id from public.site_revision r
+    where r.status = 'scheduled' and r.publish_at <= now()
+      and not exists (select 1 from public.control_state c where c.venue_id = r.venue_id and c.level = 'venue_freeze' and c.released_at is null)
+    order by r.publish_at
+  loop
     begin
+      if not exists (select 1 from public.staff s join public.role_permission rp on rp.role = s.role
+                     where s.id = v_due.scheduled_by_staff_id and s.is_active and rp.permission = 'website.edit'
+                       and not exists (select 1 from public.control_state c where c.staff_id = s.id and c.level = 'access_revoke' and c.released_at is null)) then
+        raise exception 'The scheduler no longer edits the website' using errcode = '42501';
+      end if;
       perform private.apply_site_revision(v_due.id);
       v_count := v_count + 1;
     exception when others then
+      update public.site_revision r set status = 'draft', publish_at = null, scheduled_by_staff_id = null where r.id = v_due.id;
       perform private.raise_alert(v_due.venue_id, 'website.publish_failed', jsonb_build_object('revision_id', v_due.id));
     end;
   end loop;
@@ -208,7 +236,7 @@ select cron.schedule('site-publish', '* * * * *', 'select private.publish_due_si
 
 -- A draft as the website previews it: the page and the draft's blocks in order, each block's content only its kind's
 -- public keys, for the draft whose preview token the request carries in its x-site-preview header (the website's
--- server sends it); nothing for a request without one. The website reads it through public_site_preview, as it reads
+-- server sends it); nothing for a request without one, and never the practice venue's, as the website shows nothing of it. The website reads it through public_site_preview, as it reads
 -- every page.
 create function private.public_site_preview_rows()
 returns table (page_slug text, title text, description text, "position" integer, kind text, content jsonb)
@@ -228,6 +256,7 @@ as $$
   join public.site_revision r
     on r.preview_token = case when asked.token ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then asked.token::uuid end
   join public.site_page p on p.id = r.page_id
+  join public.venue v on v.id = r.venue_id and not v.is_practice
   cross join lateral jsonb_array_elements(r.blocks) with ordinality as e (block, n)
   where r.status in ('draft', 'scheduled');
 $$;
@@ -257,3 +286,17 @@ grant execute on function private.save_site_draft(uuid, uuid, jsonb), private.pu
   public.rollback_site_page(uuid, uuid, uuid) to authenticated;
 revoke execute on function private.public_site_preview_rows() from public;
 grant execute on function private.public_site_preview_rows() to anon, authenticated;
+
+-- A page's versions are the website's own content, as its pages and blocks are: a practice reset and a go-live purge
+-- keep them. As 20261028110000_cctv.sql left the list, with site_revision.
+create or replace function private.practice_reset_keeps()
+returns text[]
+language sql
+immutable
+set search_path = ''
+as $$
+  select array['audit_log', 'staff', 'staff_credential', 'device', 'device_pairing', 'tablet_assignment', 'computer_enrolment',
+               'tv_screen', 'venue_config', 'setting', 'tier', 'tier_feature', 'chip_denomination', 'table_type', 'game_table',
+               'invoice_series', 'sop', 'sop_version', 'sop_ack', 'quiz', 'quiz_attempt', 'site_block', 'site_page', 'site_revision', 'control_state',
+               'contact', 'drill', 'camera'];
+$$;

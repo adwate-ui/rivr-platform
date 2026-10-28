@@ -25,7 +25,7 @@ select set_eq($$ select private.live_purge_tables() $$,
      'marker_settlement', 'member', 'member_feature_override', 'member_limit', 'member_preference', 'member_tier_change', 'membership_card',
      'mis_report', 'notification_preference', 'outbox_delivery', 'outbox_event', 'payout_account', 'points_earning', 'promotion',
      'promotion_budget', 'promotion_grant', 'promotion_rule', 'redemption', 'referral', 'review_request', 'sar_entry', 'sar_entry_transaction', 'seat_move', 'seat_session',
-     'second_approval', 'self_exclusion', 'site_revision', 'sign_up_attribution', 'social_post', 'social_post_channel', 'spin', 'spin_wheel', 'staff_attendance', 'staff_shift', 'tds_withholding', 'tournament',
+     'second_approval', 'self_exclusion', 'sign_up_attribution', 'social_post', 'social_post_channel', 'spin', 'spin_wheel', 'staff_attendance', 'staff_shift', 'tds_withholding', 'tournament',
      'tournament_entry', 'tournament_payout', 'tournament_purchase', 'tournament_ticket', 'visit', 'waitlist_entry', 'wall_post', 'withdrawal_request']) $$,
   'a purge deletes these tables'' rows, and keeps every other venue table');
 
