@@ -35,25 +35,26 @@ src/
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
     withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)
-    treasury/         what the venue holds, the chips in play, and the cage's shift: its float and its chips
-                      counted by denomination (/treasury); End of day, its close against the ledger and an
-                      anomaly's reason from a manager (/end-of-day)
+    treasury/         the cage's shift (/shift, #606): what the venue holds, the chips in play, opening the shift with
+                      its float and counting its chips by denomination; then closing it against the ledger, with an
+                      anomaly's reason from a manager, and every opening and close before (/treasury and
+                      /end-of-day open their tab); the payment accounts (/accounts)
     members/          a member found by name, mobile or number; the record, early departures, a tier change, feature overrides and erasure on request (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); purge a frozen live venue after its full archive is saved, a dry run and its name typed (/purge, #432); the full export archive and one member's data (what a member is owed, staff notes in their own folder, #498), locked to the owner's backup key (/exports, #103); the roster, for staff who manage staff: a week's shifts by job title, adding shifts for a job title's staff, copying the week before, and tonight's attendance (/roster, #106)
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
-    tablets/          dealer tablets and door kiosks: add and pair, fix a tablet to a table, revoke (/tablets)
-    computers/        cage and admin computers: add with a code, enrol this one, revoke (/computers)
-    cameras/          CCTV cameras for staff who manage devices: add one over a table, on the cage or elsewhere, retire one (/cameras, #122); Pot data, Incidents and the cage's receipt each have Playback (@rivr/ui's PlaybackLink)
-    tv-screens/       TVs: pair one by the code it shows, change what it shows, unpair (/tvs)
-    dealer-pins/      the dealers' PINs for the tablet sign-in (/dealer-pins)
+    devices/          the devices, by tab (/devices, #606): dealer tablets and door kiosks to add, pair, fix to a
+                      table and revoke; TVs to pair by their code, change and unpair; cage and admin computers to
+                      add, enrol and revoke; CCTV cameras over a table or the cage (#122), whose Playback Pot data,
+                      Incidents and the cage's receipt link to. /tablets, /tvs, /computers and /cameras open their tab
     settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
                       each table type's rake, scheduled and withdrawn, in the Rake area (/rake leads there); the
                       club's details and chips for super admins (/settings, #604)
-    jackpots/         the jackpot's pools and payout rule, paying a bad beat in chips, and reversing a payout (/jackpots)
-    high-hands/       high hands claimed on the tablets: approve and pay in chips, or reject; the history (/high-hands)
+    jackpots/         the jackpot's pools and payout rule, a bad beat paid in chips and a payout reversed; the high
+                      hands claimed on the tablets, approved and paid or rejected, and their history (/jackpots,
+                      #606; /high-hands opens its tab); the prompt across every other screen while one waits
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
-    staff/            the venue's staff: add, change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff)
+    staff/            the venue's staff: add, change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
     rewards/          the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)

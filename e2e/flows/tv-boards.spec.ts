@@ -35,6 +35,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
@@ -114,6 +115,8 @@ test.describe('TV boards', () => {
     await expect(fifties.getByText('Kunal M.', { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(fifties.getByText('Player 1', { exact: true })).toHaveCount(0);
 
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
+
     await floor.getByRole('link', { name: 'TVs' }).click();
     await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'Jackpot and high hand', exact: true }).click();
     await expect(tv.getByText('Bad-beat jackpot', { exact: true })).toBeVisible({ timeout: 15_000 });
@@ -138,6 +141,7 @@ test.describe('TV boards', () => {
     await expect(room.getByText('Nakul D.', { exact: true })).toHaveCount(0);
 
     // The promotions in between: after half a minute on the board, a promotion, and then the board again.
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
     await floor.getByRole('link', { name: 'TVs' }).click();
     await floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
     await expect(floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true })
@@ -158,6 +162,7 @@ test.describe('TV boards', () => {
     await floor.getByRole('link', { name: 'Waitlist' }).click();
     await floor.getByRole('button', { name: `Remove ${PLAYER}` }).click();
     await floor.getByRole('button', { name: `Remove ${HIDDEN}` }).click();
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
     await floor.getByRole('link', { name: 'TVs' }).click();
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');

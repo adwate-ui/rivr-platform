@@ -5,6 +5,12 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { Screen } from './Screen.tsx';
 
 describe('Screen', () => {
+  it('heads a part of a screen under its tabs at the second level', () => {
+    renderIn(<Screen level={2} title="Tablets"><p>Table 1</p></Screen>);
+    expect(screen.getByRole('heading', { name: 'Tablets', level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Tablets' })).toContainElement(screen.getByText('Table 1'));
+  });
+
   it('is a region named by its level-one heading, showing its content when ready', () => {
     renderIn(
       <Screen title="Sessions">

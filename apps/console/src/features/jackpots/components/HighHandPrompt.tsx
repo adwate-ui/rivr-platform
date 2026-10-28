@@ -53,12 +53,18 @@ export function HighHandPrompt({ venueId, hand, waiting, onSeeAll }: HighHandPro
 
 /**
  * The prompt the console's frame puts across the top of every screen (#317): the oldest claim waiting, for staff who
- * approve jackpots, on every screen but High hands, which lists them all.
+ * approve jackpots, on every screen but Jackpots' High hands tab, which lists them all.
  */
-export function WaitingHighHandPrompt({ venueId, permissions, pathname }: { venueId: string; permissions: readonly Permission[]; pathname: string }) {
+export function WaitingHighHandPrompt({ venueId, permissions, pathname, search }: {
+  venueId: string;
+  permissions: readonly Permission[];
+  pathname: string;
+  search: string;
+}) {
   const navigate = useNavigate();
   const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
-  const oldest = pathname.toLowerCase().startsWith('/high-hands') ? undefined : waiting.at(-1);
+  const isOnClaims = pathname.toLowerCase().startsWith('/jackpots') && new URLSearchParams(search).get('tab') === 'highHands';
+  const oldest = isOnClaims ? undefined : waiting.at(-1);
   if (oldest === undefined) return null;
-  return <HighHandPrompt key={oldest.claimId} venueId={venueId} hand={oldest} waiting={waiting.length} onSeeAll={() => void navigate({ to: '/high-hands' })} />;
+  return <HighHandPrompt key={oldest.claimId} venueId={venueId} hand={oldest} waiting={waiting.length} onSeeAll={() => void navigate({ to: '/jackpots', search: { tab: 'highHands' } })} />;
 }

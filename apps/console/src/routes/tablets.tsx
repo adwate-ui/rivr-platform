@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { TabletsScreen } from '../features/tablets/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The venue's dealer tablets: add and pair, fix to a table, revoke (#41). */
-export const tabletsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/tablets', component: TabletsScreen });
+/** Tablets moved into Devices (#606): an old link or bookmark opens its tab there. */
+export const tabletsRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/tablets', component: () => <Navigate to="/devices" search={{ tab: 'tablets' }} replace />,
+});

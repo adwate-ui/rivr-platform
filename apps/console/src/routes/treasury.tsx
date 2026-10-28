@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { TreasuryScreen } from '../features/treasury/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Treasury (#24): what the venue holds, the chips in play, and the cage's shift and chip count. */
-export const treasuryRoute = createRoute({ getParentRoute: () => frameRoute, path: '/treasury', component: TreasuryScreen });
+/** Treasury moved into Shift (#606): an old link or bookmark opens its tab there. */
+export const treasuryRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/treasury', component: () => <Navigate to="/shift" search={{ tab: 'now' }} replace />,
+});

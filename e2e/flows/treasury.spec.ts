@@ -21,8 +21,8 @@ test.describe('Treasury', () => {
   test('Treasury: Rohit sees the cage\'s shift with its float and the chips counted, then counts again', async ({ page }) => {
     test.skip(isRemoteTarget(), 'counts the club cage\'s chips, so the local stack only');
     await signInToConsole(page, '9000000140');
-    await page.getByRole('link', { name: 'Treasury' }).click();
-    await expect(page.getByRole('heading', { name: 'Treasury', level: 1 })).toBeVisible();
+    await page.getByRole('link', { name: 'Shift', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Shift', level: 1 })).toBeVisible();
     for (const row of ['Member wallets', 'Withdrawals pending', 'Bonus liability', 'Markers outstanding', 'Jackpots held', 'Chips in play']) {
       await expect(page.getByText(row, { exact: true })).toBeVisible();
     }

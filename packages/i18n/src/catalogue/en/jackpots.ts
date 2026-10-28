@@ -1,6 +1,8 @@
 /** The console's Jackpots screen (#48): the pools, paying a bad beat in chips, and reversing a payout. */
 export const jackpots = {
   title: 'Jackpots',
+  /** The tabs (#606); High hands takes its own title. */
+  tabs: { jackpot: 'Jackpot' },
   notAllowed: 'Your role does not include jackpots. Ask an admin if you need it.',
   main: 'Bad-beat jackpot',
   season: 'Season pool',

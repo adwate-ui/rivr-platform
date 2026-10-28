@@ -29,6 +29,7 @@ test.describe('TV pairing', () => {
 
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000117');
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
     await floor.getByRole('link', { name: 'TVs' }).click();
     await expect(floor.getByText('A TV paired here joins RIVR Gurugram.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
@@ -69,6 +70,7 @@ test.describe('TV pairing', () => {
     // Arvind Rao, a super admin (the owner's switch, venue.configure); his number is otherwise only the Kill switch flow's.
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000136');
+    await owner.getByRole('link', { name: 'Devices', exact: true }).click();
     await owner.getByRole('link', { name: 'TVs' }).click();
     const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
     await windowOnly.click();
@@ -77,7 +79,7 @@ test.describe('TV pairing', () => {
       const tv = await browser.newPage();
       await tv.setViewportSize(VIEWPORT.display);
       await tv.goto(appUrl('display'));
-      await expect(tv.getByText(/^Press Pair a TV on the console/)).toBeVisible();
+      await expect(tv.getByText(/^Press Pair a TV under TVs on the console/)).toBeVisible();
       await owner.getByRole('button', { name: 'Pair a TV' }).click();
       await expect(owner.getByText(/^A TV gets a code until \d{2}:\d{2}\.$/)).toBeVisible();
       await tv.reload();

@@ -35,7 +35,6 @@ const RAIL: readonly RailGroup[] = [
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'] },
       { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'] },
       { id: 'jackpots', label: 'console.rail.items.jackpots', href: '/jackpots', anyOf: ['jackpots.approve', 'ledger.read'] },
-      { id: 'highHands', label: 'console.rail.items.highHands', href: '/high-hands', anyOf: ['jackpots.approve', 'ledger.read'] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', anyOf: ['fnb.manage'] },
       { id: 'spinWheel', label: 'console.rail.items.spinWheel', href: '/spin-wheel', anyOf: ['floor.manage', 'promotions.manage'] },
     ],
@@ -47,7 +46,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'cage', label: 'console.rail.items.cage', href: '/cage', anyOf: ['cage.transact'], locksWhenIdle: true },
       { id: 'withdrawals', label: 'console.rail.items.withdrawals', href: '/withdrawals', anyOf: ['withdrawals.approve', 'cage.second_approve'], locksWhenIdle: true },
       { id: 'academyPayments', label: 'console.rail.items.academyPayments', href: '/academy/payments', anyOf: ['cage.transact'], locksWhenIdle: true },
-      { id: 'endOfDay', label: 'console.rail.items.endOfDay', href: '/end-of-day', anyOf: ['ledger.read'], locksWhenIdle: true },
+      { id: 'shift', label: 'console.rail.items.shift', href: '/shift', anyOf: ['ledger.read'], locksWhenIdle: true },
     ],
   },
   {
@@ -80,7 +79,6 @@ const RAIL: readonly RailGroup[] = [
     id: 'money',
     label: 'console.rail.groups.money',
     entries: [
-      { id: 'treasury', label: 'console.rail.items.treasury', href: '/treasury', anyOf: ['ledger.read'], locksWhenIdle: true },
       { id: 'accounts', label: 'console.rail.items.paymentAccounts', href: '/accounts', anyOf: ['ledger.read'], locksWhenIdle: true },
       { id: 'expenses', label: 'console.rail.items.expenses', href: '/expenses', anyOf: ['cage.transact', 'treasury.manage'], locksWhenIdle: true },
       { id: 'markers', label: 'console.rail.items.markers', href: '/markers', anyOf: ['markers.manage_limits', 'markers.issue', 'ledger.read'], locksWhenIdle: true },
@@ -103,7 +101,6 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.team',
     entries: [
       { id: 'staff', label: 'console.rail.items.staff', href: '/staff', anyOf: ['staff.manage'] },
-      { id: 'dealerPins', label: 'console.rail.items.dealerPins', href: '/dealer-pins', anyOf: ['staff.manage'] },
       { id: 'roster', label: 'console.rail.items.roster', href: '/roster', anyOf: ['staff.manage'] },
       { id: 'certification', label: 'console.rail.items.certification', href: '/certification', anyOf: [] },
       { id: 'sops', label: 'console.rail.items.sops', href: '/sops', anyOf: ['sops.acknowledge', 'sops.manage'] },
@@ -115,10 +112,7 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.admin',
     entries: [
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
-      { id: 'tablets', label: 'console.rail.items.tablets', href: '/tablets', anyOf: ['devices.manage'] },
-      { id: 'tvs', label: 'console.rail.items.tvs', href: '/tvs', anyOf: ['devices.manage'] },
-      { id: 'computers', label: 'console.rail.items.computers', href: '/computers', anyOf: ['devices.manage'] },
-      { id: 'cameras', label: 'console.rail.items.cameras', href: '/cameras', anyOf: ['devices.manage'] },
+      { id: 'devices', label: 'console.rail.items.devices', href: '/devices', anyOf: ['devices.manage'] },
       { id: 'exports', label: 'console.rail.items.exports', href: '/exports', anyOf: ['exports.full'] },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', anyOf: ['purge.run'] },

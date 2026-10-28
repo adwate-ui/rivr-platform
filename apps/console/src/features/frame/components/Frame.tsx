@@ -16,6 +16,8 @@ export interface FrameStaff {
   venueId: string;
   permissions: readonly Permission[];
   pathname: string;
+  /** The address's search, `?tab=highHands`. */
+  search: string;
 }
 
 /**
@@ -52,12 +54,13 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const { isVenueFrozen } = useControlState(venueId);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.searchStr });
   const signOut = useSignOut();
   // Ten idle minutes on a cage or money screen sign the staff member out (#384).
   useIdleLock(locksWhenIdle(pathname), signOut.mutate);
   // The rail counts the high-hand claims waiting for staff who approve them (#317).
   const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
-  const sections = railFor(permissions, { highHands: waiting.length });
+  const sections = railFor(permissions, { jackpots: waiting.length });
   // Every table offers its export to staff who export tables, each recorded first (#102).
   const recordExport = useRecordTableExport(venueId);
   const exporter = permissions.includes('exports.table') ? recordExport : null;
@@ -66,7 +69,7 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
       sections={sections}
       currentItem={railItemAt(sections, pathname)}
       onNavigate={(href) => void navigate({ href })}
-      banner={<>{isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}{prompt?.({ venueId, permissions, pathname })}</>}
+      banner={<>{isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}{prompt?.({ venueId, permissions, pathname, search })}</>}
       railFooter={<StaffFooter staff={staff} />}
     >
       {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}

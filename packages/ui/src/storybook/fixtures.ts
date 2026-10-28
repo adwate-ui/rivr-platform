@@ -18,10 +18,10 @@ export function consoleSections(): SideNavSection[] {
     // Overview is a single link, so it has no heading of its own.
     { id: 'overview', items: [item('overview')] },
     { id: 'tonight', label: t('console.rail.groups.tonight'), items: [item('liveFloor'), item('waitlist'), item('checkIn'), item('tournaments'), item('jackpots')] },
-    { id: 'cage', label: t('console.rail.groups.cage'), items: [item('cage'), item('endOfDay')] },
+    { id: 'cage', label: t('console.rail.groups.cage'), items: [item('cage'), item('shift')] },
     { id: 'players', label: t('console.rail.groups.players'), items: [item('members'), item('kycReview'), item('hostQueue')] },
     { id: 'marketing', label: t('console.rail.groups.marketing'), items: [item('promotions'), item('rewards'), item('academy')] },
-    { id: 'money', label: t('console.rail.groups.money'), items: [item('markers'), item('treasury')] },
+    { id: 'money', label: t('console.rail.groups.money'), items: [item('markers'), item('expenses')] },
     { id: 'team', label: t('console.rail.groups.team'), items: [item('staff'), item('sops')] },
     { id: 'reports', label: t('console.rail.groups.reports'), items: [item('reports'), item('hands')] },
   ];

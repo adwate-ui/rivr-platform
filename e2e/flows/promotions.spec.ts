@@ -43,6 +43,7 @@ async function pairTvOnPromotions(tv: Page, floor: Page, name: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);

@@ -37,6 +37,7 @@ async function openAndPair(overlay: Page, floor: Page, tvName: string) {
   await overlay.goto(`${appUrl('display')}/overlay?delay=${DELAY_SECONDS}`);
   const shown = overlay.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(tvName);
@@ -96,6 +97,8 @@ async function runFlow(browser: Browser, floor: Page, name: string) {
   await expect(overlay.getByRole('heading', { level: 1, name: 'Level 1' })).toBeVisible();
   expect(await overlayReaches(overlay, 'Level 2', movedAt)).toBeGreaterThanOrEqual(DELAY_SECONDS * 1000);
 
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
+
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('button', { name: `Unpair ${tvName}`, exact: true }).click();
   await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
@@ -109,6 +112,7 @@ async function runFlow(browser: Browser, floor: Page, name: string) {
 
 /** Unpairs the flow's overlay on the console's TVs screen. */
 async function unpair(floor: Page, tvName: string) {
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('button', { name: `Unpair ${tvName}`, exact: true }).click();
   await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
@@ -130,6 +134,7 @@ async function practiceOverlay(browser: Browser, floor: Page) {
   const shown = overlay.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
   const tvName = `Practice stream ${String(Date.now() % 100_000).padStart(5, '0')}`;
+  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'TVs' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(tvName);

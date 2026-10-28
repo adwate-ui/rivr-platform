@@ -14,13 +14,13 @@ import { OpeningCard } from './OpeningCard.tsx';
  * variance; any variance is an anomaly whose reason a manager who neither opened nor closed it gives. It
  * sits with the Treasury, whose shift it closes and whose chip count it reuses.
  */
-export function EndOfDayScreen() {
+export function EndOfDaySection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  const title = t('console.endOfDay.title');
+  const title = t('console.treasury.tabs.close');
   const { permissions, venueId } = staff.venue;
-  if (!permissions.includes('ledger.read')) return <Screen title={title} status="error" errorText={t('console.endOfDay.notAllowed')} />;
+  if (!permissions.includes('ledger.read')) return <Screen level={2} title={title} status="error" errorText={t('console.endOfDay.notAllowed')} />;
   return <EndOfDay title={title} venueId={venueId} canClose={permissions.includes('cage.transact')} />;
 }
 
@@ -30,13 +30,13 @@ function EndOfDay({ title, venueId, canClose }: { title: string; venueId: string
   const closes = useEodCloses(venueId);
   const openings = useShiftOpenings(venueId);
   const [notice, setNotice] = useState<string | null>(null);
-  if (treasury.isPending || chips.isPending || closes.isPending || openings.isPending) return <Screen title={title} status="loading" />;
+  if (treasury.isPending || chips.isPending || closes.isPending || openings.isPending) return <Screen level={2} title={title} status="loading" />;
   if (treasury.isError || chips.isError || closes.isError || openings.isError) {
     const retry = () => { void treasury.refetch(); void chips.refetch(); void closes.refetch(); void openings.refetch(); };
-    return <Screen title={title} status="error" onRetry={retry} />;
+    return <Screen level={2} title={title} status="error" onRetry={retry} />;
   }
   return (
-    <Screen title={title}>
+    <Screen level={2} title={title}>
       <Stack gap={8}>
         <StatusMessage>{notice === null ? null : notice}</StatusMessage>
         <CloseSection venueId={venueId} treasury={treasury.data} lines={chips.data.lines} canClose={canClose}

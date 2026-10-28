@@ -14,12 +14,12 @@ function standing(dealer: VenueDealer): string {
  * on the tablet to start a down. Only staff whose role includes everything a dealer does set one
  * (decision 0046), so an admin sees the list empty.
  */
-export function DealerPinsScreen() {
+export function DealerPinsSection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   if (!staff.venue.permissions.includes('staff.manage')) {
-    return <Screen title={t('console.dealerPins.title')} status="error" errorText={t('console.dealerPins.notAllowed')} />;
+    return <Screen level={2} title={t('console.dealerPins.title')} status="error" errorText={t('console.dealerPins.notAllowed')} />;
   }
   return <DealerList venueId={staff.venue.venueId} />;
 }
@@ -27,11 +27,11 @@ export function DealerPinsScreen() {
 function DealerList({ venueId }: { venueId: string }) {
   const dealers = useVenueDealers(venueId);
   const title = t('console.dealerPins.title');
-  if (dealers.isPending) return <Screen title={title} status="loading" />;
-  if (dealers.data === undefined) return <Screen title={title} status="error" onRetry={() => void dealers.refetch()} />;
-  if (dealers.data.length === 0) return <Screen title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
+  if (dealers.isPending) return <Screen level={2} title={title} status="loading" />;
+  if (dealers.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void dealers.refetch()} />;
+  if (dealers.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
   return (
-    <Screen title={title}>
+    <Screen level={2} title={title}>
       <Stack gap={6} divided>
         {dealers.data.map((dealer) => (
           <Stack key={dealer.staffId} gap={3}>

@@ -11,12 +11,12 @@ import { balanceRows, shiftLine } from './treasuryCopy.ts';
  * the cage float, from the ledger. Beside it, the cage's shift: a cashier opens it with the float and a count of the
  * chips by denomination, and counts again during it; #45 closes it. Ledger readers see it; only the cage counts.
  */
-export function TreasuryScreen() {
+export function TreasurySection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  const title = t('console.treasury.title');
-  if (!staff.venue.permissions.includes('ledger.read')) return <Screen title={title} status="error" errorText={t('console.treasury.notAllowed')} />;
+  const title = t('console.treasury.tabs.now');
+  if (!staff.venue.permissions.includes('ledger.read')) return <Screen level={2} title={title} status="error" errorText={t('console.treasury.notAllowed')} />;
   return <TreasuryView title={title} venueId={staff.venue.venueId} canCount={staff.venue.permissions.includes('cage.transact')} />;
 }
 
@@ -24,12 +24,12 @@ function TreasuryView({ title, venueId, canCount }: { title: string; venueId: st
   const treasury = useTreasury(venueId);
   const chips = useChipInventory(venueId);
   const [notice, setNotice] = useState<string | null>(null);
-  if (treasury.isPending || chips.isPending) return <Screen title={title} status="loading" />;
+  if (treasury.isPending || chips.isPending) return <Screen level={2} title={title} status="loading" />;
   if (treasury.isError || chips.isError) {
-    return <Screen title={title} status="error" onRetry={() => { void treasury.refetch(); void chips.refetch(); }} />;
+    return <Screen level={2} title={title} status="error" onRetry={() => { void treasury.refetch(); void chips.refetch(); }} />;
   }
   return (
-    <Screen title={title}>
+    <Screen level={2} title={title}>
       <Grid columns={2} gap={8} stackBelow="medium">
         <Balances treasury={treasury.data} />
         <Stack gap={8}>

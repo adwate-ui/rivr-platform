@@ -1,6 +1,11 @@
 /** Dealer tablets (#41): the console's Tablets screen, and pairing on the tablet itself. */
 
 /** The console's Tablets screen, for staff who manage devices. */
+/** Devices (#606): the tablets, TVs, computers and cameras, by tab. */
+export const devices = {
+  title: 'Devices',
+};
+
 export const tablets = {
   title: 'Tablets',
   notAllowed: 'Your role does not include tablets. Ask an admin if you need it.',
@@ -161,7 +166,7 @@ export const tvPairing = {
   loading: 'Getting a code.',
   tooMany: 'Too many screens asked for a code. This one asks again in a minute.',
   /** The venue pairs TVs only after staff press Pair a TV (#325). */
-  windowClosed: 'Press Pair a TV on the console\u2019s TVs screen. This screen shows its code within a minute after.',
+  windowClosed: 'Press Pair a TV under TVs on the console\u2019s Devices screen. This screen shows its code within a minute after.',
   unavailable: 'RIVR cannot be reached. This screen tries again in a minute.',
 };
 
@@ -178,7 +183,7 @@ export const streamOverlay = {
   /** The overlay was paired at the practice venue, which never reaches anyone outside the club. */
   practice: 'This overlay is paired at the practice venue, which never reaches a stream. Unpair it on the console, reload it in OBS, and pair it at the club.',
   /** Paired, but given another mode than the tournament clock (#559): said at once, not after the delay. */
-  notClock: 'This overlay is paired, but not on the tournament clock. On the console\u2019s TVs screen, choose Tournament clock for it.',
+  notClock: 'This overlay is paired, but not on the tournament clock. Under TVs on the console\u2019s Devices screen, choose Tournament clock for it.',
   /** For a screen reader only, until the delay has passed since the overlay opened. `{seconds}` is the delay. */
   waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
 };

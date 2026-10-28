@@ -71,7 +71,7 @@ export const markers = {
   repayUtrUsed: 'That UTR has already paid for something else. Check it with the player.',
   repayStopped: 'This member is frozen. Ask a manager.',
   repayPaused: 'The venue is frozen. Repayments start again once it is released.',
-  repayNoShift: 'The cage has no shift open. Open one on Treasury first.',
+  repayNoShift: 'The cage has no shift open. Open one on Shift first.',
   repayInvalid: 'Check the amount, how it was paid and the UTR.',
   /** The credit report (#92): what each member owed at the end of a day, by age. */
   report: 'Credit report',

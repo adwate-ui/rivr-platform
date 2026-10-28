@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { ComputersScreen } from '../features/computers/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The venue's cage and admin computers: enrol this one, revoke one (#384). */
-export const computersRoute = createRoute({ getParentRoute: () => frameRoute, path: '/computers', component: ComputersScreen });
+/** Computers moved into Devices (#606): an old link or bookmark opens its tab there. */
+export const computersRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/computers', component: () => <Navigate to="/devices" search={{ tab: 'computers' }} replace />,
+});
