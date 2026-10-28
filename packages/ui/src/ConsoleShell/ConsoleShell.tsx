@@ -107,23 +107,22 @@ function Rail({ sections, currentItem, onNavigate, railFooter, goToRef }: RailPr
   );
 }
 
-/** Below a desk: the menu button and the current screen's name, across the top. */
-function TopBar({ title, isMenuOpen, onOpenMenu }: { title: string | undefined; isMenuOpen: boolean; onOpenMenu: () => void }) {
+/** Below a desk: the menu button and the current screen's name, across the top. Closing the menu gives focus back to the button. */
+function TopBar({ title }: { title: string | undefined }) {
   return (
     <header className="flex h-header shrink-0 items-center gap-1 border-b border-hairline bg-raised px-2 tablet:hidden">
-      <button type="button" aria-label={t('ui.consoleRail.open')} aria-expanded={isMenuOpen} aria-haspopup="dialog" className={ICON_BUTTON} onClick={onOpenMenu}>
+      <Dialog.Trigger aria-label={t('ui.consoleRail.open')} className={ICON_BUTTON}>
         <Icon name="menu" />
-      </button>
+      </Dialog.Trigger>
       {title ? <p className="min-w-0 truncate font-text text-16 font-medium">{title}</p> : null}
     </header>
   );
 }
 
 /** The rail as a menu over the screen below a desk. Escape, a tap outside, Close or choosing a screen closes it. */
-function MenuDrawer({ isOpen, onOpenChange, children }: { isOpen: boolean; onOpenChange: (isOpen: boolean) => void; children: ReactNode }) {
+function MenuDrawer({ children }: { children: ReactNode }) {
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
+    <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-green-black opacity-muted" />
         {/* Focus moves to the menu itself, not Go to, so a phone's keyboard does not cover the screens. */}
         <Dialog.Content
@@ -140,8 +139,7 @@ function MenuDrawer({ isOpen, onOpenChange, children }: { isOpen: boolean; onOpe
           </Dialog.Close>
           {children}
         </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    </Dialog.Portal>
   );
 }
 
@@ -162,21 +160,24 @@ export function ConsoleShell({ children, sections, currentItem, onNavigate, bann
     onNavigate(href);
   });
   return (
-    <div className="flex h-dvh flex-col bg-surface text-content">
-      {banner}
-      <TopBar title={title} isMenuOpen={isMenuOpen} onOpenMenu={() => setMenuOpen(true)} />
-      <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-rail shrink-0 flex-col gap-8 border-r border-hairline bg-raised py-6 tablet:flex">
-          <Rail sections={sections} currentItem={currentItem} onNavigate={onNavigate} railFooter={railFooter} goToRef={goToRef} />
-        </aside>
-        {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). */}
-        <main tabIndex={0} className="min-w-0 flex-1 overflow-y-auto px-4 py-4 tablet:px-8 tablet:py-6">
-          {children}
-        </main>
+    // The drawer's Root holds the whole shell, so the top bar's Menu button is its trigger and gets focus back on close.
+    <Dialog.Root open={isMenuOpen} onOpenChange={setMenuOpen}>
+      <div className="flex h-dvh flex-col bg-surface text-content">
+        {banner}
+        <TopBar title={title} />
+        <div className="flex min-h-0 flex-1">
+          <aside className="hidden w-rail shrink-0 flex-col gap-8 border-r border-hairline bg-raised py-6 tablet:flex">
+            <Rail sections={sections} currentItem={currentItem} onNavigate={onNavigate} railFooter={railFooter} goToRef={goToRef} />
+          </aside>
+          {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). */}
+          <main tabIndex={0} className="min-w-0 flex-1 overflow-y-auto px-4 py-4 tablet:px-8 tablet:py-6">
+            {children}
+          </main>
+        </div>
       </div>
-      <MenuDrawer isOpen={isMenuOpen} onOpenChange={setMenuOpen}>
+      <MenuDrawer>
         <Rail sections={sections} currentItem={currentItem} onNavigate={navigateFromMenu} railFooter={railFooter} />
       </MenuDrawer>
-    </div>
+    </Dialog.Root>
   );
 }

@@ -10,8 +10,13 @@ const PHONE = { width: 390, height: 844 };
 const TABLET = { width: 768, height: 1024 };
 const DESK = { width: 1440, height: 900 };
 
+/** Nothing wider than the screen: neither the page nor the screen's own scrolling area (main), where content overflows. */
 async function fitsSideways(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const fits = await page.evaluate(() => {
+    const main = document.querySelector('main');
+    return document.documentElement.scrollWidth <= window.innerWidth && main !== null && main.scrollWidth <= main.clientWidth;
+  });
+  expect(fits).toBe(true);
 }
 
 /** Below the desk: the menu opens the rail, and choosing a screen opens it and closes the menu. */
@@ -32,6 +37,11 @@ test.describe('Console fits', () => {
     for (const size of [PHONE, TABLET]) {
       await page.setViewportSize(size);
       await expect(page.getByRole('navigation', { name: 'Sections' })).toBeHidden();
+      // A tap outside the menu closes it.
+      await page.getByRole('button', { name: 'Menu' }).click();
+      await expect(page.getByRole('dialog', { name: 'Sections' })).toBeVisible();
+      await page.mouse.click(size.width - 20, size.height / 2);
+      await expect(page.getByRole('dialog', { name: 'Sections' })).toBeHidden();
       await openFromMenu(page, 'Members');
       await fitsSideways(page);
       await openFromMenu(page, 'Live floor');

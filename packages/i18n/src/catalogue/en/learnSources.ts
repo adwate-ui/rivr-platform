@@ -1,7 +1,7 @@
-/** The console's Learn sources (#131): licensed encodings, checked by the drill engine before they are taken. */
+/** The console's Learn content, once Learn sources (#131): licensed encodings, checked by the drill engine before they are taken. */
 export const learnSources = {
   title: 'Learn content',
-  notAllowed: 'Learn sources are for super admins.',
+  notAllowed: 'Learn content is for super admins.',
   table: 'Learn content',
   none: 'No licensed sources yet.',
   sourceTitle: 'Title',
@@ -22,7 +22,7 @@ export const learnSources = {
   upload: 'Upload source',
   added: '{title} is added. Members have it until {date}.',
   failures: {
-    not_allowed: 'Only a super admin adds Learn sources.',
+    not_allowed: 'Only a super admin adds Learn content.',
     invalid: 'Give the licence terms and the licence\u2019s last day.',
     paused: 'The venue is frozen. Try again once it is released.',
     unavailable: 'That did not upload. Try again.',

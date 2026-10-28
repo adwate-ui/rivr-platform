@@ -63,14 +63,18 @@ describe('ConsoleShell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('closes the menu with Escape or its Close button', async () => {
+  // A tap outside closes it too: the Console fits flow taps beside the menu in a real browser.
+  it('closes the menu with Escape or its Close button, giving focus back to Menu', async () => {
     renderShell();
-    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    const menu = screen.getByRole('button', { name: 'Menu' });
+    await userEvent.click(menu);
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(menu).toHaveFocus();
+    await userEvent.click(menu);
     await userEvent.click(screen.getByRole('button', { name: 'Close the menu' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(menu).toHaveFocus();
   });
 
   it('finds a screen by name with Go to, and Enter opens the first found', async () => {
