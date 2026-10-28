@@ -4423,6 +4423,11 @@ isOneToOne: false
               "kot_number": number,"order_id": string
             }[]
                            },
+"conversion_for":
+{ Args: { "p_event_type": string,"p_payload": Json,"p_venue_id": string }; Returns: {
+              "conversion": string,"member_id": string,"phone": string
+            }[]
+                           },
 "copy_roster_week":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: number
                            },

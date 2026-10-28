@@ -426,6 +426,12 @@ verify_jwt = false
 [functions.push]
 verify_jwt = false
 
+[functions.meta-conversions]
+verify_jwt = false
+
+[functions.google-ads]
+verify_jwt = false
+
 # Re-checks each KYC check made in person with the vendor, run by the scheduler with its secret (#259).
 [functions.kyc-recheck]
 verify_jwt = false
