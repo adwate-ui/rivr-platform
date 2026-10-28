@@ -5,12 +5,14 @@ import { queryKeys } from './queryKeys.ts';
 
 /**
  * Why a number was not changed: not a super admin, a number or reason out of bounds, a number another holds, a login that
- * is also staff's, an erased member, a freeze, or anything else.
+ * is also staff's, an erased member, a freeze, ten changes in the hour, or anything else. Two changes to one number at once:
+ * the second is stopped by the unique number (23505), and is taken as well (#545).
  */
-export type PhoneChangeFailure = 'not_allowed' | 'invalid' | 'taken' | 'staff_login' | 'erased' | 'paused' | 'unavailable';
+export type PhoneChangeFailure = 'not_allowed' | 'invalid' | 'taken' | 'staff_login' | 'erased' | 'paused' | 'too_many' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PhoneChangeFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVPHN: 'taken', RVSTF: 'staff_login', RVERD: 'erased', RVFRZ: 'paused', RVMBR: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', RVPHN: 'taken', '23505': 'taken', RVSTF: 'staff_login', RVERD: 'erased', RVFRZ: 'paused',
+  RVMBR: 'paused', RVRAT: 'too_many',
 };
 
 /**

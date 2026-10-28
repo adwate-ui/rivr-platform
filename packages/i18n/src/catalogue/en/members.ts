@@ -97,6 +97,7 @@ export const members = {
     change: 'Change number',
     changed: 'Changed. The member signs in with the new number.',
     failures: {
+      too_many: 'Ten numbers were changed in the last hour. Wait before changing another.',
       not_allowed: 'Only a super admin changes a member\'s number.',
       invalid: 'Give an Indian mobile number with +91, and a reason of 3 to 300 characters with no name or number in it.',
       taken: 'Another member or login already has that number.',

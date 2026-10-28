@@ -1,14 +1,13 @@
-import { useFeature, useFloorTables, useMyWaitlist } from '@rivr/db';
+import { useFeature, useFloorTables, useMyWaitlist, type FloorTable, type WaitlistPlace } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { FeatureGate, Screen, Stack } from '@rivr/ui';
+import type { ReactNode } from 'react';
 import { BreakNotice } from './BreakNotice.tsx';
-import { FloorList } from './FloorList.tsx';
 import { HomePromotions } from './HomePromotions.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
 import { TonightHighlights } from './TonightHighlights.tsx';
 import { TournamentTickets } from './TournamentTickets.tsx';
-import { YourWaitlist } from './YourWaitlist.tsx';
 
 /**
  * Home: tonight's floor (design prompt, "Home"). The member's waitlist places first, then each table
@@ -18,8 +17,16 @@ import { YourWaitlist } from './YourWaitlist.tsx';
  * jackpot and the next tournament above the tables, each table's open seats, and Join held until the
  * member's identity check is done (#87); these come quietly, and the database refuses Join without it anyway.
  * After a visit, Home asks how it was (#160, decision 0165). The satellite tickets the member holds, to enter with (#519).
+ * The waitlist's parts come from features/waitlist, through the route (#273), so no feature imports another.
  */
-export function HomeScreen() {
+interface HomeScreenProps {
+  /** The member's waitlist places, from features/waitlist (#273). */
+  yourWaitlist: (places: readonly WaitlistPlace[]) => ReactNode;
+  /** Tonight's tables with Join, from features/waitlist. */
+  floor: (tables: readonly FloorTable[], places: readonly WaitlistPlace[]) => ReactNode;
+}
+
+export function HomeScreen({ yourWaitlist, floor }: HomeScreenProps) {
   const liveView = useFeature('floor.live_view');
   const tables = useFloorTables();
   const places = useMyWaitlist();
@@ -37,11 +44,11 @@ export function HomeScreen() {
         <BreakNotice />
         <SeatNotice />
         <RateVisit />
-        <YourWaitlist places={places.data} />
+        {yourWaitlist(places.data)}
         <TonightHighlights />
         <TournamentTickets />
         <FeatureGate access={liveView}>
-          <FloorList tables={tables.data} places={places.data} />
+          {floor(tables.data, places.data)}
         </FeatureGate>
         <HomePromotions />
       </Stack>

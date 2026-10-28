@@ -42,6 +42,31 @@ select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-0
   'not a login that is also staff''s');
 reset role;
 delete from public.staff where user_id = (select user_id from public.member where id = '00000000-0000-4000-8000-000000000214');
+-- Nor a login that is a device's (#545).
+insert into public.device (venue_id, kind, name, auth_user_id)
+select venue_id, 'dealer_tablet', 'Test tablet', user_id from public.member where id = '00000000-0000-4000-8000-000000000214';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000214', '+919812345670', 'Lost his phone') $$, 'RVSTF', null,
+  'not a login that is also a device''s');
+reset role;
+delete from public.device where auth_user_id = (select user_id from public.member where id = '00000000-0000-4000-8000-000000000214');
+-- A login with no member row holds a number too.
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e9', 'authenticated', 'authenticated', '919812345611', now(), now());
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345611', 'Lost his phone') $$, 'RVPHN', null,
+  'not a number a login with no member holds');
+reset role;
+-- An erased member's number is never changed.
+create temp table erased as
+  with made as (insert into public.member (venue_id, full_name, phone) values ('00000000-0000-4000-8000-000000000001', 'Gone Soon', '+919000000953') returning id)
+  select id from made;
+update public.member set erased_at = now(), phone = null, full_name = 'Erased member' where id = (select id from erased);
+grant select on erased to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.change_member_phone((select id from erased), '+919812345612', 'Lost his phone') $$, 'RVERD', null,
+  'not an erased member''s');
+reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select lives_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345678', 'Lost his phone; new SIM') $$,
   'Vikram changes Mihir''s number');
@@ -71,6 +96,27 @@ select is((select count(*)::integer from public.alert where kind = 'member.phone
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
 select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000214', '+919812345679', 'My new number') $$, '42501', null,
   'a member does not change their own number here either');
+reset role;
+
+-- Ten changes in the hour, and no more (#545).
+select private.audit('00000000-0000-4000-8000-000000000001', 'member.change_phone', 'member', g::text, null, null, 'Test') from generate_series(1, 8) g;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345613', 'Lost his phone') $$,
+  'a tenth change in the hour goes through');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345615', 'Lost his phone') $$, 'RVRAT', null,
+  'an eleventh waits');
+reset role;
+-- A freeze is checked before the cap.
+-- Nor while the member or the venue is frozen.
+insert into public.control_state (venue_id, level, member_id, reason) values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000213', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345613', 'Lost his phone') $$, 'RVMBR', null,
+  'not a frozen member''s');
+reset role;
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000214', '+919812345614', 'Lost his phone') $$, 'RVFRZ', null,
+  'nor in a frozen venue');
 reset role;
 
 select * from finish();
