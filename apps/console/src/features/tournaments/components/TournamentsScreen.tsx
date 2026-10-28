@@ -2,7 +2,8 @@ import {
   useBlindStructures, useStaffVenue, useTournamentTemplates, useVenueTournaments, type BlindStructure, type TournamentTemplate, type VenueTournament,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, Grid, Screen, Stack, Text } from '@rivr/ui';
+import { Screen, SplitView, Stack, Tabs } from '@rivr/ui';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { NewTournamentForm } from './NewTournamentForm.tsx';
 import { StructuresView } from './StructuresView.tsx';
@@ -31,15 +32,19 @@ interface ViewProps {
 function TournamentsView({ venueId, tournaments, templates, access }: ViewProps) {
   const [chosenId, setChosenId] = useState<string | null>(null);
   const chosen = tournaments.find((tournament) => tournament.id === chosenId) ?? tournaments[0];
+  // The running one shows beside the list from 1180 px; below, the list stays until a tournament is chosen.
   return (
-    <Grid columns={2} gap={12}>
-      {chosen === undefined ? <Text tone="muted">{t('console.tournaments.none')}</Text>
-        : <TournamentDetail key={chosen.id} venueId={venueId} tournament={chosen} tournaments={tournaments} canRun={access.canRun} canTakeCash={access.canTakeCash} />}
-      <Stack gap={10}>
-        <TournamentList tournaments={tournaments} chosenId={chosen?.id} onChoose={setChosenId} />
-        {access.canRun ? <NewTournamentForm venueId={venueId} templates={templates} onMade={setChosenId} /> : null}
-      </Stack>
-    </Grid>
+    <SplitView isChosen={chosenId !== null} onBack={() => setChosenId(null)} backLabel={t('console.tournaments.backToList')}
+      emptyText={t('console.tournaments.chooseOne')}
+      list={(
+        <Stack gap={10}>
+          {/* Marked only once chosen: the one shown by default stays open to a phone, whose list it is not beside. */}
+          <TournamentList tournaments={tournaments} chosenId={chosenId === null ? undefined : chosen?.id} onChoose={setChosenId} />
+          {access.canRun ? <NewTournamentForm venueId={venueId} templates={templates} onMade={setChosenId} /> : null}
+        </Stack>
+      )}
+      detail={chosen === undefined ? null
+        : <TournamentDetail key={chosen.id} venueId={venueId} tournament={chosen} tournaments={tournaments} canRun={access.canRun} canTakeCash={access.canTakeCash} />} />
   );
 }
 
@@ -56,7 +61,10 @@ function ViewBody({ venueId, view, data, access }: { venueId: string; view: View
 }
 
 function TournamentsBody({ venueId, access }: { venueId: string; access: Access }) {
-  const [view, setView] = useState<View>('tournaments');
+  const navigate = useNavigate();
+  // The view open is in the address (`?tab=templates`), so a refresh, Back or a shared link opens it.
+  const { tab } = useSearch({ from: '/frame/tournaments' });
+  const view: View = VIEWS.find((one) => one === tab) ?? 'tournaments';
   const tournaments = useVenueTournaments(venueId);
   const templates = useTournamentTemplates(venueId);
   const structures = useBlindStructures(venueId);
@@ -70,9 +78,8 @@ function TournamentsBody({ venueId, access }: { venueId: string; access: Access 
     <Screen title={title}>
       <Stack gap={8}>
         {access.canRun ? (
-          <ChoiceChips label={t('console.tournaments.show')} mode="one" selected={[view]}
-            options={VIEWS.map((value) => ({ value, label: t(`console.tournaments.views.${value}`) }))}
-            onChange={(next) => { if (next[0] !== undefined) setView(next[0]); }} />
+          <Tabs label={t('console.tournaments.show')} current={view} onNavigate={(href) => void navigate({ href })}
+            tabs={VIEWS.map((id) => ({ id, label: t(`console.tournaments.views.${id}`), href: `/tournaments?tab=${id}` }))} />
         ) : null}
         <ViewBody venueId={venueId} view={view} access={access}
           data={{ tournaments: tournaments.data, templates: templates.data, structures: structures.data }} />

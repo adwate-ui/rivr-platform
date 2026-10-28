@@ -8,13 +8,13 @@ import { HistoryRow } from './HistoryRow.tsx';
  * High hands (#47; flow 6): claims from the tablets waiting for the floor, which staff who approve
  * jackpots pay or reject, and the history. Staff who read the ledger see it too.
  */
-export function HighHandsScreen() {
+export function HighHandsSection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const { permissions, venueId } = staff.venue;
   if (!permissions.includes('jackpots.approve') && !permissions.includes('ledger.read')) {
-    return <Screen title={t('console.highHands.title')} status="error" errorText={t('console.highHands.notAllowed')} />;
+    return <Screen level={2} title={t('console.highHands.title')} status="error" errorText={t('console.highHands.notAllowed')} />;
   }
   return <HighHandList venueId={venueId} canDecide={permissions.includes('jackpots.approve')} />;
 }
@@ -22,14 +22,14 @@ export function HighHandsScreen() {
 function HighHandList({ venueId, canDecide }: { venueId: string; canDecide: boolean }) {
   const hands = useHighHands(venueId);
   const title = t('console.highHands.title');
-  if (hands.isPending) return <Screen title={title} status="loading" />;
+  if (hands.isPending) return <Screen level={2} title={title} status="loading" />;
   // A failed refresh keeps what was known, so a reason half typed stays put.
-  if (hands.data === undefined) return <Screen title={title} status="error" onRetry={() => void hands.refetch()} />;
-  if (hands.data.length === 0) return <Screen title={title} status="empty" emptyText={t('console.highHands.empty')} />;
+  if (hands.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void hands.refetch()} />;
+  if (hands.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.highHands.empty')} />;
   const waiting = hands.data.filter((hand) => hand.status === 'claimed');
   const decided = hands.data.filter((hand) => hand.status !== 'claimed');
   return (
-    <Screen title={title}>
+    <Screen level={2} title={title}>
       <Stack gap={8}>
         {waiting.length === 0 ? null : (
           <Stack gap={4}>

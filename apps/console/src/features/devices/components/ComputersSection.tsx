@@ -9,12 +9,12 @@ const ENROLLED_AS = {
 } as const;
 
 /** The venue's cage and admin computers (#384), for staff with devices.manage: add one, enrol this one, revoke one. */
-export function ComputersScreen() {
+export function ComputersSection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   if (!staff.venue.permissions.includes('devices.manage')) {
-    return <Screen title={t('console.computers.title')} status="error" errorText={t('console.computers.notAllowed')} />;
+    return <Screen level={2} title={t('console.computers.title')} status="error" errorText={t('console.computers.notAllowed')} />;
   }
   return <Computers venueId={staff.venue.venueId} canConfigure={staff.venue.permissions.includes('venue.configure')} />;
 }
@@ -45,13 +45,13 @@ function Computers({ venueId, canConfigure }: { venueId: string; canConfigure: b
   const here = useThisComputer(venueId);
   const computers = useComputers(venueId);
   const title = t('console.computers.title');
-  if (here.isPending || computers.isPending) return <Screen title={title} status="loading" />;
+  if (here.isPending || computers.isPending) return <Screen level={2} title={title} status="loading" />;
   if (here.data === undefined || computers.data === undefined) {
-    return <Screen title={title} status="error" onRetry={() => void Promise.all([here.refetch(), computers.refetch()])} />;
+    return <Screen level={2} title={title} status="error" onRetry={() => void Promise.all([here.refetch(), computers.refetch()])} />;
   }
   const mineId = here.data.computer?.deviceId ?? null;
   return (
-    <Screen title={title}>
+    <Screen level={2} title={title}>
       <Stack gap={8}>
         <Notices here={here.data} canConfigure={canConfigure} />
         <ThisComputerSection venueId={venueId} here={here.data} />

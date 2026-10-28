@@ -39,7 +39,7 @@ function Cage({ title, venueId, canIssueMarkers }: { title: string; venueId: str
         <Box surface="alert" padding={3} radius="sm"><Text tone="onAlert">{t('console.cage.noShiftBanner')}</Text></Box>
       ) : null}
       <CageComputerBanner venueId={venueId} />
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <Stack gap={8}>
           <MemberSearch venueId={venueId} onChoose={(picked, query) => setChosen({ memberId: picked.memberId, query })} />
           <CageQueue venueId={venueId} />

@@ -15,6 +15,8 @@ export type ScreenProps = ScreenState & {
   title: string;
   /** Controls beside the heading, for example one primary Button. */
   actions?: ReactNode;
+  /** 2 for a part of a screen shown under its tabs (#606), such as Devices' Tablets: its heading is the second level. */
+  level?: 1 | 2;
   children?: ReactNode;
 };
 
@@ -25,7 +27,7 @@ export function Screen(props: ScreenProps) {
     <section aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
       {/* The heading and its actions wrap onto two lines on a narrow screen. */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <Heading level={1} id={headingId}>
+        <Heading level={props.level ?? 1} id={headingId}>
           {props.title}
         </Heading>
         {props.actions}

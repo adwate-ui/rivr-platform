@@ -26,6 +26,7 @@ async function addComputer(page: Page, name: string, as: 'Add as the cage' | 'Ad
 }
 
 async function enrol(page: Page, code: string, enrolledAs: string) {
+  await page.getByRole('link', { name: 'Devices', exact: true }).click();
   await page.getByRole('link', { name: 'Computers' }).click();
   await page.getByRole('textbox', { name: 'Enrolment code' }).fill(code);
   await page.getByRole('button', { name: 'Enrol this computer' }).click();
@@ -47,6 +48,7 @@ test.describe('Cage computer', () => {
     const office = await browser.newPage();
     const cage = await browser.newPage();
     await signInToConsole(office, '9000000159');
+    await office.getByRole('link', { name: 'Devices', exact: true }).click();
     await office.getByRole('link', { name: 'Computers' }).click();
     await expect(office.getByText(/^Not enforced yet/)).toBeVisible();
     await enrol(office, await addComputer(office, 'Office', 'Add as an admin console'), 'Enrolled as an admin console: Office.');

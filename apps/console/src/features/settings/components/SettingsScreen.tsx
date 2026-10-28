@@ -29,8 +29,8 @@ function AreaContent({ area, venueId, isSuperAdmin }: { area: SettingsArea; venu
 export function SettingsScreen() {
   const staff = useStaffVenue();
   const navigate = useNavigate();
-  // The area is in the address (`?area=club`), so a refresh, Back or a shared link opens it.
-  const { area: named } = useSearch({ from: '/frame/settings' });
+  // The area is in the address (`?tab=club`), so a refresh, Back or a shared link opens it.
+  const { tab: named } = useSearch({ from: '/frame/settings' });
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const { permissions, venueId } = staff.venue;
@@ -40,7 +40,7 @@ export function SettingsScreen() {
   const areas = areasFor(canSet, isSuperAdmin);
   // Never empty here (one with neither returned above); 'club' only satisfies the type.
   const area = areas.find((one) => one === named) ?? areas[0] ?? 'club';
-  const tabs = areas.map((id) => ({ id, label: t(`console.settings.areas.${id}`), href: `/settings?area=${id}` }));
+  const tabs = areas.map((id) => ({ id, label: t(`console.settings.areas.${id}`), href: `/settings?tab=${id}` }));
   return (
     <Screen title={t('console.settings.title')}>
       <Stack gap={6}>

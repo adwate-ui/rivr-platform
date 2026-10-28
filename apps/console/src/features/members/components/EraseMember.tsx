@@ -155,10 +155,7 @@ export function EraseMember({ venueId, memberId }: { venueId: string; memberId: 
     <Stack gap={3}>
       <Heading level={3}>{t('console.members.erase.title')}</Heading>
       {preview.isError ? (
-        <Stack gap={2} align="start">
-          <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-          <Button variant="secondary" onClick={() => void preview.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError onRetry={() => void preview.refetch()} />
       ) : null}
       {preview.data === undefined && !preview.isError ? <LoadState /> : null}
       {preview.data === undefined ? null : <EraseBody venueId={venueId} memberId={memberId} preview={preview.data} />}

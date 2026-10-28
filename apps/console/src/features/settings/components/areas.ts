@@ -5,11 +5,6 @@ export const RULE_AREAS = ['floor', 'rake', 'cage', 'members', 'academy', 'tax',
 export type RuleArea = (typeof RULE_AREAS)[number];
 export const VENUE_AREAS = ['club', 'chips'] as const;
 
-/** The Settings address's search (#604): `?area=` as given; the screen opens the first area the staff member has for any other. */
-export function settingsSearchFrom(search: Record<string, unknown>): { area?: string } {
-  const area = search['area'];
-  return typeof area === 'string' ? { area } : {};
-}
 export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number];
 
 /** Where each setting sits. Every key the contracts declare has an area, or this does not compile. */

@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { DealerPinsScreen } from '../features/dealer-pins/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The dealers' PINs, for the tablet sign-in (#41). */
-export const dealerPinsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/dealer-pins', component: DealerPinsScreen });
+/** Dealer PINs moved into Staff (#606): an old link or bookmark opens its tab there. */
+export const dealerPinsRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/dealer-pins', component: () => <Navigate to="/staff" search={{ tab: 'dealerPins' }} replace />,
+});

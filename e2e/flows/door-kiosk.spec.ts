@@ -40,6 +40,7 @@ test.describe('Door kiosk', () => {
     const name = `Door ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000191');
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('switch', { name: 'Door kiosk' }).click();
@@ -81,6 +82,8 @@ test.describe('Door kiosk', () => {
     await floor.getByRole('textbox', { name: 'What was done' }).first().fill('Second host on the door from Friday.');
     await floor.getByRole('button', { name: 'Resolve Vidya Chadha’s ticket' }).first().click();
     await expect(floor.getByText(/^Resolved by Nisha Arora on .*: Second host on the door from Friday\.$/)).toBeVisible();
+
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
 
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('button', { name: `Revoke ${name}`, exact: true }).click();

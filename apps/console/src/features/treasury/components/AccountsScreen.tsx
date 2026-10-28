@@ -35,7 +35,7 @@ function AccountsView({ title, venueId, canManage }: { title: string; venueId: s
   if (accounts.isError) return <Screen title={title} status="error" onRetry={() => void accounts.refetch()} />;
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <Stack gap={4}>
           <Heading level={2}>{t('console.accounts.list')}</Heading>
           <DataTable label={t('console.accounts.list')} columns={columns()} rowKey={(row) => row.id} rows={accounts.data} emptyText={t('console.accounts.noAccounts')} />

@@ -8,7 +8,7 @@ describe('the console rail and who may open each screen', () => {
   it('keeps a cashier out of admin screens, whether from the rail or by address', () => {
     const cashier = ROLE_PERMISSIONS.cashier;
     expect(items(cashier)).not.toEqual(expect.arrayContaining(['/staff']));
-    for (const admin of ['/staff', '/dealer-pins', '/kill-switch', '/settings', '/tablets', '/tvs', '/computers', '/academy']) {
+    for (const admin of ['/staff', '/kill-switch', '/settings', '/devices', '/academy']) {
       expect(isAllowedAt(cashier, admin)).toBe(false);
     }
     expect(isAllowedAt(cashier, '/cage')).toBe(true);
@@ -23,13 +23,13 @@ describe('the console rail and who may open each screen', () => {
   });
 
   it('shows beside an entry how many wait on its screen, and nothing beside the others', () => {
-    const rail = railFor(ROLE_PERMISSIONS.admin, { highHands: 2 }).flatMap((section) => section.items);
-    expect(rail.find((item) => item.id === 'highHands')?.count).toBe(2);
-    expect(rail.find((item) => item.id === 'jackpots')?.count).toBeUndefined();
+    const rail = railFor(ROLE_PERMISSIONS.admin, { jackpots: 2 }).flatMap((section) => section.items);
+    expect(rail.find((item) => item.id === 'jackpots')?.count).toBe(2);
+    expect(rail.find((item) => item.id === 'members')?.count).toBeUndefined();
   });
 
-  it('locks the same eleven cage and money screens after ten idle minutes, wherever the rail groups them', () => {
-    const locked = ['/cage', '/markers', '/treasury', '/accounts', '/expenses', '/tds', '/tally', '/reports', '/end-of-day', '/withdrawals', '/academy/payments'];
+  it('locks the same ten cage and money screens after ten idle minutes, wherever the rail groups them', () => {
+    const locked = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/reports', '/withdrawals', '/academy/payments'];
     for (const screen of locked) expect(locksWhenIdle(screen)).toBe(true);
     expect(locksWhenIdle('/Markers')).toBe(true);
     const everyScreen = railFor(ROLE_PERMISSIONS.super_admin).flatMap((section) => section.items.map((item) => item.href));

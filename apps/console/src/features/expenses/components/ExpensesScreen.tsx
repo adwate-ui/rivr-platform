@@ -30,7 +30,7 @@ function ExpensesView({ title, venueId, canDecide }: { title: string; venueId: s
   }
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <ExpenseList venueId={venueId} canDecide={canDecide} />
         <Stack gap={8}>
           <RequestForm venueId={venueId} categories={categories.data} accounts={accounts.data.filter((account) => account.isActive)} />

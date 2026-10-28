@@ -1,6 +1,6 @@
 import { createRoute, Outlet } from '@tanstack/react-router';
 import { Frame } from '../features/frame/index.ts';
-import { WaitingHighHandPrompt } from '../features/high-hands/index.ts';
+import { WaitingHighHandPrompt } from '../features/jackpots/index.ts';
 import { rootRoute } from './root.tsx';
 
 /**

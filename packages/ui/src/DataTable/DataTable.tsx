@@ -3,6 +3,7 @@ import { tokens } from '@rivr/tokens';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { Icon } from '../Icon/Icon.tsx';
+import { PhoneSort } from './PhoneSort.tsx';
 import { Input } from '../Input/Input.tsx';
 import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
@@ -180,9 +181,10 @@ function BodyRow<Row>({ row, columns, index, place, onRowOpen }: BodyRowProps<Ro
         const priority = priorityOf(column, at);
         return (
           // Rows are one height from 768 px, and a long list's cards are too, so there a cell keeps to one line: long
-          // text ends in an ellipsis. data-label is the column's name, which styles.css shows before the value on a phone.
+          // text ends in an ellipsis; on a phone's card, a value with no spaces (a key, a link) breaks rather than spill.
+          // data-label is the column's name, which styles.css shows before the value on a phone.
           <div key={column.key} role="cell" data-label={priority === 'secondary' ? column.header : undefined}
-            className={cx('min-w-0 font-text text-16 text-content', place === undefined ? 'medium:truncate' : 'truncate', CELL[priority],
+            className={cx('min-w-0 font-text text-16 text-content wrap-anywhere', place === undefined ? 'medium:truncate' : 'truncate', CELL[priority],
               column.align === 'end' ? 'medium:text-end' : 'text-start')}>
             {priority === 'primary' ? <Title row={row} column={column} onRowOpen={onRowOpen} /> : column.cell(row)}
           </div>
@@ -290,6 +292,7 @@ function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Ro
  * or XLSX, each export recorded first (#102).
  */
 export function DataTable<Row>(props: DataTableProps<Row>) {
+  const isWide = useIsWide();
   const [sort, setSort] = useState<DataTableSort | null>(props.initialSort ?? null);
   const [query, setQuery] = useState('');
   const source = props.status === 'loading' || props.status === 'error' ? NO_ROWS : props.rows;
@@ -300,7 +303,12 @@ export function DataTable<Row>(props: DataTableProps<Row>) {
   return (
     <div className="flex flex-col gap-4">
       <Bar props={props} visible={visible} query={query} onQuery={setQuery} />
-      {visible.length === 0 ? <Instead props={props} query={query} /> : <Table props={props} visible={visible} sort={sort} query={query} onSort={onSort} />}
+      {visible.length === 0 ? <Instead props={props} query={query} /> : (
+        <>
+          {isWide ? null : <PhoneSort label={props.label} columns={props.columns} sort={sort} onSort={onSort} />}
+          <Table props={props} visible={visible} sort={sort} query={query} onSort={onSort} />
+        </>
+      )}
     </div>
   );
 }

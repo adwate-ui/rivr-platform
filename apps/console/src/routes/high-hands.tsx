@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { HighHandsScreen } from '../features/high-hands/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** High hands claimed on the tablets: approve and pay, or reject; and the history (#47). */
-export const highHandsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/high-hands', component: HighHandsScreen });
+/** High hands moved into Jackpots (#606): an old link or bookmark opens its tab there. */
+export const highHandsRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/high-hands', component: () => <Navigate to="/jackpots" search={{ tab: 'highHands' }} replace />,
+});

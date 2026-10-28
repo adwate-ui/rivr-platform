@@ -26,6 +26,7 @@ test.describe('CCTV', () => {
     const summary = `E2E chips knocked over at Table 1, ${Date.now()}`;
 
     await signInToConsole(page, '9000000185');
+    await page.getByRole('link', { name: 'Devices', exact: true }).click();
     await page.getByRole('link', { name: 'Cameras', exact: true }).click();
     await page.getByRole('textbox', { name: 'Name' }).fill('E2E Table 1');
     await page.getByRole('textbox', { name: 'Channel' }).fill('e2e:1');

@@ -2,7 +2,7 @@ import {
   useFloorNight, useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorNight, type FloorTable, type HeldSeat, type SeatedPlayer,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Screen, Stack } from '@rivr/ui';
+import { Screen, SplitView, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { LeavingList } from './LeavingList.tsx';
 import { LeftOwingCallTime } from './LeftOwingCallTime.tsx';
@@ -45,17 +45,22 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
   if (chosen === undefined) return <Screen title={title} status="empty" emptyText={t('console.liveFloor.empty')} />;
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
-        <Stack gap={8}>
-          <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
-            chosenId={chosen.id} onChoose={setChosenId} />
-          <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
-          {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
-        </Stack>
-        <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
-          seats={data.seats.filter((seat) => seat.tableId === chosen.id)} held={data.held.filter((seat) => seat.tableId === chosen.id)}
-          night={data.night.tables.find((figures) => figures.tableId === chosen.id)} />
-      </Grid>
+      {/* The first table shows beside the plan from 1180 px; below, the plan stays until a table is chosen (#605). */}
+      <SplitView isChosen={chosenId !== null} onBack={() => setChosenId(null)} backLabel={t('console.liveFloor.backToFloor')}
+        emptyText={t('console.liveFloor.chooseTable')}
+        list={(
+          <Stack gap={8}>
+            <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
+              chosenId={chosenId === null ? '' : chosen.id} onChoose={setChosenId} />
+            <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
+            {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
+          </Stack>
+        )}
+        detail={(
+          <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
+            seats={data.seats.filter((seat) => seat.tableId === chosen.id)} held={data.held.filter((seat) => seat.tableId === chosen.id)}
+            night={data.night.tables.find((figures) => figures.tableId === chosen.id)} />
+        )} />
     </Screen>
   );
 }

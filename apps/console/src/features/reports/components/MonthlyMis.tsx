@@ -40,7 +40,7 @@ function MisTables({ mis }: { mis: MisReport }) {
     <DataTable label={label} columns={accountColumns()} rowKey={(row) => row.code} rows={lines} emptyText={emptyText} exportFilter={exportFilter} />
   );
   return (
-    <Grid columns={3} gap={6}>
+    <Grid columns={3} gap={6} stackBelow="medium">
       <DataTable label={t('console.reports.figures')} columns={figureColumns()} rowKey={(row) => row.key} rows={figures(mis)} emptyText="" exportFilter={exportFilter} />
       {accounts(t('console.reports.revenue'), mis.revenue, t('console.reports.noRevenue'))}
       {accounts(t('console.reports.expenses'), mis.expenses, t('console.reports.noExpenses'))}

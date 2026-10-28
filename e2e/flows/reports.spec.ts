@@ -17,6 +17,7 @@ test.describe('Reports', () => {
     for (const label of ['Tonight by table', 'Tonight by dealer', 'Tonight by game']) {
       await expect(page.getByRole('table', { name: label }).or(page.getByText('No hands yet tonight.')).first()).toBeVisible();
     }
+    await page.getByRole('navigation', { name: 'Reports' }).getByRole('link', { name: 'Monthly MIS' }).click();
     await expect(page.getByText(/so far\. It is stored on the 1st/)).toBeVisible();
     await expect(page.getByRole('table', { name: 'The month' }).getByRole('row').filter({ hasText: 'Net' })).toBeVisible();
     // Promotion cost (#111): each promotion's cost, or that none gave anything yet this month. Cohort retention: the
@@ -29,6 +30,7 @@ test.describe('Reports', () => {
     await expect(page.getByText(/was not stored on the 1st|^Stored /)).toBeVisible();
     await expect(page.getByRole('table', { name: 'The month' }).getByRole('row').filter({ hasText: 'Hands' })).toBeVisible();
     // Unclaimed balances (#110): the table, or its empty message when no balance has been left a year.
+    await page.getByRole('navigation', { name: 'Reports' }).getByRole('link', { name: 'Unclaimed balances' }).click();
     await expect(page.getByRole('table', { name: 'Unclaimed balances' }).or(page.getByText('No unclaimed balances.'))).toBeVisible();
   });
 });

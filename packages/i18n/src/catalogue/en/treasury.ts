@@ -3,8 +3,10 @@
  * and the cage's shift with its float and its count of chips by denomination.
  */
 export const treasury = {
-  title: 'Treasury',
-  notAllowed: 'Your role does not include the Treasury. Cashiers, managers and owners see it.',
+  /** One screen for the cage's shift (#606): its opening and counts, then its closing and history. */
+  shiftScreen: 'Shift',
+  tabs: { now: 'Opening and counts', close: 'Closing and history' },
+  notAllowed: 'Your role does not include the cage\'s shift. Cashiers, managers and owners see it.',
   /** What the venue holds, from the ledger. */
   wallets: 'Member wallets',
   withdrawalsPending: 'Withdrawals pending',

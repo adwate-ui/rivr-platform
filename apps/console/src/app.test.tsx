@@ -113,6 +113,24 @@ describe('the console', () => {
     expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
   });
 
+  // Screens merged into others (#606), and Rake into Settings (#604): each old address opens its tab.
+  it.each([
+    ['/tablets', 'Tablets'], ['/tvs', 'TVs'], ['/computers', 'Computers'], ['/cameras', 'Cameras'], ['/high-hands', 'High hands'],
+    ['/dealer-pins', 'Dealer PINs'], ['/treasury', 'Opening and counts'], ['/end-of-day', 'Closing and history'], ['/rake', 'Rake and jackpots'],
+  ])('opens %s as its tab, %s, for a super admin', async (path, tab) => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);
+    renderAt(path);
+    expect(await screen.findByRole('link', { name: tab, current: 'page' })).toBeDefined();
+  });
+
+  it.each(['/dealer-pins', '/tablets', '/computers'])('still refuses a cashier at %s, once it has opened the screen it moved to', async (path) => {
+    signIn();
+    answerStaff([CLUB]);
+    renderAt(path);
+    expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
+  });
+
   it('opens on Live floor for staff, with the rail, who is signed in and the venue', async () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);

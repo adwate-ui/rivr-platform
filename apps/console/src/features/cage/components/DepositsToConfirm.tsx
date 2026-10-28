@@ -89,10 +89,7 @@ export function DepositsToConfirm({ venueId }: { venueId: string }) {
       <Heading level={2}>{t('console.cage.depositsToConfirm')}</Heading>
       {waiting.isPending ? <LoadState /> : null}
       {waiting.isError ? (
-        <Stack gap={2} align="start">
-          <ErrorMessage>{t('console.cage.unavailable')}</ErrorMessage>
-          <Button onClick={() => void waiting.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError errorText={t('console.cage.unavailable')} onRetry={() => void waiting.refetch()} />
       ) : null}
       {waiting.data?.length === 0 ? <Text tone="muted">{t('console.cage.depositsEmpty')}</Text> : null}
       {(waiting.data ?? []).map((deposit) => <DepositRow key={deposit.depositId} venueId={venueId} deposit={deposit} canSecond={canSecond} />)}

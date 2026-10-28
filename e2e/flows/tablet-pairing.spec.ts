@@ -26,6 +26,7 @@ test.describe('Dealer tablet', () => {
     const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000112');
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('button', { name: 'Add and pair' }).click();
@@ -56,6 +57,7 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
     // The PIN is set while the tablet waits on sign-in: its list asks again every 15 seconds, no reload.
+    await floor.getByRole('link', { name: 'Staff', exact: true }).click();
     await floor.getByRole('link', { name: 'Dealer PINs' }).click();
     await floor.getByLabel(`New PIN for ${DEALER}`).fill('2741');
     await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
@@ -75,6 +77,8 @@ test.describe('Dealer tablet', () => {
     await tablet.getByRole('button', { name: 'Close the down' }).click();
     await expect(tablet.getByText('Last down: drop box ₹0, logged ₹0, variance ₹0.')).toBeVisible();
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
+
+    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
 
     await floor.getByRole('link', { name: 'Tablets' }).click();
     await floor.getByRole('button', { name: `Revoke ${name}`, exact: true }).click();

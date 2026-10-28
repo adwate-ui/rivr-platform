@@ -11,6 +11,7 @@ test.describe('Growth funnel', () => {
     // The investor's own number: no other flow signs in with it.
     await signInToConsole(page, '9000000109');
     await page.getByRole('link', { name: 'Reports' }).click();
+    await page.getByRole('navigation', { name: 'Reports' }).getByRole('link', { name: 'Growth and channels' }).click();
     await expect(page.getByRole('heading', { name: 'Growth funnel', level: 2 })).toBeVisible();
     const funnel = page.getByRole('table', { name: 'Growth funnel' });
     for (const header of ['Source', 'Signed up', 'KYC done', 'Came in', 'Bought in']) {

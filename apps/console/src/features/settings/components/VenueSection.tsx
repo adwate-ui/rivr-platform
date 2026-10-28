@@ -55,7 +55,7 @@ function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }
   const errors = form.formState.errors;
   return (
     <Stack gap={4}>
-      <Grid columns={2} gap={4}>
+      <Grid columns={2} gap={4} stackBelow="medium">
         {FIELDS.map((field) => (
           <Input key={field.name} {...form.register(field.name, { onChange: () => setOutcome(null) })} label={t(field.label)}
             hint={field.hint === undefined ? undefined : t(field.hint)} error={errors[field.name] ? t('console.settings.invalidVenueField') : undefined} />
@@ -80,10 +80,7 @@ export function VenueSection({ venueId }: { venueId: string }) {
       <Text tone="muted">{t('console.settings.venueHint')}</Text>
       {config.isPending ? <LoadState /> : null}
       {config.isError && config.data === undefined ? (
-        <Stack gap={3}>
-          <ErrorMessage>{t('console.settings.loadFailed')}</ErrorMessage>
-          <Button variant="text" onClick={() => void config.refetch()}>{t('common.retry')}</Button>
-        </Stack>
+        <LoadState isError errorText={t('console.settings.loadFailed')} onRetry={() => void config.refetch()} />
       ) : null}
       {config.data === null ? <ErrorMessage>{notSuperAdmin}</ErrorMessage> : null}
       {config.data ? <VenueForm venueId={venueId} config={config.data} /> : null}

@@ -45,7 +45,7 @@ function Markers({ title, venueId, canSet, canRepay, isSuperAdmin }: MarkersProp
   if (room.isError) return <Screen title={title} status="error" onRetry={() => void room.refetch()} />;
   return (
     <Screen title={title}>
-      <Grid columns={2} gap={8}>
+      <Grid columns={2} gap={8} stackBelow="medium">
         <Stack gap={8}>
           {room.data === null ? null : (
             <Stack gap={1}>

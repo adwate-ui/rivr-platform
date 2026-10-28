@@ -55,11 +55,15 @@ import { incidentsRoute } from './routes/incidents.tsx';
 import { tiersRoute } from './routes/tiers.tsx';
 import { computersRoute } from './routes/computers.tsx';
 import { camerasRoute } from './routes/cameras.tsx';
+import { devicesRoute } from './routes/devices.tsx';
+import { shiftRoute } from './routes/shift.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     settingsRoute,
+    devicesRoute,
+    shiftRoute,
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, fnbRoute, markersRoute, membersRoute, killSwitchRoute, practiceResetRoute, purgeRoute, exportsRoute, amlRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute, rosterRoute,
     certificationRoute,

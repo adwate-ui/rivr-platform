@@ -1,6 +1,6 @@
 import { useSatelliteTickets } from '@rivr/db';
 import { formatMoney, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, LoadState, Stack, Text } from '@rivr/ui';
+import { Heading, LoadState, Stack, Text } from '@rivr/ui';
 
 const STATUSES = ['held', 'used', 'refunded'] as const;
 
@@ -12,10 +12,7 @@ export function SatelliteTickets({ tournamentId }: { tournamentId: string }) {
       <Heading level={3} variant="subsection">{t('console.tournaments.payouts.tickets')}</Heading>
       {tickets.isPending ? <LoadState /> : null}
       {tickets.isError ? (
-        <Inline gap={4} align="center">
-          <ErrorMessage>{t('console.tournaments.payouts.failures.unavailable')}</ErrorMessage>
-          <Button variant="text" onClick={() => void tickets.refetch()}>{t('common.retry')}</Button>
-        </Inline>
+        <LoadState isError errorText={t('console.tournaments.payouts.failures.unavailable')} onRetry={() => void tickets.refetch()} />
       ) : null}
       {tickets.data?.length === 0 ? <Text tone="muted">{t('console.tournaments.payouts.noTickets')}</Text> : null}
       {tickets.data?.map((ticket, index) => (
