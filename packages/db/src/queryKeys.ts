@@ -123,6 +123,8 @@ export const queryKeys = {
   tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,
   /** The TV's spin wheel (#150). */
   tvSpinWheel: (userId: string) => ['user', userId, 'tv-spin-wheel'] as const,
+  /** The TV's social wall (#158). */
+  tvSocialWall: (userId: string) => ['user', userId, 'tv-social-wall'] as const,
   /** A venue's games not running and their interest (#113), and its hands over a period (#114). */
   interestLists: (userId: string, venueId: string) => ['user', userId, 'interest-lists', venueId] as const,
   potData: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'pot-data', venueId, start, end] as const,

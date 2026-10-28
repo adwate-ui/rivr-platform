@@ -91,6 +91,20 @@ export interface SitePromotion {
   readonly runs: string | null;
 }
 
+/** An approved post on the website's social wall (#157): its poster's handle and caption, and the post's link. */
+export interface SiteWallPost {
+  readonly handle: string;
+  readonly caption: string;
+  readonly permalink: string;
+}
+
+/** The club's newest approved Instagram posts, newest first (public_wall_posts). */
+export async function fetchSiteWall(client: RivrClient): Promise<Result<SiteWallPost[], 'unavailable'>> {
+  const { data, error } = await client.from('public_wall_posts').select('handle, caption, permalink, posted_at').order('posted_at', { ascending: false });
+  if (error) return err('unavailable');
+  return ok(data.flatMap((row) => (row.handle && row.permalink ? [{ handle: row.handle, caption: row.caption ?? '', permalink: row.permalink }] : [])));
+}
+
 /** The club's live promotion cards from the public view (`public_promotion_cards`), highest priority first. */
 export async function fetchSitePromotions(client: RivrClient): Promise<Result<SitePromotion[], 'unavailable'>> {
   const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs');

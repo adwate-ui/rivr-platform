@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@rivr/contracts": "../../../packages/contracts/src/index.ts",
+    "@rivr/adapters": "../../../packages/adapters/src/index.ts",
+    "@rivr/adapters/instagram-graph": "../../../packages/adapters/src/instagram-graph/index.ts",
+    "zod": "npm:zod@^4.6.7"
+  }
+}

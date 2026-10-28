@@ -13,10 +13,11 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `league_season`, `league_finish` | Monthly League across cash (hours at the tables, from `points_earning`) and tournament finishes, season championship; standings are computed, not stored (decision 0182) |
 | `creator`, `tracked_link`, `attribution_touch` | Influencer codes and links, first-touch attribution to KYC, first visit and first buy-in |
 | `referral` | Referral codes and the ₹1,000-each-side reward |
-| `social_post`, `social_channel_account`, `winner_card`, `card_consent` | Publishing to each channel, download-and-post fallback, winner cards held for consent |
-| `inbox_thread`, `lead` | Inbox webhooks into leads, linked to the member on sign-up |
+| `social_post`, `social_post_channel` | A post's image and caption, and each channel's state: download-and-post until the channel is connected (#154, decision 0269; `public.publish_social_post`, the `social-media` bucket). `social_channel_account` comes with live publishing (#586) |
+| `winner_card`, `card_consent` | Winner cards held for consent (#155) |
+| `lead`, `inbox_message` | Inbox webhooks into leads (#156, decision 0268): a lead is a conversation, with its messages; a WhatsApp lead linked to the member with that number, now or on sign-up (the `social-inbox` function's `public.record_inbox_messages`; a console view is #587) |
 | `channel_metric` | Daily follower counts per channel |
-| `wall_post` | Tagged Instagram posts and their moderation |
+| `wall_post` | Tagged Instagram posts and their moderation (#157, decision 0267): `public.moderate_wall_post`, the TVs' `tv_social_wall`, the website's `public_wall_posts`; the `social-wall` function's `public.record_wall_posts` |
 | `feedback`, `review_request` | Visit feedback, asked in the player app (decision 0165): a rating of 1 to 5 once a visit and notes from Profile; 3 or below, and every note, is a ticket the General Manager (`feedback.manage`) resolves. `public.my_feedback_visit()`, `public.rate_visit(visit, score, note)`, `public.send_feedback(note)`, `public.venue_feedback(venue)`, `public.resolve_feedback(id, resolution)`. Review request after the third visit, sent regardless of score |
 | `host_queue_item` | Lapsed players with churn reasons and offers |
 

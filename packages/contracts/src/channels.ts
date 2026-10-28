@@ -17,6 +17,12 @@ export const socialChannelSchema = z.enum(SOCIAL_CHANNELS);
 /** A publishing channel. */
 export type SocialChannel = z.infer<typeof socialChannelSchema>;
 
+/** A post as the console's publish form takes it (#154): its caption, and the channels it goes to. */
+export const socialPostSchema = z.object({
+  caption: z.string().trim().min(1).max(2200),
+  channels: z.array(socialChannelSchema).min(1),
+});
+
 /** The channels whose messages reach the social inbox. */
 export const INBOX_CHANNELS = ['instagram', 'facebook', 'whatsapp'] as const;
 

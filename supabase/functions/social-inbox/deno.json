@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@rivr/contracts": "../../../packages/contracts/src/index.ts",
+    "@rivr/adapters": "../../../packages/adapters/src/index.ts",
+    "@rivr/adapters/social-inbox": "../../../packages/adapters/src/social-inbox/index.ts",
+    "zod": "npm:zod@^4.6.7"
+  }
+}

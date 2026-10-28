@@ -222,6 +222,8 @@ max_frequency = "60s"
 919000000632 = "123456"
 919000000633 = "123456"
 919000000634 = "123456"
+919000000635 = "123456"
+919000000636 = "123456"
 919000000288 = "123456"
 919000000290 = "123456"
 919000000113 = "123456"
@@ -398,6 +400,12 @@ verify_jwt = false
 
 # The owner's alerts by WhatsApp (#100); pg_cron calls it with the scheduler's secret (decision 0038).
 [functions.alert-whatsapp]
+verify_jwt = false
+
+[functions.social-wall]
+verify_jwt = false
+
+[functions.social-inbox]
 verify_jwt = false
 
 [functions.withdrawal-payout]

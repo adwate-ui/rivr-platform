@@ -1469,6 +1469,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"inbox_message": {
+                  Row: {
+                    "created_at": string,"id": string,"lead_id": string,"received_at": string,"source_id": string,"text": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"lead_id": string,"received_at": string,"source_id": string,"text": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"lead_id"?: string,"received_at"?: string,"source_id"?: string,"text"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "inbox_message_lead_id_venue_id_fkey"
+      columns: ["lead_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "lead"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"incident": {
                   Row: {
                     "camera_id": string | null,"cctv_reference": string | null,"created_at": string,"id": string,"logged_by_staff_id": string | null,"occurred_at": string,"severity": Database["public"]['Enums']["incident_severity"],"sop_id": string | null,"summary": string,"updated_at": string,"venue_id": string
@@ -1666,6 +1686,32 @@ isOneToOne: false
       columns: ["reviewed_by_staff_id"]
 isOneToOne: false
       referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"lead": {
+                  Row: {
+                    "channel": string,"closed_at": string | null,"created_at": string,"first_message": string,"handle": string,"id": string,"last_message_at": string,"linked_at": string | null,"member_id": string | null,"thread_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": string,"closed_at"?: string | null,"created_at"?: string,"first_message": string,"handle": string,"id"?: string,"last_message_at": string,"linked_at"?: string | null,"member_id"?: string | null,"thread_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "channel"?: string,"closed_at"?: string | null,"created_at"?: string,"first_message"?: string,"handle"?: string,"id"?: string,"last_message_at"?: string,"linked_at"?: string | null,"member_id"?: string | null,"thread_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "lead_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "lead_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
       referencedColumns: ["id"]
     }
                   ]
@@ -2965,6 +3011,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"social_post": {
+                  Row: {
+                    "caption": string,"created_at": string,"created_by_staff_id": string,"id": string,"image_path": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "caption": string,"created_at"?: string,"created_by_staff_id": string,"id"?: string,"image_path": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "caption"?: string,"created_at"?: string,"created_by_staff_id"?: string,"id"?: string,"image_path"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "social_post_created_by_staff_id_venue_id_fkey"
+      columns: ["created_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "social_post_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"social_post_channel": {
+                  Row: {
+                    "channel": string,"created_at": string,"id": string,"post_id": string,"post_url": string | null,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": string,"created_at"?: string,"id"?: string,"post_id": string,"post_url"?: string | null,"status": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "channel"?: string,"created_at"?: string,"id"?: string,"post_id"?: string,"post_url"?: string | null,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "social_post_channel_post_id_venue_id_fkey"
+      columns: ["post_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "social_post"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"sop": {
                   Row: {
                     "created_at": string,"id": string,"title": string,"updated_at": string,"venue_id": string
@@ -3749,6 +3841,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"wall_post": {
+                  Row: {
+                    "caption": string,"created_at": string,"handle": string,"id": string,"media_kind": string,"media_url": string,"moderated_at": string | null,"moderated_by_staff_id": string | null,"permalink": string,"posted_at": string,"source_id": string,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "caption"?: string,"created_at"?: string,"handle": string,"id"?: string,"media_kind": string,"media_url": string,"moderated_at"?: string | null,"moderated_by_staff_id"?: string | null,"permalink": string,"posted_at": string,"source_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "caption"?: string,"created_at"?: string,"handle"?: string,"id"?: string,"media_kind"?: string,"media_url"?: string,"moderated_at"?: string | null,"moderated_by_staff_id"?: string | null,"permalink"?: string,"posted_at"?: string,"source_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wall_post_moderated_by_staff_id_venue_id_fkey"
+      columns: ["moderated_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "wall_post_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"withdrawal_request": {
                   Row: {
                     "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decline_reason": string | null,"hold_transaction_id": string,"id": string,"idempotency_key": string,"member_id": string,"method": string | null,"outcome_transaction_id": string | null,"payout_account_id": string,"payout_attempted_at": string | null,"payout_failure": string | null,"payout_id": string | null,"payout_key": string | null,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
@@ -3915,6 +4033,14 @@ isOneToOne: false
                 },"public_waitlist_length": {
                   Row: {
                     "table_type_code": string | null,"venue_slug": string | null,"waiting": number | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                },"public_wall_posts": {
+                  Row: {
+                    "caption": string | null,"handle": string | null,"permalink": string | null,"posted_at": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -4467,6 +4593,9 @@ isOneToOne: false
               "generated_at": string,"is_preview": boolean,"report": Json
             }[]
                            },
+"moderate_wall_post":
+{ Args: { "p_is_approved": boolean,"p_post_id": string,"p_venue_id": string }; Returns: undefined
+                           },
 "move_seat":
 { Args: { "p_seat": number,"p_session_id": string,"p_table_id": string }; Returns: undefined
                            },
@@ -4704,6 +4833,9 @@ isOneToOne: false
               "detail": string,"name": string,"promotion_id": string,"refused_at": string,"refused_by": string,"refused_reason": string,"runs": string,"template_key": string
             }[]
                            },
+"publish_social_post":
+{ Args: { "p_caption": string,"p_channels": (string)[],"p_image_path": string,"p_venue_id": string }; Returns: string
+                           },
 "publish_sop_version":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_sop_id": string }; Returns: number
                            },
@@ -4741,6 +4873,9 @@ isOneToOne: false
 "record_holding":
 { Args: { "p_basis_points": number,"p_effective_from": string,"p_note": string,"p_shareholder_id": string,"p_venue_id": string }; Returns: undefined
                            },
+"record_inbox_messages":
+{ Args: { "p_messages": Json,"p_venue_id": string }; Returns: number
+                           },
 "record_kyc_digilocker":
 { Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_identity_key"?: string,"p_masked_aadhaar": string,"p_member_id": string,"p_name_matches": boolean,"p_pan": string,"p_vendor_reference": string }; Returns: string
                            },
@@ -4761,6 +4896,9 @@ isOneToOne: false
                            },
 "record_table_export":
 { Args: { "p_filter": string,"p_format": string,"p_rows": number,"p_venue_id": string,"p_what": string }; Returns: boolean
+                           },
+"record_wall_posts":
+{ Args: { "p_posts": Json,"p_venue_id": string }; Returns: number
                            },
 "record_withdrawal_payout":
 { Args: { "p_failure": string,"p_payout_id": string,"p_payout_key": string,"p_request_id": string,"p_status": string,"p_utr": string }; Returns: string
@@ -5173,6 +5311,11 @@ isOneToOne: false
 "tv_rewards_ticker":
 { Args: Record<PropertyKey, never>; Returns: {
               "at": string,"display_name": string,"kind": string,"place": number,"points": number,"reward_name": string
+            }[]
+                           },
+"tv_social_wall":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "caption": string,"handle": string,"posted_at": string
             }[]
                            },
 "tv_spin_wheel":

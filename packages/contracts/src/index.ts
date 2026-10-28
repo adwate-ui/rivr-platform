@@ -110,6 +110,7 @@ export {
   SOCIAL_CHANNELS,
   inboxChannelSchema,
   socialChannelSchema,
+  socialPostSchema,
   type InboxChannel,
   type SocialChannel,
 } from './channels.ts';

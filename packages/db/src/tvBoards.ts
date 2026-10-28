@@ -73,6 +73,7 @@ const SIGNAL_SETTLE = 2_000;
 const BOARD_KEYS = {
   waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions,
   rewards: queryKeys.tvRewardsTicker, league: queryKeys.tvLeagueBoard, tournament: queryKeys.tvTournamentClock, spin_wheel: queryKeys.tvSpinWheel,
+  social_wall: queryKeys.tvSocialWall,
 };
 
 /**
