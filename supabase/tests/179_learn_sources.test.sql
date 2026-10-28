@@ -36,7 +36,7 @@ select is((select count(*)::integer from public.learn_source), 1, 'and sees it')
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select 1 from public.learn_source $$, 'an admin does not');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select is_empty($$ select 1 from public.learn_source $$, 'nor does a member');
+select is((select count(*)::integer from public.learn_source), 1, 'a member sees it in the library, as their tier has it (test 181)');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
 select is_empty($$ select 1 from public.learn_source $$, 'nor another venue''s super admin');
 select ok(not private.may_handle_learn_sources('00000000-0000-4000-8000-000000000001/src_test.json'), 'who reaches none of its files');

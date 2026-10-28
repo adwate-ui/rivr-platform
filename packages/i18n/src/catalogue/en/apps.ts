@@ -42,6 +42,7 @@ import { ownerDashboard } from './ownerDashboard.ts';
 import { reports } from './reports.ts';
 import { creators } from './creators.ts';
 import { learnSources } from './learnSources.ts';
+import { playerLearn } from './learn.ts';
 import { consoleEvents, playerEvents } from './events.ts';
 import { exportFilters } from './exportFilters.ts';
 import { tds } from './tds.ts';
@@ -91,7 +92,7 @@ export const playerApp = {
     notFound: 'This session is not in your history.',
   },
   balance,
-  learn: { title: 'Learn', empty: 'No sources yet.' },
+  learn: playerLearn,
   /** The digital membership card (#71): the QR the door scans changes every few seconds. */
   card: { title: 'Membership card', qr: 'Your door code', hint: 'Show this at the door. The code changes every few seconds.' },
   /** RIVR Academy: batches, booking a seat, paying by UPI with the UTR. */

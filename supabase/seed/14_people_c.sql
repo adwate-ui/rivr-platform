@@ -52,6 +52,9 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000626', '+919000000626', 'Leela Nair'),
   ('00000000-0000-4000-8000-000000000627', '+919000000627', 'Aman Bedi'),
   ('00000000-0000-4000-8000-000000000628', '+919000000628', 'Rohan Das'),
+  -- The Learn flow's own member, who drills a licensed title, and super admin, who uploads it (#133, #136).
+  ('00000000-0000-4000-8000-000000000630', '+919000000630', 'Mira Shah'),
+  ('00000000-0000-4000-8000-000000000631', '+919000000631', 'Dev Malhotra'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -106,14 +109,15 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000625'::uuid, 'Cashier', 'cashier'),
              ('00000000-0000-4000-8000-000000000626'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000628'::uuid, 'Marketing manager', 'marketing'),
-             ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin')) as j (id, job_title, role) on j.id = p.id
+             ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
+where p.id in ('00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
                '00000000-0000-4000-8000-000000000297', '00000000-0000-4000-8000-000000000299')
 on conflict (id) do nothing;
 
