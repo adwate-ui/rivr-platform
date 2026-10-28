@@ -1,0 +1,102 @@
+{
+  "rule": "Glaza monthly statement",
+  "about": "The Glaza statement (#109; scope-v1 module 13; question #580; decision 0265). For a club month of Glaza's lines: the food, soft drinks and alcohol RIVR comped are owed to Glaza at cost; the margin on alcohol sold (price less cost) is split 50:50, RIVR's half the margin divided by two and rounded toward nothing to the paisa, so Glaza keeps an odd paisa; NewCo's payable to Glaza is the comps less RIVR's half, below nothing when Glaza owes RIVR. Inputs are the comps at cost and the alcohol margin; expected is RIVR's share and the payable.",
+  "cases": [
+    {
+      "description": "A month of comps and alcohol: half the margin comes off the comps.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹10,000",
+        "alcoholMargin": "₹4,000"
+      },
+      "expected": {
+        "rivrShare": "₹2,000",
+        "payable": "₹8,000"
+      }
+    },
+    {
+      "description": "An odd paisa of margin stays with Glaza.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹1,000",
+        "alcoholMargin": "₹0.01"
+      },
+      "expected": {
+        "rivrShare": "₹0",
+        "payable": "₹1,000"
+      }
+    },
+    {
+      "description": "Three paise of margin: RIVR takes one, Glaza two.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹500",
+        "alcoholMargin": "₹0.03"
+      },
+      "expected": {
+        "rivrShare": "₹0.01",
+        "payable": "₹499.99"
+      }
+    },
+    {
+      "description": "No comps and no alcohol: nothing either way.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹0",
+        "alcoholMargin": "₹0"
+      },
+      "expected": {
+        "rivrShare": "₹0",
+        "payable": "₹0"
+      }
+    },
+    {
+      "description": "Half the margin equal to the comps: nothing either way.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹2,000",
+        "alcoholMargin": "₹4,000"
+      },
+      "expected": {
+        "rivrShare": "₹2,000",
+        "payable": "₹0"
+      }
+    },
+    {
+      "description": "More alcohol margin than comps: Glaza owes RIVR.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹100",
+        "alcoholMargin": "₹1,000"
+      },
+      "expected": {
+        "rivrShare": "₹500",
+        "payable": "-₹400"
+      }
+    },
+    {
+      "description": "Alcohol sold below cost: RIVR bears half the loss.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹1,000",
+        "alcoholMargin": "-₹200"
+      },
+      "expected": {
+        "rivrShare": "-₹100",
+        "payable": "₹1,100"
+      }
+    },
+    {
+      "description": "Three paise below cost: RIVR bears one, Glaza two.",
+      "operation": "payable",
+      "inputs": {
+        "comps": "₹0",
+        "alcoholMargin": "-₹0.03"
+      },
+      "expected": {
+        "rivrShare": "-₹0.01",
+        "payable": "₹0.01"
+      }
+    }
+  ]
+}
