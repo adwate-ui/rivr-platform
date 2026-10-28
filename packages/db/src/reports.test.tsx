@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
-import { useGrowthFunnel, useMisReport } from './reports.ts';
+import { useChannelFunnel, useGrowthFunnel, useMisReport } from './reports.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const OWNER = '00000000-0000-4000-8000-000000000101';
@@ -73,6 +73,27 @@ describe('the growth funnel', () => {
     expect(result.current.data).toEqual([
       { sourceKind: 'direct', sourceCode: null, signedUp: 5, kycDone: 4, visited: 3, boughtIn: 2 },
       { sourceKind: 'link', sourceCode: 'instagram', signedUp: 2, kycDone: 1, visited: 1, boughtIn: 0 },
+    ]);
+  });
+});
+
+describe('the channel funnel', () => {
+  it('gives each channel\u2019s followers and its links\u2019 members, as the database counts them', async () => {
+    const rows = [
+      { channel: 'instagram', followers: 1200, followers_30_days_ago: 1000, signed_up: 4, kyc_done: 3, bought_in: 1 },
+      { channel: 'whatsapp', followers: null, followers_30_days_ago: null, signed_up: 0, kyc_done: 0, bought_in: 0 },
+    ];
+    const fetch: typeof globalThis.fetch = async () => Response.json(rows);
+    const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+      global: { fetch },
+      auth: { storage: sessionStorageFor(OWNER), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+    const { result } = renderHook(() => useChannelFunnel(VENUE), { wrapper });
+    await waitFor(() => expect(result.current.data).toBeDefined());
+    expect(result.current.data).toEqual([
+      { channel: 'instagram', followers: 1200, followers30DaysAgo: 1000, signedUp: 4, kycDone: 3, boughtIn: 1 },
+      { channel: 'whatsapp', followers: null, followers30DaysAgo: null, signedUp: 0, kycDone: 0, boughtIn: 0 },
     ]);
   });
 });

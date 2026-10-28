@@ -3,12 +3,14 @@ import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { MonthlyMis } from './MonthlyMis.tsx';
 import { UnclaimedBalances } from './UnclaimedBalances.tsx';
+import { ChannelFunnel } from './ChannelFunnel.tsx';
 import { GrowthFunnel } from './GrowthFunnel.tsx';
 import { RakeTonight } from './RakeTonight.tsx';
 
 /**
  * Reports (#99; scope-v1 modules 4 and 16): tonight's rake by table, dealer and game from hand records,
- * the monthly investor MIS, unclaimed balances and the growth funnel (#166). For staff who read reports; the practice venue has none.
+ * the monthly investor MIS, unclaimed balances, the growth funnel (#166) and each channel's followers beside it (#164). For staff who
+ * read reports; the practice venue has none.
  */
 export function ReportsScreen() {
   const staff = useStaffVenue();
@@ -25,6 +27,7 @@ export function ReportsScreen() {
         <MonthlyMis venueId={venueId} />
         <UnclaimedBalances venueId={venueId} />
         <GrowthFunnel venueId={venueId} />
+        <ChannelFunnel venueId={venueId} />
       </Stack>
     </Screen>
   );

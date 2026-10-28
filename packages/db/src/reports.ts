@@ -1,3 +1,4 @@
+import { socialChannelSchema, type SocialChannel } from '@rivr/contracts';
 import { misReportSchema, type MisReportJson } from '@rivr/contracts/reports';
 import type { Paise } from '@rivr/domain/money';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ const keys = {
   misReport: (userId: string, venueId: string, month: string) => ['user', userId, 'mis-report', venueId, month] as const,
   unclaimed: (userId: string, venueId: string) => ['user', userId, 'unclaimed-balances', venueId] as const,
   growthFunnel: (userId: string, venueId: string) => ['user', userId, 'growth-funnel', venueId] as const,
+  channelFunnel: (userId: string, venueId: string) => ['user', userId, 'channel-funnel', venueId] as const,
 };
 
 // Tonight's figures move as hands are logged; a minute is fresh enough for a report.
@@ -201,6 +203,37 @@ export function useGrowthFunnel(venueId: string) {
         sourceKind: SOURCE_KINDS.find((kind) => kind === row.source_kind) ?? 'direct', sourceCode: row.source_code,
         signedUp: row.signed_up, kycDone: row.kyc_done, visited: row.visited, boughtIn: row.bought_in,
       }));
+    },
+  });
+}
+
+/** One channel's followers and the members who signed up from its links (#164). A count is null before it is first read. */
+export interface ChannelRow {
+  readonly channel: SocialChannel;
+  readonly followers: number | null;
+  readonly followers30DaysAgo: number | null;
+  readonly signedUp: number;
+  readonly kycDone: number;
+  readonly boughtIn: number;
+}
+
+/** Each publishing channel's followers beside its links' sign-ups, KYC and first buy-ins, for staff who read reports. */
+export function useChannelFunnel(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.channelFunnel(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<ChannelRow[]> => {
+      const { data, error } = await client.rpc('channel_funnel', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.flatMap((row) => {
+        const channel = socialChannelSchema.safeParse(row.channel);
+        if (!channel.success) return [];
+        return [{
+          channel: channel.data, followers: row.followers, followers30DaysAgo: row.followers_30_days_ago, signedUp: row.signed_up, kycDone: row.kyc_done,
+          boughtIn: row.bought_in,
+        }];
+      });
     },
   });
 }

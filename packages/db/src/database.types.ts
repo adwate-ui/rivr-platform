@@ -485,6 +485,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"channel_metric": {
+                  Row: {
+                    "channel": string,"created_at": string,"followers": number,"id": string,"measured_on": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": string,"created_at"?: string,"followers": number,"id"?: string,"measured_on": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "channel"?: string,"created_at"?: string,"followers"?: number,"id"?: string,"measured_on"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "channel_metric_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"chip_denomination": {
                   Row: {
                     "created_at": string,"id": string,"is_active": boolean,"name": string,"updated_at": string,"value_paise": number,"venue_id": string
@@ -4324,6 +4344,11 @@ isOneToOne: false
 "change_member_phone":
 { Args: { "p_member_id": string,"p_phone": string,"p_reason": string }; Returns: undefined
                            },
+"channel_funnel":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bought_in": number,"channel": string,"followers": number,"followers_30_days_ago": number,"kyc_done": number,"signed_up": number
+            }[]
+                           },
 "check_in":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
                            },
@@ -5032,6 +5057,9 @@ isOneToOne: false
                            },
 "record_attendance":
 { Args: { "p_note"?: string,"p_shift_id": string,"p_status": string }; Returns: undefined
+                           },
+"record_channel_followers":
+{ Args: { "p_counts": Json,"p_venue_id": string }; Returns: number
                            },
 "record_holding":
 { Args: { "p_basis_points": number,"p_effective_from": string,"p_note": string,"p_shareholder_id": string,"p_venue_id": string }; Returns: undefined
