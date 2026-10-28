@@ -51,6 +51,8 @@ export const tv = {
     empty: 'Nothing yet.',
     /** `3 in 10`. */
     odds: '{weight} in {odds}',
+    /** A wheel of more prizes than fit, a page at a time: `Prizes 7 to 9 of 9`. */
+    page: 'Prizes {from} to {to} of {count}',
     points: '{points} points',
     bonus: '{amount} bonus',
     nothing: 'Nothing',

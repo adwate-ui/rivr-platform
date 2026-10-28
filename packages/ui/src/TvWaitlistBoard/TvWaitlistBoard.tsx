@@ -25,8 +25,9 @@ export interface TvWaitlistBoardProps {
   emptyText: string;
 }
 
-// The prototype's TV fits six places under each stake, two stakes to a row.
-const SHOWN = 6;
+// The prototype's TV fits six places under each stake, two stakes to a row; a mode with more pages them.
+export const TV_WAITLIST_PLACES_SHOWN = 6;
+const SHOWN = TV_WAITLIST_PLACES_SHOWN;
 
 function StakeColumn({ stake, emptyText }: { stake: TvWaitlistStake; emptyText: string }) {
   return (
