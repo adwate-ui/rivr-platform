@@ -20,4 +20,4 @@ docker run --rm -i -v "$PWD/load/k6:/scripts" \
   grafana/k6 run /scripts/waitlist.js
 ```
 
-`tablets.js` also takes `TABLE_1` to `TABLE_6`; `registration.js` takes `TOURNAMENT_ID`.
+Each script signs every number in once (`setup()`), as Auth allows 30 sign-ins in five minutes from one address; virtual users share those sessions. `waitlist.js` takes `TABLE_TYPE_ID` and `PLAYERS` (60 by default); `home.js` takes `HOME_MINUTES` (10); `registration.js` takes `TOURNAMENT_ID` and `ENTRIES` (100); `tablets.js` signs in the six tablets' numbers, each fixed to its table.

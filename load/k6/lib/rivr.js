@@ -21,15 +21,26 @@ export function headers(token) {
   };
 }
 
-/** The test phone number for this virtual user, wrapping round the list. */
-export function phoneFor(vu) {
+/** The test phone numbers, each signed in once in setup(): Auth limits sign-ins per address (30 in five minutes). */
+export function loadPhones() {
   const phones = (__ENV.LOAD_PHONES || '').split(',').filter(Boolean);
   if (phones.length === 0) fail('Set LOAD_PHONES to staging test numbers.');
-  return phones[(vu - 1) % phones.length];
+  return phones;
+}
+
+/** Signs every test number in once, for setup(); each virtual user then takes one with tokenFor. */
+export function signInAll() {
+  return loadPhones().map((phone) => signIn(phone));
+}
+
+/** This virtual user's token, wrapping round the numbers signed in. */
+export function tokenFor(tokens, vu) {
+  return tokens[(vu - 1) % tokens.length];
 }
 
 /** Signs in with a test number and code; returns the access token. */
 export function signIn(phone) {
+  http.post(`${BASE}/auth/v1/otp`, JSON.stringify({ phone }), { headers: headers(), tags: { name: 'sign-in-code' } });
   const response = http.post(
     `${BASE}/auth/v1/verify`,
     JSON.stringify({ phone, token: __ENV.LOAD_OTP, type: 'sms' }),
@@ -49,7 +60,7 @@ export function read(path, token) {
   return http.get(`${BASE}/rest/v1/${path}`, { headers: headers(token), tags: { name: path.split('?')[0] } });
 }
 
-/** A unique idempotency key for one write. */
+/** A unique idempotency key for one write: the functions take a UUID. */
 export function idempotencyKey() {
-  return `load-${__VU}-${__ITER}-${Date.now()}`;
+  return crypto.randomUUID();
 }
