@@ -11,12 +11,12 @@ Everything is exported from `src/index.ts`.
 | Ontology | every vocabulary tuple and type (`Principle`, `OntologyPayload`, `Situation`, `Street`, ...), the label maps (`POSITION_LABEL`, `HAND_CLASS_LABEL`, ...) |
 | Reading an encoding | `parsePayload`, `payloadOrThrow`, `validateSource`, `CODES`, `groupByObject`, `runHarness` |
 | Generating a spot | `generateScenario`, `rangeSideFor`, `preflopPlayable`, `lineFits`, `expandRangeSets`, `deriveSeed` |
-| Telling a spot | `describeScenario(scenario, formatMoney)`, `describeShort`, `potLabel`, `stackLabel`, `handHistory`, `preflopStrategy`, `postflopStrategy` |
+| Telling a spot | `describeScenario(scenario, formatMoney, words?)`, `describeStep(step, words?)`, `ENGLISH_WORDS`, `DrillWords`, `DrillSentences`, `describeShort`, `potLabel`, `stackLabel`, `handHistory`, `preflopStrategy`, `postflopStrategy` |
 | Grading | `governingPrinciple`, `resolveGoverningAny`, `abstainsOn`, `gradeAnswer`, `legalActions`, `explain`, `PAD_SIZINGS`, `describeAnswer` |
 | Scheduling | `newCard`, `review`, `gradeFor`, `isDue`, `buildQueue`, `inScope`, `masteryOf` |
 | Analytics | `toAttemptRow`, `hashSource`, `crosstab`, `crosstab2`, `findLeaks`, `summarise` |
 
-Money is the caller's: `describeScenario` and the pot and stack labels take a `MoneyFormatter`, an amount in the unit the stakes are written in (`docs/decisions/0016`).
+Money is the caller's: `describeScenario` and the pot and stack labels take a `MoneyFormatter`, an amount in the unit the stakes are written in (`docs/decisions/0016`). So are the words (#138): `describeScenario` and `describeStep` take a `DrillWords` (the tables of positions, stacks, pots, boards and actions, and the sentences around them), English (`ENGLISH_WORDS`) by default; the player app fills it from `@rivr/i18n`.
 
 ## Usage
 

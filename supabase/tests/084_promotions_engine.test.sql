@@ -202,9 +202,11 @@ select is(pg_temp.grants('Spin at ten'), '211 212 213 216 217', 'everyone in the
 select lives_ok($$ select private.open_promotion_windows() $$, 'the next minute');
 select is((select count(*)::integer from public.promotion_grant where promotion_id = (select id from ids where name = 'spin')), 5, 'gives none twice');
 
--- Who sees grants: promotion managers.
+-- Who sees grants: promotion managers, every one, the seed's included.
+create temporary table all_grants on commit drop as select count(*)::integer as grants from public.promotion_grant;
+grant select on all_grants to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select is((select count(*)::integer from public.promotion_grant), 12, 'marketing sees every grant');
+select is((select count(*)::integer from public.promotion_grant), (select grants from all_grants), 'marketing sees every grant');
 select throws_ok($$ update public.promotion_grant set points = 5000 $$, '42501', null, 'and changes none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.promotion_grant $$, 'a cashier sees none');

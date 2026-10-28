@@ -4,12 +4,12 @@ import { Button, DataTable, ErrorMessage, Heading, Stack, Text, type DataTableCo
 import { useState } from 'react';
 import { prizeLabel } from './prizeLabel.ts';
 
-/** A prize's column: what it gives, and its odds as its weight out of the wheel's. */
+/** A prize's columns: what it gives, and its odds as its weight out of the prizes that can be drawn, or that the budget is spent. */
 function columnsFor(odds: number, onRemove: ((prize: SpinPrize) => void) | null): readonly DataTableColumn<SpinPrize>[] {
   const columns: DataTableColumn<SpinPrize>[] = [
     { key: 'prize', header: t('console.spin.prize'), cell: (row) => prizeLabel(row) },
     { key: 'odds', header: t('console.spin.odds'), align: 'end',
-      cell: (row) => t('console.spin.oddsValue', { weight: formatNumber(row.weight), odds: formatNumber(odds) }) },
+      cell: (row) => (row.isDrawable ? t('console.spin.oddsValue', { weight: formatNumber(row.weight), odds: formatNumber(odds) }) : t('console.spin.budgetSpent')) },
   ];
   if (onRemove === null) return columns;
   return [...columns, { key: 'remove', header: t('console.spin.remove'), align: 'end', cell: (row) => (
@@ -22,7 +22,7 @@ export function PrizeTable({ venueId, canRemove }: { venueId: string; canRemove:
   const wheel = useSpinWheel(venueId);
   const { remove } = useSpinWheelActions(venueId);
   const [failure, setFailure] = useState<string | null>(null);
-  const odds = (wheel.data ?? []).reduce((total, prize) => total + prize.weight, 0);
+  const odds = (wheel.data ?? []).filter((prize) => prize.isDrawable).reduce((total, prize) => total + prize.weight, 0);
   const onRemove = canRemove ? (prize: SpinPrize) => void remove.mutateAsync(prize.prizeId).then((done) => {
     setFailure(done.ok ? null : t(`console.spin.failures.${done.error}`));
   }) : null;

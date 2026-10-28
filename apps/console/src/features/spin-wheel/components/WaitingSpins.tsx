@@ -18,7 +18,8 @@ export function WaitingSpins({ venueId }: { venueId: string }) {
     { key: 'promotion', header: t('console.spin.promotion'), cell: (row) => row.promotionName },
     { key: 'granted', header: t('console.spin.granted'), cell: (row) => formatDayTime(new Date(row.grantedAt)) },
     { key: 'spin', header: t('console.spin.spin'), align: 'end', cell: (row) => (
-      <Button variant="secondary" isLoading={spin.isPending && spin.variables === row.grantId} onClick={() => { setOutcome(null); spinFor(row); }}
+      <Button variant="secondary" isLoading={spin.isPending && spin.variables === row.grantId} isDisabled={spin.isPending}
+        onClick={() => { setOutcome(null); spinFor(row); }}
         aria-label={t('console.spin.spinFor', { name: row.memberName })}>
         {t('console.spin.spin')}
       </Button>

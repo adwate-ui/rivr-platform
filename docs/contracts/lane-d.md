@@ -7,7 +7,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | Table | Purpose |
 |---|---|
 | `promotion`, `promotion_rule`, `promotion_grant`, `promotion_budget` | Rule builder: triggers, conditions, effects, controls (dates, budgets in rupees and count, per-player limits, stacking, a super admin's approval, decision 0244), grants and spend |
-| `spin_wheel`, `spin` | Prizes and odds from configuration with a budget cap; spins and results |
+| `spin_wheel`, `spin` | Prizes and odds from configuration with a budget cap; spins and results (#150, decision 0266): `public.add_spin_prize`, `remove_spin_prize`, `spin_prizes`, `waiting_spins`, `spin_the_wheel`, and the TVs' `tv_spin_wheel` |
 | `reward_item`, `redemption` | Catalogue (tournament seat, F&B upgrade, merchandise, hotel nights) and redemptions |
 | `points_earning` | What each visit earned in points, by table and from rake, as `private.close_visit` credits it (#89, decision 0161) |
 | `league_season`, `league_finish` | Monthly League across cash (hours at the tables, from `points_earning`) and tournament finishes, season championship; standings are computed, not stored (decision 0182) |

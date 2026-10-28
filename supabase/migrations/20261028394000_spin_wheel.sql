@@ -55,11 +55,14 @@ create table public.spin_wheel (
   -- Off the wheel: kept, as a spin names the prize it won.
   removed_at timestamptz,
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   unique (id, venue_id),
   check (case kind when 'nothing' then amount = 0 when 'bonus' then amount > 0 and amount % 5000 = 0 else amount > 0 end)
 );
 comment on table public.spin_wheel is 'The spin wheel''s prizes (#150) in order, each with its weight: points, bonus or nothing.';
 create index spin_wheel_venue_idx on public.spin_wheel (venue_id, created_at);
+create trigger spin_wheel_touch_updated_at before update on public.spin_wheel
+  for each row execute function private.touch_updated_at();
 create trigger spin_wheel_audit after insert or update or delete on public.spin_wheel
   for each row execute function private.audit_row_change();
 
@@ -77,6 +80,7 @@ create table public.spin (
   spun_by_staff_id uuid not null,
   bonus_grant_id uuid references public.bonus_grant (id),
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   foreign key (member_id, venue_id) references public.member (id, venue_id),
   foreign key (prize_id, venue_id) references public.spin_wheel (id, venue_id),
   foreign key (spun_by_staff_id, venue_id) references public.staff (id, venue_id)
@@ -87,6 +91,8 @@ create index spin_member_idx on public.spin (member_id, venue_id);
 create index spin_prize_idx on public.spin (prize_id, venue_id);
 create index spin_staff_idx on public.spin (spun_by_staff_id, venue_id);
 create index spin_bonus_grant_idx on public.spin (bonus_grant_id);
+create trigger spin_touch_updated_at before update on public.spin
+  for each row execute function private.touch_updated_at();
 
 alter table public.spin_wheel enable row level security;
 alter table public.spin enable row level security;
@@ -100,10 +106,10 @@ create policy "the floor and staff who run promotions see the spins" on public.s
 insert into private.member_export_column (table_name, column_name, kind)
 select 'spin', c.column_name, 'owed'
 from unnest(array['id', 'venue_id', 'grant_id', 'member_id', 'prize_id', 'kind', 'amount', 'roll', 'odds', 'spun_by_staff_id', 'bonus_grant_id',
-                  'created_at']) c (column_name);
+                  'created_at', 'updated_at']) c (column_name);
 
 -- Adds a prize to the end of the wheel. Refusals: 42501 not staff who run promotions; 22023 a kind, amount or weight out
--- of bounds (a bonus is whole ₹50 chips); RVFRZ the venue frozen.
+-- of bounds (a bonus is whole ₹50 chips); RVFRZ or RVKIL the venue frozen or promotions switched off.
 create function private.add_spin_prize(p_venue_id uuid, p_kind text, p_amount bigint, p_weight integer)
 returns uuid
 language plpgsql
@@ -116,7 +122,7 @@ begin
   if not coalesce(private.has_permission(p_venue_id, 'promotions.manage'), false) then
     raise exception 'Staff who run promotions keep the wheel' using errcode = '42501';
   end if;
-  perform private.assert_writable(p_venue_id);
+  perform private.assert_writable(p_venue_id, 'promotions');
   insert into public.spin_wheel (venue_id, kind, amount, weight) values (p_venue_id, p_kind, p_amount, p_weight) returning id into v_id;
   return v_id;
 exception
@@ -125,7 +131,7 @@ exception
 end;
 $$;
 
--- Takes a prize off the wheel. Refusals: 42501 not staff who run promotions; P0002 no such prize on the wheel; RVFRZ.
+-- Takes a prize off the wheel. Refusals: 42501 not staff who run promotions; P0002 no such prize on the wheel; RVFRZ or RVKIL.
 create function private.remove_spin_prize(p_venue_id uuid, p_prize_id uuid)
 returns void
 language plpgsql
@@ -136,7 +142,7 @@ begin
   if not coalesce(private.has_permission(p_venue_id, 'promotions.manage'), false) then
     raise exception 'Staff who run promotions keep the wheel' using errcode = '42501';
   end if;
-  perform private.assert_writable(p_venue_id);
+  perform private.assert_writable(p_venue_id, 'promotions');
   update public.spin_wheel set removed_at = now() where id = p_prize_id and venue_id = p_venue_id and removed_at is null;
   if not found then
     raise exception 'No such prize on the wheel' using errcode = 'P0002';
@@ -156,6 +162,29 @@ as $$
                   - coalesce((select sum(s.amount) from public.spin s
                               where s.venue_id = p_venue_id and s.kind = 'bonus'
                                 and s.created_at >= (private.league_month(now()) + interval '6 hours') at time zone 'Asia/Kolkata'), 0), 0)::bigint;
+$$;
+
+-- The wheel's prizes in order for the floor and staff who run promotions, each with whether it can be drawn now: a
+-- bonus only while what is left of the month's spin.budget covers it. Refusal: 42501 neither.
+create function private.spin_prizes(p_venue_id uuid)
+returns table (prize_id uuid, kind text, amount bigint, weight integer, is_drawable boolean)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_budget bigint;
+begin
+  if not (coalesce(private.has_permission(p_venue_id, 'floor.manage'), false) or coalesce(private.has_permission(p_venue_id, 'promotions.manage'), false)) then
+    raise exception 'The floor and staff who run promotions read the wheel' using errcode = '42501';
+  end if;
+  v_budget := private.spin_budget_left(p_venue_id);
+  return query
+  select w.id, w.kind, w.amount, w.weight, w.kind <> 'bonus' or w.amount <= v_budget
+  from public.spin_wheel w where w.venue_id = p_venue_id and w.removed_at is null
+  order by w.created_at, w.id;
+end;
 $$;
 
 -- The spins waiting: each grant of a spin not yet spun, oldest first, with the member and the promotion. Refusal: 42501
@@ -183,8 +212,8 @@ $$;
 
 -- Spins the wheel for a waiting grant: a random roll over the prizes the month's budget allows, the prize posted as
 -- points or bonus, and the grant fulfilled. One spin at a time at a venue, so two cannot both spend the last of the
--- budget. Refusals: 42501 not the floor; P0002 no spin waiting for that grant; RVSPN no prize the budget allows; RVFRZ
--- the venue or member frozen.
+-- budget. Refusals: 42501 not the floor; P0002 no spin waiting for that grant (or its member erased); RVSPN no prize the
+-- budget allows; RVFRZ, RVKIL or RVMBR the venue frozen, promotions switched off or the member frozen.
 create function private.spin_the_wheel(p_venue_id uuid, p_grant_id uuid)
 returns table (spin_id uuid, kind text, amount bigint)
 language plpgsql
@@ -208,11 +237,12 @@ begin
   perform pg_advisory_xact_lock(hashtextextended('spin_wheel:' || p_venue_id::text, 0));
   select * into v_grant from public.promotion_grant g
   where g.id = p_grant_id and g.venue_id = p_venue_id and g.effect ->> 'kind' = 'spin' and g.fulfilled_at is null
-  for update;
+    and exists (select 1 from public.member m where m.id = g.member_id and m.erased_at is null)
+  for update of g;
   if not found then
     raise exception 'No spin waiting for that grant' using errcode = 'P0002';
   end if;
-  perform private.assert_writable(p_venue_id, null, v_grant.member_id);
+  perform private.assert_writable(p_venue_id, 'promotions', v_grant.member_id);
   v_budget := private.spin_budget_left(p_venue_id);
   select jsonb_agg(jsonb_build_object('kind', w.kind, 'amount', w.amount, 'weight', w.weight) order by w.created_at, w.id),
          array_agg(w.id order by w.created_at, w.id),
@@ -238,7 +268,8 @@ begin
 end;
 $$;
 
--- The spin wheel for a paired TV showing it: 'prize' rows (place, kind, amount, weight) in the wheel's order, then
+-- The spin wheel for a paired TV showing it: 'prize' rows (place, kind, amount, weight) in the wheel's order, only those
+-- this month's spin budget allows, so the TV never offers a bonus that cannot be won; then
 -- tonight's last six 'spin' rows (kind, amount, name, when), newest first. A member is named by first name and
 -- initial, or not at all if they hid their name on the TVs (#326); nobody excluded from play shows.
 create function private.tv_spin_wheel()
@@ -253,7 +284,7 @@ as $$
     select 'prize'::text as row_kind, (row_number() over (order by w.created_at, w.id))::integer as place, w.kind, w.amount, w.weight,
            null::text as display_name, null::timestamptz as at
     from venue join public.spin_wheel w on w.venue_id = venue.id
-    where w.removed_at is null
+    where w.removed_at is null and (w.kind <> 'bonus' or w.amount <= private.spin_budget_left(venue.id))
   ),
   spins as (
     select 'spin'::text as row_kind, null::integer as place, s.kind, s.amount, null::integer as weight,
@@ -291,6 +322,10 @@ as $$ select private.add_spin_prize(p_venue_id, p_kind, p_amount, p_weight); $$;
 create function public.remove_spin_prize(p_venue_id uuid, p_prize_id uuid)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.remove_spin_prize(p_venue_id, p_prize_id); $$;
+create function public.spin_prizes(p_venue_id uuid)
+returns table (prize_id uuid, kind text, amount bigint, weight integer, is_drawable boolean)
+language sql stable security invoker set search_path = ''
+as $$ select * from private.spin_prizes(p_venue_id); $$;
 create function public.waiting_spins(p_venue_id uuid)
 returns table (grant_id uuid, member_id uuid, member_name text, promotion_name text, granted_at timestamptz)
 language sql stable security invoker set search_path = ''
@@ -306,6 +341,8 @@ as $$ select * from private.tv_spin_wheel(); $$;
 
 revoke execute on function private.spin_prize(jsonb, bigint, bigint), private.spin_budget_left(uuid), private.signal_spin_wheel()
   from public, anon, authenticated;
+revoke execute on function private.spin_prizes(uuid), public.spin_prizes(uuid) from public, anon;
+grant execute on function private.spin_prizes(uuid), public.spin_prizes(uuid) to authenticated;
 revoke execute on function private.add_spin_prize(uuid, text, bigint, integer), private.remove_spin_prize(uuid, uuid), private.waiting_spins(uuid),
   private.spin_the_wheel(uuid, uuid), private.tv_spin_wheel(), public.add_spin_prize(uuid, text, bigint, integer), public.remove_spin_prize(uuid, uuid),
   public.waiting_spins(uuid), public.spin_the_wheel(uuid, uuid), public.tv_spin_wheel() from public, anon;

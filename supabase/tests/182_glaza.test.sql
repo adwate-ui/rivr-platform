@@ -4,6 +4,14 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Another club, whose import nobody here sees.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000aa', 'RIVR Test', 'test-glaza', false, 'RIVR test', 'Test', 'TST');
+insert into auth.users (id, instance_id, aud, role, phone) values
+  ('00000000-0000-4000-8000-00000000e182', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000001821');
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+values ('00000000-0000-4000-8000-0000000000aa', '00000000-0000-4000-8000-00000000e182', 'Other admin', 'Admin', 'admin', '+919990001821');
+insert into public.glaza_import (venue_id, month, imported_by_staff_id)
+select '00000000-0000-4000-8000-0000000000aa', '2026-10-01', s.id from public.staff s where s.user_id = '00000000-0000-4000-8000-00000000e182';
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -23,6 +31,14 @@ select v.venue_id, v.member_id, v.id, g.id, case when v.member_id = '00000000-00
 from public.visit v join public.game_table g on g.venue_id = v.venue_id and g.name = 'Table 3'
 where v.id in ('00000000-0000-4000-8000-0000000f1821', '00000000-0000-4000-8000-0000000f1822');
 
+-- At 23:00 Yash moves to Table 1, seat 2.
+insert into public.seat_move (venue_id, session_id, from_table_id, from_seat, to_table_id, to_seat, created_at)
+select x.venue_id, x.id, x.table_id, x.seat, g.id, 2, '2026-10-14 23:00+05:30'
+from public.seat_session x join public.game_table g on g.venue_id = x.venue_id and g.name = 'Table 1'
+where x.visit_id = '00000000-0000-4000-8000-0000000f1821';
+update public.seat_session x set table_id = g.id, seat = 2, seated_here_at = '2026-10-14 23:00+05:30'
+from public.game_table g where g.venue_id = x.venue_id and g.name = 'Table 1' and x.visit_id = '00000000-0000-4000-8000-0000000f1821';
+
 -- One line of Glaza's: time, table, seat, item, kind, quantity, unit cost and price in rupees, comp.
 create function pg_temp.line(p_at text, p_table text, p_seat integer, p_item text, p_kind text, p_quantity integer, p_cost integer, p_price integer,
                              p_comp boolean) returns jsonb language sql as $$
@@ -35,7 +51,8 @@ create temporary table october on commit drop as select jsonb_build_array(
   pg_temp.line('2026-10-14T22:00:00+05:30', 'Table 3', null, 'Beer', 'alcohol', 3, 150, 400, false),
   pg_temp.line('2026-10-14T22:15:00+05:30', 'table 3', 6, 'Club sandwich', 'food', 1, 180, 450, true),
   pg_temp.line('2026-10-14T23:00:00+05:30', 'Bar counter', null, 'Whisky', 'alcohol', 1, 300, 900, false),
-  pg_temp.line('2026-10-15T03:00:00+05:30', 'Table 3', 5, 'Whisky', 'alcohol', 1, 300, 900, true)) as lines;
+  pg_temp.line('2026-10-15T03:00:00+05:30', 'Table 3', 5, 'Whisky', 'alcohol', 1, 300, 900, true),
+  pg_temp.line('2026-10-14T23:30:00+05:30', 'Table 1', null, 'Lime soda', 'soft_drink', 1, 20, 60, false)) as lines;
 grant select on october to authenticated;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
@@ -50,16 +67,18 @@ select is_empty($$ select * from public.glaza_statement('00000000-0000-4000-8000
 select isnt(public.import_glaza_lines('00000000-0000-4000-8000-000000000001', '2026-10-01', (select lines from october)), null,
   'Aditya imports October');
 select results_eq(
-  $$ select l.line_number, l.visit_id from public.glaza_import_line l order by l.line_number $$,
-  $$ values (1, '00000000-0000-4000-8000-0000000f1821'::uuid), (2, null), (3, '00000000-0000-4000-8000-0000000f1822'), (4, null), (5, null) $$,
-  'a line is matched to the visit of the one player at that table and seat then; two at the table with no seat, no table, or nobody seated is not');
+  $$ select l.line_number, l.visit_id from public.glaza_import_line l join public.glaza_import i on i.id = l.import_id and i.month = '2026-10-01'
+     order by l.line_number $$,
+  $$ values (1, '00000000-0000-4000-8000-0000000f1821'::uuid), (2, null), (3, '00000000-0000-4000-8000-0000000f1822'), (4, null), (5, null),
+            (6, '00000000-0000-4000-8000-0000000f1821') $$,
+  'a line is matched to the visit of the one player at that table and seat then, where they sat before a move and after it; two at the table with no seat, no table, or nobody seated is not');
 -- Comps: 2 chai at ₹20, a sandwich at ₹180 and a whisky at ₹300 = ₹520. Alcohol sold: 3 beers at ₹400 and a whisky at
--- ₹900 = ₹2,100, costing ₹750: a margin of ₹1,350, RIVR's half ₹675, so Glaza owes RIVR ₹155.
+-- ₹900 = ₹2,100, costing ₹750: a margin of ₹1,350, RIVR's half ₹675, so Glaza owes RIVR ₹155. The lime soda sold is Glaza's.
 select results_eq(
   $$ select lines, matched, food_comps_paise, soft_drink_comps_paise, alcohol_comps_paise, comps_paise, alcohol_sales_paise, alcohol_cost_paise,
             alcohol_margin_paise, rivr_share_paise, payable_paise
      from public.glaza_statement('00000000-0000-4000-8000-000000000001', '2026-10-01') $$,
-  $$ values (5, 2, 18000::bigint, 4000::bigint, 30000::bigint, 52000::bigint, 210000::bigint, 75000::bigint, 135000::bigint, 67500::bigint, -15500::bigint) $$,
+  $$ values (6, 3, 18000::bigint, 4000::bigint, 30000::bigint, 52000::bigint, 210000::bigint, 75000::bigint, 135000::bigint, 67500::bigint, -15500::bigint) $$,
   'the statement: comps at cost by kind, the alcohol margin split 50:50, and the payable, below nothing when Glaza owes RIVR');
 
 select throws_ok($$ select public.import_glaza_lines('00000000-0000-4000-8000-000000000001', '2026-10-01',
@@ -78,10 +97,16 @@ select results_eq(
   $$ select lines, matched, comps_paise, alcohol_margin_paise, payable_paise from public.glaza_statement('00000000-0000-4000-8000-000000000001', '2026-10-01') $$,
   $$ values (1, 1, 4000::bigint, 0::bigint, 4000::bigint) $$,
   'the statement reads the latest import');
-select is((select count(*)::integer from public.glaza_import), 2, 'and both imports are kept');
+select is((select count(*)::integer from public.glaza_import where month = '2026-10-01'), 2, 'and both imports are kept');
+
+select is_empty($$ select * from public.glaza_import where venue_id = '00000000-0000-4000-8000-0000000000aa' $$,
+  'Aditya sees no other club''s imports');
+select throws_ok($$ select * from public.glaza_statement('00000000-0000-4000-8000-0000000000aa', '2026-10-01') $$, '42501', null,
+  'nor its statement');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is((select count(*)::integer from public.glaza_import_line), 0, 'a cashier sees none of Glaza''s lines');
+select is((select count(*)::integer from public.glaza_import), 0, 'nor its imports');
 
 select * from finish();
 rollback;

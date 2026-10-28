@@ -1,12 +1,13 @@
 -- The Glaza statement (#109; scope-v1 module 13; question #580; decision 0265). Staff who run F&B import a club month of
 -- Glaza's lines from its CSV: each item sold or comped, with its IST time, table, seat when Glaza has it, kind (food,
 -- soft drink or alcohol), quantity, unit cost and unit price. Each line is matched to a visit by table and time: the
--- club's table of that name, and the one seat session there at that time (at that seat, when given); a line with no
--- such table, nobody seated, or more than one player and no seat stays unmatched. The month's statement reads its
+-- club's table of that name, and the one player seated there at that time (at that seat, when given), where they sat
+-- then by their seat moves; a line with no such table, nobody seated, or more than one player and no seat stays
+-- unmatched. The month's statement reads its
 -- latest import, so a corrected file stands in for the first; both are kept. What RIVR comped is owed to Glaza at
 -- cost; the margin on alcohol sold is split 50:50, RIVR's half rounded toward nothing to the paisa; NewCo's payable
--- to Glaza is the comps less RIVR's half (private.glaza_payable, the twin of @rivr/domain glazaPayable on
--- packages/testing/golden/glaza.json).
+-- to Glaza is the comps less RIVR's half (private.glaza_statement_of and private.glaza_payable, the twins of
+-- @rivr/domain glazaStatement and glazaPayable on packages/testing/golden/glaza.json).
 
 -- @rivr/domain glazaPayable: RIVR's half of the alcohol margin, rounded toward nothing, and the comps less that half.
 create function private.glaza_payable(p_comps_paise bigint, p_alcohol_margin_paise bigint, out rivr_share_paise bigint, out payable_paise bigint)
@@ -24,19 +25,49 @@ begin
 end;
 $$;
 
+-- @rivr/domain glazaStatement: a month of Glaza's lines (kind, quantity, unit_cost_paise, unit_price_paise, is_comp) as its
+-- statement. A comped line is owed at cost, by kind; an alcohol line sold is in the alcohol sales at its price and their
+-- cost at its cost; food and soft drinks sold are Glaza's alone. Then glaza_payable on the comps and the margin.
+create function private.glaza_statement_of(p_lines jsonb)
+returns table (food_comps_paise bigint, soft_drink_comps_paise bigint, alcohol_comps_paise bigint, comps_paise bigint, alcohol_sales_paise bigint,
+               alcohol_cost_paise bigint, alcohol_margin_paise bigint, rivr_share_paise bigint, payable_paise bigint)
+language sql
+immutable
+set search_path = ''
+as $$
+  with lines as (
+    select x.kind, x.quantity::bigint as quantity, x.unit_cost_paise, x.unit_price_paise, x.is_comp
+    from jsonb_to_recordset(p_lines) as x (kind text, quantity integer, unit_cost_paise bigint, unit_price_paise bigint, is_comp boolean)
+  ),
+  totals as (
+    select coalesce(sum(quantity * unit_cost_paise) filter (where is_comp and kind = 'food'), 0)::bigint as food,
+           coalesce(sum(quantity * unit_cost_paise) filter (where is_comp and kind = 'soft_drink'), 0)::bigint as soft_drink,
+           coalesce(sum(quantity * unit_cost_paise) filter (where is_comp and kind = 'alcohol'), 0)::bigint as alcohol,
+           coalesce(sum(quantity * unit_price_paise) filter (where not is_comp and kind = 'alcohol'), 0)::bigint as sales,
+           coalesce(sum(quantity * unit_cost_paise) filter (where not is_comp and kind = 'alcohol'), 0)::bigint as cost
+    from lines
+  )
+  select t.food, t.soft_drink, t.alcohol, t.food + t.soft_drink + t.alcohol, t.sales, t.cost, t.sales - t.cost, p.rivr_share_paise, p.payable_paise
+  from totals t cross join lateral private.glaza_payable(t.food + t.soft_drink + t.alcohol, t.sales - t.cost) p;
+$$;
+
 create table public.glaza_import (
   id uuid primary key default gen_random_uuid(),
   venue_id uuid not null references public.venue (id),
   -- The club month (06:00 IST on its 1st to the next month's), as its 1st.
   month date not null check (extract(day from month) = 1),
   imported_by_staff_id uuid not null,
-  created_at timestamptz not null default now(),
+  -- The clock, not the transaction's start: of two imports in one transaction the later is the month's.
+  created_at timestamptz not null default clock_timestamp(),
+  updated_at timestamptz not null default now(),
   unique (id, venue_id),
   foreign key (imported_by_staff_id, venue_id) references public.staff (id, venue_id)
 );
 comment on table public.glaza_import is 'One import of Glaza''s CSV for a club month (#109); the latest is the month''s statement.';
 create index glaza_import_month_idx on public.glaza_import (venue_id, month, created_at desc);
 create index glaza_import_staff_idx on public.glaza_import (imported_by_staff_id, venue_id);
+create trigger glaza_import_touch_updated_at before update on public.glaza_import
+  for each row execute function private.touch_updated_at();
 create trigger glaza_import_audit after insert or update or delete on public.glaza_import
   for each row execute function private.audit_row_change();
 
@@ -58,6 +89,7 @@ create table public.glaza_import_line (
   table_id uuid,
   visit_id uuid references public.visit (id),
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   unique (import_id, line_number),
   foreign key (import_id, venue_id) references public.glaza_import (id, venue_id),
   foreign key (table_id, venue_id) references public.game_table (id, venue_id)
@@ -65,6 +97,8 @@ create table public.glaza_import_line (
 comment on table public.glaza_import_line is 'A line of Glaza''s CSV (#109), matched to a visit by table and time when it can be.';
 create index glaza_import_line_table_idx on public.glaza_import_line (table_id, venue_id);
 create index glaza_import_line_visit_idx on public.glaza_import_line (visit_id);
+create trigger glaza_import_line_touch_updated_at before update on public.glaza_import_line
+  for each row execute function private.touch_updated_at();
 
 alter table public.glaza_import enable row level security;
 alter table public.glaza_import_line enable row level security;
@@ -110,8 +144,15 @@ begin
   left join lateral (
     select (array_agg(x.visit_id))[1] as visit_id
     from public.seat_session x
-    where x.table_id = g.id and x.seated_here_at <= l.sold_at and (x.ended_at is null or x.ended_at > l.sold_at)
-      and (l.seat is null or x.seat = l.seat)
+    -- Where the player sat then: the seat they left by their first move after it, or the one they are in.
+    cross join lateral (
+      select coalesce(m.from_table_id, x.table_id) as table_id, coalesce(m.from_seat, x.seat) as seat
+      from (select 1) one
+      left join lateral (select y.from_table_id, y.from_seat from public.seat_move y where y.session_id = x.id and y.created_at > l.sold_at
+                         order by y.created_at limit 1) m on true
+    ) then_at
+    where x.venue_id = p_venue_id and x.started_at <= l.sold_at and (x.ended_at is null or x.ended_at > l.sold_at)
+      and then_at.table_id = g.id and (l.seat is null or then_at.seat = l.seat)
     having count(*) = 1
   ) s on true;
   if exists (select 1 from public.glaza_import_line x where x.import_id = v_import_id and private.league_month(x.sold_at) <> p_month) then
@@ -148,19 +189,15 @@ begin
     where i.venue_id = p_venue_id and i.month = p_month
     order by i.created_at desc, i.id limit 1
   ),
-  totals as (
+  lines as (
     select count(*)::integer as lines, count(l.visit_id)::integer as matched,
-           coalesce(sum(l.quantity * l.unit_cost_paise) filter (where l.is_comp and l.kind = 'food'), 0)::bigint as food,
-           coalesce(sum(l.quantity * l.unit_cost_paise) filter (where l.is_comp and l.kind = 'soft_drink'), 0)::bigint as soft_drink,
-           coalesce(sum(l.quantity * l.unit_cost_paise) filter (where l.is_comp and l.kind = 'alcohol'), 0)::bigint as alcohol,
-           coalesce(sum(l.quantity * l.unit_price_paise) filter (where not l.is_comp and l.kind = 'alcohol'), 0)::bigint as sales,
-           coalesce(sum(l.quantity * l.unit_cost_paise) filter (where not l.is_comp and l.kind = 'alcohol'), 0)::bigint as cost
+           coalesce(jsonb_agg(jsonb_build_object('kind', l.kind, 'quantity', l.quantity, 'unit_cost_paise', l.unit_cost_paise,
+                                                 'unit_price_paise', l.unit_price_paise, 'is_comp', l.is_comp)), '[]'::jsonb) as items
     from latest join public.glaza_import_line l on l.import_id = latest.id
   )
-  select latest.id, latest.created_at, t.lines, t.matched, t.food, t.soft_drink, t.alcohol, t.food + t.soft_drink + t.alcohol,
-         t.sales, t.cost, t.sales - t.cost, p.rivr_share_paise, p.payable_paise
-  from latest cross join totals t
-  cross join lateral private.glaza_payable(t.food + t.soft_drink + t.alcohol, t.sales - t.cost) p;
+  select latest.id, latest.created_at, t.lines, t.matched, s.food_comps_paise, s.soft_drink_comps_paise, s.alcohol_comps_paise, s.comps_paise,
+         s.alcohol_sales_paise, s.alcohol_cost_paise, s.alcohol_margin_paise, s.rivr_share_paise, s.payable_paise
+  from latest cross join lines t cross join lateral private.glaza_statement_of(t.items) s;
 end;
 $$;
 
@@ -174,7 +211,7 @@ returns table (import_id uuid, imported_at timestamptz, lines integer, matched i
 language sql stable security invoker set search_path = ''
 as $$ select * from private.glaza_statement(p_venue_id, p_month); $$;
 
-revoke execute on function private.glaza_payable(bigint, bigint) from public, anon, authenticated;
+revoke execute on function private.glaza_payable(bigint, bigint), private.glaza_statement_of(jsonb) from public, anon, authenticated;
 revoke execute on function private.import_glaza_lines(uuid, date, jsonb), private.glaza_statement(uuid, date),
   public.import_glaza_lines(uuid, date, jsonb), public.glaza_statement(uuid, date) from public, anon;
 grant execute on function private.import_glaza_lines(uuid, date, jsonb), private.glaza_statement(uuid, date),

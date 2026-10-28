@@ -1313,14 +1313,14 @@ isOneToOne: false
                   ]
                 },"glaza_import": {
                   Row: {
-                    "created_at": string,"id": string,"imported_by_staff_id": string,"month": string,"venue_id": string
+                    "created_at": string,"id": string,"imported_by_staff_id": string,"month": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"imported_by_staff_id": string,"month": string,"venue_id": string
+                    "created_at"?: string,"id"?: string,"imported_by_staff_id": string,"month": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"imported_by_staff_id"?: string,"month"?: string,"venue_id"?: string
+                    "created_at"?: string,"id"?: string,"imported_by_staff_id"?: string,"month"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1339,14 +1339,14 @@ isOneToOne: false
                   ]
                 },"glaza_import_line": {
                   Row: {
-                    "created_at": string,"id": string,"import_id": string,"is_comp": boolean,"item": string,"kind": string,"line_number": number,"quantity": number,"seat": number | null,"sold_at": string,"table_id": string | null,"table_name": string,"unit_cost_paise": number,"unit_price_paise": number,"venue_id": string,"visit_id": string | null
+                    "created_at": string,"id": string,"import_id": string,"is_comp": boolean,"item": string,"kind": string,"line_number": number,"quantity": number,"seat": number | null,"sold_at": string,"table_id": string | null,"table_name": string,"unit_cost_paise": number,"unit_price_paise": number,"updated_at": string,"venue_id": string,"visit_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"import_id": string,"is_comp": boolean,"item": string,"kind": string,"line_number": number,"quantity": number,"seat"?: number | null,"sold_at": string,"table_id"?: string | null,"table_name": string,"unit_cost_paise": number,"unit_price_paise": number,"venue_id": string,"visit_id"?: string | null
+                    "created_at"?: string,"id"?: string,"import_id": string,"is_comp": boolean,"item": string,"kind": string,"line_number": number,"quantity": number,"seat"?: number | null,"sold_at": string,"table_id"?: string | null,"table_name": string,"unit_cost_paise": number,"unit_price_paise": number,"updated_at"?: string,"venue_id": string,"visit_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"import_id"?: string,"is_comp"?: boolean,"item"?: string,"kind"?: string,"line_number"?: number,"quantity"?: number,"seat"?: number | null,"sold_at"?: string,"table_id"?: string | null,"table_name"?: string,"unit_cost_paise"?: number,"unit_price_paise"?: number,"venue_id"?: string,"visit_id"?: string | null
+                    "created_at"?: string,"id"?: string,"import_id"?: string,"is_comp"?: boolean,"item"?: string,"kind"?: string,"line_number"?: number,"quantity"?: number,"seat"?: number | null,"sold_at"?: string,"table_id"?: string | null,"table_name"?: string,"unit_cost_paise"?: number,"unit_price_paise"?: number,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -3039,14 +3039,14 @@ isOneToOne: false
                   ]
                 },"spin": {
                   Row: {
-                    "amount": number,"bonus_grant_id": string | null,"created_at": string,"grant_id": string,"id": string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"venue_id": string
+                    "amount": number,"bonus_grant_id": string | null,"created_at": string,"grant_id": string,"id": string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id": string,"id"?: string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"venue_id": string
+                    "amount": number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id": string,"id"?: string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "amount"?: number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"odds"?: number,"prize_id"?: string,"roll"?: number,"spun_by_staff_id"?: string,"venue_id"?: string
+                    "amount"?: number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"odds"?: number,"prize_id"?: string,"roll"?: number,"spun_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3083,14 +3083,14 @@ isOneToOne: false
                   ]
                 },"spin_wheel": {
                   Row: {
-                    "amount": number,"created_at": string,"id": string,"kind": string,"removed_at": string | null,"venue_id": string,"weight": number
+                    "amount": number,"created_at": string,"id": string,"kind": string,"removed_at": string | null,"updated_at": string,"venue_id": string,"weight": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"created_at"?: string,"id"?: string,"kind": string,"removed_at"?: string | null,"venue_id": string,"weight": number
+                    "amount": number,"created_at"?: string,"id"?: string,"kind": string,"removed_at"?: string | null,"updated_at"?: string,"venue_id": string,"weight": number
                   }
                   Update: {
-                    "amount"?: number,"created_at"?: string,"id"?: string,"kind"?: string,"removed_at"?: string | null,"venue_id"?: string,"weight"?: number
+                    "amount"?: number,"created_at"?: string,"id"?: string,"kind"?: string,"removed_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"weight"?: number
                   }
                   Relationships: [
                     {
@@ -5014,6 +5014,11 @@ isOneToOne: false
 "sop_library":
 { Args: { "p_venue_id": string }; Returns: {
               "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string,"waiting": Json
+            }[]
+                           },
+"spin_prizes":
+{ Args: { "p_venue_id": string }; Returns: {
+              "amount": number,"is_drawable": boolean,"kind": string,"prize_id": string,"weight": number
             }[]
                            },
 "spin_the_wheel":

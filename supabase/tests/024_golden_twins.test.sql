@@ -641,16 +641,34 @@ select results_eq(
 
 -- The Glaza statement: private.glaza_payable and @rivr/domain glazaPayable (packages/testing/golden/glaza.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'glaza.json'), 'the Glaza statement cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'glaza.json' and operation <> 'payable' $$,
+select is_empty($$ select operation from golden.golden_case where file = 'glaza.json' and operation not in ('payable', 'statement') $$,
   'every operation in glaza.json is proved here');
 select results_eq(
   $$ select description, p.rivr_share_paise, p.payable_paise
      from golden.golden_case
      cross join lateral private.glaza_payable(pg_temp.paise(inputs ->> 'comps'), pg_temp.paise(inputs ->> 'alcoholMargin')) p
-     where file = 'glaza.json' order by position $$,
+     where file = 'glaza.json' and operation = 'payable' order by position $$,
   $$ select description, pg_temp.paise(expected ->> 'rivrShare'), pg_temp.paise(expected ->> 'payable')
-     from golden.golden_case where file = 'glaza.json' order by position $$,
-  'private.glaza_payable gives every Glaza statement in the golden file');
+     from golden.golden_case where file = 'glaza.json' and operation = 'payable' order by position $$,
+  'private.glaza_payable gives every Glaza payable in the golden file');
+-- A month's lines such as "2 × soft_drink ₹20 cost ₹60 price comp; 3 × alcohol ₹150 cost ₹400 price".
+create function pg_temp.glaza_lines(p_text text) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_agg(jsonb_build_object('kind', m[2], 'quantity', m[1]::integer, 'unit_cost_paise', pg_temp.paise(m[3]),
+                                               'unit_price_paise', pg_temp.paise(m[4]), 'is_comp', m[5] is not null) order by u.n), '[]'::jsonb)
+  from unnest(string_to_array(p_text, ';')) with ordinality as u (raw, n)
+  cross join lateral regexp_match(btrim(u.raw), '^(\d+) × (food|soft_drink|alcohol) (₹[\d,.]+) cost (₹[\d,.]+) price( comp)?$') m
+  where btrim(u.raw) <> '';
+$$;
+select results_eq(
+  $$ select description, s.food_comps_paise, s.soft_drink_comps_paise, s.alcohol_comps_paise, s.comps_paise, s.alcohol_sales_paise,
+            s.alcohol_cost_paise, s.alcohol_margin_paise, s.rivr_share_paise, s.payable_paise
+     from golden.golden_case cross join lateral private.glaza_statement_of(pg_temp.glaza_lines(inputs ->> 'lines')) s
+     where file = 'glaza.json' and operation = 'statement' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'foodComps'), pg_temp.paise(expected ->> 'softDrinkComps'), pg_temp.paise(expected ->> 'alcoholComps'),
+            pg_temp.paise(expected ->> 'comps'), pg_temp.paise(expected ->> 'alcoholSales'), pg_temp.paise(expected ->> 'alcoholCost'),
+            pg_temp.paise(expected ->> 'alcoholMargin'), pg_temp.paise(expected ->> 'rivrShare'), pg_temp.paise(expected ->> 'payable')
+     from golden.golden_case where file = 'glaza.json' and operation = 'statement' order by position $$,
+  'private.glaza_statement_of gives every Glaza statement in the golden file');
 
 -- Hourly rakeback: private.rake_share summed over the week and private.rakeback_bonus, and
 -- @rivr/domain weekRakeShares and rakebackBonus (packages/testing/golden/rakeback.json).

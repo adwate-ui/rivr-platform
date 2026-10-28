@@ -5,6 +5,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Another club, whose wheel nobody here sees.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000aa', 'RIVR Test', 'test-spin', false, 'RIVR test', 'Test', 'TST');
+insert into public.spin_wheel (venue_id, kind, amount, weight) values ('00000000-0000-4000-8000-0000000000aa', 'points', 500, 1);
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -37,6 +40,9 @@ select pg_temp.give_spin('00000000-0000-4000-8000-000000000214', 'test:183:1') a
        pg_temp.points('00000000-0000-4000-8000-000000000214') as yash_points;
 grant select on grants to authenticated;
 
+-- The wheel starts empty, whatever an earlier flow left on it.
+update public.spin_wheel set removed_at = now() where removed_at is null;
+
 -- A TV at the club showing the spin wheel.
 insert into auth.users (id, instance_id, aud, role, phone) values
   ('00000000-0000-4000-8000-00000000e183', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000001831');
@@ -50,6 +56,8 @@ select throws_ok($$ select public.add_spin_prize('00000000-0000-4000-8000-000000
 select throws_ok($$ select * from public.waiting_spins('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'sees no spins waiting');
 select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select yash from grants)) $$, '42501', null,
   'and spins nothing');
+select throws_ok($$ select * from public.spin_prizes('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'nor reads the wheel');
+select is_empty($$ select * from public.spin_wheel $$, 'whose table shows a cashier nothing');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select set_eq(
@@ -71,6 +79,13 @@ select is(pg_temp.points('00000000-0000-4000-8000-000000000214') - (select yash_
 select isnt((select fulfilled_at from public.promotion_grant where id = (select yash from grants)), null, 'and his spin is used');
 select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select yash from grants)) $$, 'P0002', null,
   'a spin is spun once');
+select is((select count(*)::integer from public.spin where grant_id = (select yash from grants)), 1, 'the floor sees the spin');
+select is_empty($$ select * from public.spin_wheel where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'and no other club''s wheel');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select is_empty($$ select * from public.spin $$, 'a cashier sees no spins');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select results_eq($$ select kind, amount, weight, is_drawable from public.spin_prizes('00000000-0000-4000-8000-000000000001') $$,
+  $$ values ('points'::text, 100::bigint, 1, true) $$, 'the floor reads the wheel, and what can be drawn');
 select ok(pg_temp.signals('spin_wheel') > 0, 'the TVs are told of the spin');
 
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e183');
@@ -87,6 +102,11 @@ select throws_ok($$ select public.remove_spin_prize('00000000-0000-4000-8000-000
 select isnt(public.add_spin_prize('00000000-0000-4000-8000-000000000001', 'bonus', 50000, 1), null, 'and puts a ₹500 bonus on');
 select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select mihir from grants)) $$, 'RVSPN', null,
   'with no spin budget set, a bonus is off the wheel');
+select results_eq($$ select kind, is_drawable from public.spin_prizes('00000000-0000-4000-8000-000000000001') $$,
+  $$ values ('bonus'::text, false) $$, 'and the floor sees it cannot be drawn');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e183');
+select is_empty($$ select * from public.tv_spin_wheel() where row_kind = 'prize' $$, 'the TV shows no prize that cannot be won');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 
 -- A ₹500 budget this month: Mihir wins the bonus, and then it is spent.
 select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
@@ -101,6 +121,16 @@ select results_eq($$ select s.bonus_grant_id, g.bonus_grant_id, b.amount_paise f
   'posted as his bonus, and named on his grant');
 select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select yash_again from grants)) $$, 'RVSPN', null,
   'and once the month''s budget is spent the bonus is off the wheel');
+
+-- With promotions switched off, the wheel neither spins nor changes.
+select set_config('role', 'postgres', true), set_config('request.jwt.claims', '', true);
+insert into public.control_state (venue_id, level, feature, reason)
+values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.add_spin_prize('00000000-0000-4000-8000-000000000001', 'points', 100, 1) $$, 'RVKIL', null,
+  'a prize is not added while promotions are off');
+select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select yash_again from grants)) $$, 'RVKIL', null,
+  'nor a spin spun');
 
 select * from finish();
 rollback;

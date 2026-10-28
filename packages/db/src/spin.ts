@@ -14,12 +14,14 @@ export type SpinPrizeKind = 'points' | 'bonus' | 'nothing';
 const KINDS: readonly SpinPrizeKind[] = ['points', 'bonus', 'nothing'];
 const kindOf = (kind: string): SpinPrizeKind => KINDS.find((each) => each === kind) ?? 'nothing';
 
-/** A prize on the wheel (#150): points, bonus in paise, or nothing (amount 0); and its weight, its odds among the others. */
+/** A prize on the wheel (#150): points, bonus in paise, or nothing (amount 0); its weight, its odds among the others; and
+ * whether it can be drawn now: a bonus only while this month's spin budget covers it. */
 export interface SpinPrize {
   readonly prizeId: string;
   readonly kind: SpinPrizeKind;
   readonly amount: bigint;
   readonly weight: number;
+  readonly isDrawable: boolean;
 }
 
 /** A member's spin not yet spun, from a promotion's spin effect. */
@@ -33,7 +35,7 @@ export interface WaitingSpin {
 /** Why the wheel did not change or spin: the role, out of bounds, already spun or gone, no prize the budget allows, frozen, or anything else. */
 export type SpinFailure = 'not_allowed' | 'invalid' | 'gone' | 'no_prize' | 'paused' | 'unavailable';
 const FAILURE_BY_CODE: Readonly<Record<string, SpinFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', P0002: 'gone', RVSPN: 'no_prize', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', P0002: 'gone', RVSPN: 'no_prize', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused',
 };
 const failureOf = (code: string): SpinFailure => FAILURE_BY_CODE[code] ?? 'unavailable';
 
@@ -44,10 +46,9 @@ export function useSpinWheel(venueId: string) {
     queryKey: keys.wheel(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<SpinPrize[]> => {
-      const { data, error } = await client.from('spin_wheel').select('id, kind, amount, weight').eq('venue_id', venueId).is('removed_at', null)
-        .order('created_at').order('id');
+      const { data, error } = await client.rpc('spin_prizes', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({ prizeId: row.id, kind: kindOf(row.kind), amount: BigInt(row.amount), weight: row.weight }));
+      return data.map((row) => ({ prizeId: row.prize_id, kind: kindOf(row.kind), amount: BigInt(row.amount), weight: row.weight, isDrawable: row.is_drawable }));
     },
   });
 }
@@ -112,7 +113,7 @@ export interface TvSpinWheel {
 // A spin tells the TV at once (useTvSignals); it also asks again every half minute.
 const TV_BOARD_CHECK = 30_000;
 
-/** The paired TV's spin wheel, while it is its mode or in its rotation; empty otherwise. */
+/** The paired TV's spin wheel, while it is its mode or in its rotation; empty otherwise. Only prizes the budget allows come. */
 export function useTvSpinWheel() {
   const { client, userId } = useRivrData();
   return useQuery({
