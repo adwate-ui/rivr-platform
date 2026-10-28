@@ -5091,6 +5091,9 @@ isOneToOne: false
 "record_payout_name_check":
 { Args: { "p_account_id": string,"p_holder_name"?: string,"p_outcome": string }; Returns: undefined
                            },
+"record_social_post_channel":
+{ Args: { "p_channel": string,"p_post_id": string,"p_post_url": string }; Returns: undefined
+                           },
 "record_table_export":
 { Args: { "p_filter": string,"p_format": string,"p_rows": number,"p_venue_id": string,"p_what": string }; Returns: boolean
                            },
@@ -5358,6 +5361,11 @@ isOneToOne: false
                            },
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
+                           },
+"social_post_to_send":
+{ Args: { "p_post_id": string }; Returns: {
+              "caption": string,"channels": (string)[],"image_path": string
+            }[]
                            },
 "sop_acknowledgements":
 { Args: { "p_version_id": string }; Returns: {

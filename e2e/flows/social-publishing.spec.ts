@@ -19,7 +19,7 @@ test.describe('Publishing', () => {
     await page.locator('input[type="file"]').setInputFiles({ name: 'sunday.png', mimeType: 'image/png', buffer: PIXEL });
     await page.getByRole('textbox', { name: 'Caption' }).fill(caption);
     await page.getByRole('button', { name: 'Publish' }).click();
-    await expect(page.getByText('Published. Download the image and caption below for each channel to post.')).toBeVisible();
+    await expect(page.getByText('Published. Connected channels post it by themselves; download the image and caption below for the others.')).toBeVisible();
     const row = page.getByRole('table', { name: 'Posts' }).getByRole('row').filter({ hasText: caption });
     await expect(row).toContainText('Instagram: download and post');
     await expect(row).toContainText('WhatsApp: download and post');
