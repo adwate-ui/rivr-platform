@@ -90,3 +90,8 @@ function readWithdrawal(row: { amount: string; utr: string }): Result<{ amount: 
 - `WEB_PUSH_PUBLIC_KEY`: the club's VAPID public key, public by design (decision 0272). `PUSH_SERVICE_ADDRESS` and `pushSubscriptionSchema`: a browser's push subscription, only at the browsers' own push services.
 - `callTimeCompletedSchema`, `sessionReminderSchema`, `withdrawalSentSchema`, `tournamentStartingSchema`: the payloads the push consumer reads, beside `waitlistCalledSchema` and `promotionOfferedSchema`.
 - `WINNER_CARD_KINDS`, `winnerCardRowSchema`, `winnerCardRowsSchema`, `winnerCardImagesSchema`: the winner cards the nightly job draws, and the images it removes (#155, decision 0273).
+
+## Host queue
+
+- `HOST_CHURN_REASONS`, `hostContactSchema`: a host's call to a lapsed regular, the reason they stopped coming and the offer made as a promotion effect (#165, decision 0276). `HOST_OFFER_BONUS_DAYS` is how long a bonus offered from the queue lasts.
+- `hostLapse`: the `host.lapse` setting, when a regular has lapsed.

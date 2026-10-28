@@ -73,6 +73,9 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000640', '+919000000640', 'Nikhil Batra'),
   -- The Academy lessons flow's own member, who takes a lesson and its quiz (#134).
   ('00000000-0000-4000-8000-000000000641', '+919000000641', 'Vivaan Rao'),
+  -- The Host queue flow's own lapsed regular, and host, who calls her (#165).
+  ('00000000-0000-4000-8000-000000000642', '+919000000642', 'Ritika Bhalla'),
+  ('00000000-0000-4000-8000-000000000643', '+919000000643', 'Sameer Joshi'),
   -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
@@ -105,7 +108,7 @@ on conflict (venue_id, user_id) do nothing;
 insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, 'Floor manager', 'admin', p.phone
 from seed_person_c p
-where p.id = '00000000-0000-4000-8000-000000000191'
+where p.id in ('00000000-0000-4000-8000-000000000191', '00000000-0000-4000-8000-000000000643')
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
@@ -141,7 +144,7 @@ insert into public.member (id, venue_id, user_id, full_name, phone, tier_id)
 select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
        (select t.id from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Member')
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000641', '00000000-0000-4000-8000-000000000639', '00000000-0000-4000-8000-000000000638', '00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000634', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
+where p.id in ('00000000-0000-4000-8000-000000000642', '00000000-0000-4000-8000-000000000641', '00000000-0000-4000-8000-000000000639', '00000000-0000-4000-8000-000000000638', '00000000-0000-4000-8000-000000000630', '00000000-0000-4000-8000-000000000634', '00000000-0000-4000-8000-000000000627', '00000000-0000-4000-8000-000000000290', '00000000-0000-4000-8000-000000000296', '00000000-0000-4000-8000-000000000612',
                '00000000-0000-4000-8000-000000000297', '00000000-0000-4000-8000-000000000299')
 on conflict (id) do nothing;
 

@@ -60,6 +60,7 @@ const RAIL: readonly RailGroup[] = [
     entries: [
       { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.read'] },
       { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] },
+      { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', anyOf: ['members.manage'] },
       { id: 'tiers', label: 'console.rail.items.tiers', href: '/tiers', anyOf: ['tiers.manage'] },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', anyOf: ['feedback.manage'] },
     ],
