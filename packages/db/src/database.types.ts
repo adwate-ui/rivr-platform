@@ -5361,6 +5361,11 @@ isOneToOne: false
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"visit_closed_at": string
             }[]
                            },
+"venue_leads":
+{ Args: { "p_venue_id": string }; Returns: {
+              "channel": string,"first_message": string,"handle": string,"last_message_at": string,"lead_id": string,"member_name": string,"messages": number
+            }[]
+                           },
 "venue_league":
 { Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
               "cash_points": number,"full_name": string,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number

@@ -1,4 +1,4 @@
-import { SOCIAL_CHANNELS, type SocialChannel } from '@rivr/contracts';
+import { INBOX_CHANNELS, SOCIAL_CHANNELS, type InboxChannel, type SocialChannel } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -8,6 +8,7 @@ import { queryKeys } from './queryKeys.ts';
 const keys = {
   wall: (userId: string, venueId: string) => ['user', userId, 'wall-posts', venueId] as const,
   posts: (userId: string, venueId: string) => ['user', userId, 'social-posts', venueId] as const,
+  leads: (userId: string, venueId: string) => ['user', userId, 'leads', venueId] as const,
 };
 
 /** Where a post stands on the social wall. */
@@ -113,6 +114,37 @@ export function usePublishSocialPost(venueId: string) {
       const { data, error } = await client.rpc('publish_social_post', { p_venue_id: venueId, p_caption: post.caption, p_image_path: path, p_channels: [...post.channels] });
       await queryClient.invalidateQueries({ queryKey: keys.posts(userId ?? 'signed-out', venueId) });
       return error ? err(PUBLISH_FAILURE[error.code] ?? 'unavailable') : ok(data);
+    },
+  });
+}
+
+/** A conversation on Instagram, Facebook or WhatsApp (#587), and the member it became, if any. */
+export interface Lead {
+  readonly leadId: string;
+  readonly channel: InboxChannel;
+  readonly handle: string;
+  readonly firstMessage: string;
+  readonly lastMessageAt: string;
+  readonly messages: number;
+  readonly memberName: string | null;
+}
+
+/** The venue's leads, the latest conversation first, for staff who publish marketing. */
+export function useLeads(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.leads(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<Lead[]> => {
+      const { data, error } = await client.rpc('venue_leads', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.flatMap((row) => {
+        const channel = INBOX_CHANNELS.find((known) => known === row.channel);
+        return channel === undefined ? [] : [{
+          leadId: row.lead_id, channel, handle: row.handle, firstMessage: row.first_message, lastMessageAt: row.last_message_at, messages: row.messages,
+          memberName: row.member_name,
+        }];
+      });
     },
   });
 }
