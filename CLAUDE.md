@@ -70,6 +70,7 @@ If it affects money, identity or a rule a player sees: open a `question` issue, 
 
 - Run everything inside WSL, never on the Windows filesystem.
 - The local Supabase stack uses the checkout's port block (root 543xx; a gitignored `.rivr-port-block` overrides it on a machine where 543xx is taken) with Studio, analytics and mail disabled. Start it only for database work and stop it when done.
+- The port blocks sit inside Linux's ephemeral range, so reserve them once per machine (#204): `echo 'net.ipv4.ip_local_reserved_ports = 54300-54999' | sudo tee /etc/sysctl.d/60-rivr-ports.conf && sudo sysctl --system`. CI's e2e job does the same.
 - Never touch `rivr-prod`. Only CI deploys.
 - Regenerate types (`pnpm db:types`) after every migration or the build will lie to you.
 - When compacting, keep the task id, the files changed and the verification command.
