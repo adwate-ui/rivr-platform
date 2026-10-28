@@ -62,6 +62,17 @@ test.beforeAll(async ({ browser }) => {
   await pressEvery(host, `Remove ${BLACK_CARD}`);
 });
 
+/**
+ * Reloads the floor's list until it shows what the member just did: the tap's change reaches the database a moment after
+ * it, and a reload that reads first would show the list as it was until the next minute's refresh.
+ */
+async function untilListShows(host: Page, name: string) {
+  await expect(async () => {
+    await host.reload();
+    await expect(gameList(host, 'NLH 100/200').getByRole('button', { name })).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
+}
+
 test.describe('Waitlist', () => {
   test('a member joins from Home; the floor sees and removes them, then adds them by number', async () => {
     await joinButton(player, 'Table 2').click();
@@ -152,11 +163,9 @@ test.describe('Waitlist', () => {
 
     await player.reload();
     await player.getByRole('button', { name: 'Step away' }).click();
-    await host.reload();
-    await expect(gameList(host, 'NLH 100/200').getByRole('button', { name: `${MEMBER} is back` })).toBeVisible();
+    await untilListShows(host, `${MEMBER} is back`);
     await player.getByRole('button', { name: "I'm back" }).click();
-    await host.reload();
-    await expect(gameList(host, 'NLH 100/200').getByRole('button', { name: `Call ${MEMBER}` })).toBeVisible();
+    await untilListShows(host, `Call ${MEMBER}`);
 
     await pressEvery(player, 'Leave');
   });
