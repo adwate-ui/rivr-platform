@@ -79,14 +79,16 @@ export async function fetchSitePreview(client: RivrClient): Promise<Result<SiteP
   return pageWith(client, frame.value, { slug: first.page_slug, title: first.title, description: first.description }, draft.data);
 }
 
-/** The website around a page: its pages, for the navigation, and whether a venue freeze pauses it. */
+/** The website around a page: its pages, for the navigation, and whether a freeze on the site's own venue pauses it. */
 async function fetchFrame(client: RivrClient) {
   const [pages, status] = await Promise.all([
-    client.from('public_site_page').select('slug, title, description, nav_position'),
-    client.from('public_venue_status').select('is_frozen'),
+    client.from('public_site_page').select('venue_slug, slug, title, description, nav_position'),
+    client.from('public_venue_status').select('venue_slug, is_frozen'),
   ]);
   if (pages.error || status.error) return err('unavailable' as const);
-  return ok({ pages: pages.data, isPaused: status.data.some((row) => row.is_frozen === true) });
+  // Another live venue's freeze, such as one being purged, is not the club's (#609).
+  const own = new Set(pages.data.map((page) => page.venue_slug));
+  return ok({ pages: pages.data, isPaused: status.data.some((row) => row.is_frozen === true && own.has(row.venue_slug)) });
 }
 
 type Frame = Extract<Awaited<ReturnType<typeof fetchFrame>>, { ok: true }>['value'];

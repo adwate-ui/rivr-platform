@@ -20,15 +20,15 @@ function siteClient(pages: unknown[], blocks: unknown[], live: Record<string, { 
 }
 
 const PAGES = [
-  { slug: 'home', title: 'RIVR Poker Club', description: 'A members\' poker club.', nav_position: null },
-  { slug: 'faq', title: 'FAQ', description: null, nav_position: 2 },
-  { slug: 'academy', title: 'RIVR Academy', description: null, nav_position: 1 },
+  { venue_slug: 'rivr-gurugram', slug: 'home', title: 'RIVR Poker Club', description: 'A members\' poker club.', nav_position: null },
+  { venue_slug: 'rivr-gurugram', slug: 'faq', title: 'FAQ', description: null, nav_position: 2 },
+  { venue_slug: 'rivr-gurugram', slug: 'academy', title: 'RIVR Academy', description: null, nav_position: 1 },
 ];
 
 describe('fetchSitePage', () => {
   it('pauses the page during a venue freeze, with no table running', async () => {
     const { client } = siteClient(PAGES, [{ kind: 'games', content: {} }], {
-      public_venue_status: { body: [{ is_frozen: true }] },
+      public_venue_status: { body: [{ venue_slug: 'rivr-gurugram', is_frozen: true }] },
       public_table_status: { body: [{ table_type_code: 'nlh_50_100', table_type_name: 'NLH 50/100', is_open: true, small_blind_paise: 5000,
         big_blind_paise: 10000, buy_in_min_paise: 500000, buy_in_max_paise: 500000, straddle_paise: null }] },
       public_waitlist_length: { body: [] },
@@ -36,6 +36,14 @@ describe('fetchSitePage', () => {
     const page = await fetchSitePage(client, 'home');
     expect(page.ok && page.value?.isPaused).toBe(true);
     expect(page.ok && page.value?.games.map((game) => [game.tablesOpen, game.openSeats])).toEqual([[0, 0]]);
+  });
+
+  it('stays open while another live venue is frozen, such as one being purged', async () => {
+    const { client } = siteClient(PAGES, [], {
+      public_venue_status: { body: [{ venue_slug: 'rivr-gurugram', is_frozen: false }, { venue_slug: 'e2e-purge-room', is_frozen: true }] },
+    });
+    const page = await fetchSitePage(client, 'home');
+    expect(page.ok && page.value?.isPaused).toBe(false);
   });
 
   it('gives a page\'s blocks in order and the website\'s navigation, leaving out a block it cannot read', async () => {
