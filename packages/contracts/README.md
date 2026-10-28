@@ -84,3 +84,9 @@ function readWithdrawal(row: { amount: string; utr: string }): Result<{ amount: 
 - Import another `@rivr` package. Everything depends on this one.
 - Hold business rules or compute money. A schema checks a shape; `@rivr/domain` decides what it means.
 - Accept a JavaScript number as money, anywhere.
+
+## Push and winner cards
+
+- `WEB_PUSH_PUBLIC_KEY`: the club's VAPID public key, public by design (decision 0272). `PUSH_SERVICE_ADDRESS` and `pushSubscriptionSchema`: a browser's push subscription, only at the browsers' own push services.
+- `callTimeCompletedSchema`, `sessionReminderSchema`, `withdrawalSentSchema`, `tournamentStartingSchema`: the payloads the push consumer reads, beside `waitlistCalledSchema` and `promotionOfferedSchema`.
+- `WINNER_CARD_KINDS`, `winnerCardRowSchema`, `winnerCardRowsSchema`, `winnerCardImagesSchema`: the winner cards the nightly job draws, and the images it removes (#155, decision 0273).

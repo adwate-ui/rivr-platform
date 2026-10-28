@@ -225,6 +225,9 @@ max_frequency = "60s"
 919000000635 = "123456"
 919000000636 = "123456"
 919000000637 = "123456"
+919000000638 = "123456"
+919000000639 = "123456"
+919000000640 = "123456"
 919000000288 = "123456"
 919000000290 = "123456"
 919000000113 = "123456"
@@ -414,6 +417,14 @@ verify_jwt = false
 
 # The bank's name for each new UPI payout address (#503); pg_cron calls it with the scheduler's secret.
 [functions.payout-name-check]
+verify_jwt = false
+
+# The push consumer, run by the scheduler with its secret (#139).
+[functions.push]
+verify_jwt = false
+
+# Re-checks each KYC check made in person with the vendor, run by the scheduler with its secret (#259).
+[functions.kyc-recheck]
 verify_jwt = false
 
 # A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.

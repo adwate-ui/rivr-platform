@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@rivr/contracts": "../../../packages/contracts/src/index.ts",
+    "@rivr/adapters": "../../../packages/adapters/src/index.ts",
+    "@rivr/adapters/messages": "../../../packages/adapters/src/messages/index.ts",
+    "@rivr/adapters/web-push": "../../../packages/adapters/src/web-push/index.ts",
+    "@rivr/i18n": "../../../packages/i18n/src/index.ts",
+    "web-push": "npm:web-push@3.6.7",
+    "zod": "npm:zod@^4.6.7"
+  }
+}

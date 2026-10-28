@@ -57,6 +57,7 @@ export {
   type PushChoice,
   type Stake,
 } from './preferences.ts';
+export { usePushSubscriptionActions } from './push.ts';
 export { useCheckInActions, useCheckOutActions, useDoorBoard, type CheckInFailure, type CheckOutFailure, type CheckOutRefusal, type DoorMember } from './visits.ts';
 export { useDoorScan, type DoorScan, type DoorScanFailure, type DoorScanRefusal } from './door.ts';
 export {

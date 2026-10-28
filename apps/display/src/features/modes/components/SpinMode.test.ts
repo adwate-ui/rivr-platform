@@ -17,4 +17,16 @@ describe('the spin wheel board (decision 0266)', () => {
       { id: 'spin-1', place: '', name: 'A member', status: '100 points' },
     ]);
   });
+
+  it('shows a wheel of more prizes than fit a page at a time, numbered through and saying which', () => {
+    const prizes = Array.from({ length: 9 }, (_, index) => ({ kind: 'points' as const, amount: BigInt((index + 1) * 10), weight: 1 }));
+    const [first] = toSpinColumns({ prizes, spins: [] });
+    expect(first?.detail).toBe('Prizes 1 to 6 of 9');
+    expect(first?.places).toHaveLength(6);
+    const [second] = toSpinColumns({ prizes, spins: [] }, 6);
+    expect(second?.detail).toBe('Prizes 7 to 9 of 9');
+    expect(second?.places.map((place) => [place.place, place.name, place.status])).toEqual([
+      ['7', '70 points', '1 in 9'], ['8', '80 points', '1 in 9'], ['9', '90 points', '1 in 9'],
+    ]);
+  });
 });

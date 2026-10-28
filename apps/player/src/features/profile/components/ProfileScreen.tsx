@@ -11,6 +11,7 @@ import { LimitsSection } from './LimitsSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
 import { PrivacySection } from './PrivacySection.tsx';
 import { SignOutSection } from './SignOutSection.tsx';
+import { WinnerCardsSection } from './WinnerCardsSection.tsx';
 
 /**
  * Profile, behind the member's initial (design prompt, "Profile"): the identity check, the games for
@@ -44,6 +45,7 @@ export function ProfileScreen() {
         <GamesSection preferences={preferences.data} />
         <LimitsSection restrictions={restrictions.data} />
         <NotificationsSection preferences={preferences.data} />
+        <WinnerCardsSection />
         <PrivacySection preferences={preferences.data} />
         <AcademySection />
         <EventsSection />

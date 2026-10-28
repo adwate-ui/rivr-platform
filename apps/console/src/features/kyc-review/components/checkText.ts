@@ -15,6 +15,9 @@ const WAIT_COPY: Readonly<Record<KycWaitReason, MessageKey>> = {
   nothing_kept: 'console.kycReview.waitNothingKept',
   no_date_of_birth: 'console.kycReview.waitNoDateOfBirth',
   clash: 'console.kycReview.waitClash',
+  recheck_pan_invalid: 'console.kycReview.waitRecheckPanInvalid',
+  recheck_name_differs: 'console.kycReview.waitRecheckNameDiffers',
+  recheck_date_of_birth_differs: 'console.kycReview.waitRecheckDateOfBirthDiffers',
 };
 
 const METHOD_COPY: Readonly<Record<KycCheck['method'], MessageKey>> = {

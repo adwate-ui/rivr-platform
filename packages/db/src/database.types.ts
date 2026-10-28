@@ -1645,14 +1645,14 @@ isOneToOne: false
                   ]
                 },"kyc_record": {
                   Row: {
-                    "aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"identity_key": string | null,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
+                    "aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"identity_key": string | null,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"pan_recheck": string | null,"pan_rechecked_at": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
+                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"pan_recheck"?: string | null,"pan_rechecked_at"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
                   }
                   Update: {
-                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
+                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"pan_recheck"?: string | null,"pan_rechecked_at"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -2464,6 +2464,26 @@ isOneToOne: false
       columns: ["promotion_id","venue_id"]
 isOneToOne: false
       referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"push_subscription": {
+                  Row: {
+                    "auth": string,"created_at": string,"endpoint": string,"id": string,"member_id": string,"p256dh": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth": string,"created_at"?: string,"endpoint": string,"id"?: string,"member_id": string,"p256dh": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "auth"?: string,"created_at"?: string,"endpoint"?: string,"id"?: string,"member_id"?: string,"p256dh"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_subscription_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
     }
                   ]
@@ -3899,6 +3919,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"winner_card": {
+                  Row: {
+                    "created_at": string,"details": NonNullable<Json>,"id": string,"image_path": string | null,"kind": string,"member_id": string,"prize_paise": number,"shared_at": string | null,"source_id": string,"updated_at": string,"venue_id": string,"won_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"details"?: NonNullable<Json>,"id"?: string,"image_path"?: string | null,"kind": string,"member_id": string,"prize_paise": number,"shared_at"?: string | null,"source_id": string,"updated_at"?: string,"venue_id": string,"won_at": string
+                  }
+                  Update: {
+                    "created_at"?: string,"details"?: NonNullable<Json>,"id"?: string,"image_path"?: string | null,"kind"?: string,"member_id"?: string,"prize_paise"?: number,"shared_at"?: string | null,"source_id"?: string,"updated_at"?: string,"venue_id"?: string,"won_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "winner_card_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"withdrawal_request": {
                   Row: {
                     "amount_paise": number,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"decline_reason": string | null,"hold_transaction_id": string,"id": string,"idempotency_key": string,"member_id": string,"method": string | null,"outcome_transaction_id": string | null,"payout_account_id": string,"payout_attempted_at": string | null,"payout_failure": string | null,"payout_id": string | null,"payout_key": string | null,"status": string,"updated_at": string,"utr": string | null,"venue_id": string
@@ -4285,6 +4325,11 @@ isOneToOne: false
 "claim_high_hand":
 { Args: { "p_category": Database["public"]['Enums']["high_hand_category"],"p_hand_id": string,"p_rank": string,"p_seat": number }; Returns: string
                            },
+"claim_kyc_rechecks":
+{ Args: { "p_with_vendor": boolean }; Returns: {
+              "date_of_birth": string,"full_name": string,"is_practice": boolean,"member_id": string,"pan": string
+            }[]
+                           },
 "claim_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: boolean
                            },
@@ -4484,6 +4529,9 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "created_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
             }[]
+                           },
+"forget_push_subscription":
+{ Args: { "p_endpoint": string }; Returns: undefined
                            },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
@@ -4780,6 +4828,11 @@ isOneToOne: false
               "cash_paise": number,"credit_limit_paise": number,"member_id": string,"points": number
             }[]
                            },
+"my_winner_cards":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "card_id": string,"details": Json,"image_path": string,"is_shared": boolean,"kind": string,"prize_paise": number,"won_at": string
+            }[]
+                           },
 "my_withdrawals":
 { Args: Record<PropertyKey, never>; Returns: {
               "amount_paise": number,"bank_name": string,"decided_at": string,"decline_reason": string,"id": string,"kind": string,"requested_at": string,"status": string,"utr": string
@@ -4896,6 +4949,11 @@ isOneToOne: false
               "deleted_rows": number,"table_name": string
             }[]
                            },
+"push_targets":
+{ Args: { "p_member_id": string,"p_promotion_id"?: string,"p_push_type"?: string,"p_venue_id": string }; Returns: {
+              "auth": string,"endpoint": string,"p256dh": string
+            }[]
+                           },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -4928,6 +4986,9 @@ isOneToOne: false
 "record_kyc_pan":
 { Args: { "p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_vendor_reference": string }; Returns: string
                            },
+"record_kyc_recheck":
+{ Args: { "p_member_id": string,"p_outcome": string }; Returns: undefined
+                           },
 "record_kyc_selfie":
 { Args: { "p_liveness_score": number,"p_member_id": string,"p_same_face_as": string }; Returns: string
                            },
@@ -4942,6 +5003,9 @@ isOneToOne: false
                            },
 "record_wall_posts":
 { Args: { "p_posts": Json,"p_venue_id": string }; Returns: number
+                           },
+"record_winner_card_image":
+{ Args: { "p_card_id": string }; Returns: undefined
                            },
 "record_withdrawal_payout":
 { Args: { "p_failure": string,"p_payout_id": string,"p_payout_key": string,"p_request_id": string,"p_status": string,"p_utr": string }; Returns: string
@@ -4983,6 +5047,9 @@ isOneToOne: false
                            },
 "remove_payout_account":
 { Args: { "p_account_id": string }; Returns: undefined
+                           },
+"remove_push_subscription":
+{ Args: { "p_endpoint": string }; Returns: undefined
                            },
 "remove_shift":
 { Args: { "p_shift_id": string }; Returns: undefined
@@ -5072,6 +5139,9 @@ isOneToOne: false
                            },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
+                           },
+"save_push_subscription":
+{ Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string }; Returns: undefined
                            },
 "save_reward_item":
 { Args: { "p_detail": string,"p_is_live"?: boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_nights"?: number,"p_points"?: number,"p_stock"?: number,"p_stock_was"?: number,"p_venue_id": string }; Returns: string
@@ -5174,6 +5244,9 @@ isOneToOne: false
                            },
 "set_venue_logo":
 { Args: { "p_path": string,"p_venue_id": string }; Returns: undefined
+                           },
+"share_winner_card":
+{ Args: { "p_card_id": string,"p_is_shared": boolean }; Returns: undefined
                            },
 "shareholding_history":
 { Args: { "p_venue_id": string }; Returns: {
@@ -5453,6 +5526,21 @@ isOneToOne: false
 "waitlist_lengths":
 { Args: Record<PropertyKey, never>; Returns: {
               "table_type_id": string,"waiting": number
+            }[]
+                           },
+"winner_card_images_to_remove":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string
+            }[]
+                           },
+"winner_cards_to_draw":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "card_id": string,"details": Json,"kind": string,"player_name": string,"prize_paise": number,"venue_address": string,"venue_id": string,"won_at": string
+            }[]
+                           },
+"winner_cards_to_post":
+{ Args: { "p_venue_id": string }; Returns: {
+              "card_id": string,"details": Json,"image_path": string,"kind": string,"player_name": string,"prize_paise": number,"shared_at": string,"won_at": string
             }[]
                            },
 "withdraw_consent":

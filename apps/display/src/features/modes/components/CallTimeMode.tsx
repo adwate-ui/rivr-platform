@@ -2,20 +2,8 @@ import { useTvCallTimeBoard, type TvCallTimeTable, type TvSeated } from '@rivr/d
 import { formatDuration, t } from '@rivr/i18n';
 import { CALL_TIME_TABLES_SHOWN, Text, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
 import { useEffect, useState } from 'react';
+import { usePage } from './usePage.ts';
 
-// More tables than fit take turns, a page every ten seconds.
-const PAGE_MS = 10_000;
-
-/** Which page of tables shows: the next every ten seconds, round them all. */
-function usePage(pages: number): number {
-  const [turn, setTurn] = useState(0);
-  useEffect(() => {
-    if (pages < 2) return undefined;
-    const timer = setInterval(() => setTurn((current) => current + 1), PAGE_MS);
-    return () => clearInterval(timer);
-  }, [pages]);
-  return pages === 0 ? 0 : turn % pages;
-}
 
 /** The time now, a second at a time: the board counts down between reads. */
 function useNow(): number {
