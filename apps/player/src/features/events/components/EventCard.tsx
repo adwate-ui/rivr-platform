@@ -4,12 +4,12 @@ import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /** One event: its title, kind and time, any details, the seats left, and booking or giving back a seat. */
-export function EventCard({ event, onBooked }: { event: MyClubEvent; onBooked: (title: string) => void }) {
+export function EventCard({ event, onBooked }: { event: MyClubEvent; onBooked: (title: string | null) => void }) {
   const book = useBookClubEvent();
   const [failure, setFailure] = useState<ClubEventFailure | null>(null);
   const change = (isBooking: boolean) => void book.mutateAsync({ eventId: event.eventId, isBooking }).then((done) => {
     setFailure(done.ok ? null : done.error);
-    if (done.ok && isBooking) onBooked(event.title);
+    if (done.ok) onBooked(isBooking ? event.title : null);
   });
   return (
     <Stack gap={2}>

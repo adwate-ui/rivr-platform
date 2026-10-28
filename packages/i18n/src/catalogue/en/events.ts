@@ -45,7 +45,7 @@ export const playerEvents = {
   booked: 'You have a seat.',
   bookedAt: 'You have a seat at {title}.',
   academy: 'Academy batches',
-  academyLine: '{name} · {dates}',
+  academyLine: '{name} · {from} to {to}',
   academyBook: 'Book at the Academy',
   failures: {
     not_allowed: 'Events are not open to you.',

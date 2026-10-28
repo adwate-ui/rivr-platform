@@ -1,12 +1,13 @@
 -- Creators (#163; scope-v1 "Growth"). Each creator has a code; a link carrying ?creator=<code> credits a sign-up to
 -- them, first touch (sign_up_attribution.creator_code, #10). A creator's dashboard counts the members who signed up
 -- with their code and how many finished KYC, came in and bought in, and what they are owed: their commission, in
--- paise, on each member who reached the stage it is paid on. Staff who run promotions keep creators.
+-- paise, on each member who reached the stage it is paid on. Staff who run promotions keep creators. A code has no + or
+-- space: a link's query reads + as a space, so such a code would never match.
 create table public.creator (
   id uuid primary key default gen_random_uuid(),
   venue_id uuid not null references public.venue (id),
   name text not null check (length(btrim(name)) between 1 and 80),
-  code public.attribution_code not null check (code ~ '^[A-Za-z0-9_.+-]{2,32}$'),
+  code public.attribution_code not null check (code ~ '^[A-Za-z0-9_.-]{2,32}$'),
   commission_basis text not null check (commission_basis in ('kyc', 'first_visit', 'first_buy_in')),
   commission_paise bigint not null check (commission_paise >= 0 and commission_paise % 100 = 0),
   created_at timestamptz not null default now(),

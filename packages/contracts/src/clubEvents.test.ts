@@ -14,6 +14,7 @@ describe('a new event and a new creator, as the console takes them', () => {
     const creator = { name: 'Zoya Khan', code: 'ZOYA', basis: 'first_buy_in', commission: '500' };
     expect(newCreatorSchema.parse(creator)).toEqual(creator);
     expect(newCreatorSchema.safeParse({ ...creator, code: 'with space' }).success).toBe(false);
+    expect(newCreatorSchema.safeParse({ ...creator, code: 'ZOYA+1' }).success).toBe(false);
     expect(newCreatorSchema.safeParse({ ...creator, commission: '12.50' }).success).toBe(false);
   });
 });

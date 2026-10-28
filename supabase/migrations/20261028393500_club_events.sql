@@ -53,7 +53,8 @@ create policy "members with events see their club's events" on public.club_event
 create policy "staff who run promotions see the venue's events" on public.club_event
   for select to authenticated using (venue_id in (select private.venues_where('promotions.manage')));
 create policy "members see their own event bookings" on public.club_event_booking
-  for select to authenticated using (member_id = (select private.current_member_id()));
+  for select to authenticated using (member_id = (select private.current_member_id())
+                                     and private.has_feature((select private.current_member_id()), 'events.book'));
 create policy "staff who run promotions see the venue's event bookings" on public.club_event_booking
   for select to authenticated using (venue_id in (select private.venues_where('promotions.manage')));
 

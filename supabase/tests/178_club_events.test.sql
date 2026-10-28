@@ -10,6 +10,16 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
+-- Another venue, made first as its settings take effect when the test begins, with its own admin and member.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e2', 'authenticated', 'authenticated', '919000000998', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e3', 'authenticated', 'authenticated', '919000000997', now(), now());
+insert into public.staff (venue_id, user_id, full_name, job_title, role) values
+  ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e2', 'Elsewhere Admin', 'Floor manager', 'admin');
+insert into public.member (venue_id, user_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e3', 'Elsewhere Member', '+919000000997');
+
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table night as select public.create_club_event('00000000-0000-4000-8000-000000000001', 'pro_night', 'Pro night with Sam', now() + interval '2 days', 2, 'Meet a pro')
   as id;
@@ -37,9 +47,17 @@ select lives_ok($$ select public.book_club_event((select id from night), false) 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000215');
 select lives_ok($$ select public.book_club_event((select id from night), true) $$, 'and Ritika takes it');
 select is((select count(*)::integer from public.club_event_booking), 1, 'she sees only her own booking');
+select is((select title from public.club_event where id = (select id from night)), 'Pro night with Sam', 'and reads the event itself');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select booked, seats from public.venue_club_events('00000000-0000-4000-8000-000000000001') where event_id = (select id from night) $$,
   $$ values (2, 2) $$, 'the floor reads two of two booked');
+select is((select count(*)::integer from public.club_event_booking where event_id = (select id from night)), 2, 'and both bookings');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
+select is_empty($$ select 1 from public.venue_club_events('00000000-0000-4000-8000-000000000001') $$, 'another venue''s admin reads none of them');
+select is_empty($$ select 1 from public.club_event_booking $$, 'nor their bookings');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e3');
+select is_empty($$ select 1 from public.my_club_events() $$, 'another venue''s member sees none of them');
+select throws_ok($$ select public.book_club_event((select id from night), true) $$, '42501', null, 'and books none');
 
 -- Without events in their tier, a member sees and books nothing.
 reset role;

@@ -17,7 +17,7 @@ function AcademyBatches() {
       <Heading level={2}>{t('player.events.academy')}</Heading>
       {open.map((batch) => (
         <Text key={batch.id}>{t('player.events.academyLine', {
-          name: batch.name, dates: `${formatDate(new Date(batch.startsOn))} – ${formatDate(new Date(batch.endsOn))}`,
+          name: batch.name, from: formatDate(new Date(batch.startsOn)), to: formatDate(new Date(batch.endsOn)),
         })}</Text>
       ))}
       <Button variant="secondary" onClick={() => void navigate({ to: '/academy' })}>{t('player.events.academyBook')}</Button>

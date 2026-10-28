@@ -31,6 +31,9 @@ test.describe('Events', () => {
     await member.getByRole('button', { name: `Book ${title}` }).click();
     await expect(member.getByText(`You have a seat at ${title}.`)).toBeVisible();
     await expect(member.getByRole('button', { name: `Give back my seat at ${title}` })).toBeVisible();
+    // The Academy's open batch (seed 30_settings.sql) is listed beside the events, booked at the Academy.
+    await expect(member.getByText(/^Level 1 · /)).toBeVisible();
+    await expect(member.getByRole('button', { name: 'Book at the Academy' })).toBeVisible();
 
     await page.reload();
     await expect(page.getByRole('table', { name: 'Events' }).getByRole('row').filter({ hasText: title })).toContainText('1 of 8');
