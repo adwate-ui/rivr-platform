@@ -65,7 +65,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `returnPathFrom`, `returnSearchFrom`, `ReturnSearch` | The screen a link pointed at, carried through sign-in and sign-up as `?next=`: only a path in the same app (letters, digits, hyphens and slashes), never another site. `returnSearchFrom` is a route's `validateSearch` and always sets `next`, so an outside address is replaced. `@rivr/contracts/returnPath` holds no Zod. |
 | `siteBlockSchema`, `SiteBlock`, `SITE_BLOCK_KINDS`, `PLAYER_DESTINATIONS`, `PlayerDestination` | A website block as `site_block.content` holds it, by kind (`hero`, `statement`, `gallery`, `feature`, `text`, `rules`, `faq`, `careers`, `map`, `links`, and the live `games` and `calendar`, whose rows come from public views); an optional field left blank is not shown. A map's directions go only to a Google Maps page over HTTPS. A block links into the player app only by a named destination (`sign-up`, `academy`, `waitlist`, which is Home), never a raw address. Also at `@rivr/contracts/site`. Media (a hero's loop and still, a statement's, gallery's or feature's picture) is only a path to the website's own files, `/media/<name>.webp` or `.mp4`: never another site, never a path that climbs (decision 0118).; decision 0166 adds `story`, `cards` (linking only to the site's own pages), `marquee`, `timeline`, `table` and the live `promotions`, and a phone and email on `map` |
 
-Feature keys, roles and settings schemas live here too, each documented in its own file.
+Feature keys, roles and settings schemas live here too, each documented in its own file. A setting only a super admin may change carries `superAdminOnly`; a test in `@rivr/db` matches it to the database's guard triggers (#604).
 
 ## Usage
 

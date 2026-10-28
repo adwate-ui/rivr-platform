@@ -34,6 +34,7 @@ async function enrol(page: Page, code: string, enrolledAs: string) {
 
 async function setNetworks(page: Page, networks: string) {
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Areas' }).getByRole('link', { name: 'Club details' }).click();
   await page.getByRole('textbox', { name: 'Cage and admin networks' }).fill(networks);
   await page.getByRole('button', { name: 'Save configuration' }).click();
   await expect(page.getByText('Configuration saved.')).toBeVisible();

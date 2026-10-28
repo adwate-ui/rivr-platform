@@ -1,7 +1,7 @@
 /**
  * Settings (#33; scope-v1 module 2, "weights sit in config so Rahul can tune them without a release").
  * This flow has its own admin (Imran Qureshi), super admin (Leela Menon) and cashier (Tara Bose).
- * - Imran opens Team → Settings, opens the waitlist hold, is told a value past its limits is wrong,
+ * - Imran opens Admin → Settings, opens Seat hold under Floor, is told a value past its limits is wrong,
  *   schedules 12 minutes from tomorrow, and withdraws it. He sees no venue configuration.
  * - Leela sets the alert number in the venue configuration, which survives a reload, uploads the venue's
  *   logo (#397), which is there after a reload, and adds a chip, then takes it out of use (in `finally`, so
@@ -21,12 +21,17 @@ const LOGO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQV
 /** Tomorrow on the club's clock, as a date field takes it. */
 const tomorrow = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(Date.now() + 24 * 3_600_000));
 
-/** Opens Settings and one key from the list. */
-async function openSetting(page: Page, key: string) {
+/** Opens Settings and one setting, by its name, from its area's list. */
+async function openSetting(page: Page, name: string) {
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
-  await page.getByRole('searchbox', { name: 'Find a setting' }).fill(key);
-  await page.getByRole('button', { name: `Open ${key}` }).click();
-  await expect(page.getByRole('heading', { name: key, level: 2 })).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Find a setting' }).fill(name);
+  await page.getByRole('button', { name, exact: true }).click();
+  await expect(page.getByRole('heading', { name, level: 2 })).toBeVisible();
+}
+
+/** Opens one of Settings' areas from its tabs. */
+async function openArea(page: Page, area: string) {
+  await page.getByRole('navigation', { name: 'Areas' }).getByRole('link', { name: area }).click();
 }
 
 test.describe('Settings', () => {
@@ -35,29 +40,31 @@ test.describe('Settings', () => {
     test.setTimeout(120_000);
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000153');
-    await openSetting(admin, 'waitlist.hold_minutes');
+    await openSetting(admin, 'Seat hold');
     // A run stopped part-way may have left its change to come.
     const leftOver = admin.getByRole('button', { name: /^Withdraw the change from/ });
     if (await leftOver.count() > 0) await leftOver.first().click();
     await expect(admin.getByRole('heading', { name: 'Venue configuration' })).toHaveCount(0);
 
     await admin.getByRole('textbox', { name: 'Minutes' }).fill('500');
-    await admin.getByRole('textbox', { name: 'Why' }).fill('Busier nights');
+    await admin.getByRole('textbox', { name: 'Reason' }).fill('Busier nights');
     await admin.getByRole('button', { name: 'Save change' }).click();
-    await expect(admin.getByText('Check this value.')).toBeVisible();
+    await expect(admin.getByRole('textbox', { name: 'Minutes' })).toHaveAttribute('aria-invalid', 'true');
+    await expect(admin.getByText('Between 1 and 120 minutes.')).toBeVisible();
     await admin.getByRole('textbox', { name: 'Minutes' }).fill('12');
     await admin.getByRole('group', { name: 'Takes effect' }).getByRole('button', { name: 'From a later day' }).click();
     await admin.getByLabel('Day').fill(tomorrow());
     await admin.getByRole('button', { name: 'Save change' }).click();
     await expect(admin.getByText('Change saved.')).toBeVisible();
-    await expect(admin.getByText(/^From .*: Minutes: 12$/)).toBeVisible();
+    await expect(admin.getByText(/^From .*: 12 minutes$/)).toBeVisible();
     await admin.getByRole('button', { name: /^Withdraw the change from/ }).click();
     await expect(admin.getByText('Change withdrawn.')).toBeVisible();
-    await expect(admin.getByText(/^From .*: Minutes: 12$/)).toHaveCount(0);
+    await expect(admin.getByText(/^From .*: 12 minutes$/)).toHaveCount(0);
 
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000154');
     await owner.getByRole('link', { name: 'Settings', exact: true }).click();
+    await openArea(owner, 'Club details');
     await owner.getByRole('textbox', { name: 'Alert WhatsApp number' }).fill('98765 43210');
     await owner.getByRole('button', { name: 'Save configuration' }).click();
     await expect(owner.getByText('Configuration saved.')).toBeVisible();
@@ -70,6 +77,7 @@ test.describe('Settings', () => {
     await owner.reload();
     await expect(owner.getByRole('img', { name: 'The venue’s logo' })).toHaveAttribute('src', /\/brand\/.*\/logo-.*\.png$/);
 
+    await openArea(owner, 'Chips');
     // A value no earlier run used: ₹5,00,000 to ₹9,49,950 in ₹50 steps.
     const rupees = 50 * (10_000 + (Date.now() % 9_000));
     const chip = `Test chip ${rupees}`;

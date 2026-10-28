@@ -3,7 +3,7 @@ import { useSettingActions, type SettingEntry, type SettingFailure, type Setting
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { settingFailureText, valueText } from './settingsCopy.ts';
+import { isSuperAdminOnly, settingFailureText, settingHelp, settingName, valueText } from './settingsCopy.ts';
 import { ValueForm } from './ValueForm.tsx';
 
 type Subject = { readonly subject: string; readonly label: string };
@@ -14,11 +14,23 @@ function subjectLabel(setting: VenueSetting, rules: SettingSubjectRules): string
   return role === undefined ? rules.label : t(`console.staff.roles.${role}`);
 }
 
-const since = (entry: SettingEntry) =>
-  entry.effectiveFrom === null ? t('console.settings.sinceOpening') : t('console.settings.since', { date: formatDayTime(new Date(entry.effectiveFrom)) });
+/** When a value began, who set it and why: "Since 20 Oct, 18:00 · by Vikram Rao · Busier nights" (#604). */
+function detailOf(entry: SettingEntry): string {
+  const since = entry.effectiveFrom === null ? t('console.settings.sinceOpening') : t('console.settings.since', { date: formatDayTime(new Date(entry.effectiveFrom)) });
+  const by = entry.createdBy === null ? null : t('console.settings.by', { name: entry.createdBy });
+  return [since, by, entry.reason].filter((part) => part !== null && part !== '').join(t('console.settings.fieldSeparator'));
+}
+
+interface SubjectRulesProps {
+  venueId: string;
+  rules: SettingSubjectRules;
+  describe: (entry: SettingEntry) => string;
+  /** False for a super admin's setting seen by an admin: the changes to come stay. */
+  canWithdraw: boolean;
+}
 
 /** What the setting is for this subject: in force now, the changes to come (each can be withdrawn), and before. */
-function SubjectRules({ venueId, rules, describe }: { venueId: string; rules: SettingSubjectRules; describe: (entry: SettingEntry) => string }) {
+function SubjectRules({ venueId, rules, describe, canWithdraw }: SubjectRulesProps) {
   const { withdraw } = useSettingActions(venueId);
   const [outcome, setOutcome] = useState<SettingFailure | 'withdrawn' | null>(null);
   const take = async (entry: SettingEntry) => {
@@ -29,14 +41,14 @@ function SubjectRules({ venueId, rules, describe }: { venueId: string; rules: Se
     <Stack gap={4}>
       <Heading level={3}>{t('console.settings.inForce')}</Heading>
       {rules.inForce === null ? <Text tone="muted">{t('console.settings.notSet')}</Text>
-        : <Text>{t('console.settings.entry', { value: describe(rules.inForce), since: since(rules.inForce) })}</Text>}
+        : <Text>{t('console.settings.entry', { value: describe(rules.inForce), since: detailOf(rules.inForce) })}</Text>}
       <Heading level={3}>{t('console.settings.toCome')}</Heading>
       {rules.scheduled.length === 0 ? <Text tone="muted">{t('console.settings.noneToCome')}</Text> : rules.scheduled.map((entry) => {
         const from = entry.effectiveFrom === null ? '' : formatDayTime(new Date(entry.effectiveFrom));
         return (
           <Inline key={entry.settingId} gap={4} wrap>
             <Text>{t('console.settings.fromEntry', { date: from, value: describe(entry) })}</Text>
-            <Button variant="text" isLoading={withdraw.isPending} onClick={() => void take(entry)}>{t('console.settings.withdrawFrom', { date: from })}</Button>
+            {canWithdraw ? <Button variant="text" isLoading={withdraw.isPending} onClick={() => void take(entry)}>{t('console.settings.withdrawFrom', { date: from })}</Button> : null}
           </Inline>
         );
       })}
@@ -44,32 +56,56 @@ function SubjectRules({ venueId, rules, describe }: { venueId: string; rules: Se
       {outcome !== null && outcome !== 'withdrawn' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
       <Heading level={3}>{t('console.settings.before')}</Heading>
       {rules.history.length === 0 ? <Text tone="muted">{t('console.settings.noneBefore')}</Text>
-        : rules.history.map((entry) => <Text key={entry.settingId} tone="muted">{t('console.settings.entry', { value: describe(entry), since: since(entry) })}</Text>)}
+        : rules.history.map((entry) => <Text key={entry.settingId} tone="muted">{t('console.settings.entry', { value: describe(entry), since: detailOf(entry) })}</Text>)}
     </Stack>
   );
 }
 
-/** One setting opened from the list: what it is for each subject, and a new value for one. */
-export function SettingPanel({ venueId, setting, tiers, onClose }: { venueId: string; setting: VenueSetting; tiers: readonly Subject[]; onClose: () => void }) {
-  const [subject, setSubject] = useState(setting.subjects[0]?.subject ?? '');
-  const rules = setting.subjects.find((one) => one.subject === subject);
+interface SettingPanelProps {
+  venueId: string;
+  setting: VenueSetting;
+  tiers: readonly Subject[];
+  /** A super admin, who changes the settings only a super admin may. */
+  isSuperAdmin: boolean;
+}
+
+/** The setting's name, what it does, and whether only a super admin changes it. */
+function SettingHeading({ setting }: { setting: VenueSetting }) {
+  return (
+    <Stack gap={2}>
+      <Heading level={2}>{settingName(setting.key)}</Heading>
+      <Text tone="muted">{settingHelp(setting.key, setting.description)}</Text>
+      {isSuperAdminOnly(setting.key) ? <Text variant="small">{t('console.settings.superAdminNote')}</Text> : null}
+    </Stack>
+  );
+}
+
+/** A value as one line, with a tier by its name. */
+function describerFor(setting: VenueSetting, tiers: readonly Subject[]): (entry: SettingEntry) => string {
   const tierName = (id: string) => tiers.find((tier) => tier.subject === id)?.label ?? id;
-  const describe = (entry: SettingEntry) => valueText(setting.fields, entry.value, tierName);
+  return (entry) => valueText(setting.key, setting.fields, entry.value, tierName);
+}
+
+const firstSubject = (setting: VenueSetting) => setting.subjects[0]?.subject ?? '';
+const inForceOf = (rules: SettingSubjectRules | undefined) => rules?.inForce?.value ?? null;
+
+/**
+ * One setting opened from its area (#604): its name and what it does, then for each subject the value now, the changes
+ * to come and before, each with who set it and why, and a new value. A super admin's setting is read-only for others.
+ */
+export function SettingPanel({ venueId, setting, tiers, isSuperAdmin }: SettingPanelProps) {
+  const [subject, setSubject] = useState(() => firstSubject(setting));
+  const rules = setting.subjects.find((one) => one.subject === subject);
+  const describe = describerFor(setting, tiers);
+  const isLocked = isSuperAdminOnly(setting.key) && !isSuperAdmin;
+  // A scoped setting needs its subject first: the database refuses one without.
+  const canChange = !isLocked && (setting.scope === 'venue' || subject !== '');
   return (
     <Stack gap={6}>
-      <Inline gap={4} align="center">
-        <Heading level={2}>{setting.key}</Heading>
-        <Button variant="text" onClick={onClose}>{t('console.settings.close')}</Button>
-      </Inline>
-      <Text tone="muted">{setting.description}</Text>
-      {setting.scope === 'venue' ? null : (
-        <SubjectChoice setting={setting} subject={subject} onChange={setSubject} />
-      )}
-      {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} />}
-      {/* A scoped setting needs its subject first: the database refuses one without. */}
-      {setting.scope !== 'venue' && subject === '' ? null : (
-        <ValueForm key={`${setting.key}:${subject}`} venueId={venueId} setting={setting} subject={subject} inForce={rules?.inForce?.value ?? null} tiers={tiers} />
-      )}
+      <SettingHeading setting={setting} />
+      {setting.scope === 'venue' ? null : <SubjectChoice setting={setting} subject={subject} onChange={setSubject} />}
+      {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} canWithdraw={!isLocked} />}
+      {canChange ? <ValueForm key={`${setting.key}:${subject}`} venueId={venueId} setting={setting} subject={subject} inForce={inForceOf(rules)} tiers={tiers} /> : null}
     </Stack>
   );
 }

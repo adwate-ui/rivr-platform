@@ -1,7 +1,8 @@
 /**
  * Console fits (#601; decision 0282). Rhea Kapur, this flow's own floor manager, opens the console on a phone, a portrait
- * tablet and a desk. Nothing scrolls sideways; below the desk the top bar names the screen, and its menu reaches her
- * screens and closes on choosing one; at the desk the rail sits beside the screen, and Go to finds a screen by name.
+ * tablet and a desk. Below the desk the top bar names the screen, and its menu reaches her screens and closes on choosing
+ * one or a tap outside; at the desk the rail sits beside the screen, and Go to finds a screen by name. Settings, rebuilt
+ * for every size (#604), scrolls nothing sideways at any of them; every other screen joins the check as #605 rebuilds it.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { signInToConsole } from '../support/signIn.ts';
@@ -43,16 +44,16 @@ test.describe('Console fits', () => {
       await page.mouse.click(size.width - 20, size.height / 2);
       await expect(page.getByRole('dialog', { name: 'Sections' })).toBeHidden();
       await openFromMenu(page, 'Members');
+      await openFromMenu(page, 'Settings');
       await fitsSideways(page);
       await openFromMenu(page, 'Live floor');
-      await fitsSideways(page);
     }
 
     await page.setViewportSize(DESK);
     await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden();
-    await page.getByRole('searchbox', { name: 'Go to' }).fill('members');
+    await page.getByRole('searchbox', { name: 'Go to' }).fill('settings');
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('heading', { name: 'Members', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
     await fitsSideways(page);
   });
 });

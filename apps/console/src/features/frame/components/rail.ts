@@ -115,7 +115,6 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.admin',
     entries: [
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
-      { id: 'rake', label: 'console.rail.items.rake', href: '/rake', anyOf: ['settings.manage'] },
       { id: 'tablets', label: 'console.rail.items.tablets', href: '/tablets', anyOf: ['devices.manage'] },
       { id: 'tvs', label: 'console.rail.items.tvs', href: '/tvs', anyOf: ['devices.manage'] },
       { id: 'computers', label: 'console.rail.items.computers', href: '/computers', anyOf: ['devices.manage'] },

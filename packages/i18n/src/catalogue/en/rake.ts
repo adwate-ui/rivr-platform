@@ -1,7 +1,6 @@
-/** The console's Rake screen (#37): each table type's rake now, and changes from a time, for setting managers. */
+/** Each table type's rake in Settings' Rake area (#37, #604): the rule now, and changes from a time, for setting managers. */
 export const rake = {
-  title: 'Rake',
-  notAllowed: 'Your role does not include rake settings. Ask an admin if you need it.',
+  title: 'Rake by table type',
   empty: 'No table types yet.',
   /** A table type's rule: `{rate}` is a percentage, `{cap}` formatted money. */
   rule: '{rate}% of the pot, cap {cap}',

@@ -43,7 +43,10 @@ export function formatRupeesForFile(paise: bigint): string {
   return `${paise < 0n ? '-' : ''}${amount / PAISE_PER_RUPEE}.${(amount % PAISE_PER_RUPEE).toString().padStart(2, '0')}`;
 }
 
-/** Paise as the whole rupees a form's field holds, for a figure being changed: `10000`. Chips are whole ₹50, so nothing is dropped. */
+/** Paise as the rupees a form's field holds, for a figure being changed: `10000`, or `2500.50` with its paise. Nothing is dropped. */
 export function formatRupeesForInput(paise: bigint): string {
-  return String(paise / PAISE_PER_RUPEE);
+  const sign = paise < 0n ? '-' : '';
+  const size = paise < 0n ? -paise : paise;
+  const rest = size % PAISE_PER_RUPEE;
+  return `${sign}${size / PAISE_PER_RUPEE}${rest === 0n ? '' : `.${String(rest).padStart(2, '0')}`}`;
 }

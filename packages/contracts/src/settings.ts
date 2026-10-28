@@ -86,7 +86,7 @@ const jackpotShares = {
 const jackpotPayout = {
   key: 'jackpot.payout',
   description: 'How a bad beat pays, in basis points: the share of the main pool paid, and its split between the loser, the winner and the other players dealt in, which together make 100% (scope-v1 module 8). Only a super admin changes it, with a reason.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   // The database's schema cannot add the split up; pay_bad_beat refuses a rule whose split is not 100%.
   value: z
     .strictObject({
@@ -101,7 +101,7 @@ const jackpotPayout = {
 const highHandPayouts = {
   key: 'high_hand.payouts',
   description: 'What each high hand pays, in paise, in whole ₹50 chips: royal flush, straight flush and four of a kind; 0 pays nothing (scope-v1 module 8). Only a super admin changes it, with a reason.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({
     royal_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
     straight_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
@@ -143,7 +143,7 @@ const waitlistHoldMinutes = {
 const creditConfig = {
   key: 'credit.config',
   description: 'Credit lines: a limit above the approval threshold waits for a super admin; a member needs the minimum visits before any limit; open markers across the room stay within the exposure cap. Paise in whole ₹50 chips (scope-v1 module 5). A raise of the threshold takes effect 24 hours after it is made; a cut, as set.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({
     approval_threshold_paise: z.int().min(0).max(100_000_000).multipleOf(CHIP_PAISE),
     minimum_visits: z.int().min(0).max(100),
@@ -161,7 +161,7 @@ const markersDueDays = {
 const cageSecondApproverThreshold = {
   key: 'cage.second_approver_threshold',
   description: 'Dual control: a withdrawal of this amount or more is paid only once a second approver, a different staff member holding cage.second_approve, has approved it. Paise in whole ₹50 chips (scope-v1 module 5; decision 0063). A raise of the threshold takes effect 24 hours after it is made; a cut, as set.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({ threshold_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE) }),
 } as const satisfies SettingDefinition;
 
@@ -171,7 +171,7 @@ export const TDS_BASES = ['session', 'day', 'financial_year'] as const;
 const tdsConfig = {
   key: 'tds.config',
   description: 'TDS on winnings (scope-v1 module 5, "TDS engine"): the switch (while off, every cash-out still records shadow TDS), the section, the rate in basis points (3000 is 30%), the threshold the period\'s net winnings must exceed, the basis (per session, day or financial year), and whether a PAN must be on record, with the rate for a member without one.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({
     enabled: z.boolean(),
     section: z.string().regex(/^[0-9]{3}[A-Z]{0,2}$/),
@@ -189,7 +189,7 @@ export const GST_BASES = ['rake', 'table_fee'] as const;
 const gstConfig = {
   key: 'gst.config',
   description: 'GST on the club\'s own supply (tech plan item 20; #23, decision 0071): the rate in basis points (1800 is 18%), taken out of what is collected, and the basis it is charged on (the rake or a table fee). Only a super admin changes it, with a reason.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({
     rate_basis_points: z.int().min(0).max(10_000),
     basis: z.enum(GST_BASES),
@@ -233,28 +233,28 @@ const cardQrRotationSeconds = {
 const alertThresholds = {
   key: 'alert.thresholds',
   description: 'Alerting (decision 0191): this many outbox deliveries failing for good within the window alerts the owner. 5 within 60 minutes unless set.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({ failed_deliveries: z.int().min(1).max(1000), window_minutes: z.int().min(5).max(1440) }),
 } as const satisfies SettingDefinition;
 
 const exportsAlertRows = {
   key: 'exports.alert_rows',
   description: 'Console table exports (decision 0190): an export of this many rows or more alerts the owner. 1,000 unless set.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({ rows: z.int().min(1).max(1_000_000) }),
 } as const satisfies SettingDefinition;
 
 const exportsArchiveRecipient = {
   key: 'exports.archive_recipient',
   description: 'The super admin\'s export archive (decision 0232) is encrypted to this age public key: the owner\'s backup key, the one the nightly backups use. No archive is made until it is set.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({ recipient: z.string().regex(/^age1(pq1)?[02-9ac-hj-np-z]{58,4000}$/) }),
 } as const satisfies SettingDefinition;
 
 const cageCashBuyInLimit = {
   key: 'cage.cash_buy_in_limit',
   description: 'AML (decision 0234): the most a member may buy in for cash in one visit and in one club day (06:00 to 06:00 IST); a cash buy-in past either is refused. Paise in whole ₹50 chips; nothing is no limit there.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({
     per_visit_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE),
     per_day_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE),
@@ -264,7 +264,7 @@ const cageCashBuyInLimit = {
 const amlStructuring = {
   key: 'aml.structuring',
   description: 'AML (decision 0234): structuring is this many visits, or club days, within this many days whose cash buy-ins ended within this margin under the limit (1,000 basis points is 10%). 3 in 7 days within 10% unless set.',
-  scope: 'venue',
+  scope: 'venue', superAdminOnly: true,
   value: z.strictObject({ count: z.int().min(2).max(20), window_days: z.int().min(1).max(90), margin_basis_points: z.int().min(1).max(5000) }),
 } as const satisfies SettingDefinition;
 

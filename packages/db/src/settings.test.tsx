@@ -41,7 +41,7 @@ function renderSettings(replies: Record<string, { status?: number; body: unknown
 const KEYS = [
   {
     key: 'call_time.minutes', description: 'Call time', scope: 'table_type',
-    value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 0, maximum: 1440 } } },
+    value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 0, maximum: 1440 } }, required: ['minutes'] },
   },
   {
     key: 'tds.config', description: 'TDS', scope: 'venue',
@@ -75,9 +75,12 @@ describe('settings (#33)', () => {
     const { result } = renderSettings(READS);
     await waitFor(() => expect(result.current.settings.data?.settings).toHaveLength(3));
     expect(result.current.settings.data?.settings.map((setting) => setting.fields)).toEqual([
-      [{ kind: 'integer', name: 'minutes', min: 0, max: 1440, isMoney: false }],
-      [{ kind: 'boolean', name: 'enabled' }, { kind: 'choice', name: 'basis', options: ['session', 'day'] }, { kind: 'text', name: 'section' }],
-      [{ kind: 'tier', name: 'tier_id' }],
+      [{ kind: 'integer', name: 'minutes', min: 0, max: 1440, isMoney: false, isChips: false, isRequired: true }],
+      [
+        { kind: 'boolean', name: 'enabled', isRequired: false }, { kind: 'choice', name: 'basis', options: ['session', 'day'], isRequired: false },
+        { kind: 'text', name: 'section', isRequired: false },
+      ],
+      [{ kind: 'tier', name: 'tier_id', isRequired: false }],
     ]);
     expect(result.current.settings.data?.tiers).toEqual([{ subject: 'tier-1', label: 'Member' }]);
   });

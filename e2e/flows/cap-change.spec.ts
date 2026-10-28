@@ -5,10 +5,11 @@
  * cap from 1 Jan 2099 at 10:00 IST with a reason, sees it under the table type, and withdraws it, so
  * the other flows still find the ₹6,000 cap. Every change to come is withdrawn before and after, so a
  * run that failed halfway leaves nothing behind. That hands before a change keep the old cap is
- * proved in packages/testing/golden/settings.json and supabase/tests/038_rake_change.test.sql.
+ * proved in packages/testing/golden/settings.json and supabase/tests/038_rake_change.test.sql. Rake is in
+ * Settings' Rake area (#604); he opens it by its old address, which leads there.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { isRemoteTarget } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 const SCHEDULED = 'From 1 Jan 2099, 10:00: 5% of the pot, cap ₹7,000';
@@ -18,7 +19,7 @@ function yesterdayInIndia(): string {
   return new Date(Date.now() - 24 * 3_600_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 }
 
-/** Withdraws every change to come on the Rake screen. */
+/** Withdraws every change to come in the Rake area. */
 async function withdrawAll(page: Page) {
   const withdraw = page.getByRole('button', { name: /^Withdraw the change from / });
   while ((await withdraw.count()) > 0) {
@@ -32,7 +33,9 @@ test.describe('Rake', () => {
   test('Cap change: a change from yesterday is refused; a ₹7,000 cap from 1 Jan 2099 is scheduled, shown and withdrawn', async ({ page }) => {
     test.skip(isRemoteTarget(), 'changes a setting, so the local stack only');
     await signInToConsole(page, '9000000115');
-    await page.getByRole('link', { name: 'Rake' }).click();
+    await page.getByRole('link', { name: 'Settings', exact: true }).click();
+    await page.goto(`${appUrl('console')}/rake`);
+    await expect(page.getByRole('navigation', { name: 'Areas' }).getByRole('link', { name: 'Rake and jackpots' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByText('5% of the pot, cap ₹6,000', { exact: true })).toBeVisible();
     await withdrawAll(page);
     try {
