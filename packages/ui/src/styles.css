@@ -38,6 +38,14 @@
     outline: none;
   }
 
+  /* Below 768 px a table's row is a card, and each line names its column first, from the cell's data-label (#603). */
+  [role='cell'][data-label]::before {
+    @variant max-medium {
+      content: attr(data-label);
+      color: var(--rivr-color-content-muted);
+    }
+  }
+
   /* The stream overlay (#125) is drawn over OBS's video: the page behind it shows nothing. */
   html:has([data-stream-overlay]) {
     background-color: transparent;

@@ -110,6 +110,8 @@
   --z-index-toast: var(--rivr-z-toast);
   --breakpoint-phone: 390px;
   --container-phone: var(--rivr-breakpoint-phone);
+  --breakpoint-medium: 768px;
+  --container-medium: var(--rivr-breakpoint-medium);
   --breakpoint-tablet: 1180px;
   --container-tablet: var(--rivr-breakpoint-tablet);
   --breakpoint-console: 1440px;

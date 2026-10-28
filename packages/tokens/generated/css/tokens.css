@@ -93,6 +93,8 @@
   --rivr-viewport-phone-height: 844px;
   --rivr-viewport-tablet-width: 1180px;
   --rivr-viewport-tablet-height: 820px;
+  --rivr-viewport-portrait-width: 768px;
+  --rivr-viewport-portrait-height: 1024px;
   --rivr-viewport-console-width: 1440px;
   --rivr-viewport-console-height: 900px;
   --rivr-viewport-tv-width: 1920px;
@@ -133,6 +135,7 @@
   --rivr-color-chart-2: var(--rivr-color-cream);
   --rivr-size-card: var(--rivr-viewport-card-width); /** The membership card at its widest. */
   --rivr-breakpoint-phone: var(--rivr-viewport-phone-width);
+  --rivr-breakpoint-medium: var(--rivr-viewport-portrait-width);
   --rivr-breakpoint-tablet: var(--rivr-viewport-tablet-width);
   --rivr-breakpoint-console: var(--rivr-viewport-console-width);
   --rivr-breakpoint-tv: var(--rivr-viewport-tv-width);

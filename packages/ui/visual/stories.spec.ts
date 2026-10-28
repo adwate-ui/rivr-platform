@@ -11,6 +11,7 @@ const ORIGIN = 'http://storybook.rivr.test';
 const DEVICE_VIEWPORTS = {
   'viewport-phone': tokens.viewport.phone,
   'viewport-tablet': tokens.viewport.tablet,
+  'viewport-portrait': tokens.viewport.portrait,
   'viewport-console': tokens.viewport.console,
   'viewport-tv': tokens.viewport.tv,
   'viewport-feed': tokens.viewport.feed,

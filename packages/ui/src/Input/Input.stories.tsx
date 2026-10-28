@@ -49,3 +49,12 @@ export const Code: Story = {
 export const CodeWithError: Story = {
   args: { ...Code.args, defaultValue: '482913', error: 'Code expired. Request a new one.' },
 };
+
+/** A number with its unit after it, as Settings shows minutes, days or a percent (#603). */
+export const WithSuffix: Story = {
+  args: { label: 'Seat hold', hint: 'Between 1 and 120 minutes.', suffix: 'minutes', defaultValue: '15' },
+};
+
+export const WithSuffixOnAPhone: Story = { ...WithSuffix, tags: ['viewport-phone'] };
+
+export const WithSuffixOnAPortraitTablet: Story = { ...WithSuffix, tags: ['viewport-portrait'] };

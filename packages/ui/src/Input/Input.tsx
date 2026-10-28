@@ -39,8 +39,10 @@ export interface InputProps extends NativeInputProps {
   error?: string | undefined;
   type?: 'text' | 'tel' | 'email' | 'password' | 'search' | 'url' | 'date';
   variant?: InputVariant;
-  /** Fixed text before the value that is not typed, such as `+91`. Read out with the field. */
+  /** Fixed text before the value that is not typed, such as `+91` or `₹`. Read out with the field. */
   prefix?: string | undefined;
+  /** Fixed text after the value that is not typed, such as `%` or `minutes` (#603). Read out with the field. */
+  suffix?: string | undefined;
   ref?: Ref<HTMLInputElement>;
 }
 
@@ -58,14 +60,14 @@ const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-
 const DIMMED = 'disabled:opacity-disabled';
 const ROW_DIMMED = 'has-disabled:opacity-disabled';
 
-/** A labelled text field with an optional prefix, hint and error message. */
-export function Input({ label, hint, error, type = 'text', variant = 'boxed', prefix, ...native }: InputProps) {
+/** A labelled text field with an optional prefix, suffix, hint and error message. */
+export function Input({ label, hint, error, type = 'text', variant = 'boxed', prefix, suffix, ...native }: InputProps) {
   const id = useId();
-  const describedBy = cx(prefix && `${id}-prefix`, hint && `${id}-hint`, error && `${id}-error`) || undefined;
+  const describedBy = cx(prefix && `${id}-prefix`, suffix && `${id}-suffix`, hint && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <Stack gap={2}>
       <Label htmlFor={id}>{label}</Label>
-      <Field id={id} type={type} variant={variant} prefix={prefix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} />
+      <Field id={id} type={type} variant={variant} prefix={prefix} suffix={suffix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} />
       {hint ? (
         <Text variant="small" tone="muted" id={`${id}-hint`}>
           {hint}
@@ -81,33 +83,39 @@ interface FieldProps {
   type: NonNullable<InputProps['type']>;
   variant: InputVariant;
   prefix: string | undefined;
+  suffix: string | undefined;
   isInvalid: boolean;
   describedBy: string | undefined;
   native: NativeInputProps;
 }
 
-/** The input itself, inside its frame. With a prefix the frame runs under the prefix and the value together. */
-function Field({ id, type, variant, prefix, isInvalid, describedBy, native }: FieldProps) {
+/** Fixed text beside the value: a prefix or a suffix, read with the field. */
+function Adornment({ id, text }: { id: string; text: string }) {
+  return <span id={id} className="text-18 tracking-normal text-content-muted">{text}</span>;
+}
+
+/** The input itself, inside its frame. With a prefix or a suffix the frame runs under them and the value together. */
+function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native }: FieldProps) {
   const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-hairline');
+  const isAdorned = Boolean(prefix) || Boolean(suffix);
   const input = (
     <input
       id={id}
       type={type}
       // With a prefix the input still fills the row's full touch height, so a tap beside the value focuses it.
-      className={prefix ? cx('min-h-touch min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE, DIMMED)}
+      className={isAdorned ? cx('min-h-touch min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE, DIMMED)}
       aria-invalid={isInvalid || undefined}
       aria-describedby={describedBy}
       {...native}
     />
   );
-  if (!prefix) return input;
+  if (!isAdorned) return input;
   return (
-    // data-field-row: the focus ring goes round the whole row, prefix included (styles.css).
+    // data-field-row: the focus ring goes round the whole row, prefix and suffix included (styles.css).
     <div data-field-row className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
-      <span id={`${id}-prefix`} className="text-18 tracking-normal text-content-muted">
-        {prefix}
-      </span>
+      {prefix ? <Adornment id={`${id}-prefix`} text={prefix} /> : null}
       {input}
+      {suffix ? <Adornment id={`${id}-suffix`} text={suffix} /> : null}
     </div>
   );
 }

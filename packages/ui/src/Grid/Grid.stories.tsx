@@ -31,3 +31,12 @@ export const LongText: Story = {
     ],
   },
 };
+
+/** One column below 768 px, as a form's fields stack on a phone (#603). */
+export const StackedOnAPhone: Story = { args: { stackBelow: 'medium' }, tags: ['viewport-phone'] };
+
+/** Side by side again from 768 px, on a tablet held upright. */
+export const OnAPortraitTablet: Story = { args: { stackBelow: 'medium' }, tags: ['viewport-portrait'] };
+
+/** At a desk the columns sit side by side. */
+export const AtADesk: Story = { args: { stackBelow: 'medium' }, tags: ['viewport-console'] };
