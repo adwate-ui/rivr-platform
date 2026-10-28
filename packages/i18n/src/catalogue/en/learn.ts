@@ -4,6 +4,8 @@ export const playerLearn = {
   academy: 'RIVR Academy levels',
   levels: { one: 'Level 1', two: 'Level 2', three: 'Level 3' },
   levelsSoon: 'Lessons and quizzes arrive with the Academy lessons.',
+  /** The books that ship with RIVR (decision 0274). */
+  books: 'Books',
   licensed: 'Licensed titles',
   noTitles: 'No licensed titles yet.',
   by: 'by {author}',

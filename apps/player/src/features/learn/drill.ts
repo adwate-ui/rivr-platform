@@ -40,8 +40,8 @@ function onThePad(principle: Principle): boolean {
   return principle.drillable !== false && rule.kind !== 'classify' && rule.kind !== 'count';
 }
 
-/** Opens an encoding's text as a book, or null when it does not parse. */
-export function openBook(raw: string): Book | null {
+/** Opens an encoding, as its text or as JSON (a built-in book), as a book; null when it does not parse. */
+export function openBook(raw: unknown): Book | null {
   const { payload } = parsePayload(raw);
   if (payload === null) return null;
   return { payload, principles: payload.principles.filter(onThePad), ranges: expandRangeSets(payload.range_sets), hash: hashSource(payload) };

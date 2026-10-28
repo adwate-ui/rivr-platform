@@ -1,5 +1,6 @@
 /**
- * The drill gates: every encoding in `fixtures/`, through all eight.
+ * The drill gates: every encoding in `fixtures/` and `sources/` (the books that ship with RIVR, decision 0274), through
+ * all eight.
  *
  *   pnpm --filter @rivr/drills gates                         every gate, every fixture
  *   pnpm --filter @rivr/drills gates mece lines               two gates
@@ -7,8 +8,8 @@
  *   pnpm --filter @rivr/drills gates --source src_example     one encoding
  *   pnpm --filter @rivr/drills gates --report /tmp/reports    also write the work-list reports
  *
- * Licensed encodings never enter the repository; a super admin uploads them at
- * runtime, where the same validator checks them. `--dir` runs these gates over
+ * A licensed encoding not shipped with RIVR is uploaded by a super admin at
+ * runtime, where the same validator checks it. `--dir` runs these gates over
  * such a file locally without committing it.
  *
  * Exit 0 when every source passes every gate (or its findings are suppressed by
@@ -37,6 +38,11 @@ function folderWriter(dir: string): ReportWriter {
 }
 
 const FIXTURES = join(import.meta.dirname, '..', 'fixtures');
+// The books RIVR ships (decision 0274), gated with the fixtures: by default both folders are one run.
+const SOURCES = join(import.meta.dirname, '..', 'sources');
+
+/** The encodings in these folders, narrowed by `--source`. */
+const loadAll = (dirs: readonly string[], filter: string | null): LoadedSource[] => dirs.flatMap((dir) => loadSources(dir, filter));
 
 /** Every selected gate over one source; the names of the gates it failed. */
 function gateSource(source: LoadedSource, options: GateOptions): string[] {
@@ -54,12 +60,13 @@ function gateSource(source: LoadedSource, options: GateOptions): string[] {
 
 /** Exit code for a full run: 0 when nothing failed. */
 function runAll(options: GateOptions): number {
-    const sources = loadSources(options.dir, options.filter);
+    const dirs = options.dir === FIXTURES ? [FIXTURES, SOURCES] : [options.dir];
+    const sources = loadAll(dirs, options.filter);
     if (sources.length === 0) {
         say(`gates: no encodings in ${options.dir}, nothing to check.`);
         return 0;
     }
-    const known = loadSources(options.dir, null).flatMap((source) => (isParsed(source) ? [source.payload.source.id] : []));
+    const known = loadAll(dirs, null).flatMap((source) => (isParsed(source) ? [source.payload.source.id] : []));
     const stale = staleAllowlistSources(known);
     if (stale.length > 0) {
         say(`STALE ALLOWLIST: no encoding has id ${stale.map((id) => `"${id}"`).join(', ')}.`);
