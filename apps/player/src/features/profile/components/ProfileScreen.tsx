@@ -2,6 +2,7 @@ import { usePreferences, useRestrictions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { AcademySection } from './AcademySection.tsx';
+import { EventsSection } from './EventsSection.tsx';
 import { CardSection } from './CardSection.tsx';
 import { FeedbackSection } from './FeedbackSection.tsx';
 import { GamesSection } from './GamesSection.tsx';
@@ -45,6 +46,7 @@ export function ProfileScreen() {
         <NotificationsSection preferences={preferences.data} />
         <PrivacySection preferences={preferences.data} />
         <AcademySection />
+        <EventsSection />
         <FeedbackSection />
         <SignOutSection />
       </Stack>

@@ -40,6 +40,8 @@ import { shareholders } from './shareholders.ts';
 import { tally } from './tally.ts';
 import { ownerDashboard } from './ownerDashboard.ts';
 import { reports } from './reports.ts';
+import { creators } from './creators.ts';
+import { consoleEvents, playerEvents } from './events.ts';
 import { exportFilters } from './exportFilters.ts';
 import { tds } from './tds.ts';
 import { endOfDay, endOfDayFailures } from './endOfDay.ts';
@@ -49,6 +51,7 @@ import { consoleFnb, playerFnb } from './fnb.ts';
 export const playerApp = {
   tonight,
   fnb: playerFnb,
+  events: playerEvents,
   feedback: playerFeedback,
   promotions: playerPromotions,
   sessions: {
@@ -200,6 +203,8 @@ export const consoleApp = {
   exportFilters,
   tally,
   reports,
+  creators,
+  events: consoleEvents,
   ownerDashboard,
   shareholders,
   endOfDay,

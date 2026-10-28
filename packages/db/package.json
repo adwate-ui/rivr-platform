@@ -13,6 +13,8 @@
     "./shareholding": "./src/shareholding.ts",
     "./tally": "./src/tally.ts",
     "./reports": "./src/reports.ts",
+    "./creators": "./src/creators.ts",
+    "./clubEvents": "./src/clubEvents.ts",
     "./exports": "./src/exports.ts",
     "./roster": "./src/roster.ts",
     "./cctv": "./src/cctv.ts",

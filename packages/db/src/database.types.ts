@@ -569,6 +569,52 @@ isOneToOne: false
       referencedColumns: ["venue_id","value_paise"]
     }
                   ]
+                },"club_event": {
+                  Row: {
+                    "created_at": string,"details": string | null,"id": string,"kind": string,"seats": number,"starts_at": string,"title": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"details"?: string | null,"id"?: string,"kind": string,"seats": number,"starts_at": string,"title": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"details"?: string | null,"id"?: string,"kind"?: string,"seats"?: number,"starts_at"?: string,"title"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "club_event_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"club_event_booking": {
+                  Row: {
+                    "created_at": string,"event_id": string,"id": string,"member_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"event_id": string,"id"?: string,"member_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"event_id"?: string,"id"?: string,"member_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "club_event_booking_event_id_venue_id_fkey"
+      columns: ["event_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "club_event"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "club_event_booking_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"computer_enrolment": {
                   Row: {
                     "claimed_at": string | null,"code_hash": string,"created_at": string,"created_by_staff_id": string | null,"device_id": string,"expires_at": string,"id": string,"updated_at": string,"venue_id": string
@@ -697,6 +743,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "control_state_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"creator": {
+                  Row: {
+                    "code": string,"commission_basis": string,"commission_paise": number,"created_at": string,"id": string,"name": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"commission_basis": string,"commission_paise": number,"created_at"?: string,"id"?: string,"name": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "code"?: string,"commission_basis"?: string,"commission_paise"?: number,"created_at"?: string,"id"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "creator_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -3752,6 +3818,9 @@ isOneToOne: false
 "book_academy_corporate":
 { Args: { "p_batch_id": string,"p_company_gstin"?: string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
                            },
+"book_club_event":
+{ Args: { "p_event_id": string,"p_is_booking": boolean }; Returns: undefined
+                           },
 "bust_tournament_entry":
 { Args: { "p_eliminator_id"?: string,"p_entry_id": string }; Returns: number
                            },
@@ -3895,8 +3964,16 @@ isOneToOne: false
 "create_academy_batch":
 { Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
                            },
+"create_club_event":
+{ Args: { "p_details": string,"p_kind": string,"p_seats": number,"p_starts_at": string,"p_title": string,"p_venue_id": string }; Returns: string
+                           },
 "create_tournament":
 { Args: { "p_is_published": boolean,"p_name": string,"p_starts_at": string,"p_template_id": string }; Returns: string
+                           },
+"creator_dashboard":
+{ Args: { "p_venue_id": string }; Returns: {
+              "bought_in": number,"code": string,"commission_basis": string,"commission_paise": number,"creator_id": string,"kyc_done": number,"name": string,"owed_paise": number,"signed_up": number,"visited": number
+            }[]
                            },
 "credit_lines":
 { Args: { "p_venue_id": string }; Returns: {
@@ -4196,6 +4273,11 @@ isOneToOne: false
 "my_cab":
 { Args: Record<PropertyKey, never>; Returns: {
               "is_eligible": boolean,"minimum_visits": number,"visits": number
+            }[]
+                           },
+"my_club_events":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "details": string,"event_id": string,"is_booked": boolean,"kind": string,"seats": number,"seats_left": number,"starts_at": string,"title": string
             }[]
                            },
 "my_deposits":
@@ -4573,6 +4655,9 @@ isOneToOne: false
 "save_camera":
 { Args: { "p_camera_id"?: string,"p_channel": string,"p_is_active": boolean,"p_is_cage": boolean,"p_name": string,"p_table_id"?: string,"p_venue_id": string }; Returns: string
                            },
+"save_creator":
+{ Args: { "p_basis": string,"p_code": string,"p_commission_paise": number,"p_name": string,"p_venue_id": string }; Returns: string
+                           },
 "save_fnb_item":
 { Args: { "p_is_available": boolean,"p_item_id"?: string,"p_kind": Database["public"]['Enums']["fnb_item_kind"],"p_name": string,"p_position": number,"p_venue_id": string }; Returns: string
                            },
@@ -4872,6 +4957,11 @@ isOneToOne: false
                            },
 "use_tournament_ticket":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_tournament_id": string }; Returns: string
+                           },
+"venue_club_events":
+{ Args: { "p_venue_id": string }; Returns: {
+              "booked": number,"details": string,"event_id": string,"kind": string,"seats": number,"starts_at": string,"title": string
+            }[]
                            },
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
