@@ -108,7 +108,9 @@ select is_empty($$
       -- Reviewed as safe in #131 and #132: an encoding's fingerprint, and the name of a drill spot.
       'source_hash', 'card_key',
       -- Reviewed as safe in #129: a website draft's preview token, which shows only that unpublished draft.
-      'preview_token')
+      'preview_token',
+      -- Reviewed as safe in #627: the ids of the sessions a member hid from their own list.
+      'hidden_sessions')
 $$, 'no column that may hold a secret reaches the export archive unreviewed');
 
 select * from finish();

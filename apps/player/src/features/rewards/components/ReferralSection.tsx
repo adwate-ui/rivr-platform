@@ -1,7 +1,7 @@
 import { attributionSearch } from '@rivr/contracts/attribution';
 import { useFeature } from '@rivr/db';
 import { useMyReferral, type MyReferral } from '@rivr/db/myRewards';
-import { formatMoney, t } from '@rivr/i18n';
+import { formatChips, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Heading, LoadState, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { ShareReferralCard } from './ShareReferralCard.tsx';
@@ -36,7 +36,7 @@ function Referral() {
 }
 
 function howItWorks({ bonus }: MyReferral): string {
-  return bonus === null ? t('memberRewards.referral.how') : t('memberRewards.referral.howAmount', { amount: formatMoney(bonus) });
+  return bonus === null ? t('memberRewards.referral.how') : t('memberRewards.referral.howAmount', { chips: formatChips(bonus) });
 }
 
 /** The member's referral link, copied to paste anywhere. */

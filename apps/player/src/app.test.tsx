@@ -80,7 +80,7 @@ async function memberOpens(path: string, visit: number) {
   signIn();
   localStorage.setItem('rivr-visits', String(visit));
   renderAt(path, clientWithKabir());
-  // A screen loads its module when first opened; Balance's, with its forms, can take CI's runner over a second.
+  // A screen loads its module when first opened, which can take CI's runner over a second.
   await screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
 }
 
@@ -92,7 +92,7 @@ describe('the install offer', () => {
     browserOffersInstall();
     expect(offer()).toBeNull();
     cleanup();
-    await memberOpens('/balance', 2);
+    await memberOpens('/rewards', 2);
     expect(offer()).toBeNull();
   });
 
@@ -136,9 +136,23 @@ describe('the player app', () => {
     signIn();
     renderAt('/');
     await screen.findByRole('heading', { name: 'Tonight' });
-    expect(screen.getByRole('link', { name: 'Balance' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Rewards' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Learn' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Sessions' })).toBeNull();
+  });
+
+  it('has no Balance tab, and its old addresses open Tonight', async () => {
+    signIn();
+    const router = renderAt('/balance/deposit', clientWithKabir());
+    expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
+    expect(router.state.location.pathname).toBe('/');
+    expect(screen.queryByRole('link', { name: 'Balance' })).toBeNull();
+  });
+
+  it.each(['/academy', '/academy/b1', '/academy/b1/invoice'])('sends the Academy’s old address %s to Learn, as the app takes no payments', async (address) => {
+    signIn();
+    const router = renderAt(address, clientWithKabir());
+    await waitFor(() => expect(router.state.location.pathname).toBe('/learn'));
   });
 
   it('shows no Learn screen to someone without access', async () => {
@@ -170,10 +184,10 @@ describe('sign-in', () => {
   });
 
   it('keeps the screen a link pointed at, to open once signed in', async () => {
-    const router = renderAt('/academy?ref=FRIEND1');
+    const router = renderAt('/rewards?ref=FRIEND1');
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(router.state.location.pathname).toBe('/sign-in');
-    expect(router.state.location.search).toEqual({ next: '/academy' });
+    expect(router.state.location.search).toEqual({ next: '/rewards' });
   });
 
   it('never keeps an address outside the app', async () => {
@@ -191,7 +205,7 @@ describe('sign-in', () => {
 
   it('says someone is signed in when opened over a live session, and lets the next person start afresh', async () => {
     signIn();
-    const router = renderAt('/sign-in?next=/academy');
+    const router = renderAt('/sign-in?next=/rewards');
     // Nothing answers at the client's address, so the member's name is not known: it says someone.
     expect(await screen.findByText('Someone is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
@@ -212,11 +226,11 @@ describe('sign-in', () => {
 
   it('names the member signed in, and continues to the screen the link pointed at', async () => {
     signIn();
-    const router = renderAt('/sign-in?next=/academy', clientWithKabir());
+    const router = renderAt('/sign-in?next=/rewards', clientWithKabir());
     expect(await screen.findByText('Kabir Sethi is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Continue as Kabir Sethi' }));
     await screen.findByRole('navigation', { name: 'Main' }, LAZY_SCREEN);
-    expect(router.state.location.pathname).toBe('/academy');
+    expect(router.state.location.pathname).toBe('/rewards');
   });
 
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {

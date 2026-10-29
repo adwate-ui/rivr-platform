@@ -39,8 +39,8 @@ select is((select r.conditions -> 'tier_ids' ->> 0 from public.promotion_rule r 
   (select id::text from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Academy graduate'),
   'the graduate bonus is for the venue''s Academy graduate tier');
 select results_eq($$ select name, detail, runs from public.promotion where id = pg_temp.template('high_hands') $$,
-  $$ values ('High hands'::text, 'Royal flush ₹25,000 · Straight flush ₹10,000 · Four of a kind ₹2,000'::text, 'Every night'::text) $$,
-  'high hands are a card: the floor pays them in chips');
+  $$ values ('High hands'::text, 'Royal flush 25,000 · Straight flush 10,000 · Four of a kind 2,000, in chips'::text, 'Every night'::text) $$,
+  'high hands are a card, in chips and no rupee (#627): the floor pays them in chips');
 select results_eq(
   $$ select p.venue_id::text, count(distinct p.id)::integer, count(r.id)::integer from public.promotion p left join public.promotion_rule r on r.promotion_id = p.id
      where p.template_key is not null group by p.venue_id order by p.venue_id $$,
@@ -71,7 +71,7 @@ select lives_ok($$ select public.approve_promotion(pg_temp.template('high_hands'
 reset role;
 select is((select status from public.promotion where id = pg_temp.template('referral')), 'live', 'the referral runs');
 select is((select payload ->> 'detail' from public.outbox_event where idempotency_key = 'promotion.published:' || pg_temp.template('referral')),
-  '₹1,000 to each side', 'and promotion.published carries its card');
+  '1,000 bonus chips to each side', 'and promotion.published carries its card');
 
 -- Approved, a template runs: ₹1,000 bonus on a referral; a card alone gives nothing.
 select is((select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'referral',

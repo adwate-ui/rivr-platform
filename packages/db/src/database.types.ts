@@ -2153,14 +2153,14 @@ isOneToOne: false
                   ]
                 },"member_preference": {
                   Row: {
-                    "big_blind": number | null,"created_at": string,"games": (string)[],"member_id": string,"name_on_tvs": boolean,"small_blind": number | null,"updated_at": string,"venue_id": string
+                    "big_blind": number | null,"created_at": string,"games": (string)[],"hidden_sessions": (string)[],"member_id": string,"name_on_tvs": boolean,"small_blind": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
+                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4649,6 +4649,9 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"hold_until": string,"seat": number,"table_id": string
             }[]
+                           },
+"hide_my_session":
+{ Args: { "p_session_id": string }; Returns: undefined
                            },
 "high_hands":
 { Args: { "p_venue_id": string }; Returns: {

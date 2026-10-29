@@ -132,11 +132,40 @@ select results_eq(
   'his tournament: first of one, what he paid in, ₹3,000 won and paid');
 reset role;
 
+-- A member hides a session from their own list (#627): Kunal hides his, and the club still has the visit. Arjun hiding
+-- Ishaan's changes only Arjun's list.
+create temp table kunal_session as select id from public.visit
+where member_id = '00000000-0000-4000-8000-000000000216' and opened_at = now() - interval '2 hours';
+grant select on kunal_session to authenticated;
+create temp table ishaan_session as select id from public.visit
+where member_id = '00000000-0000-4000-8000-000000000211' and opened_at = now() - interval '3 hours';
+grant select on ishaan_session to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
+select lives_ok($$ select public.hide_my_session((select id from kunal_session)) $$, 'Kunal hides his session');
+select lives_ok($$ select public.hide_my_session((select id from kunal_session)) $$, 'and hiding it again changes nothing');
+select is((select count(*)::integer from public.my_sessions()), 0, 'his list leaves it out');
+select throws_ok($$ select public.hide_my_session(null) $$, '22023', null, 'hiding nothing is refused');
+reset role;
+select is((select hidden_sessions from public.member_preference where member_id = '00000000-0000-4000-8000-000000000216'),
+  array[(select id from kunal_session)], 'it is on his list once');
+select is((select count(*)::integer from public.visit where id in (select id from kunal_session)), 1, 'and the club keeps the visit');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
+select throws_ok($$ select public.hide_my_session((select id from ishaan_session)) $$, '22023', null,
+  'Arjun cannot hide Ishaan''s session: only one of his own');
+select throws_ok($$ select public.hide_my_session(gen_random_uuid()) $$, '22023', null, 'nor any id that is no session of his');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select is((select count(*)::integer from public.my_sessions()), 1, 'and Ishaan still sees his session');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.hide_my_session((select id from kunal_session)) $$, '42501', null, 'staff have no sessions to hide');
+reset role;
+select is(has_function_privilege('anon', 'public.hide_my_session(uuid)', 'execute'), false, 'nobody signed out hides one');
+
 -- A tier without session history reads none.
 insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode)
 select m.venue_id, m.tier_id, 'sessions.history', false, 'locked' from public.member m where m.id = '00000000-0000-4000-8000-000000000211';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select count(*)::integer from public.my_sessions()), 0, 'without sessions.history in his tier, he reads none');
+select throws_ok($$ select public.hide_my_session((select id from ishaan_session)) $$, '42501', null, 'and hides none (rule 8)');
 reset role;
 
 select is(has_function_privilege('anon', 'public.my_sessions()', 'execute'), false, 'nobody signed out reads sessions');

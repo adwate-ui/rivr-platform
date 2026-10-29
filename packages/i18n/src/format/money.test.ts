@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
+import { formatChips, formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
 
 describe('formatMoney', () => {
   it.each([
@@ -20,6 +20,15 @@ describe('formatMoney', () => {
 
   it('puts a minus sign before the rupee symbol for negatives', () => {
     expect(formatMoney(-100_000n)).toBe('−₹1,000');
+  });
+});
+
+describe('formatChips', () => {
+  it('writes chips as a count with Indian grouping and no rupee symbol, never rounding part of a chip away', () => {
+    expect(formatChips(500_000n)).toBe('5,000');
+    expect(formatChips(12_000_000n)).toBe('1,20,000');
+    expect(formatChips(12_000_050n)).toBe('1,20,000.50');
+    expect(formatChips(-100_000n)).toBe('−1,000');
   });
 });
 

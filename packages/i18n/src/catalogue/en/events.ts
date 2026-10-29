@@ -44,9 +44,6 @@ export const playerEvents = {
   giveBackName: 'Give back my seat at {title}',
   booked: 'You have a seat.',
   bookedAt: 'You have a seat at {title}.',
-  academy: 'Academy batches',
-  academyLine: '{name} · {from} to {to}',
-  academyBook: 'Book at the Academy',
   failures: {
     not_allowed: 'Events are not open to you.',
     invalid: 'That is not possible.',

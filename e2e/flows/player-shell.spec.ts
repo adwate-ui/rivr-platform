@@ -23,7 +23,9 @@ test.describe('Player shell', () => {
 
     await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });
-    for (const tab of ['Home', 'Balance', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
+    for (const tab of ['Home', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
+    // Balance is hidden (#627): the app shows no rupee.
+    await expect(tabs.getByRole('link', { name: 'Balance' })).toHaveCount(0);
     const profile = page.getByRole('link', { name: 'Profile' });
     await expect(profile).toHaveText('R');
     await profile.click();

@@ -1,23 +1,13 @@
-import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
+import { createRoute, redirect } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 import { rootRoute } from './root.tsx';
 
-// Loaded when first opened, so the Academy does not count against the initial JavaScript budget.
-const academy = () => import('../features/academy/index.ts');
+// The Academy's batches, payments and invoices are hidden at the owner's word (29 Oct, #627, decision 0284): the app
+// takes no payments. Their addresses go to Learn; the screens stay in features/academy for when the club wants them back.
+const toLearn = () => {
+  throw redirect({ to: '/learn', replace: true });
+};
 
-/** RIVR Academy: open batches and the member's bookings. */
-export const academyRoute = createRoute({ getParentRoute: () => frameRoute, path: '/academy', component: lazyRouteComponent(academy, 'AcademyScreen') });
-
-/** Paying for one booking by UPI, with its UTR. */
-export const academyPaymentRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: '/academy/$bookingId',
-  component: lazyRouteComponent(academy, 'AcademyPaymentScreen'),
-});
-
-/** A paid booking's invoice, on its own page with no app frame, so printing saves just the invoice (#249). */
-export const academyInvoiceRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/academy/$bookingId/invoice',
-  component: lazyRouteComponent(academy, 'AcademyInvoiceScreen'),
-});
+export const academyRoute = createRoute({ getParentRoute: () => frameRoute, path: '/academy', beforeLoad: toLearn });
+export const academyPaymentRoute = createRoute({ getParentRoute: () => frameRoute, path: '/academy/$bookingId', beforeLoad: toLearn });
+export const academyInvoiceRoute = createRoute({ getParentRoute: () => rootRoute, path: '/academy/$bookingId/invoice', beforeLoad: toLearn });

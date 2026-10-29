@@ -62,7 +62,8 @@ export const memberRewards = {
   referral: {
     title: 'Refer a friend',
     how: 'When a friend signs up from your link and first buys in, you both get a bonus.',
-    howAmount: 'When a friend signs up from your link and first buys in, you each get {amount} of bonus.',
+    /** `{chips}`: a count of bonus chips, `5,000` (#627). */
+    howAmount: 'When a friend signs up from your link and first buys in, you each get {chips} bonus chips.',
     referredOne: 'You have referred 1 friend.',
     referred: 'You have referred {count} friends.',
     copy: 'Copy my link',

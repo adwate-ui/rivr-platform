@@ -15,6 +15,14 @@ export function formatMoney(paise: bigint): string {
   return `${sign}₹${RUPEES.format(amount / PAISE_PER_RUPEE)}${fraction}`;
 }
 
+/**
+ * Formats chips, kept in paise, as a count with no currency (#627): 5,00,000 paise of bonus is `5,000` bonus chips.
+ * The player app shows no rupee. Never rounds: part of a chip shows as `5,000.50`.
+ */
+export function formatChips(paise: bigint): string {
+  return formatMoney(paise).replace('₹', '');
+}
+
 /** Formats a count with Indian grouping and no currency: points `18,420`. */
 export function formatNumber(value: number | bigint): string {
   return RUPEES.format(value);
