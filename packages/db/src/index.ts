@@ -14,7 +14,9 @@ export {
   cellKey, useTierActions, useTierMatrix,
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
 } from './tierMatrix.ts';
-export { useSignUp, type SignUpFailure } from './signUp.ts';
+export {
+  OCCUPATIONS, PLAY_TIMES, useSignedInPhone, useSignUp, type Occupation, type PlayTime, type SignUpDetails, type SignUpFailure,
+} from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { toBase64, useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';

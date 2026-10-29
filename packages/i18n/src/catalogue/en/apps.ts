@@ -29,6 +29,7 @@ import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
 import { rake } from './rake.ts';
 import { playerHouseRules, profile } from './profile.ts';
+import { playerSignUp } from './signUp.ts';
 import { notStaff, staff } from './staff.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
@@ -115,19 +116,7 @@ export const playerApp = {
   },
   profile,
   houseRules: playerHouseRules,
-  /** Joining the club after the first code: the name on the player's Aadhaar. */
-  signUp: {
-    title: 'Your name',
-    intro: 'Your full name as on your Aadhaar. We check it when you verify your identity.',
-    nameLabel: 'Full name as on your Aadhaar',
-    submit: 'Continue',
-    /** Signs out, for someone who signed in with the wrong number. */
-    otherNumber: 'Use another number',
-    nameInvalid: 'Enter your full name in English letters, as on your Aadhaar.',
-    staff: 'Staff join as members at the front desk.',
-    stopped: 'New sign-ups are paused for now. Try again later.',
-    unavailable: 'Sign-up is not available right now. Try again in a few minutes.',
-  },
+  signUp: playerSignUp,
   /** KYC: DigiLocker, or a PAN when DigiLocker fails. Only the masked Aadhaar is ever shown. */
   kyc: {
     title: 'Identity',

@@ -2165,14 +2165,14 @@ isOneToOne: false
                   ]
                 },"member_preference": {
                   Row: {
-                    "big_blind": number | null,"created_at": string,"games": (string)[],"hidden_sessions": (string)[],"member_id": string,"name_on_tvs": boolean,"small_blind": number | null,"updated_at": string,"venue_id": string
+                    "big_blind": number | null,"city": string | null,"created_at": string,"games": (string)[],"hidden_sessions": (string)[],"member_id": string,"name_on_tvs": boolean,"occupation": string | null,"play_times": (string)[],"small_blind": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
+                    "big_blind"?: number | null,"city"?: string | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"occupation"?: string | null,"play_times"?: (string)[],"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "big_blind"?: number | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "big_blind"?: number | null,"city"?: string | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"occupation"?: string | null,"play_times"?: (string)[],"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4356,6 +4356,9 @@ isOneToOne: false
 "begin_kyc_vendor_call":
 { Args: { "p_is_paid": boolean,"p_member_id": string }; Returns: undefined
                            },
+"begin_sign_up_photo":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "begin_withdrawal_payout":
 { Args: { "p_payout_key": string,"p_request_id": string }; Returns: boolean
                            },
@@ -5405,6 +5408,9 @@ isOneToOne: false
                            },
 "set_my_notification":
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
+                           },
+"set_my_sign_up_answers":
+{ Args: { "p_city": string,"p_occupation": string,"p_play_times": (string)[] }; Returns: undefined
                            },
 "set_promotion_live":
 { Args: { "p_is_live": boolean,"p_promotion_id": string }; Returns: undefined
