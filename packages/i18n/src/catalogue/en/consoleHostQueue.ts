@@ -17,10 +17,11 @@ export const consoleHostQueue = {
     bad_experience: 'Unhappy with a visit', playing_elsewhere: 'Playing elsewhere', unreachable: 'Could not reach', other: 'Other',
   },
   kinds: { none: 'No offer', points: 'Points', bonus: 'Bonus', spin: 'A free spin', message: 'A message' },
-  values: { points: 'Points for {name}', bonus: 'Bonus for {name}, in rupees', message: 'Message to {name}' },
+  values: { points: 'Points for {name}', bonus: 'Bonus chips for {name}', message: 'Message to {name}' },
   /** Why an offer cannot be saved yet, under its field. */
-  invalid: { points: 'Type a whole number of points.', bonus: 'Type a bonus in whole ₹50 chips, such as 2000.', message: 'Type a message of up to 500 characters.' },
-  offer: { points: '{points} points', bonus: '{amount} bonus', spin: 'a free spin', message: 'a message', other: 'an offer' },
+  invalid: { points: 'Type a whole number of points.', bonus: 'Type bonus chips in whole 50s, such as 2000.', message: 'Type a message of up to 500 characters.' },
+  /** An offer as the queue names it; a bonus as bonus chips, never rupees (#629). */
+  offer: { points: '{points} points', bonus: '{chips} bonus chips', spin: 'a free spin', message: 'a message', other: 'an offer' },
   failures: {
     not_allowed: 'Only staff who manage members can do this.',
     gone: 'This player has left the queue.',

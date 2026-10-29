@@ -30,7 +30,7 @@ test.describe('Sessions', () => {
     await sahil.getByRole('link', { name: 'Check-in' }).click();
     await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Check out', exact: true }).click();
-    await expect(sahil.getByText('Checked out. Their hours and points are counted.')).toBeVisible();
+    await expect(sahil.getByText('Checked out. Their hours are counted.')).toBeVisible();
 
     const rhea = await browser.newPage();
     await signInToPlayer(rhea, '9000000297', '/sessions');

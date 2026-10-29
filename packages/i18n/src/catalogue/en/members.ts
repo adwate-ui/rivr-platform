@@ -124,7 +124,8 @@ export const members = {
       requests: 'a buy-in, withdrawal or deposit waiting',
       academy: 'an academy booking not paid',
     },
-    forfeit: 'Forfeited to the club: {points} points and {bonus} of bonus.',
+    /** `{bonus}`: bonus chips, `2,000` (#629). */
+    forfeit: 'Forfeited to the club: {points} points and {bonus} bonus chips.',
     nothingToForfeit: 'No points or bonus to forfeit.',
     /** Hotel nights the erasure forfeits, or forfeited (#146): `1.25`. */
     nightsForfeit: 'Hotel nights forfeited to the club: {nights}.',
@@ -133,8 +134,8 @@ export const members = {
     reason: 'Why the member is erased',
     reasonHint: 'Who asked, and how. Never their name, number or a document number.',
     erase: 'Erase personal data',
-    done: 'Erased. Forfeited {points} points and {bonus} of bonus; KYC files removed: {files}.',
-    doneFilesLeft: 'Erased. Forfeited {points} points and {bonus} of bonus. The KYC files are still to remove.',
+    done: 'Erased. Forfeited {points} points and {bonus} bonus chips; KYC files removed: {files}.',
+    doneFilesLeft: 'Erased. Forfeited {points} points and {bonus} bonus chips. The KYC files are still to remove.',
     filesLeft: 'KYC files still to remove: {count}.',
     removeFiles: 'Remove KYC files',
     filesRemoved: 'KYC files removed: {count}.',

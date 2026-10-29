@@ -1,9 +1,9 @@
 -- Check-out at the door (#82, decision 0109): the front desk closes a member's visit, by the card's number
--- or from the room list; the visit's hours are fixed and its points earned (#89); a member still seated is
+-- or from the room list; the visit's hours are fixed, earning no points by play (#89, #629); a member still seated is
 -- sent to the floor or the cage first (question #410); before call time the call-time rule applies, as at
 -- the cage; nothing closes while the member or the venue is frozen. 108 is a host (the front desk); 106
--- Pema a dealer; 103 Aditya an admin; 101 the owner. 213 Mihir and 216 Kunal are members; the seed earns
--- 5 points an hour at 50/100 (Table 1), whose call time is an hour.
+-- Pema a dealer; 103 Aditya an admin; 101 the owner. 213 Mihir and 216 Kunal are members; Table 1 plays 50/100,
+-- whose call time is an hour.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -63,9 +63,9 @@ reset role;
 select set_config('request.jwt.claims', '', true);
 select results_eq($$ select close_reason, closed_at is not null from public.visit where id = '00000000-0000-4000-8000-0000000a8401' $$,
   $$ values ('door'::text, true) $$, 'his visit closes at the door');
-select ok((select sum(e.points) > 0 and sum(e.played_seconds) between 7100 and 7300 from public.points_earning e
+select ok((select sum(e.points) = 0 and sum(e.played_seconds) between 7100 and 7300 from public.points_earning e
            where e.visit_id = '00000000-0000-4000-8000-0000000a8401'),
-  'his two hours are counted and earn him points');
+  'his two hours are counted, and earn him no points: points are given by hand (#629)');
 select is((select count(*)::integer from public.outbox_event where event_type = 'visit.closed' and payload ->> 'visit_id' = '00000000-0000-4000-8000-0000000a8401'), 1,
   'visit.closed is emitted once');
 

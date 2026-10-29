@@ -19,10 +19,10 @@ export const checkIn = {
   noMember: 'No member has that number. Sign them up first.',
   cardNotCurrent: 'That card code has changed. Ask the member to show their card again.',
   cardInvalid: 'No card code. Scan the member\'s card.',
-  /** Check-out at the door (#82): the visit closes, with its hours and points. */
+  /** Check-out at the door (#82): the visit closes, with its hours; points are given by hand (#629). */
   checkOut: 'Check out',
   checkOutMember: 'Check out {name}',
-  checkedOut: 'Checked out. Their hours and points are counted.',
+  checkedOut: 'Checked out. Their hours are counted.',
   notInRoom: 'This member is not checked in, so there is no visit to close.',
   callTimeOwed: 'Call time not complete: {time} short. An admin can let them leave early on the Live floor.',
   stillSeated: 'This member is still seated. The floor ends their seat, or the cage cashes them out, before they check out.',

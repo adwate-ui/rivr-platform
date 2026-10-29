@@ -30,8 +30,9 @@ select results_eq($$ select * from private.rakeback_week('2026-11-02 06:00 +05:3
   $$ values ('2026-10-26 06:00 +05:30'::timestamptz, '2026-11-02 06:00 +05:30'::timestamptz) $$, 'Monday 06:00 IST starts a week');
 select results_eq($$ select * from private.rakeback_week('2026-11-02 05:59 +05:30') $$,
   $$ values ('2026-10-19 06:00 +05:30'::timestamptz, '2026-10-26 06:00 +05:30'::timestamptz) $$, 'and a minute before, the week before still runs');
-select ok(exists (select 1 from cron.job where jobname = 'rakeback-daily' and schedule = '30 0 * * *'),
-  'it runs each day at 06:00 IST (00:30 UTC), so Monday''s run gives the week just ended');
+-- Points by hand only (#629): the daily job is stopped, and the club gives rakeback, if at all, by hand. What it
+-- would give, below, is kept for when the club turns it on again.
+select ok(not exists (select 1 from cron.job where jobname = 'rakeback-daily'), 'no job gives rakeback by itself');
 
 -- Last week: the seats, a move, and the hands with their rake.
 insert into public.visit (id, venue_id, member_id, opened_at)

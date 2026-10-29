@@ -26,8 +26,8 @@ describe('promotion copy (#84)', () => {
   });
 
   it('tells players the most a buy-in bonus gives, and nothing for points', () => {
-    expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus' })).toBe('Up to ₹5,000 a buy-in');
-    expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2000 })).toBe('Up to ₹2,000 a buy-in');
+    expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus' })).toBe('Up to 5,000 bonus chips a buy-in');
+    expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2000 })).toBe('Up to 2,000 bonus chips a buy-in');
     expect(rewardDetail(FLOW_7)).toBeUndefined();
   });
 });

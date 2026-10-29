@@ -8,7 +8,7 @@ import { prizeLabel } from './prizeLabel.ts';
 const KINDS: readonly SpinPrizeKind[] = ['points', 'bonus', 'nothing'];
 const WHOLE = /^\d{1,7}$/;
 
-/** The amount as typed: points as a whole number, a bonus in rupees as paise, nothing as 0; null when it does not read. */
+/** The amount as typed: points as a whole number, bonus chips as paise, nothing as 0; null when it does not read. */
 function amountOf(kind: SpinPrizeKind, text: string): bigint | null {
   if (kind === 'nothing') return 0n;
   if (kind === 'points') return WHOLE.test(text.trim()) ? BigInt(text.trim()) : null;
@@ -16,7 +16,7 @@ function amountOf(kind: SpinPrizeKind, text: string): bigint | null {
   return paise.ok ? paise.value : null;
 }
 
-/** A new prize at the end of the wheel (#150): points, a bonus in whole ₹50 chips, or nothing, and its weight. */
+/** A new prize at the end of the wheel (#150): points, bonus chips in whole 50s (#629), or nothing, and its weight. */
 export function PrizeForm({ venueId }: { venueId: string }) {
   const { add } = useSpinWheelActions(venueId);
   const [kind, setKind] = useState<SpinPrizeKind>('points');

@@ -1,6 +1,6 @@
 import { parseRupees } from '@rivr/domain/money';
 import { HOST_OFFER_BONUS_DAYS, promotionEffectSchema, type PromotionEffect } from '@rivr/contracts';
-import { formatMoney, formatNumber, formatRupeesForInput, t } from '@rivr/i18n';
+import { formatChips, formatNumber, formatRupeesForInput, t } from '@rivr/i18n';
 
 /** The offers a host makes from the queue, each a promotion effect. */
 export const OFFER_KINDS = ['none', 'points', 'bonus', 'spin', 'message'] as const;
@@ -25,10 +25,10 @@ export function offerFrom(kind: OfferKind, value: string): PromotionEffect | nul
   return parsed.success ? parsed.data : undefined;
 }
 
-/** An offer in words: "500 points", "₹2,000 bonus". */
+/** An offer in words: "500 points", "2,000 bonus chips" (#629). */
 export function offerText(offer: PromotionEffect): string {
   if (offer.kind === 'points' && 'points' in offer) return t('console.hostQueue.offer.points', { points: formatNumber(offer.points) });
-  if (offer.kind === 'bonus' && 'amount_paise' in offer) return t('console.hostQueue.offer.bonus', { amount: formatMoney(BigInt(offer.amount_paise)) });
+  if (offer.kind === 'bonus' && 'amount_paise' in offer) return t('console.hostQueue.offer.bonus', { chips: formatChips(BigInt(offer.amount_paise)) });
   if (offer.kind === 'spin') return t('console.hostQueue.offer.spin');
   if (offer.kind === 'message') return t('console.hostQueue.offer.message');
   return t('console.hostQueue.offer.other');
