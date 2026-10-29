@@ -35,5 +35,59 @@ const { title, description } = Astro.props;
         }
       }, LIVE_EVERY_MS);
     </script>
+    <script>
+      // The cookie banner (#616): open while this browser holds no choice. A choice is kept here, never sent anywhere,
+      // and loads what it allows: the embedded map only once maps are allowed.
+      interface CookieChoice { maps: boolean }
+      const CHOICE_KEY = 'rivr.cookies';
+      const banner = document.querySelector<HTMLElement>('[data-cookie-banner]');
+      const mapsBox = banner?.querySelector<HTMLInputElement>('input[name="maps"]') ?? null;
+
+      function storedChoice(): CookieChoice | null {
+        try {
+          const choice: unknown = JSON.parse(localStorage.getItem(CHOICE_KEY) ?? 'null');
+          return typeof choice === 'object' && choice !== null && 'maps' in choice && typeof choice.maps === 'boolean' ? { maps: choice.maps } : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function load(choice: CookieChoice) {
+        if (!choice.maps) return;
+        for (const frame of document.querySelectorAll<HTMLIFrameElement>('[data-consent="maps"] iframe[data-consent-src]')) {
+          frame.src = frame.dataset.consentSrc ?? '';
+          frame.hidden = false;
+          frame.parentElement?.querySelector('[data-consent-ask]')?.remove();
+        }
+      }
+
+      function keep(choice: CookieChoice) {
+        try {
+          localStorage.setItem(CHOICE_KEY, JSON.stringify(choice));
+        } catch {
+          // A browser that keeps nothing asks again on the next page; this page still loads what was allowed.
+        }
+        load(choice);
+        if (banner) banner.hidden = true;
+      }
+
+      const choice = storedChoice();
+      if (choice) load(choice);
+      else if (banner) banner.hidden = false;
+
+      document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        const button = target?.closest<HTMLElement>('[data-consent-choice]');
+        if (button) {
+          const kind = button.dataset.consentChoice;
+          keep({ maps: kind === 'all' || (kind === 'ticked' && mapsBox?.checked === true) });
+        } else if (target?.closest('[data-consent-allow="maps"]')) {
+          keep({ maps: true });
+        } else if (target?.closest('[data-cookie-settings]') && banner) {
+          if (mapsBox) mapsBox.checked = storedChoice()?.maps === true;
+          banner.hidden = false;
+        }
+      });
+    </script>
   </body>
 </html>

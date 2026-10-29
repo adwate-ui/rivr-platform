@@ -30,3 +30,6 @@ export const LongText: Story = {
 
 /** With the club's number and email (decision 0166). */
 export const WithContact: Story = { args: { phone: '+919000000000', email: 'info@rivrpoker.com' } };
+
+/** With a map to embed (#616), before the visitor allows maps: the note and its button in the map's place. */
+export const WithMap: Story = { args: { embedUrl: 'https://www.google.com/maps?q=Glaza%2C%20Gurugram&output=embed' } };

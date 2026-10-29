@@ -39,6 +39,20 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** With the bar above the header (#616): the club's number, WhatsApp and socials, and the member app. */
+export const WithTopBar: Story = {
+  args: {
+    topBar: {
+      links: [
+        { label: '+91 00000 00000', href: 'tel:+910000000000' }, { label: 'WhatsApp', href: 'https://wa.me/910000000000' },
+        { label: 'Instagram', href: 'https://www.instagram.com/rivr.pokerclub/' }, { label: 'YouTube', href: 'https://www.youtube.com/@rivr.pokerclub' },
+      ],
+      app: { label: 'Member app', href: '#app' },
+    },
+    action: { label: 'Reserve a seat', href: 'https://wa.me/910000000000' },
+  },
+};
+
 export const Empty: Story = { args: { links: [], footer: undefined, children: hero('Tournaments', 'No tournaments scheduled.') } };
 
 export const LongText: Story = {

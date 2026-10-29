@@ -1,11 +1,11 @@
 import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { t } from '@rivr/i18n';
+import { t, type MessageKey } from '@rivr/i18n';
 import {
-  CalendarBlock, CardsBlock, CareersBlock, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock, MarqueeBlock,
-  PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone,
+  CalendarBlock, CardsBlock, CareersBlock, CookieBanner, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock,
+  MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone,
 } from '@rivr/ui';
-import { playerHref, siteHref } from '../links.ts';
+import { CLUB_CONTACT, playerHref, siteHref, whatsappHref } from '../links.ts';
 
 interface SitePageProps {
   page: SitePageData;
@@ -39,7 +39,9 @@ function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq
       return <CareersBlock heading={block.content.heading} roles={block.content.roles} apply={block.content.apply} />;
     case 'map': {
       const { heading, address, hours, directionsUrl, phone, email } = block.content;
-      return <MapBlock heading={heading} address={address} hours={hours} directionsUrl={directionsUrl} phone={phone} email={email} />;
+      // Google's embed of the address needs no key; it loads only once the visitor allows maps (#616).
+      const embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+      return <MapBlock heading={heading} address={address} hours={hours} directionsUrl={directionsUrl} embedUrl={embedUrl} phone={phone} email={email} />;
     }
   }
 }
@@ -131,37 +133,103 @@ function Block({ block, page, link, pageLink }: { block: SiteBlock; page: SitePa
   return <InfoBlock block={block} />;
 }
 
-// The pages the footer links to, as grandpokerarena.com's lists its policies (decision 0166).
-const FOOTER_PAGES = [
-  { slug: 'house-rules', label: 'web.footer.houseRules' }, { slug: 'questions', label: 'web.footer.questions' },
-  { slug: 'responsible-play', label: 'web.footer.responsiblePlay' }, { slug: 'privacy', label: 'web.footer.privacy' },
-  { slug: 'terms', label: 'web.footer.terms' },
-] as const;
+/** A link to a page of the website, or to one of its bands by the band's anchor. */
+interface SiteLink {
+  readonly label: MessageKey;
+  readonly page: string;
+  readonly anchor?: string;
+}
 
-/** The footer every page carries: where the club is, its policies, how to reach it, and its 18+ line (#441). */
-export function Footer({ attribution }: { attribution: Attribution | null }) {
-  const links = [
-    ...FOOTER_PAGES.map((page) => ({ label: t(page.label), href: siteHref(page.slug, attribution) })),
-    { label: t('web.footer.instagram'), href: 'https://www.instagram.com/rivr.pokerclub/' },
-    { label: t('web.footer.email'), href: 'mailto:info@rivrpoker.com' },
+// The header's menu in grandpokerarena.com's order (#616, decision 0283): pages, and the front page's bands by their
+// anchors. RIVR Academy stays out of it until the Academy is ready.
+const MENU: readonly SiteLink[] = [
+  { label: 'web.menu.club', page: 'about' }, { label: 'web.menu.room', page: 'home', anchor: 'the-room' },
+  { label: 'web.menu.games', page: 'home', anchor: 'games' }, { label: 'web.menu.membership', page: 'membership' },
+  { label: 'web.menu.leaderboard', page: 'leaderboard' }, { label: 'web.menu.whatsOn', page: 'tournaments' },
+  { label: 'web.menu.prizes', page: 'promotions' }, { label: 'web.menu.journal', page: 'journal' },
+  { label: 'web.menu.visit', page: 'visit' },
+];
+
+// The footer's columns, as grandpokerarena.com's has them (#616); its policies as decision 0166 listed them.
+const FOOTER_CLUB: readonly SiteLink[] = [
+  { label: 'web.footer.story', page: 'about' }, { label: 'web.footer.room', page: 'home', anchor: 'the-room' },
+  { label: 'web.footer.membership', page: 'membership' }, { label: 'web.footer.standard', page: 'home', anchor: 'the-standard' },
+];
+const FOOTER_PLAY: readonly SiteLink[] = [
+  { label: 'web.footer.games', page: 'home', anchor: 'games' }, { label: 'web.footer.leaderboard', page: 'leaderboard' },
+  { label: 'web.footer.tournaments', page: 'tournaments' }, { label: 'web.footer.promotions', page: 'promotions' },
+];
+const FOOTER_POLICIES: readonly SiteLink[] = [
+  { label: 'web.footer.houseRules', page: 'house-rules' }, { label: 'web.footer.legal', page: 'about', anchor: 'legal-and-compliance' },
+  { label: 'web.footer.responsiblePlay', page: 'responsible-play' }, { label: 'web.footer.questions', page: 'questions' },
+  { label: 'web.footer.privacy', page: 'privacy' }, { label: 'web.footer.terms', page: 'terms' },
+];
+
+/** The footer every page carries: where the club is, its columns of links, the helplines, its 18+ line and copyright (#441, #616). */
+export function Footer({ attribution, playerUrl }: { attribution: Attribution | null; playerUrl: string }) {
+  const links = (column: readonly SiteLink[]) => column.map((link) => ({ label: t(link.label), href: siteHref(link.page, attribution, link.anchor) }));
+  const columns = [
+    { heading: t('web.footer.club'), links: links(FOOTER_CLUB) },
+    { heading: t('web.footer.play'), links: [...links(FOOTER_PLAY), { label: t('web.footer.app'), href: playerHref(playerUrl, 'waitlist', attribution) }] },
+    { heading: t('web.footer.policies'), links: links(FOOTER_POLICIES) },
+    { heading: t('web.footer.helplines'), links: [{ label: t('web.footer.teleManas'), href: 'tel:14416' }, { label: t('web.footer.iCall'), href: 'tel:+919152987821' }] },
   ];
-  return <WebFooter address={t('web.footer.address')} notice={t('web.footer.notice')} links={links} />;
+  return (
+    <WebFooter address={t('web.footer.address')} notice={t('web.footer.notice')} columns={columns} copyright={t('web.footer.copyright')}
+      cookieSettings={t('web.footer.cookieSettings')} />
+  );
+}
+
+/** The bar above the header: the club's number, WhatsApp and socials, and the member app (#616). */
+function topBar(playerUrl: string, attribution: Attribution | null) {
+  return {
+    links: [
+      { label: t('web.top.phone'), href: `tel:${CLUB_CONTACT.phone}` }, { label: t('web.top.whatsapp'), href: whatsappHref() },
+      { label: t('web.top.instagram'), href: CLUB_CONTACT.instagram }, { label: t('web.top.youtube'), href: CLUB_CONTACT.youtube },
+      { label: t('web.top.email'), href: `mailto:${CLUB_CONTACT.email}` },
+    ],
+    app: { label: t('web.top.app'), href: playerHref(playerUrl, 'waitlist', attribution) },
+  };
+}
+
+/** `The room` as an anchor: `the-room`. */
+function anchorFrom(words: string): string {
+  return words.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/**
+ * Each block's anchor (#616): from its eyebrow, or its kind for one without, so the menu can lead to the front page's
+ * The room or Games. The first block to claim an anchor has it.
+ */
+function anchorsOf(blocks: readonly SiteBlock[]): (string | undefined)[] {
+  const taken = new Set<string>();
+  return blocks.map((block) => {
+    const eyebrow = 'eyebrow' in block.content ? block.content.eyebrow : undefined;
+    const anchor = anchorFrom(eyebrow ?? block.kind);
+    if (anchor === '' || taken.has(anchor)) return undefined;
+    taken.add(anchor);
+    return anchor;
+  });
 }
 
 /** A page of the website: the navigation and its one action, the page's blocks in their bands, and the footer. */
 export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
-  const links = page.navigation.map((link) => ({ label: link.title, href: siteHref(link.slug, attribution) }));
+  const links = MENU.map((item) => ({ label: t(item.label), href: siteHref(item.page, attribution, item.anchor) }));
   // While the club is paused (#278) nothing leads to the waitlist: seating is refused.
   const link: Link = (action) => (action && !(page.isPaused && action.to === 'waitlist')
     ? { label: action.label, href: playerHref(playerUrl, action.to, attribution) } : undefined);
   const pageLink: PageLink = (target) => (target ? { label: target.label, href: siteHref(target.page, attribution) } : undefined);
-  const reserve = { label: t('web.reserve'), href: playerHref(playerUrl, 'waitlist', attribution) };
+  const reserve = { label: t('web.reserve'), href: whatsappHref(t('web.reserveMessage')) };
+  // A social wall with no approved posts yet is left out, band and all.
+  const blocks = page.blocks.filter((block) => block.kind !== 'social_wall' || page.wallPosts.length > 0);
+  const anchors = anchorsOf(blocks);
   return (
-    <WebShell links={links} homeHref={siteHref('home', attribution)} action={page.isPaused ? undefined : reserve} footer={<Footer attribution={attribution} />}>
+    <WebShell links={links} homeHref={siteHref('home', attribution)} action={page.isPaused ? undefined : reserve} topBar={topBar(playerUrl, attribution)}
+      footer={<Footer attribution={attribution} playerUrl={playerUrl} />} after={<CookieBanner />}>
       {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
-      {/* A social wall with no approved posts yet is left out, band and all. */}
-      {page.blocks.filter((block) => block.kind !== 'social_wall' || page.wallPosts.length > 0).map((block, position) => (
-        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} live={block.kind === 'games' ? `games-${String(position)}` : undefined}>
+      {blocks.map((block, position) => (
+        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} anchor={anchors[position]}
+          live={block.kind === 'games' ? `games-${String(position)}` : undefined}>
           <Block block={block} page={page} link={link} pageLink={pageLink} />
         </WebBand>
       ))}

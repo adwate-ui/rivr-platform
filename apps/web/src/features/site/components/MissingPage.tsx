@@ -10,12 +10,14 @@ interface MissingPageProps {
   failed: boolean;
   /** The codes of the link the visitor arrived by, kept on the way home. */
   attribution: Attribution | null;
+  /** The player app's address, for the footer's member app link. */
+  playerUrl: string;
 }
 
 /** No page to show: a draft or an address the website does not have, or content that could not be read. */
-export function MissingPage({ failed, attribution }: MissingPageProps) {
+export function MissingPage({ failed, attribution, playerUrl }: MissingPageProps) {
   return (
-    <WebShell links={[]} homeHref={siteHref('home', attribution)} footer={<Footer attribution={attribution} />}>
+    <WebShell links={[]} homeHref={siteHref('home', attribution)} footer={<Footer attribution={attribution} playerUrl={playerUrl} />}>
       {failed ? (
         <HeroBlock heading={t('web.unavailableTitle')} text={t('web.unavailable')} />
       ) : (
