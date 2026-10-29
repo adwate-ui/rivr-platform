@@ -22,4 +22,4 @@ Date: 29 Oct 2026. Owner's feedback doc of 29 Oct ("RIVR App | Detailed Feedback
 - **Left to later batches:** top-ups come with #634 and #639, and Learn's own points (`learn.session_points`) stop when #637 switches Learn off.
 - **Staff stays** for staff managers. Staff accounts, their roles and the dealers' PINs have no other home.
 - **The website keeps** its rupee buy-ins, jackpot and rakeback, at the owner's word. The tablet stays, but every workflow runs without it.
-- **e2e:** flows whose only purpose was a hidden screen are removed; their database sides stay in pgTAP. Flows that only passed through one, such as call time through the cage, now run the console's own path.
+- **e2e:** flows whose only purpose was a hidden screen are removed; their database sides stay in pgTAP. Flows that only passed through one, such as call time through the cage, now run the console's own path. With the practice cage's flows gone, CI's fourth e2e runner for `@practice-cage` (decision 0243) is gone too: the three shards run every flow.
