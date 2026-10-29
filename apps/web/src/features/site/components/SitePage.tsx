@@ -3,7 +3,7 @@ import type { SitePage as SitePageData } from '@rivr/db/site';
 import { formatIsoDay, t, type MessageKey } from '@rivr/i18n';
 import {
   CalendarBlock, CardsBlock, CareersBlock, CookieBanner, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock,
-  MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone,
+  MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone, type WebShellProps,
 } from '@rivr/ui';
 import { CLUB_CONTACT, playerHref, siteHref, whatsappHref } from '../links.ts';
 import { ClubBlock, isEmptyClubBlock } from './ClubBlocks.tsx';
@@ -209,12 +209,14 @@ export function Footer({ attribution, playerUrl }: { attribution: Attribution | 
 }
 
 /** The bar above the header: the club's number, WhatsApp and socials, and the member app (#616). */
-export function topBar(playerUrl: string, attribution: Attribution | null) {
+export function topBar(playerUrl: string, attribution: Attribution | null): NonNullable<WebShellProps['topBar']> {
   return {
     links: [
-      { label: t('web.top.phone'), href: `tel:${CLUB_CONTACT.phone}` }, { label: t('web.top.whatsapp'), href: whatsappHref() },
-      { label: t('web.top.instagram'), href: CLUB_CONTACT.instagram }, { label: t('web.top.youtube'), href: CLUB_CONTACT.youtube },
-      { label: t('web.top.email'), href: `mailto:${CLUB_CONTACT.email}` },
+      { label: t('web.top.phone'), href: `tel:${CLUB_CONTACT.phone}`, icon: 'phone', showsLabel: true },
+      { label: t('web.top.whatsapp'), href: whatsappHref(), icon: 'whatsapp' },
+      { label: t('web.top.instagram'), href: CLUB_CONTACT.instagram, icon: 'instagram' },
+      { label: t('web.top.youtube'), href: CLUB_CONTACT.youtube, icon: 'youtube' },
+      { label: t('web.top.email'), href: `mailto:${CLUB_CONTACT.email}`, icon: 'mail' },
     ],
     app: { label: t('web.top.app'), href: playerHref(playerUrl, 'waitlist', attribution) },
   };

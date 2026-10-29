@@ -115,6 +115,7 @@ export * from './TableBlock/index.ts';
 export * from './PromotionsBlock/index.ts';
 export * from './WebFooter/index.ts';
 export * from './CookieBanner/index.ts';
+export * from './BrandIcon/index.ts';
 
 // Social cards and brand art, drawn by @rivr/render
 export * from './SocialCard/index.ts';

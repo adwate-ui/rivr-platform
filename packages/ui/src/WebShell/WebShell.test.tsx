@@ -44,11 +44,23 @@ describe('WebShell', () => {
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
   });
 
-  it('has a bar above the header with the club’s contacts and the member app, which leave the website', async () => {
+  it('has a bar above the header with the club’s contacts as their marks and the member app, which leave the website', async () => {
     const onNavigate = vi.fn();
-    const topBar = { links: [{ label: 'WhatsApp', href: 'https://wa.me/910000000000' }], app: { label: 'Member app', href: 'https://player.invalid/' } };
+    const topBar = {
+      links: [
+        { label: '+91 90000 00000', href: 'tel:+919000000000', icon: 'phone' as const, showsLabel: true },
+        { label: 'WhatsApp', href: 'https://wa.me/910000000000', icon: 'whatsapp' as const },
+      ],
+      app: { label: 'Member app', href: 'https://player.invalid/' },
+    };
     renderIn(<WebShell links={links} topBar={topBar} onNavigate={onNavigate} after={<p>Cookies on this website</p>}><h1>Tournaments</h1></WebShell>);
-    expect(within(screen.getByRole('list', { name: 'Contact' })).getByRole('link', { name: 'WhatsApp' })).toHaveAttribute('href', 'https://wa.me/910000000000');
+    const contacts = within(screen.getByRole('list', { name: 'Contact' }));
+    const whatsapp = contacts.getByRole('link', { name: 'WhatsApp' });
+    expect(whatsapp).toHaveAttribute('href', 'https://wa.me/910000000000');
+    // WhatsApp is its mark alone, named for a screen reader; the number shows its words beside the phone.
+    expect(whatsapp).toHaveTextContent('');
+    expect(whatsapp.querySelector('svg')).not.toBeNull();
+    expect(contacts.getByRole('link', { name: '+91 90000 00000' })).toHaveTextContent('+91 90000 00000');
     await userEvent.click(screen.getByRole('link', { name: 'Member app' }));
     expect(onNavigate).not.toHaveBeenCalled();
     expect(screen.getByText('Cookies on this website')).toBeInTheDocument();
