@@ -1,9 +1,9 @@
 /**
  * Waitlist (#38, #40, #63), with one member and one host signed in throughout (Auth sends one code a
  * minute to a number): Ishaan Verma (member, identity check finished) and Zoya Sheikh (host). The
- * member joins from Home and the floor removes and adds them; a black card the floor adds (Vihaan
- * Kapoor, seeded with a finished check; never signs in) goes first only at its qualifying stake; and
- * the floor calls the member to a seat, which they see on Home, then seats them.
+ * member asks to join from Home, and the floor approves the request onto the list (#633), removes them and adds them,
+ * one game at a time; a black card the floor adds (Vihaan Kapoor, seeded with a finished check; never signs in) goes
+ * first only at its qualifying stake; and the floor calls the member to a seat, which they see on Home, then seats them.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
@@ -19,7 +19,7 @@ let host: Page;
 /** The line under one table on Home: how many wait, or the member's place. */
 function tableDetail(page: Page, name: string): Locator {
   return page.locator('div').filter({ has: page.getByText(name, { exact: true }) })
-    .filter({ has: page.getByText(/waiting|No wait|You are number|Closed/) }).last();
+    .filter({ has: page.getByText(/waiting|No wait|You are number|You asked to join|Closed/) }).last();
 }
 
 /** One table's Join on Home. */
@@ -60,6 +60,7 @@ test.beforeAll(async ({ browser }) => {
   // A run stopped early may have left places behind.
   await pressEvery(player, 'Leave');
   await pressEvery(host, `Remove ${BLACK_CARD}`);
+  await pressEvery(host, `Remove ${MEMBER}`);
 });
 
 /**
@@ -73,19 +74,37 @@ async function untilListShows(host: Page, name: string) {
   }).toPass({ timeout: 15_000 });
 }
 
+/** The member asks to join Table 2's game from Home, and the floor approves the request onto the list (#633). */
+async function joinAndApprove(player: Page, host: Page) {
+  await joinButton(player, 'Table 2').click();
+  await expect(tableDetail(player, 'Table 2').getByText(/· You asked to join$/)).toBeVisible();
+  await untilListShows(host, `Approve ${MEMBER}`);
+  await gameList(host, 'NLH 100/200').getByRole('button', { name: `Approve ${MEMBER}` }).click();
+  await player.reload();
+  await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+}
+
 test.describe('Waitlist', () => {
-  test('a member joins from Home; the floor sees and removes them, then adds them by number', async () => {
+  test('a member asks to join from Home; the floor approves, then removes them, then adds them by number', async () => {
     await joinButton(player, 'Table 2').click();
-    await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+    await expect(tableDetail(player, 'Table 2').getByText(/· You asked to join$/)).toBeVisible();
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toBeVisible();
-    await expect(player.getByText(/^Number \d+ · Joined \d{2}:\d{2}$/)).toBeVisible();
-    // Table 3 plays the same game and stake, so it shares the one list.
-    await expect(tableDetail(player, 'Table 3').getByText(/· You are number \d+$/)).toBeVisible();
+    await expect(player.getByText(/^Asked at \d{2}:\d{2} · The floor approves it onto the list$/)).toBeVisible();
+    // One game at a time (#633): no Join anywhere while the member waits.
+    await expect(player.getByRole('button', { name: 'Join', exact: true })).toHaveCount(0);
 
     // Staff work at both venues: the console lists only the selected venue's games.
     await host.reload();
     await expect(host.getByRole('heading', { name: 'NLH 100/200' })).toHaveCount(1);
     const higher = gameList(host, 'NLH 100/200');
+    await expect(higher.getByText(new RegExp(`^${MEMBER} · asked at \\d{2}:\\d{2}$`))).toBeVisible();
+    await higher.getByRole('button', { name: `Approve ${MEMBER}` }).click();
+    await player.reload();
+    await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+    await expect(player.getByText(/^Number \d+ · Joined \d{2}:\d{2}$/)).toBeVisible();
+    // Table 3 plays the same game and stake, so it shares the one list.
+    await expect(tableDetail(player, 'Table 3').getByText(/· You are number \d+$/)).toBeVisible();
+
     await expect(higher.getByText(new RegExp(`^\\d+\\. ${MEMBER} · \\d{2}:\\d{2}$`))).toBeVisible();
     await higher.getByRole('button', { name: `Remove ${MEMBER}` }).click();
     await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
@@ -108,6 +127,9 @@ test.describe('Waitlist', () => {
     const lower = gameList(host, 'NLH 50/100');
     await addByNumber(higher, '9000000212');
     await expect(higher.getByText(new RegExp(`^1\\. ${BLACK_CARD} · \\d{2}:\\d{2} · Black card$`))).toBeVisible();
+    // One game at a time (#633): off 100/200 before 50/100.
+    await higher.getByRole('button', { name: `Remove ${BLACK_CARD}` }).click();
+    await expect(higher.getByText(BLACK_CARD, { exact: false })).toHaveCount(0);
     await addByNumber(lower, '9000000212');
     await expect(lower.getByText(new RegExp(`^2\\. ${BLACK_CARD} · \\d{2}:\\d{2}$`))).toBeVisible();
     await pressEvery(host, `Remove ${BLACK_CARD}`);
@@ -118,14 +140,14 @@ test.describe('Waitlist', () => {
   });
 
   test('Join and seat: the floor calls the member to a seat they see on Home, then seats them', async () => {
-    // Tonight's floor (#87): each table's open seats and its wait, and the next tournament; no jackpot (#627).
+    // Tonight's floor (#87): each table's open seats, its wait and its call time (#633), and the upcoming tournaments (#636);
+    // no jackpot (#627).
     await player.reload();
-    await expect(tableDetail(player, 'Table 2').getByText(/^(\d+ seats? open|Full) · /)).toBeVisible();
+    await expect(tableDetail(player, 'Table 2').getByText(/^(\d+ seats? open|Full) · Call time 3 h · /)).toBeVisible();
     await expect(player.getByText('Bad-beat jackpot')).toHaveCount(0);
-    await expect(player.getByText('Next tournament')).toBeVisible();
+    await expect(player.getByRole('heading', { name: 'Upcoming tournaments' })).toBeVisible();
     await expect(player.getByText('Weeknight Turbo')).toBeVisible();
-    await joinButton(player, 'Table 2').click();
-    await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+    await joinAndApprove(player, host);
 
     await host.reload();
     const higher = gameList(host, 'NLH 100/200');
@@ -142,12 +164,16 @@ test.describe('Waitlist', () => {
     await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
     await player.reload();
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
-    await expect(joinButton(player, 'Table 2')).toBeVisible();
+    // Seated, he joins no other game from the app (#633).
+    await expect(player.getByText('Seated at Table 3, seat 9.')).toBeVisible();
+    await expect(player.getByRole('button', { name: 'Join', exact: true })).toHaveCount(0);
   });
 
   test('Skip, Back, Step away and I\u2019m back: the floor and the member move a place to away and back (#287)', async () => {
+    // Seated from the step before, the member is on the list only as the floor adds him, to change tables (#633).
+    await host.reload();
+    await addByNumber(gameList(host, 'NLH 100/200'), '9000000211');
     await player.reload();
-    await joinButton(player, 'Table 2').click();
     await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
 
     await host.reload();

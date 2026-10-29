@@ -1,5 +1,24 @@
 import { payouts } from './tournamentPayouts.ts';
 
+/** The floor's Tournament interest screen (#636): who registered interest in each upcoming tournament from the app. */
+export const tournamentInterest = {
+  title: 'Tournament interest',
+  empty: 'No one has registered interest in an upcoming tournament.',
+  /** A tournament and when it starts: `RIVR Sunday · Sun 15 Nov, 16:00`. */
+  tournament: '{name} · {when}',
+  /** A member who asked: `Mihir Shah · No. 1213`. */
+  member: '{name} · No. {number}',
+  mark: 'Mark registered',
+  markName: 'Mark {name} registered',
+  registered: 'Registered',
+  failures: {
+    not_allowed: 'Your role does not register players. The floor does.',
+    invalid: 'Registered already. The list now shows it.',
+    paused: 'The venue is frozen. Registration resumes once it is released.',
+    unavailable: 'That did not go through. Check the connection and try again.',
+  },
+};
+
 /** The console's Tournaments (#115, #116, #119): the clock, the tournaments, their templates and blind structures. */
 export const tournaments = {
   payouts,

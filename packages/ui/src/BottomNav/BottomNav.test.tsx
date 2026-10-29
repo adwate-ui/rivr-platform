@@ -5,7 +5,7 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { BottomNav, type BottomNavItem, type PlayerTab } from './BottomNav.tsx';
 
 function tabs(overrides: Partial<Record<PlayerTab, BottomNavItem['access']>> = {}): BottomNavItem[] {
-  return (['home', 'sessions', 'balance', 'rewards', 'learn'] as const).map((tab) => ({
+  return (['home', 'sessions', 'food', 'rewards', 'learn'] as const).map((tab) => ({
     tab,
     href: `/${tab}`,
     access: overrides[tab] ?? { state: 'enabled' },
@@ -17,12 +17,12 @@ describe('BottomNav', () => {
     renderIn(<BottomNav items={tabs()} current="home" />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
     const names = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(names).toEqual(['Home', 'Sessions', 'Balance', 'Rewards', 'Learn']);
+    expect(names).toEqual(['Home', 'Sessions', 'Menu', 'Rewards', 'Learn']);
   });
 
   it('marks the current tab as the current page', () => {
-    renderIn(<BottomNav items={tabs()} current="balance" />);
-    expect(screen.getByRole('link', { name: 'Balance' })).toHaveAttribute('aria-current', 'page');
+    renderIn(<BottomNav items={tabs()} current="food" />);
+    expect(screen.getByRole('link', { name: 'Menu' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });
 

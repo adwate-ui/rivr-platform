@@ -160,5 +160,28 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select * from public.claim_agent_kots('00000000-0000-4000-8000-00000000a001', 10) $$, '42501', null, 'staff signed in cannot claim KOTs');
 reset role;
 
+-- An order's way to the seat (#635): Yash follows his own orders tonight; staff who run F&B accept one, then deliver it.
+select set_config('request.jwt.claims', '', true);
+create temp table yash_app_order as
+select id from public.fnb_order where member_id = '00000000-0000-4000-8000-000000000214' and source = 'app' order by created_at limit 1;
+grant select on yash_app_order to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select ok((select count(*) from public.my_fnb_orders()) >= 1 and (select bool_and(accepted_at is null and delivered_at is null) from public.my_fnb_orders()),
+  'Yash sees his orders tonight, each still placed');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select throws_ok($$ select public.accept_fnb_order((select id from yash_app_order)) $$, '42501', null, 'a cashier does not accept orders');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.deliver_fnb_order((select id from yash_app_order)) $$, '22023', null, 'an order is accepted before it is delivered');
+select lives_ok($$ select public.accept_fnb_order((select id from yash_app_order)) $$, 'Aditya accepts it');
+select throws_ok($$ select public.accept_fnb_order((select id from yash_app_order)) $$, '22023', null, 'once');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select isnt((select accepted_at from public.my_fnb_orders() where order_id = (select id from yash_app_order)), null, 'Yash sees it in progress');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.deliver_fnb_order((select id from yash_app_order)) $$, 'and delivers it');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
+select isnt((select delivered_at from public.my_fnb_orders() where order_id = (select id from yash_app_order)), null, 'Yash sees it delivered');
+reset role;
+select is(has_function_privilege('anon', 'public.my_fnb_orders()', 'execute'), false, 'nobody signed out reads orders');
+
 select * from finish();
 rollback;

@@ -98,12 +98,44 @@ export function useFnbMenu(venueId: string | null) {
   });
 }
 
-/** A seated member orders for their own seat from the app: paid, a Result with the KOT. */
+/** Where one of the member's orders is (#635): placed, accepted and being prepared, or delivered to the seat. */
+export type FnbOrderProgress = 'placed' | 'in_progress' | 'delivered';
+
+/** One of the member's orders tonight: its KOT, what, when, and where it is. */
+export interface MyFnbOrder {
+  readonly orderId: string;
+  readonly kotNumber: number;
+  readonly lines: FnbOrderTonight['lines'];
+  readonly createdAt: string;
+  readonly progress: FnbOrderProgress;
+}
+
+/** The signed-in member's orders tonight, newest first, asked again every ten seconds as the bar works through them (#635). */
+export function useMyFnbOrders() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myFnbOrders(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: ORDERS_CHECK,
+    queryFn: async (): Promise<MyFnbOrder[]> => {
+      const { data, error } = await client.rpc('my_fnb_orders');
+      if (error) throw error;
+      return data.map((row) => ({
+        orderId: row.order_id, kotNumber: row.kot_number, lines: linesOf(row.lines), createdAt: row.created_at,
+        progress: row.delivered_at !== null ? 'delivered' : row.accepted_at !== null ? 'in_progress' : 'placed',
+      }));
+    },
+  });
+}
+
+/** A seated member orders for their own seat from the app: paid, a Result with the KOT; their orders reload. */
 export function usePlaceFnbOrder() {
-  const { client } = useRivrData();
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (lines: readonly FnbLine[]): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
       const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.myFnbOrders(userId ?? 'signed-out') });
       return placed(data, error);
     },
   });

@@ -4,12 +4,12 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
--- The seed gives the Private Room two hours from the beginning of time; change it to 90 minutes from tomorrow.
+-- The seed gives the Private Room three hours from the beginning of time; change it to 90 minutes from tomorrow.
 insert into public.setting (venue_id, key, subject, value, effective_from)
 values ('00000000-0000-4000-8000-000000000001', 'call_time.minutes', 'private_room', '{"minutes": 90}', now() + interval '1 day');
 
 select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', 'private_room', now()),
-  '{"minutes": 120}'::jsonb, 'today the rule in force is the old one');
+  '{"minutes": 180}'::jsonb, 'today the rule in force is the old one');
 select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', 'private_room', now() + interval '2 days'),
   '{"minutes": 90}'::jsonb, 'from tomorrow the new rule applies');
 select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', 'table_5', now()),

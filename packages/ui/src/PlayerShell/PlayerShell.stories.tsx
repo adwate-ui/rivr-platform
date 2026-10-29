@@ -35,7 +35,7 @@ export const Empty: Story = {
 };
 
 export const WithError: Story = {
-  args: { currentTab: 'balance', children: <Screen title="Balance" status="error" onRetry={() => undefined} /> },
+  args: { currentTab: 'food', children: <Screen title="Menu" status="error" onRetry={() => undefined} /> },
 };
 
 export const KillSwitchBanner: Story = { args: { banner: <Banner audience="member" /> } };

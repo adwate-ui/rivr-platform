@@ -14,7 +14,9 @@ export {
   cellKey, useTierActions, useTierMatrix,
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
 } from './tierMatrix.ts';
-export { useSignUp, type SignUpFailure } from './signUp.ts';
+export {
+  OCCUPATIONS, PLAY_TIMES, useSignedInPhone, useSignUp, type Occupation, type PlayTime, type SignUpDetails, type SignUpFailure,
+} from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { toBase64, useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
@@ -61,17 +63,18 @@ export { usePushSubscriptionActions } from './push.ts';
 export { useCheckInActions, useCheckOutActions, useDoorBoard, type CheckInFailure, type CheckOutFailure, type CheckOutRefusal, type DoorMember } from './visits.ts';
 export { useDoorScan, type DoorScan, type DoorScanFailure, type DoorScanRefusal } from './door.ts';
 export {
-  useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackVisit,
+  useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackRatings,
+  type FeedbackVisit,
 } from './feedback.ts';
 export * from './rewards.ts';
 export * from './league.ts';
 export * from './dealers.ts';
 export * from './floorReports.ts';
 export {
-  useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
+  useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
 export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer, type TabletSeat } from './tabletSeats.ts';
-export { useMySeat, type MySeat } from './mySeat.ts';
+export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
   isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,
@@ -82,15 +85,18 @@ export {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from './memberErasure.ts';
 export {
+  useApproveWaitlistRequest,
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,
   useWaitlistActions,
   useWaitlistBoard,
+  useWaitlistRequests,
   type FloorTable,
   type WaitlistBoardEntry,
   type WaitlistFailure,
   type WaitlistPlace,
+  type WaitlistRequest,
 } from './waitlist.ts';
 export {
   useDealerTablets,
@@ -186,3 +192,7 @@ export {
   useElapsedNow, useEnterWithTicket, useMyTournament, useMyTournamentTickets, useRegisterTournamentEntry, useTvTournamentClock, type AppPurchase,
   type LiveField, type LiveTournament, type MyStanding, type MyTournament, type MyTournamentTicket,
 } from './liveTournament.ts';
+export {
+  useMarkTournamentRegistered, useMyUpcomingTournaments, useRegisterTournamentInterest, useTournamentInterest, type TournamentInterest,
+  type TournamentInterestFailure, type TournamentStanding, type UpcomingTournament,
+} from './tournamentInterest.ts';

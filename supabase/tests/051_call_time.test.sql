@@ -1,8 +1,12 @@
--- Call time (#78). The Private Room's call time is 120 minutes, the 100/200 tables' 60 (seed). 211
--- Ishaan and 212 Vihaan have finished their identity check; 103 is the floor; 106 Pema a dealer.
+-- Call time (#78). From now, the Private Room's call time is 120 minutes and the cash tables' 60 (the seed's are
+-- three hours, #634). 211 Ishaan and 212 Vihaan have finished their identity check; 103 is the floor; 106 Pema a dealer.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select '00000000-0000-4000-8000-000000000001', 'call_time.minutes', c.code, jsonb_build_object('minutes', c.minutes), now(), 'Test'
+from (values ('private_room', 120), ('nlh_50_100', 60), ('nlh_100_200', 60)) as c (code, minutes);
 
 -- The seed's floor (56_floor.sql) is set aside, so this test builds its own: the seeded tablets leave
 -- their tables, which ends Pema's down at Table 3 (private.end_tablet_downs).

@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
+import type { TopUp } from './mySeat.ts';
 import { queryKeys } from './queryKeys.ts';
 
 /** Who sits where (#77): a seated player's session, table and seat, since when they play, and their must-move turn. */
@@ -21,6 +22,8 @@ export interface SeatedPlayer {
   readonly callTimeLeft: number | null;
   /** When the floor marked the player leaving (decision 0163); null when not. */
   readonly leavingAt: string | null;
+  /** Their top-up (#634): asked for, or in hand; null with none asked for. */
+  readonly topUp: TopUp | null;
 }
 
 /** A seat held for a member called from the waitlist (#63): nobody else is seated there. */
@@ -62,6 +65,7 @@ export function useFloorSeats(venueId: string) {
         sessionId: row.session_id, tableId: row.table_id, seat: row.seat, memberId: row.member_id, fullName: row.full_name,
         tierName: row.tier_name, startedAt: row.started_at, mustMoveOrder: row.must_move_order, isAway: row.away_since !== null,
         callTimeLeft: row.call_time_left, leavingAt: row.leaving_at,
+        topUp: row.top_up === 'requested' || row.top_up === 'in_progress' ? row.top_up : null,
       }));
     },
   });
@@ -161,4 +165,14 @@ export function useSeatActions(venueId: string) {
       settle((await client.rpc('set_seat_away', { p_session_id: sessionId, p_is_away: isAway })).error),
   });
   return { seat, move, leave, setOpen, setMustMove, letLeaveEarly, setLeaving, setAway };
+}
+
+/** The floor takes a seat's top-up in hand (`inProgress`), or resets it once done (#634). A Result, and the floor is read again. */
+export function useSetTopUp(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSeatSettle(venueId);
+  return useMutation({
+    mutationFn: async ({ sessionId, inProgress }: { sessionId: string; inProgress: boolean }) =>
+      settle((await client.rpc('set_top_up', { p_session_id: sessionId, p_in_progress: inProgress })).error),
+  });
 }

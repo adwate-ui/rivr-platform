@@ -27,7 +27,7 @@ src/
     kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason, and checks in person (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
-    waitlist/         the floor's waitlists: add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
+    waitlist/         the floor's waitlists: approve or remove joins from the app (#633), add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
     fnb/              food and drink for staff who run F&B (#123): KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu (/fnb)

@@ -66,3 +66,17 @@ export const profile = {
   /** `{until}` is when a break would end: Wed 17 Feb, 00:10. */
   breakUntil: 'Until {until}',
 };
+
+/** House rules in the player's Settings (#637): the club's house rules and the legal standing, from its website. */
+export const playerHouseRules = {
+  title: 'House rules',
+  intro: 'How the tables run at RIVR, and why poker is a game of skill.',
+  open: 'Read the house rules',
+  /** One rule, with its number: `1. Members only, 18 and over.` */
+  rule: '{number}. {rule}',
+  /** Above the legal cases when the website gives them no heading. */
+  legal: 'The legal standing',
+  /** One case: `1996 · K.R. Lakshmanan v. State of Tamil Nadu`. */
+  case: '{when} · {title}',
+  empty: 'The club has not published its house rules yet.',
+};

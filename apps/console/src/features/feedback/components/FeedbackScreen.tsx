@@ -1,5 +1,6 @@
-import { useStaffVenue, useVenueFeedback, type FeedbackItem } from '@rivr/db';
-import { formatDayMonth, t } from '@rivr/i18n';
+import { FEEDBACK_RATED } from '@rivr/contracts';
+import { useStaffVenue, useVenueFeedback, type FeedbackItem, type FeedbackRatings } from '@rivr/db';
+import { formatDayMonth, formatNumber, t } from '@rivr/i18n';
 import { Heading, Screen, Stack, Text } from '@rivr/ui';
 import { ResolveForm } from './ResolveForm.tsx';
 
@@ -18,19 +19,32 @@ export function FeedbackScreen() {
   return <FeedbackList venueId={staff.venue.venueId} />;
 }
 
-/** Who and what: a rating with its visit's day, or a note with the day it came. */
+/**
+ * Who and what: a rating with its visit's day; the app's detailed form with its recommendation, or its quick note with
+ * the topic (#637); or a note; each with the day it came.
+ */
 export function feedbackLine(item: FeedbackItem): string {
   const who = { name: item.fullName, number: item.memberNumber };
-  if (item.score === null || item.visitClosedAt === null) {
-    return t('console.feedback.noteLine', { ...who, date: formatDayMonth(new Date(item.createdAt)) });
+  const date = formatDayMonth(new Date(item.createdAt));
+  if (item.score !== null && item.visitClosedAt !== null) {
+    return t('console.feedback.ratingLine', { ...who, score: item.score, date: formatDayMonth(new Date(item.visitClosedAt)) });
   }
-  return t('console.feedback.ratingLine', { ...who, score: item.score, date: formatDayMonth(new Date(item.visitClosedAt)) });
+  if (item.nps !== null) return t('console.feedback.detailedLine', { ...who, nps: formatNumber(item.nps), date });
+  if (item.topic !== null) return t('console.feedback.quickLine', { ...who, topic: t(`console.feedback.topics.${item.topic}`), date });
+  return t('console.feedback.noteLine', { ...who, date });
+}
+
+/** The detailed form's four ratings in a line: `Gameplay 5 · Cashier 3 · Service 4 · Ambience 5`. */
+function ratingsLine(ratings: FeedbackRatings): string {
+  return FEEDBACK_RATED.map((area) => t('console.feedback.rating', { area: t(`console.feedback.rated.${area}`), score: formatNumber(ratings[area]) }))
+    .join(t('console.feedback.ratingsSeparator'));
 }
 
 function Item({ venueId, item }: { venueId: string; item: FeedbackItem }) {
   return (
     <Stack gap={1}>
       <Text variant="small" tone="muted">{feedbackLine(item)}</Text>
+      {item.ratings === null ? null : <Text>{ratingsLine(item.ratings)}</Text>}
       {item.note === null ? null : <Text>{item.note}</Text>}
       {item.resolvedAt === null || item.resolvedBy === null || item.resolution === null ? null : (
         <Text variant="small">

@@ -1,19 +1,52 @@
 import { useFeature, useMySeat } from '@rivr/db';
-import { useMyFnbMenu, usePlaceFnbOrder, type FnbFailure } from '@rivr/db/fnb';
-import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
+import { useMyFnbMenu, useMyFnbOrders, usePlaceFnbOrder, type FnbFailure, type MyFnbOrder } from '@rivr/db/fnb';
+import { formatNumber, t } from '@rivr/i18n';
+import { Button, ErrorMessage, FeatureGate, Heading, Inline, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /**
- * Table-side food and drink (#123; feature fnb.table_side): the member's menu (alcohol only at 21 or over), how many of
- * each, and Send to the bar. The order goes to their seat's visit, paid to Glaza when it comes, with a KOT at the bar.
+ * The Menu tab (#123, #635; feature fnb.table_side): the member's menu (alcohol only at 21 or over), how many of each,
+ * and Send to the bar; then tonight's orders, each followed from placed, to being prepared, to delivered. An order goes
+ * to their seat's visit, paid to Glaza when it comes, with a KOT at the bar.
  */
 export function FnbOrderScreen() {
   const access = useFeature('fnb.table_side');
   return (
     <Screen title={t('player.fnb.title')}>
-      <FeatureGate access={access}><FnbOrder /></FeatureGate>
+      <FeatureGate access={access}>
+        <Stack gap={8}>
+          <FnbOrder />
+          <Orders />
+        </Stack>
+      </FeatureGate>
     </Screen>
+  );
+}
+
+/** One order: its KOT and what, and where it is. */
+function OrderLine({ order }: { order: MyFnbOrder }) {
+  const items = order.lines.map((line) => t('player.fnb.item', { quantity: formatNumber(line.quantity), name: line.name }))
+    .join(t('player.fnb.itemsSeparator'));
+  return (
+    <Inline gap={4} justify="between" align="baseline">
+      <Text>{t('player.fnb.orderLine', { kot: formatNumber(order.kotNumber), items })}</Text>
+      <Text variant="small" weight="medium">{t(`player.fnb.progress.${order.progress}`)}</Text>
+    </Inline>
+  );
+}
+
+/** The member's orders tonight, newest first, or that there are none yet. */
+function Orders() {
+  const orders = useMyFnbOrders();
+  return (
+    <Stack gap={3}>
+      <Heading level={2}>{t('player.fnb.yourOrders')}</Heading>
+      {orders.data === undefined ? (
+        <LoadState isError={orders.isError} errorText={t('player.fnb.ordersFailed')} onRetry={() => void orders.refetch()} />
+      ) : orders.data.length === 0 ? <Text tone="muted">{t('player.fnb.noOrders')}</Text> : (
+        <Stack gap={3} divided>{orders.data.map((order) => <OrderLine key={order.orderId} order={order} />)}</Stack>
+      )}
+    </Stack>
   );
 }
 

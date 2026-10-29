@@ -7,6 +7,11 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Learn, the Academy and Events are off since #637 (decision 0284): this test of them turns them back on for every tier.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
+select t.venue_id, t.id, k.key, true, 'locked', now() - interval '1 second'
+from public.tier t cross join (values ('learn.library'), ('academy.booking'), ('events.book')) as k (key);
+
 select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'learn.library'), 'every tier starts with every feature');
 select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'core.withdrawals'), 'core features are always on');
 select ok(not private.has_feature('00000000-0000-4000-8000-000000000202', 'learn.source.unknown'), 'an unknown key is off');

@@ -6,6 +6,22 @@ export const tonight = {
   breakActive: 'Break active until {until}. Tables are closed to you until then.',
   /** Seated tonight (#78), with the call time left beneath. */
   seated: 'Seated at {table}, seat {seat}.',
+  /** At the seat (#634): how long the member has played tonight, `1 h 20 min`, and what they can do from there. */
+  playedFor: 'Playing for {time}',
+  extendCallTime: 'Add an hour of call time',
+  leaveSeat: 'Leave my seat',
+  /** Left with call time still owed: the floor's Leaving list shows them until it is done. */
+  onLeavingList: 'You are on the leaving list. The floor opens your seat once your call time is done.',
+  requestTopUp: 'Ask for a top-up',
+  topUpRequested: 'Top-up requested. The floor is on its way.',
+  topUpInProgress: 'Top-up in progress at your seat.',
+  seatFailures: {
+    not_seated: 'You are not seated any more.',
+    not_allowed: 'This is not open to you.',
+    stopped: 'Your account is paused. Speak to the front desk.',
+    paused: 'The club is paused. Try again later.',
+    unavailable: 'That did not go through. Check your connection and try again.',
+  },
   onBreak: 'Break active. Tables are closed to you until it ends.',
   title: 'Tonight',
   empty: 'No tables are running.',
@@ -55,13 +71,31 @@ export const tonight = {
   enterWithTicket: 'Enter with your ticket',
   enteredWithTicket: 'You are in {name}.',
   ticketsFailed: 'Your tickets did not load.',
+  /** The club's upcoming tournaments (#636): register interest, pay at the club, and the floor marks you registered. */
+  upcoming: 'Upcoming tournaments',
+  registerInterest: 'Register interest',
+  registerInterestName: 'Register interest in {name}',
+  standing: { none: 'Not registered', interested: 'Interest registered', registered: 'Registered' },
+  payAtTheClub: 'Pay at the club, and the floor registers you.',
+  interestFailures: {
+    not_allowed: 'Tournament registration is not open to you.',
+    invalid: 'That tournament is no longer coming up.',
+    paused: 'The club is paused. Try again later.',
+    unavailable: 'That did not go through. Check your connection and try again.',
+  },
   closed: 'Closed',
   join: 'Join',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */
   onTheList: '{count} waiting · You are number {place}',
+  /** The member asked to join this game (#633), and the floor has not approved it yet. */
+  requested: '{count} waiting · You asked to join',
+  /** A game's call time (#633): `{time}` is `3 h`. */
+  callTime: 'Call time {time}',
   yourWaitlist: 'Your waitlist',
   /** One of the member's places: `{place}` on the list, joined at `{time}` (IST). */
   place: 'Number {place} · Joined {time}',
+  /** A join the floor has not approved (#633): `{time}` is when the member asked, IST. */
+  request: 'Asked at {time} · The floor approves it onto the list',
   leave: 'Leave',
   /** The seat call (#63), as the WhatsApp message says it: `{time}` is when the hold runs out, IST. */
   seatReady: 'Your seat is ready. {table}, seat {seat}. Hold expires {time}.',
@@ -71,6 +105,7 @@ export const tonight = {
   away: 'Stepped away. Your place is kept until {time}.',
   tooLate: 'You were away too long, so your place has gone. Join again if you still want to play.',
   noTimeAway: 'You have used all your time away for this place.',
+  oneAtATime: 'You can wait for one game at a time. Leave your other list first.',
   kycNeeded: 'Finish your identity check in Profile to join a waitlist.',
   notOpen: 'Joining a waitlist from the app is not open to you. Ask at the front desk.',
   stopped: 'Your account is paused. Speak to the front desk.',
@@ -98,6 +133,13 @@ export const waitlist = {
   /** A place ahead of join time (#40): `{reason}` is the tier, "Black card". */
   entryWithReason: '{place}. {name} · {time} · {reason}',
   addedByFloor: 'Added by the floor',
+  /** Joins from the app the floor approves onto the list, or removes (#633): `{name}` asked at `{time}` (IST). */
+  requests: 'Asking to join',
+  requestsFailed: 'The requests to join did not load. Reload the page to see them.',
+  requestLine: '{name} · asked at {time}',
+  approve: 'Approve {name}',
+  approveShort: 'Approve',
+  removeShort: 'Remove',
   remove: 'Remove {name}',
   /** Call-down (#63). */
   call: 'Call {name}',
@@ -109,6 +151,7 @@ export const waitlist = {
   seatTaken: 'Someone sits in that seat. Choose another seat.',
   tooLate: 'The hold has run out. The place goes to the next name within a minute.',
   noTimeAway: 'This member has used all their time away for this place.',
+  oneAtATime: 'This member already waits for another game. Take them off that list first.',
   /** Back refused: the member was away past their time, so the place has gone (#287). */
   awayTooLong: 'Away too long: this place has gone. Add them to the list again if they are here.',
   /** Call, Seat, Skip or Back refused because someone else changed the place or the table first. */

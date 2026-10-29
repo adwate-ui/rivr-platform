@@ -26,6 +26,7 @@ export const rail = {
     certification: 'Certification',
     checkIn: 'Check-in',
     tournaments: 'Tournaments',
+    tournamentInterest: 'Tournament interest',
     cage: 'Cage',
     markers: 'Markers',
     paymentAccounts: 'Payment accounts',

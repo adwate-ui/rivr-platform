@@ -2,7 +2,7 @@
 -- leaving and takes it back; a dealer (106) cannot. A TV reads the call-time board, every seated player
 -- as a first name and initial with their call time left, while it shows it as its main mode or in its
 -- rotation, and only then; a hidden name stays hidden. A TV's rotation names each board once and never
--- its main one. The Private Room's call time is 120 minutes, the 100/200 tables' 60 (seed); 211 Ishaan
+-- its main one. Every table's call time is 180 minutes (seed, #634); 211 Ishaan
 -- and 212 Vihaan have finished their identity check.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -79,17 +79,17 @@ select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
 select results_eq($$ select mode, rotation from public.my_tv_screen() $$,
   $$ values ('waitlist'::public.tv_mode, array['call_time', 'promotions']::public.tv_mode[]) $$, 'the TV reads what it turns to');
 select results_eq($$ select table_name, seat, display_name, call_time_left, is_away, leaving_at is not null from public.tv_call_time_board() $$,
-  $$ values ('Table 3'::text, 2, 'Vihaan K.'::text, 3600, false, false), ('Private Room', 1, 'Ishaan V.', 7200, false, true) $$,
+  $$ values ('Table 3'::text, 2, 'Vihaan K.'::text, 10800, false, false), ('Private Room', 1, 'Ishaan V.', 10800, false, true) $$,
   'in its rotation, the TV reads every seated player by table: a first name and initial, call time left, and who is leaving');
 select ok(exists (select 1 from public.tv_waitlist_board()), 'and still its waitlist board');
 select ok(not exists (select 1 from public.tv_call_time_board() where display_name in ('Ishaan Verma', 'Vihaan Kapoor')), 'never a full name');
--- Vihaan's hour is played: not leaving, he is not on the board.
+-- Vihaan's three hours are played: not leaving, he is not on the board.
 reset role;
-update public.seat_session set started_at = started_at - interval '61 minutes' where id = (select id from ids where name = 'vihaan');
+update public.seat_session set started_at = started_at - interval '181 minutes' where id = (select id from ids where name = 'vihaan');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
 select is_empty($$ select * from public.tv_call_time_board() where seat = 2 $$, 'a player whose call time is done, not leaving, is not sent to the TV');
 reset role;
-update public.seat_session set started_at = started_at + interval '61 minutes' where id = (select id from ids where name = 'vihaan');
+update public.seat_session set started_at = started_at + interval '181 minutes' where id = (select id from ids where name = 'vihaan');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
 
 -- A hidden name stays hidden.

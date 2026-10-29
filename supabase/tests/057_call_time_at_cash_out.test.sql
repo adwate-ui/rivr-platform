@@ -1,6 +1,6 @@
 -- Call time at the cage (#79; additions flow 13). Yash Gupta (214) and Ritika Das (215) have finished
 -- their identity checks (seed). A floor manager (103, an admin) seats Yash in the Private Room, where
--- call time is two hours. 104 is a cashier; 106 a dealer.
+-- call time is three hours. 104 is a cashier; 106 a dealer.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -21,8 +21,8 @@ insert into ids select 'yash', public.seat_member(pg_temp.table_id('Private Room
 
 -- The cashier sees what Yash owes, and cannot cash him out.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select results_eq($$ select call_time_owed_seconds between 7000 and 7200, is_let_go_early from public.cage_members('00000000-0000-4000-8000-000000000001', 'Yash') $$,
-  $$ values (true, false) $$, 'the cage shows the two hours Yash still owes');
+select results_eq($$ select call_time_owed_seconds between 10600 and 10800, is_let_go_early from public.cage_members('00000000-0000-4000-8000-000000000001', 'Yash') $$,
+  $$ values (true, false) $$, 'the cage shows the three hours Yash still owes');
 select throws_ok($$ select public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 100000, 'cash',
   gen_random_uuid(), true) $$, 'RVCTS', null, 'a cash-out before call time is refused');
 select throws_ok($$ select public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'Family emergency') $$,
@@ -35,7 +35,7 @@ select throws_ok($$ select public.let_leave_early('00000000-0000-4000-8000-00000
 insert into ids select 'early', public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'Family emergency');
 select is(public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'Again'),
   (select id from ids where name = 'early'), 'letting him go twice keeps one early departure');
-select results_eq($$ select session_id, reason, shortfall_seconds between 7000 and 7200, s.full_name from public.early_departure e
+select results_eq($$ select session_id, reason, shortfall_seconds between 10600 and 10800, s.full_name from public.early_departure e
                      join public.staff s on s.id = e.overridden_by_staff_id where e.id = (select id from ids where name = 'early') $$,
   $$ select (select id from ids where name = 'yash'), 'Family emergency'::text, true, (select full_name from public.staff
              where user_id = '00000000-0000-4000-8000-000000000103' and venue_id = '00000000-0000-4000-8000-000000000001') $$,

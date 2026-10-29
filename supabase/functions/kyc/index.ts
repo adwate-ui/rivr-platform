@@ -1,10 +1,11 @@
 // KYC for the signed-in member (#4, #5): the selfie, the DigiLocker hand-off and its return, and a
-// PAN check when DigiLocker fails. The practice venue gets the fake vendor; a real venue without
+// PAN check when DigiLocker fails; and the photo a member gives at sign-up (#631). The practice venue gets the fake vendor; a real venue without
 // vendor keys fails closed (docs/decisions/0014). This function writes the member's kyc_record with
 // the service role; members can only read it, so nobody verifies themselves. Every vendor call first
 // passes begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
 import { panSchema } from '@rivr/contracts';
 import { isSameName, kycIdentityKey } from '@rivr/domain/identity';
+import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
 import { CORS, currentRecord, failed, field, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
@@ -100,7 +101,8 @@ async function act(subject: Subject, token: string, body: unknown): Promise<Resp
   if (action === 'start') return await start(subject);
   if (action === 'complete') return await complete(subject);
   if (action === 'pan') return await checkPan(subject, body);
-  return reply({ error: 'action must be selfie, start, complete or pan' }, 400);
+  if (action === 'photo') return await takeSignUpPhoto(subject, token, body);
+  return reply({ error: 'action must be selfie, start, complete, pan or photo' }, 400);
 }
 
 Deno.serve(async (request) => {

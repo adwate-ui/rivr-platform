@@ -73,6 +73,7 @@ export const queryKeys = {
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
   /** A venue's waitlists, as the floor sees them. */
   waitlistBoard: (userId: string, venueId: string) => ['user', userId, 'waitlist-board', venueId] as const,
+  waitlistRequests: (userId: string, venueId: string) => ['user', userId, 'waitlist-requests', venueId] as const,
   floorSeats: (userId: string, venueId: string) => ['user', userId, 'floor-seats', venueId] as const,
   heldSeats: (userId: string, venueId: string) => ['user', userId, 'held-seats', venueId] as const,
   leftOwingCallTime: (userId: string, venueId: string) => ['user', userId, 'left-owing-call-time', venueId] as const,
@@ -80,6 +81,7 @@ export const queryKeys = {
   tableHands: (userId: string, tableId: string) => ['user', userId, 'table-hands', tableId] as const,
   tabletSeats: (userId: string) => ['user', userId, 'tablet-seats'] as const,
   mySeat: (userId: string) => ['user', userId, 'my-seat'] as const,
+  signedInPhone: (userId: string) => ['user', userId, 'signed-in-phone'] as const,
   cageMembers: (userId: string, venueId: string, query: string) => ['user', userId, 'cage-members', venueId, query] as const,
   cageQueue: (userId: string, venueId: string) => ['user', userId, 'cage-queue', venueId] as const,
   creditLines: (userId: string, venueId: string) => ['user', userId, 'credit-lines', venueId] as const,
@@ -111,6 +113,8 @@ export const queryKeys = {
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,
   /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */
   myFnbMenu: (userId: string) => ['user', userId, 'my-fnb-menu'] as const,
+  /** The signed-in member's orders tonight, and where each is (#635). */
+  myFnbOrders: (userId: string) => ['user', userId, 'my-fnb-orders'] as const,
   fnbMenu: (userId: string, venueId: string) => ['user', userId, 'fnb-menu', venueId] as const,
   fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
@@ -208,6 +212,9 @@ export const queryKeys = {
   tournamentTemplates: (userId: string, venueId: string) => ['user', userId, 'tournament-templates', venueId] as const,
   /** Home's tournament for the member (#118, #119). */
   myTournament: (userId: string) => ['user', userId, 'my-tournament'] as const,
+  /** The member's venue's upcoming tournaments and their standing on each (#636); and the floor's list of who asked. */
+  myUpcomingTournaments: (userId: string) => ['user', userId, 'my-upcoming-tournaments'] as const,
+  tournamentInterest: (userId: string, venueId: string) => ['user', userId, 'tournament-interest', venueId] as const,
   /** A tournament's players and the floor's balancing prompts (#120). */
   tournamentSeating: (userId: string, tournamentId: string) => ['user', userId, 'tournament-seating', tournamentId] as const,
   tournamentBalance: (userId: string, tournamentId: string) => ['user', userId, 'tournament-balance', tournamentId] as const,
