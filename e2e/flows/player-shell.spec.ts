@@ -16,7 +16,7 @@ test.describe('Player shell', () => {
   test('signed out goes to sign-in; signed in shows the tabs and the member’s initial, which opens Profile', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.player);
     await page.goto(appUrl('player'));
-    await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000302');
+    await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000406');
     await page.getByRole('button', { name: 'Send code' }).click();
     await page.getByRole('textbox', { name: /^Code sent to/ }).fill(CODE);
     await page.getByRole('button', { name: 'Verify' }).click();
@@ -27,7 +27,7 @@ test.describe('Player shell', () => {
     // Balance is hidden (#627): the app shows no rupee.
     await expect(tabs.getByRole('link', { name: 'Balance' })).toHaveCount(0);
     const profile = page.getByRole('link', { name: 'Profile' });
-    await expect(profile).toHaveText('R');
+    await expect(profile).toHaveText('C');
     await profile.click();
     await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
   });

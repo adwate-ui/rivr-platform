@@ -42,7 +42,7 @@ async function startDigiLocker(page: Page) {
 test.describe('KYC', () => {
   test('a practice-venue member is verified with a selfie and DigiLocker in under three minutes', async ({ page }) => {
     const began = Date.now();
-    await signInToPlayer(page, '9000000301');
+    await signInToPlayer(page, '9000000301', '/kyc');
     await takeSelfie(page);
     await startDigiLocker(page);
     await expect(page.getByRole('heading', { name: 'Identity verified' })).toBeVisible();
@@ -53,11 +53,11 @@ test.describe('KYC', () => {
   });
 
   test('a real venue without a KYC vendor fails closed', async ({ page }) => {
-    await signInToPlayer(page, '9000000218');
-    // Home holds Join until the check is done (#87).
-    await expect(page.getByText('KYC incomplete. Finish it to join a table.')).toBeVisible();
-    await expect(page.getByText('Table 1', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Join' })).toHaveCount(0);
+    await signInToPlayer(page, '9000000218', '/kyc');
+    // Until the check is done the member sees only its steps (#632): Home sends them back to it.
+    await page.goto(appUrl('player'));
+    await expect(page).toHaveURL(/\/kyc$/);
+    await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
     // Staging's real venue has Cashfree's sandbox keys, so its KYC is open, not closed: it is proved locally.
     if (isRemoteTarget()) return;
     await takeSelfie(page);

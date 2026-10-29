@@ -1,7 +1,8 @@
 import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
-import { useAuthStatus, useControlState, useFeature, useMember, type AuthStatus } from '@rivr/db';
-import { InstallOffer, KillSwitchBanner, OfflineBanner, PlayerShell, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
+import { useAuthStatus, useControlState, useFeature, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { InstallOffer, KillSwitchBanner, OfflineBanner, PlayerShell, Screen, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
@@ -30,9 +31,21 @@ function useReturnSearch(authStatus: AuthStatus): { toSignIn: ReturnSearch; toSi
 }
 
 /**
+ * A member's screens once their identity check is verified (#632). Until then they see only its steps: a member whose
+ * check is not verified goes to /kyc, and nothing shows while it is read, or the way to try again if it cannot be.
+ */
+function KycGate({ isMember, children }: { isMember: boolean; children: ReactNode }) {
+  const kyc = useKycRecord();
+  if (kyc.data?.status === 'verified') return children;
+  if (isMember && kyc.isSuccess) return <Navigate to="/kyc" replace />;
+  return <Screen title={t('player.kyc.title')} status={kyc.isError ? 'error' : 'loading'} onRetry={() => void kyc.refetch()} />;
+}
+
+/**
  * The player app's frame for a signed-in member: tabs gated by tier, the member's initial (which
  * opens Profile), the kill-switch or offline banner and navigation, and on Tonight the offer to
- * install the app (#16). Nobody signed in goes to sign-in, and back to this screen once signed in.
+ * install the app (#16). Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity
+ * check is verified, a member sees only its steps (#632): every screen of the frame waits on it, and goes to /kyc.
  */
 export function Frame({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
@@ -63,7 +76,7 @@ export function Frame({ children }: { children: ReactNode }) {
       banner={isVenueFrozen ? <KillSwitchBanner audience="member" /> : <OfflineBanner />}
     >
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
-      {children}
+      <KycGate isMember={Boolean(member.data)}>{children}</KycGate>
     </PlayerShell>
   );
 }

@@ -2,9 +2,9 @@
  * Profile (#7): behind the member's initial, the identity check, the games for waitlist alerts,
  * notifications and promotions, the session reminder and Take a break (#56), and sign out (#207). Choices
  * survive a reload.
- * Each run flips a choice and checks it held, so runs after the first still prove something. Tara
- * Menon is this flow's own member: Auth sends one code a minute to a number, so no other flow signs
- * in as her.
+ * Each run flips a choice and checks it held, so runs after the first still prove something. Mrinal
+ * Thakur, whose identity check is done, is this flow's own member: Auth sends one code a minute to a
+ * number, so no other flow signs in as them.
  */
 import { expect, test, type Locator } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
@@ -20,10 +20,10 @@ async function flip(control: Locator, attribute: 'aria-pressed' | 'aria-checked'
 
 test.describe('Profile', () => {
   test('a member keeps their games, notifications and promotions choice, finds limits, and signs out', async ({ page }) => {
-    await signInToPlayer(page, '9000000209');
+    await signInToPlayer(page, '9000000402');
     await page.getByRole('link', { name: 'Profile' }).click();
     await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible();
-    await expect(page.getByText('KYC incomplete. Finish it to join a table.')).toBeVisible();
+    await expect(page.getByText('Verified · DigiLocker and selfie')).toBeVisible();
 
     const plo = page.getByRole('button', { name: 'PLO' });
     const promotions = page.getByRole('switch', { name: 'Promotions and offers' });

@@ -39,14 +39,18 @@ const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'te
 /** Kabir's tier has the live floor, so Home lists tonight's tables (none in these tests). */
 const KABIRS_FEATURES = [{ feature_key: 'floor.live_view', state: 'enabled', tiers: null }];
 
+/** Kabir's identity check, verified unless a test says otherwise (#632). */
+const VERIFIED = { status: 'verified', photo_path: 'kyc/m1.jpg', date_of_birth: '1990-01-01', masked_aadhaar: 'XXXX-XXXX-1234', pan: null };
+
 /**
- * A client whose API answers Kabir's member record and features, and an empty list to all else;
+ * A client whose API answers Kabir's member record, identity check and features, and an empty list to all else;
  * created after the fake fetch.
  */
-function clientWithKabir() {
+function clientWithKabir(kyc: unknown = VERIFIED) {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/my_feature_access')) return Response.json(KABIRS_FEATURES);
+    if (url.includes('/rest/v1/kyc_record')) return Response.json(kyc);
     return Response.json(url.includes('/rest/v1/member') ? { id: 'm1', full_name: 'Kabir Sethi' } : []);
   });
   return createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
@@ -135,11 +139,21 @@ describe('the player app', () => {
   it('keeps gated tabs out of the tab bar until the member’s access is known', async () => {
     signIn();
     renderAt('/');
-    await screen.findByRole('heading', { name: 'Tonight' });
+    await screen.findByRole('navigation', { name: 'Main' });
     expect(screen.getByRole('link', { name: 'Rewards' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Learn' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Sessions' })).toBeNull();
   });
+
+  it.each([{ kyc: null, when: 'before any check' }, { kyc: { ...VERIFIED, status: 'needs_pan' }, when: 'while it waits for the PAN' }])(
+    'shows a member nothing but the identity check until it is verified, $when',
+    async ({ kyc }) => {
+      signIn();
+      const router = renderAt('/rewards', clientWithKabir(kyc));
+      await waitFor(() => expect(router.state.location.pathname).toBe('/kyc'));
+      expect(screen.queryByRole('heading', { name: 'Rewards' })).toBeNull();
+    },
+  );
 
   it('has no Balance tab, and its old addresses open Tonight', async () => {
     signIn();
@@ -164,7 +178,7 @@ describe('the player app', () => {
 
   it('says so when a page does not exist', async () => {
     signIn();
-    renderAt('/nowhere');
+    renderAt('/nowhere', clientWithKabir());
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
     expect(screen.getByText('This page does not exist.')).toBeDefined();
     expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);

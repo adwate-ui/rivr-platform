@@ -1,6 +1,6 @@
 /**
  * Attribution (#10): a new player opens a link to Rewards with a referral and UTM codes, signs in
- * with a code, gives their name, joins and lands on Rewards (#233); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
+ * with a code, gives their name and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
  * member.signed_up carries them). Local stack only: it frees its number from the member an earlier run
  * created, and reads the codes, in the local database itself.
  */
@@ -37,7 +37,8 @@ test.describe('Attribution', () => {
     await expect(page.getByRole('heading', { name: 'Your name' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Full name as on your Aadhaar' }).fill('Tara Joshi');
     await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page.getByRole('heading', { name: 'Rewards', level: 1 })).toBeVisible();
+    // A new member's identity check is not done, so they see only its steps first (#632).
+    await expect(page.getByRole('heading', { name: 'Identity', level: 1 })).toBeVisible();
 
     expect(
       sql(`select m.full_name || '|' || a.referral_code || '|' || a.utm_source || '|' || a.utm_campaign
