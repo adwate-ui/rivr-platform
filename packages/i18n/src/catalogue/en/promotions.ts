@@ -72,6 +72,9 @@ export const promotions = {
     /** What it actually does, in words made from its stored rule: the approver reads these, not only the card words. */
     does: 'What it does',
     unreadable: 'Its rule cannot be read here, so it can only be refused.',
+    /** The rules and questions it puts on the website (#618), as the public will read them. */
+    website: 'On the website',
+    question: '{question} {answer}',
   },
   /** A rule in words (#144): `{when}` is its trigger, `{gives}` what it gives, `{who}` for whom. */
   rule: {

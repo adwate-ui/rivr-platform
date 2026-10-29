@@ -5,6 +5,7 @@ import { simulatePromotion, type PromotionDraft, type PromotionSimulation } from
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { questionsFrom, type SitePromotion } from './siteLive.ts';
 
 /** A promotion on the console's list (#84): its card's words and whether it is live or paused. */
 export interface ConsolePromotion {
@@ -62,6 +63,9 @@ export interface PromotionAwaitingApproval {
   readonly perPlayer: { readonly limit: number; readonly period: string } | null;
   /** Its budget, in paise and in grants; null for either when there is none; for the whole promotion or each month (#562). */
   readonly budget: { readonly paise: bigint | null; readonly count: number | null; readonly period: 'promotion' | 'month' };
+  /** The rules and questions it puts on the website (#618), for the approver to read before the public does. */
+  readonly websiteRules: readonly string[];
+  readonly websiteQuestions: SitePromotion['questions'];
 }
 
 /** A promotion a super admin sent back in the last fortnight (#144), with who did and why. */
@@ -93,6 +97,7 @@ export function usePromotionsAwaitingApproval(venueId: string) {
           perPlayer: row.per_player_limit === null || row.per_player_period === null ? null : { limit: row.per_player_limit, period: row.per_player_period },
           budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count,
             period: row.budget_period === 'month' ? 'month' : 'promotion' },
+          websiteRules: row.website_rules ?? [], websiteQuestions: questionsFrom(row.website_questions),
         };
       });
     },

@@ -26,6 +26,12 @@ reset role;
 select results_eq($$ select rules, questions from public.promotion where id = (select id from ids where name = 'welcome') $$,
   $$ values (array['New members only', 'Once a member'], '[{"question": "Do I claim it?", "answer": "No: it is added at the cage."}]'::jsonb) $$,
   'marketing submits a promotion with its rules, trimmed, and its questions');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select results_eq($$ select website_rules, website_questions -> 0 ->> 'question' from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001')
+                     where promotion_id = (select id from ids where name = 'welcome') $$,
+  $$ values (array['New members only', 'Once a member'], 'Do I claim it?'::text) $$,
+  'the super admin deciding on it reads the rules and questions it puts on the website');
+reset role;
 
 -- Live (as a super admin's approval leaves it), its card on the website carries them, as the welcome offer.
 update public.promotion set status = 'live', starts_at = now() - interval '1 minute' where id = (select id from ids where name = 'welcome');

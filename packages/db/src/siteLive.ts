@@ -165,7 +165,8 @@ function highHandsFrom(value: unknown): SiteRules['highHands'] {
 
 /** The club's rules the website shows, from the public view (`public_club_rules`). */
 export async function fetchSiteRules(client: RivrClient): Promise<Result<SiteRules, 'unavailable'>> {
-  const { data, error } = await client.from('public_club_rules').select('key, subject_name, subject_order, value').order('subject_order', { nullsFirst: true });
+  const { data, error } = await client.from('public_club_rules').select('key, subject, subject_name, subject_order, value')
+    .order('subject_order', { nullsFirst: true }).order('subject');
   if (error) return err('unavailable');
   return ok(rulesFrom(data));
 }
@@ -193,7 +194,7 @@ export interface SitePromotion {
 }
 
 /** A promotion's questions as the view gives them, leaving out any it cannot read. */
-function questionsFrom(value: unknown): SitePromotion['questions'] {
+export function questionsFrom(value: unknown): SitePromotion['questions'] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item: unknown) => {
     const question = wordsIn(item, 'question');

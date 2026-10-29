@@ -139,3 +139,38 @@ as $$
     else array[]::text[]
   end;
 $$;
+
+-- The approval queue, as 20261028391800_random_referral_codes_and_monthly_budgets.sql made it, with the rules and questions
+-- the promotion puts on the website, so the super admin approves the words the public will read (decision 0244).
+drop function public.promotions_awaiting_approval(uuid);
+drop function private.promotions_awaiting_approval(uuid);
+create function private.promotions_awaiting_approval(p_venue_id uuid)
+returns table (promotion_id uuid, name text, detail text, runs text, template_key text, requested_by text, requested_at timestamptz,
+               is_mine boolean, rules jsonb, per_player_limit integer, per_player_period text, budget_paise bigint, budget_count integer,
+               budget_period text, website_rules text[], website_questions jsonb)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.name, p.detail, p.runs, p.template_key, s.full_name, p.requested_at,
+         p.requested_by_staff_id = private.current_staff_id(p_venue_id),
+         coalesce((select jsonb_agg(jsonb_build_object('trigger', r.trigger, 'conditions', r.conditions, 'effect', r.effect) order by r.position)
+                   from public.promotion_rule r where r.promotion_id = p.id), '[]'::jsonb),
+         p.per_player_limit, p.per_player_period, b.cap_paise, b.cap_count, b.period, p.rules, p.questions
+  from public.promotion p
+  join public.staff s on s.id = p.requested_by_staff_id
+  left join public.promotion_budget b on b.promotion_id = p.id
+  where p.venue_id = p_venue_id and p.status = 'pending' and private.has_permission(p_venue_id, 'promotions.manage')
+  order by p.requested_at, p.id;
+$$;
+
+create function public.promotions_awaiting_approval(p_venue_id uuid)
+returns table (promotion_id uuid, name text, detail text, runs text, template_key text, requested_by text, requested_at timestamptz,
+               is_mine boolean, rules jsonb, per_player_limit integer, per_player_period text, budget_paise bigint, budget_count integer,
+               budget_period text, website_rules text[], website_questions jsonb)
+language sql stable security invoker set search_path = ''
+as $$ select * from private.promotions_awaiting_approval(p_venue_id); $$;
+
+revoke execute on function private.promotions_awaiting_approval(uuid), public.promotions_awaiting_approval(uuid) from public, anon;
+grant execute on function private.promotions_awaiting_approval(uuid), public.promotions_awaiting_approval(uuid) to authenticated;

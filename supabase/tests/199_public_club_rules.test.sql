@@ -16,6 +16,7 @@ insert into public.setting (venue_id, key, subject, value, effective_from)
 select venue_id, 'points.per_hour', code, '{"points": 7}'::jsonb, now() - interval '1 second' from club
 union all select venue_id, 'points.per_hour', code, '{"points": 99}'::jsonb, now() + interval '1 day' from club
 union all select venue_id, 'league.prizes', '', '{"month": "Top three win a seat in the season final"}'::jsonb, now() - interval '1 second' from club
+union all select venue_id, 'rakeback.rate', code, '{"basis_points": 1000, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() - interval '1 second' from club
 union all select '00000000-0000-4000-8000-000000000002', 'points.rewards_rake_share', '', '{"basis_points": 900}'::jsonb, now() - interval '1 second';
 
 select columns_are('public', 'public_club_rules', array['venue_slug', 'key', 'subject', 'subject_name', 'subject_order', 'value'],
@@ -26,6 +27,8 @@ select is((select value from public.public_club_rules r, club c where r.key = 'p
   '{"points": 7}'::jsonb, 'a rule shows as in force now, not as it will be tomorrow');
 select is((select subject_name from public.public_club_rules r, club c where r.key = 'points.per_hour' and r.subject = c.code),
   (select name from club), 'a table type''s rule carries the table type''s name');
+select is((select value from public.public_club_rules r, club c where r.key = 'rakeback.rate' and r.subject = c.code), '{"basis_points": 1000}'::jsonb,
+  'rakeback shows its rate alone, not its cap or how long its bonus lasts');
 select is((select value ->> 'month' from public.public_club_rules where key = 'league.prizes'), 'Top three win a seat in the season final',
   'the League''s prizes show in words');
 select is((select count(*) from public.public_club_rules where key not in ('points.per_hour', 'rakeback.rate', 'accommodation.hours_per_night',

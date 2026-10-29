@@ -73,7 +73,9 @@ as $$
     where f.feature_key = 'cab.requests' and f.effective_from <= now()
     order by f.venue_id, f.tier_id, f.effective_from desc
   )
-  select v.slug, r.key, r.subject, t.name, t.big_blind_paise, r.value
+  -- Rakeback shows its rate alone: its cap and how long its bonus lasts are not the website's to show.
+  select v.slug, r.key, r.subject, t.name, t.big_blind_paise,
+         case when r.key = 'rakeback.rate' then jsonb_build_object('basis_points', r.value -> 'basis_points') else r.value end
   from in_force r
   join public.venue v on v.id = r.venue_id and not v.is_practice
   left join public.table_type t on t.venue_id = r.venue_id and t.code = r.subject

@@ -209,7 +209,7 @@ export function Footer({ attribution, playerUrl }: { attribution: Attribution | 
 }
 
 /** The bar above the header: the club's number, WhatsApp and socials, and the member app (#616). */
-function topBar(playerUrl: string, attribution: Attribution | null) {
+export function topBar(playerUrl: string, attribution: Attribution | null) {
   return {
     links: [
       { label: t('web.top.phone'), href: `tel:${CLUB_CONTACT.phone}` }, { label: t('web.top.whatsapp'), href: whatsappHref() },

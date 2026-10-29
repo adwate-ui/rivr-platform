@@ -45,6 +45,7 @@ function RewardsBlock({ heading, rules }: { heading: string | undefined; rules: 
     ...(rules.rakebackBasisPoints.length === 0 ? [] : [t('web.rewards.rakebackPaid')]),
     ...(share === null ? [] : [t('web.rewards.rakeShare', { percent: percent(share) })]),
   ].join(' ');
+  if (tables.length === 0) return <TextBlock heading={heading} body={note} />;
   return (
     <TableBlock heading={heading} intro={t('web.rewards.intro')} columns={[t('web.rewards.table'), t('web.rewards.points'), t('web.rewards.rakeback')]}
       rows={tables.map(rowFor)} note={note} />

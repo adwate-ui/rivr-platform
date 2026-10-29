@@ -5,8 +5,10 @@
 -- - New pages: the Leaderboard; two journal articles; and "Is poker legal in Gurugram?", kept a draft until the
 --   owner's lawyer has read it.
 -- - The live blocks of #617 and #618 on Membership (the welcome offer, rewards, outstation) and Promotions (the jackpot).
--- - On the front page: the room's hours and amenities, more questions, and the rulings, each linked to its judgment.
---   About gets the same rulings and links.
+-- - On the front page: the room's hours and amenities, valet and parking in hospitality, more questions, and the rulings,
+--   each linked to its judgment. About gets the same rulings and links.
+-- - The figures the pages wrote in words (RIVR Rewards' share, the graduate's bonus, the cab's visits) give way to words
+--   that point to the rules in force, as those now come from the settings and promotions.
 --
 -- It only adds. A page, block, card, question or ruling already there is kept as it is, so words the club has changed
 -- in the console's editor stay. The one exception is Membership's points table of example rates, which gives way to the
@@ -180,10 +182,26 @@ begin
       {"title": "Parking", "text": "Details to follow."}]$j$::jsonb, 'title'))
   where page_id = v_page and kind = 'cards' and content ->> 'eyebrow' = 'The room' and jsonb_array_length(content -> 'cards') <= 9;
   update public.site_block set content = jsonb_set(content, '{questions}', private.with_more(content -> 'questions', $j$[
-      {"question": "Is poker legal in Gurugram?", "answer": "Poker played as a game of skill is not gambling under Indian law. The Supreme Court's test is whether skill predominates over chance, and Haryana's Prevention of Public Gambling Act, 2025 keeps games of skill outside gambling. The rulings are listed under On the record."},
+      {"question": "Is poker a game of skill?", "answer": "India's Supreme Court treats a game where skill predominates over chance as a game of skill, not gambling, and courts have applied that test to poker. The rulings are listed under On the record."},
       {"question": "What are the house rules?", "answer": "Members only, 18 and over. One player to a hand, chips stay in the club until you cash out at the cage, and the floor's decision on a hand is final. The full list is on the House rules page."},
       {"question": "What is the RIVR League?", "answer": "The club's leaderboard, month by month and season by season. Cash game hours and tournament finishes earn League points, and the standings and prizes are on the Leaderboard page."}]$j$::jsonb, 'question'))
-  where page_id = v_page and kind = 'faq';
+  where page_id = v_page and kind = 'faq' and jsonb_array_length(content -> 'questions') <= 37;
+
+  update public.site_block set content = jsonb_set(content, '{cards}', private.with_more(content -> 'cards', $j$[
+      {"title": "Valet and parking", "text": "Details to follow."}]$j$::jsonb, 'title'))
+  where page_id = v_page and kind = 'cards' and content ->> 'eyebrow' = 'Hospitality' and jsonb_array_length(content -> 'cards') <= 11;
+
+  -- Rules the pages wrote in words now come from the settings and promotions (decision 0283), so the words that named
+  -- them say so without the figures, each only while it still reads as first written.
+  update public.site_block b set content = replace(replace(replace(replace(b.content::text,
+      '"Chauffeured rides for regulars, and a cab home from your fourth visit in a month."',
+      '"Chauffeured rides for regulars, and a cab home for members who play often. Membership has the details."'),
+      '"For members who finish RIVR Academy: ₹1,000 on your first buy-in after you graduate."',
+      '"For members who finish RIVR Academy: a bonus on their first buy-in after they graduate."'),
+      '"RIVR Rewards: 5% of your rake back as points"', '"RIVR Rewards: a share of your rake back as points"'),
+      '"₹1,000 on your first buy-in after you graduate"', '"A bonus on your first buy-in after you graduate"')::jsonb
+  from public.site_page p
+  where p.id = b.page_id and p.venue_id = p_venue_id and p.slug in ('home', 'membership') and b.kind = 'cards';
 
   -- On the record, on the front page and About: every ruling linked to its judgment.
   update public.site_block b set content = jsonb_set(b.content, '{items}', private.with_rulings(b.content -> 'items'))

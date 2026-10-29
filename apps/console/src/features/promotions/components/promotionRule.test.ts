@@ -4,7 +4,8 @@ import { approvalLines } from './promotionRule.ts';
 
 const waiting = (overrides: Partial<PromotionAwaitingApproval>): PromotionAwaitingApproval => ({
   id: 'p1', name: 'Ladies\' Night drinks', detail: 'A welcome drink', runs: 'Fridays', requestedBy: 'Ishita Bose',
-  requestedAt: '2026-10-27T10:00:00Z', isMine: false, rules: [], perPlayer: null, budget: { paise: null, count: null, period: 'promotion' }, ...overrides,
+  requestedAt: '2026-10-27T10:00:00Z', isMine: false, rules: [], perPlayer: null, budget: { paise: null, count: null, period: 'promotion' },
+  websiteRules: [], websiteQuestions: [], ...overrides,
 });
 const STAKES = [{ code: 'nlh_100_200', name: 'NLH 100/200' }];
 

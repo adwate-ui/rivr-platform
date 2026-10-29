@@ -12,4 +12,5 @@ Date: 29 Oct 2026. Issues #616 to #619; the owner's parity list of 29 Oct and th
   - the welcome offer and the promotions' rules and questions, from the promotions;
   - League prizes, from a new setting, `league.prizes`;
   - names on the Leaderboard, from the League as the TVs show it.
+- **The bad beat's split comes from `jackpot.payout`.** #618 named `jackpot.shares`, but that key holds the season and freeroll sub-pools' shares. `jackpot.payout` holds how a bad beat pays the loser, the winner and the table.
 - **Helplines:** Tele-MANAS (14416) and iCall. Sources disagree on the Vandrevala Foundation's number, so it is left out until the club confirms it.

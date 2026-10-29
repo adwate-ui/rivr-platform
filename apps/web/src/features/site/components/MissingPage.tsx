@@ -1,9 +1,9 @@
 import '../../../messages.ts';
 import type { Attribution } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
-import { HeroBlock, WebShell } from '@rivr/ui';
+import { CookieBanner, HeroBlock, WebShell } from '@rivr/ui';
 import { siteHref } from '../links.ts';
-import { Footer } from './SitePage.tsx';
+import { Footer, topBar } from './SitePage.tsx';
 
 interface MissingPageProps {
   /** The content could not be read, rather than there being no such page. */
@@ -17,7 +17,8 @@ interface MissingPageProps {
 /** No page to show: a draft or an address the website does not have, or content that could not be read. */
 export function MissingPage({ failed, attribution, playerUrl }: MissingPageProps) {
   return (
-    <WebShell links={[]} homeHref={siteHref('home', attribution)} footer={<Footer attribution={attribution} playerUrl={playerUrl} />}>
+    <WebShell links={[]} homeHref={siteHref('home', attribution)} topBar={topBar(playerUrl, attribution)}
+      footer={<Footer attribution={attribution} playerUrl={playerUrl} />} after={<CookieBanner />}>
       {failed ? (
         <HeroBlock heading={t('web.unavailableTitle')} text={t('web.unavailable')} />
       ) : (

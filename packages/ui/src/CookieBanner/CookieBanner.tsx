@@ -29,7 +29,7 @@ function Choice({ name, label, help, isFixed }: { name: string; label: string; h
  */
 export function CookieBanner({ isOpen = false }: CookieBannerProps) {
   return (
-    <section data-cookie-banner="" hidden={!isOpen} aria-labelledby="cookie-banner-title" className="fixed inset-x-0 bottom-0 z-banner border-t border-hairline bg-raised">
+    <section data-cookie-banner="" hidden={!isOpen} aria-labelledby="cookie-banner-title" className="fixed inset-x-0 bottom-0 z-banner max-h-dvh overflow-y-auto border-t border-hairline bg-raised">
       <form className="mx-auto flex max-w-console flex-col gap-4 px-6 py-6">
         <Heading level={2} variant="subsection" id="cookie-banner-title">{t('ui.web.cookies.title')}</Heading>
         <Text tone="muted">{t('ui.web.cookies.text')}</Text>
