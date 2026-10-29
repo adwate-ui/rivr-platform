@@ -32,8 +32,8 @@ export interface WebShellProps {
   /** The header's one action, outlined: `Reserve a seat` (#441). */
   action?: { readonly label: string; readonly href: string } | undefined;
   /**
-   * The thin bar above the header (#616): how to reach the club (its number, WhatsApp, Instagram) on the left and the
-   * member app on the right. These leave the website, so they never go through `onNavigate`.
+   * The thin bar above the header (#616): how to reach the club on the left, each as its icon (the phone with its number
+   * beside it), and the member app on the right. These leave the website, so they never go through `onNavigate`.
    */
   topBar?: { readonly links: readonly WebShellContact[]; readonly app?: WebShellLink | undefined } | undefined;
   /** The footer block: address, licence, links. */
