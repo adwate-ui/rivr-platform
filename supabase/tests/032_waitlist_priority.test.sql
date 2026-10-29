@@ -2,7 +2,8 @@
 -- order and weights the black card (2, at its qualifying stake only) and Founders' Circle (1). Arjun
 -- (201) and Vihaan (212) are black cards at 100/200; Tara (209) becomes Founders' Circle here; Dev (210)
 -- and Ishaan (211) are members. now() is the same all through the transaction, so joins are given
--- their own earlier times where order matters.
+-- their own earlier times where order matters. A member waits on one list at a time (#633), so Mihir (213) and Kunal
+-- (216, a black card here) wait at 50/100.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -14,6 +15,11 @@ create function pg_temp.type_id(p_code text) returns uuid language sql as $$
   select id from public.table_type where code = p_code and venue_id = '00000000-0000-4000-8000-000000000001';
 $$;
 grant execute on function pg_temp.type_id(text) to authenticated;
+-- A join from the app is a request the floor approves (#633); here each is approved as it is made.
+create function pg_temp.approve_joins() returns void language sql security definer set search_path = '' as $$
+  update public.waitlist_entry set approved_at = joined_at where approved_at is null;
+$$;
+grant execute on function pg_temp.approve_joins() to authenticated;
 create function pg_temp.joined(p_member uuid, p_code text, p_ago interval) returns void language sql as $$
   update public.waitlist_entry set joined_at = now() - p_ago
   where member_id = p_member and table_type_id = pg_temp.type_id(p_code) and status = 'waiting';
@@ -26,6 +32,8 @@ from (values ('00000000-0000-4000-8000-000000000201'::uuid, 'ABCPA1111A'), ('000
              ('00000000-0000-4000-8000-000000000203'::uuid, 'ABCPN1234D'), ('00000000-0000-4000-8000-000000000210'::uuid, 'ABCPD2100E')) as m (id, pan);
 update public.member set tier_id = (select id from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Founders'' Circle')
 where id = '00000000-0000-4000-8000-000000000209';
+update public.member set tier_id = (select id from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Black card')
+where id = '00000000-0000-4000-8000-000000000216';
 
 -- Five wait on 100/200: the seeded three, then Dev and Ishaan.
 set local role authenticated;
@@ -41,21 +49,22 @@ select pg_temp.joined('00000000-0000-4000-8000-000000000204', 'nlh_100_200', int
 select pg_temp.joined('00000000-0000-4000-8000-000000000210', 'nlh_100_200', interval '5 minutes');
 select pg_temp.joined('00000000-0000-4000-8000-000000000211', 'nlh_100_200', interval '4 minutes');
 
--- The black card joins behind them; then Founders' Circle; then, on 50/100, Naina and the black card.
+-- The black card joins behind them; then Founders' Circle; then, on 50/100, Mihir and another black card.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'a black card joins 100/200 behind five');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000209", "role": "authenticated"}';
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Founders'' Circle joins 100/200');
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000203", "role": "authenticated"}';
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'Naina joins 50/100');
-set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'then the black card');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000213", "role": "authenticated"}';
+select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'Mihir joins 50/100');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000216", "role": "authenticated"}';
+select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'then a black card');
 reset role;
 select pg_temp.joined('00000000-0000-4000-8000-000000000201', 'nlh_100_200', interval '3 minutes');
 select pg_temp.joined('00000000-0000-4000-8000-000000000209', 'nlh_100_200', interval '2 minutes');
-select pg_temp.joined('00000000-0000-4000-8000-000000000203', 'nlh_50_100', interval '2 minutes');
-select pg_temp.joined('00000000-0000-4000-8000-000000000201', 'nlh_50_100', interval '1 minute');
+select pg_temp.joined('00000000-0000-4000-8000-000000000213', 'nlh_50_100', interval '2 minutes');
+select pg_temp.joined('00000000-0000-4000-8000-000000000216', 'nlh_50_100', interval '1 minute');
+select pg_temp.approve_joins();
 
 -- The floor sees each list in that order, with the reason only where priority applies.
 set local role authenticated;
@@ -66,11 +75,13 @@ select results_eq(
   $$ values ('nlh_100_200'::text, 'Arjun Mehta'::text, 1, 'Black card'::text), ('nlh_100_200', 'Tara Menon', 2, 'Founders'' Circle'),
             ('nlh_100_200', 'Kabir Sethi', 3, null), ('nlh_100_200', 'Naina Kapoor', 4, null), ('nlh_100_200', 'Rohan Bhatia', 5, null),
             ('nlh_100_200', 'Dev Malhotra', 6, null), ('nlh_100_200', 'Ishaan Verma', 7, null),
-            ('nlh_50_100', 'Naina Kapoor', 1, null), ('nlh_50_100', 'Arjun Mehta', 2, null) $$,
+            ('nlh_50_100', 'Mihir Shah', 1, null), ('nlh_50_100', 'Kunal Mehra', 2, null) $$,
   'a black card behind five is first at its stake, with the reason; Founders'' Circle next; then join time; by join time at another stake');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select results_eq($$ select table_type_name, place from public.my_waitlist() order by table_type_name $$,
-  $$ values ('NLH 100/200'::text, 1), ('NLH 50/100', 2) $$, 'and the member sees the same places');
+  $$ values ('NLH 100/200'::text, 1) $$, 'and the member sees the same place');
+select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()) $$, 'RVONE', null,
+  'and waits on one list at a time (#633)');
 reset role;
 
 -- Weights are effective-dated, and a place keeps the weight in force when the member joined. From now

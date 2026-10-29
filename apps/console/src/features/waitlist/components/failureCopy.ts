@@ -15,6 +15,7 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   seat_taken: 'console.waitlist.seatTaken',
   too_late: 'console.waitlist.tooLate',
   no_time_away: 'console.waitlist.noTimeAway',
+  one_at_a_time: 'console.waitlist.oneAtATime',
 };
 
 /** The same for Call, Seat, Skip and Back, where a refused request means the place or table changed. */

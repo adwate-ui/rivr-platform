@@ -21,8 +21,10 @@ export interface FloorTable {
   readonly buyIn: bigint;
   /** A compulsory straddle in paise, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
-  /** Members waiting for this table's game and stake. */
+  /** Members waiting for this table's game and stake: on the list, not still asking (#633). */
   readonly waiting: number;
+  /** The game's call time in minutes (#633); 0 where it has none. */
+  readonly callTimeMinutes: number;
   /** Seats free tonight: not sat in, nor held for a called member (#87); null where the person may not read them. */
   readonly openSeats: number | null;
   /** The main table a must-move table feeds (#77); null for a table of its own. */
@@ -39,8 +41,9 @@ export interface WaitlistPlace {
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly joinedAt: string;
-  /** 1 is next. */
-  readonly place: number;
+  /** 1 is next; null while the join is a request the floor has not approved (#633). */
+  readonly place: number | null;
+  readonly isRequest: boolean;
   /** While the member is called (#63): the table and seat, and when the hold runs out; null otherwise. */
   readonly callTableName: string | null;
   readonly callSeat: number | null;
@@ -76,11 +79,13 @@ export type WaitlistFailure =
   // The call-down (#63): the seat is held for another call; the hold or the time away ran out; no time away is left.
   | 'seat_held' | 'too_late' | 'no_time_away'
   // Seat sessions (#77): someone sits in the seat called to.
-  | 'seat_taken';
+  | 'seat_taken'
+  // One game at a time (#633): the member already waits for another.
+  | 'one_at_a_time';
 
 const FAILURE_BY_CODE: Readonly<Record<string, WaitlistFailure>> = {
   '42501': 'not_open', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
-  RVHLD: 'seat_held', RVLAT: 'too_late', RVAWY: 'no_time_away', RVOCC: 'seat_taken', RVSTD: 'invalid',
+  RVHLD: 'seat_held', RVLAT: 'too_late', RVAWY: 'no_time_away', RVOCC: 'seat_taken', RVSTD: 'invalid', RVONE: 'one_at_a_time',
 };
 
 /** The failure a refused waitlist call stands for. */
@@ -88,7 +93,10 @@ export function failureOf(error: { code: string }): WaitlistFailure {
   return FAILURE_BY_CODE[error.code] ?? 'unavailable';
 }
 
-/** Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length and each table's open seats. */
+/**
+ * Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length and call time, and each
+ * table's open seats.
+ */
 export function useFloorTables() {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -107,6 +115,7 @@ export function useFloorTables() {
       if (lengths.error) throw lengths.error;
       if (open.error) throw open.error;
       const waiting = new Map(lengths.data.map((row) => [row.table_type_id, row.waiting]));
+      const callTime = new Map(lengths.data.map((row) => [row.table_type_id, row.call_time_minutes]));
       const openSeats = new Map(open.data.map((row) => [row.table_id, row.open_seats]));
       return tables.data.flatMap((table) => {
         const type = types.data.find((candidate) => candidate.id === table.table_type_id);
@@ -115,6 +124,7 @@ export function useFloorTables() {
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
           smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(type.buy_in_min_paise),
           straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(type.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
+          callTimeMinutes: callTime.get(type.id) ?? 0,
           mustMoveToTableId: table.must_move_to_table_id ?? null, room: table.room === 'private' ? 'private' : 'main',
         }];
       });
@@ -134,7 +144,8 @@ export function useMyWaitlist() {
       if (error) throw error;
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise),
-        bigBlind: BigInt(row.big_blind_paise), joinedAt: row.joined_at, place: row.place, callTableName: row.call_table_name,
+        bigBlind: BigInt(row.big_blind_paise), joinedAt: row.joined_at, place: row.is_request ? null : row.place, isRequest: row.is_request,
+        callTableName: row.call_table_name,
         callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,
       }));
     },
@@ -215,4 +226,41 @@ export function useFloorWaitlistActions(venueId: string) {
     },
   });
   return { add, remove };
+}
+
+/** A join from the app the floor has not approved yet (#633). */
+export interface WaitlistRequest {
+  readonly entryId: string;
+  readonly tableTypeId: string;
+  readonly memberId: string;
+  readonly fullName: string;
+  readonly joinedAt: string;
+}
+
+/** The venue's joins waiting for the floor, oldest first (`waitlist_requests`, waitlist.manage). */
+export function useWaitlistRequests(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.waitlistRequests(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    refetchInterval: LIVE,
+    queryFn: async (): Promise<WaitlistRequest[]> => {
+      const { data, error } = await client.rpc('waitlist_requests', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({ entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at }));
+    },
+  });
+}
+
+/** The floor approves a join onto its list (#633); `useFloorWaitlistActions().remove` removes one. A Result; the floor is read again. */
+export function useApproveWaitlistRequest() {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (entryId: string): Promise<Result<null, WaitlistFailure>> => {
+      const { error } = await client.rpc('approve_waitlist_request', { p_entry_id: entryId });
+      await queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
+      return error ? err(failureOf(error)) : ok(null);
+    },
+  });
 }

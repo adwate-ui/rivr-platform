@@ -6,12 +6,13 @@ import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
 const at = (iso: string) => formatTime(new Date(iso));
 
-/** The line under a place: the seat call while it holds, away and kept until, or the number on the list. */
+/** The line under a place: the seat call while it holds, away and kept until, a join waiting for the floor (#633), or the number on the list. */
 function detailOf(place: WaitlistPlace): string {
   if (place.holdUntil !== null) {
     return t('player.tonight.seatReady', { table: place.callTableName ?? '', seat: place.callSeat ?? 0, time: at(place.holdUntil) });
   }
   if (place.awayUntil !== null) return t('player.tonight.away', { time: at(place.awayUntil) });
+  if (place.place === null) return t('player.tonight.request', { time: at(place.joinedAt) });
   return t('player.tonight.place', { place: place.place, time: at(place.joinedAt) });
 }
 
@@ -39,7 +40,7 @@ export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
           detail={detailOf(place)}
           action={
             <Inline gap={2}>
-              {place.holdUntil !== null ? null : (
+              {place.holdUntil !== null || place.isRequest ? null : (
                 <Button variant="text" isLoading={stepAway.isPending}
                   onClick={() => void act(stepAway.mutateAsync({ entryId: place.entryId, isAway: place.awayUntil === null }))}>
                   {place.awayUntil === null ? t('player.tonight.stepAway') : t('player.tonight.back')}

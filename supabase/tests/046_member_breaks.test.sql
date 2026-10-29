@@ -14,6 +14,11 @@ create function pg_temp.type_id(p_code text) returns uuid language sql as $$
   select id from public.table_type where code = p_code and venue_id = '00000000-0000-4000-8000-000000000001';
 $$;
 grant execute on function pg_temp.as_person(text), pg_temp.type_id(text) to authenticated;
+-- A join from the app is a request the floor approves (#633); here each is approved as it is made.
+create function pg_temp.approve_joins() returns void language sql security definer set search_path = '' as $$
+  update public.waitlist_entry set approved_at = joined_at where approved_at is null;
+$$;
+grant execute on function pg_temp.approve_joins() to authenticated;
 
 -- The session reminder.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
@@ -26,13 +31,15 @@ select is((select session_reminder_hours from public.my_restrictions()), null::s
 
 -- A break takes the member off every waitlist and closes them.
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Ishaan joins 100/200');
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()), null, 'and 50/100');
+select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()) $$, 'RVONE', null,
+  'and waits on one list at a time (#633)');
+select pg_temp.approve_joins();
 create temp table first_break as select public.take_break(7) as until;
 grant select on first_break to authenticated;
 select ok((select until from first_break) between now() + interval '7 days' - interval '1 minute' and now() + interval '7 days',
   'a 7-day break runs seven days from now');
 select is((select break_until from public.my_restrictions()), (select until from first_break), 'Profile shows when it ends');
-select is_empty($$ select * from public.my_waitlist() $$, 'and both places are gone');
+select is_empty($$ select * from public.my_waitlist() $$, 'and his place is gone');
 select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()) $$,
   'RVBRK', null, 'a member on a break cannot join a waitlist');
 select is(public.take_break(1), (select until from first_break), 'a shorter break changes nothing: a break is never shortened');
@@ -42,7 +49,7 @@ select throws_ok($$ update public.self_exclusion set ends_at = now() + interval 
 reset role;
 select results_eq($$ select left_reason, count(*)::integer from public.waitlist_entry
                      where member_id = '00000000-0000-4000-8000-000000000211' group by left_reason $$,
-  $$ values ('break'::text, 2) $$, 'each place says the break ended it');
+  $$ values ('break'::text, 1) $$, 'his place says the break ended it');
 select throws_ok($$ delete from public.self_exclusion $$, null, null, 'nor does anyone remove one');
 select is((select count(*)::integer from public.outbox_event where event_type = 'member.break_started'), 1, 'member.break_started is emitted once');
 

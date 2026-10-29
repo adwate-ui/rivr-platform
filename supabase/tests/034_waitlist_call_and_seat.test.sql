@@ -11,6 +11,11 @@ $$;
 create function pg_temp.table_id(p_name text) returns uuid language sql as $$
   select id from public.game_table where name = p_name and venue_id = '00000000-0000-4000-8000-000000000001';
 $$;
+-- A join from the app is a request the floor approves (#633); here each is approved as it is made.
+create function pg_temp.approve_joins() returns void language sql security definer set search_path = '' as $$
+  update public.waitlist_entry set approved_at = joined_at where approved_at is null;
+$$;
+grant execute on function pg_temp.approve_joins() to authenticated;
 create function pg_temp.entry(p_member uuid) returns uuid language sql as $$
   select id from public.waitlist_entry where member_id = p_member and table_type_id = pg_temp.type_id('nlh_100_200') and status = 'waiting';
 $$;
@@ -129,6 +134,7 @@ update public.waitlist_entry set away_used = interval '0' where id = pg_temp.ent
 -- A call unanswered when its hold runs out rolls to the next name, for the same seat.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000210');
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Dev joins behind Rohan');
+select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000204'), pg_temp.table_id('Table 5'), 4) $$,
   'the floor calls Rohan to Table 5, seat 4');
@@ -144,6 +150,7 @@ select results_eq($$ select ct.name, e.call_seat from public.waitlist_entry e jo
 -- A called member who leaves rolls the seat on too; the floor's Skip ends a call and rolls it on.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Ishaan joins behind Dev');
+select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000210');
 select lives_ok($$ select public.leave_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000210')) $$, 'Dev leaves while called');
 reset role;
@@ -179,6 +186,7 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
 -- While the venue is frozen a hold pauses: nobody loses a place, and nobody is called.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
 select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Vihaan joins');
+select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000212'), pg_temp.table_id('Table 5'), 4) $$,
   'and is called to Table 5, seat 4');

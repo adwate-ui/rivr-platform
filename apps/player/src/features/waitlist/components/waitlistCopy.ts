@@ -16,4 +16,5 @@ export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>
   seat_taken: 'player.tonight.unavailable',
   too_late: 'player.tonight.tooLate',
   no_time_away: 'player.tonight.noTimeAway',
+  one_at_a_time: 'player.tonight.oneAtATime',
 };

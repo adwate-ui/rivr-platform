@@ -1,6 +1,6 @@
-import { useFloorTables, useInterestLists, useStaffVenue, useWaitlistBoard, type FloorTable, type InterestList } from '@rivr/db';
+import { useFloorTables, useInterestLists, useStaffVenue, useWaitlistBoard, useWaitlistRequests, type FloorTable, type InterestList } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack } from '@rivr/ui';
+import { ErrorMessage, Screen, Stack } from '@rivr/ui';
 import { GameList } from './GameList.tsx';
 
 /** The floor's waitlists (#38), one per game and stake, for staff with waitlist.manage. */
@@ -35,6 +35,9 @@ function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
   const board = useWaitlistBoard(venueId);
   // The interest lists are an addition: the waitlists show while they load, or if they fail.
   const interest = useInterestLists(venueId).data ?? [];
+  // So are the joins waiting for approval (#633), with an error above them when they fail to load.
+  const asked = useWaitlistRequests(venueId);
+  const requests = asked.data ?? [];
   const title = t('console.waitlist.title');
   if (tables.isPending || board.isPending) return <Screen title={title} status="loading" />;
   if (tables.isError || board.isError) {
@@ -45,10 +48,12 @@ function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
   return (
     <Screen title={title}>
       <Stack gap={10}>
+        {asked.isError ? <ErrorMessage>{t('console.waitlist.requestsFailed')}</ErrorMessage> : null}
         {games.map((game) => (
           <GameList key={game.tableTypeId} venueId={venueId} game={game}
             tables={tables.data.filter((table) => table.venueId === venueId && table.tableTypeId === game.tableTypeId && table.isOpen)}
             entries={board.data.filter((entry) => entry.tableTypeId === game.tableTypeId)}
+            requests={requests.filter((request) => request.tableTypeId === game.tableTypeId)}
             interest={interestOf(game, interest, tables.data, canOpen)} />
         ))}
       </Stack>

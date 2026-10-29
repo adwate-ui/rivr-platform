@@ -73,6 +73,7 @@ export const queryKeys = {
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
   /** A venue's waitlists, as the floor sees them. */
   waitlistBoard: (userId: string, venueId: string) => ['user', userId, 'waitlist-board', venueId] as const,
+  waitlistRequests: (userId: string, venueId: string) => ['user', userId, 'waitlist-requests', venueId] as const,
   floorSeats: (userId: string, venueId: string) => ['user', userId, 'floor-seats', venueId] as const,
   heldSeats: (userId: string, venueId: string) => ['user', userId, 'held-seats', venueId] as const,
   leftOwingCallTime: (userId: string, venueId: string) => ['user', userId, 'left-owing-call-time', venueId] as const,

@@ -83,15 +83,18 @@ export {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from './memberErasure.ts';
 export {
+  useApproveWaitlistRequest,
   useFloorTables,
   useFloorWaitlistActions,
   useMyWaitlist,
   useWaitlistActions,
   useWaitlistBoard,
+  useWaitlistRequests,
   type FloorTable,
   type WaitlistBoardEntry,
   type WaitlistFailure,
   type WaitlistPlace,
+  type WaitlistRequest,
 } from './waitlist.ts';
 export {
   useDealerTablets,
