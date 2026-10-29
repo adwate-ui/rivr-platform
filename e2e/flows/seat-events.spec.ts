@@ -1,10 +1,8 @@
 /**
  * Seat events on the dealer tablet (#59; design prompt flow 3; the prototype's tablet seats). Tanvi
  * Joshi, this flow's own duty manager (Auth sends one code a minute to a number), seats Yash Gupta at
- * Table 3, seat 9, and pairs Table 3's tablet; Pema Lepcha signs in. On the tablet, seat 9 asks the
- * cage for the ₹10,000 minimum, and while it waits there no second request can be sent; the cage's
- * queue shows it with Yash's KYC photo. Yash is marked away and back, then leaves: seat 9 is open
- * again and his request leaves the cage's queue. The tablet is revoked at the end. Another table's
+ * Table 3, seat 9, and pairs Table 3's tablet; Pema Lepcha signs in. The tablet shows his call time and no buy-in
+ * in rupees (#630). Yash is marked away and back, then leaves: seat 9 is open again. The tablet is revoked at the end. Another table's
  * tablet, a revoked tablet and a frozen venue are refused in supabase/tests/050_seat_events.test.sql.
  */
 import { expect, test } from '@playwright/test';
@@ -30,14 +28,8 @@ test.describe('Seat events', () => {
     await expect(tablet.getByRole('heading', { name: 'Seat 9 · Yash Gupta' })).toBeVisible();
     // An hour of call time at 100/200 (#78).
     await expect(tablet.getByText('Call time 1 h left')).toBeVisible();
-    await tablet.getByRole('button', { name: 'Request buy-in' }).click();
-    await expect(tablet.getByText('Buy-in ₹10,000 with the cage.')).toBeVisible();
-    await expect(tablet.getByRole('button', { name: 'Request buy-in' })).toBeDisabled();
-
-    await floor.getByRole('link', { name: 'Cage' }).click();
-    await expect(floor.getByText(/^Buy-in · Table 3, seat 9 · \d{2}:\d{2}$/)).toBeVisible();
-    await expect(floor.getByText('Yash Gupta', { exact: true })).toBeVisible();
-    await expect(floor.getByRole('img', { name: 'KYC photo of Yash Gupta' }).or(floor.getByText(/^The photo could not load/))).toBeVisible();
+    // No buy-in in rupees on the tablet (#630).
+    await expect(tablet.getByRole('button', { name: 'Request buy-in' })).toHaveCount(0);
 
     await tablet.getByRole('button', { name: 'Away', exact: true }).click();
     await expect(tablet.getByText('Away from the table. The seat is kept.')).toBeVisible();
@@ -46,8 +38,6 @@ test.describe('Seat events', () => {
     await expect(tablet.getByText('Away from the table. The seat is kept.')).toHaveCount(0);
     await tablet.getByRole('button', { name: 'Player left' }).click();
     await expect(tablet.getByRole('button', { name: 'Seat 9, open' })).toBeVisible();
-    await floor.reload();
-    await expect(floor.getByText('No requests waiting.')).toBeVisible();
     await revoke(floor, name);
   });
 });

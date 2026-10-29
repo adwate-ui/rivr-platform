@@ -1,10 +1,8 @@
 /**
- * The rewards catalogue and the League on the console (#145, #147; decisions 0181, 0182). Tanya Rao, this
- * flow's own marketing manager, opens Growth → Rewards, adds a cap of her own to the catalogue, finds it
- * live, and takes it off offer. On Growth → League she keeps the seasons and sees the seeded one, but no
- * names. Kabir Anand, its floor manager, who reads members, sees this month's standings and the season's.
- * That members redeem only from their tier's catalogue, at the price shown and never below nothing, is
- * proved in supabase/tests/099_rewards_catalogue.test.sql; the League's sums in 100_league.test.sql.
+ * The rewards catalogue on the console (#145; decision 0181). Tanya Rao, this flow's own marketing manager, opens
+ * Rewards, adds a cap of her own to the catalogue, finds it live, and takes it off offer. The League's console screen
+ * is hidden (#626); its sums stay proved in supabase/tests/100_league.test.sql. That members redeem only from their
+ * tier's catalogue, at the price shown and never below nothing, is proved in supabase/tests/099_rewards_catalogue.test.sql.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -23,7 +21,7 @@ async function addCap(page: Page, name: string) {
 }
 
 test.describe('Rewards catalogue', () => {
-  test('Marketing adds a reward and takes it off offer; the floor manager reads the League by month and season', async ({ browser }) => {
+  test('Marketing adds a reward and takes it off offer, and the League is off the rail', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'changes the catalogue, so the local stack only');
     const marketing = await browser.newPage();
     await signInToConsole(marketing, '9000000700');
@@ -43,17 +41,6 @@ test.describe('Rewards catalogue', () => {
     await expect(marketing.getByRole('heading', { name: 'New reward' })).toBeVisible();
     await expect(marketing.getByText('Retired', { exact: true }).first()).toBeVisible();
 
-    await marketing.getByRole('link', { name: 'League', exact: true }).click();
-    await expect(marketing.getByText(/^Season one · /)).toBeVisible({ timeout: 10_000 });
-    await expect(marketing.getByText('Standings by name are for staff who read members.')).toBeVisible();
-
-    const floor = await browser.newPage();
-    await signInToConsole(floor, '9000000701');
-    await floor.getByRole('link', { name: 'League', exact: true }).click();
-    const period = floor.getByRole('group', { name: 'Standings for' });
-    await expect(period.getByRole('button', { name: 'This month' })).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
-    await period.getByRole('button', { name: 'Season one' }).click();
-    // The seed's season runs from this month: its table, or no points yet.
-    await expect(floor.getByRole('table', { name: 'Season one' }).or(floor.getByText('No League points yet for this period.'))).toBeVisible();
+    await expect(marketing.getByRole('link', { name: 'League', exact: true })).toHaveCount(0);
   });
 });

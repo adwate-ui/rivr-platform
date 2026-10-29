@@ -88,22 +88,21 @@ describe('the console', () => {
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
   });
 
-  it('shows in the rail only the screens the role allows: the cage\'s for a cashier', async () => {
+  it('shows in the rail only the screens the role allows, and none of the cage\'s, which are hidden', async () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/');
-    expect(await screen.findByRole('link', { name: 'Academy payments' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
+    expect(await screen.findByRole('link', { name: 'Live floor' })).toBeDefined();
+    for (const hidden of ['Cage', 'Academy payments', 'Academy']) expect(screen.queryByRole('link', { name: hidden })).toBeNull();
     expect(screen.queryByRole('link', { name: 'KYC review' })).toBeNull();
   });
 
-  it('and Academy staff\'s for an admin', async () => {
+  it('and KYC review for an admin, but no Academy', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Aditya Malhotra', role: 'admin' }]);
     renderAt('/');
-    expect(await screen.findByRole('link', { name: 'Academy' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Academy payments' })).toBeNull();
-    expect(screen.getByRole('link', { name: 'KYC review' })).toBeDefined();
+    expect(await screen.findByRole('link', { name: 'KYC review' })).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
   });
 
   it('refuses a screen the role does not include, opened by its address', async () => {
@@ -113,15 +112,24 @@ describe('the console', () => {
     expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
   });
 
-  // Screens merged into others (#606), and Rake into Settings (#604): each old address opens its tab.
-  it.each([
-    ['/tablets', 'Tablets'], ['/tvs', 'TVs'], ['/computers', 'Computers'], ['/cameras', 'Cameras'], ['/high-hands', 'High hands'],
-    ['/dealer-pins', 'Dealer PINs'], ['/treasury', 'Opening and counts'], ['/end-of-day', 'Closing and history'], ['/rake', 'Rake and jackpots'],
-  ])('opens %s as its tab, %s, for a super admin', async (path, tab) => {
+  // Screens merged into others (#606): each old address opens its tab.
+  it.each([['/tablets', 'Tablets'], ['/tvs', 'TVs'], ['/dealer-pins', 'Dealer PINs']])('opens %s as its tab, %s, for a super admin', async (path, tab) => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);
     renderAt(path);
     expect(await screen.findByRole('link', { name: tab, current: 'page' })).toBeDefined();
+  });
+
+  // The old addresses of tabs the owner hid (#626): none opens its tab, a super admin's either.
+  it.each([
+    ['/computers', 'Computers'], ['/cameras', 'Cameras'], ['/high-hands', 'High hands'], ['/treasury', 'Opening and counts'],
+    ['/end-of-day', 'Closing and history'], ['/rake', 'Rake and jackpots'],
+  ])('does not open %s as its tab, %s, which is hidden', async (path, tab) => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);
+    renderAt(path);
+    expect(await screen.findByRole('link', { name: 'Live floor' })).toBeDefined();
+    expect(screen.queryByRole('link', { name: tab })).toBeNull();
   });
 
   it.each(['/dealer-pins', '/tablets', '/computers'])('still refuses a cashier at %s, once it has opened the screen it moved to', async (path) => {

@@ -43,7 +43,6 @@ export const liveFloor = {
   table: 'Table',
   /** The tables, room by room, read out as one part of the screen. */
   roomPlan: 'Room plan',
-  rakeTonight: 'Rake tonight',
   seatedCount: '{count} seated',
   mainRoom: 'Main room',
   privateRoom: 'Private Room',
@@ -52,9 +51,6 @@ export const liveFloor = {
   noPace: '-',
   noDealer: 'No dealer',
   dealer: 'Dealer · {name}',
-  /** Under the chosen table's name: `100/200 · buy-in ₹10,000 · rake 5%, cap ₹6,000`. */
-  tableLine: '{stakes} · buy-in {buyIn} · rake {rate}%, cap {cap}',
-  tableLineNoRake: '{stakes} · buy-in {buyIn}',
   hands: 'Hands',
   perHour: 'Per hour',
   recentHands: 'Recent hands',
@@ -94,7 +90,7 @@ export const liveFloor = {
   leaveEarlyReason: 'Why they leave early',
   leaveEarlyHint: 'Kept on their record, with your name.',
   letLeaveEarly: 'Let leave early',
-  leftEarly: 'Early departure recorded. The cage can cash them out.',
+  leftEarly: 'Early departure recorded. They can leave their seat.',
   callTimeDone: 'Their call time is complete. They can leave.',
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
   leftOwingTitle: 'Left before call time',

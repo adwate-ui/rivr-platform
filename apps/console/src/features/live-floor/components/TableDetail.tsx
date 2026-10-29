@@ -4,7 +4,6 @@ import { Button, CallTimeTimer, ErrorMessage, Inline, Stack, Text } from '@rivr/
 import { useState } from 'react';
 import { EarlyLeaveForm } from './EarlyLeaveForm.tsx';
 import { MoveForm } from './MoveForm.tsx';
-import { RecentHands } from './RecentHands.tsx';
 import { SEAT_FAILURE_COPY } from './seatCopy.ts';
 import { SeatForm } from './SeatForm.tsx';
 import { TableControls } from './TableControls.tsx';
@@ -113,7 +112,6 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
           member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />
       )}
       {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
-      <RecentHands tableId={table.id} />
     </Stack>
   );
 }

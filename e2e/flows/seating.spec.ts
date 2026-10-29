@@ -32,12 +32,12 @@ test.describe('Seating', () => {
 
     await page.getByRole('button', { name: 'Ishaan Verma leaves' }).click();
     await expect(page.getByRole('img', { name: 'Table 5, 0 of 9 seats taken' })).toBeVisible();
-    // He left before Table 5's call time (#79): she lets him leave early, so the cage can cash him out.
+    // He left before Table 5's call time (#79): she lets him leave early.
     await expect(page.getByRole('heading', { name: 'Left before call time' })).toBeVisible();
     await page.getByRole('button', { name: 'Let Ishaan Verma leave early' }).click();
     await page.getByRole('textbox', { name: 'Why they leave early' }).fill('Called away');
     await page.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(page.getByText('Early departure recorded. The cage can cash them out.')).toBeVisible();
+    await expect(page.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Let Ishaan Verma leave early' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Close table' }).click();
