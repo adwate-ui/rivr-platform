@@ -20,6 +20,6 @@ describe('the dealer tablet', () => {
     expect(await screen.findByRole('heading', { name: 'Tablet pairing' })).toBeDefined();
     expect(screen.getByText('Not paired')).toBeDefined();
     expect(screen.getByRole('textbox', { name: 'Pairing code' })).toBeDefined();
-    expect(screen.queryByRole('heading', { name: 'Hand entry' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Seats' })).toBeNull();
   });
 });

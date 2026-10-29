@@ -77,6 +77,11 @@ export const liveFloor = {
   mustMove: 'Must move {order}',
   /** A player away from the table, the seat kept (#59). */
   away: 'Away',
+  /** The floor marks a player away from the table, or back, as the tablet does (#630). */
+  markAway: 'Away',
+  markAwayName: '{name} is away from the table',
+  markBack: 'Back',
+  markBackName: '{name} is back at the table',
   move: 'Move',
   moveName: 'Move {name}',
   moveTitle: 'Move {name}',

@@ -55,7 +55,7 @@ test.describe('Door kiosk', () => {
     await kiosk.getByRole('textbox', { name: 'Pairing code' }).fill(code);
     await kiosk.getByRole('button', { name: 'Pair' }).click();
     await expect(kiosk.getByRole('heading', { name: 'Hold your RIVR card up to the camera' })).toBeVisible();
-    await expect(kiosk.getByRole('heading', { name: 'Hand entry' })).toHaveCount(0);
+    await expect(kiosk.getByRole('heading', { name: 'Seats', level: 1 })).toHaveCount(0);
 
     // In, then out: the same card, scanned twice.
     const member = await (await browser.newContext()).newPage();
