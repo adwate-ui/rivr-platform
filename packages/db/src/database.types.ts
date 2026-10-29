@@ -2869,14 +2869,14 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -4642,6 +4642,9 @@ isOneToOne: false
 "export_archive_rows":
 { Args: { "p_after"?: Json,"p_archive_id": string,"p_limit"?: number,"p_table": string }; Returns: Json
                            },
+"extend_my_call_time":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "finish_agent_kot":
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_device_id": string,"p_error": string,"p_retry_after_seconds": number }; Returns: undefined
                            },
@@ -4658,7 +4661,7 @@ isOneToOne: false
                            },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string
+              "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"top_up": string
             }[]
                            },
 "floor_tonight":
@@ -4760,6 +4763,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "full_name": string,"is_practice": boolean,"member_id": string,"venue_id": string
             }[]
+                           },
+"leave_my_seat":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "leave_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
@@ -4942,7 +4948,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "call_time_left": number,"has_call_time": boolean,"is_away": boolean,"seat": number,"table_name": string
+              "call_time_left": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"table_name": string,"top_up": string
             }[]
                            },
 "my_sessions":
@@ -5259,6 +5265,9 @@ isOneToOne: false
 "request_expense":
 { Args: { "p_amount_paise": number,"p_category_id": string,"p_expense_id": string,"p_note": string,"p_payee": string,"p_payment_account_id": string,"p_receipt_path": string,"p_venue_id": string }; Returns: string
                            },
+"request_top_up":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "request_withdrawal":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string }; Returns: string
                            },
@@ -5402,6 +5411,9 @@ isOneToOne: false
                            },
 "set_tally_ledger":
 { Args: { "p_account_code": string,"p_tally_ledger": string,"p_venue_id": string }; Returns: undefined
+                           },
+"set_top_up":
+{ Args: { "p_in_progress": boolean,"p_session_id": string }; Returns: undefined
                            },
 "set_tournament_flight":
 { Args: { "p_day_two_id": string,"p_flight_id": string }; Returns: undefined

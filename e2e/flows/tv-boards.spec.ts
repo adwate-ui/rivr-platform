@@ -9,7 +9,7 @@
  *   Realtime and not its half-minute read;
  * - the console offers no jackpot board, and the TV shows no rupee; each board has its progress bar (#628);
  * - on the call-time board (decision 0163), the floor seats Nakul Dhillon in the Private Room, where call
- *   time is two hours: the TV shows him at his table with the time left. Marked leaving, he is on the
+ *   time is three hours (#634): the TV shows him at his table with the time left. Marked leaving, he is on the
  *   console's Leaving list and the TV shows his seat opening, within seconds. Given the promotions to turn
  *   to in between, the TV shows a promotion slide, then the call-time board again. Nakul is from the
  *   seed's hundred more members, whom no other flow seats; Pooja, an admin, lets him leave early, and he leaves.
@@ -125,21 +125,21 @@ test.describe('TV boards', () => {
       .toHaveCount(0);
     await expect(tv.getByText(/₹/)).toHaveCount(0);
 
-    // The call-time board: Nakul at his table with two hours to play, then his seat opening once he is marked leaving.
+    // The call-time board: Nakul at his table with three hours to play, then his seat opening once he is marked leaving.
     const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
     await modes.getByRole('button', { name: 'Call-time board', exact: true }).click();
     await expect(tv.getByRole('heading', { level: 1, name: 'Call time' })).toBeVisible({ timeout: 15_000 });
     await seatNakul(floor);
     const room = tv.getByRole('region', { name: 'Private Room' });
     await expect(room.getByText('Nakul D.', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await expect(room.getByText(/^(2 h|1 h 59 min)$/)).toBeVisible();
+    await expect(room.getByText(/^(3 h|2 h 59 min)$/)).toBeVisible();
     await floor.getByRole('button', { name: `${LEAVING} is leaving` }).click();
     await expect(floor.getByRole('heading', { name: 'Leaving', exact: true })).toBeVisible();
     await expect(floor.getByText('Private Room · seat 8', { exact: true })).toBeVisible();
     const openings = tv.getByRole('region', { name: 'Seats opening' });
     await expect(openings.getByText('Private Room · Seat 8', { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(openings.getByText('Nakul D.', { exact: true })).toBeVisible();
-    await expect(openings.getByText(/^In (2 h|1 h 59 min)$/)).toBeVisible();
+    await expect(openings.getByText(/^In (3 h|2 h 59 min)$/)).toBeVisible();
     await expect(room.getByText('Nakul D.', { exact: true })).toHaveCount(0);
 
     // The promotions in between: after half a minute on the board, a promotion, and then the board again.

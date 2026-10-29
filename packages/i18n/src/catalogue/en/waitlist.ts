@@ -6,6 +6,22 @@ export const tonight = {
   breakActive: 'Break active until {until}. Tables are closed to you until then.',
   /** Seated tonight (#78), with the call time left beneath. */
   seated: 'Seated at {table}, seat {seat}.',
+  /** At the seat (#634): how long the member has played tonight, `1 h 20 min`, and what they can do from there. */
+  playedFor: 'Playing for {time}',
+  extendCallTime: 'Add an hour of call time',
+  leaveSeat: 'Leave my seat',
+  /** Left with call time still owed: the floor's Leaving list shows them until it is done. */
+  onLeavingList: 'You are on the leaving list. The floor opens your seat once your call time is done.',
+  requestTopUp: 'Ask for a top-up',
+  topUpRequested: 'Top-up requested. The floor is on its way.',
+  topUpInProgress: 'Top-up in progress at your seat.',
+  seatFailures: {
+    not_seated: 'You are not seated any more.',
+    not_allowed: 'This is not open to you.',
+    stopped: 'Your account is paused. Speak to the front desk.',
+    paused: 'The club is paused. Try again later.',
+    unavailable: 'That did not go through. Check your connection and try again.',
+  },
   onBreak: 'Break active. Tables are closed to you until it ends.',
   title: 'Tonight',
   empty: 'No tables are running.',

@@ -27,8 +27,8 @@ test.describe('Seat events', () => {
     await dealerSignsIn(tablet);
     await tablet.getByRole('button', { name: 'Seat 9, Yash Gupta' }).click();
     await expect(tablet.getByRole('heading', { name: 'Seat 9 · Yash Gupta' })).toBeVisible();
-    // An hour of call time at 100/200 (#78).
-    await expect(tablet.getByText('Call time 1 h left')).toBeVisible();
+    // Three hours of call time at 100/200 (#78, #634).
+    await expect(tablet.getByText(/^Call time (3 h|2 h 59 min) left$/)).toBeVisible();
     // No buy-in in rupees on the tablet (#630).
     await expect(tablet.getByRole('button', { name: 'Request buy-in' })).toHaveCount(0);
 

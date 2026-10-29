@@ -110,6 +110,13 @@ export const liveFloor = {
   leavingTitle: 'Leaving',
   leavingLine: '{table} · seat {seat}',
   leavingNoCallTime: 'No call time here',
+  /** A seated player's top-up (#634): asked for from the app, then in hand; the floor resets it once done. No amount. */
+  topUpRequested: 'Top-up requested',
+  topUpInProgress: 'Top-up in progress',
+  startTopUp: 'Start top-up',
+  startTopUpName: 'The top-up for {name} is in progress',
+  resetTopUp: 'Reset top-up',
+  resetTopUpName: 'Reset the top-up for {name}',
   seatPlayer: 'Seat a player',
   seatNumber: 'Seat',
   phone: 'Mobile number',

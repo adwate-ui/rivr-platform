@@ -16,7 +16,7 @@ const TABLE: Omit<FloorTable, 'id' | 'name' | 'room'> = {
 const TABLES: FloorTable[] = [{ ...TABLE, id: 't3', name: 'Table 3', room: 'main' }, { ...TABLE, id: 'pr', name: 'Private Room', room: 'private' }];
 const PLAYER: SeatedPlayer = {
   sessionId: 's1', tableId: 't3', seat: 5, memberId: 'm1', fullName: 'Kabir Sethi', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
-  mustMoveOrder: null, isAway: false, callTimeLeft: 1500, leavingAt: '2026-11-15T16:00:00Z',
+  mustMoveOrder: null, isAway: false, callTimeLeft: 1500, leavingAt: '2026-11-15T16:00:00Z', topUp: null,
 };
 const SEATS: SeatedPlayer[] = [
   PLAYER,

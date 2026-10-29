@@ -34,10 +34,10 @@ from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-400
 cross join (values ('nlh_50_100', 300000), ('nlh_100_200', 600000), ('private_room', 1200000)) as r (code, cap)
 on conflict (venue_id, key, subject, effective_from) do nothing;
 
--- Call time for the cash games, local and staging only: an hour (the Private Room's two hours are in
+-- Call time for the cash games, local and staging only: three hours (#634; the Private Room's are in
 -- 30_settings.sql). Production's are the owner's (#78).
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-select v.venue_id, 'call_time.minutes', c.code, '{"minutes": 60}', '-infinity', 'Seed'
+select v.venue_id, 'call_time.minutes', c.code, '{"minutes": 180}', '-infinity', 'Seed'
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 cross join (values ('nlh_50_100'), ('nlh_100_200')) as c (code)
 on conflict (venue_id, key, subject, effective_from) do nothing;
