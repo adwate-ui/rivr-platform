@@ -68,12 +68,17 @@ describe('Promotions (#84)', () => {
     const { result, calls } = renderPromotions({ '/rpc/submit_promotion': { body: 'p9' }, '/rest/v1/': { body: [] } });
     let submitted: unknown;
     await act(async () => {
-      submitted = await result.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
+      submitted = await result.current.actions.submit.mutateAsync({
+        name: 'Double points', runs: 'Thursday', draft: DRAFT, rules: ['Members only'], questions: [{ question: 'Do I claim it?', answer: 'No.' }],
+      });
     });
     expect(submitted).toEqual({ ok: true, value: 'p9' });
     expect(calls.find((call) => call.url.includes('submit_promotion'))?.body).toEqual({
       p_venue_id: VENUE,
-      p_promotion: { name: 'Double points', runs: 'Thursday', rule: DRAFT.rule, per_player_limit: 1, per_player_period: 'promotion' },
+      p_promotion: {
+        name: 'Double points', runs: 'Thursday', rule: DRAFT.rule, per_player_limit: 1, per_player_period: 'promotion',
+        rules: ['Members only'], questions: [{ question: 'Do I claim it?', answer: 'No.' }],
+      },
     });
     await act(async () => {
       await result.current.actions.setLive.mutateAsync({ id: 'p9', isLive: false });

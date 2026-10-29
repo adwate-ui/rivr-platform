@@ -8,6 +8,7 @@ afterEach(cleanup);
 
 const NO_RULES: SiteRules = {
   pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null, leaguePrizes: { month: null, season: null },
+  badBeat: null, highHands: null,
 };
 
 const LEAGUE: SiteBlock = { kind: 'league', content: { heading: 'The RIVR League' } };
@@ -16,7 +17,7 @@ const OUTSTATION: SiteBlock = { kind: 'outstation', content: { eyebrow: 'Outstat
 
 const PAGE: SitePageData = {
   slug: 'leaderboard', title: 'Leaderboard', description: null, navigation: [], games: [], tournaments: [], promotions: [], wallPosts: [], isPaused: false,
-  league: { month: null, season: null }, rules: NO_RULES, blocks: [LEAGUE, REWARDS, OUTSTATION],
+  league: { month: null, season: null }, rules: NO_RULES, jackpotPool: null, blocks: [LEAGUE, REWARDS, OUTSTATION],
 };
 
 function renderPage(page: Partial<SitePageData>) {
@@ -61,5 +62,38 @@ describe('the blocks read from the League and the club’s rules', () => {
     renderPage({});
     expect(screen.queryByRole('heading', { name: 'Getting here' })).toBeNull();
     expect(screen.getByRole('heading', { name: 'The RIVR League' })).toBeDefined();
+  });
+});
+
+describe('promotions in grandpokerarena.com’s way', () => {
+  const JACKPOT: SiteBlock = { kind: 'jackpot', content: { eyebrow: 'Promotions', heading: 'Jackpots and rare hands' } };
+  const WELCOME: SiteBlock = { kind: 'promotions', content: { heading: 'Welcome offer', only: 'welcome' } };
+  const REFERRAL = { title: 'Referral', detail: null, runs: 'Every day', rules: ['Your friend must be new'], questions: [], isWelcome: false };
+  const FIRST_VISIT = { title: 'First visit bonus', detail: null, runs: null, rules: [], questions: [{ question: 'Do I claim it?', answer: 'No.' }], isWelcome: true };
+
+  it('shows the live pool, how a bad beat shares it and what each rare hand pays, from the rules in force', () => {
+    renderPage({
+      blocks: [JACKPOT], jackpotPool: 34277000n,
+      rules: { ...NO_RULES, badBeat: { poolBasisPoints: 10000, loserBasisPoints: 5000, winnerBasisPoints: 2500, tableBasisPoints: 2500 },
+        highHands: { royalFlush: 2500000n, straightFlush: 1000000n, fourOfAKind: 0n } },
+    });
+    expect(screen.getByText('₹3,42,770 in the pool')).toBeDefined();
+    expect(screen.getByText('A bad beat pays 100% of the pool, shared at the table:')).toBeDefined();
+    expect(screen.getByText('The player whose hand loses: 50%')).toBeDefined();
+    expect(screen.getByText('Royal flush: ₹25,000')).toBeDefined();
+    expect(screen.queryByText(/Four of a kind/)).toBeNull();
+    cleanup();
+    renderPage({ blocks: [JACKPOT] });
+    expect(screen.queryByRole('heading', { name: 'Jackpots and rare hands' })).toBeNull();
+  });
+
+  it('shows the welcome offer alone where the block asks for it, and leaves the band out while none runs', () => {
+    renderPage({ blocks: [WELCOME], promotions: [REFERRAL, FIRST_VISIT] });
+    expect(screen.getByRole('heading', { level: 3, name: 'First visit bonus' })).toBeDefined();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Referral' })).toBeNull();
+    expect(screen.getByText('Do I claim it?')).toBeDefined();
+    cleanup();
+    renderPage({ blocks: [WELCOME], promotions: [REFERRAL] });
+    expect(screen.queryByRole('heading', { name: 'Welcome offer' })).toBeNull();
   });
 });

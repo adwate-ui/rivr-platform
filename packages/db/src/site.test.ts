@@ -59,7 +59,8 @@ describe('fetchSitePage', () => {
       wallPosts: [],
       league: { month: null, season: null },
       rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null,
-        leaguePrizes: { month: null, season: null } },
+        leaguePrizes: { month: null, season: null }, badBeat: null, highHands: null },
+      jackpotPool: null,
       isPaused: false,
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
@@ -89,10 +90,17 @@ describe('fetchSitePage', () => {
 
   it('reads the live promotions when the page has their block, leaving out a card with no title (decision 0166)', async () => {
     const { client, urls } = siteClient(PAGES, [{ kind: 'promotions', content: { heading: 'Running now' } }], {
-      public_promotion_cards: { body: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }, { title: null, detail: null, runs: null }] },
+      public_promotion_cards: { body: [
+        { title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', rules: ['New members only'], is_welcome: true,
+          questions: [{ question: 'Do I claim it?', answer: 'No.' }, { question: 'No answer' }] },
+        { title: null, detail: null, runs: null, rules: null, questions: null, is_welcome: null },
+      ] },
     });
     const page = await fetchSitePage(client, 'home');
-    expect(page.ok && page.value?.promotions).toEqual([{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }]);
+    expect(page.ok && page.value?.promotions).toEqual([{
+      title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', rules: ['New members only'], isWelcome: true,
+      questions: [{ question: 'Do I claim it?', answer: 'No.' }],
+    }]);
     expect(urls.some((url) => url.includes('/public_table_status'))).toBe(false);
   });
 
@@ -130,6 +138,8 @@ describe('fetchSitePage', () => {
       rewardsRakeShareBasisPoints: 500,
       cabVisits: 4,
       leaguePrizes: { month: 'A seat in the final', season: null },
+      badBeat: null,
+      highHands: null,
     });
   });
 

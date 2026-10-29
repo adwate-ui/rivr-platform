@@ -103,6 +103,10 @@ export interface SiteRules {
   /** The visits this month after which the app offers a cab; null while no tier has cab requests. */
   readonly cabVisits: number | null;
   readonly leaguePrizes: { readonly month: string | null; readonly season: string | null };
+  /** How a bad beat pays (jackpot.payout, #618): the share of the main pool, and its split, which makes 100%. */
+  readonly badBeat: { readonly poolBasisPoints: number; readonly loserBasisPoints: number; readonly winnerBasisPoints: number; readonly tableBasisPoints: number } | null;
+  /** What each rare hand pays, in paise (high_hand.payouts, #618); 0 pays nothing. */
+  readonly highHands: { readonly royalFlush: bigint; readonly straightFlush: bigint; readonly fourOfAKind: bigint } | null;
 }
 
 interface RuleRow {
@@ -135,7 +139,28 @@ export function rulesFrom(rows: readonly RuleRow[]): SiteRules {
     rewardsRakeShareBasisPoints: rakeShare === 0 ? null : rakeShare,
     cabVisits: numberIn(venueWide('cab.minimum_visits'), 'visits'),
     leaguePrizes: { month: wordsIn(prizes, 'month'), season: wordsIn(prizes, 'season') },
+    badBeat: badBeatFrom(venueWide('jackpot.payout')),
+    highHands: highHandsFrom(venueWide('high_hand.payouts')),
   };
+}
+
+/** How a bad beat pays, or null when jackpot.payout is not set or cannot be read. */
+function badBeatFrom(value: unknown): SiteRules['badBeat'] {
+  const pool = numberIn(value, 'pool_basis_points');
+  const loser = numberIn(value, 'loser_basis_points');
+  const winner = numberIn(value, 'winner_basis_points');
+  const table = numberIn(value, 'table_basis_points');
+  if (pool === null || loser === null || winner === null || table === null) return null;
+  return { poolBasisPoints: pool, loserBasisPoints: loser, winnerBasisPoints: winner, tableBasisPoints: table };
+}
+
+/** What each rare hand pays, or null when high_hand.payouts is not set or cannot be read. */
+function highHandsFrom(value: unknown): SiteRules['highHands'] {
+  const royal = numberIn(value, 'royal_flush');
+  const straight = numberIn(value, 'straight_flush');
+  const four = numberIn(value, 'four_of_a_kind');
+  if (royal === null || straight === null || four === null) return null;
+  return { royalFlush: BigInt(royal), straightFlush: BigInt(straight), fourOfAKind: BigInt(four) };
 }
 
 /** The club's rules the website shows, from the public view (`public_club_rules`). */
@@ -156,11 +181,25 @@ export async function fetchSiteCalendar(client: RivrClient): Promise<Result<Site
     : [])));
 }
 
-/** A live promotion, for the website's promotions block (decision 0166): as published. */
+/** A live promotion, for the website's promotions block (decision 0166): as published, with its rules and questions (#618). */
 export interface SitePromotion {
   readonly title: string;
   readonly detail: string | null;
   readonly runs: string | null;
+  readonly rules: readonly string[];
+  readonly questions: readonly { readonly question: string; readonly answer: string }[];
+  /** For new players: the welcome offer. */
+  readonly isWelcome: boolean;
+}
+
+/** A promotion's questions as the view gives them, leaving out any it cannot read. */
+function questionsFrom(value: unknown): SitePromotion['questions'] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    const question = wordsIn(item, 'question');
+    const answer = wordsIn(item, 'answer');
+    return question !== null && answer !== null ? [{ question, answer }] : [];
+  });
 }
 
 /** An approved post on the website's social wall (#157): its poster's handle and caption, and the post's link. */
@@ -179,7 +218,17 @@ export async function fetchSiteWall(client: RivrClient): Promise<Result<SiteWall
 
 /** The club's live promotion cards from the public view (`public_promotion_cards`), highest priority first. */
 export async function fetchSitePromotions(client: RivrClient): Promise<Result<SitePromotion[], 'unavailable'>> {
-  const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs');
+  const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs, rules, questions, is_welcome');
   if (error) return err('unavailable');
-  return ok(data.flatMap((row) => (row.title ? [{ title: row.title, detail: row.detail, runs: row.runs }] : [])));
+  return ok(data.flatMap((row) => (row.title
+    ? [{ title: row.title, detail: row.detail, runs: row.runs, rules: row.rules ?? [], questions: questionsFrom(row.questions), isWelcome: row.is_welcome === true }]
+    : [])));
+}
+
+/** The Bad Beat Jackpot's main pool now, in paise (`public_jackpot`); null when the club has none. */
+export async function fetchSiteJackpot(client: RivrClient): Promise<Result<bigint | null, 'unavailable'>> {
+  const { data, error } = await client.from('public_jackpot').select('main_paise');
+  if (error) return err('unavailable');
+  const pool = data[0]?.main_paise;
+  return ok(pool === null || pool === undefined ? null : BigInt(pool));
 }

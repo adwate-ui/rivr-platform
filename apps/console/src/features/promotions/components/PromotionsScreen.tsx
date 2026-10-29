@@ -5,10 +5,11 @@ import {
 } from '@rivr/db';
 import { promotionDraft } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
-import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TvPromotionSlide, StatusMessage } from '@rivr/ui';
+import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TextArea, TvPromotionSlide, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
 import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
+import { promotionWords } from './promotionWords.ts';
 import { AwaitingApproval } from './AwaitingApproval.tsx';
 import { RunningList } from './RunningList.tsx';
 import { SentBack } from './SentBack.tsx';
@@ -46,6 +47,20 @@ function invalidText(choices: PromotionBuilder): string | null {
 
 const NOT_SIMULATED = { simulation: null, failure: null } as const;
 
+const NO_WORDS = { rules: '', questions: '' };
+
+/** The promotion's rules and questions as the website shows them (#618), each box as promotionWords reads it. */
+function WebWords({ words, isDisabled, onChange }: { words: typeof NO_WORDS; isDisabled: boolean; onChange: (next: typeof NO_WORDS) => void }) {
+  return (
+    <Stack gap={4}>
+      <TextArea label={t('console.promotions.rules')} hint={t('console.promotions.rulesHint')} rows={4} value={words.rules} disabled={isDisabled}
+        onChange={(event) => onChange({ ...words, rules: event.target.value })} />
+      <TextArea label={t('console.promotions.questions')} hint={t('console.promotions.questionsHint')} rows={6} value={words.questions} disabled={isDisabled}
+        onChange={(event) => onChange({ ...words, questions: event.target.value })} />
+    </Stack>
+  );
+}
+
 /** The simulation of the choices as they stand (#144): any change clears it, and publishing waits for it. */
 function useSimulation(venueId: string) {
   const simulate = usePromotionSimulation(venueId);
@@ -61,6 +76,7 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
   const { submit: submitPromotion } = usePromotionActions(venueId);
   const simulation = useSimulation(venueId);
   const [choices, setChoices] = useState(START);
+  const [words, setWords] = useState(NO_WORDS);
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
   const title = rewardTitle(choices);
   const detail = rewardDetail(choices);
@@ -70,8 +86,8 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
     return invalid === null ? then() : Promise.resolve(setOutcome({ ok: false, text: invalid }));
   };
   const submit = async () => {
-    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices) });
-    if (result.ok) { setChoices(START); simulation.clear(); }
+    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices), ...promotionWords(words.rules, words.questions) });
+    if (result.ok) { setChoices(START); setWords(NO_WORDS); simulation.clear(); }
     setOutcome(result.ok ? { ok: true, text: t('console.promotions.submitted', { name: title }) } : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
   };
   const isBusy = submitPromotion.isPending || simulation.isPending;
@@ -80,6 +96,7 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
       <Stack gap={6}>
         <Heading level={2} variant="section">{t('console.promotions.newPromotion')}</Heading>
         <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { setChoices(next); setOutcome(null); simulation.clear(); }} />
+        <WebWords words={words} isDisabled={isBusy} onChange={setWords} />
         <SimulationPanel simulation={simulation.simulation} failure={simulation.failure} isPending={simulation.isPending} isDisabled={submitPromotion.isPending}
           onSimulate={() => void check(() => simulation.run(choices))} />
         <Inline gap={4} align="center">

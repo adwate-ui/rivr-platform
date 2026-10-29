@@ -2419,14 +2419,14 @@ isOneToOne: false
                   ]
                 },"promotion": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4122,7 +4122,7 @@ isOneToOne: false
                   ]
                 },"public_promotion_cards": {
                   Row: {
-                    "detail": string | null,"runs": string | null,"title": string | null,"venue_slug": string | null
+                    "detail": string | null,"is_welcome": boolean | null,"questions": Json | null,"rules": (string)[] | null,"runs": string | null,"title": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [

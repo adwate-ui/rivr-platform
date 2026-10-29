@@ -26,7 +26,7 @@ const BAND: Record<SiteBlock['kind'], WebBandTone> = {
   // The bands added in decision 0166.
   story: 'cream', cards: 'dark', marquee: 'deep', timeline: 'deep', table: 'cream', promotions: 'deep', social_wall: 'cream',
   // The bands read from the League and the club's rules (decision 0283).
-  league: 'cream', rewards: 'cream', outstation: 'deep',
+  league: 'cream', rewards: 'cream', outstation: 'deep', jackpot: 'dark',
 };
 
 type Link = (action: { label: string; to: PlayerDestination } | undefined) => { label: string; href: string } | undefined;
@@ -104,6 +104,11 @@ function isKind<K extends SiteBlock['kind']>(block: SiteBlock, kinds: readonly K
 // A wall post's caption on the website, at most as long as a card's text.
 const WALL_CAPTION = 300;
 
+/** The promotions a promotions block shows: every live one, or the welcome offer alone, those for new players (#618). */
+function shownPromotions(block: Extract<SiteBlock, { kind: 'promotions' }>, page: SitePageData) {
+  return block.content.only === 'welcome' ? page.promotions.filter((promotion) => promotion.isWelcome) : page.promotions;
+}
+
 /** Reserving a seat: a WhatsApp message to the club (#616), none while the club is paused (#278). */
 function reserveOf(page: SitePageData) {
   return page.isPaused ? undefined : { label: t('web.reserve'), href: whatsappHref(t('web.reserveMessage')) };
@@ -120,8 +125,11 @@ function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 't
       // This month day by day, as the club's day falls in IST (#617).
       return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} month={formatIsoDay(new Date()).slice(0, 7)} />;
     case 'promotions':
-      return <PromotionsBlock heading={block.content.heading} emptyText={t('web.noPromotions')}
-        promotions={page.promotions.map((promotion) => ({ title: promotion.title, detail: promotion.detail ?? undefined, runs: promotion.runs ?? undefined }))} />;
+      // Each live promotion with its rules and questions (#618); the welcome offer alone where the block asks for it.
+      return <PromotionsBlock eyebrow={block.content.eyebrow} heading={block.content.heading} emptyText={t('web.noPromotions')}
+        promotions={shownPromotions(block, page).map((promotion) => ({
+          title: promotion.title, detail: promotion.detail ?? undefined, runs: promotion.runs ?? undefined, rules: promotion.rules, questions: promotion.questions,
+        }))} />;
     case 'links':
       return <LinksBlock heading={block.content.heading} links={block.content.links.flatMap((action) => link(action) ?? [])} />;
     case 'social_wall':
@@ -139,13 +147,18 @@ function Block({ block, page, link, pageLink }: { block: SiteBlock; page: SitePa
   if (isKind(block, ['hero', 'statement', 'gallery', 'feature'])) return <MediaBlock block={block} link={link} />;
   if (isKind(block, ['story', 'cards', 'marquee', 'timeline', 'table'])) return <WordsBlock block={block} link={link} pageLink={pageLink} />;
   if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links', 'social_wall'])) return <LiveBlock block={block} page={page} link={link} />;
-  if (isKind(block, ['league', 'rewards', 'outstation'])) return <ClubBlock block={block} league={page.league} rules={page.rules} />;
+  if (isKind(block, ['league', 'rewards', 'outstation', 'jackpot'])) return <ClubBlock block={block} page={page} />;
   return <InfoBlock block={block} />;
 }
 
-/** Whether a page leaves a block's band out: a social wall with no approved posts yet, or a rule block with no rule set. */
+/**
+ * Whether a page leaves a block's band out: a social wall with no approved posts yet, the welcome offer while none runs,
+ * or a rule block with no rule set.
+ */
 function isEmptyBlock(block: SiteBlock, page: SitePageData): boolean {
-  return (block.kind === 'social_wall' && page.wallPosts.length === 0) || isEmptyClubBlock(block, page.rules);
+  if (block.kind === 'social_wall') return page.wallPosts.length === 0;
+  if (block.kind === 'promotions') return block.content.only === 'welcome' && shownPromotions(block, page).length === 0;
+  return isEmptyClubBlock(block, page.rules);
 }
 
 /** A link to a page of the website, or to one of its bands by the band's anchor. */

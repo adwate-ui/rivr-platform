@@ -16,7 +16,9 @@ const PAGE = {
   games: [],
   tournaments: [], promotions: [], wallPosts: [], isPaused: false,
   league: { month: null, season: null },
-  rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null, leaguePrizes: { month: null, season: null } },
+  rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null, leaguePrizes: { month: null, season: null },
+    badBeat: null, highHands: null },
+  jackpotPool: null,
 };
 
 describe('a website page', () => {
@@ -129,7 +131,7 @@ describe('a website page', () => {
         { kind: 'table' as const, content: { columns: ['Stake', 'Points an hour'], rows: [['NLH 50/100', '5']] } },
         { kind: 'promotions' as const, content: { heading: 'Running now' } },
       ],
-      promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }],
+      promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', rules: [], questions: [], isWelcome: false }],
     };
     const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['deep', 'cream', 'dark', 'deep', 'cream', 'deep']);

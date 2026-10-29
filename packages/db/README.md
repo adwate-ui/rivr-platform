@@ -111,7 +111,7 @@ Each refusal is a `LivePurgeFailure`: `not_allowed`, `practice`, `not_frozen`, `
 - the live and paused ones, newest first, with their card words (`ConsolePromotion`: name, what it gives, who and when, live or not);
 - the draft templates, every scheme in the deck still a draft, by name;
 - the table types the builder offers (`PromotionStake`: code and name);
-- `submit({ name, runs, draft })`, with its rule and per-player limit, to wait for a super admin (`submit_promotion`);
+- `submit({ name, runs, draft, rules, questions })`, with its rule and per-player limit, and the rules and questions the website shows (#618), to wait for a super admin (`submit_promotion`);
 - `submitTemplate(id)`, a template as it stands (`submit_promotion_template`);
 - `setLive({ id, isLive })`, to pause or resume;
 - the ones waiting for a super admin, oldest first (`PromotionAwaitingApproval`: who submitted it, when, and whether the reader did);

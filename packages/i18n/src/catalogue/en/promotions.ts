@@ -19,6 +19,11 @@ export const promotions = {
   budgetPeriods: { promotion: 'The whole promotion', month: 'Each month' },
   invalidBudget: 'Enter the budget in rupees, or leave it empty.',
   newPromotion: 'New promotion',
+  /** The promotion's rules and questions as the website shows them (#618). */
+  rules: 'Rules on the website',
+  rulesHint: 'One rule a line: who qualifies, what it pays, the conditions.',
+  questions: 'Questions on the website',
+  questionsHint: 'A question on its line, its answer under it, and a blank line before the next question.',
   when: 'When',
   days: 'Days',
   from: 'From',

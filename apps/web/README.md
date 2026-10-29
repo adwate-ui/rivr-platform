@@ -32,6 +32,14 @@ The frame is grandpokerarena.com's (#616, decision 0283):
 - **Footer:** columns of links and the helplines.
 - **Cookie banner:** offers Essential and Maps only. `Document.astro`'s script opens it while the browser holds no choice, and gives the Visit map its address once maps are allowed.
 
+Some blocks are read from the League and the club's rules in force rather than written into a page (#617, #618, decision 0283). Each kind's band is left out when it has nothing to show (`ClubBlocks.tsx`):
+- `league`: standings, with prizes from `league.prizes`;
+- `rewards`: points, rakeback and RIVR Rewards;
+- `outstation`: the cab and hotel nights;
+- `jackpot`: the bad beat's pool and split, and the rare-hand payouts.
+
+A `promotions` block shows each live promotion's rules and questions. With `only: 'welcome'` it shows just the welcome offer: the promotions for new players.
+
 `astro check` runs as the typecheck. Every visible element comes from `@rivr/ui`, every word from `@rivr/i18n`.
 
 

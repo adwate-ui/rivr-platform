@@ -25,7 +25,7 @@ describe('rulesFrom', () => {
   it('has no rule set when there are no rows', () => {
     expect(rulesFrom([])).toEqual({
       pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null,
-      leaguePrizes: { month: null, season: null },
+      leaguePrizes: { month: null, season: null }, badBeat: null, highHands: null,
     });
   });
 
@@ -39,5 +39,14 @@ describe('rulesFrom', () => {
     expect(rules.hotelNightHours).toEqual([{ table: 'Private Room', value: 20 }]);
     expect(rules.pointsPerHour).toEqual([]);
     expect(rules.rewardsRakeShareBasisPoints).toBeNull();
+  });
+
+  it('reads how a bad beat pays and what each rare hand pays, or none when a field is missing', () => {
+    const rules = rulesFrom([
+      { key: 'jackpot.payout', subject_name: null, value: { pool_basis_points: 10000, loser_basis_points: 5000, winner_basis_points: 2500, table_basis_points: 2500 } },
+      { key: 'high_hand.payouts', subject_name: null, value: { royal_flush: 2500000, straight_flush: 1000000 } },
+    ]);
+    expect(rules.badBeat).toEqual({ poolBasisPoints: 10000, loserBasisPoints: 5000, winnerBasisPoints: 2500, tableBasisPoints: 2500 });
+    expect(rules.highHands).toBeNull();
   });
 });

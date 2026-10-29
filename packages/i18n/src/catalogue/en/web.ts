@@ -62,6 +62,20 @@ export const webApp = {
     hotel: 'Hotel nights',
     hotelAt: '{table}: a night for every {hours} hours played',
   },
+  /** The Bad Beat Jackpot and rare-hand bonuses (#618), read from the live pool and the club's rules in force. */
+  jackpot: {
+    badBeat: 'Bad Beat Jackpot',
+    pool: '{amount} in the pool',
+    share: 'A bad beat pays {percent}% of the pool, shared at the table:',
+    loser: 'The player whose hand loses: {percent}%',
+    winner: 'The player who wins the hand: {percent}%',
+    table: 'Everyone else dealt in: {percent}%',
+    rareHands: 'Rare hand bonuses',
+    pays: '{hand}: {amount}',
+    royalFlush: 'Royal flush',
+    straightFlush: 'Straight flush',
+    fourOfAKind: 'Four of a kind',
+  },
   /** The footer on every page (#441): where the club is, its columns of links (#616), its 18+ line and copyright. */
   footer: {
     address: 'Upper floor, Glaza, M3M 65th Avenue, Gurugram',
