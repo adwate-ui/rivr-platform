@@ -5,6 +5,7 @@ import { EventsSection } from './EventsSection.tsx';
 import { CardSection } from './CardSection.tsx';
 import { FeedbackSection } from './FeedbackSection.tsx';
 import { GamesSection } from './GamesSection.tsx';
+import { HouseRulesSection } from './HouseRulesSection.tsx';
 import { IdentitySection } from './IdentitySection.tsx';
 import { LimitsSection } from './LimitsSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
@@ -45,6 +46,7 @@ export function ProfileScreen() {
         <NotificationsSection preferences={preferences.data} />
         <PrivacySection preferences={preferences.data} />
         <EventsSection />
+        <HouseRulesSection />
         <FeedbackSection />
         <SignOutSection />
       </Stack>

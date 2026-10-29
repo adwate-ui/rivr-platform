@@ -1193,14 +1193,14 @@ isOneToOne: false
                   ]
                 },"feedback": {
                   Row: {
-                    "created_at": string,"id": string,"is_ticket": boolean | null,"member_id": string,"note": string | null,"resolution": string | null,"resolved_at": string | null,"resolved_by_staff_id": string | null,"score": number | null,"updated_at": string,"venue_id": string,"visit_id": string | null
+                    "created_at": string,"id": string,"is_ticket": boolean | null,"member_id": string,"note": string | null,"nps": number | null,"ratings": Json | null,"resolution": string | null,"resolved_at": string | null,"resolved_by_staff_id": string | null,"score": number | null,"topic": string | null,"updated_at": string,"venue_id": string,"visit_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_ticket"?: never,"member_id": string,"note"?: string | null,"resolution"?: string | null,"resolved_at"?: string | null,"resolved_by_staff_id"?: string | null,"score"?: number | null,"updated_at"?: string,"venue_id": string,"visit_id"?: string | null
+                    "created_at"?: string,"id"?: string,"is_ticket"?: never,"member_id": string,"note"?: string | null,"nps"?: number | null,"ratings"?: Json | null,"resolution"?: string | null,"resolved_at"?: string | null,"resolved_by_staff_id"?: string | null,"score"?: number | null,"topic"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_ticket"?: never,"member_id"?: string,"note"?: string | null,"resolution"?: string | null,"resolved_at"?: string | null,"resolved_by_staff_id"?: string | null,"score"?: number | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string | null
+                    "created_at"?: string,"id"?: string,"is_ticket"?: never,"member_id"?: string,"note"?: string | null,"nps"?: number | null,"ratings"?: Json | null,"resolution"?: string | null,"resolved_at"?: string | null,"resolved_by_staff_id"?: string | null,"score"?: number | null,"topic"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -5277,8 +5277,14 @@ isOneToOne: false
 "second_approve_withdrawal":
 { Args: { "p_request_id": string }; Returns: string
                            },
+"send_detailed_feedback":
+{ Args: { "p_note": string,"p_nps": number,"p_ratings": Json }; Returns: string
+                           },
 "send_feedback":
 { Args: { "p_note": string }; Returns: string
+                           },
+"send_quick_feedback":
+{ Args: { "p_note": string,"p_topic": string }; Returns: string
                            },
 "send_withdrawal":
 { Args: { "p_request_id": string,"p_utr": string }; Returns: undefined
@@ -5592,7 +5598,7 @@ isOneToOne: false
                            },
 "venue_feedback":
 { Args: { "p_venue_id": string }; Returns: {
-              "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"visit_closed_at": string
+              "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"topic": string,"visit_closed_at": string
             }[]
                            },
 "venue_leads":

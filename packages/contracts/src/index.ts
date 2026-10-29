@@ -79,7 +79,10 @@ export {
   type FnbOrdered,
 } from './fnb.ts';
 export { offlinePackRowSchema, offlinePackVenuesSchema, storedPacksSchema, type OfflinePackRow } from './offlinePack.ts';
-export { feedbackNoteSchema, feedbackResolveSchema, visitRatingSchema } from './feedback.ts';
+export {
+  detailedFeedbackSchema, FEEDBACK_RATED, FEEDBACK_TOPICS, feedbackNoteSchema, feedbackResolveSchema, quickFeedbackSchema, visitRatingSchema,
+  type FeedbackTopic,
+} from './feedback.ts';
 export { leagueSeasonSchema, REWARD_KINDS, rewardItemSchema, type RewardKind, cancelRedemptionSchema } from './rewards.ts';
 export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,

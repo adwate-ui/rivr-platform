@@ -5,6 +5,11 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Learn, the Academy and Events are off since #637 (decision 0284): this test of them turns them back on for every tier.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
+select t.venue_id, t.id, k.key, true, 'locked', now() - interval '1 second'
+from public.tier t cross join (values ('learn.library'), ('academy.booking'), ('events.book')) as k (key);
+
 -- Another venue, with its own cashier, to prove its staff see none of this venue's turn-downs.
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000f1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
 insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at)

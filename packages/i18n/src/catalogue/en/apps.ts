@@ -28,7 +28,7 @@ import { academy, academyFailures, academyPayments } from './academy.ts';
 import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
 import { rake } from './rake.ts';
-import { profile } from './profile.ts';
+import { playerHouseRules, profile } from './profile.ts';
 import { notStaff, staff } from './staff.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
@@ -114,6 +114,7 @@ export const playerApp = {
     unavailable: 'Academy booking is not available right now. Try again in a few minutes.',
   },
   profile,
+  houseRules: playerHouseRules,
   /** Joining the club after the first code: the name on the player's Aadhaar. */
   signUp: {
     title: 'Your name',

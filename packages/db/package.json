@@ -10,6 +10,7 @@
     "./myRewards": "./src/myRewards.ts",
     "./tds": "./src/tds.ts",
     "./sessions": "./src/sessions.ts",
+    "./houseRules": "./src/houseRules.ts",
     "./fnb": "./src/fnb.ts",
     "./glaza": "./src/glaza.ts",
     "./spin": "./src/spin.ts",

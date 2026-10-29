@@ -61,7 +61,8 @@ export { usePushSubscriptionActions } from './push.ts';
 export { useCheckInActions, useCheckOutActions, useDoorBoard, type CheckInFailure, type CheckOutFailure, type CheckOutRefusal, type DoorMember } from './visits.ts';
 export { useDoorScan, type DoorScan, type DoorScanFailure, type DoorScanRefusal } from './door.ts';
 export {
-  useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackVisit,
+  useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackRatings,
+  type FeedbackVisit,
 } from './feedback.ts';
 export * from './rewards.ts';
 export * from './league.ts';

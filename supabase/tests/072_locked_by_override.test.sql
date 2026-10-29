@@ -4,6 +4,11 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Learn, the Academy and Events are off since #637 (decision 0284): this test of them turns them back on for every tier.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
+select t.venue_id, t.id, k.key, true, 'locked', now() - interval '2 seconds'
+from public.tier t cross join (values ('learn.library'), ('academy.booking'), ('events.book')) as k (key);
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);

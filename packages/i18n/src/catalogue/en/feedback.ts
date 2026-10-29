@@ -12,6 +12,17 @@ export const feedback = {
   ratingLine: '{name} · No. {number} · {score} of 5 · visit {date}',
   /** A note sent from Profile, on the day it came. */
   noteLine: '{name} · No. {number} · a note from the app · {date}',
+  /** The app's two forms (#637): the quick note with its topic, and the detailed form with its recommendation, 0 to 10. */
+  quickLine: '{name} · No. {number} · a quick note on {topic} · {date}',
+  detailedLine: '{name} · No. {number} · detailed feedback, would recommend {nps} of 10 · {date}',
+  /** The detailed form's ratings, each 1 to 5: `Gameplay 5 · Cashier 3`. */
+  rating: '{area} {score}',
+  ratingsSeparator: ' · ',
+  rated: { gameplay: 'Gameplay', cashier: 'Cashier', service: 'Service', ambience: 'Ambience' },
+  topics: {
+    gameplay: 'Gameplay', dealer: 'Dealer', check_in_out: 'Check-in and check-out', app: 'The app', service: 'Service', ambience: 'Ambience',
+    cashier: 'Cashier',
+  },
   /** A resolved ticket: what was done, by whom and when. */
   resolvedLine: 'Resolved by {name} on {date}: {resolution}',
   resolution: 'What was done',
@@ -49,6 +60,25 @@ export const playerFeedback = {
   noteLabel: 'Your note',
   invalidNote: 'Write a note of up to 1,000 characters.',
   sent: 'Sent. Thank you.',
+  /** The two forms (#637): a quick note on one topic, or the detailed one. */
+  form: 'How would you like to tell us?',
+  forms: { quick: 'Quick note', detailed: 'Detailed feedback' },
+  topic: 'What is it about?',
+  topics: {
+    gameplay: 'Gameplay', dealer: 'Dealer', check_in_out: 'Check-in and check-out', app: 'The app', service: 'Service', ambience: 'Ambience',
+    cashier: 'Cashier',
+  },
+  chooseTopic: 'Choose what it is about.',
+  /** The detailed form's four ratings, 1 to 5. */
+  rated: {
+    gameplay: 'The gameplay, 1 to 5', cashier: 'The cashier, 1 to 5', service: 'The service, 1 to 5',
+    ambience: 'The ambience, 1 to 5',
+  },
+  rateAll: 'Rate all four, from 1 to 5.',
+  /** The NPS question, 0 to 10. */
+  nps: 'How likely are you to recommend RIVR to a friend, 0 to 10?',
+  chooseNps: 'Choose from 0 to 10.',
+  openQuestion: 'Anything else you would like to tell us? (optional)',
   failures: {
     not_allowed: 'This visit cannot be rated from here.',
     invalid: 'Choose a rating from 1 to 5, and keep the note under 1,000 characters.',

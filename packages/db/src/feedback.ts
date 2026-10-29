@@ -1,3 +1,4 @@
+import { detailedFeedbackSchema, FEEDBACK_TOPICS, type FEEDBACK_RATED, type FeedbackTopic } from '@rivr/contracts/feedback';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
@@ -35,6 +36,20 @@ export interface FeedbackItem {
   readonly resolvedBy: string | null;
   readonly resolution: string | null;
   readonly createdAt: string;
+  /** The quick form's topic (#637); null for any other. */
+  readonly topic: FeedbackTopic | null;
+  /** The detailed form's ratings 1 to 5 and its recommendation 0 to 10 (#637); null for any other. */
+  readonly ratings: FeedbackRatings | null;
+  readonly nps: number | null;
+}
+
+/** The detailed form's four ratings, each 1 to 5 (#637). */
+export type FeedbackRatings = Readonly<Record<(typeof FEEDBACK_RATED)[number], number>>;
+
+/** The ratings as the database keeps them, or null when they do not read as the four. */
+function ratingsOf(value: unknown): FeedbackRatings | null {
+  const parsed = detailedFeedbackSchema.shape.ratings.safeParse(value);
+  return parsed.success ? parsed.data : null;
 }
 
 // The console's list asks again every minute.
@@ -55,7 +70,11 @@ export function useMyFeedbackVisit() {
   });
 }
 
-/** The member's feedback: `rate` a visit 1 to 5 with a note if they like, or `send` the club a note. Each is a Result. */
+/**
+ * The member's feedback: `rate` a visit 1 to 5 with a note if they like, `send` the club a note, or from Profile (#637)
+ * `sendQuick` a topic with a note, or `sendDetailed` the four ratings, the recommendation and a note if they like. Each
+ * is a Result.
+ */
 export function useFeedbackActions() {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -70,7 +89,15 @@ export function useFeedbackActions() {
   const send = useMutation({
     mutationFn: async (note: string) => settle((await client.rpc('send_feedback', { p_note: note.trim() })).error),
   });
-  return { rate, send };
+  const sendQuick = useMutation({
+    mutationFn: async ({ topic, note }: { topic: FeedbackTopic; note: string }) =>
+      settle((await client.rpc('send_quick_feedback', { p_topic: topic, p_note: note.trim() })).error),
+  });
+  const sendDetailed = useMutation({
+    mutationFn: async ({ ratings, nps, note }: { ratings: FeedbackRatings; nps: number; note: string }) =>
+      settle((await client.rpc('send_detailed_feedback', { p_ratings: ratings, p_nps: nps, p_note: note.trim() })).error),
+  });
+  return { rate, send, sendQuick, sendDetailed };
 }
 
 /** The venue's feedback for the General Manager (feedback.manage): open tickets first, then the last 90 days. */
@@ -87,6 +114,7 @@ export function useVenueFeedback(venueId: string) {
         id: row.id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, visitClosedAt: row.visit_closed_at,
         score: row.score, note: row.note, isTicket: row.is_ticket, resolvedAt: row.resolved_at, resolvedBy: row.resolved_by,
         resolution: row.resolution, createdAt: row.created_at,
+        topic: FEEDBACK_TOPICS.find((topic) => topic === row.topic) ?? null, ratings: ratingsOf(row.ratings), nps: row.nps,
       }));
     },
   });

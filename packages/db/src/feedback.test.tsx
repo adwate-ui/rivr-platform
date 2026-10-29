@@ -69,6 +69,30 @@ describe('feedback (decision 0165)', () => {
     await act(async () => { outcome = await result.current.resolve.mutateAsync({ feedbackId: 'f1', resolution: 'Called him' }); });
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
   });
+
+  it('sends the quick note with its topic and the detailed form with its answers, and reads them back', async () => {
+    const { result, calls } = renderHooks({
+      '/rpc/my_feedback_visit': { body: [] },
+      '/rpc/send_quick_feedback': { body: 'f2' },
+      '/rpc/send_detailed_feedback': { status: 400, body: { code: '22023', message: 'ratings' } },
+      '/rpc/venue_feedback': {
+        body: [{
+          id: 'f3', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, visit_closed_at: null, score: null, note: null, is_ticket: true,
+          resolved_at: null, resolved_by: null, resolution: null, created_at: '2026-10-29T04:00:00Z', topic: null,
+          ratings: { gameplay: 5, cashier: 3, service: 4, ambience: 5 }, nps: 9,
+        }],
+      },
+    });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.actions.sendQuick.mutateAsync({ topic: 'dealer', note: ' Quick and fair ' }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.url.includes('/rpc/send_quick_feedback'))?.body).toEqual({ p_topic: 'dealer', p_note: 'Quick and fair' });
+    const ratings = { gameplay: 5, cashier: 3, service: 4, ambience: 5 };
+    await act(async () => { outcome = await result.current.actions.sendDetailed.mutateAsync({ ratings, nps: 9, note: '' }); });
+    expect(outcome).toEqual({ ok: false, error: 'invalid' });
+    expect(calls.find((call) => call.url.includes('/rpc/send_detailed_feedback'))?.body).toEqual({ p_ratings: ratings, p_nps: 9, p_note: '' });
+    await waitFor(() => expect(result.current.list.data?.[0]).toMatchObject({ topic: null, ratings, nps: 9 }));
+  });
 });
 
 describe('the door kiosk (decision 0164)', () => {
