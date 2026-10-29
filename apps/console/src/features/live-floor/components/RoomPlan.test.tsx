@@ -28,16 +28,16 @@ const NIGHT: FloorNight = {
 afterEach(cleanup);
 
 describe('the room plan', () => {
-  it('shows rake tonight, the seated count, each room, and each table\'s figures; a card opens its table', () => {
+  it('shows the seated count, each room, and each table\'s figures, and never rake, even to staff who read it; a card opens its table', () => {
     const onChoose = vi.fn();
     render(<RoomPlan tables={TABLES} seats={[SEATED]} held={[]} night={NIGHT} canSeeSeats chosenId="t3" onChoose={onChoose} />);
-    expect(screen.getByText('₹4,11,750')).toBeDefined();
+    expect(screen.queryByText('Rake tonight')).toBeNull();
+    expect(screen.queryByText(/₹/)).toBeNull();
     expect(screen.getByText('1 seated')).toBeDefined();
     expect(screen.getByText('Main room')).toBeDefined();
     const table3 = screen.getByRole('button', { name: 'Table 3' });
     expect(table3.getAttribute('aria-pressed')).toBe('true');
     expect(within(table3).getByText('1 of 9')).toBeDefined();
-    expect(within(table3).getByText('₹96,300')).toBeDefined();
     expect(within(table3).getByText('Pema Lepcha')).toBeDefined();
     expect(within(table3).getByText('30 hands/hr')).toBeDefined();
     const table4 = screen.getByRole('button', { name: 'Table 4' });

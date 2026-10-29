@@ -2,7 +2,7 @@ import { useVenueSettings, type VenueSetting } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
 import { DataTable, SplitView, Stack, Text, type DataTableColumn, type DataTableState } from '@rivr/ui';
 import { useState } from 'react';
-import { areaOf, type RuleArea } from './areas.ts';
+import { areaOf, isShownSetting, type RuleArea } from './areas.ts';
 import { SettingPanel } from './SettingPanel.tsx';
 import { isSuperAdminOnly, settingHelp, settingName, valueText } from './settingsCopy.ts';
 
@@ -20,7 +20,9 @@ function nowText(setting: VenueSetting, tierName: (id: string) => string): strin
 
 /** The area's settings, or loading, or why they could not be read. A failed refresh keeps what was known. */
 function tableState(settings: ReturnType<typeof useVenueSettings>, area: RuleArea): DataTableState<VenueSetting> {
-  if (settings.data !== undefined) return { rows: settings.data.settings.filter((setting) => areaOf(setting.key) === area), emptyText: t('console.settings.empty') };
+  if (settings.data !== undefined) {
+    return { rows: settings.data.settings.filter((setting) => areaOf(setting.key) === area && isShownSetting(setting.key)), emptyText: t('console.settings.empty') };
+  }
   if (settings.isError) return { status: 'error', errorText: t('console.settings.loadFailed'), onRetry: () => void settings.refetch() };
   return { status: 'loading' };
 }

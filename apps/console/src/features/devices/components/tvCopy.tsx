@@ -1,4 +1,4 @@
-import { TV_MODES, type TvMode } from '@rivr/contracts';
+import { HIDDEN_TV_MODES, TV_MODES, type TvMode } from '@rivr/contracts';
 import type { TvFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { ChoiceChips } from '@rivr/ui';
@@ -20,17 +20,17 @@ interface ModeChipsProps {
   isDisabled?: boolean;
 }
 
-/** One chip per display mode. Pressing the chosen mode again keeps it: a TV always shows something. */
+/** One chip per display mode the club shows (#628). Pressing the chosen mode again keeps it: a TV always shows something. */
 export function ModeChips({ label, value, onChange, isDisabled = false }: ModeChipsProps) {
   return (
     <ChoiceChips label={label} mode="one" selected={value === null ? [] : [value]} isDisabled={isDisabled}
-      options={TV_MODES.map((mode) => ({ value: mode, label: t(`tv.modes.${mode}`) }))}
+      options={TV_MODES.filter((mode) => !HIDDEN_TV_MODES.includes(mode)).map((mode) => ({ value: mode, label: t(`tv.modes.${mode}`) }))}
       onChange={(chosen) => { if (chosen[0] !== undefined) onChange(chosen[0]); }} />
   );
 }
 
-// The boards a TV can turn to in between its main one (decision 0163): the ones built so far.
-const ROTATING: readonly TvMode[] = ['waitlist', 'call_time', 'jackpot', 'promotions', 'rewards', 'league'];
+// The boards a TV can turn to in between its main one (decision 0163): the ones built so far, but the jackpot (#628).
+const ROTATING: readonly TvMode[] = ['waitlist', 'call_time', 'promotions', 'rewards', 'league'];
 
 interface RotationChipsProps {
   label: string;

@@ -25,17 +25,17 @@ export const spin = {
   kind: 'Prize',
   kinds: { points: 'Points', bonus: 'Bonus', nothing: 'Nothing' },
   points: 'Points',
-  bonus: 'Bonus in rupees',
-  bonusHint: 'Whole ₹50 chips: ₹500, ₹1,000.',
+  bonus: 'Bonus chips',
+  bonusHint: 'In whole 50s: 500, 1,000.',
   weight: 'Weight',
   weightHint: 'From 1 to 1,000: a prize with weight 2 comes up twice as often as one with weight 1.',
   add: 'Add to the wheel',
   added: '{prize} is on the wheel.',
-  /** A prize as the console names it. */
-  prizes: { points: '{points} points', bonus: '{amount} bonus', nothing: 'Nothing' },
+  /** A prize as the console names it; a bonus as bonus chips, never rupees (#629). */
+  prizes: { points: '{points} points', bonus: '{chips} bonus chips', nothing: 'Nothing' },
   failures: {
     not_allowed: 'Your role does not include this. Ask an admin if you need it.',
-    invalid: 'Points are a whole number, a bonus is whole ₹50 chips, and a weight is from 1 to 1,000.',
+    invalid: 'Points are a whole number, bonus chips come in whole 50s, and a weight is from 1 to 1,000.',
     gone: 'That spin is already spun, or the prize is already off the wheel.',
     no_prize: 'No prize on the wheel this month’s spin budget allows. Add points or nothing, or raise the budget.',
     paused: 'The club or this member is paused: spin when it reopens.',

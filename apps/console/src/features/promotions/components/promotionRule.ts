@@ -1,16 +1,18 @@
 import type { PromotionConditions, PromotionEffect, PromotionRules } from '@rivr/contracts';
 import type { PromotionAwaitingApproval, PromotionStake } from '@rivr/db';
-import { formatList, formatMoney, formatNumber, t } from '@rivr/i18n';
+import { formatChips, formatList, formatMoney, formatNumber, t } from '@rivr/i18n';
 import { dayName } from './promotionCopy.ts';
 
 const money = (paise: number) => formatMoney(BigInt(paise));
+// A bonus is bonus chips, never rupees (#629).
+const chips = (paise: number) => formatChips(BigInt(paise));
 
 function bonusText(effect: Extract<PromotionEffect, { kind: 'bonus' }>): string {
-  if ('amount_paise' in effect) return t('console.promotions.rule.gives.bonusAmount', { amount: money(effect.amount_paise), days: effect.expires_days });
+  if ('amount_paise' in effect) return t('console.promotions.rule.gives.bonusAmount', { chips: chips(effect.amount_paise), days: effect.expires_days });
   const percent = formatNumber(effect.percent_bps / 100);
   return effect.cap_paise === undefined
     ? t('console.promotions.rule.gives.bonusShare', { percent, days: effect.expires_days })
-    : t('console.promotions.rule.gives.bonusShareCapped', { percent, cap: money(effect.cap_paise), days: effect.expires_days });
+    : t('console.promotions.rule.gives.bonusShareCapped', { percent, cap: chips(effect.cap_paise), days: effect.expires_days });
 }
 
 function pointsText(effect: Extract<PromotionEffect, { kind: 'points' }>): string {
@@ -84,8 +86,8 @@ function limitText(perPlayer: PromotionAwaitingApproval['perPlayer']): string {
 }
 
 function capText({ paise, count }: PromotionAwaitingApproval['budget']): string {
-  if (paise !== null && count !== null) return t('console.promotions.rule.budgetBoth', { amount: formatMoney(paise), count });
-  if (paise !== null) return t('console.promotions.rule.budgetPaise', { amount: formatMoney(paise) });
+  if (paise !== null && count !== null) return t('console.promotions.rule.budgetBoth', { amount: formatChips(paise), count });
+  if (paise !== null) return t('console.promotions.rule.budgetPaise', { amount: formatChips(paise) });
   return count === null ? t('console.promotions.rule.noBudget') : t('console.promotions.rule.budgetCount', { count });
 }
 

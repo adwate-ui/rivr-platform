@@ -53,9 +53,9 @@ test.describe('Website', () => {
 
     await site.getByRole('link', { name: 'Membership' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'RIVR membership' })).toBeVisible();
-    // The points by table are the rules in force (61_points.sql), not words in the page.
-    await expect(page.getByRole('row', { name: /Private Room/ }).getByRole('cell', { name: '20' })).toBeVisible();
-    await expect(page.getByText(/RIVR Rewards: 5% of your rake comes back as points\./)).toBeVisible();
+    // The points are the rules in force, not words in the page: points by hand only (#629), so none by table or rake.
+    await expect(page.getByRole('row', { name: /Private Room/ })).toHaveCount(0);
+    await expect(page.getByText(/of your rake comes back as points/)).toHaveCount(0);
 
     // The seed publishes Buy-in bonus Tuesday, high hands and the referral (57_promotions.sql).
     await site.getByRole('link', { name: 'Prizes & Calendar' }).click();

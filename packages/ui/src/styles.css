@@ -58,7 +58,8 @@
       transition-duration: 0s !important;
     }
 
-    [data-reveal] {
+    [data-reveal],
+    [data-board-progress] {
       animation: none !important;
     }
   }
@@ -92,6 +93,19 @@
 
   [data-reveal='5'] {
     animation-delay: calc(5 * var(--rivr-motion-duration-stagger));
+  }
+}
+
+/* A TV board's progress (TvBoardProgress, #628): the bar fills across over its duration, set on the bar, and again. */
+@layer components {
+  [data-board-progress] {
+    animation: rivr-board-progress linear infinite;
+  }
+}
+
+@keyframes rivr-board-progress {
+  from {
+    transform: scaleX(0);
   }
 }
 

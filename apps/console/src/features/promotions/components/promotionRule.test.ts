@@ -15,7 +15,7 @@ describe('what a waiting promotion does, for its approver', () => {
       rules: [{ trigger: 'date_window', conditions: {}, effect: { kind: 'bonus', amount_paise: 1_000_000_000, expires_days: 90 } }],
     }), STAKES);
     expect(lines).toEqual([
-      'Once each club day in its window: a ₹1,00,00,000 bonus, ending after 90 days',
+      'Once each club day in its window: 1,00,00,000 bonus chips, ending after 90 days',
       'Who and when: anyone, any time',
       'No limit per member',
       'No budget: it gives without a cap',
@@ -33,10 +33,10 @@ describe('what a waiting promotion does, for its approver', () => {
       budget: { paise: 5_000_000n, count: 100, period: 'promotion' },
     }), STAKES);
     expect(lines).toEqual([
-      'On a buy-in: a bonus of 20% of the buy-in, up to ₹5,000, ending after 7 days',
+      'On a buy-in: bonus chips of 20% of the buy-in, up to 5,000, ending after 7 days',
       'Who and when: at NLH 100/200 · on Tuesday and Friday · from 22:00 to 04:00 · the first 2 at each table',
       'At most 1 per member each club day',
-      'Budget: ₹50,000 or 100 grants, whichever comes first',
+      'Budget: 50,000 bonus chips or 100 grants, whichever comes first',
     ]);
   });
 

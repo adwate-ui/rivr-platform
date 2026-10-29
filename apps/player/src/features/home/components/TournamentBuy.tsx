@@ -1,5 +1,5 @@
 import { useRegisterTournamentEntry, type MyTournament } from '@rivr/db';
-import { formatMoney, t } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -16,8 +16,8 @@ export function MyStandingLine({ tournament }: { tournament: MyTournament }) {
 }
 
 /**
- * Register, re-enter or rebuy from the app (#118), paid from the member's balance: asked first with the
- * amount, then sent once; a refusal says why. Nothing when the tournament sells them nothing now.
+ * Register, re-enter or rebuy from the app (#118), paid from the member's balance: asked first, with no amount
+ * (#627), then sent once; a refusal says why. Nothing when the tournament sells them nothing now.
  */
 export function TournamentBuy({ tournament }: { tournament: MyTournament }) {
   const buy = useRegisterTournamentEntry();
@@ -36,7 +36,7 @@ export function TournamentBuy({ tournament }: { tournament: MyTournament }) {
     <Stack gap={2}>
       {isAsking ? (
         <Inline gap={3} wrap>
-          <Text variant="small">{t('player.tonight.confirmBuy', { amount: formatMoney(tournament.buyIn) })}</Text>
+          <Text variant="small">{t('player.tonight.confirmBuy')}</Text>
           <Button variant="primary" isLoading={buy.isPending} onClick={pay}>{t('player.tonight.payNow')}</Button>
           <Button variant="text" onClick={() => setAsking(false)}>{t('player.tonight.notNow')}</Button>
         </Inline>

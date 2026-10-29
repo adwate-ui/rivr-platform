@@ -1,7 +1,6 @@
 import { usePreferences, useRestrictions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
-import { AcademySection } from './AcademySection.tsx';
 import { EventsSection } from './EventsSection.tsx';
 import { CardSection } from './CardSection.tsx';
 import { FeedbackSection } from './FeedbackSection.tsx';
@@ -11,14 +10,13 @@ import { LimitsSection } from './LimitsSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
 import { PrivacySection } from './PrivacySection.tsx';
 import { SignOutSection } from './SignOutSection.tsx';
-import { WinnerCardsSection } from './WinnerCardsSection.tsx';
 
 /**
  * Profile, behind the member's initial (design prompt, "Profile"): the identity check, the games for
- * waitlist alerts, the session reminder and a break from play (#56), notifications and promotions, the
- * way to any Academy seats, and sign out, in the prototype's order. Privacy (their name on the TVs,
- * #326) is not in the prototype and comes after notifications; the membership card (#71) is not either,
- * and comes first, as the member opens it at the door.
+ * waitlist alerts, the session reminder and a break from play (#56), notifications and promotions, and
+ * sign out, in the prototype's order. Privacy (their name on the TVs, #326) is not in the prototype and
+ * comes after notifications; the membership card (#71) is not either, and comes first, as the member
+ * opens it at the door. Winner cards and the Academy's seats are hidden (#627): the app shows no rupee.
  */
 export function ProfileScreen() {
   const preferences = usePreferences();
@@ -45,9 +43,7 @@ export function ProfileScreen() {
         <GamesSection preferences={preferences.data} />
         <LimitsSection restrictions={restrictions.data} />
         <NotificationsSection preferences={preferences.data} />
-        <WinnerCardsSection />
         <PrivacySection preferences={preferences.data} />
-        <AcademySection />
         <EventsSection />
         <FeedbackSection />
         <SignOutSection />

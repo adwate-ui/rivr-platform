@@ -15,12 +15,13 @@ interface DisplayStageProps {
 
 /**
  * The TV's fixed 1920 by 1080 stage: the wordmark, the corner opposite, and the mode beneath, drawn at
- * `scale` from `origin`. DisplayShell fits it to the TV; DisplayPreview to a box on the console.
+ * `scale` from `origin`. DisplayShell fits it to the TV; DisplayPreview to a box on the console. A board's
+ * progress (TvBoardProgress) sits along its foot.
  */
 export function DisplayStage({ children, corner, scale, origin, body: Body }: DisplayStageProps) {
   return (
     <div
-      className="flex shrink-0 flex-col gap-12 bg-surface px-24 py-16 text-content"
+      className="relative flex shrink-0 flex-col gap-12 bg-surface px-24 py-16 text-content"
       style={{ width: TV_WIDTH, height: TV_HEIGHT, transform: `scale(${scale})`, transformOrigin: origin }}
     >
       <header className="flex items-start justify-between">

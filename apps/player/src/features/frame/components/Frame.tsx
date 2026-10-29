@@ -6,13 +6,12 @@ import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
 
-// Home, Balance and Rewards always show as tabs; the features inside them are gated one by one.
+// Home and Rewards always show as tabs; the features inside them are gated one by one. Balance is hidden (#627).
 const ALWAYS: FeatureAccess = { state: 'enabled' };
 
 const TAB_FOR_PATH: Readonly<Record<string, PlayerTab>> = {
   '/': 'home',
   '/sessions': 'sessions',
-  '/balance': 'balance',
   '/rewards': 'rewards',
   '/learn': 'learn',
 };
@@ -51,7 +50,6 @@ export function Frame({ children }: { children: ReactNode }) {
   const tabs: BottomNavItem[] = [
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },
-    { tab: 'balance', href: '/balance', access: ALWAYS },
     { tab: 'rewards', href: '/rewards', access: ALWAYS },
     { tab: 'learn', href: '/learn', access: learn },
   ];

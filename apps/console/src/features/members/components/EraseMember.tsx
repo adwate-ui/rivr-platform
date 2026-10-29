@@ -1,7 +1,7 @@
 import {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from '@rivr/db';
-import { formatDate, formatList, formatMoney, formatNights, formatNumber, t, type MessageKey } from '@rivr/i18n';
+import { formatChips, formatDate, formatList, formatNights, formatNumber, t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -35,7 +35,7 @@ function OutcomeLine({ outcome }: { outcome: Outcome }) {
   if (outcome === null) return null;
   if ('failure' in outcome) return <ErrorMessage>{t(FAILURE_COPY[outcome.failure])}</ErrorMessage>;
   const { forfeitedPoints, forfeitedBonus, forfeitedNights, filesRemoved } = outcome.erasure;
-  const forfeit = { points: formatNumber(forfeitedPoints), bonus: formatMoney(forfeitedBonus) };
+  const forfeit = { points: formatNumber(forfeitedPoints), bonus: formatChips(forfeitedBonus) };
   return (
     <Stack gap={1}>
       <Text>
@@ -52,7 +52,7 @@ function OutcomeLine({ outcome }: { outcome: Outcome }) {
 function Consequences({ preview }: { preview: ErasurePreview }) {
   const forfeit = preview.points === 0 && preview.bonus === 0n
     ? t('console.members.erase.nothingToForfeit')
-    : t('console.members.erase.forfeit', { points: formatNumber(preview.points), bonus: formatMoney(preview.bonus) });
+    : t('console.members.erase.forfeit', { points: formatNumber(preview.points), bonus: formatChips(preview.bonus) });
   const open = formatList(preview.blockers.map((blocker) => t(BLOCKER_COPY[blocker])));
   return (
     <Stack gap={2}>

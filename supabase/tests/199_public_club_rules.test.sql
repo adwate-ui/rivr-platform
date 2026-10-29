@@ -1,6 +1,7 @@
 -- The website reads the club's rules in force (#617): public_club_rules shows only the rules a visitor may read, each as in
 -- force now (not one still to come), by table type with its name. It shows the cab while a tier has cab requests, never
--- the practice venue's rules, and League prizes in words, which league.prizes holds to their shape.
+-- the practice venue's rules, and League prizes in words, which league.prizes holds to their shape. A points rate of
+-- zero is no rule (#629).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -52,6 +53,17 @@ insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, eff
 select c.venue_id, t.id, 'cab.requests', false, now() - interval '1 millisecond' from public.tier t, club c where t.venue_id = c.venue_id;
 set local role anon;
 select is((select count(*) from public.public_club_rules where key = 'cab.minimum_visits'), 0::bigint, 'and not once no tier has them');
+reset role;
+
+-- Points by hand only (#629): a points rate set to zero is no rule, so the website promises none.
+insert into public.setting (venue_id, key, subject, value, effective_from)
+select venue_id, 'points.per_hour', code, '{"points": 0}'::jsonb, now() - interval '1 millisecond' from club
+union all select venue_id, 'points.rewards_rake_share', '', '{"basis_points": 0}'::jsonb, now() - interval '1 millisecond' from club;
+set local role anon;
+select is((select count(*) from public.public_club_rules where key in ('points.per_hour', 'points.rewards_rake_share')), 0::bigint,
+  'a points rate of zero does not show');
+select is((select value from public.public_club_rules r, club c where r.key = 'rakeback.rate' and r.subject = c.code), '{"basis_points": 1000}'::jsonb,
+  'and rakeback still does, at the owner''s word');
 reset role;
 
 select throws_ok(

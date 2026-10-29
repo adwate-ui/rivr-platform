@@ -4,10 +4,15 @@
 -- in the window; "Any four hours" has no window. 22 October 2026 is a Thursday. Mihir (213) plays 14:00 to
 -- 20:00 and closes at 20:30; Vihaan (212) plays 12:00 to 20:00; Kunal (216) plays 10:00 to 15:00; Kavya
 -- (290) moves from 100/200 to 50/100 and takes an hour away; Mihir plays the Wednesday before too. Points
--- an hour are the seed's: 10 at 100/200 (Tables 2 and 3), 5 at 50/100 (Table 1).
+-- an hour are set here, as the club sets none since #629 (points by hand only): 10 at 100/200 (Tables 2 and 3),
+-- 5 at 50/100 (Table 1).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select '00000000-0000-4000-8000-000000000001', 'points.per_hour', r.code, jsonb_build_object('points', r.points), '-infinity', 'Promotion window test'
+from (values ('nlh_50_100', 5), ('nlh_100_200', 10)) as r (code, points);
 
 -- A visit with one seat session at a table, closed as the cage or the door closes it.
 create function pg_temp.play(p_visit uuid, p_member uuid, p_table text, p_seat integer, p_from timestamptz, p_to timestamptz, p_closed timestamptz)

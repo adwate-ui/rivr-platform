@@ -3,9 +3,8 @@
  * This flow has its own admin (Imran Qureshi), super admin (Leela Menon) and cashier (Tara Bose).
  * - Imran opens Admin → Settings, opens Seat hold under Floor, is told a value past its limits is wrong,
  *   schedules 12 minutes from tomorrow, and withdraws it. He sees no venue configuration.
- * - Leela sets the alert number in the venue configuration, which survives a reload, uploads the venue's
- *   logo (#397), which is there after a reload, and adds a chip, then takes it out of use (in `finally`, so
- *   the Treasury flow never has to count it).
+ * - Leela sets the alert number in the venue configuration, which survives a reload, and uploads the venue's
+ *   logo (#397), which is there after a reload. The money areas (rake, cage, tax, chips) are hidden (#626).
  * - Tara has no Settings in her rail, and the address shows a refusal.
  * The database's side (schemas, the past, who may, the audit log) is proved in supabase/tests/081.
  */
@@ -35,7 +34,7 @@ async function openArea(page: Page, area: string) {
 }
 
 test.describe('Settings', () => {
-  test('Settings: an admin schedules a setting from tomorrow and withdraws it; a super admin edits the venue and its chips; a cashier is kept out', async ({ browser }) => {
+  test('Settings: an admin schedules a setting from tomorrow and withdraws it; a super admin edits the venue, with no money areas; a cashier is kept out', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'changes settings and chips, so the local stack only');
     test.setTimeout(120_000);
     const admin = await browser.newPage();
@@ -77,26 +76,13 @@ test.describe('Settings', () => {
     await owner.reload();
     await expect(owner.getByRole('img', { name: 'The venue’s logo' })).toHaveAttribute('src', /\/brand\/.*\/logo-.*\.png$/);
 
-    await openArea(owner, 'Chips');
-    // A value no earlier run used: ₹5,00,000 to ₹9,49,950 in ₹50 steps.
-    const rupees = 50 * (10_000 + (Date.now() % 9_000));
-    const chip = `Test chip ${rupees}`;
-    await owner.getByRole('textbox', { name: 'Value in rupees' }).fill(String(rupees));
-    await owner.getByRole('textbox', { name: 'Name', exact: true }).fill(chip);
-    await owner.getByRole('button', { name: 'Add chip' }).click();
-    try {
-      await expect(owner.getByText('Chip added.')).toBeVisible();
-      await expect(owner.getByRole('switch', { name: `In use: ${chip}` })).toHaveAttribute('aria-checked', 'true');
-    } finally {
-      // Out of use whatever happened above, so the Treasury flow never has to count it; never switched on.
-      const inUse = owner.getByRole('switch', { name: `In use: ${chip}` });
-      if (await inUse.getAttribute('aria-checked') === 'true') await inUse.click();
-      await expect(inUse).toHaveAttribute('aria-checked', 'false');
-    }
+    // No console shows money or rake (#626): Settings has no rake, cage, tax or chips area.
+    const areas = owner.getByRole('navigation', { name: 'Areas' });
+    for (const hidden of ['Rake and jackpots', 'Cage and credit', 'Tax', 'Chips']) await expect(areas.getByRole('link', { name: hidden })).toHaveCount(0);
 
     const cashier = await browser.newPage();
     await signInToConsole(cashier, '9000000155');
-    await expect(cashier.getByRole('link', { name: 'Cage', exact: true })).toBeVisible();
+    await expect(cashier.getByRole('link', { name: 'Live floor', exact: true })).toBeVisible();
     await expect(cashier.getByRole('link', { name: 'Settings', exact: true })).toHaveCount(0);
     await cashier.goto(`${appUrl('console')}/settings`);
     await expect(cashier.getByText(REFUSED)).toBeVisible();

@@ -54,7 +54,6 @@ export const pairing = {
 export const handEntry = {
   title: 'Hand entry',
   empty: 'This tablet is not assigned to a table. Ask a floor manager to fix it to one on the console.',
-  noRake: 'No rake is set for this table\'s game. Ask a floor manager to set one on the console.',
   pot: 'Pot',
   /** The pot keypad's name. */
   enterPot: 'Enter the pot',
@@ -188,32 +187,24 @@ export const streamOverlay = {
   waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
 };
 
-/** End of down on the tablet (#44): the drop-box count, and what the down closed with. */
+/** End of down on the tablet (#44): the table handed over, with no drop-box count (#630). */
 export const endOfDown = {
   title: 'End of down',
-  intro: 'Count the drop box and enter what it holds. An empty box is nothing entered.',
-  /** The keypad's name. */
-  count: 'Drop box',
+  intro: 'Hand the table over: the down ends and the next dealer signs in.',
   close: 'Close the down',
-  /** `{amount}` is the count typed, which is not whole ₹50 chips (or is above ₹1 crore). */
-  notChips: 'A count is whole ₹50 chips, up to ₹1 crore. {amount} is not.',
-  /** Above the next dealer's sign-in: the count, the rake and drops logged in the down, and the count less logged. */
-  summary: 'Last down: drop box {box}, logged {logged}, variance {variance}.',
-  /** While hands wait on the tablet (#43): the down's count must include them. */
+  /** While hands wait on the tablet (#43): they go first. */
   queuedOne: 'Reconnect to send 1 queued hand before hand-over.',
   queued: 'Reconnect to send {count} queued hands before hand-over.',
 };
 
 /** The table's seats on the tablet (#59), as in the prototype. */
 export const seats = {
+  /** The tablet's screen during a down (#630): the seats, with no hand entry. */
+  screen: 'Seats',
   /** The ring, read out. */
   ring: 'Seats at {table}',
   title: 'Seat {seat} · {name}',
   open: 'Seat {seat} is open.',
-  buyIn: 'Buy-in',
-  requestBuyIn: 'Request buy-in',
-  /** While a request for the seat waits at the cage: `{amount}` is how much. */
-  withCage: 'Buy-in {amount} with the cage.',
   pending: 'A buy-in for this seat is already with the cage.',
   away: 'Away',
   back: 'Back',

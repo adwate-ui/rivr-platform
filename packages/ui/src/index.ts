@@ -85,6 +85,7 @@ export * from './TvTournamentClock/index.ts';
 export * from './StreamOverlay/index.ts';
 export * from './TournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
+export * from './TvBoardProgress/index.ts';
 export * from './DisplayPreview/index.ts';
 export * from './PromotionCard/index.ts';
 export * from './PromotionPager/index.ts';

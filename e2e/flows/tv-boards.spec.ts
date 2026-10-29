@@ -7,7 +7,7 @@
  *   this flow's own member, as no other flow signs in as him;
  * - the floor adds Vihaan Kapoor to 50/100, and the TV shows "Vihaan K." within seconds, through
  *   Realtime and not its half-minute read;
- * - on the jackpot, the TV shows the bad-beat figure and tonight's high hand beneath it;
+ * - the console offers no jackpot board, and the TV shows no rupee; each board has its progress bar (#628);
  * - on the call-time board (decision 0163), the floor seats Nakul Dhillon in the Private Room, where call
  *   time is two hours: the TV shows him at his table with the time left. Marked leaving, he is on the
  *   console's Leaving list and the TV shows his seat opening, within seconds. Given the promotions to turn
@@ -79,7 +79,7 @@ async function seatNakul(floor: Page) {
 }
 
 test.describe('TV boards', () => {
-  test('TV boards: the waitlist by stake, a hidden name as its place, live as the floor adds players, and the jackpot', async ({ browser }) => {
+  test('TV boards: the waitlist by stake, a hidden name as its place, live as the floor adds players, and no rupee', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'makes a device login and changes the waitlist, so the local stack only');
     test.setTimeout(240_000);
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
@@ -94,6 +94,8 @@ test.describe('TV boards', () => {
     await pairTv(tv, floor, name);
 
     await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
+    // The bar along the foot fills over the board's half minute, so the board reads as live (#628).
+    await expect(tv.locator('[data-board-progress]')).toHaveCount(1);
     const fifties = tv.getByRole('region', { name: 'NLH 50/100' });
     await expect(tv.getByRole('region', { name: 'NLH 100/200' })).toBeVisible();
 
@@ -118,10 +120,10 @@ test.describe('TV boards', () => {
     await floor.getByRole('link', { name: 'Devices', exact: true }).click();
 
     await floor.getByRole('link', { name: 'TVs' }).click();
-    await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'Jackpot and high hand', exact: true }).click();
-    await expect(tv.getByText('Bad-beat jackpot', { exact: true })).toBeVisible({ timeout: 15_000 });
-    await expect(tv.getByText(/^₹[\d,]+$/)).toBeVisible();
-    await expect(tv.getByText('High hand tonight', { exact: true })).toBeVisible();
+    // No jackpot to choose, and no rupee on the TV (#628).
+    await expect(floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'Jackpot and high hand', exact: true }))
+      .toHaveCount(0);
+    await expect(tv.getByText(/₹/)).toHaveCount(0);
 
     // The call-time board: Nakul at his table with two hours to play, then his seat opening once he is marked leaving.
     const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
@@ -155,7 +157,7 @@ test.describe('TV boards', () => {
     await floor.getByRole('button', { name: `Let ${LEAVING} leave early` }).first().click();
     await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(floor.getByText('Early departure recorded. The cage can cash them out.')).toBeVisible();
+    await expect(floor.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
     await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
     await expect(floor.getByRole('button', { name: `Move ${LEAVING}` })).toHaveCount(0);
 

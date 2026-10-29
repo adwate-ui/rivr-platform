@@ -1,5 +1,5 @@
 import { useEnterWithTicket, useFeature, useMyTournamentTickets, type MyTournamentTicket } from '@rivr/db';
-import { formatDayTime, formatMoney, t } from '@rivr/i18n';
+import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -7,7 +7,7 @@ const SHOWN_FAILURES = ['registration_closed', 'identity', 'on_break', 'switched
 type ShownFailure = (typeof SHOWN_FAILURES)[number];
 const shownFailure = (failure: string): ShownFailure | 'other' => SHOWN_FAILURES.find((each) => each === failure) ?? 'other';
 
-/** One ticket: the tournament it enters and when, its value, and entering with it once per request id until the server answers. */
+/** One ticket: the tournament it enters and when (no value, #627), and entering with it once per request id until the server answers. */
 function TicketCard({ ticket, onEntered }: { ticket: MyTournamentTicket; onEntered: (name: string) => void }) {
   const enter = useEnterWithTicket();
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
@@ -20,7 +20,6 @@ function TicketCard({ ticket, onEntered }: { ticket: MyTournamentTicket; onEnter
   return (
     <Stack gap={2}>
       <Text weight="medium">{t('player.tonight.ticketLine', { name: ticket.tournamentName, when: formatDayTime(new Date(ticket.startsAt)) })}</Text>
-      <Text variant="small" tone="muted">{t('player.tonight.ticketValue', { amount: formatMoney(ticket.value) })}</Text>
       <Inline><Button variant="secondary" isLoading={enter.isPending} onClick={use}>{t('player.tonight.enterWithTicket')}</Button></Inline>
       {failure === null ? null : <ErrorMessage>{t(`player.tonight.buyFailures.${failure}`)}</ErrorMessage>}
     </Stack>

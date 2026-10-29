@@ -14,7 +14,7 @@ export const promotions = {
   /** After a template is sent: `{name}` is the template. */
   templateSubmitted: '{name} waits for a super admin.',
   /** A template's optional budget as it is sent (#562): an amount in rupees, for the whole promotion or each month. */
-  budget: 'Budget in ₹ (optional)',
+  budget: 'Budget in bonus chips (optional)',
   budgetFor: 'Budget for',
   budgetPeriods: { promotion: 'The whole promotion', month: 'Each month' },
   invalidBudget: 'Enter the budget in rupees, or leave it empty.',
@@ -43,9 +43,9 @@ export const promotions = {
   runsWithLimit: '{who} · {when} · {limit}',
   rewards: { double_points: 'Double points', triple_points: 'Triple points', buy_in_bonus: '10% buy-in bonus' },
   /** The 10% buy-in bonus's cap, which the floor sets (question #415). */
-  bonusCap: 'Most per buy-in, in rupees',
-  /** What the bonus gives, on its card: "Up to ₹5,000 a buy-in". */
-  bonusDetail: 'Up to {cap} a buy-in',
+  bonusCap: 'Most bonus chips per buy-in',
+  /** What the bonus gives, on its card, in bonus chips (#629): "Up to 5,000 bonus chips a buy-in". */
+  bonusDetail: 'Up to {cap} bonus chips a buy-in',
   limitOptions: { none: 'None', first_50: 'First 50 members a day', once_per_member: 'Once per member' },
   playerApp: 'Player app',
   tvSlide: 'TV slide',
@@ -87,9 +87,10 @@ export const promotions = {
       referral: 'On a referral', check_in: 'On a check-in', graduation: 'On an Academy graduation', date_window: 'Once each club day in its window',
     },
     gives: {
-      bonusAmount: 'a {amount} bonus, ending after {days} days',
-      bonusShare: 'a bonus of {percent}% of the buy-in, ending after {days} days',
-      bonusShareCapped: 'a bonus of {percent}% of the buy-in, up to {cap}, ending after {days} days',
+      /** A bonus as bonus chips, never rupees (#629). */
+      bonusAmount: '{chips} bonus chips, ending after {days} days',
+      bonusShare: 'bonus chips of {percent}% of the buy-in, ending after {days} days',
+      bonusShareCapped: 'bonus chips of {percent}% of the buy-in, up to {cap}, ending after {days} days',
       points: '{points} points',
       pointsMultiplier: '{multiplier} times the points earned',
       freerollTicket: 'a freeroll ticket to {tournament}',
@@ -112,10 +113,11 @@ export const promotions = {
     limitPerDay: 'At most {limit} per member each club day',
     limitInAll: 'At most {limit} per member in all',
     noBudget: 'No budget: it gives without a cap',
-    budgetPaise: 'Budget: {amount}',
+    /** `{amount}`: bonus chips, `50,000` (#629). */
+    budgetPaise: 'Budget: {amount} bonus chips',
     budgetCount: 'Budget: {count} grants',
-    budgetBoth: 'Budget: {amount} or {count} grants, whichever comes first',
-    /** A monthly budget (#562): `Budget: ₹50,000, each month`. */
+    budgetBoth: 'Budget: {amount} bonus chips or {count} grants, whichever comes first',
+    /** A monthly budget (#562): `Budget: 50,000 bonus chips, each month`. */
     eachMonth: '{budget}, each month',
   },
   /** Promotions a super admin sent back (#144), with why: the one who submitted each reads it here. */
@@ -137,11 +139,12 @@ export const promotions = {
     replayed: 'Buy-ins and visits replayed',
     grants: 'Times given',
     members: 'Members',
-    cost: 'Bonus cost',
+    /** The bonus it would have given, as bonus chips (#629). */
+    cost: 'Bonus chips',
     points: 'Extra points',
     budget: 'Budget',
     noCap: 'No cap',
-    budgetLeft: 'Left of the budget',
+    budgetLeft: 'Bonus chips left of the budget',
     budgetReached: 'The budget would have run out.',
     nothing: 'Nothing last week would have earned it.',
     failures: {
@@ -152,7 +155,7 @@ export const promotions = {
   },
   failures: {
     invalid: 'Choose both times, the start before the end, within the night (it ends at 06:00).',
-    invalidCap: 'The most per buy-in is whole rupees in ₹50 chips, from ₹50 to ₹1,00,000.',
+    invalidCap: 'The most per buy-in is bonus chips in whole 50s, from 50 to 1,00,000.',
     not_allowed: 'Only staff who manage promotions submit one, and only a super admin approves or refuses one.',
     own_promotion: 'You submitted this one, so another super admin approves it.',
     already_decided: 'Another super admin has already decided this one.',

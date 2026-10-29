@@ -19,7 +19,7 @@ describe('a host queue offer', () => {
 
   it('reads in words', () => {
     expect(offerText({ kind: 'points', points: 500 })).toBe('500 points');
-    expect(offerText({ kind: 'bonus', amount_paise: 200000, expires_days: 30 })).toBe('₹2,000 bonus');
+    expect(offerText({ kind: 'bonus', amount_paise: 200000, expires_days: 30 })).toBe('2,000 bonus chips');
     expect(offerText({ kind: 'spin' })).toBe('a free spin');
     expect(offerText({ kind: 'cab_eligibility' })).toBe('an offer');
   });

@@ -1,9 +1,9 @@
 /**
  * Check-out (#82; features "Check-in and check-out"; additions flow 14). Deepa Kulkarni, this flow's own
  * front desk, checks Varun Malhotra in by his number and out from the room list as he leaves; then in again
- * and out by the number on his card, which closes his visit and counts its hours and points. A member who
- * owes call time is refused at the door until an admin lets them go, and the points a closed visit earns,
- * are proved in supabase/tests/084_check_out.test.sql.
+ * and out by the number on his card, which closes his visit and counts its hours. A member who owes call
+ * time is refused at the door until an admin lets them go, and that a closed visit earns no points by play
+ * (#629), are proved in supabase/tests/084_check_out.test.sql.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -32,7 +32,7 @@ test.describe('Check-out', () => {
     await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toBeVisible();
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check out', exact: true }).click();
-    await expect(page.getByText('Checked out. Their hours and points are counted.')).toBeVisible();
+    await expect(page.getByText('Checked out. Their hours are counted.')).toBeVisible();
     await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toHaveCount(0);
 
     await phone.fill('9000000253');

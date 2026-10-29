@@ -49,14 +49,13 @@ export async function tabletAt(browser: Browser, floor: Page, tableName: string)
   return { tablet, name };
 }
 
-/** Pema signs in on the tablet, and hand entry opens. */
+/** Pema signs in on the tablet, and the table's seats open (no hand entry, #630). */
 export async function dealerSignsIn(tablet: Page) {
   await tablet.reload();
   await tablet.getByRole('group', { name: 'Who is dealing?' }).getByRole('button', { name: DEALER }).click();
   await press(tablet, [...PIN]);
   await tablet.getByRole('button', { name: 'Sign in' }).click();
-  await expect(tablet.getByRole('heading', { name: 'Hand entry' })).toBeVisible();
-  await expect(tablet.getByText('Hands this down: 0')).toBeVisible();
+  await expect(tablet.getByRole('heading', { name: 'Seats', level: 1 })).toBeVisible();
 }
 
 /** Revokes the flow's tablet on the console, so the next run finds Table 3 as it was. */

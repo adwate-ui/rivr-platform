@@ -6,8 +6,10 @@ import { ComputersSection } from './ComputersSection.tsx';
 import { TabletsSection } from './TabletsSection.tsx';
 import { TvsSection } from './TvsSection.tsx';
 
-const TABS = ['tablets', 'tvs', 'computers', 'cameras'] as const;
-type DeviceTab = (typeof TABS)[number];
+// The TVs first, then the tablets the club keeps (owner, 29 Oct, #626 and #630); the computers and cameras are hidden,
+// their sections kept for when the club wants them back.
+const TABS = ['tvs', 'tablets'] as const;
+type DeviceTab = (typeof TABS)[number] | 'computers' | 'cameras';
 
 const LABELS = { tablets: 'console.tablets.title', tvs: 'console.tvs.title', computers: 'console.computers.title', cameras: 'console.cameras.title' } as const;
 

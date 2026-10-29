@@ -19,10 +19,10 @@ export const checkIn = {
   noMember: 'No member has that number. Sign them up first.',
   cardNotCurrent: 'That card code has changed. Ask the member to show their card again.',
   cardInvalid: 'No card code. Scan the member\'s card.',
-  /** Check-out at the door (#82): the visit closes, with its hours and points. */
+  /** Check-out at the door (#82): the visit closes, with its hours; points are given by hand (#629). */
   checkOut: 'Check out',
   checkOutMember: 'Check out {name}',
-  checkedOut: 'Checked out. Their hours and points are counted.',
+  checkedOut: 'Checked out. Their hours are counted.',
   notInRoom: 'This member is not checked in, so there is no visit to close.',
   callTimeOwed: 'Call time not complete: {time} short. An admin can let them leave early on the Live floor.',
   stillSeated: 'This member is still seated. The floor ends their seat, or the cage cashes them out, before they check out.',
@@ -43,7 +43,6 @@ export const liveFloor = {
   table: 'Table',
   /** The tables, room by room, read out as one part of the screen. */
   roomPlan: 'Room plan',
-  rakeTonight: 'Rake tonight',
   seatedCount: '{count} seated',
   mainRoom: 'Main room',
   privateRoom: 'Private Room',
@@ -52,9 +51,6 @@ export const liveFloor = {
   noPace: '-',
   noDealer: 'No dealer',
   dealer: 'Dealer · {name}',
-  /** Under the chosen table's name: `100/200 · buy-in ₹10,000 · rake 5%, cap ₹6,000`. */
-  tableLine: '{stakes} · buy-in {buyIn} · rake {rate}%, cap {cap}',
-  tableLineNoRake: '{stakes} · buy-in {buyIn}',
   hands: 'Hands',
   perHour: 'Per hour',
   recentHands: 'Recent hands',
@@ -81,6 +77,11 @@ export const liveFloor = {
   mustMove: 'Must move {order}',
   /** A player away from the table, the seat kept (#59). */
   away: 'Away',
+  /** The floor marks a player away from the table, or back, as the tablet does (#630). */
+  markAway: 'Away',
+  markAwayName: '{name} is away from the table',
+  markBack: 'Back',
+  markBackName: '{name} is back at the table',
   move: 'Move',
   moveName: 'Move {name}',
   moveTitle: 'Move {name}',
@@ -94,7 +95,7 @@ export const liveFloor = {
   leaveEarlyReason: 'Why they leave early',
   leaveEarlyHint: 'Kept on their record, with your name.',
   letLeaveEarly: 'Let leave early',
-  leftEarly: 'Early departure recorded. The cage can cash them out.',
+  leftEarly: 'Early departure recorded. They can leave their seat.',
   callTimeDone: 'Their call time is complete. They can leave.',
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
   leftOwingTitle: 'Left before call time',

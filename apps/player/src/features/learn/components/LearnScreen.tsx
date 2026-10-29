@@ -41,23 +41,15 @@ function LicensedTitles() {
 }
 
 /**
- * Learn (#133), gated by tier (learn.library): RIVR Academy batches to book (academy.booking), the Academy's levels,
- * the books that ship with RIVR, and the licensed titles the member's tier has, each opening its hub.
+ * Learn (#133), gated by tier (learn.library): the Academy's levels, the books that ship with RIVR, and the licensed
+ * titles the member's tier has, each opening its hub. The Academy's batches to book are hidden (#627).
  */
 export function LearnScreen() {
-  const navigate = useNavigate();
-  const academy = useFeature('academy.booking');
   const lessons = useFeature('learn.academy_lessons');
   return (
     <FeatureGate access={useFeature('learn.library')}>
       <Screen title={t('player.learn.title')}>
         <Stack gap={8}>
-          <FeatureGate access={academy}>
-            <Stack gap={3}>
-              <Heading level={2}>{t('player.academy.title')}</Heading>
-              <Button variant="secondary" onClick={() => void navigate({ to: '/academy' })}>{t('player.academy.seeBatches')}</Button>
-            </Stack>
-          </FeatureGate>
           <FeatureGate access={lessons}>
             <Stack gap={2}>
               <Heading level={2}>{t('player.learn.academy')}</Heading>

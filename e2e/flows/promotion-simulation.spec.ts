@@ -2,7 +2,7 @@
  * Promotion simulation (#144; scope-v1 module 7 acceptance): the floor builds a new Thursday scheme,
  * Thursday 14:00 to 20:00 in the Private Room, triple points, simulates it on last week and submits it, and a
  * super admin approves it (#144), in under ten minutes. A member of the flow's own, Simran, played in the Private Room last Thursday 14:00
- * to 20:00, so the simulation gives twice the points that time earned, at no rupee cost and no cap.
+ * to 20:00, so the simulation gives twice the points that time earned, no bonus chips and no cap.
  * Submitting waits for a simulation of the choices as they stand. 107 Ishita (marketing, who manage
  * promotions) and 760 Leela Varma (a super admin) are the flow's own. Local stack only: it writes last week's visit in the local database.
  */
@@ -31,6 +31,14 @@ const SIMRAN = '00000000-0000-4000-8000-0000000002e7';
 function playedLastThursday(): void {
   sql(`insert into public.member (id, venue_id, full_name, phone) values ('${SIMRAN}', '${CLUB}', 'Simran Oberoi', '+919000000882')
        on conflict (id) do nothing`);
+  // Points by hand only (#629): the club sets no rate. The Private Room earns 20 an hour for last Thursday 14:00 to
+  // 20:00 IST alone, so the window has points to multiply, and no rate in force now earns any.
+  sql(`insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+       select '${CLUB}', 'points.per_hour', 'private_room', jsonb_build_object('points', r.points), d + r.at, 'Promotion simulation flow'
+       from generate_series(1, 7) n, lateral (select private.tonight_began(now()) - make_interval(days => n) as d) x,
+            (values (20, interval '8 hours'), (0, interval '14 hours')) as r (points, at)
+       where extract(isodow from d at time zone 'Asia/Kolkata') = 4
+       on conflict (venue_id, key, subject, effective_from) do nothing`);
   sql(`with thursday as (
          select d from generate_series(1, 7) n, lateral (select private.tonight_began(now()) - make_interval(days => n) as d) x
          where extract(isodow from d at time zone 'Asia/Kolkata') = 4
@@ -79,7 +87,7 @@ test.describe('Promotion simulation', () => {
     const figure = (label: string, value: string) => page.getByText(label, { exact: true }).locator('xpath=..').getByText(value, { exact: true });
     await expect(figure('Times given', expected.visits.toLocaleString('en-IN'))).toBeVisible({ timeout: 10_000 });
     await expect(figure('Extra points', (expected.points * 2).toLocaleString('en-IN'))).toBeVisible();
-    await expect(figure('Bonus cost', '₹0')).toBeVisible();
+    await expect(figure('Bonus chips', '0')).toBeVisible();
     await expect(figure('Budget', 'No cap')).toBeVisible();
 
     // A change clears the simulation; simulating again lets it be submitted.

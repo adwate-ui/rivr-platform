@@ -10,6 +10,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `registerMessages(namespaces)` | Adds namespaces to what `t` knows. Each app does it once, in `src/messages.ts`, imported first by its entry (`main.tsx`; on the website, the server modules that read its copy) and by its tests (`setupFiles`): `registerMessages({ player: playerApp })`. So an app ships only its own copy, and the player stays within its JavaScript budget. |
 | `playerApp`, `consoleApp`, `tabletApp`, `displayApp`, `driverApp`, `webApp`, `tv`, `social`, `documents`, `memberRewards` | The namespaces an app registers: its own, plus `tv` where it names hands or TV modes (console, tablet, display); `@rivr/render` registers `social`, `tv` and `documents` (receipts, invoices and statements). A screen loaded on demand may register its own copy when it loads, so the app's first load does not carry it: the player's Academy invoice registers `documents`, its Rewards tab `memberRewards` (#152). |
 | `formatMoney(paise)` | `₹1,20,000`. Indian grouping, no decimals on whole rupees, never rounded, `−₹1,000` for negatives. |
+| `formatChips(paise)` | `5,000`: chips, such as bonus chips, as a count with no rupee symbol, for the screens that show no rupee (#627). Otherwise as `formatMoney`. |
 | `formatNumber(n)` | `18,420`. |
 | `formatNights(thousandths)` | Hotel nights kept in thousandths: `1.25`, `0.175`, `2` (#146). |
 | `formatStakes(small, big)` | Blinds in paise to `100/200`. |

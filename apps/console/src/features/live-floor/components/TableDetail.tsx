@@ -4,7 +4,6 @@ import { Button, CallTimeTimer, ErrorMessage, Inline, Stack, Text } from '@rivr/
 import { useState } from 'react';
 import { EarlyLeaveForm } from './EarlyLeaveForm.tsx';
 import { MoveForm } from './MoveForm.tsx';
-import { RecentHands } from './RecentHands.tsx';
 import { SEAT_FAILURE_COPY } from './seatCopy.ts';
 import { SeatForm } from './SeatForm.tsx';
 import { TableControls } from './TableControls.tsx';
@@ -48,19 +47,24 @@ interface SeatButtonsProps {
   onLeave: () => void;
   onLeaveEarly: () => void;
   onLeaving: (isLeaving: boolean) => void;
+  onAway: (isAway: boolean) => void;
 }
 
 /**
- * The floor's buttons on a seated player's row: mark them leaving or take it back (decision 0163), move,
- * leave, and for admins, leave early while call time is owed (#79).
+ * The floor's buttons on a seated player's row: mark them leaving or take it back (decision 0163), away from
+ * the table or back (#630: as the tablet does), move, leave, and for admins, leave early while call time is owed (#79).
  */
-function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving }: SeatButtonsProps) {
+function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving, onAway }: SeatButtonsProps) {
   const isLeaving = player.leavingAt !== null;
   return (
     <Inline gap={2}>
       <Button variant="text" aria-label={t(isLeaving ? 'console.liveFloor.notLeavingName' : 'console.liveFloor.markLeavingName', { name: player.fullName })}
         onClick={() => onLeaving(!isLeaving)}>
         {t(isLeaving ? 'console.liveFloor.notLeaving' : 'console.liveFloor.markLeaving')}
+      </Button>
+      <Button variant="text" aria-label={t(player.isAway ? 'console.liveFloor.markBackName' : 'console.liveFloor.markAwayName', { name: player.fullName })}
+        onClick={() => onAway(!player.isAway)}>
+        {t(player.isAway ? 'console.liveFloor.markBack' : 'console.liveFloor.markAway')}
       </Button>
       <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
       <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })} onClick={onLeave}>{t('console.liveFloor.leave')}</Button>
@@ -80,7 +84,7 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
  * feed a main table.
  */
 export function TableDetail({ venueId, table, tables, seats, held, permissions, night }: TableDetailProps) {
-  const { leave, setLeaving } = useSeatActions(venueId);
+  const { leave, setLeaving, setAway } = useSeatActions(venueId);
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
   const [leavingEarly, setLeavingEarly] = useState<SeatedPlayer | null>(null);
   const [failure, setFailure] = useState<SeatFailure | null>(null);
@@ -101,7 +105,8 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
               {isFloor && player !== undefined ? (
                 <SeatButtons player={player} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => setMoving(player)}
                   onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => setLeavingEarly(player)}
-                  onLeaving={(isLeaving) => void setLeaving.mutateAsync({ sessionId: player.sessionId, isLeaving }).then(report)} />
+                  onLeaving={(isLeaving) => void setLeaving.mutateAsync({ sessionId: player.sessionId, isLeaving }).then(report)}
+                  onAway={(isAway) => void setAway.mutateAsync({ sessionId: player.sessionId, isAway }).then(report)} />
               ) : null}
             </Inline>
           );
@@ -113,7 +118,6 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
           member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />
       )}
       {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
-      <RecentHands tableId={table.id} />
     </Stack>
   );
 }

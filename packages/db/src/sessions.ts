@@ -1,5 +1,6 @@
+import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 
@@ -68,6 +69,22 @@ export function useMySessions() {
         receipt: row.receipt, month: row.month, monthSessions: row.month_sessions, monthPlayedSeconds: Number(row.month_played_seconds),
         monthNet: toPaise(row.month_net_paise), tdsBasis: TDS_BASES.find((basis) => basis === row.tds_basis) ?? null,
       }));
+    },
+  });
+}
+
+/**
+ * Hides one of the signed-in member's sessions from their own list (#627); the club keeps its record. Resolves to a
+ * Result and reloads the list.
+ */
+export function useHideMySession() {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (sessionId: string): Promise<Result<null, 'unavailable'>> => {
+      const { error } = await client.rpc('hide_my_session', { p_session_id: sessionId });
+      await queryClient.invalidateQueries({ queryKey: keys.mySessions(userId ?? 'signed-out') });
+      return error ? err('unavailable') : ok(null);
     },
   });
 }

@@ -1,6 +1,6 @@
 # display
 
-The TV app at 1920 px: waitlist and call-time boards, jackpot and high hand, the tournament clock, the promotions rotation and the other TV modes. A TV pairs with a six-digit code and then shows the mode a manager assigns it.
+The TV app at 1920 px: waitlist and call-time boards, the tournament clock, the promotions rotation and the other TV modes, with no rupee (#628, decision 0284): the jackpot mode is hidden, the clock has no prize pool and spin prizes read as bonus chips. Each board has a bar along the stage's foot that fills over its half minute. A TV pairs with a six-digit code and then shows the mode a manager assigns it.
 
 The final-table stream's overlay (#125, decision 0256) is an OBS browser source at `/overlay?delay=<seconds>`, 1920 by 1080: the tournament clock on a transparent page, held back by the hole-card delay (`delay=900` for 15 minutes; `delay=0` when OBS delays the whole stream). Pair it like a TV, at the club (never the practice venue), and give it the tournament clock on the console's TVs screen. Set it up before the final table, with OBS's "Shutdown source when not visible" and "Refresh browser when scene becomes active" off: after a reload it shows nothing until the delay has passed, and once paired it never shows a code again until OBS reloads it.
 
@@ -25,8 +25,8 @@ src/
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: navigation, the kill-switch banner, not found; the pairing code until the TV is paired
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
-    modes/            a paired TV shows the mode the console gave it: the waitlist board and the jackpot
-                      with tonight's high hand (#65), the promotions (#86) and the call-time board with the
+    modes/            a paired TV shows the mode the console gave it (one still set to the hidden jackpot shows
+                      the waitlist board, #628): the waitlist board (#65), the promotions (#86) and the call-time board with the
                       seats opening (decision 0163), the rewards ticker and the League leaderboard (#148,
                       decision 0183), and the tournament clock counting down from the server's reading
                       (#119, decision 0201), live through Realtime; in between, the boards the console

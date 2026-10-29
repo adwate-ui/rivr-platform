@@ -19,13 +19,8 @@ export const tonight = {
   /** Above the tables while the member's identity check is not done (#87). */
   kycIncomplete: 'KYC incomplete. Finish it to join a table.',
   finishKyc: 'Finish identity check',
-  /** The bad-beat jackpot at the member's venue (#87). */
-  jackpot: 'Bad-beat jackpot',
+  /** The next tournament, then its name and when it starts, IST: `Sun 15 Nov, 16:00`. No buy-in or prize (#627). */
   nextTournament: 'Next tournament',
-  /** When it starts, IST, and its buy-in: `Sun 15 Nov, 16:00 · Buy-in ₹10,000`. */
-  tournamentWhen: '{when} · Buy-in {buyIn}',
-  /** The prize pool the club guarantees. */
-  guaranteed: '{amount} guaranteed',
   /** A tournament running at the club (#119), its level and time left ticking: `RIVR Sunday · Level 8`, `11:32`. */
   liveTournament: 'Tournament',
   liveLevel: '{name} · Level {level}',
@@ -33,15 +28,14 @@ export const tonight = {
   /** On a break, the level that follows: `Next 500/1,000 ante 1,000`. */
   liveNext: 'Next {blinds}',
   livePaused: 'Paused',
-  /** The field (#118): `31 of 58 left`, `₹5,22,000 pool`. */
+  /** The field (#118): `31 of 58 left`. */
   liveLeft: '{left} of {entries} left',
-  livePool: '{amount} pool',
   /** The member's own standing and what they may buy (#118). */
   seatedAt: 'You are at table {table}, seat {seat}.',
   alternate: 'You are an alternate: the floor seats you when a seat opens.',
   bustedOut: 'You are out.',
   offers: { entry: 'Register', re_entry: 'Re-enter', rebuy: 'Rebuy' },
-  confirmBuy: 'Pay {amount} from your balance?',
+  confirmBuy: 'Pay the buy-in from your balance?',
   payNow: 'Yes, pay',
   notNow: 'Not now',
   /** Why the app did not sell it. */
@@ -58,7 +52,6 @@ export const tonight = {
   /** Satellite tickets the member holds (#519). */
   tickets: 'Your tournament tickets',
   ticketLine: '{name} · {when}',
-  ticketValue: 'A {amount} ticket',
   enterWithTicket: 'Enter with your ticket',
   enteredWithTicket: 'You are in {name}.',
   ticketsFailed: 'Your tickets did not load.',

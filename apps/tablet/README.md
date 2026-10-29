@@ -1,6 +1,6 @@
 # tablet
 
-The dealer tablet: hand entry (seats, pot, Log hand), rake and jackpot drop, buy-in requests and the down's drop box. It must keep working offline: hands and their high-hand claims go through `useHandQueue` (`@rivr/offline`), so Log hand confirms at once and the hand arrives in order once the connection is back; a slim banner says how many are queued ("Offline. 3 hands queued."), and a hand refused for good is set aside and counted there for a supervisor (#43).
+The dealer tablet: the table's seats with each player's call time, away and back, leaving and food for a seat, and the dealer's down. It is optional: the console does all of it too (#630). No tablet shows money (decision 0284), so hand entry with its rake and jackpot drop, buy-in requests and the down's drop-box count are off it; their code stays in `features/hand-entry` for when the club wants them back. It must keep working offline: hands and their high-hand claims go through `useHandQueue` (`@rivr/offline`), so Log hand confirms at once and the hand arrives in order once the connection is back; a slim banner says how many are queued ("Offline. 3 hands queued."), and a hand refused for good is set aside and counted there for a supervisor (#43).
 
 ## Run it
 

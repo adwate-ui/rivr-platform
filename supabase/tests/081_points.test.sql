@@ -1,7 +1,7 @@
 -- Points (#89; decision 0161): a visit earns its points as it closes, for its time at each table at that
 -- table type's rate and for its share of the rake, kept in points_earning and credited to the member, so
--- the points reconcile to the ledger and to the seat sessions. Points never convert to cash. Seeded rates:
--- 10 an hour at 100/200 (Table 2), 5 at 50/100 (Table 1), and 5% of rake. Mihir (213) and Yash (214) are
+-- the points reconcile to the ledger and to the seat sessions. Points never convert to cash. The club sets no
+-- rates since #629 (points by hand only); this test sets them: 10 an hour at 100/200 (Table 2), 5 at 50/100 (Table 1), and 5% of rake. Mihir (213) and Yash (214) are
 -- members; 103 Aditya an admin, who reads members; 106 Pema a dealer, who does not.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -24,10 +24,18 @@ create function pg_temp.at(p_minutes integer) returns timestamptz language sql a
   select '2026-01-04T20:00:00+05:30'::timestamptz + make_interval(mins => p_minutes);
 $$;
 
-select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'points.per_hour', 'nlh_100_200', now()) ->> 'points', '10',
-  'the seed earns 10 points an hour at 100/200');
-select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'points.rewards_rake_share', '', now()) ->> 'basis_points', '500',
-  'and 5% of rake');
+-- Points by hand only (#629): the club sets no rate, and none set earns none. The rules stay for when it does, so
+-- this test sets the rates the seed once gave, in both venues.
+select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'points.per_hour', 'nlh_100_200', now()), null,
+  'the club earns no points an hour');
+select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'points.rewards_rake_share', '', now()), null, 'nor any for rake');
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+select v.venue_id, 'points.per_hour', r.code, jsonb_build_object('points', r.points), '-infinity'::timestamptz, 'Points test'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
+cross join (values ('nlh_50_100', 5), ('nlh_100_200', 10), ('private_room', 20)) as r (code, points)
+union all
+select v.venue_id, 'points.rewards_rake_share', '', '{"basis_points": 500}'::jsonb, '-infinity'::timestamptz, 'Points test'
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id);
 
 -- Mihir sits at Table 2 at 20:00, moves to Table 1 at 21:00, is away 30 minutes and leaves at 23:00.
 -- Yash sits at Table 2 from 20:00 to 22:00, changing seats there at 20:59.
@@ -157,6 +165,24 @@ select throws_ok($$ select private.credit_points('00000000-0000-4000-8000-000000
   'Free', 'points-free') $$, '42501', null, 'nor credits them');
 reset role;
 select throws_ok($$ update public.points_earning set points = 1000 $$, '42501', null, 'an earning is never changed');
+
+-- Points by hand only (#629): with zero rates in force, as 20261029110000_points_by_hand.sql sets them, Mihir's next
+-- visit, two hours at Table 2 the next day, keeps its hours and earns nothing, and nothing is credited.
+select set_config('request.jwt.claims', '', true);
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'points.per_hour', 'nlh_100_200', '{"points": 0}', pg_temp.at(1440), 'Points test'),
+       ('00000000-0000-4000-8000-000000000001', 'points.rewards_rake_share', '', '{"basis_points": 0}', pg_temp.at(1440), 'Points test');
+insert into public.visit (id, venue_id, member_id, opened_at) values
+  ('00000000-0000-4000-8000-0000000a8909', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', pg_temp.at(1500));
+insert into public.seat_session (id, venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason, away_seconds)
+values ('00000000-0000-4000-8000-0000000b8909', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213',
+        '00000000-0000-4000-8000-0000000a8909', pg_temp.table_id('Table 2'), 1, pg_temp.at(1500), pg_temp.at(1500), pg_temp.at(1620), 'left', 0);
+select isnt(private.close_visit('00000000-0000-4000-8000-000000000213', pg_temp.at(1620), 'door'), null, 'his next visit closes');
+select results_eq($$ select coalesce(sum(e.points), 0)::bigint, coalesce(sum(e.played_seconds), 0)::bigint from public.points_earning e
+                     where e.visit_id = '00000000-0000-4000-8000-0000000a8909' $$,
+  $$ values (0::bigint, 7200::bigint) $$, 'at zero rates its two hours are kept and earn no points');
+select is_empty($$ select 1 from public.ledger_transaction where idempotency_key = 'points.visit:00000000-0000-4000-8000-0000000a8909' $$,
+  'and nothing is credited');
 
 select * from finish();
 rollback;

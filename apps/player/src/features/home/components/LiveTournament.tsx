@@ -1,6 +1,6 @@
 import { useElapsedNow, type MyTournament } from '@rivr/db';
 import { clockAt, levelAtOrAfter, nextLevelAfter, type ClockPosition, type Stage } from '@rivr/domain/tournament';
-import { formatBlinds, formatCountdown, formatMoney, t } from '@rivr/i18n';
+import { formatBlinds, formatCountdown, t } from '@rivr/i18n';
 import { Inline, Stack, Text } from '@rivr/ui';
 
 /** The blinds under the name: the level's, or on a break the next level's. */
@@ -35,7 +35,6 @@ export function LiveTournament({ tournament }: { tournament: MyTournament }) {
       </Inline>
       <Inline justify="between" align="baseline" gap={4}>
         <Text variant="small" tone="muted">{tournament.clock.isRunning ? blindsLine(tournament.stages, position) : t('player.tonight.livePaused')}</Text>
-        {field.entries === 0 ? null : <Text variant="small" tone="muted">{t('player.tonight.livePool', { amount: formatMoney(field.pool) })}</Text>}
       </Inline>
     </Stack>
   );

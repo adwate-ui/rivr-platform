@@ -9,11 +9,11 @@ describe('the spin wheel board (decision 0266)', () => {
     });
     expect(wheel?.places).toEqual([
       { id: 'prize-0', place: '1', name: '100 points', status: '3 in 5' },
-      { id: 'prize-1', place: '2', name: '₹500 bonus', status: '1 in 5' },
+      { id: 'prize-1', place: '2', name: '500 bonus chips', status: '1 in 5' },
       { id: 'prize-2', place: '3', name: 'Nothing', status: '1 in 5' },
     ]);
     expect(spins?.places).toEqual([
-      { id: 'spin-0', place: '', name: 'Yash G.', status: '₹500 bonus' },
+      { id: 'spin-0', place: '', name: 'Yash G.', status: '500 bonus chips' },
       { id: 'spin-1', place: '', name: 'A member', status: '100 points' },
     ]);
   });

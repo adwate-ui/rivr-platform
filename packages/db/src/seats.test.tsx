@@ -79,3 +79,21 @@ describe('Leaving before call time', () => {
     expect(outcome).toEqual({ ok: false, error: 'call_time_done' });
   });
 });
+
+describe('Away from the table', () => {
+  it('marks a player away and back from the console, as the tablet does, and says when the seat is gone', async () => {
+    const { result, calls } = renderSeats({});
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.setAway.mutateAsync({ sessionId: 's1', isAway: true });
+    });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.rpc === 'set_seat_away')?.body).toEqual({ p_session_id: 's1', p_is_away: true });
+
+    const gone = renderSeats({ set_seat_away: { status: 400, body: { code: '22023', message: 'left the table' } } });
+    await act(async () => {
+      outcome = await gone.result.current.setAway.mutateAsync({ sessionId: 's1', isAway: false });
+    });
+    expect(outcome).toEqual({ ok: false, error: 'invalid' });
+  });
+});

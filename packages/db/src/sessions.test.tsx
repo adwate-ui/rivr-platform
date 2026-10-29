@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
-import { useMySessions } from './sessions.ts';
+import { useHideMySession, useMySessions } from './sessions.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const MEMBER = '00000000-0000-4000-8000-000000000211';
@@ -43,5 +43,33 @@ describe('the member\'s sessions', () => {
   it('is empty without any', async () => {
     const result = renderSessions([]);
     await waitFor(() => expect(result.current.data).toEqual([]));
+  });
+});
+
+/** A fake API that answers hide_my_session as `status`, keeping what each call sent. */
+function renderHide(status: number) {
+  const sent: unknown[] = [];
+  const fetch: typeof globalThis.fetch = async (input, init) => {
+    if (String(input instanceof Request ? input.url : input).includes('/rpc/hide_my_session')) sent.push(JSON.parse(String(init?.body)));
+    return status === 200 ? Response.json(null) : Response.json({ message: 'unavailable' }, { status });
+  };
+  const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+    global: { fetch },
+    auth: { storage: sessionStorageFor(MEMBER), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+  return { result: renderHook(() => useHideMySession(), { wrapper }).result, sent };
+}
+
+describe('hiding one of the member\'s sessions', () => {
+  it('sends the session and resolves ok', async () => {
+    const { result, sent } = renderHide(200);
+    await expect(result.current.mutateAsync('v1')).resolves.toEqual({ ok: true, value: null });
+    expect(sent).toEqual([{ p_session_id: 'v1' }]);
+  });
+
+  it('resolves unavailable when it does not go through', async () => {
+    const { result } = renderHide(503);
+    await expect(result.current.mutateAsync('v1')).resolves.toEqual({ ok: false, error: 'unavailable' });
   });
 });

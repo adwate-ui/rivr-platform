@@ -1,6 +1,6 @@
 import type { PromotionSimulationResult, SimulationFailure } from '@rivr/db';
-import { formatDayMonth, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Money, Number as Count, Stack, Text } from '@rivr/ui';
+import { formatChips, formatDayMonth, t } from '@rivr/i18n';
+import { Button, ErrorMessage, Heading, Inline, Number as Count, Stack, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
 // The replay ends at 06:00 IST, where today's club day begins; its last club day began a day before.
@@ -21,12 +21,12 @@ function Figures({ simulation }: { simulation: PromotionSimulationResult }) {
       <Row label={t('console.promotions.simulation.replayed')}><Count value={simulation.events} /></Row>
       <Row label={t('console.promotions.simulation.grants')}><Count value={simulation.grants} /></Row>
       <Row label={t('console.promotions.simulation.members')}><Count value={simulation.members} /></Row>
-      <Row label={t('console.promotions.simulation.cost')}><Money paise={simulation.cost} /></Row>
+      <Row label={t('console.promotions.simulation.cost')}><Text isTabular>{formatChips(simulation.cost)}</Text></Row>
       <Row label={t('console.promotions.simulation.points')}><Count value={simulation.points} /></Row>
       {simulation.budgetLeft === null ? (
         <Row label={t('console.promotions.simulation.budget')}><Text tone="muted">{t('console.promotions.simulation.noCap')}</Text></Row>
       ) : (
-        <Row label={t('console.promotions.simulation.budgetLeft')}><Money paise={simulation.budgetLeft} /></Row>
+        <Row label={t('console.promotions.simulation.budgetLeft')}><Text isTabular>{formatChips(simulation.budgetLeft)}</Text></Row>
       )}
     </Stack>
   );

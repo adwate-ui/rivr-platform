@@ -4,7 +4,7 @@
  * - he adds a tablet and reads out its code; the tablet pairs with it, and the console shows it paired;
  * - he fixes it to Table 3, which the tablet shows, asking a dealer to sign in;
  * - he sets Pema Lepcha's PIN; on the tablet she picks her name, a wrong PIN is refused with the tries
- *   left, the right one starts her down, and End of down asks for the next dealer;
+ *   left, the right one starts her down on the table's seats, and End of down, with no count, asks for the next dealer;
  * - once revoked, the tablet asks to be paired again.
  */
 import { expect, test, type Page } from '@playwright/test';
@@ -43,7 +43,7 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByText('That code is not right or has run out. Ask for a new one.')).toBeVisible();
     await tablet.getByRole('textbox', { name: 'Pairing code' }).fill(code);
     await tablet.getByRole('button', { name: 'Pair' }).click();
-    await expect(tablet.getByRole('heading', { name: 'Hand entry' })).toBeVisible();
+    await expect(tablet.getByRole('heading', { name: 'Seats', level: 1 })).toBeVisible();
     await expect(tablet.getByText('Not assigned', { exact: true })).toBeVisible();
 
     // The console's list asks again every ten seconds, so the tablet shows as paired on its own.
@@ -71,11 +71,13 @@ test.describe('Dealer tablet', () => {
     await pressPin(tablet, '2741');
     await tablet.getByRole('button', { name: 'Sign in' }).click();
     await expect(tablet.getByText(new RegExp(`^${DEALER} · down since \\d{2}:\\d{2}$`))).toBeVisible();
-    await expect(tablet.getByRole('button', { name: 'Log hand' })).toBeVisible();
-    // No hands logged and an empty drop box: the down closes even.
+    // The seats, with no hand entry and no rupee (#630).
+    await expect(tablet.getByRole('heading', { name: 'Seats', level: 1 })).toBeVisible();
+    await expect(tablet.getByRole('button', { name: 'Log hand' })).toHaveCount(0);
+    await expect(tablet.getByText(/₹/)).toHaveCount(0);
+    // End of down asks for no drop-box count.
     await tablet.getByRole('button', { name: 'End of down' }).click();
     await tablet.getByRole('button', { name: 'Close the down' }).click();
-    await expect(tablet.getByText('Last down: drop box ₹0, logged ₹0, variance ₹0.')).toBeVisible();
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
     await floor.getByRole('link', { name: 'Devices', exact: true }).click();

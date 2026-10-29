@@ -1,6 +1,6 @@
 # player
 
-The member app: a PWA on a 390 px phone. Tonight's floor, the waitlist, session history, balance and withdrawals, rewards, Learn, the member's profile, and their membership card with the QR the door scans (/card, from Profile; core, never gated). Every other member-facing entry point is behind `FeatureGate` with its tier-gated feature key.
+The member app: a PWA on a 390 px phone, with no rupee anywhere (#627, decision 0284). Tonight's floor, the waitlist, session history (when, the tables and how long; a member can hide a session from their own list), rewards, Learn, the member's profile, and their membership card with the QR the door scans (/card, from Profile; core, never gated). Every other member-facing entry point is behind `FeatureGate` with its tier-gated feature key. Balance (with deposits and withdrawals), the Academy's batches and payments, and winner cards are hidden: their addresses go to Tonight or Learn, and their code stays in `features/` for when the club wants them back.
 
 ## Run it
 
