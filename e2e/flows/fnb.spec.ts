@@ -38,6 +38,12 @@ test.describe('F&B', () => {
     await member.getByRole('button', { name: 'One more Beer' }).click();
     await member.getByRole('button', { name: 'Send to the bar' }).click();
     const fromApp = await kotIn(member, /^Sent to the bar: KOT \d+, to Table 3, seat 1\.$/);
+    // The Menu tab (#635) follows it to the seat: placed, until the service staff take it (their screen is #640).
+    await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Menu' }).click();
+    await expect(member.getByRole('heading', { name: 'Your orders tonight' })).toBeVisible();
+    const order = member.getByText(`KOT ${fromApp} · 1 × Masala chai, 1 × Beer`);
+    await expect(order).toBeVisible();
+    await expect(order.locator('xpath=..').getByText('Placed', { exact: true })).toBeVisible();
 
     const { tablet, name } = await tabletAtTable3(browser, page);
     await dealerSignsIn(tablet);

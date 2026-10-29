@@ -16,7 +16,8 @@ const empty = 'Nothing is on the menu just now.';
 
 /** Table-side food and drink in the player app (#123): from the member's seat, paid to Glaza. */
 export const playerFnb = {
-  title: 'Food and drink',
+  /** The Menu tab (#635), which took Balance's place. */
+  title: 'Menu',
   /** On Home while the member is seated. */
   order: 'Order food and drink',
   notSeated: 'Order from your seat: sit at a table first.',
@@ -25,6 +26,15 @@ export const playerFnb = {
   send: 'Send to the bar',
   /** `{kot}` is the KOT's number; `{table}` and `{seat}` where it goes. */
   sent: 'Sent to the bar: KOT {kot}, to {table}, seat {seat}.',
+  /** The member's orders tonight, each followed to the seat (#635). */
+  yourOrders: 'Your orders tonight',
+  noOrders: 'No orders yet tonight.',
+  /** `KOT 12 · 2 × Masala chai, 1 × Club sandwich`. */
+  orderLine: 'KOT {kot} · {items}',
+  item: '{quantity} × {name}',
+  itemsSeparator: ', ',
+  progress: { placed: 'Placed', in_progress: 'Being prepared', delivered: 'Delivered' },
+  ordersFailed: 'Your orders did not load.',
   failures,
 } as const;
 

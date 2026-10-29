@@ -1245,17 +1245,29 @@ isOneToOne: false
                   ]
                 },"fnb_order": {
                   Row: {
-                    "club_day": string,"created_at": string,"id": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "club_day": string,"created_at"?: string,"id"?: string,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "club_day"?: string,"created_at"?: string,"id"?: string,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "fnb_order_accepted_by_fkey"
+      columns: ["accepted_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "fnb_order_delivered_by_fkey"
+      columns: ["delivered_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
       foreignKeyName: "fnb_order_kot_sent_by_staff_id_venue_id_fkey"
       columns: ["kot_sent_by_staff_id","venue_id"]
 isOneToOne: false
@@ -4221,6 +4233,9 @@ isOneToOne: false
               "amount": number,"upi_payee_name": string,"upi_vpa": string
             }[]
                            },
+"accept_fnb_order":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
 "account_statement":
 { Args: { "p_from": string,"p_payment_account_id": string,"p_to": string }; Returns: {
               "amount_paise": number,"balance_paise": number,"kind": string,"memo": string,"occurred_at": string
@@ -4534,6 +4549,9 @@ isOneToOne: false
 "decline_withdrawal":
 { Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
                            },
+"deliver_fnb_order":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
 "deposit_details":
 { Args: Record<PropertyKey, never>; Returns: {
               "upi_payee_name": string,"upi_vpa": string
@@ -4834,6 +4852,11 @@ isOneToOne: false
 "my_fnb_menu":
 { Args: Record<PropertyKey, never>; Returns: {
               "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string
+            }[]
+                           },
+"my_fnb_orders":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "accepted_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"order_id": string
             }[]
                            },
 "my_league":

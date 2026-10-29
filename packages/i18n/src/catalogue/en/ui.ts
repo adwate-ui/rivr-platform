@@ -16,6 +16,8 @@ export const ui = {
     home: 'Home',
     sessions: 'Sessions',
     balance: 'Balance',
+    /** Food and drink to the seat (#635). */
+    food: 'Menu',
     rewards: 'Rewards',
     learn: 'Learn',
   },

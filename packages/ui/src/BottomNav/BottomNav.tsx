@@ -6,8 +6,11 @@ import { lockedLine } from '../LockedNotice/LockedNotice.tsx';
 import { cx } from '../internal/classes.ts';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 
-/** The five player app tabs, in order. Profile sits behind the member's initial instead. */
-export type PlayerTab = 'home' | 'sessions' | 'balance' | 'rewards' | 'learn';
+/**
+ * The player app's tabs. Profile sits behind the member's initial instead. The Menu (#635) took Balance's place,
+ * which is hidden (#627).
+ */
+export type PlayerTab = 'home' | 'sessions' | 'food' | 'balance' | 'rewards' | 'learn';
 
 export interface BottomNavItem {
   tab: PlayerTab;

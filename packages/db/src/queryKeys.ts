@@ -111,6 +111,8 @@ export const queryKeys = {
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,
   /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */
   myFnbMenu: (userId: string) => ['user', userId, 'my-fnb-menu'] as const,
+  /** The signed-in member's orders tonight, and where each is (#635). */
+  myFnbOrders: (userId: string) => ['user', userId, 'my-fnb-orders'] as const,
   fnbMenu: (userId: string, venueId: string) => ['user', userId, 'fnb-menu', venueId] as const,
   fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
