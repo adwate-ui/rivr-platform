@@ -55,6 +55,18 @@ export const tonight = {
   enterWithTicket: 'Enter with your ticket',
   enteredWithTicket: 'You are in {name}.',
   ticketsFailed: 'Your tickets did not load.',
+  /** The club's upcoming tournaments (#636): register interest, pay at the club, and the floor marks you registered. */
+  upcoming: 'Upcoming tournaments',
+  registerInterest: 'Register interest',
+  registerInterestName: 'Register interest in {name}',
+  standing: { none: 'Not registered', interested: 'Interest registered', registered: 'Registered' },
+  payAtTheClub: 'Pay at the club, and the floor registers you.',
+  interestFailures: {
+    not_allowed: 'Tournament registration is not open to you.',
+    invalid: 'That tournament is no longer coming up.',
+    paused: 'The club is paused. Try again later.',
+    unavailable: 'That did not go through. Check your connection and try again.',
+  },
   closed: 'Closed',
   join: 'Join',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */

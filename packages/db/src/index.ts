@@ -187,3 +187,7 @@ export {
   useElapsedNow, useEnterWithTicket, useMyTournament, useMyTournamentTickets, useRegisterTournamentEntry, useTvTournamentClock, type AppPurchase,
   type LiveField, type LiveTournament, type MyStanding, type MyTournament, type MyTournamentTicket,
 } from './liveTournament.ts';
+export {
+  useMarkTournamentRegistered, useMyUpcomingTournaments, useRegisterTournamentInterest, useTournamentInterest, type TournamentInterest,
+  type TournamentInterestFailure, type TournamentStanding, type UpcomingTournament,
+} from './tournamentInterest.ts';

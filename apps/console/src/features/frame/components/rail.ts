@@ -40,6 +40,8 @@ const RAIL: readonly RailGroup[] = [
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'], hidden: true },
       { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'], hidden: true },
       { id: 'jackpots', label: 'console.rail.items.jackpots', href: '/jackpots', anyOf: ['jackpots.approve', 'ledger.read'], hidden: true },
+      // Players register interest from the app; the floor marks them registered once they paid (#636).
+      { id: 'tournamentInterest', label: 'console.rail.items.tournamentInterest', href: '/tournament-interest', anyOf: ['waitlist.manage'] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', anyOf: ['fnb.manage'] },
       { id: 'spinWheel', label: 'console.rail.items.spinWheel', href: '/spin-wheel', anyOf: ['floor.manage', 'promotions.manage'] },
     ],

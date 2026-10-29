@@ -21,7 +21,7 @@ import { jackpots } from './jackpots.ts';
 import { incidents, sops } from './sops.ts';
 import { feedback, playerFeedback } from './feedback.ts';
 import { league, rewards } from './rewards.ts';
-import { tournaments } from './tournaments.ts';
+import { tournamentInterest, tournaments } from './tournaments.ts';
 import { dealers } from './dealers.ts';
 import { potData } from './potData.ts';
 import { academy, academyFailures, academyPayments } from './academy.ts';
@@ -226,6 +226,7 @@ export const consoleApp = {
   rewards,
   league,
   tournaments,
+  tournamentInterest,
   potData,
   dealers,
   promotions,

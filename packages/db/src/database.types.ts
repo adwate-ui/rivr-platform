@@ -3671,6 +3671,44 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"tournament_interest": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"registered_at": string | null,"registered_by_staff_id": string | null,"tournament_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"registered_at"?: string | null,"registered_by_staff_id"?: string | null,"tournament_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"registered_at"?: string | null,"registered_by_staff_id"?: string | null,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tournament_interest_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_interest_registered_by_staff_id_venue_id_fkey"
+      columns: ["registered_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_interest_tournament_id_venue_id_fkey"
+      columns: ["tournament_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "tournament"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "tournament_interest_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tournament_payout": {
                   Row: {
                     "bounty_paise": number,"busted_entry_id": string | null,"created_at": string,"entry_id": string,"head_paise": number,"id": string,"is_tds_shadow": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"place": number | null,"prize_paise": number,"tds_paise": number,"tournament_id": string,"updated_at": string,"venue_id": string
@@ -4757,6 +4795,9 @@ isOneToOne: false
 "mark_kot_sent":
 { Args: { "p_order_id": string }; Returns: undefined
                            },
+"mark_tournament_registered":
+{ Args: { "p_interest_id": string }; Returns: undefined
+                           },
 "member_early_departures":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "created_at": string,"early_departure_id": string,"reason": string,"shortfall_seconds": number,"staff_name": string
@@ -4937,6 +4978,11 @@ isOneToOne: false
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
               "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"venue_id": string
+            }[]
+                           },
+"my_upcoming_tournaments":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string,"standing": string,"starts_at": string,"tournament_id": string
             }[]
                            },
 "my_waitlist":
@@ -5159,6 +5205,9 @@ isOneToOne: false
                            },
 "register_tournament_entry":
 { Args: { "p_idempotency_key": string,"p_purchase": string,"p_tournament_id": string }; Returns: string
+                           },
+"register_tournament_interest":
+{ Args: { "p_tournament_id": string }; Returns: undefined
                            },
 "reject_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
@@ -5526,6 +5575,11 @@ isOneToOne: false
 "tournament_balance":
 { Args: { "p_tournament_id": string }; Returns: {
               "from_table": number,"move": number,"to_table": number
+            }[]
+                           },
+"tournament_interest_list":
+{ Args: { "p_venue_id": string }; Returns: {
+              "created_at": string,"full_name": string,"interest_id": string,"member_id": string,"member_number": number,"registered_at": string,"starts_at": string,"tournament_id": string,"tournament_name": string
             }[]
                            },
 "tournament_payouts":
