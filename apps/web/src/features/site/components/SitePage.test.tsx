@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { SitePage } from './SitePage.tsx';
 
@@ -15,21 +15,61 @@ const PAGE = {
   navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
   games: [],
   tournaments: [], promotions: [], wallPosts: [], isPaused: false,
+  league: { month: null, season: null },
+  rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null, leaguePrizes: { month: null, season: null },
+    badBeat: null, highHands: null },
+  jackpotPool: null,
 };
 
 describe('a website page', () => {
-  it('shows its blocks in order under the navigation', () => {
+  it('shows its blocks in order under the menu', () => {
     render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
     expect(screen.getByRole('heading', { level: 1, name: 'RIVR Poker Club' })).toBeDefined();
     expect(screen.getByRole('heading', { level: 2, name: "A members' club" })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'RIVR Academy' }).getAttribute('href')).toBe('/academy');
+    expect(screen.getByRole('link', { name: 'The Club' }).getAttribute('href')).toBe('/about');
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in');
   });
 
   it('carries the codes the visitor arrived with on every link, into the player app and across the website', () => {
     render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1', utmSource: 'instagram' }} />);
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in?ref=FRIEND1&utm_source=instagram');
-    expect(screen.getByRole('link', { name: 'RIVR Academy' }).getAttribute('href')).toBe('/academy?ref=FRIEND1&utm_source=instagram');
+    const menu = screen.getByRole('navigation', { name: 'Site' });
+    expect(within(menu).getByRole('link', { name: 'Membership' }).getAttribute('href')).toBe('/membership?ref=FRIEND1&utm_source=instagram');
+    expect(within(menu).getByRole('link', { name: 'The Room' }).getAttribute('href')).toBe('/?ref=FRIEND1&utm_source=instagram#the-room');
+    expect(screen.getAllByRole('link', { name: 'Member app' })[0]?.getAttribute('href')).toBe('https://player.invalid/?ref=FRIEND1&utm_source=instagram');
+  });
+
+  it('has grandpokerarena.com’s menu, top bar, footer columns and cookie banner, and no Academy in the menu', () => {
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
+    const menu = screen.getByRole('navigation', { name: 'Site' });
+    expect(within(menu).getAllByRole('link').map((link) => link.textContent)).toEqual([
+      'The Club', 'The Room', 'Games', 'Membership', 'Leaderboard', "What's On", 'Prizes & Calendar', 'Journal', 'Visit & Contact',
+    ]);
+    const reserve = screen.getByRole('link', { name: 'Reserve a seat' }).getAttribute('href') ?? '';
+    expect(reserve.startsWith('https://wa.me/')).toBe(true);
+    expect(new URL(reserve).searchParams.get('text')).toBe('Hi RIVR, I would like to reserve a seat tonight.');
+    expect(within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link').map((link) => link.textContent)).toEqual([
+      '+91 00000 00000', 'WhatsApp', 'Instagram', 'YouTube', 'info@rivrpoker.com',
+    ]);
+    expect(screen.getAllByRole('link', { name: 'Member app' }).map((link) => link.getAttribute('href'))).toEqual(['https://player.invalid/', 'https://player.invalid/']);
+    const footer = screen.getByRole('contentinfo');
+    expect(within(footer).getAllByRole('navigation').map((column) => column.getAttribute('aria-label'))).toEqual(['The club', 'Play', 'Policies', 'Need to talk?']);
+    expect(within(footer).getByRole('link', { name: 'Legal standing' }).getAttribute('href')).toBe('/about#legal-and-compliance');
+    expect(within(footer).getByRole('link', { name: 'Tele-MANAS 14416 (24 hours)' }).getAttribute('href')).toBe('tel:14416');
+    expect(document.querySelector('[data-cookie-banner]')).not.toBeNull();
+  });
+
+  it('gives each band the anchor of its eyebrow, or of its kind, once a page', () => {
+    const page = {
+      ...PAGE,
+      blocks: [
+        { kind: 'cards' as const, content: { eyebrow: 'The room', heading: 'Everything around the felt.', cards: [{ title: 'Six tables' }] } },
+        { kind: 'games' as const, content: { heading: 'Pick your table.' } },
+        { kind: 'cards' as const, content: { eyebrow: 'The room', heading: 'Again', cards: [{ title: 'Kitchen' }] } },
+      ],
+    };
+    const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={null} />);
+    expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.id)).toEqual(['the-room', 'games', '']);
   });
 
   it('joins the player app\'s address however it was written', () => {
@@ -60,7 +100,6 @@ describe('a website page', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Bring your poker face.' })).toBeDefined();
     expect(screen.getByRole('img', { name: 'A dealer deals at a table' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Join the waitlist' }).getAttribute('href')).toBe('https://player.invalid/?ref=FRIEND1');
-    expect(screen.getByRole('link', { name: 'Reserve a seat' }).getAttribute('href')).toBe('https://player.invalid/?ref=FRIEND1');
     expect(screen.getByText('Strictly 18+. Poker is a game of skill.')).toBeDefined();
   });
 
@@ -68,12 +107,17 @@ describe('a website page', () => {
     const live = {
       ...PAGE,
       blocks: [{ kind: 'games' as const, content: { heading: 'Games and stakes' } }, { kind: 'calendar' as const, content: {} }],
-      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1, openSeats: 2, waiting: 3 }],
+      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null }],
       tournaments: [{ name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n }],
     };
-    render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
-    expect(screen.getByText('1 table running · 2 open seats · 3 waiting')).toBeDefined();
+    const { container } = render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
+    expect(screen.getByText('Buy-in ₹5,000')).toBeDefined();
+    expect(screen.queryByText(/running|waiting/)).toBeNull();
+    // The header's Reserve a seat, and the games block's.
+    expect(screen.getAllByRole('link', { name: 'Reserve a seat' }).map((reserve) => reserve.getAttribute('href')?.startsWith('https://wa.me/'))).toEqual([true, true]);
+    expect(container.querySelector('#games')).not.toBeNull();
     expect(screen.getByText('Sunday 15 Nov 2026, 16:00')).toBeDefined();
+    expect(screen.getByRole('table', { name: 'The month at a glance' })).toBeDefined();
   });
 
   it('draws the bands added in grandpokerarena.com’s way, with the live promotions, a card’s page link and the footer’s policies (decision 0166)', () => {
@@ -87,7 +131,7 @@ describe('a website page', () => {
         { kind: 'table' as const, content: { columns: ['Stake', 'Points an hour'], rows: [['NLH 50/100', '5']] } },
         { kind: 'promotions' as const, content: { heading: 'Running now' } },
       ],
-      promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day' }],
+      promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', rules: [], questions: [], isWelcome: false }],
     };
     const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['deep', 'cream', 'dark', 'deep', 'cream', 'deep']);

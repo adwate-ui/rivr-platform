@@ -14,8 +14,8 @@ select ok((select b.content ->> 'body' from public.site_block b join public.site
            where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug = 'privacy' and b.kind = 'text')
           ~ 'kept for 35 days, and one backup a month for 400 days.*\n\nErasure\..*made again before the restored records are used\.$',
   'which says how long backups keep personal data, and that erasures are made again after a restore');
-select is((select count(*)::integer from public.site_page where venue_id = '00000000-0000-4000-8000-000000000001'), 19,
-  'the club has its whole website: the front page, the header''s and footer''s pages, the journal, links and the careers draft');
+select is((select count(*)::integer from public.site_page where venue_id = '00000000-0000-4000-8000-000000000001'), 23,
+  'the club has its whole website: the front page, the header''s and footer''s pages, the journal, the Leaderboard (#619), links and the careers draft');
 
 select private.bootstrap_venue('00000000-0000-4000-8000-000000000a06', 'RIVR Elsewhere', 'website-test', false, 'Test Ltd', 'Somewhere', 'TST');
 select private.bootstrap_venue('00000000-0000-4000-8000-000000000a07', 'Practice Elsewhere', 'website-practice', true, 'Test Ltd', 'Somewhere', 'TSP');

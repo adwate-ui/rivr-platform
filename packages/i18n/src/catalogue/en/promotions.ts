@@ -19,6 +19,11 @@ export const promotions = {
   budgetPeriods: { promotion: 'The whole promotion', month: 'Each month' },
   invalidBudget: 'Enter the budget in rupees, or leave it empty.',
   newPromotion: 'New promotion',
+  /** The promotion's rules and questions as the website shows them (#618). */
+  rules: 'Rules on the website',
+  rulesHint: 'One rule a line: who qualifies, what it pays, the conditions.',
+  questions: 'Questions on the website',
+  questionsHint: 'A question on its line, its answer under it, and a blank line before the next question.',
   when: 'When',
   days: 'Days',
   from: 'From',
@@ -67,6 +72,9 @@ export const promotions = {
     /** What it actually does, in words made from its stored rule: the approver reads these, not only the card words. */
     does: 'What it does',
     unreadable: 'Its rule cannot be read here, so it can only be refused.',
+    /** The rules and questions it puts on the website (#618), as the public will read them. */
+    website: 'On the website',
+    question: '{question} {answer}',
   },
   /** A rule in words (#144): `{when}` is its trigger, `{gives}` what it gives, `{who}` for whom. */
   rule: {

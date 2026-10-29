@@ -111,7 +111,7 @@ Each refusal is a `LivePurgeFailure`: `not_allowed`, `practice`, `not_frozen`, `
 - the live and paused ones, newest first, with their card words (`ConsolePromotion`: name, what it gives, who and when, live or not);
 - the draft templates, every scheme in the deck still a draft, by name;
 - the table types the builder offers (`PromotionStake`: code and name);
-- `submit({ name, runs, draft })`, with its rule and per-player limit, to wait for a super admin (`submit_promotion`);
+- `submit({ name, runs, draft, rules, questions })`, with its rule and per-player limit, and the rules and questions the website shows (#618), to wait for a super admin (`submit_promotion`);
 - `submitTemplate(id)`, a template as it stands (`submit_promotion_template`);
 - `setLive({ id, isLive })`, to pause or resume;
 - the ones waiting for a super admin, oldest first (`PromotionAwaitingApproval`: who submitted it, when, and whether the reader did);
@@ -158,7 +158,7 @@ Each action is a Result (`PromotionFailure`: `not_allowed`, `invalid`, `own_prom
 | `toFeatureAccess`, `toFeatureAccessMap`, `HIDDEN`, `FeatureAccess`, `FeatureAccessRow` | The parser behind `useFeature`, the "not known yet" value, and their types. |
 | `toControlState`, `NOTHING_ENGAGED`, `ControlState`, `KillableFeature` | The parser behind `useControlState`, the "nothing engaged" value, and their types. |
 | `toSignInFailure`, `SignInFailure`, `SignInResult` | The parser behind `useSignIn`'s failures (Auth's error to `code_rejected`, `too_many_requests` or `unavailable`), and the types. |
-| `fetchSitePage(client, slug)`, `SitePage`, `SiteLink` (from `@rivr/db/site`) | For the website's server: a published page of the club's website from the public views, with its readable blocks in order and the navigation, and, when its blocks need them, the club's games (`SiteGame`, from `public_table_status`, with how many wait from `public_waitlist_length`) and coming tournaments (`SiteTournament`, from `public_tournament_calendar`), or null for a draft or no such page, as a Result: `unavailable` when the database cannot be read (decision 0036). A subpath, so Zod stays out of the other apps.; `promotions`, the live promotion cards, when the page has a promotions block (decision 0166) |
+| `fetchSitePage(client, slug)`, `SitePage`, `SiteLink` (from `@rivr/db/site`) | For the website's server: a published page of the club's website from the public views, with its readable blocks in order and the navigation, and, when its blocks need them, the club's games (`SiteGame`, their stakes only from `public_table_status`, #617) and coming tournaments (`SiteTournament`, from `public_tournament_calendar`), or null for a draft or no such page, as a Result: `unavailable` when the database cannot be read (decision 0036). A subpath, so Zod stays out of the other apps.; `promotions`, the live promotion cards, when the page has a promotions block (decision 0166); `league`, this month's and this season's League standings (`SiteLeague`, from `public_league_table`), and `rules`, the club's rules in force that the website shows (`SiteRules`, from `public_club_rules`), when a block needs them (#617, decision 0283) |
 
 ## Usage
 

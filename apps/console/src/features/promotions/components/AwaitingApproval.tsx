@@ -54,6 +54,20 @@ function WhatItDoes({ lines }: { lines: readonly string[] | null }) {
   );
 }
 
+/** The rules and questions it puts on the website (#618), so the approver reads the words the public will. */
+function OnTheWebsite({ promotion }: { promotion: PromotionAwaitingApproval }) {
+  if (promotion.websiteRules.length === 0 && promotion.websiteQuestions.length === 0) return null;
+  return (
+    <Stack gap={1}>
+      <Text variant="small" weight="medium">{t('console.promotions.awaiting.website')}</Text>
+      {promotion.websiteRules.map((rule, index) => <Text key={`rule-${String(index)}`} variant="small">{rule}</Text>)}
+      {promotion.websiteQuestions.map((item, index) => (
+        <Text key={`question-${String(index)}`} variant="small">{t('console.promotions.awaiting.question', item)}</Text>
+      ))}
+    </Stack>
+  );
+}
+
 interface RowProps {
   venueId: string;
   promotion: PromotionAwaitingApproval;
@@ -80,6 +94,7 @@ function AwaitingRow({ venueId, promotion, stakes, mayApprove, onOutcome }: RowP
             {t('console.promotions.awaiting.submittedBy', { name: promotion.requestedBy, time: formatDayTime(new Date(promotion.requestedAt)) })}
           </Text>
           <WhatItDoes lines={lines} />
+          <OnTheWebsite promotion={promotion} />
         </Stack>
         {decides ? (
           <Inline gap={2}>

@@ -1,33 +1,52 @@
 import { describe, expect, it } from 'vitest';
-import { gamesFrom } from './siteLive.ts';
+import { gamesFrom, rulesFrom } from './siteLive.ts';
 
 /** A row of public_table_status for a table of game `code`, with a buy-in of 100 small blinds. */
-const row = (code: string, name: string, isOpen: boolean, small: number) => ({
-  table_type_code: code, table_type_name: name, is_open: isOpen, small_blind_paise: small, big_blind_paise: small * 2,
-  buy_in_min_paise: small * 100, buy_in_max_paise: small * 100, straddle_paise: null, seats: 9, seats_taken: 0,
+const row = (code: string, name: string, small: number) => ({
+  table_type_code: code, table_type_name: name, small_blind_paise: small, big_blind_paise: small * 2,
+  buy_in_min_paise: small * 100, buy_in_max_paise: small * 100, straddle_paise: null,
 });
 
 describe('gamesFrom', () => {
-  it('lists each game once, in the floor order of its first table, counting its open tables', () => {
-    const rows = [
-      row('nlh_50_100', 'NLH 50/100', true, 5000),
-      row('nlh_100_200', 'NLH 100/200', true, 10000),
-      row('nlh_100_200', 'NLH 100/200', false, 10000),
-      row('nlh_100_200', 'NLH 100/200', true, 10000),
-    ];
-    expect(gamesFrom(rows).map((game) => [game.code, game.tablesOpen, game.bigBlind])).toEqual([
-      ['nlh_50_100', 1, 10000n],
-      ['nlh_100_200', 2, 20000n],
+  it('lists each game once, in the floor order of its first table, with its stakes only', () => {
+    const rows = [row('nlh_50_100', 'NLH 50/100', 5000), row('nlh_100_200', 'NLH 100/200', 10000), row('nlh_100_200', 'NLH 100/200', 10000)];
+    expect(gamesFrom(rows)).toEqual([
+      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null },
+      { name: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 1000000n, buyInMax: 1000000n, straddle: null },
     ]);
   });
 
-  it('counts the free seats at a game\u2019s open tables only', () => {
-    const rows = [{ ...row('nlh_100_200', 'NLH 100/200', true, 10000), seats_taken: 6 }, { ...row('nlh_100_200', 'NLH 100/200', true, 10000), seats_taken: 9 },
-      row('nlh_100_200', 'NLH 100/200', false, 10000)];
-    expect(gamesFrom(rows).map((game) => game.openSeats)).toEqual([3]);
+  it('leaves out a row the view could not fill', () => {
+    expect(gamesFrom([{ ...row('x', 'X', 5000), table_type_name: null }])).toEqual([]);
+  });
+});
+
+describe('rulesFrom', () => {
+  it('has no rule set when there are no rows', () => {
+    expect(rulesFrom([])).toEqual({
+      pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null,
+      leaguePrizes: { month: null, season: null }, badBeat: null, highHands: null,
+    });
   });
 
-  it('leaves out a row the view could not fill', () => {
-    expect(gamesFrom([{ ...row('x', 'X', true, 5000), table_type_name: null }])).toEqual([]);
+  it('reads each table type’s rule by its name, and leaves out one whose value it cannot read or a share of nothing', () => {
+    const rules = rulesFrom([
+      { key: 'accommodation.hours_per_night', subject_name: 'Private Room', value: { hours: 20 } },
+      { key: 'accommodation.hours_per_night', subject_name: 'NLH 50/100', value: { hours: 'many' } },
+      { key: 'points.per_hour', subject_name: null, value: { points: 5 } },
+      { key: 'points.rewards_rake_share', subject_name: null, value: { basis_points: 0 } },
+    ]);
+    expect(rules.hotelNightHours).toEqual([{ table: 'Private Room', value: 20 }]);
+    expect(rules.pointsPerHour).toEqual([]);
+    expect(rules.rewardsRakeShareBasisPoints).toBeNull();
+  });
+
+  it('reads how a bad beat pays and what each rare hand pays, or none when a field is missing', () => {
+    const rules = rulesFrom([
+      { key: 'jackpot.payout', subject_name: null, value: { pool_basis_points: 10000, loser_basis_points: 5000, winner_basis_points: 2500, table_basis_points: 2500 } },
+      { key: 'high_hand.payouts', subject_name: null, value: { royal_flush: 2500000, straight_flush: 1000000 } },
+    ]);
+    expect(rules.badBeat).toEqual({ poolBasisPoints: 10000, loserBasisPoints: 5000, winnerBasisPoints: 2500, tableBasisPoints: 2500 });
+    expect(rules.highHands).toBeNull();
   });
 });

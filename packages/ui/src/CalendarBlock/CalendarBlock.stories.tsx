@@ -22,6 +22,11 @@ export const Default: Story = {};
 
 export const Empty: Story = { args: { tournaments: [] } };
 
+/** With the month day by day above the list (#617). */
+export const WithMonth: Story = { args: { month: '2026-11' } };
+
+export const WithMonthOnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'], args: { month: '2026-11' } };
+
 export const LongText: Story = {
   args: {
     tournaments: [

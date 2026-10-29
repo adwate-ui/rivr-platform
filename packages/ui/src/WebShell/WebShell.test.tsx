@@ -44,6 +44,16 @@ describe('WebShell', () => {
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
   });
 
+  it('has a bar above the header with the club’s contacts and the member app, which leave the website', async () => {
+    const onNavigate = vi.fn();
+    const topBar = { links: [{ label: 'WhatsApp', href: 'https://wa.me/910000000000' }], app: { label: 'Member app', href: 'https://player.invalid/' } };
+    renderIn(<WebShell links={links} topBar={topBar} onNavigate={onNavigate} after={<p>Cookies on this website</p>}><h1>Tournaments</h1></WebShell>);
+    expect(within(screen.getByRole('list', { name: 'Contact' })).getByRole('link', { name: 'WhatsApp' })).toHaveAttribute('href', 'https://wa.me/910000000000');
+    await userEvent.click(screen.getByRole('link', { name: 'Member app' }));
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(screen.getByText('Cookies on this website')).toBeInTheDocument();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderShell();
     expect(await axeViolations(container)).toEqual([]);

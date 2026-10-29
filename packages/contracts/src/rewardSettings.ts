@@ -74,6 +74,17 @@ export const cabMinimumVisits = {
   value: z.strictObject({ visits: z.int().min(1).max(31) }),
 } as const satisfies SettingDefinition;
 
+/** The RIVR League's prizes (#617), in words, as the website's Leaderboard shows them beside the standings. */
+export const leaguePrizes = {
+  key: 'league.prizes',
+  description: 'The RIVR League prizes the website shows beside the standings, in words: this month\'s and this season\'s; none set shows none.',
+  scope: 'venue',
+  value: z.strictObject({
+    month: z.string().trim().min(1).max(300).optional(),
+    season: z.string().trim().min(1).max(300).optional(),
+  }),
+} as const satisfies SettingDefinition;
+
 export const accommodationHoursPerNight = {
   key: 'accommodation.hours_per_night',
   description: 'Accommodation rewards (decision 0246): the hours played at this table type that earn one hotel night; none set earns none.',

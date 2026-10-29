@@ -2419,14 +2419,14 @@ isOneToOne: false
                   ]
                 },"promotion": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4088,6 +4088,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_club_rules": {
+                  Row: {
+                    "key": string | null,"subject": string | null,"subject_name": string | null,"subject_order": number | null,"value": Json | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_high_hand": {
                   Row: {
                     "category": Database["public"]['Enums']["high_hand_category"] | null,"payout_paise": number | null,"played_at": string | null,"rank": string | null,"table_name": string | null,"venue_slug": string | null
@@ -4114,7 +4122,7 @@ isOneToOne: false
                   ]
                 },"public_promotion_cards": {
                   Row: {
-                    "detail": string | null,"runs": string | null,"title": string | null,"venue_slug": string | null
+                    "detail": string | null,"is_welcome": boolean | null,"questions": Json | null,"rules": (string)[] | null,"runs": string | null,"title": string | null,"venue_slug": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -5005,7 +5013,7 @@ isOneToOne: false
                            },
 "promotions_awaiting_approval":
 { Args: { "p_venue_id": string }; Returns: {
-              "budget_count": number,"budget_paise": number,"budget_period": string,"detail": string,"is_mine": boolean,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string
+              "budget_count": number,"budget_paise": number,"budget_period": string,"detail": string,"is_mine": boolean,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string,"website_questions": Json,"website_rules": (string)[]
             }[]
                            },
 "promotions_sent_back":

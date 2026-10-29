@@ -44,18 +44,33 @@ export const ui = {
     noOpenings: 'No openings right now.',
     /** MapBlock's link to directions in a maps app. */
     directions: 'Get directions',
+    /** MapBlock's embedded map (#616), which loads only once the visitor allows maps. */
+    mapTitle: 'A map of where the club is',
+    mapConsent: 'The map comes from Google Maps, which sets its own cookies. Allow maps to see it here.',
+    allowMaps: 'Allow maps',
+    /** Accessible name of the bar above the header: the club's number, WhatsApp and socials (#616). */
+    contact: 'Contact',
+    /** CookieBanner (#616): what the website stores, and the visitor's choice. */
+    cookies: {
+      title: 'Cookies on this website',
+      text: 'The website keeps what it needs to work. Maps are your choice.',
+      choices: 'What the website may store',
+      essential: 'Essential',
+      essentialHelp: 'Always on. Only your choice here.',
+      maps: 'Maps',
+      mapsHelp: 'The Google map on the Visit page, which sets Google’s cookies.',
+      acceptAll: 'Accept all',
+      essentialOnly: 'Essential only',
+      save: 'Save my choices',
+    },
     /** GamesBlock and CalendarBlock: `{amount}` is formatted money. */
     buyIn: 'Buy-in {amount}',
     buyInRange: 'Buy-in {min} to {max}',
     straddle: '{amount} straddle',
-    notRunning: 'Not running now',
-    oneTable: '1 table running',
-    tables: '{count} tables running',
-    /** Seats free at a game's open tables (#130). */
-    oneOpenSeat: '1 open seat',
-    openSeats: '{count} open seats',
-    waiting: '{count} waiting',
     noGames: 'No games are set up yet.',
+    /** CalendarBlock's month (#617): its name for a screen reader, and the weekdays' heads, Monday first. */
+    monthCalendar: 'The month at a glance',
+    weekday: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },
     /** A tournament's start in IST: `Sunday 15 Nov 2026, 16:00`. */
     when: '{weekday} {date}, {time}',
     guaranteed: '{amount} guaranteed',

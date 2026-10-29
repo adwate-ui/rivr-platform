@@ -29,6 +29,7 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'cab.minimum_visits': 'members',
   'host.lapse': 'members',
   'league.points': 'members',
+  'league.prizes': 'members',
   'points.per_hour': 'members',
   'points.rewards_rake_share': 'members',
   'rakeback.rate': 'members',

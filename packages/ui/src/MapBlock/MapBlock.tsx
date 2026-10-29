@@ -9,8 +9,13 @@ export interface MapBlockProps {
   address: string;
   /** Opening hours, in a line. */
   hours?: string | undefined;
-  /** Directions in a maps app. No map is embedded, so the page loads nothing from a maps service. */
+  /** Directions in a maps app. */
   directionsUrl: string;
+  /**
+   * A map to embed (#616). It loads only once the visitor allows maps in the cookie banner: until then the frame has no
+   * address, and the page's own script gives it this one (data-consent-src). Without it, no map is embedded at all.
+   */
+  embedUrl?: string | undefined;
   /** The club's number, `+919000000000`, shown as `+91 90000 00000` and called with a tap (decision 0166). */
   phone?: string | undefined;
   email?: string | undefined;
@@ -21,8 +26,21 @@ function spokenPhone(phone: string): string {
   return `${phone.slice(0, 3)} ${phone.slice(3, 8)} ${phone.slice(8)}`;
 }
 
-/** A website block for finding the club: the address, the hours, how to reach it, and a link to directions. */
-export function MapBlock({ heading, address, hours, directionsUrl, phone, email }: MapBlockProps) {
+/** A map that waits for the visitor's consent: a note and a button to allow maps, then the map in their place. */
+function ConsentedMap({ embedUrl }: { embedUrl: string }) {
+  return (
+    <div data-consent="maps" className="w-full">
+      <iframe data-consent-src={embedUrl} title={t('ui.web.mapTitle')} hidden loading="lazy" className="aspect-photo w-full rounded-sm border-0" />
+      <div data-consent-ask="" className="flex aspect-photo w-full flex-col items-center justify-center gap-4 rounded-sm border border-hairline p-6">
+        <Text tone="muted" align="center">{t('ui.web.mapConsent')}</Text>
+        <Button variant="secondary" data-consent-allow="maps">{t('ui.web.allowMaps')}</Button>
+      </div>
+    </div>
+  );
+}
+
+/** A website block for finding the club: the address, the hours, how to reach it, a link to directions, and a map once allowed. */
+export function MapBlock({ heading, address, hours, directionsUrl, embedUrl, phone, email }: MapBlockProps) {
   return (
     <section className="mx-auto flex max-w-console flex-col items-start gap-4 px-6 py-16 tablet:py-24">
       {heading ? <Heading level={2} variant="band">{heading}</Heading> : null}
@@ -35,6 +53,7 @@ export function MapBlock({ heading, address, hours, directionsUrl, phone, email 
       <Button variant="secondary" href={directionsUrl}>
         {t('ui.web.directions')}
       </Button>
+      {embedUrl ? <ConsentedMap embedUrl={embedUrl} /> : null}
     </section>
   );
 }

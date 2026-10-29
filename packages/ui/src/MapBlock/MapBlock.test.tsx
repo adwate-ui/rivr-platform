@@ -22,6 +22,16 @@ describe('MapBlock', () => {
     expect(screen.getByRole('link', { name: 'info@rivrpoker.com' })).toHaveAttribute('href', 'mailto:info@rivrpoker.com');
   });
 
+  it('holds an embedded map back until the visitor allows maps: the frame has no address, and a button asks', () => {
+    const embed = 'https://www.google.com/maps?q=Glaza&output=embed';
+    const { container } = renderIn(<MapBlock address="Glaza" directionsUrl={DIRECTIONS} embedUrl={embed} />);
+    const frame = container.querySelector('iframe');
+    expect(frame).toHaveAttribute('data-consent-src', embed);
+    expect(frame).not.toHaveAttribute('src');
+    expect(frame).toHaveAttribute('hidden');
+    expect(screen.getByRole('button', { name: 'Allow maps' })).toHaveAttribute('data-consent-allow', 'maps');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<MapBlock address="Upper floor, Glaza, M3M 65th Avenue, Gurugram" directionsUrl={DIRECTIONS} />);
     expect(await axeViolations(container)).toEqual([]);

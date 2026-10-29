@@ -185,6 +185,11 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
         when: z.string().trim().min(1).max(20),
         title: z.string().trim().min(1).max(100),
         text: z.string().trim().max(300).optional(),
+        // The judgment itself (#619), on Indian Kanoon or the Supreme Court's site, by https only.
+        link: z.object({
+          label: z.string().trim().min(1).max(40),
+          href: z.url({ protocol: /^https$/, hostname: /^(indiankanoon\.org|www\.sci\.gov\.in|main\.sci\.gov\.in)$/ }).max(500),
+        }).optional(),
       })).min(1).max(10),
     }),
   }),
@@ -199,10 +204,21 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
       note: z.string().trim().max(300).optional(),
     }).refine(({ columns, rows }) => rows.every((row) => row.length === columns.length), { path: ['rows'] }),
   }),
-  // Live: the club's promotions, as their cards (public_promotion_cards).
-  z.object({ kind: z.literal('promotions'), content: z.object({ heading: headingSchema }) }),
+  // Live: the club's promotions, as their cards with their rules and questions (public_promotion_cards, #618); `only:
+  // 'welcome'` shows the welcome offer alone, the promotions for new players.
+  z.object({ kind: z.literal('promotions'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema, only: z.literal('welcome').optional() }) }),
   // Live: the club's approved Instagram posts (public_wall_posts, #157).
   z.object({ kind: z.literal('social_wall'), content: z.object({ heading: headingSchema }) }),
+  // Live, read from the League and the club's rules in force rather than written into the page (#617, decision 0283):
+  // this month's and this season's League standings with their prizes (public_league_table, league.prizes); what play
+  // earns by table (points.per_hour, rakeback.rate, points.rewards_rake_share); and the cab and hotel nights
+  // (cab.minimum_visits, accommodation.hours_per_night), all through public_club_rules.
+  z.object({ kind: z.literal('league'), content: z.object({ heading: headingSchema }) }),
+  z.object({ kind: z.literal('rewards'), content: z.object({ heading: headingSchema }) }),
+  z.object({ kind: z.literal('outstation'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
+  // Live (#618): the Bad Beat Jackpot's pool and how a bad beat shares it (public_jackpot, jackpot.payout), and what each
+  // rare hand pays (high_hand.payouts).
+  z.object({ kind: z.literal('jackpot'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
 ]);
 
 /** A website block the website can show. */
