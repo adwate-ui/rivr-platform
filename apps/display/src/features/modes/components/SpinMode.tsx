@@ -1,13 +1,13 @@
 import { useTvSpinWheel, type SpinPrizeKind, type TvSpinWheel } from '@rivr/db/spin';
 import { fromPaise } from '@rivr/domain/money';
-import { formatMoney, formatNumber, t } from '@rivr/i18n';
+import { formatChips, formatNumber, t } from '@rivr/i18n';
 import { Text, TV_WAITLIST_PLACES_SHOWN, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { usePage } from './usePage.ts';
 
-/** A prize as the TV names it: `100 points`, `₹500 bonus` or `Nothing`. */
+/** A prize as the TV names it: `100 points`, `500 bonus chips` (no rupee, #628) or `Nothing`. */
 function prizeLabel(prize: { readonly kind: SpinPrizeKind; readonly amount: bigint }): string {
   if (prize.kind === 'points') return t('tv.spin.points', { points: formatNumber(prize.amount) });
-  if (prize.kind === 'bonus') return t('tv.spin.bonus', { amount: formatMoney(fromPaise(prize.amount)) });
+  if (prize.kind === 'bonus') return t('tv.spin.bonus', { chips: formatChips(fromPaise(prize.amount)) });
   return t('tv.spin.nothing');
 }
 

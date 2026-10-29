@@ -23,6 +23,12 @@ export type DevicePairRequest = z.infer<typeof devicePairRequestSchema>;
 export const TV_MODES = ['waitlist', 'call_time', 'jackpot', 'tournament_clock', 'promotions', 'rewards', 'league', 'social_wall', 'spin_wheel'] as const;
 export type TvMode = (typeof TV_MODES)[number];
 
+/**
+ * The modes hidden at the owner's word (29 Oct, #628, decision 0284): no rupee on a TV. The console does not offer
+ * them, and a TV still set to one shows the waitlist board.
+ */
+export const HIDDEN_TV_MODES: readonly TvMode[] = ['jackpot'];
+
 /** Staff pair a TV on the console: the code it shows, a name, and what it shows. */
 export const tvPairSchema = z.object({
   code: pairingCodeSchema,

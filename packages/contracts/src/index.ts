@@ -46,6 +46,7 @@ export {
   devicePairRequestSchema,
   devicePairSchema,
   deviceRevokeSchema,
+  HIDDEN_TV_MODES,
   pairingCodeSchema,
   TV_MODES,
   tvPairingSchema,

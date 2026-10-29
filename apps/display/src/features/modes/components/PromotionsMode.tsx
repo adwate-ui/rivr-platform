@@ -3,8 +3,8 @@ import { t } from '@rivr/i18n';
 import { Text, TvPromotionSlide } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 
-// The prototype's TV turns to the next promotion every 12 seconds.
-const SLIDE_MS = 12_000;
+// The prototype's TV turns to the next promotion every 12 seconds; the board's progress bar fills over each (#628).
+export const SLIDE_MS = 12_000;
 
 /**
  * Which slide shows: the next every 12 seconds, round the live ones. In a TV's rotation (decision

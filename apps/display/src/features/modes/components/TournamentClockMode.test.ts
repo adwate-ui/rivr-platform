@@ -29,7 +29,7 @@ describe('the TV’s tournament clock (decision 0201)', () => {
 
   it('shows the field under the clock, as the design prompt has it', () => {
     expect(toClockProps(SUNDAY, 500).stats).toEqual([
-      { label: 'Players', value: '31' }, { label: 'Entries', value: '58' }, { label: 'Average', value: '56,129' }, { label: 'Pool', value: '₹5,22,000' },
+      { label: 'Players', value: '31' }, { label: 'Entries', value: '58' }, { label: 'Average', value: '56,129' },
     ]);
   });
 

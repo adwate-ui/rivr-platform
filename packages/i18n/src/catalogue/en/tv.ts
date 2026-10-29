@@ -54,7 +54,8 @@ export const tv = {
     /** A wheel of more prizes than fit, a page at a time: `Prizes 7 to 9 of 9`. */
     page: 'Prizes {from} to {to} of {count}',
     points: '{points} points',
-    bonus: '{amount} bonus',
+    /** `{chips}`: a count of bonus chips, `500` (#628). */
+    bonus: '{chips} bonus chips',
     nothing: 'Nothing',
     /** A member who hid their name on the TVs (#326). */
     hiddenName: 'A member',
@@ -117,6 +118,7 @@ export const tv = {
     players: 'Players',
     entries: 'Entries',
     average: 'Average',
+    /** On @rivr/render's slide only: the TV shows no prize pool (#628). */
     pool: 'Pool',
     payouts: 'Payouts',
     noPayouts: 'Payouts are set when registration closes.',

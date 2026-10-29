@@ -14,6 +14,7 @@ Date: 29 Oct 2026. Owner's feedback doc of 29 Oct ("RIVR App | Detailed Feedback
   - Devices' computers and cameras;
   - the live floor's rake and rupee figures, F&B's Glaza statement and Social's winner cards.
 - **Hidden in the player app** (#627): the Balance tab with deposits and withdrawals, the Academy's batches and payments, winner cards, Home's jackpot, and every buy-in, prize, pool and ticket value. Sessions show when, the tables and how long, and a member can hide one from their own list; the club keeps it. Bonus amounts read as chips (`formatChips`). The hidden addresses go to Tonight or Learn.
+- **Hidden on the TV** (#628): the jackpot mode (`HIDDEN_TV_MODES`: the console does not offer it, and a TV still set to it shows the waitlist board), the tournament clock's prize pool and the spin wheel's rupee prizes, which read as bonus chips.
 - **Staff stays** for staff managers. Staff accounts, their roles and the dealers' PINs have no other home.
 - **The website keeps** its rupee buy-ins, jackpot and rakeback, at the owner's word. The tablet stays, but every workflow runs without it.
 - **e2e:** flows whose only purpose was a hidden screen are removed; their database sides stay in pgTAP. Flows that only passed through one, such as call time through the cage, now run the console's own path.
