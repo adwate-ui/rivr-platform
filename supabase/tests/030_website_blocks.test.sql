@@ -12,9 +12,9 @@ values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Open', now() + interv
 
 select results_eq(
   $$ select distinct kind from public.site_block order by kind $$,
-  $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'), ('marquee'),
-            ('promotions'), ('rules'), ('social_wall'), ('statement'), ('story'), ('table'), ('text'), ('timeline') $$,
-  'the club''s website uses every kind of block');
+  $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('jackpot'), ('league'), ('links'), ('map'),
+            ('marquee'), ('outstation'), ('promotions'), ('rewards'), ('rules'), ('social_wall'), ('statement'), ('story'), ('text'), ('timeline') $$,
+  'the club''s website uses every kind of block but the table, whose points by stake the rules in force replaced (#619)');
 select throws_ok(
   $$ insert into public.site_block (venue_id, page_id, position, kind, content)
      values ('00000000-0000-4000-8000-000000000001', (select id from public.site_page where venue_id = '00000000-0000-4000-8000-000000000001' and slug = 'house-rules'), 9, 'video', '{}') $$,

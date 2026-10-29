@@ -2,8 +2,8 @@
  * Website pages (#35; decision 0166): the policies are in every page's footer and the club's pages in the
  * navigation, and each draws its blocks: house rules as a numbered list, questions that open to their
  * answers, how to find the club with a link to directions, responsible play, and the privacy notice with
- * its backups (#386); about, membership with its points table, the live promotions, and a journal
- * article from the journal's list. The front page shows the games and the calendar, live.
+ * its backups (#386); about, membership with the points the rules in force give (#617), the live promotions, and a
+ * journal article from the journal's list. A visitor answers the cookie banner first, as it covers the foot of the page. The front page shows the games and the calendar, live.
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
@@ -12,6 +12,7 @@ test.describe('Website', () => {
   test('the information pages: house rules, questions, visit, responsible play and privacy', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
+    await page.getByRole('button', { name: 'Essential only' }).click();
     const site = page.getByRole('navigation', { name: 'Site' });
     const footer = page.getByRole('contentinfo');
 
@@ -24,7 +25,7 @@ test.describe('Website', () => {
     await page.getByText('Who can join?').click();
     await expect(page.getByText(/^Anyone 18 or over\./)).toBeVisible();
 
-    await site.getByRole('link', { name: 'Visit' }).click();
+    await site.getByRole('link', { name: 'Visit & Contact' }).click();
     await expect(page.getByText('Upper floor, Glaza, M3M 65th Avenue, Sector 65, Gurugram')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Get directions' })).toHaveAttribute('href', /^https:\/\/www\.google\.com\/maps\//);
 
@@ -41,9 +42,10 @@ test.describe('Website', () => {
   test('the club’s pages: about, membership, promotions, and a journal article, each keeping the visitor’s codes', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
+    await page.getByRole('button', { name: 'Essential only' }).click();
     const site = page.getByRole('navigation', { name: 'Site' });
 
-    await site.getByRole('link', { name: 'About' }).click();
+    await site.getByRole('link', { name: 'The Club' }).click();
     await expect(page).toHaveURL(/\/about\?ref=FRIEND1$/);
     await expect(page.getByRole('heading', { level: 1, name: 'About RIVR' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Poker is a game of skill.' })).toBeVisible();
@@ -51,11 +53,12 @@ test.describe('Website', () => {
 
     await site.getByRole('link', { name: 'Membership' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'RIVR membership' })).toBeVisible();
+    // The points by table are the rules in force (61_points.sql), not words in the page.
     await expect(page.getByRole('row', { name: /Private Room/ }).getByRole('cell', { name: '20' })).toBeVisible();
-    await expect(page.getByText(/^Example rates: the club confirms its rates before launch\./)).toBeVisible();
+    await expect(page.getByText(/RIVR Rewards: 5% of your rake comes back as points\./)).toBeVisible();
 
     // The seed publishes Buy-in bonus Tuesday, high hands and the referral (57_promotions.sql).
-    await site.getByRole('link', { name: 'Promotions' }).click();
+    await site.getByRole('link', { name: 'Prizes & Calendar' }).click();
     await expect(page.getByRole('heading', { level: 3, name: 'Buy-in bonus Tuesday' })).toBeVisible();
 
     await site.getByRole('link', { name: 'Journal' }).click();

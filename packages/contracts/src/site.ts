@@ -185,6 +185,11 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
         when: z.string().trim().min(1).max(20),
         title: z.string().trim().min(1).max(100),
         text: z.string().trim().max(300).optional(),
+        // The judgment itself (#619), on Indian Kanoon or the Supreme Court's site, by https only.
+        link: z.object({
+          label: z.string().trim().min(1).max(40),
+          href: z.url({ protocol: /^https$/, hostname: /^(indiankanoon\.org|www\.sci\.gov\.in|main\.sci\.gov\.in)$/ }).max(500),
+        }).optional(),
       })).min(1).max(10),
     }),
   }),

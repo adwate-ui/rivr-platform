@@ -1,7 +1,7 @@
 import type { SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData, SiteLeague, SiteRules, SiteStanding } from '@rivr/db/site';
 import { formatMoney, formatMonth, formatNumber, t } from '@rivr/i18n';
-import { CardsBlock, TableBlock } from '@rivr/ui';
+import { CardsBlock, TableBlock, TextBlock } from '@rivr/ui';
 
 /** A rate in basis points as a percentage's figure: 500 is `5`, 250 is `2.5`. */
 function percent(basisPoints: number): string {
@@ -18,13 +18,14 @@ function LeagueBlock({ heading, league, rules }: { heading: string | undefined; 
   const columns = [t('web.league.place'), t('web.league.member'), t('web.league.points')];
   const prizes = (words: string | null) => (words ? t('web.league.prizes', { prizes: words }) : undefined);
   const { month, season } = league;
-  const monthIntro = month ? t('web.league.monthIntro', { month: formatMonth(month.first) }) : t('web.league.none');
+  // Standings with none yet say so, with no empty table under them.
+  const standings = (title: string | undefined, intro: string | undefined, rows: readonly SiteStanding[], words: string | null) => (rows.length > 0
+    ? <TableBlock heading={title} intro={intro} columns={columns} rows={standingRows(rows)} note={prizes(words)} />
+    : <TextBlock heading={title} body={[t('web.league.none'), prizes(words)].filter((line) => line !== undefined).join('\n\n')} />);
   return (
     <>
-      <TableBlock heading={heading} intro={month?.standings.length ? monthIntro : t('web.league.none')} columns={columns}
-        rows={standingRows(month?.standings ?? [])} note={prizes(rules.leaguePrizes.month)} />
-      {season ? <TableBlock heading={season.name} intro={season.standings.length ? undefined : t('web.league.none')} columns={columns}
-        rows={standingRows(season.standings)} note={prizes(rules.leaguePrizes.season)} /> : null}
+      {standings(heading, month ? t('web.league.monthIntro', { month: formatMonth(month.first) }) : undefined, month?.standings ?? [], rules.leaguePrizes.month)}
+      {season ? standings(season.name, undefined, season.standings, rules.leaguePrizes.season) : null}
     </>
   );
 }

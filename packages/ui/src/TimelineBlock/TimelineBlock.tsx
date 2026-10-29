@@ -6,6 +6,8 @@ export interface TimelineItem {
   readonly when: string;
   readonly title: string;
   readonly text?: string | undefined;
+  /** Where to read more, such as the judgment itself (#619): `Read the judgment`. */
+  readonly link?: { readonly label: string; readonly href: string } | undefined;
 }
 
 export interface TimelineBlockProps {
@@ -29,6 +31,10 @@ export function TimelineBlock({ eyebrow, heading, intro, items }: TimelineBlockP
             <span className="font-display text-28 leading-tight text-accent">{item.when}</span>
             <Text weight="medium">{item.title}</Text>
             {item.text ? <Text tone="muted">{item.text}</Text> : null}
+            {item.link ? (
+              <a href={item.link.href} aria-label={`${item.link.label}: ${item.title}`}
+                className="flex min-h-touch items-center font-text text-14 text-content underline underline-offset-4">{item.link.label}</a>
+            ) : null}
           </li>
         ))}
       </ol>
