@@ -12,7 +12,9 @@ import {
   IdCard,
   LayoutGrid,
   Lock,
+  Mail,
   Menu,
+  Phone,
   Star,
   TrendingUp,
   TriangleAlert,
@@ -26,7 +28,8 @@ import {
 
 /**
  * The only icons RIVR draws, by meaning. Icons appear only where they carry meaning a word
- * cannot: the tab bar, the console rail, chevrons, close, the console's menu, lock, alert and offline.
+ * cannot: the tab bar, the console rail, chevrons, close, the console's menu, lock, alert and offline, and the
+ * website's top bar, where a phone and an envelope say call and write (#616).
  */
 const ICONS = {
   home: House,
@@ -50,6 +53,8 @@ const ICONS = {
   menu: Menu,
   alert: TriangleAlert,
   offline: WifiOff,
+  phone: Phone,
+  mail: Mail,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

@@ -48,7 +48,8 @@ describe('a website page', () => {
     const reserve = screen.getByRole('link', { name: 'Reserve a seat' }).getAttribute('href') ?? '';
     expect(reserve.startsWith('https://wa.me/')).toBe(true);
     expect(new URL(reserve).searchParams.get('text')).toBe('Hi RIVR, I would like to reserve a seat tonight.');
-    expect(within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link').map((link) => link.textContent)).toEqual([
+    // The contacts are their marks, named for a screen reader; the number shows beside the phone.
+    expect(within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link').map((link) => link.getAttribute('aria-label') ?? link.textContent)).toEqual([
       '+91 00000 00000', 'WhatsApp', 'Instagram', 'YouTube', 'info@rivrpoker.com',
     ]);
     expect(screen.getAllByRole('link', { name: 'Member app' }).map((link) => link.getAttribute('href'))).toEqual(['https://player.invalid/', 'https://player.invalid/']);

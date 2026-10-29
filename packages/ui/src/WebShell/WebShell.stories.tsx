@@ -44,8 +44,11 @@ export const WithTopBar: Story = {
   args: {
     topBar: {
       links: [
-        { label: '+91 00000 00000', href: 'tel:+910000000000' }, { label: 'WhatsApp', href: 'https://wa.me/910000000000' },
-        { label: 'Instagram', href: 'https://www.instagram.com/rivr.pokerclub/' }, { label: 'YouTube', href: 'https://www.youtube.com/@rivr.pokerclub' },
+        { label: '+91 00000 00000', href: 'tel:+910000000000', icon: 'phone', showsLabel: true },
+        { label: 'WhatsApp', href: 'https://wa.me/910000000000', icon: 'whatsapp' },
+        { label: 'Instagram', href: 'https://www.instagram.com/rivr.pokerclub/', icon: 'instagram' },
+        { label: 'YouTube', href: 'https://www.youtube.com/@rivr.pokerclub', icon: 'youtube' },
+        { label: 'info@rivrpoker.com', href: 'mailto:info@rivrpoker.com', icon: 'mail' },
       ],
       app: { label: 'Member app', href: '#app' },
     },
