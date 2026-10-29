@@ -7,7 +7,7 @@ describe('the website\'s information blocks (#35)', () => {
   it('lists every kind the database allows', () => {
     expect(SITE_BLOCK_KINDS).toEqual([
       'hero', 'statement', 'gallery', 'feature', 'text', 'rules', 'faq', 'careers', 'map', 'games', 'calendar', 'links',
-      'story', 'cards', 'marquee', 'timeline', 'table', 'promotions', 'social_wall',
+      'story', 'cards', 'marquee', 'timeline', 'table', 'promotions', 'social_wall', 'league', 'rewards', 'outstation',
     ]);
   });
 

@@ -4088,6 +4088,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_club_rules": {
+                  Row: {
+                    "key": string | null,"subject": string | null,"subject_name": string | null,"subject_order": number | null,"value": Json | null,"venue_slug": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_high_hand": {
                   Row: {
                     "category": Database["public"]['Enums']["high_hand_category"] | null,"payout_paise": number | null,"played_at": string | null,"rank": string | null,"table_name": string | null,"venue_slug": string | null

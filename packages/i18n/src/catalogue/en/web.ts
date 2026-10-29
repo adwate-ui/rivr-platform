@@ -32,6 +32,36 @@ export const webApp = {
   /** A post on the website's social wall (#157). */
   wallHandle: '@{handle}',
   wallOpen: 'See it on Instagram',
+  /** The Leaderboard (#617): the RIVR League's standings, names as the TVs show them, and the prizes from league.prizes. */
+  league: {
+    place: 'Place',
+    member: 'Member',
+    points: 'Points',
+    /** A member who hid their name on the TVs. */
+    hidden: 'A member',
+    monthIntro: 'The standings for {month}, from cash games and tournaments.',
+    none: 'No standings yet. They start with the first night of play.',
+    prizes: 'Prizes: {prizes}',
+  },
+  /** What play earns (#617), read from the club's rules in force. */
+  rewards: {
+    intro: 'Every hour at the table earns points, more at the higher stakes.',
+    table: 'Table',
+    points: 'Points an hour',
+    rakeback: 'Rakeback',
+    rakebackRate: '{percent}% of your rake',
+    none: 'None',
+    rounding: 'Only time seated at the table counts, rounded down to a whole point. Points are for rewards and never turn into cash.',
+    rakebackPaid: 'Rakeback is paid as bonus each Monday.',
+    rakeShare: 'RIVR Rewards: {percent}% of your rake comes back as points.',
+  },
+  /** The cab and hotel nights the club gives (#617), read from the club's rules in force. */
+  outstation: {
+    cab: 'Pick-up and drop',
+    cabText: 'A cab to the club and home again, once you have played {visits} times this month.',
+    hotel: 'Hotel nights',
+    hotelAt: '{table}: a night for every {hours} hours played',
+  },
   /** The footer on every page (#441): where the club is, its columns of links (#616), its 18+ line and copyright. */
   footer: {
     address: 'Upper floor, Glaza, M3M 65th Avenue, Gurugram',

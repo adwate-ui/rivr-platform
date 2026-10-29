@@ -1,11 +1,12 @@
 import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { t, type MessageKey } from '@rivr/i18n';
+import { formatIsoDay, t, type MessageKey } from '@rivr/i18n';
 import {
   CalendarBlock, CardsBlock, CareersBlock, CookieBanner, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock,
   MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone,
 } from '@rivr/ui';
 import { CLUB_CONTACT, playerHref, siteHref, whatsappHref } from '../links.ts';
+import { ClubBlock, isEmptyClubBlock } from './ClubBlocks.tsx';
 
 interface SitePageProps {
   page: SitePageData;
@@ -24,6 +25,8 @@ const BAND: Record<SiteBlock['kind'], WebBandTone> = {
   text: 'deep', rules: 'deep', faq: 'cream', careers: 'deep', links: 'deep',
   // The bands added in decision 0166.
   story: 'cream', cards: 'dark', marquee: 'deep', timeline: 'deep', table: 'cream', promotions: 'deep', social_wall: 'cream',
+  // The bands read from the League and the club's rules (decision 0283).
+  league: 'cream', rewards: 'cream', outstation: 'deep',
 };
 
 type Link = (action: { label: string; to: PlayerDestination } | undefined) => { label: string; href: string } | undefined;
@@ -101,15 +104,21 @@ function isKind<K extends SiteBlock['kind']>(block: SiteBlock, kinds: readonly K
 // A wall post's caption on the website, at most as long as a card's text.
 const WALL_CAPTION = 300;
 
+/** Reserving a seat: a WhatsApp message to the club (#616), none while the club is paused (#278). */
+function reserveOf(page: SitePageData) {
+  return page.isPaused ? undefined : { label: t('web.reserve'), href: whatsappHref(t('web.reserveMessage')) };
+}
+
 /** A block of the club's own text, or one of its live rows: games, tournaments, promotions, links into the app, or the social wall. */
 function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 'text' | 'games' | 'calendar' | 'promotions' | 'links' | 'social_wall' }>; page: SitePageData; link: Link }) {
   switch (block.kind) {
     case 'text':
       return <TextBlock heading={block.content.heading} body={block.content.body} />;
     case 'games':
-      return <GamesBlock heading={block.content.heading} games={page.games} />;
+      return <GamesBlock heading={block.content.heading} games={page.games} reserve={reserveOf(page)} />;
     case 'calendar':
-      return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} />;
+      // This month day by day, as the club's day falls in IST (#617).
+      return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} month={formatIsoDay(new Date()).slice(0, 7)} />;
     case 'promotions':
       return <PromotionsBlock heading={block.content.heading} emptyText={t('web.noPromotions')}
         promotions={page.promotions.map((promotion) => ({ title: promotion.title, detail: promotion.detail ?? undefined, runs: promotion.runs ?? undefined }))} />;
@@ -130,7 +139,13 @@ function Block({ block, page, link, pageLink }: { block: SiteBlock; page: SitePa
   if (isKind(block, ['hero', 'statement', 'gallery', 'feature'])) return <MediaBlock block={block} link={link} />;
   if (isKind(block, ['story', 'cards', 'marquee', 'timeline', 'table'])) return <WordsBlock block={block} link={link} pageLink={pageLink} />;
   if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links', 'social_wall'])) return <LiveBlock block={block} page={page} link={link} />;
+  if (isKind(block, ['league', 'rewards', 'outstation'])) return <ClubBlock block={block} league={page.league} rules={page.rules} />;
   return <InfoBlock block={block} />;
+}
+
+/** Whether a page leaves a block's band out: a social wall with no approved posts yet, or a rule block with no rule set. */
+function isEmptyBlock(block: SiteBlock, page: SitePageData): boolean {
+  return (block.kind === 'social_wall' && page.wallPosts.length === 0) || isEmptyClubBlock(block, page.rules);
 }
 
 /** A link to a page of the website, or to one of its bands by the band's anchor. */
@@ -219,17 +234,14 @@ export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   const link: Link = (action) => (action && !(page.isPaused && action.to === 'waitlist')
     ? { label: action.label, href: playerHref(playerUrl, action.to, attribution) } : undefined);
   const pageLink: PageLink = (target) => (target ? { label: target.label, href: siteHref(target.page, attribution) } : undefined);
-  const reserve = { label: t('web.reserve'), href: whatsappHref(t('web.reserveMessage')) };
-  // A social wall with no approved posts yet is left out, band and all.
-  const blocks = page.blocks.filter((block) => block.kind !== 'social_wall' || page.wallPosts.length > 0);
+  const blocks = page.blocks.filter((block) => !isEmptyBlock(block, page));
   const anchors = anchorsOf(blocks);
   return (
-    <WebShell links={links} homeHref={siteHref('home', attribution)} action={page.isPaused ? undefined : reserve} topBar={topBar(playerUrl, attribution)}
+    <WebShell links={links} homeHref={siteHref('home', attribution)} action={reserveOf(page)} topBar={topBar(playerUrl, attribution)}
       footer={<Footer attribution={attribution} playerUrl={playerUrl} />} after={<CookieBanner />}>
       {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
       {blocks.map((block, position) => (
-        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} anchor={anchors[position]}
-          live={block.kind === 'games' ? `games-${String(position)}` : undefined}>
+        <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} anchor={anchors[position]}>
           <Block block={block} page={page} link={link} pageLink={pageLink} />
         </WebBand>
       ))}

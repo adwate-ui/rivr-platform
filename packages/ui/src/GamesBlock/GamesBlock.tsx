@@ -1,4 +1,5 @@
 import { formatMoney, t } from '@rivr/i18n';
+import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { Stakes } from '../Stakes/Stakes.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -12,17 +13,13 @@ export interface GamesBlockGame {
   readonly buyInMax: bigint;
   /** A compulsory straddle, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
-  /** Its tables open now. */
-  readonly tablesOpen: number;
-  /** Seats free at those tables (#130); shown when given and any table runs. */
-  readonly openSeats?: number | undefined;
-  /** Members waiting for it; shown when any are. */
-  readonly waiting?: number | undefined;
 }
 
 export interface GamesBlockProps {
   heading?: string | undefined;
   games: readonly GamesBlockGame[];
+  /** The way to reserve a seat at one of them: a WhatsApp message to the club (#617). */
+  reserve?: { readonly label: string; readonly href: string } | undefined;
 }
 
 function buyIn(game: GamesBlockGame): string {
@@ -30,16 +27,11 @@ function buyIn(game: GamesBlockGame): string {
   return t('ui.web.buyInRange', { min: formatMoney(game.buyInMin), max: formatMoney(game.buyInMax) });
 }
 
-function running({ tablesOpen, openSeats, waiting = 0 }: GamesBlockGame): string {
-  const tables = tablesOpen === 0 ? t('ui.web.notRunning') : tablesOpen === 1 ? t('ui.web.oneTable') : t('ui.web.tables', { count: tablesOpen });
-  const parts = [tables];
-  if (tablesOpen > 0 && openSeats !== undefined) parts.push(openSeats === 1 ? t('ui.web.oneOpenSeat') : t('ui.web.openSeats', { count: openSeats }));
-  if (waiting > 0) parts.push(t('ui.web.waiting', { count: waiting }));
-  return parts.reduce((first, second) => t('ui.web.pair', { first, second }));
-}
-
-/** A website block of the games and stakes the club runs, live from the floor, a card each: buy-in and tables running. */
-export function GamesBlock({ heading, games }: GamesBlockProps) {
+/**
+ * A website block of the games and stakes the club runs, a card each: the stakes, the game and the buy-in. It shows the
+ * stakes only, never how many tables run or wait (#617), and a way to reserve a seat.
+ */
+export function GamesBlock({ heading, games, reserve }: GamesBlockProps) {
   return (
     <section className="mx-auto flex max-w-console flex-col gap-10 px-6 py-16 tablet:py-24">
       {heading ? <Heading level={2} variant="band">{heading}</Heading> : null}
@@ -52,10 +44,10 @@ export function GamesBlock({ heading, games }: GamesBlockProps) {
             <Text tone="muted">
               {game.straddle === null ? buyIn(game) : t('ui.web.pair', { first: buyIn(game), second: t('ui.web.straddle', { amount: formatMoney(game.straddle) }) })}
             </Text>
-            <Text variant="small" tone={game.tablesOpen === 0 ? 'muted' : 'default'}>{running(game)}</Text>
           </li>
         ))}
       </ul>
+      {reserve && games.length > 0 ? <div><Button variant="primary" href={reserve.href}>{reserve.label}</Button></div> : null}
     </section>
   );
 }

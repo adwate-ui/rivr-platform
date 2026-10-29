@@ -2,10 +2,11 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { siteBlockSchema, type SiteBlock } from '@rivr/contracts/site';
 import type { RivrClient } from './client.ts';
 import {
-  fetchSiteCalendar, fetchSiteGames, fetchSitePromotions, fetchSiteWall, type SiteGame, type SitePromotion, type SiteTournament, type SiteWallPost,
+  fetchSiteCalendar, fetchSiteGames, fetchSiteLeague, fetchSitePromotions, fetchSiteRules, fetchSiteWall, rulesFrom, type SiteGame, type SiteLeague,
+  type SitePromotion, type SiteRules, type SiteTournament, type SiteWallPost,
 } from './siteLive.ts';
 
-export type { SiteGame, SitePromotion, SiteTournament, SiteWallPost } from './siteLive.ts';
+export type { SiteGame, SiteLeague, SitePromotion, SiteRules, SiteStanding, SiteTableRule, SiteTournament, SiteWallPost } from './siteLive.ts';
 
 /** A page in the website's navigation. */
 export interface SiteLink {
@@ -28,21 +29,31 @@ export interface SitePage {
   readonly promotions: readonly SitePromotion[];
   /** The approved Instagram posts, when the page has a social wall block; otherwise empty (#157). */
   readonly wallPosts: readonly SiteWallPost[];
-  /** The club is paused by a venue freeze (#278): the page says so first, and no table is running. */
+  /** The League's standings, when the page has a league block; otherwise none (#617). */
+  readonly league: SiteLeague;
+  /** The club's rules in force, when the page has a block that shows them; otherwise none set (#617). */
+  readonly rules: SiteRules;
+  /** The club is paused by a venue freeze (#278): the page says so first. */
   readonly isPaused: boolean;
 }
 
+const NO_LEAGUE: SiteLeague = { month: null, season: null };
+
 /** The live rows a page's blocks show, read only when one of its blocks needs them. */
 async function fetchLive(client: RivrClient, blocks: readonly SiteBlock[]) {
-  const needs = (kind: SiteBlock['kind']) => blocks.some((block) => block.kind === kind);
-  const [games, tournaments, promotions, wallPosts] = await Promise.all([
-    needs('games') ? fetchSiteGames(client) : ok([]),
-    needs('calendar') ? fetchSiteCalendar(client) : ok([]),
-    needs('promotions') ? fetchSitePromotions(client) : ok([]),
-    needs('social_wall') ? fetchSiteWall(client) : ok([]),
+  const needs = (...kinds: SiteBlock['kind'][]) => blocks.some((block) => kinds.includes(block.kind));
+  // Read only when needed; otherwise what the page shows without them.
+  const readIf = <T,>(isNeeded: boolean, read: () => Promise<Result<T, 'unavailable'>>, none: T) => (isNeeded ? read() : Promise.resolve(ok(none)));
+  const [games, tournaments, promotions, wallPosts, league, rules] = await Promise.all([
+    readIf(needs('games'), () => fetchSiteGames(client), []),
+    readIf(needs('calendar'), () => fetchSiteCalendar(client), []),
+    readIf(needs('promotions'), () => fetchSitePromotions(client), []),
+    readIf(needs('social_wall'), () => fetchSiteWall(client), []),
+    readIf(needs('league'), () => fetchSiteLeague(client), NO_LEAGUE),
+    readIf(needs('league', 'rewards', 'outstation'), () => fetchSiteRules(client), rulesFrom([])),
   ]);
-  if (!games.ok || !tournaments.ok || !promotions.ok || !wallPosts.ok) return err('unavailable' as const);
-  return ok({ games: games.value, tournaments: tournaments.value, promotions: promotions.value, wallPosts: wallPosts.value });
+  if (!games.ok || !tournaments.ok || !promotions.ok || !wallPosts.ok || !league.ok || !rules.ok) return err('unavailable' as const);
+  return ok({ games: games.value, tournaments: tournaments.value, promotions: promotions.value, wallPosts: wallPosts.value, league: league.value, rules: rules.value });
 }
 
 /**
@@ -106,6 +117,5 @@ async function pageWith(client: RivrClient, frame: Frame, page: { slug: string; 
   });
   const live = await fetchLive(client, readable);
   if (!live.ok) return live;
-  const games = frame.isPaused ? live.value.games.map((game) => ({ ...game, tablesOpen: 0, openSeats: 0 })) : live.value.games;
-  return ok({ ...page, blocks: readable, navigation, ...live.value, games, isPaused: frame.isPaused });
+  return ok({ ...page, blocks: readable, navigation, ...live.value, isPaused: frame.isPaused });
 }

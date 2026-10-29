@@ -9,10 +9,11 @@ const meta = {
   args: {
     heading: 'Games and stakes',
     games: [
-      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1 },
-      { name: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 1000000n, buyInMax: 1000000n, straddle: null, tablesOpen: 3, waiting: 3 },
-      { name: 'Private Room', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 2000000n, buyInMax: 2000000n, straddle: 50000n, tablesOpen: 0 },
+      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null },
+      { name: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 1000000n, buyInMax: 1000000n, straddle: null },
+      { name: 'Private Room', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 2000000n, buyInMax: 2000000n, straddle: 50000n },
     ],
+    reserve: { label: 'Reserve a seat', href: 'https://wa.me/910000000000' },
   },
 } satisfies Meta<typeof GamesBlock>;
 
@@ -33,7 +34,6 @@ export const LongText: Story = {
         buyInMin: 10000000n,
         buyInMax: 50000000n,
         straddle: 200000n,
-        tablesOpen: 2,
       },
     ],
   },

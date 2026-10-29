@@ -59,6 +59,13 @@ export function formatWeekday(at: Date): string {
   return WEEKDAY.format(at);
 }
 
+const ISO_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+
+/** The IST calendar date as `2026-11-15`, so a moment can be found on a month's calendar (#617). */
+export function formatIsoDay(at: Date): string {
+  return ISO_DAY.format(at);
+}
+
 // A calendar month is a name, not a moment, so it is read in UTC where its first day starts at midnight.
 const MONTH = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'long', year: 'numeric' });
 

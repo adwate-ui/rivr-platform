@@ -15,6 +15,8 @@ const PAGE = {
   navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
   games: [],
   tournaments: [], promotions: [], wallPosts: [], isPaused: false,
+  league: { month: null, season: null },
+  rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null, leaguePrizes: { month: null, season: null } },
 };
 
 describe('a website page', () => {
@@ -103,12 +105,17 @@ describe('a website page', () => {
     const live = {
       ...PAGE,
       blocks: [{ kind: 'games' as const, content: { heading: 'Games and stakes' } }, { kind: 'calendar' as const, content: {} }],
-      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null, tablesOpen: 1, openSeats: 2, waiting: 3 }],
+      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null }],
       tournaments: [{ name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n }],
     };
-    render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
-    expect(screen.getByText('1 table running · 2 open seats · 3 waiting')).toBeDefined();
+    const { container } = render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
+    expect(screen.getByText('Buy-in ₹5,000')).toBeDefined();
+    expect(screen.queryByText(/running|waiting/)).toBeNull();
+    // The header's Reserve a seat, and the games block's.
+    expect(screen.getAllByRole('link', { name: 'Reserve a seat' }).map((reserve) => reserve.getAttribute('href')?.startsWith('https://wa.me/'))).toEqual([true, true]);
+    expect(container.querySelector('#games')).not.toBeNull();
     expect(screen.getByText('Sunday 15 Nov 2026, 16:00')).toBeDefined();
+    expect(screen.getByRole('table', { name: 'The month at a glance' })).toBeDefined();
   });
 
   it('draws the bands added in grandpokerarena.com’s way, with the live promotions, a card’s page link and the footer’s policies (decision 0166)', () => {

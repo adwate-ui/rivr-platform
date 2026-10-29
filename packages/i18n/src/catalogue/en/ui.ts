@@ -67,14 +67,10 @@ export const ui = {
     buyIn: 'Buy-in {amount}',
     buyInRange: 'Buy-in {min} to {max}',
     straddle: '{amount} straddle',
-    notRunning: 'Not running now',
-    oneTable: '1 table running',
-    tables: '{count} tables running',
-    /** Seats free at a game's open tables (#130). */
-    oneOpenSeat: '1 open seat',
-    openSeats: '{count} open seats',
-    waiting: '{count} waiting',
     noGames: 'No games are set up yet.',
+    /** CalendarBlock's month (#617): its name for a screen reader, and the weekdays' heads, Monday first. */
+    monthCalendar: 'The month at a glance',
+    weekday: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },
     /** A tournament's start in IST: `Sunday 15 Nov 2026, 16:00`. */
     when: '{weekday} {date}, {time}',
     guaranteed: '{amount} guaranteed',

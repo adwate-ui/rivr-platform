@@ -1,22 +1,18 @@
 /**
- * Live floor widget (#130; tech plan item 14). The website's front page shows tonight's games, each with its tables
- * running, its open seats and how many wait, from the public views, which hold counts and no one's name. The page reads
- * itself again every half minute and swaps in the games band, so the numbers stay live without a reload.
+ * Tonight's games on the website (#130, changed by #617). The front page shows each game's stakes and buy-in from the
+ * public views, and never its tables running, open seats or waiting: the owner's parity list of 29 Oct asks for the stakes
+ * only, and for Reserve to open WhatsApp.
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
 
 test.describe('Live floor widget', () => {
-  test('Live floor widget: tables running, open seats and waiting, read again every half minute', async ({ page }) => {
-    test.setTimeout(60_000);
+  test('Live floor widget: the games show their stakes only, and reserving a seat opens WhatsApp', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
-    await page.goto(appUrl('web'));
-    const line = page.getByText(/^\d+ tables? running · \d+ open seats? · \d+ waiting$/).first();
-    await expect(line).toBeVisible();
-    // The page reads itself again and swaps the band in place.
-    const reread = page.waitForResponse((response) => response.url() === page.url() && response.request().resourceType() === 'fetch',
-      { timeout: 40_000 });
-    expect((await reread).ok()).toBe(true);
-    await expect(page.getByText(/^\d+ tables? running · \d+ open seats? · \d+ waiting$/).first()).toBeVisible();
+    await page.goto(`${appUrl('web')}/#games`);
+    const games = page.locator('#games');
+    await expect(games.getByText(/^Buy-in ₹/).first()).toBeVisible();
+    await expect(games.getByText(/running|waiting|open seat/)).toHaveCount(0);
+    await expect(games.getByRole('link', { name: 'Reserve a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
   });
 });

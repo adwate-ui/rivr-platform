@@ -127,6 +127,11 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'RIVR League points for a tournament finish: every finisher earns the entry points, and more for first, second, third and the rest of the final table.',
     fields: { entry: 'Taking part', first: 'First', second: 'Second', third: 'Third', final_table: 'Rest of the final table' },
   },
+  'league.prizes': {
+    name: 'League prizes',
+    help: "The RIVR League's prizes, in words, as the website's Leaderboard shows them: this month's and this season's. Not set shows none.",
+    fields: { month: 'This month', season: 'This season' },
+  },
   'learn.daily_points_cap': {
     name: 'Learn points, daily cap',
     help: 'The most Learn points a member earns in a day, so drilling again cannot farm them. 100 unless set.',

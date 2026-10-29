@@ -1,0 +1,82 @@
+import type { SiteBlock } from '@rivr/contracts';
+import type { SiteLeague, SiteRules, SiteStanding } from '@rivr/db/site';
+import { formatMonth, formatNumber, t } from '@rivr/i18n';
+import { CardsBlock, TableBlock } from '@rivr/ui';
+
+/** A rate in basis points as a percentage's figure: 500 is `5`, 250 is `2.5`. */
+function percent(basisPoints: number): string {
+  return formatNumber(basisPoints / 100);
+}
+
+/** One League standing as a table shows it: a place, the name as the TVs show it, the points. */
+function standingRows(standings: readonly SiteStanding[]): string[][] {
+  return standings.map((standing) => [String(standing.place), standing.name ?? t('web.league.hidden'), formatNumber(standing.points)]);
+}
+
+/** The RIVR League (#617): this month's standings and this season's, each with its prizes from league.prizes. */
+function LeagueBlock({ heading, league, rules }: { heading: string | undefined; league: SiteLeague; rules: SiteRules }) {
+  const columns = [t('web.league.place'), t('web.league.member'), t('web.league.points')];
+  const prizes = (words: string | null) => (words ? t('web.league.prizes', { prizes: words }) : undefined);
+  const { month, season } = league;
+  const monthIntro = month ? t('web.league.monthIntro', { month: formatMonth(month.first) }) : t('web.league.none');
+  return (
+    <>
+      <TableBlock heading={heading} intro={month?.standings.length ? monthIntro : t('web.league.none')} columns={columns}
+        rows={standingRows(month?.standings ?? [])} note={prizes(rules.leaguePrizes.month)} />
+      {season ? <TableBlock heading={season.name} intro={season.standings.length ? undefined : t('web.league.none')} columns={columns}
+        rows={standingRows(season.standings)} note={prizes(rules.leaguePrizes.season)} /> : null}
+    </>
+  );
+}
+
+/** What play earns by table (#617): points an hour and any rakeback, then RIVR Rewards and how time counts. */
+function RewardsBlock({ heading, rules }: { heading: string | undefined; rules: SiteRules }) {
+  const tables = [...new Set([...rules.pointsPerHour, ...rules.rakebackBasisPoints].map((rule) => rule.table))];
+  const rowFor = (table: string) => {
+    const points = rules.pointsPerHour.find((rule) => rule.table === table)?.value;
+    const rakeback = rules.rakebackBasisPoints.find((rule) => rule.table === table)?.value;
+    return [table, points === undefined ? t('web.rewards.none') : formatNumber(points),
+      rakeback === undefined ? t('web.rewards.none') : t('web.rewards.rakebackRate', { percent: percent(rakeback) })];
+  };
+  const share = rules.rewardsRakeShareBasisPoints;
+  const note = [
+    t('web.rewards.rounding'),
+    ...(rules.rakebackBasisPoints.length === 0 ? [] : [t('web.rewards.rakebackPaid')]),
+    ...(share === null ? [] : [t('web.rewards.rakeShare', { percent: percent(share) })]),
+  ].join(' ');
+  return (
+    <TableBlock heading={heading} intro={t('web.rewards.intro')} columns={[t('web.rewards.table'), t('web.rewards.points'), t('web.rewards.rakeback')]}
+      rows={tables.map(rowFor)} note={note} />
+  );
+}
+
+/** The cab and hotel nights the club gives (#617), from cab.minimum_visits and accommodation.hours_per_night. */
+function OutstationBlock({ eyebrow, heading, rules }: { eyebrow: string | undefined; heading: string | undefined; rules: SiteRules }) {
+  const cards = [
+    ...(rules.cabVisits === null ? [] : [{ title: t('web.outstation.cab'), text: t('web.outstation.cabText', { visits: rules.cabVisits }) }]),
+    ...(rules.hotelNightHours.length === 0 ? [] : [{
+      title: t('web.outstation.hotel'),
+      points: rules.hotelNightHours.map((rule) => t('web.outstation.hotelAt', { table: rule.table, hours: rule.value })),
+    }]),
+  ];
+  return <CardsBlock eyebrow={eyebrow} heading={heading} cards={cards} />;
+}
+
+/** Whether a block read from the club's rules has nothing to show, so the page leaves its band out. */
+export function isEmptyClubBlock(block: SiteBlock, rules: SiteRules): boolean {
+  if (block.kind === 'rewards') return rules.pointsPerHour.length === 0 && rules.rakebackBasisPoints.length === 0 && rules.rewardsRakeShareBasisPoints === null;
+  if (block.kind === 'outstation') return rules.cabVisits === null && rules.hotelNightHours.length === 0;
+  return false;
+}
+
+/** A block read from the League and the club's rules in force (#617, decision 0283), never written into the page. */
+export function ClubBlock({ block, league, rules }: { block: Extract<SiteBlock, { kind: 'league' | 'rewards' | 'outstation' }>; league: SiteLeague; rules: SiteRules }) {
+  switch (block.kind) {
+    case 'league':
+      return <LeagueBlock heading={block.content.heading} league={league} rules={rules} />;
+    case 'rewards':
+      return <RewardsBlock heading={block.content.heading} rules={rules} />;
+    case 'outstation':
+      return <OutstationBlock eyebrow={block.content.eyebrow} heading={block.content.heading} rules={rules} />;
+  }
+}

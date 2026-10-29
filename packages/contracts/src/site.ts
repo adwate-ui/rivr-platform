@@ -203,6 +203,13 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('promotions'), content: z.object({ heading: headingSchema }) }),
   // Live: the club's approved Instagram posts (public_wall_posts, #157).
   z.object({ kind: z.literal('social_wall'), content: z.object({ heading: headingSchema }) }),
+  // Live, read from the League and the club's rules in force rather than written into the page (#617, decision 0283):
+  // this month's and this season's League standings with their prizes (public_league_table, league.prizes); what play
+  // earns by table (points.per_hour, rakeback.rate, points.rewards_rake_share); and the cab and hotel nights
+  // (cab.minimum_visits, accommodation.hours_per_night), all through public_club_rules.
+  z.object({ kind: z.literal('league'), content: z.object({ heading: headingSchema }) }),
+  z.object({ kind: z.literal('rewards'), content: z.object({ heading: headingSchema }) }),
+  z.object({ kind: z.literal('outstation'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
 ]);
 
 /** A website block the website can show. */
