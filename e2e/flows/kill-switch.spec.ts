@@ -3,7 +3,7 @@
  * (Auth sends one code a minute to a number). Neha seats Kunal Mehra at Table 3 and pairs its tablet,
  * then freezes the venue with a reason, confirming it: the console, the tablet and Yash Gupta's app
  * (signed in for this flow alone) show the banner within seconds, the website's pages say the club is
- * paused (#278), and the tablet's buy-in for Kunal is refused. She asks to release it and cannot alone; Arvind releases it, and the banners go. Kunal leaves
+ * paused (#278), and the tablet cannot mark Kunal away. She asks to release it and cannot alone; Arvind releases it, and the banners go. Kunal leaves
  * and the tablet is revoked at the end; if the flow fails midway the freeze is still released, so later
  * flows find the club open. Every level and every alert are proved in supabase/tests/060_kill_switch.test.sql.
  */
@@ -67,8 +67,9 @@ test.describe('Kill switch', () => {
 
       await expect(tablet.getByText(STAFF_BANNER)).toBeVisible({ timeout: 15_000 });
       await tablet.getByRole('button', { name: 'Seat 5, Kunal Mehra' }).click();
-      await tablet.getByRole('button', { name: 'Request buy-in' }).click();
-      await expect(tablet.getByText(/^The venue is frozen\./)).toBeVisible();
+      // The tablet has no buy-in since #630: marking him away is refused instead.
+      await tablet.getByRole('button', { name: 'Away', exact: true }).click();
+      await expect(tablet.getByText('The venue is frozen. Seats change again once it is released.')).toBeVisible();
 
       const member = await browser.newPage();
       await signInToPlayer(member, '9000000214');
