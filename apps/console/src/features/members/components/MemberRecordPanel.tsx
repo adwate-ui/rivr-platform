@@ -56,7 +56,7 @@ function Record({ venueId, record, can }: { venueId: string; record: MemberRecor
       <EarlyDepartures venueId={venueId} memberId={record.memberId} />
       {can.manage ? <TierForm venueId={venueId} record={record} /> : null}
       {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
-      {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} /> : null}
+      {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} currentPhone={record.phone} /> : null}
       {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}
     </Stack>
   );

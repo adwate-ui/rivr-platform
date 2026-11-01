@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { staffJobTitleSchema, type StaffRole } from '@rivr/contracts';
 import { useStaffActions, type StaffChange, type StaffFailure, type StaffMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Inline, Input, Stack, Switch, Text, StatusMessage } from '@rivr/ui';
+import { Button, ChoiceChips, ConfirmQuestion, ErrorMessage, Inline, Input, Stack, Switch, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -53,6 +53,46 @@ function reachOf(member: StaffMember, grantable: readonly StaffRole[], isPending
   return { isInReach, canChange: isInReach && !isPending, canRetitle: (isInReach || member.isMe) && !isPending };
 }
 
+/** The question and its Yes, for a role or an active change asked on a row. */
+function askCopy(asked: StaffChange, name: string): { question: string; confirm: string } {
+  if ('role' in asked) return { question: t('console.staff.askRole', { name, role: roleName(asked.role) }), confirm: t('console.staff.confirmRole') };
+  if ('isActive' in asked && asked.isActive) return { question: t('console.staff.askTurnOn', { name }), confirm: t('console.staff.confirmTurnOn') };
+  return { question: t('console.staff.askTurnOff', { name }), confirm: t('console.staff.confirmTurnOff') };
+}
+
+interface RowChangesProps {
+  member: StaffMember;
+  grantable: readonly StaffRole[];
+  isInReach: boolean;
+  canChange: boolean;
+  isSaving: boolean;
+  onSave: (change: StaffChange) => Promise<void>;
+}
+
+/** The role and whether they're active, each picked on the row, shown, and asked before it is saved (F1-09). */
+function RowChanges({ member, grantable, isInReach, canChange, isSaving, onSave }: RowChangesProps) {
+  const [asked, setAsked] = useState<StaffChange | null>(null);
+  const name = member.fullName;
+  const role = asked !== null && 'role' in asked ? asked.role : member.role;
+  const isActive = asked !== null && 'isActive' in asked ? asked.isActive : member.isActive;
+  const isLocked = !canChange || member.isMe;
+  return (
+    <>
+      {isInReach ? (
+        <ChoiceChips label={t('console.staff.roleFor', { name })} mode="one" selected={[role]} isDisabled={isLocked}
+          options={grantable.map((option) => ({ value: option, label: roleName(option) }))}
+          onChange={([picked]) => { if (picked !== undefined) setAsked(picked === member.role ? null : { role: picked }); }} />
+      ) : null}
+      <Switch label={t('console.staff.activeFor', { name })} {...(member.isActive ? {} : { hint: t('console.staff.inactive') })} isOn={isActive}
+        isDisabled={isLocked} onChange={(on) => setAsked(on === member.isActive ? null : { isActive: on })} />
+      {asked === null ? null : (
+        <ConfirmQuestion {...askCopy(asked, name)} isBusy={isSaving} onConfirm={() => void onSave(asked).then(() => setAsked(null))}
+          onCancel={() => setAsked(null)} />
+      )}
+    </>
+  );
+}
+
 /**
  * One staff member: name, job title and role, their number, and the changes the manager may make. A
  * manager changes only someone whose role they could give, and never their own role or whether they're active.
@@ -67,19 +107,12 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
     setIsTitleSaved(result.ok && 'jobTitle' in update);
   };
   const { isInReach, canChange, canRetitle } = reachOf(member, grantable, change.isPending);
-  const name = member.fullName;
   return (
     <Stack gap={3}>
       <StaffIdentity member={member} />
       <JobTitleForm member={member} isDisabled={!canRetitle} onSave={(jobTitle) => save({ jobTitle })} />
       <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
-      {isInReach ? (
-        <ChoiceChips label={t('console.staff.roleFor', { name })} mode="one" selected={[member.role]} isDisabled={!canChange || member.isMe}
-          options={grantable.map((role) => ({ value: role, label: roleName(role) }))}
-          onChange={(roles) => { if (roles[0] !== undefined) void save({ role: roles[0] }); }} />
-      ) : null}
-      <Switch label={t('console.staff.activeFor', { name })} {...(member.isActive ? {} : { hint: t('console.staff.inactive') })} isOn={member.isActive}
-        isDisabled={!canChange || member.isMe} onChange={(isActive) => void save({ isActive })} />
+      <RowChanges member={member} grantable={grantable} isInReach={isInReach} canChange={canChange} isSaving={change.isPending} onSave={save} />
       {member.isMe ? <Text variant="small" tone="muted">{t('console.staff.ownRow')}</Text> : null}
       {failure === null ? null : <ErrorMessage>{t(STAFF_FAILURE_COPY[failure])}</ErrorMessage>}
       {/* A hire turned off has no checklist. */}

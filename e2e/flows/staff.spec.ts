@@ -48,6 +48,9 @@ test.describe('Staff', () => {
     await expect(active).toHaveAttribute('aria-checked', 'true');
     await active.click();
     await expect(active).toHaveAttribute('aria-checked', 'false');
+    // Asked before it is saved (F1-09).
+    await admin.getByRole('button', { name: 'Yes, turn it off' }).click();
+    await expect(admin.getByText(`Turn off ${name}'s login?`)).toHaveCount(0);
     await admin.reload();
     await expect(admin.getByRole('textbox', { name: `Job title for ${name}` })).toHaveValue('Host');
     await expect(admin.getByRole('switch', { name: `Active: ${name}` })).toHaveAttribute('aria-checked', 'false');
