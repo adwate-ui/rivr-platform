@@ -1,6 +1,6 @@
 import { useTvPairingActions, useTvPairingPolicy, type TvFailure } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Stack, Switch, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, LoadState, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { TV_FAILURE_COPY } from './tvCopy.tsx';
 
@@ -12,14 +12,16 @@ interface PairingWindowProps {
 
 /**
  * Window-only pairing (#325): the owner's switch; while it is on, Pair a TV, after which a TV gets a code for ten
- * minutes, and until when. Nothing while the policy is unknown.
+ * minutes, and until when. Loading, or an error with Try again, while the policy is not read (F1-24); nothing for a venue with none.
  */
 export function PairingWindow({ venueId, canSwitch }: PairingWindowProps) {
   const policy = useTvPairingPolicy(venueId);
   const { setWindowOnly, openWindow } = useTvPairingActions(venueId);
   const [failure, setFailure] = useState<TvFailure | null>(null);
   const report = (done: { ok: true } | { ok: false; error: TvFailure }) => setFailure(done.ok ? null : done.error);
-  if (!policy.data) return null;
+  if (policy.isError) return <LoadState isError onRetry={() => void policy.refetch()} />;
+  if (policy.data === undefined) return <LoadState />;
+  if (policy.data === null) return null;
   const { isWindowOnly, openUntil } = policy.data;
   return (
     <Stack gap={3}>

@@ -82,7 +82,7 @@ function OverrideRow({ override, onLift }: { override: FeatureOverride; onLift: 
 function OverrideList({ venueId, memberId, onOutcome }: { venueId: string; memberId: string; onOutcome: (outcome: Outcome) => void }) {
   const overrides = useMemberFeatureOverrides(venueId, memberId);
   const [lifting, setLifting] = useState<FeatureOverride | null>(null);
-  if (overrides.isError) return <Text tone="muted">{t('common.loadFailed')}</Text>;
+  if (overrides.isError) return <LoadState isError onRetry={() => void overrides.refetch()} />;
   if (overrides.data === undefined) return <LoadState />;
   if (overrides.data.length === 0) return <Text tone="muted">{t('console.members.overrides.none')}</Text>;
   return (

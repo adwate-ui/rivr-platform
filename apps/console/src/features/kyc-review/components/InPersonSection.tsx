@@ -1,6 +1,6 @@
 import { useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
+import { Button, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { InPersonForm } from './InPersonForm.tsx';
 
@@ -63,7 +63,7 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
   const found = useKycInPersonCandidates(venueId, search);
   if (search.trim().length < 2) return null;
   if (found.isPending) return <LoadState />;
-  if (found.isError) return <ErrorMessage>{t('console.kycInPersonFailures.unavailable')}</ErrorMessage>;
+  if (found.isError) return <LoadState isError onRetry={() => void found.refetch()} />;
   if (found.data.length === 0) return <Text tone="muted">{t('console.kycInPerson.noMatch')}</Text>;
   return (
     <Stack gap={4} divided>
