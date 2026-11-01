@@ -40,7 +40,7 @@ describe('Screen', () => {
   it('alerts the error and retries on request', async () => {
     const onRetry = vi.fn();
     renderIn(<Screen title="Balance" status="error" onRetry={onRetry} />);
-    expect(screen.getByRole('alert')).toHaveTextContent('Could not load this. Check the connection and try again.');
+    expect(screen.getByRole('alert')).toHaveTextContent('Not loaded. Try again.');
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });

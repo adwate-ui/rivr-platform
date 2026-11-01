@@ -25,7 +25,7 @@ test.describe('Website', () => {
     await page.getByText('Who can join?').click();
     await expect(page.getByText(/^Anyone 18 or over\./)).toBeVisible();
 
-    await site.getByRole('link', { name: 'Visit & Contact' }).click();
+    await site.getByRole('link', { name: 'Visit and contact' }).click();
     await expect(page.getByText('Upper floor, Glaza, M3M 65th Avenue, Sector 65, Gurugram')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Get directions' })).toHaveAttribute('href', /^https:\/\/www\.google\.com\/maps\//);
 
@@ -45,7 +45,7 @@ test.describe('Website', () => {
     await page.getByRole('button', { name: 'Essential only' }).click();
     const site = page.getByRole('navigation', { name: 'Site' });
 
-    await site.getByRole('link', { name: 'The Club' }).click();
+    await site.getByRole('link', { name: 'The club' }).click();
     await expect(page).toHaveURL(/\/about\?ref=FRIEND1$/);
     await expect(page.getByRole('heading', { level: 1, name: 'About RIVR' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Poker is a game of skill.' })).toBeVisible();
@@ -58,7 +58,7 @@ test.describe('Website', () => {
     await expect(page.getByText(/of your rake comes back as points/)).toHaveCount(0);
 
     // The seed publishes Buy-in bonus Tuesday, high hands and the referral (57_promotions.sql).
-    await site.getByRole('link', { name: 'Prizes & Calendar' }).click();
+    await site.getByRole('link', { name: 'Prizes and calendar' }).click();
     await expect(page.getByRole('heading', { level: 3, name: 'Buy-in bonus Tuesday' })).toBeVisible();
 
     await site.getByRole('link', { name: 'Journal' }).click();

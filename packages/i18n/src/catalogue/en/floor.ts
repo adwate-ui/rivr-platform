@@ -125,15 +125,15 @@ export const liveFloor = {
   onBreak: 'This member is on a break from play. They cannot be seated until it ends.',
   noMember: 'No member has that number. Sign them up first.',
   stopped: 'This member is frozen. Ask a manager.',
-  paused: 'The venue is frozen. Seating changes again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   invalid: 'That table is closed or has no such seat.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
 };
 
 /** Today's players (#641): every member at the club this club day, for staff who read members. */
 export const todaysPlayers = {
   title: 'Today’s players',
-  notAllowed: 'Your role does not include members. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   label: 'Players today',
   empty: 'Nobody has come in today yet.',
   filter: 'Find a player',
@@ -192,7 +192,7 @@ export const tablesSetup = {
     seats_taken: 'More seats than that are taken. Free them first.',
     not_allowed: 'Only the super admin sets up tables.',
     paused: 'The club is frozen. Nothing changes until it is released.',
-    unavailable: 'That did not go through. Try again.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;
 

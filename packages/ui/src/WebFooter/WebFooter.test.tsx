@@ -5,7 +5,7 @@ import { WebFooter } from './WebFooter.tsx';
 
 const COLUMNS = [
   { heading: 'Policies', links: [{ label: 'House rules', href: '/house-rules' }, { label: 'Privacy', href: '/privacy' }] },
-  { heading: 'Need to talk?', links: [{ label: 'Tele-MANAS 14416 (24 hours)', href: 'tel:14416' }] },
+  { heading: 'Helplines', links: [{ label: 'Tele-MANAS 14416 (24 hours)', href: 'tel:14416' }] },
 ];
 
 function renderFooter(cookieSettings?: string) {

@@ -1,7 +1,7 @@
 /** The console's KYC review queue (#31). `{name}` is the member's; scores are 0 to 100. */
 export const kycReview = {
   title: 'KYC review',
-  notAllowed: 'Your role does not include KYC review. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No checks waiting for review.',
   waiting: 'Checks to review',
   /** The last 90 days of them (F1-31). */

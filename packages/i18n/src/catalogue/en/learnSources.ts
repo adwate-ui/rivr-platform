@@ -26,7 +26,7 @@ export const learnSources = {
   failures: {
     not_allowed: 'Only a super admin adds Learn content.',
     invalid: 'Give the licence terms and the licence\u2019s last day.',
-    paused: 'The venue is frozen. Try again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'That did not upload. Try again.',
   },
 } as const;

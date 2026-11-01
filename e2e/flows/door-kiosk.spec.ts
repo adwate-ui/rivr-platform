@@ -71,11 +71,11 @@ test.describe('Door kiosk', () => {
 
     // Home asks how it was; a 2 with a note is a ticket for the General Manager.
     await member.getByRole('link', { name: 'Home' }).click();
-    await expect(member.getByRole('heading', { name: /^How was \w+day\?$/ })).toBeVisible();
+    await expect(member.getByRole('heading', { name: /^Your visit on \w+day$/ })).toBeVisible();
     await member.getByRole('group', { name: 'Your rating, 1 to 5' }).getByRole('button', { name: '2', exact: true }).click();
     await member.getByRole('textbox', { name: 'Anything to add (optional)' }).fill('The door queue was slow.');
     await member.getByRole('button', { name: 'Send', exact: true }).click();
-    await expect(member.getByText('Thank you. The General Manager will look into it and may call you.')).toBeVisible();
+    await expect(member.getByText('Thank you. The General Manager may call you.')).toBeVisible();
 
     await floor.getByRole('link', { name: 'Feedback' }).click();
     await expect(floor.getByText('The door queue was slow.')).toBeVisible();

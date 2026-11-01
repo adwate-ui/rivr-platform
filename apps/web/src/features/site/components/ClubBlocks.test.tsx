@@ -35,10 +35,10 @@ describe('the blocks read from the League and the club’s rules', () => {
     });
     const [month] = screen.getAllByRole('table').map((table) => within(table).getAllByRole('row').map((row) => row.textContent));
     expect(month).toEqual(['PlaceMemberPoints', '1Zoya K.1,200', '2A member800']);
-    expect(screen.getByText('The standings for November 2026, from cash games and tournaments.')).toBeDefined();
+    expect(screen.getByText('Standings for November 2026')).toBeDefined();
     expect(screen.getByText('Prizes: Top three win a seat in the season final')).toBeDefined();
     expect(screen.getByRole('heading', { level: 2, name: 'Winter 2026' })).toBeDefined();
-    expect(screen.getByText('No standings yet. They start with the first night of play.')).toBeDefined();
+    expect(screen.getByText('No standings yet.')).toBeDefined();
   });
 
   it('shows what play earns by table, and RIVR Rewards, from the rules in force', () => {
@@ -50,7 +50,7 @@ describe('the blocks read from the League and the club’s rules', () => {
     expect(screen.getAllByRole('row').map((row) => row.textContent)).toEqual([
       'TablePoints an hourRakeback', 'NLH 50/1005None', 'NLH 100/20010' + '10% of your rake',
     ]);
-    expect(screen.getByText(/rounded down to a whole point.*Rakeback is paid as bonus each Monday.*RIVR Rewards: 5% of your rake comes back as points\./)).toBeDefined();
+    expect(screen.getByText(/never turn into cash.*Rakeback is paid as bonus chips each Monday.*RIVR Rewards: 5% of your rake comes back as points\./)).toBeDefined();
   });
 
   it('shows the cab and hotel nights the club gives, and leaves out a block with no rule set', () => {

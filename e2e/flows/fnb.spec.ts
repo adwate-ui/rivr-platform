@@ -15,7 +15,7 @@ import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
-/** The number in `Sent to the bar: KOT 12…`. */
+/** The number in `Sent to the bar. Order 12.` or `Sent to the bar: KOT 12.` */
 async function kotIn(page: Page, sent: RegExp) {
   const line = page.getByText(sent);
   await expect(line).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('F&B', () => {
     await member.getByRole('button', { name: 'One more Masala chai' }).click();
     await member.getByRole('button', { name: 'One more Beer' }).click();
     await member.getByRole('button', { name: 'Send to the bar' }).click();
-    const fromApp = await kotIn(member, /^Sent to the bar: KOT \d+, to Table 3, seat 1\.$/);
+    const fromApp = await kotIn(member, /^Sent to the bar\. Order \d+\.$/);
     // The Menu tab (#635) follows it to the seat: placed, until the service staff take it (their screen is #640).
     await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Menu' }).click();
     await expect(member.getByRole('heading', { name: 'Your orders tonight' })).toBeVisible();

@@ -1,7 +1,7 @@
 /** The console's Members screen (#60): find a member, open their record, and change their tier. */
 export const members = {
   title: 'Members',
-  notAllowed: 'Your role does not include members. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   /** Lists every member of a tier (additions flow 20), or any tier, as the search finds them. */
   filterTier: 'Tier',
   anyTier: 'Any',
@@ -9,8 +9,8 @@ export const members = {
   /** How an export of the results records the search (#102). */
   searchedFor: 'Search: {query}',
   search: 'Find a member',
-  searchHint: 'A name, four or more digits of a mobile number, or a member number.',
-  searchPrompt: 'Type a member number, two or more letters of a name, or four or more digits of a mobile number.',
+  searchHint: 'A member number, two or more letters of a name, or four or more digits of a mobile.',
+  searchPrompt: 'Search by member number, name or mobile.',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',
@@ -81,9 +81,9 @@ export const members = {
       notAllowed: 'Only a super admin overrides a feature.',
       noMember: 'That member is not at this venue.',
       invalid: 'Choose a feature, give a reason of 3 to 500 characters, and a last day still to come.',
-      paused: 'The venue is frozen. Overrides change again once it is released.',
+      paused: 'Venue frozen. Try again once it is released.',
       notInForce: 'That override has already ended or been replaced.',
-      unavailable: 'That did not go through. Check the connection and try again.',
+      unavailable: 'Not sent. Try again.',
     },
   },
   /** Erasing one member's personal data on request, for super admins (#424, decision 0207). */
@@ -110,7 +110,7 @@ export const members = {
       staff_login: 'This member also signs in as staff. Change the number where staff are kept.',
       erased: 'This member was erased.',
       paused: 'The venue or the member is frozen.',
-      unavailable: 'That did not go through. Check the connection and try again.',
+      unavailable: 'Not sent. Try again.',
     },
   },
   erase: {
@@ -174,8 +174,8 @@ export const members = {
       not_allowed: 'Your role does not set breaks. Ask a membership manager.',
       no_member: 'That member is not at this venue.',
       invalid: 'Give a reason of 3 to 300 characters.',
-      paused: 'The venue is frozen. Breaks are set again once it is released.',
-      unavailable: 'That did not go through. Check the connection and try again.',
+      paused: 'Venue frozen. Try again once it is released.',
+      unavailable: 'Not sent. Try again.',
     },
   },
   /** Why a tier change did not go through. */
@@ -183,8 +183,8 @@ export const members = {
     notAllowed: 'Your role does not change tiers. Ask a membership manager.',
     noMember: 'That member is not at this venue.',
     invalid: 'Choose a different tier, give a reason of 3 to 500 characters, and a last day still to come.',
-    paused: 'The venue is frozen. Tiers change again once it is released.',
-    unavailable: 'That did not go through. Check the connection and try again.',
+    paused: 'Venue frozen. Try again once it is released.',
+    unavailable: 'Not sent. Try again.',
   },
 };
 
@@ -221,7 +221,7 @@ export const tiers = {
   notAllowedAction: 'Your role cannot change tiers. Ask an admin.',
   inPast: 'That date has passed, or the change is already in force. Choose another date.',
   changed: 'The tiers changed meanwhile. Check the matrix and save again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
   /** The preview of the player app as a member of one tier, with no override. */
   preview: 'Preview as a tier',
   previewTier: 'Tier to preview',

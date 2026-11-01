@@ -1,16 +1,16 @@
 /** Why an order did not go through (#123), the same words on every screen that orders. */
 const failures = {
   not_allowed: 'Ordering is not open to you here.',
-  not_seated: 'Nobody sits in that seat: order for a seat with a player in it.',
-  not_on_menu: 'Something in the order is no longer on the menu. Check it and send it again.',
-  too_soon: 'The bar has your last order. Wait a minute before the next.',
-  too_young: 'Alcohol is ordered at 21 or over.',
+  not_seated: 'That seat is empty. Choose a seated player.',
+  not_on_menu: 'An item is off the menu. Check the order.',
+  too_soon: 'One order a minute. Try again shortly.',
+  too_young: 'Alcohol is for members 21 and over.',
   no_dealer: 'Sign a dealer in before ordering.',
   paused: 'The club is paused: orders wait until it reopens.',
-  invalid: 'An order is 1 to 9 of each item, 20 lines at most.',
-  unavailable: 'The order did not go through. Try again.',
+  invalid: 'Up to 9 of each item, 20 items in all.',
+  unavailable: 'Not sent. Try again.',
   /** Serving (#640): another steward got there first. */
-  taken: 'Someone else has just taken this order. The list shows where it stands now.',
+  taken: 'Taken by someone else.',
 } as const;
 
 /** A venue's menu with nothing on offer, on every screen that shows it. */
@@ -22,12 +22,12 @@ export const playerFnb = {
   title: 'Menu',
   /** On Home while the member is seated. */
   order: 'Order food and drink',
-  notSeated: 'Order from your seat: sit at a table first.',
+  notSeated: 'Take a seat to order.',
   empty,
   paid: 'Paid to Glaza when it comes to your seat.',
   send: 'Send to the bar',
   /** `{kot}` is the KOT's number; `{table}` and `{seat}` where it goes. */
-  sent: 'Sent to the bar: KOT {kot}, to {table}, seat {seat}.',
+  sent: 'Sent to the bar. Order {kot}.',
   /** The member's orders tonight, each followed to the seat (#635). */
   yourOrders: 'Your orders tonight',
   noOrders: 'No orders yet tonight.',
@@ -55,9 +55,9 @@ export const tabletFnb = {
 /** The console's F&B screen (#123), for staff who run it. */
 export const consoleFnb = {
   title: 'Food and drink',
-  notAllowed: 'Your role does not include food and drink. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   toPrint: 'KOTs to print',
-  toPrintHint: 'The cage agent prints these at the bar. If it is not running, print or read each one to the bar and mark it sent.',
+  toPrintHint: 'Print or read each to the bar, then mark it sent.',
   noneToPrint: 'Every KOT is at the bar.',
   markSent: 'Mark KOT {kot} sent',
   /** Serving (#640): orders to accept, then being prepared, then delivered, each with its table, seat and time. */
@@ -86,7 +86,7 @@ export const consoleFnb = {
   seat: 'Seat',
   /** A seat to order for: `Table 3, seat 5 · Yash Gupta`. */
   seatChoice: '{table}, seat {seat} · {name}',
-  nobodySeated: 'Nobody is seated just now.',
+  nobodySeated: 'Nobody seated.',
   isComp: 'Comp it: RIVR pays Glaza',
   send: 'Send to the bar',
   sent: 'Sent to the bar: KOT {kot}.',
@@ -98,7 +98,7 @@ export const consoleFnb = {
   offMenu: 'Off the menu',
   addItem: 'Add to the menu',
   empty,
-  invalidItem: 'An item needs a name of 1 to 60 characters and a place from 1 to 999.',
+  invalidItem: 'A name of 1 to 60 characters, a place from 1 to 999.',
   failures,
   /** Glaza's monthly statement (#109; decision 0265). */
   glaza: {
@@ -127,7 +127,7 @@ export const consoleFnb = {
     },
     payableHint: 'The payable is the comps less RIVR’s half of the alcohol margin. Below nothing, Glaza owes RIVR.',
     failures: {
-      not_allowed: 'Your role does not include food and drink. Ask an admin if you need it.',
+      not_allowed: 'Not in your role. Ask an admin.',
       invalid: 'A line is out of bounds or sold outside the club month. Check the file and the month, then import it again.',
       paused: 'The club is paused: import the file when it reopens.',
       unavailable: 'The import did not go through. Try again.',

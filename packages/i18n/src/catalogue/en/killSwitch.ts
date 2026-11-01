@@ -57,6 +57,6 @@ export const killSwitch = {
     noStaff: 'No staff member here has that mobile number.',
     needsSecond: 'You asked to release it. A second super admin releases the venue freeze.',
     lastEngagers: 'That would leave fewer than two super admins able to release a venue freeze. Add another super admin first.',
-    unavailable: 'That did not go through. Check the connection and try again.',
+    unavailable: 'Not sent. Try again.',
   },
 };

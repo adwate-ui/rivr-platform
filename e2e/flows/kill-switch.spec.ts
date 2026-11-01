@@ -12,9 +12,9 @@ import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
-const MEMBER_BANNER = 'The club is paused. Staff will assist you.';
-const STAFF_BANNER = 'Venue frozen. Money, seating and hand entries are refused until it is released.';
-const VISITOR_BANNER = 'The club is paused just now. Please check back soon.';
+const MEMBER_BANNER = 'The club is paused. Ask a member of staff.';
+const STAFF_BANNER = 'Venue frozen. Changes are refused until it is released.';
+const VISITOR_BANNER = 'The club is paused. Check back soon.';
 
 /** Asks to release the freeze on one super admin's console, and releases it on the other's. */
 async function release(first: Page, second: Page) {
@@ -70,7 +70,7 @@ test.describe('Kill switch', () => {
       await tablet.getByRole('button', { name: 'Seat 5, Kunal Mehra' }).click();
       // The tablet has no buy-in since #630: marking him away is refused instead.
       await tablet.getByRole('button', { name: 'Away', exact: true }).click();
-      await expect(tablet.getByText('The venue is frozen. Seats change again once it is released.')).toBeVisible();
+      await expect(tablet.getByText('Venue frozen. Try again once it is released.')).toBeVisible();
 
       const member = await browser.newPage();
       await signInToPlayer(member, '9000000214');

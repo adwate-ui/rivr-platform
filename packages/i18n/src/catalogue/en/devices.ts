@@ -8,7 +8,7 @@ export const devices = {
 
 export const tablets = {
   title: 'Tablets',
-  notAllowed: 'Your role does not include tablets. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No dealer tablets yet. Add one to pair it.',
   name: 'Tablet name',
   nameHint: 'For example, Table 3 tablet.',
@@ -32,9 +32,9 @@ export const tablets = {
   invalidName: 'Give the tablet a name.',
   invalidReason: 'Say why the tablet is revoked.',
   notAllowedAction: 'Your role does not allow this.',
-  paused: 'The venue is frozen. Tablets change again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   changed: 'That tablet or table has just changed. Check the list and try again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
 };
 
 /** The tablet before it is paired: a floor manager reads out a code from the console. */
@@ -94,7 +94,7 @@ export const dealerPins = {
   saved: 'PIN saved for {name}.',
   invalid: 'A PIN is four digits, not all the same.',
   notAllowedAction: 'Your role does not allow this.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
 };
 
 /** The tablet between downs: the dealer picks their name and enters their PIN. */
@@ -107,8 +107,8 @@ export const dealerSignIn = {
   wrongPin: 'That PIN is not right. {count} tries left before it locks.',
   wrongPinLast: 'That PIN is not right. One try left before it locks.',
   locked: 'Too many wrong PINs. This PIN is locked for 15 minutes, or until the owner or general manager sets a new one.',
-  paused: 'The venue is frozen. Dealers sign in again once it is released.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  paused: 'Venue frozen. Try again once it is released.',
+  unavailable: 'Not sent. Try again.',
   /** In the header during a down: who is dealing, since when (IST). */
   down: '{name} · down since {time}',
   endDown: 'End of down',
@@ -123,7 +123,7 @@ export const tvs = {
   openWindow: 'Pair a TV',
   windowOpenUntil: 'A TV gets a code until {time}.',
   windowShut: 'TVs get a code only for ten minutes after Pair a TV is pressed.',
-  notAllowed: 'Your role does not include TVs. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No TVs yet: type in the code a TV shows to pair it.',
   code: 'Code on the TV',
   codeHint: 'The six digits a TV that is not paired shows.',
@@ -152,9 +152,9 @@ export const tvs = {
   unpairConfirm: 'Unpair the TV',
   invalidReason: 'Say why the TV is unpaired.',
   notAllowedAction: 'Your role does not allow this.',
-  paused: 'The venue is frozen. TVs change again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   changed: 'That TV has just changed. Check the list and try again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
 };
 
 /** A TV before it is paired (#49): the code staff type into the console. */
@@ -215,8 +215,8 @@ export const seats = {
   confirmLeft: 'Yes, {name} left',
   notAllowed: 'This tablet changes only its own table.',
   invalid: 'That player is no longer at the table.',
-  paused: 'The venue is frozen. Seats change again once it is released.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  paused: 'Venue frozen. Try again once it is released.',
+  unavailable: 'Not sent. Try again.',
 };
 
 /** The tablet's queue of hands (#43), in its slim banner. */
@@ -239,7 +239,7 @@ export const queue = {
 /** The console's Computers screen (#384): enrol this computer as the cage or an admin console, and revoke one. */
 export const computers = {
   title: 'Computers',
-  notAllowed: 'Your role does not include computers. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   thisComputer: 'This computer',
   enrolledAsCage: 'Enrolled as the cage: {name}.',
   enrolledAsConsole: 'Enrolled as an admin console: {name}.',
@@ -275,6 +275,6 @@ export const computers = {
   invalidReason: 'Say why, in a few words.',
   notAllowedAction: 'Not from here. Computers are added at an enrolled admin console, and enrolled on the club\'s networks.',
   invalid: 'Give the computer a name.',
-  paused: 'The venue is frozen. Computers are enrolled again once it is released.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  paused: 'Venue frozen. Try again once it is released.',
+  unavailable: 'Not sent. Try again.',
 };

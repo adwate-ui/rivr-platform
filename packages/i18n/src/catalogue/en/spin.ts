@@ -1,7 +1,7 @@
 /** The console's spin wheel (#150; decision 0266): the spins waiting, and the wheel's prizes and odds. */
 export const spin = {
   title: 'Spin wheel',
-  notAllowed: 'Your role does not include the spin wheel. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   waiting: 'Spins waiting',
   waitingHint: 'Spin with the member at the table: the prize goes to their points or bonus, and the TVs show it.',
   noneWaiting: 'No spins waiting.',
@@ -35,11 +35,11 @@ export const spin = {
   /** A prize as the console names it; a bonus as bonus chips, never rupees (#629). */
   prizes: { points: '{points} points', bonus: '{chips} bonus chips', nothing: 'Nothing' },
   failures: {
-    not_allowed: 'Your role does not include this. Ask an admin if you need it.',
+    not_allowed: 'Not in your role. Ask an admin.',
     invalid: 'Points are a whole number, bonus chips come in whole 50s, and a weight is from 1 to 1,000.',
     gone: 'That spin is already spun, or the prize is already off the wheel.',
     no_prize: 'No prize on the wheel that this month’s spin budget and the promotion’s own budget allow. Add points or nothing, or raise a budget.',
     paused: 'The club or this member is paused: spin when it reopens.',
-    unavailable: 'That did not go through. Try again.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;

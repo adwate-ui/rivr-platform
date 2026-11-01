@@ -38,10 +38,10 @@ export const rewards = {
       invalid: 'Give 1 to 10,00,000 points and a reason of 3 to 200 characters.',
       not_enough_locked: 'They hold fewer locked points than that.',
       paused: 'The club is frozen. Nothing changes until it is released.',
-      unavailable: 'That did not go through. Try again.',
+      unavailable: 'Not sent. Try again.',
     },
   },
-  notAllowed: 'Your role does not include rewards. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   catalogue: 'Catalogue',
   noRewards: 'No rewards here yet.',
   /** The catalogue's filter: all rewards, or one kind. */
@@ -118,17 +118,17 @@ export const rewards = {
     not_enough_points: 'Not enough points.',
     not_enough_nights: 'Not enough nights.',
     stopped: 'That member is frozen.',
-    paused: 'The venue is frozen. Rewards change again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     switched_off: 'Redemptions are switched off for now.',
     cancelled: 'That redemption was cancelled. What it took went back to the member.',
-    unavailable: 'That did not go through. Check the connection and try again.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;
 
 /** The console's League screen: standings by month or season, and the seasons (rewards.manage). */
 export const league = {
   title: 'League',
-  notAllowed: 'Your role does not include the League. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   /** Which standings to show. */
   period: 'Standings for',
   thisMonth: 'This month',
@@ -161,7 +161,7 @@ export const league = {
   failures: {
     not_allowed: 'Your role does not allow this.',
     invalid: 'That season overlaps another, or its months are out of order.',
-    paused: 'The venue is frozen. Seasons change again once it is released.',
-    unavailable: 'That did not go through. Check the connection and try again.',
+    paused: 'Venue frozen. Try again once it is released.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;

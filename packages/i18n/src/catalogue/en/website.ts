@@ -1,7 +1,7 @@
 /** The console's website editor (#129; decision 0270). */
 export const website = {
   title: 'Website',
-  notAllowed: 'Your role does not include the website. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   hint: 'Change a page\u2019s words in place, save a draft and preview it as the website shows it, then publish it now or at a time. Every version is kept: publish an earlier one again from its history.',
   page: 'Page',
   choosePage: 'Choose a page to edit.',
@@ -51,10 +51,10 @@ export const website = {
     confirmRestore: 'Yes, publish it now',
   },
   failures: {
-    not_allowed: 'Your role does not include the website. Ask an admin if you need it.',
+    not_allowed: 'Not in your role. Ask an admin.',
     gone: 'That page or version is no longer there.',
     invalid: 'A block cannot be shown as it is. Check its words, then save again.',
     paused: 'The club is paused: edit the website when it reopens.',
-    unavailable: 'That did not go through. Try again.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;

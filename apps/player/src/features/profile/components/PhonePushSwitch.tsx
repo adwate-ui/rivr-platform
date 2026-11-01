@@ -10,7 +10,7 @@ export function PhonePushSwitch() {
     <>
       <Switch
         label={t('player.profile.phonePush')}
-        hint={t(phone.state === 'blocked' ? 'player.profile.phonePushBlocked' : 'player.profile.phonePushHint')}
+        {...(phone.state === 'blocked' ? { hint: t('player.profile.phonePushBlocked') } : {})}
         isOn={phone.state === 'on'}
         isDisabled={phone.isBusy || phone.state === 'loading' || phone.state === 'blocked'}
         onChange={(isOn) => void phone.change(isOn)}

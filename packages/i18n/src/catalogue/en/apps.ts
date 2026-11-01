@@ -71,7 +71,7 @@ export const playerApp = {
   card: {
     title: 'Membership card',
     qr: 'Your door code',
-    hint: 'Show this at the door. The code changes every few seconds.',
+    hint: 'Show at the door.',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */
     offline: 'No connection. Give your number at the door.',
   },
@@ -93,7 +93,7 @@ export const playerApp = {
     full: 'This batch is full.',
     closed: 'This batch is not open for booking.',
     notOpen: 'Academy booking is not open to you.',
-    stopped: 'Your account is paused. Speak to the front desk.',
+    stopped: 'Account paused. Ask at the front desk.',
     noFee: 'The club has not set the Academy fee yet. Try again later.',
     awaitingPayment: 'Booked. Pay to keep your seat.',
     /** Until when an unpaid seat is held: `Tuesday 20 Oct 2026, 15:30`, in IST (#247). */
@@ -205,7 +205,7 @@ export const consoleApp = {
   /** Across the top of every screen while the console works in the practice venue. */
   practiceBanner: 'Practice venue: nothing here reaches the club or its members.',
   /** A screen opened by address that the staff member's role does not include. */
-  notAllowed: 'Your role does not include this screen. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   academy,
   academyPayments,
   academyFailures,

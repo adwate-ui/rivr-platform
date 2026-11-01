@@ -91,7 +91,7 @@ test.describe('Waitlist', () => {
     await joinButton(player, 'Table 2').click();
     await expect(tableDetail(player, 'Table 2').getByText(/· You asked to join$/)).toBeVisible();
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toBeVisible();
-    await expect(player.getByText(/^Asked at \d{2}:\d{2} · The floor approves it onto the list$/)).toBeVisible();
+    await expect(player.getByText(/^Asked at \d{2}:\d{2} · waiting for the floor$/)).toBeVisible();
     // One game at a time (#633): no Join anywhere while the member waits.
     await expect(player.getByRole('button', { name: /^Join / })).toHaveCount(0);
 

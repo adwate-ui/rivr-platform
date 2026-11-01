@@ -6,12 +6,12 @@ import { KillSwitchBanner } from './KillSwitchBanner.tsx';
 describe('KillSwitchBanner', () => {
   it('tells a member the club is paused', () => {
     renderIn(<KillSwitchBanner audience="member" />);
-    expect(screen.getByRole('alert')).toHaveTextContent('The club is paused. Staff will assist you.');
+    expect(screen.getByRole('alert')).toHaveTextContent('The club is paused. Ask a member of staff.');
   });
 
   it('tells staff their writes are refused', () => {
     renderIn(<KillSwitchBanner audience="staff" />);
-    expect(screen.getByRole('alert')).toHaveTextContent('Venue frozen. Money, seating and hand entries are refused until it is released.');
+    expect(screen.getByRole('alert')).toHaveTextContent('Venue frozen. Changes are refused until it is released.');
   });
 
   it('cannot be dismissed', () => {

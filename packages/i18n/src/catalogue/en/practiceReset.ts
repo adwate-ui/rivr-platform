@@ -82,5 +82,5 @@ export const purgeFailures = {
   busy: 'Another change held the tables. Try the purge again in a moment.',
   second: 'A purge needs another super admin\'s ask, made since the freeze and within the day. The one who asked, or a login they made, cannot carry it out.',
   tooOften: 'Too many tries in a minute. Wait a moment and try again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
 };

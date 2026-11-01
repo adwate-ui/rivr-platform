@@ -36,7 +36,7 @@ test.describe('Call time', () => {
     await player.getByRole('button', { name: 'Add an hour of call time' }).click();
     await expect(player.getByText(/^Call time (4 h|3 h 59 min|3 h 58 min) left$/)).toBeVisible();
     await player.getByRole('button', { name: 'Ask for a top-up' }).click();
-    await expect(player.getByText('Top-up requested. The floor is on its way.')).toBeVisible();
+    await expect(player.getByText('Top-up requested.')).toBeVisible();
     await floor.getByRole('button', { name: 'The top-up for Ritika Das is in progress' }).click({ timeout: 20_000 });
     await expect(floor.getByText('Top-up in progress', { exact: true })).toBeVisible();
     await player.reload();
@@ -64,7 +64,7 @@ test.describe('Call time', () => {
 
     // She leaves with call time owed: she is on the floor's Leaving list until it is done.
     await player.getByRole('button', { name: 'Leave my seat' }).click();
-    await expect(player.getByText('You are on the leaving list. The floor opens your seat once your call time is done.')).toBeVisible();
+    await expect(player.getByText('On the leaving list until your call time ends.')).toBeVisible();
     await expect(floor.getByRole('button', { name: 'Ritika Das is not leaving' }).first()).toBeVisible({ timeout: 20_000 });
 
     // Flow 13: an admin lets her leave early, with a reason, and ends her seat.

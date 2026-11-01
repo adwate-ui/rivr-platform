@@ -19,6 +19,6 @@ describe('VenueLogo', () => {
   it('says when the logo could not load', () => {
     renderIn(<VenueLogo alt="The venue’s logo" src="https://example.test/broken.png" />);
     fireEvent.error(screen.getByRole('img', { name: 'The venue’s logo' }));
-    expect(screen.getByText('The logo could not load. Upload it again.')).toBeInTheDocument();
+    expect(screen.getByText('Logo not loaded. Upload it again.')).toBeInTheDocument();
   });
 });

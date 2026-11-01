@@ -17,7 +17,7 @@ export const promotions = {
   budget: 'Budget in bonus chips (optional)',
   budgetFor: 'Budget for',
   budgetPeriods: { promotion: 'The whole promotion', month: 'Each month' },
-  invalidBudget: 'Enter the budget in rupees, or leave it empty.',
+  invalidBudget: 'Enter the budget in bonus chips, or leave it empty.',
   /** The builder's budget (A2-04): the most grants beside the amount, both optional. */
   budgetGrants: 'Most grants (optional)',
   invalidBuilderBudget: 'Enter the budget in bonus chips and the most grants as whole numbers, or leave them empty.',
@@ -177,6 +177,6 @@ export const promotions = {
     already_decided: 'Another super admin has already decided this one.',
     switched_off: 'Promotions are switched off.',
     paused: 'The club is frozen. Nothing changes until it is released.',
-    unavailable: 'That did not go through. Try again.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;

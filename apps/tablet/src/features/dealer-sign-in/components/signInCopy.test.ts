@@ -9,7 +9,7 @@ describe('what the tablet says when sign-in does not go through', () => {
 
   it('says a PIN is locked, the venue is frozen, or the connection failed', () => {
     expect(signInFailureText({ reason: 'locked' })).toMatch(/^Too many wrong PINs\./);
-    expect(signInFailureText({ reason: 'paused' })).toBe('The venue is frozen. Dealers sign in again once it is released.');
-    expect(signInFailureText({ reason: 'unavailable' })).toBe('That did not go through. Check the connection and try again.');
+    expect(signInFailureText({ reason: 'paused' })).toBe('Venue frozen. Try again once it is released.');
+    expect(signInFailureText({ reason: 'unavailable' })).toBe('Not sent. Try again.');
   });
 });

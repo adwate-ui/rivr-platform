@@ -6,13 +6,12 @@
  */
 export const playerSignUp = {
   title: 'About you',
-  intro: 'Your full name as on your Aadhaar. We check it when you verify your identity.',
   /** `{phone}` is the number they signed in with: `+91 98765 43210`. */
   phone: 'Mobile {phone}',
   addPhoto: 'Add a photo (optional)',
-  photoAdded: 'Photo added. It is sent when you continue.',
+  photoAdded: 'Photo added.',
   removePhoto: 'Remove the photo',
-  photoFailed: 'Your photo did not go through. Try again, or remove it and continue.',
+  photoFailed: 'Photo not sent. Try again or remove it.',
   cityLabel: 'City',
   cityInvalid: 'Enter your city in English letters.',
   occupationLabel: 'What best describes you',
@@ -41,8 +40,8 @@ export const playerSignUp = {
   submit: 'Continue',
   /** Signs out, for someone who signed in with the wrong number. */
   otherNumber: 'Use another number',
-  nameInvalid: 'Enter your full name in English letters, as on your Aadhaar.',
+  nameInvalid: 'Full name in English, as on your Aadhaar.',
   staff: 'Staff join as members at the front desk.',
-  stopped: 'New sign-ups are paused for now. Try again later.',
-  unavailable: 'Sign-up is not available right now. Try again in a few minutes.',
+  stopped: 'Sign-ups are paused. Try again later.',
+  unavailable: 'Sign-up is down. Try again shortly.',
 } as const;

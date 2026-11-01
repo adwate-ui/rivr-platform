@@ -142,7 +142,7 @@ describe('the Academy screen', () => {
   it('says a refusal about the whole club in its own words, not as the batch\'s', async () => {
     renderAcademy({ openBatches: [[LEVEL_1], []], refusalCode: 'RVFRZ' });
     fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
-    expect(await screen.findByText('The club is paused. Staff will assist you.')).toBeDefined();
+    expect(await screen.findByText('The club is paused. Ask a member of staff.')).toBeDefined();
     expect(screen.queryByText(/^Level 1:/)).toBeNull();
   });
 

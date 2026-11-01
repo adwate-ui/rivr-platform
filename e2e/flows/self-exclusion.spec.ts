@@ -35,7 +35,7 @@ test.describe('Self-exclusion', () => {
 
     await page.getByRole('button', { name: 'Take a break' }).click();
     const sheet = page.getByRole('dialog', { name: 'Take a break' });
-    await expect(sheet.getByText('Waitlists and buy-ins close for the period you choose. It cannot be shortened.')).toBeVisible();
+    await expect(sheet.getByText('Tables and waitlists close to you. A break cannot be shortened.')).toBeVisible();
     await expect(sheet.getByRole('button', { name: new RegExp(`^24 hours Until ${UNTIL}$`) })).toBeVisible();
     await sheet.getByRole('button', { name: /^7 days/ }).click();
     await expect(sheet).toHaveCount(0);
@@ -50,6 +50,6 @@ test.describe('Self-exclusion', () => {
     await expect(page.getByText(/^Break active until /)).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
     await joinTable1(page).click();
-    await expect(page.getByText('Break active. Tables are closed to you until it ends.')).toBeVisible();
+    await expect(page.getByText('On a break.')).toBeVisible();
   });
 });

@@ -17,6 +17,6 @@ describe('CallTimeTimer', () => {
   it('reads a last few seconds as a minute, and nothing left as done', () => {
     renderIn(<><CallTimeTimer secondsLeft={20} /><CallTimeTimer secondsLeft={0} /></>);
     expect(screen.getByText('Call time 1 min left')).toBeInTheDocument();
-    expect(screen.getByText('Call time done')).toHaveClass('text-content-muted');
+    expect(screen.getByText('Call time complete')).toHaveClass('text-content-muted');
   });
 });

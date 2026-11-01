@@ -30,7 +30,7 @@ export const consoleHostQueue = {
   failures: {
     not_allowed: 'Only staff who manage members can do this.',
     gone: 'This player has left the queue.',
-    paused: 'The venue is frozen. Try again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not saved. Try again.',
   },
 } as const;

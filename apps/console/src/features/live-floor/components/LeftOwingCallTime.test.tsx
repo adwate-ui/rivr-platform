@@ -39,7 +39,7 @@ function renderList() {
 describe('LeftOwingCallTime', () => {
   it('says the list failed to load, under its heading, and Try again loads it, so no member owing call time goes unseen', async () => {
     renderList();
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Could not load this/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not loaded/);
     expect(screen.getByRole('heading', { name: 'Left before call time' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByText('Kabir Sethi')).toBeDefined();

@@ -65,7 +65,7 @@ export const staff = {
   paused: 'The venue is frozen: only turning a login off goes through until it is released.',
   jobTitleSaved: 'Job title saved.',
   changed: 'That did not save. Check the details and try again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
   /** A hire's onboarding checklist (#107): each SOP in force that asks their role, ticked once they acknowledge that version. */
   onboarding: {
     progress: 'Onboarding: {count} of {total} SOPs acknowledged.',

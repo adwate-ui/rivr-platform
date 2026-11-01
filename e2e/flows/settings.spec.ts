@@ -12,7 +12,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
-const REFUSED = 'Your role does not include this screen. Ask an admin if you need it.';
+const REFUSED = 'Not in your role. Ask an admin.';
 
 /** A one-pixel PNG, as the logo. */
 const LOGO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
