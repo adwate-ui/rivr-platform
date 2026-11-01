@@ -34,12 +34,13 @@ export function PhoneCheckIn({ venueId }: { venueId: string }) {
   }, () => setOutcome(null));
   const phone = form.register('phone');
   const isFailure = outcome !== null && outcome !== 'checked_in' && outcome !== 'checked_out';
+  const isRepeat = () => (outcome === 'checked_in' || outcome === 'checked_out') && form.getValues('phone') === '';
   return (
     <Stack gap={2}>
       <Inline gap={3} align="end" wrap>
         <Input {...phone} type="tel" label={t('console.checkIn.phone')} prefix={t('common.signIn.countryCode')} inputMode="tel" autoComplete="off" />
-        <Button variant="secondary" isLoading={checkInByPhone.isPending} onClick={() => void admit()}>{t('console.checkIn.checkIn')}</Button>
-        <Button variant="text" isLoading={checkOutByPhone.isPending} onClick={() => void release()}>{t('console.checkIn.checkOut')}</Button>
+        <Button variant="secondary" isLoading={checkInByPhone.isPending} onClick={() => { if (!isRepeat()) void admit(); }}>{t('console.checkIn.checkIn')}</Button>
+        <Button variant="text" isLoading={checkOutByPhone.isPending} onClick={() => { if (!isRepeat()) void release(); }}>{t('console.checkIn.checkOut')}</Button>
       </Inline>
       {form.formState.errors.phone ? <ErrorMessage>{t('console.checkIn.invalid')}</ErrorMessage> : null}
       <StatusMessage>{outcome === 'checked_in' ? t('console.checkIn.checkedIn') : null}</StatusMessage>

@@ -37,6 +37,17 @@ describe('a check-in at the door', () => {
     expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Mobile number' }).value).toBe('');
   });
 
+  it('keeps "Checked in." when a second tap lands on the emptied field, rather than asking for a number', async () => {
+    renderDoor();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile number' }), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check in' }));
+    expect(await screen.findByText('Checked in.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Check in' }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.getByText('Checked in.')).toBeDefined();
+    expect(screen.queryByText('Enter a 10-digit mobile number.')).toBeNull();
+  });
+
   it('takes "Checked in." away when the next number is refused, so it never stands for a check-in that failed', async () => {
     renderDoor();
     const phone = screen.getByRole('textbox', { name: 'Mobile number' });

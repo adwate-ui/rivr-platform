@@ -10,6 +10,8 @@ export interface TvSlidePager {
 }
 
 export interface TvPromotionSlideProps {
+  /** The title's heading level: 1 on the TV, 2 where the slide is a preview inside another screen. */
+  level?: 1 | 2;
   /** Letter-spaced above the title: "Promotion". */
   label: string;
   /** The promotion, as published: "High hands". */
@@ -37,11 +39,11 @@ function Pager({ current, count, label }: TvSlidePager) {
  * the display face, what it gives, when it runs, and a quiet pager when it is one of several. It
  * holds no state: the TV's rotation passes the slide and its place.
  */
-export function TvPromotionSlide({ label, title, detail, when, pager }: TvPromotionSlideProps) {
+export function TvPromotionSlide({ label, title, detail, when, pager, level = 1 }: TvPromotionSlideProps) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
       <Text variant="tvLabel" tone="muted" align="center">{label}</Text>
-      <Heading level={1} variant="poster" align="center">{title}</Heading>
+      <Heading level={level} variant="poster" align="center">{title}</Heading>
       {detail === undefined ? null : <p className="font-text text-48 leading-tight text-content">{detail}</p>}
       {when === undefined ? null : <Text variant="tvBody" tone="muted" align="center">{when}</Text>}
       {pager === undefined || pager.count < 2 ? null : <Pager {...pager} />}
