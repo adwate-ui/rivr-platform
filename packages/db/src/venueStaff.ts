@@ -27,13 +27,14 @@ export type StaffChange = { readonly jobTitle: string } | { readonly role: Staff
  * - `not_allowed`: a role the manager couldn't give, or no staff.manage;
  * - `already_staff`: that number is already on the venue's list (turn their row back on instead);
  * - `own_change`: their own role or turning themselves off;
- * - `last_super_admins`: it would leave fewer than two super admins able to release a freeze.
- * A freeze doesn't stop staff changes: a manager may need to turn someone off during one.
+ * - `last_super_admins`: it would leave fewer than two super admins able to release a freeze;
+ * - `paused`: the venue is frozen. Only turning a login off goes through then (decision 0073, A4-03), unless the manager
+ *   holds venue.configure.
  */
-export type StaffFailure = 'not_allowed' | 'already_staff' | 'own_change' | 'last_super_admins' | 'invalid' | 'unavailable';
+export type StaffFailure = 'not_allowed' | 'already_staff' | 'own_change' | 'last_super_admins' | 'paused' | 'invalid' | 'unavailable';
 
 const STAFF_FAILURE_BY_CODE: Readonly<Record<string, StaffFailure>> = {
-  '42501': 'not_allowed', '23505': 'already_staff', RVOWN: 'own_change', RVLCK: 'last_super_admins', '23514': 'invalid', '22023': 'invalid',
+  '42501': 'not_allowed', '23505': 'already_staff', RVOWN: 'own_change', RVLCK: 'last_super_admins', RVFRZ: 'paused', '23514': 'invalid', '22023': 'invalid',
 };
 
 function columnsOf(change: StaffChange) {

@@ -37,6 +37,14 @@ export const purge = {
   practice: 'The practice venue resets to its seed instead, on Practice reset.',
   intro: 'Purging deletes the venue\'s play for good: members, visits, seats, hands, tournaments, the ledger\'s entries, promotions and messages. Its setup, staff, accounts and the audit log stay.',
   freezeFirst: 'Freeze the venue on Kill switch first, so nothing changes between the archive and the purge.',
+  askTitle: 'Two super admins',
+  askHint: 'One super admin asks for the purge, saying why, and another carries it out within a day. A purge cannot be undone.',
+  askReason: 'Why the venue is purged',
+  ask: 'Ask for the purge',
+  /** `{time}`: when this super admin asked. */
+  askedByYou: 'You asked for the purge at {time}. Another super admin carries it out within a day.',
+  /** Who asked, at what `{time}`, and their `{reason}`. */
+  askedBy: '{name} asked for the purge at {time}: "{reason}". Make the archive, then purge.',
   archiveTitle: 'The archive',
   archiveHint: 'Make the full encrypted archive, with the KYC photos and receipts, and keep the file: it is the only copy once the purge removes them. The purge waits for one made in the last 30 minutes.',
   kycReason: 'Why the KYC photos go in the archive',
@@ -68,6 +76,7 @@ export const purgeFailures = {
   held: 'A kill-switch control names a member. Release it, then purge.',
   changed: 'The venue changed after the archive began, often a waitlist hold moving or a sign-up. Clear the waitlist, make the archive again, then purge.',
   busy: 'Another change held the tables. Try the purge again in a moment.',
+  second: 'A purge needs another super admin\'s ask, made since the freeze and within the day. The one who asked, or a login they made, cannot carry it out.',
   tooOften: 'Too many tries in a minute. Wait a moment and try again.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };

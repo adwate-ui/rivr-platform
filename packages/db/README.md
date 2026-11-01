@@ -15,7 +15,8 @@ The tablet's writes (a dealer's sign-in and end of down, seat events, food order
 | `useFeatureStatus(key)`, `FeatureStatus` | The same access for a screen that shows something with or without the feature: `loading`, `error` (with `retry`) or `ready` with the `access`, so the screen waits rather than switching once access arrives. |
 | `useControlState(venueId?)` | The kill switch: `isVenueFrozen`, `killedFeatures`, `isMemberFrozen` (member apps). Drives `KillSwitchBanner`. |
 | `usePracticeResetPreview(venueId)`, `usePracticeReset(venueId)` | Reset to seed on the practice venue (#104), for its super admins: the dry run (`PracticeResetRow`: each table a reset reloads with its rows now and in the seed), and `mutateAsync(venueName)`, the venue's name typed exactly, as a Result (`PracticeResetFailure`: `not_allowed`, `not_practice`, `no_seed`, `wrong_name`, `paused`, `too_soon`, `held`, `unavailable`). |
-| `useLivePurgePreview(venueId, isFrozen)`, `usePurgeLiveVenue(venueId)`, `useRemovePurgedFiles(venueId)` | Purge a live venue (#432, decision 0239), for super admins:
+| `useOpenPurgeAsk(venueId)`, `useAskLivePurge(venueId)`, `useLivePurgePreview(venueId, isFrozen)`, `usePurgeLiveVenue(venueId)`, `useRemovePurgedFiles(venueId)` | Purge a live venue (#432, decision 0239), for super admins:
+- the ask (A4-13): one super admin asks, saying why (`useAskLivePurge`), and another carries it out within a day; `useOpenPurgeAsk` is the open ask (`PurgeAsk`: who asked, why, when, and whether it was this super admin); a purge by the one who asked is refused (`second`);
 - the dry run of each table it deletes from (`LivePurgeRow`), asked only while the venue is frozen;
 - the purge itself, from the console so its computer is checked, once the venue's name is typed: a Result of the rows deleted;
 - then the files its archive held, through the purge-venue Edge Function within seven days (`PurgedFiles`: removed, and left to try again).

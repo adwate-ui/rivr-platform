@@ -18,6 +18,8 @@ function sql(query: string): string {
 
 const ROOM = '00000000-0000-4000-8000-0000000000e9';
 const IRA = '00000000-0000-4000-8000-000000000186';
+// A second super admin of the room, who asks for the purge Ira carries out (A4-13).
+const DEV = '00000000-0000-4000-8000-000000000187';
 
 /** A throwaway live venue, never the club: Ira its super admin, the owner's backup key, one member, and frozen. */
 function makeRoom(): void {
@@ -33,6 +35,9 @@ function makeRoom(): void {
   sql(`insert into public.member (venue_id, full_name, phone) values ('${ROOM}', 'Purge Test Member', '+919000000995')`);
   sql(`insert into public.control_state (venue_id, level, reason) select '${ROOM}', 'venue_freeze', 'E2E purge'
        where not exists (select 1 from public.control_state where venue_id = '${ROOM}' and level = 'venue_freeze' and released_at is null)`);
+  sql(`insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+       select '${ROOM}', '${DEV}', 'Dev Rao', 'Partner', 'super_admin', '+919000000187'
+       where not exists (select 1 from public.staff where venue_id = '${ROOM}' and user_id = '${DEV}')`);
 }
 
 test.describe('Purge', () => {
@@ -59,15 +64,31 @@ test.describe('Purge', () => {
     await expect(page.getByText('Every table matches the seed.')).toBeVisible();
   });
 
-  // #432 (decision 0239): Ira Bansal, super admin of a throwaway venue the flow makes, makes and saves the full archive
+  // #432 (decision 0239): another super admin asks for the purge (A4-13). Ira Bansal, super admin of a throwaway venue
+  // the flow makes, sees who asked and why, makes and saves the full archive
   // with the KYC photos, sees what the purge deletes, types a wrong name, then the right one. The member goes, the files
   // the archive holds are removed, and the audit log keeps the purge.
   // What stays and goes, table by table, is proved in supabase/tests/150_purge_live_venue.test.sql.
-  test('Purge: a super admin purges a frozen live venue after saving its archive, typing its name', async ({ page }) => {
+  test('Purge: a super admin purges a frozen live venue after saving its archive, typing its name', async ({ browser, page }) => {
     test.skip(isRemoteTarget(), 'makes and purges a venue in the local database, so the local stack only');
+    // Two super admins sign in, one after the other.
+    test.setTimeout(90_000);
     makeRoom();
+    // The room's other super admin asks for the purge, saying why.
+    const asker = await browser.newPage();
+    await signInToConsole(asker, '9000000187');
+    await asker.getByRole('link', { name: 'Purge', exact: true }).click();
+    const askedMine = asker.getByText(/^You asked for the purge at /);
+    const ask = asker.getByRole('button', { name: 'Ask for the purge' });
+    await expect(ask.or(askedMine)).toBeVisible();
+    if (await ask.isVisible()) {
+      await asker.getByRole('textbox', { name: 'Why the venue is purged' }).fill('Closing the E2E room for good');
+      await ask.click();
+    }
+    await expect(askedMine).toBeVisible();
     await signInToConsole(page, '9000000186');
     await page.getByRole('link', { name: 'Purge', exact: true }).click();
+    await expect(page.getByText(/ asked for the purge at .+: "Closing the E2E room for good"\. Make the archive, then purge\.$/)).toBeVisible();
 
     const saved = page.waitForEvent('download');
     await page.getByRole('textbox', { name: 'Why the KYC photos go in the archive' }).fill('Purging the E2E room: the archive keeps the only copy');
