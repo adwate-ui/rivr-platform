@@ -19,3 +19,6 @@ export const Default: Story = {};
 export const LockedTab: Story = { args: { items: withLearn({ state: 'locked', tiers: ['Academy graduate', 'Black card'] }) } };
 
 export const HiddenTab: Story = { args: { items: withLearn({ state: 'hidden' }), current: 'food' } };
+
+/** Every tab at a narrow phone's width, one locked with the tiers that have it (F5-19). */
+export const LongText: Story = { args: { items: withLearn({ state: 'locked', tiers: ['Academy graduate', 'Black card', "Founders' Circle"] }) }, tags: ['viewport-phone'] };

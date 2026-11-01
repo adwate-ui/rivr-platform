@@ -15,3 +15,6 @@ export const Prompt: Story = {};
 
 /** An iPhone, where only Safari can add the app: the offer says how, with no Install button. */
 export const Iphone: Story = { args: { kind: 'ios' } };
+
+/** The prompt, with both its buttons, at a narrow phone's width (F5-19). */
+export const LongText: Story = { args: { kind: 'prompt' }, tags: ['viewport-phone'] };
