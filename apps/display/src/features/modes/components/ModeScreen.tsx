@@ -1,7 +1,7 @@
 import { HIDDEN_TV_MODES, type TvMode } from '@rivr/contracts';
 import { useMyTvScreen, useTvSignals } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Heading, Stack, Text, TvBoardProgress } from '@rivr/ui';
+import { Heading, StaleNotice, Stack, Text, TvBoardProgress } from '@rivr/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { CallTimeMode } from './CallTimeMode.tsx';
 import { LeagueMode } from './LeagueMode.tsx';
@@ -88,7 +88,8 @@ function Boards({ venueId, mode, rotation, name }: { venueId: string; mode: TvMo
 /**
  * A paired TV: the mode the console gave it, and the boards it turns to in between (decision 0163). It
  * asks again every ten seconds, so a new mode shows without a reload, and an unpaired TV signs itself
- * out and shows a new code.
+ * out and shows a new code. When that ask fails, as every read does in a network drop, the boards keep
+ * what they last had and a quiet line says since when (F3-24); no one can press anything on a TV.
  */
 export function ModeScreen() {
   const screen = useMyTvScreen();
@@ -97,5 +98,10 @@ export function ModeScreen() {
   }
   // Null while an unpaired TV signs itself out; the code follows.
   if (screen.data === null) return null;
-  return <Boards venueId={screen.data.venueId} mode={screen.data.mode} rotation={screen.data.rotation} name={screen.data.name} />;
+  return (
+    <>
+      <Boards venueId={screen.data.venueId} mode={screen.data.mode} rotation={screen.data.rotation} name={screen.data.name} />
+      {screen.isError ? <StaleNotice since={new Date(screen.dataUpdatedAt)} variant="tv" /> : null}
+    </>
+  );
 }

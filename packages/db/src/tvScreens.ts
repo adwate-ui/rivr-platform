@@ -125,6 +125,9 @@ export function useMyTvScreen() {
     queryKey: queryKeys.myTvScreen(userId ?? 'signed-out'),
     enabled: userId !== null,
     refetchInterval: SCREEN_CHECK,
+    // Asked even when the TV's own connection is down, so the read fails and the boards say since when (F3-24),
+    // rather than pausing in silence.
+    networkMode: 'always',
     queryFn: async (): Promise<MyTvScreen | null> => {
       const { data, error } = await client.rpc('my_tv_screen');
       if (error) throw error;

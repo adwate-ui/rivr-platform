@@ -39,6 +39,14 @@ export const Default: Story = {};
 /** Paused by the floor: the clock holds and says so. */
 export const Paused: Story = { args: { status: 'Paused' } };
 
+/** As the TVs show it now: no payouts panel, as no TV read carries payouts (F3-05). */
+export const WithoutPayouts: Story = {
+  args: {
+    payouts: undefined, payoutsLabel: undefined, noPayoutsText: undefined,
+    stats: [{ label: 'Players', value: '31' }, { label: 'Entries', value: '58' }, { label: 'Average', value: '56,129' }],
+  },
+};
+
 /** Registration still open: no payouts yet. */
 export const Empty: Story = { args: { payouts: [], ante: undefined, level: 'Level 1', remaining: '20:00', blinds: '100/200' } };
 

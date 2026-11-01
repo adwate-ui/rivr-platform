@@ -57,6 +57,16 @@ function playerPwa(): BrandOutput[] {
   return [...icons, ...launch];
 }
 
+/** The public website: its tab icon, the home-screen icon, and the image a shared link shows (Open Graph's 1200 by 630). */
+function website(): BrandOutput[] {
+  const pub = 'apps/web/public';
+  return [
+    { path: `${pub}/icons/favicon-32.png`, art: 'icon', width: 32, height: 32 },
+    { path: `${pub}/icons/apple-touch-icon.png`, art: 'icon', width: 180, height: 180 },
+    { path: `${pub}/og-image.png`, art: 'lockup', width: 1200, height: 630 },
+  ];
+}
+
 // Each channel's profile image and cover at its recommended upload size (docs/brand/README.md).
 const CHANNELS = [
   ['instagram-profile', 1080, 1080],
@@ -85,6 +95,7 @@ function channel(name: string, width: number, height: number): BrandOutput {
 /** Every file the brand kit writes (`pnpm --filter @rivr/render render:brand-kit`). */
 export const BRAND_KIT: readonly BrandOutput[] = [
   ...playerPwa(),
+  ...website(),
   ...androidApp('tablet'),
   ...CHANNELS.map(([name, width, height]) => channel(name, width, height)),
 ];

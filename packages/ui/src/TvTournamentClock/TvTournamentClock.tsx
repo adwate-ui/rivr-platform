@@ -31,11 +31,11 @@ export interface TvTournamentClockProps {
   next?: string | undefined;
   /** Players left, entries, the average stack and the pool, in that order. */
   stats: readonly TvTournamentStat[];
-  /** "Payouts". */
-  payoutsLabel: string;
-  payouts: readonly TvTournamentPayout[];
+  /** "Payouts": the panel down the right. Left out, with the payouts, the clock takes the whole stage (F3-05: the TVs have no payouts source). */
+  payoutsLabel?: string | undefined;
+  payouts?: readonly TvTournamentPayout[] | undefined;
   /** What shows before the payouts are set: "Payouts are set when registration closes." */
-  noPayoutsText: string;
+  noPayoutsText?: string | undefined;
 }
 
 // The stage fits nine paid places beside the clock; a bigger field's later places are on the app and the console.
@@ -64,12 +64,13 @@ function Payouts({ label, payouts, emptyText }: { label: string; payouts: readon
 /**
  * The TV's tournament clock (#64), as in the prototype: the tournament and its level, the level's
  * time left as the largest figure, the blinds and ante, the next level, then players, entries,
- * average stack and pool; the first nine payouts down the right. It holds no state: the TV passes what to show.
+ * average stack and pool; given payouts, the first nine down the right. It holds no state: the TV passes what to show.
  */
 export function TvTournamentClock({ name, level, remaining, status, blinds, ante, next, stats, payoutsLabel, payouts, noPayoutsText }: TvTournamentClockProps) {
+  const hasPayouts = payouts !== undefined;
   return (
     <div className="grid min-h-0 flex-1 grid-cols-4 gap-x-16 pt-8">
-      <div className="col-span-3 flex flex-col">
+      <div className={hasPayouts ? 'col-span-3 flex flex-col' : 'col-span-4 flex flex-col'}>
         <Text variant="tvLabel" tone="muted">{name}</Text>
         <Heading level={1} variant="poster">{level}</Heading>
         <div className="flex items-baseline gap-12">
@@ -90,7 +91,7 @@ export function TvTournamentClock({ name, level, remaining, status, blinds, ante
           ))}
         </dl>
       </div>
-      <Payouts label={payoutsLabel} payouts={payouts} emptyText={noPayoutsText} />
+      {hasPayouts ? <Payouts label={payoutsLabel ?? ''} payouts={payouts} emptyText={noPayoutsText ?? ''} /> : null}
     </div>
   );
 }

@@ -33,6 +33,12 @@ describe('the TV’s tournament clock (decision 0201)', () => {
     ]);
   });
 
+  it('passes no payouts, so the TV shows no payouts panel: no TV read carries them, and the TVs show no rupee', () => {
+    const props = toClockProps(SUNDAY, 500);
+    expect(props.payouts).toBeUndefined();
+    expect(props.payoutsLabel).toBeUndefined();
+  });
+
   it('holds while paused, and shows no next level on the last', () => {
     const paused = toClockProps({ ...SUNDAY, clock: { elapsedSeconds: 1800, isRunning: false, readAtMs: 1_000_000 } }, 1800);
     expect(paused).toMatchObject({ level: 'Level 2', remaining: '20:00', status: 'Paused', next: undefined });

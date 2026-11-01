@@ -3,7 +3,10 @@ import { averageStack, clockAt, levelAtOrAfter, nextLevelAfter } from '@rivr/dom
 import { formatBlinds, formatCountdown, formatNumber, t } from '@rivr/i18n';
 import { Heading, Stack, Text, TvTournamentClock, type TvTournamentClockProps } from '@rivr/ui';
 
-/** What the TV shows for a running tournament `elapsedSeconds` in: the level or break, its time left, the blinds, ante and next level, and the field, with no prize pool (#628). */
+/**
+ * What the TV shows for a running tournament `elapsedSeconds` in: the level or break, its time left, the blinds, ante
+ * and next level, and the field, with no prize pool (#628) and no payouts panel, as no TV read carries payouts (F3-05).
+ */
 export function toClockProps(tournament: LiveTournament, elapsedSeconds: number): TvTournamentClockProps {
   const position = clockAt(tournament.stages, elapsedSeconds);
   const level = levelAtOrAfter(tournament.stages, position.stage);
@@ -22,9 +25,6 @@ export function toClockProps(tournament: LiveTournament, elapsedSeconds: number)
       { label: t('tv.tournamentClock.entries'), value: formatNumber(tournament.field.entries) },
       { label: t('tv.tournamentClock.average'), value: formatNumber(averageStack(tournament.field.chipsInPlay, tournament.field.playersLeft)) },
     ],
-    payoutsLabel: t('tv.tournamentClock.payouts'),
-    payouts: [],
-    noPayoutsText: t('tv.tournamentClock.noPayouts'),
   };
 }
 

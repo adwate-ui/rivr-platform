@@ -28,6 +28,13 @@ describe('StaleNotice', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 
+  it('on a TV says it politely at the TV body size, with nothing to press, so each failed read is not announced again', () => {
+    renderIn(<StaleNotice since={SINCE} variant="tv" />);
+    expect(screen.getByRole('status')).toHaveTextContent('Not updated since 20:42. Check the connection.');
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<StaleNotice since={SINCE} onRetry={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
