@@ -56,6 +56,9 @@ export const WithTopBar: Story = {
   },
 };
 
+/** On a phone: the member app beside Reserve a seat, the contacts scrolling sideways above. */
+export const WithTopBarOnAPhone: Story = { ...WithTopBar, tags: ['!viewport-console', 'viewport-phone'] };
+
 export const Empty: Story = { args: { links: [], footer: undefined, children: hero('Tournaments', 'No tournaments scheduled.') } };
 
 export const LongText: Story = {

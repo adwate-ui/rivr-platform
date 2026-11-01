@@ -43,9 +43,13 @@ export interface WebShellProps {
   onNavigate?: Navigate | undefined;
 }
 
-const TOP_LINK = 'flex min-h-touch min-w-touch items-center justify-center gap-2 whitespace-nowrap font-text text-12 text-content-muted transition-colors hover:text-content';
+const TOP_LINK_LOOK = 'min-h-touch min-w-touch items-center justify-center gap-2 whitespace-nowrap font-text text-12 text-content-muted transition-colors hover:text-content';
+const TOP_LINK = `flex ${TOP_LINK_LOOK}`;
 
-/** The bar above the header: the club's contacts on the left, the member app on the right; on a phone it scrolls sideways. */
+/**
+ * The bar above the header: the club's contacts on the left, the member app on the right from a tablet up (on a phone the
+ * header carries it, UI polish audit A-25); on a phone the contacts scroll sideways.
+ */
 function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
   return (
     <div className="border-b border-hairline bg-surface">
@@ -60,8 +64,22 @@ function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
             </li>
           ))}
         </ul>
-        {app ? <a href={app.href} className={TOP_LINK}>{app.label}</a> : null}
+        {app ? <a href={app.href} className={`hidden tablet:flex ${TOP_LINK_LOOK}`}>{app.label}</a> : null}
       </div>
+    </div>
+  );
+}
+
+/** The header's right side: on a phone the member app (the top bar has it from a tablet up, A-25), then the one action. */
+function HeaderActions({ app, action }: { app: WebShellLink | undefined; action: WebShellProps['action'] }) {
+  return (
+    <div className="flex items-center gap-4">
+      {app ? (
+        <a href={app.href} className="flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content tablet:hidden">
+          {app.label}
+        </a>
+      ) : null}
+      {action ? <Button variant="secondary" href={action.href}>{action.label}</Button> : null}
     </div>
   );
 }
@@ -75,7 +93,7 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       {topBar ? <TopBar links={topBar.links} app={topBar.app} /> : null}
       <header className="border-b border-hairline bg-raised tablet:sticky tablet:top-0 tablet:z-nav">
-        {/* On a phone the action sits beside the wordmark and the links scroll in one row beneath, rather than widening the page. */}
+        {/* On a phone the member app and the action sit beside the wordmark and the links scroll in one row beneath, rather than widening the page. */}
         <div className="mx-auto flex min-h-header max-w-console flex-wrap items-center justify-between gap-x-6 px-6 py-1">
           <a href={homeHref} onClick={(event) => routeClick(event, homeHref, onNavigate)} className="flex rounded-sm">
             <Wordmark />
@@ -95,7 +113,7 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
               ))}
             </ul>
           </nav>
-          {action ? <Button variant="secondary" href={action.href}>{action.label}</Button> : null}
+          <HeaderActions app={topBar?.app} action={action} />
         </div>
       </header>
       <main className="flex-1">{children}</main>
