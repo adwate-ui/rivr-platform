@@ -8,7 +8,7 @@ import { Wordmark, WordmarkCard } from '../Wordmark/Wordmark.tsx';
  * shape, the card inside the safe circle. `adaptive`: an Android adaptive icon's foreground, the card
  * inside the safe zone. `lockup`: the wordmark and tagline, for splash screens, profile images and covers;
  * animated (`isAnimated`), the logo animation for reels and the TV. `share`: the image a shared link shows, the lockup
- * on the green beside `backdrop`, a photograph of the game (UI polish audit AS-09).
+ * on the green beside `backdrop`, a photograph of the room (UI polish audit AS-09); without one, the lockup alone.
  */
 export type BrandArtKind = 'icon' | 'maskable' | 'adaptive' | 'lockup' | 'share';
 
@@ -17,7 +17,8 @@ export type BrandArtKind = 'icon' | 'maskable' | 'adaptive' | 'lockup' | 'share'
  * page and centred on the green, so one design serves every icon, splash and cover size crisply.
  */
 export function BrandArt({ art, isAnimated = false, backdrop }: { art: BrandArtKind; isAnimated?: boolean; backdrop?: string }) {
-  if (art === 'share') return <ShareArt backdrop={backdrop ?? ''} />;
+  // A share image with no photograph is the lockup alone, never an empty picture.
+  if (art === 'share') return backdrop === undefined ? <StageArt art="lockup" isAnimated={false} /> : <ShareArt backdrop={backdrop} />;
   return <StageArt art={art} isAnimated={isAnimated} />;
 }
 

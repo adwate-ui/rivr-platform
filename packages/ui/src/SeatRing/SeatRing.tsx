@@ -97,17 +97,30 @@ function nameType(name: string, isChoosing: boolean): string {
 }
 
 /**
+ * The table's parts in viewBox units, inside the seats' orbit (SEAT_ORBIT, 104 by 60) with room for a card's seat circles:
+ * the rail, the felt inside it, the racetrack line on the felt, and the dealer's tray at the felt's foot.
+ */
+const TABLE = {
+  rail: { rx: 76, ry: 44 },
+  felt: { rx: 66, ry: 35 },
+  racetrack: { rx: 57, ry: 26 },
+  tray: { width: 24, height: 5, corner: 1.5, fromFoot: 7 },
+} as const;
+
+/**
  * The table from above, drawn from the tokens (UI polish audit AS-08; no licensed top-down table photograph exists,
- * decision 0289): the dark padded rail with its gold hairline, the green felt inside it, the racetrack's hairline, and
- * the dealer's tray at the foot, between seats 5 and 6. In viewBox units, inside the seats' orbit.
+ * decision 0289): the rail warm with the hairline gold, so it shows on a raised card as on the page, the green felt
+ * inside it, the racetrack's hairline, and the dealer's tray at the foot, between seats 5 and 6.
  */
 function TableArt() {
+  const { rail, felt, racetrack, tray } = TABLE;
   return (
     <g aria-hidden="true">
-      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={78} ry={46} className="fill-green-black stroke-hairline" />
-      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={68} ry={36} className="fill-green" />
-      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={58} ry={27} className="fill-none stroke-hairline" />
-      <rect x={CENTRE.x - 12} y={CENTRE.y + 29} width={24} height={5} rx={1.5} className="fill-green-black stroke-hairline" />
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={rail.rx} ry={rail.ry} className="fill-hairline stroke-hairline" />
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={felt.rx} ry={felt.ry} className="fill-green stroke-hairline" />
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={racetrack.rx} ry={racetrack.ry} className="fill-none stroke-hairline" />
+      <rect x={CENTRE.x - tray.width / 2} y={CENTRE.y + felt.ry - tray.fromFoot} width={tray.width} height={tray.height} rx={tray.corner}
+        className="fill-green-black stroke-hairline" />
     </g>
   );
 }
