@@ -120,7 +120,8 @@ export const tokens = {
     "portrait": "3 / 4",
     "photo": "4 / 3",
     "story": "9 / 16",
-    "card": "85.6 / 54"
+    "card": "85.6 / 54",
+    "video": "16 / 9"
   },
   "radius": {
     "sm": 3,

@@ -94,6 +94,7 @@
   --aspect-photo: var(--rivr-aspect-photo);
   --aspect-story: var(--rivr-aspect-story);
   --aspect-card: var(--rivr-aspect-card);
+  --aspect-video: var(--rivr-aspect-video);
   --radius-sm: var(--rivr-radius-sm);
   --radius-md: var(--rivr-radius-md);
   --radius-lg: var(--rivr-radius-lg);
