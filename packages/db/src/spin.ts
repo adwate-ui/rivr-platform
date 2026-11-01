@@ -9,6 +9,9 @@ const keys = {
   waiting: (userId: string, venueId: string) => ['user', userId, 'spins-waiting', venueId] as const,
 };
 
+// The floor keeps Spin wheel open all night: a spin a promotion grants shows within ten seconds (F2-08).
+const WAITING_CHECK = 10_000;
+
 /** What a prize on the wheel gives: points, bonus, or nothing. */
 export type SpinPrizeKind = 'points' | 'bonus' | 'nothing';
 const KINDS: readonly SpinPrizeKind[] = ['points', 'bonus', 'nothing'];
@@ -75,12 +78,13 @@ export function useSpinWheelActions(venueId: string) {
   return { add, remove };
 }
 
-/** The spins waiting to be spun, oldest first, for the floor. */
+/** The spins waiting to be spun, oldest first, for the floor: asked every ten seconds, as a promotion grants them (F2-08). */
 export function useWaitingSpins(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: keys.waiting(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
+    refetchInterval: WAITING_CHECK,
     queryFn: async (): Promise<WaitingSpin[]> => {
       const { data, error } = await client.rpc('waiting_spins', { p_venue_id: venueId });
       if (error) throw error;
@@ -89,14 +93,18 @@ export function useWaitingSpins(venueId: string) {
   });
 }
 
-/** Spins the wheel for a waiting spin: the prize won (posted as points or bonus), or why not; the spins waiting reload. */
+/** Spins the wheel for a waiting spin: the prize won (posted as points or bonus), or why not; the spins waiting and the wheel reload. */
 export function useSpin(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (grantId: string): Promise<Result<{ kind: SpinPrizeKind; amount: bigint }, SpinFailure>> => {
       const { data, error } = await client.rpc('spin_the_wheel', { p_venue_id: venueId, p_grant_id: grantId });
-      await queryClient.invalidateQueries({ queryKey: keys.waiting(userId ?? 'signed-out', venueId) });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.waiting(userId ?? 'signed-out', venueId) }),
+        // The wheel too, as a spin spends its budget (F2-08).
+        queryClient.invalidateQueries({ queryKey: keys.wheel(userId ?? 'signed-out', venueId) }),
+      ]);
       const won = data?.[0];
       if (error || won === undefined) return err(error ? failureOf(error.code) : 'unavailable');
       return ok({ kind: kindOf(won.kind), amount: BigInt(won.amount) });
