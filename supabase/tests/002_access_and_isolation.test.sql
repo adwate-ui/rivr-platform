@@ -74,9 +74,9 @@ select throws_ok(
   'an admin cannot create a super_admin'
 );
 select throws_ok(
-  $$ update public.staff set role = 'super_admin' where user_id = '00000000-0000-4000-8000-000000000115' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  $$ update public.staff set role = 'super_admin' where user_id = '00000000-0000-4000-8000-000000000108' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
   '42501', null,
-  'an admin cannot promote anyone to super_admin'
+  'an admin cannot promote anyone to super_admin, a host she manages neither'
 );
 -- Herself neither: nobody changes their own role (#28), which is checked first.
 select throws_ok(
