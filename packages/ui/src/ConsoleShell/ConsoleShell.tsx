@@ -103,7 +103,7 @@ function Rail({ sections, currentItem, onNavigate, railFooter, goToRef }: RailPr
           <SideNav label={t('ui.consoleRail.label')} sections={shown} current={currentItem} onNavigate={onNavigate === undefined ? undefined : open} />
         )}
       </div>
-      {railFooter ? <div className="shrink-0 px-6">{railFooter}</div> : null}
+      {railFooter ? <div className="shrink-0 border-t border-hairline px-6 pt-6">{railFooter}</div> : null}
     </>
   );
 }
