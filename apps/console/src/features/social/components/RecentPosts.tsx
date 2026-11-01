@@ -23,22 +23,25 @@ function channelsOf(post: SocialPost) {
   );
 }
 
-const COLUMNS: readonly DataTableColumn<SocialPost>[] = [
-  { key: 'when', header: t('console.social.posts.when'), cell: (row) => formatDayTime(new Date(row.createdAt)) },
-  { key: 'caption', header: t('console.social.posts.caption'), cell: (row) => row.caption },
-  { key: 'channels', header: t('console.social.posts.channels'), cell: (row) => channelsOf(row) },
-  { key: 'download', header: t('console.social.posts.download'), align: 'end', cell: (row) => (
-    <Inline gap={2}>
-      <Button variant="text" href={row.imageUrl}>{t('console.social.posts.image')}</Button>
-      <Button variant="text" href={captionLink(row.caption)} download="caption.txt">{t('console.social.posts.captionFile')}</Button>
-    </Inline>
-  ) },
-];
+/** The table's columns, made when it draws, so t() runs once the app's words are registered, as columns() does elsewhere (F2-31). */
+function columns(): readonly DataTableColumn<SocialPost>[] {
+  return [
+    { key: 'when', header: t('console.social.posts.when'), cell: (row) => formatDayTime(new Date(row.createdAt)) },
+    { key: 'caption', header: t('console.social.posts.caption'), cell: (row) => row.caption },
+    { key: 'channels', header: t('console.social.posts.channels'), cell: (row) => channelsOf(row) },
+    { key: 'download', header: t('console.social.posts.download'), align: 'end', cell: (row) => (
+      <Inline gap={2}>
+        <Button variant="text" href={row.imageUrl}>{t('console.social.posts.image')}</Button>
+        <Button variant="text" href={captionLink(row.caption)} download="caption.txt">{t('console.social.posts.captionFile')}</Button>
+      </Inline>
+    ) },
+  ];
+}
 
 /** The last posts (#154) and where each went; a channel without the club's credentials offers the image and caption to download. */
 export function RecentPosts({ venueId }: { venueId: string }) {
   const posts = useSocialPosts(venueId);
-  const base = { label: t('console.social.posts.table'), columns: COLUMNS, rowKey: (row: SocialPost) => row.postId };
+  const base = { label: t('console.social.posts.table'), columns: columns(), rowKey: (row: SocialPost) => row.postId };
   return (
     <Stack gap={4}>
       <Heading level={2} variant="section">{t('console.social.posts.title')}</Heading>
