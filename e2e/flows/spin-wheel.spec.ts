@@ -15,7 +15,13 @@ test.describe('Spin wheel', () => {
     await page.getByRole('link', { name: 'Spin wheel' }).click();
     const wheel = page.getByRole('table', { name: 'The wheel' });
     await expect(wheel.or(page.getByText('No prizes on the wheel yet.'))).toBeVisible();
-    for (const remove of await page.getByRole('button', { name: /^Remove / }).all()) await remove.click();
+    // Each prize's Remove is asked twice (F2-21).
+    const removes = page.getByRole('button', { name: /^Remove / });
+    for (let left = await removes.count(); left > 0; left -= 1) {
+      await removes.first().click();
+      await page.getByRole('button', { name: /^Yes, remove / }).click();
+      await expect(removes).toHaveCount(left - 1);
+    }
     await expect(page.getByText('No prizes on the wheel yet.')).toBeVisible();
 
     await page.getByRole('group', { name: 'Prize' }).getByRole('button', { name: 'Points' }).click();

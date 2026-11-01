@@ -1,6 +1,6 @@
 import { useSpinWheel, useSpinWheelActions, type SpinPrize } from '@rivr/db/spin';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Heading, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { ConfirmButton, DataTable, ErrorMessage, Heading, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { prizeLabel } from './prizeLabel.ts';
 
@@ -12,8 +12,10 @@ function columnsFor(odds: number, onRemove: ((prize: SpinPrize) => void) | null)
       cell: (row) => (row.isDrawable ? t('console.spin.oddsValue', { weight: formatNumber(row.weight), odds: formatNumber(odds) }) : t('console.spin.budgetSpent')) },
   ];
   if (onRemove === null) return columns;
+  // Asked twice: a removed prize is gone from the wheel at once (F2-21).
   return [...columns, { key: 'remove', header: t('console.spin.remove'), align: 'end', cell: (row) => (
-    <Button variant="text" aria-label={t('console.spin.removeName', { prize: prizeLabel(row) })} onClick={() => onRemove(row)}>{t('console.spin.remove')}</Button>
+    <ConfirmButton label={t('console.spin.remove')} name={t('console.spin.removeName', { prize: prizeLabel(row) })}
+      confirm={t('console.spin.confirmRemove', { prize: prizeLabel(row) })} onConfirm={() => onRemove(row)} />
   ) }];
 }
 
