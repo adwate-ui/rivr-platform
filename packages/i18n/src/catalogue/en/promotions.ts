@@ -41,11 +41,16 @@ export const promotions = {
   runs: '{who} · {when}',
   /** With a limit, which players must know: "NLH 100/200 · Thursday, 14:00 to 20:00 · Once per member". */
   runsWithLimit: '{who} · {when} · {limit}',
-  rewards: { double_points: 'Double points', triple_points: 'Triple points', buy_in_bonus: '10% buy-in bonus' },
+  rewards: { double_points: 'Double points', triple_points: 'Triple points', buy_in_bonus: '10% buy-in bonus', hours_bonus: 'Bonus chips for hours played' },
   /** The 10% buy-in bonus's cap, which the floor sets (question #415). */
   bonusCap: 'Most bonus chips per buy-in',
   /** What the bonus gives, on its card, in bonus chips (#629): "Up to 5,000 bonus chips a buy-in". */
   bonusDetail: 'Up to {cap} bonus chips a buy-in',
+  /** The hours bonus's two numbers, which the builder sets (#646). */
+  bonusHours: 'Hours played in a visit',
+  bonusChips: 'Bonus chips',
+  /** On its card: "1,000 bonus chips after 4 hours at the tables". */
+  hoursBonusDetail: '{chips} bonus chips after {hours} hours at the tables',
   limitOptions: { none: 'None', first_50: 'First 50 members a day', once_per_member: 'Once per member' },
   playerApp: 'Player app',
   tvSlide: 'TV slide',
@@ -156,6 +161,8 @@ export const promotions = {
   failures: {
     invalid: 'Choose both times, the start before the end, within the night (it ends at 06:00).',
     invalidCap: 'The most per buy-in is bonus chips in whole 50s, from 50 to 1,00,000.',
+    invalidHours: 'The hours played are a whole number from 1 to 12.',
+    invalidChips: 'The bonus is chips in whole 50s, from 50 to 1,00,000.',
     not_allowed: 'Only staff who manage promotions submit one, and only a super admin approves or refuses one.',
     own_promotion: 'You submitted this one, so another super admin approves it.',
     already_decided: 'Another super admin has already decided this one.',
