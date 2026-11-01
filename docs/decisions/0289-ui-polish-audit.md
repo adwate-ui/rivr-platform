@@ -47,3 +47,9 @@ Date: 2 Nov 2026. Report: `docs/design/ui-polish-audit.md`. Work in six batches 
   - **The seat ring** fits a tablet in either orientation and keeps its labels off the felt. On the console's cards its type is larger, about 13 px drawn, but the cards stay two to a row: the table art of B6 (AS-08) is where the card's ring is drawn again.
   - **Found and left:** a seated player's row on the live floor crams its actions at 1440 px (#712), outside the audit.
   - **League points by hand or CSV (L-01)** is a schema change and waits for the owner's yes on its plan.
+- **B6, the assets:**
+  - **The website's stills and hero loop** are the concept placeholders upscaled with Topaz (Photo AI four times, to 1920 px; Video AI's Proteus twice, to 960 px at about 2 Mbit/s). They stay placeholders until the club's shoot replaces them; the AVIF and WebP widths now come from real 1920 px masters.
+  - **The brand spade** is drawn in `@rivr/ui` (`Wordmark`), stem and foot; the brand kit is regenerated from it. The designer's master logo replaces it when given.
+  - **The share image** is the lockup on the green beside a licensed photograph (gold cards on grey felt, Unsplash `t5V5B90KjDw`, Unsplash License), served to the brand kit from `packages/render/src/host/public/brand`.
+  - **The seat map's table** is drawn from the tokens: rail, felt, racetrack and the dealer's tray. No licensed top-down photograph of a poker table exists free; a paid one stays the owner's option.
+  - **Waiting for the owner:** a commissioned or licensed icon set (AS-05), and photos of rewards and menu items (AS-11), which need an image on each item: a schema change with its plan.
