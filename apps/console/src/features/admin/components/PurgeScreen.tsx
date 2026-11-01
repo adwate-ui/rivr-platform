@@ -40,7 +40,7 @@ function ArchiveStep({ venueId }: { venueId: string }) {
       <Text tone="muted">{t('console.purge.archiveHint')}</Text>
       <TextArea label={t('console.purge.kycReason')} hint={t('console.purge.kycReasonHint')} rows={2} value={reason}
         onChange={(event) => setReason(event.target.value)} />
-      <ArchiveStatus state={archive.state} />
+      <ArchiveStatus state={archive.state} onRecordAgain={() => void archive.recordAgain()} />
       <Button isDisabled={reason.trim().length < 10} isLoading={archive.state.status === 'running'}
         onClick={() => void archive.run({ memberId: null, memberNumber: null }, reason.trim())}>
         {t('console.exportArchive.make')}

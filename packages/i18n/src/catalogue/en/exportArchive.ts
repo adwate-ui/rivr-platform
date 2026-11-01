@@ -19,6 +19,9 @@ export const exportArchive = {
   done: 'Saved {file}. Rows: {rows}. Tables: {tables}. Files: {files}.',
   /** KYC photos that could not be read: the manifest lists them. */
   filesUnread: 'Files not read: {count}. The manifest lists them, and a purge leaves them in storage.',
+  /** A full archive saved in the browser that the database did not record, so a purge cannot follow it yet (F1-27). */
+  unrecorded: 'Saved as {file}, but not recorded, so a purge cannot follow it yet. Record it again.',
+  recordAgain: 'Record again',
 };
 
 /** Why an archive was not made. Nothing is saved. */

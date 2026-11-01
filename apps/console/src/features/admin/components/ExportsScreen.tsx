@@ -10,7 +10,7 @@ function ExportsPanel({ venueId }: { venueId: string }) {
   const isRunning = archive.state.status === 'running';
   return (
     <Stack gap={6}>
-      <ArchiveStatus state={archive.state} />
+      <ArchiveStatus state={archive.state} onRecordAgain={() => void archive.recordAgain()} />
       <FullArchiveForm isRunning={isRunning} onMake={(kycReason) => void archive.run({ memberId: null, memberNumber: null }, kycReason)} />
       <Divider />
       <MemberArchiveForm venueId={venueId} isRunning={isRunning}
