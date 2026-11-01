@@ -169,7 +169,7 @@ test.describe('Waitlist', () => {
     await player.reload();
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
     // Seated, he joins no other game from the app (#633).
-    await expect(player.getByText('Seated at Table 3, seat 9.')).toBeVisible();
+    await expect(player.getByText('Table 3, seat 9')).toBeVisible();
     await expect(player.getByRole('button', { name: /^Join / })).toHaveCount(0);
   });
 
