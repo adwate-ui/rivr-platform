@@ -150,14 +150,18 @@ describe('the console', () => {
     expect(screen.getByText('RIVR Gurugram')).toBeDefined();
   });
 
-  it('switches to the practice venue and back', async () => {
+  it('switches to the practice venue and back, saying so across the top while there', async () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('switch', { name: 'Practice venue' }));
+    expect(await screen.findByRole('switch', { name: 'Practice venue' })).toBeDefined();
+    expect(screen.queryByText('Practice venue: nothing here reaches the club or its members.')).toBeNull();
+    fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
     expect(await screen.findByText('RIVR Practice')).toBeDefined();
+    expect(screen.getByText('Practice venue: nothing here reaches the club or its members.')).toBeDefined();
     fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
     expect(await screen.findByText('RIVR Gurugram')).toBeDefined();
+    expect(screen.queryByText('Practice venue: nothing here reaches the club or its members.')).toBeNull();
   });
 
   it('has no practice switch for someone who is staff at the club only', async () => {

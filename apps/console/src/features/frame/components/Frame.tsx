@@ -2,7 +2,7 @@ import type { Permission } from '@rivr/contracts';
 import { useAuthStatus, useControlState, useSignOut, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
-import { ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen } from '@rivr/ui';
+import { Box, ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen, Text } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
@@ -61,6 +61,18 @@ interface StaffFrameProps {
   children: ReactNode;
 }
 
+/**
+ * On every screen while the console works in the practice venue (F1-07): a trainee never takes it for the club, nor the
+ * club for it, where queues look empty and real members are not found.
+ */
+function PracticeBanner() {
+  return (
+    <Box surface="alert" paddingX={4} paddingY={2}>
+      <Text as="span" variant="small" weight="medium" tone="onAlert">{t('console.practiceBanner')}</Text>
+    </Box>
+  );
+}
+
 function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const { venueId, permissions } = staff.venue;
   const { isVenueFrozen } = useControlState(venueId);
@@ -81,7 +93,11 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
       sections={sections}
       currentItem={railItemAt(sections, pathname)}
       onNavigate={(href) => void navigate({ href })}
-      banner={<>{isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}{prompt?.({ venueId, permissions, pathname, search })}</>}
+      banner={<>
+        {isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
+        {staff.venue.isPractice ? <PracticeBanner /> : null}
+        {prompt?.({ venueId, permissions, pathname, search })}
+      </>}
       railFooter={<StaffFooter staff={staff} />}
     >
       {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
