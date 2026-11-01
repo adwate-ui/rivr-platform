@@ -9,7 +9,7 @@ function line(departure: EarlyDeparture): string {
 }
 
 function Body({ list }: { list: ReturnType<typeof useMemberEarlyDepartures> }) {
-  if (list.isError) return <Text tone="muted">{t('common.loadFailed')}</Text>;
+  if (list.isError) return <LoadState isError onRetry={() => void list.refetch()} />;
   if (list.data === undefined) return <LoadState />;
   if (list.data.length === 0) return <Text tone="muted">{t('console.members.noEarlyDepartures')}</Text>;
   return <Stack gap={2} divided>{list.data.map((departure) => <Text key={departure.earlyDepartureId}>{line(departure)}</Text>)}</Stack>;

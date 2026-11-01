@@ -4,7 +4,8 @@ export const kycReview = {
   notAllowed: 'Your role does not include KYC review. Ask an admin if you need it.',
   empty: 'No checks waiting for review.',
   waiting: 'Checks to review',
-  others: 'Stopped and refused checks',
+  /** The last 90 days of them (F1-31). */
+  others: 'Stopped and refused checks, the last 90 days',
   photoOf: 'KYC photo of {name}',
   /** Why a check waits for a reviewer. */
   waitPanAlone: 'A PAN alone, with no DigiLocker record. Check the PAN card and the person.',

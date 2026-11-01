@@ -130,6 +130,15 @@ select lives_ok($$ select public.complete_export_archive('00000000-0000-4000-800
   array['kyc/00000000-0000-4000-8000-0000000000f3/00000000-0000-4000-8000-0000000000f4/gone.jpg']) $$, 'its maker marks it saved, with the one it could not read');
 reset role;
 select is((select cardinality(files_held) from private.export_archive where id = '00000000-0000-4000-8000-0000000000f5'), 2, 'it holds the other two files');
+-- Its answer lost, the console records it again (F1-27): the same file is recorded already; another file is not this one.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select lives_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024,
+  array['kyc/00000000-0000-4000-8000-0000000000f3/00000000-0000-4000-8000-0000000000f4/gone.jpg']) $$, 'recording the same file again finds it recorded');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd', 1024, '{}') $$,
+  '22023', null, 'but another file is refused');
+reset role;
+select is((select count(*)::int from public.audit_log where action = 'export.archive_saved' and entity_id = '00000000-0000-4000-8000-0000000000f5'), 1,
+  'and the saving is in the audit log once');
 update private.export_archive set kyc_reason = null where id = '00000000-0000-4000-8000-0000000000f5';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f3', 'Test Room') $$, 'RVARC', null,

@@ -41,17 +41,18 @@ describe('the website editor', () => {
       '/rest/v1/site_block': { body: [{ kind: 'text', content: { heading: 'House rules', body: 'One player to a hand.' } }] },
       '/rest/v1/site_revision': { body: [
         { id: 'r2', status: 'scheduled', blocks: [{ kind: 'text', content: { heading: 'Tonight' } }, 'junk'], publish_at: '2026-11-15T12:30:00+00:00',
-          published_at: null, created_at: '2026-11-15T10:00:00+00:00', preview_token: 't2' },
-        { id: 'r1', status: 'unknown', blocks: {}, publish_at: null, published_at: '2026-11-14T10:00:00+00:00', created_at: '2026-11-14T10:00:00+00:00', preview_token: 't1' },
+          published_at: null, created_at: '2026-11-15T10:00:00+00:00', preview_token: 't2', updated_at: '2026-11-15T10:05:00+00:00' },
+        { id: 'r1', status: 'unknown', blocks: {}, publish_at: null, published_at: '2026-11-14T10:00:00+00:00', created_at: '2026-11-14T10:00:00+00:00', preview_token: 't1',
+          updated_at: '2026-11-14T10:00:00+00:00' },
       ] },
     });
     await waitFor(() => expect(result.current.pages.data).toEqual([{ pageId: PAGE, slug: 'house-rules', title: 'House rules' }]));
     await waitFor(() => expect(result.current.page.data?.blocks).toEqual([{ kind: 'text', content: { heading: 'House rules', body: 'One player to a hand.' } }]));
     expect(result.current.page.data?.revisions).toEqual([
       { revisionId: 'r2', status: 'scheduled', blocks: [{ kind: 'text', content: { heading: 'Tonight' } }], publishAt: '2026-11-15T12:30:00+00:00',
-        publishedAt: null, createdAt: '2026-11-15T10:00:00+00:00', previewToken: 't2' },
+        publishedAt: null, createdAt: '2026-11-15T10:00:00+00:00', previewToken: 't2', updatedAt: '2026-11-15T10:05:00+00:00' },
       { revisionId: 'r1', status: 'replaced', blocks: [], publishAt: null, publishedAt: '2026-11-14T10:00:00+00:00', createdAt: '2026-11-14T10:00:00+00:00',
-        previewToken: 't1' },
+        previewToken: 't1', updatedAt: '2026-11-14T10:00:00+00:00' },
     ]);
   });
 

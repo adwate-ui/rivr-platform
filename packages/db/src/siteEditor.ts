@@ -31,6 +31,8 @@ export interface SiteRevision {
   readonly publishedAt: string | null;
   readonly createdAt: string;
   readonly previewToken: string;
+  /** When it last changed: a draft is saved over in place, so this, not its id, tells a newer save (F2-26). */
+  readonly updatedAt: string;
 }
 
 /** A page as the editor opens it: the blocks it shows now, and its versions, newest first. */
@@ -77,7 +79,7 @@ export function useEditorPage(pageId: string) {
     queryFn: async (): Promise<EditorPageState> => {
       const [blocks, revisions] = await Promise.all([
         client.from('site_block').select('kind, content').eq('page_id', pageId).order('position'),
-        client.from('site_revision').select('id, status, blocks, publish_at, published_at, created_at, preview_token').eq('page_id', pageId)
+        client.from('site_revision').select('id, status, blocks, publish_at, published_at, created_at, preview_token, updated_at').eq('page_id', pageId)
           .order('created_at', { ascending: false }).limit(30),
       ]);
       if (blocks.error) throw blocks.error;
@@ -86,7 +88,7 @@ export function useEditorPage(pageId: string) {
         blocks: blocks.data.map((row) => ({ kind: row.kind, content: row.content })),
         revisions: revisions.data.map((row) => ({
           revisionId: row.id, status: STATUSES.find((status) => status === row.status) ?? 'replaced', blocks: blocksOf(row.blocks), publishAt: row.publish_at,
-          publishedAt: row.published_at, createdAt: row.created_at, previewToken: row.preview_token,
+          publishedAt: row.published_at, createdAt: row.created_at, previewToken: row.preview_token, updatedAt: row.updated_at,
         })),
       };
     },

@@ -49,7 +49,7 @@ function ControlRow({ control, onRelease }: { control: EngagedControl; onRelease
 function Body({ venueId, onOutcome }: { venueId: string; onOutcome: (outcome: ReleaseOutcome) => void }) {
   const controls = useEngagedControls(venueId);
   const [releasing, setReleasing] = useState<EngagedControl | null>(null);
-  if (controls.isError) return <Text tone="muted">{t('common.loadFailed')}</Text>;
+  if (controls.isError) return <LoadState isError onRetry={() => void controls.refetch()} />;
   if (controls.data === undefined) return <LoadState />;
   if (controls.data.length === 0) return <Text tone="muted">{t('console.killSwitch.noneEngaged')}</Text>;
   return (

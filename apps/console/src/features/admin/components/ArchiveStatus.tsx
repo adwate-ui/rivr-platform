@@ -1,6 +1,6 @@
 import type { ArchiveFailure } from '@rivr/db/exports';
 import { formatNumber, t, type MessageKey } from '@rivr/i18n';
-import { ErrorMessage, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Stack, Text } from '@rivr/ui';
 import type { ArchiveProgress } from './archive.ts';
 import type { ArchiveState } from './useArchiveExport.ts';
 
@@ -18,11 +18,22 @@ function progressText(progress: ArchiveProgress | null): string {
   return t('console.exportArchive.locking');
 }
 
-/** How the archive is going: its progress, where it was saved, or why it was not made. */
-export function ArchiveStatus({ state }: { state: ArchiveState }) {
+/**
+ * How the archive is going: its progress, where it was saved, saved but not recorded with Record again (F1-27), or why it
+ * was not made.
+ */
+export function ArchiveStatus({ state, onRecordAgain }: { state: ArchiveState; onRecordAgain: () => void }) {
   if (state.status === 'running') return <Text tone="muted">{progressText(state.progress)}</Text>;
   if (state.status === 'failed') return <ErrorMessage>{t(FAILURE_COPY[state.failure])}</ErrorMessage>;
   if (state.status === 'idle') return null;
+  if (state.status === 'unrecorded') {
+    return (
+      <Stack gap={2} align="start">
+        <ErrorMessage>{t('console.exportArchive.unrecorded', { file: state.fileName })}</ErrorMessage>
+        <Button variant="secondary" onClick={onRecordAgain}>{t('console.exportArchive.recordAgain')}</Button>
+      </Stack>
+    );
+  }
   const { archive, fileName } = state;
   return (
     <Stack gap={2}>
