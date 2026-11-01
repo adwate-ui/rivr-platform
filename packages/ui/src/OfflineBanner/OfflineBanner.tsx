@@ -26,12 +26,11 @@ export interface OfflineBannerProps {
 export function OfflineBanner({ message, onlineMessage }: OfflineBannerProps = {}) {
   const online = useSyncExternalStore(subscribeToConnection, () => navigator.onLine, () => true);
   const text = online ? onlineMessage : (message ?? t('ui.offlineBanner'));
-  if (text === undefined) return null;
+  // The status region is there all along, empty and taking no room while there is nothing to say, so a screen reader
+  // announces the words when they come rather than meet a region that arrived with them (F5-09).
   return (
-    <div role="status" className="flex items-center bg-raised px-4 py-2 text-content">
-      <Text as="span" variant="small" weight="medium">
-        {text}
-      </Text>
+    <div role="status" className={text === undefined ? undefined : 'flex items-center bg-raised px-4 py-2 text-content'}>
+      {text === undefined ? null : <Text as="span" variant="small" weight="medium">{text}</Text>}
     </div>
   );
 }
