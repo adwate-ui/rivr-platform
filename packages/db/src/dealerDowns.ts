@@ -37,6 +37,12 @@ export interface CurrentDown {
 /** Why a PIN was not set: the role may not set it, a PIN that is not four digits (or one digit four times), or anything else. */
 export type DealerPinFailure = 'not_allowed' | 'invalid' | 'unavailable';
 
+/**
+ * Why a down did not end: it had ended already (as at another press), or no answer (F4-15). A frozen venue is no reason:
+ * a down ends in a freeze, as the next dealer still takes the table (20261019091500_down_drop_box.sql).
+ */
+export type EndDownFailure = 'ended' | 'unavailable';
+
 /** Why sign-in did not go through: a wrong PIN (with the tries left), a locked PIN, the venue frozen, or anything else. */
 export type DealerSignInFailure =
   | { readonly reason: 'wrong_pin'; readonly triesLeft: number }
@@ -136,9 +142,10 @@ export function useDownActions() {
   });
   const end = useMutation({
     networkMode: 'always',
-    mutationFn: async (dropBox: Paise): Promise<Result<DownCount, 'unavailable'>> => {
+    mutationFn: async (dropBox: Paise): Promise<Result<DownCount, EndDownFailure>> => {
       const { data, error } = await client.rpc('end_down', { p_drop_box_paise: Number(dropBox) });
       await reload();
+      if (error?.code === 'RVDWN') return err('ended');
       const row = data?.[0];
       return error || row === undefined ? err('unavailable')
         : ok({ dropBox, logged: toPaise(row.logged_paise), variance: toPaise(row.variance_paise) });

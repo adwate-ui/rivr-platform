@@ -19,6 +19,8 @@ describe('what the door kiosk says (decision 0164)', () => {
     expect(scanResult({ ok: false, error: { reason: 'on_break', owedSeconds: 0 } }).detail).toBe('You are on a break from play.');
     expect(scanResult({ ok: false, error: { reason: 'not_allowed', owedSeconds: 0 } }).detail).toBe('This kiosk is no longer paired.');
     expect(scanResult({ ok: false, error: { reason: 'paused', owedSeconds: 0 } }))
-      .toEqual({ title: 'Please see the front desk.', detail: 'Your card could not be read just now.', isRefused: true });
+      .toEqual({ title: 'Please see the front desk.', detail: 'Check-in is paused at the club just now.', isRefused: true });
+    expect(scanResult({ ok: false, error: { reason: 'stopped', owedSeconds: 0 } }).detail).toBe('Your membership is on hold.');
+    expect(scanResult({ ok: false, error: { reason: 'unavailable', owedSeconds: 0 } }).detail).toBe('Your card could not be read just now.');
   });
 });

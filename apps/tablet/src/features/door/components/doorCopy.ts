@@ -1,6 +1,19 @@
-import type { DoorScan, DoorScanRefusal } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import type { DoorScan, DoorScanFailure, DoorScanRefusal } from '@rivr/db';
+import { formatDuration, t, type MessageKey } from '@rivr/i18n';
 import type { QrScanResult } from '@rivr/ui';
+
+/**
+ * Why nothing happened, in words: a member or the venue frozen is said as such, not as a card that could not be read
+ * (F4-15). Call time owed says how long, below; anything else, that the card could not be read.
+ */
+const REFUSALS: Partial<Record<DoorScanFailure, { title: MessageKey; detail: MessageKey }>> = {
+  seated: { title: 'tablet.door.notYet', detail: 'tablet.door.seated' },
+  card_not_current: { title: 'tablet.door.tryAgain', detail: 'tablet.door.cardNotCurrent' },
+  on_break: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.onBreak' },
+  not_allowed: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.notPaired' },
+  stopped: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.stopped' },
+  paused: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.paused' },
+};
 
 /** What the kiosk says after a scan (decision 0164): welcome, goodbye with the time played, or why nothing happened. */
 export function scanResult(outcome: { ok: true; value: DoorScan } | { ok: false; error: DoorScanRefusal }): QrScanResult {
@@ -11,12 +24,9 @@ export function scanResult(outcome: { ok: true; value: DoorScan } | { ok: false;
     return { title: t('tablet.door.goodbye', { name: scan.firstName }), detail, isRefused: false };
   }
   const { reason, owedSeconds } = outcome.error;
-  if (reason === 'seated') return { title: t('tablet.door.notYet'), detail: t('tablet.door.seated'), isRefused: true };
   if (reason === 'call_time_owed') {
     return { title: t('tablet.door.notYet'), detail: t('tablet.door.callTimeOwed', { time: formatDuration(owedSeconds) }), isRefused: true };
   }
-  if (reason === 'card_not_current') return { title: t('tablet.door.tryAgain'), detail: t('tablet.door.cardNotCurrent'), isRefused: true };
-  if (reason === 'on_break') return { title: t('tablet.door.seeFrontDesk'), detail: t('tablet.door.onBreak'), isRefused: true };
-  if (reason === 'not_allowed') return { title: t('tablet.door.seeFrontDesk'), detail: t('tablet.door.notPaired'), isRefused: true };
-  return { title: t('tablet.door.seeFrontDesk'), detail: t('tablet.door.unavailable'), isRefused: true };
+  const copy = REFUSALS[reason] ?? { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.unavailable' };
+  return { title: t(copy.title), detail: t(copy.detail), isRefused: true };
 }

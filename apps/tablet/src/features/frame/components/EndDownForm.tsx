@@ -21,8 +21,9 @@ export function EndDownForm({ onEnded, onCancel }: EndDownFormProps) {
   const [isFailed, setIsFailed] = useState(false);
   const close = async () => {
     const ended = await end.mutateAsync(ZERO);
-    setIsFailed(!ended.ok);
-    if (ended.ok) onEnded();
+    // A down ended already (at another press) is over, as this press wanted: the next dealer signs in (F4-15).
+    setIsFailed(!ended.ok && ended.error !== 'ended');
+    if (ended.ok || ended.error === 'ended') onEnded();
   };
   const waiting = pending === 0 ? null : pending === 1 ? t('tablet.endOfDown.queuedOne') : t('tablet.endOfDown.queued', { count: pending });
   return (

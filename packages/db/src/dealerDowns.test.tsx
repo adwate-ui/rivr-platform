@@ -97,4 +97,12 @@ describe('Dealer PINs and downs', () => {
     expect(ended).toEqual({ ok: false, error: 'unavailable' });
     expect(calls.slice(before).map((call) => call.url.split('/rpc/')[1])).toEqual(['dealer_sign_in', 'end_down']);
   });
+
+  it('says when a down had ended already, apart from no answer (F4-15)', async () => {
+    const { result } = renderDowns({ ...EMPTY, '/rpc/end_down': { status: 400, body: { code: 'RVDWN', message: 'no down' } } });
+    await waitFor(() => expect(result.current.down.data).toBeNull());
+    let ended: unknown;
+    await act(async () => { ended = await result.current.actions.end.mutateAsync(ZERO); });
+    expect(ended).toEqual({ ok: false, error: 'ended' });
+  });
 });
