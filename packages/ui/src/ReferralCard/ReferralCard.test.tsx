@@ -41,6 +41,16 @@ describe('ReferralCard', () => {
     expect(cardFontIn([{ cssText: face('normal', 'U+20B9', 'rupee.woff2'), base }])).toBeNull();
   });
 
+  it('sets a line that would cross the frame as two: at a sentence\'s end, or else where the halves are most even', () => {
+    const footer = 'Join from my link. On your first buy-in, we both get bonus chips.';
+    const svg = referralCardSvg({ ...text, footer, heading: 'Come and play with me at RIVR Poker Club' });
+    expect(svg).toContain('>Join from my link.</text>');
+    expect(svg).toContain('>On your first buy-in, we both get bonus chips.</text>');
+    expect(svg).toContain('>Come and play with me</text>');
+    expect(svg).toContain('>at RIVR Poker Club</text>');
+    expect(referralCardSvg(text)).toContain('>Play with me at RIVR</text>');
+  });
+
   it('keeps words that look like markup as words', () => {
     expect(referralCardSvg({ ...text, heading: 'Tom & <Jerry>' })).toContain('Tom &amp; &lt;Jerry&gt;');
   });

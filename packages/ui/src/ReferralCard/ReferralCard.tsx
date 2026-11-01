@@ -107,7 +107,9 @@ function loadCardFont(): Promise<string | null> {
     const source = cardFontSource();
     if (source === null) return null;
     try {
-      const font = new Blob([await (await fetch(source)).arrayBuffer()], { type: 'font/woff2' });
+      const response = await fetch(source);
+      if (!response.ok) return null;
+      const font = new Blob([await response.arrayBuffer()], { type: 'font/woff2' });
       return await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result));
@@ -135,9 +137,32 @@ export function useCardFont(): string | null | undefined {
   return font;
 }
 
-/** One centred line of the card. */
+/** The width a line may take inside the gold frame, a margin of 4 on each side, in percent of the card's side. */
+const MEASURE = 100 - 2 * (LAYOUT.frame.inset + 4);
+/** The display face's average advance in ems, as measured on the card's own lines: enough to keep a line inside the frame. */
+const ADVANCE = 0.52;
+
+/**
+ * The text as one line, or as two where one would cross the frame: at a sentence's end where both halves fit, otherwise
+ * at the space that leaves the halves most even. SVG text never wraps, so the card does.
+ */
+function wrap(text: string, size: number): string[] {
+  const limit = Math.floor(MEASURE / (size * ADVANCE));
+  const spaces = [...text.matchAll(/ /g)].map((match) => match.index);
+  if (text.length <= limit || spaces.length === 0) return [text];
+  const halves = (at: number) => [text.slice(0, at), text.slice(at + 1)];
+  const longer = (at: number) => Math.max(at, text.length - at - 1);
+  const sentence = spaces.find((at) => text[at - 1] === '.' && longer(at) <= limit);
+  return halves(sentence ?? spaces.reduce((best, at) => (longer(at) <= longer(best) ? at : best)));
+}
+
+/** A centred line of the card, set as two about its place where it would cross the frame. */
 function line({ y, size, weight }: { y: number; size: number; weight: number }, fill: string, value: string): string {
-  return `<text x="${px(50)}" y="${px(y)}" text-anchor="middle" font-family="${escape(FONT)}" font-size="${px(size)}" font-weight="${weight}" fill="${fill}">${escape(value)}</text>`;
+  const parts = wrap(value, size);
+  return parts.map((part, index) => {
+    const baseline = y + (index - (parts.length - 1) / 2) * size * 1.2;
+    return `<text x="${px(50)}" y="${px(baseline)}" text-anchor="middle" font-family="${escape(FONT)}" font-size="${px(size)}" font-weight="${weight}" fill="${fill}">${escape(part)}</text>`;
+  }).join('');
 }
 
 /**
