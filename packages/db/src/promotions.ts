@@ -34,6 +34,8 @@ export interface PromotionToSubmit {
   /** Its rules and its questions with their answers, as the website shows them (#618). */
   readonly rules?: readonly string[] | undefined;
   readonly questions?: readonly { readonly question: string; readonly answer: string }[] | undefined;
+  /** One id a submission, kept for a retry after a lost answer, so the retry returns the first promotion (A3). */
+  readonly requestId: string;
 }
 
 /** A template sent for approval as it stands (#85), with a budget for the whole promotion or each month, or none (#562). */
@@ -220,9 +222,11 @@ export function usePromotionActions(venueId: string) {
   const { client } = useRivrData();
   const settle = useSettle(venueId);
   const submit = useMutation({
-    mutationFn: async ({ name, detail, runs, draft, rules = [], questions = [] }: PromotionToSubmit) => {
+    mutationFn: async ({ name, detail, runs, draft, rules = [], questions = [], requestId }: PromotionToSubmit) => {
       const perPlayer = draft.perPlayer === null ? {} : { per_player_limit: draft.perPlayer.limit, per_player_period: draft.perPlayer.period };
-      const promotion = { name, detail, runs, rule: draft.rule, rules: [...rules], questions: questions.map((item) => ({ ...item })), ...perPlayer };
+      const promotion = {
+        name, detail, runs, rule: draft.rule, rules: [...rules], questions: questions.map((item) => ({ ...item })), ...perPlayer, request_id: requestId,
+      };
       const { data, error } = await client.rpc('submit_promotion', { p_venue_id: venueId, p_promotion: promotion });
       return settle(data, error);
     },

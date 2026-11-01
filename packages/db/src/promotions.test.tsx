@@ -70,6 +70,7 @@ describe('Promotions (#84)', () => {
     await act(async () => {
       submitted = await result.current.actions.submit.mutateAsync({
         name: 'Double points', runs: 'Thursday', draft: DRAFT, rules: ['Members only'], questions: [{ question: 'Do I claim it?', answer: 'No.' }],
+        requestId: 'r1',
       });
     });
     expect(submitted).toEqual({ ok: true, value: 'p9' });
@@ -77,7 +78,7 @@ describe('Promotions (#84)', () => {
       p_venue_id: VENUE,
       p_promotion: {
         name: 'Double points', runs: 'Thursday', rule: DRAFT.rule, per_player_limit: 1, per_player_period: 'promotion',
-        rules: ['Members only'], questions: [{ question: 'Do I claim it?', answer: 'No.' }],
+        rules: ['Members only'], questions: [{ question: 'Do I claim it?', answer: 'No.' }], request_id: 'r1',
       },
     });
     await act(async () => {
@@ -90,12 +91,12 @@ describe('Promotions (#84)', () => {
     const { result } = renderPromotions({ '/rpc/submit_promotion': { status: 400, body: { code: 'RVKIL', message: 'off' } }, '/rest/v1/': { body: [] } });
     let refused: unknown;
     await act(async () => {
-      refused = await result.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: { ...DRAFT, perPlayer: null } });
+      refused = await result.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: { ...DRAFT, perPlayer: null }, requestId: 'r2' });
     });
     expect(refused).toEqual({ ok: false, error: 'switched_off' });
     const { result: other } = renderPromotions({ '/rpc/submit_promotion': { status: 403, body: { code: '42501', message: 'no' } }, '/rest/v1/': { body: [] } });
     await act(async () => {
-      refused = await other.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT });
+      refused = await other.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT, requestId: 'r3' });
     });
     expect(refused).toEqual({ ok: false, error: 'not_allowed' });
   });
