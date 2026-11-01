@@ -40,6 +40,24 @@ describe('ConfirmButton', () => {
     vi.useRealTimers();
   });
 
+  it('turns back on Cancel beside the confirmation, and gives the focus back to the button', async () => {
+    const onConfirm = vi.fn();
+    renderIn(<ConfirmButton label="Leaves" name="Leaves: Ritika Das" confirm="Yes, Ritika leaves" onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Leaves: Ritika Das' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Leaves: Ritika Das' })).toHaveFocus();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('turns back on Escape with the focus on Cancel, giving the focus back to the button', async () => {
+    renderIn(<ConfirmButton label="Leaves" name="Leaves: Ritika Das" confirm="Yes, Ritika leaves" onConfirm={() => undefined} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Leaves: Ritika Das' }));
+    screen.getByRole('button', { name: 'Cancel' }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('button', { name: 'Leaves: Ritika Das' })).toHaveFocus();
+  });
+
   it('takes no press while the step runs, so it is never sent twice', async () => {
     const onConfirm = vi.fn();
     renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" isBusy onConfirm={onConfirm} />);

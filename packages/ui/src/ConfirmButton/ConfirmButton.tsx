@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { t } from '@rivr/i18n';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '../Button/index.ts';
 
 // How long the confirmation waits for its second press before it turns back.
@@ -19,25 +20,39 @@ export interface ConfirmButtonProps {
   onConfirm: () => void;
 }
 
+/** Turns the confirmation back. Cancel goes with it, so focus that was on Cancel goes to the button. */
+function turnBack(wrap: HTMLSpanElement | null, setAsking: (isAsking: boolean) => void) {
+  const hadFocus = wrap?.contains(document.activeElement) === true;
+  setAsking(false);
+  if (hadFocus) wrap?.querySelector('button')?.focus();
+}
+
 /**
  * A step that cannot be undone, asked twice in the same place: the first press turns the button into its danger
- * confirmation, and the second does the step. Left alone for five seconds, or on Escape, the confirmation turns back, so
- * a later stray tap never does the step. It is one button that changes, so focus and the hand stay on it.
+ * confirmation, with Cancel beside it, and the second does the step. Left alone for five seconds, on Escape or on Cancel,
+ * the confirmation turns back, so a later stray tap never does the step. It is one button that changes, so focus and the
+ * hand stay on it.
  */
 export function ConfirmButton({ label, name, confirm, variant = 'text', isBusy = false, isDisabled = false, onConfirm }: ConfirmButtonProps) {
   const [isAsking, setAsking] = useState(false);
+  const wrap = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     if (!isAsking) return undefined;
-    const timer = setTimeout(() => setAsking(false), ASK_FOR_MS);
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setAsking(false); };
+    const timer = setTimeout(() => turnBack(wrap.current, setAsking), ASK_FOR_MS);
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') turnBack(wrap.current, setAsking); };
     document.addEventListener('keydown', onKey);
     return () => { clearTimeout(timer); document.removeEventListener('keydown', onKey); };
   }, [isAsking]);
-  if (!isAsking) {
-    return (
-      <Button variant={variant} {...(name === undefined ? {} : { 'aria-label': name })} isLoading={isBusy} isDisabled={isDisabled}
-        onClick={() => setAsking(true)}>{label}</Button>
-    );
-  }
-  return <Button variant="danger" isDisabled={isDisabled} onClick={() => { setAsking(false); onConfirm(); }}>{confirm}</Button>;
+  // The button is the first child in both states, so it stays the same element and keeps the focus.
+  return (
+    <span ref={wrap} className="inline-flex flex-wrap items-center gap-2">
+      {isAsking ? (
+        <Button variant="danger" isDisabled={isDisabled} onClick={() => { setAsking(false); onConfirm(); }}>{confirm}</Button>
+      ) : (
+        <Button variant={variant} {...(name === undefined ? {} : { 'aria-label': name })} isLoading={isBusy} isDisabled={isDisabled}
+          onClick={() => setAsking(true)}>{label}</Button>
+      )}
+      {isAsking ? <Button variant="text" onClick={() => turnBack(wrap.current, setAsking)}>{t('common.cancel')}</Button> : null}
+    </span>
+  );
 }
