@@ -47,7 +47,10 @@ export function rewardDetail(choices: PromotionBuilder): string | undefined {
   }
   if (choices.reward === 'hours_bonus') {
     if (!Number.isSafeInteger(choices.bonus_chips)) return undefined;
-    return t('console.promotions.hoursBonusDetail', { chips: formatChips(BigInt(choices.bonus_chips) * 100n), hours: String(choices.bonus_hours) });
+    const chips = formatChips(BigInt(choices.bonus_chips) * 100n);
+    return choices.bonus_hours === 1
+      ? t('console.promotions.hoursBonusDetailOne', { chips })
+      : t('console.promotions.hoursBonusDetail', { chips, hours: String(choices.bonus_hours) });
   }
   return undefined;
 }

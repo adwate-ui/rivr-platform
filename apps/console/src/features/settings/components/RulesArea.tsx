@@ -15,7 +15,7 @@ function nowText(setting: VenueSetting, tierName: (id: string) => string): strin
     return inForce === null ? t('console.settings.notSet') : valueText(setting.key, setting.fields, inForce.value, tierName);
   }
   const set = setting.subjects.filter((subject) => subject.inForce !== null).length;
-  return t(`console.settings.setFor.${setting.scope}`, { count: formatNumber(set) });
+  return set === 1 ? t(`console.settings.setForOne.${setting.scope}`) : t(`console.settings.setFor.${setting.scope}`, { count: formatNumber(set) });
 }
 
 /** The area's settings, or loading, or why they could not be read. A failed refresh keeps what was known. */

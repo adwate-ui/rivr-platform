@@ -2,7 +2,7 @@ import {
   useAskLivePurge, useControlState, useLivePurgePreview, useOpenPurgeAsk, usePurgeFilesLeft, usePurgeLiveVenue, useRemovePurgedFiles, useStaffVenue,
   type LivePurgeFailure, type LivePurgeRow, type PurgeAsk, type PurgedFiles,
 } from '@rivr/db';
-import { formatNumber, formatTime, t, type MessageKey } from '@rivr/i18n';
+import { formatNumber, formatTime, type MessageKey, t } from '@rivr/i18n';
 import { Button, DataTable, ErrorMessage, Heading, Input, LoadState, Screen, Stack, Text, TextArea, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { ArchiveStatus } from './ArchiveStatus.tsx';
@@ -51,10 +51,12 @@ function ArchiveStep({ venueId }: { venueId: string }) {
 
 /** The files after the purge: how many went, or how many are left with the button to try again. */
 function FilesOutcome({ files, isPending, onAgain }: { files: PurgedFiles | null; isPending: boolean; onAgain: () => void }) {
-  if (files !== null && files.left === 0) return <Text>{t('console.purge.filesRemoved', { files: formatNumber(files.removed) })}</Text>;
+  if (files !== null && files.left === 0) {
+    return <Text>{files.removed === 1 ? t('console.purge.filesRemovedOne') : t('console.purge.filesRemoved', { files: formatNumber(files.removed) })}</Text>;
+  }
   return (
     <Stack gap={2} align="start">
-      {files === null ? null : <ErrorMessage>{t('console.purge.filesLeft', { left: formatNumber(files.left) })}</ErrorMessage>}
+      {files === null ? null : <ErrorMessage>{files.left === 1 ? t('console.purge.filesLeftOne') : t('console.purge.filesLeft', { left: formatNumber(files.left) })}</ErrorMessage>}
       <Button isLoading={isPending} onClick={onAgain}>{t('console.purge.filesAgain')}</Button>
     </Stack>
   );
@@ -91,7 +93,7 @@ function PurgeStep({ venueId }: { venueId: string }) {
   if (purge.rows !== null) {
     return (
       <Stack gap={4} align="start">
-        <Text>{t('console.purge.purged', { count: formatNumber(purge.rows) })}</Text>
+        <Text>{purge.rows === 1 ? t('console.purge.purgedOne') : t('console.purge.purged', { count: formatNumber(purge.rows) })}</Text>
         {failure}
         <FilesOutcome files={purge.files} isPending={purge.isRemoving} onAgain={() => void purge.filesAgain()} />
       </Stack>
@@ -122,7 +124,7 @@ function LastPurgeFiles({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={2} align="start">
-      <ErrorMessage>{t('console.purge.lastPurgeFiles', { left: formatNumber(left.data) })}</ErrorMessage>
+      <ErrorMessage>{left.data === 1 ? t('console.purge.lastPurgeFilesOne') : t('console.purge.lastPurgeFiles', { left: formatNumber(left.data) })}</ErrorMessage>
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
       <Button isLoading={removeFiles.isPending} onClick={() => void again()}>{t('console.purge.filesAgain')}</Button>
     </Stack>

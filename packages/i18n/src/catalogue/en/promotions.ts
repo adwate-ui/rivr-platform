@@ -54,6 +54,7 @@ export const promotions = {
   bonusChips: 'Bonus chips',
   /** On its card: "1,000 bonus chips after 4 hours at the tables". */
   hoursBonusDetail: '{chips} bonus chips after {hours} hours at the tables',
+  hoursBonusDetailOne: '{chips} bonus chips after 1 hour at the tables',
   limitOptions: { none: 'None', first_50: 'First 50 members a day', once_per_member: 'Once per member' },
   playerApp: 'Player app',
   tvSlide: 'TV slide',
@@ -113,8 +114,11 @@ export const promotions = {
     conditions: {
       days: 'on {days}', window: 'from {from} to {until}', firstPerTable: 'the first {count} at each table',
       firstPerDay: 'the first {count} each club day', callTime: 'once call time is complete', minHours: 'after {hours} hours played',
-      stakes: 'at {stakes}', tables: 'at {count} chosen tables', tiers: '{count} chosen tiers', newPlayer: 'new players only',
-      lapsed: 'players back after {days} days away', minVisits: 'members with {count} visits this month', hands: 'for {hands}',
+      minHoursOne: 'after 1 hour played',
+      stakes: 'at {stakes}', tables: 'at {count} chosen tables', tablesOne: 'at 1 chosen table', tiers: '{count} chosen tiers',
+      tiersOne: '1 chosen tier', newPlayer: 'new players only',
+      lapsed: 'players back after {days} days away', minVisits: 'members with {count} visits this month',
+      minVisitsOne: 'members with 1 visit this month', hands: 'for {hands}',
     },
     hands: { four_of_a_kind: 'four of a kind', straight_flush: 'a straight flush', royal_flush: 'a royal flush', bad_beat: 'a bad beat' },
     noLimit: 'No limit per member',
@@ -124,7 +128,9 @@ export const promotions = {
     /** `{amount}`: bonus chips, `50,000` (#629). */
     budgetPaise: 'Budget: {amount} bonus chips',
     budgetCount: 'Budget: {count} grants',
+    budgetCountOne: 'Budget: 1 grant',
     budgetBoth: 'Budget: {amount} bonus chips or {count} grants, whichever comes first',
+    budgetBothOne: 'Budget: {amount} bonus chips or 1 grant, whichever comes first',
     /** A monthly budget (#562): `Budget: 50,000 bonus chips, each month`. */
     eachMonth: '{budget}, each month',
   },

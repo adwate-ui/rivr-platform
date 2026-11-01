@@ -19,6 +19,7 @@ export const settings = {
   superAdminNote: 'Only a super admin changes this.',
   /** A scoped setting's state in the list: "4 of 5 table types set". */
   setFor: { table_type: '{count} table types set', stake: '{count} stakes set', tier: '{count} tiers set', role: '{count} roles set' },
+  setForOne: { table_type: '1 table type set', stake: '1 stake set', tier: '1 tier set', role: '1 role set' },
   /** Each value's line in its history: when it began, who set it, and why. */
   by: 'by {name}',
   /** Units: as shown after a value, and after a field. */
