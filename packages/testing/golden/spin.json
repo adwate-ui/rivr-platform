@@ -1,6 +1,6 @@
 {
   "rule": "spin wheel",
-  "about": "The spin wheel (#150; additions \"Spin wheel\"; decision 0266). The wheel's prizes are points, bonus in whole ₹50 chips, or nothing, each with a weight: its odds among the others. A spin draws a roll from 0 to the odds less one, the odds being the weights of the prizes that can be drawn; the roll lands on those prizes in the wheel's order, each taking as many rolls as its weight. A bonus prize more than what is left of the club month's spin.budget is left off the wheel for that spin; with nothing that can be drawn there is no spin. A case's prizes are separated by semicolons, each with its weight after ×; the expected prize is its place on the wheel, or none.",
+  "about": "The spin wheel (#150; additions \"Spin wheel\"; decision 0266). The wheel's prizes are points, bonus in whole ₹50 chips, or nothing, each with a weight: its odds among the others. A spin draws a roll from 0 to the odds less one, the odds being the weights of the prizes that can be drawn; the roll lands on those prizes in the wheel's order, each taking as many rolls as its weight. A bonus prize more than the budget left (what is left of the club month's spin.budget, or of the spin's promotion's own budget if less) is left off the wheel for that spin; with nothing that can be drawn there is no spin. A case's prizes are separated by semicolons, each with its weight after ×; the expected prize is its place on the wheel, or none.",
   "cases": [
     {
       "description": "The first roll lands on the first prize.",

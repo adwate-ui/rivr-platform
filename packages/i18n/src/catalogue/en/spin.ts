@@ -37,7 +37,7 @@ export const spin = {
     not_allowed: 'Your role does not include this. Ask an admin if you need it.',
     invalid: 'Points are a whole number, bonus chips come in whole 50s, and a weight is from 1 to 1,000.',
     gone: 'That spin is already spun, or the prize is already off the wheel.',
-    no_prize: 'No prize on the wheel this month’s spin budget allows. Add points or nothing, or raise the budget.',
+    no_prize: 'No prize on the wheel that this month’s spin budget and the promotion’s own budget allow. Add points or nothing, or raise a budget.',
     paused: 'The club or this member is paused: spin when it reopens.',
     unavailable: 'That did not go through. Try again.',
   },
