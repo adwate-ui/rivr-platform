@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { doorCheckInSchema } from '@rivr/contracts';
 import { useCheckInActions, useCheckOutActions, type CheckInFailure, type CheckOutRefusal } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 
-type Outcome = { in: CheckInFailure } | { out: CheckOutRefusal } | 'checked_out' | null;
+type Outcome = { in: CheckInFailure } | { out: CheckOutRefusal } | 'checked_in' | 'checked_out' | null;
 
 /**
  * Checks a member in, or out as they leave (#82), by their mobile number, when they do not have their
@@ -21,17 +21,19 @@ export function PhoneCheckIn({ venueId }: { venueId: string }) {
   const [resolver] = useState(() => zodResolver(doorCheckInSchema));
   const form = useForm<z.input<typeof doorCheckInSchema>, unknown, z.output<typeof doorCheckInSchema>>({ resolver, defaultValues: { phone: '' } });
   const admit = form.handleSubmit(async ({ phone }) => {
+    setOutcome(null);
     const opened = await checkInByPhone.mutateAsync(phone);
-    setOutcome(opened.ok ? null : { in: opened.error });
+    setOutcome(opened.ok ? 'checked_in' : { in: opened.error });
     if (opened.ok) form.reset();
-  });
+  }, () => setOutcome(null));
   const release = form.handleSubmit(async ({ phone }) => {
+    setOutcome(null);
     const closed = await checkOutByPhone.mutateAsync(phone);
     setOutcome(closed.ok ? 'checked_out' : { out: closed.error });
     if (closed.ok) form.reset();
-  });
+  }, () => setOutcome(null));
   const phone = form.register('phone');
-  const isFailure = outcome !== null && outcome !== 'checked_out';
+  const isFailure = outcome !== null && outcome !== 'checked_in' && outcome !== 'checked_out';
   return (
     <Stack gap={2}>
       <Inline gap={3} align="end" wrap>
@@ -40,6 +42,7 @@ export function PhoneCheckIn({ venueId }: { venueId: string }) {
         <Button variant="text" isLoading={checkOutByPhone.isPending} onClick={() => void release()}>{t('console.checkIn.checkOut')}</Button>
       </Inline>
       {form.formState.errors.phone ? <ErrorMessage>{t('console.checkIn.invalid')}</ErrorMessage> : null}
+      <StatusMessage>{outcome === 'checked_in' ? t('console.checkIn.checkedIn') : null}</StatusMessage>
       {outcome === 'checked_out' ? <Text variant="small">{t('console.checkIn.checkedOut')}</Text> : null}
       {isFailure ? <ErrorMessage>{'in' in outcome ? t(CHECK_IN_FAILURE_COPY[outcome.in]) : checkOutRefusalText(outcome.out)}</ErrorMessage> : null}
     </Stack>
