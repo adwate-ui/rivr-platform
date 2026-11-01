@@ -109,6 +109,8 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
 }
 
 type Report = (outcome: { ok: true } | { ok: false; error: SeatFailure }) => void;
+/** What a refusal came from: the seats' buttons and the table's controls above, or a form below. */
+type FailureFrom = 'table' | 'move' | 'leaveEarly' | 'callTime' | 'seat';
 
 interface SeatRowsProps {
   venueId: string;
@@ -158,28 +160,39 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
   const [leavingEarly, setLeavingEarly] = useState<SeatedPlayer | null>(null);
   const [changing, setChanging] = useState<SeatedPlayer | null>(null);
-  const [failure, setFailure] = useState<SeatFailure | null>(null);
-  const report: Report = (outcome) => setFailure(outcome.ok ? null : outcome.error);
-  const forms = { move: setMoving, leaveEarly: setLeavingEarly, callTime: setChanging };
+  // Where a refusal came from, so it shows beside what caused it: the seats and table above, or one of the forms below (F2-29).
+  const [failure, setFailure] = useState<{ error: SeatFailure; from: FailureFrom } | null>(null);
+  const reportFrom = (from: FailureFrom): Report => (outcome) => setFailure(outcome.ok ? null : { error: outcome.error, from });
+  const reports = { table: reportFrom('table'), move: reportFrom('move'), leaveEarly: reportFrom('leaveEarly'), callTime: reportFrom('callTime'), seat: reportFrom('seat') };
+  const report = reports.table;
+  const errorFrom = (from: FailureFrom) => (failure?.from === from ? <ErrorMessage>{t(SEAT_FAILURE_COPY[failure.error])}</ErrorMessage> : null);
+  const errors = { table: errorFrom('table'), move: errorFrom('move'), leaveEarly: errorFrom('leaveEarly'), callTime: errorFrom('callTime'), seat: errorFrom('seat') };
+  // A form opened clears a refusal from before, which would sit beside a form that did not cause it.
+  const opening = (open: (player: SeatedPlayer) => void) => (player: SeatedPlayer) => { setFailure(null); open(player); };
+  const forms = { move: opening(setMoving), leaveEarly: opening(setLeavingEarly), callTime: opening(setChanging) };
   return (
     <Stack gap={4}>
       <TableHeader table={table} night={night} canSeeNight={permissions.includes('members.read')} />
       {permissions.includes('floor.manage') ? <TableControls venueId={venueId} table={table} tables={tables} isEmpty={seats.length === 0} onResult={report} /> : null}
-      {failure === null ? null : <ErrorMessage>{t(SEAT_FAILURE_COPY[failure])}</ErrorMessage>}
+      {errors.table}
       {permissions.includes('members.read') ? (
         <SeatRows venueId={venueId} table={table} seats={seats} held={held} permissions={permissions} report={report}
           onForm={(form, player) => forms[form](player)} />
       ) : <Text tone="muted">{t('console.liveFloor.noSeatMap')}</Text>}
-      {moving === null ? null : <MoveForm key={moving.sessionId} venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
+      {moving === null ? null : <MoveForm key={moving.sessionId} venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { reports.move(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
+      {errors.move}
       {leavingEarly === null ? null : (
-        <EarlyLeaveForm key={leavingEarly.sessionId} venueId={venueId} onDone={report} onCancel={() => setLeavingEarly(null)}
+        <EarlyLeaveForm key={leavingEarly.sessionId} venueId={venueId} onDone={reports.leaveEarly} onCancel={() => setLeavingEarly(null)}
           member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />
       )}
+      {errors.leaveEarly}
       {changing === null ? null : (
         <CallTimeForm key={changing.sessionId} venueId={venueId} player={changing} onCancel={() => setChanging(null)}
-          onDone={(outcome) => { report(outcome); if (outcome.ok) setChanging(null); }} />
+          onDone={(outcome) => { reports.callTime(outcome); if (outcome.ok) setChanging(null); }} />
       )}
-      {permissions.includes('waitlist.manage') && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
+      {errors.callTime}
+      {permissions.includes('waitlist.manage') && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={reports.seat} /> : null}
+      {errors.seat}
     </Stack>
   );
 }
