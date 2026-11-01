@@ -131,7 +131,7 @@ function HeaderCell<Row>({ column, sort, onSort }: { column: DataTableColumn<Row
   return (
     <div role="columnheader" aria-sort={direction ?? 'none'} className={cx('flex min-w-0', align)}>
       <button type="button" onClick={() => onSort(column.key)}
-        className="flex min-h-touch items-center gap-1 font-text text-14 text-content-muted transition-colors hover:text-content focus-visible:text-content">
+        className="flex min-h-touch min-w-touch items-center gap-1 font-text text-14 text-content-muted transition-colors hover:text-content focus-visible:text-content tablet:min-w-0">
         {column.header}
         {direction === undefined ? null : <Icon name={direction === 'ascending' ? 'chevronUp' : 'chevronDown'} size="sm" />}
       </button>
@@ -176,7 +176,7 @@ function BodyRow<Row>({ row, columns, index, place, onRowOpen }: BodyRowProps<Ro
   const isOneLine = place !== undefined;
   return (
     <div role="row" aria-rowindex={index + 2}
-      className={cx('flex flex-col gap-1 border-b border-hairline px-3 py-3', WIDE_GRID,
+      className={cx('flex flex-col gap-1 border-b border-hairline px-3 py-3 transition-colors hover:bg-raised', WIDE_GRID,
         isOneLine ? 'absolute inset-x-0 top-0 overflow-hidden medium:h-12 medium:py-0' : 'relative medium:min-h-12 medium:py-2')}
       style={place === undefined ? undefined : { transform: `translateY(${place.offset}px)`, height: place.height }}>
       {columns.map((column, at) => {

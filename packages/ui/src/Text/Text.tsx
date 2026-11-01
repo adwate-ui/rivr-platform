@@ -31,7 +31,7 @@ const VARIANT: Record<TextVariant, string> = {
   caption: 'text-12 leading-normal',
   label: 'text-14 leading-snug font-medium',
   lead: 'text-18 leading-snug',
-  eyebrow: 'text-12 leading-snug font-medium uppercase tracking-tv',
+  eyebrow: 'text-12 leading-snug font-medium uppercase tracking-wide',
   tvLabel: 'text-24 leading-snug font-medium uppercase tracking-tv',
   tvBody: 'text-36 leading-snug',
   posterLabel: 'text-36 leading-snug font-medium uppercase tracking-tv',

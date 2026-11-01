@@ -64,4 +64,12 @@ describe('ConfirmQuestion', () => {
     expect(screen.queryByText(QUESTION)).toBeNull();
     expect(screen.getByRole('button', { name: 'Active: Ayesha Thomas' })).toHaveFocus();
   });
+
+  it('takes Escape as Cancel while its answers have the focus', async () => {
+    const onCancel = vi.fn();
+    renderIn(<ConfirmQuestion question={QUESTION} confirm="Yes, change it" onConfirm={() => undefined} onCancel={onCancel} />);
+    screen.getByRole('button', { name: 'Cancel' }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
 });

@@ -12,7 +12,7 @@ export interface CookieBannerProps {
 function Choice({ name, label, help, isFixed }: { name: string; label: string; help: string; isFixed?: boolean }) {
   return (
     <label className="flex min-h-touch items-start gap-3">
-      <input type="checkbox" name={name} defaultChecked={isFixed} disabled={isFixed} className="mt-1" />
+      <input type="checkbox" name={name} defaultChecked={isFixed} disabled={isFixed} className="mt-1 size-5 shrink-0 accent-action" />
       <span className="flex flex-col">
         <Text as="span" variant="label">{label}</Text>
         <Text as="span" variant="small" tone="muted">{help}</Text>

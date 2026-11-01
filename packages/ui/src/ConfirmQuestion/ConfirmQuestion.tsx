@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useId, useLayoutEffect, useRef } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef } from 'react';
 import { Button } from '../Button/index.ts';
 import { Inline } from '../Inline/index.ts';
 import { Stack } from '../Stack/index.ts';
@@ -32,6 +32,15 @@ export function ConfirmQuestion({ question, confirm, isBusy = false, onConfirm, 
       if (asker?.isConnected === true && buttons?.contains(document.activeElement) === true) asker.focus();
     };
   }, []);
+  // Escape while the answers have the focus cancels, unless the answer is being sent.
+  useEffect(() => {
+    const buttons = answers.current;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isBusy) onCancel();
+    };
+    buttons?.addEventListener('keydown', escape);
+    return () => buttons?.removeEventListener('keydown', escape);
+  }, [isBusy, onCancel]);
   return (
     <Stack gap={2}>
       <Text id={questionId}>{question}</Text>

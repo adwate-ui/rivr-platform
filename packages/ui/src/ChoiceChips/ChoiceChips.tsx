@@ -59,7 +59,7 @@ export function ChoiceChips<Value extends string>({
               aria-pressed={isOn}
               disabled={isDisabled}
               onClick={() => press(option.value)}
-              className={cx(CHIP, isOn ? 'border-content text-content' : 'border-control text-content-muted')}
+              className={cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted')}
             >
               {option.label}
             </button>
