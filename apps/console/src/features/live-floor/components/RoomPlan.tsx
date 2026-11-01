@@ -25,18 +25,18 @@ function cardWords(table: FloorTable, taken: number, canSeeSeats: boolean): { ri
 }
 
 /**
- * A card's dealer and pace, or none for a role without members.read: floor_tonight gives such a role no rows, so every table
- * would read "No dealer" with no pace (F2-25).
+ * A card's dealer, or none for a role without members.read: floor_tonight gives such a role no rows, so every table would
+ * read "No dealer" (F2-25). No pace: hands are no longer counted at the table (#630; UI polish audit A-11).
  */
 function nightWords(figures: FloorNight['tables'][number] | undefined, canSeeSeats: boolean): { dealer: string | null; pace: string | null } {
   if (!canSeeSeats) return { dealer: null, pace: null };
   return {
     dealer: figures?.dealerName ?? t('console.liveFloor.noDealer'),
-    pace: figures && figures.handsLastHour > 0 ? t('console.liveFloor.handsPerHour', { count: figures.handsLastHour }) : t('console.liveFloor.noPace'),
+    pace: null,
   };
 }
 
-/** One table's card: its ring, how many sit there, its dealer and hands in the last hour; no rake, as no console shows it (#626). */
+/** One table's card: its ring, how many sit there and its dealer; no rake, as no console shows it (#626). */
 function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Omit<RoomPlanProps, 'tables' | 'chosenId' | 'onChoose'> & { table: FloorTable; isChosen: boolean; onChoose: () => void }) {
   const here = seats.filter((seat) => seat.tableId === table.id);
   const figures = night.tables.find((candidate) => candidate.tableId === table.id);

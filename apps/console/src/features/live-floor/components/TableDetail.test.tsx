@@ -76,7 +76,16 @@ describe('a table on the live floor', () => {
     );
     expect(screen.getByRole('heading', { name: 'Table 3' })).toBeDefined();
     expect(screen.queryByText('No dealer')).toBeNull();
+    expect(screen.queryByText('Call time running')).toBeNull();
+  });
+
+  it('counts who at the table still owes call time and who asks for a top-up, where hands used to be (A-11)', () => {
+    renderTable([KABIR, PRIYA, { ...KABIR, sessionId: 's3', seat: 7, memberId: 'm3', fullName: 'Arjun Mehta', topUp: 'requested' }]);
+    const counts = (label: string) => screen.getByText(label).parentElement?.textContent;
+    expect(counts('Call time running')).toBe('Call time running1');
+    expect(counts('Top-ups waiting')).toBe('Top-ups waiting1');
     expect(screen.queryByText('Hands')).toBeNull();
+    expect(screen.queryByText('Per hour')).toBeNull();
   });
 
   it('shows a seat refused beside the seat form, not above the seats (F2-29)', async () => {
