@@ -2,7 +2,7 @@ import {
   useFloorNight, useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorNight, type FloorTable, type HeldSeat, type SeatedPlayer,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, SplitView, Stack } from '@rivr/ui';
+import { Screen, SplitView, Stack, StaleNotice } from '@rivr/ui';
 import { useState } from 'react';
 import { JoinRequestsNotice } from './JoinRequestsNotice.tsx';
 import { LeavingList } from './LeavingList.tsx';
@@ -33,6 +33,12 @@ function loaded(tables: FloorTable[] | undefined, seats: SeatedPlayer[] | undefi
   return { tables, seats, held, night };
 }
 
+/** Open all night: once a read stops refreshing, a notice saying since when (call-time timers move only with a refresh). */
+function staleOf(reads: readonly { isError: boolean; dataUpdatedAt: number; refetch: () => Promise<unknown> }[]) {
+  if (!reads.some((read) => read.isError)) return null;
+  return <StaleNotice since={new Date(Math.min(...reads.map((read) => read.dataUpdatedAt)))} onRetry={() => void Promise.all(reads.map((read) => read.refetch()))} />;
+}
+
 function Floor({ venueId, permissions }: { venueId: string; permissions: readonly string[] }) {
   const reads = { tables: useFloorTables(), seats: useFloorSeats(venueId), held: useHeldSeats(venueId), night: useFloorNight(venueId) };
   const [chosenId, setChosenId] = useState<string | null>(null);
@@ -43,11 +49,13 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
     if (all.some((read) => read.isError)) return <Screen title={title} status="error" onRetry={() => void Promise.all(all.map((read) => read.refetch()))} />;
     return <Screen title={title} status="loading" />;
   }
+  const stale = staleOf(Object.values(reads));
   const here = data.tables.filter((table) => table.venueId === venueId);
   const chosen = here.find((table) => table.id === chosenId) ?? here[0];
   if (chosen === undefined) return <Screen title={title} status="empty" emptyText={t('console.liveFloor.empty')} />;
   return (
     <Screen title={title}>
+      {stale}
       {/* The first table shows beside the plan from 1180 px; below, the plan stays until a table is chosen (#605). */}
       <SplitView isChosen={chosenId !== null} onBack={() => setChosenId(null)} backLabel={t('console.liveFloor.backToFloor')}
         emptyText={t('console.liveFloor.chooseTable')}

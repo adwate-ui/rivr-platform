@@ -1,6 +1,6 @@
 import { useFloorTables, useInterestLists, useStaffVenue, useWaitlistBoard, useWaitlistRequests, type FloorTable, type InterestList } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, Screen, Stack } from '@rivr/ui';
+import { ErrorMessage, Screen, Stack, StaleNotice } from '@rivr/ui';
 import { GameList } from './GameList.tsx';
 
 /** The floor's waitlists (#38), one per game and stake, for staff with waitlist.manage. */
@@ -39,15 +39,18 @@ function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
   const asked = useWaitlistRequests(venueId);
   const requests = asked.data ?? [];
   const title = t('console.waitlist.title');
-  if (tables.isPending || board.isPending) return <Screen title={title} status="loading" />;
-  if (tables.isError || board.isError) {
-    return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), board.refetch()])} />;
+  const retry = () => void Promise.all([tables.refetch(), board.refetch()]);
+  // Open all night: a list that stops refreshing stays on screen, saying since when.
+  const isFailing = tables.isError || board.isError;
+  if (tables.data === undefined || board.data === undefined) {
+    return isFailing ? <Screen title={title} status="error" onRetry={retry} /> : <Screen title={title} status="loading" />;
   }
   const games = gamesOf(tables.data, venueId);
   if (games.length === 0) return <Screen title={title} status="empty" emptyText={t('console.waitlist.noGames')} />;
   return (
     <Screen title={title}>
       <Stack gap={10}>
+        {isFailing ? <StaleNotice since={new Date(Math.min(tables.dataUpdatedAt, board.dataUpdatedAt))} onRetry={retry} /> : null}
         {asked.isError ? <ErrorMessage>{t('console.waitlist.requestsFailed')}</ErrorMessage> : null}
         {games.map((game) => (
           <GameList key={game.tableTypeId} venueId={venueId} game={game}
