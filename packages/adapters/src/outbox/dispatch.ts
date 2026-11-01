@@ -17,8 +17,11 @@ export interface ClaimedDelivery {
 /** Where deliveries come from and go back to: the database's claim and finish functions. */
 export interface OutboxStore {
   claim(input: { consumer: string; eventTypes: readonly string[]; isMessaging: boolean; limit: number }): Promise<ClaimedDelivery[]>;
-  /** `retryAfterSeconds` null fails the delivery for good: the vendor rejected it. */
-  finish(input: { deliveryId: string; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
+  /**
+   * `retryAfterSeconds` null fails the delivery for good: the vendor rejected it. `attempts` is the attempt claimed, so a
+   * finish that comes after the delivery was claimed again changes nothing (A5-13).
+   */
+  finish(input: { deliveryId: string; attempts: number; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
 }
 
 /** A consumer: its name, the events it takes, and what it does with one of them. */
@@ -64,6 +67,7 @@ export async function runConsumer(store: OutboxStore, consumer: Consumer, limit 
     if (outcome.ok) delivered += 1;
     await store.finish({
       deliveryId: delivery.deliveryId,
+      attempts: delivery.attempts,
       isDelivered: outcome.ok,
       error: outcome.ok ? null : describe(outcome.error),
       retryAfterSeconds: outcome.ok ? 0 : retryAfter(outcome.error, delivery.attempts),

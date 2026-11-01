@@ -4783,7 +4783,7 @@ isOneToOne: false
 { Args: { "p_delivered": boolean,"p_delivery_id": string,"p_device_id": string,"p_error": string,"p_retry_after_seconds": number }; Returns: undefined
                            },
 "finish_outbox_delivery":
-{ Args: { "p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
+{ Args: { "p_attempts"?: number,"p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_retry_after"?: string }; Returns: undefined
                            },
 "finish_tournament":
 { Args: { "p_method"?: string,"p_stacks"?: Json,"p_tournament_id": string }; Returns: undefined
