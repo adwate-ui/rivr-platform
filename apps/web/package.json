@@ -6,6 +6,7 @@
     "dev": "node scripts/media.mjs && astro dev",
     "build": "node scripts/media.mjs && astro build",
     "preview": "astro preview",
+    "capture:app": "node scripts/capture-app.mjs",
     "typecheck": "astro check",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run"

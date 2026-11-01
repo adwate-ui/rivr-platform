@@ -18,6 +18,7 @@ select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'for every hour
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Every hour'), 0, 'nor League points');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'rake back as points'), 0, 'nor that rake comes back as points');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Call time kept for every seat'), 1, 'the front page says call time is kept instead');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'the bad-beat jackpot and the next tournament'), 0, 'and its picture of the app names no jackpot');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Points and rewards'), 1, 'and Membership''s rewards are headed Points and rewards');
 
 -- Words the club wrote stay as written.

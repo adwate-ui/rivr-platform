@@ -1,5 +1,5 @@
 -- The website's claims of what the app no longer does (UI polish audit A-27, decision 0289): every hand logged at the
--- table, points for every hour, and a share of the rake as points. Hands are logged only where a table has a tablet,
+-- table, points for every hour, a share of the rake as points, and a jackpot in the picture of the app (AS-03 retook it). Hands are logged only where a table has a tablet,
 -- and points are given by hand (decision 0284), so the lines that said so give way to neutral ones until the club writes
 -- its own in the console's Website editor (owner, 2 Nov: placeholders for now). Each only while it still reads as the
 -- website came with it, so a club's own words stay.
@@ -24,7 +24,9 @@ declare
     ['"Every hour at the tables and every tournament finish earns League points. Here is where everyone stands, this month and this season."',
      '"League points come from cash games and tournament finishes. Here is where everyone stands, this month and this season."'],
     ['"Every hour seated at a cash table earns League points, more at the higher stakes."', '"Cash games earn League points."'],
-    ['"heading": "Points for every hour"', '"heading": "Points and rewards"']
+    ['"heading": "Points for every hour"', '"heading": "Points and rewards"'],
+    ['"The RIVR app''s Home: tonight''s tables with their open seats, the bad-beat jackpot and the next tournament"',
+     '"The RIVR app''s Home: tonight''s tables with their open seats and the tournaments coming up"']
   ];
   v_line text[];
 begin
