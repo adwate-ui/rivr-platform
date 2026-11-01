@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
 import { Captcha } from './Captcha.tsx';
 
 /**
@@ -32,5 +33,9 @@ export const Failed: Story = {
       remove: () => undefined,
     });
     return () => void Reflect.deleteProperty(window, 'turnstile');
+  },
+  // The failure comes a moment after the check is drawn: the story waits for it, so its picture is always the failure.
+  play: async ({ canvasElement }) => {
+    await expect(await within(canvasElement).findByRole('alert')).toBeInTheDocument();
   },
 };
