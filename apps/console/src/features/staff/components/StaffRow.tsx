@@ -45,6 +45,15 @@ interface StaffRowProps {
 }
 
 /**
+ * What the manager may change on a row. Someone in a role the manager couldn't give is out of their reach (the line above
+ * names the role); their own job title is theirs to change whatever their role (B3: an admin no longer gives the admin role).
+ */
+function reachOf(member: StaffMember, grantable: readonly StaffRole[], isPending: boolean) {
+  const isInReach = grantable.includes(member.role);
+  return { isInReach, canChange: isInReach && !isPending, canRetitle: (isInReach || member.isMe) && !isPending };
+}
+
+/**
  * One staff member: name, job title and role, their number, and the changes the manager may make. A
  * manager changes only someone whose role they could give, and never their own role or whether they're active.
  */
@@ -57,14 +66,12 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
     setFailure(result.ok ? null : result.error);
     setIsTitleSaved(result.ok && 'jobTitle' in update);
   };
-  // Someone in a role the manager couldn't give is out of their reach: the line above names the role.
-  const isInReach = grantable.includes(member.role);
-  const canChange = isInReach && !change.isPending;
+  const { isInReach, canChange, canRetitle } = reachOf(member, grantable, change.isPending);
   const name = member.fullName;
   return (
     <Stack gap={3}>
       <StaffIdentity member={member} />
-      <JobTitleForm member={member} isDisabled={!canChange} onSave={(jobTitle) => save({ jobTitle })} />
+      <JobTitleForm member={member} isDisabled={!canRetitle} onSave={(jobTitle) => save({ jobTitle })} />
       <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
       {isInReach ? (
         <ChoiceChips label={t('console.staff.roleFor', { name })} mode="one" selected={[member.role]} isDisabled={!canChange || member.isMe}

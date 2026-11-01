@@ -25,6 +25,7 @@ export const alerts = {
     'outbox.failures': 'many messages or posts are failing',
     'rakeback.refused': 'a week\'s rakeback could not be given',
     'rakeback.unpaid': 'a week\'s rakeback held by a freeze or the kill switch for over five weeks was not given',
+    'staff.role_granted': 'a staff member was given a role that moves money, approves a second time, stops the venue or runs promotions, or such a row was given another number',
     'settings.control_changed': 'a super admin changed a control setting: credit, second approval, TDS, alert thresholds, GST, high-hand or jackpot payouts, or rakeback',
     'website.publish_failed': 'a website page scheduled to publish could not be published: its draft is waiting in the console',
     'withdrawal.payout_orphaned': 'Cashfree paid a withdrawal the cage had already paid another way or given up on',
