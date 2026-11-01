@@ -157,6 +157,27 @@ export const members = {
       unavailable: 'The erasure did not go through. Try again.',
     },
   },
+  /** The floor's break for a member (A5-14, decision 0053), for staff with members.manage. */
+  break: {
+    title: 'Break',
+    intro: 'Waitlists close for the member until the break ends. It cannot be shortened, and a shorter one while a longer runs changes nothing.',
+    length: 'How long',
+    lengths: { day: '24 hours', week: '7 days', month: '30 days', quarter: '90 days', year: '1 year', tenYears: '10 years' },
+    reason: 'Why the break',
+    reasonHint: 'Kept with the break, with your name.',
+    start: 'Start break',
+    /** The second press. `{length}`: 30 days. */
+    confirm: 'Yes, start a break of {length}',
+    /** `{until}`: 2 Dec 2026, 00:00, with the year, as a break may run for years. */
+    started: 'On a break until {until}.',
+    failures: {
+      not_allowed: 'Your role does not set breaks. Ask a membership manager.',
+      no_member: 'That member is not at this venue.',
+      invalid: 'Give a reason of 3 to 300 characters.',
+      paused: 'The venue is frozen. Breaks are set again once it is released.',
+      unavailable: 'That did not go through. Check the connection and try again.',
+    },
+  },
   /** Why a tier change did not go through. */
   failures: {
     notAllowed: 'Your role does not change tiers. Ask a membership manager.',

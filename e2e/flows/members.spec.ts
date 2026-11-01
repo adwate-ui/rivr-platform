@@ -24,6 +24,9 @@ test.describe('Members', () => {
     await expect(page.getByText(/^Member \d+ · Black card · KYC verified/)).toBeVisible();
     await expect(page.getByText('Qualifies at 100/200')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Early departures' })).toBeVisible();
+    // A membership manager sets a break from the record (A5-14); setting one is proved in 046_member_breaks.test.sql.
+    await expect(page.getByRole('heading', { name: 'Break', level: 3 })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'How long' }).getByRole('button', { name: '1 year' })).toBeVisible();
     // Feature overrides are for super admins alone (#61).
     await expect(page.getByRole('heading', { name: 'Feature overrides' })).toHaveCount(0);
 
@@ -31,7 +34,7 @@ test.describe('Members', () => {
     await page.getByRole('button', { name: 'Open Kabir Sethi' }).click();
     await expect(page.getByRole('heading', { name: 'Kabir Sethi', level: 2 })).toBeVisible();
     await page.getByRole('group', { name: 'New tier' }).getByRole('button', { name: "Founders' Circle" }).click();
-    await page.getByRole('textbox', { name: 'Why' }).fill("Owner's guest for the weekend");
+    await page.getByRole('textbox', { name: 'Why', exact: true }).fill("Owner's guest for the weekend");
     const lastDay = new Date(Date.now() + 2 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     await page.getByLabel('Last day (optional)').fill(lastDay);
     await page.getByRole('button', { name: 'Change tier', exact: true }).click();
@@ -39,7 +42,7 @@ test.describe('Members', () => {
     await expect(page.getByText(/^Member \d+ · Founders' Circle until \d{1,2} \w{3} \d{4}/)).toBeVisible();
 
     await page.getByRole('group', { name: 'New tier' }).getByRole('button', { name: 'Member', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Why' }).fill('Back after the weekend');
+    await page.getByRole('textbox', { name: 'Why', exact: true }).fill('Back after the weekend');
     await page.getByRole('button', { name: 'Change tier', exact: true }).click();
     await expect(page.getByText(/^Member \d+ · Member · /)).toBeVisible();
   });

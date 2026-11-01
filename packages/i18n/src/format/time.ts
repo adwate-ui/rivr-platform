@@ -46,6 +46,11 @@ export function formatDayTime(at: Date): string {
   return `${withMonth(DAY, at)}, ${formatTime(at)}`;
 }
 
+/** The IST date and time of a moment that may be months away, with its year: `1 Nov 2027, 19:51`, as a break's end. */
+export function formatDateTime(at: Date): string {
+  return `${formatDate(at)}, ${formatTime(at)}`;
+}
+
 /** A time still to run, in whole minutes rounded up: `1 h 12 min`, `2 h`, `45 min`, `1 min`. */
 export function formatDuration(seconds: number): string {
   const minutes = Math.ceil(Math.max(0, seconds) / 60);

@@ -3,6 +3,7 @@
 /** Home's Tonight: each table with how many wait, Join, and the member's own places. */
 export const tonight = {
   /** While a break runs (#56): `{until}` is when it ends, Wed 17 Feb, 00:10. */
+  /** `{until}`: 8 Nov 2026, 14:00, with the year, as the floor's break may run for years (A5-14). */
   breakActive: 'Break active until {until}. Tables are closed to you until then.',
   /** Seated tonight (#78), with the call time left beneath. */
   seated: 'Seated at {table}, seat {seat}.',

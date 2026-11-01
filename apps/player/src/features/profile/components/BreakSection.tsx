@@ -1,5 +1,5 @@
 import { BREAK_DAYS, useRestrictionActions, type BreakDays, type Restrictions } from '@rivr/db';
-import { formatDayTime, t, type MessageKey } from '@rivr/i18n';
+import { formatDateTime, formatDayTime, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceSheet, ConfirmQuestion, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -43,7 +43,7 @@ export function BreakSection({ restrictions }: { restrictions: Restrictions }) {
         <Button variant="text" onClick={() => setOpenedAt(Date.now())}>{t('player.profile.takeBreak')}</Button>
       </Inline>
       {restrictions.breakUntil === null ? null : (
-        <Text>{t('player.tonight.breakActive', { until: formatDayTime(new Date(restrictions.breakUntil)) })}</Text>
+        <Text>{t('player.tonight.breakActive', { until: formatDateTime(new Date(restrictions.breakUntil)) })}</Text>
       )}
       {asked === null ? null : (
         <ConfirmQuestion question={t('player.profile.breakAsk', { until: formatDayTime(asked.until) })} confirm={t('player.profile.breakYes')}

@@ -19,7 +19,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatRupeesForInput(paise)` | Paise as the rupees a form's field holds: `10000`, or `2500.50` with paise. |
 | `settingCopy(key)`, `settingKeys` | Each setting key's name, help, field labels and option words, as Settings shows them (#604); undefined for a key with none. The copy test checks them with the catalogue. |
 | `formatCountdown(seconds)` | A clock counting down, whole seconds: `11:29`, `05:00`, `1:15:00` from an hour up. The tournament clock. |
-| `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40`, in IST; every month in three letters, September `Sep` (F5-11). |
+| `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)`, `formatDateTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40` (within the coming weeks), `15 Nov 2026, 02:40` (a moment that may be months away, as a break's end), in IST; every month in three letters, September `Sep` (F5-11). |
 | `formatMonth(month)` | A calendar month from `2026-11` or `2026-11-01`: `November 2026`, as a League month is named. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
 | `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |

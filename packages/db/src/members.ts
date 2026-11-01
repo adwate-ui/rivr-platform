@@ -53,7 +53,7 @@ export interface VenueTier {
   readonly name: string;
 }
 
-/** Why a tier change did not go through: not a member manager, no such member, a bad tier, reason or end, the venue frozen. */
+/** Why a tier change or a break did not go through: not a member manager, no such member, a bad tier, length, reason or end, the venue frozen. */
 export type MemberFailure = 'not_allowed' | 'no_member' | 'invalid' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, MemberFailure>> = { '42501': 'not_allowed', RVNOM: 'no_member', '22023': 'invalid', RVFRZ: 'paused' };
@@ -172,5 +172,13 @@ export function useMemberActions(venueId: string) {
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
-  return { setTier };
+  // The floor's break for a member (decision 0053): a day to ten years, with a reason. It resolves to when the break ends.
+  const setBreak = useMutation({
+    mutationFn: async (change: { memberId: string; days: number; reason: string }): Promise<Result<string, MemberFailure>> => {
+      const { data, error } = await client.rpc('set_member_break', { p_member_id: change.memberId, p_days: change.days, p_reason: change.reason });
+      await queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
+      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
+    },
+  });
+  return { setTier, setBreak };
 }
