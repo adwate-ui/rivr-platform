@@ -142,9 +142,13 @@ function handle(input: DevicePairRequest, client: string): Promise<Outcome> {
   return input.tv === 'start' ? startTv(client) : checkTv(input.secret);
 }
 
-/** The caller's address, as private.request_ip reads it. */
+/**
+ * The caller's address, as private.request_ip reads it: Cloudflare's; without it (the local stack), the last
+ * X-Forwarded-For hop, which the gateway added. The first is whatever the client sent (A4-17, decision 0287).
+ */
 function clientOf(request: Request): string {
-  return request.headers.get('cf-connecting-ip') ?? (request.headers.get('x-forwarded-for') ?? '').split(',')[0]?.trim() ?? '';
+  const forwarded = (request.headers.get('x-forwarded-for') ?? '').split(',');
+  return request.headers.get('cf-connecting-ip') ?? forwarded[forwarded.length - 1]?.trim() ?? '';
 }
 
 /** The reply, or the refusal: 429 for too many codes, 403 while pairing waits for its window, 400 for a wrong code or a TV's secret no longer good. */
