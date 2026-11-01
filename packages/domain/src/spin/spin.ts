@@ -8,7 +8,10 @@ export interface SpinPrize {
   readonly weight: bigint;
 }
 
-/** Whether a prize can be drawn: a bonus only while what is left of the month's spin budget covers it. */
+/**
+ * Whether a prize can be drawn: a bonus only while the budget left covers it, the smaller of what is left of the month's
+ * spin budget and of the spin's promotion's own budget.
+ */
 export function isDrawable(prize: SpinPrize, budgetLeft: Paise): boolean {
   return prize.kind !== 'bonus' || prize.amount <= budgetLeft;
 }
@@ -20,8 +23,9 @@ export function spinOdds(prizes: readonly SpinPrize[], budgetLeft: Paise): bigin
 
 /**
  * The spin wheel (#150; additions "Spin wheel"; decision 0266): a roll from 0 to the odds less one lands on the prizes
- * that can be drawn, in the wheel's order, each taking as many rolls as its weight. A bonus more than what is left of
- * the club month's spin budget is left off the wheel for that spin. The place of the prize won (from 0), or null when
+ * that can be drawn, in the wheel's order, each taking as many rolls as its weight. A bonus more than the budget left (the
+ * club month's spin budget, or the promotion's own budget if less is left of it) is left off the wheel for that spin.
+ * The place of the prize won (from 0), or null when
  * nothing can be drawn. The database's private.spin_prize is proved equal on packages/testing/golden/spin.json.
  */
 export function spinPrize(prizes: readonly SpinPrize[], budgetLeft: Paise, roll: bigint): number | null {
