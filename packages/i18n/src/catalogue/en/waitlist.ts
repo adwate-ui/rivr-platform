@@ -25,6 +25,7 @@ export const tonight = {
   },
   onBreak: 'Break active. Tables are closed to you until it ends.',
   title: 'Tonight',
+  tables: 'Tables',
   empty: 'No tables are running.',
   /** How many wait for a table's game and stake. */
   waiting: '{count} waiting',

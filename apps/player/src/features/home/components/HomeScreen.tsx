@@ -1,6 +1,6 @@
 import { useFeature, useFloorTables, useMyWaitlist, type FloorTable, type WaitlistPlace } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { FeatureGate, Screen, Stack } from '@rivr/ui';
+import { FeatureGate, Heading, Screen, Stack } from '@rivr/ui';
 import type { ReactNode } from 'react';
 import { BreakNotice } from './BreakNotice.tsx';
 import { HomePromotions } from './HomePromotions.tsx';
@@ -44,10 +44,13 @@ export function HomeScreen({ yourWaitlist, floor }: HomeScreenProps) {
         <SeatNotice />
         <RateVisit />
         {yourWaitlist(places.data)}
-        <UpcomingTournaments />
         <FeatureGate access={liveView}>
-          {floor(tables.data, places.data)}
+          <Stack gap={3}>
+            <Heading level={2}>{t('player.tonight.tables')}</Heading>
+            {floor(tables.data, places.data)}
+          </Stack>
         </FeatureGate>
+        <UpcomingTournaments />
         <HomePromotions />
       </Stack>
     </Screen>

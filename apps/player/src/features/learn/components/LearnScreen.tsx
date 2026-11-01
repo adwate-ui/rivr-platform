@@ -3,7 +3,7 @@ import { useLearnLibrary } from '@rivr/db/learn';
 import { BUILT_IN_SOURCES } from '@rivr/drills/sources';
 import { t } from '@rivr/i18n';
 import { Button, FeatureGate, Heading, LoadState, Screen, Stack, Text } from '@rivr/ui';
-import { useNavigate } from '@tanstack/react-router';
+import { Navigate, useNavigate } from '@tanstack/react-router';
 
 const LEVELS = ['one', 'two', 'three'] as const;
 
@@ -51,6 +51,8 @@ export function LearnScreen() {
   const title = t('player.learn.title');
   if (library.status === 'loading') return <Screen title={title} status="loading" />;
   if (library.status === 'error') return <Screen title={title} status="error" onRetry={library.retry} />;
+  // Hidden for the member's tier (decision 0284): the address leads to Tonight, never to an empty screen.
+  if (library.access.state === 'hidden') return <Navigate to="/" replace />;
   return (
     <FeatureGate access={library.access}>
       <Screen title={title}>
