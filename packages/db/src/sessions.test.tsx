@@ -11,14 +11,17 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 const MEMBER = '00000000-0000-4000-8000-000000000211';
 
 /** A fake API: my_sessions answers with the rows given. */
-function renderSessions(rows: unknown) {
-  const fetch: typeof globalThis.fetch = async () => Response.json(rows);
+function renderSessions(rows: unknown, count = 30, urls: string[] = []) {
+  const fetch: typeof globalThis.fetch = async (input) => {
+    urls.push(String(input instanceof Request ? input.url : input));
+    return Response.json(rows);
+  };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
     global: { fetch },
     auth: { storage: sessionStorageFor(MEMBER), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  return renderHook(() => useMySessions(), { wrapper }).result;
+  return renderHook(() => useMySessions(count), { wrapper }).result;
 }
 
 afterEach(cleanup);
@@ -32,17 +35,33 @@ describe('the member\'s sessions', () => {
       month_sessions: 3, month_played_seconds: 45600, month_net_paise: -1000000, tds_basis: null,
       kind: 'cash', place: null, entrants: null,
     }]);
-    await waitFor(() => expect(result.current.data).toEqual([{
+    await waitFor(() => expect(result.current.data?.sessions).toEqual([{
       visitId: 'v1', kind: 'cash', place: null, entrants: null, openedAt: '2026-10-27T15:40:00+00:00', closedAt: '2026-10-27T22:10:00+00:00', tableName: 'Table 2',
       smallBlind: 10000n, bigBlind: 20000n, otherTables: 1, playedSeconds: 23400, buyIn: 2000000n, bonus: 0n, cashOut: 4650000n, tds: 0n,
       paid: 4650000n, net: 2650000n, receipt: 'A1B2C3D4', month: '2026-10-01', monthSessions: 3, monthPlayedSeconds: 45600, monthNet: -1000000n,
       tdsBasis: null,
     }]));
+    expect(result.current.data?.hasEarlier).toBe(false);
+  });
+
+  it('reads a page and says there are earlier sessions when the database has one more (F3-28)', async () => {
+    const row = (id: string) => ({
+      visit_id: id, opened_at: '2026-10-27T15:40:00+00:00', closed_at: null, table_name: 'Table 2', small_blind_paise: 10000, big_blind_paise: 20000,
+      other_tables: 0, played_seconds: 60, buy_in_paise: 0, bonus_paise: 0, cash_out_paise: 0, tds_paise: 0, paid_paise: 0, net_paise: 0, receipt: null,
+      month: '2026-10-01', month_sessions: 2, month_played_seconds: 120, month_net_paise: 0, tds_basis: null, kind: 'cash', place: null, entrants: null,
+    });
+    const urls: string[] = [];
+    const result = renderSessions([row('v2'), row('v1')], 1, urls);
+    await waitFor(() => expect(result.current.data?.sessions.map((one) => one.visitId)).toEqual(['v2']));
+    expect(result.current.data?.hasEarlier).toBe(true);
+    // One more than the page, newest first, so the database sends no more than it must.
+    expect(urls[0]).toContain('limit=2');
+    expect(urls[0]).toContain('order=opened_at.desc');
   });
 
   it('is empty without any', async () => {
     const result = renderSessions([]);
-    await waitFor(() => expect(result.current.data).toEqual([]));
+    await waitFor(() => expect(result.current.data).toEqual({ sessions: [], hasEarlier: false }));
   });
 });
 

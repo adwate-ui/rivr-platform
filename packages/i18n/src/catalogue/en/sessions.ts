@@ -1,6 +1,8 @@
 /** The player's session history (#127, #549, #627): each club month's sessions, and a session's detail, with no money. */
 export const playerSessions = {
   title: 'Sessions',
+  /** The list's next page (F3-28). */
+  showEarlier: 'Show earlier sessions',
   empty: 'No sessions yet.',
   /** A tournament in the history, under its name (#549): `Tournament · place 4 of 61 · 6 h`. */
   sub: '{what} · {hours}',
