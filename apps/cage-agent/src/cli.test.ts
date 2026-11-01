@@ -45,7 +45,7 @@ describe('the cage agent', () => {
     await runCli(['enrol', '123456'], deps);
     await runCli(['run'], { ...deps, env: { ...deps.env, RIVR_BAR_PRINTER: '192.168.1.50' }, printerAt: () => printer });
     expect(printer.calls.map((ticket) => ticket.kotNumber)).toEqual(['1']);
-    expect(said).toContain('KOTs: {"delivered":1,"failed":0}');
+    expect(said).toContain('KOTs: {"delivered":1,"failed":0,"unrecorded":0}');
     expect(every).toHaveBeenCalledWith(expect.any(Function), 5_000);
   });
 

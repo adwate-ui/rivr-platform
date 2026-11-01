@@ -6,15 +6,25 @@ import { runConsumer, type Consumer, type OutboxStore } from '@rivr/adapters/out
 import { err, fnbOrderedSchema } from '@rivr/contracts';
 import type { AgentApi } from './api.ts';
 
-/** The venue's KOTs as an outbox store: claimed and finished through the cage-agent function, as the agent's own. */
-export function kotStore(api: AgentApi, token: string): OutboxStore {
+/**
+ * The venue's KOTs as an outbox store: claimed and finished through the cage-agent function, as the agent's own. A
+ * finish the function could not take is tried once more; one still not taken calls `onUnrecorded`, and that KOT stays
+ * claimed and comes back once its lease runs out, while the rest of the batch still prints (F4-10).
+ */
+export function kotStore(api: AgentApi, token: string, onUnrecorded: () => void = () => undefined): OutboxStore {
   return {
     async claim({ limit }) {
       const claimed = await api.claimKots(token, limit);
       if ('refusal' in claimed) throw new Error(`KOTs not claimed: ${claimed.refusal}`);
       return claimed;
     },
-    finish: (outcome) => api.finishKot(token, outcome),
+    async finish(outcome) {
+      try {
+        await api.finishKot(token, outcome);
+      } catch {
+        await api.finishKot(token, outcome).catch(onUnrecorded);
+      }
+    },
   };
 }
 
@@ -54,7 +64,12 @@ export function barPrinterAt(address: string, open: PrinterConnect = tcpConnect)
   return createAdapters({ isPracticeVenue: false, live: { kitchenPrinter: live } }).kitchenPrinter;
 }
 
-/** Prints the KOTs waiting, ten at most, and says how many were printed and how many failed. */
-export function printKots(api: AgentApi, token: string, printer: KitchenPrinterAdapter): Promise<{ delivered: number; failed: number }> {
-  return runConsumer(kotStore(api, token), barPrinter(printer), 10);
+/**
+ * Prints the KOTs waiting, ten at most, and says how many were printed, how many failed, and how many the function was
+ * not told about, which come back after their lease and print again.
+ */
+export async function printKots(api: AgentApi, token: string, printer: KitchenPrinterAdapter): Promise<{ delivered: number; failed: number; unrecorded: number }> {
+  let unrecorded = 0;
+  const done = await runConsumer(kotStore(api, token, () => { unrecorded += 1; }), barPrinter(printer), 10);
+  return { ...done, unrecorded };
 }

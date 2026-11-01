@@ -67,25 +67,26 @@ describe('table-side food and drink', () => {
     }]));
   });
 
-  it('places an order from the app and the tablet, giving the KOT, and says why not', async () => {
+  it('places an order from the app and the tablet with its request id, giving the KOT, and says why not', async () => {
     const { result, calls } = renderFnb({ '/rpc/place_fnb_order': { body: [{ order_id: 'o1', kot_number: 7 }] }, '/rpc/tablet_fnb_order': {
       status: 400, body: { code: 'RVFNS', message: 'Nobody sits in that seat' },
     } });
     let placed: unknown;
-    await act(async () => { placed = await result.current.place.mutateAsync(LINES); });
+    await act(async () => { placed = await result.current.place.mutateAsync({ lines: LINES, requestId: 'r-app' }); });
     expect(placed).toEqual({ ok: true, value: { orderId: 'o1', kotNumber: 7 } });
-    expect(calls.find((call) => call.url.includes('/rpc/place_fnb_order'))?.body).toEqual({ p_lines: LINES });
+    expect(calls.find((call) => call.url.includes('/rpc/place_fnb_order'))?.body).toEqual({ p_lines: LINES, p_idempotency_key: 'r-app' });
     let refused: unknown;
-    await act(async () => { refused = await result.current.tablet.mutateAsync({ seat: 9, lines: [{ item_id: CHAI, quantity: 1 }] }); });
+    await act(async () => { refused = await result.current.tablet.mutateAsync({ seat: 9, lines: [{ item_id: CHAI, quantity: 1 }], requestId: 'r-tab' }); });
     expect(refused).toEqual({ ok: false, error: 'not_seated' });
-    expect(calls.find((call) => call.url.includes('/rpc/tablet_fnb_order'))?.body).toEqual({ p_seat: 9, p_lines: [{ item_id: CHAI, quantity: 1, note: null }] });
+    expect(calls.find((call) => call.url.includes('/rpc/tablet_fnb_order'))?.body)
+      .toEqual({ p_seat: 9, p_lines: [{ item_id: CHAI, quantity: 1, note: null }], p_idempotency_key: 'r-tab' });
   });
 
   it('sends the tablet\'s order even while it thinks it is offline, so the order never waits to go later', async () => {
     onlineManager.setOnline(false);
     const { result, calls } = renderFnb({ '/rpc/tablet_fnb_order': { status: 503, body: { message: 'unreachable' } } });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.tablet.mutateAsync({ seat: 9, lines: [{ item_id: CHAI, quantity: 1 }] }); });
+    await act(async () => { outcome = await result.current.tablet.mutateAsync({ seat: 9, lines: [{ item_id: CHAI, quantity: 1 }], requestId: 'r-tab' }); });
     expect(outcome).toEqual({ ok: false, error: 'unavailable' });
     expect(calls.filter((call) => call.url.includes('/rpc/tablet_fnb_order'))).toHaveLength(1);
   });

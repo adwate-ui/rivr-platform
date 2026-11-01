@@ -54,18 +54,24 @@ function Orders() {
 }
 
 function FnbOrder() {
-  const seat = useMySeat().data ?? null;
+  const seat = useMySeat();
   const menu = useMyFnbMenu();
   const place = usePlaceFnbOrder();
   const [counts, setCounts] = useState<Readonly<Record<string, number>>>({});
   const [sent, setSent] = useState<number | null>(null);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
-  if (seat === null) return <Text>{t('player.fnb.notSeated')}</Text>;
+  // One id an order, kept to retry one whose reply was lost, and new with any change to it (F3-18), as the console's.
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+  // Whether they are seated is known before the menu says anything (F3-18): not "sit first" while it loads.
+  if (seat.data === undefined) return <LoadState isError={seat.isError} onRetry={() => void seat.refetch()} />;
+  if (seat.data === null) return <Text>{t('player.fnb.notSeated')}</Text>;
+  const mySeat = seat.data;
   if (menu.data === undefined) return <LoadState isError={menu.isError} onRetry={() => void menu.refetch()} />;
   if (menu.data.length === 0) return <Text>{t('player.fnb.empty')}</Text>;
   const lines = Object.entries(counts).filter(([, quantity]) => quantity > 0).map(([itemId, quantity]) => ({ item_id: itemId, quantity }));
   const send = async () => {
-    const outcome = await place.mutateAsync(lines);
+    const outcome = await place.mutateAsync({ lines, requestId });
+    if (outcome.ok || outcome.error !== 'unavailable') setRequestId(crypto.randomUUID());
     setFailure(outcome.ok ? null : outcome.error);
     setSent(outcome.ok ? outcome.value.kotNumber : null);
     if (outcome.ok) setCounts({});
@@ -75,12 +81,12 @@ function FnbOrder() {
       <Stack gap={3}>
         {menu.data.map((item) => (
           <QuantityStepper key={item.itemId} label={item.name} value={counts[item.itemId] ?? 0}
-            onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); }} />
+            onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); setRequestId(crypto.randomUUID()); }} />
         ))}
       </Stack>
       <Text variant="small" tone="muted">{t('player.fnb.paid')}</Text>
       <Button variant="primary" isDisabled={lines.length === 0} isLoading={place.isPending} onClick={() => void send()}>{t('player.fnb.send')}</Button>
-      <StatusMessage>{sent === null ? null : t('player.fnb.sent', { kot: sent, table: seat.tableName, seat: seat.seat })}</StatusMessage>
+      <StatusMessage>{sent === null ? null : t('player.fnb.sent', { kot: sent, table: mySeat.tableName, seat: mySeat.seat })}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(`player.fnb.failures.${failure}`)}</ErrorMessage>}
     </Stack>
   );
