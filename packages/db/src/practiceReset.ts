@@ -82,14 +82,12 @@ export function livePurgeFailureOf(error: { code: string }): LivePurgeFailure {
   return PURGE_FAILURE_BY_CODE[error.code] ?? 'unavailable';
 }
 
-// Kept here, not in queryKeys: only the Purge screen reads it.
-const livePurgeKey = (userId: string, venueId: string) => ['user', userId, 'livePurgePreview', venueId] as const;
 
 /** The dry run, for a super admin at a frozen live venue: each table a purge deletes from, with its rows. */
 export function useLivePurgePreview(venueId: string, isFrozen: boolean) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: livePurgeKey(userId ?? 'signed-out', venueId),
+    queryKey: queryKeys.livePurgePreview(userId ?? 'signed-out', venueId),
     enabled: userId !== null && isFrozen,
     queryFn: async (): Promise<LivePurgeRow[]> => {
       const { data, error } = await client.rpc('live_purge_preview', { p_venue_id: venueId });
@@ -135,14 +133,12 @@ export function usePurgeLiveVenue(venueId: string) {
   });
 }
 
-// Kept here, not in queryKeys: only the Purge screen reads it.
-const purgeFilesLeftKey = (userId: string, venueId: string) => ['user', userId, 'purgeFilesLeft', venueId] as const;
 
 /** How many files the venue's latest purge still leaves, so the Purge screen offers them again when it opens. */
 export function usePurgeFilesLeft(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: purgeFilesLeftKey(userId ?? 'signed-out', venueId),
+    queryKey: queryKeys.purgeFilesLeft(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<number> => {
       const { data, error } = await client.rpc('purge_files_left_count', { p_venue_id: venueId });
@@ -164,7 +160,7 @@ export function useRemovePurgedFiles(venueId: string) {
       const { data, error } = await client.functions.invoke('purge-venue', { body: { venueId } });
       return error ? err(livePurgeFailureOf({ code: await purgeCodeOf(error) })) : ok(purgedFilesOf(data));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: purgeFilesLeftKey(userId ?? 'signed-out', venueId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.purgeFilesLeft(userId ?? 'signed-out', venueId) }),
   });
 }
 
@@ -176,13 +172,12 @@ export interface PurgeAsk {
   readonly isMine: boolean;
 }
 
-const purgeAskKey = (userId: string, venueId: string) => ['user', userId, 'purgeAsk', venueId] as const;
 
 /** The purge asked for at a frozen live venue and still open (asked within the day), or null. */
 export function useOpenPurgeAsk(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: purgeAskKey(userId ?? 'signed-out', venueId),
+    queryKey: queryKeys.purgeAsk(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<PurgeAsk | null> => {
       const { data, error } = await client.rpc('open_purge_request', { p_venue_id: venueId });
@@ -200,7 +195,7 @@ export function useAskLivePurge(venueId: string) {
   return useMutation({
     mutationFn: async (reason: string): Promise<Result<null, LivePurgeFailure>> => {
       const { error } = await client.rpc('ask_live_purge', { p_venue_id: venueId, p_reason: reason });
-      await queryClient.invalidateQueries({ queryKey: purgeAskKey(userId ?? 'signed-out', venueId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.purgeAsk(userId ?? 'signed-out', venueId) });
       return error ? err(livePurgeFailureOf(error)) : ok(null);
     },
   });

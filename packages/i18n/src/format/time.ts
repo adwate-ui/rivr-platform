@@ -76,9 +76,19 @@ export function formatWeekday(at: Date): string {
 
 const ISO_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 
-/** The IST calendar date as `2026-11-15`, so a moment can be found on a month's calendar (#617). */
+/** The IST calendar date as `2026-11-15`, as a date field gives it and a day is kept, so a moment can be found on a month's calendar (#617). */
 export function formatIsoDay(at: Date): string {
   return ISO_DAY.format(at);
+}
+
+/** Midnight IST at the start of a calendar day, `2026-11-15`, as a moment: `2026-11-15T00:00:00+05:30`. */
+export function istMidnight(day: string): string {
+  return `${day}T00:00:00+05:30`;
+}
+
+/** Whether a calendar day, `2026-11-15`, is after today in IST: a setting from a later day only, as today's midnight has passed. */
+export function isLaterIstDay(day: string, now: Date = new Date()): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) && day > formatIsoDay(now);
 }
 
 // A calendar month is a name, not a moment, so it is read in UTC where its first day starts at midnight.

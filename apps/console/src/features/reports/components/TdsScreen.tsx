@@ -1,13 +1,12 @@
 import { useStaffVenue } from '@rivr/db';
 import { useTdsLedger, type TdsLedgerRow } from '@rivr/db/tds';
 import type { Paise } from '@rivr/domain/money';
-import { formatNumber, t } from '@rivr/i18n';
+import { formatIsoDay, formatNumber, t } from '@rivr/i18n';
 import { DataTable, Grid, Heading, Inline, Input, Money, Screen, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { ReturnExtract } from './ReturnExtract.tsx';
 import { recentQuarters } from './tdsCsv.ts';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 const money = (key: string, header: string, paise: (row: TdsLedgerRow) => Paise): DataTableColumn<TdsLedgerRow> => ({
   key, header, align: 'end', sortValue: paise, cell: (row) => <Money paise={paise(row)} />,
@@ -63,7 +62,7 @@ export function TdsScreen() {
   const title = t('console.tds.title');
   const { permissions, venueId } = staff.venue;
   if (!permissions.includes('ledger.read')) return <Screen title={title} status="error" errorText={t('console.tds.notAllowed')} />;
-  const today = IST_DAY.format(new Date());
+  const today = formatIsoDay(new Date());
   return (
     <Screen title={title}>
       <Grid columns={2} gap={8} stackBelow="medium">

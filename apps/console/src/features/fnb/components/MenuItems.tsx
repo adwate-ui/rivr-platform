@@ -4,7 +4,8 @@ import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, LoadState, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 
-const KINDS = FNB_ITEM_KINDS.map((kind) => ({ value: kind, label: t(`console.fnb.kinds.${kind}`) }));
+/** The kinds to choose from, made when the form draws, so t() runs once the app's words are registered (F2-31). */
+const kinds = () => FNB_ITEM_KINDS.map((kind) => ({ value: kind, label: t(`console.fnb.kinds.${kind}`) }));
 
 /** Adds an item to the end of the menu: its name and kind. */
 function AddItem({ venueId, next }: { venueId: string; next: number }) {
@@ -21,7 +22,7 @@ function AddItem({ venueId, next }: { venueId: string; next: number }) {
     <Stack gap={2}>
       <Inline gap={3} align="end" wrap>
         <Input label={t('console.fnb.itemName')} value={name} maxLength={60} autoComplete="off" onChange={(event) => setName(event.target.value)} />
-        <ChoiceChips label={t('console.fnb.kind')} mode="one" options={KINDS} selected={[kind]}
+        <ChoiceChips label={t('console.fnb.kind')} mode="one" options={kinds()} selected={[kind]}
           onChange={([picked]) => { const found = FNB_ITEM_KINDS.find((known) => known === picked); if (found) setKind(found); }} />
         <Button variant="secondary" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
       </Inline>

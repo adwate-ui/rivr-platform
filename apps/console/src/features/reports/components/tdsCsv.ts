@@ -1,7 +1,6 @@
 import type { TdsDeduction } from '@rivr/db/tds';
-import { formatRupeesForFile, t } from '@rivr/i18n';
+import { formatIsoDay, formatRupeesForFile, t } from '@rivr/i18n';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 /**
  * A CSV cell, always quoted (quotes doubled), so no separator a spreadsheet might use splits it; a name a
@@ -25,7 +24,7 @@ export function tdsCsv(deductions: readonly TdsDeduction[]): string {
     t('console.tds.columns.taxedWinnings'), t('console.tds.columns.rate'), t('console.tds.columns.tds'),
   ];
   const rows = deductions.map((deduction) => [
-    IST_DAY.format(new Date(deduction.deductedAt)), deduction.fullName, deduction.pan, deduction.section, formatRupeesForFile(deduction.taxedWinnings),
+    formatIsoDay(new Date(deduction.deductedAt)), deduction.fullName, deduction.pan, deduction.section, formatRupeesForFile(deduction.taxedWinnings),
     ratePercent(deduction.rateBasisPoints), formatRupeesForFile(deduction.tds),
   ]);
   return `${[headings, ...rows].map((row) => row.map(cell).join(',')).join('\r\n')}\r\n`;

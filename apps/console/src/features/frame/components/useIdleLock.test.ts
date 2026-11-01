@@ -24,13 +24,15 @@ describe('the cage idle lock', () => {
     expect(onLock).toHaveBeenCalledOnce();
   });
 
-  it('counts a key or a touch as activity', () => {
+  it('counts a key, a touch or a scroll of the wheel as activity (F1-36)', () => {
     const onLock = vi.fn();
     renderHook(() => useIdleLock(true, onLock));
     vi.advanceTimersByTime(9 * MINUTE);
     globalThis.dispatchEvent(new KeyboardEvent('keydown'));
     vi.advanceTimersByTime(9 * MINUTE);
     globalThis.dispatchEvent(new Event('pointerdown'));
+    vi.advanceTimersByTime(9 * MINUTE);
+    globalThis.dispatchEvent(new Event('wheel'));
     vi.advanceTimersByTime(9 * MINUTE);
     expect(onLock).not.toHaveBeenCalled();
   });

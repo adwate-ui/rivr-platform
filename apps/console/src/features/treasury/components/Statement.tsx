@@ -1,10 +1,9 @@
 import { useAccountStatement, type PaymentAccount, type StatementLine } from '@rivr/db';
-import { formatDate, formatTime, t } from '@rivr/i18n';
+import { formatDate, formatIsoDay, formatTime, istMidnight, t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Heading, Inline, Input, Money, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { entryLabel } from './accountCopy.ts';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 const DAY_MS = 86_400_000;
 
 function columns(): readonly DataTableColumn<StatementLine>[] {
@@ -19,8 +18,8 @@ function columns(): readonly DataTableColumn<StatementLine>[] {
 /** The statement's lines in order, or the table's loading or error state. */
 function StatementRows({ accountId, accountName, from, to }: { accountId: string; accountName: string; from: string; to: string }) {
   // Up to the midnight after the last day, in India time (no daylight saving), as the statement counts entries before it.
-  const statement = useAccountStatement(accountId, new Date(`${from}T00:00:00+05:30`).toISOString(),
-    new Date(new Date(`${to}T00:00:00+05:30`).getTime() + DAY_MS).toISOString());
+  const statement = useAccountStatement(accountId, new Date(istMidnight(from)).toISOString(),
+    new Date(new Date(istMidnight(to)).getTime() + DAY_MS).toISOString());
   const base = {
     label: t('console.accounts.statementLabel'), columns: columns(), rowKey: (row: StatementLine) => `${row.occurredAt}:${row.kind}:${row.balance}`,
     exportFilter: [t('console.exportFilters.choice', { label: t('console.accounts.statementAccount'), value: accountName }), t('console.exportFilters.period', { from, to })].join('; '),
@@ -35,7 +34,7 @@ function StatementRows({ accountId, accountName, from, to }: { accountId: string
  * then each entry, oldest first, with the balance after it.
  */
 export function Statement({ accounts }: { accounts: readonly PaymentAccount[] }) {
-  const today = IST_DAY.format(new Date());
+  const today = formatIsoDay(new Date());
   const [accountId, setAccountId] = useState<string | null>(null);
   const [period, setPeriod] = useState({ from: `${today.slice(0, 8)}01`, to: today });
   return (

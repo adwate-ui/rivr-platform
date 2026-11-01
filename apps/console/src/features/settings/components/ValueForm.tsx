@@ -1,5 +1,5 @@
 import { useSettingActions, type SettingFailure, type SettingValue, type VenueSetting } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { isLaterIstDay, istMidnight, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver, type UseFormReturn } from 'react-hook-form';
@@ -24,14 +24,12 @@ interface ValueFormOutput {
   reason: string;
 }
 
-// Today's date on the club's clock, as a date field gives it: 2026-10-20.
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 /** From now (null), or from midnight IST on a later day; undefined when the day is not a later one. */
 function startFrom(when: When, date: string): string | null | undefined {
   if (when === 'now') return null;
   // A later day only: today's midnight has passed, and the database refuses the past.
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) && date > IST_DAY.format(new Date()) ? `${date}T00:00:00+05:30` : undefined;
+  return isLaterIstDay(date) ? istMidnight(date) : undefined;
 }
 
 /** The form's check: the value by its key's schema (readValue), a later day, and a reason of 1 to 200 characters. */

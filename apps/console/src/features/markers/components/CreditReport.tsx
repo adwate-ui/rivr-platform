@@ -1,10 +1,9 @@
 import { useCreditReport, type CreditReportRow } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatIsoDay, istMidnight, t } from '@rivr/i18n';
 import { DataTable, Heading, Input, Money, Stack, type DataTableColumn } from '@rivr/ui';
 import type { Paise } from '@rivr/domain/money';
 import { useState } from 'react';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 const DAY_MS = 86_400_000;
 
 const money = (key: string, header: string, paise: (row: CreditReportRow) => Paise): DataTableColumn<CreditReportRow> => ({
@@ -30,7 +29,7 @@ function columns(): readonly DataTableColumn<CreditReportRow>[] {
 /** The report's rows, or the table's loading or error state. */
 function ReportRows({ venueId, day }: { venueId: string; day: string }) {
   // The end of the day is the next midnight in India time, which keeps no daylight saving.
-  const report = useCreditReport(venueId, new Date(new Date(`${day}T00:00:00+05:30`).getTime() + DAY_MS).toISOString());
+  const report = useCreditReport(venueId, new Date(new Date(istMidnight(day)).getTime() + DAY_MS).toISOString());
   const base = { label: t('console.markers.reportLabel'), columns: columns(), rowKey: (row: CreditReportRow) => row.memberId, exportFilter: t('console.exportFilters.day', { day }) };
   if (report.data === undefined && report.isError) return <DataTable {...base} status="error" onRetry={() => void report.refetch()} />;
   if (report.data === undefined) return <DataTable {...base} status="loading" />;
@@ -42,7 +41,7 @@ function ReportRows({ venueId, day }: { venueId: string; day: string }) {
  * age (0 to 7 days, 8 to 30, 31 to 60, over 60), against their limit. A past day stands as it was.
  */
 export function CreditReport({ venueId }: { venueId: string }) {
-  const [day, setDay] = useState(() => IST_DAY.format(new Date()));
+  const [day, setDay] = useState(() => formatIsoDay(new Date()));
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('console.markers.report')}</Heading>

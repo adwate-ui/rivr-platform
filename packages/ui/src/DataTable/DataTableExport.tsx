@@ -1,4 +1,4 @@
-import { formatRupeesForFile, t } from '@rivr/i18n';
+import { formatIsoDay, formatRupeesForFile, t } from '@rivr/i18n';
 import { createContext, isValidElement, useContext, useState, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
@@ -55,12 +55,11 @@ function exportCell<Row>(column: ExportColumn<Row>, row: Row): ExportCell {
   return typeof value === 'number' ? value : textOf(node);
 }
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 /** Saves a file through the browser's download: `members-2026-10-26.csv`. */
 function save(file: Blob, label: string, format: 'csv' | 'xlsx') {
   const stem = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'table';
-  saveFile(file, `${stem}-${IST_DAY.format(new Date())}.${format}`);
+  saveFile(file, `${stem}-${formatIsoDay(new Date())}.${format}`);
 }
 
 interface ExportBarProps<Row> {

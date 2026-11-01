@@ -1,11 +1,9 @@
-import { t } from '@rivr/i18n';
+import { isLaterIstDay, istMidnight, t } from '@rivr/i18n';
 import { Button, ChoiceChips, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 type When = 'now' | 'date';
 
-// Today's date on the club's clock, as a date field gives it: 2026-10-20.
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 interface SaveBarProps {
   count: number;
@@ -23,9 +21,9 @@ export function SaveBar({ count, isSaving, onSave, onDiscard }: SaveBarProps) {
   const save = () => {
     if (when === 'now') return onSave(null);
     // A later day only: today's midnight has passed, and the database refuses the past.
-    const isLater = /^\d{4}-\d{2}-\d{2}$/.test(date) && date > IST_DAY.format(new Date());
+    const isLater = isLaterIstDay(date);
     setIsDateInvalid(!isLater);
-    if (isLater) onSave(`${date}T00:00:00+05:30`);
+    if (isLater) onSave(istMidnight(date));
   };
   return (
     <Stack gap={3}>

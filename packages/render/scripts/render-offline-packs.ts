@@ -7,6 +7,7 @@
  * client. In the same run, as the owner chose (question #589), it draws the winner cards won since the last night's run
  * (#155; decision 0273) into the private bucket winner-cards, and removes the images no card names any more.
  */
+import { formatIsoDay } from '@rivr/i18n';
 import { execFileSync } from 'node:child_process';
 import { offlinePackRowSchema, offlinePackVenuesSchema, storedPacksSchema, winnerCardImagesSchema, winnerCardRowsSchema } from '@rivr/contracts';
 import buildRenderHost from '../vitest.global-setup.ts';
@@ -26,9 +27,7 @@ async function call(path: string, init: RequestInit = {}): Promise<unknown> {
 }
 
 /** Today in India, as a pack's name: `2026-11-15`. */
-function istDate(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-}
+const istDate = (): string => formatIsoDay(new Date());
 
 async function packVenue(venueId: string): Promise<void> {
   const row = offlinePackRowSchema.parse(await call('/rest/v1/rpc/offline_pack', {

@@ -1,12 +1,11 @@
 import { useStaffVenue } from '@rivr/db';
 import { useShareholdingHistory, useShareholdingRegister, type HoldingRecord, type RegisterRow } from '@rivr/db/shareholding';
-import { formatDate, formatNumber, t } from '@rivr/i18n';
+import { formatDate, formatIsoDay, formatNumber, t } from '@rivr/i18n';
 import { DataTable, Grid, Heading, Input, Screen, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { PartnerStatements } from './PartnerStatements.tsx';
 import { AddHolderForm, RecordHoldingForm } from './RegisterForms.tsx';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 const dayLabel = (day: string) => formatDate(new Date(`${day}T12:00:00+05:30`));
 // A share in basis points as a percentage: 1250 is 12.5%.
 const percent = (basisPoints: number) => t('console.shareholders.percentValue', { value: formatNumber(basisPoints / 100) });
@@ -77,7 +76,7 @@ function History({ venueId }: { venueId: string }) {
  */
 export function ShareholdersScreen() {
   const staff = useStaffVenue();
-  const [on, setOn] = useState(() => IST_DAY.format(new Date()));
+  const [on, setOn] = useState(() => formatIsoDay(new Date()));
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.shareholders.title');

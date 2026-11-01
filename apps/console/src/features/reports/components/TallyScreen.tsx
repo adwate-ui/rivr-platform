@@ -1,10 +1,9 @@
 import { useStaffVenue } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatIsoDay, t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { TallyDayFile } from './TallyDayFile.tsx';
 import { TallyLedgers } from './TallyLedgers.tsx';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 // The club's day turns over at 06:00 IST, so the last one that has ended began the day before 6 hours ago.
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -22,7 +21,7 @@ export function TallyScreen() {
   if (!permissions.includes('treasury.manage')) return <Screen title={title} status="error" errorText={t('console.tally.notAllowed')} />;
   if (isPractice) return <Screen title={title} status="error" errorText={t('console.tally.practice')} />;
   const now = new Date();
-  const yesterday = IST_DAY.format(new Date(now.getTime() - SIX_HOURS_MS - DAY_MS));
+  const yesterday = formatIsoDay(new Date(now.getTime() - SIX_HOURS_MS - DAY_MS));
   return (
     <Screen title={title}>
       {/* One above the other: the ledgers' table needs the width for its account codes. */}
