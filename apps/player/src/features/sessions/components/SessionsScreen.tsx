@@ -1,4 +1,4 @@
-import { useFeature } from '@rivr/db';
+import { useFeatureStatus } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
 import { formatDuration, formatMonth, formatNumber, t } from '@rivr/i18n';
 import { FeatureGate, Heading, HistoryRow, Screen, Stack, Text } from '@rivr/ui';
@@ -42,18 +42,19 @@ function Month({ sessions, onOpen }: { sessions: readonly MySession[]; onOpen: (
 
 /**
  * Sessions: the member's history by club month (#127), gated by tier (feature sessions.history). Each session shows when,
- * where and how long, and no money (#627).
+ * where and how long, and no money (#627). It waits until access is known.
  */
 export function SessionsScreen() {
   const sessions = useMySessions();
-  const access = useFeature('sessions.history');
+  const access = useFeatureStatus('sessions.history');
   const navigate = useNavigate();
   const title = t('player.sessions.title');
+  if (access.status === 'error') return <Screen title={title} status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} status="error" onRetry={() => void sessions.refetch()} />;
-  if (sessions.data === undefined) return <Screen title={title} status="loading" />;
+  if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} status="loading" />;
   const open = (visitId: string) => void navigate({ to: '/sessions/$visitId', params: { visitId } });
   return (
-    <FeatureGate access={access}>
+    <FeatureGate access={access.access}>
       {sessions.data.length === 0
         ? <Screen title={title} status="empty" emptyText={t('player.sessions.empty')} />
         : (

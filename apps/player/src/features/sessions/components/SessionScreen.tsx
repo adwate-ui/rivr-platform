@@ -1,4 +1,4 @@
-import { useFeature } from '@rivr/db';
+import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySessions, type MySession } from '@rivr/db/sessions';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Inline, Screen, Stack, Text } from '@rivr/ui';
@@ -43,20 +43,21 @@ function Detail({ session, onHidden }: { session: MySession; onHidden: () => voi
   );
 }
 
-/** A session's detail (#127), from the history already loaded; gated as the history is. */
+/** A session's detail (#127), from the history already loaded; gated as the history is, once access is known. */
 export function SessionScreen() {
   const { visitId = '' } = useParams({ strict: false });
   const sessions = useMySessions();
-  const access = useFeature('sessions.history');
+  const access = useFeatureStatus('sessions.history');
   const navigate = useNavigate();
   const toList = () => void navigate({ to: '/sessions' });
   const back = <Button variant="text" icon="chevronLeft" onClick={toList}>{t('common.back')}</Button>;
   const session = sessions.data?.find((one) => one.visitId === visitId);
   const title = session === undefined ? t('player.sessions.title') : sessionTitle(session);
+  if (access.status === 'error') return <Screen title={title} actions={back} status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void sessions.refetch()} />;
-  if (sessions.data === undefined) return <Screen title={title} actions={back} status="loading" />;
+  if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} actions={back} status="loading" />;
   return (
-    <FeatureGate access={access}>
+    <FeatureGate access={access.access}>
       {session === undefined
         ? <Screen title={title} actions={back} status="empty" emptyText={t('player.sessions.notFound')} />
         : <Screen title={title} actions={back}><Detail session={session} onHidden={toList} /></Screen>}

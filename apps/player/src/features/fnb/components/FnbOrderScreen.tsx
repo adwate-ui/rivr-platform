@@ -1,4 +1,4 @@
-import { useFeature, useMySeat } from '@rivr/db';
+import { useFeatureStatus, useMySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, usePlaceFnbOrder, type FnbFailure, type MyFnbOrder } from '@rivr/db/fnb';
 import { formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Heading, Inline, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
@@ -7,13 +7,16 @@ import { useState } from 'react';
 /**
  * The Menu tab (#123, #635; feature fnb.table_side): the member's menu (alcohol only at 21 or over), how many of each,
  * and Send to the bar; then tonight's orders, each followed from placed, to being prepared, to delivered. An order goes
- * to their seat's visit, paid to Glaza when it comes, with a KOT at the bar.
+ * to their seat's visit, paid to Glaza when it comes, with a KOT at the bar. It waits until access is known.
  */
 export function FnbOrderScreen() {
-  const access = useFeature('fnb.table_side');
+  const feature = useFeatureStatus('fnb.table_side');
+  const title = t('player.fnb.title');
+  if (feature.status === 'loading') return <Screen title={title} status="loading" />;
+  if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
   return (
-    <Screen title={t('player.fnb.title')}>
-      <FeatureGate access={access}>
+    <Screen title={title}>
+      <FeatureGate access={feature.access}>
         <Stack gap={8}>
           <FnbOrder />
           <Orders />
