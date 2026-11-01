@@ -9,7 +9,8 @@ describe('PinPad', () => {
     renderIn(<PinPad label="PIN for Pema Lepcha" value="27" onChange={() => undefined} />);
 
     expect(screen.getByRole('group', { name: 'PIN for Pema Lepcha' })).toBeInTheDocument();
-    expect(screen.getByRole('status', { name: '2 of 4 digits entered' })).toBeInTheDocument();
+    // In the status region's words, which a screen reader reads as they change (F5-08).
+    expect(screen.getByRole('status')).toHaveTextContent('2 of 4 digits entered');
     expect(screen.queryByText('27')).toBeNull();
   });
 
