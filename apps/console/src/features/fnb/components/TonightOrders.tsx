@@ -2,6 +2,7 @@ import { useFnbActions, useFnbOrdersTonight, type FnbFailure, type FnbOrderTonig
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, LoadState, Stack, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
+import { ServeOrders } from './ServeOrders.tsx';
 
 const AT_BAR = { agent: 'console.fnb.byAgent', staff: 'console.fnb.byStaff' } as const;
 
@@ -22,7 +23,7 @@ function OrderRow({ order, action }: { order: FnbOrderTonight; action?: ReactNod
   );
 }
 
-/** The KOTs not yet at the bar, each to mark sent once handed over, then every order tonight. */
+/** Serving tonight's orders (#640), then the KOTs not yet at the bar, each to mark sent once handed over, then every order tonight. */
 export function TonightOrders({ venueId }: { venueId: string }) {
   const orders = useFnbOrdersTonight(venueId);
   const { markSent } = useFnbActions(venueId);
@@ -35,6 +36,7 @@ export function TonightOrders({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={8}>
+      <ServeOrders venueId={venueId} orders={orders.data} />
       <Stack gap={3}>
         <Heading level={2}>{t('console.fnb.toPrint')}</Heading>
         <Text variant="small" tone="muted">{t('console.fnb.toPrintHint')}</Text>

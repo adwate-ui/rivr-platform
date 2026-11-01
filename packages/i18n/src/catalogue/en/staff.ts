@@ -11,7 +11,7 @@ export const staff = {
   tabs: { staff: 'Staff members' },
   notAllowed: 'Your role does not manage staff. Ask an admin if you need it.',
   empty: 'No staff yet.',
-  /** The seven permission roles, as the screen names them. */
+  /** The permission roles, as the screen names them. */
   roles: {
     super_admin: 'Super admin',
     admin: 'Admin',
@@ -20,6 +20,7 @@ export const staff = {
     marketing: 'Marketing',
     host: 'Host',
     owner_view: 'Owner, view only',
+    service: 'Service',
   },
   /** Under a name: `{jobTitle}`, then the role. */
   line: '{jobTitle} · {role}',

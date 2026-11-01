@@ -36,6 +36,11 @@ export interface FnbOrderTonight {
   readonly createdAt: string;
   /** Null while the bar has not been given the KOT: the agent prints it, or staff hand it over and mark it. */
   readonly kotSentBy: 'agent' | 'staff' | null;
+  /** When service accepted it and delivered it (#640); null until then. */
+  readonly acceptedAt: string | null;
+  readonly deliveredAt: string | null;
+  /** Whole seconds since it was placed, or, once delivered, the seconds it took. */
+  readonly ageSeconds: number;
 }
 
 /**
@@ -43,7 +48,10 @@ export interface FnbOrderTonight {
  * longer on the menu, a second app order inside the minute, alcohol under 21, no dealer on the tablet, the venue
  * frozen, a malformed order, or anything else.
  */
-export type FnbFailure = 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'paused' | 'invalid' | 'unavailable';
+export type FnbFailure =
+  | 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'paused' | 'invalid' | 'unavailable'
+  // Serving (#640): someone else accepted or delivered the order first.
+  | 'taken';
 
 const FAILURE_BY_CODE: Readonly<Record<string, FnbFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVFNS: 'not_seated', RVFNI: 'not_on_menu', RVFST: 'too_soon', RVAGE: 'too_young',
@@ -169,6 +177,7 @@ export function useFnbOrdersTonight(venueId: string) {
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
+        acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds,
       }));
     },
   });
@@ -223,6 +232,19 @@ export function useFnbActions(venueId: string) {
     },
   });
   return { order, markSent, saveItem };
+}
+
+/** Service accepts a placed order, then delivers it (#640, fnb.manage). Each is a Result, and tonight's orders are read again. */
+export function useServeFnbOrder(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  const settle = async (error: { code: string } | null): Promise<Result<null, FnbFailure>> => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.fnbOrdersTonight(userId ?? 'signed-out', venueId) });
+    return error ? err(error.code === '22023' ? 'taken' : FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+  };
+  const accept = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('accept_fnb_order', { p_order_id: orderId })).error) });
+  const deliver = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('deliver_fnb_order', { p_order_id: orderId })).error) });
+  return { accept, deliver };
 }
 
 /** Every item on the venue's menu, on offer or not, in menu order, for staff who run F&B. */

@@ -1,6 +1,6 @@
 import { ROLE_PERMISSIONS } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { isAllowedAt, locksWhenIdle, railFor } from './rail.ts';
+import { isAllowedAt, landingFor, locksWhenIdle, railFor } from './rail.ts';
 
 const items = (permissions: Parameters<typeof railFor>[0]) => railFor(permissions).flatMap((section) => section.items.map((item) => item.href));
 
@@ -32,6 +32,14 @@ describe('the console rail and who may open each screen', () => {
     for (const kept of ['/', '/waitlist', '/check-in', '/fnb', '/members', '/promotions', '/rewards', '/staff', '/settings', '/devices']) {
       expect(isAllowedAt(everyone, kept)).toBe(true);
     }
+  });
+
+  it('gives Service only food and drink, where it lands in place of the Live floor', () => {
+    const service = ROLE_PERMISSIONS.service;
+    expect(items(service)).toEqual(['/fnb']);
+    expect(isAllowedAt(service, '/')).toBe(false);
+    expect(landingFor(railFor(service))).toBe('/fnb');
+    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/players-today')).toBe(true);
   });
 
   it('shows beside an entry how many wait on its screen, and nothing beside the others', () => {

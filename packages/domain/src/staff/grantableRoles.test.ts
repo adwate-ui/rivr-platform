@@ -8,7 +8,8 @@ describe('grantableRoles', () => {
   });
 
   it('gives an admin only roles within their own permissions: not the cage, the dealer\'s hand logging, marketing, the owner\'s view or a super admin', () => {
-    expect(grantableRoles(ROLE_PERMISSIONS.admin)).toEqual(['admin', 'host']);
+    // Service holds only food and drink (#640), which an admin holds too.
+    expect(grantableRoles(ROLE_PERMISSIONS.admin)).toEqual(['admin', 'host', 'service']);
   });
 
   it('gives a cashier only a cashier, and a dealer only a dealer', () => {

@@ -1,11 +1,11 @@
 /**
- * The seven permission roles and what each may do (docs/spec/features-2026-10-14.md,
+ * The permission roles and what each may do (docs/spec/features-2026-10-14.md,
  * "Roles"). Job titles (dealer, floor supervisor, cashier, host...) are a separate field on
  * staff; access comes only from the role. The `role_permission` table holds this matrix and
  * row-level security checks it; a db test keeps the two equal.
  */
 
-export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view'] as const;
+export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view', 'service'] as const;
 
 /** A staff member's permission role. */
 export type StaffRole = (typeof STAFF_ROLES)[number];
@@ -42,6 +42,7 @@ export const PERMISSIONS = [
   'website.edit',
   'host_queue.manage',
   'fnb.manage',
+  'fnb.serve', // the menu, tonight's orders, accepting and delivering them: never a comp, nor Glaza's statement (#640)
   'reports.read',
   'dashboards.read',
   'exports.table', // export a filtered console table
@@ -74,7 +75,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'members.read', 'members.manage',
     'kyc.review', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
-    'host_queue.manage', 'fnb.manage', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
+    'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'rewards.manage', 'rewards.hand_over',
     'treasury.manage',
   ],
@@ -86,6 +87,8 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit', 'rewards.manage'],
   host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'rewards.hand_over'],
   owner_view: [...EVERY_STAFF_MEMBER, 'reports.read', 'dashboards.read', 'ledger.read', 'audit.read'],
+  // Food and drink only: the menu and the orders, with no comp nor Glaza's statement (#640).
+  service: [...EVERY_STAFF_MEMBER, 'fnb.serve'],
 };
 
 /** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */

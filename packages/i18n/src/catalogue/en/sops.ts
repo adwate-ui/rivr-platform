@@ -53,6 +53,7 @@ export const sops = {
     marketing: 'Marketing',
     host: 'Hosts',
     owner_view: 'Owner view',
+    service: 'Service',
   },
   notAllowed: 'Your role does not allow this. Ask the general manager.',
   paused: 'The venue is frozen. Try again once it is released.',

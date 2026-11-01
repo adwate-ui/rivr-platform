@@ -4,9 +4,9 @@ import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
 import { ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
-import { isAllowedAt, locksWhenIdle, railFor, railItemAt } from './rail.ts';
+import { isAllowedAt, landingFor, locksWhenIdle, railFor, railItemAt } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffFooter } from './StaffFooter.tsx';
 import { useIdleLock } from './useIdleLock.ts';
@@ -18,6 +18,18 @@ export interface FrameStaff {
   pathname: string;
   /** The address's search, `?tab=highHands`. */
   search: string;
+}
+
+/**
+ * A screen the role does not include, refused; but the Live floor's address, for a role without it (#640: Service), opens the
+ * first screen the role has instead.
+ */
+function Refused({ landing }: { landing: string | undefined }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (landing !== undefined) void navigate({ href: landing, replace: true });
+  }, [landing, navigate]);
+  return landing === undefined ? <Screen title={t('console.title')} status="error" errorText={t('console.notAllowed')} /> : null;
 }
 
 /**
@@ -74,7 +86,7 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
     >
       {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
       <DataTableExportProvider exporter={exporter}>
-        {isAllowedAt(permissions, pathname) ? children : <Screen title={t('console.title')} status="error" errorText={t('console.notAllowed')} />}
+        {isAllowedAt(permissions, pathname) ? children : <Refused landing={pathname === '/' ? landingFor(sections) : undefined} />}
       </DataTableExportProvider>
     </ConsoleShell>
   );

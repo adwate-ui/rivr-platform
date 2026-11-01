@@ -55,7 +55,9 @@ insert into lane_d_person (id, phone, full_name, job_title, role) values
   ('00000000-0000-4000-8000-0000000d0757', '+919000000757', 'Nisha Bhatt', 'Duty manager', 'super_admin'),
   ('00000000-0000-4000-8000-0000000d0759', '+919000000759', 'Arjun Batra', 'Owner', 'super_admin'),
   ('00000000-0000-4000-8000-0000000d0760', '+919000000760', 'Leela Varma', 'Owner', 'super_admin'),
-  ('00000000-0000-4000-8000-0000000d0780', '+919000000780', 'Kiran Joshi', 'Duty manager', 'super_admin');
+  ('00000000-0000-4000-8000-0000000d0780', '+919000000780', 'Kiran Joshi', 'Duty manager', 'super_admin'),
+  -- The F&B flow's steward, who serves the orders in the Service role (#640).
+  ('00000000-0000-4000-8000-0000000d0790', '+919000000790', 'Sameer Rao', 'Steward', 'service');
 
 insert into auth.users (
   instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data,

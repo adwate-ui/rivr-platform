@@ -33,7 +33,7 @@ select ok((select bool_and(body like '%numbers run without a gap%') from runbook
 select is((select bool_and(body like '%No cash-outs on paper%') from runbooks where title = 'Fallback: app down'), true,
   'and no cash-out is written on paper: chips stay with the player until the system is back');
 select results_eq($$ select count(*)::integer from public.sop s join public.venue v on v.id = s.venue_id where v.slug = 'gurugram' $$,
-  $$ values (10) $$, 'the club''s library holds the training set and the runbooks, once each');
+  $$ values (11) $$, 'the club''s library holds the training set and the runbooks, once each');
 create temp table club_versions on commit drop as
 select sv.id from public.sop s join public.sop_version sv on sv.sop_id = s.id where s.venue_id = '00000000-0000-4000-8000-000000000001';
 select private.add_training_sops('00000000-0000-4000-8000-000000000001');

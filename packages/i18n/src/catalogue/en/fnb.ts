@@ -9,6 +9,8 @@ const failures = {
   paused: 'The club is paused: orders wait until it reopens.',
   invalid: 'An order is 1 to 9 of each item, 20 lines at most.',
   unavailable: 'The order did not go through. Try again.',
+  /** Serving (#640): another steward got there first. */
+  taken: 'Someone else has just taken this order. The list shows where it stands now.',
 } as const;
 
 /** A venue's menu with nothing on offer, on every screen that shows it. */
@@ -58,6 +60,18 @@ export const consoleFnb = {
   toPrintHint: 'The cage agent prints these at the bar. If it is not running, print or read each one to the bar and mark it sent.',
   noneToPrint: 'Every KOT is at the bar.',
   markSent: 'Mark KOT {kot} sent',
+  /** Serving (#640): orders to accept, then being prepared, then delivered, each with its table, seat and time. */
+  toAccept: 'To accept',
+  noneToAccept: 'No orders waiting.',
+  preparing: 'Being prepared',
+  nonePreparing: 'Nothing being prepared.',
+  delivered: 'Delivered tonight',
+  noneDelivered: 'Nothing delivered yet tonight.',
+  accept: 'Accept KOT {kot}',
+  deliver: 'Mark KOT {kot} delivered',
+  /** `{time}`: 6 min. */
+  waitingFor: 'Waiting {time}',
+  deliveredIn: 'Delivered in {time}',
   tonight: 'Tonight’s orders',
   noneTonight: 'No orders tonight.',
   /** `{kot}`, the table, seat and member: `KOT 12 · Table 3, seat 5 · Yash Gupta (1043)`. */
