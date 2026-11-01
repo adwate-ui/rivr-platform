@@ -28,6 +28,8 @@ export const rail = {
     tournaments: 'Tournaments',
     tournamentInterest: 'Tournament interest',
     todaysPlayers: 'Today’s players',
+    tablesSetup: 'Tables setup',
+    gamesHistory: 'Games history',
     cage: 'Cage',
     markers: 'Markers',
     paymentAccounts: 'Payment accounts',

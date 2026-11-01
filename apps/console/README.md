@@ -34,6 +34,8 @@ src/
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
     fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu (/fnb)
     todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; /players-today)
+    tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
+    games-history/    the tables run each club day, how often and how long, for the super admin (#643; /games-history)
     check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (/check-in)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
@@ -60,7 +62,7 @@ src/
     staff/            the venue's staff: add, change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
-    rewards/          the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
+    rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
     league/           the RIVR League's standings by month or season, and its seasons (/league)
     tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs with
                       bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
