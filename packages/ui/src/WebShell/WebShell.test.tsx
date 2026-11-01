@@ -61,9 +61,10 @@ describe('WebShell', () => {
     expect(whatsapp).toHaveTextContent('');
     expect(whatsapp.querySelector('svg')).not.toBeNull();
     expect(contacts.getByRole('link', { name: '+91 90000 00000' })).toHaveTextContent('+91 90000 00000');
-    // In the top bar from a tablet up, in the header on a phone: CSS shows one, and both leave the website.
+    // In the top bar from a tablet up, leading the header's links on a phone: CSS shows one, and both leave the website.
     const apps = screen.getAllByRole('link', { name: 'Member app' });
-    expect(apps.map((app) => app.className.includes('tablet:hidden'))).toEqual([false, true]);
+    expect(apps.map((app) => app.closest('li')?.className.includes('tablet:hidden') ?? false)).toEqual([false, true]);
+    expect(within(screen.getByRole('navigation', { name: 'Site' })).getAllByRole('link')[0]).toHaveTextContent('Member app');
     for (const app of apps) await userEvent.click(app);
     expect(onNavigate).not.toHaveBeenCalled();
     expect(screen.getByText('Cookies on this website')).toBeInTheDocument();

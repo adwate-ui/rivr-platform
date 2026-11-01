@@ -47,8 +47,8 @@ const TOP_LINK_LOOK = 'min-h-touch min-w-touch items-center justify-center gap-2
 const TOP_LINK = `flex ${TOP_LINK_LOOK}`;
 
 /**
- * The bar above the header: the club's contacts on the left, the member app on the right from a tablet up (on a phone the
- * header carries it, UI polish audit A-25); on a phone the contacts scroll sideways.
+ * The bar above the header: the club's contacts on the left, the member app on the right from a tablet up (on a phone it
+ * leads the header's links, UI polish audit A-25); on a phone the contacts scroll sideways.
  */
 function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
   return (
@@ -70,17 +70,27 @@ function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
   );
 }
 
-/** The header's right side: on a phone the member app (the top bar has it from a tablet up, A-25), then the one action. */
-function HeaderActions({ app, action }: { app: WebShellLink | undefined; action: WebShellProps['action'] }) {
+const SITE_LINK = 'flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content';
+
+/** The header's links, scrolling in one row on a phone, led there by the member app (the top bar has it from a tablet up, A-25). */
+function SiteLinks({ links, app, onNavigate }: { links: readonly WebShellLink[]; app: WebShellLink | undefined; onNavigate: Navigate | undefined }) {
   return (
-    <div className="flex items-center gap-4">
-      {app ? (
-        <a href={app.href} className="flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content tablet:hidden">
-          {app.label}
-        </a>
-      ) : null}
-      {action ? <Button variant="secondary" href={action.href}>{action.label}</Button> : null}
-    </div>
+    <nav aria-label={t('ui.web.navigation')} className="order-last w-full tablet:order-none tablet:w-auto">
+      <ul className="flex items-center gap-x-6 overflow-x-auto tablet:flex-wrap tablet:overflow-visible">
+        {app ? (
+          <li className="tablet:hidden">
+            <a href={app.href} className={SITE_LINK}>{app.label}</a>
+          </li>
+        ) : null}
+        {links.map((link) => (
+          <li key={link.href}>
+            <a href={link.href} onClick={(event) => routeClick(event, link.href, onNavigate)} className={SITE_LINK}>
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -93,27 +103,13 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       {topBar ? <TopBar links={topBar.links} app={topBar.app} /> : null}
       <header className="border-b border-hairline bg-raised tablet:sticky tablet:top-0 tablet:z-nav">
-        {/* On a phone the member app and the action sit beside the wordmark and the links scroll in one row beneath, rather than widening the page. */}
+        {/* On a phone the action sits beside the wordmark and the links scroll in one row beneath, rather than widening the page. */}
         <div className="mx-auto flex min-h-header max-w-console flex-wrap items-center justify-between gap-x-6 px-6 py-1">
           <a href={homeHref} onClick={(event) => routeClick(event, homeHref, onNavigate)} className="flex rounded-sm">
             <Wordmark />
           </a>
-          <nav aria-label={t('ui.web.navigation')} className="order-last w-full tablet:order-none tablet:w-auto">
-            <ul className="flex items-center gap-x-6 overflow-x-auto tablet:flex-wrap tablet:overflow-visible">
-              {links.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    onClick={(event) => routeClick(event, link.href, onNavigate)}
-                    className="flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <HeaderActions app={topBar?.app} action={action} />
+          <SiteLinks links={links} app={topBar?.app} onNavigate={onNavigate} />
+          {action ? <Button variant="secondary" href={action.href}>{action.label}</Button> : null}
         </div>
       </header>
       <main className="flex-1">{children}</main>
