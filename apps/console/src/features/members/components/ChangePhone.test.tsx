@@ -48,6 +48,6 @@ describe('ChangePhone', () => {
     expect(sent).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, change it to +919000000782' }));
     await waitFor(() => expect(sent).toEqual([{ p_member_id: 'm1', p_phone: '+919000000782', p_reason: 'Lost his phone' }]));
-    expect(await screen.findByText('Changed. The member signs in with the new number.')).toBeDefined();
+    expect(await screen.findByText('Changed.')).toBeDefined();
   });
 });

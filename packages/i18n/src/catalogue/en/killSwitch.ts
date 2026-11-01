@@ -26,7 +26,7 @@ export const killSwitch = {
   /** `{what}` with its target: `Member freeze: Kabir Sethi`. */
   withTarget: '{level}: {target}',
   /** A venue freeze one super admin has asked to release. */
-  releaseAsked: '{name} asked to release it: {reason}. A second super admin releases it.',
+  releaseAsked: '{name} asked to release: {reason}. A second super admin releases it.',
   release: 'Release',
   releaseName: 'Release {what}',
   releaseReason: 'Why it is released',
@@ -38,11 +38,11 @@ export const killSwitch = {
   memberPhone: 'Member\'s mobile number',
   staffPhone: 'Staff member\'s mobile number',
   reason: 'Why',
-  reasonHint: 'Kept with it, with your name. The owner is alerted.',
+  reasonHint: 'Recorded with your name. The owner is alerted.',
   engage: 'Engage',
   /** Before a control is engaged: `{level}` is what, as Venue freeze. */
   confirm: 'Engage {level} now?',
-  confirmFreeze: 'Every money movement, seating and hand entry stops at once, and it takes two super admins to release it.',
+  confirmFreeze: 'Seating and every change stop at once. Two super admins release it.',
   confirmOther: 'It takes effect at once, and the owner is alerted.',
   engageLevel: 'Engage {level}',
   invalidPhone: 'Enter a 10-digit mobile number.',
@@ -52,11 +52,11 @@ export const killSwitch = {
   /** Why a control did not change. */
   failures: {
     notAllowed: 'Only a super admin uses the kill switch.',
-    invalid: 'Give a reason of 3 to 500 characters, and the feature, member or staff member it needs. You cannot revoke your own access.',
+    invalid: 'A reason of 3 to 500 characters and what it applies to. Not your own access.',
     noMember: 'No member here has that mobile number.',
     noStaff: 'No staff member here has that mobile number.',
-    needsSecond: 'You asked to release it. A second super admin releases the venue freeze.',
-    lastEngagers: 'That would leave fewer than two super admins able to release a venue freeze. Add another super admin first.',
+    needsSecond: 'Asked. A second super admin releases it.',
+    lastEngagers: 'Two super admins must stay. Add another first.',
     unavailable: 'Not sent. Try again.',
   },
 };

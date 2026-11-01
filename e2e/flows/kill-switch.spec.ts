@@ -24,7 +24,7 @@ async function release(first: Page, second: Page) {
   await first.getByRole('button', { name: 'Release', exact: true }).click();
   await expect(first.getByText('Asked. A second super admin releases the venue freeze.')).toBeVisible();
   await second.getByRole('link', { name: 'Kill switch' }).click();
-  await expect(second.getByText('Neha Kulkarni asked to release it: Dispute settled. A second super admin releases it.')).toBeVisible();
+  await expect(second.getByText('Neha Kulkarni asked to release: Dispute settled. A second super admin releases it.')).toBeVisible();
   await second.getByRole('button', { name: 'Release Venue freeze' }).click();
   await second.getByRole('button', { name: 'Release', exact: true }).click();
   await expect(second.getByText('Released.')).toBeVisible();

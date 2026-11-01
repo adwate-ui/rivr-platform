@@ -35,11 +35,11 @@ test.describe('TV pairing', () => {
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
-    await expect(floor.getByText('No TV is showing that code. Check the code on the TV and type it again.')).toBeVisible();
+    await expect(floor.getByText('No TV shows that code. Check it and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
     await floor.getByRole('group', { name: 'What it shows' }).getByRole('button', { name: 'Tournament clock', exact: true }).click();
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
-    await expect(floor.getByText(`${name} is paired. It shows its mode within a few seconds.`)).toBeVisible();
+    await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 
     // The TV asks every three seconds whether its code was typed in.
     await expect(tv.getByRole('heading', { name: 'Tournament clock' })).toBeVisible({ timeout: 15_000 });
@@ -75,7 +75,7 @@ test.describe('TV pairing', () => {
     const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
     await windowOnly.click();
     try {
-      await expect(owner.getByText('TVs get a code only for ten minutes after Pair a TV is pressed.')).toBeVisible();
+      await expect(owner.getByText('Press Pair a TV, then pair within ten minutes.')).toBeVisible();
       const tv = await browser.newPage();
       await tv.setViewportSize(VIEWPORT.display);
       await tv.goto(appUrl('display'));

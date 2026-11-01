@@ -9,12 +9,12 @@ export const devices = {
 export const tablets = {
   title: 'Tablets',
   notAllowed: 'Not in your role. Ask an admin.',
-  empty: 'No dealer tablets yet. Add one to pair it.',
+  empty: 'No dealer tablets yet.',
   name: 'Tablet name',
   nameHint: 'For example, Table 3 tablet.',
   add: 'Add and pair',
   /** The tablet was added, but its pairing code could not be made. */
-  addedWithoutCode: 'Tablet added, but no code was made. Press New pairing code on its row.',
+  addedWithoutCode: 'Added without a code. Press New pairing code on its row.',
   /** The tablet has signed in with its code. */
   paired: 'Paired',
   notPaired: 'Not paired',
@@ -24,7 +24,7 @@ export const tablets = {
   table: 'Table for {name}',
   /** A door kiosk (decision 0164): a tablet at the door that scans members' cards in and out. */
   isDoor: 'Door kiosk',
-  isDoorHint: 'Scans a member’s card in and out at the door, and is fixed to no table.',
+  isDoorHint: 'Scans members in and out at the door.',
   doorKiosk: 'Door kiosk',
   revoke: 'Revoke {name}',
   revokeReason: 'Why it is revoked',
@@ -33,7 +33,7 @@ export const tablets = {
   invalidReason: 'Say why the tablet is revoked.',
   notAllowedAction: 'Your role does not allow this.',
   paused: 'Venue frozen. Try again once it is released.',
-  changed: 'That tablet or table has just changed. Check the list and try again.',
+  changed: 'The list changed. Check it and try again.',
   unavailable: 'Not sent. Try again.',
 };
 
@@ -42,19 +42,19 @@ export const pairing = {
   title: 'Tablet pairing',
   /** In the header until the tablet is paired. */
   notPaired: 'Not paired',
-  intro: 'A floor manager adds this tablet on the console and reads out a six-digit code. Enter it here.',
+  intro: 'Enter the six-digit code from the console.',
   code: 'Pairing code',
   pair: 'Pair',
-  wrongCode: 'That code is not right or has run out. Ask for a new one.',
+  wrongCode: 'Wrong or expired code. Ask for a new one.',
   sixDigits: 'Enter the six-digit code from the console.',
-  tooMany: 'Too many wrong codes. Wait ten minutes, then ask for a new code.',
-  unavailable: 'Pairing did not go through. Check the connection and try again.',
+  tooMany: 'Too many wrong codes. Wait ten minutes.',
+  unavailable: 'Not paired. Try again.',
 };
 
 /** The tablet's Hand entry screen (#42): during a down, the dealer types the pot and logs the hand. */
 export const handEntry = {
   title: 'Hand entry',
-  empty: 'This tablet is not assigned to a table. Ask a floor manager to fix it to one on the console.',
+  empty: 'Not assigned to a table. Ask a floor manager.',
   pot: 'Pot',
   /** The pot keypad's name. */
   enterPot: 'Enter the pot',
@@ -82,12 +82,12 @@ export const handEntry = {
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
 export const dealerPins = {
   title: 'Dealer PINs',
-  notAllowed: 'Your role does not set dealer PINs. Ask the owner or the general manager.',
-  empty: 'No dealers whose PIN you can set. Only staff whose role includes everything a dealer does, such as the owner or the general manager, set one.',
+  notAllowed: 'Not in your role. Ask the owner or general manager.',
+  empty: 'No dealers whose PIN you can set.',
   hasPin: 'PIN set',
   noPin: 'No PIN yet',
   /** Five wrong PINs on a tablet lock a dealer's PIN: `{time}` is when the lock ends (IST). */
-  locked: 'Locked until {time} after five wrong PINs. A new PIN clears the lock.',
+  locked: 'Locked until {time}. A new PIN clears it.',
   pin: 'New PIN for {name}',
   pinHint: 'Four digits, not all the same. Tell the dealer in person.',
   save: 'Save PIN for {name}',
@@ -103,16 +103,16 @@ export const dealerSignIn = {
   who: 'Who is dealing?',
   pinFor: 'PIN for {name}',
   signIn: 'Sign in',
-  noDealers: 'No dealers have a PIN yet. The owner or general manager sets them on the console, and they appear here.',
-  wrongPin: 'That PIN is not right. {count} tries left before it locks.',
-  wrongPinLast: 'That PIN is not right. One try left before it locks.',
-  locked: 'Too many wrong PINs. This PIN is locked for 15 minutes, or until the owner or general manager sets a new one.',
+  noDealers: 'No dealer PINs yet. They are set on the console.',
+  wrongPin: 'Wrong PIN. {count} tries left.',
+  wrongPinLast: 'Wrong PIN. One try left.',
+  locked: 'PIN locked for 15 minutes, or until a new one is set.',
   paused: 'Venue frozen. Try again once it is released.',
   unavailable: 'Not sent. Try again.',
   /** In the header during a down: who is dealing, since when (IST). */
   down: '{name} · down since {time}',
   endDown: 'End of down',
-  endDownFailed: 'End of down did not go through. Check the connection and press it again.',
+  endDownFailed: 'End of down not sent. Try again.',
 };
 
 /** The console's TVs screen (#49): pair a TV by the code it shows, change what it shows, unpair it. */
@@ -122,23 +122,23 @@ export const tvs = {
   windowOnly: 'Pair TVs only after Pair a TV is pressed',
   openWindow: 'Pair a TV',
   windowOpenUntil: 'A TV gets a code until {time}.',
-  windowShut: 'TVs get a code only for ten minutes after Pair a TV is pressed.',
+  windowShut: 'Press Pair a TV, then pair within ten minutes.',
   notAllowed: 'Not in your role. Ask an admin.',
-  empty: 'No TVs yet: type in the code a TV shows to pair it.',
+  empty: 'No TVs yet.',
   code: 'Code on the TV',
-  codeHint: 'The six digits a TV that is not paired shows.',
+  codeHint: 'The six digits on the TV.',
   name: 'TV name',
   nameHint: 'For example, Bar TV.',
   mode: 'What it shows',
   /** Above the form: the venue the TV joins, the one the console is on. */
   venue: 'A TV paired here joins {venue}.',
-  practiceVenue: 'A TV paired here joins {venue}, the practice venue: it shows training figures, not the club\'s.',
+  practiceVenue: 'Pairs to {venue}, the practice venue: training figures only.',
   pair: 'Pair the TV',
   invalidCode: 'Type the six digits the TV shows.',
   invalidName: 'Give the TV a name.',
   /** After pairing: the TV picks up its login and mode on its next ask, within seconds. */
-  pairedNow: '{name} is paired. It shows its mode within a few seconds.',
-  wrongCode: 'No TV is showing that code. Check the code on the TV and type it again.',
+  pairedNow: '{name} is paired.',
+  wrongCode: 'No TV shows that code. Check it and type it again.',
   /** The TV has signed in. */
   paired: 'Paired',
   /** Paired on the console, but the TV has not picked up its login yet. */
@@ -146,14 +146,14 @@ export const tvs = {
   modeFor: 'What {name} shows',
   /** The boards a TV turns to after its main one (decision 0163). */
   rotationFor: 'What {name} turns to in between',
-  rotationHint: 'Each board shows for half a minute; promotions show one after another.',
+  rotationHint: 'Each board shows for 30 seconds.',
   unpair: 'Unpair {name}',
   unpairReason: 'Why it is unpaired',
   unpairConfirm: 'Unpair the TV',
   invalidReason: 'Say why the TV is unpaired.',
   notAllowedAction: 'Your role does not allow this.',
   paused: 'Venue frozen. Try again once it is released.',
-  changed: 'That TV has just changed. Check the list and try again.',
+  changed: 'The list changed. Check it and try again.',
   unavailable: 'Not sent. Try again.',
 };
 
@@ -164,15 +164,15 @@ export const tvPairing = {
   /** `{time}` (IST) is when the code runs out and a new one shows. */
   changes: 'The code changes at {time}.',
   loading: 'Getting a code.',
-  tooMany: 'Too many screens asked for a code. This one asks again in a minute.',
+  tooMany: 'Too many screens asked. Retrying in a minute.',
   /** The venue pairs TVs only after staff press Pair a TV (#325). */
-  windowClosed: 'Press Pair a TV under TVs on the console\u2019s Devices screen. This screen shows its code within a minute after.',
-  unavailable: 'RIVR cannot be reached. This screen tries again in a minute.',
+  windowClosed: 'Press Pair a TV on the console. The code shows within a minute.',
+  unavailable: 'No connection. Retrying in a minute.',
 };
 
 /** A paired TV that cannot read what it shows. */
 export const tvScreen = {
-  unavailable: 'RIVR cannot be reached. This screen tries again in a few seconds.',
+  unavailable: 'No connection. Retrying shortly.',
 };
 
 /** The final-table stream's overlay for OBS (#125, decision 0256). */

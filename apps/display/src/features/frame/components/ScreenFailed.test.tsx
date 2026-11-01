@@ -12,7 +12,7 @@ describe('a screen that fails to draw on a TV', () => {
     vi.useFakeTimers();
     const reset = vi.fn();
     render(<ScreenFailed error={new Error('A bad mode')} reset={reset} />);
-    expect(screen.getByText('RIVR cannot be reached. This screen tries again in a few seconds.')).toBeDefined();
+    expect(screen.getByText('No connection. Retrying shortly.')).toBeDefined();
     act(() => { vi.advanceTimersByTime(30_000); });
     expect(reset).toHaveBeenCalledOnce();
   });

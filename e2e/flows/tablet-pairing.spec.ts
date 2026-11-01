@@ -40,7 +40,7 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByRole('heading', { name: 'Tablet pairing' })).toBeVisible();
     await tablet.getByRole('textbox', { name: 'Pairing code' }).fill('000000');
     await tablet.getByRole('button', { name: 'Pair' }).click();
-    await expect(tablet.getByText('That code is not right or has run out. Ask for a new one.')).toBeVisible();
+    await expect(tablet.getByText('Wrong or expired code. Ask for a new one.')).toBeVisible();
     await tablet.getByRole('textbox', { name: 'Pairing code' }).fill(code);
     await tablet.getByRole('button', { name: 'Pair' }).click();
     await expect(tablet.getByRole('heading', { name: 'Seats', level: 1 })).toBeVisible();
@@ -67,7 +67,7 @@ test.describe('Dealer tablet', () => {
     await dealerChip.click();
     await pressPin(tablet, '2740');
     await tablet.getByRole('button', { name: 'Sign in' }).click();
-    await expect(tablet.getByText('That PIN is not right. 4 tries left before it locks.')).toBeVisible();
+    await expect(tablet.getByText('Wrong PIN. 4 tries left.')).toBeVisible();
     await pressPin(tablet, '2741');
     await tablet.getByRole('button', { name: 'Sign in' }).click();
     await expect(tablet.getByText(new RegExp(`^${DEALER} · down since \\d{2}:\\d{2}$`))).toBeVisible();
