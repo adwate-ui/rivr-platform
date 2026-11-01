@@ -1,6 +1,6 @@
 -- The spin wheel (#150; decision 0266): Aditya (103, an admin: the floor and promotions) keeps the wheel and spins it
 -- for Yash (214) and Mihir (213), each given spins by Spin the wheel. A points prize posts points; with a spin budget, a
--- bonus prize posts bonus until the month's budget is spent. Sana (104, a cashier) does none of it. A TV showing the
+-- bonus prize posts bonus until the month's budget is spent. Pema (106, a dealer) does none of it. A TV showing the
 -- spin wheel reads the prizes and tonight's spins, and is told of each spin.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -51,13 +51,13 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
 insert into public.tv_screen (device_id, venue_id, mode) values
   ('00000000-0000-4000-8000-00000000d183', '00000000-0000-4000-8000-000000000001', 'spin_wheel');
 
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select throws_ok($$ select public.add_spin_prize('00000000-0000-4000-8000-000000000001', 'points', 100, 1) $$, '42501', null, 'a cashier adds no prize');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select throws_ok($$ select public.add_spin_prize('00000000-0000-4000-8000-000000000001', 'points', 100, 1) $$, '42501', null, 'a dealer adds no prize');
 select throws_ok($$ select * from public.waiting_spins('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'sees no spins waiting');
 select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000-000000000001', (select yash from grants)) $$, '42501', null,
   'and spins nothing');
 select throws_ok($$ select * from public.spin_prizes('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'nor reads the wheel');
-select is_empty($$ select * from public.spin_wheel $$, 'whose table shows a cashier nothing');
+select is_empty($$ select * from public.spin_wheel $$, 'whose table shows a dealer nothing');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select set_eq(
@@ -81,8 +81,8 @@ select throws_ok($$ select * from public.spin_the_wheel('00000000-0000-4000-8000
   'a spin is spun once');
 select is((select count(*)::integer from public.spin where grant_id = (select yash from grants)), 1, 'the floor sees the spin');
 select is_empty($$ select * from public.spin_wheel where venue_id = '00000000-0000-4000-8000-0000000000aa' $$, 'and no other club''s wheel');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.spin $$, 'a cashier sees no spins');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is_empty($$ select * from public.spin $$, 'a dealer sees no spins');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select kind, amount, weight, is_drawable from public.spin_prizes('00000000-0000-4000-8000-000000000001') $$,
   $$ values ('points'::text, 100::bigint, 1, true) $$, 'the floor reads the wheel, and what can be drawn');

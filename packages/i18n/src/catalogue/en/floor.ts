@@ -180,3 +180,70 @@ export const todaysPlayers = {
   tableLine: '{table} · {time}',
   none: '–',
 } as const;
+
+/** Tables setup (#642): the stakes the club runs and its tables, for the super admin (tables.manage). */
+export const tablesSetup = {
+  title: 'Tables setup',
+  notAllowed: 'Only the super admin sets up tables. Ask them for a change.',
+  stakes: 'Stakes',
+  stakesLabel: 'The stakes the club runs',
+  stakesEmpty: 'No stakes yet. Add the first one here.',
+  tables: 'Tables',
+  tablesLabel: 'The club’s tables, in floor order',
+  tablesEmpty: 'No tables yet. Add a stake, then a table.',
+  name: 'Name',
+  game: 'Game',
+  games: { nlh: 'No-limit hold’em', plo: 'Pot-limit Omaha' },
+  /** In the stakes' table, where the full name does not fit. */
+  gamesShort: { nlh: 'NLH', plo: 'PLO' },
+  stakeName: 'Stake name',
+  tableName: 'Table name',
+  blinds: 'Blinds',
+  smallBlind: 'Small blind',
+  bigBlind: 'Big blind',
+  blindsHint: 'In chips, whole 50s, the big blind above the small.',
+  gameFixed: 'A stake keeps its game. Add a new stake for another game.',
+  stake: 'Stake',
+  seats: 'Seats',
+  now: 'Now',
+  open: 'Open',
+  closed: 'Closed',
+  change: 'Change',
+  /** A row's Change button for a screen reader, and the form's heading while it changes that one. */
+  changeStake: 'Change stake {name}',
+  changeTable: 'Change table {name}',
+  newStake: 'New stake',
+  newTable: 'New table',
+  saveStake: 'Save the stake',
+  saveTable: 'Save the table',
+  /** After a save: `{name}` is the stake or table. */
+  saved: '{name} is saved.',
+  failures: {
+    invalid: 'A stake needs a name and blinds in whole 50s, the big above the small. A table needs a name of its own, a stake and 2 to 10 seats.',
+    players_seated: 'Move the players off this table before changing its stake.',
+    seats_taken: 'More seats than that are taken. Free them first.',
+    not_allowed: 'Only the super admin sets up tables.',
+    paused: 'The club is frozen. Nothing changes until it is released.',
+    unavailable: 'That did not go through. Try again.',
+  },
+} as const;
+
+/** Games history (#643): the tables run each club day and the hours each ran, for the super admin (tables.manage). */
+export const gamesHistory = {
+  title: 'Games history',
+  notAllowed: 'Only the super admin reads games history.',
+  label: 'Tables run each club day',
+  from: 'From',
+  to: 'To',
+  rangeInvalid: 'Choose a first day on or before the last.',
+  day: 'Club day',
+  table: 'Table',
+  stake: 'Stake',
+  /** A stake: `PLO 100/200`. */
+  stakeLine: '{game} {blinds}',
+  games: { nlh: 'NLH', plo: 'PLO' },
+  runs: 'Times opened',
+  hours: 'Time run',
+  filter: 'Find a table',
+  empty: 'No table ran on these days.',
+} as const;

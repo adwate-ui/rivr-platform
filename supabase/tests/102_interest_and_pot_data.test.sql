@@ -1,6 +1,6 @@
 -- Interest lists (#113; decision 0184) and pot data (#114; decision 0185). The Private Room's game is not
 -- running here: its waitlist is its interest list, and once as many wait as the venue's
--- waitlist.interest_to_open (3), the floor (103 Aditya, waitlist.manage) is told. A cashier (104 Sana) is
+-- waitlist.interest_to_open (3), the floor (103 Aditya, waitlist.manage) is told. A dealer (106 Pema) is
 -- not. Pot data is the super admin's (101 Vikram): every hand in a period; the admin and the cashier see none.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -58,8 +58,8 @@ select is_empty($$ select * from public.pot_data('00000000-0000-4000-8000-000000
 select ok(not exists (select 1 from public.interest_lists('00000000-0000-4000-8000-000000000001') l
                       join public.game_table g on g.table_type_id = l.table_type_id and g.is_open),
   'a game with a table open has no interest list');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.interest_lists('00000000-0000-4000-8000-000000000001') $$, 'the cage is not told');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is_empty($$ select * from public.interest_lists('00000000-0000-4000-8000-000000000001') $$, 'a dealer is not told');
 reset role;
 update public.game_table set is_open = true where id = (select g.id from public.game_table g where g.table_type_id = (select id from game) limit 1);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

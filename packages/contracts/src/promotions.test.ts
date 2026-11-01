@@ -37,7 +37,7 @@ describe('promotion schemas (#83)', () => {
   });
 
   it('takes the builder\'s four blocks, a window whole and within the club day (#84)', () => {
-    const flow7 = { days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000 };
+    const flow7 = { days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000, bonus_hours: 4, bonus_chips: 1000 };
     expect(promotionBuilderSchema.safeParse(flow7).success).toBe(true);
     expect(promotionBuilderSchema.safeParse({ ...flow7, days: [], from: null, until: null, stake: null }).success).toBe(true);
     expect(promotionBuilderSchema.safeParse({ ...flow7, until: null }).success).toBe(false);
@@ -46,6 +46,9 @@ describe('promotion schemas (#83)', () => {
     expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: 5020 }).success).toBe(false);
     expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: 0 }).success).toBe(false);
     expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: Number.NaN }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_hours: 0 }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_hours: 13 }).success).toBe(false);
+    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_chips: 1020 }).success).toBe(false);
   });
 
   it('gives points, items and messages by kind', () => {

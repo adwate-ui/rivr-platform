@@ -8,6 +8,8 @@ export const memberRewards = {
   /** Someone signed in who is not a member. */
   notMember: 'Rewards are for members.',
   points: 'Points',
+  /** Points the club gave locked (#645), under the points they spend: `And 500 locked, for the club to release`. */
+  locked: 'And {points} locked, for the club to release',
   /** Hotel nights earned by the hours played (#146), shown as `1.25`. */
   nights: 'Hotel nights',
   /** The member's tier, beside their points: `Member`, `Black card`. */

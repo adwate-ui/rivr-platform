@@ -29,6 +29,7 @@ export function waitingText(next: SopVersion): string {
 const ROLE_NAMES: Readonly<Record<StaffRole, MessageKey>> = {
   super_admin: 'console.sops.roleNames.super_admin',
   admin: 'console.sops.roleNames.admin',
+  floor: 'console.sops.roleNames.floor',
   cashier: 'console.sops.roleNames.cashier',
   service: 'console.sops.roleNames.service',
   dealer: 'console.sops.roleNames.dealer',

@@ -4372,6 +4372,9 @@ isOneToOne: false
 "add_expense_category":
 { Args: { "p_name": string,"p_venue_id": string }; Returns: string
                            },
+"add_game_table":
+{ Args: { "p_name": string,"p_room"?: string,"p_seats": number,"p_table_type_id": string,"p_venue_id": string }; Returns: string
+                           },
 "add_payment_account":
 { Args: { "p_details": string,"p_kind": string,"p_name": string,"p_venue_id": string }; Returns: string
                            },
@@ -4389,6 +4392,9 @@ isOneToOne: false
                            },
 "add_spin_prize":
 { Args: { "p_amount": number,"p_kind": string,"p_venue_id": string,"p_weight": number }; Returns: string
+                           },
+"add_table_type":
+{ Args: { "p_big_blind_paise": number,"p_game": string,"p_name": string,"p_small_blind_paise": number,"p_venue_id": string }; Returns: string
                            },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
@@ -4640,6 +4646,11 @@ isOneToOne: false
               "approval_threshold_paise": number,"exposure_cap_paise": number,"exposure_paise": number,"minimum_visits": number
             }[]
                            },
+"crm_contact":
+{ Args: { "p_payload": Json,"p_venue_id": string }; Returns: {
+              "city": string,"full_name": string,"games_played": (string)[],"kyc_status": string,"last_visit_at": string,"member_id": string,"member_number": number,"occupation": string,"phone": string,"play_times": (string)[],"seconds_played": number,"tier_name": string
+            }[]
+                           },
 "current_down":
 { Args: Record<PropertyKey, never>; Returns: {
               "down_id": string,"full_name": string,"staff_id": string,"started_at": string
@@ -4770,6 +4781,11 @@ isOneToOne: false
 "forget_push_subscription":
 { Args: { "p_endpoint": string }; Returns: undefined
                            },
+"games_history":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "big_blind_paise": number,"club_day": string,"game": string,"runs": number,"seconds": number,"small_blind_paise": number,"table_id": string,"table_name": string
+            }[]
+                           },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
@@ -4780,6 +4796,9 @@ isOneToOne: false
                            },
 "graduate_academy_member":
 { Args: { "p_booking_id": string }; Returns: undefined
+                           },
+"grant_points":
+{ Args: { "p_idempotency_key": string,"p_is_locked": boolean,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string
                            },
 "growth_funnel":
 { Args: { "p_venue_id": string }; Returns: {
@@ -4907,6 +4926,11 @@ isOneToOne: false
               "created_at": string,"feature_key": string,"feature_name": string,"is_granted": boolean,"lift_reason": string,"lifted_by": string,"override_id": string,"reason": string,"staff_name": string,"standing": string,"until": string
             }[]
                            },
+"member_points":
+{ Args: { "p_phone": string,"p_venue_id": string }; Returns: {
+              "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
+            }[]
+                           },
 "member_record":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "early_departures": number,"full_name": string,"is_in_room": boolean,"is_kyc_complete": boolean,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"photo_path": string,"qualifying_big_blind": number,"qualifying_small_blind": number,"tier_id": string,"tier_name": string,"tier_until": string,"visits": number
@@ -4998,6 +5022,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "display_name": string,"first_month": string,"is_me": boolean,"last_month": string,"place": number,"points": number,"season_name": string,"standing": string
             }[]
+                           },
+"my_locked_points":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "my_membership_card":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -5214,6 +5241,9 @@ isOneToOne: false
 { Args: { "p_member_id": string,"p_promotion_id"?: string,"p_push_type"?: string,"p_venue_id": string }; Returns: {
               "auth": string,"endpoint": string,"p256dh": string
             }[]
+                           },
+"queue_crm_sync":
+{ Args: { "p_limit"?: number }; Returns: number
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
@@ -5467,6 +5497,9 @@ isOneToOne: false
 "set_feature_override":
 { Args: { "p_feature_key": string,"p_is_granted": boolean,"p_member_id": string,"p_reason": string,"p_until"?: string,"p_venue_id": string }; Returns: string
                            },
+"set_game_table":
+{ Args: { "p_name": string,"p_seats": number,"p_table_id": string,"p_table_type_id": string }; Returns: undefined
+                           },
 "set_leaving":
 { Args: { "p_is_leaving": boolean,"p_session_id": string }; Returns: undefined
                            },
@@ -5502,6 +5535,9 @@ isOneToOne: false
                            },
 "set_table_open":
 { Args: { "p_is_open": boolean,"p_table_id": string }; Returns: undefined
+                           },
+"set_table_type":
+{ Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_type_id": string }; Returns: undefined
                            },
 "set_tally_ledger":
 { Args: { "p_account_code": string,"p_tally_ledger": string,"p_venue_id": string }; Returns: undefined
@@ -5771,6 +5807,9 @@ isOneToOne: false
               "bonus_paise": number,"cash_paise": number,"full_name": string,"last_seen_at": string,"member_id": string,"member_number": number
             }[]
                            },
+"unlock_points":
+{ Args: { "p_idempotency_key": string,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string
+                           },
 "use_tournament_ticket":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_tournament_id": string }; Returns: string
                            },
@@ -5864,7 +5903,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service"|"floor","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -5984,7 +6023,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service", "floor"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
           }
         }
 } as const

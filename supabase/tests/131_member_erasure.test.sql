@@ -215,7 +215,9 @@ select results_eq($$ select id, removed_at is not null from public.payout_accoun
   $$ values ('00000000-0000-4000-8000-0000000e0797'::uuid, true) $$,
   'the payout account her deposit names is kept, removed; the other is deleted');
 select is((select withdrawn_at is not null from public.consent where member_id = '00000000-0000-4000-8000-0000000d0797'), true, 'her consent is withdrawn');
-select is_empty($$ select 1 from public.outbox_event where payload ->> 'member_id' = '00000000-0000-4000-8000-0000000d0797' $$,
+select results_eq($$ select event_type from public.outbox_event where payload ->> 'member_id' = '00000000-0000-4000-8000-0000000d0797' $$,
+  $$ values ('member.erased'::text) $$, 'one event names her after: member.erased, for the CRM to delete her contact (#647)');
+select is_empty($$ select 1 from public.outbox_event where payload ->> 'member_id' = '00000000-0000-4000-8000-0000000d0797' and event_type <> 'member.erased' $$,
   'no message about her waits to go out');
 
 -- The forfeit: points to the club's points issued, bonus to its bonus expense, balanced, and the grants closed.

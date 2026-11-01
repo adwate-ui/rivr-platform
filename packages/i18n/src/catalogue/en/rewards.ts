@@ -11,6 +11,36 @@ const kinds = {
 /** The console's Rewards screen: the catalogue (rewards.manage) and redemptions to hand over (rewards.hand_over). */
 export const rewards = {
   title: 'Rewards',
+  /** Points by hand (#645): staff who keep the rewards give a member points, earned or locked, and release locked ones. */
+  byHand: {
+    heading: 'Points by hand',
+    phone: 'Member’s mobile number',
+    find: 'Find',
+    notFound: 'No member here has that number.',
+    /** The member found: `Mihir Shah · No. 1213`. */
+    member: '{name} · No. {number}',
+    earned: 'Earned',
+    locked: 'Locked',
+    lockedHint: 'Locked points wait for the club to release them. Rewards spend earned points only.',
+    points: 'Points to give or release',
+    reason: 'Reason',
+    giveEarned: 'Give as earned',
+    giveLocked: 'Give as locked',
+    unlock: 'Release',
+    done: {
+      earned: '{points} points given to {name} to spend.',
+      locked: '{points} points locked for {name}.',
+      unlock: '{points} of {name}’s locked points released to spend.',
+    },
+    failures: {
+      not_allowed: 'Your role does not give points. Ask an admin if you need it.',
+      no_member: 'No member here has that number.',
+      invalid: 'Give 1 to 10,00,000 points and a reason of 3 to 200 characters.',
+      not_enough_locked: 'They hold fewer locked points than that.',
+      paused: 'The club is frozen. Nothing changes until it is released.',
+      unavailable: 'That did not go through. Try again.',
+    },
+  },
   notAllowed: 'Your role does not include rewards. Ask an admin if you need it.',
   catalogue: 'Catalogue',
   noRewards: 'No rewards here yet.',

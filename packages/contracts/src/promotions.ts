@@ -100,8 +100,11 @@ export const promotionReplaySchema = z.strictObject({
 });
 export type PromotionReplay = z.infer<typeof promotionReplaySchema>;
 
-/** The builder's rewards (#84), as the prototype offers them: double or triple points on hours played, or 10% of a buy-in as bonus. */
-export const PROMOTION_BUILDER_REWARDS = ['double_points', 'triple_points', 'buy_in_bonus'] as const;
+/**
+ * The builder's rewards (#84), as the prototype offers them: double or triple points on hours played, or 10% of a buy-in as
+ * bonus; and bonus chips for hours played (#646), both set in the builder.
+ */
+export const PROMOTION_BUILDER_REWARDS = ['double_points', 'triple_points', 'buy_in_bonus', 'hours_bonus'] as const;
 export type PromotionBuilderReward = (typeof PROMOTION_BUILDER_REWARDS)[number];
 
 /** The builder's limits (#84): none, the first 50 a club day, or once for each member. */
@@ -123,6 +126,9 @@ export const promotionBuilderSchema = z
     limit: z.enum(PROMOTION_BUILDER_LIMITS),
     // The most a 10% buy-in bonus gives on one buy-in, in whole rupees of ₹50 chips (question #415).
     bonus_cap_rupees: z.int().min(50).max(100_000).multipleOf(50),
+    // The time-based bonus (#646): after this many hours played in a visit, this many bonus chips, in whole 50s.
+    bonus_hours: z.int().min(1).max(12),
+    bonus_chips: z.int().min(50).max(100_000).multipleOf(50),
   })
   .refine(({ from, until }) => (from === null || until === null ? from === until : clubMinute(from) < (clubMinute(until) || 24 * 60)), {
     path: ['until'],

@@ -15,6 +15,7 @@ export const staff = {
   roles: {
     super_admin: 'Super admin',
     admin: 'Admin',
+    floor: 'Floor',
     cashier: 'Cashier',
     dealer: 'Dealer',
     marketing: 'Marketing',
