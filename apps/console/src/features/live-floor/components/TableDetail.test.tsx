@@ -66,4 +66,16 @@ describe('a table on the live floor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Let Priya Nair leave early' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Early departure for Priya Nair' }));
   });
+
+  it('shows a role that does not read members the table without its night, which it would read as noughts (F2-25)', () => {
+    render(
+      <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+        queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <TableDetail venueId="v1" table={TABLE} tables={[TABLE]} seats={[]} held={[]} permissions={['dashboards.read']} night={undefined} />
+      </RivrDataProvider>,
+    );
+    expect(screen.getByRole('heading', { name: 'Table 3' })).toBeDefined();
+    expect(screen.queryByText('No dealer')).toBeNull();
+    expect(screen.queryByText('Hands')).toBeNull();
+  });
 });

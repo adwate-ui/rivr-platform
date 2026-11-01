@@ -24,6 +24,18 @@ function cardWords(table: FloorTable, taken: number, canSeeSeats: boolean): { ri
   };
 }
 
+/**
+ * A card's dealer and pace, or none for a role without members.read: floor_tonight gives such a role no rows, so every table
+ * would read "No dealer" with no pace (F2-25).
+ */
+function nightWords(figures: FloorNight['tables'][number] | undefined, canSeeSeats: boolean): { dealer: string | null; pace: string | null } {
+  if (!canSeeSeats) return { dealer: null, pace: null };
+  return {
+    dealer: figures?.dealerName ?? t('console.liveFloor.noDealer'),
+    pace: figures && figures.handsLastHour > 0 ? t('console.liveFloor.handsPerHour', { count: figures.handsLastHour }) : t('console.liveFloor.noPace'),
+  };
+}
+
 /** One table's card: its ring, how many sit there, its dealer and hands in the last hour; no rake, as no console shows it (#626). */
 function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Omit<RoomPlanProps, 'tables' | 'chosenId' | 'onChoose'> & { table: FloorTable; isChosen: boolean; onChoose: () => void }) {
   const here = seats.filter((seat) => seat.tableId === table.id);
@@ -33,8 +45,7 @@ function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Om
     <TableCard name={table.name} stakes={formatStakes(table.smallBlind, table.bigBlind)} isClosed={!table.isOpen} ringLabel={ringLabel}
       seats={canSeeSeats ? ringOf(table, here, held.filter((seat) => seat.tableId === table.id)) : []}
       occupancy={occupancy}
-      rake={null} dealer={figures?.dealerName ?? t('console.liveFloor.noDealer')}
-      pace={figures && figures.handsLastHour > 0 ? t('console.liveFloor.handsPerHour', { count: figures.handsLastHour }) : t('console.liveFloor.noPace')}
+      rake={null} {...nightWords(figures, canSeeSeats)}
       isSelected={isChosen} onSelect={onChoose} />
   );
 }
