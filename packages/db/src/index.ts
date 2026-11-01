@@ -15,7 +15,8 @@ export {
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
 } from './tierMatrix.ts';
 export {
-  OCCUPATIONS, PLAY_TIMES, useSignedInPhone, useSignUp, type Occupation, type PlayTime, type SignUpDetails, type SignUpFailure,
+  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, useSignedInPhone, useSignUp, type GamePlayed, type Occupation, type PlayTime, type SignUpDetails,
+  type SignUpFailure,
 } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
@@ -71,9 +72,12 @@ export * from './league.ts';
 export * from './dealers.ts';
 export * from './floorReports.ts';
 export {
-  useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
+  useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
 export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer, type TabletSeat } from './tabletSeats.ts';
+export {
+  useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
+} from './floorToday.ts';
 export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {

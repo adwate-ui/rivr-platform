@@ -2165,14 +2165,14 @@ isOneToOne: false
                   ]
                 },"member_preference": {
                   Row: {
-                    "big_blind": number | null,"city": string | null,"created_at": string,"games": (string)[],"hidden_sessions": (string)[],"member_id": string,"name_on_tvs": boolean,"occupation": string | null,"play_times": (string)[],"small_blind": number | null,"updated_at": string,"venue_id": string
+                    "big_blind": number | null,"city": string | null,"created_at": string,"games": (string)[],"games_played": (string)[],"hidden_sessions": (string)[],"member_id": string,"name_on_tvs": boolean,"occupation": string | null,"play_times": (string)[],"small_blind": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "big_blind"?: number | null,"city"?: string | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"occupation"?: string | null,"play_times"?: (string)[],"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
+                    "big_blind"?: number | null,"city"?: string | null,"created_at"?: string,"games"?: (string)[],"games_played"?: (string)[],"hidden_sessions"?: (string)[],"member_id": string,"name_on_tvs"?: boolean,"occupation"?: string | null,"play_times"?: (string)[],"small_blind"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "big_blind"?: number | null,"city"?: string | null,"created_at"?: string,"games"?: (string)[],"hidden_sessions"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"occupation"?: string | null,"play_times"?: (string)[],"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "big_blind"?: number | null,"city"?: string | null,"created_at"?: string,"games"?: (string)[],"games_played"?: (string)[],"hidden_sessions"?: (string)[],"member_id"?: string,"name_on_tvs"?: boolean,"occupation"?: string | null,"play_times"?: (string)[],"small_blind"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3433,6 +3433,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"table_run": {
+                  Row: {
+                    "closed_at": string | null,"closed_by_staff_id": string | null,"created_at": string,"id": string,"opened_at": string,"opened_by_staff_id": string | null,"table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"opened_at"?: string,"opened_by_staff_id"?: string | null,"table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"opened_at"?: string,"opened_by_staff_id"?: string | null,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "table_run_closed_by_staff_id_venue_id_fkey"
+      columns: ["closed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "table_run_opened_by_staff_id_venue_id_fkey"
+      columns: ["opened_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "table_run_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"table_type": {
                   Row: {
                     "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at": string,"game": string,"has_variation": boolean,"id": string,"name": string,"small_blind_paise": number,"straddle_paise": number | null,"updated_at": string,"venue_id": string
@@ -3599,6 +3631,50 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "venue"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"top_up_request": {
+                  Row: {
+                    "closed_at": string | null,"closed_by_staff_id": string | null,"created_at": string,"id": string,"member_id": string,"outcome": string | null,"requested_at": string,"seat": number,"session_id": string,"started_at": string | null,"started_by_staff_id": string | null,"table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"outcome"?: string | null,"requested_at"?: string,"seat": number,"session_id": string,"started_at"?: string | null,"started_by_staff_id"?: string | null,"table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "closed_at"?: string | null,"closed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"outcome"?: string | null,"requested_at"?: string,"seat"?: number,"session_id"?: string,"started_at"?: string | null,"started_by_staff_id"?: string | null,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "top_up_request_closed_by_staff_id_venue_id_fkey"
+      columns: ["closed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "top_up_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "top_up_request_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "top_up_request_started_by_staff_id_venue_id_fkey"
+      columns: ["started_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "top_up_request_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
     }
                   ]
                 },"tournament": {
@@ -4688,7 +4764,7 @@ isOneToOne: false
                            },
 "fnb_orders_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "created_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
+              "accepted_at": string,"age_seconds": number,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
             }[]
                            },
 "forget_push_subscription":
@@ -5410,13 +5486,16 @@ isOneToOne: false
 { Args: { "p_is_on": boolean,"p_push_type": string }; Returns: undefined
                            },
 "set_my_sign_up_answers":
-{ Args: { "p_city": string,"p_occupation": string,"p_play_times": (string)[] }; Returns: undefined
+{ Args: { "p_city": string,"p_games_played"?: (string)[],"p_occupation": string,"p_play_times": (string)[] }; Returns: undefined
                            },
 "set_promotion_live":
 { Args: { "p_is_live": boolean,"p_promotion_id": string }; Returns: undefined
                            },
 "set_seat_away":
 { Args: { "p_is_away": boolean,"p_session_id": string }; Returns: undefined
+                           },
+"set_seat_call_time":
+{ Args: { "p_minutes": number,"p_session_id": string }; Returns: undefined
                            },
 "set_session_reminder":
 { Args: { "p_hours"?: number }; Returns: undefined
@@ -5599,6 +5678,16 @@ isOneToOne: false
               "display_mode": Database["public"]['Enums']["feature_display_mode"],"feature_description": string,"feature_key": string,"feature_name": string,"is_enabled": boolean,"next_cell_id": string,"next_display_mode": Database["public"]['Enums']["feature_display_mode"],"next_from": string,"next_is_enabled": boolean,"shows_as": string,"tier_id": string,"tier_name": string,"tier_rank": number,"tiers_with_it": (string)[]
             }[]
                            },
+"todays_players":
+{ Args: { "p_day"?: string,"p_venue_id": string }; Returns: {
+              "checked_in_at": string,"checked_out_at": string,"full_name": string,"member_id": string,"member_number": number,"status": string,"tables": Json,"waiting_seconds": number
+            }[]
+                           },
+"top_ups_tonight":
+{ Args: { "p_venue_id": string }; Returns: {
+              "fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"status": string,"table_name": string
+            }[]
+                           },
 "tournament_balance":
 { Args: { "p_tournament_id": string }; Returns: {
               "from_table": number,"move": number,"to_table": number
@@ -5775,7 +5864,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","high_hand_category": "four_of_a_kind"|"straight_flush"|"royal_flush","high_hand_status": "claimed"|"approved"|"rejected"|"reversed","incident_severity": "low"|"medium"|"high"|"critical","jackpot_event_kind": "payout"|"reversal","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -5895,7 +5984,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"high_hand_category": ["four_of_a_kind", "straight_flush", "royal_flush"],"high_hand_status": ["claimed", "approved", "rejected", "reversed"],"incident_severity": ["low", "medium", "high", "critical"],"jackpot_event_kind": ["payout", "reversal"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel"]
           }
         }
 } as const
