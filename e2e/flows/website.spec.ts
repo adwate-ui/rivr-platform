@@ -11,6 +11,11 @@ test.describe('Website', () => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1&utm_source=instagram`);
     await expect(page.getByRole('heading', { level: 1, name: 'Bring your poker face.' })).toBeVisible();
+    // A shared link previews with the brand image, and points at the page without the visitor's codes (F3-30).
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${appUrl('web')}/`);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', `${appUrl('web')}/og-image.png`);
+    expect((await page.request.get(`${appUrl('web')}/og-image.png`)).status()).toBe(200);
+    expect((await page.request.get(`${appUrl('web')}/icons/favicon-32.png`)).status()).toBe(200);
     await expect(page.getByRole('link', { name: 'Join RIVR' }).first()).toHaveAttribute('href', `${appUrl('player')}/sign-in?ref=FRIEND1&utm_source=instagram`);
     await expect(page.getByRole('link', { name: 'Member app' }).first()).toHaveAttribute('href', `${appUrl('player')}/?ref=FRIEND1&utm_source=instagram`);
     // Reserving a seat is a WhatsApp message to the club (#616).

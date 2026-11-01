@@ -13,6 +13,15 @@ describe('the brand kit', () => {
     }
   });
 
+  it('gives the website its tab icon, home-screen icon and the 1200 by 630 image a shared link shows', () => {
+    const web = BRAND_KIT.filter((output) => output.path.startsWith('apps/web/public/'));
+    expect(web.map(({ path, width, height }) => [path, width, height])).toEqual([
+      ['apps/web/public/icons/favicon-32.png', 32, 32],
+      ['apps/web/public/icons/apple-touch-icon.png', 180, 180],
+      ['apps/web/public/og-image.png', 1200, 630],
+    ]);
+  });
+
   it('gives the player app the manifest icons, a maskable icon and the home-screen icon', () => {
     expect(at('apps/player/public/icons/icon-192.png')).toMatchObject({ art: 'icon', width: 192 });
     expect(at('apps/player/public/icons/icon-512.png')).toMatchObject({ art: 'icon', width: 512 });

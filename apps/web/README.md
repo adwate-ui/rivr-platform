@@ -15,7 +15,8 @@ It listens on this worktree's port `<block>45`. `PUBLIC_SUPABASE_URL` and `PUBLI
 
 ```
 src/
-  layouts/Document    the HTML document around every page: title, description, styles
+  layouts/Document    the HTML document around every page: title, description, styles, the canonical
+                      link, icons and link-preview tags (F3-30; the images from the brand kit)
   pages/              Astro pages: index.astro (the front page), [slug].astro (every other) and
                       404.astro (an address with no route)
   features/site/      loadPage (read per request into a SiteView), Website (the page, or the

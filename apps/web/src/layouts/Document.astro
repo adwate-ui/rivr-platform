@@ -9,6 +9,11 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+// The page's own address without the visitor's codes, for search engines and link previews (F3-30); a draft's preview
+// page has none, as it is not the page.
+const isPreview = Astro.url.pathname.startsWith('/preview/');
+const canonical = new URL(Astro.url.pathname, Astro.url.origin).href;
+const previewImage = new URL('/og-image.png', Astro.url.origin).href;
 ---
 
 <html lang="en">
@@ -17,6 +22,17 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     {description ? <meta name="description" content={description} /> : null}
+    {isPreview ? null : <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    {isPreview ? null : <meta property="og:url" content={canonical} />}
+    <meta property="og:title" content={title} />
+    {description ? <meta property="og:description" content={description} /> : null}
+    <meta property="og:image" content={previewImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <slot />
