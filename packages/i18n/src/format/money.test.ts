@@ -32,7 +32,20 @@ describe('formatChips', () => {
   });
 });
 
+describe('formatNumber (F5-12)', () => {
+  it('writes a count below nothing with the minus sign, as money is, and −0 as 0', () => {
+    expect(formatNumber(-5)).toBe('−5');
+    expect(formatNumber(-1234n)).toBe('−1,234');
+    expect(formatNumber(-0)).toBe('0');
+    expect(formatNumber(18_420)).toBe('18,420');
+  });
+});
+
 describe('formatStakes', () => {
+  it('keeps a blind\u2019s paise, as 0.50/1 (F5-12)', () => {
+    expect(formatStakes(50n, 100n)).toBe('0.50/1');
+  });
+
   it('writes blinds in rupees as small/big', () => {
     expect(formatStakes(10_000n, 20_000n)).toBe('100/200');
     expect(formatStakes(5_000n, 10_000n)).toBe('50/100');
@@ -47,7 +60,7 @@ describe('formatNights', () => {
     expect(formatNights(1_250n)).toBe('1.25');
     expect(formatNights(175n)).toBe('0.175');
     expect(formatNights(1_200_500n)).toBe('1,200.5');
-    expect(formatNights(-1_250n)).toBe('-1.25');
+    expect(formatNights(-1_250n)).toBe('−1.25');
   });
 });
 
