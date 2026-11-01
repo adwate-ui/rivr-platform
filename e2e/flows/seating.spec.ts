@@ -39,7 +39,7 @@ test.describe('Seating', () => {
     await page.getByRole('button', { name: 'Let Ishaan Verma leave early' }).click();
     await page.getByRole('textbox', { name: 'Why they leave early' }).fill('Called away');
     await page.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(page.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
+    await expect(page.getByText('Released early.')).toBeVisible();
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Let Ishaan Verma leave early' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Close table' }).click();

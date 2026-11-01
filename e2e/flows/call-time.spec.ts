@@ -71,7 +71,7 @@ test.describe('Call time', () => {
     await floor.getByRole('button', { name: 'Let Ritika Das leave early' }).click();
     await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('Family emergency');
     await floor.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(floor.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
+    await expect(floor.getByText('Released early.')).toBeVisible();
     await floor.getByRole('button', { name: 'Ritika Das leaves' }).click();
     await floor.getByRole('button', { name: 'Yes, Ritika Das leaves' }).click();
     await expect(floor.getByRole('button', { name: 'Move Ritika Das' })).toHaveCount(0, { timeout: 15_000 });

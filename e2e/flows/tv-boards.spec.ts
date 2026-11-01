@@ -160,7 +160,7 @@ test.describe('TV boards', () => {
     await floor.getByRole('button', { name: `Let ${LEAVING} leave early` }).first().click();
     await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(floor.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
+    await expect(floor.getByText('Released early.')).toBeVisible();
     await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
     await floor.getByRole('button', { name: `Yes, ${LEAVING} leaves` }).click();
     await expect(floor.getByRole('button', { name: `Move ${LEAVING}` })).toHaveCount(0);

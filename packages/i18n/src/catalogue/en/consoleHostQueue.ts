@@ -1,8 +1,8 @@
 /** The console's host queue (#165): lapsed regulars to call, why they stopped coming, and the offer made. */
 export const consoleHostQueue = {
   title: 'Host queue',
-  hint: 'Regulars who have stopped coming, longest gone first. Call each, note why, and make an offer.',
-  notAllowed: 'Your role does not use the host queue. Hosts and admins do.',
+  hint: 'Lapsed regulars, longest gone first.',
+  notAllowed: 'Not in your role. Ask an admin.',
   none: 'No lapsed regulars to call.',
   /** `+91 90000 00642 · last here 28 Sep 2026 · 4 visits before that` */
   lapse: '{phone} · last here {last} · {visits} visits before that',

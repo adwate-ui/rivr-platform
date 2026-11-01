@@ -1,7 +1,7 @@
 /** Someone signed in to the console who is not active staff at any venue. */
 export const notStaff = {
   title: 'Staff only',
-  body: 'This console is for RIVR staff. A manager can add your number to the staff list.',
+  body: 'For RIVR staff. Ask a manager to add your number.',
 };
 
 /** The console's Staff screen (#28): the venue's staff, with job titles apart from roles. */
@@ -9,7 +9,7 @@ export const staff = {
   title: 'Staff',
   /** The tabs (#606); Dealer PINs takes its own title. */
   tabs: { staff: 'Staff members' },
-  notAllowed: 'Your role does not manage staff. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No staff yet.',
   /** The permission roles, as the screen names them. */
   roles: {
@@ -42,29 +42,29 @@ export const staff = {
   jobTitleFor: 'Job title for {name}',
   saveJobTitle: 'Save job title for {name}',
   /** On the signed-in staff member's own row. */
-  ownRow: 'You can change your own job title, but not your role or whether you are active.',
+  ownRow: 'Your own row: job title only.',
   addTitle: 'New staff member',
   fullName: 'Full name',
   jobTitle: 'Job title',
-  jobTitleHint: 'From the manpower plan, for example Floor supervisor. Rosters use it; the role decides access.',
+  jobTitleHint: 'For example, Floor supervisor.',
   role: 'Role',
   /** Only the roles the manager may give are offered. */
-  roleHint: 'Only roles within your own access are offered.',
+  roleHint: 'Roles within your access.',
   phone: 'Mobile number',
-  phoneHint: 'The number they sign in with. Only a dealer, who signs in with a PIN, may have none.',
+  phoneHint: 'Their sign-in number. Dealers may have none.',
   add: 'Add staff member',
   added: '{name} is added.',
   invalidName: 'Give their full name.',
   invalidJobTitle: 'Give a job title of up to 60 characters.',
   invalidRole: 'Choose a role.',
-  invalidPhone: 'Give their 10-digit mobile number. Only a dealer may have none.',
-  notAllowedAction: 'Your role cannot give that role or change that staff member. Ask a super admin.',
-  alreadyStaff: 'That number is already on the staff list. Find them below and turn their row back on.',
-  ownChange: 'You cannot change your own role or turn yourself off. Ask another manager.',
-  lastSuperAdmins: 'That would leave fewer than two super admins able to release a venue freeze. Add another super admin first.',
-  paused: 'The venue is frozen: only turning a login off goes through until it is released.',
+  invalidPhone: 'Give a 10-digit mobile. Only dealers may have none.',
+  notAllowedAction: 'Beyond your role. Ask a super admin.',
+  alreadyStaff: 'Already on the staff list. Turn their row back on below.',
+  ownChange: 'Not your own role. Ask another manager.',
+  lastSuperAdmins: 'Two super admins must stay. Add another first.',
+  paused: 'Venue frozen. Only turning a login off works until release.',
   jobTitleSaved: 'Job title saved.',
-  changed: 'That did not save. Check the details and try again.',
+  changed: 'Not saved. Check the details.',
   unavailable: 'Not sent. Try again.',
   /** A hire's onboarding checklist (#107): each SOP in force that asks their role, ticked once they acknowledge that version. */
   onboarding: {

@@ -46,6 +46,6 @@ describe('ReopenForm', () => {
     renderForm(() => Response.json({ code: '42501', message: 'Only a super admin reopens a check' }, { status: 403 }));
     fireEvent.change(screen.getByLabelText('Reason for reopening Naina Kapoor\'s check'), { target: { value: 'Typed wrong' } });
     fireEvent.click(screen.getByRole('button', { name: 'Reopen the check' }));
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Your role does not allow this/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not allowed: nobody decides their own check/);
   });
 });

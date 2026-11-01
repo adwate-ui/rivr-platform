@@ -80,7 +80,7 @@ describe('a check in person', () => {
   it('says where the gate sent a check it did not verify', async () => {
     renderSection(() => Response.json({ status: 'refused' }));
     await checkNaina();
-    expect(await screen.findByText('Naina Kapoor was refused. The refused checks below say why.')).toBeDefined();
+    expect(await screen.findByText('Naina Kapoor refused. See the checks below.')).toBeDefined();
     cleanup();
     renderSection(() => Response.json({ status: 'needs_review' }));
     await checkNaina();
@@ -90,21 +90,21 @@ describe('a check in person', () => {
   it('keeps the form, and says why, when the check did not go through', async () => {
     renderSection(() => Response.json({ error: 'not_allowed' }, { status: 403 }));
     await checkNaina();
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Your role does not allow this/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not allowed: nobody checks themselves/);
     expect(screen.getByRole('button', { name: 'Verify Naina Kapoor' })).toBeDefined();
   });
 
   it('sends nothing without the member\'s consent, however complete the rest', async () => {
     const sent = renderSection(() => Response.json({ status: 'verified' }));
     await checkNaina({ consent: false });
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Take their photo/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Photo, date of birth/);
     expect(sent).toEqual([]);
   });
 
   it('sends nothing without the member\'s photo', async () => {
     const sent = renderSection(() => Response.json({ status: 'verified' }));
     await checkNaina({ photo: false });
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Take their photo/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Photo, date of birth/);
     expect(sent).toEqual([]);
   });
 });
