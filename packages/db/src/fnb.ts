@@ -136,27 +136,30 @@ export function useMyFnbOrders() {
   });
 }
 
-/** A seated member orders for their own seat from the app: paid, a Result with the KOT; their orders reload. */
+/**
+ * A seated member orders for their own seat from the app: paid, a Result with the KOT; their orders reload. The request
+ * id, kept to retry an order whose reply was lost, makes the retry the same order rather than a second KOT (F3-18).
+ */
 export function usePlaceFnbOrder() {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (lines: readonly FnbLine[]): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
-      const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines) });
+    mutationFn: async ({ lines, requestId }: { lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
+      const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines), p_idempotency_key: requestId });
       await queryClient.invalidateQueries({ queryKey: queryKeys.myFnbOrders(userId ?? 'signed-out') });
       return placed(data, error);
     },
   });
 }
 
-/** The dealer orders for a seat at the tablet's table: paid, a Result with the KOT. */
+/** The dealer orders for a seat at the tablet's table: paid, a Result with the KOT; the request id as the app's (F4-10). */
 export function useTabletFnbOrder() {
   const { client } = useRivrData();
   return useMutation({
     // Sent whether the browser says it is online or not: offline it fails at once, and never goes later on its own.
     networkMode: 'always',
-    mutationFn: async ({ seat, lines }: { seat: number; lines: readonly FnbLine[] }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
-      const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines) });
+    mutationFn: async ({ seat, lines, requestId }: { seat: number; lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
+      const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines), p_idempotency_key: requestId });
       return placed(data, error);
     },
   });

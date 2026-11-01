@@ -5227,7 +5227,7 @@ isOneToOne: false
             }[]
                            },
 "place_fnb_order":
-{ Args: { "p_lines": Json }; Returns: {
+{ Args: { "p_idempotency_key"?: string,"p_lines": Json }; Returns: {
               "kot_number": number,"order_id": string
             }[]
                            },
@@ -5707,7 +5707,7 @@ isOneToOne: false
             }[]
                            },
 "tablet_fnb_order":
-{ Args: { "p_lines": Json,"p_seat": number }; Returns: {
+{ Args: { "p_idempotency_key"?: string,"p_lines": Json,"p_seat": number }; Returns: {
               "kot_number": number,"order_id": string
             }[]
                            },

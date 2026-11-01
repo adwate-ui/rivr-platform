@@ -47,6 +47,7 @@ async function startKotPrinting(deps: CliDeps, api: AgentApi, token: string): Pr
     try {
       const done = await printKots(api, token, printer);
       if (done.delivered + done.failed > 0) deps.say(`KOTs: ${JSON.stringify(done)}`);
+      if (done.unrecorded > 0) deps.say(`KOTs printed but not recorded: ${String(done.unrecorded)}; they print again after their lease`);
     } catch (error) {
       deps.say(`KOTs not printed: ${String(error)}`);
     } finally {
