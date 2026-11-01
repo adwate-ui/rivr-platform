@@ -50,8 +50,9 @@ describe('the promotion templates (UI polish audit A-15)', () => {
     const sent = renderTemplates();
     fireEvent.click(await screen.findByRole('button', { name: 'Send for approval' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Budget in bonus chips (optional)' }), { target: { value: '5000' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    fireEvent.click(screen.getByRole('button', { name: "Send Ladies' night" }));
     await waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0]).toEqual({ p_promotion_id: 'p1', p_budget_paise: 500000, p_budget_period: 'promotion' });
     expect(await screen.findByText("Ladies' night waits for a super admin.")).toBeDefined();
   });
 });

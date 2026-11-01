@@ -39,17 +39,18 @@ function seatName(seat: RingSeat): string {
 }
 
 /**
- * How a seat is drawn: on the tablet, at its own size; on a console's table card, where the ring is drawn small, with a
- * larger circle and type, so its initials stay legible (UI polish audit UI-14).
+ * How a seat is drawn, in the ring's viewBox units: on the tablet, at its own size, with how far a taken seat's label sits
+ * above or below its circle; on a console's table card, where the ring is drawn small, with a larger circle and type, so
+ * its initials stay legible (UI polish audit UI-14).
  */
 const LOOK = {
-  choosing: { radius: 11, type: 'text-12' },
+  choosing: { radius: 11, type: 'text-12', labelAbove: 16, labelBelow: 24 },
   card: { radius: 14, type: 'text-16' },
 } as const;
 
 /** A taken seat's number on the tablet: above a seat in the ring's top half, below one in its bottom half, never over the felt. */
 function SeatLabel({ number, at }: { number: number; at: { x: number; y: number } }) {
-  const y = at.y < CENTRE.y ? at.y - LOOK.choosing.radius - 5 : at.y + LOOK.choosing.radius + 13;
+  const y = at.y < CENTRE.y ? at.y - LOOK.choosing.labelAbove : at.y + LOOK.choosing.labelBelow;
   return <text x={at.x} y={y} textAnchor="middle" className="fill-content-muted font-text text-12">{t('ui.seatRing.seat', { number })}</text>;
 }
 
@@ -88,6 +89,14 @@ function Seat({ seat, at, isSelected, onSelect }: { seat: RingSeat; at: { x: num
 }
 
 /**
+ * The felt's name type: larger on a card, so it reads when the ring is drawn small, unless the name is longer than the felt
+ * holds at that size (about 12 characters), as on the tablet.
+ */
+function nameType(name: string, isChoosing: boolean): string {
+  return isChoosing || name.length > 12 ? 'text-14' : 'text-18';
+}
+
+/**
  * A table seen from above, as on the console's live floor: the felt with its name and stakes, and
  * every seat around it, with the initials of who sits there or the seat number when it is open. With
  * `onSelectSeat`, as on the dealer tablet, each seat is a button to choose, and the ring is no wider than the text measure,
@@ -99,7 +108,7 @@ export function SeatRing({ name, stakes, seats, label, isClosed, onSelectSeat, s
     <svg viewBox={isChoosing ? '0 -16 240 186' : '0 -4 240 158'} role={isChoosing ? 'group' : 'img'} aria-label={label}
       className={cx('w-full', isChoosing && 'mx-auto max-w-text', isClosed && 'opacity-muted')}>
       <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={74} ry={44} className="fill-green-black stroke-hairline" />
-      <text x={CENTRE.x} y={CENTRE.y - 4} textAnchor="middle" className={cx('fill-content font-text font-medium', isChoosing ? 'text-14' : 'text-18')}>{name}</text>
+      <text x={CENTRE.x} y={CENTRE.y - 4} textAnchor="middle" className={cx('fill-content font-text font-medium', nameType(name, isChoosing))}>{name}</text>
       <text x={CENTRE.x} y={CENTRE.y + 15} textAnchor="middle" className={cx('fill-content-muted font-text', isChoosing ? 'text-12' : 'text-16')}>{stakes}</text>
       {seats.map((seat, index) => (
         <Seat key={seat.number} seat={seat} at={seatPosition(index, seats.length)} isSelected={seat.number === selectedSeat} onSelect={onSelectSeat} />

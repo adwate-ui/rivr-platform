@@ -27,13 +27,13 @@ function JobTitleForm({ member, isDisabled, onSave }: { member: StaffMember; isD
 }
 
 /** Who they are: name (and You on one's own row), job title and role, their number, and whether their login is off. */
-function StaffIdentity({ member }: { member: StaffMember }) {
+function StaffIdentity({ member, showsInactive }: { member: StaffMember; showsInactive: boolean }) {
   return (
     <Stack gap={1}>
       <Text weight="semibold">{member.isMe ? `${member.fullName} · ${t('console.staff.you')}` : member.fullName}</Text>
       <Text variant="small" tone="muted">{t('console.staff.line', { jobTitle: member.jobTitle, role: roleName(member.role) })}</Text>
       <Text variant="small" tone="muted">{member.phone ?? t('console.staff.noPhone')}</Text>
-      {member.isActive ? null : <Text variant="small" weight="medium">{t('console.staff.inactive')}</Text>}
+      {member.isActive || !showsInactive ? null : <Text variant="small" weight="medium">{t('console.staff.inactive')}</Text>}
     </Stack>
   );
 }
@@ -113,7 +113,8 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
   return (
     <Stack gap={3}>
       <Inline justify="between" align="center" gap={4}>
-        <StaffIdentity member={member} />
+        {/* Open, the row's switch says whether the login is off. */}
+        <StaffIdentity member={member} showsInactive={!isChanging} />
         {(isInReach || member.isMe) && !isChanging ? (
           <Button variant="text" aria-label={t('console.staff.changeFor', { name: member.fullName })} onClick={() => setIsChanging(true)}>
             {t('console.staff.change')}
@@ -126,7 +127,7 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
           <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
           <RowChanges member={member} grantable={grantable} isInReach={isInReach} canChange={canChange} isSaving={change.isPending} onSave={save} />
           {member.isMe ? <Text variant="small" tone="muted">{t('console.staff.ownRow')}</Text> : null}
-          <Inline><Button variant="text" onClick={() => setIsChanging(false)}>{t('console.staff.done')}</Button></Inline>
+          <Inline><Button variant="text" onClick={() => { setIsChanging(false); setFailure(null); }}>{t('console.staff.done')}</Button></Inline>
         </Stack>
       ) : null}
       {failure === null ? null : <ErrorMessage>{t(STAFF_FAILURE_COPY[failure])}</ErrorMessage>}

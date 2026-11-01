@@ -129,10 +129,10 @@ export function usePromotions(venueId: string) {
   });
 }
 
-/** The venue's draft templates, every scheme in the deck not yet published (#85), by name. */
 /** The templates for what no console runs since decision 0284: the bad-beat jackpot and the Tuesday buy-in bonus (UI polish Q8). */
 const HIDDEN_TEMPLATES = ['bad_beat', 'tuesday_bonus'];
 
+/** The venue's draft templates, every scheme in the deck not yet published (#85), by name. */
 export function usePromotionTemplates(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({

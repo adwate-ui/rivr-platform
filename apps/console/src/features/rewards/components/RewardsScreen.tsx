@@ -1,11 +1,25 @@
 import { type RewardItem, useRewardItems, useStaffVenue, useVenueRedemptions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { CatalogueList } from './CatalogueList.tsx';
 import { PointsByHand } from './PointsByHand.tsx';
 import { RedemptionList } from './RedemptionList.tsx';
 import { RewardForm } from './RewardForm.tsx';
+
+/**
+ * The screen laid out once its lists have come (UI polish audit E-07), so the redemptions never push the catalogue down;
+ * each role reads only what it is shown. The catalogue, for everyone here.
+ */
+function CatalogueReady({ venueId, children }: { venueId: string; children: ReactNode }) {
+  return useRewardItems(venueId).isPending ? <Screen title={t('console.rewards.title')} status="loading" /> : children;
+}
+
+/** For staff who hand rewards over, the redemptions too, then the catalogue. */
+function HandOverReady({ venueId, children }: { venueId: string; children: ReactNode }) {
+  if (useVenueRedemptions(venueId).isPending) return <Screen title={t('console.rewards.title')} status="loading" />;
+  return <CatalogueReady venueId={venueId}>{children}</CatalogueReady>;
+}
 
 /** The catalogue and the redemptions beside the form: a new reward, or the one chosen to change. */
 function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: string; canKeep: boolean; canHandOver: boolean; canGive: boolean }) {
@@ -13,11 +27,8 @@ function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: stri
   // Kept here: a change saved closes its form, so the form's own words would go with it (F2-23).
   const [saved, setSaved] = useState<string | null>(null);
   const edit = (item: RewardItem | null) => { setEditing(item); setSaved(null); };
-  // The catalogue and the redemptions read these too (one query each): waiting for both lays the screen out once (E-07).
-  const lists = [useRewardItems(venueId), useVenueRedemptions(venueId)];
   const catalogue = <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={edit} />;
   const newReward = editing === null ? null : <Button variant="text" onClick={() => edit(null)}>{t('console.rewards.newReward')}</Button>;
-  if (lists.some((list) => list.isPending)) return <Screen title={t('console.rewards.title')} status="loading" />;
   return (
     <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
       <Stack gap={10}>
@@ -53,5 +64,7 @@ export function RewardsScreen() {
   if (!canKeep && !canHandOver && !canGive) {
     return <Screen title={t('console.rewards.title')} status="error" errorText={t('console.rewards.notAllowed')} />;
   }
-  return <RewardsBody venueId={staff.venue.venueId} canKeep={canKeep} canHandOver={canHandOver} canGive={canGive} />;
+  const { venueId } = staff.venue;
+  const body = <RewardsBody venueId={venueId} canKeep={canKeep} canHandOver={canHandOver} canGive={canGive} />;
+  return canHandOver ? <HandOverReady venueId={venueId}>{body}</HandOverReady> : <CatalogueReady venueId={venueId}>{body}</CatalogueReady>;
 }

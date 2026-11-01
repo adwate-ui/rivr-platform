@@ -2,6 +2,7 @@ import { useFloorSeats, useFloorTables, useStaffVenue } from '@rivr/db';
 import { useFnbItems, useFnbMenu, useFnbOrdersTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
+import type { ReactNode } from 'react';
 import { MenuItems } from './MenuItems.tsx';
 import { OrderForSeat } from './OrderForSeat.tsx';
 import { TonightOrders } from './TonightOrders.tsx';
@@ -19,14 +20,29 @@ export function FnbScreen() {
   if (!permissions.includes('fnb.manage') && !permissions.includes('fnb.serve')) {
     return <Screen title={t('console.fnb.title')} status="error" errorText={t('console.fnb.notAllowed')} />;
   }
-  return <FnbBody venueId={staff.venue.venueId} canOrder={permissions.includes('fnb.manage')} />;
+  const { venueId } = staff.venue;
+  const canOrder = permissions.includes('fnb.manage');
+  const sections = <FnbSections venueId={venueId} canOrder={canOrder} />;
+  return canOrder ? <OrderingReady venueId={venueId}>{sections}</OrderingReady> : <ServingReady venueId={venueId}>{sections}</ServingReady>;
 }
 
-/** The sections below, laid out once every list they read has come (UI polish audit E-07), so none pushes another down. */
-function FnbBody({ venueId, canOrder }: { venueId: string; canOrder: boolean }) {
-  // The sections read these too (one query each): Ordering for a seat reads the floor and the menu.
-  const lists = [useFnbOrdersTonight(venueId), useFnbItems(venueId), useFnbMenu(venueId), useFloorSeats(venueId), useFloorTables()];
+/**
+ * The screen laid out once every list its sections read has come (UI polish audit E-07), so none pushes another down;
+ * each role waits for, and reads, only what it is shown. Tonight's orders and the menu's items, for everyone here.
+ */
+function ServingReady({ venueId, children }: { venueId: string; children: ReactNode }) {
+  const lists = [useFnbOrdersTonight(venueId), useFnbItems(venueId)];
+  return lists.some((list) => list.isPending) ? <Screen title={t('console.fnb.title')} status="loading" /> : children;
+}
+
+/** For staff who run F&B, Ordering for a seat's floor and menu too, then the rest. */
+function OrderingReady({ venueId, children }: { venueId: string; children: ReactNode }) {
+  const lists = [useFnbMenu(venueId), useFloorSeats(venueId), useFloorTables()];
   if (lists.some((list) => list.isPending)) return <Screen title={t('console.fnb.title')} status="loading" />;
+  return <ServingReady venueId={venueId}>{children}</ServingReady>;
+}
+
+function FnbSections({ venueId, canOrder }: { venueId: string; canOrder: boolean }) {
   return (
     <Screen title={t('console.fnb.title')}>
       <Stack gap={10}>

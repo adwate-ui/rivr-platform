@@ -15,7 +15,9 @@ function budgetFrom(text: string, period: Period): { budget: TemplateSubmission[
 }
 
 /** A template's budget, opened in place by Send for approval: the amount and what it covers, then Send or Cancel. */
-function BudgetForm({ isSending, onSend, onCancel }: { isSending: boolean; onSend: (typed: { budget: TemplateSubmission['budget'] } | null) => void; onCancel: () => void }) {
+function BudgetForm({ name, isSending, onSend, onCancel }: {
+  name: string; isSending: boolean; onSend: (typed: { budget: TemplateSubmission['budget'] } | null) => void; onCancel: () => void;
+}) {
   const [budget, setBudget] = useState('');
   const [period, setPeriod] = useState<Period>('promotion');
   return (
@@ -27,7 +29,10 @@ function BudgetForm({ isSending, onSend, onCancel }: { isSending: boolean; onSen
           onChange={([picked]) => { const found = PERIODS.find((known) => known === picked); if (found) setPeriod(found); }} />
       </Inline>
       <Inline gap={3}>
-        <Button variant="secondary" isLoading={isSending} onClick={() => onSend(budgetFrom(budget, period))}>{t('console.promotions.sendTemplate')}</Button>
+        <Button variant="secondary" aria-label={t('console.promotions.sendTemplateNamed', { name })} isLoading={isSending}
+          onClick={() => onSend(budgetFrom(budget, period))}>
+          {t('console.promotions.sendTemplate')}
+        </Button>
         <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>
       </Inline>
     </Stack>
@@ -61,7 +66,7 @@ function TemplateRow({ venueId, template, onSubmitted }: { venueId: string; temp
           <Button variant="text" onClick={() => setIsOpen(true)} aria-describedby={nameId}>{t('console.promotions.submitTemplate')}</Button>
         )}
       </Inline>
-      {isOpen ? <BudgetForm isSending={submitTemplate.isPending} onSend={(typed) => void send(typed)} onCancel={() => { setIsOpen(false); setFailure(null); }} /> : null}
+      {isOpen ? <BudgetForm name={template.name} isSending={submitTemplate.isPending} onSend={(typed) => void send(typed)} onCancel={() => { setIsOpen(false); setFailure(null); }} /> : null}
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

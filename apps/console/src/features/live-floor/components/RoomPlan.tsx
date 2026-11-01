@@ -28,12 +28,8 @@ function cardWords(table: FloorTable, taken: number, canSeeSeats: boolean): { ri
  * A card's dealer, or none for a role without members.read: floor_tonight gives such a role no rows, so every table would
  * read "No dealer" (F2-25). No pace: hands are no longer counted at the table (#630; UI polish audit A-11).
  */
-function nightWords(figures: FloorNight['tables'][number] | undefined, canSeeSeats: boolean): { dealer: string | null; pace: string | null } {
-  if (!canSeeSeats) return { dealer: null, pace: null };
-  return {
-    dealer: figures?.dealerName ?? t('console.liveFloor.noDealer'),
-    pace: null,
-  };
+function dealerOf(figures: FloorNight['tables'][number] | undefined, canSeeSeats: boolean): string | null {
+  return canSeeSeats ? figures?.dealerName ?? t('console.liveFloor.noDealer') : null;
 }
 
 /** One table's card: its ring, how many sit there and its dealer; no rake, as no console shows it (#626). */
@@ -45,7 +41,7 @@ function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Om
     <TableCard name={table.name} stakes={formatStakes(table.smallBlind, table.bigBlind)} isClosed={!table.isOpen} ringLabel={ringLabel}
       seats={canSeeSeats ? ringOf(table, here, held.filter((seat) => seat.tableId === table.id)) : []}
       occupancy={occupancy}
-      rake={null} {...nightWords(figures, canSeeSeats)}
+      rake={null} dealer={dealerOf(figures, canSeeSeats)} pace={null}
       isSelected={isChosen} onSelect={onChoose} />
   );
 }
