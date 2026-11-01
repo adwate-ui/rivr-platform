@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -60,6 +60,22 @@ describe('the spin wheel', () => {
     await act(async () => { spun = await result.current.spin.mutateAsync('g1'); });
     expect(spun).toEqual({ ok: true, value: { kind: 'bonus', amount: 50000n } });
     expect(bodyOf(calls, '/rpc/spin_the_wheel')).toEqual({ p_venue_id: VENUE, p_grant_id: 'g1' });
+  });
+
+  it('asks for the spins waiting every ten seconds, and reads the wheel again after a spin, as it spends its budget', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { result, calls } = renderHooks({ '/rpc/spin_the_wheel': { body: [{ spin_id: 's1', kind: 'points', amount: 100 }] } });
+      const asked = (path: string) => calls.filter((call) => call.url.includes(path)).length;
+      await waitFor(() => expect(asked('/rpc/waiting_spins')).toBe(1));
+      await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+      expect(asked('/rpc/waiting_spins')).toBe(2);
+      const wheelBefore = asked('/rpc/spin_prizes');
+      await act(async () => { await result.current.spin.mutateAsync('g1'); });
+      expect(asked('/rpc/spin_prizes')).toBeGreaterThan(wheelBefore);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('adds and takes off prizes, and says why a spin or a change is refused', async () => {

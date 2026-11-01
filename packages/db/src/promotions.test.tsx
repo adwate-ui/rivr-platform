@@ -87,6 +87,14 @@ describe('Promotions (#84)', () => {
     expect(calls.find((call) => call.url.includes('set_promotion_live'))?.body).toEqual({ p_promotion_id: 'p9', p_is_live: false });
   });
 
+  it('sends a builder promotion\u2019s budget, in paise and in grants, with the submission', async () => {
+    const { result, calls } = renderPromotions({ '/rpc/submit_promotion': { body: 'p9' }, '/rest/v1/': { body: [] } });
+    await act(async () => {
+      await result.current.actions.submit.mutateAsync({ name: 'Double points', runs: 'Thursday', draft: DRAFT, requestId: 'r1', budget: { paise: 5_000_000n, count: null } });
+    });
+    expect(calls.find((call) => call.url.includes('submit_promotion'))?.body).toMatchObject({ p_promotion: { budget_paise: 5_000_000, budget_count: null } });
+  });
+
   it('says why a submission was refused: promotions switched off, or not a promotion manager', async () => {
     const { result } = renderPromotions({ '/rpc/submit_promotion': { status: 400, body: { code: 'RVKIL', message: 'off' } }, '/rest/v1/': { body: [] } });
     let refused: unknown;

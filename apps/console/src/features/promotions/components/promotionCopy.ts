@@ -37,11 +37,16 @@ export function runsText(choices: PromotionBuilder, stakes: readonly PromotionSt
 
 /**
  * What a bonus gives, on its card: "Up to 5,000 bonus chips a buy-in" (#415, #629), or "1,000 bonus chips after 4 hours at
- * the tables" (#646); the points rewards need none.
+ * the tables" (#646); the points rewards need none. A figure half typed or mistyped (2500.50, ₹5000) gives none until it is
+ * whole, rather than throwing (F2-03); Publish says what to fix.
  */
 export function rewardDetail(choices: PromotionBuilder): string | undefined {
-  if (choices.reward === 'buy_in_bonus') return t('console.promotions.bonusDetail', { cap: formatChips(BigInt(choices.bonus_cap_rupees) * 100n) });
+  if (choices.reward === 'buy_in_bonus') {
+    if (!Number.isSafeInteger(choices.bonus_cap_rupees)) return undefined;
+    return t('console.promotions.bonusDetail', { cap: formatChips(BigInt(choices.bonus_cap_rupees) * 100n) });
+  }
   if (choices.reward === 'hours_bonus') {
+    if (!Number.isSafeInteger(choices.bonus_chips)) return undefined;
     return t('console.promotions.hoursBonusDetail', { chips: formatChips(BigInt(choices.bonus_chips) * 100n), hours: String(choices.bonus_hours) });
   }
   return undefined;

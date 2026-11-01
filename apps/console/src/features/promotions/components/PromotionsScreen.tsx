@@ -8,6 +8,7 @@ import { t } from '@rivr/i18n';
 import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TextArea, TvPromotionSlide, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
+import { BuilderBudget, budgetOf, NO_BUDGET, type TypedBudget } from './BuilderBudget.tsx';
 import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
 import { promotionWords } from './promotionWords.ts';
 import { AwaitingApproval } from './AwaitingApproval.tsx';
@@ -78,22 +79,43 @@ function useSimulation(venueId: string) {
   return { ...state, isPending: simulate.isPending, run, clear: () => setState(NOT_SIMULATED) };
 }
 
+/** What to fix before the builder's promotion is simulated or submitted, or null. */
+function invalidOf(choices: PromotionBuilder, budget: TypedBudget): string | null {
+  return invalidText(choices) ?? (budgetOf(budget) === undefined ? t('console.promotions.invalidBuilderBudget') : null);
+}
+
+/** The builder's choices, its words for the website and its budget, with one request id for them, new with any change (A3). */
+function useBuilderDraft() {
+  const [choices, setChoices] = useState(START);
+  const [words, setWords] = useState(NO_WORDS);
+  const [budget, setBudget] = useState(NO_BUDGET);
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID()); // Kept to retry a lost answer.
+  const renew = () => setRequestId(crypto.randomUUID());
+  return {
+    choices, words, budget, requestId, renew,
+    reset: () => { setChoices(START); setWords(NO_WORDS); setBudget(NO_BUDGET); },
+    setChoices: (next: PromotionBuilder) => { setChoices(next); renew(); },
+    setWords: (next: typeof NO_WORDS) => { setWords(next); renew(); },
+    setBudget: (next: TypedBudget) => { setBudget(next); renew(); },
+  };
+}
+
 function Builder({ venueId, stakes }: { venueId: string; stakes: readonly PromotionStake[] }) {
   const { submit: submitPromotion } = usePromotionActions(venueId);
   const simulation = useSimulation(venueId);
-  const [choices, setChoices] = useState(START);
-  const [words, setWords] = useState(NO_WORDS);
+  const builder = useBuilderDraft();
+  const { choices, words, budget } = builder;
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
-  const [requestId, setRequestId] = useState(() => crypto.randomUUID()); // Kept to retry a lost answer; new with any change (A3).
   const [title, detail, runs] = [rewardTitle(choices), rewardDetail(choices), runsText(choices, stakes)];
   const check = (then: () => Promise<void>) => {
-    const invalid = invalidText(choices);
+    const invalid = invalidOf(choices, budget);
     return invalid === null ? then() : Promise.resolve(setOutcome({ ok: false, text: invalid }));
   };
   const submit = async () => {
-    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices), ...promotionWords(words.rules, words.questions), requestId });
-    if (result.ok || result.error !== 'unavailable') setRequestId(crypto.randomUUID());
-    if (result.ok) { setChoices(START); setWords(NO_WORDS); simulation.clear(); }
+    const webWords = promotionWords(words.rules, words.questions);
+    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices), ...webWords, requestId: builder.requestId, budget: budgetOf(budget) ?? null });
+    if (result.ok || result.error !== 'unavailable') builder.renew();
+    if (result.ok) { builder.reset(); simulation.clear(); }
     setOutcome(result.ok ? { ok: true, text: t('console.promotions.submitted', { name: title }) } : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
   };
   const isBusy = submitPromotion.isPending || simulation.isPending;
@@ -101,8 +123,9 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
     <Grid columns={2} gap={12} stackBelow="medium">
       <Stack gap={6}>
         <Heading level={2} variant="section">{t('console.promotions.newPromotion')}</Heading>
-        <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { setChoices(next); setOutcome(null); simulation.clear(); setRequestId(crypto.randomUUID()); }} />
-        <WebWords words={words} isDisabled={isBusy} onChange={(next) => { setWords(next); setRequestId(crypto.randomUUID()); }} />
+        <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { builder.setChoices(next); setOutcome(null); simulation.clear(); }} />
+        <WebWords words={words} isDisabled={isBusy} onChange={builder.setWords} />
+        <BuilderBudget value={budget} isDisabled={isBusy} onChange={(next) => { builder.setBudget(next); setOutcome(null); }} />
         <SimulationPanel simulation={simulation.simulation} failure={simulation.failure} isPending={simulation.isPending} isDisabled={submitPromotion.isPending}
           onSimulate={() => void check(() => simulation.run(choices))} />
         <Inline gap={4} align="center">
