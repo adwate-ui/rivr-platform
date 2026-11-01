@@ -8,6 +8,7 @@ export const STAFF_FAILURE_COPY: Readonly<Record<StaffFailure, MessageKey>> = {
   already_staff: 'console.staff.alreadyStaff',
   own_change: 'console.staff.ownChange',
   last_super_admins: 'console.staff.lastSuperAdmins',
+  paused: 'console.staff.paused',
   invalid: 'console.staff.changed',
   unavailable: 'console.staff.unavailable',
 };
