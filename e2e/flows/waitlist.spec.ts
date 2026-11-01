@@ -157,7 +157,7 @@ test.describe('Waitlist', () => {
     const higher = gameList(host, 'NLH 100/200');
     await higher.getByRole('button', { name: `Call ${MEMBER}` }).click();
     await higher.getByRole('button', { name: 'Table 3', exact: true }).click();
-    await higher.getByRole('textbox', { name: 'Seat', exact: true }).fill('9');
+    await higher.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '9', exact: true }).click();
     await higher.getByRole('button', { name: 'Call to this seat' }).click();
     await expect(higher.getByText(/^Called to Table 3, seat 9 · hold until \d{2}:\d{2}$/)).toBeVisible();
 
@@ -184,7 +184,7 @@ test.describe('Waitlist', () => {
     const higher = gameList(host, 'NLH 100/200');
     await higher.getByRole('button', { name: `Call ${MEMBER}` }).click();
     await higher.getByRole('button', { name: 'Table 3', exact: true }).click();
-    await higher.getByRole('textbox', { name: 'Seat', exact: true }).fill('8');
+    await higher.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '8', exact: true }).click();
     await higher.getByRole('button', { name: 'Call to this seat' }).click();
     await higher.getByRole('button', { name: `Skip ${MEMBER}` }).click();
     await higher.getByRole('button', { name: `Yes, skip ${MEMBER}` }).click();

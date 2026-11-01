@@ -89,6 +89,8 @@ test.describe('Console fits', () => {
 
     for (const size of [PHONE, TABLET]) {
       await page.setViewportSize(size);
+      // Below a desk no table is open beside the plan, so the plan marks none (F2-29).
+      if (size === PHONE) await expect(page.getByRole('region', { name: 'Room plan' }).getByRole('button', { pressed: true })).toHaveCount(0);
       await expect(page.getByRole('navigation', { name: 'Sections' })).toBeHidden();
       // A tap outside the menu closes it.
       await page.getByRole('button', { name: 'Menu' }).click();

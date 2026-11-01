@@ -2,7 +2,7 @@ import {
   useFloorNight, useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorNight, type FloorTable, type HeldSeat, type SeatedPlayer,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, SplitView, Stack, StaleNotice } from '@rivr/ui';
+import { Screen, SplitView, Stack, StaleNotice, useIsWide } from '@rivr/ui';
 import { useState } from 'react';
 import { JoinRequestsNotice } from './JoinRequestsNotice.tsx';
 import { LeavingList } from './LeavingList.tsx';
@@ -42,6 +42,8 @@ function staleOf(reads: readonly { isError: boolean; dataUpdatedAt: number; refe
 function Floor({ venueId, permissions }: { venueId: string; permissions: readonly string[] }) {
   const reads = { tables: useFloorTables(), seats: useFloorSeats(venueId), held: useHeldSeats(venueId), night: useFloorNight(venueId) };
   const [chosenId, setChosenId] = useState<string | null>(null);
+  // At a desk the first table shows beside the plan, so the plan marks it; below, none is open until one is chosen (F2-29).
+  const isAtDesk = useIsWide('tablet');
   const title = t('console.liveFloor.title');
   const data = loaded(reads.tables.data, reads.seats.data, reads.held.data, reads.night.data);
   if (data === null) {
@@ -63,7 +65,7 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
           <Stack gap={8}>
             {permissions.includes('waitlist.manage') ? <JoinRequestsNotice venueId={venueId} /> : null}
             <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
-              chosenId={chosenId === null ? '' : chosen.id} onChoose={setChosenId} />
+              chosenId={chosenId !== null || isAtDesk ? chosen.id : ''} onChoose={setChosenId} />
             <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
             {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
             {permissions.includes('members.read') ? <TopUpsTonight venueId={venueId} /> : null}

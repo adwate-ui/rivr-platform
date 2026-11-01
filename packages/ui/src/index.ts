@@ -136,3 +136,4 @@ export * from './ThermalReceipt/index.ts';
 export * from './DrillTable/index.ts';
 export * from './Heatmap/index.ts';
 export * from './WebPreview/index.ts';
+export { useIsWide, type WideFrom } from './useIsWide/index.ts';

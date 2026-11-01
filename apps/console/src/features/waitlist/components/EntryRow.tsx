@@ -27,6 +27,8 @@ interface EntryActionsProps {
   venueId: string;
   entry: WaitlistBoardEntry;
   onCall: () => void;
+  /** Whether the game has an open table to call to (F2-18). */
+  canCall: boolean;
   act: (done: Outcome, copy?: Readonly<Record<WaitlistFailure, MessageKey>>) => Promise<void>;
 }
 
@@ -34,7 +36,7 @@ interface EntryActionsProps {
  * The floor's actions on one place: Call, then Seat; Skip and Back; Remove. Skip on a called member
  * ends the call, keeps their place as away, and calls the next name to the seat.
  */
-function EntryActions({ venueId, entry, onCall, act }: EntryActionsProps) {
+function EntryActions({ venueId, entry, onCall, canCall, act }: EntryActionsProps) {
   const { remove } = useFloorWaitlistActions(venueId);
   const { seat, away } = useWaitlistCallActions();
   const name = entry.fullName;
@@ -55,7 +57,8 @@ function EntryActions({ venueId, entry, onCall, act }: EntryActionsProps) {
         </Button>
       ) : (
         <>
-          <Button variant="secondary" onClick={onCall}>{t('console.waitlist.call', { name })}</Button>
+          {/* No call without an open table of the game to call to (F2-18). */}
+          {canCall ? <Button variant="secondary" onClick={onCall}>{t('console.waitlist.call', { name })}</Button> : null}
           {skip}
         </>
       )}
@@ -82,9 +85,9 @@ export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: W
           {state === null ? null : <Text variant="small">{state}</Text>}
           {entry.addedByFloor ? <Text variant="small" tone="muted">{t('console.waitlist.addedByFloor')}</Text> : null}
         </Stack>
-        <EntryActions venueId={venueId} entry={entry} onCall={() => setIsCalling(true)} act={act} />
+        <EntryActions venueId={venueId} entry={entry} onCall={() => setIsCalling(true)} canCall={tables.length > 0} act={act} />
       </Inline>
-      {isCalling ? <CallForm entryId={entry.entryId} name={entry.fullName} tables={tables} onDone={() => setIsCalling(false)} /> : null}
+      {isCalling ? <CallForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} onDone={() => setIsCalling(false)} /> : null}
       {failure === null ? null : <ErrorMessage>{t(failure)}</ErrorMessage>}
     </Stack>
   );

@@ -46,4 +46,10 @@ describe('a place on the waitlist', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Yes, remove Naina Kapoor' }));
     await waitFor(() => expect(removed).toEqual([{ p_entry_id: 'e1' }]));
   });
+
+  it('offers no Call while the game has no open table (F2-18)', () => {
+    renderEntry();
+    expect(screen.queryByRole('button', { name: 'Call Naina Kapoor' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Skip Naina Kapoor' })).toBeDefined();
+  });
 });

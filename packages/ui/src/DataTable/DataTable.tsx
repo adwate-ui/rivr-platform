@@ -1,11 +1,12 @@
 import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { PhoneSort } from './PhoneSort.tsx';
 import { Input } from '../Input/Input.tsx';
 import { cx } from '../internal/classes.ts';
+import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { Text } from '../Text/Text.tsx';
 import { ExportBar, useTableExporter } from './DataTableExport.tsx';
 
@@ -92,19 +93,6 @@ function cardHeight<Row>(columns: readonly DataTableColumn<Row>[], opens: boolea
   return (opens ? tokens.size.touch : CARD_LINE) + secondary * (CARD_GAP + CARD_LINE) + CARD_PADDING + HAIRLINE;
 }
 
-/** Whether rows are lines (768 px and up) or cards; lines where the browser cannot say. */
-function useIsWide(): boolean {
-  const query = `(min-width: ${tokens.breakpoint.medium}px)`;
-  const [isWide, setWide] = useState(() => typeof window.matchMedia !== 'function' || window.matchMedia(query).matches);
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return undefined;
-    const list = window.matchMedia(query);
-    const onChange = () => setWide(list.matches);
-    list.addEventListener('change', onChange);
-    return () => list.removeEventListener('change', onChange);
-  }, [query]);
-  return isWide;
-}
 // One collator for every comparison: making one per comparison is slow on thousands of rows.
 const COLLATOR = new Intl.Collator('en-IN', { sensitivity: 'base', numeric: true });
 const NO_ROWS: readonly never[] = [];
@@ -225,7 +213,8 @@ interface VirtualBodyProps<Row> {
 function VirtualBody<Row>({ rows, columns, rowKey, onRowOpen }: VirtualBodyProps<Row>) {
   const [scrolled, setScrolled] = useState(0);
   // Lines from 768 px up; cards below, each of a fixed height for its columns.
-  const height = useIsWide() ? ROW_HEIGHT : cardHeight(columns, onRowOpen !== undefined);
+  // Rows are lines from 768 px, else cards.
+  const height = useIsWide('medium') ? ROW_HEIGHT : cardHeight(columns, onRowOpen !== undefined);
   const first = Math.max(0, Math.floor(scrolled / height) - OVERSCAN);
   const last = Math.min(rows.length, Math.ceil(scrolled / height) + ROWS_IN_VIEW + OVERSCAN);
   return (
@@ -308,7 +297,7 @@ function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Ro
  * or XLSX, each export recorded first (#102).
  */
 export function DataTable<Row>(props: DataTableProps<Row>) {
-  const isWide = useIsWide();
+  const isWide = useIsWide('medium');
   const [sort, setSort] = useState<DataTableSort | null>(props.initialSort ?? null);
   const [query, setQuery] = useState('');
   const source = props.status === 'loading' || props.status === 'error' ? NO_ROWS : props.rows;

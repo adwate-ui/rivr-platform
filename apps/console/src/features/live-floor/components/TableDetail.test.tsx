@@ -78,4 +78,18 @@ describe('a table on the live floor', () => {
     expect(screen.queryByText('No dealer')).toBeNull();
     expect(screen.queryByText('Hands')).toBeNull();
   });
+
+  it('shows a seat refused beside the seat form, not above the seats (F2-29)', async () => {
+    renderTable([], ['members.read', 'waitlist.manage']);
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return url.includes('/rpc/seat_member') ? Response.json({ code: 'RVOCC', message: 'taken' }, { status: 400 }) : Response.json([]);
+    });
+    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile number' }), { target: { value: '9000000211' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
+    const refusal = await screen.findByRole('alert', {}, { timeout: 5000 });
+    const form = screen.getByRole('heading', { level: 3, name: 'Seat a player' });
+    expect(form.compareDocumentPosition(refusal) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

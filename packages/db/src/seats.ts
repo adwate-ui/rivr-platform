@@ -51,6 +51,15 @@ const FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
 // The seat map changes as the floor seats, moves and calls players.
 const LIVE = 10_000;
 
+/**
+ * The seats free at a table, in order: neither taken nor held for a waitlist call, from what the floor reads say (`taken`,
+ * seated players and held seats, of any table). The move, the seat and the waitlist call each offer only these.
+ */
+export function openSeatsAt(table: { readonly id: string; readonly seats: number }, taken: readonly { readonly tableId: string; readonly seat: number }[]): number[] {
+  const busy = new Set(taken.filter((one) => one.tableId === table.id).map((one) => one.seat));
+  return Array.from({ length: table.seats }, (_, index) => index + 1).filter((number) => !busy.has(number));
+}
+
 /** The venue's seated players, table by table, for staff who read members. */
 export function useFloorSeats(venueId: string) {
   const { client, userId } = useRivrData();

@@ -70,7 +70,8 @@ export function OrderForSeat({ venueId }: { venueId: string }) {
     const placed = await order.mutateAsync({ tableId, seat: Number(seat), lines, isComp, requestId });
     if (placed.ok || placed.error !== 'unavailable') renew();
     setOutcome(placed.ok ? { kot: placed.value.kotNumber } : { failure: placed.error });
-    if (placed.ok) setCounts({});
+    // The next order starts afresh: not comped, and for a seat chosen again, as it may have changed hands (F2-20).
+    if (placed.ok) { setCounts({}); setIsComp(false); setChosen(null); }
   };
   return (
     <Stack gap={3}>

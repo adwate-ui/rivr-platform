@@ -86,6 +86,9 @@ test.describe('F&B', () => {
     await page.getByRole('switch', { name: 'Comp it: RIVR pays Glaza' }).click();
     await page.getByRole('button', { name: 'Send to the bar' }).click();
     const comp = await kotIn(page, /^Sent to the bar: KOT \d+\.$/);
+    // The next order starts afresh, not comped and with no seat chosen (F2-20).
+    await expect(page.getByRole('switch', { name: 'Comp it: RIVR pays Glaza' })).not.toBeChecked();
+    await expect(page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: 'Table 3, seat 1 · Ishan Mehta' })).toHaveAttribute('aria-pressed', 'false');
     await page.getByRole('button', { name: `Mark KOT ${comp} sent` }).click();
     await expect(page.getByText('Every KOT is at the bar.')).toBeVisible();
     await expect(page.getByText('Comp · Given to the bar by hand')).toBeVisible();

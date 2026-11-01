@@ -25,6 +25,8 @@ test.describe('Live floor', () => {
       await expect(plan.getByRole('button', { name, exact: true })).toBeVisible();
     }
 
+    // At a desk the first table shows beside the plan, which marks it (F2-29).
+    await expect(plan.getByRole('button', { pressed: true })).toHaveCount(1);
     const table4 = plan.getByRole('button', { name: 'Table 4', exact: true });
     await table4.click();
     await expect(table4).toHaveAttribute('aria-pressed', 'true');
