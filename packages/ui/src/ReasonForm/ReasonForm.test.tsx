@@ -86,7 +86,7 @@ describe('ReasonForm', () => {
 
   it('ignores presses on the decision while it is saved', async () => {
     const { onRevoke } = renderRevoke({ isLoading: true });
-    const button = screen.getByRole('button', { name: 'Loading' });
+    const button = screen.getByRole('button', { name: 'Revoke the tablet' });
     await userEvent.click(button);
     expect(onRevoke).not.toHaveBeenCalled();
     expect(button).toHaveAttribute('aria-busy', 'true');

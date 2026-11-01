@@ -37,7 +37,7 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 - `@rivr/render` templates compose `@rivr/ui`; they define no styles.
 
 ## Visual standard
-- Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only.
+- Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only, besides a busy button's turning circle and the TV's progress bar.
 - One gold filled button per screen at most.
 - No decorative poker imagery, gradients, glass, glows or shadows beyond a modal's.
 - Do not copy from the prototype: the demo bar, the Claude Design badge, image slots, device-frame radii, placeholder payee details.

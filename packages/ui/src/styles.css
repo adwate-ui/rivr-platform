@@ -59,7 +59,8 @@
     }
 
     [data-reveal],
-    [data-board-progress] {
+    [data-board-progress],
+    [data-busy-turn] {
       animation: none !important;
     }
   }
@@ -93,6 +94,22 @@
 
   [data-reveal='5'] {
     animation-delay: calc(5 * var(--rivr-motion-duration-stagger));
+  }
+}
+
+/*
+ * A busy button's circle (Button `isLoading`, F5-17): it keeps turning while the action is in flight, the one motion beyond a
+ * state change besides the TV's progress bar, so a press is seen to be at work.
+ */
+@layer components {
+  [data-busy-turn] {
+    animation: rivr-busy-turn var(--rivr-motion-duration-turn) linear infinite;
+  }
+}
+
+@keyframes rivr-busy-turn {
+  to {
+    transform: rotate(1turn);
   }
 }
 

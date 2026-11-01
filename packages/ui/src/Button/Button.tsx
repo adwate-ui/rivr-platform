@@ -1,4 +1,3 @@
-import { t } from '@rivr/i18n';
 import type { MouseEvent, ReactNode } from 'react';
 import { Icon, type IconName } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
@@ -29,7 +28,7 @@ interface ActionButtonProps extends ButtonLookProps {
   href?: undefined;
   type?: 'button' | 'submit' | 'reset';
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
-  /** Shows the loading label and ignores presses while an action is in flight. Focus stays put. */
+  /** Shows a turning circle beside the label and ignores presses while an action is in flight. Focus stays put. */
   isLoading?: boolean;
   isDisabled?: boolean;
   /** Submits the form with this id from outside it. */
@@ -65,7 +64,7 @@ const SIZE: Record<ButtonSize, string> = { regular: 'min-h-touch', large: 'min-h
 
 const BASE =
   'inline-flex min-w-touch items-center justify-center gap-2 rounded-lg font-text text-16 leading-snug ' +
-  'select-none transition-colors disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress aria-busy:opacity-disabled';
+  'select-none transition-colors disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
 function LinkButton({ children, variant = 'secondary', size = 'regular', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
@@ -112,9 +111,20 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', type 
   );
 }
 
-/** The icon and label, or the loading label while an action is in flight. */
+/**
+ * The icon and label; while an action is in flight, a turning circle in the icon's place and the same label, at full
+ * strength, so the button still says what it does and matches its name (F5-17). The circle turns by `data-busy-turn` in
+ * styles.css, still under reduced motion; a screen reader hears the button unavailable (`aria-disabled`) while it is.
+ */
 function ButtonLabel({ icon, isLoading, children }: { icon: IconName | undefined; isLoading: boolean | undefined; children: ReactNode }) {
-  if (isLoading) return <>{t('common.loading')}</>;
+  if (isLoading) {
+    return (
+      <>
+        <span className="inline-flex" data-busy-turn="" aria-hidden="true"><Icon name="loading" /></span>
+        {children}
+      </>
+    );
+  }
   return (
     <>
       {icon ? <Icon name={icon} /> : null}

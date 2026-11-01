@@ -32,14 +32,14 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('bg-action', 'text-on-action', 'min-h-touch', 'min-w-touch');
   });
 
-  it('ignores presses while loading and says so, keeping focus', async () => {
+  it('ignores presses while loading and says so, keeping its label and focus (F5-17)', async () => {
     const onClick = vi.fn();
     renderIn(
       <Button onClick={onClick} isLoading>
         Log hand
       </Button>,
     );
-    const button = screen.getByRole('button', { name: 'Loading' });
+    const button = screen.getByRole('button', { name: 'Log hand' });
     expect(button).toHaveAttribute('aria-busy', 'true');
     await userEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();

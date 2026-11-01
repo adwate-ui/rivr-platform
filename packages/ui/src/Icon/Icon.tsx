@@ -11,6 +11,7 @@ import {
   House,
   IdCard,
   LayoutGrid,
+  LoaderCircle,
   Lock,
   Mail,
   Menu,
@@ -57,6 +58,8 @@ const ICONS = {
   offline: WifiOff,
   phone: Phone,
   mail: Mail,
+  /** A Button's turning circle while its action is in flight (F5-17). */
+  loading: LoaderCircle,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
