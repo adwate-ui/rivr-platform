@@ -17,6 +17,9 @@ export function vitestConfig(options = {}) {
   const { coverageLines } = options;
   const environment = options.environment ?? 'node';
   return defineConfig({
+    // Each package's own cache: one shared by every package's run raced, as turbo starts them together, and a run that
+    // found it mid-clear failed to start (ENOTEMPTY on node_modules/.vitest-cache).
+    cacheDir: 'node_modules/.vite',
     test: {
       environment,
       setupFiles: options.setupFiles ?? [],
