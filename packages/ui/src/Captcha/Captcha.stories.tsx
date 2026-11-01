@@ -17,3 +17,20 @@ type Story = StoryObj<typeof meta>;
 
 /** No site key: a local stack, or before the owner adds one. Nothing is drawn. */
 export const Default: Story = {};
+
+/** The check could not load or failed, as when Cloudflare is blocked: it says so, with Try again. */
+export const Failed: Story = {
+  args: { siteKey: '0x4AAA' },
+  beforeEach: () => {
+    Reflect.set(window, 'turnstile', {
+      render: (_element: HTMLElement, options: Record<string, unknown>) => {
+        const failed = options['error-callback'];
+        if (typeof failed === 'function') queueMicrotask(() => void failed());
+        return 'w1';
+      },
+      reset: () => undefined,
+      remove: () => undefined,
+    });
+    return () => void Reflect.deleteProperty(window, 'turnstile');
+  },
+};

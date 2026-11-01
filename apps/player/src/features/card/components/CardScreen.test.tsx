@@ -1,5 +1,5 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { QueryClient } from '@tanstack/react-query';
+import { onlineManager, QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CardScreen } from './CardScreen.tsx';
@@ -34,6 +34,26 @@ function renderCard(first: 'card' | 'fails' | 'never') {
 }
 
 describe('Membership card', () => {
+  it('says to give the number at the door when the connection drops, rather than Loading for ever', async () => {
+    onlineManager.setOnline(false);
+    try {
+      renderCard('never');
+      expect(await screen.findByText('No connection. Give your number at the door.')).toBeDefined();
+    } finally {
+      onlineManager.setOnline(true);
+    }
+  });
+
+  it('says so at once when the app opens with no connection, before any read has paused', () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      renderCard('never');
+      expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+    } finally {
+      Reflect.deleteProperty(navigator, 'onLine');
+    }
+  });
+
   it('says it is loading until the card comes', async () => {
     renderCard('never');
     expect(await screen.findByRole('status', {}, { timeout: 5000 })).toBeDefined();

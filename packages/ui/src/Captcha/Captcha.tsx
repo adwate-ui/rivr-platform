@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { t } from '@rivr/i18n';
+import { useEffect, useRef, useState, type RefObject } from 'react';
+import { Button } from '../Button/index.ts';
+import { ErrorMessage } from '../ErrorMessage/index.ts';
+import { Stack } from '../Stack/index.ts';
 
 export interface CaptchaProps {
   /** Cloudflare Turnstile's site key. Empty (a local stack, or before the owner adds one) draws nothing. */
@@ -34,8 +38,13 @@ function loadTurnstile(): Promise<Turnstile> {
     script.async = true;
     script.onload = () => {
       const loaded: unknown = Reflect.get(window, 'turnstile');
-      if (isTurnstile(loaded)) resolve(loaded);
-      else reject(new Error('Turnstile did not load'));
+      if (isTurnstile(loaded)) {
+        resolve(loaded);
+        return;
+      }
+      // A page that answered in its place, such as a network's block page: Try again loads it afresh.
+      loading = null;
+      reject(new Error('Turnstile did not load'));
     };
     script.onerror = () => {
       loading = null;
@@ -49,20 +58,60 @@ function loadTurnstile(): Promise<Turnstile> {
 /**
  * Proves a person, not a script, is asking for a sign-in code (#182): Cloudflare Turnstile, which
  * Supabase Auth checks with every code request. It only asks the person to do something when
- * Cloudflare is unsure; otherwise nothing shows.
+ * Cloudflare is unsure; otherwise nothing shows. When the check cannot load or fails, as when
+ * Cloudflare is blocked, it says so with Try again, so the step is never stuck without a word (F1-15).
  */
 export function Captcha({ siteKey, onToken, renewKey = 0 }: CaptchaProps) {
   const host = useRef<HTMLDivElement>(null);
-  const widget = useRef<{ turnstile: Turnstile; id: string } | null>(null);
   const handler = useRef(onToken);
+  const [attempt, setAttempt] = useState(0);
+  const [isFailed, setFailed] = useState(false);
   useEffect(() => {
     handler.current = onToken;
   });
+  const widget = useTurnstileWidget({ host, siteKey, attempt, handler, onFailed: setFailed });
 
+  useEffect(() => {
+    if (renewKey === 0 || !widget.current) return;
+    handler.current(null);
+    widget.current.turnstile.reset(widget.current.id);
+  }, [renewKey, widget]);
+
+  if (!siteKey) return null;
+  return (
+    <>
+      <div ref={host} />
+      {isFailed ? (
+        <Stack gap={2} align="start">
+          <ErrorMessage>{t('ui.captcha.failed')}</ErrorMessage>
+          <Button variant="secondary" onClick={() => { setFailed(false); setAttempt((count) => count + 1); }}>{t('common.retry')}</Button>
+        </Stack>
+      ) : null}
+    </>
+  );
+}
+
+interface WidgetOptions {
+  host: RefObject<HTMLDivElement | null>;
+  siteKey: string;
+  /** Each new attempt draws the widget again, as Try again asks. */
+  attempt: number;
+  handler: RefObject<(token: string | null) => void>;
+  onFailed: (isFailed: boolean) => void;
+}
+
+/** Draws Turnstile's widget in `host`, handing each token to `handler`, and says when it cannot load or fails. */
+function useTurnstileWidget({ host, siteKey, attempt, handler, onFailed }: WidgetOptions) {
+  const widget = useRef<{ turnstile: Turnstile; id: string } | null>(null);
   useEffect(() => {
     const element = host.current;
     if (!siteKey || !element) return undefined;
     let isGone = false;
+    const fail = () => {
+      if (isGone) return;
+      onFailed(true);
+      handler.current(null);
+    };
     loadTurnstile()
       .then((turnstile) => {
         if (isGone) return;
@@ -70,28 +119,24 @@ export function Captcha({ siteKey, onToken, renewKey = 0 }: CaptchaProps) {
           sitekey: siteKey,
           appearance: 'interaction-only',
           theme: 'dark',
-          callback: (token: string) => handler.current(token),
+          callback: (token: string) => {
+            if (isGone) return;
+            onFailed(false);
+            handler.current(token);
+          },
           'expired-callback': () => handler.current(null),
-          'error-callback': () => handler.current(null),
+          'error-callback': fail,
         });
         widget.current = { turnstile, id };
       })
-      .catch(() => handler.current(null));
+      .catch(fail);
     return () => {
       isGone = true;
       if (widget.current) widget.current.turnstile.remove(widget.current.id);
       widget.current = null;
     };
-  }, [siteKey]);
-
-  useEffect(() => {
-    if (renewKey === 0 || !widget.current) return;
-    handler.current(null);
-    widget.current.turnstile.reset(widget.current.id);
-  }, [renewKey]);
-
-  if (!siteKey) return null;
-  return <div ref={host} />;
+  }, [host, siteKey, attempt, handler, onFailed]);
+  return widget;
 }
 
 /**
