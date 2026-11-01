@@ -1,6 +1,6 @@
 import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
@@ -121,6 +121,22 @@ describe('useAuthStatus', () => {
 });
 
 describe('RivrDataProvider, useFeature and useControlState', () => {
+  it('asks for the engaged controls again every 30 seconds, so a freeze a dropped socket missed still shows', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const database = freshDatabase();
+    const { client } = testClient(database, ARJUN);
+    render(
+      <RivrDataProvider client={client}>
+        <Probe />
+      </RivrDataProvider>,
+    );
+    expect(await screen.findByText('learn: locked; frozen: false')).toBeDefined();
+    database.controlRows = [{ venue_id: 'gurugram', level: 'venue_freeze', feature: null, member_id: null, released_at: null }];
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
+    expect(await screen.findByText('learn: locked; frozen: true')).toBeDefined();
+    vi.useRealTimers();
+  });
+
   it('shows nothing and asks for nothing while signed out', async () => {
     const database = freshDatabase();
     const { client, channels } = testClient(database, null);

@@ -58,6 +58,8 @@ export function useControlState(venueId?: string): ControlState {
   const { data } = useQuery({
     queryKey: queryKeys.controlState(userId ?? 'signed-out'),
     enabled: userId !== null,
+    // Realtime refreshes it at once; this catches a freeze or release a dropped socket missed (a kiosk never refocuses).
+    refetchInterval: 30_000,
     queryFn: async () => {
       const { data: rows, error } = await client
         .from('control_state')
