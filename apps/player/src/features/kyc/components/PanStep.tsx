@@ -74,7 +74,7 @@ export function PanStep({ knowsDateOfBirth, onChecked }: { knowsDateOfBirth: boo
         </Stack>
       }
     >
-      <Text tone="muted">{t('player.kyc.panIntro')}</Text>
+      <Text tone="muted">{t(knowsDateOfBirth ? 'player.kyc.panIntro' : 'player.kyc.panAfterDigilocker')}</Text>
       <Input {...panField} label={t('player.kyc.panLabel')} placeholder={t('player.kyc.panPlaceholder')} autoComplete="off" maxLength={10} autoFocus error={panError} />
       {knowsDateOfBirth ? null : (
         <Input {...birthField} label={t('player.kyc.dateOfBirthLabel')} type="date" autoComplete="bday" error={errors.dateOfBirth ? t('player.kyc.dateOfBirthInvalid') : undefined} />

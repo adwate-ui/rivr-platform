@@ -21,6 +21,7 @@ export function reply(body: object, status = 200): Response {
 }
 
 export function failed(failure: AdapterFailure): Response {
+  console.error('kyc vendor call failed', failure.code, failure.code === 'rejected' ? failure.reason : '');
   return failure.code === 'not_configured' ? reply({ error: 'not_configured' }, 503) : reply({ error: 'unavailable' }, 502);
 }
 
