@@ -148,6 +148,7 @@ export {
   type DealerPinFailure,
   type DownCount,
   type DealerSignInFailure,
+  type EndDownFailure,
   type TabletDealer,
   type VenueDealer,
 } from './dealerDowns.ts';

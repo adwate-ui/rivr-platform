@@ -45,6 +45,9 @@ export const tabletApp = {
     seeFrontDesk: 'Please see the front desk.',
     onBreak: 'You are on a break from play.',
     unavailable: 'Your card could not be read just now.',
+    /** The member is frozen, or the venue is (F4-15). */
+    stopped: 'Your membership is on hold.',
+    paused: 'Check-in is paused at the club just now.',
     /** A revoked kiosk: its pairing is gone. */
     notPaired: 'This kiosk is no longer paired.',
   },

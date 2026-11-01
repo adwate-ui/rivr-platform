@@ -57,10 +57,16 @@ export function usePhonePush() {
   async function change(isOn: boolean) {
     if (browser === null) return;
     setBusy(true);
-    const outcome = await (isOn ? turnOn(browser, actions) : turnOff(browser, actions));
-    setState(outcome.state);
-    setFailed(outcome.failed);
-    setBusy(false);
+    try {
+      const outcome = await (isOn ? turnOn(browser, actions) : turnOff(browser, actions));
+      setState(outcome.state);
+      setFailed(outcome.failed);
+    } catch {
+      // The browser threw, as an older Safari does when asked for permission: the switch works again and says it failed (F3-29).
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return { state, isBusy, failed, change };

@@ -2,7 +2,7 @@ import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySessions, type MySession } from '@rivr/db/sessions';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Inline, Screen, Stack, Text } from '@rivr/ui';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { sessionDay, sessionLine, sessionTitle } from './naming.ts';
 
@@ -49,13 +49,18 @@ export function SessionScreen() {
   const sessions = useMySessions();
   const access = useFeatureStatus('sessions.history');
   const navigate = useNavigate();
-  const toList = () => void navigate({ to: '/sessions' });
+  // Back goes back, so the phone's own back button does not return here (F3-22); opened by address, it goes to the list.
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
   const back = <Button variant="text" icon="chevronLeft" onClick={toList}>{t('common.back')}</Button>;
   const session = sessions.data?.find((one) => one.visitId === visitId);
   const title = session === undefined ? t('player.sessions.title') : sessionTitle(session);
   if (access.status === 'error') return <Screen title={title} actions={back} status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void sessions.refetch()} />;
   if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} actions={back} status="loading" />;
+  // A tier without session history sees the heading and Back over the locked notice, not a bare notice (F3-21).
+  if (access.access.state !== 'enabled') return <Screen title={title} actions={back}><FeatureGate access={access.access}>{null}</FeatureGate></Screen>;
   return (
     <FeatureGate access={access.access}>
       {session === undefined

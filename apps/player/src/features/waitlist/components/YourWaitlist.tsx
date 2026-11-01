@@ -23,8 +23,11 @@ function detailOf(place: WaitlistPlace): string {
 export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
   const { leave, stepAway } = useWaitlistActions();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
+  // The place whose Step away or Leave is pending, so only its buttons say so (F3-17).
+  const [busyAt, setBusyAt] = useState<string | null>(null);
   if (places.length === 0) return null;
-  const act = async (done: Promise<{ ok: true } | { ok: false; error: WaitlistFailure }>) => {
+  const act = async (entryId: string, done: Promise<{ ok: true } | { ok: false; error: WaitlistFailure }>) => {
+    setBusyAt(entryId);
     const outcome = await done;
     setFailure(outcome.ok ? null : outcome.error);
   };
@@ -41,14 +44,15 @@ export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
           action={
             <Inline gap={2}>
               {place.holdUntil !== null || place.isRequest ? null : (
-                <Button variant="text" isLoading={stepAway.isPending}
-                  onClick={() => void act(stepAway.mutateAsync({ entryId: place.entryId, isAway: place.awayUntil === null }))}>
+                <Button variant="text" isLoading={stepAway.isPending && busyAt === place.entryId}
+                  aria-label={t(place.awayUntil === null ? 'player.tonight.stepAwayName' : 'player.tonight.backName', { game: place.tableTypeName })}
+                  onClick={() => void act(place.entryId, stepAway.mutateAsync({ entryId: place.entryId, isAway: place.awayUntil === null }))}>
                   {place.awayUntil === null ? t('player.tonight.stepAway') : t('player.tonight.back')}
                 </Button>
               )}
               <ConfirmButton variant="secondary" label={t('player.tonight.leave')} name={t('player.tonight.leaveName', { game: place.tableTypeName })}
-                confirm={t('player.tonight.confirmLeave', { game: place.tableTypeName })} isBusy={leave.isPending}
-                onConfirm={() => void act(leave.mutateAsync(place.entryId))} />
+                confirm={t('player.tonight.confirmLeave', { game: place.tableTypeName })} isBusy={leave.isPending && busyAt === place.entryId}
+                onConfirm={() => void act(place.entryId, leave.mutateAsync(place.entryId))} />
             </Inline>
           }
         />
