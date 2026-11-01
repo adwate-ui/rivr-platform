@@ -25,7 +25,7 @@ export interface OutboxStore {
 export interface Consumer {
   readonly name: string;
   readonly eventTypes: readonly string[];
-  /** Messaging consumers hold while a messaging stop is engaged; Tally and ad events do not. */
+  /** Messaging consumers hold while a messaging stop is engaged, the ad conversions with them (A4-11); Tally and the CRM do not. */
   readonly isMessaging: boolean;
   deliver(delivery: ClaimedDelivery): Promise<Result<unknown, AdapterFailure>>;
 }

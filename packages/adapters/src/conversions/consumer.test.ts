@@ -23,10 +23,10 @@ const find: FindConversion = async (_venueId, eventType) =>
 const ACTIONS = conversionActionsSchema.parse(Object.fromEntries(CONVERSION_KINDS.map((kind, at) => [kind, `customers/1234567890/conversionActions/${at + 1}`])));
 
 describe('the ad conversions consumer', () => {
-  it('takes the five events that can be a conversion, and is not a messaging consumer', () => {
+  it('takes the five events that can be a conversion, and holds during a messaging stop as a messaging consumer does (A4-11)', () => {
     const consumer = createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(createFakeMetaConversions()), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'meta-conversions', false, ['academy.booked', 'kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
+      'meta-conversions', true, ['academy.booked', 'kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
     ]);
   });
 

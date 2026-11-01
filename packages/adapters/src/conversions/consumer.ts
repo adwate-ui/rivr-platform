@@ -43,8 +43,9 @@ const FRESH_FOR_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * An ad-conversions outbox consumer (#161, #162): each event the database names a conversion, reported to one vendor.
- * Not a messaging consumer, so a messaging stop does not hold it; practice-venue events never reach it. An event older
- * than seven days, or one that is not a conversion (no marketing consent, a later buy-in), is finished unsent.
+ * A messaging stop holds it, as it holds members' messages, and a venue freeze finishes its events unsent (A4-11);
+ * practice-venue events never reach it. An event older than seven days, or one that is not a conversion (no marketing
+ * consent, a later buy-in, a freeze), is finished unsent.
  */
 export function createConversionConsumer({ name, find, report, now = () => new Date() }: {
   name: string;
@@ -56,7 +57,8 @@ export function createConversionConsumer({ name, find, report, now = () => new D
   return {
     name,
     eventTypes: CONVERSION_EVENT_TYPES,
-    isMessaging: false,
+    // Hashed members' phones go to the ad networks: a messaging stop holds them as it holds members' messages (A4-11).
+    isMessaging: true,
     async deliver(delivery) {
       const occurredAt = delivery.occurredAt ?? now();
       if (now().getTime() - occurredAt.getTime() > FRESH_FOR_MS) return ok(null);
