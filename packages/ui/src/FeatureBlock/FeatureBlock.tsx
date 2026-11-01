@@ -1,5 +1,6 @@
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
+import { WebImage } from '../internal/webMedia.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface FeatureBlockProps {
@@ -45,7 +46,7 @@ export function FeatureBlock({ eyebrow, heading, text, points, action, image, al
       </div>
       <div className="mx-auto w-full max-w-phone tablet:order-first">
         <div className="aspect-story overflow-hidden rounded-lg border border-hairline">
-          <img src={image} alt={alt} loading="lazy" decoding="async" className="size-full object-cover object-top" />
+          <WebImage src={image} alt={alt} sizes="(min-width: 1180px) 390px, 100vw" className="size-full object-cover object-top" />
         </div>
       </div>
     </section>

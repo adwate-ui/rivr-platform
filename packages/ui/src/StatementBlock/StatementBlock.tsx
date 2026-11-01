@@ -1,6 +1,6 @@
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
-import { MediaNote } from '../internal/webMedia.tsx';
+import { MediaNote, WebImage } from '../internal/webMedia.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface StatementBlockProps {
@@ -26,7 +26,7 @@ export function StatementBlock({ eyebrow, lines, text, action, image, note }: St
     <section className="relative overflow-hidden">
       {image ? (
         <>
-          <img src={image} alt="" className="absolute inset-0 size-full object-cover" />
+          <WebImage src={image} alt="" sizes="100vw" className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0 bg-green-black opacity-muted" />
           {note ? <MediaNote>{note}</MediaNote> : null}
         </>

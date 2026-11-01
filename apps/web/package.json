@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/media.mjs && astro dev",
+    "build": "node scripts/media.mjs && astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
     "lint": "eslint . --max-warnings=0",
@@ -28,6 +28,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "jsdom": "^30.1.3",
+    "sharp": "^0.35.5",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   }

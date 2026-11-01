@@ -31,3 +31,6 @@ apps/*/android/local.properties
 .env
 .env.*
 .DS_Store
+
+# The website's stills at each width, made by apps/web/scripts/media.mjs.
+apps/web/public/media/w/

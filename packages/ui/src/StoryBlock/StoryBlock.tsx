@@ -1,5 +1,6 @@
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
+import { WebImage } from '../internal/webMedia.tsx';
 import { Text } from '../Text/Text.tsx';
 
 /** A figure under the story: `6`, `Tables, from 50/100 to the Private Room`. */
@@ -40,7 +41,7 @@ export function StoryBlock({ eyebrow, heading, paragraphs, figures, action, imag
         </div>
         {image ? (
           <div className="aspect-photo overflow-hidden rounded-lg border border-hairline">
-            <img src={image} alt={alt ?? ''} loading="lazy" decoding="async" className="size-full object-cover" />
+            <WebImage src={image} alt={alt ?? ''} sizes="(min-width: 1180px) 50vw, 100vw" className="size-full object-cover" />
           </div>
         ) : null}
       </div>
