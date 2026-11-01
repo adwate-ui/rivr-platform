@@ -29,6 +29,7 @@ describe('promotion copy (#84)', () => {
     expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus' })).toBe('Up to 5,000 bonus chips a buy-in');
     expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2000 })).toBe('Up to 2,000 bonus chips a buy-in');
     expect(rewardDetail({ ...FLOW_7, reward: 'hours_bonus', bonus_hours: 3, bonus_chips: 1500 })).toBe('1,500 bonus chips after 3 hours at the tables');
+    expect(rewardDetail({ ...FLOW_7, reward: 'hours_bonus', bonus_hours: 1, bonus_chips: 500 })).toBe('500 bonus chips after 1 hour at the tables');
     expect(rewardDetail(FLOW_7)).toBeUndefined();
   });
 

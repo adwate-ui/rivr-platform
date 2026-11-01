@@ -16,6 +16,16 @@ const DAY = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday: 'sh
 
 const DAY_MONTH = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, day: 'numeric', month: 'short' });
 
+// Three letters for every month: en-GB gives September as "Sept", alone among them, so the names are our own (F5-11).
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+const MONTH_NUMBER = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, month: 'numeric' });
+
+/** A date as `format` writes it in IST, its month in three letters. */
+function withMonth(format: Intl.DateTimeFormat, at: Date): string {
+  const month = MONTHS[Number(MONTH_NUMBER.format(at)) - 1] ?? '';
+  return format.formatToParts(at).map((part) => (part.type === 'month' ? month : part.value)).join('');
+}
+
 /** The 24-hour IST clock time: `02:40`. */
 export function formatTime(at: Date): string {
   return CLOCK.format(at);
@@ -23,17 +33,17 @@ export function formatTime(at: Date): string {
 
 /** The IST calendar date: `15 Nov 2026`. */
 export function formatDate(at: Date): string {
-  return DATE.format(at);
+  return withMonth(DATE, at);
 }
 
 /** The IST day and month, for a date within the year: `13 Feb`, as in a movement or "Issued 2 Feb · due 4 Mar". */
 export function formatDayMonth(at: Date): string {
-  return DAY_MONTH.format(at);
+  return withMonth(DAY_MONTH, at);
 }
 
 /** The IST day and time within the coming weeks: `Wed 17 Feb, 00:10`, as in "Until Wed 17 Feb, 00:10". */
 export function formatDayTime(at: Date): string {
-  return `${DAY.format(at)}, ${formatTime(at)}`;
+  return `${withMonth(DAY, at)}, ${formatTime(at)}`;
 }
 
 /** A time still to run, in whole minutes rounded up: `1 h 12 min`, `2 h`, `45 min`, `1 min`. */
@@ -76,12 +86,10 @@ export function formatMonth(month: string): string {
 
 /**
  * A quarter from its first day (`2026-10-01`), as `Oct–Dec 2026`: the Indian financial year's quarters
- * are the calendar's. Its formatter is made when asked for, so the player's first load, which never
- * names a quarter, does not carry it.
+ * are the calendar's; its months are three letters, `Jul–Sep` (F5-11).
  */
 export function formatQuarter(firstDay: string): string {
-  const month = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'short' });
   const start = new Date(`${firstDay}T00:00:00Z`);
-  const last = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 2, 1));
-  return `${month.format(start)}–${month.format(last)} ${start.getUTCFullYear()}`;
+  const lastMonth = (start.getUTCMonth() + 2) % 12;
+  return `${MONTHS[start.getUTCMonth()] ?? ''}–${MONTHS[lastMonth] ?? ''} ${start.getUTCFullYear()}`;
 }

@@ -57,13 +57,17 @@ export const purge = {
   purge: 'Purge the venue',
   /** After the purge: `{count}` rows deleted. */
   purged: 'Purged: {count} rows deleted.',
+  purgedOne: 'Purged: 1 row deleted.',
   /** The files the archive holds, removed from storage: `{files}` of them. */
   filesRemoved: '{files} files removed from storage. Only the archive holds them now.',
+  filesRemovedOne: '1 file removed from storage. Only the archive holds it now.',
   /** Some did not go: `{left}` of them. Asked again within seven days of the purge. */
   filesLeft: '{left} of the venue\'s files are still in storage. Remove them within seven days.',
+  filesLeftOne: '1 of the venue\'s files is still in storage. Remove it within seven days.',
   filesAgain: 'Remove the files again',
   /** On opening the screen again: `{left}` files the last purge still leaves in storage. */
   lastPurgeFiles: 'The last purge left {left} files in storage. Remove them within seven days of it.',
+  lastPurgeFilesOne: 'The last purge left 1 file in storage. Remove it within seven days of it.',
 };
 
 /** Why a purge did not go through. */

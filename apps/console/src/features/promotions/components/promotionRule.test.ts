@@ -40,6 +40,18 @@ describe('what a waiting promotion does, for its approver', () => {
     ]);
   });
 
+  it('says one of each in the singular (F5-10)', () => {
+    const lines = approvalLines(waiting({
+      rules: [{ trigger: 'hours_played', conditions: { min_hours: 1, table_ids: ['t3'], tier_ids: ['gold'], min_visits_in_month: 1 }, effect: { kind: 'spin' } }],
+      budget: { paise: 5_000_000n, count: 1, period: 'promotion' },
+    }), STAKES);
+    expect(lines?.join(' | ')).toContain('after 1 hour played');
+    expect(lines?.join(' | ')).toContain('at 1 chosen table · 1 chosen tier');
+    expect(lines?.join(' | ')).toContain('members with 1 visit this month');
+    expect(lines).toContain('Budget: 50,000 bonus chips or 1 grant, whichever comes first');
+    expect(approvalLines(waiting({ budget: { paise: null, count: 1, period: 'promotion' } }), STAKES)).toContain('Budget: 1 grant');
+  });
+
   it('describes points, prizes and the rest', () => {
     const lines = approvalLines(waiting({
       rules: [

@@ -52,8 +52,16 @@ function whenTexts(conditions: PromotionConditions): string[] {
     from !== undefined && until !== undefined && t('console.promotions.rule.conditions.window', { from, until }),
     first !== undefined && t(`console.promotions.rule.conditions.${first.per === 'table' ? 'firstPerTable' : 'firstPerDay'}`, { count: first.count }),
     conditions.call_time_complete === true && t('console.promotions.rule.conditions.callTime'),
-    conditions.min_hours !== undefined && t('console.promotions.rule.conditions.minHours', { hours: conditions.min_hours }),
+    conditions.min_hours !== undefined && (conditions.min_hours === 1
+      ? t('console.promotions.rule.conditions.minHoursOne')
+      : t('console.promotions.rule.conditions.minHours', { hours: conditions.min_hours })),
   ].filter(present);
+}
+
+/** The tables or the tiers a rule is for, by how many: one in the singular. */
+function chosenText(ids: readonly string[] | undefined, kind: 'tables' | 'tiers'): string | false {
+  if (ids === undefined) return false;
+  return ids.length === 1 ? t(`console.promotions.rule.conditions.${kind}One`) : t(`console.promotions.rule.conditions.${kind}`, { count: ids.length });
 }
 
 /** Who a rule is for: its stakes, tables, tiers, new or returning players, regulars and hands. */
@@ -61,11 +69,13 @@ function whoTexts(conditions: PromotionConditions, stakes: readonly PromotionSta
   const stakeName = (code: string) => stakes.find((stake) => stake.code === code)?.name ?? code;
   return [
     conditions.stakes !== undefined && t('console.promotions.rule.conditions.stakes', { stakes: formatList(conditions.stakes.map(stakeName)) }),
-    conditions.table_ids !== undefined && t('console.promotions.rule.conditions.tables', { count: conditions.table_ids.length }),
-    conditions.tier_ids !== undefined && t('console.promotions.rule.conditions.tiers', { count: conditions.tier_ids.length }),
+    chosenText(conditions.table_ids, 'tables'),
+    chosenText(conditions.tier_ids, 'tiers'),
     conditions.new_player === true && t('console.promotions.rule.conditions.newPlayer'),
     conditions.lapsed_days !== undefined && t('console.promotions.rule.conditions.lapsed', { days: conditions.lapsed_days }),
-    conditions.min_visits_in_month !== undefined && t('console.promotions.rule.conditions.minVisits', { count: conditions.min_visits_in_month }),
+    conditions.min_visits_in_month !== undefined && (conditions.min_visits_in_month === 1
+      ? t('console.promotions.rule.conditions.minVisitsOne')
+      : t('console.promotions.rule.conditions.minVisits', { count: conditions.min_visits_in_month })),
     conditions.hands !== undefined &&
       t('console.promotions.rule.conditions.hands', { hands: formatList(conditions.hands.map((hand) => t(`console.promotions.rule.hands.${hand}`))) }),
   ].filter(present);
@@ -86,9 +96,12 @@ function limitText(perPlayer: PromotionAwaitingApproval['perPlayer']): string {
 }
 
 function capText({ paise, count }: PromotionAwaitingApproval['budget']): string {
-  if (paise !== null && count !== null) return t('console.promotions.rule.budgetBoth', { amount: formatChips(paise), count });
+  if (paise !== null && count !== null) {
+    return count === 1 ? t('console.promotions.rule.budgetBothOne', { amount: formatChips(paise) }) : t('console.promotions.rule.budgetBoth', { amount: formatChips(paise), count });
+  }
   if (paise !== null) return t('console.promotions.rule.budgetPaise', { amount: formatChips(paise) });
-  return count === null ? t('console.promotions.rule.noBudget') : t('console.promotions.rule.budgetCount', { count });
+  if (count === null) return t('console.promotions.rule.noBudget');
+  return count === 1 ? t('console.promotions.rule.budgetCountOne') : t('console.promotions.rule.budgetCount', { count });
 }
 
 /** The budget in words, and that it is each month's when it is (#562). */

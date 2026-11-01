@@ -48,3 +48,19 @@ describe('formatQuarter', () => {
     expect(formatQuarter('2026-04-01')).toBe('Apr–Jun 2026');
   });
 });
+
+describe('September (F5-11)', () => {
+  it('is Sep, three letters as every other month is', () => {
+    const fifteenth = new Date('2026-09-15T06:00:00Z');
+    expect(formatDate(fifteenth)).toBe('15 Sep 2026');
+    expect(formatDayMonth(fifteenth)).toBe('15 Sep');
+    expect(formatDayTime(fifteenth)).toBe('Tue 15 Sep, 11:30');
+    expect(formatQuarter('2026-07-01')).toBe('Jul–Sep 2026');
+  });
+
+  it('takes the month in India time: late on 31 August in UTC is 1 Sep there, and 31 December 1 Jan of the next year', () => {
+    expect(formatDate(new Date('2026-08-31T20:00:00Z'))).toBe('1 Sep 2026');
+    expect(formatDayTime(new Date('2026-12-31T19:00:00Z'))).toBe('Fri 1 Jan, 00:30');
+    expect(formatDate(new Date('2026-12-31T19:00:00Z'))).toBe('1 Jan 2027');
+  });
+});
