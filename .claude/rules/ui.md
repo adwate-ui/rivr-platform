@@ -17,7 +17,7 @@ Every pixel in every app comes from `@rivr/ui`. Every value comes from `packages
 - Controls: Button (primary, secondary, text, danger), IconButton, Input, MoneyInput, PinPad, Keypad, Select, Toggle, Checkbox, Radio, SegmentedControl, DatePicker, SearchField, FileDrop
 - Overlays and feedback: Sheet, Modal, Toast, Banner, Tooltip, Skeleton, EmptyState, ErrorState, ConfirmAction
 - Data: DataTable (sort, filter, export, virtualisation), List, ListRow, Stat, Badge, Avatar, KycPhoto, QrCode, Chart
-- Shells: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell, DriverShell; BottomNav, SideNav, Tabs, Breadcrumbs
+- Shells: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell; BottomNav, SideNav, Tabs, Breadcrumbs
 - Domain: SeatRing, TableCard, WaitlistRow, CallTimeTimer, PromotionCard, JackpotFigure, TournamentClock, PayoutTable, Receipt, MembershipCard, HandEntry, KillSwitchBanner, FeatureGate, LockedNotice, TierMatrix, website blocks
 
 ## In `apps/` you may not

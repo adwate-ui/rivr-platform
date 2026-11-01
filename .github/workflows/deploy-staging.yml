@@ -1,5 +1,5 @@
 # Every merge to main deploys to rivr-staging: migrations and seed, Edge Functions, every
-# web surface (including the tablet and driver bundles) and Storybook, the published design
+# web surface (including the tablet bundle) and Storybook, the published design
 # system. docs/spec/additions-2026-10-14.md, "Environments and release".
 # Secrets come from the `staging` environment, which only main can use. Each job records a
 # GitHub deployment of this commit; a release checks that staging runs the commit it tags.
@@ -86,8 +86,8 @@ jobs:
       - if: env.HAS_CLOUDFLARE == 'true'
         uses: ./.github/actions/setup
       - if: env.HAS_CLOUDFLARE == 'true'
-        run: pnpm build --filter player --filter console --filter display --filter tablet --filter driver --filter web
+        run: pnpm build --filter player --filter console --filter display --filter tablet --filter web
       - if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm --filter @rivr/ui build-storybook
       - if: env.HAS_CLOUDFLARE == 'true'
-        run: node scripts/ci/cloudflare-deploy.mjs staging main player console display tablet driver web storybook
+        run: node scripts/ci/cloudflare-deploy.mjs staging main player console display tablet web storybook

@@ -21,7 +21,7 @@ const DENSITIES = [
 const SPLASH = { mdpi: [320, 480], hdpi: [480, 800], xhdpi: [720, 1280], xxhdpi: [960, 1600], xxxhdpi: [1280, 1920] } as const;
 
 /** A launcher icon (48 dp), its round form, the adaptive foreground (108 dp) and the splash, per density. */
-function androidApp(app: 'tablet' | 'driver'): BrandOutput[] {
+function androidApp(app: 'tablet'): BrandOutput[] {
   const res = `apps/${app}/android/app/src/main/res`;
   const perDensity = DENSITIES.flatMap(([density, dp]): BrandOutput[] => {
     const [short, long] = SPLASH[density];
@@ -86,6 +86,5 @@ function channel(name: string, width: number, height: number): BrandOutput {
 export const BRAND_KIT: readonly BrandOutput[] = [
   ...playerPwa(),
   ...androidApp('tablet'),
-  ...androidApp('driver'),
   ...CHANNELS.map(([name, width, height]) => channel(name, width, height)),
 ];

@@ -1,5 +1,5 @@
 # A tag release-YYYYMMDD-N deploys the tagged commit to production after the end-to-end
-# suite passes on staging, and builds signed APKs for the dealer tablet and driver shells.
+# suite passes on staging, and builds the signed APK for the dealer tablet shell.
 # Production is never seeded. Rollback is a Pages rollback plus a forward-fix migration.
 # docs/spec/additions-2026-10-14.md, "Environments and release" and "Android builds".
 #
@@ -76,7 +76,6 @@ jobs:
       E2E_CONSOLE_URL: ${{ vars.STAGING_CONSOLE_URL }}
       E2E_TABLET_URL: ${{ vars.STAGING_TABLET_URL }}
       E2E_DISPLAY_URL: ${{ vars.STAGING_DISPLAY_URL }}
-      E2E_DRIVER_URL: ${{ vars.STAGING_DRIVER_URL }}
       E2E_WEB_URL: ${{ vars.STAGING_WEB_URL }}
       # The private code staging's test numbers take, for the sign-in flow.
       E2E_SIGN_IN_CODE: ${{ secrets.E2E_SIGN_IN_CODE }}
@@ -135,27 +134,27 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup
-      - run: pnpm build --filter player --filter console --filter display --filter tablet --filter driver --filter web
-      - run: node scripts/ci/cloudflare-deploy.mjs production main player console display tablet driver web
+      - run: pnpm build --filter player --filter console --filter display --filter tablet --filter web
+      - run: node scripts/ci/cloudflare-deploy.mjs production main player console display tablet web
 
   android:
     needs: e2e-staging
     runs-on: ubuntu-latest
     timeout-minutes: 40
     environment: production
-    # The only job that writes: it attaches the APKs to the GitHub release.
+    # The only job that writes: it attaches the APK to the GitHub release.
     permissions:
       contents: write
     strategy:
       matrix:
-        app: [tablet, driver]
+        app: [tablet]
     env:
       RIVR_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
       RIVR_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       RIVR_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       RIVR_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       # The APK is a shell around the hosted, versioned bundle, so code changes need no reinstall.
-      RIVR_SHELL_URL: ${{ matrix.app == 'tablet' && vars.PROD_TABLET_URL || vars.PROD_DRIVER_URL }}
+      RIVR_SHELL_URL: ${{ vars.PROD_TABLET_URL }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup

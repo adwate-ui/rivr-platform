@@ -1,7 +1,7 @@
 /** Where each app runs in an end-to-end flow: this worktree's ports, or staging in a release. */
 import { appPort } from '@rivr/config/worktree';
 
-export const APPS = ['player', 'console', 'tablet', 'display', 'driver', 'web'] as const;
+export const APPS = ['player', 'console', 'tablet', 'display', 'web'] as const;
 export type App = (typeof APPS)[number];
 
 /** True when the flows run against staging (the release workflow). */
@@ -20,7 +20,6 @@ export function appUrl(app: App): string {
 /** The screen sizes each surface is built for (CLAUDE.md, "Done means"). */
 export const VIEWPORT: Readonly<Record<App, { width: number; height: number }>> = {
   player: { width: 390, height: 844 },
-  driver: { width: 390, height: 844 },
   tablet: { width: 1180, height: 820 },
   console: { width: 1440, height: 900 },
   display: { width: 1920, height: 1080 },
