@@ -44,8 +44,8 @@ describe('the design inventory', () => {
     expect(INVENTORY).toContain('TV scale: 48, 88, 280.');
   });
 
-  it('sets the ₹ sign in Tiro Devanagari Hindi and Noto Sans Devanagari, after the Latin faces that lack it', () => {
-    expect(tokenValue('font.family.display')).toEqual(['Bodoni Moda', 'Tiro Devanagari Hindi', 'serif']);
+  it('sets the text face\'s ₹ sign in Noto Sans Devanagari, after Instrument Sans, which lacks it; the display face carries its own', () => {
+    expect(tokenValue('font.family.display')).toEqual(['Bodoni Moda', 'serif']);
     expect(tokenValue('font.family.text')).toEqual(['Instrument Sans', 'Noto Sans Devanagari', 'sans-serif']);
   });
 });
