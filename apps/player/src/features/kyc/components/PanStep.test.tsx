@@ -54,4 +54,19 @@ describe('PanStep', () => {
     expect(screen.queryByRole('textbox', { name: /name/i })).toBeNull();
     expect(requests).toEqual([]);
   });
+
+  it('offers DigiLocker again after it failed, and says why when it cannot start', async () => {
+    const { requests } = renderPanStep({ status: 503, body: { error: 'unavailable' } }, false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try DigiLocker again' }));
+
+    expect(await screen.findByText('Identity checks are not available right now. Try again in a few minutes.')).toBeDefined();
+    expect(requests).toEqual([{ action: 'start' }]);
+  });
+
+  it('does not offer DigiLocker again to a member it matched who has no PAN in it', () => {
+    renderPanStep({ status: 200, body: { status: 'verified' } }, true);
+
+    expect(screen.queryByRole('button', { name: 'Try DigiLocker again' })).toBeNull();
+  });
 });
