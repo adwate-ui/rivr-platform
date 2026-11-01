@@ -1,6 +1,6 @@
 import { useChangeMemberPhone, type PhoneChangeFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
+import { ConfirmButton, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<PhoneChangeFailure, MessageKey>> = {
@@ -14,13 +14,35 @@ const FAILURE_COPY: Readonly<Record<PhoneChangeFailure, MessageKey>> = {
   unavailable: 'console.members.changePhone.failures.unavailable',
 };
 
+interface NumberFieldsProps {
+  phone: string;
+  again: string;
+  onPhone: (phone: string) => void;
+  onAgain: (again: string) => void;
+}
+
+/** The new number, then typed again, which must match (F1-09). */
+function NumberFields({ phone, again, onPhone, onAgain }: NumberFieldsProps) {
+  const differs = again.trim() !== '' && again.trim() !== phone.trim();
+  return (
+    <>
+      <Input label={t('console.members.changePhone.newNumber')} hint={t('console.members.changePhone.newNumberHint')} value={phone} inputMode="tel"
+        autoComplete="off" onChange={(event) => onPhone(event.target.value)} />
+      <Input label={t('console.members.changePhone.again')} value={again} inputMode="tel" autoComplete="off"
+        error={differs ? t('console.members.changePhone.differs') : undefined} onChange={(event) => onAgain(event.target.value)} />
+    </>
+  );
+}
+
 /**
- * A super admin changes a member's phone number, which is their login (#502, decision 0248): the new number and a
- * reason, then Change. Members never change it themselves; the change is audited and the owner alerted.
+ * A super admin changes a member's phone number, which is their login (#502, decision 0248): the number now, the new
+ * one twice and a reason, then Change, asked twice (F1-09). Members never change it themselves; the change is audited
+ * and the owner alerted.
  */
-export function ChangePhone({ venueId, memberId }: { venueId: string; memberId: string }) {
+export function ChangePhone({ venueId, memberId, currentPhone }: { venueId: string; memberId: string; currentPhone: string | null }) {
   const change = useChangeMemberPhone(venueId, memberId);
   const [phone, setPhone] = useState('');
+  const [again, setAgain] = useState('');
   const [reason, setReason] = useState('');
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
   const submit = async () => {
@@ -28,6 +50,7 @@ export function ChangePhone({ venueId, memberId }: { venueId: string; memberId: 
     setOutcome(done.ok ? { ok: true, text: t('console.members.changePhone.changed') } : { ok: false, text: t(FAILURE_COPY[done.error]) });
     if (done.ok) {
       setPhone('');
+      setAgain('');
       setReason('');
     }
   };
@@ -35,13 +58,12 @@ export function ChangePhone({ venueId, memberId }: { venueId: string; memberId: 
     <Stack gap={3}>
       <Heading level={2} variant="section">{t('console.members.changePhone.title')}</Heading>
       <Text tone="muted">{t('console.members.changePhone.intro')}</Text>
-      <Input label={t('console.members.changePhone.newNumber')} hint={t('console.members.changePhone.newNumberHint')} value={phone} inputMode="tel"
-        autoComplete="off" onChange={(event) => setPhone(event.target.value)} />
+      {currentPhone === null ? null : <Text>{t('console.members.changePhone.current', { phone: currentPhone })}</Text>}
+      <NumberFields phone={phone} again={again} onPhone={setPhone} onAgain={setAgain} />
       <Input label={t('console.members.changePhone.reason')} value={reason} maxLength={300} autoComplete="off" onChange={(event) => setReason(event.target.value)} />
       <Stack align="start">
-        <Button variant="secondary" isDisabled={phone.trim() === '' || reason.trim().length < 3} isLoading={change.isPending} onClick={() => void submit()}>
-          {t('console.members.changePhone.change')}
-        </Button>
+        <ConfirmButton variant="secondary" label={t('console.members.changePhone.change')} confirm={t('console.members.changePhone.confirm', { phone: phone.trim() })}
+          isDisabled={phone.trim() === '' || again.trim() !== phone.trim() || reason.trim().length < 3} isBusy={change.isPending} onConfirm={() => void submit()} />
       </Stack>
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}

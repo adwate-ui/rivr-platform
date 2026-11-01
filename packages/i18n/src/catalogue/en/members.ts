@@ -93,6 +93,12 @@ export const members = {
     intro: 'The member\'s number is their login: they sign in with the new one from now on. Members cannot change it themselves.',
     newNumber: 'New mobile number',
     newNumberHint: 'With +91, as +919876543210.',
+    /** The member's number now, above the new one (F1-09). */
+    current: 'Number now: {phone}',
+    again: 'Type the new number again',
+    differs: 'The two numbers are not the same.',
+    /** Change number's second press. */
+    confirm: 'Yes, change it to {phone}',
     reason: 'Why it changes',
     change: 'Change number',
     changed: 'Changed. The member signs in with the new number.',

@@ -65,6 +65,9 @@ export const profile = {
   break30: '30 days',
   /** `{until}` is when a break would end: Wed 17 Feb, 00:10. */
   breakUntil: 'Until {until}',
+  /** The break chosen, asked once more before it starts (F3-15). */
+  breakAsk: 'Take a break until {until}? It cannot be shortened.',
+  breakYes: 'Yes, take the break',
 };
 
 /** House rules in the player's Settings (#637): the club's house rules and the legal standing, from its website. */

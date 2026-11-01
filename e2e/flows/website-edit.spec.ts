@@ -30,6 +30,8 @@ test.describe('Website edit', () => {
     await expect(site.getByRole('heading', { name: heading })).toBeVisible();
 
     await page.getByRole('button', { name: /^Publish the version of / }).first().click();
+    // Asked twice, as it goes live at once (F2-21).
+    await page.getByRole('button', { name: 'Yes, publish it now' }).click();
     await expect(page.getByText('That version is published again.')).toBeVisible();
     await site.reload();
     await expect(site.getByRole('heading', { name: original })).toBeVisible();

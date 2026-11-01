@@ -45,6 +45,8 @@ export const website = {
     statuses: { draft: 'Draft', scheduled: 'Scheduled', published: 'On the website', replaced: 'Earlier' },
     restore: 'Publish again',
     restoreName: 'Publish the version of {when} again',
+    /** Publish again's second press: the version goes live at once. */
+    confirmRestore: 'Yes, publish it now',
   },
   failures: {
     not_allowed: 'Your role does not include the website. Ask an admin if you need it.',

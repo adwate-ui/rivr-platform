@@ -15,11 +15,12 @@ export const Default: Story = {};
 
 export const Secondary: Story = { args: { variant: 'secondary', label: 'Remove', name: 'Remove: Ritika Das', confirm: 'Yes, remove Ritika' } };
 
-/** After the first press: the danger confirmation, in the same place. */
+/** After the first press: the danger confirmation, in the same place, with Cancel beside it. */
 export const Asking: Story = {
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole('button', { name: 'Leaves: Ritika Das' }));
     await expect(within(canvasElement).getByRole('button', { name: 'Yes, Ritika leaves' })).toBeInTheDocument();
+    await expect(within(canvasElement).getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   },
 };
 

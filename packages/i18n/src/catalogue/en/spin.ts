@@ -21,6 +21,7 @@ export const spin = {
   budgetSpent: 'Off the wheel: this month’s spin budget cannot pay it',
   remove: 'Remove',
   removeName: 'Remove {prize}',
+  confirmRemove: 'Yes, remove {prize}',
   addTitle: 'Add a prize',
   kind: 'Prize',
   kinds: { points: 'Points', bonus: 'Bonus', nothing: 'Nothing' },

@@ -35,6 +35,7 @@ export * from './ChoiceChips/index.ts';
 export * from './ChoiceSheet/index.ts';
 export * from './Switch/index.ts';
 export * from './ConfirmButton/index.ts';
+export * from './ConfirmQuestion/index.ts';
 export * from './Input/index.ts';
 export * from './TextArea/index.ts';
 export * from './ReasonForm/index.ts';

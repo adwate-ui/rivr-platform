@@ -32,6 +32,13 @@ export const staff = {
   /** Accessible name of the role choice on a staff member's row. */
   roleFor: 'Role for {name}',
   activeFor: 'Active: {name}',
+  /** A role or active change picked on a row is asked before it is saved (F1-09). */
+  askRole: 'Change {name}\'s role to {role}?',
+  confirmRole: 'Yes, change it',
+  askTurnOff: 'Turn off {name}\'s login?',
+  confirmTurnOff: 'Yes, turn it off',
+  askTurnOn: 'Turn {name}\'s login back on?',
+  confirmTurnOn: 'Yes, turn it on',
   jobTitleFor: 'Job title for {name}',
   saveJobTitle: 'Save job title for {name}',
   /** On the signed-in staff member's own row. */
