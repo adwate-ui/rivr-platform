@@ -1,0 +1,53 @@
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type FloorTable, type SeatedPlayer } from '@rivr/db';
+import { QueryClient } from '@tanstack/react-query';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TableDetail } from './TableDetail.tsx';
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.unstubAllGlobals();
+});
+
+const TABLE: FloorTable = {
+  id: 't3', venueId: 'v1', name: 'Table 3', room: 'main', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n,
+  buyIn: 1000000n, straddle: null, waiting: 0, callTimeMinutes: 180, openSeats: null, mustMoveToTableId: null, isOpen: true,
+};
+const KABIR: SeatedPlayer = {
+  sessionId: 's1', tableId: 't3', seat: 5, memberId: 'm1', fullName: 'Kabir Sethi', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
+  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null,
+};
+
+/** Aditya, who runs the waitlist, at Table 3 with Kabir in seat 5, and a fake API that keeps each seat ended. */
+function renderTable() {
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+  }));
+  const ended: unknown[] = [];
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url.includes('/rpc/end_seat')) {
+      ended.push(JSON.parse(String(init?.body)));
+      return new Response(null, { status: 204 });
+    }
+    return Response.json([]);
+  });
+  render(
+    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <TableDetail venueId="v1" table={TABLE} tables={[TABLE]} seats={[KABIR]} held={[]} permissions={['members.read', 'waitlist.manage']} night={undefined} />
+    </RivrDataProvider>,
+  );
+  return ended;
+}
+
+describe('a table on the live floor', () => {
+  it('ends a player\u2019s seat only on the second press of Leave, which says who leaves (F2-32)', async () => {
+    const ended = renderTable();
+    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
+    await waitFor(() => expect(ended).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
+  });
+});
