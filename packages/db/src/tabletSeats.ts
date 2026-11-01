@@ -55,7 +55,8 @@ export function useTabletSeats() {
 
 /**
  * The dealer's seat events (#59): `requestBuyIn` asks the cage for chips for a player (once per
- * request id), `setAway` marks them away or back, `leave` records that they left. Each is a Result.
+ * request id), `setAway` marks them away or back, `leave` records that they left. Each is a Result, sent whether the
+ * browser says it is online or not: offline it fails at once, and never goes later, when the player may be back or gone.
  */
 export function useSeatEvents() {
   const { client, userId } = useRivrData();
@@ -65,14 +66,17 @@ export function useSeatEvents() {
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
   };
   const requestBuyIn = useMutation({
+    networkMode: 'always',
     mutationFn: async ({ sessionId, amount, requestId }: { sessionId: string; amount: Paise; requestId: string }) =>
       settle((await client.rpc('request_buy_in', { p_session_id: sessionId, p_amount_paise: Number(amount), p_idempotency_key: requestId })).error),
   });
   const setAway = useMutation({
+    networkMode: 'always',
     mutationFn: async ({ sessionId, isAway }: { sessionId: string; isAway: boolean }) =>
       settle((await client.rpc('set_seat_away', { p_session_id: sessionId, p_is_away: isAway })).error),
   });
   const leave = useMutation({
+    networkMode: 'always',
     mutationFn: async (sessionId: string) => settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left' })).error),
   });
   return { requestBuyIn, setAway, leave };

@@ -2,6 +2,8 @@
 
 The only code that talks to Supabase. It holds the typed client, the generated database types, the provider every app wraps its root in, and the hooks screens read data through. Row-level security in the database decides what each person sees; this package never filters for security.
 
+The tablet's writes (a dealer's sign-in and end of down, seat events, food orders, the door scan and pairing) are sent whether the browser says it is online or not (`networkMode: 'always'`). Offline they fail at once with their message, rather than waiting and going later, after the dealer has moved on.
+
 ## Public API
 
 | Export | What it does |

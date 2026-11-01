@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { onlineManager } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -35,7 +36,10 @@ function renderDevices(replies: Record<string, { status?: number; body: unknown 
 
 const EMPTY = { '/rpc/my_device': { body: [] }, '/rest/v1/device': { body: [] }, '/rest/v1/tablet_assignment': { body: [] } };
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  onlineManager.setOnline(true);
+});
 
 describe('Dealer tablets', () => {
   it('gives the signed-in tablet and its table, and nothing for anyone who is not a device', async () => {
@@ -107,6 +111,14 @@ describe('Dealer tablets', () => {
     let outcome: unknown;
     await act(async () => { outcome = await result.current.pair.mutateAsync('123456'); });
     expect(outcome).toEqual({ ok: false, error: 'too_many' });
+  });
+
+  it('sends a pairing code even while the tablet thinks it is offline, so it never pairs later on its own', async () => {
+    onlineManager.setOnline(false);
+    const { result } = renderDevices({ ...EMPTY, '/functions/v1/device-pair': { status: 503, body: { error: 'unavailable' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.pair.mutateAsync('123456'); });
+    expect(outcome).toEqual({ ok: false, error: 'unavailable' });
   });
 
   it('says when the role does not allow it', async () => {

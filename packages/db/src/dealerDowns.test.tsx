@@ -1,4 +1,6 @@
+import { ZERO } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
+import { onlineManager } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -35,7 +37,10 @@ function renderDowns(replies: Record<string, { status?: number; body: unknown }>
 
 const EMPTY = { '/rpc/venue_dealers': { body: [] }, '/rpc/current_down': { body: [] } };
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  onlineManager.setOnline(true);
+});
 
 describe('Dealer PINs and downs', () => {
   it('lists the dealers whose PIN the manager may set, and the down at the tablet\'s table', async () => {
@@ -75,5 +80,21 @@ describe('Dealer PINs and downs', () => {
     await act(async () => { outcome = await result.current.actions.signIn.mutateAsync({ staffId: 's1', pin: '2741' }); });
     expect(outcome).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('dealer_sign_in'))?.body).toEqual({ p_staff_id: 's1', p_pin: '2741' });
+  });
+
+  it('sends a sign-in and an end of down even while the tablet thinks it is offline, so neither waits to go later', async () => {
+    const unreachable = { status: 503, body: { message: 'unreachable' } };
+    const { result, calls } = renderDowns({ ...EMPTY, '/rpc/dealer_sign_in': unreachable, '/rpc/end_down': unreachable });
+    // As on the tablet: the down has loaded before the connection drops.
+    await waitFor(() => expect(result.current.down.data).toBeNull());
+    onlineManager.setOnline(false);
+    const before = calls.length;
+    let signedIn: unknown;
+    let ended: unknown;
+    await act(async () => { signedIn = await result.current.actions.signIn.mutateAsync({ staffId: 's1', pin: '2741' }); });
+    await act(async () => { ended = await result.current.actions.end.mutateAsync(ZERO); });
+    expect(signedIn).toEqual({ ok: false, error: { reason: 'unavailable' } });
+    expect(ended).toEqual({ ok: false, error: 'unavailable' });
+    expect(calls.slice(before).map((call) => call.url.split('/rpc/')[1])).toEqual(['dealer_sign_in', 'end_down']);
   });
 });

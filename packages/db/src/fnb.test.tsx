@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { onlineManager } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -37,7 +38,10 @@ function renderFnb(replies: Record<string, { status?: number; body: unknown }>) 
 const MENU = [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink' }];
 const LINES = [{ item_id: CHAI, quantity: 2, note: 'Less sugar' }];
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  onlineManager.setOnline(true);
+});
 
 describe('table-side food and drink', () => {
   it('reads the member\'s menu, the venue\'s, its items and tonight\'s orders', async () => {
@@ -75,6 +79,15 @@ describe('table-side food and drink', () => {
     await act(async () => { refused = await result.current.tablet.mutateAsync({ seat: 9, lines: [{ item_id: CHAI, quantity: 1 }] }); });
     expect(refused).toEqual({ ok: false, error: 'not_seated' });
     expect(calls.find((call) => call.url.includes('/rpc/tablet_fnb_order'))?.body).toEqual({ p_seat: 9, p_lines: [{ item_id: CHAI, quantity: 1, note: null }] });
+  });
+
+  it('sends the tablet\'s order even while it thinks it is offline, so the order never waits to go later', async () => {
+    onlineManager.setOnline(false);
+    const { result, calls } = renderFnb({ '/rpc/tablet_fnb_order': { status: 503, body: { message: 'unreachable' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.tablet.mutateAsync({ seat: 9, lines: [{ item_id: CHAI, quantity: 1 }] }); });
+    expect(outcome).toEqual({ ok: false, error: 'unavailable' });
+    expect(calls.filter((call) => call.url.includes('/rpc/tablet_fnb_order'))).toHaveLength(1);
   });
 
   it('orders a comp from the console, marks a KOT given by hand, and keeps the menu', async () => {

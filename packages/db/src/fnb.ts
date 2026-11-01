@@ -153,6 +153,8 @@ export function usePlaceFnbOrder() {
 export function useTabletFnbOrder() {
   const { client } = useRivrData();
   return useMutation({
+    // Sent whether the browser says it is online or not: offline it fails at once, and never goes later on its own.
+    networkMode: 'always',
     mutationFn: async ({ seat, lines }: { seat: number; lines: readonly FnbLine[] }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
       const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines) });
       return placed(data, error);
