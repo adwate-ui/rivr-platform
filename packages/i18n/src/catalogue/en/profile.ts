@@ -43,6 +43,11 @@ export const profile = {
   marketing: 'Promotions and offers',
   marketingHint: 'By WhatsApp and app notification. Stop any time.',
   saveFailed: 'Not saved. Try again.',
+  /** Offered on Home once the member has a place on a list, while this phone's push is off (F3-26). */
+  seatReadyOffer: 'This phone can tell you when your seat is ready, even with the app closed.',
+  seatReadyYes: 'Tell me when my seat is ready',
+  seatReadyNotNow: 'Not now',
+  seatReadyOn: 'This phone will tell you when your seat is ready.',
   /** Whether the TVs' waitlist board names the member (#326). */
   privacy: 'Privacy',
   nameOnTvs: 'Show my name on the club\'s TVs',

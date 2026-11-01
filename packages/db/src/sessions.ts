@@ -1,12 +1,16 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
+import type { Database } from './database.types.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/sessions), off the player's first load.
 const keys = {
   mySessions: (userId: string) => ['user', userId, 'my-sessions'] as const,
+  /** The newest `count` of them, for the list (F3-28), and one by its visit, for its detail: both under mySessions, which a hide reloads. */
+  page: (userId: string, count: number) => ['user', userId, 'my-sessions', 'page', count] as const,
+  one: (userId: string, visitId: string) => ['user', userId, 'my-sessions', 'one', visitId] as const,
 };
 
 /**
@@ -51,16 +55,10 @@ export interface MySession {
   readonly monthNet: Paise;
 }
 
-/** The signed-in member's sessions, newest first; empty without any, or without sessions.history in their tier. */
-export function useMySessions() {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: keys.mySessions(userId ?? 'signed-out'),
-    enabled: userId !== null,
-    queryFn: async (): Promise<MySession[]> => {
-      const { data, error } = await client.rpc('my_sessions');
-      if (error) throw error;
-      return data.map((row) => ({
+type SessionRow = Database['public']['Functions']['my_sessions']['Returns'][number];
+
+function sessionOf(row: SessionRow): MySession {
+  return {
         visitId: row.visit_id, kind: row.kind === 'tournament' ? 'tournament' : 'cash', place: row.place, entrants: row.entrants,
         openedAt: row.opened_at, closedAt: row.closed_at, tableName: row.table_name,
         smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise), otherTables: row.other_tables,
@@ -68,7 +66,38 @@ export function useMySessions() {
         cashOut: toPaise(row.cash_out_paise), tds: toPaise(row.tds_paise), paid: toPaise(row.paid_paise), net: toPaise(row.net_paise),
         receipt: row.receipt, month: row.month, monthSessions: row.month_sessions, monthPlayedSeconds: Number(row.month_played_seconds),
         monthNet: toPaise(row.month_net_paise), tdsBasis: TDS_BASES.find((basis) => basis === row.tds_basis) ?? null,
-      }));
+      };
+}
+
+/**
+ * The member's newest `count` sessions, newest first, and whether there are earlier ones: the list grows a page at a time,
+ * as Balance's movements do, rather than reading years of history at once (F3-28).
+ */
+export function useMySessions(count: number) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.page(userId ?? 'signed-out', count),
+    enabled: userId !== null,
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<{ sessions: MySession[]; hasEarlier: boolean }> => {
+      const { data, error } = await client.rpc('my_sessions').order('opened_at', { ascending: false }).limit(count + 1);
+      if (error) throw error;
+      return { sessions: data.slice(0, count).map(sessionOf), hasEarlier: data.length > count };
+    },
+  });
+}
+
+/** One of the member's sessions, by its visit, or null when it is none of theirs: a detail opened by address needs no list (F3-28). */
+export function useMySession(visitId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: keys.one(userId ?? 'signed-out', visitId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<MySession | null> => {
+      const { data, error } = await client.rpc('my_sessions').eq('visit_id', visitId);
+      if (error) throw error;
+      const row = data[0];
+      return row === undefined ? null : sessionOf(row);
     },
   });
 }

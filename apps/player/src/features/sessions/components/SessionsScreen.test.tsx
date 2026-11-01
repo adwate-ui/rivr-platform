@@ -37,6 +37,13 @@ function sentSessionId(init: RequestInit | undefined): string {
   return sent !== null && typeof sent === 'object' && 'p_session_id' in sent ? String(sent.p_session_id) : '';
 }
 
+/** The rows my_sessions gives for a request: one session by its visit, and no more than its limit, as PostgREST filters a function's rows (F3-28). */
+function rowsFor<Row extends { visit_id: string }>(url: string, rows: readonly Row[]): readonly Row[] {
+  const one = /visit_id=eq\.([^&]+)/.exec(url)?.[1];
+  const limit = Number(/[?&]limit=(\d+)/.exec(url)?.[1] ?? Infinity);
+  return (one === undefined ? rows : rows.filter((row) => row.visit_id === one)).slice(0, limit);
+}
+
 /**
  * Ishaan signed in at `path`, and a fake API: his sessions, his tier's session history as the feature map gives it, and
  * hiding one, which leaves it out after.
@@ -64,7 +71,7 @@ function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'wor
       listed = listed.filter((one) => one.visit_id !== id);
       return Response.json(null);
     }
-    if (url.includes('/rpc/my_sessions')) return Response.json(access === 'locked' ? [] : listed);
+    if (url.includes('/rpc/my_sessions')) return Response.json(access === 'locked' ? [] : rowsFor(url, listed));
     return Response.json([]);
   });
   const rootRoute = createRootRoute();
@@ -121,6 +128,18 @@ describe('Sessions', () => {
     expect(screen.queryByRole('button', { name: /Table 3/ })).toBeNull();
     // Under the screen's own heading (F3-21).
     expect(screen.getByRole('heading', { level: 1, name: 'Sessions' })).toBeDefined();
+  });
+
+  it('reads thirty at a time, with Show earlier sessions, and counts the month at the page\'s end only once it is whole (F3-28)', async () => {
+    const many = Array.from({ length: 31 }, (_, at) => ({ ...SESSION, visit_id: `v${String(at + 1)}` }));
+    renderAt('/sessions', { sessions: many });
+    const earlier = await screen.findByRole('button', { name: 'Show earlier sessions' }, { timeout: 5000 });
+    expect(screen.getAllByRole('button', { name: /Table 3/ })).toHaveLength(30);
+    expect(screen.queryByText(/^\d+ sessions · /)).toBeNull();
+    fireEvent.click(earlier);
+    await vi.waitFor(() => expect(screen.getAllByRole('button', { name: /Table 3/ })).toHaveLength(31));
+    expect(screen.queryByRole('button', { name: 'Show earlier sessions' })).toBeNull();
+    expect(screen.getByText(/^31 sessions · /)).toBeDefined();
   });
 });
 

@@ -1,5 +1,5 @@
 import { useFeatureStatus } from '@rivr/db';
-import { useHideMySession, useMySessions, type MySession } from '@rivr/db/sessions';
+import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Inline, Screen, Stack, Text } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
@@ -43,10 +43,10 @@ function Detail({ session, onHidden }: { session: MySession; onHidden: () => voi
   );
 }
 
-/** A session's detail (#127), from the history already loaded; gated as the history is, once access is known. */
+/** A session's detail (#127), read by its visit (F3-28); gated as the history is, once access is known. */
 export function SessionScreen() {
   const { visitId = '' } = useParams({ strict: false });
-  const sessions = useMySessions();
+  const sessions = useMySession(visitId);
   const access = useFeatureStatus('sessions.history');
   const navigate = useNavigate();
   // Back goes back, so the phone's own back button does not return here (F3-22); opened by address, it goes to the list.
@@ -54,7 +54,7 @@ export function SessionScreen() {
   const canGoBack = useCanGoBack();
   const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
   const back = <Button variant="text" icon="chevronLeft" onClick={toList}>{t('common.back')}</Button>;
-  const session = sessions.data?.find((one) => one.visitId === visitId);
+  const session = sessions.data ?? undefined;
   const title = session === undefined ? t('player.sessions.title') : sessionTitle(session);
   if (access.status === 'error') return <Screen title={title} actions={back} status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void sessions.refetch()} />;
