@@ -42,8 +42,9 @@ describe('a website page', () => {
   it('has grandpokerarena.com’s menu, top bar, footer columns and cookie banner, and no Academy in the menu', () => {
     render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
     const menu = screen.getByRole('navigation', { name: 'Site' });
+    // The member app leads the links on a phone only; from a tablet up it sits in the top bar (UI polish audit A-25).
     expect(within(menu).getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'The club', 'The room', 'Games', 'Membership', 'Leaderboard', "What’s on", 'Prizes and calendar', 'Journal', 'Visit and contact',
+      'Member app', 'The club', 'The room', 'Games', 'Membership', 'Leaderboard', "What’s on", 'Prizes and calendar', 'Journal', 'Visit and contact',
     ]);
     const reserve = screen.getByRole('link', { name: 'Reserve a seat' }).getAttribute('href') ?? '';
     expect(reserve.startsWith('https://wa.me/')).toBe(true);
@@ -52,7 +53,8 @@ describe('a website page', () => {
     expect(within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link').map((link) => link.getAttribute('aria-label') ?? link.textContent)).toEqual([
       '+91 00000 00000', 'WhatsApp', 'Instagram', 'YouTube', 'info@rivrpoker.com',
     ]);
-    expect(screen.getAllByRole('link', { name: 'Member app' }).map((link) => link.getAttribute('href'))).toEqual(['https://player.invalid/', 'https://player.invalid/']);
+    // The top bar's, the header links' on a phone (A-25), and the footer's.
+    expect(screen.getAllByRole('link', { name: 'Member app' }).map((link) => link.getAttribute('href'))).toEqual(['https://player.invalid/', 'https://player.invalid/', 'https://player.invalid/']);
     const footer = screen.getByRole('contentinfo');
     expect(within(footer).getAllByRole('navigation').map((column) => column.getAttribute('aria-label'))).toEqual(['The club', 'Play', 'Policies', 'Helplines']);
     expect(within(footer).getByRole('link', { name: 'Legal standing' }).getAttribute('href')).toBe('/about#legal-and-compliance');
