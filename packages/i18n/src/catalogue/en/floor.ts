@@ -182,6 +182,9 @@ export const tablesSetup = {
   newTable: 'New table',
   saveStake: 'Save the stake',
   saveTable: 'Save the table',
+  /** Save pressed on half a form (UI polish audit UI-19). */
+  stakeIncomplete: 'Name the stake and set both blinds, in 50s, the big above the small.',
+  tableIncomplete: 'Name the table and choose its stake.',
   /** After a save: `{name}` is the stake or table. */
   saved: '{name} is saved.',
   failures: {

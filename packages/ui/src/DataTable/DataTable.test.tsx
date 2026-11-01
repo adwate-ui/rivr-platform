@@ -56,6 +56,14 @@ describe('DataTable', () => {
     expect(screen.getAllByRole('columnheader')[0]).toHaveAttribute('aria-sort', 'none');
   });
 
+  it('gives a wide column two shares of the width from 768 px, its header and its cells alike (A-13)', () => {
+    const wide = COLUMNS.map((column) => (column.key === 'name' ? { ...column, isWide: true } : column));
+    renderIn(<DataTable label="Members" columns={wide} rowKey={(row) => row.id} rows={ROWS} emptyText="No members yet." />);
+    expect(screen.getByRole('columnheader', { name: 'Member' })).toHaveClass('medium:col-span-2');
+    expect(screen.getAllByRole('cell').filter((cell) => cell.className.includes('medium:col-span-2'))).toHaveLength(ROWS.length);
+    expect(screen.getByRole('columnheader', { name: 'Hours' })).not.toHaveClass('medium:col-span-2');
+  });
+
   it('keeps a column without a sort value as a plain header', () => {
     table();
     expect(screen.queryByRole('button', { name: 'Card' })).not.toBeInTheDocument();

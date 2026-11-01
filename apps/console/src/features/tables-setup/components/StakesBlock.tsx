@@ -84,7 +84,8 @@ function StakeForm({ venueId, stake, onSaved, onCancel }: StakeFormProps) {
       {isNew ? null : <Text variant="small" tone="muted">{t('console.tablesSetup.gameFixed')}</Text>}
       <BlindInputs blinds={blinds} onChange={setBlinds} />
       <Inline gap={3}>
-        <Button variant="primary" isDisabled={!isStake(name, blinds)} isLoading={saveStake.isPending} onClick={() => void submit()}>
+        <Button variant="secondary" isLoading={saveStake.isPending}
+          onClick={() => { if (isStake(name, blinds)) void submit(); else setFailure(t('console.tablesSetup.stakeIncomplete')); }}>
           {t('console.tablesSetup.saveStake')}
         </Button>
         {isNew ? null : <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>}
