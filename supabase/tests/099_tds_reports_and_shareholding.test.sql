@@ -40,15 +40,17 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is((select to_member_paise from public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
   2000000, 'cash', gen_random_uuid(), false)), 1400000::bigint, 'switched on, ₹6,000 of his ₹20,000 cash-out is withheld');
 
--- The withholding ledger.
+-- The withholding ledger: the cashier, who reads the ledger, sees no PAN digits (A1); a KYC reviewer sees the last four.
 select results_eq(
   $$ select full_name, pan_last4 is not null, payments, paid_paise, withheld_paise, shadow_paise
      from public.tds_ledger('00000000-0000-4000-8000-000000000001', (now() at time zone 'Asia/Kolkata')::date, (now() at time zone 'Asia/Kolkata')::date)
      where member_id = '00000000-0000-4000-8000-000000000211' $$,
-  $$ values ('Ishaan Verma'::text, true, 2, 7000000::bigint, 600000::bigint, 1200000::bigint) $$,
+  $$ values ('Ishaan Verma'::text, false, 2, 7000000::bigint, 600000::bigint, 1200000::bigint) $$,
   'the ledger: two cash-outs, ₹6,000 withheld and ₹12,000 that would have been while off');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select ok((select length(pan_last4) = 4 from public.tds_ledger('00000000-0000-4000-8000-000000000001', current_date - 1, current_date + 1)
-           where member_id = '00000000-0000-4000-8000-000000000211'), 'with only the PAN''s last four characters');
+           where member_id = '00000000-0000-4000-8000-000000000211'), 'a KYC reviewer sees only the PAN''s last four characters');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.tds_ledger('00000000-0000-4000-8000-000000000001', current_date - 10, current_date - 5) $$,
   'and nothing in a period before');
 
