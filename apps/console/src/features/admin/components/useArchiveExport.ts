@@ -1,3 +1,4 @@
+import { formatIsoDay } from '@rivr/i18n';
 import { archiveFailureOf, useArchiveSource, type ArchiveFailure } from '@rivr/db/exports';
 import { saveFile } from '@rivr/ui';
 import { useState } from 'react';
@@ -14,12 +15,11 @@ export type ArchiveState =
   | { readonly status: 'unrecorded'; readonly archive: Archive; readonly fileName: string }
   | { readonly status: 'failed'; readonly failure: ArchiveFailure };
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 /** The archive's file name: `rivr-archive-2026-10-26.zip.age`, or `rivr-member-1042-2026-10-26.zip.age`. */
 function fileNameOf(memberNumber: number | null, madeAt: Date): string {
   const what = memberNumber === null ? 'archive' : `member-${memberNumber}`;
-  return `rivr-${what}-${IST_DAY.format(madeAt)}.zip.age`;
+  return `rivr-${what}-${formatIsoDay(madeAt)}.zip.age`;
 }
 
 /** A file's SHA-256 in hex, as `sha256sum` prints it. */

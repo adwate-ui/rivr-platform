@@ -1,9 +1,9 @@
 import { useLearnSources, type LearnSource } from '@rivr/db/learnSources';
-import { formatDate, t } from '@rivr/i18n';
+import { formatDate, formatIsoDay, t } from '@rivr/i18n';
 import { DataTable, type DataTableColumn } from '@rivr/ui';
 
 /** Today in IST, as a licence's last day is kept. */
-const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+const today = () => formatIsoDay(new Date());
 
 const COLUMNS: readonly DataTableColumn<LearnSource>[] = [
   { key: 'title', header: t('console.learnSources.sourceTitle'), sortValue: (row) => row.title, cell: (row) => row.title },

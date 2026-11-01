@@ -1,13 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { holdingSchema, shareholderSchema } from '@rivr/contracts/shareholding';
 import { useShareholdingActions, useShareholdingRegister, type RegisterFailure } from '@rivr/db/shareholding';
-import { t } from '@rivr/i18n';
+import { formatIsoDay, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 
-const IST_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' });
 
 /** What happened last: done, or why not. */
 function Outcome({ outcome, doneText }: { outcome: RegisterFailure | 'done' | null; doneText: string }) {
@@ -51,7 +50,7 @@ export function AddHolderForm({ venueId }: { venueId: string }) {
  * would come to more than 100% on that day or a later one.
  */
 export function RecordHoldingForm({ venueId }: { venueId: string }) {
-  const today = IST_DAY.format(new Date());
+  const today = formatIsoDay(new Date());
   const holders = useShareholdingRegister(venueId, today);
   const { recordHolding } = useShareholdingActions(venueId);
   const [outcome, setOutcome] = useState<RegisterFailure | 'done' | null>(null);
