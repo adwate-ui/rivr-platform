@@ -204,7 +204,7 @@ describe('DataTable', () => {
       const created = vi.spyOn(URL, 'createObjectURL');
       exportable(async () => false);
       await userEvent.click(screen.getByRole('button', { name: 'Export XLSX' }));
-      expect(await screen.findByText('The export was not recorded, so nothing was saved. Try again.')).toBeInTheDocument();
+      expect(await screen.findByText('Export not saved. Try again.')).toBeInTheDocument();
       expect(created).not.toHaveBeenCalled();
       created.mockRestore();
     });

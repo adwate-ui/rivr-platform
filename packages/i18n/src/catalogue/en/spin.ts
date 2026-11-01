@@ -1,9 +1,9 @@
 /** The console's spin wheel (#150; decision 0266): the spins waiting, and the wheel's prizes and odds. */
 export const spin = {
   title: 'Spin wheel',
-  notAllowed: 'Your role does not include the spin wheel. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   waiting: 'Spins waiting',
-  waitingHint: 'Spin with the member at the table: the prize goes to their points or bonus, and the TVs show it.',
+  waitingHint: 'Spin with the member there. The TVs show the prize.',
   noneWaiting: 'No spins waiting.',
   member: 'Member',
   promotion: 'Promotion',
@@ -29,17 +29,17 @@ export const spin = {
   bonus: 'Bonus chips',
   bonusHint: 'In whole 50s: 500, 1,000.',
   weight: 'Weight',
-  weightHint: 'From 1 to 1,000: a prize with weight 2 comes up twice as often as one with weight 1.',
+  weightHint: '1 to 1,000. Weight 2 comes up twice as often as 1.',
   add: 'Add to the wheel',
   added: '{prize} is on the wheel.',
   /** A prize as the console names it; a bonus as bonus chips, never rupees (#629). */
   prizes: { points: '{points} points', bonus: '{chips} bonus chips', nothing: 'Nothing' },
   failures: {
-    not_allowed: 'Your role does not include this. Ask an admin if you need it.',
-    invalid: 'Points are a whole number, bonus chips come in whole 50s, and a weight is from 1 to 1,000.',
-    gone: 'That spin is already spun, or the prize is already off the wheel.',
-    no_prize: 'No prize on the wheel that this month’s spin budget and the promotion’s own budget allow. Add points or nothing, or raise a budget.',
-    paused: 'The club or this member is paused: spin when it reopens.',
-    unavailable: 'That did not go through. Try again.',
+    not_allowed: 'Not in your role. Ask an admin.',
+    invalid: 'Whole points, chips in 50s, weight 1 to 1,000.',
+    gone: 'Already spun, or the prize is gone.',
+    no_prize: 'No prize fits the budget. Add points or nothing, or raise a budget.',
+    paused: 'Paused. Spin when it reopens.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;

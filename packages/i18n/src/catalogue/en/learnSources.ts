@@ -11,11 +11,11 @@ export const learnSources = {
   active: 'On',
   lapsed: 'Licence lapsed',
   addTitle: 'Add a source',
-  hint: 'Choose the encoding. The drill engine\u2019s validator and all eight gates run on it here; only one that passes is uploaded.',
+  hint: 'Only an encoding that passes every check uploads.',
   choose: 'Choose encoding',
   checking: 'Checking the encoding\u2026',
   /** The browser could not read the chosen file (F2-30). */
-  unreadable: 'That file could not be read. Choose it again, or another copy of it.',
+  unreadable: 'File not read. Choose it again.',
   passed: '{title} passed the validator and all eight gates.',
   refused: 'Refused by: {failed}.',
   badKey: 'Its source id must be lowercase letters, digits, _ or -, up to 60.',
@@ -26,7 +26,7 @@ export const learnSources = {
   failures: {
     not_allowed: 'Only a super admin adds Learn content.',
     invalid: 'Give the licence terms and the licence\u2019s last day.',
-    paused: 'The venue is frozen. Try again once it is released.',
-    unavailable: 'That did not upload. Try again.',
+    paused: 'Venue frozen. Try again once it is released.',
+    unavailable: 'Not uploaded. Try again.',
   },
 } as const;

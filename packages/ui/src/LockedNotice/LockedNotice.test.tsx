@@ -16,7 +16,7 @@ describe('LockedNotice', () => {
 
   it('names no tier for a feature taken from this member alone, and says it is not on their account', () => {
     renderIn(<LockedNotice tiers={[]} />);
-    expect(screen.getByText('Not available on your account. Ask the club.')).toBeInTheDocument();
+    expect(screen.getByText('Not on your membership.')).toBeInTheDocument();
     expect(screen.queryByText(/only\.$/)).not.toBeInTheDocument();
   });
 

@@ -38,7 +38,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'cab.minimum_visits': {
     name: 'Cab offer after',
-    help: 'The visits a member needs this month before the club offers them a cab home, which staff book. 4 unless set.',
+    help: 'Visits this month before a cab home is offered. 4 unless set.',
     fields: { visits: 'Visits this month' },
   },
   'cage.cash_buy_in_limit': {
@@ -53,12 +53,12 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'call_time.minutes': {
     name: 'Call time',
-    help: 'How long a player must play at this table type after being seated before leaving.',
+    help: 'Minimum play before leaving, at this table type.',
     fields: { minutes: 'Minutes' },
   },
   'card.qr_rotation_seconds': {
     name: 'Door code refresh',
-    help: "How often the membership card's code changes. An older code no longer checks in. Every 30 seconds unless set.",
+    help: "How often the card's code changes. Every 30 seconds unless set.",
     fields: { seconds: 'Every' },
   },
   'credit.config': {
@@ -99,7 +99,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'host.lapse': {
     name: 'Lapsed regular',
-    help: 'A regular goes to the host queue after this many visits in six months, then none for this many days. 3 visits and 21 days unless set.',
+    help: 'A regular with this many visits in six months, then none for this many days, goes to the host queue. 3 and 21 unless set.',
     fields: { visits: 'Visits in six months', days: 'Then away for' },
   },
   'jackpot.drop': {
@@ -174,12 +174,12 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'reviews.google_url': {
     name: 'Google review link',
-    help: "The club's Google review link, sent once to each member after their third visit. Not set asks for none.",
+    help: "The club's Google review link, sent once after a third visit. Not set sends none.",
     fields: { url: 'Link' },
   },
   'social.connected_channels': {
     name: 'Connected social channels',
-    help: 'The channels whose secrets are set. A post goes out on these by itself; the others offer it to download and post.',
+    help: 'Channels that post by themselves. Others offer a download.',
     fields: { channels: 'Channels' },
     options: {
       instagram: 'Instagram', facebook: 'Facebook', x: 'X', linkedin: 'LinkedIn', youtube: 'YouTube', telegram: 'Telegram',
@@ -188,7 +188,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'spin.budget': {
     name: 'Spin wheel budget',
-    help: 'The most bonus the spin wheel gives in a club month. A prize larger than what is left is off the wheel. Not set gives no bonus prizes.',
+    help: 'The most bonus the wheel gives in a club month. Not set gives none.',
     fields: { monthly_paise: 'Each month' },
   },
   'tds.config': {
@@ -207,12 +207,12 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'waitlist.hold_minutes': {
     name: 'Seat hold',
-    help: 'How long a called seat is held, and how long a member who steps away keeps their place.',
+    help: 'How long a called seat is held, and a stepped-away place kept.',
     fields: { minutes: 'Minutes' },
   },
   'waitlist.interest_to_open': {
     name: 'Open a game at',
-    help: 'How many members waiting for a game with no open table tell the floor to open one. Not set never tells.',
+    help: 'Members waiting for a closed game before the floor is told to open a table. Not set never tells.',
     fields: { players: 'Players waiting' },
   },
   'waitlist.priority_weights': {

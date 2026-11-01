@@ -1,7 +1,7 @@
 /** The console's Members screen (#60): find a member, open their record, and change their tier. */
 export const members = {
   title: 'Members',
-  notAllowed: 'Your role does not include members. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   /** Lists every member of a tier (additions flow 20), or any tier, as the search finds them. */
   filterTier: 'Tier',
   anyTier: 'Any',
@@ -9,8 +9,8 @@ export const members = {
   /** How an export of the results records the search (#102). */
   searchedFor: 'Search: {query}',
   search: 'Find a member',
-  searchHint: 'A name, four or more digits of a mobile number, or a member number.',
-  searchPrompt: 'Type a member number, two or more letters of a name, or four or more digits of a mobile number.',
+  searchHint: 'A member number, two or more letters of a name, or four or more digits of a mobile.',
+  searchPrompt: 'Search by member number, name or mobile.',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',
@@ -43,9 +43,9 @@ export const members = {
   tiersUnavailable: 'The tiers did not load.',
   newTier: 'New tier',
   reason: 'Why',
-  reasonHint: 'Kept with the change, with your name.',
+  reasonHint: 'Recorded with your name.',
   until: 'Last day (optional)',
-  untilHint: 'Leave it empty to keep the tier. The morning after this day, they go back.',
+  untilHint: 'Empty keeps it. Ends the morning after.',
   save: 'Change tier',
   saved: 'Tier changed.',
   /** Feature overrides (#61), for super admins only: one feature granted or taken away for one member. */
@@ -69,7 +69,7 @@ export const members = {
     liftReason: 'Why it is lifted',
     reason: 'Why the override',
     until: 'Override\'s last day (optional)',
-    untilHint: 'Leave it empty to keep it. It ends the morning after this day.',
+    untilHint: 'Empty keeps it. Ends the morning after.',
     lift: 'Lift',
     liftName: 'Lift the override of {feature}',
     newOverride: 'New override',
@@ -80,17 +80,17 @@ export const members = {
     failures: {
       notAllowed: 'Only a super admin overrides a feature.',
       noMember: 'That member is not at this venue.',
-      invalid: 'Choose a feature, give a reason of 3 to 500 characters, and a last day still to come.',
-      paused: 'The venue is frozen. Overrides change again once it is released.',
+      invalid: 'A feature, a reason of 3 to 500 characters and a future last day.',
+      paused: 'Venue frozen. Try again once it is released.',
       notInForce: 'That override has already ended or been replaced.',
-      unavailable: 'That did not go through. Check the connection and try again.',
+      unavailable: 'Not sent. Try again.',
     },
   },
   /** Erasing one member's personal data on request, for super admins (#424, decision 0207). */
   /** A super admin changes a member's phone number, their login (#502). */
   changePhone: {
     title: 'Phone number',
-    intro: 'The member\'s number is their login: they sign in with the new one from now on. Members cannot change it themselves.',
+    intro: 'Their number is their login. They sign in with the new one.',
     newNumber: 'New mobile number',
     newNumberHint: 'With +91, as +919876543210.',
     /** The member's number now, above the new one (F1-09). */
@@ -101,16 +101,16 @@ export const members = {
     confirm: 'Yes, change it to {phone}',
     reason: 'Why it changes',
     change: 'Change number',
-    changed: 'Changed. The member signs in with the new number.',
+    changed: 'Changed.',
     failures: {
-      too_many: 'Ten numbers were changed in the last hour. Wait before changing another.',
+      too_many: 'Ten changes this hour. Wait before another.',
       not_allowed: 'Only a super admin changes a member\'s number.',
-      invalid: 'Give an Indian mobile number with +91, and a reason of 3 to 300 characters with no name or number in it.',
+      invalid: 'An Indian mobile with +91, and a reason without names or numbers.',
       taken: 'Another member or login already has that number.',
-      staff_login: 'This member also signs in as staff. Change the number where staff are kept.',
+      staff_login: 'Also a staff login. Change it on Staff.',
       erased: 'This member was erased.',
       paused: 'The venue or the member is frozen.',
-      unavailable: 'That did not go through. Check the connection and try again.',
+      unavailable: 'Not sent. Try again.',
     },
   },
   erase: {
@@ -138,53 +138,53 @@ export const members = {
     blockNote: 'On a break until {date}: their number and identity stay blocked until then, by keyed hashes alone.',
     typeName: 'Type the member\'s full name to confirm',
     reason: 'Why the member is erased',
-    reasonHint: 'Who asked, and how. Never their name, number or a document number.',
+    reasonHint: 'Who asked, and how. No names or numbers.',
     erase: 'Erase personal data',
     done: 'Erased. Forfeited {points} points and {bonus} bonus chips; KYC files removed: {files}.',
     doneFilesLeft: 'Erased. Forfeited {points} points and {bonus} bonus chips. The KYC files are still to remove.',
     filesLeft: 'KYC files still to remove: {count}.',
     removeFiles: 'Remove KYC files',
     filesRemoved: 'KYC files removed: {count}.',
-    filesNotRemoved: 'The KYC files could not be removed. Try again.',
+    filesNotRemoved: 'KYC files not removed. Try again.',
     failures: {
       notAllowed: 'Only a super admin erases a member.',
       wrongName: 'Type the member\'s full name exactly as the record shows it.',
-      invalidReason: 'Give a reason of 3 to 300 characters, with no name, number or document number of the member.',
-      openItems: 'Something is still open. Clear what is listed, then try again.',
+      invalidReason: 'A reason of 3 to 300 characters, no names or numbers.',
+      openItems: 'Clear the open items listed, then try again.',
       erased: 'This member was erased already.',
-      tooSoon: 'Too many members were erased in the last hour. Wait, then try again.',
+      tooSoon: 'Too many erasures this hour. Wait, then try again.',
       paused: 'The venue or the member is frozen. Release it first.',
-      unavailable: 'The erasure did not go through. Try again.',
+      unavailable: 'Not erased. Try again.',
     },
   },
   /** The floor's break for a member (A5-14, decision 0053), for staff with members.manage. */
   break: {
     title: 'Break',
-    intro: 'Waitlists close for the member until the break ends. It cannot be shortened, and a shorter one while a longer runs changes nothing.',
+    intro: 'Tables close to the member until it ends. It cannot be shortened.',
     length: 'How long',
     lengths: { day: '24 hours', week: '7 days', month: '30 days', quarter: '90 days', year: '1 year', tenYears: '10 years' },
     reason: 'Why the break',
-    reasonHint: 'Kept with the break, with your name.',
+    reasonHint: 'Recorded with your name.',
     start: 'Start break',
     /** The second press. `{length}`: 30 days. */
     confirm: 'Yes, start a break of {length}',
     /** `{until}`: 2 Dec 2026, 00:00, with the year, as a break may run for years. */
     started: 'On a break until {until}.',
     failures: {
-      not_allowed: 'Your role does not set breaks. Ask a membership manager.',
+      not_allowed: 'Not in your role. Ask a membership manager.',
       no_member: 'That member is not at this venue.',
       invalid: 'Give a reason of 3 to 300 characters.',
-      paused: 'The venue is frozen. Breaks are set again once it is released.',
-      unavailable: 'That did not go through. Check the connection and try again.',
+      paused: 'Venue frozen. Try again once it is released.',
+      unavailable: 'Not sent. Try again.',
     },
   },
   /** Why a tier change did not go through. */
   failures: {
-    notAllowed: 'Your role does not change tiers. Ask a membership manager.',
+    notAllowed: 'Not in your role. Ask a membership manager.',
     noMember: 'That member is not at this venue.',
-    invalid: 'Choose a different tier, give a reason of 3 to 500 characters, and a last day still to come.',
-    paused: 'The venue is frozen. Tiers change again once it is released.',
-    unavailable: 'That did not go through. Check the connection and try again.',
+    invalid: 'A different tier, a reason of 3 to 500 characters and a future last day.',
+    paused: 'Venue frozen. Try again once it is released.',
+    unavailable: 'Not sent. Try again.',
   },
 };
 
@@ -221,7 +221,7 @@ export const tiers = {
   notAllowedAction: 'Your role cannot change tiers. Ask an admin.',
   inPast: 'That date has passed, or the change is already in force. Choose another date.',
   changed: 'The tiers changed meanwhile. Check the matrix and save again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  unavailable: 'Not sent. Try again.',
   /** The preview of the player app as a member of one tier, with no override. */
   preview: 'Preview as a tier',
   previewTier: 'Tier to preview',

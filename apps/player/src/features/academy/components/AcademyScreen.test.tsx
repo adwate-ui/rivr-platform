@@ -111,7 +111,7 @@ describe('the Academy screen', () => {
       myBookings: [{ ...KABIRS_SEAT, status: 'cancelled', turned_down_utr: '412345678901', hold_until: null }],
       openBatches: [[LEVEL_1]],
     });
-    expect(await screen.findByText(/^Cancelled. The cashier could not find UTR 412345678901/)).toBeDefined();
+    expect(await screen.findByText(/^Cancelled: UTR 412345678901 was not found/)).toBeDefined();
     expect(screen.getByRole('heading', { name: 'Open batches' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Book a seat' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull();
@@ -122,7 +122,7 @@ describe('the Academy screen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
     expect(await screen.findByText('Level 1: This batch is not open for booking.')).toBeDefined();
     expect(screen.queryByRole('heading', { name: 'Level 1' })).toBeNull();
-    expect(screen.getByText('No batches open right now.')).toBeDefined();
+    expect(screen.getByText('No batches open.')).toBeDefined();
   });
 
   it('says a batch that has just filled once, on its card', async () => {
@@ -142,7 +142,7 @@ describe('the Academy screen', () => {
   it('says a refusal about the whole club in its own words, not as the batch\'s', async () => {
     renderAcademy({ openBatches: [[LEVEL_1], []], refusalCode: 'RVFRZ' });
     fireEvent.click(await screen.findByRole('button', { name: 'Book a seat' }));
-    expect(await screen.findByText('The club is paused. Staff will assist you.')).toBeDefined();
+    expect(await screen.findByText('The club is paused. Ask a member of staff.')).toBeDefined();
     expect(screen.queryByText(/^Level 1:/)).toBeNull();
   });
 

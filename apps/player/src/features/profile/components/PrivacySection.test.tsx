@@ -63,6 +63,6 @@ describe('Privacy: the name on the club\'s TVs', () => {
 
   it('says how to ask for the member\'s data to be erased (F3-27)', () => {
     renderPrivacy(SHOWN);
-    expect(screen.getByText('To have your personal data erased, ask at the front desk. The privacy notice on the club\'s website says what is kept.')).toBeDefined();
+    expect(screen.getByText('To erase your data, ask at the front desk. The privacy notice says what is kept.')).toBeDefined();
   });
 });

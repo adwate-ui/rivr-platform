@@ -26,12 +26,12 @@ test.describe('Player settings', () => {
     await member.getByRole('button', { name: 'Back' }).click();
 
     const run = String(Date.now() % 100_000).padStart(5, '0');
-    await member.getByRole('group', { name: 'What is it about?' }).getByRole('button', { name: 'Dealer' }).click();
+    await member.getByRole('group', { name: 'Topic' }).getByRole('button', { name: 'Dealer' }).click();
     await member.getByRole('textbox', { name: 'Your note' }).fill(`Quick and fair at Table 3, run ${run}`);
     await member.getByRole('button', { name: 'Send' }).click();
     await expect(member.getByText('Sent. Thank you.')).toBeVisible();
 
-    await member.getByRole('group', { name: 'How would you like to tell us?' }).getByRole('button', { name: 'Detailed feedback' }).click();
+    await member.getByRole('group', { name: 'Type' }).getByRole('button', { name: 'Detailed feedback' }).click();
     const rate = async (group: string, score: string) => member.getByRole('group', { name: group }).getByRole('button', { name: score, exact: true }).click();
     await rate('The gameplay, 1 to 5', '5');
     await rate('The cashier, 1 to 5', '3');

@@ -39,7 +39,7 @@ describe('BottomNav', () => {
 
   it('describes a tab taken from this member alone as not on their account, naming no tier', () => {
     renderIn(<BottomNav items={tabs({ learn: { state: 'locked', tiers: [] } })} />);
-    expect(screen.getByRole('link', { name: 'Learn' })).toHaveAccessibleDescription('Not available on your account. Ask the club.');
+    expect(screen.getByRole('link', { name: 'Learn' })).toHaveAccessibleDescription('Not on your membership.');
   });
 
   it('hands a plain click to the router instead of reloading the page', async () => {

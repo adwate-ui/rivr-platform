@@ -43,7 +43,7 @@ test.describe('Membership card', () => {
     await desk.waitForTimeout(6_000);
     await card.fill(screenshot);
     await card.press('Enter');
-    await expect(desk.getByText('That card code has changed. Ask the member to show their card again.')).toBeVisible();
+    await expect(desk.getByText('Code changed. Ask them to show the card again.')).toBeVisible();
     await expect(doorList(desk, 'In the room').getByText('Kavya Rao')).toHaveCount(0);
 
     await card.fill(await doorCode(member));

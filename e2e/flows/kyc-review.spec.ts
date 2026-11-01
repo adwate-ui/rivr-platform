@@ -53,7 +53,7 @@ test.describe('KYC review', () => {
     await expect(page.getByRole('heading', { name: 'Checks to review' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rohan Bhatia' })).toBeVisible();
     await expect(page.getByText('ABCPR4444R')).toBeVisible();
-    await expect(page.getByText('A PAN alone, with no DigiLocker record. Check the PAN card and the person.').first()).toBeVisible();
+    await expect(page.getByText('PAN only, no DigiLocker. Check the card and the person.').first()).toBeVisible();
 
     await decide(page, 'Rohan Bhatia', 'PAN card and the member seen at the desk', 'Approve');
     await expect(page.getByRole('heading', { name: 'Rohan Bhatia' })).toHaveCount(0);
@@ -62,7 +62,7 @@ test.describe('KYC review', () => {
     await decide(page, 'Naina Kapoor', 'The person at the desk is not the one in the photo', 'Reject');
     await expect(page.getByRole('heading', { name: 'Stopped and refused checks' })).toBeVisible();
     await expect(page.getByText('Rejected by a reviewer.')).toBeVisible();
-    await expect(page.getByRole('img', { name: 'KYC photo of Naina Kapoor' }).or(page.getByText(/^The photo could not load/))).toBeVisible();
+    await expect(page.getByRole('img', { name: 'KYC photo of Naina Kapoor' }).or(page.getByText(/^Photo not loaded/))).toBeVisible();
     expect(sql(`select status || ' ' || refusal from public.kyc_record where member_id = '${NAINA}'`)).toBe('refused staff_rejected');
   });
 });

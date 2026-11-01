@@ -27,7 +27,7 @@ export function PointsByHand({ venueId }: { venueId: string }) {
           {t('console.rewards.byHand.find')}
         </Button>
       </Inline>
-      {member.isError ? <ErrorMessage>{t('console.rewards.byHand.failures.unavailable')}</ErrorMessage> : null}
+      {member.isError ? <ErrorMessage>{t('common.loadFailed')}</ErrorMessage> : null}
       {member.data === null ? <Text tone="muted">{t('console.rewards.byHand.notFound')}</Text> : null}
       {member.data ? <PointsForm key={member.data.memberId} venueId={venueId} member={member.data} /> : null}
     </Stack>

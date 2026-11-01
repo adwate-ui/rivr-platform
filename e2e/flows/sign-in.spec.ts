@@ -52,7 +52,7 @@ test.describe('Sign-in', () => {
     const code = page.getByRole('textbox', { name: 'Code sent to +91 90000 00203' });
     await code.fill('000000');
     await page.getByRole('button', { name: 'Verify' }).click();
-    await expect(page.getByText('Code wrong or expired. Check it, or request a new one.')).toBeVisible();
+    await expect(page.getByText('Wrong or expired code. Check it or send a new one.')).toBeVisible();
     await expect(page.getByRole('button', { name: /Send by SMS in \d+ s/ })).toBeDisabled();
     await code.fill('00000');
     await expect(page.getByText('Enter the 6-digit code.')).toBeVisible();
@@ -63,6 +63,6 @@ test.describe('Sign-in', () => {
     await page.getByRole('button', { name: 'Change number' }).click();
     await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000204');
     await page.getByRole('button', { name: 'Send code' }).click();
-    await expect(page.getByText('Too many attempts. Wait a minute, then try again.')).toBeVisible();
+    await expect(page.getByText('Too many tries. Wait a minute.')).toBeVisible();
   });
 });

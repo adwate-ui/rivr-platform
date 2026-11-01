@@ -52,7 +52,6 @@ export function GamesSection({ preferences }: { preferences: Preferences }) {
   return (
     <Stack gap={3}>
       <Heading level={2}>{t('player.profile.alerts')}</Heading>
-      <Text tone="muted">{t('player.profile.alertsHint')}</Text>
       <ChoiceChips
         label={t('player.profile.games')}
         options={options}

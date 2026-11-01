@@ -32,11 +32,11 @@ test.describe('Check-out', () => {
     await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toBeVisible();
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check out', exact: true }).click();
-    await expect(page.getByText('Checked out. Their hours are counted.')).toBeVisible();
+    await expect(page.getByText('Checked out.')).toBeVisible();
     await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toHaveCount(0);
 
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check out', exact: true }).click();
-    await expect(page.getByText('This member is not checked in, so there is no visit to close.')).toBeVisible();
+    await expect(page.getByText('Not checked in.')).toBeVisible();
   });
 });

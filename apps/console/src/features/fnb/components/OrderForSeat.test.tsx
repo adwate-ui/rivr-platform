@@ -37,25 +37,25 @@ describe('OrderForSeat', () => {
   it('says the seats are loading, not that nobody is seated, while the floor is read', async () => {
     renderOrder(() => new Promise<Response>(() => undefined));
     expect(await screen.findByText('Loading')).toBeDefined();
-    expect(screen.queryByText('Nobody is seated just now.')).toBeNull();
+    expect(screen.queryByText('Nobody seated.')).toBeNull();
   });
 
   it('says the seats failed to load, with Try again, not that nobody is seated', async () => {
     renderOrder(async () => Response.json({ message: 'unreachable' }, { status: 503 }));
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Could not load this/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not loaded/);
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
-    expect(screen.queryByText('Nobody is seated just now.')).toBeNull();
+    expect(screen.queryByText('Nobody seated.')).toBeNull();
   });
 
   it('says the seats failed to load when the tables read fails, though the seats answered', async () => {
     // A 500, as supabase-js asks a GET that answered 503 again, after a wait.
     renderOrder(async () => Response.json([]), async () => Response.json({ message: 'server error' }, { status: 500 }));
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Could not load this/);
-    expect(screen.queryByText('Nobody is seated just now.')).toBeNull();
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not loaded/);
+    expect(screen.queryByText('Nobody seated.')).toBeNull();
   });
 
   it('says nobody is seated once the floor has answered with no one', async () => {
     renderOrder(async () => Response.json([]));
-    expect(await screen.findByText('Nobody is seated just now.')).toBeDefined();
+    expect(await screen.findByText('Nobody seated.')).toBeDefined();
   });
 });

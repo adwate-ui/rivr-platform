@@ -63,7 +63,7 @@ test.describe('KYC', () => {
     // Staging's real venue has Cashfree's sandbox keys, so its KYC is open, not closed: it is proved locally.
     if (isRemoteTarget()) return;
     await takeSelfie(page);
-    await expect(page.getByText('Identity checks are not open yet. Staff will check your documents at the club.')).toBeVisible();
+    await expect(page.getByText('Not open yet. Staff check your documents at the club.')).toBeVisible();
   });
 
   test('a member DigiLocker failed for can try it again from the PAN step; one it matched without a PAN is not offered it', async ({ browser, page, request }) => {
@@ -82,7 +82,7 @@ test.describe('KYC', () => {
     await page.getByRole('button', { name: 'Try DigiLocker again' }).click();
     // The seed keeps no selfie for her, so the kyc function refuses the start and the step says so. A member who reached
     // the PAN step in the app took the selfie first.
-    await expect(page.getByText('Identity checks are not available right now. Try again in a few minutes.')).toBeVisible();
+    await expect(page.getByText('Identity checks are down. Try again shortly.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
 
     // Shivam Kalra's DigiLocker matched but held no PAN (seed: needs_pan with his date of birth): the PAN alone verifies him.

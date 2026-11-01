@@ -10,7 +10,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const NEWER = 'A newer version of this page came in while you were editing. Your edits are kept here; saving them makes them the page\'s draft, in place of any other.';
+const NEWER = 'A newer version came in. Saving makes your edits the draft.';
 
 /** A version of the page as the database keeps it, with one text block whose heading is `heading`. */
 function version(id: string, status: string, heading: string, updatedAt = '2026-11-01T10:00:00Z') {

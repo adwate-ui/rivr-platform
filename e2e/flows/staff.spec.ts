@@ -10,7 +10,7 @@ import { expect, test } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
-const REFUSED = 'Your role does not include this screen. Ask an admin if you need it.';
+const REFUSED = 'Not in your role. Ask an admin.';
 
 test.describe('Staff', () => {
   test('Staff: an admin adds a host with a job title apart from the role, changes it, turns them off; a cashier is kept out of admin screens', async ({ browser }) => {

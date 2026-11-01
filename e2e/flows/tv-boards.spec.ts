@@ -40,7 +40,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
-  await expect(floor.getByText(`${name} is paired. It shows its mode within a few seconds.`)).toBeVisible();
+  await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 }
 
 /** Sets the member's "Show my name on the club's TVs" in Profile, whatever a run stopped early left it at. */
@@ -160,7 +160,7 @@ test.describe('TV boards', () => {
     await floor.getByRole('button', { name: `Let ${LEAVING} leave early` }).first().click();
     await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(floor.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
+    await expect(floor.getByText('Released early.')).toBeVisible();
     await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
     await floor.getByRole('button', { name: `Yes, ${LEAVING} leaves` }).click();
     await expect(floor.getByRole('button', { name: `Move ${LEAVING}` })).toHaveCount(0);

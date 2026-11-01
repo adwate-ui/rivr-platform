@@ -28,7 +28,7 @@ test.describe('Feature overrides', () => {
     const player = await browser.newPage();
     await signInToPlayer(player, '9000000405');
     // Taken from him alone: his notice names no tier as the way in, not even his own (#353).
-    await expect(player.getByRole('link', { name: 'Sessions' })).toHaveAccessibleDescription('Not available on your account. Ask the club.');
+    await expect(player.getByRole('link', { name: 'Sessions' })).toHaveAccessibleDescription('Not on your membership.');
 
     await admin.getByRole('button', { name: 'Lift the override of Session history' }).click();
     await admin.getByRole('textbox', { name: 'Why it is lifted' }).fill('Sorted out with the owner');

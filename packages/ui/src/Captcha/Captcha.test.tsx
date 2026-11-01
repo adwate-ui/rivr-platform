@@ -56,7 +56,7 @@ describe('Captcha', () => {
     await vi.waitFor(() => expect(options).toHaveLength(1));
     fire('error-callback');
     expect(onToken).toHaveBeenLastCalledWith(null);
-    expect(screen.getByRole('alert').textContent).toMatch(/^The security check failed/);
+    expect(screen.getByRole('alert').textContent).toMatch(/^Security check incomplete/);
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     await vi.waitFor(() => expect(options).toHaveLength(2));
     expect(turnstile.remove).toHaveBeenCalledWith('w1');
@@ -70,7 +70,7 @@ describe('Captcha', () => {
     await vi.waitFor(() => expect(cloudflareScripts()).toHaveLength(1));
     // A network's block page answered: the script loaded, but no Turnstile came with it.
     act(() => void cloudflareScripts()[0]?.dispatchEvent(new Event('load')));
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^The security check failed/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Security check incomplete/);
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     await vi.waitFor(() => expect(cloudflareScripts()).toHaveLength(2));
     // Refused outright this time.

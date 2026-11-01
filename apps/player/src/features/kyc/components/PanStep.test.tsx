@@ -41,7 +41,7 @@ describe('PanStep', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'PAN' }), { target: { value: 'ABCPE1234F' } });
     fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
 
-    expect(await screen.findByText('This PAN did not match. Check it and the name, then try again.')).toBeDefined();
+    expect(await screen.findByText('This PAN did not verify. Check it, or ask at the front desk.')).toBeDefined();
   });
 
   it('asks for the date of birth when DigiLocker gave none, and never for a name', async () => {
@@ -60,7 +60,7 @@ describe('PanStep', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Try DigiLocker again' }));
 
-    expect(await screen.findByText('Identity checks are not available right now. Try again in a few minutes.')).toBeDefined();
+    expect(await screen.findByText('Identity checks are down. Try again shortly.')).toBeDefined();
     expect(requests).toEqual([{ action: 'start' }]);
   });
 

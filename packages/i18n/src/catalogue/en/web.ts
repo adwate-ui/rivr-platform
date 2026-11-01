@@ -1,22 +1,22 @@
 /** The public website's own copy; its pages' words are the club's site content. */
 export const webApp = {
   /** A website page when its content cannot be read. */
-  unavailableTitle: 'The website is not available',
-  unavailable: 'Try again in a few minutes.',
+  unavailableTitle: 'Website unavailable',
+  unavailable: 'Try again shortly.',
   /** The header's one action (#441): a WhatsApp message to the club, with these words ready to send (#616). */
   reserve: 'Reserve a seat',
   reserveMessage: 'Hi RIVR, I would like to reserve a seat tonight.',
   /** The header's menu, in grandpokerarena.com's order (#616). */
   menu: {
-    club: 'The Club',
-    room: 'The Room',
+    club: 'The club',
+    room: 'The room',
     games: 'Games',
     membership: 'Membership',
     leaderboard: 'Leaderboard',
-    whatsOn: "What's On",
-    prizes: 'Prizes & Calendar',
+    whatsOn: 'What’s on',
+    prizes: 'Prizes and calendar',
     journal: 'Journal',
-    visit: 'Visit & Contact',
+    visit: 'Visit and contact',
   },
   /** The bar above the header (#616): how to reach the club, and the member app. */
   top: {
@@ -28,7 +28,7 @@ export const webApp = {
     app: 'Member app',
   },
   /** A promotions block while none runs (decision 0166). */
-  noPromotions: 'No promotions are running just now. Check back soon.',
+  noPromotions: 'No promotions running.',
   /** A post on the website's social wall (#157). */
   wallHandle: '@{handle}',
   wallOpen: 'See it on Instagram',
@@ -39,20 +39,20 @@ export const webApp = {
     points: 'Points',
     /** A member who hid their name on the TVs. */
     hidden: 'A member',
-    monthIntro: 'The standings for {month}, from cash games and tournaments.',
-    none: 'No standings yet. They start with the first night of play.',
+    monthIntro: 'Standings for {month}',
+    none: 'No standings yet.',
     prizes: 'Prizes: {prizes}',
   },
   /** What play earns (#617), read from the club's rules in force. */
   rewards: {
-    intro: 'Every hour at the table earns points, more at the higher stakes.',
+    intro: 'Points are given by the club and spent on rewards.',
     table: 'Table',
     points: 'Points an hour',
     rakeback: 'Rakeback',
     rakebackRate: '{percent}% of your rake',
     none: 'None',
-    rounding: 'Only time seated at the table counts, rounded down to a whole point. Points are for rewards and never turn into cash.',
-    rakebackPaid: 'Rakeback is paid as bonus each Monday.',
+    rounding: 'Points are for rewards and never turn into cash.',
+    rakebackPaid: 'Rakeback is paid as bonus chips each Monday.',
     rakeShare: 'RIVR Rewards: {percent}% of your rake comes back as points.',
   },
   /** The cab and hotel nights the club gives (#617), read from the club's rules in force. */
@@ -102,7 +102,7 @@ export const webApp = {
     privacy: 'Privacy',
     terms: 'Terms of use',
     /** Free, confidential helplines for anyone whose play worries them, as grandpokerarena.com lists them. */
-    helplines: 'Need to talk?',
+    helplines: 'Helplines',
     teleManas: 'Tele-MANAS 14416 (24 hours)',
     iCall: 'iCall 91529 87821',
   },

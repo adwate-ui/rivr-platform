@@ -48,7 +48,7 @@ async function pairTvOnPromotions(tv: Page, floor: Page, name: string) {
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
-  await expect(floor.getByText(`${name} is paired. It shows its mode within a few seconds.`)).toBeVisible();
+  await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
   await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
 }
 

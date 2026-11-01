@@ -12,7 +12,7 @@ describe('SourceUpload', () => {
     const input = document.querySelector('input[type="file"]');
     if (!(input instanceof HTMLInputElement)) throw new Error('no file input');
     fireEvent.change(input, { target: { files: [file] } });
-    expect(await screen.findByText('That file could not be read. Choose it again, or another copy of it.')).toBeDefined();
+    expect(await screen.findByText('File not read. Choose it again.')).toBeDefined();
     expect(screen.queryByText(/^Checking/)).toBeNull();
   });
 });
