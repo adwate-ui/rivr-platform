@@ -1,4 +1,4 @@
-import { useFloorSeats, useHeldSeats, useSeatActions, type FloorTable, type SeatedPlayer, type SeatFailure } from '@rivr/db';
+import { openSeatsAt, useFloorSeats, useHeldSeats, useSeatActions, type FloorTable, type SeatedPlayer, type SeatFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, Heading, Inline, Stack } from '@rivr/ui';
 import { useState } from 'react';
@@ -20,11 +20,12 @@ export function MoveForm({ venueId, player, tables, onDone, onCancel }: MoveForm
   const [seat, setSeat] = useState<number | null>(null);
   const open = tables.filter((table) => table.isOpen);
   const target = open.find((table) => table.id === tableId);
-  const unavailable = [...(seats.data ?? []), ...(held.data ?? [])].filter((taken) => taken.tableId === tableId).map((taken) => taken.seat);
-  const free = target === undefined ? [] : Array.from({ length: target.seats }, (_, index) => index + 1).filter((number) => !unavailable.includes(number));
+  const free = target === undefined ? [] : openSeatsAt(target, [...(seats.data ?? []), ...(held.data ?? [])]);
+  // A seat taken since it was chosen (the floor is read every ten seconds) is no choice (F2-17).
+  const chosen = seat !== null && free.includes(seat) ? seat : null;
   const submit = async () => {
-    if (tableId === null || seat === null) return;
-    onDone(await move.mutateAsync({ sessionId: player.sessionId, tableId, seat }));
+    if (tableId === null || chosen === null) return;
+    onDone(await move.mutateAsync({ sessionId: player.sessionId, tableId, seat: chosen }));
   };
   return (
     <Stack gap={3}>
@@ -33,10 +34,10 @@ export function MoveForm({ venueId, player, tables, onDone, onCancel }: MoveForm
         selected={tableId === null ? [] : [tableId]} onChange={([id]) => { setTableId(id ?? null); setSeat(null); }} />
       {target === undefined ? null : (
         <ChoiceChips label={t('console.liveFloor.seatNumber')} mode="one" options={free.map((number) => ({ value: String(number), label: String(number) }))}
-          selected={seat === null ? [] : [String(seat)]} onChange={([value]) => setSeat(value === undefined ? null : Number(value))} />
+          selected={chosen === null ? [] : [String(chosen)]} onChange={([value]) => setSeat(value === undefined ? null : Number(value))} />
       )}
       <Inline gap={3}>
-        <Button variant="secondary" isDisabled={seat === null} isLoading={move.isPending} onClick={() => void submit()}>{t('console.liveFloor.move')}</Button>
+        <Button variant="secondary" isDisabled={chosen === null} isLoading={move.isPending} onClick={() => void submit()}>{t('console.liveFloor.move')}</Button>
         <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>
       </Inline>
     </Stack>

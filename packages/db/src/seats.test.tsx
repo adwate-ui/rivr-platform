@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
-import { useLeftOwingCallTime, useSeatActions } from './seats.ts';
+import { openSeatsAt, useLeftOwingCallTime, useSeatActions } from './seats.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const STAFF = '00000000-0000-4000-8000-000000000103';
@@ -95,5 +95,10 @@ describe('Away from the table', () => {
       outcome = await gone.result.current.setAway.mutateAsync({ sessionId: 's1', isAway: false });
     });
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
+  });
+
+  it('gives the seats free at a table, neither taken nor held, whatever the other tables hold', () => {
+    const taken = [{ tableId: 't3', seat: 2 }, { tableId: 't3', seat: 5 }, { tableId: 't4', seat: 1 }];
+    expect(openSeatsAt({ id: 't3', seats: 6 }, taken)).toEqual([1, 3, 4, 6]);
   });
 });
