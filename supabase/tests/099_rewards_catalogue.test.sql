@@ -62,9 +62,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'merchandise', 'Mug',
                                                   'At the host desk', 1000, true) $$, '42501', null, 'a dealer keeps no catalogue');
 select is_empty($$ select * from public.reward_item $$, 'and sees none of it');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select throws_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'merchandise', 'RIVR cap', 'At the host desk', 1, true,
-                                                  pg_temp.item('RIVR cap'), 1, 1) $$, '42501', null, 'nor does the cage reprice one');
+                                                  pg_temp.item('RIVR cap'), 1, 1) $$, '42501', null, 'nor does the host desk reprice one (the cage keeps the rewards since #644)');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select public.save_reward_item('00000000-0000-4000-8000-000000000001', 'merchandise', 'Practice cap', 'At the practice desk',
                                                   1, true, pg_temp.item('Practice cap')) $$, '42501', null,

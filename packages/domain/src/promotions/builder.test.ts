@@ -4,7 +4,8 @@ import { promotionDraft } from './builder.ts';
 import { promotionApplies } from './promotions.ts';
 
 const FLOW_7: PromotionBuilder = {
-  days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5_000,
+  days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5_000, bonus_hours: 4,
+  bonus_chips: 1_000,
 };
 const FACTS = {
   tierId: null, tableId: 'table-2', visitsInMonth: 0, daysSinceLastVisit: null, isCallTimeComplete: false, grantedToday: 0,
@@ -37,6 +38,18 @@ describe('promotions builder (#84)', () => {
     const bonus = promotionDraft({ ...FLOW_7, reward: 'buy_in_bonus' }).rule;
     expect([bonus.trigger, bonus.effect]).toEqual(['buy_in', { kind: 'bonus', percent_bps: 1000, cap_paise: 500_000, expires_days: 7 }]);
     expect(promotionDraft({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2_000 }).rule.effect).toMatchObject({ cap_paise: 200_000 });
+  });
+
+  it('gives the bonus chips once the hours are played in a visit, for a week', () => {
+    const draft = promotionDraft({ ...FLOW_7, reward: 'hours_bonus', bonus_hours: 3, bonus_chips: 1_500 });
+    expect([draft.rule.trigger, draft.rule.effect]).toEqual(['hours_played', { kind: 'bonus', amount_paise: 150_000, expires_days: 7 }]);
+    expect(draft.rule.conditions).toMatchObject({ min_hours: 3 });
+    expect(promotionConditionsSchema.parse(draft.rule.conditions)).toEqual(draft.rule.conditions);
+    expect(promotionEffectSchema.parse(draft.rule.effect)).toEqual(draft.rule.effect);
+    const at = { ...FACTS, stake: 'nlh_100_200', at: new Date('2026-11-19T15:00:00+05:30') };
+    expect(promotionApplies(draft.rule.conditions, { ...at, hoursPlayed: 3 })).toBe(true);
+    expect(promotionApplies(draft.rule.conditions, { ...at, hoursPlayed: 2 })).toBe(false);
+    expect(promotionDraft(FLOW_7).rule.conditions).not.toHaveProperty('min_hours');
   });
 
   it('limits to the first 50 members a club day, one each, or once for each member', () => {

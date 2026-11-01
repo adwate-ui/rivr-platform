@@ -1,6 +1,6 @@
-import { useFeature } from '@rivr/db';
+import { useFeature, useMyLockedPoints } from '@rivr/db';
 import { useMyRewards } from '@rivr/db/myRewards';
-import { formatNights, memberRewards, registerMessages, t } from '@rivr/i18n';
+import { formatNights, formatNumber, memberRewards, registerMessages, t } from '@rivr/i18n';
 import { FeatureGate, Number, Screen, Stack, Text } from '@rivr/ui';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
@@ -12,12 +12,14 @@ import { ReferralSection } from './ReferralSection.tsx';
 registerMessages({ memberRewards });
 
 /**
- * Rewards (#152; design prompt "Rewards"): the member's points and tier, always; their hotel nights
+ * Rewards (#152; design prompt "Rewards"): the member's points and tier, always, and any points the club holds locked
+ * for them (#645); their hotel nights
  * (rewards.accommodation, #146); then the catalogue and their redemptions (rewards.catalogue) and the RIVR League
  * (league.standings), each behind its feature; and the member's referral code (#151). Cab requests (#140) join it when built.
  */
 export function RewardsScreen() {
   const rewards = useMyRewards();
+  const locked = useMyLockedPoints();
   const catalogue = useFeature('rewards.catalogue');
   const league = useFeature('league.standings');
   const accommodation = useFeature('rewards.accommodation');
@@ -31,6 +33,7 @@ export function RewardsScreen() {
         <Stack gap={2}>
           <Text variant="small" tone="muted">{t('memberRewards.points')}</Text>
           <Number value={rewards.data.points} size="title" />
+          {locked.data === undefined || locked.data === 0n ? null : <Text tone="muted">{t('memberRewards.locked', { points: formatNumber(locked.data) })}</Text>}
           <Text tone="muted">{t('memberRewards.tier', { tier: rewards.data.tierName })}</Text>
         </Stack>
         <FeatureGate access={accommodation}>

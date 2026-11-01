@@ -1,6 +1,6 @@
 -- Call time at the cage (#79; additions flow 13). Yash Gupta (214) and Ritika Das (215) have finished
 -- their identity checks (seed). A floor manager (103, an admin) seats Yash in the Private Room, where
--- call time is three hours. 104 is a cashier; 106 a dealer.
+-- call time is three hours. 104 is a cashier, who may let a player go early since #644; 106 a dealer, who may not.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -19,14 +19,15 @@ grant select, insert on ids to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'yash', public.seat_member(pg_temp.table_id('Private Room'), 1, '9000000214');
 
--- The cashier sees what Yash owes, and cannot cash him out.
+-- The cashier sees what Yash owes, and cannot cash him out; a dealer cannot let him go early.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select results_eq($$ select call_time_owed_seconds between 10600 and 10800, is_let_go_early from public.cage_members('00000000-0000-4000-8000-000000000001', 'Yash') $$,
   $$ values (true, false) $$, 'the cage shows the three hours Yash still owes');
 select throws_ok($$ select public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 100000, 'cash',
   gen_random_uuid(), true) $$, 'RVCTS', null, 'a cash-out before call time is refused');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'Family emergency') $$,
-  '42501', null, 'a cashier cannot let him go early');
+  '42501', null, 'a dealer cannot let him go early');
 
 -- An admin lets him go, with a reason; the early departure is kept once.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -60,8 +61,8 @@ select throws_ok($$ select public.cage_cash_out('00000000-0000-4000-8000-0000000
   gen_random_uuid()) $$, 'RVCTS', null, 'Ritika left the table early, so the cage still needs an admin');
 reset role;
 select is(private.call_time_shortfall('00000000-0000-4000-8000-000000000215', now()) > 0, true, '#78''s shortfall reads the same seat');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.left_owing_call_time('00000000-0000-4000-8000-000000000001') $$, 'the cashier has no list to let her go from');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select is_empty($$ select * from public.left_owing_call_time('00000000-0000-4000-8000-000000000001') $$, 'a dealer has no list to let her go from');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select full_name, table_name, owed_seconds > 0 from public.left_owing_call_time('00000000-0000-4000-8000-000000000001') $$,
   $$ values ('Ritika Das'::text, 'Private Room'::text, true) $$, 'the admin sees her among those who left before call time');

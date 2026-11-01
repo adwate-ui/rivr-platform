@@ -17,6 +17,8 @@ const choices: fc.Arbitrary<PromotionBuilder> = fc.record({
   reward: fc.constantFrom(...PROMOTION_BUILDER_REWARDS),
   limit: fc.constantFrom(...PROMOTION_BUILDER_LIMITS),
   bonus_cap_rupees: fc.integer({ min: 1, max: 200 }).map((chips) => chips * 50),
+  bonus_hours: fc.integer({ min: 1, max: 12 }),
+  bonus_chips: fc.integer({ min: 1, max: 200 }).map((chips) => chips * 50),
 });
 const event = (spanMs: number): fc.Arbitrary<ReplayEvent> => fc.record({
   at: fc.integer({ min: 0, max: spanMs - 1 }).map((offset) => new Date(DAY_START + offset)),
@@ -59,9 +61,12 @@ describe('promotion simulation properties', () => {
     fc.assert(fc.property(choices, fc.array(event(WEEK_MS), { maxLength: 40 }), (builder, events) => {
       const simulation = replay(builder, events);
       expect(simulation.cost % CHIP).toBe(0n);
-      if (builder.reward === 'buy_in_bonus') expect(simulation.points).toBe(0n);
+      const isBonus = builder.reward === 'buy_in_bonus' || builder.reward === 'hours_bonus';
+      if (isBonus) expect(simulation.points).toBe(0n);
       else expect(simulation.cost).toBe(0n);
-      expect(simulation.cost <= sum(events.map((one) => one.amount))).toBe(true);
+      // A buy-in bonus is at most what was bought in; the hours bonus is its chips for each grant.
+      if (builder.reward === 'buy_in_bonus') expect(simulation.cost <= sum(events.map((one) => one.amount))).toBe(true);
+      if (builder.reward === 'hours_bonus') expect(simulation.cost).toBe(BigInt(builder.bonus_chips) * 100n * BigInt(simulation.grants));
     }));
   });
 

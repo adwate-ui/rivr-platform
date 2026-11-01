@@ -36,26 +36,37 @@ function WhenBlock({ choices, onChange, isDisabled }: Omit<BlocksProps, 'stakes'
   );
 }
 
-/** The reward, and for the buy-in bonus the most it gives on one buy-in, in rupees (question #415). */
+/** The reward; for the buy-in bonus the most it gives on one buy-in (question #415), for the hours bonus its hours and chips (#646). */
 function RewardBlock({ choices, onChange, isDisabled }: Omit<BlocksProps, 'stakes'>) {
   return (
     <Stack gap={4}>
       <ChoiceChips label={t('console.promotions.reward')} mode="one" selected={[choices.reward]} isDisabled={isDisabled}
         options={PROMOTION_BUILDER_REWARDS.map((reward) => ({ value: reward, label: t(`console.promotions.rewards.${reward}`) }))}
         onChange={(picked) => onChange({ ...choices, reward: PROMOTION_BUILDER_REWARDS.find((reward) => reward === picked[0]) ?? choices.reward })} />
-      {choices.reward === 'buy_in_bonus' ? <CapInput choices={choices} onChange={onChange} isDisabled={isDisabled} /> : null}
+      {choices.reward === 'buy_in_bonus' ? (
+        <WholeInput label={t('console.promotions.bonusCap')} value={choices.bonus_cap_rupees} isDisabled={isDisabled}
+          onValue={(cap) => onChange({ ...choices, bonus_cap_rupees: cap })} />
+      ) : null}
+      {choices.reward === 'hours_bonus' ? (
+        <Inline gap={4} wrap>
+          <WholeInput label={t('console.promotions.bonusHours')} value={choices.bonus_hours} isDisabled={isDisabled}
+            onValue={(hours) => onChange({ ...choices, bonus_hours: hours })} />
+          <WholeInput label={t('console.promotions.bonusChips')} value={choices.bonus_chips} isDisabled={isDisabled}
+            onValue={(chips) => onChange({ ...choices, bonus_chips: chips })} />
+        </Inline>
+      ) : null}
     </Stack>
   );
 }
 
-/** The cap as typed, kept as text so a half-typed amount stays on screen; Publish checks it. */
-function CapInput({ choices, onChange, isDisabled }: Omit<BlocksProps, 'stakes'>) {
-  const [text, setText] = useState(String(choices.bonus_cap_rupees));
+/** A whole number as typed, kept as text so a half-typed one stays on screen; Publish checks it. */
+function WholeInput({ label, value, isDisabled, onValue }: { label: string; value: number; isDisabled: boolean; onValue: (value: number) => void }) {
+  const [text, setText] = useState(String(value));
   return (
-    <Input label={t('console.promotions.bonusCap')} inputMode="numeric" value={text} disabled={isDisabled}
+    <Input label={label} inputMode="numeric" value={text} disabled={isDisabled}
       onChange={(event) => {
         setText(event.target.value);
-        onChange({ ...choices, bonus_cap_rupees: Number(event.target.value.replaceAll(',', '')) });
+        onValue(Number(event.target.value.replaceAll(',', '')));
       }} />
   );
 }

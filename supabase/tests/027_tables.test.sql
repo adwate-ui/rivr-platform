@@ -76,19 +76,23 @@ reset role;
 select is((select is_open from public.game_table where name = 'Table 4' and venue_id = '00000000-0000-4000-8000-000000000001'), true,
   'a floor manager opens Table 4');
 
--- A floor manager adds and changes tables and types, but never a type's code, which keys its rake.
+-- Tables and table types are written only through the setup functions (#642, supabase/tests/212_tables_setup), which
+-- check the freeze and who sits where: even a floor manager's direct writes are refused or reach no row, and never a
+-- type's code, which keys its rake.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select lives_ok($$ insert into public.table_type (venue_id, code, name, game, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise)
+select throws_ok($$ insert into public.table_type (venue_id, code, name, game, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise)
                    values ('00000000-0000-4000-8000-000000000001', 'plo_100_200', 'PLO 100/200', 'plo', 10000, 20000, 1000000, 1000000) $$,
-  'a floor manager adds a table type');
-select lives_ok($$ insert into public.game_table (venue_id, table_type_id, name, position)
+  '42501', null, 'a floor manager adds no table type directly');
+select throws_ok($$ insert into public.game_table (venue_id, table_type_id, name, position)
                    select venue_id, id, 'Table 6', 7 from public.table_type
-                   where code = 'plo_100_200' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
-  'and a table of it');
+                   where code = 'nlh_100_200' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
+  '42501', null, 'nor a table');
 select lives_ok($$ update public.table_type set buy_in_max_paise = 1500000
                    where code = 'nlh_100_200' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
-  'and changes a buy-in range');
+  'and a direct change of a buy-in range');
+select ok((select buy_in_max_paise from public.table_type where code = 'nlh_100_200' and venue_id = '00000000-0000-4000-8000-000000000001') <> 1500000,
+  'reaches no row');
 select throws_ok($$ update public.table_type set code = 'renamed' where code = 'nlh_50_100' $$, '42501', null,
   'but never a type''s code, which would drop its rake');
 select throws_ok($$ update public.game_table set table_type_id = table_type_id where name = 'Table 1' $$, '42501', null,

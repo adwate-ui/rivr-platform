@@ -120,6 +120,15 @@ export const queryKeys = {
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
+  /** A venue's stakes and tables, for Tables setup (#642). */
+  tablesSetup: (userId: string, venueId: string) => ['user', userId, 'tables-setup', venueId] as const,
+  /** The games run from one club day to another (#643). */
+  gamesHistory: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'games-history', venueId, from, to] as const,
+  /** Every member's points looked up by number at a venue (#645), and one of them. */
+  memberPointsAll: (userId: string, venueId: string) => ['user', userId, 'member-points', venueId] as const,
+  memberPoints: (userId: string, venueId: string, phone: string) => ['user', userId, 'member-points', venueId, phone] as const,
+  /** The signed-in member's locked points (#645). */
+  myLockedPoints: (userId: string) => ['user', userId, 'my-locked-points'] as const,
   /** The member's referral code (#151). */
   myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
   myCab: (userId: string) => ['user', userId, 'my-cab'] as const,

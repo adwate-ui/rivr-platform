@@ -16,8 +16,14 @@ import { SentBack } from './SentBack.tsx';
 import { SimulationPanel } from './SimulationPanel.tsx';
 import { TemplatesList } from './TemplatesList.tsx';
 
-// The bonus cap starts at ₹5,000 a buy-in, which the floor may change (question #415).
-const START: PromotionBuilder = { days: [], from: null, until: null, stake: null, reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000 };
+// The bonus cap starts at 5,000 chips a buy-in, which the floor may change (question #415); the hours bonus at 1,000 chips
+// after 4 hours, as the club's hours bonus template (#646).
+const START: PromotionBuilder = {
+  days: [], from: null, until: null, stake: null, reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000, bonus_hours: 4, bonus_chips: 1000,
+};
+
+// The failure for each number the builder takes; any other is the window's.
+const NUMBER_FAILURES = [['bonus_cap_rupees', 'invalidCap'], ['bonus_hours', 'invalidHours'], ['bonus_chips', 'invalidChips']] as const;
 
 /** The player card and the TV slide, as the choices so far would publish them. */
 function Previews({ title, detail, runs }: { title: string; detail: string | undefined; runs: string }) {
@@ -41,8 +47,8 @@ function Previews({ title, detail, runs }: { title: string; detail: string | und
 function invalidText(choices: PromotionBuilder): string | null {
   const checked = promotionBuilderSchema.safeParse(choices);
   if (checked.success) return null;
-  const isCap = checked.error.issues.some((issue) => issue.path[0] === 'bonus_cap_rupees');
-  return t(isCap ? 'console.promotions.failures.invalidCap' : 'console.promotions.failures.invalid');
+  const number = NUMBER_FAILURES.find(([field]) => checked.error.issues.some((issue) => issue.path[0] === field));
+  return t(`console.promotions.failures.${number?.[1] ?? 'invalid'}`);
 }
 
 const NOT_SIMULATED = { simulation: null, failure: null } as const;

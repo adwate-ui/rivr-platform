@@ -26,6 +26,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 | `instagramGraph` | `@rivr/adapters/instagram-graph` | `InstagramGraphAdapter` | Posts tagging RIVR, for the social wall: live `createInstagramGraph({ instagramUserId, accessToken })`, and one pull, `pullWallPosts({ instagram, since, record })` (#157) |
 | `channelAnalytics` | `@rivr/adapters/channel-analytics` | `ChannelAnalyticsAdapter` | Follower count per channel |
 | `metaConversions` | `@rivr/adapters/meta-conversions` | `MetaConversionsAdapter` | `action_source: physical_store`, identifiers SHA-256 hashed by `toMetaServerEvent` |
+| `crm` | `@rivr/adapters/crm` | `CrmAdapter` | The club's CRM (#647): `upsertContact` keyed by the member's id. Live on HubSpot (`createHubSpotCrm({ accessToken })`, a batch upsert by `rivr_member_id`, the `rivr_` properties from `toHubSpotProperties`); the consumer is `createCrmConsumer({ find, crm })` |
 | `googleAds` | `@rivr/adapters/google-ads` | `GoogleAdsConversionsAdapter` | Offline conversion import, phone hashed by `toClickConversion`; enabled |
 | `cachePurge` | `@rivr/adapters/cache-purge` | `CachePurgeAdapter` | Cloudflare purge after a website publish |
 | `store` | `@rivr/adapters/store` | `StoreAdapter` | Products of the hosted accessories store |

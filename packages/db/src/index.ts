@@ -78,6 +78,11 @@ export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer
 export {
   useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
 } from './floorToday.ts';
+export {
+  TABLE_GAMES, useGamesHistory, useTablesSetup, useTablesSetupActions, type GamesDay, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
+  type TableOrder, type TablesFailure,
+} from './tablesSetup.ts';
+export { useGivePoints, useMemberPoints, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';
 export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {

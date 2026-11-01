@@ -4,7 +4,7 @@ import { rewardDetail, rewardTitle, runsText } from './promotionCopy.ts';
 
 const STAKES = [{ code: 'nlh_50_100', name: 'NLH 50/100' }, { code: 'nlh_100_200', name: 'NLH 100/200' }];
 const FLOW_7: PromotionBuilder = {
-  days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000,
+  days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000, bonus_hours: 4, bonus_chips: 1000,
 };
 
 describe('promotion copy (#84)', () => {
@@ -28,6 +28,7 @@ describe('promotion copy (#84)', () => {
   it('tells players the most a buy-in bonus gives, and nothing for points', () => {
     expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus' })).toBe('Up to 5,000 bonus chips a buy-in');
     expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2000 })).toBe('Up to 2,000 bonus chips a buy-in');
+    expect(rewardDetail({ ...FLOW_7, reward: 'hours_bonus', bonus_hours: 3, bonus_chips: 1500 })).toBe('1,500 bonus chips after 3 hours at the tables');
     expect(rewardDetail(FLOW_7)).toBeUndefined();
   });
 });

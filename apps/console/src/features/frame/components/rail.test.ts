@@ -8,7 +8,7 @@ describe('the console rail and who may open each screen', () => {
   it('keeps a cashier out of admin screens, whether from the rail or by address', () => {
     const cashier = ROLE_PERMISSIONS.cashier;
     expect(items(cashier)).not.toEqual(expect.arrayContaining(['/staff']));
-    for (const admin of ['/staff', '/kill-switch', '/settings', '/devices', '/academy']) {
+    for (const admin of ['/staff', '/kill-switch', '/settings', '/devices', '/tables', '/academy']) {
       expect(isAllowedAt(cashier, admin)).toBe(false);
     }
     expect(isAllowedAt(cashier, '/')).toBe(true);
@@ -40,6 +40,20 @@ describe('the console rail and who may open each screen', () => {
     expect(isAllowedAt(service, '/')).toBe(false);
     expect(landingFor(railFor(service))).toBe('/fnb');
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/players-today')).toBe(true);
+  });
+
+  it('gives Floor every super admin module but tables setup, the member list, games history, tournaments and bonus', () => {
+    const floor = ROLE_PERMISSIONS.floor;
+    expect(items(floor)).toEqual(['/', '/waitlist', '/check-in', '/fnb', '/players-today', '/rewards']);
+    // Devices waits for a TV-only permission: devices.manage also enrols the cage's computers.
+    for (const kept of ['/tables', '/members', '/games-history', '/tournament-interest', '/promotions', '/spin-wheel', '/devices']) {
+      expect(isAllowedAt(floor, kept)).toBe(false);
+      expect(isAllowedAt(ROLE_PERMISSIONS.super_admin, kept)).toBe(true);
+    }
+  });
+
+  it('gives Cashier the same as Floor, less the food and drink orders', () => {
+    expect(items(ROLE_PERMISSIONS.cashier)).toEqual(['/', '/waitlist', '/check-in', '/players-today', '/rewards']);
   });
 
   it('shows beside an entry how many wait on its screen, and nothing beside the others', () => {

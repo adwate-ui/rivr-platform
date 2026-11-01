@@ -48,6 +48,7 @@ export const sops = {
   roleNames: {
     super_admin: 'Super admins',
     admin: 'Admins',
+    floor: 'Floor',
     cashier: 'Cashiers',
     dealer: 'Dealers',
     marketing: 'Marketing',
