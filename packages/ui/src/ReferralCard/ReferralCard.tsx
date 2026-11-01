@@ -52,9 +52,17 @@ function coversLatin(range: string): boolean {
   });
 }
 
+/** Each descriptor of a @font-face rule's text that the card reads. */
+const DESCRIPTOR = {
+  family: /(?:^|[{;\s])font-family\s*:\s*([^;}]+)/,
+  style: /(?:^|[{;\s])font-style\s*:\s*([^;}]+)/,
+  range: /(?:^|[{;\s])unicode-range\s*:\s*([^;}]+)/,
+  src: /(?:^|[{;\s])src\s*:\s*([^;}]+)/,
+};
+
 /** What a @font-face rule's text gives a descriptor, or ''. */
-function descriptor(cssText: string, name: string): string {
-  return new RegExp(`(?:^|[{;\\s])${name}\\s*:\\s*([^;}]+)`).exec(cssText)?.[1]?.trim() ?? '';
+function descriptor(cssText: string, name: keyof typeof DESCRIPTOR): string {
+  return DESCRIPTOR[name].exec(cssText)?.[1]?.trim() ?? '';
 }
 
 /**
@@ -63,8 +71,8 @@ function descriptor(cssText: string, name: string): string {
  */
 export function cardFontIn(faces: readonly { cssText: string; base: string }[]): string | null {
   for (const { cssText, base } of faces) {
-    if (descriptor(cssText, 'font-family').replace(/["']/g, '') !== DISPLAY) continue;
-    if (descriptor(cssText, 'font-style') === 'italic' || !coversLatin(descriptor(cssText, 'unicode-range'))) continue;
+    if (descriptor(cssText, 'family').replace(/["']/g, '') !== DISPLAY) continue;
+    if (descriptor(cssText, 'style') === 'italic' || !coversLatin(descriptor(cssText, 'range'))) continue;
     const url = /url\(\s*["']?([^"')]+)["']?\s*\)/.exec(descriptor(cssText, 'src'))?.[1];
     if (url !== undefined) return new URL(url, base).href;
   }
