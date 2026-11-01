@@ -63,11 +63,16 @@ describe('the console rail and who may open each screen', () => {
   });
 
   it('keeps the cage and money screens locking after ten idle minutes, and none of them on the rail', () => {
-    const locked = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/reports', '/withdrawals', '/academy/payments'];
-    for (const screen of locked) expect(locksWhenIdle(screen)).toBe(true);
+    const money = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/reports', '/withdrawals', '/academy/payments'];
+    for (const screen of money) expect(locksWhenIdle(screen)).toBe(true);
     expect(locksWhenIdle('/Markers')).toBe(true);
     const everyScreen = railFor(ROLE_PERMISSIONS.super_admin).flatMap((section) => section.items.map((item) => item.href));
-    expect(everyScreen.filter((href) => locksWhenIdle(href))).toEqual([]);
+    expect(everyScreen.filter((href) => money.includes(href))).toEqual([]);
+  });
+
+  it("locks the rail's screens with members' records and documents, the kill switch and the purge after ten idle minutes, and no other", () => {
+    const everyScreen = railFor(ROLE_PERMISSIONS.super_admin).flatMap((section) => section.items.map((item) => item.href));
+    expect(everyScreen.filter((href) => locksWhenIdle(href)).sort()).toEqual(['/kill-switch', '/kyc-review', '/members', '/purge']);
   });
 
   it('groups the rail by the job, with no Overview, Cage, Money or Reports', () => {

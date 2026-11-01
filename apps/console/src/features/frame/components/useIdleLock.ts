@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const IDLE_LIMIT = 10 * 60_000;
 const CHECK_EVERY = 15_000;
-// The last touch or key on a cage screen, kept in the browser so the lock holds across a reload.
+// The last touch or key on a screen that locks, kept in the browser so the lock holds across a reload.
 const ACTIVE_AT_KEY = 'rivr-cage-active-at';
 const ACTIVITY = ['pointerdown', 'keydown'] as const;
 
@@ -25,13 +25,13 @@ function writeActiveAt(at: number | null): void {
 }
 
 /**
- * The cage locks after ten idle minutes (#384; .claude/rules/security.md): while a cage screen is open,
- * no touch or key for ten minutes calls onLock, which signs the cashier out. A cage screen opened (or
- * reloaded) more than ten minutes after the last activity locks at once. Leaving the cage screens ends it.
+ * The cage, money, members' and venue-control screens lock after ten idle minutes (#384; .claude/rules/security.md):
+ * while one is open, no touch or key for ten minutes calls onLock, which signs the staff member out. One opened (or
+ * reloaded) more than ten minutes after the last activity locks at once. Leaving those screens ends it.
  */
-export function useIdleLock(isCageScreen: boolean, onLock: () => void) {
+export function useIdleLock(locks: boolean, onLock: () => void) {
   useEffect(() => {
-    if (!isCageScreen) return undefined;
+    if (!locks) return undefined;
     const stored = readActiveAt();
     if (stored !== null && Date.now() - stored > IDLE_LIMIT) {
       writeActiveAt(null);
@@ -68,5 +68,5 @@ export function useIdleLock(isCageScreen: boolean, onLock: () => void) {
       globalThis.clearInterval(timer);
       writeActiveAt(null);
     };
-  }, [isCageScreen, onLock]);
+  }, [locks, onLock]);
 }
