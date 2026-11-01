@@ -13,8 +13,8 @@ afterEach(() => {
 
 const FEATURES = ['call_time.view', 'table.top_up', 'table.leave', 'fnb.table_side'];
 
-/** Signed in on Tonight, seated at Table 3, seat 5, with 1 h 12 min of call time left and every seat action open. */
-function renderSeated() {
+/** Signed in on Tonight, seated at Table 3, seat 5, with 1 h 12 min of call time left and every seat action open, or a top-up as given. */
+function renderSeated(topUp: 'in_progress' | null = null) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -24,7 +24,7 @@ function renderSeated() {
     if (url.includes('/rpc/my_feature_access')) return Response.json(FEATURES.map((key) => ({ feature_key: key, state: 'enabled', tiers: null })));
     if (url.includes('/rpc/my_seat')) {
       return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: true, call_time_left: 4290, played_seconds: 4800,
-        is_leaving: false, top_up: null }]);
+        is_leaving: false, top_up: topUp }]);
     }
     return Response.json([]);
   });
@@ -61,5 +61,12 @@ describe('the seat card (UI polish audit A-08)', () => {
     expect(actions.getByRole('button', { name: 'Order food and drink' }).textContent).toBe('Order');
     expect(actions.getByRole('button', { name: 'Leave my seat' })).toBeDefined();
     expect(grid.className).toContain('grid-cols-2');
+  });
+
+  it('sets a top-up under way beneath the buttons, the full width, with no Top up among them', async () => {
+    renderSeated('in_progress');
+    await screen.findByRole('button', { name: 'Add an hour of call time' });
+    expect(screen.getByText('Top-up in progress at your seat.').closest('.grid')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Top up' })).toBeNull();
   });
 });
