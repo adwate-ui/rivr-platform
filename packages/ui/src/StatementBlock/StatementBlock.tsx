@@ -26,7 +26,7 @@ export function StatementBlock({ eyebrow, lines, text, action, image, note }: St
     <section className="relative overflow-hidden">
       {image ? (
         <>
-          <WebImage src={image} alt="" sizes="100vw" className="absolute inset-0 size-full object-cover" />
+          <WebImage src={image} alt="" span="full" className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0 bg-green-black opacity-muted" />
           {note ? <MediaNote>{note}</MediaNote> : null}
         </>

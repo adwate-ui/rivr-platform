@@ -41,7 +41,7 @@ export function StoryBlock({ eyebrow, heading, paragraphs, figures, action, imag
         </div>
         {image ? (
           <div className="aspect-photo overflow-hidden rounded-lg border border-hairline">
-            <WebImage src={image} alt={alt ?? ''} sizes="(min-width: 1180px) 50vw, 100vw" className="size-full object-cover" />
+            <WebImage src={image} alt={alt ?? ''} span="half" className="size-full object-cover" />
           </div>
         ) : null}
       </div>

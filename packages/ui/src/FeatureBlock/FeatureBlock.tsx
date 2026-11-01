@@ -46,7 +46,7 @@ export function FeatureBlock({ eyebrow, heading, text, points, action, image, al
       </div>
       <div className="mx-auto w-full max-w-phone tablet:order-first">
         <div className="aspect-story overflow-hidden rounded-lg border border-hairline">
-          <WebImage src={image} alt={alt} sizes="(min-width: 1180px) 390px, 100vw" className="size-full object-cover object-top" />
+          <WebImage src={image} alt={alt} span="phone" className="size-full object-cover object-top" />
         </div>
       </div>
     </section>

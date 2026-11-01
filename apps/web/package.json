@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/media.mjs && astro dev",
-    "build": "node scripts/media.mjs && astro build",
+    "dev": "node ../../packages/ui/scripts/media.mjs && astro dev",
+    "build": "node ../../packages/ui/scripts/media.mjs && astro build",
     "preview": "astro preview",
     "capture:app": "node scripts/capture-app.mjs",
     "typecheck": "astro check",
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
+    "@playwright/test": "1.64.1",
     "@rivr/config": "workspace:*",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^19.2.0",

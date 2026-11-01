@@ -42,7 +42,7 @@ export function GalleryBlock({ eyebrow, heading, intro, items, note }: GalleryBl
       <ul className="grid grid-cols-1 gap-4 tablet:grid-cols-4">
         {items.map((item) => (
           <li key={item.title} className="relative aspect-photo overflow-hidden rounded-lg">
-            <WebImage src={item.image} alt={item.alt} sizes="(min-width: 1180px) 25vw, 100vw" className="absolute inset-0 size-full object-cover" />
+            <WebImage src={item.image} alt={item.alt} span="quarter" className="absolute inset-0 size-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-linear-to-t from-green-black px-4 pt-16 pb-4">
               <h3 className="font-display text-24 leading-tight text-cream">{item.title}</h3>
               {item.text ? <p className="font-text text-14 leading-snug text-cream opacity-muted">{item.text}</p> : null}

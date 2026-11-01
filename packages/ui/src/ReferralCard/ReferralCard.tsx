@@ -80,7 +80,7 @@ function fontFaces(rules: CSSRuleList): CSSFontFaceRule[] {
 }
 
 /** Where the page loads the display face's upright Latin letters from, as its own stylesheets say, or null. */
-export function cardFontSource(): string | null {
+function cardFontSource(): string | null {
   return cardFontIn(Array.from(document.styleSheets).flatMap((sheet) => {
     try {
       return fontFaces(sheet.cssRules).map((face) => ({ cssText: face.cssText, base: sheet.href ?? document.baseURI }));
@@ -94,7 +94,7 @@ export function cardFontSource(): string | null {
 let cardFont: Promise<string | null> | null = null;
 
 /** The display face's Latin file as a data URL, read once; null where the page has none or it does not load. */
-export function loadCardFont(): Promise<string | null> {
+function loadCardFont(): Promise<string | null> {
   cardFont ??= (async () => {
     const source = cardFontSource();
     if (source === null) return null;
