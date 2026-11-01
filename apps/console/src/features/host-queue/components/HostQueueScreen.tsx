@@ -20,12 +20,12 @@ function HostQueue({ venueId }: { venueId: string }) {
   );
 }
 
-/** The host queue (#165; docs/contracts/lane-d.md features/host-queue), for staff with members.manage. */
+/** The host queue (#165; docs/contracts/lane-d.md features/host-queue), for staff with host_queue.manage: hosts and admins. */
 export function HostQueueScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  if (!staff.venue.permissions.includes('members.manage')) {
+  if (!staff.venue.permissions.includes('host_queue.manage')) {
     return <Screen title={t('console.hostQueue.title')} status="error" errorText={t('console.hostQueue.notAllowed')} />;
   }
   return <HostQueue venueId={staff.venue.venueId} />;

@@ -88,6 +88,14 @@ describe('the console rail and who may open each screen', () => {
     expect(isAllowedAt(ROLE_PERMISSIONS.dealer, '/settings')).toBe(false);
   });
 
+  it('gives the host role the Host queue, as admins have it, and keeps the cashier out of it', () => {
+    for (const role of ['host', 'admin', 'super_admin'] as const) {
+      expect(items(ROLE_PERMISSIONS[role])).toContain('/host-queue');
+      expect(isAllowedAt(ROLE_PERMISSIONS[role], '/host-queue')).toBe(true);
+    }
+    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/host-queue')).toBe(false);
+  });
+
   it('gives staff managers the Staff screen, and leaves screens with no rail entry open to all staff', () => {
     expect(items(ROLE_PERMISSIONS.admin)).toContain('/staff');
     expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/staff')).toBe(true);

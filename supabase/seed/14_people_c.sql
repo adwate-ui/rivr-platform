@@ -111,10 +111,17 @@ from seed_person_c p
 where p.id = '00000000-0000-4000-8000-000000000190'
 on conflict (venue_id, user_id) do nothing;
 
+-- The Host queue flow's own host (F2-04).
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, 'Host', 'host', p.phone
+from seed_person_c p
+where p.id = '00000000-0000-4000-8000-000000000643'
+on conflict (venue_id, user_id) do nothing;
+
 insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
 select '00000000-0000-4000-8000-000000000001', p.id, p.full_name, 'Floor manager', 'admin', p.phone
 from seed_person_c p
-where p.id in ('00000000-0000-4000-8000-000000000191', '00000000-0000-4000-8000-000000000643', '00000000-0000-4000-8000-000000000644')
+where p.id in ('00000000-0000-4000-8000-000000000191', '00000000-0000-4000-8000-000000000644')
 on conflict (venue_id, user_id) do nothing;
 
 insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)

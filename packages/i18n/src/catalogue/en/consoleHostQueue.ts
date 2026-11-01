@@ -2,7 +2,7 @@
 export const consoleHostQueue = {
   title: 'Host queue',
   hint: 'Regulars who have stopped coming, longest gone first. Call each, note why, and make an offer.',
-  notAllowed: 'Only staff who manage members can use the host queue.',
+  notAllowed: 'Your role does not use the host queue. Hosts and admins do.',
   none: 'No lapsed regulars to call.',
   /** `+91 90000 00642 · last here 28 Sep 2026 · 4 visits before that` */
   lapse: '{phone} · last here {last} · {visits} visits before that',
