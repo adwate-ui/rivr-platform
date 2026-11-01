@@ -96,7 +96,7 @@ function Rail({ sections, currentItem, onNavigate, railFooter, goToRef }: RailPr
           }}
         />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-3">
+      <div className="relative min-h-0 flex-1 overflow-y-auto px-3">
         {shown.length === 0 ? (
           <Text tone="muted">{t('ui.consoleRail.noMatch')}</Text>
         ) : (
@@ -182,8 +182,9 @@ export function ConsoleShell({ children, sections, currentItem, onNavigate, bann
           <aside className="hidden w-rail shrink-0 flex-col gap-8 border-r border-hairline bg-raised py-6 tablet:flex">
             <Rail sections={sections} currentItem={currentItem} onNavigate={onNavigate} railFooter={railFooter} goToRef={goToRef} />
           </aside>
-          {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). */}
-          <main id={MAIN_ID} tabIndex={0} className="min-w-0 flex-1 overflow-y-auto px-4 py-4 tablet:px-8 tablet:py-6">
+          {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). Positioned, so
+              a screen's visually hidden text stays inside it rather than lengthening the page. */}
+          <main id={MAIN_ID} tabIndex={0} className="relative min-w-0 flex-1 overflow-y-auto px-4 py-4 tablet:px-8 tablet:py-6">
             {children}
           </main>
         </div>
