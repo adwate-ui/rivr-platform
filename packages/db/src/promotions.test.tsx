@@ -117,6 +117,8 @@ describe('Promotions (#84)', () => {
     });
     await waitFor(() => expect(result.current.templates.data).toEqual([{ id: 't1', name: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', isLive: false }]));
     expect(calls.find((call) => call.url.includes('status=eq.draft'))?.url).toContain('template_key=not.is.null');
+    // Jackpots and buy-ins are off every console (0284), so their templates are too (Q8).
+    expect(calls.find((call) => call.url.includes('status=eq.draft'))?.url).toContain('template_key=not.in.%28bad_beat%2Ctuesday_bonus%29');
     let submitted: unknown;
     await act(async () => {
       submitted = await result.current.actions.submitTemplate.mutateAsync({ id: 't1', budget: null });

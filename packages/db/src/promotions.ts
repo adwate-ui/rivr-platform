@@ -130,6 +130,9 @@ export function usePromotions(venueId: string) {
 }
 
 /** The venue's draft templates, every scheme in the deck not yet published (#85), by name. */
+/** The templates for what no console runs since decision 0284: the bad-beat jackpot and the Tuesday buy-in bonus (UI polish Q8). */
+const HIDDEN_TEMPLATES = ['bad_beat', 'tuesday_bonus'];
+
 export function usePromotionTemplates(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -137,7 +140,7 @@ export function usePromotionTemplates(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<ConsolePromotion[]> => {
       const { data, error } = await client.from('promotion').select('id, name, detail, runs').eq('venue_id', venueId).eq('status', 'draft')
-        .not('template_key', 'is', null).order('name');
+        .not('template_key', 'is', null).not('template_key', 'in', `(${HIDDEN_TEMPLATES.join(',')})`).order('name');
       if (error) throw error;
       return data.map((row) => ({ id: row.id, name: row.name, detail: row.detail, runs: row.runs, isLive: false }));
     },
