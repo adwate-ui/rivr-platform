@@ -53,6 +53,8 @@ export function SessionsScreen() {
   if (sessions.isError) return <Screen title={title} status="error" onRetry={() => void sessions.refetch()} />;
   if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} status="loading" />;
   const open = (visitId: string) => void navigate({ to: '/sessions/$visitId', params: { visitId } });
+  // A tier without session history sees the screen's heading over the locked notice, not a bare notice (F3-21).
+  if (access.access.state !== 'enabled') return <Screen title={title}><FeatureGate access={access.access}>{null}</FeatureGate></Screen>;
   return (
     <FeatureGate access={access.access}>
       {sessions.data.length === 0

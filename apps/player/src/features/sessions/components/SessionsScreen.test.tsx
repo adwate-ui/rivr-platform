@@ -119,6 +119,8 @@ describe('Sessions', () => {
     renderAt('/sessions', { sessions: [SESSION], access: 'locked' });
     expect(await screen.findByText('Black card only.', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByRole('button', { name: /Table 3/ })).toBeNull();
+    // Under the screen's own heading (F3-21).
+    expect(screen.getByRole('heading', { level: 1, name: 'Sessions' })).toBeDefined();
   });
 });
 
@@ -155,5 +157,12 @@ describe('a session', () => {
   it('says a session not in the history is not there', async () => {
     renderAt('/sessions/v9', { sessions: [SESSION] });
     expect(await screen.findByText('This session is not in your history.', {}, { timeout: 5000 })).toBeDefined();
+  });
+
+  it('shows a locked session under its heading, with Back (F3-21)', async () => {
+    renderAt('/sessions/v1', { sessions: [SESSION], access: 'locked' });
+    expect(await screen.findByText('Black card only.', {}, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Sessions' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeDefined();
   });
 });

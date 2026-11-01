@@ -56,6 +56,8 @@ export function SessionScreen() {
   if (access.status === 'error') return <Screen title={title} actions={back} status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void sessions.refetch()} />;
   if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} actions={back} status="loading" />;
+  // A tier without session history sees the heading and Back over the locked notice, not a bare notice (F3-21).
+  if (access.access.state !== 'enabled') return <Screen title={title} actions={back}><FeatureGate access={access.access}>{null}</FeatureGate></Screen>;
   return (
     <FeatureGate access={access.access}>
       {session === undefined
