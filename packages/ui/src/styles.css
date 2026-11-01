@@ -39,6 +39,14 @@
     outline: none;
   }
 
+  /* A row of chips that scrolls sideways (ChoiceChips `isOneRow`) fades at its end, so a chip cut off reads as more to
+     come; room after the last chip lets it scroll clear of the fade. No scrollbar: the fade is the cue. */
+  [data-chip-row] {
+    mask-image: linear-gradient(to right, black calc(100% - var(--rivr-space-8)), transparent);
+    padding-inline-end: var(--rivr-space-8);
+    scrollbar-width: none;
+  }
+
   [role='switch']:focus-visible > [data-switch-track] {
     outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
     outline-offset: var(--rivr-border-width-focus);

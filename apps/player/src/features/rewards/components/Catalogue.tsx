@@ -95,7 +95,7 @@ export function Catalogue() {
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('memberRewards.catalogue')}</Heading>
-      <ChoiceChips label={t('memberRewards.show')} mode="one" selected={[kind]} options={options} onChange={(chosen) => setKind(chosen[0] ?? 'all')} />
+      <ChoiceChips label={t('memberRewards.show')} mode="one" selected={[kind]} options={options} onChange={(chosen) => setKind(chosen[0] ?? 'all')} isOneRow />
       <Rows kind={kind} />
     </Stack>
   );
