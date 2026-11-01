@@ -19,7 +19,8 @@ execFileSync('pnpm', ['--filter', '@rivr/ui', 'build'], { stdio: 'inherit' });
 await buildRenderHost();
 for (const output of BRAND_KIT) {
   const file = fileURLToPath(new URL(output.path, REPOSITORY));
-  const png = await renderToPng({ template: 'brand.art', props: { art: output.art }, width: output.width, height: output.height });
+  const props = output.backdrop === undefined ? { art: output.art } : { art: output.art, backdrop: output.backdrop };
+  const png = await renderToPng({ template: 'brand.art', props, width: output.width, height: output.height });
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, png);
 }
