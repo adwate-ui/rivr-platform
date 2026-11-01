@@ -132,9 +132,9 @@ describe('the console', () => {
     expect(screen.queryByRole('link', { name: tab })).toBeNull();
   });
 
-  it.each(['/dealer-pins', '/tablets', '/computers'])('still refuses a cashier at %s, once it has opened the screen it moved to', async (path) => {
+  it.each(['/dealer-pins', '/tablets', '/computers'])('still refuses a dealer at %s, once it has opened the screen it moved to', async (path) => {
     signIn();
-    answerStaff([CLUB]);
+    answerStaff([{ ...CLUB, role: 'dealer' }]);
     renderAt(path);
     expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
   });

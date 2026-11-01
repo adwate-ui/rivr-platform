@@ -41,10 +41,11 @@ const RAIL: readonly RailGroup[] = [
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'], hidden: true },
       { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'], hidden: true },
       { id: 'jackpots', label: 'console.rail.items.jackpots', href: '/jackpots', anyOf: ['jackpots.approve', 'ledger.read'], hidden: true },
-      // Players register interest from the app; the floor marks them registered once they paid (#636).
-      { id: 'tournamentInterest', label: 'console.rail.items.tournamentInterest', href: '/tournament-interest', anyOf: ['waitlist.manage'] },
+      // Players register interest from the app; staff who manage tournaments mark them registered once they paid (#636, #644).
+      { id: 'tournamentInterest', label: 'console.rail.items.tournamentInterest', href: '/tournament-interest', anyOf: ['tournaments.manage'] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', anyOf: ['fnb.manage', 'fnb.serve'] },
-      { id: 'spinWheel', label: 'console.rail.items.spinWheel', href: '/spin-wheel', anyOf: ['floor.manage', 'promotions.manage'] },
+      // A bonus, so not the floor's (#644).
+      { id: 'spinWheel', label: 'console.rail.items.spinWheel', href: '/spin-wheel', anyOf: ['promotions.manage'] },
     ],
   },
   {
@@ -61,7 +62,8 @@ const RAIL: readonly RailGroup[] = [
     id: 'players',
     label: 'console.rail.groups.players',
     entries: [
-      { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.read'] },
+      // The member list, the CRM's link (#647): for staff who manage members and the host, not the floor or the cashier (#644).
+      { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.manage', 'host_queue.manage'] },
       // Everyone at the club today, with their status, times and tables (#641).
       { id: 'todaysPlayers', label: 'console.rail.items.todaysPlayers', href: '/players-today', anyOf: ['members.read'] },
       { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] },
@@ -75,7 +77,7 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.marketing',
     entries: [
       { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', anyOf: ['promotions.manage'] },
-      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', anyOf: ['rewards.manage', 'rewards.hand_over'] },
+      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', anyOf: ['rewards.manage', 'rewards.hand_over', 'points.give'] },
       { id: 'league', label: 'console.rail.items.league', href: '/league', anyOf: ['rewards.manage', 'members.read'], hidden: true },
       { id: 'events', label: 'console.rail.items.events', href: '/events', anyOf: ['promotions.manage'], hidden: true },
       { id: 'creators', label: 'console.rail.items.creators', href: '/creators', anyOf: ['promotions.manage'], hidden: true },
@@ -122,6 +124,9 @@ const RAIL: readonly RailGroup[] = [
     id: 'admin',
     label: 'console.rail.groups.admin',
     entries: [
+      // The stakes and tables the club runs and the games they ran: the super admin's, not the floor's (#642, #643, #644).
+      { id: 'tablesSetup', label: 'console.rail.items.tablesSetup', href: '/tables', anyOf: ['tables.manage'] },
+      { id: 'gamesHistory', label: 'console.rail.items.gamesHistory', href: '/games-history', anyOf: ['tables.manage'] },
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
       { id: 'devices', label: 'console.rail.items.devices', href: '/devices', anyOf: ['devices.manage'] },
       { id: 'exports', label: 'console.rail.items.exports', href: '/exports', anyOf: ['exports.full'], hidden: true },

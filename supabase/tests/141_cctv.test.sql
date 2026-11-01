@@ -1,7 +1,7 @@
 -- CCTV references (#122; tech plan item 17; decision 0238). Aditya (103, an admin who manages devices) puts a camera
 -- over Table 2 and one on the cage. A hand at Table 2 then carries Table 2's camera and its moment; a cash buy-in at
 -- the cage the cage's; an incident the camera its logger chose. The reference answers only for a row the caller may
--- read. Sana (104, a cashier) keeps no cameras; Leela (154, a super admin at the club only) sees none of the practice
+-- read. Pema (106, a dealer) keeps no cameras; Leela (154, a super admin at the club only) sees none of the practice
 -- venue's.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -21,9 +21,9 @@ grant select on tables to authenticated;
 update public.camera set is_active = false where venue_id = '00000000-0000-4000-8000-000000000001';
 
 -- Only staff who manage devices keep the cameras.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.save_camera('00000000-0000-4000-8000-000000000001', 'Table 2 overhead', '2', false, true) $$,
-  '42501', null, 'a cashier adds no camera');
+  '42501', null, 'a dealer adds no camera');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'table2', public.save_camera('00000000-0000-4000-8000-000000000001', 'Table 2 overhead', 'ch-2', false, true,

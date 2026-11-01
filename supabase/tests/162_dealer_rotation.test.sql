@@ -109,9 +109,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select 1 from public.dealer_rotation('00000000-0000-4000-8000-000000000001') $$, 'a dealer sees no board');
 select is_empty($$ select 1 from public.dealer_nights('00000000-0000-4000-8000-000000000001', now() - interval '1 day', now()) $$,
   'nor anyone''s hands');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000109');
 select is_empty($$ select 1 from public.dealer_nights('00000000-0000-4000-8000-000000000001', now() - interval '1 day', now()) $$,
-  'a cashier, who reads the ledger but does not run the floor, sees no one''s hours');
+  'the owner''s view, which reads the ledger but does not run the floor, sees no one''s hours');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is_empty($$ select 1 from public.dealer_rotation('00000000-0000-4000-8000-000000000001') $$, 'nor does a member');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');

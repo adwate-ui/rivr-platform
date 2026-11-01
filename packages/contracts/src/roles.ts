@@ -5,7 +5,7 @@
  * row-level security checks it; a db test keeps the two equal.
  */
 
-export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view', 'service'] as const;
+export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view', 'service', 'floor'] as const;
 
 /** A staff member's permission role. */
 export type StaffRole = (typeof STAFF_ROLES)[number];
@@ -24,6 +24,7 @@ export const PERMISSIONS = [
   'kyc.review',
   'tiers.manage', // tiers and the tier x feature matrix
   'floor.manage', // tables, seating, games
+  'tables.manage', // the stakes and tables the club runs, and games history (#642, #643)
   'waitlist.manage',
   'call_time.override', // let a player leave before call time, with a reason
   'hands.log',
@@ -58,6 +59,7 @@ export const PERMISSIONS = [
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
   'rewards.manage', // the rewards catalogue and the League's seasons (decisions 0181, 0182)
   'rewards.hand_over', // hand a member what they redeemed (decision 0181)
+  'points.give', // give a member points by hand, earned or locked, and release locked ones, never to oneself (#645)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
   'shareholding.manage', // the shareholding register, super_admin only (decision 0170)
   'pot_data.read', // every hand by table, dealer, variant and period (decision 0185)
@@ -77,11 +79,19 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'rewards.manage', 'rewards.hand_over',
-    'treasury.manage',
+    'treasury.manage', 'tables.manage', 'points.give',
   ],
+  // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs wait for a
+  // permission of their own, as devices.manage reaches the cage's computers and the cameras.
+  floor: [
+    ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve',
+    'rewards.manage', 'rewards.hand_over', 'points.give',
+  ],
+  // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
   cashier: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',
-    'withdrawals.approve', 'ledger.read', 'rewards.hand_over',
+    'withdrawals.approve', 'ledger.read', 'rewards.hand_over', 'waitlist.manage', 'floor.manage', 'call_time.override',
+    'rewards.manage', 'points.give',
   ],
   dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
   marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit', 'rewards.manage'],
