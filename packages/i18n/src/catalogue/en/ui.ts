@@ -110,6 +110,8 @@ export const ui = {
   },
   /** The player app with no connection: it opens from its cached shell. */
   offlineBanner: 'Offline. What you see may be out of date.',
+  /** A screen's data stopped refreshing: when it last came. */
+  staleNotice: 'Not updated since {time}. Check the connection.',
   /** A table's seats on the dealer tablet (#59): each a button, read out with who sits there. */
   seatRing: { seat: 'Seat {number}', open: 'Seat {number}, open', taken: 'Seat {number}, {name}' },
   /** A Learn review's heatmap (#136): the four bands a cell falls in. */
