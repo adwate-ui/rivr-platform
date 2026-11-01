@@ -105,7 +105,7 @@ export const tonight = {
   leaveName: 'Leave: the {game} list',
   confirmLeave: 'Yes, leave the {game} list',
   /** The seat call (#63), as the WhatsApp message says it: `{time}` is when the hold runs out, IST. */
-  seatReady: 'Your seat is ready. {table}, seat {seat}. Held until {time}.',
+  seatReady: 'Your seat is ready: {table}, seat {seat}. Held until {time}.',
   stepAway: 'Step away',
   back: "I'm back",
   /** Named by the game, for a screen reader (F3-17). */

@@ -43,3 +43,23 @@ describe('copy rules', () => {
     expect(english.filter(([, text]) => text.trim() === '').map(([key]) => key)).toEqual([]);
   });
 });
+
+// Decision 0289: the owner found the copy over-explained. What members read says the fact, then stops.
+const MEMBER_FACING = ['player.', 'web.', 'tv.', 'common.', 'push.'];
+const memberCopy = english.filter(([key]) => MEMBER_FACING.some((prefix) => key.startsWith(prefix)));
+
+describe('member-facing copy says the fact, then stops (decision 0289)', () => {
+  it('has no filler: please, just, right now, for now, a few minutes, successfully', () => {
+    const filler = /\b(please|just|right now|for now|a few minutes|successfully)\b/i;
+    expect(memberCopy.filter(([, text]) => filler.test(text)).map(([key]) => key)).toEqual([]);
+  });
+
+  it('never speaks as "we", the system', () => {
+    expect(memberCopy.filter(([, text]) => /\b[Ww]e (check|keep|tell|could|will|send|use)\b/.test(text)).map(([key]) => key)).toEqual([]);
+  });
+
+  it('runs to two sentences at most', () => {
+    const long = memberCopy.filter(([, text]) => (text.match(/[.?](\s|$)/g) ?? []).length > 2);
+    expect(long.map(([key, text]) => `${key}: ${text}`)).toEqual([]);
+  });
+});

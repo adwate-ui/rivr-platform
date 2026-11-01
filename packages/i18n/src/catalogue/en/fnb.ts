@@ -14,7 +14,7 @@ const failures = {
 } as const;
 
 /** A venue's menu with nothing on offer, on every screen that shows it. */
-const empty = 'Nothing is on the menu just now.';
+const empty = 'Nothing on the menu.';
 
 /** Table-side food and drink in the player app (#123): from the member's seat, paid to Glaza. */
 export const playerFnb = {

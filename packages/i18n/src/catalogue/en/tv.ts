@@ -34,7 +34,7 @@ export const tv = {
     title: 'Rewards',
     leaders: 'Points leaders',
     leadersDetail: 'This month',
-    redeemed: 'Just redeemed',
+    redeemed: 'Recently redeemed',
     redeemedDetail: 'This week',
     empty: 'Nothing yet.',
     points: '{points} points',
