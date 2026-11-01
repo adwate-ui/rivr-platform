@@ -44,7 +44,10 @@ export function Switch({ label, hint, isOn, onChange, isDisabled }: SwitchProps)
       >
         <span
           aria-hidden="true"
-          className={cx('inline-flex h-6 w-10 items-center rounded-lg p-1 transition-colors', isOn ? 'bg-action' : 'bg-hairline')}
+          // Off, the track stays dark and its edge is the control colour: the cream thumb on it is clear, and the track
+          // meets 3:1 on the page (F5-04).
+          className={cx('inline-flex h-6 w-10 items-center rounded-lg border p-1 transition-colors',
+            isOn ? 'border-action bg-action' : 'border-control bg-raised')}
         >
           <span className={cx('size-4 rounded-sm bg-cream transition-transform', isOn && 'translate-x-4')} />
         </span>

@@ -21,6 +21,7 @@
   --color-ink-muted: var(--rivr-color-ink-muted);
   --color-muted: var(--rivr-color-muted);
   --color-hairline: var(--rivr-color-hairline);
+  --color-control: var(--rivr-color-control);
   --color-surface: var(--rivr-color-surface);
   --color-raised: var(--rivr-color-raised);
   --color-content: var(--rivr-color-content);
@@ -94,6 +95,7 @@
   --aspect-photo: var(--rivr-aspect-photo);
   --aspect-story: var(--rivr-aspect-story);
   --aspect-card: var(--rivr-aspect-card);
+  --aspect-video: var(--rivr-aspect-video);
   --radius-sm: var(--rivr-radius-sm);
   --radius-md: var(--rivr-radius-md);
   --radius-lg: var(--rivr-radius-lg);

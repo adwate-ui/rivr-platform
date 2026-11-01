@@ -19,7 +19,7 @@ export function FaqBlock({ heading, questions }: FaqBlockProps) {
       <div className="flex max-w-text flex-col divide-y divide-hairline">
         {questions.map(({ question, answer }) => (
           <details key={question} className="py-4">
-            <summary className="min-h-11 cursor-pointer py-2 font-text text-18 font-medium text-content">{question}</summary>
+            <summary className="min-h-touch cursor-pointer py-2 font-text text-18 font-medium text-content">{question}</summary>
             <Text tone="muted">{answer}</Text>
           </details>
         ))}

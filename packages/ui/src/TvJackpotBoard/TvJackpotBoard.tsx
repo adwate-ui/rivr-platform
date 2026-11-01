@@ -24,7 +24,7 @@ export function TvJackpotBoard({ label, amount, highHandLabel, highHand, noHighH
     <div className="flex flex-1 flex-col items-center justify-center text-center">
       <Text variant="tvLabel" tone="muted" align="center">{label}</Text>
       <Money paise={amount} size="tvJackpot" />
-      <hr className="mt-14 mb-12 w-2/5 border-hairline" />
+      <hr className="mt-16 mb-12 w-2/5 border-hairline" />
       <Text variant="tvLabel" tone="muted" align="center">{highHandLabel}</Text>
       {highHand === null ? (
         <div className="pt-6"><Text variant="tvBody" tone="muted" align="center">{noHighHandText}</Text></div>

@@ -37,7 +37,7 @@ export function TextArea({ label, hint, error, rows = 8, ...native }: TextAreaPr
       <textarea
         id={id}
         rows={rows}
-        className={cx(FRAME, error ? 'border-alert' : 'border-hairline')}
+        className={cx(FRAME, error ? 'border-alert' : 'border-control')}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         {...native}

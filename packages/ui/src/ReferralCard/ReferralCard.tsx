@@ -80,6 +80,6 @@ export async function cardToPng(svg: string): Promise<Blob> {
 export function ReferralCard({ text, alt }: { text: ReferralCardText; alt: string }) {
   return (
     <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(referralCardSvg(text))}`} alt={alt}
-      className="aspect-square w-full max-w-sm rounded-lg" />
+      className="aspect-square w-full max-w-text rounded-lg" />
   );
 }

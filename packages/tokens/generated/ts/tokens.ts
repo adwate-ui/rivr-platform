@@ -14,6 +14,7 @@ export const tokens = {
     "inkMuted": "#141414B3",
     "muted": "#F3EDE099",
     "hairline": "#C9A85C40",
+    "control": "#F3EDE080",
     "surface": "#0E3B2C",
     "raised": "#0A2A20",
     "content": "#F3EDE0",
@@ -120,7 +121,8 @@ export const tokens = {
     "portrait": "3 / 4",
     "photo": "4 / 3",
     "story": "9 / 16",
-    "card": "85.6 / 54"
+    "card": "85.6 / 54",
+    "video": "16 / 9"
   },
   "radius": {
     "sm": 3,

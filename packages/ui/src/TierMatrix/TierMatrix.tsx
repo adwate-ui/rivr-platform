@@ -53,7 +53,7 @@ export function TierMatrix({ label, featureHeader, tiers, rows, emptyText }: Tie
         <tbody>
           {rows.map((row) => (
             <tr key={row.key} className="border-t border-hairline">
-              <th scope="row" className="py-3 pr-4 text-left align-top font-normal">
+              <th scope="row" className="py-3 pr-4 text-left align-top font-regular">
                 <Text weight="semibold">{row.name}</Text>
                 {row.description === undefined ? null : <Text variant="small" tone="muted">{row.description}</Text>}
               </th>

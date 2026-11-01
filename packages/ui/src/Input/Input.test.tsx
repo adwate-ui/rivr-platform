@@ -69,13 +69,13 @@ describe('Input', () => {
     expect(field).not.toHaveClass('rounded-md');
   });
 
-  it('draws a line field as an underline, hairline until an error turns it red', () => {
+  it('draws a line field as an underline, in the control edge until an error turns it red', () => {
     renderIn(<Input label="Name" variant="line" />);
     renderIn(<Input label="Surname" variant="line" error="Enter your surname." />);
-    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass('border-b', 'border-hairline');
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass('border-b', 'border-control');
     const withError = screen.getByRole('textbox', { name: 'Surname' });
     expect(withError).toHaveClass('border-b', 'border-alert');
-    expect(withError).not.toHaveClass('rounded-md', 'border-hairline');
+    expect(withError).not.toHaveClass('rounded-md', 'border-control');
   });
 
   it('marks a prefixed field as one row, so its focus ring goes round the prefix and the value', () => {
