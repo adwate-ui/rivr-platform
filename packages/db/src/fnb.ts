@@ -197,7 +197,10 @@ function linesOf(lines: unknown): FnbOrderTonight['lines'] {
   });
 }
 
-/** The console's actions: order for a seat (`comp` only here), mark a KOT given to the bar by hand, and keep the menu. */
+/**
+ * The console's actions: order for a seat (`comp` only here), once per request id so a retry returns the first order (A3), mark
+ * a KOT given to the bar by hand, and keep the menu.
+ */
 export function useFnbActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -206,9 +209,10 @@ export function useFnbActions(venueId: string) {
     queryClient.invalidateQueries({ queryKey: queryKeys.fnbItems(userId ?? 'signed-out', venueId) }),
   ]);
   const order = useMutation({
-    mutationFn: async (input: { tableId: string; seat: number; lines: readonly FnbLine[]; isComp: boolean }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
+    mutationFn: async (input: { tableId: string; seat: number; lines: readonly FnbLine[]; isComp: boolean; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
       const { data, error } = await client.rpc('console_fnb_order', {
         p_venue_id: venueId, p_table_id: input.tableId, p_seat: input.seat, p_lines: linesJson(input.lines), p_is_comp: input.isComp,
+        p_idempotency_key: input.requestId,
       });
       await reload();
       return placed(data, error);

@@ -86,9 +86,9 @@ describe('table-side food and drink', () => {
       '/rpc/fnb_orders_tonight': { body: [] },
       '/rest/v1/fnb_item': { body: [] },
     });
-    await act(async () => { await result.current.actions.order.mutateAsync({ tableId: 't3', seat: 5, lines: LINES, isComp: true }); });
+    await act(async () => { await result.current.actions.order.mutateAsync({ tableId: 't3', seat: 5, lines: LINES, isComp: true, requestId: 'r1' }); });
     expect(calls.find((call) => call.url.includes('/rpc/console_fnb_order'))?.body).toEqual({
-      p_venue_id: VENUE, p_table_id: 't3', p_seat: 5, p_lines: LINES, p_is_comp: true,
+      p_venue_id: VENUE, p_table_id: 't3', p_seat: 5, p_lines: LINES, p_is_comp: true, p_idempotency_key: 'r1',
     });
     let marked: unknown;
     await act(async () => { marked = await result.current.actions.markSent.mutateAsync('o1'); });

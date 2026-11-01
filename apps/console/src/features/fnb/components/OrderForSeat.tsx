@@ -38,10 +38,14 @@ export function OrderForSeat({ venueId }: { venueId: string }) {
   const [counts, setCounts] = useState<Readonly<Record<string, number>>>({});
   const [isComp, setIsComp] = useState(false);
   const [outcome, setOutcome] = useState<{ kot: number } | { failure: FnbFailure } | null>(null);
+  // One id an order, kept to retry one whose answer was lost, and new with any change to it (A3).
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+  const renew = () => setRequestId(crypto.randomUUID());
   const lines = Object.entries(counts).filter(([, quantity]) => quantity > 0).map(([itemId, quantity]) => ({ item_id: itemId, quantity }));
   const send = async () => {
     const [tableId = '', seat = '0'] = (chosen ?? '').split(':');
-    const placed = await order.mutateAsync({ tableId, seat: Number(seat), lines, isComp });
+    const placed = await order.mutateAsync({ tableId, seat: Number(seat), lines, isComp, requestId });
+    if (placed.ok || placed.error !== 'unavailable') renew();
     setOutcome(placed.ok ? { kot: placed.value.kotNumber } : { failure: placed.error });
     if (placed.ok) setCounts({});
   };
@@ -50,10 +54,10 @@ export function OrderForSeat({ venueId }: { venueId: string }) {
       <Heading level={2}>{t('console.fnb.newOrder')}</Heading>
       {choices.length === 0 ? <Text>{t('console.fnb.nobodySeated')}</Text> : (
         <ChoiceChips label={t('console.fnb.seat')} mode="one" options={choices} selected={chosen === null ? [] : [chosen]}
-          onChange={([picked]) => setChosen(picked ?? null)} />
+          onChange={([picked]) => { setChosen(picked ?? null); renew(); }} />
       )}
-      <MenuSteppers menu={menu} counts={counts} onChange={(itemId, quantity) => { setCounts({ ...counts, [itemId]: quantity }); setOutcome(null); }} />
-      <Switch label={t('console.fnb.isComp')} isOn={isComp} onChange={setIsComp} />
+      <MenuSteppers menu={menu} counts={counts} onChange={(itemId, quantity) => { setCounts({ ...counts, [itemId]: quantity }); setOutcome(null); renew(); }} />
+      <Switch label={t('console.fnb.isComp')} isOn={isComp} onChange={(comp) => { setIsComp(comp); renew(); }} />
       <Button variant="secondary" isDisabled={chosen === null || lines.length === 0} isLoading={order.isPending} onClick={() => void send()}>
         {t('console.fnb.send')}
       </Button>

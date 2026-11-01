@@ -1245,14 +1245,14 @@ isOneToOne: false
                   ]
                 },"fnb_order": {
                   Row: {
-                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"idempotency_key": string | null,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -2431,14 +2431,14 @@ isOneToOne: false
                   ]
                 },"promotion": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"idempotency_key": string | null,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4599,7 +4599,7 @@ isOneToOne: false
 { Args: { "p_bank_amount_paise": number,"p_request_id": string }; Returns: undefined
                            },
 "console_fnb_order":
-{ Args: { "p_is_comp": boolean,"p_lines": Json,"p_seat": number,"p_table_id": string,"p_venue_id": string }; Returns: {
+{ Args: { "p_idempotency_key"?: string,"p_is_comp": boolean,"p_lines": Json,"p_seat": number,"p_table_id": string,"p_venue_id": string }; Returns: {
               "kot_number": number,"order_id": string
             }[]
                            },
