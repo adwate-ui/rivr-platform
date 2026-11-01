@@ -1,8 +1,11 @@
 -- The website's claims of what the app no longer does (UI polish audit A-27, decision 0289): every hand logged at the
--- table, points for every hour, a share of the rake as points, and a jackpot in the picture of the app (AS-03 retook it). Hands are logged only where a table has a tablet,
--- and points are given by hand (decision 0284), so the lines that said so give way to neutral ones until the club writes
--- its own in the console's Website editor (owner, 2 Nov: placeholders for now). Each only while it still reads as the
--- website came with it, so a club's own words stay.
+-- table, points for every hour, a share of the rake as points, League points earned by hours and finishes, every night's
+-- money on record, and a jackpot in the picture of the app (AS-03 retook it). Hands are logged only where a table has a
+-- tablet, points and League points are given by hand (decision 0284; the owner, 2 Nov: League by hand or CSV), and no
+-- money is tracked, so the lines that said so give way to neutral ones, or the parity pages' "Details to follow.", until
+-- the club writes its own in the console's Website editor (owner, 2 Nov: placeholders for now). How League points are
+-- earned is a question for the owner (#710). Each only while it still reads as the website came with it, so a club's own words
+-- stay.
 create function private.website_without_old_claims(p_venue_id uuid)
 returns void
 language plpgsql
@@ -16,14 +19,18 @@ declare
     ['"Cash games and tournaments dealt by casino-trained dealers, with every hand logged at the table."',
      '"Cash games and tournaments dealt by casino-trained dealers."'],
     ['"On a rotation, with every pot counted and every hand logged on the table''s tablet."', '"On a rotation, at every table."'],
-    ['"Every buy-in, cash-out and hand is logged, so every night balances."', '"Every buy-in and cash-out is recorded, so every night balances."'],
+    ['"Every buy-in, cash-out and hand is logged, so every night balances."', '"Details to follow."'],
     ['"Points for every hour you play"', '"Points from the club, spent on rewards"'],
     ['"RIVR Rewards: a share of your rake back as points"', '"RIVR Rewards"'],
     ['"Where everyone starts: the waitlist from the app, points for every hour, and RIVR Rewards on your rake."',
      '"Where everyone starts: the waitlist from the app and RIVR Rewards."'],
     ['"Every hour at the tables and every tournament finish earns League points. Here is where everyone stands, this month and this season."',
-     '"League points come from cash games and tournament finishes. Here is where everyone stands, this month and this season."'],
-    ['"Every hour seated at a cash table earns League points, more at the higher stakes."', '"Cash games earn League points."'],
+     '"Here is where everyone stands, this month and this season."'],
+    ['"Every hour seated at a cash table earns League points, more at the higher stakes."', '"Details to follow."'],
+    ['"Every finish earns points for taking part, and more for the final table and the top three."', '"Details to follow."'],
+    ['Every finish earns RIVR League points, more for the final table and the top three. ', ''],
+    ['Cash game hours and tournament finishes earn League points, and the standings and prizes are on the Leaderboard page.',
+     'The standings and prizes are on the Leaderboard page.'],
     ['"heading": "Points for every hour"', '"heading": "Points and rewards"'],
     ['"The RIVR app''s Home: tonight''s tables with their open seats, the bad-beat jackpot and the next tournament"',
      '"The RIVR app''s Home: tonight''s tables with their open seats and the tournaments coming up"']
