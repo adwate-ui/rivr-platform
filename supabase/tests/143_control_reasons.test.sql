@@ -44,7 +44,7 @@ select results_eq($$ select level::text from public.control_state where released
   $$ values ('venue_freeze'::text) $$, 'a dealer tablet sees the club is frozen');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000109');
-select is_empty($$ select * from public.audit_log where entity = 'control_state' $$, 'an investor reads no audit row of a control');
+select is_empty($$ select id from public.audit_log where entity = 'control_state' $$, 'an investor reads no audit row of a control');
 select is_empty($$ select * from public.outbox_event where event_type like 'control.%' $$, 'nor its events');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
