@@ -33,3 +33,6 @@ export const TabletQueue: Story = { render: () => <Offline message="Offline. 3 h
 
 /** Back online, sending what it held. */
 export const Sending: Story = { args: { message: 'Offline. 3 hands queued.', onlineMessage: 'Sending 3 hands.' } };
+
+/** A long line, as the tablet's queue can say (F5-19). */
+export const LongText: Story = { render: () => <Offline message="Offline. 128 hands queued at Table 3; they go to the floor once the connection is back." />, tags: ['viewport-phone'] };

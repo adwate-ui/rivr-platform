@@ -11,14 +11,17 @@ paths:
 Every pixel in every app comes from `@rivr/ui`. Every value comes from `packages/tokens/tokens.json`, the single design source; its CSS, Tailwind, TypeScript and Android outputs are generated and never edited by hand. See "Design system" in `docs/spec/additions-2026-10-14.md`.
 
 ## What lives in `@rivr/ui`
-- Layout: Box, Stack, Inline, Grid, Divider, Container, Screen
-- Type: Text, Heading, Label, Money, Number, Time, Stakes
-- Icon (one set, one component)
-- Controls: Button (primary, secondary, text, danger), IconButton, Input, MoneyInput, PinPad, Keypad, Select, Toggle, Checkbox, Radio, SegmentedControl, DatePicker, SearchField, FileDrop
-- Overlays and feedback: Sheet, Modal, Toast, Banner, Tooltip, Skeleton, EmptyState, ErrorState, ConfirmAction
-- Data: DataTable (sort, filter, export, virtualisation), List, ListRow, Stat, Badge, Avatar, KycPhoto, QrCode, Chart
-- Shells: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell; BottomNav, SideNav, Tabs, Breadcrumbs
-- Domain: SeatRing, TableCard, WaitlistRow, CallTimeTimer, PromotionCard, JackpotFigure, TournamentClock, PayoutTable, Receipt, MembershipCard, HandEntry, KillSwitchBanner, FeatureGate, LockedNotice, TierMatrix, website blocks
+The package's README lists each with its props; this is the map (F5-18: only what exists, so a review never asks for a component that is not there).
+- Layout: Box, Stack, Inline, Grid, Divider, Container, Screen, SplitView, StepScreen, LoadState, `useIsWide`
+- Type: Text, Heading, Label, Money, Number, Time, Stakes, Icon, Wordmark, BrandIcon, BrandArt
+- Controls: Button (primary, secondary, text, danger), Input, TextArea, ChoiceChips, ChoiceSheet, Switch, QuantityStepper, PinPad, Keypad, SignaturePad, CameraButton, Captcha, ReasonForm, ConfirmButton, ConfirmQuestion, PlaybackLink, QrScanView
+- Feedback: ErrorMessage, StatusMessage, StaleNotice, OfflineBanner, KillSwitchBanner, CookieBanner, InstallOffer, PromptBar, LockedNotice, FeatureGate
+- Data: DataTable (sort, filter, export, virtualisation), HistoryRow, FloorRow, KycPhoto, VenueLogo, QrCode, Chart, Heatmap, TierMatrix
+- Shells and navigation: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell, BottomNav, SideNav, Tabs
+- Domain: SeatRing, TableCard, CallTimeTimer, DrillTable, MembershipCard, PromotionCard, PromotionPager, ReferralCard, SocialCard, TournamentClock, Receipt, ThermalReceipt, and the TV boards (TvWaitlistBoard, TvCallTimeBoard, TvJackpotBoard, TvTournamentClock, TvPromotionSlide, TvBoardProgress)
+- Documents: PrintSheet, DocumentPage, DocumentTable, InvoiceDocument, OfflinePackDocument, PartnerStatementDocument, DisplayPreview, WebPreview, StreamOverlay
+- Website blocks: HeroBlock, TextBlock, RulesBlock, FaqBlock, CareersBlock, MapBlock, GamesBlock, CalendarBlock, LinksBlock, StatementBlock, GalleryBlock, FeatureBlock, StoryBlock, CardsBlock, MarqueeBlock, TimelineBlock, TableBlock, PromotionsBlock, WebBand, WebFooter
+- Not here, on purpose: no Modal, Toast, Select, Checkbox, Radio, Tooltip, Skeleton, EmptyState, Badge, Avatar or DatePicker. A screen asks in place (ConfirmButton, ConfirmQuestion, ChoiceSheet), says an outcome inline (StatusMessage, ErrorMessage), picks with ChoiceChips or Switch, shows loading and empty states with Screen and LoadState, and takes a day with `Input type="date"`. Add one only through the `new-ui-component` skill, when a screen needs it.
 
 ## In `apps/` you may not
 - write any lowercase JSX element (`<div>`, `<span>`, `<button>`, `<img>`, `<svg>`...)
@@ -37,7 +40,7 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 - `@rivr/render` templates compose `@rivr/ui`; they define no styles.
 
 ## Visual standard
-- Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only.
+- Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only, besides a busy button's turning circle and the TV's progress bar.
 - One gold filled button per screen at most.
 - No decorative poker imagery, gradients, glass, glows or shadows beyond a modal's.
 - Do not copy from the prototype: the demo bar, the Claude Design badge, image slots, device-frame radii, placeholder payee details.

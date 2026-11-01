@@ -15,3 +15,6 @@ export const Member: Story = {};
 export const Staff: Story = { args: { audience: 'staff' } };
 
 export const Visitor: Story = { args: { audience: 'visitor' } };
+
+/** The staff line, the longest, at a narrow phone's width, where it wraps (F5-19). */
+export const LongText: Story = { args: { audience: 'staff' }, tags: ['viewport-phone'] };

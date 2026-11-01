@@ -28,7 +28,7 @@ export const LongText: Story = {
     children: (
       <Text>
         Members play under the house rules of RIVR Poker Club. A seat called from the waitlist is held for fifteen minutes. One player to a hand.
-        English or Hindi at the table. Phones away from the felt during a hand. The floor’s decision is final on the night and can be
+        English at the table. Phones away from the felt during a hand. The floor’s decision is final on the night and can be
         reviewed with the manager the next day.
       </Text>
     ),

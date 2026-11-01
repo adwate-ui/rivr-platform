@@ -112,6 +112,7 @@
   --rivr-brand-lockup: 400px; /** A splash screen or cover: the wordmark and tagline. */
   --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
   --rivr-motion-duration-stagger: 120ms; /** The logo animation: the wait before the next tile rises. Each tile rises in the state duration. */
+  --rivr-motion-duration-turn: 1000ms; /** One turn of a busy button's circle, which keeps turning while its action is in flight (F5-17); still under reduced motion. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
   --rivr-icon-size-sm: 16px;
   --rivr-icon-size-md: 20px;
