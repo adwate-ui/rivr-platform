@@ -28,7 +28,7 @@ export function PairScreen() {
     const paired = await pair.mutateAsync(code);
     setFailure(paired.ok ? null : paired.error);
   });
-  const shown = form.formState.errors.code ? 'wrong_code' : failure;
+  const message = form.formState.errors.code ? t('tablet.pairing.sixDigits') : failure === null ? null : t(FAILURE_COPY[failure]);
   // Digits only: a code typed with a space or a dash still pairs.
   const codeField = form.register('code', { setValueAs: (value: string) => value.replace(/\D/g, '').slice(0, 6) });
   return (
@@ -37,7 +37,7 @@ export function PairScreen() {
         <Text>{t('tablet.pairing.intro')}</Text>
         <Input {...codeField} variant="code" label={t('tablet.pairing.code')} inputMode="numeric" autoComplete="one-time-code" maxLength={6} />
         <Button variant="primary" isLoading={pair.isPending} onClick={() => void submit()}>{t('tablet.pairing.pair')}</Button>
-        {shown === null ? null : <ErrorMessage>{t(FAILURE_COPY[shown])}</ErrorMessage>}
+        {message === null ? null : <ErrorMessage>{message}</ErrorMessage>}
       </Stack>
     </Screen>
   );
