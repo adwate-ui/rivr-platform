@@ -52,7 +52,7 @@ function EntryActions({ venueId, entry, onCall, canCall, act }: EntryActionsProp
           {skip}
         </>
       ) : entry.awayUntil !== null ? (
-        <Button variant="secondary" onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: false }), BACK_FAILURE_COPY)}>
+        <Button variant="secondary" isLoading={away.isPending} onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: false }), BACK_FAILURE_COPY)}>
           {t('console.waitlist.back', { name })}
         </Button>
       ) : (

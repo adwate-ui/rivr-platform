@@ -28,4 +28,10 @@ describe('TvPromotionSlide', () => {
     const { container } = renderIn(<TvPromotionSlide {...SLIDE} pager={{ current: 1, count: 2, label: 'Promotion 1 of 2' }} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('titles the slide at level 2 where it is a preview inside another screen, so that screen keeps its one h1', () => {
+    renderIn(<TvPromotionSlide {...SLIDE} level={2} />);
+    expect(screen.getByRole('heading', { level: 2, name: 'High hands' })).toBeDefined();
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+  });
 });

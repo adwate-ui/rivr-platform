@@ -1,6 +1,15 @@
 import { promotionBuilderSchema, type PromotionBuilder } from '@rivr/contracts';
 import {
-  usePromotionActions, usePromotionSimulation, usePromotionStakes, useStaffVenue, type PromotionSimulationResult, type PromotionStake,
+  usePromotionActions,
+  usePromotions,
+  usePromotionsAwaitingApproval,
+  usePromotionSimulation,
+  usePromotionsSentBack,
+  usePromotionStakes,
+  usePromotionTemplates,
+  useStaffVenue,
+  type PromotionSimulationResult,
+  type PromotionStake,
   type SimulationFailure,
 } from '@rivr/db';
 import { promotionDraft } from '@rivr/domain/promotions';
@@ -37,7 +46,7 @@ function Previews({ title, detail, runs }: { title: string; detail: string | und
       <Stack gap={2}>
         <Text variant="label" tone="muted">{t('console.promotions.tvSlide')}</Text>
         <DisplayPreview label={t('console.promotions.tvSlide')}>
-          <TvPromotionSlide label={t('console.promotions.slideLabel')} title={title} detail={detail} when={runs} />
+          <TvPromotionSlide level={2} label={t('console.promotions.slideLabel')} title={title} detail={detail} when={runs} />
         </DisplayPreview>
       </Stack>
     </Stack>
@@ -143,8 +152,10 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
 
 function PromotionsBody({ venueId, mayApprove }: { venueId: string; mayApprove: boolean }) {
   const stakes = usePromotionStakes(venueId);
+  // The lists below read these too (one query each): waiting for all of them lays the screen out once.
+  const lists = [usePromotionsAwaitingApproval(venueId), usePromotionsSentBack(venueId), usePromotions(venueId), usePromotionTemplates(venueId)];
   const title = t('console.promotions.title');
-  if (stakes.isPending) return <Screen title={title} status="loading" />;
+  if (stakes.isPending || lists.some((list) => list.isPending)) return <Screen title={title} status="loading" />;
   if (stakes.data === undefined) return <Screen title={title} status="error" onRetry={() => void stakes.refetch()} />;
   return (
     <Screen title={title}>

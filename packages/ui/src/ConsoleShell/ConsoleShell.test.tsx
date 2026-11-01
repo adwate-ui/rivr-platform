@@ -38,6 +38,8 @@ describe('ConsoleShell', () => {
     expect(list).toHaveClass('overflow-y-auto');
     expect(list).not.toContainElement(screen.getByText('Sana Qureshi'));
     expect(screen.getByRole('main')).toHaveClass('overflow-y-auto');
+    // Positioned, so a screen's visually hidden text cannot lengthen the page past the window.
+    expect(screen.getByRole('main')).toHaveClass('relative');
     // A keyboard can scroll the screen even when it has nothing else to focus.
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });

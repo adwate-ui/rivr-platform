@@ -31,9 +31,9 @@ export function AddMemberForm({ venueId, tableTypeId }: { venueId: string; table
   const phone = form.register('phone', { onChange: () => setRequestId(crypto.randomUUID()) });
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end">
+      <Inline gap={3} align="end" wrap>
         <Input {...phone} type="tel" label={t('console.waitlist.phone')} prefix={t('common.signIn.countryCode')} inputMode="tel" autoComplete="off" />
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.waitlist.add')}</Button>
+        <Button variant="secondary" isLoading={form.formState.isSubmitting || add.isPending} onClick={() => void submit()}>{t('console.waitlist.add')}</Button>
       </Inline>
       {form.formState.errors.phone ? <ErrorMessage>{t('console.waitlist.invalid')}</ErrorMessage> : null}
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}

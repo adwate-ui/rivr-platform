@@ -2,6 +2,7 @@ import { useFeatureStatus } from '@rivr/db';
 import { useMyClubEvents } from '@rivr/db/clubEvents';
 import { t } from '@rivr/i18n';
 import { FeatureGate, LoadState, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { EventCard } from './EventCard.tsx';
 
@@ -28,6 +29,8 @@ export function EventsScreen() {
   const title = t('player.events.title');
   if (feature.status === 'loading') return <Screen title={title} status="loading" />;
   if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
+  // Hidden for the member's tier (decision 0284): the address leads to Tonight, never to an empty screen.
+  if (feature.access.state === 'hidden') return <Navigate to="/" replace />;
   return (
     <Screen title={title}>
       <FeatureGate access={feature.access}>

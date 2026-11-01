@@ -65,6 +65,8 @@ function TopUpButtons({ player, onTopUp }: { player: SeatedPlayer; onTopUp: (inP
 
 interface SeatButtonsProps {
   player: SeatedPlayer;
+  /** This player's leave is being sent. */
+  isLeaveBusy: boolean;
   canLetGoEarly: boolean;
   onMove: () => void;
   onLeave: () => void;
@@ -80,7 +82,7 @@ interface SeatButtonsProps {
  * the table or back (#630: as the tablet does), the top-up (#634), the call time (#638), move, leave, and for admins, leave early
  * while call time is owed (#79).
  */
-function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving, onAway, onTopUp, onCallTime }: SeatButtonsProps) {
+function SeatButtons({ player, isLeaveBusy, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving, onAway, onTopUp, onCallTime }: SeatButtonsProps) {
   const isLeaving = player.leavingAt !== null;
   return (
     <Inline gap={2}>
@@ -98,7 +100,7 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
       </Button>
       <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
       <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leaveName', { name: player.fullName })}
-        confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} onConfirm={onLeave} />
+        confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} isBusy={isLeaveBusy} onConfirm={onLeave} />
       {canLetGoEarly && (player.callTimeLeft ?? 0) > 0 ? (
         <Button variant="text" aria-label={t('console.liveFloor.leaveEarlyName', { name: player.fullName })} onClick={onLeaveEarly}>
           {t('console.liveFloor.leaveEarly')}
@@ -136,7 +138,7 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
           <Inline key={index} justify="between" align="center">
             <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
             {isFloor && player !== undefined ? (
-              <SeatButtons player={player} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => onForm('move', player)}
+              <SeatButtons player={player} isLeaveBusy={leave.isPending && leave.variables === player.sessionId} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => onForm('move', player)}
                 onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => onForm('leaveEarly', player)}
                 onLeaving={(isLeaving) => void setLeaving.mutateAsync({ sessionId: player.sessionId, isLeaving }).then(report)}
                 onAway={(isAway) => void setAway.mutateAsync({ sessionId: player.sessionId, isAway }).then(report)}

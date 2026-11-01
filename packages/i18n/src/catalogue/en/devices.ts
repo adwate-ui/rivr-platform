@@ -46,6 +46,7 @@ export const pairing = {
   code: 'Pairing code',
   pair: 'Pair',
   wrongCode: 'That code is not right or has run out. Ask for a new one.',
+  sixDigits: 'Enter the six-digit code from the console.',
   tooMany: 'Too many wrong codes. Wait ten minutes, then ask for a new code.',
   unavailable: 'Pairing did not go through. Check the connection and try again.',
 };
