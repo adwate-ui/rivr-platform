@@ -73,7 +73,9 @@ export function checkDetails(check: KycCheck): readonly { label: string; value: 
   ];
 }
 
-/** Whether a super admin may reopen this check: a refused one done in person (#267). */
+/** Whether a super admin may reopen this check: a refused one done in person (#267), refused as a duplicate. */
 export function mayReopen(check: KycCheck, isSuperAdmin: boolean): boolean {
-  return isSuperAdmin && check.status === 'refused' && check.method === 'manual';
+  // The database reopens only a duplicate PAN or Aadhaar refusal; under 18 or a reviewer's refusal stays (F1-13).
+  return isSuperAdmin && check.status === 'refused' && check.method === 'manual'
+    && (check.refusal === 'duplicate_pan' || check.refusal === 'duplicate_aadhaar');
 }
