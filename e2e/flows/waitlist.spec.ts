@@ -93,7 +93,7 @@ test.describe('Waitlist', () => {
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toBeVisible();
     await expect(player.getByText(/^Asked at \d{2}:\d{2} · The floor approves it onto the list$/)).toBeVisible();
     // One game at a time (#633): no Join anywhere while the member waits.
-    await expect(player.getByRole('button', { name: 'Join', exact: true })).toHaveCount(0);
+    await expect(player.getByRole('button', { name: /^Join / })).toHaveCount(0);
 
     // Staff work at both venues: the console lists only the selected venue's games.
     await host.reload();
@@ -170,7 +170,7 @@ test.describe('Waitlist', () => {
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
     // Seated, he joins no other game from the app (#633).
     await expect(player.getByText('Seated at Table 3, seat 9.')).toBeVisible();
-    await expect(player.getByRole('button', { name: 'Join', exact: true })).toHaveCount(0);
+    await expect(player.getByRole('button', { name: /^Join / })).toHaveCount(0);
   });
 
   test('Skip, Back, Step away and I\u2019m back: the floor and the member move a place to away and back (#287)', async () => {

@@ -42,6 +42,27 @@ function useRequestIds() {
   return { idFor, keep, forget };
 }
 
+interface JoinButtonProps {
+  table: FloorTable;
+  access: FeatureAccess;
+  isPending: boolean;
+  /** This table's Join is the one pending: only it says so (F3-17). */
+  isJoining: boolean;
+  onJoin: () => void;
+}
+
+/** A table's Join, named by the table for a screen reader (F3-17), behind the tier's gate. */
+function JoinButton({ table, access, isPending, isJoining, onJoin }: JoinButtonProps) {
+  return (
+    <FeatureGate access={access}>
+      <Button variant="secondary" isLoading={isPending && isJoining} isDisabled={isPending && !isJoining} aria-label={t('player.tonight.joinName', { table: table.name })}
+        onClick={onJoin}>
+        {t('player.tonight.join')}
+      </Button>
+    </FeatureGate>
+  );
+}
+
 /**
  * Tonight's tables in floor order, each with its stakes, open seats, wait and call time (#633), and Join while the member may join
  * (waitlist.join), is not seated and waits for no game: a join is a request the floor approves, one game at a time (#633); a closed table's Join registers interest in its game. Where the member's tier lacks Join, one locked notice says
@@ -56,7 +77,10 @@ export function FloorList({ tables, places }: { tables: readonly FloorTable[]; p
   const isSeated = (useMySeat().data ?? null) !== null;
   const requests = useRequestIds();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
-  const joinList = async (tableTypeId: string) => {
+  // The table whose Join is pending, so only its button says so (F3-17).
+  const [joiningAt, setJoiningAt] = useState<string | null>(null);
+  const joinList = async (tableId: string, tableTypeId: string) => {
+    setJoiningAt(tableId);
     const requestId = requests.idFor(tableTypeId);
     requests.keep(tableTypeId, requestId);
     const joined = await join.mutateAsync({ tableTypeId, requestId });
@@ -76,11 +100,8 @@ export function FloorList({ tables, places }: { tables: readonly FloorTable[]; p
           // A closed table offers Join only while none of its game's tables is open: that is registering interest.
           const isRunning = tables.some((other) => other.tableTypeId === table.tableTypeId && other.isOpen);
           const action = places.length === 0 && !isSeated && (table.isOpen || !isRunning) ? (
-            <FeatureGate access={rowAccess}>
-              <Button variant="secondary" isLoading={join.isPending} onClick={() => void joinList(table.tableTypeId)}>
-                {t('player.tonight.join')}
-              </Button>
-            </FeatureGate>
+            <JoinButton table={table} access={rowAccess} isPending={join.isPending} isJoining={joiningAt === table.id}
+              onJoin={() => void joinList(table.id, table.tableTypeId)} />
           ) : undefined;
           return (
             <FloorRow key={table.id} name={table.name} smallBlind={table.smallBlind} bigBlind={table.bigBlind}

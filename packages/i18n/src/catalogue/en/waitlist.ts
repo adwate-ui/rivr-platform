@@ -86,6 +86,8 @@ export const tonight = {
   },
   closed: 'Closed',
   join: 'Join',
+  /** Each Join named by its table, for a screen reader (F3-17). */
+  joinName: 'Join {table}',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */
   onTheList: '{count} waiting · You are number {place}',
   /** The member asked to join this game (#633), and the floor has not approved it yet. */
@@ -105,6 +107,9 @@ export const tonight = {
   seatReady: 'Your seat is ready. {table}, seat {seat}. Hold expires {time}.',
   stepAway: 'Step away',
   back: "I'm back",
+  /** Named by the game, for a screen reader (F3-17). */
+  stepAwayName: 'Step away from {game}',
+  backName: "I'm back for {game}",
   /** A member who stepped away: `{time}` is when their place goes. */
   away: 'Stepped away. Your place is kept until {time}.',
   tooLate: 'You were away too long, so your place has gone. Join again if you still want to play.',
