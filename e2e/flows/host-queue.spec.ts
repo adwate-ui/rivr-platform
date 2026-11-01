@@ -12,6 +12,7 @@ test('Host queue: a host records why a lapsed regular stopped coming and an offe
   await promotions.click();
   await expect(promotions).toBeChecked();
 
+  // Sameer is a host, not an admin: the host role has the queue (F2-04).
   await signInToConsole(page, '9000000643');
   await page.getByRole('link', { name: 'Host queue' }).click();
   await expect(page.getByRole('heading', { name: 'Ritika Bhalla' })).toBeVisible();

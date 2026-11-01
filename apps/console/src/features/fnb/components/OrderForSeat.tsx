@@ -4,14 +4,37 @@ import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, LoadState, QuantityStepper, Stack, StatusMessage, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 
-/** Who sits where tonight, as choices: `Table 3, seat 5 · Yash Gupta`. */
+/** Who sits where tonight, as choices: `Table 3, seat 5 · Yash Gupta`; no choices until both floor reads have answered. */
 function useSeatChoices(venueId: string) {
-  const tables = useFloorTables().data ?? [];
-  const seats = useFloorSeats(venueId).data ?? [];
-  return seats.map((seated) => ({
+  const tables = useFloorTables();
+  const seats = useFloorSeats(venueId);
+  const retry = () => {
+    void tables.refetch();
+    void seats.refetch();
+  };
+  const tableRows = tables.data;
+  if (tableRows === undefined || seats.data === undefined) return { choices: undefined, isError: tables.isError || seats.isError, retry };
+  const choices = seats.data.map((seated) => ({
     value: `${seated.tableId}:${String(seated.seat)}`,
-    label: t('console.fnb.seatChoice', { table: tables.find((table) => table.id === seated.tableId)?.name ?? '', seat: seated.seat, name: seated.fullName }),
+    label: t('console.fnb.seatChoice', { table: tableRows.find((table) => table.id === seated.tableId)?.name ?? '', seat: seated.seat, name: seated.fullName }),
   }));
+  return { choices, isError: false, retry };
+}
+
+interface SeatChooserProps {
+  seats: ReturnType<typeof useSeatChoices>;
+  chosen: string | null;
+  onChoose: (picked: string | null) => void;
+}
+
+/** The seated players to order for; or the floor's loading or error line, or that nobody is seated (F2-11). */
+function SeatChooser({ seats, chosen, onChoose }: SeatChooserProps) {
+  if (seats.choices === undefined) return <LoadState isError={seats.isError} onRetry={seats.retry} />;
+  if (seats.choices.length === 0) return <Text>{t('console.fnb.nobodySeated')}</Text>;
+  return (
+    <ChoiceChips label={t('console.fnb.seat')} mode="one" options={seats.choices} selected={chosen === null ? [] : [chosen]}
+      onChange={([picked]) => onChoose(picked ?? null)} />
+  );
 }
 
 interface MenuStepperProps {
@@ -31,7 +54,7 @@ function MenuSteppers({ menu, counts, onChange }: MenuStepperProps) {
 
 /** Orders for a seat from the console, paid or comp: a comp is RIVR's cost, at Glaza's price through the monthly import. */
 export function OrderForSeat({ venueId }: { venueId: string }) {
-  const choices = useSeatChoices(venueId);
+  const seats = useSeatChoices(venueId);
   const menu = useFnbMenu(venueId);
   const { order } = useFnbActions(venueId);
   const [chosen, setChosen] = useState<string | null>(null);
@@ -52,10 +75,7 @@ export function OrderForSeat({ venueId }: { venueId: string }) {
   return (
     <Stack gap={3}>
       <Heading level={2}>{t('console.fnb.newOrder')}</Heading>
-      {choices.length === 0 ? <Text>{t('console.fnb.nobodySeated')}</Text> : (
-        <ChoiceChips label={t('console.fnb.seat')} mode="one" options={choices} selected={chosen === null ? [] : [chosen]}
-          onChange={([picked]) => { setChosen(picked ?? null); renew(); }} />
-      )}
+      <SeatChooser seats={seats} chosen={chosen} onChoose={(picked) => { setChosen(picked); renew(); }} />
       <MenuSteppers menu={menu} counts={counts} onChange={(itemId, quantity) => { setCounts({ ...counts, [itemId]: quantity }); setOutcome(null); renew(); }} />
       <Switch label={t('console.fnb.isComp')} isOn={isComp} onChange={(comp) => { setIsComp(comp); renew(); }} />
       <Button variant="secondary" isDisabled={chosen === null || lines.length === 0} isLoading={order.isPending} onClick={() => void send()}>

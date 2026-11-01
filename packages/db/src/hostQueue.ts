@@ -33,7 +33,7 @@ function offerOf(offer: Json | null): PromotionEffect | null {
   return parsed.success ? parsed.data : null;
 }
 
-/** The venue's lapsed regulars, longest lapsed first, for staff with members.manage. */
+/** The venue's lapsed regulars, longest lapsed first, for staff with host_queue.manage. */
 export function useHostQueue(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({

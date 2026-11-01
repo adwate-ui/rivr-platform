@@ -1,5 +1,5 @@
 -- The host queue (#165; decision 0276): the day's sweep queues each lapsed regular once, never a self-excluded one; a
--- host (103 Aditya, members.manage) records why and the offer; a visit wins the player back; a member cannot see it.
+-- host (103 Aditya, an admin, holding host_queue.manage) records why and the offer; a visit wins the player back; a member cannot see it.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
