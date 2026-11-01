@@ -20,7 +20,7 @@ test.describe('Website edit', () => {
     const original = await field.inputValue();
     await field.fill(heading);
     await page.getByRole('button', { name: 'Save draft' }).click();
-    await expect(page.getByText('Draft saved. The preview shows it as the website will.')).toBeVisible();
+    await expect(page.getByText('Draft saved.')).toBeVisible();
     await expect(page.frameLocator('iframe[title="Preview of House rules"]').getByRole('heading', { name: heading })).toBeVisible();
 
     await page.getByRole('button', { name: 'Publish now' }).click();

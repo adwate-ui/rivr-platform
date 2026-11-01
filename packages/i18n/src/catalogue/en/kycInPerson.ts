@@ -28,8 +28,8 @@ export const kycInPerson = {
 
 /** Why a check in person did not go through. */
 export const kycInPersonFailures = {
-  notAllowed: 'Not allowed: nobody checks themselves or a member they added. Ask another reviewer.',
-  decided: 'Already decided or waiting.',
+  notAllowed: 'Not allowed: reviewers only, never for themselves or a member they added or changed.',
+  decided: 'Already decided, in review, or waiting for their PAN.',
   noPhoto: 'Photo not received. Take it again.',
   invalid: 'Check the photo, date of birth, Aadhaar digits and PAN.',
   stopped: 'KYC is paused, or the member is frozen.',

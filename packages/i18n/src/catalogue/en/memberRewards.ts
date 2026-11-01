@@ -58,7 +58,7 @@ export const memberRewards = {
       brand: 'RIVR',
       heading: 'Play with me at RIVR',
       codeLabel: 'My code',
-      footer: 'Join from my link. We both get bonus chips.',
+      footer: 'Join from my link. On your first buy-in, we both get bonus chips.',
       alt: 'Referral card with the code {code}',
       share: 'Share my card',
       message: 'Join me at RIVR Poker Club.',

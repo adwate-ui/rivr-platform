@@ -99,7 +99,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'host.lapse': {
     name: 'Lapsed regular',
-    help: 'Visits in six months that put a regular on the host queue, and the days before again. 3 and 21 unless set.',
+    help: 'A regular with this many visits in six months, then none for this many days, goes to the host queue. 3 and 21 unless set.',
     fields: { visits: 'Visits in six months', days: 'Then away for' },
   },
   'jackpot.drop': {

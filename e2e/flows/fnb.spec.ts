@@ -19,7 +19,7 @@ import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 async function kotIn(page: Page, sent: RegExp) {
   const line = page.getByText(sent);
   await expect(line).toBeVisible();
-  return /KOT (\d+)/.exec((await line.textContent()) ?? '')?.[1] ?? '';
+  return /(?:KOT|Order) (\d+)/.exec((await line.textContent()) ?? '')?.[1] ?? '';
 }
 
 test.describe('F&B', () => {
@@ -43,7 +43,7 @@ test.describe('F&B', () => {
     // The Menu tab (#635) follows it to the seat: placed, until the service staff take it (their screen is #640).
     await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Menu' }).click();
     await expect(member.getByRole('heading', { name: 'Your orders tonight' })).toBeVisible();
-    const order = member.getByText(`KOT ${fromApp} · 1 × Masala chai, 1 × Beer`);
+    const order = member.getByText(`Order ${fromApp} · 1 × Masala chai, 1 × Beer`);
     await expect(order).toBeVisible();
     await expect(order.locator('xpath=..').getByText('Placed', { exact: true })).toBeVisible();
 
@@ -54,11 +54,11 @@ test.describe('F&B', () => {
     await expect(steward.getByRole('link', { name: 'Live floor' })).toHaveCount(0);
     await steward.getByRole('button', { name: `Accept KOT ${fromApp}` }).click();
     await member.reload();
-    await expect(member.getByText(`KOT ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Being prepared', { exact: true })).toBeVisible();
+    await expect(member.getByText(`Order ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Being prepared', { exact: true })).toBeVisible();
     await steward.getByRole('button', { name: `Mark KOT ${fromApp} delivered` }).click();
     await expect(steward.getByText(/^Delivered in /).first()).toBeVisible();
     await member.reload();
-    await expect(member.getByText(`KOT ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Delivered', { exact: true })).toBeVisible();
+    await expect(member.getByText(`Order ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Delivered', { exact: true })).toBeVisible();
     await steward.close();
 
     const { tablet, name } = await tabletAtTable3(browser, page);

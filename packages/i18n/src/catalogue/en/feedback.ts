@@ -43,7 +43,7 @@ export const feedback = {
 
 /** In the player app: Home asks about the last visit, and Profile sends the club a note. */
 export const playerFeedback = {
-  /** On Home after a visit: `{day}` is the IST weekday, as in "How was Saturday?". */
+  /** On Home after a visit: `{day}` is the IST weekday, as in "Your visit on Saturday". */
   prompt: 'Your visit on {day}',
   promptHint: 'The General Manager reads every rating.',
   score: 'Your rating, 1 to 5',

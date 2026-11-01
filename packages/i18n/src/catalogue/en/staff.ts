@@ -60,7 +60,7 @@ export const staff = {
   invalidPhone: 'Give a 10-digit mobile. Only dealers may have none.',
   notAllowedAction: 'Beyond your role. Ask a super admin.',
   alreadyStaff: 'Already on the staff list. Turn their row back on below.',
-  ownChange: 'Not your own role. Ask another manager.',
+  ownChange: 'You cannot change your own role or turn yourself off. Ask another manager.',
   lastSuperAdmins: 'Two super admins must stay. Add another first.',
   paused: 'Venue frozen. Only turning a login off works until release.',
   jobTitleSaved: 'Job title saved.',

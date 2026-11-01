@@ -49,9 +49,9 @@ export const profile = {
   /** Whether the TVs' waitlist board names the member (#326). */
   privacy: 'Privacy',
   nameOnTvs: 'Show my name on the club\'s TVs',
-  nameOnTvsHint: 'Off, the board shows your place, such as Player 2.',
+  nameOnTvsHint: 'On, your first name and initial. Off, your place, such as Player 2.',
   /** How a member asks for their personal data to be erased (F3-27): only a super admin erases, at the club. */
-  erasure: 'To erase your data, ask at the front desk.',
+  erasure: 'To erase your data, ask at the front desk. The privacy notice says what is kept.',
   /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
   academyBookings: 'Your Academy bookings',
   /** The way to the membership card (#71). */

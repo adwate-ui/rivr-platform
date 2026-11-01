@@ -90,7 +90,7 @@ describe('a check in person', () => {
   it('keeps the form, and says why, when the check did not go through', async () => {
     renderSection(() => Response.json({ error: 'not_allowed' }, { status: 403 }));
     await checkNaina();
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not allowed: nobody checks themselves/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Not allowed: reviewers only/);
     expect(screen.getByRole('button', { name: 'Verify Naina Kapoor' })).toBeDefined();
   });
 

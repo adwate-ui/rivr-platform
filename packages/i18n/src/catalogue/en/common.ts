@@ -4,7 +4,7 @@ export const common = {
   retry: 'Try again',
   loadFailed: 'Not loaded. Try again.',
   /** A screen that failed to draw: its title on the router's error screen. */
-  screenFailed: 'Screen unavailable. Reload the page.',
+  screenFailed: 'Screen unavailable',
   offline: 'Offline.',
   close: 'Close',
   cancel: 'Cancel',

@@ -22,7 +22,7 @@ export const playerKyc = {
   verify: 'Verify',
   panInvalid: 'Enter a PAN like ABCDE1234F.',
   dateOfBirthInvalid: 'Enter your date of birth.',
-  panRejected: 'This PAN does not match your name. Check it, or ask at the front desk.',
+  panRejected: 'This PAN did not verify. Check it, or ask at the front desk.',
   tryDigilockerAgain: 'Try DigiLocker again',
   reviewTitle: 'Identity check',
   refusedTitle: 'Not verified',

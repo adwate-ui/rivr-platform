@@ -79,7 +79,7 @@ test.describe('TV pairing', () => {
       const tv = await browser.newPage();
       await tv.setViewportSize(VIEWPORT.display);
       await tv.goto(appUrl('display'));
-      await expect(tv.getByText(/^Press Pair a TV under TVs on the console/)).toBeVisible();
+      await expect(tv.getByText(/^Press Pair a TV on the console/)).toBeVisible();
       await owner.getByRole('button', { name: 'Pair a TV' }).click();
       await expect(owner.getByText(/^A TV gets a code until \d{2}:\d{2}\.$/)).toBeVisible();
       await tv.reload();

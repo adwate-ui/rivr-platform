@@ -45,7 +45,7 @@ describe('copy rules', () => {
 });
 
 // Decision 0289: the owner found the copy over-explained. What members read says the fact, then stops.
-const MEMBER_FACING = ['player.', 'web.', 'tv.', 'common.', 'push.'];
+const MEMBER_FACING = ['player.', 'web.', 'tv.', 'common.', 'push.', 'memberRewards.', 'ui.', 'tablet.door.'];
 const memberCopy = english.filter(([key]) => MEMBER_FACING.some((prefix) => key.startsWith(prefix)));
 
 describe('member-facing copy says the fact, then stops (decision 0289)', () => {

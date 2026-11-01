@@ -11,7 +11,7 @@ export const kycReview = {
   waitPanAlone: 'PAN only, no DigiLocker. Check the card and the person.',
   waitNothingKept: 'DigiLocker gave another name or face. Check the originals.',
   waitNoDateOfBirth: 'No date of birth from DigiLocker. Check the original.',
-  waitClash: 'Matches another check: PAN, Aadhaar, face, or name and birth date.',
+  waitClash: 'Matches another check: PAN, Aadhaar, face, or name, birth date and last four digits.',
   /** A check made in person, re-checked with the vendor once one was live (#259). */
   waitRecheckPanInvalid: 'The vendor does not know this PAN. Check the card again.',
   waitRecheckNameDiffers: 'The vendor has this PAN in another name. Check the card again.',
@@ -42,7 +42,7 @@ export const kycReview = {
   dateOfBirthFor: 'Date of birth on {name}\'s original document',
   approve: 'Approve',
   reject: 'Reject',
-  reasonInvalid: 'A reason of 3 to 500 characters, no document numbers.',
+  reasonInvalid: 'Check the reason (3 to 500 characters, no document numbers), the date of birth and the PAN.',
 };
 
 /** Why a KYC decision did not go through. */

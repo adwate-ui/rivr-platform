@@ -40,14 +40,14 @@ test.describe('Self-exclusion', () => {
     await sheet.getByRole('button', { name: /^7 days/ }).click();
     await expect(sheet).toHaveCount(0);
     // Asked once more, as it cannot be shortened (F3-15).
-    await expect(page.getByText(new RegExp(`^Take a break until ${UNTIL}\\? It cannot be shortened\\.$`))).toBeVisible();
+    await expect(page.getByText(new RegExp(`^Break until ${UNTIL}\\? It cannot be shortened\\.$`))).toBeVisible();
     await page.getByRole('button', { name: 'Yes, take the break' }).click();
-    await expect(page.getByText(new RegExp(`^Break active until ${ENDS}\\. Tables are closed to you until then\\.$`))).toBeVisible();
+    await expect(page.getByText(new RegExp(`^On a break until ${ENDS}\\.$`))).toBeVisible();
     // Take a break stays, to make the break longer: it is never shortened.
     await expect(page.getByRole('button', { name: 'Take a break' })).toBeVisible();
 
     await page.getByRole('link', { name: 'Home' }).click();
-    await expect(page.getByText(/^Break active until /)).toBeVisible();
+    await expect(page.getByText(/^On a break until /)).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
     await joinTable1(page).click();
     await expect(page.getByText('On a break.')).toBeVisible();

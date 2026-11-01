@@ -19,7 +19,7 @@ let host: Page;
 /** The line under one table on Home: how many wait, or the member's place. */
 function tableDetail(page: Page, name: string): Locator {
   return page.locator('div').filter({ has: page.getByText(name, { exact: true }) })
-    .filter({ has: page.getByText(/waiting|No wait|You are number|You asked to join|Closed/) }).last();
+    .filter({ has: page.getByText(/waiting|No wait|your place|You asked to join|Closed/) }).last();
 }
 
 /** One table's Join on Home. */
@@ -83,7 +83,7 @@ async function joinAndApprove(player: Page, host: Page) {
   await untilListShows(host, `Approve ${MEMBER}`);
   await gameList(host, 'NLH 100/200').getByRole('button', { name: `Approve ${MEMBER}` }).click();
   await player.reload();
-  await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+  await expect(tableDetail(player, 'Table 2').getByText(/· your place \d+$/)).toBeVisible();
 }
 
 test.describe('Waitlist', () => {
@@ -102,10 +102,10 @@ test.describe('Waitlist', () => {
     await expect(higher.getByText(new RegExp(`^${MEMBER} · asked at \\d{2}:\\d{2}$`))).toBeVisible();
     await higher.getByRole('button', { name: `Approve ${MEMBER}` }).click();
     await player.reload();
-    await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+    await expect(tableDetail(player, 'Table 2').getByText(/· your place \d+$/)).toBeVisible();
     await expect(player.getByText(/^Number \d+ · Joined \d{2}:\d{2}$/)).toBeVisible();
     // Table 3 plays the same game and stake, so it shares the one list.
-    await expect(tableDetail(player, 'Table 3').getByText(/· You are number \d+$/)).toBeVisible();
+    await expect(tableDetail(player, 'Table 3').getByText(/· your place \d+$/)).toBeVisible();
 
     await expect(higher.getByText(new RegExp(`^\\d+\\. ${MEMBER} · \\d{2}:\\d{2}$`))).toBeVisible();
     await higher.getByRole('button', { name: `Remove ${MEMBER}` }).click();
@@ -121,7 +121,7 @@ test.describe('Waitlist', () => {
     await expect(lower.getByText(new RegExp(`^1\\. ${MEMBER} · `))).toBeVisible();
     await expect(lower.getByText('Added by the floor')).toBeVisible();
     await player.reload();
-    await expect(tableDetail(player, 'Table 1').getByText(/· You are number 1$/)).toBeVisible();
+    await expect(tableDetail(player, 'Table 1').getByText(/· your place 1$/)).toBeVisible();
   });
 
   test('Black card at another stake queues by join time, and goes first at its own', async () => {
@@ -162,7 +162,7 @@ test.describe('Waitlist', () => {
     await expect(higher.getByText(/^Called to Table 3, seat 9 · hold until \d{2}:\d{2}$/)).toBeVisible();
 
     await player.reload();
-    await expect(player.getByText(/^Your seat is ready\. Table 3, seat 9\. Hold expires \d{2}:\d{2}\.$/)).toBeVisible();
+    await expect(player.getByText(/^Your seat is ready: Table 3, seat 9\. Held until \d{2}:\d{2}\.$/)).toBeVisible();
 
     await higher.getByRole('button', { name: `Seat ${MEMBER}` }).click();
     await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
@@ -178,7 +178,7 @@ test.describe('Waitlist', () => {
     await host.reload();
     await addByNumber(gameList(host, 'NLH 100/200'), '9000000211');
     await player.reload();
-    await expect(tableDetail(player, 'Table 2').getByText(/· You are number \d+$/)).toBeVisible();
+    await expect(tableDetail(player, 'Table 2').getByText(/· your place \d+$/)).toBeVisible();
 
     await host.reload();
     const higher = gameList(host, 'NLH 100/200');

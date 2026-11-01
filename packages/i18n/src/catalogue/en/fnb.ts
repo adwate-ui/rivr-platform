@@ -7,7 +7,7 @@ const failures = {
   too_young: 'Alcohol is for members 21 and over.',
   no_dealer: 'Sign a dealer in before ordering.',
   paused: 'The club is paused: orders wait until it reopens.',
-  invalid: 'Up to 9 of each item, 20 items in all.',
+  invalid: 'Up to 9 of each item, 20 different items at most.',
   unavailable: 'Not sent. Try again.',
   /** Serving (#640): another steward got there first. */
   taken: 'Taken by someone else.',
@@ -32,7 +32,7 @@ export const playerFnb = {
   yourOrders: 'Your orders tonight',
   noOrders: 'No orders yet tonight.',
   /** `KOT 12 · 2 × Masala chai, 1 × Club sandwich`. */
-  orderLine: 'KOT {kot} · {items}',
+  orderLine: 'Order {kot} · {items}',
   item: '{quantity} × {name}',
   itemsSeparator: ', ',
   progress: { placed: 'Placed', in_progress: 'Being prepared', delivered: 'Delivered' },
@@ -57,7 +57,7 @@ export const consoleFnb = {
   title: 'Food and drink',
   notAllowed: 'Not in your role. Ask an admin.',
   toPrint: 'KOTs to print',
-  toPrintHint: 'Print or read each to the bar, then mark it sent.',
+  toPrintHint: 'If the agent is down, print or read each to the bar, then mark it sent.',
   noneToPrint: 'Every KOT is at the bar.',
   markSent: 'Mark KOT {kot} sent',
   /** Serving (#640): orders to accept, then being prepared, then delivered, each with its table, seat and time. */
