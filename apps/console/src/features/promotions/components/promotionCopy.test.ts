@@ -31,4 +31,10 @@ describe('promotion copy (#84)', () => {
     expect(rewardDetail({ ...FLOW_7, reward: 'hours_bonus', bonus_hours: 3, bonus_chips: 1500 })).toBe('1,500 bonus chips after 3 hours at the tables');
     expect(rewardDetail(FLOW_7)).toBeUndefined();
   });
+
+  it('says nothing, and throws nothing, for a cap or chips half typed or mistyped, until they are whole', () => {
+    expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: 2500.5 })).toBeUndefined();
+    expect(rewardDetail({ ...FLOW_7, reward: 'buy_in_bonus', bonus_cap_rupees: Number('₹5000') })).toBeUndefined();
+    expect(rewardDetail({ ...FLOW_7, reward: 'hours_bonus', bonus_chips: 1500.5 })).toBeUndefined();
+  });
 });
