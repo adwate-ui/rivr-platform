@@ -23,6 +23,8 @@ export interface DataTableColumn<Row> {
    * default); `secondary`, a line under it with the column's name; `optional`, left out below 768 px.
    */
   readonly priority?: 'primary' | 'secondary' | 'optional';
+  /** Twice a column's share of the width from 768 px, for words that would wrap in one share: a stake's name. */
+  readonly isWide?: boolean;
   /**
    * What an export gives for the column (#102). Without one: the cell's words, a Money cell's rupees, or the
    * sort value. A column with no heading, such as a row's buttons, is left out of exports.
@@ -125,11 +127,12 @@ function shown<Row>(rows: readonly Row[], { columns, sort, text, query }: View<R
 function HeaderCell<Row>({ column, sort, onSort }: { column: DataTableColumn<Row>; sort: DataTableSort | null; onSort: (key: string) => void }) {
   const direction = sort?.key === column.key ? sort.direction : undefined;
   const align = column.align === 'end' ? 'justify-end' : 'justify-start';
+  const span = column.isWide ? 'medium:col-span-2' : undefined;
   if (column.sortValue === undefined) {
-    return <div role="columnheader" className={cx('flex min-w-0', align)}><Text variant="small" tone="muted">{column.header}</Text></div>;
+    return <div role="columnheader" className={cx('flex min-w-0', align, span)}><Text variant="small" tone="muted">{column.header}</Text></div>;
   }
   return (
-    <div role="columnheader" aria-sort={direction ?? 'none'} className={cx('flex min-w-0', align)}>
+    <div role="columnheader" aria-sort={direction ?? 'none'} className={cx('flex min-w-0', align, span)}>
       <button type="button" onClick={() => onSort(column.key)}
         className="flex min-h-touch min-w-touch items-center gap-1 font-text text-14 text-content-muted transition-colors hover:text-content focus-visible:text-content tablet:min-w-0">
         {column.header}
@@ -189,6 +192,7 @@ function BodyRow<Row>({ row, columns, index, place, onRowOpen }: BodyRowProps<Ro
           <div key={column.key} role="cell" data-label={priority === 'secondary' ? column.header : undefined}
             title={titleOf(column.cell(row), isOneLine)}
             className={cx('min-w-0 font-text text-16 text-content wrap-anywhere', isOneLine ? 'truncate' : undefined, CELL[priority],
+              column.isWide && 'medium:col-span-2',
               column.align === 'end' ? 'medium:text-end' : 'text-start')}>
             {priority === 'primary' ? <Title row={row} column={column} onRowOpen={onRowOpen} isOneLine={isOneLine} /> : column.cell(row)}
           </div>

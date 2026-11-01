@@ -40,4 +40,7 @@ export const Selectable: Story = {
     seats: seats(9, { 1: 'VR', 2: 'DM', 3: 'IC', 4: 'MI', 5: 'TA', 6: 'SJ', 7: 'AK', 8: 'FQ' }) },
 };
 
+/** On the dealer tablet's own screen: the whole ring fits it, each taken seat's number off the felt (UI-14, A-19). */
+export const SelectableOnATablet: Story = { ...Selectable, tags: ['!viewport-console', 'viewport-tablet'] };
+
 export const LongText: Story = { args: { name: 'Private Room', stakes: '100/200 · ₹500 straddle', label: 'Private Room, 6 of 9 seats taken' } };

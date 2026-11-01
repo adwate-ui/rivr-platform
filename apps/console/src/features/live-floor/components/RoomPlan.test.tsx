@@ -39,7 +39,8 @@ describe('the room plan', () => {
     expect(table3.getAttribute('aria-pressed')).toBe('true');
     expect(within(table3).getByText('1 of 9')).toBeDefined();
     expect(within(table3).getByText('Pema Lepcha')).toBeDefined();
-    expect(within(table3).getByText('30 hands/hr')).toBeDefined();
+    // Hands are no longer counted at the table (#630), so a card shows no pace (UI polish audit A-11).
+    expect(within(table3).queryByText('30 hands/hr')).toBeNull();
     const table4 = screen.getByRole('button', { name: 'Table 4' });
     expect(within(table4).getByText('Closed')).toBeDefined();
     expect(within(table4).getByText('No dealer')).toBeDefined();

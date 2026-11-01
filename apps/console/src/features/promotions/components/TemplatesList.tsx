@@ -14,15 +14,39 @@ function budgetFrom(text: string, period: Period): { budget: TemplateSubmission[
   return paise.ok ? { budget: { paise: paise.value, period } } : null;
 }
 
-function TemplateRow({ venueId, template, onSubmitted }: { venueId: string; template: ConsolePromotion; onSubmitted: (name: string) => void }) {
-  const { submitTemplate } = usePromotionActions(venueId);
+/** A template's budget, opened in place by Send for approval: the amount and what it covers, then Send or Cancel. */
+function BudgetForm({ name, isSending, onSend, onCancel }: {
+  name: string; isSending: boolean; onSend: (typed: { budget: TemplateSubmission['budget'] } | null) => void; onCancel: () => void;
+}) {
   const [budget, setBudget] = useState('');
   const [period, setPeriod] = useState<Period>('promotion');
+  return (
+    <Stack gap={3}>
+      <Inline gap={4} align="end" wrap>
+        <Input label={t('console.promotions.budget')} value={budget} inputMode="decimal" autoComplete="off" onChange={(event) => setBudget(event.target.value)} />
+        <ChoiceChips label={t('console.promotions.budgetFor')} mode="one" selected={[period]}
+          options={PERIODS.map((value) => ({ value, label: t(`console.promotions.budgetPeriods.${value}`) }))}
+          onChange={([picked]) => { const found = PERIODS.find((known) => known === picked); if (found) setPeriod(found); }} />
+      </Inline>
+      <Inline gap={3}>
+        <Button variant="secondary" aria-label={t('console.promotions.sendTemplateNamed', { name })} isLoading={isSending}
+          onClick={() => onSend(budgetFrom(budget, period))}>
+          {t('console.promotions.sendTemplate')}
+        </Button>
+        <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>
+      </Inline>
+    </Stack>
+  );
+}
+
+/** One template on one line, with Send for approval; its budget opens in place on that press (UI polish audit A-15). */
+function TemplateRow({ venueId, template, onSubmitted }: { venueId: string; template: ConsolePromotion; onSubmitted: (name: string) => void }) {
+  const { submitTemplate } = usePromotionActions(venueId);
+  const [isOpen, setIsOpen] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const nameId = useId();
   const line = [template.detail, template.runs].filter((part) => part !== null).join(' · ');
-  const submit = async () => {
-    const typed = budgetFrom(budget, period);
+  const send = async (typed: { budget: TemplateSubmission['budget'] } | null) => {
     if (typed === null) {
       setFailure(t('console.promotions.invalidBudget'));
       return;
@@ -32,22 +56,17 @@ function TemplateRow({ venueId, template, onSubmitted }: { venueId: string; temp
     setFailure(result.ok ? null : t(`console.promotions.failures.${result.error}`));
   };
   return (
-    <Stack gap={2}>
+    <Stack gap={3}>
       <Inline justify="between" align="center" gap={6}>
         <Stack gap={1} grow>
           <Text weight="medium" id={nameId}>{template.name}</Text>
           {line === '' ? null : <Text variant="small" tone="muted">{line}</Text>}
         </Stack>
-        <Button variant="text" isLoading={submitTemplate.isPending} onClick={() => void submit()} aria-describedby={nameId}>
-          {t('console.promotions.submitTemplate')}
-        </Button>
+        {isOpen ? null : (
+          <Button variant="text" onClick={() => setIsOpen(true)} aria-describedby={nameId}>{t('console.promotions.submitTemplate')}</Button>
+        )}
       </Inline>
-      <Inline gap={4} align="end" wrap>
-        <Input label={t('console.promotions.budget')} value={budget} inputMode="decimal" autoComplete="off" onChange={(event) => setBudget(event.target.value)} />
-        <ChoiceChips label={t('console.promotions.budgetFor')} mode="one" selected={[period]}
-          options={PERIODS.map((value) => ({ value, label: t(`console.promotions.budgetPeriods.${value}`) }))}
-          onChange={([picked]) => { const found = PERIODS.find((known) => known === picked); if (found) setPeriod(found); }} />
-      </Inline>
+      {isOpen ? <BudgetForm name={template.name} isSending={submitTemplate.isPending} onSend={(typed) => void send(typed)} onCancel={() => { setIsOpen(false); setFailure(null); }} /> : null}
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

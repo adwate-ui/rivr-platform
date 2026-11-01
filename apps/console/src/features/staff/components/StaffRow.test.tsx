@@ -15,7 +15,7 @@ const AYESHA: StaffMember = {
 };
 
 /** Aditya, an admin, signed in, and a fake API that keeps every change sent to the staff table. */
-function renderRow() {
+function renderRow(member: StaffMember = AYESHA) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -32,7 +32,7 @@ function renderRow() {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
-      <StaffRow venueId="v1" member={AYESHA} grantable={['cashier', 'host']} />
+      <StaffRow venueId="v1" member={member} grantable={['cashier', 'host']} />
     </RivrDataProvider>,
   );
   return sent;
@@ -41,6 +41,7 @@ function renderRow() {
 describe('StaffRow', () => {
   it('asks before a role picked on the row is saved, and saves it on Yes', async () => {
     const sent = renderRow();
+    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     fireEvent.click(screen.getByRole('button', { name: 'Host' }));
     expect(screen.getByText("Change Ayesha Thomas's role to Host?")).toBeDefined();
     expect(sent).toEqual([]);
@@ -50,6 +51,7 @@ describe('StaffRow', () => {
 
   it('asks before the login is turned off, and Cancel leaves it on', () => {
     const sent = renderRow();
+    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     const active = screen.getByRole('switch', { name: 'Active: Ayesha Thomas' });
     fireEvent.click(active);
     expect(screen.getByText("Turn off Ayesha Thomas's login?")).toBeDefined();
@@ -57,5 +59,21 @@ describe('StaffRow', () => {
     expect(screen.queryByText("Turn off Ayesha Thomas's login?")).toBeNull();
     expect(active.getAttribute('aria-checked')).toBe('true');
     expect(sent).toEqual([]);
+  });
+
+  it('keeps a person to one row, their role and login opening in place on Change (A-17)', () => {
+    renderRow();
+    expect(screen.queryByRole('group', { name: 'Role for Ayesha Thomas' })).toBeNull();
+    expect(screen.queryByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
+    expect(screen.getByRole('group', { name: 'Role for Ayesha Thomas' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    expect(screen.queryByRole('group', { name: 'Role for Ayesha Thomas' })).toBeNull();
+  });
+
+  it('offers no Change on a row out of the manager\'s reach, and says when that login is off (A-17)', () => {
+    renderRow({ ...AYESHA, role: 'admin', isActive: false });
+    expect(screen.queryByRole('button', { name: 'Change Ayesha Thomas' })).toBeNull();
+    expect(screen.getByText('Turned off')).toBeDefined();
   });
 });

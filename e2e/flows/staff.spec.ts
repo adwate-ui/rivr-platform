@@ -22,6 +22,8 @@ test.describe('Staff', () => {
     await admin.getByRole('link', { name: 'Staff', exact: true }).click();
     await expect(admin.getByRole('heading', { name: 'Staff', level: 1 })).toBeVisible();
     await expect(admin.getByText('Ayesha Thomas · You', { exact: true })).toBeVisible();
+    // A person's changes open in place on Change (UI polish audit A-17).
+    await admin.getByRole('button', { name: 'Change Ayesha Thomas' }).click();
     await expect(admin.getByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeDisabled();
     // Her own role is a super admin's to give (B3), so it shows no choices; her job title stays hers to change.
     await expect(admin.getByRole('group', { name: 'Role for Ayesha Thomas' })).toHaveCount(0);
@@ -39,6 +41,7 @@ test.describe('Staff', () => {
     await expect(admin.getByText(name, { exact: true })).toBeVisible();
 
 
+    await admin.getByRole('button', { name: `Change ${name}` }).click();
     const title = admin.getByRole('textbox', { name: `Job title for ${name}` });
     await expect(title).toHaveValue('Floor supervisor');
     await title.fill('Host');
@@ -52,6 +55,8 @@ test.describe('Staff', () => {
     await admin.getByRole('button', { name: 'Yes, turn it off' }).click();
     await expect(admin.getByText(`Turn off ${name}'s login?`)).toHaveCount(0);
     await admin.reload();
+    // A reload closes the row; Change opens it again on what was saved.
+    await admin.getByRole('button', { name: `Change ${name}` }).click();
     await expect(admin.getByRole('textbox', { name: `Job title for ${name}` })).toHaveValue('Host');
     await expect(admin.getByRole('switch', { name: `Active: ${name}` })).toHaveAttribute('aria-checked', 'false');
 

@@ -38,3 +38,12 @@ Date: 2 Nov 2026. Report: `docs/design/ui-polish-audit.md`. Work in six batches 
   - **The rewards filter's fade** is a scroll cue, not decoration, as the gallery's caption scrim is for legibility: it says there is more to the right. E-14 kept its hairline because the rail's pinned foot already says so.
   - **The website's old claims** (every hand logged, points for every hour, rake back as points, League points by the hour or the finish, every night's money on record, the jackpot in the app picture) give way to neutral lines, or "Details to follow.", until the club writes its own in the Website editor, each only while it reads as first written. How League points are earned now is a question for the owner (#710).
   - **The Withdrawals notification switch** still shows while Balance is hidden: hiding its feature for every tier needs `private.bootstrap_venue` redefined, so it is a follow-up (#709).
+- **B5, the console, tablet and TV pass:**
+  - **Waitlist actions** show their verb; the name is on the row beside them and in each one's accessible name. Back's name is "Back: Kabir Sethi", so it starts with its label as the others do.
+  - **The live floor** shows who still owes call time and who asks for a top-up where Hands and Per hour stood, and no pace on the cards: hands are no longer counted at the table (#630).
+  - **A save that is not ready says why on press** (UI-19), on tables setup, rather than a greyed button that says nothing. Other disabled buttons are left as they are, screen by screen.
+  - **The jackpot and buy-in bonus templates** are left out of the console's templates (Q8, no answer, the recommendation taken): no console runs jackpots or buy-ins since 0284.
+  - **Staff** is one row per person, Change opening the role, job title and login in place; a reload closes it.
+  - **The seat ring** fits a tablet in either orientation and keeps its labels off the felt. On the console's cards its type is larger, about 13 px drawn, but the cards stay two to a row: the table art of B6 (AS-08) is where the card's ring is drawn again.
+  - **Found and left:** a seated player's row on the live floor crams its actions at 1440 px (#712), outside the audit.
+  - **League points by hand or CSV (L-01)** is a schema change and waits for the owner's yes on its plan.

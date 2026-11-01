@@ -174,7 +174,7 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
   const forms = { move: opening(setMoving), leaveEarly: opening(setLeavingEarly), callTime: opening(setChanging) };
   return (
     <Stack gap={4}>
-      <TableHeader table={table} night={night} canSeeNight={permissions.includes('members.read')} />
+      <TableHeader table={table} players={seats} night={night} canSeeNight={permissions.includes('members.read')} />
       {permissions.includes('floor.manage') ? <TableControls venueId={venueId} table={table} tables={tables} isEmpty={seats.length === 0} onResult={report} /> : null}
       {errors.table}
       {permissions.includes('members.read') ? (

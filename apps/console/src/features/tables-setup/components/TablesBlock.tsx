@@ -19,7 +19,7 @@ export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
   const stakeName = (table: SetupTable) => stakes.find((stake) => stake.id === table.stakeId)?.name ?? '';
   const columns: readonly DataTableColumn<SetupTable>[] = [
     { key: 'name', header: t('console.tablesSetup.name'), cell: (table) => table.name, priority: 'primary' },
-    { key: 'stake', header: t('console.tablesSetup.stake'), cell: stakeName, sortValue: stakeName },
+    { key: 'stake', header: t('console.tablesSetup.stake'), cell: stakeName, sortValue: stakeName, isWide: true },
     { key: 'seats', header: t('console.tablesSetup.seats'), cell: (table) => String(table.seats), sortValue: (table) => table.seats, align: 'end' },
     { key: 'now', header: t('console.tablesSetup.now'), cell: (table) => t(table.isOpen ? 'console.tablesSetup.open' : 'console.tablesSetup.closed') },
     {
@@ -83,8 +83,11 @@ function TableForm({ venueId, stakes, table, onSaved, onCancel }: TableFormProps
       <ChoiceChips label={t('console.tablesSetup.seats')} mode="one" selected={[seats]} options={SEATS.map((count) => ({ value: count, label: count }))}
         onChange={(picked) => setSeats(picked[0] ?? seats)} />
       <Inline gap={3}>
-        <Button variant="primary" isDisabled={name.trim() === '' || stakeId === null} isLoading={saveTable.isPending}
-          onClick={() => { if (stakeId !== null) void submit(stakeId); }}>{t('console.tablesSetup.saveTable')}</Button>
+        {/* Neither form is the screen's one action, so neither is gold (A-13); a save of half a form says what is missing (UI-19). */}
+        <Button variant="secondary" isLoading={saveTable.isPending}
+          onClick={() => { if (name.trim() === '' || stakeId === null) setFailure(t('console.tablesSetup.tableIncomplete')); else void submit(stakeId); }}>
+          {t('console.tablesSetup.saveTable')}
+        </Button>
         {start.tableId === null ? null : <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>}
       </Inline>
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}

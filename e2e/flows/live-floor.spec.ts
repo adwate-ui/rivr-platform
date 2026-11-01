@@ -34,8 +34,10 @@ test.describe('Live floor', () => {
     await expect(heading).toBeVisible();
     // Under the name, its stakes alone.
     await expect(heading.locator('xpath=..').getByText('100/200', { exact: true })).toBeVisible();
-    await expect(page.getByText('Hands', { exact: true })).toBeVisible();
-    await expect(page.getByText('Per hour', { exact: true })).toBeVisible();
+    // Who still owes call time and who asks for a top-up, where hands stood (UI polish audit A-11).
+    await expect(page.getByText('Call time running', { exact: true })).toBeVisible();
+    await expect(page.getByText('Top-ups waiting', { exact: true })).toBeVisible();
+    await expect(page.getByText('Hands', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Recent hands' })).toHaveCount(0);
     await expect(page.getByText(/₹|[Rr]ake/)).toHaveCount(0);
     // Closed, its seats are simply open; at an open table they invite a call from the waitlist.

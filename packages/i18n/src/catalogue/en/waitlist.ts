@@ -156,6 +156,8 @@ export const waitlist = {
   confirmRemove: 'Yes, remove {name}',
   /** Call-down (#63). */
   call: 'Call {name}',
+  /** The visible label; `call` is its name for a screen reader (UI polish audit A-09). The same for seat, skip and back. */
+  callShort: 'Call',
   callTable: 'Table for {name}',
   callSeat: 'Seat',
   callConfirm: 'Call to this seat',
@@ -170,9 +172,12 @@ export const waitlist = {
   /** Call, Seat, Skip or Back refused because someone else changed the place or the table first. */
   changed: 'The list changed. Check it and try again.',
   seat: 'Seat {name}',
+  seatShort: 'Seat',
   skip: 'Skip {name}',
+  skipShort: 'Skip',
   confirmSkip: 'Yes, skip {name}',
-  back: '{name} is back',
+  back: 'Back: {name}',
+  backShort: 'Back',
   /** A called place: `{time}` is when the hold runs out. */
   called: 'Called to {table}, seat {seat} · hold until {time}',
   /** A place stepped away or skipped: `{time}` is when it goes. */

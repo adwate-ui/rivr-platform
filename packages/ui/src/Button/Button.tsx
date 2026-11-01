@@ -63,7 +63,8 @@ const VARIANT: Record<ButtonVariant, string> = {
 const SIZE: Record<ButtonSize, string> = { regular: 'min-h-touch', large: 'min-h-12' };
 
 const BASE =
-  'inline-flex min-w-touch items-center justify-center gap-2 rounded-lg font-text text-16 leading-snug ' +
+  // wrap-normal: a label breaks at a space, never inside a word, even in a table cell that lets text wrap anywhere.
+  'inline-flex min-w-touch items-center justify-center gap-2 rounded-lg font-text text-16 leading-snug wrap-normal ' +
   'select-none transition-colors active:opacity-muted disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */

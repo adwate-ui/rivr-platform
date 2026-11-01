@@ -6,20 +6,18 @@ export const liveFloor = {
   empty: 'No tables are running.',
   /** A phone's way from a table back to the plan, and the desk's line while none is chosen (#605). */
   backToFloor: 'Back to the floor',
-  chooseTable: 'Choose a table to see its seats and hands.',
+  chooseTable: 'Choose a table to see its seats.',
   table: 'Table',
   /** The tables, room by room, read out as one part of the screen. */
   roomPlan: 'Room plan',
   seatedCount: '{count} seated',
   mainRoom: 'Main room',
   privateRoom: 'Private Room',
-  /** Under a table's ring: hands in the last hour. */
-  handsPerHour: '{count} hands/hr',
-  noPace: '-',
   noDealer: 'No dealer',
   dealer: 'Dealer · {name}',
-  hands: 'Hands',
-  perHour: 'Per hour',
+  /** The chosen table's players still owing call time, and asking for a top-up (UI polish audit A-11). */
+  callTimeRunning: 'Call time running',
+  topUpsWaiting: 'Top-ups waiting',
   recentHands: 'Recent hands',
   noHands: 'No hands yet tonight.',
   handNumber: '#{number}',
@@ -184,6 +182,9 @@ export const tablesSetup = {
   newTable: 'New table',
   saveStake: 'Save the stake',
   saveTable: 'Save the table',
+  /** Save pressed on half a form (UI polish audit UI-19). */
+  stakeIncomplete: 'Name the stake and set both blinds, big above small.',
+  tableIncomplete: 'Name the table and choose its stake.',
   /** After a save: `{name}` is the stake or table. */
   saved: '{name} is saved.',
   failures: {

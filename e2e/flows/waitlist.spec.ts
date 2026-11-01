@@ -188,13 +188,13 @@ test.describe('Waitlist', () => {
     await higher.getByRole('button', { name: 'Call to this seat' }).click();
     await higher.getByRole('button', { name: `Skip ${MEMBER}` }).click();
     await higher.getByRole('button', { name: `Yes, skip ${MEMBER}` }).click();
-    await expect(higher.getByRole('button', { name: `${MEMBER} is back` })).toBeVisible();
-    await higher.getByRole('button', { name: `${MEMBER} is back` }).click();
+    await expect(higher.getByRole('button', { name: `Back: ${MEMBER}` })).toBeVisible();
+    await higher.getByRole('button', { name: `Back: ${MEMBER}` }).click();
     await expect(higher.getByRole('button', { name: `Call ${MEMBER}` })).toBeVisible();
 
     await player.reload();
     await player.getByRole('button', { name: 'Step away' }).click();
-    await untilListShows(host, `${MEMBER} is back`);
+    await untilListShows(host, `Back: ${MEMBER}`);
     await player.getByRole('button', { name: "I'm back" }).click();
     await untilListShows(host, `Call ${MEMBER}`);
 

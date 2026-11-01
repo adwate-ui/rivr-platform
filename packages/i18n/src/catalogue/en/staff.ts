@@ -29,6 +29,10 @@ export const staff = {
   noPhone: 'No number',
   inactive: 'Turned off',
   you: 'You',
+  /** A row's way into its changes (UI polish audit A-17), and out again. */
+  change: 'Change',
+  changeFor: 'Change {name}',
+  done: 'Done',
   /** Accessible name of the role choice on a staff member's row. */
   roleFor: 'Role for {name}',
   activeFor: 'Active: {name}',

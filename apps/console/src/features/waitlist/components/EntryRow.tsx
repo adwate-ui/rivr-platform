@@ -34,35 +34,39 @@ interface EntryActionsProps {
 
 /**
  * The floor's actions on one place: Call, then Seat; Skip and Back; Remove. Skip on a called member
- * ends the call, keeps their place as away, and calls the next name to the seat.
+ * ends the call, keeps their place as away, and calls the next name to the seat. Each shows its verb, the name on the
+ * row beside it, and carries the name for a screen reader (UI polish audit A-09).
  */
 function EntryActions({ venueId, entry, onCall, canCall, act }: EntryActionsProps) {
   const { remove } = useFloorWaitlistActions(venueId);
   const { seat, away } = useWaitlistCallActions();
   const name = entry.fullName;
   const skip = (
-    <ConfirmButton label={t('console.waitlist.skip', { name })} confirm={t('console.waitlist.confirmSkip', { name })}
+    <ConfirmButton label={t('console.waitlist.skipShort')} name={t('console.waitlist.skip', { name })} confirm={t('console.waitlist.confirmSkip', { name })}
       onConfirm={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: true }))} />
   );
   return (
     <Inline gap={2} wrap>
       {entry.holdUntil !== null ? (
         <>
-          <Button variant="secondary" isLoading={seat.isPending} onClick={() => void act(seat.mutateAsync(entry.entryId))}>{t('console.waitlist.seat', { name })}</Button>
+          <Button variant="secondary" aria-label={t('console.waitlist.seat', { name })} isLoading={seat.isPending} onClick={() => void act(seat.mutateAsync(entry.entryId))}>
+            {t('console.waitlist.seatShort')}
+          </Button>
           {skip}
         </>
       ) : entry.awayUntil !== null ? (
-        <Button variant="secondary" isLoading={away.isPending} onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: false }), BACK_FAILURE_COPY)}>
-          {t('console.waitlist.back', { name })}
+        <Button variant="secondary" aria-label={t('console.waitlist.back', { name })} isLoading={away.isPending}
+          onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: false }), BACK_FAILURE_COPY)}>
+          {t('console.waitlist.backShort')}
         </Button>
       ) : (
         <>
           {/* No call without an open table of the game to call to (F2-18). */}
-          {canCall ? <Button variant="secondary" onClick={onCall}>{t('console.waitlist.call', { name })}</Button> : null}
+          {canCall ? <Button variant="secondary" aria-label={t('console.waitlist.call', { name })} onClick={onCall}>{t('console.waitlist.callShort')}</Button> : null}
           {skip}
         </>
       )}
-      <ConfirmButton label={t('console.waitlist.remove', { name })} confirm={t('console.waitlist.confirmRemove', { name })} isBusy={remove.isPending}
+      <ConfirmButton label={t('console.waitlist.removeShort')} name={t('console.waitlist.remove', { name })} confirm={t('console.waitlist.confirmRemove', { name })} isBusy={remove.isPending}
         onConfirm={() => void act(remove.mutateAsync(entry.entryId))} />
     </Inline>
   );
