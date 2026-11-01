@@ -26,13 +26,14 @@ function JobTitleForm({ member, isDisabled, onSave }: { member: StaffMember; isD
   );
 }
 
-/** Who they are: name (and You on one's own row), job title and role, and their number. */
+/** Who they are: name (and You on one's own row), job title and role, their number, and whether their login is off. */
 function StaffIdentity({ member }: { member: StaffMember }) {
   return (
     <Stack gap={1}>
       <Text weight="semibold">{member.isMe ? `${member.fullName} · ${t('console.staff.you')}` : member.fullName}</Text>
       <Text variant="small" tone="muted">{t('console.staff.line', { jobTitle: member.jobTitle, role: roleName(member.role) })}</Text>
       <Text variant="small" tone="muted">{member.phone ?? t('console.staff.noPhone')}</Text>
+      {member.isActive ? null : <Text variant="small" weight="medium">{t('console.staff.inactive')}</Text>}
     </Stack>
   );
 }
@@ -94,11 +95,13 @@ function RowChanges({ member, grantable, isInReach, canChange, isSaving, onSave 
 }
 
 /**
- * One staff member: name, job title and role, their number, and the changes the manager may make. A
- * manager changes only someone whose role they could give, and never their own role or whether they're active.
+ * One staff member on one row: name, job title and role, their number, and Change, which opens what the manager may change
+ * in place (UI polish audit A-17). A manager changes only someone whose role they could give, and never their own role or
+ * whether they're active; their own job title is theirs to change.
  */
 export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
   const { change } = useStaffActions(venueId);
+  const [isChanging, setIsChanging] = useState(false);
   const [failure, setFailure] = useState<StaffFailure | null>(null);
   const [isTitleSaved, setIsTitleSaved] = useState(false);
   const save = async (update: StaffChange) => {
@@ -109,11 +112,23 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
   const { isInReach, canChange, canRetitle } = reachOf(member, grantable, change.isPending);
   return (
     <Stack gap={3}>
-      <StaffIdentity member={member} />
-      <JobTitleForm member={member} isDisabled={!canRetitle} onSave={(jobTitle) => save({ jobTitle })} />
-      <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
-      <RowChanges member={member} grantable={grantable} isInReach={isInReach} canChange={canChange} isSaving={change.isPending} onSave={save} />
-      {member.isMe ? <Text variant="small" tone="muted">{t('console.staff.ownRow')}</Text> : null}
+      <Inline justify="between" align="center" gap={4}>
+        <StaffIdentity member={member} />
+        {(isInReach || member.isMe) && !isChanging ? (
+          <Button variant="text" aria-label={t('console.staff.changeFor', { name: member.fullName })} onClick={() => setIsChanging(true)}>
+            {t('console.staff.change')}
+          </Button>
+        ) : null}
+      </Inline>
+      {isChanging ? (
+        <Stack gap={3}>
+          <JobTitleForm member={member} isDisabled={!canRetitle} onSave={(jobTitle) => save({ jobTitle })} />
+          <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
+          <RowChanges member={member} grantable={grantable} isInReach={isInReach} canChange={canChange} isSaving={change.isPending} onSave={save} />
+          {member.isMe ? <Text variant="small" tone="muted">{t('console.staff.ownRow')}</Text> : null}
+          <Inline><Button variant="text" onClick={() => setIsChanging(false)}>{t('console.staff.done')}</Button></Inline>
+        </Stack>
+      ) : null}
       {failure === null ? null : <ErrorMessage>{t(STAFF_FAILURE_COPY[failure])}</ErrorMessage>}
       {/* A hire turned off has no checklist. */}
       {member.isActive ? <OnboardingChecklist venueId={venueId} member={member} /> : null}

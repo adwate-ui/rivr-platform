@@ -30,6 +30,10 @@ export const staff = {
   inactive: 'Turned off',
   you: 'You',
   /** Accessible name of the role choice on a staff member's row. */
+  /** A row's way into its changes (UI polish audit A-17), and out again. */
+  change: 'Change',
+  changeFor: 'Change {name}',
+  done: 'Done',
   roleFor: 'Role for {name}',
   activeFor: 'Active: {name}',
   /** A role or active change picked on a row is asked before it is saved (F1-09). */

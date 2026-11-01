@@ -41,6 +41,7 @@ function renderRow() {
 describe('StaffRow', () => {
   it('asks before a role picked on the row is saved, and saves it on Yes', async () => {
     const sent = renderRow();
+    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     fireEvent.click(screen.getByRole('button', { name: 'Host' }));
     expect(screen.getByText("Change Ayesha Thomas's role to Host?")).toBeDefined();
     expect(sent).toEqual([]);
@@ -50,6 +51,7 @@ describe('StaffRow', () => {
 
   it('asks before the login is turned off, and Cancel leaves it on', () => {
     const sent = renderRow();
+    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     const active = screen.getByRole('switch', { name: 'Active: Ayesha Thomas' });
     fireEvent.click(active);
     expect(screen.getByText("Turn off Ayesha Thomas's login?")).toBeDefined();
@@ -57,5 +59,15 @@ describe('StaffRow', () => {
     expect(screen.queryByText("Turn off Ayesha Thomas's login?")).toBeNull();
     expect(active.getAttribute('aria-checked')).toBe('true');
     expect(sent).toEqual([]);
+  });
+
+  it('keeps a person to one row, their role and login opening in place on Change (A-17)', () => {
+    renderRow();
+    expect(screen.queryByRole('group', { name: 'Role for Ayesha Thomas' })).toBeNull();
+    expect(screen.queryByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
+    expect(screen.getByRole('group', { name: 'Role for Ayesha Thomas' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    expect(screen.queryByRole('group', { name: 'Role for Ayesha Thomas' })).toBeNull();
   });
 });
