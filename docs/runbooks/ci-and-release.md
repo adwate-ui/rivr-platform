@@ -8,7 +8,7 @@ All workflows run on GitHub-hosted runners (`docs/decisions/0001-hosted-ci-runne
 | `nightly-backup.yml` | 08:00 IST daily, or by hand | For staging and production: an encrypted logical dump and CSV export to the target's R2 bucket. Skips until its environment is set up. See `docs/runbooks/backups-and-restore.md`. |
 | `preview.yml` | Every PR from this repository | Builds every web surface against staging data and deploys a Cloudflare Pages preview per app (`pr-<n>` branch of `rivr-<app>-staging`). |
 | `deploy-staging.yml` | Every merge to `main` | Migrations and seed, Edge Functions, every web surface and Storybook to staging. |
-| `release.yml` | A tag `release-YYYYMMDD-N` | End-to-end suite against staging, then the same commit to production (migrations without seed, Edge Functions, Pages), plus signed tablet and driver APKs attached to the GitHub release. |
+| `release.yml` | A tag `release-YYYYMMDD-N` | End-to-end suite against staging, then the same commit to production (migrations without seed, Edge Functions, Pages), plus the signed tablet APK attached to the GitHub release. |
 
 Deploy jobs skip with a notice until their secrets exist, so `main` stays green before the accounts are set up.
 
@@ -32,8 +32,8 @@ Variables are plain and visible, so they hold only non-secret values (Settings â
 |---|---|
 | `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_PUBLISHABLE_KEY` | builds for previews and staging |
 | `PROD_SUPABASE_URL`, `PROD_SUPABASE_PUBLISHABLE_KEY` | production builds |
-| `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,DRIVER,WEB}_URL` | the release's end-to-end run against staging |
-| `PROD_TABLET_URL`, `PROD_DRIVER_URL` | the hosted bundle the APK shells load |
+| `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,WEB}_URL` | the release's end-to-end run against staging |
+| `PROD_TABLET_URL` | the hosted bundle the APK shell loads |
 | `PROD_DISPLAY_URL` | the hosted TV app, so `device-pair` answers TVs asking for a pairing code (#49) |
 
 Auth and API on staging and production, in the Supabase dashboard:

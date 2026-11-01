@@ -148,13 +148,10 @@ export const tokens = {
     "disabled": 0.4
   },
   "z": {
-    "base": 0,
-    "raised": 10,
     "nav": 20,
     "banner": 30,
     "overlay": 40,
-    "modal": 50,
-    "toast": 60
+    "modal": 50
   },
   "viewport": {
     "phone": {

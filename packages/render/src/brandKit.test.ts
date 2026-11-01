@@ -27,8 +27,8 @@ describe('the brand kit', () => {
     expect(BRAND_KIT.filter((output) => output.path.includes('/splash/apple-splash-'))).toHaveLength(IPHONE_SCREENS.length);
   });
 
-  it('gives both Android apps a launcher icon, round icon, adaptive foreground and splash at every density', () => {
-    for (const app of ['tablet', 'driver']) {
+  it('gives the Android app a launcher icon, round icon, adaptive foreground and splash at every density', () => {
+    for (const app of ['tablet']) {
       const res = `apps/${app}/android/app/src/main/res`;
       for (const [density, dp] of DENSITIES) {
         expect(at(`${res}/mipmap-${density}/ic_launcher.png`)).toMatchObject({ art: 'icon', width: 48 * dp });
