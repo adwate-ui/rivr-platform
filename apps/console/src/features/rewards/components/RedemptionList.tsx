@@ -27,7 +27,7 @@ function HandOverButton({ venueId, redemption }: { venueId: string; redemption: 
   );
 }
 
-/** Cancels one redemption not yet handed over, with a reason, after Cancel opens the form (#462). */
+/** Cancels one redemption not yet handed over, with a reason, after Cancel opens the form (#462); the form's own Cancel closes it (F2-22). */
 function CancelRedemption({ venueId, redemption }: { venueId: string; redemption: Redemption }) {
   const cancel = useCancelRedemption(venueId);
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +50,8 @@ function CancelRedemption({ venueId, redemption }: { venueId: string; redemption
     <Stack gap={2}>
       <ReasonForm field={form.register('reason')} label={t('console.rewards.cancelRedemptionReason', names)}
         error={form.formState.errors.reason ? t('console.rewards.invalidCancelReason') : undefined}
-        actions={[{ label: t('console.rewards.cancelRedemptionConfirm'), onClick: () => void submit() }]} isLoading={cancel.isPending} />
+        actions={[{ label: t('console.rewards.cancelRedemptionConfirm'), onClick: () => void submit() }]} isLoading={cancel.isPending}
+        onCancel={() => setIsOpen(false)} />
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );

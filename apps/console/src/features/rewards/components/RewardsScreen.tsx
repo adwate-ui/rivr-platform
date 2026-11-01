@@ -1,6 +1,6 @@
 import { useStaffVenue, type RewardItem } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Grid, Screen, Stack } from '@rivr/ui';
+import { Button, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { CatalogueList } from './CatalogueList.tsx';
 import { PointsByHand } from './PointsByHand.tsx';
@@ -10,8 +10,11 @@ import { RewardForm } from './RewardForm.tsx';
 /** The catalogue and the redemptions beside the form: a new reward, or the one chosen to change. */
 function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: string; canKeep: boolean; canHandOver: boolean; canGive: boolean }) {
   const [editing, setEditing] = useState<RewardItem | null>(null);
-  const catalogue = <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={setEditing} />;
-  const newReward = editing === null ? null : <Button variant="text" onClick={() => setEditing(null)}>{t('console.rewards.newReward')}</Button>;
+  // Kept here: a change saved closes its form, so the form's own words would go with it (F2-23).
+  const [saved, setSaved] = useState<string | null>(null);
+  const edit = (item: RewardItem | null) => { setEditing(item); setSaved(null); };
+  const catalogue = <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={edit} />;
+  const newReward = editing === null ? null : <Button variant="text" onClick={() => edit(null)}>{t('console.rewards.newReward')}</Button>;
   return (
     <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
       <Stack gap={10}>
@@ -19,7 +22,11 @@ function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: stri
         {canKeep ? (
           <Grid columns={2} gap={12} stackBelow="medium">
             {catalogue}
-            <RewardForm key={editing?.id ?? 'new'} venueId={venueId} item={editing} onDone={() => setEditing(null)} />
+            <Stack gap={4}>
+              <RewardForm key={editing?.id ?? 'new'} venueId={venueId} item={editing} onCancel={() => edit(null)}
+                onOutcome={(text) => { setSaved(text); if (text !== null) setEditing(null); }} />
+              <StatusMessage>{saved}</StatusMessage>
+            </Stack>
           </Grid>
         ) : catalogue}
         {canHandOver ? <RedemptionList venueId={venueId} /> : null}

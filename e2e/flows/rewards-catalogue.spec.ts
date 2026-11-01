@@ -39,6 +39,8 @@ test.describe('Rewards catalogue', () => {
     await marketing.getByRole('switch', { name: 'On offer' }).click();
     await marketing.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(marketing.getByRole('heading', { name: 'New reward' })).toBeVisible();
+    // Said once saved, though saving the change closes its form (F2-23).
+    await expect(marketing.getByRole('status').getByText(`${name} is saved.`)).toBeVisible();
     await expect(marketing.getByText('Retired', { exact: true }).first()).toBeVisible();
 
     await expect(marketing.getByRole('link', { name: 'League', exact: true })).toHaveCount(0);
