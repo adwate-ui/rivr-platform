@@ -29,12 +29,14 @@ test.describe('Call time', () => {
     const player = await browser.newPage();
     await signInToPlayer(player, '9000000215');
     await expect(player.getByText('Private Room, seat 1')).toBeVisible();
-    await expect(player.getByText(/^Call time (3 h|2 h 59 min|2 h 58 min) left$/)).toBeVisible();
+    // The seat card sets the time left as its figure, under its name (UI polish audit A-08).
+    await expect(player.getByText('Call time left')).toBeVisible();
+    await expect(player.getByText(/^(3 h|2 h 59 min|2 h 58 min)$/)).toBeVisible();
     await expect(player.getByText(/^Playing for /)).toBeVisible();
 
     // From her seat (#634): an hour more call time, and a top-up the floor takes in hand, then resets.
     await player.getByRole('button', { name: 'Add an hour of call time' }).click();
-    await expect(player.getByText(/^Call time (4 h|3 h 59 min|3 h 58 min) left$/)).toBeVisible();
+    await expect(player.getByText(/^(4 h|3 h 59 min|3 h 58 min)$/)).toBeVisible();
     await player.getByRole('button', { name: 'Top up' }).click();
     await expect(player.getByText('Top-up requested.')).toBeVisible();
     await floor.getByRole('button', { name: 'The top-up for Ritika Das is in progress' }).click({ timeout: 20_000 });
