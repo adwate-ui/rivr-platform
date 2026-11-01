@@ -79,7 +79,7 @@ function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurren
       onClick={(event) => routeClick(event, item.href, onNavigate)}
       className={cx(
         // A finger's width below a desk, where the rail is the console's menu.
-        'flex min-h-touch items-center gap-2 rounded-md border-l-2 px-3 font-text text-16 transition-colors tablet:min-h-8',
+        'flex min-h-touch items-center gap-2 rounded-r-md border-l-2 px-3 font-text text-16 transition-colors tablet:min-h-8',
         isCurrent ? 'border-action font-medium text-content' : 'border-transparent text-content-muted hover:text-content',
       )}
     >
