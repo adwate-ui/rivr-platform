@@ -10,6 +10,7 @@ export const alerts = {
     'control.engaged': 'the kill switch was engaged',
     'control.release_asked': 'a release of the kill switch was asked for',
     'control.released': 'the kill switch was released',
+    'purge.asked': 'a purge of the venue was asked for',
     'dealer.uncounted': 'a dealer down closed without its count',
     'dealer.variance': 'a dealer down closed with a variance',
     'devices.pairing_guessed': 'someone kept guessing a device pairing code',

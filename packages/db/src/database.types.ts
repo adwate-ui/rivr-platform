@@ -2545,6 +2545,38 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"purge_request": {
+                  Row: {
+                    "asked_at": string,"asked_by_staff_id": string,"carried_out_at": string | null,"carried_out_by_staff_id": string | null,"created_at": string,"id": string,"reason": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "asked_at"?: string,"asked_by_staff_id": string,"carried_out_at"?: string | null,"carried_out_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"reason": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "asked_at"?: string,"asked_by_staff_id"?: string,"carried_out_at"?: string | null,"carried_out_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"reason"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "purge_request_asked_by_staff_id_venue_id_fkey"
+      columns: ["asked_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "purge_request_carried_out_by_staff_id_venue_id_fkey"
+      columns: ["carried_out_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "purge_request_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"push_subscription": {
                   Row: {
                     "auth": string,"created_at": string,"endpoint": string,"id": string,"member_id": string,"p256dh": string,"updated_at": string,"venue_id": string
@@ -4423,6 +4455,9 @@ isOneToOne: false
 "approve_waitlist_request":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
+"ask_live_purge":
+{ Args: { "p_reason": string,"p_venue_id": string }; Returns: string
+                           },
 "assign_tablet":
 { Args: { "p_device_id": string,"p_table_id": string }; Returns: undefined
                            },
@@ -5156,6 +5191,11 @@ isOneToOne: false
 "open_markers":
 { Args: { "p_venue_id": string }; Returns: {
               "age_days": number,"amount_paise": number,"due_at": string,"full_name": string,"is_past_due": boolean,"issued_at": string,"limit_paise": number,"marker_id": string,"member_id": string,"outstanding_paise": number
+            }[]
+                           },
+"open_purge_request":
+{ Args: { "p_venue_id": string }; Returns: {
+              "asked_at": string,"asked_by": string,"is_mine": boolean,"reason": string,"request_id": string
             }[]
                            },
 "open_tv_pairing_window":

@@ -55,6 +55,7 @@ export const staff = {
   alreadyStaff: 'That number is already on the staff list. Find them below and turn their row back on.',
   ownChange: 'You cannot change your own role or turn yourself off. Ask another manager.',
   lastSuperAdmins: 'That would leave fewer than two super admins able to release a venue freeze. Add another super admin first.',
+  paused: 'The venue is frozen: only turning a login off goes through until it is released.',
   jobTitleSaved: 'Job title saved.',
   changed: 'That did not save. Check the details and try again.',
   unavailable: 'That did not go through. Check the connection and try again.',

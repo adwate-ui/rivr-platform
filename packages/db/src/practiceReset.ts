@@ -63,11 +63,14 @@ export interface LivePurgeRow {
  * practice venue, a control naming a member, the tables busy, or too many tries at once.
  */
 export type LivePurgeFailure =
-  | 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'changed' | 'wrong_name' | 'held' | 'busy' | 'too_often' | 'unavailable';
+  | 'not_allowed' | 'practice' | 'not_frozen' | 'no_archive' | 'changed' | 'wrong_name' | 'held' | 'busy' | 'too_often' | 'second'
+  | 'unavailable';
 
 const PURGE_FAILURE_BY_CODE: Readonly<Record<string, LivePurgeFailure>> = {
   '42501': 'not_allowed', RVPRC: 'practice', RVNFZ: 'not_frozen', RVARC: 'no_archive', RVCHG: 'changed', RVNAM: 'wrong_name',
   RVRAT: 'too_often',
+  // A purge is carried out by a super admin other than the one who asked for it (A4-13).
+  RVTWO: 'second',
   // foreign_key_violation: a kill-switch control, which a purge keeps, names a member the purge removes.
   '23503': 'held',
   // lock_not_available and deadlock_detected: another write held a table the purge locks.
@@ -162,5 +165,43 @@ export function useRemovePurgedFiles(venueId: string) {
       return error ? err(livePurgeFailureOf({ code: await purgeCodeOf(error) })) : ok(purgedFilesOf(data));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: purgeFilesLeftKey(userId ?? 'signed-out', venueId) }),
+  });
+}
+
+/** A purge asked for at a venue and still open (A4-13): who asked, why and when, and whether it was this super admin. */
+export interface PurgeAsk {
+  readonly askedBy: string;
+  readonly reason: string;
+  readonly askedAt: string;
+  readonly isMine: boolean;
+}
+
+const purgeAskKey = (userId: string, venueId: string) => ['user', userId, 'purgeAsk', venueId] as const;
+
+/** The purge asked for at a frozen live venue and still open (asked within the day), or null. */
+export function useOpenPurgeAsk(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: purgeAskKey(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<PurgeAsk | null> => {
+      const { data, error } = await client.rpc('open_purge_request', { p_venue_id: venueId });
+      if (error) throw error;
+      const row = data[0];
+      return row === undefined ? null : { askedBy: row.asked_by, reason: row.reason, askedAt: row.asked_at, isMine: row.is_mine };
+    },
+  });
+}
+
+/** Asks for the purge of a frozen live venue (A4-13), saying why: another super admin carries it out. A Result. */
+export function useAskLivePurge(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (reason: string): Promise<Result<null, LivePurgeFailure>> => {
+      const { error } = await client.rpc('ask_live_purge', { p_venue_id: venueId, p_reason: reason });
+      await queryClient.invalidateQueries({ queryKey: purgeAskKey(userId ?? 'signed-out', venueId) });
+      return error ? err(livePurgeFailureOf(error)) : ok(null);
+    },
   });
 }
