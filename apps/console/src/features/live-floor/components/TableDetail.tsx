@@ -1,6 +1,6 @@
 import { useSeatActions, useSetTopUp, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure, type TableNight } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, CallTimeTimer, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
+import { Button, CallTimeTimer, ConfirmButton, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CallTimeForm } from './CallTimeForm.tsx';
 import { EarlyLeaveForm } from './EarlyLeaveForm.tsx';
@@ -97,7 +97,8 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
         {t('console.liveFloor.changeCallTime')}
       </Button>
       <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
-      <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })} onClick={onLeave}>{t('console.liveFloor.leave')}</Button>
+      <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leaveName', { name: player.fullName })}
+        confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} onConfirm={onLeave} />
       {canLetGoEarly && (player.callTimeLeft ?? 0) > 0 ? (
         <Button variant="text" aria-label={t('console.liveFloor.leaveEarlyName', { name: player.fullName })} onClick={onLeaveEarly}>
           {t('console.liveFloor.leaveEarly')}

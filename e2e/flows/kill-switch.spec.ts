@@ -96,6 +96,7 @@ test.describe('Kill switch', () => {
       await first.getByRole('link', { name: 'Live floor' }).click();
       await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
       await first.getByRole('button', { name: 'Kunal Mehra leaves' }).click();
+      await first.getByRole('button', { name: 'Yes, Kunal Mehra leaves' }).click();
       await revoke(first, name);
     }
   });

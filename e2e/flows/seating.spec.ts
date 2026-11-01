@@ -31,6 +31,8 @@ test.describe('Seating', () => {
     await expect(page.getByRole('button', { name: 'Move Ishaan Verma' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Ishaan Verma leaves' }).click();
+
+    await page.getByRole('button', { name: 'Yes, Ishaan Verma leaves' }).click();
     await expect(page.getByRole('img', { name: 'Table 5, 0 of 9 seats taken' })).toBeVisible();
     // He left before Table 5's call time (#79): she lets him leave early.
     await expect(page.getByRole('heading', { name: 'Left before call time' })).toBeVisible();

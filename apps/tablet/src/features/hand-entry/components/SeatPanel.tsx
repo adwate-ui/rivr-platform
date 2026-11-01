@@ -1,6 +1,6 @@
 import { useSeatEvents, type SeatEventFailure, type TabletPlayer, type TabletSeat } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, CallTimeTimer, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Button, CallTimeTimer, ConfirmButton, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { SeatFnbOrder } from './SeatFnbOrder.tsx';
 
@@ -35,9 +35,8 @@ export function SeatPanel({ seat, player, onLeft }: SeatPanelProps) {
       {player.callTimeLeft === null ? null : <CallTimeTimer secondsLeft={player.callTimeLeft} isPaused={player.isAway} />}
       <Inline gap={4}>
         <Button variant="text" isDisabled={setAway.isPending} onClick={() => void setAway.mutateAsync({ sessionId: player.sessionId, isAway: !player.isAway }).then(report)}>{awayLabel}</Button>
-        <Button variant="text" isDisabled={leave.isPending} onClick={() => void leave.mutateAsync(player.sessionId).then((done) => { report(done); if (done.ok) onLeft(); })}>
-          {t('tablet.seats.left')}
-        </Button>
+        <ConfirmButton label={t('tablet.seats.left')} confirm={t('tablet.seats.confirmLeft', { name: player.fullName })} isDisabled={leave.isPending}
+          onConfirm={() => void leave.mutateAsync(player.sessionId).then((done) => { report(done); if (done.ok) onLeft(); })} />
         <Button variant="text" onClick={() => setIsOrdering(true)}>{t('tablet.fnb.open')}</Button>
       </Inline>
       {isOrdering ? <SeatFnbOrder seat={seat.seat} onClose={() => setIsOrdering(false)} /> : null}

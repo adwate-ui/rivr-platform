@@ -2,11 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { chipCountsSchema } from '@rivr/contracts/tournaments';
 import type { DealOrder, TournamentSeatRow } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { ConfirmButton, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import { ConfirmButton } from './ConfirmButton.tsx';
 
 interface ChipCountFormProps {
   left: readonly TournamentSeatRow[];

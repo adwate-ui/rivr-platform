@@ -97,6 +97,9 @@ export const tonight = {
   /** A join the floor has not approved (#633): `{time}` is when the member asked, IST. */
   request: 'Asked at {time} · The floor approves it onto the list',
   leave: 'Leave',
+  /** On each of the member's places: `{game}` is the list, `NLH 100/200`. */
+  leaveName: 'Leave: the {game} list',
+  confirmLeave: 'Yes, leave the {game} list',
   /** The seat call (#63), as the WhatsApp message says it: `{time}` is when the hold runs out, IST. */
   seatReady: 'Your seat is ready. {table}, seat {seat}. Hold expires {time}.',
   stepAway: 'Step away',
@@ -141,6 +144,7 @@ export const waitlist = {
   approveShort: 'Approve',
   removeShort: 'Remove',
   remove: 'Remove {name}',
+  confirmRemove: 'Yes, remove {name}',
   /** Call-down (#63). */
   call: 'Call {name}',
   callTable: 'Table for {name}',
@@ -158,6 +162,7 @@ export const waitlist = {
   changed: 'That place or table has just changed. Check the list and try again.',
   seat: 'Seat {name}',
   skip: 'Skip {name}',
+  confirmSkip: 'Yes, skip {name}',
   back: '{name} is back',
   /** A called place: `{time}` is when the hold runs out. */
   called: 'Called to {table}, seat {seat} · hold until {time}',

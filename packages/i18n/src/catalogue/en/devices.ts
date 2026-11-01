@@ -210,6 +210,8 @@ export const seats = {
   back: 'Back',
   isAway: 'Away from the table. The seat is kept.',
   left: 'Player left',
+  /** The second press of Player left (B7): `{name}` is the player. */
+  confirmLeft: 'Yes, {name} left',
   notAllowed: 'This tablet changes only its own table.',
   invalid: 'That player is no longer at the table.',
   paused: 'The venue is frozen. Seats change again once it is released.',

@@ -1,6 +1,6 @@
 import { useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, FloorRow, Heading, Inline, Stack } from '@rivr/ui';
+import { Button, ConfirmButton, ErrorMessage, FloorRow, Heading, Inline, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
@@ -46,9 +46,9 @@ export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
                   {place.awayUntil === null ? t('player.tonight.stepAway') : t('player.tonight.back')}
                 </Button>
               )}
-              <Button variant="secondary" isLoading={leave.isPending} onClick={() => void act(leave.mutateAsync(place.entryId))}>
-                {t('player.tonight.leave')}
-              </Button>
+              <ConfirmButton variant="secondary" label={t('player.tonight.leave')} name={t('player.tonight.leaveName', { game: place.tableTypeName })}
+                confirm={t('player.tonight.confirmLeave', { game: place.tableTypeName })} isBusy={leave.isPending}
+                onConfirm={() => void act(leave.mutateAsync(place.entryId))} />
             </Inline>
           }
         />

@@ -87,6 +87,7 @@ export const liveFloor = {
   moveTitle: 'Move {name}',
   leave: 'Leave',
   leaveName: '{name} leaves',
+  confirmLeave: 'Yes, {name} leaves',
   /** An admin lets a player leave before their call time, with a reason (#79). `{time}`: 1 h 12 min. */
   leaveEarly: 'Leave early',
   leaveEarlyName: 'Let {name} leave early',

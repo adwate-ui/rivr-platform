@@ -35,11 +35,13 @@ function gameList(page: Page, name: string): Locator {
 }
 
 /** Presses every button named `name`, one at a time, until none is left. */
-async function pressEvery(page: Page, name: string) {
-  const buttons = page.getByRole('button', { name });
+async function pressEvery(page: Page, name: string | RegExp, confirm: string) {
+  const buttons = page.getByRole('button', { name, exact: true });
   while (await buttons.count() > 0) {
     const before = await buttons.count();
     await buttons.first().click();
+    // Each is asked twice (B7): the button turns into its confirmation.
+    await page.getByRole('button', { name: confirm }).click();
     await expect(buttons).toHaveCount(before - 1);
   }
 }
@@ -58,9 +60,9 @@ test.beforeAll(async ({ browser }) => {
   await host.getByRole('link', { name: 'Waitlist' }).click();
   await expect(host.getByRole('heading', { name: 'NLH 100/200' })).toBeVisible();
   // A run stopped early may have left places behind.
-  await pressEvery(player, 'Leave');
-  await pressEvery(host, `Remove ${BLACK_CARD}`);
-  await pressEvery(host, `Remove ${MEMBER}`);
+  await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave the');
+  await pressEvery(host, `Remove ${BLACK_CARD}`, `Yes, remove ${BLACK_CARD}`);
+  await pressEvery(host, `Remove ${MEMBER}`, `Yes, remove ${MEMBER}`);
 });
 
 /**
@@ -107,6 +109,7 @@ test.describe('Waitlist', () => {
 
     await expect(higher.getByText(new RegExp(`^\\d+\\. ${MEMBER} · \\d{2}:\\d{2}$`))).toBeVisible();
     await higher.getByRole('button', { name: `Remove ${MEMBER}` }).click();
+    await higher.getByRole('button', { name: `Yes, remove ${MEMBER}` }).click();
     await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
 
     await player.reload();
@@ -129,12 +132,13 @@ test.describe('Waitlist', () => {
     await expect(higher.getByText(new RegExp(`^1\\. ${BLACK_CARD} · \\d{2}:\\d{2} · Black card$`))).toBeVisible();
     // One game at a time (#633): off 100/200 before 50/100.
     await higher.getByRole('button', { name: `Remove ${BLACK_CARD}` }).click();
+    await higher.getByRole('button', { name: `Yes, remove ${BLACK_CARD}` }).click();
     await expect(higher.getByText(BLACK_CARD, { exact: false })).toHaveCount(0);
     await addByNumber(lower, '9000000212');
     await expect(lower.getByText(new RegExp(`^2\\. ${BLACK_CARD} · \\d{2}:\\d{2}$`))).toBeVisible();
-    await pressEvery(host, `Remove ${BLACK_CARD}`);
+    await pressEvery(host, `Remove ${BLACK_CARD}`, `Yes, remove ${BLACK_CARD}`);
 
-    await pressEvery(player, 'Leave');
+    await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave the');
     await host.reload();
     await expect(gameList(host, 'NLH 50/100').getByText('No one is waiting.')).toBeVisible();
   });
@@ -183,6 +187,7 @@ test.describe('Waitlist', () => {
     await higher.getByRole('textbox', { name: 'Seat', exact: true }).fill('8');
     await higher.getByRole('button', { name: 'Call to this seat' }).click();
     await higher.getByRole('button', { name: `Skip ${MEMBER}` }).click();
+    await higher.getByRole('button', { name: `Yes, skip ${MEMBER}` }).click();
     await expect(higher.getByRole('button', { name: `${MEMBER} is back` })).toBeVisible();
     await higher.getByRole('button', { name: `${MEMBER} is back` }).click();
     await expect(higher.getByRole('button', { name: `Call ${MEMBER}` })).toBeVisible();
@@ -193,6 +198,6 @@ test.describe('Waitlist', () => {
     await player.getByRole('button', { name: "I'm back" }).click();
     await untilListShows(host, `Call ${MEMBER}`);
 
-    await pressEvery(player, 'Leave');
+    await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave the');
   });
 });

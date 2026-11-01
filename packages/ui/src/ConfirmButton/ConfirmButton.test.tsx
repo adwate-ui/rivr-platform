@@ -1,0 +1,64 @@
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import { axeViolations, renderIn } from '../test/render.tsx';
+import { ConfirmButton } from './ConfirmButton.tsx';
+
+describe('ConfirmButton', () => {
+  it('asks once, then does the step on the second press, in the same place', async () => {
+    const onConfirm = vi.fn();
+    renderIn(<ConfirmButton label="Leaves" name="Leaves: Ritika Das" confirm="Yes, Ritika leaves" onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Leaves: Ritika Das' }));
+    expect(onConfirm).not.toHaveBeenCalled();
+    const confirm = screen.getByRole('button', { name: 'Yes, Ritika leaves' });
+    expect(confirm).toHaveFocus();
+    await userEvent.click(confirm);
+    expect(onConfirm).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: 'Leaves: Ritika Das' })).toBeInTheDocument();
+  });
+
+  it('works from the keyboard: Enter asks, Enter again does it', async () => {
+    const onConfirm = vi.fn();
+    renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" onConfirm={onConfirm} />);
+    screen.getByRole('button', { name: 'Remove' }).focus();
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
+    expect(onConfirm).toHaveBeenCalledOnce();
+  });
+
+  it('turns back when left alone for five seconds, or on Escape, so a later tap never does the step', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const onConfirm = vi.fn();
+    renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    act(() => { vi.advanceTimersByTime(5000); });
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('takes no press while the step runs, so it is never sent twice', async () => {
+    const onConfirm = vi.fn();
+    renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" isBusy onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByRole('button', { name: /Remove|Loading/ }));
+    expect(screen.queryByRole('button', { name: 'Yes, remove Ritika' })).toBeNull();
+  });
+
+  it('does nothing while disabled', async () => {
+    const onConfirm = vi.fn();
+    renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" isDisabled onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(screen.queryByRole('button', { name: 'Yes, remove Ritika' })).toBeNull();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('has no accessibility violations, asking or not', async () => {
+    const { container } = renderIn(<ConfirmButton label="Leaves" name="Leaves: Ritika Das" confirm="Yes, Ritika leaves" onConfirm={() => undefined} />);
+    expect(await axeViolations(container)).toEqual([]);
+    await userEvent.click(screen.getByRole('button', { name: 'Leaves: Ritika Das' }));
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});

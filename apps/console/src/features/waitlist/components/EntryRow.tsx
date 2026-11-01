@@ -1,6 +1,6 @@
 import { useFloorWaitlistActions, useWaitlistCallActions, type FloorTable, type WaitlistBoardEntry, type WaitlistFailure } from '@rivr/db';
 import { formatTime, t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ConfirmButton, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { CallForm } from './CallForm.tsx';
 import { BACK_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
@@ -39,7 +39,8 @@ function EntryActions({ venueId, entry, onCall, act }: EntryActionsProps) {
   const { seat, away } = useWaitlistCallActions();
   const name = entry.fullName;
   const skip = (
-    <Button variant="text" onClick={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: true }))}>{t('console.waitlist.skip', { name })}</Button>
+    <ConfirmButton label={t('console.waitlist.skip', { name })} confirm={t('console.waitlist.confirmSkip', { name })}
+      onConfirm={() => void act(away.mutateAsync({ entryId: entry.entryId, isAway: true }))} />
   );
   return (
     <Inline gap={2} wrap>
@@ -58,7 +59,8 @@ function EntryActions({ venueId, entry, onCall, act }: EntryActionsProps) {
           {skip}
         </>
       )}
-      <Button variant="text" isLoading={remove.isPending} onClick={() => void act(remove.mutateAsync(entry.entryId))}>{t('console.waitlist.remove', { name })}</Button>
+      <ConfirmButton label={t('console.waitlist.remove', { name })} confirm={t('console.waitlist.confirmRemove', { name })} isBusy={remove.isPending}
+        onConfirm={() => void act(remove.mutateAsync(entry.entryId))} />
     </Inline>
   );
 }

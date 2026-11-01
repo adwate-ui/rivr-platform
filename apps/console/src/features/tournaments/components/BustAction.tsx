@@ -1,8 +1,7 @@
 import type { TournamentSeatRow } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, Inline, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ConfirmButton, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { ConfirmButton } from './ConfirmButton.tsx';
 
 interface BustActionProps {
   row: TournamentSeatRow;
