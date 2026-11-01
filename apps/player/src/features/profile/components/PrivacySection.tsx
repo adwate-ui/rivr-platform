@@ -2,7 +2,10 @@ import { usePreferenceActions, type Preferences } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Heading, Stack, Switch, Text } from '@rivr/ui';
 
-/** Whether the club's TVs name the member on the waitlist board, or show only their place (#326). Every tier has it. */
+/**
+ * Whether the club's TVs name the member on the waitlist board, or show only their place (#326), and how to ask for their data
+ * to be erased (F3-27). Every tier has it.
+ */
 export function PrivacySection({ preferences }: { preferences: Preferences }) {
   const { setNameOnTvs } = usePreferenceActions();
   return (
@@ -18,6 +21,7 @@ export function PrivacySection({ preferences }: { preferences: Preferences }) {
         />
         {setNameOnTvs.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}
       </Stack>
+      <Text tone="muted">{t('player.profile.erasure')}</Text>
     </Stack>
   );
 }

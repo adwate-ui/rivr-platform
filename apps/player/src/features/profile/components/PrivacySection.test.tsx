@@ -60,4 +60,9 @@ describe('Privacy: the name on the club\'s TVs', () => {
     fireEvent.click(screen.getByRole('switch', NAME));
     expect(await screen.findByText('Not saved. Try again.', {}, { timeout: 5000 })).toBeDefined();
   });
+
+  it('says how to ask for the member\'s data to be erased (F3-27)', () => {
+    renderPrivacy(SHOWN);
+    expect(screen.getByText('To have your personal data erased, ask at the front desk. The privacy notice on the club\'s website says what is kept.')).toBeDefined();
+  });
 });
