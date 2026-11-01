@@ -21,5 +21,8 @@ export const Adaptive: Story = { args: { art: 'adaptive' } };
 
 export const Lockup: Story = { args: { art: 'lockup' } };
 
+/** A shared link's image (1200 by 630), here with one of the website's stills behind it. */
+export const Share: Story = { args: { art: 'share', backdrop: '/media/chips.webp' } };
+
 /** The logo animation, as @rivr/render draws it to MP4. Screenshots show its last frame: the lockup. */
 export const AnimatedLockup: Story = { args: { art: 'lockup', isAnimated: true } };

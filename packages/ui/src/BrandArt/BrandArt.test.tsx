@@ -43,4 +43,20 @@ describe('BrandArt', () => {
     const { container } = renderIn(<BrandArt art="icon" />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('draws a shared link\'s image as the lockup filling the left half beside the photograph, marked a concept (AS-09)', () => {
+    resizeWindow(1200, 630);
+    const { container } = renderIn(<BrandArt art="share" backdrop="/brand/share-room.jpg" />);
+    // A 400 px stage fits the 600 by 630 half: a stage twice as wide fits the whole page.
+    expect(stage()).toHaveStyle({ width: '400px', transform: 'scale(1.5)' });
+    expect(container.querySelector('img')).toHaveAttribute('src', '/brand/share-room.jpg');
+    expect(screen.getByText('Concept visualisation')).toBeInTheDocument();
+  });
+
+  it('draws the lockup alone for a share image with no photograph, never an empty picture', () => {
+    resizeWindow(1200, 630);
+    const { container } = renderIn(<BrandArt art="share" />);
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.getByText('Poker club')).toBeInTheDocument();
+  });
 });

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { BRAND_KIT, IPHONE_SCREENS } from './brandKit.ts';
 
@@ -55,5 +56,11 @@ describe('the brand kit', () => {
       expect(profile, channel).toMatchObject({ art: 'maskable' });
     }
     expect(at('docs/brand/social/youtube-banner.png')).toMatchObject({ art: 'lockup', width: 2560, height: 1440 });
+  });
+
+  it('draws the shared-link image as the share art beside a photograph the render host serves (AS-09)', () => {
+    const og = at('apps/web/public/og-image.png');
+    expect(og).toMatchObject({ art: 'share', backdrop: '/brand/share-room.jpg' });
+    expect(existsSync(new URL(`./host/public${og?.backdrop ?? ''}`, import.meta.url))).toBe(true);
   });
 });

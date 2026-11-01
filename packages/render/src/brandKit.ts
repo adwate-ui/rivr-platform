@@ -4,6 +4,8 @@ import type { BrandArtKind } from '@rivr/ui';
 export interface BrandOutput {
   readonly path: string;
   readonly art: BrandArtKind;
+  /** For `share`: the photograph beside the lockup, as the render host serves it (src/host/public). */
+  readonly backdrop?: string;
   readonly width: number;
   readonly height: number;
 }
@@ -63,7 +65,7 @@ function website(): BrandOutput[] {
   return [
     { path: `${pub}/icons/favicon-32.png`, art: 'icon', width: 32, height: 32 },
     { path: `${pub}/icons/apple-touch-icon.png`, art: 'icon', width: 180, height: 180 },
-    { path: `${pub}/og-image.png`, art: 'lockup', width: 1200, height: 630 },
+    { path: `${pub}/og-image.png`, art: 'share', backdrop: '/brand/share-room.jpg', width: 1200, height: 630 },
   ];
 }
 
