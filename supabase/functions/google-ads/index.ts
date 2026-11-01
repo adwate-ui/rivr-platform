@@ -34,7 +34,7 @@ const find: FindConversion = async (venueId, eventType, payload) =>
 Deno.serve(
   developerToken && clientId && clientSecret && refreshToken && customerId && actions
     ? serveConsumer(createConversionConsumer({
-      name: 'google-ads',
+      name: 'google_ads',
       find,
       report: reportToGoogle(createGoogleAdsConversions({
         developerToken, clientId, clientSecret, refreshToken, customerId, ...(loginCustomerId ? { loginCustomerId } : {}),

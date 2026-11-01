@@ -17,15 +17,22 @@ export interface ClaimedDelivery {
 /** Where deliveries come from and go back to: the database's claim and finish functions. */
 export interface OutboxStore {
   claim(input: { consumer: string; eventTypes: readonly string[]; isMessaging: boolean; limit: number }): Promise<ClaimedDelivery[]>;
-  /** `retryAfterSeconds` null fails the delivery for good: the vendor rejected it. */
-  finish(input: { deliveryId: string; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
+  /**
+   * `retryAfterSeconds` null fails the delivery for good: the vendor rejected it. `attempts` is the attempt claimed, so a
+   * finish that comes after the delivery was claimed again changes nothing (A5-13).
+   */
+  finish(input: { deliveryId: string; attempts: number; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
 }
 
 /** A consumer: its name, the events it takes, and what it does with one of them. */
 export interface Consumer {
+  /**
+   * As the outbox keeps it, in lower case and underscores (`outbox_delivery.consumer`): `meta_conversions`, never its Edge
+   * Function's `meta-conversions`, which the outbox refuses, so the consumer would never deliver.
+   */
   readonly name: string;
   readonly eventTypes: readonly string[];
-  /** Messaging consumers hold while a messaging stop is engaged; Tally and ad events do not. */
+  /** Messaging consumers hold while a messaging stop is engaged, the ad conversions with them (A4-11); Tally and the CRM do not. */
   readonly isMessaging: boolean;
   deliver(delivery: ClaimedDelivery): Promise<Result<unknown, AdapterFailure>>;
 }
@@ -64,6 +71,7 @@ export async function runConsumer(store: OutboxStore, consumer: Consumer, limit 
     if (outcome.ok) delivered += 1;
     await store.finish({
       deliveryId: delivery.deliveryId,
+      attempts: delivery.attempts,
       isDelivered: outcome.ok,
       error: outcome.ok ? null : describe(outcome.error),
       retryAfterSeconds: outcome.ok ? 0 : retryAfter(outcome.error, delivery.attempts),

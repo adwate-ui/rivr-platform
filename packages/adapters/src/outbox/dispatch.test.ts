@@ -42,15 +42,15 @@ describe('runConsumer', () => {
     expect(finished.map((finish) => [finish.deliveryId, finish.isDelivered])).toEqual([['a', true], ['b', true]]);
   });
 
-  it('finishes a failure with its reason and a backoff that grows with the attempts', async () => {
+  it('finishes a failure with its reason, the attempt it claimed (A5-13), and a backoff that grows with the attempts', async () => {
     const { store, finished } = fakeStore([delivery('a', 1), delivery('b', 3)]);
 
     const outcome = await runConsumer(store, consumer(async (claimed) => (claimed.deliveryId === 'a' ? err({ code: 'rate_limited' }) : err({ code: 'unavailable' }))));
 
     expect(outcome).toEqual({ delivered: 0, failed: 2 });
     expect(finished).toEqual([
-      { deliveryId: 'a', isDelivered: false, error: 'rate_limited', retryAfterSeconds: 60 },
-      { deliveryId: 'b', isDelivered: false, error: 'unavailable', retryAfterSeconds: 240 },
+      { deliveryId: 'a', attempts: 1, isDelivered: false, error: 'rate_limited', retryAfterSeconds: 60 },
+      { deliveryId: 'b', attempts: 3, isDelivered: false, error: 'unavailable', retryAfterSeconds: 240 },
     ]);
   });
 
@@ -59,7 +59,7 @@ describe('runConsumer', () => {
 
     await runConsumer(store, consumer(async () => err({ code: 'rejected', reason: 'template not approved' })));
 
-    expect(finished).toEqual([{ deliveryId: 'a', isDelivered: false, error: 'rejected: template not approved', retryAfterSeconds: null }]);
+    expect(finished).toEqual([{ deliveryId: 'a', attempts: 1, isDelivered: false, error: 'rejected: template not approved', retryAfterSeconds: null }]);
   });
 
   it('counts a delivery that throws as unavailable, and carries on with the rest', async () => {

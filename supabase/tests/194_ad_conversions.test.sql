@@ -1,5 +1,5 @@
 -- Conversions for Meta and Google Ads (#161, #162; decision 0279): which conversion each event is, only for a member
--- who consented to marketing, never at the practice venue. 211 Ishaan buys in twice at Table 3; 641 Vivaan visits twice;
+-- who consented to marketing, never at the practice venue nor while the venue is frozen (A4-11). 211 Ishaan buys in twice at Table 3; 641 Vivaan visits twice;
 -- 301 Asha is a practice-venue member. 103 Aditya is the floor, 104 a cashier.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -48,6 +48,11 @@ insert into public.consent (venue_id, member_id, purpose)
 values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000301', 'marketing');
 select is_empty($$ select * from public.conversion_for('00000000-0000-4000-8000-000000000002', 'kyc.completed', '{"member_id": "00000000-0000-4000-8000-000000000301"}') $$,
   'never at the practice venue');
+-- A venue freeze sends none (A4-11): the members' hashed phones stay at the club.
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test freeze');
+select is_empty($$ select * from public.conversion_for('00000000-0000-4000-8000-000000000001', 'kyc.completed', '{"member_id": "00000000-0000-4000-8000-000000000211"}') $$,
+  'nothing while the venue is frozen, where the same KYC completion gave one above');
+
 select ok(exists (select 1 from cron.job where jobname = 'outbox-meta-conversions') and exists (select 1 from cron.job where jobname = 'outbox-google-ads'),
   'pg_cron runs both consumers');
 

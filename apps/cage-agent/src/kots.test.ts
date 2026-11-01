@@ -35,8 +35,8 @@ describe('printing KOTs at the bar', () => {
       orderedAt: new Date('2026-11-15T16:30:00Z'), isComp: false,
     }]);
     expect(finished).toEqual([
-      { deliveryId: 'd1', isDelivered: true, error: null, retryAfterSeconds: 0 },
-      { deliveryId: 'd2', isDelivered: false, error: 'rejected: not a KOT', retryAfterSeconds: null },
+      { deliveryId: 'd1', attempts: 1, isDelivered: true, error: null, retryAfterSeconds: 0 },
+      { deliveryId: 'd2', attempts: 1, isDelivered: false, error: 'rejected: not a KOT', retryAfterSeconds: null },
     ]);
   });
 
@@ -45,7 +45,7 @@ describe('printing KOTs at the bar', () => {
     const { api, finished } = fakeApi([delivery('d1', KOT)]);
     vi.mocked(api.finishKot).mockRejectedValueOnce(new Error('finish_kot failed (503)'));
     expect(await printKots(api, 'token', printer)).toEqual({ delivered: 1, failed: 0, unrecorded: 0 });
-    expect(finished).toEqual([{ deliveryId: 'd1', isDelivered: true, error: null, retryAfterSeconds: 0 }]);
+    expect(finished).toEqual([{ deliveryId: 'd1', attempts: 1, isDelivered: true, error: null, retryAfterSeconds: 0 }]);
   });
 
   it('counts a KOT the function cannot be told about, which its lease brings back, and prints the rest of the batch', async () => {
@@ -54,14 +54,14 @@ describe('printing KOTs at the bar', () => {
     vi.mocked(api.finishKot).mockRejectedValueOnce(new Error('finish_kot failed (503)')).mockRejectedValueOnce(new Error('finish_kot failed (503)'));
     expect(await printKots(api, 'token', printer)).toEqual({ delivered: 2, failed: 0, unrecorded: 1 });
     expect(printer.calls.map((call) => call.kotNumber)).toEqual(['12', '13']);
-    expect(finished).toEqual([{ deliveryId: 'd2', isDelivered: true, error: null, retryAfterSeconds: 0 }]);
+    expect(finished).toEqual([{ deliveryId: 'd2', attempts: 1, isDelivered: true, error: null, retryAfterSeconds: 0 }]);
   });
 
   it('tries a KOT again later while the printer cannot be reached', async () => {
     const { api, finished } = fakeApi([delivery('d1', KOT)]);
     const unreachable = barPrinterAt('192.0.2.1', () => Promise.reject(new Error('ECONNREFUSED')));
     expect(await printKots(api, 'token', unreachable)).toEqual({ delivered: 0, failed: 1, unrecorded: 0 });
-    expect(finished).toEqual([{ deliveryId: 'd1', isDelivered: false, error: 'unavailable', retryAfterSeconds: 60 }]);
+    expect(finished).toEqual([{ deliveryId: 'd1', attempts: 1, isDelivered: false, error: 'unavailable', retryAfterSeconds: 60 }]);
   });
 
   it('sends the ticket\'s bytes to the printer\'s raw port over TCP', async () => {

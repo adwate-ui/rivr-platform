@@ -12,4 +12,8 @@ Date: 2026-10-26 · Task: #100 (additions "Alerting")
 
 **Failures over a threshold.** Every five minutes, a venue with `alert.thresholds` failed deliveries (5 unless set) failing for good within its window (60 minutes) raises `outbox.failures`, once a window, with the count and the window. This is beside the alert each failed delivery already raises, at most once an hour per consumer.
 
+**A consumer that stops claiming** (audit A5-12, 1 Nov). Delivery rows are made only when a consumer claims, so a consumer that went down, or a scheduler whose Vault secrets were taken away, fails nothing and raised nothing. Every five minutes, `private.check_silent_consumers()` raises `outbox.silent` for a venue, once a window, naming the consumers: an event of a type a consumer has claimed at that venue in the last 90 days, which happened 10 to 30 minutes ago and which that consumer has not claimed. A type no consumer takes never raises it, nor does `alert.raised`.
+- **Not covered:** a consumer that has never claimed at a venue is not known, as on a project whose Vault never had the secrets. The release runbook's Vault step covers that (`docs/runbooks/ci-and-release.md`).
+- **Turned off on purpose** (a vendor's secrets removed): it raises `outbox.silent` once a window while its events come, for up to 90 days after its last claim. The owner reads the alert's consumers and lets it be.
+
 **Not yet.** Sentry's own alerts reaching the dashboard wait for the Sentry project's webhook; the template needs Meta's approval before it sends, and until WhatsApp is configured the consumer claims nothing and alerts wait on the dashboard.
