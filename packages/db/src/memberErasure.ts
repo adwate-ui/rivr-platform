@@ -74,8 +74,8 @@ function refresh(queryClient: QueryClient, user: string, venueId: string, member
   void Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.memberErasurePreview(user, memberId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
-    queryClient.invalidateQueries({ queryKey: ['user', user, 'member-search'] }),
-    queryClient.invalidateQueries({ queryKey: ['user', user, 'members-of-tier'] }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memberSearchAll(user) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
   ]);
 }
 

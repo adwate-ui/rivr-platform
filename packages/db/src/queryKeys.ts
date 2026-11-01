@@ -1,6 +1,9 @@
 /**
- * TanStack Query keys, one place for all of them. Keys that hold a person's data start with
- * their user id, so signing out and in as someone else never shows the previous person's data.
+ * TanStack Query keys of the main entry, one place for all of them. Keys that hold a person's data start with
+ * their user id, so signing out and in as someone else never shows the previous person's data. A module that is
+ * its own subpath (`@rivr/db/hostQueue` and the like) keeps its keys beside it, saying so, so they stay off the
+ * player's first load, as this object cannot be trimmed. An invalidation of a family of keys names it by a prefix
+ * helper here (`memberSearchAll`), never by a hand-written array (decision 0288).
  */
 export const queryKeys = {
   /** The start of every key below: everything cached for the signed-in person. */
@@ -68,6 +71,10 @@ export const queryKeys = {
   floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
   myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
   practiceResetPreview: (userId: string, venueId: string) => ['user', userId, 'practice-reset-preview', venueId] as const,
+  /** A live venue's purge (#432): what it would remove, the files left after one, and a second super admin's ask. */
+  livePurgePreview: (userId: string, venueId: string) => ['user', userId, 'livePurgePreview', venueId] as const,
+  purgeFilesLeft: (userId: string, venueId: string) => ['user', userId, 'purgeFilesLeft', venueId] as const,
+  purgeAsk: (userId: string, venueId: string) => ['user', userId, 'purgeAsk', venueId] as const,
   memberErasurePreview: (userId: string, memberId: string) => ['user', userId, 'member-erasure-preview', memberId] as const,
   /** The signed-in member's waitlist places. */
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
@@ -145,7 +152,11 @@ export const queryKeys = {
   dealerNights: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'dealer-nights', venueId, start, end] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
+  /** Every memberSearch key: the prefix an invalidation of them all names. */
+  memberSearchAll: (userId: string) => ['user', userId, 'member-search'] as const,
   membersOfTier: (userId: string, venueId: string, tierId: string) => ['user', userId, 'members-of-tier', venueId, tierId] as const,
+  /** Every membersOfTier key: the prefix an invalidation of them all names. */
+  membersOfTierAll: (userId: string) => ['user', userId, 'members-of-tier'] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,
   memberEarlyDepartures: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-early-departures', venueId, memberId] as const,
   venueTiers: (userId: string, venueId: string) => ['user', userId, 'venue-tiers', venueId] as const,
@@ -171,6 +182,8 @@ export const queryKeys = {
   tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
   /** The down at this tablet's table. */
   currentDown: (userId: string, tableId: string) => ['user', userId, 'current-down', tableId] as const,
+  /** Every currentDown key: the prefix an invalidation of them all names. */
+  currentDownAll: (userId: string) => ['user', userId, 'current-down'] as const,
   /** The tablet's table rules now: rake, drop, variations; kept by table. */
   tableRules: (userId: string, tableId: string) => ['user', userId, 'table-rules', tableId] as const,
   /** The hands of the open down on the tablet, kept by down. */

@@ -120,8 +120,8 @@ export function useCurrentDown(tableId: string | null) {
 export function useDownActions() {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
-  // Every table's current down: the prefix of currentDown's key.
-  const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out', 'current-down'] });
+  // Every table's current down.
+  const reload = () => queryClient.invalidateQueries({ queryKey: queryKeys.currentDownAll(userId ?? 'signed-out') });
   const signIn = useMutation({
     networkMode: 'always',
     mutationFn: async ({ staffId, pin }: { staffId: string; pin: string }): Promise<Result<null, DealerSignInFailure>> => {

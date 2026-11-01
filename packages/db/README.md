@@ -161,7 +161,7 @@ Each action is a Result (`PromotionFailure`: `not_allowed`, `invalid`, `own_prom
 | `useMember()`, `Member` | The signed-in member (id, name, initial), or null for staff and the public. A login with no member yet links once and asks again. |
 | `useMembershipCard()`, `MembershipCardView` | The signed-in member's membership card (#71): number, name, tier, the door code for now and how long it has left (`msLeft`, by the database's clock); it asks again the moment the code changes, timed from when the card arrived, so a phone set wrong still asks on time. Null for someone who is not a member, such as staff. |
 | `useRivrData()` | The client and user id, for the query hooks lanes add. |
-| `queryKeys` | Every TanStack Query key. Keys holding a person's data start with their user id. |
+| `queryKeys` | The main entry's TanStack Query keys, and prefix helpers (`memberSearchAll`) for invalidating a family. Keys holding a person's data start with their user id. A module that is its own subpath keeps its keys beside it, off the player's first load (decision 0288). |
 | `Database` | The generated types (`pnpm db:types`). |
 | `toFeatureAccess`, `toFeatureAccessMap`, `HIDDEN`, `FeatureAccess`, `FeatureAccessRow` | The parser behind `useFeature`, the "not known yet" value, and their types. |
 | `toControlState`, `NOTHING_ENGAGED`, `ControlState`, `KillableFeature` | The parser behind `useControlState`, the "nothing engaged" value, and their types. |
@@ -202,7 +202,7 @@ The same `private.has_feature` check guards the feature's tables and write funct
 
 1. The migration grants the table or function and adds its policies (`.claude/skills/new-migration`).
 2. `pnpm db:reset && pnpm db:types`. CI regenerates the types and fails if the committed file differs.
-3. Add a query key here and a hook (`useXxx`) that calls the client, parses rows in `src/parse/` and returns typed data.
+3. Add a query key in `queryKeys` (or, for a subpath module, beside it: decision 0288) and a hook (`useXxx`) that calls the client, parses rows in `src/parse/` and returns typed data.
 4. Apps import the hook. Nothing outside this package imports `@supabase/supabase-js` (dependency-cruiser enforces it).
 
 `src/catalogues.test.ts` checks that the feature catalogue, the role matrix and the setting keys in `@rivr/contracts` match the migrations. It reads every migration's SQL with regular expressions written for the way those inserts are laid out today: `insert into public.feature (...) values ('key', ..., true|false), ...;`, `select '<role>', permission from unnest(array['a.b', ...])`, and setting keys as `('key', 'description', 'scope', '{json schema}')`. A new migration that adds any of these must use the same shapes, or the test must be extended to read it; otherwise the test cannot see the new key and fails.
