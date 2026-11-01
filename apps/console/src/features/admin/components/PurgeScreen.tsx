@@ -1,9 +1,9 @@
 import {
-  useControlState, useLivePurgePreview, usePurgeFilesLeft, usePurgeLiveVenue, useRemovePurgedFiles, useStaffVenue, type LivePurgeFailure,
-  type LivePurgeRow, type PurgedFiles,
+  useAskLivePurge, useControlState, useLivePurgePreview, useOpenPurgeAsk, usePurgeFilesLeft, usePurgeLiveVenue, useRemovePurgedFiles, useStaffVenue,
+  type LivePurgeFailure, type LivePurgeRow, type PurgeAsk, type PurgedFiles,
 } from '@rivr/db';
-import { formatNumber, t, type MessageKey } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Heading, Input, Screen, Stack, Text, TextArea, type DataTableColumn } from '@rivr/ui';
+import { formatNumber, formatTime, t, type MessageKey } from '@rivr/i18n';
+import { Button, DataTable, ErrorMessage, Heading, Input, LoadState, Screen, Stack, Text, TextArea, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { ArchiveStatus } from './ArchiveStatus.tsx';
 import { useArchiveExport } from './useArchiveExport.ts';
@@ -18,6 +18,7 @@ const FAILURE_COPY: Readonly<Record<LivePurgeFailure, MessageKey>> = {
   held: 'console.purgeFailures.held',
   busy: 'console.purgeFailures.busy',
   too_often: 'console.purgeFailures.tooOften',
+  second: 'console.purgeFailures.second',
   unavailable: 'console.purgeFailures.unavailable',
 };
 
@@ -128,23 +129,73 @@ function LastPurgeFiles({ venueId }: { venueId: string }) {
   );
 }
 
+/** One super admin asks for the purge, saying why; another carries it out (A4-13). */
+function AskForm({ venueId }: { venueId: string }) {
+  const askPurge = useAskLivePurge(venueId);
+  const [reason, setReason] = useState('');
+  const [failure, setFailure] = useState<LivePurgeFailure | null>(null);
+  const ask = async () => {
+    const done = await askPurge.mutateAsync(reason.trim());
+    setFailure(done.ok ? null : done.error);
+  };
+  return (
+    <Stack gap={3} align="start">
+      <Heading level={2}>{t('console.purge.askTitle')}</Heading>
+      <Text tone="muted">{t('console.purge.askHint')}</Text>
+      <TextArea label={t('console.purge.askReason')} rows={2} value={reason} onChange={(event) => setReason(event.target.value)} />
+      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
+      <Button isDisabled={reason.trim().length < 10} isLoading={askPurge.isPending} onClick={() => void ask()}>{t('console.purge.ask')}</Button>
+    </Stack>
+  );
+}
+
+/** The open ask; the other's stays, with the purge's outcome under it, once the purge it allowed has closed it. */
+function useShownAsk(venueId: string) {
+  const ask = useOpenPurgeAsk(venueId);
+  const [carried, setCarried] = useState<PurgeAsk | null>(null);
+  if (ask.data && !ask.data.isMine && ask.data !== carried) setCarried(ask.data);
+  return { ask, shown: ask.data ?? carried };
+}
+
+/** Two super admins: the ask; then, for the other one, who asked and why, the archive and the purge. */
+function TwoPeople({ venueId }: { venueId: string }) {
+  const { ask, shown } = useShownAsk(venueId);
+  if (shown === null && ask.isPending) return <LoadState />;
+  if (shown === null && ask.isError) return <LoadState isError onRetry={() => void ask.refetch()} />;
+  if (shown === null) return <AskForm venueId={venueId} />;
+  const time = formatTime(new Date(shown.askedAt));
+  if (shown.isMine) {
+    return (
+      <Stack gap={3} align="start">
+        <Heading level={2}>{t('console.purge.askTitle')}</Heading>
+        <Text>{t('console.purge.askedByYou', { time })}</Text>
+      </Stack>
+    );
+  }
+  return (
+    <Stack gap={8}>
+      <Text>{t('console.purge.askedBy', { name: shown.askedBy, time, reason: shown.reason })}</Text>
+      <ArchiveStep venueId={venueId} />
+      <PurgeStep venueId={venueId} />
+    </Stack>
+  );
+}
+
 function PurgePanel({ venueId }: { venueId: string }) {
   const controls = useControlState(venueId);
   return (
     <Stack gap={8}>
       <Text>{t('console.purge.intro')}</Text>
       <LastPurgeFiles venueId={venueId} />
-      {controls.isVenueFrozen ? null : <ErrorMessage>{t('console.purge.freezeFirst')}</ErrorMessage>}
-      <ArchiveStep venueId={venueId} />
-      {controls.isVenueFrozen ? <PurgeStep venueId={venueId} /> : null}
+      {controls.isVenueFrozen ? <TwoPeople venueId={venueId} /> : <ErrorMessage>{t('console.purge.freezeFirst')}</ErrorMessage>}
     </Stack>
   );
 }
 
 /**
- * Purge (#432; features "Purge"; decision 0239), for super admins at a live venue: freeze it, make and save the full
- * archive with the KYC photos, see what the purge deletes, type the venue's name; then its files go. The practice venue
- * resets to its seed instead (#104).
+ * Purge (#432; features "Purge"; decision 0239), for super admins at a live venue: freeze it; one super admin asks for
+ * the purge and another (A4-13) makes and saves the full archive with the KYC photos, sees what the purge deletes and
+ * types the venue's name; then its files go. The practice venue resets to its seed instead (#104).
  */
 export function PurgeScreen() {
   const staff = useStaffVenue();

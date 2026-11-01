@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { practiceResetFailureOf } from './practiceReset.ts';
+import { livePurgeFailureOf, practiceResetFailureOf } from './practiceReset.ts';
 
 describe('practiceResetFailureOf', () => {
   it('says why a reset to seed was refused', () => {
@@ -14,5 +14,12 @@ describe('practiceResetFailureOf', () => {
 
   it('calls anything else unavailable', () => {
     expect(practiceResetFailureOf({ code: 'XX000' })).toBe('unavailable');
+  });
+});
+
+describe('livePurgeFailureOf', () => {
+  it('says a purge is carried out by a super admin other than the one who asked (A4-13)', () => {
+    expect(livePurgeFailureOf({ code: 'RVTWO' })).toBe('second');
+    expect(livePurgeFailureOf({ code: 'RVARC' })).toBe('no_archive');
   });
 });

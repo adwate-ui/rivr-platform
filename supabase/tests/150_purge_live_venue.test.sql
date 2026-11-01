@@ -69,6 +69,15 @@ insert into public.control_state (venue_id, level, reason, engaged_at)
 values ('00000000-0000-4000-8000-0000000000f3', 'venue_freeze', 'Purging the test room', now() - interval '10 minutes');
 insert into public.control_state (venue_id, level, member_id, reason)
 values ('00000000-0000-4000-8000-0000000000f3', 'member_freeze', '00000000-0000-4000-8000-0000000000f4', 'Test freeze');
+-- A second super admin of the room asks for the purge, which 134 carries out (A4-13, test 224). Added as the system,
+-- so the audit log does not show 134 making the asker's row.
+select set_config('request.jwt.claims', '', true);
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-0000000000f3', s.user_id, s.full_name, s.job_title, 'super_admin', s.phone
+from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000102' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
+select isnt(public.ask_live_purge('00000000-0000-4000-8000-0000000000f3', 'Purging the test room for good'), null,
+  'a second super admin asks for the purge');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select results_eq($$ select current_rows from public.live_purge_preview('00000000-0000-4000-8000-0000000000f3') where table_name in ('member', 'ledger_entry') order by table_name $$,
   $$ values (2::bigint), (1::bigint) $$, 'the dry run counts the member and the deposit''s two entries');
@@ -229,6 +238,15 @@ insert into public.setting (venue_id, key, subject, value, effective_from, reaso
   ('00000000-0000-4000-8000-0000000000f8', 'exports.alert_rows', '', '{"rows": 1}', now(), 'Alert on any export');
 insert into public.control_state (venue_id, level, reason, engaged_at)
 values ('00000000-0000-4000-8000-0000000000f8', 'venue_freeze', 'Purging test room two', now() - interval '10 minutes');
+-- Its second super admin asks for the purge first (A4-13).
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+select '00000000-0000-4000-8000-0000000000f8', s.user_id, s.full_name, s.job_title, 'super_admin', s.phone
+from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000102' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
+select isnt(public.ask_live_purge('00000000-0000-4000-8000-0000000000f8', 'Purging test room two for good'), null,
+  'its second super admin asks for the purge');
+reset role;
+select set_config('request.jwt.claims', '', true);
 create function pg_temp.read_whole(p_plan jsonb) returns void language plpgsql as $$
 declare
   v_table text;
@@ -260,6 +278,11 @@ select ok(exists (select 1 from public.mis_report where venue_id = '00000000-000
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select lives_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f8', 'Test Room Two') $$,
   'and the purge goes through all the same');
+select results_eq($$ select r.carried_out_at is not null, s.user_id from public.purge_request r join public.staff s on s.id = r.carried_out_by_staff_id
+                    where r.venue_id = '00000000-0000-4000-8000-0000000000f8' $$,
+  $$ values (true, '00000000-0000-4000-8000-000000000134'::uuid) $$, 'the ask is marked carried out, by the super admin who purged');
+select throws_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f8', 'Test Room Two') $$, 'RVTWO', null,
+  'and allows no second purge');
 
 select * from finish();
 rollback;
