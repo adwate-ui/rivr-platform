@@ -1,12 +1,14 @@
+import { FNB_ITEM_KINDS } from '@rivr/contracts';
 import { useFeatureStatus, useMySeat } from '@rivr/db';
-import { useMyFnbMenu, useMyFnbOrders, usePlaceFnbOrder, type FnbFailure, type MyFnbOrder } from '@rivr/db/fnb';
+import { useMyFnbMenu, useMyFnbOrders, usePlaceFnbOrder, type FnbFailure, type FnbMenuItem, type MyFnbOrder } from '@rivr/db/fnb';
 import { formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, Heading, Inline, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 
 /**
- * The Menu tab (#123, #635; feature fnb.table_side): the member's menu (alcohol only at 21 or over), how many of each,
- * and Send to the bar; then tonight's orders, each followed from placed, to being prepared, to delivered. An order goes
+ * The Menu tab (#123, #635; feature fnb.table_side): the member's menu (alcohol only at 21 or over) under Food, Soft
+ * drinks and Bar, read only until they sit (UI polish audit A-06, A-07); how many of each, and Send to the bar; then
+ * tonight's orders, each followed from placed, to being prepared, to delivered. An order goes
  * to their seat's visit, paid to Glaza when it comes, with a KOT at the bar. It waits until access is known.
  */
 export function FnbOrderScreen() {
@@ -23,6 +25,32 @@ export function FnbOrderScreen() {
         </Stack>
       </FeatureGate>
     </Screen>
+  );
+}
+
+/** The menu in its sections, each item as `item` draws it: its name, or how many to order. */
+function MenuSections({ items, item }: { items: readonly FnbMenuItem[]; item: (menuItem: FnbMenuItem) => JSX.Element }) {
+  return (
+    <Stack gap={6}>
+      {FNB_ITEM_KINDS.map((kind) => ({ kind, inKind: items.filter((menuItem) => menuItem.kind === kind) }))
+        .filter(({ inKind }) => inKind.length > 0)
+        .map(({ kind, inKind }) => (
+          <Stack key={kind} gap={3}>
+            <Heading level={2}>{t(`player.fnb.kinds.${kind}`)}</Heading>
+            <Stack gap={3}>{inKind.map(item)}</Stack>
+          </Stack>
+        ))}
+    </Stack>
+  );
+}
+
+/** Before the member sits: the menu to read, and that ordering opens at a seat (UI polish audit A-06). */
+function MenuBeforeSeat({ items }: { items: readonly FnbMenuItem[] }) {
+  return (
+    <Stack gap={6}>
+      <Text>{t('player.fnb.notSeated')}</Text>
+      <MenuSections items={items} item={(menuItem) => <Text key={menuItem.itemId}>{menuItem.name}</Text>} />
+    </Stack>
   );
 }
 
@@ -64,10 +92,10 @@ function FnbOrder() {
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   // Whether they are seated is known before the menu says anything (F3-18): not "sit first" while it loads.
   if (seat.data === undefined) return <LoadState isError={seat.isError} onRetry={() => void seat.refetch()} />;
-  if (seat.data === null) return <Text>{t('player.fnb.notSeated')}</Text>;
-  const mySeat = seat.data;
   if (menu.data === undefined) return <LoadState isError={menu.isError} onRetry={() => void menu.refetch()} />;
   if (menu.data.length === 0) return <Text>{t('player.fnb.empty')}</Text>;
+  if (seat.data === null) return <MenuBeforeSeat items={menu.data} />;
+  const mySeat = seat.data;
   const lines = Object.entries(counts).filter(([, quantity]) => quantity > 0).map(([itemId, quantity]) => ({ item_id: itemId, quantity }));
   const send = async () => {
     const outcome = await place.mutateAsync({ lines, requestId });
@@ -78,12 +106,10 @@ function FnbOrder() {
   };
   return (
     <Stack gap={4}>
-      <Stack gap={3}>
-        {menu.data.map((item) => (
-          <QuantityStepper key={item.itemId} label={item.name} value={counts[item.itemId] ?? 0}
-            onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); setRequestId(crypto.randomUUID()); }} />
-        ))}
-      </Stack>
+      <MenuSections items={menu.data} item={(item) => (
+        <QuantityStepper key={item.itemId} label={item.name} value={counts[item.itemId] ?? 0}
+          onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); setRequestId(crypto.randomUUID()); }} />
+      )} />
       <Text variant="small" tone="muted">{t('player.fnb.paid')}</Text>
       <Button variant="primary" isDisabled={lines.length === 0} isLoading={place.isPending} onClick={() => void send()}>{t('player.fnb.send')}</Button>
       <StatusMessage>{sent === null ? null : t('player.fnb.sent', { kot: sent, table: mySeat.tableName, seat: mySeat.seat })}</StatusMessage>

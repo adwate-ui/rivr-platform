@@ -21,8 +21,12 @@ export const playerFnb = {
   /** The Menu tab (#635), which took Balance's place. */
   title: 'Menu',
   /** On Home while the member is seated. */
-  order: 'Order food and drink',
+  order: 'Order',
+  /** The same button's full name for a screen reader. */
+  orderName: 'Order food and drink',
   notSeated: 'Take a seat to order.',
+  /** The menu's sections, as the console sorts its items. */
+  kinds: { food: 'Food', soft_drink: 'Soft drinks', alcohol: 'Bar' },
   empty,
   paid: 'Paid to Glaza when it comes to your seat.',
   send: 'Send to the bar',
