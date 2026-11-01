@@ -36,21 +36,28 @@ function acceptedSource(checked: Checked | null): EncodingCheck['source'] {
   return SOURCE_KEY.test(checked.check.source?.id ?? '') ? checked.check.source : null;
 }
 
-/** Reads a chosen file and runs the validator and the gates on it. */
+/** Reads a chosen file and runs the validator and the gates on it; says so when the browser could not read it (F2-30). */
 function useEncodingCheck() {
   const [checked, setChecked] = useState<Checked | null>(null);
   const [isChecking, setChecking] = useState(false);
+  const [isUnreadable, setUnreadable] = useState(false);
   const read = (file: File) => {
     setChecking(true);
-    void file.text().then((raw) => {
+    setUnreadable(false);
+    file.text().then((raw) => {
       // The gates take a second or two: let the checking line show before they run.
       setTimeout(() => {
         setChecked({ raw, check: checkEncoding(raw) });
         setChecking(false);
       }, 0);
+    }, () => {
+      // The last file's verdict goes too, so its Upload cannot send it in place of this one.
+      setChecked(null);
+      setChecking(false);
+      setUnreadable(true);
     });
   };
-  return { checked, isChecking, read, clear: () => setChecked(null) };
+  return { checked, isChecking, isUnreadable, read, clear: () => setChecked(null) };
 }
 
 interface LicenceFormProps {
@@ -102,6 +109,7 @@ export function SourceUpload({ venueId }: { venueId: string }) {
         {t('console.learnSources.choose')}
       </CameraButton>
       <StatusMessage>{encoding.isChecking ? t('console.learnSources.checking') : null}</StatusMessage>
+      {encoding.isUnreadable ? <ErrorMessage>{t('console.learnSources.unreadable')}</ErrorMessage> : null}
       {encoding.checked === null ? null : <Verdict checked={encoding.checked} />}
       {encoding.checked === null || source === null ? null : (
         <LicenceForm key={encoding.checked.raw.length} venueId={venueId} checked={encoding.checked} source={source}

@@ -14,6 +14,8 @@ export const learnSources = {
   hint: 'Choose the encoding. The drill engine\u2019s validator and all eight gates run on it here; only one that passes is uploaded.',
   choose: 'Choose encoding',
   checking: 'Checking the encoding\u2026',
+  /** The browser could not read the chosen file (F2-30). */
+  unreadable: 'That file could not be read. Choose it again, or another copy of it.',
   passed: '{title} passed the validator and all eight gates.',
   refused: 'Refused by: {failed}.',
   badKey: 'Its source id must be lowercase letters, digits, _ or -, up to 60.',
