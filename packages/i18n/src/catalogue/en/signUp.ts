@@ -33,6 +33,9 @@ export const playerSignUp = {
     late_night: 'Late night (after 22:00)',
     weekends: 'Weekends',
   },
+  /** The games the member plays (#653), any of them. */
+  gamesLabel: 'Games you play',
+  games: { poker: 'Poker', plo: 'PLO', bomb: 'Bomb', roe: 'ROE' },
   answersInvalid: 'Check your city and your choices, then try again.',
   nameLabel: 'Full name as on your Aadhaar',
   submit: 'Continue',

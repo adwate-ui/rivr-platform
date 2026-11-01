@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  OCCUPATIONS, PLAY_TIMES, shrinkPhoto, useAuthStatus, useMember, useSignedInPhone, useSignOut, useSignUp, type SignUpFailure,
+  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, shrinkPhoto, useAuthStatus, useMember, useSignedInPhone, useSignOut, useSignUp, type SignUpFailure,
 } from '@rivr/db';
 import { formatMobile, t, type MessageKey } from '@rivr/i18n';
 import { Button, CameraButton, ChoiceChips, ErrorMessage, Input, StepScreen, Text } from '@rivr/ui';
@@ -9,12 +9,14 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm, type Control, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
-// The name as on Aadhaar and the city in English letters, as the database requires; one occupation, any play times (#631).
+// The name as on Aadhaar and the city in English letters, as the database requires; one occupation, any play times (#631) and
+// any games (#653).
 const signUpForm = z.object({
   fullName: z.string().trim().min(2).max(100).regex(/^[A-Za-z][A-Za-z .'-]*$/),
   city: z.string().trim().min(2).max(60).regex(/^[A-Za-z][A-Za-z .'-]*$/),
   occupation: z.enum(OCCUPATIONS),
   playTimes: z.array(z.enum(PLAY_TIMES)),
+  gamesPlayed: z.array(z.enum(GAMES_PLAYED)),
 });
 type SignUpForm = z.input<typeof signUpForm>;
 
@@ -53,7 +55,7 @@ function PhotoField({ photo, onPhoto }: { photo: Blob | null; onPhoto: (photo: B
   );
 }
 
-/** What best describes the member, one choice, and when they usually play, any of them (#631). */
+/** What best describes the member, one choice; when they usually play, any of them (#631); and the games they play (#653). */
 function Choices({ control, occupationError }: { control: Control<SignUpForm>; occupationError: string | undefined }) {
   return (
     <>
@@ -66,6 +68,10 @@ function Choices({ control, occupationError }: { control: Control<SignUpForm>; o
       <Controller control={control} name="playTimes" render={({ field }) => (
         <ChoiceChips label={t('player.signUp.playTimesLabel')} mode="many" selected={field.value}
           options={PLAY_TIMES.map((value) => ({ value, label: t(`player.signUp.playTimes.${value}`) }))} onChange={field.onChange} />
+      )} />
+      <Controller control={control} name="gamesPlayed" render={({ field }) => (
+        <ChoiceChips label={t('player.signUp.gamesLabel')} mode="many" selected={field.value}
+          options={GAMES_PLAYED.map((value) => ({ value, label: t(`player.signUp.games.${value}`) }))} onChange={field.onChange} />
       )} />
     </>
   );
@@ -108,7 +114,7 @@ export function SignUpScreen() {
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [failure, setFailure] = useState<SignUpFailure | null>(null);
   const [resolver] = useState(() => zodResolver(signUpForm));
-  const form = useForm<SignUpForm, unknown, z.output<typeof signUpForm>>({ resolver, defaultValues: { fullName: '', city: '', playTimes: [] } });
+  const form = useForm<SignUpForm, unknown, z.output<typeof signUpForm>>({ resolver, defaultValues: { fullName: '', city: '', playTimes: [], gamesPlayed: [] } });
 
   const join = form.handleSubmit(async (answers) => {
     const joined = await signUp.mutateAsync({ ...answers, photo });

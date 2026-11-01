@@ -19,12 +19,17 @@ export type Occupation = (typeof OCCUPATIONS)[number];
 export const PLAY_TIMES = ['weekday_afternoons', 'weekday_evenings', 'late_night', 'weekends'] as const;
 export type PlayTime = (typeof PLAY_TIMES)[number];
 
+/** The games the member plays (#653), any of these: poker, PLO, bomb pots and ROE (a round of each). */
+export const GAMES_PLAYED = ['poker', 'plo', 'bomb', 'roe'] as const;
+export type GamePlayed = (typeof GAMES_PLAYED)[number];
+
 /** Everything sign-up takes (#631): the name as on Aadhaar, the answers, and an optional photo. */
 export interface SignUpDetails {
   readonly fullName: string;
   readonly city: string;
   readonly occupation: Occupation;
   readonly playTimes: readonly PlayTime[];
+  readonly gamesPlayed: readonly GamePlayed[];
   /** A JPEG, as `shrinkPhoto` makes it. */
   readonly photo: Blob | null;
 }
@@ -49,7 +54,9 @@ async function sendPhoto(client: RivrClient, photo: Blob): Promise<boolean> {
 async function signUpWith(client: RivrClient, details: SignUpDetails): Promise<Result<null, SignUpFailure>> {
   const joined = await client.rpc('sign_up', { p_full_name: details.fullName, p_attribution: storedAttribution() ?? {} });
   if (joined.error) return err(failureOf(joined.error.code));
-  const answered = await client.rpc('set_my_sign_up_answers', { p_city: details.city, p_occupation: details.occupation, p_play_times: [...details.playTimes] });
+  const answered = await client.rpc('set_my_sign_up_answers', {
+    p_city: details.city, p_occupation: details.occupation, p_play_times: [...details.playTimes], p_games_played: [...details.gamesPlayed],
+  });
   if (answered.error) return err(answered.error.code === '22023' ? 'invalid_answers' : failureOf(answered.error.code));
   if (details.photo !== null && !(await sendPhoto(client, details.photo))) return err('photo_failed');
   return ok(null);

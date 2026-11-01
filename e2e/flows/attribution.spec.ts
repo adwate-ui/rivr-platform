@@ -1,7 +1,7 @@
 /**
  * Attribution (#10): a new player opens a link to Rewards with a referral and UTM codes, signs in
  * with a code, sees the number they signed in with, adds a photo and gives their name, city, what best describes them and
- * when they usually play (#631), and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
+ * when they usually play (#631) and the games they play (#653), and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
  * member.signed_up carries them). Local stack only: it frees its number from the member an earlier run
  * created, and reads the codes, in the local database itself.
  */
@@ -54,6 +54,8 @@ test.describe('Attribution', () => {
     await page.getByRole('button', { name: 'Salaried or working professional' }).click();
     await page.getByRole('button', { name: 'Weekday evenings (18:00 to 22:00)' }).click();
     await page.getByRole('button', { name: 'Weekends', exact: true }).click();
+    await page.getByRole('button', { name: 'PLO', exact: true }).click();
+    await page.getByRole('button', { name: 'Bomb', exact: true }).click();
     await page.getByRole('button', { name: 'Continue' }).click();
     // A new member's identity check is not done, so they see only its steps first (#632).
     await expect(page.getByRole('heading', { name: 'Identity', level: 1 })).toBeVisible();
@@ -62,8 +64,9 @@ test.describe('Attribution', () => {
       sql(`select m.full_name || '|' || a.referral_code || '|' || a.utm_source || '|' || a.utm_campaign
            from public.sign_up_attribution a join public.member m on m.id = a.member_id where m.phone = '+91${NUMBER}'`),
     ).toBe('Tara Joshi|FRIEND1|instagram|launch');
-    expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') from public.member_preference p
-                join public.member m on m.id = p.member_id where m.phone = '+91${NUMBER}'`)).toBe('Gurugram|salaried|weekday_evenings,weekends');
+    expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') || '|' || array_to_string(p.games_played, ',')
+                from public.member_preference p join public.member m on m.id = p.member_id where m.phone = '+91${NUMBER}'`))
+      .toBe('Gurugram|salaried|weekday_evenings,weekends|bomb,plo');
     expect(sql(`select count(*) from storage.objects o join public.member m on o.name = m.venue_id || '/' || m.id || '/photo.jpg'
                 where o.bucket_id = 'kyc' and m.phone = '+91${NUMBER}'`)).toBe('1');
   });
