@@ -24,12 +24,6 @@ export const PADDING_Y: Record<Space, string> = {
   6: 'py-6', 8: 'py-8', 10: 'py-10', 12: 'py-12', 16: 'py-16',
 };
 
-/** A square of the given step, for Spacer. */
-export const SIZE: Record<Space, string> = {
-  0: 'size-0', 1: 'size-1', 2: 'size-2', 3: 'size-3', 4: 'size-4', 5: 'size-5',
-  6: 'size-6', 8: 'size-8', 10: 'size-10', 12: 'size-12', 16: 'size-16',
-};
-
 /** Cross-axis alignment shared by Stack and Inline. */
 export type Align = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
 

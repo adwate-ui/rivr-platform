@@ -99,7 +99,7 @@ export async function typescriptConstants({ dictionary, file }) {
   ].join('\n');
 }
 
-/** Android theme for the tablet and driver shells, built on the generated colours. */
+/** Android theme for the tablet shell, built on the generated colours. */
 export async function androidTheme({ file }) {
   const item = (name, color) => `    <item name="${name}">@color/rivr_color_${color}</item>`;
   return [

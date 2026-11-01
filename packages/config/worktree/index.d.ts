@@ -1,4 +1,4 @@
-export type RivrApp = 'player' | 'console' | 'tablet' | 'display' | 'driver' | 'web';
+export type RivrApp = 'player' | 'console' | 'tablet' | 'display' | 'web';
 
 /** Absolute path of the current worktree's root. */
 export function worktreeRoot(): string;

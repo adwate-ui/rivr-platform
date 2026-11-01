@@ -82,13 +82,10 @@
   --rivr-opacity-muted: 0.6;
   --rivr-opacity-hairline: 0.25;
   --rivr-opacity-disabled: 0.4;
-  --rivr-z-base: 0;
-  --rivr-z-raised: 10;
   --rivr-z-nav: 20;
   --rivr-z-banner: 30;
   --rivr-z-overlay: 40;
   --rivr-z-modal: 50;
-  --rivr-z-toast: 60;
   --rivr-viewport-phone-width: 390px;
   --rivr-viewport-phone-height: 844px;
   --rivr-viewport-tablet-width: 1180px;
@@ -138,5 +135,5 @@
   --rivr-breakpoint-medium: var(--rivr-viewport-portrait-width);
   --rivr-breakpoint-tablet: var(--rivr-viewport-tablet-width);
   --rivr-breakpoint-console: var(--rivr-viewport-console-width);
-  --rivr-breakpoint-tv: var(--rivr-viewport-tv-width);
+  --rivr-breakpoint-tv: var(--rivr-viewport-tv-width); /** Reserved: no class uses it, as the TV stage scales rather than reflows; kept so each device has its breakpoint. */
 }

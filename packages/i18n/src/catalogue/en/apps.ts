@@ -214,8 +214,4 @@ export const displayApp = {
   overlay: streamOverlay,
 } as const;
 
-export const driverApp = {
-  pickups: { title: 'Pickups', empty: 'No pickups.' },
-} as const;
-
 export { webApp } from './web.ts';

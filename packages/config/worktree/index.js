@@ -20,7 +20,7 @@ const BLOCK_BY_WORKTREE = {
 };
 
 /** Each app's dev and preview server: port block * 100 + this. */
-const APP_PORT_OFFSET = { player: 40, console: 41, tablet: 42, display: 43, driver: 44, web: 45 };
+const APP_PORT_OFFSET = { player: 40, console: 41, tablet: 42, display: 43, web: 45 };
 
 /** Absolute path of the current worktree's root. */
 export function worktreeRoot() {

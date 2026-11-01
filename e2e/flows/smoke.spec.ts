@@ -31,11 +31,6 @@ test.describe('smoke: every surface starts', () => {
     await expect(page.getByRole('heading', { name: 'Screen pairing' })).toBeVisible();
   });
 
-  test('the driver app opens on pickups', async ({ page }) => {
-    await open(page, 'driver');
-    await expect(page.getByRole('heading', { name: 'Pickups' })).toBeVisible();
-  });
-
   test('the website names the club', async ({ page }) => {
     await open(page, 'web');
     await expect(page.getByRole('link', { name: 'RIVR Poker Club' }).first()).toBeVisible();

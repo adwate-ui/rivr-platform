@@ -11,7 +11,7 @@ The single source of every design value in RIVR: colours, typefaces, the type sc
 | `@rivr/tokens/tailwind.css` | Tailwind v4 theme: resets Tailwind's defaults, then maps every utility to a `--rivr-*` property (`docs/decisions/0008`) | `@rivr/ui`'s stylesheet only |
 | `@rivr/tokens/manifest-colors.json` | `theme_color` and `background_color` for the PWA manifests | `player`, `console`, `display` |
 | `@rivr/tokens/tokens.json` | The source | tests |
-| `generated/android/res/values/` | `colors.xml` (`rivr_color_*`) and `themes.xml` (`Theme.Rivr`) | the `tablet` and `driver` Android shells |
+| `generated/android/res/values/` | `colors.xml` (`rivr_color_*`) and `themes.xml` (`Theme.Rivr`) | the `tablet` Android shell |
 
 Utility names follow the tokens: `bg-surface`, `bg-raised`, `text-content`, `text-content-muted`, `text-money`, `bg-action`, `border-hairline`, `p-4` (16 px), `text-16`, `font-display`, `rounded-lg`, `tracking-tv`, `max-w-phone`, `z-modal`, and the `phone:`, `tablet:`, `console:`, `tv:` breakpoints.
 

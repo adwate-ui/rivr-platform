@@ -1,6 +1,6 @@
 # RIVR platform
 
-Software for RIVR, a members' poker club in Gurugram. Launch Sunday 15 Nov 2026. One Supabase backend, one domain library, one UI library, six apps: `player` (PWA), `console` (staff web), `tablet` (Android dealer tablet), `display` (TVs), `web` (public site), `driver` (Android).
+Software for RIVR, a members' poker club in Gurugram. Launch Sunday 15 Nov 2026. One Supabase backend, one domain library, one UI library, five apps: `player` (PWA), `console` (staff web), `tablet` (Android dealer tablet), `display` (TVs), `web` (public site).
 
 Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which sets the reading order and what is out of scope. The work queue is GitHub issues labelled by lane (see `docs/tasks/README.md`). Detailed standards live in `.claude/rules/` and load when you touch matching files.
 

@@ -2,7 +2,7 @@
  * The catalogue: every message and so every message key. One file per namespace so lanes
  * add copy without editing each other's files; register a new namespace here.
  */
-import { consoleApp, displayApp, driverApp, playerApp, tabletApp, webApp } from './apps.ts';
+import { consoleApp, displayApp, playerApp, tabletApp, webApp } from './apps.ts';
 import { common } from './common.ts';
 import { alerts } from './alerts.ts';
 import { documents } from './documents.ts';
@@ -25,6 +25,5 @@ export const en = {
   console: consoleApp,
   tablet: tabletApp,
   display: displayApp,
-  driver: driverApp,
   web: webApp,
 } as const;

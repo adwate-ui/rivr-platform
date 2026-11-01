@@ -11,13 +11,13 @@ paths:
 Every pixel in every app comes from `@rivr/ui`. Every value comes from `packages/tokens/tokens.json`, the single design source; its CSS, Tailwind, TypeScript and Android outputs are generated and never edited by hand. See "Design system" in `docs/spec/additions-2026-10-14.md`.
 
 ## What lives in `@rivr/ui`
-- Layout: Box, Stack, Inline, Grid, Spacer, Divider, Container, ScrollArea, Screen
+- Layout: Box, Stack, Inline, Grid, Divider, Container, Screen
 - Type: Text, Heading, Label, Money, Number, Time, Stakes
 - Icon (one set, one component)
 - Controls: Button (primary, secondary, text, danger), IconButton, Input, MoneyInput, PinPad, Keypad, Select, Toggle, Checkbox, Radio, SegmentedControl, DatePicker, SearchField, FileDrop
 - Overlays and feedback: Sheet, Modal, Toast, Banner, Tooltip, Skeleton, EmptyState, ErrorState, ConfirmAction
 - Data: DataTable (sort, filter, export, virtualisation), List, ListRow, Stat, Badge, Avatar, KycPhoto, QrCode, Chart
-- Shells: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell, DriverShell; BottomNav, SideNav, Tabs, Breadcrumbs
+- Shells: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell; BottomNav, SideNav, Tabs, Breadcrumbs
 - Domain: SeatRing, TableCard, WaitlistRow, CallTimeTimer, PromotionCard, JackpotFigure, TournamentClock, PayoutTable, Receipt, MembershipCard, HandEntry, KillSwitchBanner, FeatureGate, LockedNotice, TierMatrix, website blocks
 
 ## In `apps/` you may not
