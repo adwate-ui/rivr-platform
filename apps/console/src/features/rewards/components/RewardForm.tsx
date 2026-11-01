@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { REWARD_KINDS, rewardItemSchema } from '@rivr/contracts';
 import { useSaveRewardItem, type RewardItem, type RewardItemOrder } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch, StatusMessage } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -67,19 +67,22 @@ function Fields({ form }: { form: RewardFormApi }) {
 
 /**
  * Adds a reward to the catalogue, or changes the one chosen (`item`): its kind, name, where to collect it,
- * its price (nights for a hotel night, else points) and how many are left. `onDone` runs once it is saved or the
- * change is cancelled.
+ * its price (nights for a hotel night, else points) and how many are left. `onOutcome` runs with the words to say once it
+ * is saved, which the screen keeps, as a change saved closes this form (F2-23), and with null when a save is refused, so an
+ * earlier save's words go; `onCancel` when the change is cancelled.
  */
-export function RewardForm({ venueId, item, onDone }: { venueId: string; item: RewardItem | null; onDone: () => void }) {
+export function RewardForm({ venueId, item, onOutcome, onCancel }: {
+  venueId: string; item: RewardItem | null; onOutcome: (saved: string | null) => void; onCancel: () => void;
+}) {
   const save = useSaveRewardItem(venueId);
-  const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
   const [resolver] = useState(() => zodResolver(rewardItemSchema));
   const form = useForm<RewardValues, unknown, z.output<typeof rewardItemSchema>>({ resolver, defaultValues: valuesOf(item) });
   const submit = form.handleSubmit(async (values) => {
     const saved = await save.mutateAsync(orderOf(values, item));
-    setOutcome(saved.ok ? { ok: true, text: t('console.rewards.saved', { name: values.name }) } : { ok: false, text: t(`console.rewards.failures.${saved.error}`) });
+    setFailure(saved.ok ? null : t(`console.rewards.failures.${saved.error}`));
     if (saved.ok && item === null) form.reset(EMPTY);
-    if (saved.ok && item !== null) onDone();
+    onOutcome(saved.ok ? t('console.rewards.saved', { name: values.name }) : null);
   });
   return (
     <Stack gap={4}>
@@ -88,10 +91,9 @@ export function RewardForm({ venueId, item, onDone }: { venueId: string; item: R
       <Fields form={form} />
       <Inline gap={4} align="center">
         <Button variant="primary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.rewards.save')}</Button>
-        {item === null ? null : <Button variant="text" onClick={onDone}>{t('console.rewards.cancel')}</Button>}
-        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+        {item === null ? null : <Button variant="text" onClick={onCancel}>{t('console.rewards.cancel')}</Button>}
       </Inline>
-      {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+      {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );
 }
