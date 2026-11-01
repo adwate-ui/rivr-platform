@@ -33,9 +33,13 @@ async function rpc(name: string, args: object): Promise<unknown> {
   return Array.isArray(rows) ? rows[0] : undefined;
 }
 
-/** The caller's address, as private.request_ip reads it. */
+/**
+ * The caller's address, as private.request_ip reads it: Cloudflare's; without it (the local stack), the last
+ * X-Forwarded-For hop, which the gateway added. The first is whatever the client sent (A4-17, decision 0287).
+ */
 function clientOf(request: Request): string {
-  return request.headers.get('cf-connecting-ip') ?? (request.headers.get('x-forwarded-for') ?? '').split(',')[0]?.trim() ?? '';
+  const forwarded = (request.headers.get('x-forwarded-for') ?? '').split(',');
+  return request.headers.get('cf-connecting-ip') ?? forwarded[forwarded.length - 1]?.trim() ?? '';
 }
 
 async function sha256(text: string): Promise<string> {
