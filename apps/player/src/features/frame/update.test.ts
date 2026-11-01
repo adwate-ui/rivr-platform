@@ -17,9 +17,26 @@ beforeEach(() => {
 afterEach(() => {
   // Back to jsdom's own, from Document.prototype.
   Reflect.deleteProperty(document, 'visibilityState');
+  window.history.replaceState(null, '', '/');
 });
 
 describe('takeUpdateWhenHidden', () => {
+  it('never takes it while the member is away mid sign-in or KYC, and takes it once they leave from elsewhere', () => {
+    const take = vi.fn();
+    window.history.replaceState(null, '', '/sign-in');
+    takeUpdateWhenHidden(take);
+    show('hidden');
+    expect(take).not.toHaveBeenCalled();
+    show('visible');
+    window.history.replaceState(null, '', '/kyc/return');
+    show('hidden');
+    expect(take).not.toHaveBeenCalled();
+    show('visible');
+    window.history.replaceState(null, '', '/');
+    show('hidden');
+    expect(take).toHaveBeenCalledTimes(1);
+  });
+
   it('takes a new version at once when the page is out of sight', () => {
     visibility = 'hidden';
     const take = vi.fn();
