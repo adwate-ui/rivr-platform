@@ -23,7 +23,9 @@ test.describe('Staff', () => {
     await expect(admin.getByRole('heading', { name: 'Staff', level: 1 })).toBeVisible();
     await expect(admin.getByText('Ayesha Thomas · You', { exact: true })).toBeVisible();
     await expect(admin.getByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeDisabled();
-    await expect(admin.getByRole('group', { name: 'Role for Ayesha Thomas' }).getByRole('button', { name: 'Host' })).toBeDisabled();
+    // Her own role is a super admin's to give (B3), so it shows no choices; her job title stays hers to change.
+    await expect(admin.getByRole('group', { name: 'Role for Ayesha Thomas' })).toHaveCount(0);
+    await expect(admin.getByRole('textbox', { name: 'Job title for Ayesha Thomas' })).toBeEnabled();
 
     await admin.getByRole('textbox', { name: 'Full name' }).fill(name);
     await admin.getByRole('textbox', { name: 'Job title', exact: true }).fill('Floor supervisor');

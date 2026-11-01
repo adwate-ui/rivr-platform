@@ -73,8 +73,10 @@ select results_eq($$ select kind::text, name, is_enforced, is_on_staff_network f
   $$ values ('console'::text, 'Office'::text, true, true) $$, 'this computer: the office''s admin console');
 select ok(private.can_grant_role('00000000-0000-4000-8000-000000000001', 'admin'), 'from it, the owner gives the admin role');
 select pg_temp.at('00000000-0000-4000-8000-000000000103', '203.0.113.9', 'office-token');
-select ok(private.can_grant_role('00000000-0000-4000-8000-000000000001', 'admin'),
-  'and so does an admin, though the admin role holds cage permissions no admin console uses');
+select ok(private.can_grant_role('00000000-0000-4000-8000-000000000001', 'host'),
+  'and an admin gives the host role from it');
+select ok(not private.can_grant_role('00000000-0000-4000-8000-000000000001', 'admin'),
+  'but not the admin role, which moves money and approves a second time: a super admin''s to give (B3)');
 
 -- The admin console adds the second cage, with a code; staff claim it on that computer.
 select pg_temp.at('00000000-0000-4000-8000-000000000101', '203.0.113.9', 'office-token');
