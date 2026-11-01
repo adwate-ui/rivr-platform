@@ -24,6 +24,12 @@ export interface PromotionStake {
   readonly name: string;
 }
 
+/** A builder promotion's budget (A2-04): what it may give in paise of bonus chips, and how many grants; either may be null. */
+export interface PromotionBudget {
+  readonly paise: bigint | null;
+  readonly count: number | null;
+}
+
 /** A promotion as the builder submits it: its name and card's words, and its rule. */
 export interface PromotionToSubmit {
   readonly name: string;
@@ -36,6 +42,8 @@ export interface PromotionToSubmit {
   readonly questions?: readonly { readonly question: string; readonly answer: string }[] | undefined;
   /** One id a submission, kept for a retry after a lost answer, so the retry returns the first promotion (A3). */
   readonly requestId: string;
+  /** Its budget, or none: no cap. */
+  readonly budget?: PromotionBudget | null | undefined;
 }
 
 /** A template sent for approval as it stands (#85), with a budget for the whole promotion or each month, or none (#562). */
@@ -222,10 +230,12 @@ export function usePromotionActions(venueId: string) {
   const { client } = useRivrData();
   const settle = useSettle(venueId);
   const submit = useMutation({
-    mutationFn: async ({ name, detail, runs, draft, rules = [], questions = [], requestId }: PromotionToSubmit) => {
+    mutationFn: async ({ name, detail, runs, draft, rules = [], questions = [], requestId, budget = null }: PromotionToSubmit) => {
       const perPlayer = draft.perPlayer === null ? {} : { per_player_limit: draft.perPlayer.limit, per_player_period: draft.perPlayer.period };
+      const capped = budget === null ? {} : { budget_paise: budget.paise === null ? null : Number(budget.paise), budget_count: budget.count };
       const promotion = {
-        name, detail, runs, rule: draft.rule, rules: [...rules], questions: questions.map((item) => ({ ...item })), ...perPlayer, request_id: requestId,
+        name, detail, runs, rule: draft.rule, rules: [...rules], questions: questions.map((item) => ({ ...item })), ...perPlayer, ...capped,
+        request_id: requestId,
       };
       const { data, error } = await client.rpc('submit_promotion', { p_venue_id: venueId, p_promotion: promotion });
       return settle(data, error);
