@@ -1,5 +1,9 @@
 /** Copy that @rivr/ui components show themselves: navigation, shells, controls. */
 export const ui = {
+  captcha: {
+    /** Cloudflare's check, which every sign-in code request carries, did not load or failed (F1-15). */
+    failed: 'The security check failed. Check the connection and try again.',
+  },
   brand: {
     /** The letters on the wordmark tiles; not translated. */
     name: 'RIVR',
