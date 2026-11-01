@@ -1,5 +1,5 @@
 import type { FloorTable, InterestList, WaitlistBoardEntry, WaitlistRequest } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatStakes, t } from '@rivr/i18n';
 import { Heading, Inline, Stack, Stakes, Text } from '@rivr/ui';
 import { AddMemberForm } from './AddMemberForm.tsx';
 import { EntryRow } from './EntryRow.tsx';
@@ -27,7 +27,8 @@ export function GameList({ venueId, game, tables, entries, requests, interest }:
     <Stack gap={4}>
       <Inline gap={3} align="baseline">
         <Heading level={2}>{game.tableTypeName}</Heading>
-        <Stakes smallBlind={game.smallBlind} bigBlind={game.bigBlind} tone="muted" />
+        {/* "NLH 50/100" already says its blinds; they show beside a name that does not (UI polish audit A-10). */}
+        {game.tableTypeName.includes(formatStakes(game.smallBlind, game.bigBlind)) ? null : <Stakes smallBlind={game.smallBlind} bigBlind={game.bigBlind} tone="muted" />}
       </Inline>
       {interest === undefined ? null : (
         <InterestNotice venueId={venueId} interest={interest.list} table={interest.closedTable} canOpen={interest.canOpen} />
