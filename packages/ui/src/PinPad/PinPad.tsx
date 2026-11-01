@@ -45,7 +45,9 @@ export function PinPad({ label, value, onChange, length = 4, error, isDisabled }
     <Stack gap={4}>
       <Text id={labelId} variant="label">{label}</Text>
       <div role="group" aria-labelledby={labelId} onKeyDown={typed} className="flex flex-col gap-4">
-        <div role="status" aria-label={t('ui.pinPad.entered', { count: value.length, length })} className="flex gap-3">
+        {/* The count is words inside the status region, which a screen reader reads as they change; a label is not (F5-08). */}
+        <div role="status" className="flex gap-3">
+          <span className="sr-only">{t('ui.pinPad.entered', { count: value.length, length })}</span>
           {Array.from({ length }, (_, index) => (
             <span key={index} className={cx('size-4 rounded-lg border border-content', index < value.length && 'bg-content')} />
           ))}

@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { QuantityStepper } from './QuantityStepper.tsx';
@@ -22,5 +23,29 @@ describe('QuantityStepper', () => {
     expect(screen.getByRole('button', { name: 'One fewer Beer' })).toBeDisabled();
     renderIn(<QuantityStepper label="Whisky" value={9} onChange={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'One more Whisky' })).toBeDisabled();
+  });
+
+  it('hands the focus to the other button when a press reaches the limit, so a keyboard is not dropped (F5-07)', async () => {
+    function Counted() {
+      const [value, setValue] = useState(8);
+      return <QuantityStepper label="Masala chai" value={value} onChange={setValue} />;
+    }
+    renderIn(<Counted />);
+    screen.getByRole('button', { name: 'One more Masala chai' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'One more Masala chai' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'One fewer Masala chai' })).toHaveFocus();
+  });
+
+  it('hands the focus to one more when a press reaches nothing, at the other limit', async () => {
+    function Counted() {
+      const [value, setValue] = useState(1);
+      return <QuantityStepper label="Masala chai" value={value} onChange={setValue} />;
+    }
+    renderIn(<Counted />);
+    screen.getByRole('button', { name: 'One fewer Masala chai' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'One fewer Masala chai' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'One more Masala chai' })).toHaveFocus();
   });
 });

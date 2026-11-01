@@ -41,11 +41,20 @@ describe('PlayerShell', () => {
     expect(container.querySelector('a[href="/profile"] svg')).toBeInTheDocument();
   });
 
-  it('shows the banner first, before the profile link in focus order', async () => {
+  it('shows the banner first; a keyboard meets Skip to content, then the profile link', async () => {
     renderShell();
     expect(screen.getByText('Venue frozen.')).toBeInTheDocument();
     await userEvent.tab();
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
+    await userEvent.tab();
     expect(screen.getByRole('link', { name: 'Profile' })).toHaveFocus();
+  });
+
+  it('takes the focus to the screen on Skip to content, past the bars (F5-03)', async () => {
+    renderShell();
+    await userEvent.tab();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('main')).toHaveFocus();
   });
 
   it('has no accessibility violations', async () => {

@@ -1,5 +1,9 @@
 /** Copy that @rivr/ui components show themselves: navigation, shells, controls. */
 export const ui = {
+  /** The browser tab's title on a screen (F5-03): `Check-in · RIVR`. */
+  screenTitle: '{title} · RIVR',
+  /** A shell's first stop for a keyboard (F5-03). */
+  skipToContent: 'Skip to content',
   captcha: {
     /** Cloudflare's check, which every sign-in code request carries, did not load or failed (F1-15). */
     failed: 'The security check failed. Check the connection and try again.',

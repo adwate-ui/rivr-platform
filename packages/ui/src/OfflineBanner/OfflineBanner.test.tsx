@@ -11,10 +11,10 @@ function goOnline(online: boolean) {
 describe('OfflineBanner', () => {
   afterEach(() => goOnline(true));
 
-  it('shows nothing while online', () => {
+  it('shows nothing while online, but keeps its status region, so the words are announced when they come (F5-09)', () => {
     goOnline(true);
-    const { container } = renderIn(<OfflineBanner />);
-    expect(container).toBeEmptyDOMElement();
+    renderIn(<OfflineBanner />);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
   it('says the app is offline while it is, and goes when the connection returns', () => {
@@ -22,7 +22,7 @@ describe('OfflineBanner', () => {
     act(() => goOnline(false));
     expect(screen.getByRole('status')).toHaveTextContent('Offline. What you see may be out of date.');
     act(() => goOnline(true));
-    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
   it('says what it is given offline, and online only an online message', () => {

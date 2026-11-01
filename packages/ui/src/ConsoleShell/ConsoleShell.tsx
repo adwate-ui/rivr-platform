@@ -4,6 +4,7 @@ import { tokens } from '@rivr/tokens';
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 import type { Navigate } from '../internal/navigation.ts';
+import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
 import { SideNav, type SideNavSection } from '../SideNav/SideNav.tsx';
 import { Text } from '../Text/Text.tsx';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
@@ -119,8 +120,11 @@ function TopBar({ title }: { title: string | undefined }) {
   );
 }
 
-/** The rail as a menu over the screen below a desk. Escape, a tap outside, Close or choosing a screen closes it. */
-function MenuDrawer({ children }: { children: ReactNode }) {
+/**
+ * The rail as a menu over the screen below a desk. Escape, a tap outside, Close or choosing a screen closes it. Closed by
+ * choosing a screen, it leaves the focus with the new screen's heading rather than hand it back to the Menu button.
+ */
+function MenuDrawer({ children, onCloseAutoFocus }: { children: ReactNode; onCloseAutoFocus: (event: Event) => void }) {
   return (
     <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-green-black opacity-muted" />
@@ -132,6 +136,7 @@ function MenuDrawer({ children }: { children: ReactNode }) {
             event.preventDefault();
             if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();
           }}
+          onCloseAutoFocus={onCloseAutoFocus}
         >
           <Dialog.Title className="sr-only">{t('ui.consoleRail.label')}</Dialog.Title>
           <Dialog.Close aria-label={t('ui.consoleRail.close')} className={`absolute top-2 right-2 ${ICON_BUTTON}`}>
@@ -154,15 +159,23 @@ export function ConsoleShell({ children, sections, currentItem, onNavigate, bann
   const goToRef = useRef<HTMLInputElement>(null);
   useGoToShortcut(goToRef);
   const title = sections.flatMap((section) => section.items).find((item) => item.id === currentItem)?.label;
-  // Choosing a screen in the menu closes it.
+  // Choosing a screen in the menu closes it, and the new screen keeps the focus.
+  const closedByChoosing = useRef(false);
   const navigateFromMenu: Navigate | undefined = onNavigate && ((href) => {
+    closedByChoosing.current = true;
     setMenuOpen(false);
     onNavigate(href);
   });
+  const keepFocusOnScreen = (event: Event) => {
+    if (!closedByChoosing.current) return;
+    event.preventDefault();
+    closedByChoosing.current = false;
+  };
   return (
     // The drawer's Root holds the whole shell, so the top bar's Menu button is its trigger and gets focus back on close.
     <Dialog.Root open={isMenuOpen} onOpenChange={setMenuOpen}>
       <div className="flex h-dvh flex-col bg-surface text-content">
+        <SkipLink />
         {banner}
         <TopBar title={title} />
         <div className="flex min-h-0 flex-1">
@@ -170,12 +183,12 @@ export function ConsoleShell({ children, sections, currentItem, onNavigate, bann
             <Rail sections={sections} currentItem={currentItem} onNavigate={onNavigate} railFooter={railFooter} goToRef={goToRef} />
           </aside>
           {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). */}
-          <main tabIndex={0} className="min-w-0 flex-1 overflow-y-auto px-4 py-4 tablet:px-8 tablet:py-6">
+          <main id={MAIN_ID} tabIndex={0} className="min-w-0 flex-1 overflow-y-auto px-4 py-4 tablet:px-8 tablet:py-6">
             {children}
           </main>
         </div>
       </div>
-      <MenuDrawer>
+      <MenuDrawer onCloseAutoFocus={keepFocusOnScreen}>
         <Rail sections={sections} currentItem={currentItem} onNavigate={navigateFromMenu} railFooter={railFooter} />
       </MenuDrawer>
     </Dialog.Root>

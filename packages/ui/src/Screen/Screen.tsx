@@ -1,4 +1,5 @@
-import { useId, type ReactNode } from 'react';
+import { t } from '@rivr/i18n';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Heading } from '../Heading/Heading.tsx';
 import { LoadState } from '../LoadState/LoadState.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -20,14 +21,40 @@ export type ScreenProps = ScreenState & {
   children?: ReactNode;
 };
 
+/**
+ * A screen of its own (an h1, not one nested at level 2) names the page, "Check-in · RIVR", and takes the focus when it
+ * opens, so a keyboard or screen reader starts at its heading rather than on the last screen's link (F5-03). A field the
+ * screen focuses itself, such as the door's scanner field, keeps the focus.
+ */
+function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) {
+  const section = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!isOwnScreen) return undefined;
+    // The title before it is the page's again when the screen goes, as for the sign-in steps, which are no screen.
+    const before = document.title;
+    document.title = t('ui.screenTitle', { title });
+    return () => {
+      document.title = before;
+    };
+  }, [isOwnScreen, title]);
+  useEffect(() => {
+    const element = section.current;
+    if (!isOwnScreen || element === null || element.contains(document.activeElement)) return;
+    document.getElementById(headingId)?.focus({ preventScroll: true });
+  }, [isOwnScreen, headingId]);
+  return section;
+}
+
 /** One screen of an app: its heading, then its content or its loading, empty or error state. */
 export function Screen(props: ScreenProps) {
   const headingId = useId();
+  const isOwnScreen = (props.level ?? 1) === 1;
+  const section = useScreenFocus(props.title, headingId, isOwnScreen);
   return (
-    <section aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
+    <section ref={section} aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
       {/* The heading and its actions wrap onto two lines on a narrow screen. */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <Heading level={props.level ?? 1} id={headingId}>
+        <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen}>
           {props.title}
         </Heading>
         {props.actions}
