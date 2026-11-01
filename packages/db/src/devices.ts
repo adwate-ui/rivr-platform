@@ -79,6 +79,8 @@ export function useMyDevice() {
 export function usePairDevice() {
   const { client } = useRivrData();
   return useMutation({
+    // Sent whether the browser says it is online or not: offline it fails at once, and never pairs later on its own.
+    networkMode: 'always',
     mutationFn: async (code: string): Promise<Result<null, PairFailure>> => {
       await client.auth.signOut({ scope: 'local' });
       const { data, error } = await client.functions.invoke('device-pair', { body: { code } });

@@ -1,5 +1,6 @@
 import { fromPaise } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
+import { onlineManager } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -29,7 +30,10 @@ function renderTablet(replies: Record<string, { status?: number; body: unknown }
   return { result, calls };
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  onlineManager.setOnline(true);
+});
 
 describe('The tablet\'s seats', () => {
   it('gives every seat: an open one, and a player away with a buy-in waiting at the cage', async () => {
@@ -61,5 +65,22 @@ describe('The tablet\'s seats', () => {
     expect(away).toEqual({ ok: true, value: null });
     expect(left).toEqual({ ok: false, error: 'paused' });
     expect(calls.find((call) => call.rpc === 'end_seat')?.body).toEqual({ p_session_id: 's9', p_reason: 'left' });
+  });
+
+  it('sends away, leaving and a buy-in even while the tablet thinks it is offline, so none waits to go later', async () => {
+    const unreachable = { status: 503, body: { message: 'unreachable' } };
+    const { result, calls } = renderTablet({ tablet_seats: { body: [] }, set_seat_away: unreachable, end_seat: unreachable, request_buy_in: unreachable });
+    // As on the tablet: the seats have loaded before the connection drops.
+    await waitFor(() => expect(result.current.seats.data).toEqual([]));
+    onlineManager.setOnline(false);
+    const before = calls.length;
+    const outcomes: unknown[] = [];
+    await act(async () => { outcomes.push(await result.current.events.setAway.mutateAsync({ sessionId: 's9', isAway: true })); });
+    await act(async () => { outcomes.push(await result.current.events.leave.mutateAsync('s9')); });
+    await act(async () => {
+      outcomes.push(await result.current.events.requestBuyIn.mutateAsync({ sessionId: 's9', amount: fromPaise(1_000_000n), requestId: 'r2' }));
+    });
+    expect(outcomes).toEqual([1, 2, 3].map(() => ({ ok: false, error: 'unavailable' })));
+    expect(calls.slice(before).map((call) => call.rpc)).toEqual(['set_seat_away', 'end_seat', 'request_buy_in']);
   });
 });

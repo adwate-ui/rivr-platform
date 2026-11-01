@@ -114,7 +114,8 @@ export function useCurrentDown(tableId: string | null) {
 /**
  * On the tablet: `signIn` a dealer with their PIN, which starts their down and ends the one before;
  * `end` the down with the drop-box count, which gives the variance against what its hands logged.
- * Both reload the current down.
+ * Both reload the current down. Both are sent whether the browser says it is online or not: offline they fail at once
+ * with their message, and never go later, after the dealer has tapped Cancel and dealt on.
  */
 export function useDownActions() {
   const { client, userId } = useRivrData();
@@ -122,6 +123,7 @@ export function useDownActions() {
   // Every table's current down: the prefix of currentDown's key.
   const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out', 'current-down'] });
   const signIn = useMutation({
+    networkMode: 'always',
     mutationFn: async ({ staffId, pin }: { staffId: string; pin: string }): Promise<Result<null, DealerSignInFailure>> => {
       const { data, error } = await client.rpc('dealer_sign_in', { p_staff_id: staffId, p_pin: pin });
       await reload();
@@ -133,6 +135,7 @@ export function useDownActions() {
     },
   });
   const end = useMutation({
+    networkMode: 'always',
     mutationFn: async (dropBox: Paise): Promise<Result<DownCount, 'unavailable'>> => {
       const { data, error } = await client.rpc('end_down', { p_drop_box_paise: Number(dropBox) });
       await reload();

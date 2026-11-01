@@ -45,6 +45,8 @@ export function toDoorScan(row: ScanRow | undefined): DoorScan | null {
 export function useDoorScan() {
   const { client } = useRivrData();
   return useMutation({
+    // Sent whether the browser says it is online or not: offline it fails at once, and never checks anyone in or out later.
+    networkMode: 'always',
     mutationFn: async (code: string): Promise<Result<DoorScan, DoorScanRefusal>> => {
       const { data, error } = await client.rpc('door_scan', { p_code: code.trim() });
       const scan = error ? null : toDoorScan(data[0]);
