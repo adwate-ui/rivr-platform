@@ -1,6 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SessionScreen } from './SessionScreen.tsx';
 import { SessionsScreen } from './SessionsScreen.tsx';
@@ -26,6 +27,8 @@ interface Api {
   access?: 'enabled' | 'locked';
   /** Whether hiding a session goes through. */
   hide?: 'works' | 'fails';
+  /** The feature map: given, on its way for good, or failing once and then given (a weak signal in the club). */
+  map?: 'given' | 'on its way' | 'fails once';
 }
 
 /** The session a hide_my_session call names. */
@@ -34,19 +37,26 @@ function sentSessionId(init: RequestInit | undefined): string {
   return sent !== null && typeof sent === 'object' && 'p_session_id' in sent ? String(sent.p_session_id) : '';
 }
 
-/** Ishaan signed in at `path`, and a fake API: his sessions, his tier's session history, and hiding one, which leaves it out after. */
-function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'works' }: Api) {
+/**
+ * Ishaan signed in at `path`, and a fake API: his sessions, his tier's session history as the feature map gives it, and
+ * hiding one, which leaves it out after.
+ */
+function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'works', map = 'given' }: Api) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   let listed = sessions;
   const hidden: string[] = [];
+  let mapAsked = 0;
+  const featureMap = (): Promise<Response> | Response => {
+    if (map === 'on its way') return new Promise<Response>(() => undefined);
+    if (map === 'fails once' && mapAsked++ === 0) return Response.json({ message: 'unavailable' }, { status: 503 });
+    return Response.json([{ feature_key: 'sessions.history', state: access, tiers: access === 'locked' ? ['Black card'] : null }]);
+  };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/my_feature_access')) {
-      return Response.json([{ feature_key: 'sessions.history', state: access, tiers: access === 'locked' ? ['Black card'] : null }]);
-    }
+    if (url.includes('/rpc/my_feature_access')) return featureMap();
     if (url.includes('/rpc/hide_my_session')) {
       if (hide === 'fails') return Response.json({ message: 'unavailable' }, { status: 503 });
       const id = sentSessionId(init);
@@ -64,7 +74,8 @@ function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'wor
   ]);
   const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [path] }) });
   render(
-    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}>
+    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
@@ -72,6 +83,22 @@ function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'wor
 }
 
 describe('Sessions', () => {
+  it.each(['/sessions', '/sessions/v1'])('%s says it is loading while the feature map is on its way', async (path) => {
+    renderAt(path, { sessions: [SESSION], map: 'on its way' });
+    expect(await screen.findByText('Loading')).toBeDefined();
+    // Still loading once the sessions have come.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(screen.getByText('Loading')).toBeDefined();
+  });
+
+  it.each(['/sessions', '/sessions/v1'])('%s says it could not load when the feature map fails, and loads on Try again', async (path) => {
+    renderAt(path, { sessions: [SESSION], map: 'fails once' });
+    expect(await screen.findByText('Could not load this. Check the connection and try again.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(screen.queryByText('Could not load this. Check the connection and try again.')).toBeNull());
+    expect(screen.getAllByText(/Table 3/).length).toBeGreaterThan(0);
+  });
+
   it('says there are none yet', async () => {
     renderAt('/sessions', {});
     expect(await screen.findByText('No sessions yet.', {}, { timeout: 5000 })).toBeDefined();

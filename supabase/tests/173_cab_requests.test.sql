@@ -11,6 +11,10 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
+-- Cab requests are off for every tier (F3-01, test 221): on again here, to test the rule they keep.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
+select t.venue_id, t.id, 'cab.requests', true, 'locked', now() - interval '1 second' from public.tier t;
+
 select pg_temp.as_person('00000000-0000-4000-8000-000000000620');
 select results_eq($$ select is_eligible, visits, minimum_visits from public.my_cab() $$, $$ values (true, 4, 4) $$,
   'four visits this month: the cab is offered');

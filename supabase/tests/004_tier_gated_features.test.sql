@@ -44,11 +44,11 @@ select results_eq(
   'the locked notice names the tiers that have it'
 );
 
--- A change scheduled for tomorrow is not in force today.
+-- A change scheduled for tomorrow is not in force today: cab requests, off for every tier (F3-01), turned on tomorrow.
 insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
-select venue_id, id, 'cab.requests', false, 'hidden', now() + interval '1 day' from public.tier
+select venue_id, id, 'cab.requests', true, 'locked', now() + interval '1 day' from public.tier
 where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Member';
-select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'cab.requests'), 'a future-dated cell is not yet in force');
+select ok(not private.has_feature('00000000-0000-4000-8000-000000000202', 'cab.requests'), 'a future-dated cell is not yet in force');
 
 -- The super_admin grants Learn back to Kabir alone.
 set local role authenticated;

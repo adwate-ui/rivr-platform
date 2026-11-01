@@ -5,7 +5,9 @@
  * Cashfree's sandbox keys (#474, decision 0197), so there the real venue's check goes to Cashfree instead.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { localSupabaseEnv } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
+import { serviceRoleKey } from '../support/serviceRole.ts';
 import { signInToPlayer } from '../support/signIn.ts';
 
 /** A plain JPEG made in the page: the practice venue's fake vendor passes any selfie. */
@@ -62,5 +64,32 @@ test.describe('KYC', () => {
     if (isRemoteTarget()) return;
     await takeSelfie(page);
     await expect(page.getByText('Identity checks are not open yet. Staff will check your documents at the club.')).toBeVisible();
+  });
+
+  test('a member DigiLocker failed for can try it again from the PAN step; one it matched without a PAN is not offered it', async ({ browser, page, request }) => {
+    test.skip(isRemoteTarget(), 'fails a member\'s DigiLocker with the service role, so the local stack only');
+    // Shreya Mittal set off for DigiLocker (seed: started) and it failed, as the kyc function records it with the service
+    // role: a PAN check with no date of birth. Once failed, failing again changes nothing.
+    const { url } = localSupabaseEnv();
+    const service = serviceRoleKey();
+    const failed = await request.post(`${url}/rest/v1/rpc/record_kyc_digilocker_failed`, {
+      headers: { apikey: service, authorization: `Bearer ${service}`, 'content-type': 'application/json' },
+      data: { p_member_id: '00000000-0000-4000-8000-000000000403' },
+    });
+    expect(failed.ok(), await failed.text()).toBe(true);
+    await signInToPlayer(page, '9000000403', '/kyc');
+    await expect(page.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
+    await page.getByRole('button', { name: 'Try DigiLocker again' }).click();
+    // The seed keeps no selfie for her, so the kyc function refuses the start and the step says so. A member who reached
+    // the PAN step in the app took the selfie first.
+    await expect(page.getByText('Identity checks are not available right now. Try again in a few minutes.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
+
+    // Shivam Kalra's DigiLocker matched but held no PAN (seed: needs_pan with his date of birth): the PAN alone verifies him.
+    const matched = await browser.newPage();
+    await signInToPlayer(matched, '9000000442', '/kyc');
+    await expect(matched.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
+    await expect(matched.getByRole('button', { name: 'Verify' })).toBeVisible();
+    await expect(matched.getByRole('button', { name: 'Try DigiLocker again' })).toHaveCount(0);
   });
 });

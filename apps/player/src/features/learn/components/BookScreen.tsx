@@ -1,4 +1,4 @@
-import { useFeature } from '@rivr/db';
+import { useFeatureStatus } from '@rivr/db';
 import { useLearnAnswers, useLearnCards, useLearnEncoding, useLearnLibrary } from '@rivr/db/learn';
 import type { AttemptRow, CardState } from '@rivr/drills';
 import { builtInSource, type BuiltInSource } from '@rivr/drills/sources';
@@ -107,14 +107,15 @@ function Views({ book, sourceKey, cards, rows, answered }: ViewsProps) {
  */
 export function BookScreen() {
   const sourceKey = useParams({ strict: false }).sourceKey ?? '';
-  const drills = useFeature('learn.drills');
+  const drills = useFeatureStatus('learn.drills');
   const title = useTitle(sourceKey);
   if (title.isMissing) return <Screen title={title.title} status="error" errorText={t('player.learn.missing')} />;
   if (title.isError) return <Screen title={title.title} status="error" onRetry={title.retry} />;
-  if (title.isLoading) return <Screen title={title.title} status="loading" />;
+  if (drills.status === 'error') return <Screen title={title.title} status="error" onRetry={drills.retry} />;
+  if (title.isLoading || drills.status === 'loading') return <Screen title={title.title} status="loading" />;
   if (title.book === null) return <Screen title={title.title} status="error" errorText={t('player.learn.unreadable')} />;
   return (
-    <FeatureGate access={drills}>
+    <FeatureGate access={drills.access}>
       <Screen title={title.title}>
         <Views book={title.book} sourceKey={sourceKey} cards={title.cardMap} rows={title.rows} answered={title.answered} />
       </Screen>

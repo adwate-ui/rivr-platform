@@ -1,4 +1,4 @@
-import { useFeature } from '@rivr/db';
+import { useFeature, useFeatureStatus } from '@rivr/db';
 import { useLearnLibrary } from '@rivr/db/learn';
 import { BUILT_IN_SOURCES } from '@rivr/drills/sources';
 import { t } from '@rivr/i18n';
@@ -42,13 +42,18 @@ function LicensedTitles() {
 
 /**
  * Learn (#133), gated by tier (learn.library): the Academy's levels, the books that ship with RIVR, and the licensed
- * titles the member's tier has, each opening its hub. The Academy's batches to book are hidden (#627).
+ * titles the member's tier has, each opening its hub. The Academy's batches to book are hidden (#627). It waits until
+ * access is known, so a weak signal shows the screen loading, or failing with a retry, and never an empty page.
  */
 export function LearnScreen() {
+  const library = useFeatureStatus('learn.library');
   const lessons = useFeature('learn.academy_lessons');
+  const title = t('player.learn.title');
+  if (library.status === 'loading') return <Screen title={title} status="loading" />;
+  if (library.status === 'error') return <Screen title={title} status="error" onRetry={library.retry} />;
   return (
-    <FeatureGate access={useFeature('learn.library')}>
-      <Screen title={t('player.learn.title')}>
+    <FeatureGate access={library.access}>
+      <Screen title={title}>
         <Stack gap={8}>
           <FeatureGate access={lessons}>
             <Stack gap={2}>

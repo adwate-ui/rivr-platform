@@ -31,6 +31,7 @@ import { rake } from './rake.ts';
 import { playerHouseRules, profile } from './profile.ts';
 import { playerSignUp } from './signUp.ts';
 import { notStaff, staff } from './staff.ts';
+import { playerKyc } from './kyc.ts';
 import { kycInPerson, kycInPersonFailures } from './kycInPerson.ts';
 import { kycReview, kycReviewFailures } from './kycReview.ts';
 import { balance, withdrawals } from './wallet.ts';
@@ -117,37 +118,7 @@ export const playerApp = {
   profile,
   houseRules: playerHouseRules,
   signUp: playerSignUp,
-  /** KYC: DigiLocker, or a PAN when DigiLocker fails. Only the masked Aadhaar is ever shown. */
-  kyc: {
-    title: 'Identity',
-    intro: 'We check your identity with a selfie and DigiLocker. We keep your photo, masked Aadhaar, PAN, date of birth and address, and nothing else.',
-    selfieIntro: 'First, a selfie. Hold the phone at eye level, face inside the frame.',
-    takeSelfie: 'Take a selfie',
-    notLive: 'We could not use that photo. Face the camera in good light and try again.',
-    digilockerIntro: 'Your selfie is in. Next, DigiLocker shares your Aadhaar and PAN with us. We keep the masked Aadhaar only.',
-    start: 'Continue with DigiLocker',
-    checking: 'Checking your identity',
-    verifiedTitle: 'Identity verified',
-    dateOfBirthLabel: 'Date of birth',
-    aadhaarLabel: 'Aadhaar',
-    panLabel: 'PAN',
-    continue: 'Continue',
-    panTitle: 'PAN',
-    panIntro: 'Enter your PAN to finish.',
-    panPlaceholder: 'ABCDE1234F',
-    verify: 'Verify',
-    panInvalid: 'Enter a PAN like ABCDE1234F.',
-    dateOfBirthInvalid: 'Enter your date of birth.',
-    panRejected: 'This PAN did not match. Check it and the name, then try again.',
-    reviewTitle: 'With staff',
-    refusedTitle: 'Not verified',
-    refused: 'We could not complete your identity check. Speak to the front desk at the club.',
-    review: 'Staff will check your documents at the club to finish.',
-    stopped: 'Identity checks are paused for now. Try again later.',
-    tooManyAttempts: 'Too many tries today. Try again tomorrow, or ask at the club.',
-    notConfigured: 'Identity checks are not open yet. Staff will check your documents at the club.',
-    unavailable: 'Identity checks are not available right now. Try again in a few minutes.',
-  },
+  kyc: playerKyc,
 } as const;
 
 export const consoleApp = {

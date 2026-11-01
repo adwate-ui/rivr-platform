@@ -38,7 +38,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'cab.minimum_visits': {
     name: 'Cab offer after',
-    help: 'The visits a member needs this month before the app offers them a cab. 4 unless set.',
+    help: 'The visits a member needs this month before the club offers them a cab home, which staff book. 4 unless set.',
     fields: { visits: 'Visits this month' },
   },
   'cage.cash_buy_in_limit': {

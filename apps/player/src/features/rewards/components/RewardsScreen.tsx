@@ -5,7 +5,6 @@ import { FeatureGate, Number, Screen, Stack, Text } from '@rivr/ui';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
-import { CabSection } from './CabSection.tsx';
 import { ReferralSection } from './ReferralSection.tsx';
 
 // The tab's copy loads with the tab, so the app's first load carries none of it (#344).
@@ -15,7 +14,8 @@ registerMessages({ memberRewards });
  * Rewards (#152; design prompt "Rewards"): the member's points and tier, always, and any points the club holds locked
  * for them (#645); their hotel nights
  * (rewards.accommodation, #146); then the catalogue and their redemptions (rewards.catalogue) and the RIVR League
- * (league.standings), each behind its feature; and the member's referral code (#151). Cab requests (#140) join it when built.
+ * (league.standings), each behind its feature; and the member's referral code (#151). There are no cab requests: staff
+ * book a member's cab at the club (decision 0285).
  */
 export function RewardsScreen() {
   const rewards = useMyRewards();
@@ -50,7 +50,6 @@ export function RewardsScreen() {
         </FeatureGate>
         <FeatureGate access={league}><LeagueSection /></FeatureGate>
         <ReferralSection />
-        <CabSection />
       </Stack>
     </Screen>
   );
