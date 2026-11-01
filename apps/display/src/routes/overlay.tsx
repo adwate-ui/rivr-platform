@@ -1,5 +1,5 @@
 import { createRoute } from '@tanstack/react-router';
-import { OverlayFrame } from '../features/frame/index.ts';
+import { OverlayFailed, OverlayFrame } from '../features/frame/index.ts';
 import { overlayDelay, StreamOverlayScreen } from '../features/modes/index.ts';
 import { PairingScreen } from '../features/pairing/index.ts';
 import { rootRoute } from './root.tsx';
@@ -19,4 +19,5 @@ export const overlayRoute = createRoute({
   path: '/overlay',
   validateSearch: (search: Record<string, unknown>) => ({ delay: overlayDelay(search['delay']) }),
   component: Overlay,
+  errorComponent: OverlayFailed,
 });

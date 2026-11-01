@@ -1,9 +1,9 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createAppRouter } from './router.tsx';
+import { createAppRouter, ScreenFailed } from './router.tsx';
 
 afterEach(() => {
   cleanup();
@@ -26,6 +26,20 @@ function signIn() {
 
 const CLUB = { id: 's1', venue_id: 'v1', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Gurugram', is_practice: false } };
 const PRACTICE = { id: 's2', venue_id: 'v2', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Practice', is_practice: true } };
+
+/** Sana at the club, and a fake API whose given reads answer once, then fail: a refresh that cannot reach the API. */
+function answerOnceThenFail(first: Record<string, unknown>) {
+  const asked = new Map<string, number>();
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url.includes('/rest/v1/staff')) return Response.json([CLUB]);
+    const path = Object.keys(first).find((candidate) => url.includes(candidate));
+    if (path === undefined) return Response.json([]);
+    const times = (asked.get(path) ?? 0) + 1;
+    asked.set(path, times);
+    return times === 1 ? Response.json(first[path]) : Response.json({ message: 'unreachable' }, { status: 503 });
+  });
+}
 
 /** A fake API: the staff records it is given (or a failure), and nothing for anything else. */
 function answerStaff(staff: unknown[], status = 200) {
@@ -235,5 +249,43 @@ describe('the console', () => {
     answerStaff([CLUB]);
     renderAt('/nowhere');
     expect(await screen.findByText('This page does not exist.')).toBeDefined();
+  });
+});
+
+describe('a screen whose refresh fails, or that fails to draw', () => {
+  it('keeps Check-in, and the number typed in it, when a refresh fails, saying since when', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    signIn();
+    answerOnceThenFail({ '/rpc/door_board': [] });
+    renderAt('/check-in');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '9876543210' } });
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect(await screen.findByText(/^Not updated since \d{2}:\d{2}\. Check the connection\.$/)).toBeDefined();
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Mobile number' }).value).toBe('9876543210');
+    vi.useRealTimers();
+  });
+
+  it('keeps the Waitlist when a refresh fails, saying since when', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    signIn();
+    answerOnceThenFail({
+      '/rest/v1/game_table': [{ id: 't3', venue_id: 'v1', name: 'Table 3', is_open: true, seats: 9, position: 3, table_type_id: 'nl', must_move_to_table_id: null, room: 'main' }],
+      '/rest/v1/table_type': [{ id: 'nl', name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
+      '/rpc/waitlist_board': [],
+    });
+    renderAt('/waitlist');
+    expect((await screen.findAllByText(/NLH 100\/200/)).length).toBeGreaterThan(0);
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect(await screen.findByText(/^Not updated since /)).toBeDefined();
+    expect(screen.getAllByText(/NLH 100\/200/).length).toBeGreaterThan(0);
+    vi.useRealTimers();
+  });
+
+  it('shows a screen that fails to draw as an error with Try again, which draws it again', () => {
+    const reset = vi.fn();
+    render(<ScreenFailed error={new Error('A bad timestamp')} reset={reset} />);
+    expect(screen.getByRole('heading', { name: 'Screen unavailable' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(reset).toHaveBeenCalledOnce();
   });
 });

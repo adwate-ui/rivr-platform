@@ -1,6 +1,6 @@
 import { useDoorBoard, useStaffVenue, type DoorMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Screen } from '@rivr/ui';
+import { Grid, Screen, StaleNotice } from '@rivr/ui';
 import { CardCheckIn } from './CardCheckIn.tsx';
 import { DoorList } from './DoorList.tsx';
 import { PhoneCheckIn } from './PhoneCheckIn.tsx';
@@ -23,12 +23,15 @@ export function CheckInScreen() {
 function Door({ venueId }: { venueId: string }) {
   const board = useDoorBoard(venueId);
   const title = t('console.checkIn.title');
-  if (board.isPending) return <Screen title={title} status="loading" />;
-  if (board.isError) return <Screen title={title} status="error" onRetry={() => void board.refetch()} />;
+  // A failed refresh keeps the lists and the scanner's field, with a notice, rather than swapping them for an error.
+  if (board.data === undefined) {
+    return board.isError ? <Screen title={title} status="error" onRetry={() => void board.refetch()} /> : <Screen title={title} status="loading" />;
+  }
   const expected: DoorMember[] = board.data.filter((member) => !member.isInRoom);
   const inRoom: DoorMember[] = board.data.filter((member) => member.isInRoom);
   return (
     <Screen title={title}>
+      {board.isError ? <StaleNotice since={new Date(board.dataUpdatedAt)} onRetry={() => void board.refetch()} /> : null}
       <Grid columns={2} gap={8} stackBelow="medium">
         <CardCheckIn venueId={venueId} />
         <PhoneCheckIn venueId={venueId} />

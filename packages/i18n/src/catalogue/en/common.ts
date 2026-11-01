@@ -3,6 +3,8 @@ export const common = {
   loading: 'Loading',
   retry: 'Try again',
   loadFailed: 'Could not load this. Check the connection and try again.',
+  /** A screen that failed to draw: its title on the router's error screen. */
+  screenFailed: 'Screen unavailable',
   offline: 'Offline.',
   close: 'Close',
   cancel: 'Cancel',

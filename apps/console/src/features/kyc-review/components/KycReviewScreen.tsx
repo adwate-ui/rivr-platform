@@ -1,6 +1,6 @@
 import { useKycReviewQueue, useStaffVenue, type KycCheck } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Heading, Screen, Stack, Text } from '@rivr/ui';
+import { Heading, Screen, Stack, StaleNotice, Text } from '@rivr/ui';
 import { InPersonSection } from './InPersonSection.tsx';
 import { KycCheckCard } from './KycCheckCard.tsx';
 
@@ -33,12 +33,15 @@ function CheckGroup({ venueId, heading, checks, canReopen }: { venueId: string; 
 function ReviewQueue({ venueId, canReopen }: { venueId: string; canReopen: boolean }) {
   const queue = useKycReviewQueue(venueId);
   const title = t('console.kycReview.title');
-  if (queue.isPending) return <Screen title={title} status="loading" />;
-  if (queue.isError) return <Screen title={title} status="error" onRetry={() => void queue.refetch()} />;
+  // A failed refresh keeps the queue and any decision half typed, with a notice, rather than swapping them for an error.
+  if (queue.data === undefined) {
+    return queue.isError ? <Screen title={title} status="error" onRetry={() => void queue.refetch()} /> : <Screen title={title} status="loading" />;
+  }
   const waiting = queue.data.filter((check) => check.status === 'needs_review');
   return (
     <Screen title={title}>
       <Stack gap={10}>
+        {queue.isError ? <StaleNotice since={new Date(queue.dataUpdatedAt)} onRetry={() => void queue.refetch()} /> : null}
         <InPersonSection venueId={venueId} />
         {queue.data.length === 0 ? <Text tone="muted">{t('console.kycReview.empty')}</Text> : null}
         <CheckGroup venueId={venueId} heading={t('console.kycReview.waiting')} checks={waiting} canReopen={canReopen} />
