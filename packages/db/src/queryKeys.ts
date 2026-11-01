@@ -118,6 +118,8 @@ export const queryKeys = {
   fnbMenu: (userId: string, venueId: string) => ['user', userId, 'fnb-menu', venueId] as const,
   fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
+  topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
+  todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
   /** The member's referral code (#151). */
   myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
   myCab: (userId: string) => ['user', userId, 'my-cab'] as const,

@@ -26,7 +26,7 @@ select set_eq($$ select private.live_purge_tables() $$,
      'mis_report', 'notification_preference', 'outbox_delivery', 'outbox_event', 'payout_account', 'points_earning', 'promotion',
      'promotion_budget', 'promotion_grant', 'promotion_rule', 'redemption', 'referral', 'review_request', 'sar_entry', 'sar_entry_transaction', 'seat_move', 'seat_session',
      'second_approval', 'self_exclusion', 'sign_up_attribution', 'social_post', 'social_post_channel', 'spin', 'spin_wheel', 'staff_attendance', 'staff_shift', 'tds_withholding', 'tournament',
-     'tournament_entry', 'tournament_interest', 'tournament_payout', 'tournament_purchase', 'tournament_ticket', 'visit', 'waitlist_entry', 'wall_post', 'winner_card', 'withdrawal_request', 'push_subscription']) $$,
+     'tournament_entry', 'tournament_interest', 'tournament_payout', 'tournament_purchase', 'tournament_ticket', 'visit', 'waitlist_entry', 'wall_post', 'winner_card', 'withdrawal_request', 'push_subscription', 'top_up_request']) $$,
   'a purge deletes these tables'' rows, and keeps every other venue table');
 
 -- The throwaway venue, its super admin and a member with a deposit.
@@ -254,6 +254,9 @@ select lives_ok($$ select public.complete_export_archive(((select plan from plan
 reset role;
 select ok(exists (select 1 from public.alert where venue_id = '00000000-0000-4000-8000-0000000000f8' and kind = 'export.large'),
   'making it alerted the owner, after counting');
+-- The 07:00 IST job stores last month's MIS for this new venue meanwhile.
+select private.store_mis();
+select ok(exists (select 1 from public.mis_report where venue_id = '00000000-0000-4000-8000-0000000000f8'), 'the MIS job stored the room''s report meanwhile');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
 select lives_ok($$ select * from public.purge_live_venue('00000000-0000-4000-8000-0000000000f8', 'Test Room Two') $$,
   'and the purge goes through all the same');

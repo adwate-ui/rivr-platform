@@ -4,7 +4,9 @@
  * orders a masala chai and a beer in the player app, and Pema, dealing Table 3, orders him a lime soda on the tablet:
  * both paid to Glaza. With no cage agent running,
  * their KOTs wait at the console under KOTs to print until Meera hands them to the bar and marks them sent. She orders
- * a club sandwich for his seat as a comp, the tablet is revoked and he leaves early, so Table 3 is as it was. The agent
+ * a club sandwich for his seat as a comp, the tablet is revoked and he leaves early, so Table 3 is as it was. Sameer Rao, the
+ * flow's steward in the Service role (#640), sees only food and drink: he accepts the app's order, then delivers it, and
+ * the member follows it on the Menu tab. The agent
  * printing KOTs, alcohol at 21 or over and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql and
  * apps/cage-agent's tests.
  */
@@ -45,6 +47,20 @@ test.describe('F&B', () => {
     await expect(order).toBeVisible();
     await expect(order.locator('xpath=..').getByText('Placed', { exact: true })).toBeVisible();
 
+    // The Service role (#640): the steward lands on food and drink, with nothing else, and serves the order.
+    const steward = await browser.newPage();
+    await signInToConsole(steward, '9000000790');
+    await expect(steward.getByRole('heading', { name: 'To accept' })).toBeVisible();
+    await expect(steward.getByRole('link', { name: 'Live floor' })).toHaveCount(0);
+    await steward.getByRole('button', { name: `Accept KOT ${fromApp}` }).click();
+    await member.reload();
+    await expect(member.getByText(`KOT ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Being prepared', { exact: true })).toBeVisible();
+    await steward.getByRole('button', { name: `Mark KOT ${fromApp} delivered` }).click();
+    await expect(steward.getByText(/^Delivered in /).first()).toBeVisible();
+    await member.reload();
+    await expect(member.getByText(`KOT ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Delivered', { exact: true })).toBeVisible();
+    await steward.close();
+
     const { tablet, name } = await tabletAtTable3(browser, page);
     await dealerSignsIn(tablet);
     await tablet.getByRole('button', { name: 'Seat 1, Ishan Mehta' }).click();
@@ -61,8 +77,8 @@ test.describe('F&B', () => {
       await page.getByRole('button', { name: `Mark KOT ${kot} sent` }).click();
     }
     await expect(page.getByText('Every KOT is at the bar.')).toBeVisible();
-    await expect(page.getByText('1 × Masala chai, 1 × Beer')).toBeVisible();
-    await expect(page.getByText('1 × Fresh lime soda')).toBeVisible();
+    await expect(page.getByText('1 × Masala chai, 1 × Beer').first()).toBeVisible();
+    await expect(page.getByText('1 × Fresh lime soda').first()).toBeVisible();
     await expect(page.getByText('Paid · Given to the bar by hand')).toHaveCount(2);
 
     await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: 'Table 3, seat 1 · Ishan Mehta' }).click();

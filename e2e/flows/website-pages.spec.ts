@@ -75,8 +75,9 @@ test.describe('Website', () => {
     await expect(page.getByText('NLH 50/100', { exact: true })).toBeVisible();
     await expect(page.getByText('Buy-in ₹5,000', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Tournaments' })).toBeVisible();
-    // The seed puts the Weeknight Turbo a week from each seeding, so it is always coming.
-    await expect(page.getByText('Weeknight Turbo', { exact: true })).toBeVisible();
+    // The seed puts the Weeknight Turbo a week from each seeding, so it is always coming. Its card is last: the month
+    // at a glance above names it too while that week falls in this month.
+    await expect(page.getByText('Weeknight Turbo', { exact: true }).last()).toBeVisible();
     await expect(page.getByText('Buy-in ₹3,000', { exact: true })).toBeVisible();
   });
 });

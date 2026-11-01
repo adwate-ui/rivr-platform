@@ -25,16 +25,18 @@ select results_eq(
      from public.sop s join public.venue v on v.id = s.venue_id join public.sop_version sv on sv.sop_id = s.id
      where v.slug = 'gurugram' and s.title not like 'Fallback: %' order by s.title $$,
   $$ values ('gurugram', 'Anti-money laundering', 1, 'General manager', true), ('gurugram', 'Cage', 1, 'Duty manager', true),
-            ('gurugram', 'Dealer certification', 1, 'Floor manager', true), ('gurugram', 'Table-side food and drink', 1, 'Floor manager', true),
+            ('gurugram', 'Dealer certification', 1, 'Floor manager', true), ('gurugram', 'Food and drink service', 1, 'Floor manager', true),
+            ('gurugram', 'Table-side food and drink', 1, 'Floor manager', true),
             ('gurugram', 'Women''s safety', 1, 'General manager', true) $$,
   'the club has the training set, each at version 1 with its owner, in force from the day it was loaded');
 select results_eq($$ select v.slug, count(*)::integer from public.sop s join public.venue v on v.id = s.venue_id
                      where s.title not like 'Fallback: %' group by v.slug order by v.slug $$,
-  $$ values ('elsewhere', 5), ('gurugram', 5), ('practice', 5) $$, 'and so do the practice venue and a venue made later');
+  $$ values ('elsewhere', 6), ('gurugram', 6), ('practice', 6) $$, 'and so do the practice venue and a venue made later');
 select results_eq(
   $$ select s.title, sv.ack_roles::text from public.sop s join public.sop_version sv on sv.sop_id = s.id
-     where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.title in ('Cage', 'Dealer certification', 'Table-side food and drink') order by s.title $$,
-  $$ values ('Cage', '{cashier}'), ('Dealer certification', '{dealer}'), ('Table-side food and drink', '{dealer,host}') $$,
+     where s.venue_id = '00000000-0000-4000-8000-000000000001'
+       and s.title in ('Cage', 'Dealer certification', 'Food and drink service', 'Table-side food and drink') order by s.title $$,
+  $$ values ('Cage', '{cashier}'), ('Dealer certification', '{dealer}'), ('Food and drink service', '{service}'), ('Table-side food and drink', '{dealer,host}') $$,
   'each asks the roles it concerns to acknowledge it');
 
 create temporary table club on commit drop as

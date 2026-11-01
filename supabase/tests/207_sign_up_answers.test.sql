@@ -31,9 +31,14 @@ select throws_ok($$ select public.set_my_sign_up_answers('Gurugram<script>', 'st
 select lives_ok($$ select public.set_my_sign_up_answers('  New   Delhi ', 'independent_professional', '{weekends,late_night,weekends}') $$,
   'the new member answers');
 select lives_ok($$ select public.set_my_sign_up_answers('Gurugram', 'business_owner', '{weekday_evenings,weekends}') $$, 'and changes the answers');
+select throws_ok($$ select public.set_my_sign_up_answers('Gurugram', 'business_owner', '{weekends}', '{baccarat}') $$, '22023', null,
+  'the games they play come from the list (#653)');
+select lives_ok($$ select public.set_my_sign_up_answers('Gurugram', 'business_owner', '{weekday_evenings,weekends}', '{roe,poker,poker}') $$,
+  'and are kept once each');
 reset role;
 select results_eq($$ select city, occupation, play_times from public.member_preference where member_id = (select id from ids) $$,
   $$ values ('Gurugram'::text, 'business_owner'::text, '{weekday_evenings,weekends}'::text[]) $$, 'their answers are kept, each time once');
+select is((select games_played from public.member_preference where member_id = (select id from ids)), '{poker,roe}'::text[], 'with the games they play');
 
 -- The photo: the kyc function asks, as the member, whether they may add one; they write nothing in the bucket themselves.
 select pg_temp.as_user('00000000-0000-4000-8000-0000000000b1');
@@ -56,7 +61,7 @@ select pg_temp.as_user('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.set_my_sign_up_answers('Gurugram', 'salaried', '{}') $$, '42501', null, 'staff answer nothing');
 select throws_ok($$ select public.begin_sign_up_photo() $$, '42501', null, 'and add no photo');
 reset role;
-select is(has_function_privilege('anon', 'public.set_my_sign_up_answers(text, text, text[])', 'execute'), false, 'nor anyone signed out');
+select is(has_function_privilege('anon', 'public.set_my_sign_up_answers(text, text, text[], text[])', 'execute'), false, 'nor anyone signed out');
 select is(has_function_privilege('anon', 'public.begin_sign_up_photo()', 'execute'), false, 'who adds no photo either');
 
 select * from finish();

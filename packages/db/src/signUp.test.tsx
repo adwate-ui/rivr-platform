@@ -32,7 +32,9 @@ function renderSignUp(replies: Record<string, { status?: number; body: unknown }
   return { result, calls };
 }
 
-const DETAILS: SignUpDetails = { fullName: 'Tara Joshi', city: 'Gurugram', occupation: 'salaried', playTimes: ['weekends'], photo: null };
+const DETAILS: SignUpDetails = {
+  fullName: 'Tara Joshi', city: 'Gurugram', occupation: 'salaried', playTimes: ['weekends'], gamesPlayed: ['plo', 'bomb'], photo: null,
+};
 const JOINED = { '/rpc/sign_up': { body: MEMBER } };
 
 afterEach(() => {
@@ -49,7 +51,7 @@ describe('useSignUp', () => {
     expect(await act(() => result.current.mutateAsync(DETAILS))).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('/rpc/sign_up'))?.body).toEqual({ p_full_name: 'Tara Joshi', p_attribution: attribution });
     expect(calls.find((call) => call.url.includes('/rpc/set_my_sign_up_answers'))?.body)
-      .toEqual({ p_city: 'Gurugram', p_occupation: 'salaried', p_play_times: ['weekends'] });
+      .toEqual({ p_city: 'Gurugram', p_occupation: 'salaried', p_play_times: ['weekends'], p_games_played: ['plo', 'bomb'] });
     expect(calls.some((call) => call.url.includes('/storage/'))).toBe(false);
     expect(attribution).toMatchObject({ referral: 'FRIEND1', utmSource: 'instagram' });
     expect(storedAttribution()).toBeNull();

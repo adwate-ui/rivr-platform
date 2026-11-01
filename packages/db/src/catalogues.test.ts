@@ -60,7 +60,9 @@ describe('the feature catalogue', () => {
 describe('the role matrix', () => {
   it('has the same roles in code and in the staff_role enum', () => {
     const enumValues = sql.match(/create type public\.staff_role as enum \(([^)]*)\)/)?.[1] ?? '';
-    expect([...enumValues.matchAll(/'([a-z_]+)'/g)].map(([, role]) => role)).toEqual([...STAFF_ROLES]);
+    // A role added later (Service, #640) joins the enum by its own migration.
+    const added = [...sql.matchAll(/alter type public\.staff_role add value (?:if not exists )?'([a-z_]+)'/g)].map(([, role]) => role);
+    expect([...[...enumValues.matchAll(/'([a-z_]+)'/g)].map(([, role]) => role), ...added]).toEqual([...STAFF_ROLES]);
   });
 
   it('gives each role the same permissions in code and in the database', () => {

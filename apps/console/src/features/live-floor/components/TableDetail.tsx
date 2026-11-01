@@ -2,6 +2,7 @@ import { useSeatActions, useSetTopUp, type FloorTable, type HeldSeat, type Seate
 import { t } from '@rivr/i18n';
 import { Button, CallTimeTimer, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { CallTimeForm } from './CallTimeForm.tsx';
 import { EarlyLeaveForm } from './EarlyLeaveForm.tsx';
 import { MoveForm } from './MoveForm.tsx';
 import { SEAT_FAILURE_COPY } from './seatCopy.ts';
@@ -71,14 +72,15 @@ interface SeatButtonsProps {
   onLeaving: (isLeaving: boolean) => void;
   onAway: (isAway: boolean) => void;
   onTopUp: (inProgress: boolean) => void;
+  onCallTime: () => void;
 }
 
 /**
  * The floor's buttons on a seated player's row: mark them leaving or take it back (decision 0163), away from
- * the table or back (#630: as the tablet does), the top-up (#634), move, leave, and for admins, leave early while call time
- * is owed (#79).
+ * the table or back (#630: as the tablet does), the top-up (#634), the call time (#638), move, leave, and for admins, leave early
+ * while call time is owed (#79).
  */
-function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving, onAway, onTopUp }: SeatButtonsProps) {
+function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving, onAway, onTopUp, onCallTime }: SeatButtonsProps) {
   const isLeaving = player.leavingAt !== null;
   return (
     <Inline gap={2}>
@@ -91,6 +93,9 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
         {t(player.isAway ? 'console.liveFloor.markBack' : 'console.liveFloor.markAway')}
       </Button>
       <TopUpButtons player={player} onTopUp={onTopUp} />
+      <Button variant="text" aria-label={t('console.liveFloor.changeCallTimeName', { name: player.fullName })} onClick={onCallTime}>
+        {t('console.liveFloor.changeCallTime')}
+      </Button>
       <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
       <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })} onClick={onLeave}>{t('console.liveFloor.leave')}</Button>
       {canLetGoEarly && (player.callTimeLeft ?? 0) > 0 ? (
@@ -102,6 +107,46 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
   );
 }
 
+type Report = (outcome: { ok: true } | { ok: false; error: SeatFailure }) => void;
+
+interface SeatRowsProps {
+  venueId: string;
+  table: FloorTable;
+  seats: readonly SeatedPlayer[];
+  held: readonly HeldSeat[];
+  permissions: readonly string[];
+  report: Report;
+  /** The forms below the seats: a move, an early leave, a call time. */
+  onForm: (form: 'move' | 'leaveEarly' | 'callTime', player: SeatedPlayer) => void;
+}
+
+/** Each seat's row, with the floor's buttons beside a seated player (waitlist.manage). */
+function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: SeatRowsProps) {
+  const { leave, setLeaving, setAway } = useSeatActions(venueId);
+  const setTopUp = useSetTopUp(venueId);
+  const isFloor = permissions.includes('waitlist.manage');
+  return (
+    <Stack gap={2} divided>
+      {Array.from({ length: table.seats }, (_, index) => {
+        const player = seats.find((seat) => seat.seat === index + 1);
+        return (
+          <Inline key={index} justify="between" align="center">
+            <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
+            {isFloor && player !== undefined ? (
+              <SeatButtons player={player} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => onForm('move', player)}
+                onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => onForm('leaveEarly', player)}
+                onLeaving={(isLeaving) => void setLeaving.mutateAsync({ sessionId: player.sessionId, isLeaving }).then(report)}
+                onAway={(isAway) => void setAway.mutateAsync({ sessionId: player.sessionId, isAway }).then(report)}
+                onTopUp={(inProgress) => void setTopUp.mutateAsync({ sessionId: player.sessionId, inProgress }).then(report)}
+                onCallTime={() => onForm('callTime', player)} />
+            ) : null}
+          </Inline>
+        );
+      })}
+    </Stack>
+  );
+}
+
 /**
  * The chosen table (#77, #81): its rules and night so far, its seats and its recent hands. The floor
  * seats a player, moves one (the same session, so call time runs on) or lets one leave; admins let one
@@ -109,42 +154,31 @@ function SeatButtons({ player, canLetGoEarly, onMove, onLeave, onLeaveEarly, onL
  * feed a main table.
  */
 export function TableDetail({ venueId, table, tables, seats, held, permissions, night }: TableDetailProps) {
-  const { leave, setLeaving, setAway } = useSeatActions(venueId);
-  const setTopUp = useSetTopUp(venueId);
   const [moving, setMoving] = useState<SeatedPlayer | null>(null);
   const [leavingEarly, setLeavingEarly] = useState<SeatedPlayer | null>(null);
+  const [changing, setChanging] = useState<SeatedPlayer | null>(null);
   const [failure, setFailure] = useState<SeatFailure | null>(null);
-  const isFloor = permissions.includes('waitlist.manage');
-  const report = (outcome: { ok: true } | { ok: false; error: SeatFailure }) => setFailure(outcome.ok ? null : outcome.error);
+  const report: Report = (outcome) => setFailure(outcome.ok ? null : outcome.error);
+  const forms = { move: setMoving, leaveEarly: setLeavingEarly, callTime: setChanging };
   return (
     <Stack gap={4}>
       <TableHeader table={table} night={night} />
       {permissions.includes('floor.manage') ? <TableControls venueId={venueId} table={table} tables={tables} isEmpty={seats.length === 0} onResult={report} /> : null}
       {failure === null ? null : <ErrorMessage>{t(SEAT_FAILURE_COPY[failure])}</ErrorMessage>}
-      {permissions.includes('members.read') ? null : <Text tone="muted">{t('console.liveFloor.noSeatMap')}</Text>}
-      <Stack gap={2} divided>
-        {permissions.includes('members.read') ? Array.from({ length: table.seats }, (_, index) => {
-          const player = seats.find((seat) => seat.seat === index + 1);
-          return (
-            <Inline key={index} justify="between" align="center">
-              <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
-              {isFloor && player !== undefined ? (
-                <SeatButtons player={player} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => setMoving(player)}
-                  onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => setLeavingEarly(player)}
-                  onLeaving={(isLeaving) => void setLeaving.mutateAsync({ sessionId: player.sessionId, isLeaving }).then(report)}
-                  onAway={(isAway) => void setAway.mutateAsync({ sessionId: player.sessionId, isAway }).then(report)}
-                  onTopUp={(inProgress) => void setTopUp.mutateAsync({ sessionId: player.sessionId, inProgress }).then(report)} />
-              ) : null}
-            </Inline>
-          );
-        }) : null}
-      </Stack>
+      {permissions.includes('members.read') ? (
+        <SeatRows venueId={venueId} table={table} seats={seats} held={held} permissions={permissions} report={report}
+          onForm={(form, player) => forms[form](player)} />
+      ) : <Text tone="muted">{t('console.liveFloor.noSeatMap')}</Text>}
       {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
       {leavingEarly === null ? null : (
         <EarlyLeaveForm key={leavingEarly.sessionId} venueId={venueId} onDone={report} onCancel={() => setLeavingEarly(null)}
           member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />
       )}
-      {isFloor && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
+      {changing === null ? null : (
+        <CallTimeForm key={changing.sessionId} venueId={venueId} player={changing} onCancel={() => setChanging(null)}
+          onDone={(outcome) => { report(outcome); if (outcome.ok) setChanging(null); }} />
+      )}
+      {permissions.includes('waitlist.manage') && table.isOpen ? <SeatForm venueId={venueId} table={table} seats={seats} held={held} onResult={report} /> : null}
     </Stack>
   );
 }

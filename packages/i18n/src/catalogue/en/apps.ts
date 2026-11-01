@@ -13,7 +13,7 @@ import { aml, amlFailures } from './aml.ts';
 import { roster, rosterFailures } from './roster.ts';
 import { cameraFailures, cameras } from './cameras.ts';
 import { members, tiers } from './members.ts';
-import { checkIn, liveFloor } from './floor.ts';
+import { checkIn, liveFloor, todaysPlayers } from './floor.ts';
 import { computers, dealerPins, devices, streamOverlay, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
@@ -152,6 +152,7 @@ export const playerApp = {
 
 export const consoleApp = {
   liveFloor,
+  todaysPlayers,
   fnb: consoleFnb,
   settings,
   checkIn,

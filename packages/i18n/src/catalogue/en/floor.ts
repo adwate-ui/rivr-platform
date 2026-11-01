@@ -110,6 +110,22 @@ export const liveFloor = {
   leavingTitle: 'Leaving',
   leavingLine: '{table} · seat {seat}',
   leavingNoCallTime: 'No call time here',
+  /** Joins from the app waiting for the floor (#633, #638): they are approved on the Waitlist. */
+  requestsWaiting: '{count} asking to join a game.',
+  oneRequestWaiting: '1 asking to join a game.',
+  openWaitlist: 'Approve on the Waitlist',
+  /** The floor changes a seated player's call time (#638), in minutes from when they sat down; 0 for none. */
+  changeCallTime: 'Call time',
+  changeCallTimeName: 'Change the call time of {name}',
+  callTimeMinutes: 'Call time in minutes, from when they sat down',
+  callTimeHint: 'Three hours is 180. Zero means no call time.',
+  saveCallTime: 'Save call time',
+  callTimeInvalid: 'Enter whole minutes from 0 to 1,440.',
+  /** Tonight's top-up requests by table (#639), with how long each took. `{time}`: 4 min. */
+  topUpsTitle: 'Top-ups tonight',
+  noTopUps: 'No top-ups asked for tonight.',
+  topUpLine: '{table}, seat {seat} · {name}',
+  topUpStatus: { requested: 'Requested', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
   /** A seated player's top-up (#634): asked for from the app, then in hand; the floor resets it once done. No amount. */
   topUpRequested: 'Top-up requested',
   topUpInProgress: 'Top-up in progress',
@@ -145,3 +161,22 @@ export const liveFloor = {
   invalid: 'That table is closed or has no such seat.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };
+
+/** Today's players (#641): every member at the club this club day, for staff who read members. */
+export const todaysPlayers = {
+  title: 'Today’s players',
+  notAllowed: 'Your role does not include members. Ask an admin if you need it.',
+  label: 'Players today',
+  empty: 'Nobody has come in today yet.',
+  filter: 'Find a player',
+  name: 'Player',
+  status: 'Status',
+  statuses: { playing: 'Playing', waiting: 'Waiting', left: 'Left' },
+  checkedIn: 'Checked in',
+  checkedOut: 'Checked out',
+  waited: 'Waited',
+  tables: 'Tables and hours',
+  /** One table and the time there: `Table 3 · 1 h 20 min`. */
+  tableLine: '{table} · {time}',
+  none: '–',
+} as const;

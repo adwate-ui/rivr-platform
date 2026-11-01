@@ -34,7 +34,8 @@ const RAIL: readonly RailGroup[] = [
     id: 'tonight',
     label: 'console.rail.groups.tonight',
     entries: [
-      { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', anyOf: [] },
+      // Everyone but Service, which has only food and drink (#640).
+      { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', anyOf: ['members.read', 'floor.manage', 'waitlist.manage', 'hands.log', 'dashboards.read', 'promotions.manage'] },
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
       { id: 'checkIn', label: 'console.rail.items.checkIn', href: '/check-in', anyOf: ['waitlist.manage'] },
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'], hidden: true },
@@ -42,7 +43,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'jackpots', label: 'console.rail.items.jackpots', href: '/jackpots', anyOf: ['jackpots.approve', 'ledger.read'], hidden: true },
       // Players register interest from the app; the floor marks them registered once they paid (#636).
       { id: 'tournamentInterest', label: 'console.rail.items.tournamentInterest', href: '/tournament-interest', anyOf: ['waitlist.manage'] },
-      { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', anyOf: ['fnb.manage'] },
+      { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', anyOf: ['fnb.manage', 'fnb.serve'] },
       { id: 'spinWheel', label: 'console.rail.items.spinWheel', href: '/spin-wheel', anyOf: ['floor.manage', 'promotions.manage'] },
     ],
   },
@@ -61,6 +62,8 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.players',
     entries: [
       { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.read'] },
+      // Everyone at the club today, with their status, times and tables (#641).
+      { id: 'todaysPlayers', label: 'console.rail.items.todaysPlayers', href: '/players-today', anyOf: ['members.read'] },
       { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] },
       { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', anyOf: ['members.manage'] },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', anyOf: ['feedback.manage'] },
@@ -167,8 +170,14 @@ function entryAt(pathname: string): { entry: RailEntry; group: RailGroup } | und
   // The router matches addresses whatever their case, so /RAKE is the Rake screen too.
   const path = pathname.toLowerCase();
   return RAIL.flatMap((group) => group.entries.map((entry) => ({ entry, group })))
-    .filter(({ entry }) => entry.href !== '/' && (path === entry.href || path.startsWith(`${entry.href}/`)))
+    // The Live floor is `/` itself, not every address below it (#640: Service has no Live floor).
+    .filter(({ entry }) => (entry.href === '/' ? path === '/' : path === entry.href || path.startsWith(`${entry.href}/`)))
     .sort((a, b) => b.entry.href.length - a.entry.href.length)[0];
+}
+
+/** Where a staff member whose role cannot open the Live floor lands: the first screen their rail shows (#640: Service). */
+export function landingFor(sections: readonly SideNavSection[]): string | undefined {
+  return sections.flatMap((section) => section.items)[0]?.href;
 }
 
 /** The rail item for the screen at `pathname`, if the rail has one. */
