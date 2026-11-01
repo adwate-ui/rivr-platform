@@ -24,15 +24,20 @@ export interface ChoiceChipsProps<Value extends string> {
    * a table cell under its column's header, for example.
    */
   isLabelVisuallyHidden?: boolean;
+  /**
+   * Keeps the chips in one row that scrolls sideways, fading at its end, rather than wrapping: a filter above a list,
+   * which should not push the list down a phone's screen (UI polish audit A-05).
+   */
+  isOneRow?: boolean;
 }
 
 const CHIP =
   'min-h-touch rounded-md border px-4 font-text text-14 leading-snug font-medium transition-colors ' +
   'disabled:cursor-not-allowed disabled:opacity-disabled';
 
-/** A preference picked from a few choices, such as games or stakes: a row of chips that wraps. */
+/** A preference picked from a few choices, such as games or stakes: a row of chips that wraps, or scrolls. */
 export function ChoiceChips<Value extends string>({
-  label, options, selected, onChange, mode = 'many', isDisabled, isLabelVisuallyHidden = false,
+  label, options, selected, onChange, mode = 'many', isDisabled, isLabelVisuallyHidden = false, isOneRow = false,
 }: ChoiceChipsProps<Value>) {
   const labelId = useId();
   const press = (value: Value) => {
@@ -49,7 +54,8 @@ export function ChoiceChips<Value extends string>({
           {label}
         </Text>
       )}
-      <div role="group" aria-labelledby={labelId} className="flex flex-wrap gap-2">
+      <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined}
+        className={cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap')}>
         {options.map((option) => {
           const isOn = selected.includes(option.value);
           return (
@@ -59,7 +65,7 @@ export function ChoiceChips<Value extends string>({
               aria-pressed={isOn}
               disabled={isDisabled}
               onClick={() => press(option.value)}
-              className={cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted')}
+              className={cx(CHIP, isOneRow && 'shrink-0 whitespace-nowrap', isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted')}
             >
               {option.label}
             </button>

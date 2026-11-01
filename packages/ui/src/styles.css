@@ -39,6 +39,21 @@
     outline: none;
   }
 
+  /* A row of chips that scrolls sideways (ChoiceChips `isOneRow`) fades at its end, so a chip cut off reads as more to
+     come; room after the last chip lets it scroll clear of the fade. No scrollbar: the fade is the cue. A scrolling box
+     clips what overflows it, so it keeps room for a chip's focus ring above, below and before, and gives that room back
+     with its margins so the chips sit where a wrapping row's would. */
+  [data-chip-row] {
+    --chip-ring: calc(2 * var(--rivr-border-width-focus));
+    mask-image: linear-gradient(to right, var(--rivr-color-green) calc(100% - var(--rivr-space-8)), transparent);
+    margin-block: calc(-1 * var(--chip-ring));
+    margin-inline-start: calc(-1 * var(--chip-ring));
+    padding-block: var(--chip-ring);
+    padding-inline-start: var(--chip-ring);
+    padding-inline-end: var(--rivr-space-8);
+    scrollbar-width: none;
+  }
+
   [role='switch']:focus-visible > [data-switch-track] {
     outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
     outline-offset: var(--rivr-border-width-focus);

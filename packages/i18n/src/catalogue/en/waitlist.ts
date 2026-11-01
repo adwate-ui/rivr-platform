@@ -5,15 +5,17 @@ export const tonight = {
   /** While a break runs (#56): `{until}` is when it ends, Wed 17 Feb, 00:10. */
   /** `{until}`: 8 Nov 2026, 14:00, with the year, as the floor's break may run for years (A5-14). */
   breakActive: 'On a break until {until}.',
-  /** Seated tonight (#78), with the call time left beneath. */
-  seated: 'Seated at {table}, seat {seat}.',
+  /** Seated tonight (#78): the seat card's heading, with the call time left beneath. */
+  seated: '{table}, seat {seat}',
   /** At the seat (#634): how long the member has played tonight, `1 h 20 min`, and what they can do from there. */
   playedFor: 'Playing for {time}',
-  extendCallTime: 'Add an hour of call time',
+  extendCallTime: 'Add an hour',
+  /** The same button's full name for a screen reader. */
+  extendCallTimeName: 'Add an hour of call time',
   leaveSeat: 'Leave my seat',
   /** Left with call time still owed: the floor's Leaving list shows them until it is done. */
   onLeavingList: 'On the leaving list until your call time ends.',
-  requestTopUp: 'Ask for a top-up',
+  requestTopUp: 'Top up',
   topUpRequested: 'Top-up requested.',
   topUpInProgress: 'Top-up in progress at your seat.',
   seatFailures: {

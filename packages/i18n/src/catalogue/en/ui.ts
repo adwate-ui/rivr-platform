@@ -127,7 +127,14 @@ export const ui = {
   /** The pad a member signs on at the cage (#74). */
   signaturePad: { clear: 'Clear' },
   /** A seated player's call time (#78): `{time}` is what is left, as in "1 h 12 min". */
-  callTime: { left: 'Call time {time} left', paused: 'Call time paused, {time} left', done: 'Call time complete' },
+  callTime: {
+    left: 'Call time {time} left',
+    paused: 'Call time paused, {time} left',
+    done: 'Call time complete',
+    /** Above the time, set large on the member's seat card. */
+    figureLeft: 'Call time left',
+    figurePaused: 'Call time paused',
+  },
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {
     noMatch: 'Nothing matches {query}.',

@@ -40,7 +40,6 @@ export const tokens = {
     "family": {
       "display": [
         "Bodoni Moda",
-        "Tiro Devanagari Hindi",
         "serif"
       ],
       "text": [

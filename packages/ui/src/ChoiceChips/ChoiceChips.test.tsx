@@ -67,6 +67,15 @@ describe('ChoiceChips', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('keeps a filter in one row that scrolls, its chips whole, when asked', () => {
+    renderIn(<ChoiceChips label="Show" mode="one" options={GAMES} selected={[]} onChange={() => undefined} isOneRow />);
+    const group = screen.getByRole('group', { name: 'Show' });
+    expect(group).toHaveAttribute('data-chip-row');
+    expect(group).toHaveClass('overflow-x-auto');
+    expect(group).not.toHaveClass('flex-wrap');
+    expect(screen.getAllByRole('button')[0]).toHaveClass('shrink-0', 'whitespace-nowrap');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<ChoiceChips label="Games" options={GAMES} selected={['nlh']} onChange={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);

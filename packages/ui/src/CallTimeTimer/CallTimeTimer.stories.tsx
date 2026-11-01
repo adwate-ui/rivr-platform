@@ -21,3 +21,9 @@ export const LastMinute: Story = { args: { secondsLeft: 20 } };
 
 /** Played out: the player may leave. */
 export const Done: Story = { args: { secondsLeft: 0 } };
+
+/** The member's seat card: the time set large under its name. */
+export const Figure: Story = { args: { size: 'figure' } };
+
+/** The figure while the member is away. */
+export const FigurePaused: Story = { args: { secondsLeft: 2400, isPaused: true, size: 'figure' } };

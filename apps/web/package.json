@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node ../../packages/ui/scripts/media.mjs && astro dev",
+    "build": "node ../../packages/ui/scripts/media.mjs && astro build",
     "preview": "astro preview",
+    "capture:app": "node scripts/capture-app.mjs",
     "typecheck": "astro check",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run"
@@ -23,11 +24,13 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
+    "@playwright/test": "1.64.1",
     "@rivr/config": "workspace:*",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "jsdom": "^30.1.3",
+    "sharp": "^0.35.5",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   }

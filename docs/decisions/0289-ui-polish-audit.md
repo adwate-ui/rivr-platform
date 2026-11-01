@@ -29,3 +29,12 @@ Date: 2 Nov 2026. Report: `docs/design/ui-polish-audit.md`. Work in six batches 
   - E-05: a revoked tablet leaves at its next 30-second check.
   - E-13: an empty number never leaves the field.
   - E-10: Leave's refusals are reported; only its busy state was missing.
+- **B4, the member and website pass:**
+  - **The display ₹** is Noto Serif Display's, subset to the one glyph (1 KB, OFL) and served inside the Bodoni Moda family with the same style and weights; Tiro Devanagari leaves the stack. Bodoni Moda is now the variable face, so its optical size follows the font size and its weights from 400 to 900 exist (UI-16).
+  - **The share card** carries the display face: it reads the face's file from the page's own stylesheet and embeds it, since an SVG drawn as an image cannot reach the page's fonts.
+  - **Website stills** are offered as AVIF and WebP at 640, 1280, 1920 and 2560 px, made by `packages/ui/scripts/media.mjs` before every build and Storybook run. A still is never enlarged; today's 480 px placeholders stay as they are until B6 replaces them. `sharp` makes the files (and turns the app's picture into WebP): it is the encoder Astro already installs, and nothing in the repository encoded images before.
+  - **On a phone the member app leads the header's links.** Beside the action it pushed the header to three rows at 375 px.
+  - **The menu before a seat** lists what is on it, read only, under Food, Soft drinks and Bar.
+  - **The rewards filter's fade** is a scroll cue, not decoration, as the gallery's caption scrim is for legibility: it says there is more to the right. E-14 kept its hairline because the rail's pinned foot already says so.
+  - **The website's old claims** (every hand logged, points for every hour, rake back as points, League points by the hour or the finish, every night's money on record, the jackpot in the app picture) give way to neutral lines, or "Details to follow.", until the club writes its own in the Website editor, each only while it reads as first written. How League points are earned now is a question for the owner (#710).
+  - **The Withdrawals notification switch** still shows while Balance is hidden: hiding its feature for every tier needs `private.bootstrap_venue` redefined, so it is a follow-up (#709).

@@ -36,6 +36,19 @@ export const OneStake: Story = {
 
 export const Saving: Story = { args: { isDisabled: true } };
 
+/** A filter on a phone: one row that scrolls, fading at its end (the member's Rewards). */
+export const OneRowOnAPhone: Story = {
+  args: {
+    label: 'Show', mode: 'one', selected: ['all'],
+    options: [
+      { value: 'all', label: 'All' }, { value: 'dining', label: 'Dining' }, { value: 'stay', label: 'Hotel nights' },
+      { value: 'merch', label: 'Merchandise' }, { value: 'experience', label: 'Experiences' },
+    ],
+    isOneRow: true,
+  },
+  tags: ['!viewport-console', 'viewport-phone'],
+};
+
 export const LongText: Story = {
   args: {
     label: 'Games you want to hear about when a seat opens',

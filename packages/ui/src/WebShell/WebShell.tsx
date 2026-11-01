@@ -43,9 +43,13 @@ export interface WebShellProps {
   onNavigate?: Navigate | undefined;
 }
 
-const TOP_LINK = 'flex min-h-touch min-w-touch items-center justify-center gap-2 whitespace-nowrap font-text text-12 text-content-muted transition-colors hover:text-content';
+const TOP_LINK_LOOK = 'min-h-touch min-w-touch items-center justify-center gap-2 whitespace-nowrap font-text text-12 text-content-muted transition-colors hover:text-content';
+const TOP_LINK = `flex ${TOP_LINK_LOOK}`;
 
-/** The bar above the header: the club's contacts on the left, the member app on the right; on a phone it scrolls sideways. */
+/**
+ * The bar above the header: the club's contacts on the left, the member app on the right from a tablet up (on a phone it
+ * leads the header's links, UI polish audit A-25); on a phone the contacts scroll sideways.
+ */
 function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
   return (
     <div className="border-b border-hairline bg-surface">
@@ -60,9 +64,33 @@ function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
             </li>
           ))}
         </ul>
-        {app ? <a href={app.href} className={TOP_LINK}>{app.label}</a> : null}
+        {app ? <a href={app.href} className={`hidden tablet:flex ${TOP_LINK_LOOK}`}>{app.label}</a> : null}
       </div>
     </div>
+  );
+}
+
+const SITE_LINK = 'flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content';
+
+/** The header's links, scrolling in one row on a phone, led there by the member app (the top bar has it from a tablet up, A-25). */
+function SiteLinks({ links, app, onNavigate }: { links: readonly WebShellLink[]; app: WebShellLink | undefined; onNavigate: Navigate | undefined }) {
+  return (
+    <nav aria-label={t('ui.web.navigation')} className="order-last w-full tablet:order-none tablet:w-auto">
+      <ul className="flex items-center gap-x-6 overflow-x-auto tablet:flex-wrap tablet:overflow-visible">
+        {app ? (
+          <li className="tablet:hidden">
+            <a href={app.href} className={SITE_LINK}>{app.label}</a>
+          </li>
+        ) : null}
+        {links.map((link) => (
+          <li key={link.href}>
+            <a href={link.href} onClick={(event) => routeClick(event, link.href, onNavigate)} className={SITE_LINK}>
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -80,21 +108,7 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
           <a href={homeHref} onClick={(event) => routeClick(event, homeHref, onNavigate)} className="flex rounded-sm">
             <Wordmark />
           </a>
-          <nav aria-label={t('ui.web.navigation')} className="order-last w-full tablet:order-none tablet:w-auto">
-            <ul className="flex items-center gap-x-6 overflow-x-auto tablet:flex-wrap tablet:overflow-visible">
-              {links.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    onClick={(event) => routeClick(event, link.href, onNavigate)}
-                    className="flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <SiteLinks links={links} app={topBar?.app} onNavigate={onNavigate} />
           {action ? <Button variant="secondary" href={action.href}>{action.label}</Button> : null}
         </div>
       </header>

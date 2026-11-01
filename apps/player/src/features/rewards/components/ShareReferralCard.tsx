@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { Button, cardToPng, ErrorMessage, ReferralCard, referralCardSvg, saveFile, Stack, type ReferralCardText } from '@rivr/ui';
+import { Button, cardToPng, ErrorMessage, ReferralCard, referralCardSvg, saveFile, Stack, useCardFont, type ReferralCardText } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 
 /** What the card says, in the app's words. */
@@ -13,23 +13,26 @@ function cardText(code: string): ReferralCardText {
 /**
  * The member's referral card (#153) with their code, shared with their link through the phone's share sheet; where the
  * browser cannot share a file, it is saved instead. The PNG is drawn when the card shows, so the tap that shares is
- * still fresh when the share sheet opens: some phones refuse a share that waited.
+ * still fresh when the share sheet opens: some phones refuse a share that waited. It is drawn once the display face is
+ * read, so the PNG carries it too (UI polish audit AS-07).
  */
 export function ShareReferralCard({ code, link }: { code: string; link: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [failed, setFailed] = useState(false);
   const text = cardText(code);
-  const svg = referralCardSvg(text);
+  const font = useCardFont();
+  const svg = referralCardSvg(text, font);
   const name = `rivr-referral-${code}.png`;
   useEffect(() => {
+    if (font === undefined) return undefined;
     let isShown = true;
     cardToPng(svg).then(
       (png) => { if (isShown) setFile(new File([png], name, { type: 'image/png' })); },
       () => { if (isShown) setFailed(true); },
     );
     return () => { isShown = false; };
-  }, [svg, name]);
+  }, [svg, name, font]);
   const share = async () => {
     setIsSharing(true);
     setFailed(false);
