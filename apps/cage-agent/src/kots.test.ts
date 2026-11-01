@@ -29,7 +29,7 @@ describe('printing KOTs at the bar', () => {
   it('prints each claimed KOT and tells the function it is printed; a payload that is no KOT is refused for good', async () => {
     const printer = createFakeKitchenPrinter();
     const { api, finished } = fakeApi([delivery('d1', KOT), delivery('d2', { not: 'a KOT' })]);
-    expect(await printKots(api, 'token', printer)).toEqual({ delivered: 1, failed: 1 });
+    expect(await printKots(api, 'token', printer)).toEqual({ delivered: 1, failed: 1, unrecorded: 0 });
     expect(printer.calls).toEqual([{
       kotNumber: '12', tableName: 'Table 3', seat: 5, items: [{ name: 'Masala chai', quantity: 2, note: 'Less sugar' }],
       orderedAt: new Date('2026-11-15T16:30:00Z'), isComp: false,
@@ -40,10 +40,27 @@ describe('printing KOTs at the bar', () => {
     ]);
   });
 
+  it('tells the function once more when it could not take a KOT, and the second time counts', async () => {
+    const printer = createFakeKitchenPrinter();
+    const { api, finished } = fakeApi([delivery('d1', KOT)]);
+    vi.mocked(api.finishKot).mockRejectedValueOnce(new Error('finish_kot failed (503)'));
+    expect(await printKots(api, 'token', printer)).toEqual({ delivered: 1, failed: 0, unrecorded: 0 });
+    expect(finished).toEqual([{ deliveryId: 'd1', isDelivered: true, error: null, retryAfterSeconds: 0 }]);
+  });
+
+  it('counts a KOT the function cannot be told about, which its lease brings back, and prints the rest of the batch', async () => {
+    const printer = createFakeKitchenPrinter();
+    const { api, finished } = fakeApi([delivery('d1', KOT), delivery('d2', { ...KOT, kot_number: '13' })]);
+    vi.mocked(api.finishKot).mockRejectedValueOnce(new Error('finish_kot failed (503)')).mockRejectedValueOnce(new Error('finish_kot failed (503)'));
+    expect(await printKots(api, 'token', printer)).toEqual({ delivered: 2, failed: 0, unrecorded: 1 });
+    expect(printer.calls.map((call) => call.kotNumber)).toEqual(['12', '13']);
+    expect(finished).toEqual([{ deliveryId: 'd2', isDelivered: true, error: null, retryAfterSeconds: 0 }]);
+  });
+
   it('tries a KOT again later while the printer cannot be reached', async () => {
     const { api, finished } = fakeApi([delivery('d1', KOT)]);
     const unreachable = barPrinterAt('192.0.2.1', () => Promise.reject(new Error('ECONNREFUSED')));
-    expect(await printKots(api, 'token', unreachable)).toEqual({ delivered: 0, failed: 1 });
+    expect(await printKots(api, 'token', unreachable)).toEqual({ delivered: 0, failed: 1, unrecorded: 0 });
     expect(finished).toEqual([{ deliveryId: 'd1', isDelivered: false, error: 'unavailable', retryAfterSeconds: 60 }]);
   });
 

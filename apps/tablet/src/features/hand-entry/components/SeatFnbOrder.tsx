@@ -34,9 +34,12 @@ export function SeatFnbOrder({ seat, onClose }: { seat: number; onClose: () => v
   const [counts, setCounts] = useState<Readonly<Record<string, number>>>({});
   const [sent, setSent] = useState<number | null>(null);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
+  // One id an order, kept to retry one whose reply was lost on a weak signal, and new with any change (F4-10).
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const lines = Object.entries(counts).filter(([, quantity]) => quantity > 0).map(([itemId, quantity]) => ({ item_id: itemId, quantity }));
   const send = async () => {
-    const outcome = await order.mutateAsync({ seat, lines });
+    const outcome = await order.mutateAsync({ seat, lines, requestId });
+    if (outcome.ok || outcome.error !== 'unavailable') setRequestId(crypto.randomUUID());
     setFailure(outcome.ok ? null : outcome.error);
     setSent(outcome.ok ? outcome.value.kotNumber : null);
     if (outcome.ok) setCounts({});
@@ -44,7 +47,7 @@ export function SeatFnbOrder({ seat, onClose }: { seat: number; onClose: () => v
   return (
     <Stack gap={3}>
       <Heading level={3}>{t('tablet.fnb.title', { seat })}</Heading>
-      <MenuSteppers menu={menu} counts={counts} onChange={(itemId, quantity) => { setCounts({ ...counts, [itemId]: quantity }); setSent(null); }} />
+      <MenuSteppers menu={menu} counts={counts} onChange={(itemId, quantity) => { setCounts({ ...counts, [itemId]: quantity }); setSent(null); setRequestId(crypto.randomUUID()); }} />
       <Text variant="small" tone="muted">{t('tablet.fnb.paid')}</Text>
       <Inline gap={3}>
         <Button variant="secondary" isDisabled={lines.length === 0} isLoading={order.isPending} onClick={() => void send()}>{t('tablet.fnb.send')}</Button>
