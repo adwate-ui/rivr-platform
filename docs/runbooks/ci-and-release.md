@@ -94,6 +94,7 @@ Outbox consumers (#215, decision 0038), on staging and production, once:
 - Make a secret on your own computer: `openssl rand -hex 32`. Keep it only as long as these steps take.
 - On the Vault page (Project Settings → Vault, or Integrations → Vault), add `project_url` = `https://<project-ref>.supabase.co`, and `outbox_scheduler_secret` = the secret. Use the Vault page, not the SQL editor, which keeps what is typed in it.
 - Under Edge Functions → Secrets, set `OUTBOX_SCHEDULER_SECRET` to the same secret.
+- Check it: within ten minutes of the first event, `select consumer, count(*) from outbox_delivery group by 1` in the SQL editor names the consumers. An empty answer means no consumer runs, which no alert says until each has claimed once (decision 0191).
 - To rotate it, change both to a new secret, the Edge Function secret first. Runs refused in between are tried again the next minute.
 - Check it: `select jobname, schedule from cron.job;` lists `outbox-<function>` for each consumer, and `select status_code, created from net._http_response order by created desc limit 5;` shows 200s.
 

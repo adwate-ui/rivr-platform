@@ -24,6 +24,8 @@ export const alerts = {
     'mis.not_stored': 'the monthly MIS could not be stored',
     'outbox.delivery_failed': 'a message or post could not be delivered',
     'outbox.failures': 'many messages or posts are failing',
+    /** A consumer that stopped claiming (A5-12): its Edge Function is down, or the scheduler's Vault secrets are missing. */
+    'outbox.silent': 'messages, posts or syncs have stopped going out: one of the club\'s senders is not running',
     'rakeback.refused': 'a week\'s rakeback could not be given',
     'rakeback.unpaid': 'a week\'s rakeback held by a freeze or the kill switch for over five weeks was not given',
     'staff.role_granted': 'a staff member was given a role that moves money, approves a second time, stops the venue or runs promotions, or such a row was given another number',
