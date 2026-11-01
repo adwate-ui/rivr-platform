@@ -14,27 +14,41 @@ type Outcome = { in: CheckInFailure } | { out: CheckOutRefusal } | 'checked_in' 
  * Checks a member in, or out as they leave (#82), by their mobile number, when they do not have their
  * card to hand (#71).
  */
+/** True for two seconds after a check-in or out goes through: a second tap then, on the emptied field, keeps its line. */
+function useJustDone(): [boolean, () => void] {
+  const [isJustDone, setJustDone] = useState(false);
+  return [isJustDone, () => {
+    setJustDone(true);
+    setTimeout(() => setJustDone(false), 2000);
+  }];
+}
+
 export function PhoneCheckIn({ venueId }: { venueId: string }) {
   const { checkInByPhone } = useCheckInActions(venueId);
   const { checkOutByPhone } = useCheckOutActions(venueId);
   const [outcome, setOutcome] = useState<Outcome>(null);
+  const [isJustDone, markDone] = useJustDone();
+  const succeed = () => {
+    form.reset();
+    markDone();
+  };
   const [resolver] = useState(() => zodResolver(doorCheckInSchema));
   const form = useForm<z.input<typeof doorCheckInSchema>, unknown, z.output<typeof doorCheckInSchema>>({ resolver, defaultValues: { phone: '' } });
   const admit = form.handleSubmit(async ({ phone }) => {
     setOutcome(null);
     const opened = await checkInByPhone.mutateAsync(phone);
     setOutcome(opened.ok ? 'checked_in' : { in: opened.error });
-    if (opened.ok) form.reset();
+    if (opened.ok) succeed();
   }, () => setOutcome(null));
   const release = form.handleSubmit(async ({ phone }) => {
     setOutcome(null);
     const closed = await checkOutByPhone.mutateAsync(phone);
     setOutcome(closed.ok ? 'checked_out' : { out: closed.error });
-    if (closed.ok) form.reset();
+    if (closed.ok) succeed();
   }, () => setOutcome(null));
   const phone = form.register('phone');
   const isFailure = outcome !== null && outcome !== 'checked_in' && outcome !== 'checked_out';
-  const isRepeat = () => (outcome === 'checked_in' || outcome === 'checked_out') && form.getValues('phone') === '';
+  const isRepeat = () => isJustDone && form.getValues('phone') === '';
   return (
     <Stack gap={2}>
       <Inline gap={3} align="end" wrap>

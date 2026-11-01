@@ -5,7 +5,7 @@ import { builtInSource, type BuiltInSource } from '@rivr/drills/sources';
 import { t } from '@rivr/i18n';
 import { FeatureGate, Screen } from '@rivr/ui';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from '@tanstack/react-router';
+import { Navigate, useParams } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { isAttemptRow, isCardState, openBook, type Book } from '../drill.ts';
 import type { Lesson } from '../lessons.ts';
@@ -106,6 +106,14 @@ function Views({ book, sourceKey, cards, rows, answered }: ViewsProps) {
  * summary, and the review. The encoding is read once and the drill engine runs here, so a session goes on offline.
  */
 export function BookScreen() {
+  const library = useFeatureStatus('learn.library');
+  // Hidden for the member's tier (decision 0284): a book's address leads to Tonight, as Learn's does.
+  if (library.status !== 'loading' && library.status !== 'error' && library.access.state === 'hidden') return <Navigate to="/" replace />;
+  return <Book />;
+}
+
+/** The book itself, once Learn is not hidden. */
+function Book() {
   const sourceKey = useParams({ strict: false }).sourceKey ?? '';
   const drills = useFeatureStatus('learn.drills');
   const title = useTitle(sourceKey);

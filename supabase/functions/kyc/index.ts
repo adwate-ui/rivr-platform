@@ -7,7 +7,7 @@ import { panSchema } from '@rivr/contracts';
 import { isSameName, kycIdentityKey } from '@rivr/domain/identity';
 import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
-import { CORS, currentRecord, failed, field, photoUrl, refusal, reply, rpc } from './server.ts';
+import { CORS, currentRecord, failed, field, logVendorFailure, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
 
 // A selfie of at most 2 MB, in base64, and the rest of the body.
@@ -45,6 +45,7 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
   const pulled = await kyc.pullDigiLocker({ sessionId: session });
   if (!pulled.ok && pulled.error.code === 'not_configured') return failed(pulled.error);
   if (!pulled.ok) {
+    logVendorFailure(pulled.error);
     await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
     return reply({ status: 'needs_pan' });
   }

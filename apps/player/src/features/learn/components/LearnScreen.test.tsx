@@ -107,4 +107,10 @@ describe('Learn, hidden for every tier (decision 0284)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Tonight' })).toBeDefined();
     expect(screen.queryByRole('heading', { level: 1, name: 'Learn' })).toBeNull();
   });
+
+  it('sends the address of a book to Tonight too', async () => {
+    renderHidden(`/learn/${BOOK.id}`, 'learn.library', BookScreen);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Tonight' })).toBeDefined();
+    expect(screen.queryByRole('heading', { level: 1, name: BOOK.title })).toBeNull();
+  });
 });

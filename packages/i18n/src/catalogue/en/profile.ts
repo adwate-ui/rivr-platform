@@ -3,7 +3,7 @@ export const profile = {
   title: 'Profile',
   identity: 'Identity',
   kycIncomplete: 'KYC incomplete. Finish it to join a table.',
-  kycReview: 'With staff. They finish your check at the club.',
+  kycReview: 'Pending. Bring your Aadhaar and PAN to the front desk.',
   kycVerified: 'Verified · DigiLocker and selfie',
   kycRefused: 'Not verified. Speak to the front desk.',
   finishKyc: 'Finish identity check',

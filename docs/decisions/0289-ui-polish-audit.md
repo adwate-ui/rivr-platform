@@ -4,7 +4,7 @@ Date: 2 Nov 2026. Report: `docs/design/ui-polish-audit.md`. Work in six batches 
 
 - **The audit:** a live walkthrough of every app, KYC on Cashfree's sandbox, a static audit of `@rivr/ui` and the copy, and an asset review.
 - **Hidden features lead to Tonight.** A screen hidden for the member's tier (Learn, Events, and Academy through Learn) sends its address to Tonight. It never shows an empty screen, as decision 0284 meant.
-- **Copy:** the owner found the app's copy over-explained ("reads like AI slop"), so the voice in `.claude/rules/copy.md` is tightened:
+- **Copy:** the owner found the app's copy over-explained ("reads like AI slop"). Batch B3 tightens the voice in `.claude/rules/copy.md`:
   - the fact, then stop;
   - labels of one to three words;
   - status lines of eight words or fewer;
@@ -20,6 +20,9 @@ Date: 2 Nov 2026. Report: `docs/design/ui-polish-audit.md`. Work in six batches 
   - To run it on a local stack, put the sandbox keys in the gitignored `supabase/functions/.env` and set `PLAYER_APP_URL=https://127.0.0.1:<player port>`.
   - In the browser, map that address back to http, as the audit's Playwright run did.
   - Never commit the keys.
+- **Narrower than the audit asked, on purpose:**
+  - E-14: the rail keeps its pinned foot (sign-out stays in view, `ConsoleShell.test`). A hairline above the foot and the item it cuts off are the cue that the list goes on; no fade, as the visual standard has no gradients.
+  - K-05: `lang="en-IN"` is the right language tag for every app, but a date field's order follows the browser's own locale, so it does not change mm/dd/yyyy on a phone set to US English.
 - **Findings corrected on reading the code:**
   - E-03 and E-09 were the local stack answering within the 80 ms between taps; busy states hold on a real network.
   - E-05: a revoked tablet leaves at its next 30-second check.
