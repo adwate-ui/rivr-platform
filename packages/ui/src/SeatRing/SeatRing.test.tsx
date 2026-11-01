@@ -43,7 +43,9 @@ describe('SeatRing', () => {
     screen.getByRole('button', { name: 'Seat 2, open' }).focus();
     await userEvent.keyboard('{Enter}');
     expect(onSelectSeat.mock.calls).toEqual([[1], [2]]);
-    expect(screen.getByText('Seat 2')).toBeInTheDocument();
+    // An open seat's circle says its number; a taken one's number sits beside it, off the felt (UI-14).
+    expect(screen.queryByText('Seat 2')).toBeNull();
+    expect(screen.getByText('Seat 1')).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {
