@@ -13,6 +13,7 @@ export const promotions = {
   submitTemplate: 'Send for approval',
   /** Beneath the budget Send for approval opens (A-15). */
   sendTemplate: 'Send',
+  sendTemplateNamed: 'Send {name}',
   /** After a template is sent: `{name}` is the template. */
   templateSubmitted: '{name} waits for a super admin.',
   /** A template's optional budget as it is sent (#562): an amount in rupees, for the whole promotion or each month. */
