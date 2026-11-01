@@ -22,6 +22,8 @@ export interface HeadingProps {
   id?: string;
   /** Heard by screen readers only: a screen whose name is an image, such as the wordmark, still has its h1. */
   isVisuallyHidden?: boolean;
+  /** A screen's h1, which takes the focus when the screen opens, so a keyboard or screen reader starts there (F5-03). */
+  isFocusTarget?: boolean;
 }
 
 const VARIANT: Record<HeadingVariant, string> = {
@@ -40,10 +42,11 @@ const VARIANT: Record<HeadingVariant, string> = {
 const DEFAULT_VARIANT = { 1: 'title', 2: 'section', 3: 'subsection', 4: 'subsection' } as const;
 
 /** A heading. Headings are nouns (Balance, Waitlist, Tonight) with no subtitle beneath. */
-export function Heading({ children, level, variant = DEFAULT_VARIANT[level], align = 'start', id, isVisuallyHidden }: HeadingProps) {
+export function Heading({ children, level, variant = DEFAULT_VARIANT[level], align = 'start', id, isVisuallyHidden, isFocusTarget }: HeadingProps) {
   const Element = `h${level}` as const;
   return (
-    <Element className={cx('text-content', VARIANT[variant], align === 'center' && 'text-center', isVisuallyHidden && 'sr-only')} id={id}>
+    <Element className={cx('text-content', VARIANT[variant], align === 'center' && 'text-center', isVisuallyHidden && 'sr-only', isFocusTarget && 'outline-none')}
+      id={id} tabIndex={isFocusTarget ? -1 : undefined}>
       {children}
     </Element>
   );

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
 
 export interface TabletShellProps {
   children: ReactNode;
@@ -14,12 +15,13 @@ export interface TabletShellProps {
 export function TabletShell({ children, tableName, actions, banner }: TabletShellProps) {
   return (
     <div className="flex h-dvh flex-col bg-surface text-content">
+      <SkipLink />
       {banner}
       <header className="flex h-header shrink-0 items-center justify-between gap-4 border-b border-hairline px-6">
         <p className="font-text text-20 leading-snug font-semibold">{tableName}</p>
         {actions ? <div className="flex items-center gap-3">{actions}</div> : null}
       </header>
-      <main className="min-h-0 flex-1 overflow-auto px-6 py-6">{children}</main>
+      <main id={MAIN_ID} tabIndex={-1} className="min-h-0 flex-1 overflow-auto px-6 py-6 outline-none">{children}</main>
     </div>
   );
 }

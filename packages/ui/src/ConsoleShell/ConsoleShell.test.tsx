@@ -110,4 +110,12 @@ describe('ConsoleShell', () => {
     const { container } = renderShell();
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('starts with Skip to content, which takes the focus to the screen past the rail (F5-03)', async () => {
+    renderShell();
+    await userEvent.tab();
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('main')).toHaveFocus();
+  });
 });

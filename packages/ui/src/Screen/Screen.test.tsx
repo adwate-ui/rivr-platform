@@ -49,4 +49,30 @@ describe('Screen', () => {
     const { container } = renderIn(<Screen title="Balance" status="error" errorText="Balance not loaded." onRetry={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('names the page after the screen and takes the focus to its heading, so a keyboard starts there (F5-03)', () => {
+    renderIn(<Screen title="Check-in">content</Screen>);
+    expect(document.title).toBe('Check-in · RIVR');
+    expect(screen.getByRole('heading', { level: 1, name: 'Check-in' })).toHaveFocus();
+  });
+
+  it('leaves the focus on a field the screen focuses itself, such as the door\u2019s scanner field', () => {
+    renderIn(<Screen title="Check-in"><input aria-label="Membership card" autoFocus /></Screen>);
+    expect(screen.getByRole('textbox', { name: 'Membership card' })).toHaveFocus();
+  });
+
+  it('as a section of another screen, names nothing and takes no focus', () => {
+    document.title = 'RIVR';
+    renderIn(<Screen title="Tonight" level={2}>content</Screen>);
+    expect(document.title).toBe('RIVR');
+    expect(screen.getByRole('heading', { level: 2, name: 'Tonight' })).not.toHaveFocus();
+  });
+
+  it('gives the page its title back when the screen goes, as for the sign-in steps, which are no screen', () => {
+    document.title = 'RIVR';
+    const { unmount } = renderIn(<Screen title="Cage">content</Screen>);
+    expect(document.title).toBe('Cage · RIVR');
+    unmount();
+    expect(document.title).toBe('RIVR');
+  });
 });

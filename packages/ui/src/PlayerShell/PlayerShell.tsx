@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { BottomNav, type BottomNavItem, type PlayerTab } from '../BottomNav/BottomNav.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
+import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
 
 export interface PlayerShellProps {
@@ -22,6 +23,7 @@ export interface PlayerShellProps {
 export function PlayerShell({ children, tabs, currentTab, memberInitial, profileHref, onNavigate, banner }: PlayerShellProps) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-content">
+      <SkipLink />
       {banner}
       <header className="flex h-header shrink-0 items-center justify-between pr-2 pl-4">
         <Wordmark />
@@ -39,7 +41,7 @@ export function PlayerShell({ children, tabs, currentTab, memberInitial, profile
           </span>
         </a>
       </header>
-      <main className="flex-1 px-4 pt-4 pb-8">{children}</main>
+      <main id={MAIN_ID} tabIndex={-1} className="flex-1 px-4 pt-4 pb-8 outline-none">{children}</main>
       <div className="sticky bottom-0 z-nav">
         <BottomNav items={tabs} current={currentTab} onNavigate={onNavigate} />
       </div>

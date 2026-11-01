@@ -21,9 +21,11 @@ describe('TabletShell', () => {
     expect(screen.getByRole('main')).toHaveTextContent('Hand entry');
   });
 
-  it('puts its actions first in focus order, at touch size', async () => {
+  it('puts its actions first in focus order after Skip to content, at touch size', async () => {
     const onEndDown = vi.fn();
     renderShell(onEndDown);
+    await userEvent.tab();
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
     await userEvent.tab();
     const action = screen.getByRole('button', { name: 'End of down' });
     expect(action).toHaveFocus();
