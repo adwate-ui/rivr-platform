@@ -68,7 +68,7 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const search = useRouterState({ select: (state) => state.location.searchStr });
   const signOut = useSignOut();
-  // Ten idle minutes on a cage or money screen sign the staff member out (#384).
+  // Ten idle minutes on a screen that locks sign the staff member out (#384).
   useIdleLock(locksWhenIdle(pathname), signOut.mutate);
   // The rail counts the high-hand claims waiting for staff who approve them (#317).
   const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));

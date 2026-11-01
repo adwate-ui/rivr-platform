@@ -8,7 +8,7 @@ interface RailEntry {
   readonly href: string;
   /** The staff member needs one of these to see it; empty means every staff member does. */
   readonly anyOf: readonly Permission[];
-  /** A cage or money screen: it signs the staff member out after ten idle minutes (#384). */
+  /** Signs the staff member out after ten idle minutes (#384): cage and money screens, members' records, kill switch, purge. */
   readonly locksWhenIdle?: true;
   /**
    * Hidden at the owner's word (29 Oct, #626, decision 0284): no rupee, rake or reporting on any console. It is off the
@@ -63,10 +63,10 @@ const RAIL: readonly RailGroup[] = [
     label: 'console.rail.groups.players',
     entries: [
       // The member list, the CRM's link (#647): for staff who manage members and the host, not the floor or the cashier (#644).
-      { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.manage', 'host_queue.manage'] },
+      { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.manage', 'host_queue.manage'], locksWhenIdle: true },
       // Everyone at the club today, with their status, times and tables (#641).
       { id: 'todaysPlayers', label: 'console.rail.items.todaysPlayers', href: '/players-today', anyOf: ['members.read'] },
-      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'] },
+      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'], locksWhenIdle: true },
       { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', anyOf: ['members.manage'] },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', anyOf: ['feedback.manage'] },
       { id: 'tiers', label: 'console.rail.items.tiers', href: '/tiers', anyOf: ['tiers.manage'], hidden: true },
@@ -130,9 +130,9 @@ const RAIL: readonly RailGroup[] = [
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', anyOf: ['settings.manage', 'venue.configure'] },
       { id: 'devices', label: 'console.rail.items.devices', href: '/devices', anyOf: ['devices.manage'] },
       { id: 'exports', label: 'console.rail.items.exports', href: '/exports', anyOf: ['exports.full'], hidden: true },
-      { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'] },
+      { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', anyOf: ['control.engage'], locksWhenIdle: true },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', anyOf: ['purge.run'] },
-      { id: 'purge', label: 'console.rail.items.purge', href: '/purge', anyOf: ['purge.run'] },
+      { id: 'purge', label: 'console.rail.items.purge', href: '/purge', anyOf: ['purge.run'], locksWhenIdle: true },
     ],
   },
 ];
@@ -165,7 +165,7 @@ export function isAllowedAt(permissions: readonly Permission[], pathname: string
   return found === undefined || (found.entry.hidden !== true && isAllowed(found.entry, permissions));
 }
 
-/** True on the cage and money screens, which lock after ten idle minutes (#384): marked on their own entries (#602). */
+/** True on the screens that lock after ten idle minutes (#384): marked on their own entries (#602). */
 export function locksWhenIdle(pathname: string): boolean {
   return entryAt(pathname)?.entry.locksWhenIdle === true;
 }

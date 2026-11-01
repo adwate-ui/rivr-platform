@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { doorCardSchema } from '@rivr/contracts';
 import { useCheckInActions, type CheckInFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
 import { useState, type KeyboardEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -17,14 +17,17 @@ import { CHECK_IN_FAILURE_COPY } from './checkInCopy.ts';
 export function CardCheckIn({ venueId }: { venueId: string }) {
   const { checkInByCard } = useCheckInActions(venueId);
   const [failure, setFailure] = useState<CheckInFailure | null>(null);
+  const [isCheckedIn, setCheckedIn] = useState(false);
   const [resolver] = useState(() => zodResolver(doorCardSchema));
   const form = useForm<z.input<typeof doorCardSchema>, unknown, z.output<typeof doorCardSchema>>({ resolver, defaultValues: { code: '' } });
   const submit = form.handleSubmit(async ({ code }) => {
+    setCheckedIn(false);
     const opened = await checkInByCard.mutateAsync(code);
     setFailure(opened.ok ? null : opened.error);
+    setCheckedIn(opened.ok);
     form.reset();
     form.setFocus('code');
-  });
+  }, () => setCheckedIn(false));
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') void submit();
   };
@@ -36,6 +39,7 @@ export function CardCheckIn({ venueId }: { venueId: string }) {
         <Button variant="secondary" isLoading={checkInByCard.isPending} onClick={() => void submit()}>{t('console.checkIn.checkInByCard')}</Button>
       </Inline>
       {form.formState.errors.code ? <ErrorMessage>{t('console.checkIn.cardInvalid')}</ErrorMessage> : null}
+      <StatusMessage>{isCheckedIn ? t('console.checkIn.checkedIn') : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(CHECK_IN_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );
