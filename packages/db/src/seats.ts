@@ -167,6 +167,16 @@ export function useSeatActions(venueId: string) {
   return { seat, move, leave, setOpen, setMustMove, letLeaveEarly, setLeaving, setAway };
 }
 
+/** The floor sets a seated player's call time in minutes, 0 for none (#638). A Result, and the floor is read again. */
+export function useSetSeatCallTime(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSeatSettle(venueId);
+  return useMutation({
+    mutationFn: async ({ sessionId, minutes }: { sessionId: string; minutes: number }) =>
+      settle((await client.rpc('set_seat_call_time', { p_session_id: sessionId, p_minutes: minutes })).error),
+  });
+}
+
 /** The floor takes a seat's top-up in hand (`inProgress`), or resets it once done (#634). A Result, and the floor is read again. */
 export function useSetTopUp(venueId: string) {
   const { client } = useRivrData();

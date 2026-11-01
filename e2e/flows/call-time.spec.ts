@@ -3,7 +3,8 @@
  * manager (Auth sends one code a minute to a number), seats Ritika Das in the Private Room, where call
  * time is three hours (#634): the live floor shows it beside her name, and Ritika's Home says where she sits and
  * the time left, and how long she has played. From her seat (#634) she adds an hour of call time and asks for a top-up,
- * which Harish takes in hand and resets; she leaves her seat and, with call time owed, goes on the Leaving list. Then flow 13, with no cage on any console (#626): she leaves before her call time, so Harish, an
+ * which Harish takes in hand and resets, and sees fulfilled among tonight's (#639); he changes her call time to five hours (#638)
+ * and finds her playing on Today's players (#641); she leaves her seat and, with call time owed, goes on the Leaving list. Then flow 13, with no cage on any console (#626): she leaves before her call time, so Harish, an
  * admin, lets her leave early with a reason and ends her seat, so the next run finds it open. The clock across moves,
  * away time, the completed event and the shortfall are proved in supabase/tests/051_call_time.test.sql,
  * the early departure in 057_call_time_at_cash_out.test.sql; the tablet's line is in the Seat events flow.
@@ -44,6 +45,22 @@ test.describe('Call time', () => {
     await expect(floor.getByText('Top-up in progress', { exact: true })).toHaveCount(0);
     await player.reload();
     await expect(player.getByRole('button', { name: 'Ask for a top-up' })).toBeVisible();
+
+    // Tonight's top-ups (#639): fulfilled, with the time it took.
+    await expect(floor.getByRole('heading', { name: 'Top-ups tonight' })).toBeVisible();
+    await expect(floor.getByText(/^Fulfilled in /).first()).toBeVisible({ timeout: 20_000 });
+    // The floor changes her call time (#638): five hours from when she sat down.
+    await floor.getByRole('button', { name: 'Change the call time of Ritika Das' }).click();
+    await floor.getByRole('textbox', { name: 'Call time in minutes, from when they sat down' }).fill('300');
+    await floor.getByRole('button', { name: 'Save call time' }).click();
+    await expect(floor.getByText(/^Call time (5 h|4 h 59 min) left$/)).toBeVisible();
+    // Today's players (#641): she is playing, at the Private Room.
+    await floor.getByRole('link', { name: 'Today’s players' }).click();
+    const today = floor.getByRole('row').filter({ hasText: 'Ritika Das' });
+    await expect(today.getByText('Playing', { exact: true })).toBeVisible();
+    await expect(today.getByText(/^Private Room · /)).toBeVisible();
+    await floor.getByRole('link', { name: 'Live floor' }).click();
+    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
 
     // She leaves with call time owed: she is on the floor's Leaving list until it is done.
     await player.getByRole('button', { name: 'Leave my seat' }).click();

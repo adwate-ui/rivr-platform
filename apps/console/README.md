@@ -27,10 +27,13 @@ src/
     kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason, and checks in person (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
+    live-floor/       the room plan and each table's seats (/): seat, move, away, leaving, top-ups and a player's call time (#638);
+                      joins waiting for approval, and tonight's top-ups by table with the time each took (#639)
     waitlist/         the floor's waitlists: approve or remove joins from the app (#633), add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
-    fnb/              food and drink for staff who run F&B (#123): KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu (/fnb)
+    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu (/fnb)
+    todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; /players-today)
     check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (/check-in)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)

@@ -4,10 +4,12 @@ import {
 import { t } from '@rivr/i18n';
 import { Screen, SplitView, Stack } from '@rivr/ui';
 import { useState } from 'react';
+import { JoinRequestsNotice } from './JoinRequestsNotice.tsx';
 import { LeavingList } from './LeavingList.tsx';
 import { LeftOwingCallTime } from './LeftOwingCallTime.tsx';
 import { RoomPlan } from './RoomPlan.tsx';
 import { TableDetail } from './TableDetail.tsx';
+import { TopUpsTonight } from './TopUpsTonight.tsx';
 
 /**
  * Live floor (#77, #81; the prototype's console): rake tonight and how many are seated; every table
@@ -15,7 +17,8 @@ import { TableDetail } from './TableDetail.tsx';
  * chosen table beside, with its night so far, its seats and its recent hands. The floor
  * (waitlist.manage) seats, moves and lets players leave; floor managers open and close tables and set
  * must-move tables; admins let a player leave before call time, seated or gone from their seat (#79).
- * The floor marks a player leaving, and the Leaving list shows when each seat opens (decision 0163).
+ * The floor marks a player leaving, and the Leaving list shows when each seat opens (decision 0163). Joins from the app waiting
+ * for approval lead to the Waitlist (#638), and tonight's top-ups show by table, for the floor and the cashier (#639).
  */
 export function LiveFloorScreen() {
   const staff = useStaffVenue();
@@ -50,10 +53,12 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
         emptyText={t('console.liveFloor.chooseTable')}
         list={(
           <Stack gap={8}>
+            {permissions.includes('waitlist.manage') ? <JoinRequestsNotice venueId={venueId} /> : null}
             <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
               chosenId={chosenId === null ? '' : chosen.id} onChoose={setChosenId} />
             <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
             {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
+            {permissions.includes('members.read') ? <TopUpsTonight venueId={venueId} /> : null}
           </Stack>
         )}
         detail={(
