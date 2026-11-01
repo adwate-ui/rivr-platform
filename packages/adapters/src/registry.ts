@@ -1,6 +1,7 @@
 import { createFakeCachePurge, type CachePurgeAdapter } from './cache-purge/index.ts';
 import { createFakeCctv, type CctvAdapter } from './cctv/index.ts';
 import { createFakeChannelAnalytics, type ChannelAnalyticsAdapter } from './channel-analytics/index.ts';
+import { createFakeCrm, type CrmAdapter } from './crm/index.ts';
 import { createFakeGoogleAds, type GoogleAdsConversionsAdapter } from './google-ads/index.ts';
 import { createFakeInstagramGraph, type InstagramGraphAdapter } from './instagram-graph/index.ts';
 import { createFakeKitchenPrinter, type KitchenPrinterAdapter } from './kitchen-printer/index.ts';
@@ -38,6 +39,7 @@ export interface Adapters {
   readonly cctv: CctvAdapter;
   readonly receiptPrinter: ReceiptPrinterAdapter;
   readonly kitchenPrinter: KitchenPrinterAdapter;
+  readonly crm: CrmAdapter;
 }
 
 /** The live implementations whose credentials have arrived; leave the rest out. */
@@ -70,6 +72,7 @@ export function createFakeAdapters() {
     cctv: createFakeCctv(),
     receiptPrinter: createFakeReceiptPrinter(),
     kitchenPrinter: createFakeKitchenPrinter(),
+    crm: createFakeCrm(),
   } satisfies Adapters;
 }
 
@@ -105,5 +108,6 @@ export function createAdapters({ isPracticeVenue, live }: CreateAdaptersOptions)
     cctv: liveOr(live.cctv, () => fakes.cctv),
     receiptPrinter: liveOr(live.receiptPrinter, () => fakes.receiptPrinter),
     kitchenPrinter: liveOr(live.kitchenPrinter, () => fakes.kitchenPrinter),
+    crm: liveOr(live.crm, () => fakes.crm),
   };
 }
