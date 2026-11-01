@@ -36,6 +36,8 @@ export const website = {
   /** `Preview of House rules`. */
   preview: 'Preview of {page}',
   saveToPreview: 'Save a draft to preview it.',
+  /** A newer version came in while this one was being edited (F2-26). */
+  newerVersion: 'A newer version of this page came in while you were editing. Your edits are kept here; saving them makes them the page\'s draft, in place of any other.',
   noPreview: 'The preview shows where the console knows the website\u2019s address. Saving, scheduling and publishing work without it.',
   history: {
     title: 'History',

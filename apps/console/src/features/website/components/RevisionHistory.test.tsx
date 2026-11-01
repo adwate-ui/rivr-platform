@@ -6,7 +6,7 @@ import { RevisionHistory } from './RevisionHistory.tsx';
 afterEach(cleanup);
 
 const REPLACED: SiteRevision = {
-  revisionId: 'r1', status: 'replaced', blocks: [], publishAt: null, publishedAt: '2026-10-30T10:00:00Z', createdAt: '2026-10-30T09:00:00Z', previewToken: 'x',
+  revisionId: 'r1', status: 'replaced', blocks: [], publishAt: null, publishedAt: '2026-10-30T10:00:00Z', createdAt: '2026-10-30T09:00:00Z', previewToken: 'x', updatedAt: '2026-10-30T10:00:00Z',
 };
 
 describe('RevisionHistory', () => {

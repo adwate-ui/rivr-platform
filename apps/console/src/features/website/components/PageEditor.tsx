@@ -62,18 +62,22 @@ interface EditorProps {
   /** What last happened, kept by the page, so a publish or rollback's word outlasts the editor starting again. */
   readonly outcome: Outcome;
   readonly setOutcome: (outcome: Outcome) => void;
+  /** Whether the blocks here differ from the last save, kept by the page, which starts the editor again only when they do not. */
+  readonly isEdited: boolean;
+  readonly setEdited: (isEdited: boolean) => void;
+  /** A newer version of the page came in while the blocks here were edited: they are kept, and this says so (F2-26). */
+  readonly isBehind: boolean;
 }
 
 /** A time to publish at, or null to publish now: a time already past publishes now. */
 const laterOrNow = (at: Date | null): Date | null => (at !== null && at.getTime() > Date.now() ? at : null);
 
 /** A page's draft in the editor: its blocks, its preview token and saves, what last happened, and saving, publishing and restoring. */
-function useDraft({ venueId, page, start, revisions, setOutcome }: EditorProps) {
+function useDraft({ venueId, page, start, revisions, setOutcome, isEdited, setEdited }: EditorProps) {
   const editor = useSiteEditor(venueId, page.pageId);
   const [blocks, setBlocks] = useState(start);
   // The draft's preview token, and how many saves the preview has shown, so the frame reads it again after each.
   const [preview, setPreview] = useState({ token: revisions.find((revision) => revision.status === 'draft' || revision.status === 'scheduled')?.previewToken ?? null, saves: 0 });
-  const [isEdited, setEdited] = useState(false);
   const done = (text: string) => setOutcome({ ok: true, text });
   const fail = (error: SiteEditFailure) => setOutcome({ ok: false, text: t(`console.website.failures.${error}`) });
   const save = () => {
@@ -112,10 +116,11 @@ function useDraft({ venueId, page, start, revisions, setOutcome }: EditorProps) 
 /** The page's blocks in place, the draft saved and previewed, then published now or at a time; and its history. */
 
 function Editor(props: EditorProps) {
-  const { page, revisions, outcome } = props;
+  const { page, revisions, outcome, isBehind } = props;
   const draft = useDraft(props);
   return (
     <Stack gap={6}>
+      {isBehind ? <ErrorMessage>{t('console.website.newerVersion')}</ErrorMessage> : null}
       {draft.blocks.map((block, index) => (
         <BlockEditor key={`${String(index)}-${block.kind}`} block={block} position={index + 1}
           onChange={(next) => draft.edit(index, next)} />
@@ -131,15 +136,29 @@ function Editor(props: EditorProps) {
   );
 }
 
-/** A page in the website editor (#129): its draft, preview and history, once its blocks are read. */
+/** The newest version's key: a save, a publish or a rollback, here or anywhere, makes a new one, a draft saved over in place too. */
+function versionOf(revisions: readonly SiteRevision[] | undefined): string {
+  const latest = revisions?.[0];
+  return latest === undefined ? 'none' : `${latest.revisionId}-${latest.status}-${latest.updatedAt}`;
+}
+
+/**
+ * A page in the website editor (#129): its draft, preview and history, once its blocks are read. A new version starts the
+ * editor again from what the page then holds, unless its blocks are edited: then the typing is kept and the editor says a
+ * newer version came in (F2-26), as when a scheduled publish fires or another editor saves.
+ */
 export function PageEditor({ venueId, page }: { venueId: string; page: EditorPage }) {
   const state = useEditorPage(page.pageId);
   const [outcome, setOutcome] = useState<Outcome>(null);
+  const [isEdited, setEdited] = useState(false);
+  const latest = versionOf(state.data?.revisions);
+  const [startedFrom, setStartedFrom] = useState(latest);
+  // As React's own pattern for state from a previous render: adopt the new version while nothing here is edited.
+  if (latest !== startedFrom && !isEdited) setStartedFrom(latest);
   if (state.data === undefined) return <LoadState isError={state.isError} onRetry={() => void state.refetch()} />;
-  // A publish or a rollback makes a new newest version: the editor starts again from what the page then holds.
-  const latest = state.data.revisions[0];
   return (
-    <Editor key={latest === undefined ? 'none' : `${latest.revisionId}-${latest.status}`} venueId={venueId} page={page}
-      start={startingBlocks(state.data.blocks, state.data.revisions)} revisions={state.data.revisions} outcome={outcome} setOutcome={setOutcome} />
+    <Editor key={startedFrom} venueId={venueId} page={page} start={startingBlocks(state.data.blocks, state.data.revisions)}
+      revisions={state.data.revisions} outcome={outcome} setOutcome={setOutcome} isEdited={isEdited} setEdited={setEdited}
+      isBehind={latest !== startedFrom} />
   );
 }
