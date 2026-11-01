@@ -196,6 +196,8 @@ export const consoleApp = {
   promotions,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',
+  /** Across the top of every screen while the console works in the practice venue. */
+  practiceBanner: 'Practice venue: nothing here reaches the club or its members.',
   /** A screen opened by address that the staff member's role does not include. */
   notAllowed: 'Your role does not include this screen. Ask an admin if you need it.',
   academy,
