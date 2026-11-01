@@ -24,15 +24,15 @@ const ACTIONS = conversionActionsSchema.parse(Object.fromEntries(CONVERSION_KIND
 
 describe('the ad conversions consumer', () => {
   it('takes the five events that can be a conversion, and holds during a messaging stop as a messaging consumer does (A4-11)', () => {
-    const consumer = createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(createFakeMetaConversions()), now });
+    const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(createFakeMetaConversions()), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'meta-conversions', true, ['academy.booked', 'kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
+      'meta_conversions', true, ['academy.booked', 'kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
     ]);
   });
 
   it('reports a first visit to Meta as FirstVisit, hashed, with the event id and time', async () => {
     const meta = createFakeMetaConversions();
-    const consumer = createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(meta), now });
+    const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(meta), now });
 
     expect(await consumer.deliver(delivery('visit.opened', hoursAgo(1)))).toEqual({ ok: true, value: null });
     expect(meta.calls).toEqual([{
@@ -43,7 +43,7 @@ describe('the ad conversions consumer', () => {
 
   it('uploads it to Google Ads under its kind\u2019s conversion action', async () => {
     const google = createFakeGoogleAds();
-    const consumer = createConversionConsumer({ name: 'google-ads', find, report: reportToGoogle(google, ACTIONS), now });
+    const consumer = createConversionConsumer({ name: 'google_ads', find, report: reportToGoogle(google, ACTIONS), now });
 
     await consumer.deliver(delivery('visit.opened', hoursAgo(1)));
     expect(google.calls.map((call) => [call.orderId, call.conversionAction, call.conversionDateTime])).toEqual([
@@ -53,7 +53,7 @@ describe('the ad conversions consumer', () => {
 
   it('finishes unsent an event that is not a conversion, or is older than seven days', async () => {
     const meta = createFakeMetaConversions();
-    const consumer = createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(meta), now });
+    const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(meta), now });
 
     expect(await consumer.deliver(delivery('cage.buy_in', hoursAgo(1)))).toEqual({ ok: true, value: null });
     expect(await consumer.deliver(delivery('visit.opened', hoursAgo(8 * 24)))).toEqual({ ok: true, value: null });
@@ -63,9 +63,9 @@ describe('the ad conversions consumer', () => {
   it('passes on a vendor failure, to be tried again or given up', async () => {
     const meta = createFakeMetaConversions();
     meta.failNext({ code: 'unavailable' });
-    const consumer = createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(meta), now });
+    const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(meta), now });
     expect(await consumer.deliver(delivery('visit.opened'))).toEqual({ ok: false, error: { code: 'unavailable' } });
-    expect(await createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(meta), now })
+    expect(await createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(meta), now })
       .deliver({ ...delivery('visit.opened'), eventId: 'not-a-uuid' })).toEqual({ ok: false, error: { code: 'rejected', reason: 'the event id is not a UUID' } });
   });
 

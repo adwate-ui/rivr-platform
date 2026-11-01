@@ -26,6 +26,10 @@ export interface OutboxStore {
 
 /** A consumer: its name, the events it takes, and what it does with one of them. */
 export interface Consumer {
+  /**
+   * As the outbox keeps it, in lower case and underscores (`outbox_delivery.consumer`): `meta_conversions`, never its Edge
+   * Function's `meta-conversions`, which the outbox refuses, so the consumer would never deliver.
+   */
   readonly name: string;
   readonly eventTypes: readonly string[];
   /** Messaging consumers hold while a messaging stop is engaged, the ad conversions with them (A4-11); Tally and the CRM do not. */

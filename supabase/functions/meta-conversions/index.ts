@@ -15,6 +15,6 @@ const find: FindConversion = async (venueId, eventType, payload) =>
 
 Deno.serve(
   pixelId && accessToken
-    ? serveConsumer(createConversionConsumer({ name: 'meta-conversions', find, report: reportToMeta(createMetaConversionsApi({ pixelId, accessToken })) }))
+    ? serveConsumer(createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(createMetaConversionsApi({ pixelId, accessToken })) }))
     : () => Response.json({ error: 'The Meta Conversions API is not configured' }, { status: 503 }),
 );

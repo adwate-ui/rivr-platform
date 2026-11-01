@@ -39,7 +39,7 @@ export function createSocialPublishConsumer({ publishing, find, record }: {
   record: RecordPostChannel;
 }): Consumer {
   return {
-    name: 'social-publish',
+    name: 'social_publish',
     eventTypes: SOCIAL_PUBLISH_EVENT_TYPES,
     isMessaging: false,
     async deliver(delivery) {

@@ -47,7 +47,7 @@ export type FindCrmContact = (venueId: string, payload: unknown) => Promise<CrmC
  */
 export function createCrmConsumer({ find, crm }: { find: FindCrmContact; crm: CrmAdapter }): Consumer {
   return {
-    name: 'crm-sync',
+    name: 'crm_sync',
     eventTypes: CRM_EVENT_TYPES,
     isMessaging: false,
     async deliver(delivery) {
