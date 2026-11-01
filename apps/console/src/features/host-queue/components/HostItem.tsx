@@ -1,7 +1,7 @@
 import { HOST_CHURN_REASONS, hostContactSchema, type HostChurnReason } from '@rivr/contracts';
 import { useHostQueueActions, type HostQueueFailure, type HostQueueItem } from '@rivr/db/hostQueue';
 import { formatDate, formatMobile, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, TextArea } from '@rivr/ui';
+import { Button, ChoiceChips, ConfirmButton, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text, TextArea } from '@rivr/ui';
 import { useState } from 'react';
 import { OFFER_KINDS, offerDraft, offerFrom, offerText, type OfferKind } from './offer.ts';
 
@@ -41,7 +41,10 @@ function refusalOf(...outcomes: ({ ok: true } | { ok: false; error: HostQueueFai
   return null;
 }
 
-/** One lapsed regular (#165): their lapse, the offer made so far, and the host's call: save it, or close the player. */
+/**
+ * One lapsed regular (#165): their lapse, the offer made so far, and the host's call: save it, said once saved, or close the
+ * player, asked twice as it takes them off the queue for good (F2-19).
+ */
 export function HostItem({ venueId, item }: { venueId: string; item: HostQueueItem }) {
   const { record, close } = useHostQueueActions(venueId);
   const form = useCallForm(item);
@@ -61,8 +64,10 @@ export function HostItem({ venueId, item }: { venueId: string; item: HostQueueIt
       <CallFields name={name} form={form} />
       <Inline gap={2} wrap>
         <Button variant="primary" isDisabled={form.reason === null || form.offer === undefined || record.isPending} onClick={save}>{t('console.hostQueue.save', { name })}</Button>
-        <Button variant="secondary" isDisabled={close.isPending} onClick={() => close.mutate(item.itemId)}>{t('console.hostQueue.close', { name })}</Button>
+        <ConfirmButton variant="secondary" label={t('console.hostQueue.close', { name })} confirm={t('console.hostQueue.closeConfirm', { name })}
+          isBusy={close.isPending} onConfirm={() => close.mutate(item.itemId)} />
       </Inline>
+      <StatusMessage>{record.data?.ok === true ? t('console.hostQueue.saved', { name }) : null}</StatusMessage>
       {refusal === null ? null : <ErrorMessage>{t(`console.hostQueue.failures.${refusal}`)}</ErrorMessage>}
     </Stack>
   );

@@ -12,6 +12,11 @@ export const consoleHostQueue = {
   note: 'Note on {name}',
   save: 'Save the call to {name}',
   close: 'Close {name}',
+  /** Close's second press: the player leaves the queue for good (F2-19). */
+  closeConfirm: 'Yes, take {name} off the queue',
+  saved: 'Call to {name} saved.',
+  /** The next calls, shown twenty at a time. `{count}`: how many more this shows. */
+  showMore: 'Show {count} more',
   reasons: {
     moved_away: 'Moved away', busy: 'Busy', budget: 'Budget', game_too_big: 'Game too big', game_too_small: 'Game too small',
     bad_experience: 'Unhappy with a visit', playing_elsewhere: 'Playing elsewhere', unreachable: 'Could not reach', other: 'Other',

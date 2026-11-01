@@ -21,6 +21,9 @@ test('Host queue: a host records why a lapsed regular stopped coming and an offe
   await page.getByRole('textbox', { name: 'Points for Ritika Bhalla' }).fill('500');
   await page.getByRole('button', { name: 'Save the call to Ritika Bhalla' }).click();
   await expect(page.getByText('Offered: 500 points')).toBeVisible();
+  await expect(page.getByRole('status').getByText('Call to Ritika Bhalla saved.')).toBeVisible();
+  // Close takes her off the queue for good, so it is asked twice (F2-19).
   await page.getByRole('button', { name: 'Close Ritika Bhalla' }).click();
+  await page.getByRole('button', { name: 'Yes, take Ritika Bhalla off the queue' }).click();
   await expect(page.getByText('No lapsed regulars to call.')).toBeVisible();
 });
