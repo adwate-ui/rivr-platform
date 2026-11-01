@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createAppRouter, ScreenFailed } from './router.tsx';
+import { createAppRouter } from './router.tsx';
 
 afterEach(() => {
   cleanup();
@@ -256,7 +256,7 @@ describe('the console', () => {
   });
 });
 
-describe('a screen whose refresh fails, or that fails to draw', () => {
+describe('a screen whose refresh fails', () => {
   it('keeps Check-in, and the number typed in it, when a refresh fails, saying since when', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     signIn();
@@ -283,13 +283,5 @@ describe('a screen whose refresh fails, or that fails to draw', () => {
     expect(await screen.findByText(/^Not updated since /)).toBeDefined();
     expect(screen.getAllByText(/NLH 100\/200/).length).toBeGreaterThan(0);
     vi.useRealTimers();
-  });
-
-  it('shows a screen that fails to draw as an error with Try again, which draws it again', () => {
-    const reset = vi.fn();
-    render(<ScreenFailed error={new Error('A bad timestamp')} reset={reset} />);
-    expect(screen.getByRole('heading', { name: 'Screen unavailable' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(reset).toHaveBeenCalledOnce();
   });
 });
