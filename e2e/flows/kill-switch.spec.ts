@@ -62,7 +62,8 @@ test.describe('Kill switch', () => {
       await expect(first.getByText('Engage Venue freeze now?')).toBeVisible();
       await first.getByRole('button', { name: 'Engage Venue freeze' }).click();
       frozen = true;
-      await expect(first.getByText('Engaged.')).toBeVisible();
+      // Read out as it appears (F1-23).
+      await expect(first.getByRole('status').getByText('Engaged.')).toBeVisible();
       await expect(first.getByText(STAFF_BANNER)).toBeVisible({ timeout: 15_000 });
 
       await expect(tablet.getByText(STAFF_BANNER)).toBeVisible({ timeout: 15_000 });

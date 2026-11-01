@@ -1,6 +1,6 @@
 import { useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { InPersonForm } from './InPersonForm.tsx';
 
@@ -38,11 +38,8 @@ export function InPersonSection({ venueId }: { venueId: string }) {
     <Stack gap={4}>
       <Heading level={2}>{t('console.kycInPerson.title')}</Heading>
       <Text tone="muted">{t('console.kycInPerson.hint')}</Text>
-      {outcome === null ? null : (
-        <Text weight="medium">
-          {t(OUTCOME_COPY[outcome.status], { name: outcome.name })}
-        </Text>
-      )}
+      {/* Always there, so the outcome is read out as it appears (F1-23). */}
+      <StatusMessage>{outcome === null ? null : t(OUTCOME_COPY[outcome.status], { name: outcome.name })}</StatusMessage>
       {member === null ? (
         <Stack gap={4}>
           <Input type="search" label={t('console.kycInPerson.search')} value={search} onChange={(event) => setSearch(event.target.value)} autoComplete="off" />
