@@ -1,8 +1,7 @@
 import { useTournamentFloorActions, type BalancePrompt, type TournamentSeatRow } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, DataTable, Inline, type DataTableColumn } from '@rivr/ui';
+import { Button, ConfirmButton, DataTable, type DataTableColumn, Inline } from '@rivr/ui';
 import { BustAction } from './BustAction.tsx';
-import { ConfirmButton } from './ConfirmButton.tsx';
 
 /** Where a player is: their place once finished, their seat, waiting, the place they went out in, or refunded. */
 function whereOf(row: TournamentSeatRow): string {

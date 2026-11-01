@@ -26,6 +26,7 @@ test.describe('Sessions', () => {
     await sahil.getByRole('button', { name: 'Let leave early' }).click();
     await expect(sahil.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
     await sahil.getByRole('button', { name: 'Rhea Kaul leaves' }).click();
+    await sahil.getByRole('button', { name: 'Yes, Rhea Kaul leaves' }).click();
     await expect(sahil.getByRole('button', { name: 'Move Rhea Kaul' })).toHaveCount(0);
     await sahil.getByRole('link', { name: 'Check-in' }).click();
     await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');

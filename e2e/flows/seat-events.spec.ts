@@ -45,6 +45,7 @@ test.describe('Seat events', () => {
     await floor.getByRole('button', { name: 'Yash Gupta is back at the table' }).click();
     await expect(floor.getByRole('button', { name: 'Yash Gupta is away from the table' })).toBeVisible();
     await tablet.getByRole('button', { name: 'Player left' }).click();
+    await tablet.getByRole('button', { name: 'Yes, Yash Gupta left' }).click();
     await expect(tablet.getByRole('button', { name: 'Seat 9, open' })).toBeVisible();
     await revoke(floor, name);
   });

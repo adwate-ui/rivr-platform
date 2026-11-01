@@ -53,7 +53,10 @@ async function nameOnTvs(member: Page, isOn: boolean) {
 /** Takes a member off the console's lists, where a run stopped early may have left them. */
 async function removeLeftover(floor: Page, name: string) {
   const remove = floor.getByRole('button', { name: `Remove ${name}` });
-  if (await remove.count() > 0) await remove.first().click();
+  if (await remove.count() > 0) {
+    await remove.first().click();
+    await floor.getByRole('button', { name: `Yes, remove ${name}` }).click();
+  }
   await expect(remove).toHaveCount(0);
 }
 
@@ -159,11 +162,14 @@ test.describe('TV boards', () => {
     await floor.getByRole('button', { name: 'Let leave early' }).click();
     await expect(floor.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
     await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
+    await floor.getByRole('button', { name: `Yes, ${LEAVING} leaves` }).click();
     await expect(floor.getByRole('button', { name: `Move ${LEAVING}` })).toHaveCount(0);
 
     await floor.getByRole('link', { name: 'Waitlist' }).click();
     await floor.getByRole('button', { name: `Remove ${PLAYER}` }).click();
+    await floor.getByRole('button', { name: `Yes, remove ${PLAYER}` }).click();
     await floor.getByRole('button', { name: `Remove ${HIDDEN}` }).click();
+    await floor.getByRole('button', { name: `Yes, remove ${HIDDEN}` }).click();
     await floor.getByRole('link', { name: 'Devices', exact: true }).click();
     await floor.getByRole('link', { name: 'TVs' }).click();
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();

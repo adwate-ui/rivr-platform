@@ -94,6 +94,7 @@ test.describe('F&B', () => {
     await page.getByRole('link', { name: 'Live floor' }).click();
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await page.getByRole('button', { name: 'Ishan Mehta leaves' }).click();
+    await page.getByRole('button', { name: 'Yes, Ishan Mehta leaves' }).click();
     await page.getByRole('button', { name: 'Let Ishan Mehta leave early' }).click();
     await page.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the F&B flow');
     await page.getByRole('button', { name: 'Let leave early' }).click();

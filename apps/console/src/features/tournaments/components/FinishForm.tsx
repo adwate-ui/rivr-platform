@@ -4,9 +4,8 @@ import { useTournamentPayoutActions, useTournamentSeating, type DealOrder, type 
 import { ZERO, type Paise } from '@rivr/domain/money';
 import { dealAmounts, MOST_DEAL_PLAYERS } from '@rivr/domain/tournament';
 import { formatMoney, t } from '@rivr/i18n';
-import { ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { ChoiceChips, ConfirmButton, ErrorMessage, Heading, Inline, Input, LoadState, Stack, Text } from '@rivr/ui';
 import { ChipCountForm } from './ChipCountForm.tsx';
-import { ConfirmButton } from './ConfirmButton.tsx';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
