@@ -84,15 +84,15 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
   const [choices, setChoices] = useState(START);
   const [words, setWords] = useState(NO_WORDS);
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
-  const title = rewardTitle(choices);
-  const detail = rewardDetail(choices);
-  const runs = runsText(choices, stakes);
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID()); // Kept to retry a lost answer; new with any change (A3).
+  const [title, detail, runs] = [rewardTitle(choices), rewardDetail(choices), runsText(choices, stakes)];
   const check = (then: () => Promise<void>) => {
     const invalid = invalidText(choices);
     return invalid === null ? then() : Promise.resolve(setOutcome({ ok: false, text: invalid }));
   };
   const submit = async () => {
-    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices), ...promotionWords(words.rules, words.questions) });
+    const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices), ...promotionWords(words.rules, words.questions), requestId });
+    if (result.ok || result.error !== 'unavailable') setRequestId(crypto.randomUUID());
     if (result.ok) { setChoices(START); setWords(NO_WORDS); simulation.clear(); }
     setOutcome(result.ok ? { ok: true, text: t('console.promotions.submitted', { name: title }) } : { ok: false, text: t(`console.promotions.failures.${result.error}`) });
   };
@@ -101,8 +101,8 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
     <Grid columns={2} gap={12} stackBelow="medium">
       <Stack gap={6}>
         <Heading level={2} variant="section">{t('console.promotions.newPromotion')}</Heading>
-        <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { setChoices(next); setOutcome(null); simulation.clear(); }} />
-        <WebWords words={words} isDisabled={isBusy} onChange={setWords} />
+        <BuilderBlocks choices={choices} stakes={stakes} isDisabled={isBusy} onChange={(next) => { setChoices(next); setOutcome(null); simulation.clear(); setRequestId(crypto.randomUUID()); }} />
+        <WebWords words={words} isDisabled={isBusy} onChange={(next) => { setWords(next); setRequestId(crypto.randomUUID()); }} />
         <SimulationPanel simulation={simulation.simulation} failure={simulation.failure} isPending={simulation.isPending} isDisabled={submitPromotion.isPending}
           onSimulate={() => void check(() => simulation.run(choices))} />
         <Inline gap={4} align="center">
