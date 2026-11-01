@@ -100,6 +100,9 @@ function nameType(name: string, isChoosing: boolean): string {
  * The table's parts in viewBox units, inside the seats' orbit (SEAT_ORBIT, 104 by 60) with room for a card's seat circles:
  * the rail, the felt inside it, the racetrack line on the felt, and the dealer's tray at the felt's foot.
  */
+/** The halo behind the felt's words, in viewBox units. */
+const HALO = 4;
+
 const TABLE = {
   rail: { rx: 76, ry: 44 },
   felt: { rx: 66, ry: 35 },
@@ -110,7 +113,7 @@ const TABLE = {
 /**
  * The table from above, drawn from the tokens (UI polish audit AS-08; no licensed top-down table photograph exists,
  * decision 0289): the rail warm with the hairline gold, so it shows on a raised card as on the page, the green felt
- * inside it, the racetrack's hairline, and the dealer's tray at the foot, between seats 5 and 6.
+ * inside it, the racetrack's hairline, and the dealer's tray at the foot of the table.
  */
 function TableArt() {
   const { rail, felt, racetrack, tray } = TABLE;
@@ -137,8 +140,12 @@ export function SeatRing({ name, stakes, seats, label, isClosed, onSelectSeat, s
     <svg viewBox={isChoosing ? '0 -16 240 186' : '0 -4 240 158'} role={isChoosing ? 'group' : 'img'} aria-label={label}
       className={cx('w-full', isChoosing && 'mx-auto max-w-text', isClosed && 'opacity-muted')}>
       <TableArt />
-      <text x={CENTRE.x} y={CENTRE.y - 4} textAnchor="middle" className={cx('fill-content font-text font-medium', nameType(name, isChoosing))}>{name}</text>
-      <text x={CENTRE.x} y={CENTRE.y + 15} textAnchor="middle" className={cx('fill-content-muted font-text', isChoosing ? 'text-12' : 'text-16')}>{stakes}</text>
+      {/* A halo of the felt's green behind each glyph keeps the words at their contrast where a long name or stakes runs
+          over the racetrack line or onto the rail (ui.md, 4.5:1). */}
+      <text x={CENTRE.x} y={CENTRE.y - 4} textAnchor="middle" paintOrder="stroke" strokeWidth={HALO}
+        className={cx('fill-content stroke-green font-text font-medium', nameType(name, isChoosing))}>{name}</text>
+      <text x={CENTRE.x} y={CENTRE.y + 15} textAnchor="middle" paintOrder="stroke" strokeWidth={HALO}
+        className={cx('fill-content-muted stroke-green font-text', isChoosing ? 'text-12' : 'text-16')}>{stakes}</text>
       {seats.map((seat, index) => (
         <Seat key={seat.number} seat={seat} at={seatPosition(index, seats.length)} isSelected={seat.number === selectedSeat} onSelect={onSelectSeat} />
       ))}

@@ -17,6 +17,8 @@ export const ui = {
     motto: 'Skill runs deep.',
     /** The wordmark's accessible name. */
     label: 'RIVR Poker Club',
+    /** On the share image's photograph while it is a concept (decision 0289). */
+    conceptNote: 'Concept visualisation',
   },
   playerTabs: {
     /** Accessible name of the player app's bottom tab bar. */

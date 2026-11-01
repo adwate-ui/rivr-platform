@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
 import { useFitScale } from '../internal/fit.ts';
+import { MediaNote } from '../internal/webMedia.tsx';
 import { Wordmark, WordmarkCard } from '../Wordmark/Wordmark.tsx';
 
 /**
@@ -34,7 +35,11 @@ function ShareArt({ backdrop }: { backdrop: string }) {
           <Wordmark size="lg" withTagline align="center" />
         </div>
       </div>
-      <img src={backdrop} alt="" className="size-full object-cover" />
+      <div className="relative">
+        <img src={backdrop} alt="" className="size-full object-cover" />
+        {/* The room's picture is a concept until the club's shoot, and says so, as the website's media does. */}
+        <MediaNote>{t('ui.brand.conceptNote')}</MediaNote>
+      </div>
     </div>
   );
 }
