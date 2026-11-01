@@ -28,7 +28,7 @@ export function MoveForm({ venueId, player, tables, onDone, onCancel }: MoveForm
   };
   return (
     <Stack gap={3}>
-      <Heading level={3}>{t('console.liveFloor.moveTitle', { name: player.fullName })}</Heading>
+      <Heading level={3} isFocusedOnMount>{t('console.liveFloor.moveTitle', { name: player.fullName })}</Heading>
       <ChoiceChips label={t('console.liveFloor.table')} mode="one" options={open.map((table) => ({ value: table.id, label: table.name }))}
         selected={tableId === null ? [] : [tableId]} onChange={([id]) => { setTableId(id ?? null); setSeat(null); }} />
       {target === undefined ? null : (

@@ -19,7 +19,7 @@ export function CallTimeForm({ venueId, player, onDone, onCancel }: CallTimeForm
   const submit = async () => onDone(await setCallTime.mutateAsync({ sessionId: player.sessionId, minutes: Number(minutes) }));
   return (
     <Stack gap={3}>
-      <Heading level={3}>{t('console.liveFloor.changeCallTimeName', { name: player.fullName })}</Heading>
+      <Heading level={3} isFocusedOnMount>{t('console.liveFloor.changeCallTimeName', { name: player.fullName })}</Heading>
       <Input label={t('console.liveFloor.callTimeMinutes')} hint={t('console.liveFloor.callTimeHint')} value={minutes} inputMode="numeric"
         maxLength={4} autoComplete="off" error={minutes === '' || isMinutes(minutes) ? undefined : t('console.liveFloor.callTimeInvalid')}
         onChange={(event) => setMinutes(event.target.value.trim())} />

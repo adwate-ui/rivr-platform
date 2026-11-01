@@ -46,4 +46,9 @@ describe('Heading', () => {
     );
     expect(screen.getByRole('heading', { level: 1, name: 'Sign in' })).toHaveClass('sr-only');
   });
+
+  it('takes the focus as it opens, for a form opened below what opened it (F2-24)', () => {
+    renderIn(<Heading level={3} isFocusedOnMount>Move Kabir Sethi</Heading>);
+    expect(screen.getByRole('heading', { level: 3, name: 'Move Kabir Sethi' })).toHaveFocus();
+  });
 });

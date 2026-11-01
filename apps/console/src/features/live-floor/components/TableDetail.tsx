@@ -170,7 +170,7 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
         <SeatRows venueId={venueId} table={table} seats={seats} held={held} permissions={permissions} report={report}
           onForm={(form, player) => forms[form](player)} />
       ) : <Text tone="muted">{t('console.liveFloor.noSeatMap')}</Text>}
-      {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
+      {moving === null ? null : <MoveForm key={moving.sessionId} venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
       {leavingEarly === null ? null : (
         <EarlyLeaveForm key={leavingEarly.sessionId} venueId={venueId} onDone={report} onCancel={() => setLeavingEarly(null)}
           member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />
