@@ -70,4 +70,12 @@ describe('SideNav', () => {
     const { container } = renderIn(<SideNav label="Sections" sections={sections} current="liveFloor" />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('outlines a waiting count rather than filling it gold, and rules the current screen in gold', () => {
+    renderIn(<SideNav label="Sections" current="waitlist" sections={[{ id: 'tonight', items: [{ id: 'waitlist', label: 'Waitlist', href: '/waitlist', count: 3 }] }]} />);
+    const count = screen.getByText('3');
+    expect(count).not.toHaveClass('bg-action');
+    expect(count).toHaveClass('border-action');
+    expect(screen.getByRole('link', { name: /Waitlist/ })).toHaveClass('border-action');
+  });
 });

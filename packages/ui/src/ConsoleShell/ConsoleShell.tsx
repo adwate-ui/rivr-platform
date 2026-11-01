@@ -131,7 +131,7 @@ function MenuDrawer({ children, onCloseAutoFocus }: { children: ReactNode; onClo
         {/* Focus moves to the menu itself, not Go to, so a phone's keyboard does not cover the screens. */}
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 left-0 z-modal flex w-rail max-w-full flex-col gap-8 bg-raised py-6 shadow-modal focus:outline-none"
+          className="fixed inset-y-0 left-0 z-modal flex w-rail max-w-full flex-col gap-8 border-r border-hairline bg-raised py-6 shadow-modal focus:outline-none"
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();

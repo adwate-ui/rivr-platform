@@ -34,6 +34,25 @@
     outline-offset: var(--rivr-border-width-focus);
   }
 
+  /* A switch's ring goes round its track, not the larger tap area around it. */
+  [role='switch']:focus-visible {
+    outline: none;
+  }
+
+  [role='switch']:focus-visible > [data-switch-track] {
+    outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
+    outline-offset: var(--rivr-border-width-focus);
+  }
+
+  /* The browser's light autofill fill never shows on a dark field. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--rivr-color-content);
+    caret-color: var(--rivr-color-content);
+    box-shadow: inset 0 0 0 100vmax var(--rivr-color-raised);
+  }
+
   [data-field-row] input:focus-visible {
     outline: none;
   }
@@ -58,9 +77,9 @@
       transition-duration: 0s !important;
     }
 
+    /* The busy circle keeps turning: it is the only sign a tap is being sent (Button). */
     [data-reveal],
-    [data-board-progress],
-    [data-busy-turn] {
+    [data-board-progress] {
       animation: none !important;
     }
   }

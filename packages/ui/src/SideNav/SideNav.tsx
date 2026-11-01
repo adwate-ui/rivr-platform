@@ -79,13 +79,13 @@ function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurren
       onClick={(event) => routeClick(event, item.href, onNavigate)}
       className={cx(
         // A finger's width below a desk, where the rail is the console's menu.
-        'flex min-h-touch items-center gap-2 rounded-md px-3 font-text text-16 transition-colors tablet:min-h-8',
-        isCurrent ? 'font-medium text-content' : 'text-content-muted hover:text-content',
+        'flex min-h-touch items-center gap-2 rounded-md border-l-2 px-3 font-text text-16 transition-colors tablet:min-h-8',
+        isCurrent ? 'border-action font-medium text-content' : 'border-transparent text-content-muted hover:text-content',
       )}
     >
       {item.label}
       {waiting === null ? null : (
-        <span className="ml-auto rounded-md bg-action px-2 font-text text-13 font-medium tabular-nums text-on-action">{waiting}</span>
+        <span className="ml-auto rounded-md border border-action px-2 font-text text-13 font-medium tabular-nums text-action">{waiting}</span>
       )}
     </a>
   );

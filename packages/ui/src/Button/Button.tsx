@@ -55,7 +55,7 @@ export type ButtonProps = ActionButtonProps | LinkButtonProps;
 // The gold action is semibold, as in the prototype; the rest are medium.
 const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-action px-5 font-semibold text-on-action',
-  secondary: 'border border-hairline px-5 font-medium text-content hover:bg-raised',
+  secondary: 'border border-hairline px-5 font-medium text-content hover:border-control',
   text: 'px-3 font-medium text-content underline-offset-4 hover:underline',
   danger: 'bg-alert px-5 font-medium text-on-alert',
 };
@@ -64,7 +64,7 @@ const SIZE: Record<ButtonSize, string> = { regular: 'min-h-touch', large: 'min-h
 
 const BASE =
   'inline-flex min-w-touch items-center justify-center gap-2 rounded-lg font-text text-16 leading-snug ' +
-  'select-none transition-colors disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
+  'select-none transition-colors active:opacity-muted disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
 function LinkButton({ children, variant = 'secondary', size = 'regular', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {

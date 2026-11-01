@@ -23,7 +23,7 @@ export function Switch({ label, hint, isOn, onChange, isDisabled }: SwitchProps)
   const id = useId();
   const hintId = useId();
   return (
-    <div className={cx('flex min-h-touch items-center justify-between gap-4', isDisabled && 'opacity-disabled')}>
+    <div className="flex min-h-touch items-center justify-between gap-4">
       <Stack gap={1} grow>
         <Label htmlFor={id} variant="setting">{label}</Label>
         {hint ? (
@@ -40,16 +40,17 @@ export function Switch({ label, hint, isOn, onChange, isDisabled }: SwitchProps)
         aria-describedby={hint ? hintId : undefined}
         disabled={isDisabled}
         onClick={() => onChange(!isOn)}
-        className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-end disabled:cursor-not-allowed"
+        className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-end disabled:cursor-not-allowed disabled:opacity-disabled"
       >
         <span
           aria-hidden="true"
+          data-switch-track=""
           // Off, the track stays dark and its edge is the control colour: the cream thumb on it is clear, and the track
           // meets 3:1 on the page (F5-04).
           className={cx('inline-flex h-6 w-10 items-center rounded-lg border p-1 transition-colors',
             isOn ? 'border-action bg-action' : 'border-control bg-raised')}
         >
-          <span className={cx('size-4 rounded-sm bg-cream transition-transform', isOn && 'translate-x-4')} />
+          <span className={cx('size-3 rounded-sm transition-transform', isOn ? 'translate-x-4 bg-raised' : 'bg-cream')} />
         </span>
       </button>
     </div>

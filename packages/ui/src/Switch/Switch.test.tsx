@@ -55,4 +55,10 @@ describe('Switch', () => {
     const { container } = renderIn(<Switch label="Seat calls" hint="When your seat is ready." isOn onChange={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('dims only its control when disabled, so the hint that says why stays legible', () => {
+    renderIn(<Switch label="Notifications on this phone" hint="Blocked in your phone's settings." isOn={false} isDisabled onChange={() => undefined} />);
+    expect(screen.getByText("Blocked in your phone's settings.").closest('.opacity-disabled')).toBeNull();
+    expect(screen.getByRole('switch')).toHaveClass('disabled:opacity-disabled');
+  });
 });

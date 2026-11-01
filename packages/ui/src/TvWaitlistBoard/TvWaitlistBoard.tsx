@@ -32,7 +32,7 @@ const SHOWN = TV_WAITLIST_PLACES_SHOWN;
 function StakeColumn({ stake, emptyText }: { stake: TvWaitlistStake; emptyText: string }) {
   return (
     <section aria-label={stake.stake} className="flex flex-col">
-      <div className="flex items-baseline justify-between border-b border-hairline pb-5">
+      <div className="flex flex-col gap-2 border-b border-hairline pb-5">
         <span className="font-text text-56 font-medium text-content">{stake.stake}</span>
         <span className="font-text text-24 uppercase tracking-tv text-content-muted">{stake.detail}</span>
       </div>
