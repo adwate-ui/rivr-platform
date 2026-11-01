@@ -68,7 +68,13 @@ export const playerApp = {
   balance,
   learn: playerLearn,
   /** The digital membership card (#71): the QR the door scans changes every few seconds. */
-  card: { title: 'Membership card', qr: 'Your door code', hint: 'Show this at the door. The code changes every few seconds.' },
+  card: {
+    title: 'Membership card',
+    qr: 'Your door code',
+    hint: 'Show this at the door. The code changes every few seconds.',
+    /** No connection before the card came (F3-25): the door checks a member in by number too. */
+    offline: 'No connection. Give your number at the door.',
+  },
   /** RIVR Academy: batches, booking a seat, paying by UPI with the UTR. */
   academy: {
     title: 'RIVR Academy',
