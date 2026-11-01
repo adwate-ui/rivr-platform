@@ -33,7 +33,9 @@ const VARIABLE_FACES = [
  * contrast and height, and is served inside the Bodoni Moda family for that one character. The file is the variable
  * latin-ext file of @fontsource-variable/noto-serif-display 5.3.0, subset to U+20B9 (1 KB, not 174 KB):
  * pyftsubset noto-serif-display-latin-ext-wght-normal.woff2 --unicodes=U+20B9 --name-IDs='*' --name-legacy --name-languages='*' --flavor=woff2
- * Defined last, so the browser looks here first for ₹.
+ * Defined last, so the browser looks here first for ₹, with the same style and weights as the Bodoni Moda faces: a
+ * browser matches weight before unicode-range, so a face that differed would stand alone and leave every other letter to
+ * the fallback serif.
  */
 const RUPEE = {
   file: 'rupee-noto-serif-display.woff2',
@@ -43,7 +45,7 @@ const RUPEE = {
     "  font-family: 'Bodoni Moda';",
     '  font-style: normal;',
     '  font-display: swap;',
-    '  font-weight: 100 900;',
+    '  font-weight: 400 900;',
     `  src: url(./fonts/${file}) format('woff2-variations');`,
     '  unicode-range: U+20B9;',
     '}',
