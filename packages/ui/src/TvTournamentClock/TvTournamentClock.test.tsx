@@ -42,6 +42,12 @@ describe('TvTournamentClock', () => {
     expect(screen.getAllByRole('term')).toHaveLength(2);
   });
 
+  it('leaves the payouts panel out when it is given no payouts, as on the TVs now', () => {
+    renderIn(<TvTournamentClock {...CLOCK} payouts={undefined} payoutsLabel={undefined} noPayoutsText={undefined} />);
+    expect(screen.queryByRole('region', { name: 'Payouts' })).toBeNull();
+    expect(screen.queryByText('Payouts are set when registration closes.')).toBeNull();
+  });
+
   it('says when the clock is paused', () => {
     renderIn(<TvTournamentClock {...CLOCK} payouts={[]} status="Paused" />);
     expect(screen.getByText('Paused')).toBeInTheDocument();
