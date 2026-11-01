@@ -160,33 +160,49 @@ interface BodyRowProps<Row> {
   onRowOpen?: ((row: Row) => void) | undefined;
 }
 
+interface TitleProps<Row> {
+  row: Row;
+  column: DataTableColumn<Row>;
+  onRowOpen: ((row: Row) => void) | undefined;
+  /** In a long list's fixed rows, it keeps to one line. */
+  isOneLine: boolean;
+}
+
 /** The title cell's content: a button that opens the row, when rows open. */
-function Title<Row>({ row, column, onRowOpen }: { row: Row; column: DataTableColumn<Row>; onRowOpen: ((row: Row) => void) | undefined }) {
+function Title<Row>({ row, column, onRowOpen, isOneLine }: TitleProps<Row>) {
   if (onRowOpen === undefined) return <>{column.cell(row)}</>;
   return (
     <button type="button" onClick={() => onRowOpen(row)}
       className="flex min-h-touch w-full items-center text-start text-content underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-focus">
-      <span className="truncate">{column.cell(row)}</span>
+      <span className={isOneLine ? 'truncate' : undefined}>{column.cell(row)}</span>
     </button>
   );
 }
 
+/** A cell's words as its title, in a long list whose rows keep to one line, so text cut short can still be read (F5-05). */
+function titleOf(content: ReactNode, isOneLine: boolean): string | undefined {
+  return isOneLine && (typeof content === 'string' || typeof content === 'number') ? String(content) : undefined;
+}
+
 function BodyRow<Row>({ row, columns, index, place, onRowOpen }: BodyRowProps<Row>) {
+  const isOneLine = place !== undefined;
   return (
     <div role="row" aria-rowindex={index + 2}
-      className={cx('flex flex-col gap-1 border-b border-hairline px-3 py-3 medium:h-12 medium:py-0', WIDE_GRID,
-        place === undefined ? 'relative' : 'absolute inset-x-0 top-0 overflow-hidden')}
+      className={cx('flex flex-col gap-1 border-b border-hairline px-3 py-3', WIDE_GRID,
+        isOneLine ? 'absolute inset-x-0 top-0 overflow-hidden medium:h-12 medium:py-0' : 'relative medium:min-h-12 medium:py-2')}
       style={place === undefined ? undefined : { transform: `translateY(${place.offset}px)`, height: place.height }}>
       {columns.map((column, at) => {
         const priority = priorityOf(column, at);
         return (
-          // Rows are one height from 768 px, and a long list's cards are too, so there a cell keeps to one line: long
-          // text ends in an ellipsis; on a phone's card, a value with no spaces (a key, a link) breaks rather than spill.
-          // data-label is the column's name, which styles.css shows before the value on a phone.
+          // A long list's rows are one height, so there a cell keeps to one line and its words are its title (F5-05);
+          // elsewhere long text wraps onto the row's next line rather than be cut. On a phone's card, a value with no
+          // spaces (a key, a link) breaks rather than spill. data-label is the column's name, which styles.css shows
+          // before the value on a phone.
           <div key={column.key} role="cell" data-label={priority === 'secondary' ? column.header : undefined}
-            className={cx('min-w-0 font-text text-16 text-content wrap-anywhere', place === undefined ? 'medium:truncate' : 'truncate', CELL[priority],
+            title={titleOf(column.cell(row), isOneLine)}
+            className={cx('min-w-0 font-text text-16 text-content wrap-anywhere', isOneLine ? 'truncate' : undefined, CELL[priority],
               column.align === 'end' ? 'medium:text-end' : 'text-start')}>
-            {priority === 'primary' ? <Title row={row} column={column} onRowOpen={onRowOpen} /> : column.cell(row)}
+            {priority === 'primary' ? <Title row={row} column={column} onRowOpen={onRowOpen} isOneLine={isOneLine} /> : column.cell(row)}
           </div>
         );
       })}

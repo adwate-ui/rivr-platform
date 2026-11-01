@@ -97,6 +97,19 @@ describe('DataTable', () => {
     expect(names()[0]).toBe('Member 0');
   });
 
+  it('lets a long name wrap in a table that is no long list, and cuts it to one line with its words as a title in one (F5-05)', () => {
+    const longName = 'Naina Kapoor, who has a much longer name than any member has';
+    const { unmount } = table([{ id: 'c1', name: longName, hours: 12 }]);
+    const short = screen.getAllByRole('cell')[0];
+    expect(short).not.toHaveClass('truncate');
+    expect(short).not.toHaveAttribute('title');
+    unmount();
+    table(Array.from({ length: VIRTUAL_FROM + 1 }, (_, index) => ({ id: `c${index}`, name: index === 0 ? longName : `Member ${index}`, hours: index })));
+    const cut = screen.getAllByRole('cell')[0];
+    expect(cut).toHaveClass('truncate');
+    expect(cut).toHaveAttribute('title', longName);
+  });
+
   it(`draws every row up to ${VIRTUAL_FROM}`, () => {
     table(Array.from({ length: VIRTUAL_FROM }, (_, index) => ({ id: `c${index}`, name: `Member ${index}`, hours: index })));
     expect(screen.getAllByRole('row')).toHaveLength(VIRTUAL_FROM + 1);
