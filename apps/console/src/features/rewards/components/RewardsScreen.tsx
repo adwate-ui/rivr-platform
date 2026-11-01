@@ -1,4 +1,4 @@
-import { useStaffVenue, type RewardItem } from '@rivr/db';
+import { type RewardItem, useRewardItems, useStaffVenue, useVenueRedemptions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
@@ -13,8 +13,11 @@ function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: stri
   // Kept here: a change saved closes its form, so the form's own words would go with it (F2-23).
   const [saved, setSaved] = useState<string | null>(null);
   const edit = (item: RewardItem | null) => { setEditing(item); setSaved(null); };
+  // The catalogue and the redemptions read these too (one query each): waiting for both lays the screen out once (E-07).
+  const lists = [useRewardItems(venueId), useVenueRedemptions(venueId)];
   const catalogue = <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={edit} />;
   const newReward = editing === null ? null : <Button variant="text" onClick={() => edit(null)}>{t('console.rewards.newReward')}</Button>;
+  if (lists.some((list) => list.isPending)) return <Screen title={t('console.rewards.title')} status="loading" />;
   return (
     <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
       <Stack gap={10}>

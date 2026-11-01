@@ -1,4 +1,5 @@
-import { useStaffVenue } from '@rivr/db';
+import { useFloorSeats, useFloorTables, useStaffVenue } from '@rivr/db';
+import { useFnbItems, useFnbMenu, useFnbOrdersTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import { MenuItems } from './MenuItems.tsx';
@@ -18,13 +19,20 @@ export function FnbScreen() {
   if (!permissions.includes('fnb.manage') && !permissions.includes('fnb.serve')) {
     return <Screen title={t('console.fnb.title')} status="error" errorText={t('console.fnb.notAllowed')} />;
   }
-  const { venueId } = staff.venue;
+  return <FnbBody venueId={staff.venue.venueId} canOrder={permissions.includes('fnb.manage')} />;
+}
+
+/** The sections below, laid out once every list they read has come (UI polish audit E-07), so none pushes another down. */
+function FnbBody({ venueId, canOrder }: { venueId: string; canOrder: boolean }) {
+  // The sections read these too (one query each): Ordering for a seat reads the floor and the menu.
+  const lists = [useFnbOrdersTonight(venueId), useFnbItems(venueId), useFnbMenu(venueId), useFloorSeats(venueId), useFloorTables()];
+  if (lists.some((list) => list.isPending)) return <Screen title={t('console.fnb.title')} status="loading" />;
   return (
     <Screen title={t('console.fnb.title')}>
       <Stack gap={10}>
         <TonightOrders venueId={venueId} />
         {/* Ordering for a seat can comp it: for staff who run F&B, never Service alone (#640). */}
-        {permissions.includes('fnb.manage') ? <OrderForSeat venueId={venueId} /> : null}
+        {canOrder ? <OrderForSeat venueId={venueId} /> : null}
         <MenuItems venueId={venueId} />
       </Stack>
     </Screen>
