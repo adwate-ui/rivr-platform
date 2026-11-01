@@ -14,12 +14,12 @@ export const consoleSocial = {
     caption: 'Caption',
     channels: 'Channels',
     publish: 'Publish',
-    done: 'Published. Connected channels post it by themselves; download the image and caption below for the others.',
+    done: 'Published. Download below for the other channels.',
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
-      invalid: 'Choose an image (JPEG, PNG or WebP), write a caption and choose at least one channel.',
+      invalid: 'An image (JPEG, PNG or WebP), a caption and a channel.',
       paused: 'Social publishing is switched off, or the club is paused.',
-      unavailable: 'The post did not go through. Try again.',
+      unavailable: 'Not posted. Try again.',
     },
   },
   posts: {

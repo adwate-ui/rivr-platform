@@ -24,7 +24,7 @@ test.describe('Website edit', () => {
     await expect(page.frameLocator('iframe[title="Preview of House rules"]').getByRole('heading', { name: heading })).toBeVisible();
 
     await page.getByRole('button', { name: 'Publish now' }).click();
-    await expect(page.getByText('Published. The website shows it now.')).toBeVisible();
+    await expect(page.getByText('Published.')).toBeVisible();
     const site = await browser.newPage();
     await site.goto(`${appUrl('web')}/house-rules`);
     await expect(site.getByRole('heading', { name: heading })).toBeVisible();

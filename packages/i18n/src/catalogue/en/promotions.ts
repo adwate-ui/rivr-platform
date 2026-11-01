@@ -20,13 +20,13 @@ export const promotions = {
   invalidBudget: 'Enter the budget in bonus chips, or leave it empty.',
   /** The builder's budget (A2-04): the most grants beside the amount, both optional. */
   budgetGrants: 'Most grants (optional)',
-  invalidBuilderBudget: 'Enter the budget in bonus chips and the most grants as whole numbers, or leave them empty.',
+  invalidBuilderBudget: 'Whole numbers for the budget and the most grants, or leave them empty.',
   newPromotion: 'New promotion',
   /** The promotion's rules and questions as the website shows them (#618). */
   rules: 'Rules on the website',
-  rulesHint: 'One rule a line: who qualifies, what it pays, the conditions.',
+  rulesHint: 'One rule a line.',
   questions: 'Questions on the website',
-  questionsHint: 'A question on its line, its answer under it, and a blank line before the next question.',
+  questionsHint: 'Question, answer, then a blank line.',
   when: 'When',
   days: 'Days',
   from: 'From',
@@ -73,14 +73,14 @@ export const promotions = {
     approve: 'Approve',
     refuse: 'Refuse',
     refuseReason: 'Why it is refused',
-    refuseHint: 'The one who submitted it reads this.',
+    refuseHint: 'The submitter reads this.',
     invalidReason: 'Say why, in 3 to 300 characters.',
     /** After Approve or Refuse: `{name}` is the promotion. */
     approved: '{name} is live.',
     refused: '{name} went back to draft.',
     /** What it actually does, in words made from its stored rule: the approver reads these, not only the card words. */
     does: 'What it does',
-    unreadable: 'Its rule cannot be read here, so it can only be refused.',
+    unreadable: 'Its rule cannot be read here. Refuse it.',
     /** The rules and questions it puts on the website (#618), as the public will read them. */
     website: 'On the website',
     question: '{question} {answer}',
@@ -139,7 +139,7 @@ export const promotions = {
     heading: 'Sent back',
     /** `{name}` sent it back at `{time}`, saying `{reason}`. */
     line: '{name}, {time}: {reason}',
-    template: 'A template again: send it from Templates once it is right.',
+    template: 'Back to Templates. Send it again once it is right.',
     built: 'Build it again with the changes asked for.',
   },
   /** The simulation before publishing (#144): last week's seven club days replayed with the promotion. */
@@ -164,19 +164,19 @@ export const promotions = {
     failures: {
       not_allowed: 'Only staff who manage promotions simulate one.',
       not_replayable: 'This promotion cannot be replayed on last week.',
-      unavailable: 'The simulation did not run. Try again.',
+      unavailable: 'Simulation not run. Try again.',
     },
   },
   failures: {
-    invalid: 'Choose both times, the start before the end, within the night (it ends at 06:00).',
-    invalidCap: 'The most per buy-in is bonus chips in whole 50s, from 50 to 1,00,000.',
-    invalidHours: 'The hours played are a whole number from 1 to 12.',
-    invalidChips: 'The bonus is chips in whole 50s, from 50 to 1,00,000.',
-    not_allowed: 'Only staff who manage promotions submit one, and only a super admin approves or refuses one.',
+    invalid: 'Both times, start before end, by 06:00.',
+    invalidCap: 'Whole 50s of chips, from 50 to 1,00,000.',
+    invalidHours: 'Hours from 1 to 12.',
+    invalidChips: 'Whole 50s of chips, from 50 to 1,00,000.',
+    not_allowed: 'Not in your role. A super admin approves promotions.',
     own_promotion: 'You submitted this one, so another super admin approves it.',
     already_decided: 'Another super admin has already decided this one.',
     switched_off: 'Promotions are switched off.',
-    paused: 'The club is frozen. Nothing changes until it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },
 } as const;
