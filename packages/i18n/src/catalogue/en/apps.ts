@@ -71,7 +71,7 @@ export const playerApp = {
   card: {
     title: 'Membership card',
     qr: 'Your door code',
-    hint: 'Show this at the door. The code changes every few seconds.',
+    hint: 'Show at the door.',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */
     offline: 'No connection. Give your number at the door.',
   },
@@ -82,7 +82,7 @@ export const playerApp = {
     /** A paid booking's invoice (#249), saved from its page as a PDF. */
     invoice: 'Invoice',
     noInvoice: 'No invoice for this booking yet. It comes once the cage confirms the payment.',
-    empty: 'No batches open right now.',
+    empty: 'No batches open.',
     yourBookings: 'Your bookings',
     openBatches: 'Open batches',
     dates: '{from} to {to}',
@@ -93,7 +93,7 @@ export const playerApp = {
     full: 'This batch is full.',
     closed: 'This batch is not open for booking.',
     notOpen: 'Academy booking is not open to you.',
-    stopped: 'Your account is paused. Speak to the front desk.',
+    stopped: 'Account paused. Ask at the front desk.',
     noFee: 'The club has not set the Academy fee yet. Try again later.',
     awaitingPayment: 'Booked. Pay to keep your seat.',
     /** Until when an unpaid seat is held: `Tuesday 20 Oct 2026, 15:30`, in IST (#247). */
@@ -103,7 +103,7 @@ export const playerApp = {
     /** The cashier did not find the UTR the member gave; `{utr}` is that UTR. */
     turnedDown: 'The cashier could not find UTR {utr} in the bank. Check it in your UPI app and give it again.',
     /** The cage turned down `{utr}` after the seat's hold had lapsed, so the seat was given up (#222). */
-    cancelled: 'Cancelled. The cashier could not find UTR {utr} in the bank, and your seat was no longer held. If you paid, show the payment at the front desk.',
+    cancelled: 'Cancelled: UTR {utr} was not found and the hold ended. If you paid, show it at the front desk.',
     pay: 'Pay',
     changeUtr: 'Change the UTR',
     paymentSent: 'Payment sent with UTR {utr}. The cashier checks it against the bank, usually within a day.',
@@ -120,7 +120,7 @@ export const playerApp = {
     utrUsed: 'This UTR was already given for another booking. Check it and try again.',
     /** A UTR given after the seat's hold cannot be changed until the cashier checks it (#222). */
     utrLocked: 'Your seat\'s hold has ended, so this UTR stays until the cashier checks it. To change it, speak to the front desk.',
-    unavailable: 'Academy booking is not available right now. Try again in a few minutes.',
+    unavailable: 'Academy booking is down. Try again shortly.',
   },
   profile,
   houseRules: playerHouseRules,
@@ -205,7 +205,7 @@ export const consoleApp = {
   /** Across the top of every screen while the console works in the practice venue. */
   practiceBanner: 'Practice venue: nothing here reaches the club or its members.',
   /** A screen opened by address that the staff member's role does not include. */
-  notAllowed: 'Your role does not include this screen. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   academy,
   academyPayments,
   academyFailures,

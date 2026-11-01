@@ -3,10 +3,10 @@ export const push = {
   seatReady: {
     title: 'Your seat is ready',
     /** `Table 3, seat 9. Hold until 21:40.` */
-    body: '{table}, seat {seat}. Hold until {time}.',
+    body: '{table}, seat {seat}. Held until {time}.',
   },
   callTimeDone: {
-    title: 'Call time done',
+    title: 'Call time complete',
     body: 'Your call time is complete.',
   },
   sessionReminder: {

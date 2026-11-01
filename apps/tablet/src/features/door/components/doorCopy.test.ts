@@ -8,19 +8,19 @@ describe('what the door kiosk says (decision 0164)', () => {
     expect(scanResult({ ok: true, value: { action: 'out', firstName: 'Mihir', playedSeconds: 16_200 } }))
       .toEqual({ title: 'Goodbye, Mihir.', detail: '4 h 30 min at the tables tonight. See you soon.', isRefused: false });
     expect(scanResult({ ok: true, value: { action: 'gone', firstName: 'Mihir', playedSeconds: 0 } }))
-      .toEqual({ title: 'Goodbye, Mihir.', detail: 'You are checked out. See you soon.', isRefused: false });
+      .toEqual({ title: 'Goodbye, Mihir.', detail: 'Checked out. See you soon.', isRefused: false });
   });
 
   it('says why nothing happened', () => {
     expect(scanResult({ ok: false, error: { reason: 'call_time_owed', owedSeconds: 1_500 } }))
-      .toEqual({ title: 'Not yet.', detail: 'Your call time has 25 min left. Please see the floor.', isRefused: true });
-    expect(scanResult({ ok: false, error: { reason: 'seated', owedSeconds: 0 } }).detail).toBe('You are still seated. Please cash out at the cage first.');
-    expect(scanResult({ ok: false, error: { reason: 'card_not_current', owedSeconds: 0 } }).title).toBe('Please try again.');
+      .toEqual({ title: 'Not yet.', detail: '25 min of call time left. See the floor.', isRefused: true });
+    expect(scanResult({ ok: false, error: { reason: 'seated', owedSeconds: 0 } }).detail).toBe('You are still seated. Leave your seat in the app, or ask the floor.');
+    expect(scanResult({ ok: false, error: { reason: 'card_not_current', owedSeconds: 0 } }).title).toBe('Try again.');
     expect(scanResult({ ok: false, error: { reason: 'on_break', owedSeconds: 0 } }).detail).toBe('You are on a break from play.');
     expect(scanResult({ ok: false, error: { reason: 'not_allowed', owedSeconds: 0 } }).detail).toBe('This kiosk is no longer paired.');
     expect(scanResult({ ok: false, error: { reason: 'paused', owedSeconds: 0 } }))
-      .toEqual({ title: 'Please see the front desk.', detail: 'Check-in is paused at the club just now.', isRefused: true });
+      .toEqual({ title: 'See the front desk.', detail: 'Check-in is paused.', isRefused: true });
     expect(scanResult({ ok: false, error: { reason: 'stopped', owedSeconds: 0 } }).detail).toBe('Your membership is on hold.');
-    expect(scanResult({ ok: false, error: { reason: 'unavailable', owedSeconds: 0 } }).detail).toBe('Your card could not be read just now.');
+    expect(scanResult({ ok: false, error: { reason: 'unavailable', owedSeconds: 0 } }).detail).toBe('Card not read. Try again.');
   });
 });

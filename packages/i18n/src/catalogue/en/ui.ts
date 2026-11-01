@@ -6,7 +6,7 @@ export const ui = {
   skipToContent: 'Skip to content',
   captcha: {
     /** Cloudflare's check, which every sign-in code request carries, did not load or failed (F1-15). */
-    failed: 'The security check failed. Check the connection and try again.',
+    failed: 'Security check incomplete. Try again.',
   },
   brand: {
     /** The letters on the wordmark tiles; not translated. */
@@ -51,24 +51,24 @@ export const ui = {
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
     /** CareersBlock with no roles open. */
-    noOpenings: 'No openings right now.',
+    noOpenings: 'No openings.',
     /** MapBlock's link to directions in a maps app. */
     directions: 'Get directions',
     /** MapBlock's embedded map (#616), which loads only once the visitor allows maps. */
     mapTitle: 'A map of where the club is',
-    mapConsent: 'The map comes from Google Maps, which sets its own cookies. Allow maps to see it here.',
+    mapConsent: 'Google Maps sets its own cookies. Allow maps to see it.',
     allowMaps: 'Allow maps',
     /** Accessible name of the bar above the header: the club's number, WhatsApp and socials (#616). */
     contact: 'Contact',
     /** CookieBanner (#616): what the website stores, and the visitor's choice. */
     cookies: {
       title: 'Cookies on this website',
-      text: 'The website keeps what it needs to work. Maps are your choice.',
+      text: 'Essential cookies only, unless you allow maps.',
       choices: 'What the website may store',
       essential: 'Essential',
-      essentialHelp: 'Always on. Only your choice here.',
+      essentialHelp: 'Always on.',
       maps: 'Maps',
-      mapsHelp: 'The Google map on the Visit page, which sets Google’s cookies.',
+      mapsHelp: 'The Google map on the Visit page.',
       acceptAll: 'Accept all',
       essentialOnly: 'Essential only',
       save: 'Save my choices',
@@ -91,12 +91,12 @@ export const ui = {
   /** KycPhoto, in place of a member's photo that is not there. */
   photo: {
     missing: 'No photo',
-    failed: 'The photo could not load. Reload the page, or check the member at the desk.',
+    failed: 'Photo not loaded. Reload, or check at the desk.',
   },
   /** VenueLogo, in place of the venue's logo that is not there (#397). */
   logo: {
     missing: 'No logo yet',
-    failed: 'The logo could not load. Upload it again.',
+    failed: 'Logo not loaded. Upload it again.',
   },
   /** The dealer tablet's pot keypad (#42). */
   keypad: {
@@ -110,14 +110,14 @@ export const ui = {
   },
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
-    member: 'The club is paused. Staff will assist you.',
+    member: 'The club is paused. Ask a member of staff.',
     /** At the top of every website page while the venue is frozen (#278). */
-    visitor: 'The club is paused just now. Please check back soon.',
+    visitor: 'The club is paused. Check back soon.',
     /** Shown to staff on every screen while the venue is frozen. */
-    staff: 'Venue frozen. Money, seating and hand entries are refused until it is released.',
+    staff: 'Venue frozen. Changes are refused until it is released.',
   },
   /** The player app with no connection: it opens from its cached shell. */
-  offlineBanner: 'Offline. What you see may be out of date.',
+  offlineBanner: 'No connection. What you see may be out of date.',
   /** A screen's data stopped refreshing: when it last came. */
   staleNotice: 'Not updated since {time}. Check the connection.',
   /** A table's seats on the dealer tablet (#59): each a button, read out with who sits there. */
@@ -127,7 +127,7 @@ export const ui = {
   /** The pad a member signs on at the cage (#74). */
   signaturePad: { clear: 'Clear' },
   /** A seated player's call time (#78): `{time}` is what is left, as in "1 h 12 min". */
-  callTime: { left: 'Call time {time} left', paused: 'Call time paused, {time} left', done: 'Call time done' },
+  callTime: { left: 'Call time {time} left', paused: 'Call time paused, {time} left', done: 'Call time complete' },
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {
     noMatch: 'Nothing matches {query}.',
@@ -141,7 +141,7 @@ export const ui = {
     /** A console table's export (#102): the rows as shown, recorded in the audit log first. */
     exportCsv: 'Export CSV',
     exportXlsx: 'Export XLSX',
-    exportFailed: 'The export was not recorded, so nothing was saved. Try again.',
+    exportFailed: 'Export not saved. Try again.',
   },
   /** The offer to add the player app to the home screen, on a member's second visit. */
   installOffer: {

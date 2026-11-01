@@ -89,7 +89,6 @@ function SignUpFields({ form, photo, onPhoto }: { form: Form; photo: Blob | null
     <>
       {phone === null ? null : <Text>{t('player.signUp.phone', { phone: formatMobile(phone) })}</Text>}
       <PhotoField photo={photo} onPhoto={onPhoto} />
-      <Text tone="muted">{t('player.signUp.intro')}</Text>
       <Input {...nameField} label={t('player.signUp.nameLabel')} autoComplete="name" maxLength={100} autoFocus
         error={errors.fullName ? t('player.signUp.nameInvalid') : undefined} />
       <Input {...cityField} label={t('player.signUp.cityLabel')} autoComplete="address-level2" maxLength={60}

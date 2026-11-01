@@ -15,7 +15,7 @@ describe('the offline start page', () => {
     const reach = vi.fn<(url: string) => Promise<boolean>>().mockResolvedValueOnce(false).mockResolvedValue(true);
     const open = vi.fn<(url: string) => void>();
     render(<OfflineStart shellUrl={SHELL} reach={reach} open={open} />);
-    expect(screen.getByRole('heading', { name: 'Waiting for the network' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'No network' })).toBeDefined();
 
     await act(() => vi.advanceTimersByTimeAsync(5_000));
     expect(reach).toHaveBeenCalledWith(SHELL);

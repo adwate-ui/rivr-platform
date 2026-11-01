@@ -26,13 +26,13 @@ describe('KycPhoto', () => {
     rerender(<KycPhoto alt="KYC photo" src={null} status="missing" />);
     expect(screen.getByText('No photo')).toBeInTheDocument();
     rerender(<KycPhoto alt="KYC photo" src={null} status="error" />);
-    expect(screen.getByText('The photo could not load. Reload the page, or check the member at the desk.')).toBeInTheDocument();
+    expect(screen.getByText('Photo not loaded. Reload, or check at the desk.')).toBeInTheDocument();
   });
 
   it('says so when the image itself fails to load, and tries a new address again', () => {
     const { rerender } = renderIn(<KycPhoto alt="KYC photo" src={SRC} />);
     fireEvent.error(screen.getByRole('img', { name: 'KYC photo' }));
-    expect(screen.getByText('The photo could not load. Reload the page, or check the member at the desk.')).toBeInTheDocument();
+    expect(screen.getByText('Photo not loaded. Reload, or check at the desk.')).toBeInTheDocument();
     rerender(<KycPhoto alt="KYC photo" src={`${SRC}?token=new`} />);
     expect(screen.getByRole('img', { name: 'KYC photo' })).toBeInTheDocument();
   });

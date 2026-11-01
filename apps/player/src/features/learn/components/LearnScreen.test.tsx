@@ -66,10 +66,10 @@ describe('Learn and a book, while the feature map loads or fails (a weak signal 
 
   it.each(SCREENS)('$name says it could not load when the map fails, and loads on Try again', async ({ path, heading }) => {
     renderAt(path, 'fails once');
-    expect(await screen.findByText('Could not load this. Check the connection and try again.')).toBeDefined();
+    expect(await screen.findByText('Not loaded. Try again.')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    await waitFor(() => expect(screen.queryByText('Could not load this. Check the connection and try again.')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Not loaded. Try again.')).toBeNull());
     expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
   });
 });

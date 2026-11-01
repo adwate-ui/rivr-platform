@@ -24,14 +24,14 @@ test.describe('Sessions', () => {
     await sahil.getByRole('button', { name: 'Let Rhea Kaul leave early' }).click();
     await sahil.getByRole('textbox', { name: 'Why they leave early' }).fill('Going home');
     await sahil.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(sahil.getByText('Early departure recorded. They can leave their seat.')).toBeVisible();
+    await expect(sahil.getByText('Released early.')).toBeVisible();
     await sahil.getByRole('button', { name: 'Rhea Kaul leaves' }).click();
     await sahil.getByRole('button', { name: 'Yes, Rhea Kaul leaves' }).click();
     await expect(sahil.getByRole('button', { name: 'Move Rhea Kaul' })).toHaveCount(0);
     await sahil.getByRole('link', { name: 'Check-in' }).click();
     await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Check out', exact: true }).click();
-    await expect(sahil.getByText('Checked out. Their hours are counted.')).toBeVisible();
+    await expect(sahil.getByText('Checked out.')).toBeVisible();
 
     const rhea = await browser.newPage();
     await signInToPlayer(rhea, '9000000297', '/sessions');

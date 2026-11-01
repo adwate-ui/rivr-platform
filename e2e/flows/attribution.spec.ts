@@ -48,7 +48,7 @@ test.describe('Attribution', () => {
     await page.locator('input[type=file]').setInputFiles({
       name: 'me.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(photo.slice(photo.indexOf(',') + 1), 'base64'),
     });
-    await expect(page.getByText('Photo added. It is sent when you continue.')).toBeVisible();
+    await expect(page.getByText('Photo added.')).toBeVisible();
     await page.getByRole('textbox', { name: 'Full name as on your Aadhaar' }).fill('Tara Joshi');
     await page.getByRole('textbox', { name: 'City' }).fill('Gurugram');
     await page.getByRole('button', { name: 'Salaried or working professional' }).click();

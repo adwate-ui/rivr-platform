@@ -17,7 +17,7 @@ describe('the TV display', () => {
       </RivrDataProvider>,
     );
     expect(await screen.findByRole('heading', { name: 'Screen pairing' })).toBeDefined();
-    expect(await screen.findByText('RIVR cannot be reached. This screen tries again in a minute.')).toBeDefined();
+    expect(await screen.findByText('No connection. Retrying in a minute.')).toBeDefined();
   });
 
   it.each(['/overlay?delay=900', '/nowhere'])('asks to be paired at %s too: the stream overlay pairs as a TV', async (address) => {

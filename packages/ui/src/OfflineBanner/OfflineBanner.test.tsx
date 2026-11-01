@@ -20,7 +20,7 @@ describe('OfflineBanner', () => {
   it('says the app is offline while it is, and goes when the connection returns', () => {
     renderIn(<OfflineBanner />);
     act(() => goOnline(false));
-    expect(screen.getByRole('status')).toHaveTextContent('Offline. What you see may be out of date.');
+    expect(screen.getByRole('status')).toHaveTextContent('No connection. What you see may be out of date.');
     act(() => goOnline(true));
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });

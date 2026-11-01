@@ -66,7 +66,7 @@ describe('Membership card', () => {
     expect(screen.getByText('Member')).toBeDefined();
     expect(screen.getByText('No. 1024')).toBeDefined();
     expect(screen.getByRole('img', { name: 'Your door code' }).getAttribute('data-value')).toBe('card-1.1792740800.mac');
-    expect(screen.getByText('Show this at the door. The code changes every few seconds.')).toBeDefined();
+    expect(screen.getByText('Show at the door.')).toBeDefined();
   });
 
   it('says it could not load, and loads on Try again', async () => {

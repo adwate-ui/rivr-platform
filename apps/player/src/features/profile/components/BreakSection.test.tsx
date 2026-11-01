@@ -39,7 +39,7 @@ describe('BreakSection', () => {
     const taken = renderBreak();
     fireEvent.click(screen.getByRole('button', { name: 'Take a break' }));
     fireEvent.click(screen.getByRole('button', { name: /^30 days/ }));
-    expect(screen.getByText(/^Take a break until .+\? It cannot be shortened\.$/)).toBeDefined();
+    expect(screen.getByText(/^Break until .+\? It cannot be shortened\.$/)).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(taken).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Take a break' }));

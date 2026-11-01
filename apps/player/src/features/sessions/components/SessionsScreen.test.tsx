@@ -100,9 +100,9 @@ describe('Sessions', () => {
 
   it.each(['/sessions', '/sessions/v1'])('%s says it could not load when the feature map fails, and loads on Try again', async (path) => {
     renderAt(path, { sessions: [SESSION], map: 'fails once' });
-    expect(await screen.findByText('Could not load this. Check the connection and try again.')).toBeDefined();
+    expect(await screen.findByText('Not loaded. Try again.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    await waitFor(() => expect(screen.queryByText('Could not load this. Check the connection and try again.')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Not loaded. Try again.')).toBeNull());
     expect(screen.getAllByText(/Table 3/).length).toBeGreaterThan(0);
   });
 
@@ -169,7 +169,7 @@ describe('a session', () => {
   it('says so when hiding does not go through, and stays on the session', async () => {
     renderAt('/sessions/v1', { sessions: [SESSION], hide: 'fails' });
     fireEvent.click(await screen.findByRole('button', { name: 'Hide from my sessions' }, { timeout: 5000 }));
-    expect(await screen.findByText('That did not go through. Check the connection and try again.', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('Not sent. Try again.', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('02:00 to 08:00')).toBeDefined();
   });
 

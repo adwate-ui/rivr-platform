@@ -29,12 +29,12 @@ test.describe('Phone change', () => {
     await page.getByRole('textbox', { name: 'Why it changes' }).fill('Lost his phone; new SIM');
     await change.click();
     await page.getByRole('button', { name: 'Yes, change it to 9000000782' }).click();
-    await expect(page.getByText('Give an Indian mobile number with +91, and a reason of 3 to 300 characters with no name or number in it.')).toBeVisible();
+    await expect(page.getByText('An Indian mobile with +91, and a reason without names or numbers.')).toBeVisible();
 
     await number.fill('+919000000782');
     await again.fill('+919000000782');
     await change.click();
     await page.getByRole('button', { name: 'Yes, change it to +919000000782' }).click();
-    await expect(page.getByText('Changed. The member signs in with the new number.')).toBeVisible();
+    await expect(page.getByText('Changed.')).toBeVisible();
   });
 });

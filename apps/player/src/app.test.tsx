@@ -123,9 +123,9 @@ describe('the player app', () => {
     signIn();
     renderAt('/', clientWithKabir());
     await screen.findByText('No tables are running.');
-    expect(screen.queryByText('Offline. What you see may be out of date.')).toBeNull();
+    expect(screen.queryByText('No connection. What you see may be out of date.')).toBeNull();
     act(() => goOnline(false));
-    expect(screen.getByRole('status').textContent).toBe('Offline. What you see may be out of date.');
+    expect(screen.getByRole('status').textContent).toBe('No connection. What you see may be out of date.');
   });
 
   it('opens on Tonight inside the frame', async () => {
@@ -180,7 +180,7 @@ describe('the player app', () => {
     signIn();
     renderAt('/nowhere', clientWithKabir());
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
-    expect(screen.getByText('This page does not exist.')).toBeDefined();
+    expect(screen.getByText('This page is not here. Check the address, or go back.')).toBeDefined();
     expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);
   });
 });
@@ -266,7 +266,7 @@ describe('sign-in', () => {
     renderAt('/sign-in');
     fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '98765 43210' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
-    expect(await screen.findByText('Sign-in is not available right now. Try again in a few minutes.', {}, { timeout: 3000 })).toBeDefined();
+    expect(await screen.findByText('Sign-in is down. Try again shortly.', {}, { timeout: 3000 })).toBeDefined();
   });
 });
 

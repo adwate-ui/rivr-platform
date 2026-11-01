@@ -17,7 +17,7 @@ describe('CareersBlock', () => {
 
   it('says there are no openings when there are none', () => {
     renderIn(<CareersBlock heading="Careers" roles={[]} />);
-    expect(screen.getByText('No openings right now.')).toBeInTheDocument();
+    expect(screen.getByText('No openings.')).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {

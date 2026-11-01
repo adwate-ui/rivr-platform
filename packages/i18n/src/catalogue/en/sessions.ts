@@ -18,7 +18,7 @@ export const playerSessions = {
   timeRange: '{from} to {to}',
   hours: 'Hours',
   hide: 'Hide from my sessions',
-  hideNote: 'Only your list leaves it out. The club keeps its record.',
-  hideFailed: 'That did not go through. Check the connection and try again.',
+  hideNote: 'Hidden from your list only.',
+  hideFailed: 'Not sent. Try again.',
   notFound: 'This session is not in your history.',
 } as const;

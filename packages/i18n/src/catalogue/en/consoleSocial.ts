@@ -1,7 +1,7 @@
 /** The console's Social screen (#154, #157, #587; decisions 0267 to 0269): publishing, the inbox's leads, and the social wall's moderation. */
 export const consoleSocial = {
   title: 'Social',
-  notAllowed: 'Your role does not include social. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   channels: {
     instagram: 'Instagram', facebook: 'Facebook', x: 'X', linkedin: 'LinkedIn', youtube: 'YouTube', telegram: 'Telegram',
     google_business_profile: 'Google Business Profile', whatsapp: 'WhatsApp',
@@ -14,12 +14,12 @@ export const consoleSocial = {
     caption: 'Caption',
     channels: 'Channels',
     publish: 'Publish',
-    done: 'Published. Connected channels post it by themselves; download the image and caption below for the others.',
+    done: 'Published. Download below for the other channels.',
     failures: {
-      not_allowed: 'Your role does not include social. Ask an admin if you need it.',
-      invalid: 'Choose an image (JPEG, PNG or WebP), write a caption and choose at least one channel.',
+      not_allowed: 'Not in your role. Ask an admin.',
+      invalid: 'An image (JPEG, PNG or WebP), a caption and a channel.',
       paused: 'Social publishing is switched off, or the club is paused.',
-      unavailable: 'The post did not go through. Try again.',
+      unavailable: 'Not posted. Try again.',
     },
   },
   posts: {
@@ -85,10 +85,10 @@ export const consoleSocial = {
     reject: 'Reject',
     rejectName: 'Reject @{handle}’s post',
     failures: {
-      not_allowed: 'Your role does not include social. Ask an admin if you need it.',
+      not_allowed: 'Not in your role. Ask an admin.',
       gone: 'That post is no longer here.',
       paused: 'The club is paused: moderate when it reopens.',
-      unavailable: 'That did not go through. Try again.',
+      unavailable: 'Not sent. Try again.',
     },
   },
 } as const;

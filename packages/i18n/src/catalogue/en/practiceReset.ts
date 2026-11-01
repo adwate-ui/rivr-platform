@@ -3,7 +3,7 @@ export const practiceReset = {
   title: 'Practice reset',
   notAllowed: 'Only a super admin resets the practice venue.',
   /** At the club: the reset is for the practice venue only (the owner's decision on #104). */
-  notPractice: 'Switch on Practice venue at the foot of the rail to reset it. The club is never reset.',
+  notPractice: 'Switch on Practice venue to reset it. The club is never reset.',
   intro: 'Reset to seed brings the practice venue back to how it was seeded: members, visits, seats, hands, the cage, the ledger, promotions and tournaments. Staff, devices, settings, tables, SOPs, quizzes, every certification attempt, contacts, drills and kill-switch controls stay. The audit log keeps the reset.',
   /** The dry run's table. */
   tableLabel: 'Tables a reset reloads',
@@ -22,19 +22,19 @@ export const practiceReset = {
 export const practiceResetFailures = {
   notAllowed: 'Only a super admin resets the practice venue.',
   notPractice: 'Only the practice venue resets to its seed.',
-  noSeed: 'This venue has no seed to reset to. Ask for one to be captured first.',
+  noSeed: 'No seed to reset to.',
   wrongName: 'Type the venue\'s name exactly as the rail shows it.',
   paused: 'The venue is frozen. Release it, then reset.',
-  tooSoon: 'The practice venue was reset a moment ago. Wait five minutes, then reset again.',
+  tooSoon: 'Reset a moment ago. Wait five minutes.',
   held: 'A kill-switch control at the practice venue names a member. Release it, then reset.',
-  unavailable: 'The reset did not go through. Check the connection and try again.',
+  unavailable: 'Not reset. Try again.',
 };
 
 /** The console's Purge screen (#432; decision 0239), for super admins at a live venue. */
 export const purge = {
   title: 'Purge',
   notAllowed: 'Only a super admin purges a venue.',
-  practice: 'The practice venue resets to its seed instead, on Practice reset.',
+  practice: 'The practice venue uses Practice reset instead.',
   intro: 'Purging deletes the venue\'s play for good: members, visits, seats, hands, tournaments, the ledger\'s entries, promotions and messages. Its setup, staff, accounts and the audit log stay.',
   freezeFirst: 'Freeze the venue on Kill switch first, so nothing changes between the archive and the purge.',
   askTitle: 'Two super admins',
@@ -73,14 +73,14 @@ export const purge = {
 /** Why a purge did not go through. */
 export const purgeFailures = {
   notAllowed: 'Only a super admin purges a venue.',
-  practice: 'The practice venue resets to its seed instead, on Practice reset.',
+  practice: 'The practice venue uses Practice reset instead.',
   notFrozen: 'Freeze the venue on Kill switch first.',
   noArchive: 'Make and save the full archive after freezing the venue. It counts for 30 minutes, while nothing changes.',
   wrongName: 'Type the venue\'s name exactly as it is.',
   held: 'A kill-switch control names a member. Release it, then purge.',
-  changed: 'The venue changed after the archive began, often a waitlist hold moving or a sign-up. Clear the waitlist, make the archive again, then purge.',
-  busy: 'Another change held the tables. Try the purge again in a moment.',
+  changed: 'The venue changed during the archive. Clear the waitlist, archive again, then purge.',
+  busy: 'Tables busy. Try again shortly.',
   second: 'A purge needs another super admin\'s ask, made since the freeze and within the day. The one who asked, or a login they made, cannot carry it out.',
-  tooOften: 'Too many tries in a minute. Wait a moment and try again.',
-  unavailable: 'That did not go through. Check the connection and try again.',
+  tooOften: 'Too many tries. Wait a moment.',
+  unavailable: 'Not sent. Try again.',
 };

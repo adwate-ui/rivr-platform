@@ -38,7 +38,7 @@ async function pairTv(tv: Page, floor: Page, name: string, board: string) {
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
-  await expect(floor.getByText(`${name} is paired. It shows its mode within a few seconds.`)).toBeVisible();
+  await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
   await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: board, exact: true }).click();
 }
 
@@ -56,8 +56,8 @@ test.describe('Rewards', () => {
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
     await pairTv(tv, floor, name, 'Rewards ticker');
     await expect(tv.getByRole('heading', { name: 'Rewards' })).toBeVisible({ timeout: 20_000 });
-    await expect(tv.getByRole('region', { name: 'Just redeemed' }).getByText(REWARD).first()).toBeVisible();
-    await expect(tv.getByRole('region', { name: 'Just redeemed' }).getByText('Riya S.').first()).toBeVisible();
+    await expect(tv.getByRole('region', { name: 'Recently redeemed' }).getByText(REWARD).first()).toBeVisible();
+    await expect(tv.getByRole('region', { name: 'Recently redeemed' }).getByText('Riya S.').first()).toBeVisible();
     await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'League leaderboard', exact: true }).click();
     await expect(tv.getByRole('heading', { name: 'RIVR League' })).toBeVisible({ timeout: 20_000 });
 

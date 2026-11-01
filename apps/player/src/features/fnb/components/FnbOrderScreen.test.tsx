@@ -41,9 +41,9 @@ describe('the Menu, while the feature map loads or fails (a weak signal in the c
 
   it('says it could not load when the map fails, and loads on Try again', async () => {
     renderMenu('fails once');
-    expect(await screen.findByText('Could not load this. Check the connection and try again.')).toBeDefined();
+    expect(await screen.findByText('Not loaded. Try again.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    await waitFor(() => expect(screen.queryByText('Could not load this. Check the connection and try again.')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Not loaded. Try again.')).toBeNull());
     expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
   });
 });
@@ -85,7 +85,7 @@ describe('ordering at the seat', () => {
     // The Menu itself is drawn, past its feature check: the seat's own line is what follows.
     expect(await screen.findByRole('heading', { name: 'Your orders tonight' })).toBeDefined();
     expect(screen.getAllByText('Loading').length).toBeGreaterThan(0);
-    expect(screen.queryByText('Order from your seat: sit at a table first.')).toBeNull();
+    expect(screen.queryByText('Take a seat to order.')).toBeNull();
   });
 
   it('sends the same request id again after a lost reply, so the bar gets one KOT', async () => {
@@ -95,7 +95,7 @@ describe('ordering at the seat', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send to the bar' }));
     expect(await screen.findByRole('alert')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Send to the bar' }));
-    expect(await screen.findByText('Sent to the bar: KOT 7, to Table 3, seat 5.')).toBeDefined();
+    expect(await screen.findByText('Sent to the bar. Order 7.')).toBeDefined();
     expect(orders).toHaveLength(2);
     const [first, second] = orders.map((order) => Reflect.get(Object(order), 'p_idempotency_key'));
     expect(first).toEqual(expect.any(String));

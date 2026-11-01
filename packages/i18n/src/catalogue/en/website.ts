@@ -1,7 +1,7 @@
 /** The console's website editor (#129; decision 0270). */
 export const website = {
   title: 'Website',
-  notAllowed: 'Your role does not include the website. Ask an admin if you need it.',
+  notAllowed: 'Not in your role. Ask an admin.',
   hint: 'Change a page\u2019s words in place, save a draft and preview it as the website shows it, then publish it now or at a time. Every version is kept: publish an earlier one again from its history.',
   page: 'Page',
   choosePage: 'Choose a page to edit.',
@@ -24,9 +24,9 @@ export const website = {
     paragraphs: 'Paragraph',
   },
   save: 'Save draft',
-  saved: 'Draft saved. The preview shows it as the website will. A scheduled draft stays scheduled.',
+  saved: 'Draft saved.',
   publish: 'Publish now',
-  published: 'Published. The website shows it now.',
+  published: 'Published.',
   publishOn: 'Publish on',
   publishAt: 'At',
   timeHint: '24-hour, IST, such as 18:00.',
@@ -37,11 +37,11 @@ export const website = {
   preview: 'Preview of {page}',
   saveToPreview: 'Save a draft to preview it.',
   /** A newer version came in while this one was being edited (F2-26). */
-  newerVersion: 'A newer version of this page came in while you were editing. Your edits are kept here; saving them makes them the page\'s draft, in place of any other.',
-  noPreview: 'The preview shows where the console knows the website\u2019s address. Saving, scheduling and publishing work without it.',
+  newerVersion: 'A newer version came in. Saving makes your edits the draft.',
+  noPreview: 'No preview: the website address is not set. Saving still works.',
   history: {
     title: 'History',
-    none: 'No versions yet: the first save keeps what the page shows now.',
+    none: 'No versions yet.',
     when: 'When',
     status: 'Version',
     statuses: { draft: 'Draft', scheduled: 'Scheduled', published: 'On the website', replaced: 'Earlier' },
@@ -51,10 +51,10 @@ export const website = {
     confirmRestore: 'Yes, publish it now',
   },
   failures: {
-    not_allowed: 'Your role does not include the website. Ask an admin if you need it.',
+    not_allowed: 'Not in your role. Ask an admin.',
     gone: 'That page or version is no longer there.',
-    invalid: 'A block cannot be shown as it is. Check its words, then save again.',
+    invalid: 'A block has a problem. Check its words.',
     paused: 'The club is paused: edit the website when it reopens.',
-    unavailable: 'That did not go through. Try again.',
+    unavailable: 'Not sent. Try again.',
   },
 } as const;

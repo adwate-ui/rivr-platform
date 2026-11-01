@@ -123,7 +123,7 @@ describe('the console', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/academy');
-    expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
+    expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
   });
 
   // Screens merged into others (#606): each old address opens its tab.
@@ -150,7 +150,7 @@ describe('the console', () => {
     signIn();
     answerStaff([{ ...CLUB, role: 'dealer' }]);
     renderAt(path);
-    expect(await screen.findByText('Your role does not include this screen. Ask an admin if you need it.')).toBeDefined();
+    expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
   });
 
   it('opens on Live floor for staff, with the rail, who is signed in and the venue', async () => {
@@ -199,7 +199,7 @@ describe('the console', () => {
     signIn();
     answerStaff([], 500);
     renderAt('/');
-    expect(await screen.findByText('Could not load this. Check the connection and try again.')).toBeDefined();
+    expect(await screen.findByText('Not loaded. Try again.')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
@@ -237,7 +237,7 @@ describe('the console', () => {
     expect(screen.queryByText(/is signed in on this device/)).toBeNull();
     expect(screen.getByRole('textbox', { name: /^Code sent to/ })).toBeDefined();
     answerLinking();
-    expect(await screen.findByText('Sign-in is not available right now. Try again in a few minutes.')).toBeDefined();
+    expect(await screen.findByText('Sign-in is down. Try again shortly.')).toBeDefined();
   });
 
   it('lets the next person sign in once the live session signs out', async () => {
@@ -252,7 +252,7 @@ describe('the console', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/nowhere');
-    expect(await screen.findByText('This page does not exist.')).toBeDefined();
+    expect(await screen.findByText('This page is not here. Check the address, or go back.')).toBeDefined();
   });
 });
 

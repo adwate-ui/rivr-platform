@@ -20,8 +20,8 @@ export const tabletApp = {
   highHand,
   /** The page the APK shows when the tablet starts before the network is up (#292). */
   offlineStart: {
-    title: 'Waiting for the network',
-    body: "RIVR Dealer opens as soon as the club Wi-Fi and the internet are up. It tries again every few seconds, so you don't need to do anything.",
+    title: 'No network',
+    body: 'Opens when the club network is back.',
     retry: 'Retry',
   },
   /** The door kiosk (decision 0164): a member scans their card to check in and out. `{name}` is their first name. */
@@ -29,25 +29,25 @@ export const tabletApp = {
     prompt: 'Hold your RIVR card up to the camera',
     /** The field a card scanner plugged into the kiosk types into, for a screen reader. */
     scanner: 'Card scanner',
-    noCamera: 'The camera is not available. Please see the front desk.',
+    noCamera: 'Camera unavailable. See the front desk.',
     welcome: 'Welcome, {name}.',
     welcomeDetail: 'You are checked in. Enjoy the game.',
     goodbye: 'Goodbye, {name}.',
     /** `{time}` is 4 h 30 min. */
     goodbyePlayed: '{time} at the tables tonight. See you soon.',
-    goodbyeDetail: 'You are checked out. See you soon.',
+    goodbyeDetail: 'Checked out. See you soon.',
     notYet: 'Not yet.',
-    seated: 'You are still seated. Please cash out at the cage first.',
+    seated: 'You are still seated. Leave your seat in the app, or ask the floor.',
     /** `{time}` is 25 min. */
-    callTimeOwed: 'Your call time has {time} left. Please see the floor.',
-    tryAgain: 'Please try again.',
-    cardNotCurrent: 'That code has just changed. Hold your card up again.',
-    seeFrontDesk: 'Please see the front desk.',
+    callTimeOwed: '{time} of call time left. See the floor.',
+    tryAgain: 'Try again.',
+    cardNotCurrent: 'Code changed. Hold your card up again.',
+    seeFrontDesk: 'See the front desk.',
     onBreak: 'You are on a break from play.',
-    unavailable: 'Your card could not be read just now.',
+    unavailable: 'Card not read. Try again.',
     /** The member is frozen, or the venue is (F4-15). */
     stopped: 'Your membership is on hold.',
-    paused: 'Check-in is paused at the club just now.',
+    paused: 'Check-in is paused.',
     /** A revoked kiosk: its pairing is gone. */
     notPaired: 'This kiosk is no longer paired.',
   },

@@ -49,14 +49,14 @@ describe('the push consumer', () => {
 
     expect((await createPushConsumer({ push, ...members([phone('a'), phone('b')]), now }).deliver(delivery('waitlist.called', called))).ok).toBe(true);
     expect(push.calls).toEqual([phone('a'), phone('b')].map((subscription) => ({
-      subscription, title: 'Your seat is ready', body: 'Table 3, seat 9. Hold until 00:30.', url: '/', tag: 'seat-ready',
+      subscription, title: 'Your seat is ready', body: 'Table 3, seat 9. Held until 00:30.', url: '/', tag: 'seat-ready',
     })));
   });
 
   it('words each kind, asking for the member\u2019s phones that want it', async () => {
     expect(await sendOne('call_time.completed', { member_id: MEMBER, session_id: SESSION, table_id: OTHER, seat: 4 })).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.call_time_complete'],
-      sent: [{ title: 'Call time done', body: 'Your call time is complete.', url: '/', tag: `call-time-${SESSION}` }],
+      sent: [{ title: 'Call time complete', body: 'Your call time is complete.', url: '/', tag: `call-time-${SESSION}` }],
     });
     expect(await sendOne('session.reminder', { member_id: MEMBER, session_id: SESSION, hours: 4 })).toEqual({
       outcome: { ok: true, value: null }, asked: [null],

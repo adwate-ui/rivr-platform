@@ -20,8 +20,8 @@ describe('the website without a page to show', () => {
 
   it('says so when the content cannot be read, and the way home keeps the code', () => {
     render(<Website view={missing(503)} />);
-    expect(screen.getByRole('heading', { level: 1, name: 'The website is not available' })).toBeDefined();
-    expect(screen.getByText('Try again in a few minutes.')).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Website unavailable' })).toBeDefined();
+    expect(screen.getByText('Try again shortly.')).toBeDefined();
     expect(screen.getByRole('link', { name: 'RIVR Poker Club' }).getAttribute('href')).toBe('/?ref=FRIEND1');
   });
 });
