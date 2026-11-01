@@ -21,6 +21,7 @@
   --color-ink-muted: var(--rivr-color-ink-muted);
   --color-muted: var(--rivr-color-muted);
   --color-hairline: var(--rivr-color-hairline);
+  --color-control: var(--rivr-color-control);
   --color-surface: var(--rivr-color-surface);
   --color-raised: var(--rivr-color-raised);
   --color-content: var(--rivr-color-content);

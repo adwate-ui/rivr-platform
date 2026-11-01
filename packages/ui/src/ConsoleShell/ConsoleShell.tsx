@@ -24,7 +24,7 @@ export interface ConsoleShellProps {
 const ICON_BUTTON =
   'flex size-touch shrink-0 items-center justify-center rounded-md text-content focus-visible:outline-2 focus-visible:outline-focus';
 const GO_TO =
-  'min-h-touch w-full rounded-md border border-hairline bg-surface px-3 font-text text-16 text-content placeholder:text-content-muted ' +
+  'min-h-touch w-full rounded-md border border-control bg-surface px-3 font-text text-16 text-content placeholder:text-content-muted ' +
   'focus-visible:outline-2 focus-visible:outline-focus';
 
 /** The sections whose screens' names hold `query`, ignoring case; all of them while it is blank. */

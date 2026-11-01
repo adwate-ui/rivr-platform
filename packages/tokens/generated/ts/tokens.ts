@@ -14,6 +14,7 @@ export const tokens = {
     "inkMuted": "#141414B3",
     "muted": "#F3EDE099",
     "hairline": "#C9A85C40",
+    "control": "#F3EDE080",
     "surface": "#0E3B2C",
     "raised": "#0A2A20",
     "content": "#F3EDE0",

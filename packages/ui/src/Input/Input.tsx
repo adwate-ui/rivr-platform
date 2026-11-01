@@ -96,7 +96,7 @@ function Adornment({ id, text }: { id: string; text: string }) {
 
 /** The input itself, inside its frame. With a prefix or a suffix the frame runs under them and the value together. */
 function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native }: FieldProps) {
-  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-hairline');
+  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-control');
   const isAdorned = Boolean(prefix) || Boolean(suffix);
   const input = (
     <input

@@ -59,7 +59,7 @@ export function SignaturePad({ label, onChange, defaultValue }: SignaturePadProp
     <Stack gap={2} align="start">
       <span id={labelId}><Text as="span" variant="small" tone="muted">{label}</Text></span>
       <svg role="img" aria-labelledby={labelId} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerLeave={end}
-        className="h-32 w-full touch-none rounded-md border border-hairline bg-raised">
+        className="h-32 w-full touch-none rounded-md border border-control bg-raised">
         {strokes.map((stroke, index) => <path key={index} d={stroke} className="fill-none stroke-cream" strokeWidth={2} strokeLinecap="round" />)}
       </svg>
       <Button variant="text" isDisabled={strokes.length === 0} onClick={clear}>{t('ui.signaturePad.clear')}</Button>
