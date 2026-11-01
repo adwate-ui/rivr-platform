@@ -55,6 +55,8 @@ test.describe('Staff', () => {
     await admin.getByRole('button', { name: 'Yes, turn it off' }).click();
     await expect(admin.getByText(`Turn off ${name}'s login?`)).toHaveCount(0);
     await admin.reload();
+    // A reload closes the row; Change opens it again on what was saved.
+    await admin.getByRole('button', { name: `Change ${name}` }).click();
     await expect(admin.getByRole('textbox', { name: `Job title for ${name}` })).toHaveValue('Host');
     await expect(admin.getByRole('switch', { name: `Active: ${name}` })).toHaveAttribute('aria-checked', 'false');
 
