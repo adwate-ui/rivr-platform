@@ -97,6 +97,22 @@ function nameType(name: string, isChoosing: boolean): string {
 }
 
 /**
+ * The table from above, drawn from the tokens (UI polish audit AS-08; no licensed top-down table photograph exists,
+ * decision 0289): the dark padded rail with its gold hairline, the green felt inside it, the racetrack's hairline, and
+ * the dealer's tray at the foot, between seats 5 and 6. In viewBox units, inside the seats' orbit.
+ */
+function TableArt() {
+  return (
+    <g aria-hidden="true">
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={78} ry={46} className="fill-green-black stroke-hairline" />
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={68} ry={36} className="fill-green" />
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={58} ry={27} className="fill-none stroke-hairline" />
+      <rect x={CENTRE.x - 12} y={CENTRE.y + 29} width={24} height={5} rx={1.5} className="fill-green-black stroke-hairline" />
+    </g>
+  );
+}
+
+/**
  * A table seen from above, as on the console's live floor: the felt with its name and stakes, and
  * every seat around it, with the initials of who sits there or the seat number when it is open. With
  * `onSelectSeat`, as on the dealer tablet, each seat is a button to choose, and the ring is no wider than the text measure,
@@ -107,7 +123,7 @@ export function SeatRing({ name, stakes, seats, label, isClosed, onSelectSeat, s
   return (
     <svg viewBox={isChoosing ? '0 -16 240 186' : '0 -4 240 158'} role={isChoosing ? 'group' : 'img'} aria-label={label}
       className={cx('w-full', isChoosing && 'mx-auto max-w-text', isClosed && 'opacity-muted')}>
-      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={74} ry={44} className="fill-green-black stroke-hairline" />
+      <TableArt />
       <text x={CENTRE.x} y={CENTRE.y - 4} textAnchor="middle" className={cx('fill-content font-text font-medium', nameType(name, isChoosing))}>{name}</text>
       <text x={CENTRE.x} y={CENTRE.y + 15} textAnchor="middle" className={cx('fill-content-muted font-text', isChoosing ? 'text-12' : 'text-16')}>{stakes}</text>
       {seats.map((seat, index) => (
