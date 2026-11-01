@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCountdown, formatDate, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatQuarter, formatTime, formatWeekday } from './time.ts';
+import { formatCountdown, formatDate, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatQuarter, formatTime, formatWeekday } from './time.ts';
 
 // 21:10 UTC on 14 Nov is 02:40 IST on Sunday 15 Nov, the opening night.
 const OPENING_NIGHT = new Date('2026-11-14T21:10:00Z');
@@ -15,6 +15,7 @@ describe('time and dates are shown in IST', () => {
     expect(formatIsoDay(OPENING_NIGHT)).toBe('2026-11-15');
     expect(formatWeekday(OPENING_NIGHT)).toBe('Sunday');
     expect(formatDayTime(OPENING_NIGHT)).toBe('Sun 15 Nov, 02:40');
+    expect(formatDateTime(OPENING_NIGHT)).toBe('15 Nov 2026, 02:40');
     expect(formatDayMonth(OPENING_NIGHT)).toBe('15 Nov');
   });
 

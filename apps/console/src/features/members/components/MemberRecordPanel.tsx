@@ -5,9 +5,10 @@ import { EarlyDepartures } from './EarlyDepartures.tsx';
 import { ChangePhone } from './ChangePhone.tsx';
 import { EraseMember } from './EraseMember.tsx';
 import { FeatureOverrides } from './FeatureOverrides.tsx';
+import { MemberBreak } from './MemberBreak.tsx';
 import { TierForm } from './TierForm.tsx';
 
-/** What the staff member may do on a record: change the tier, see the KYC photo, override features and erase (super admins). */
+/** What the staff member may do on a record: change the tier and set a break, see the KYC photo, override features and erase (super admins). */
 export interface RecordAccess {
   readonly manage: boolean;
   readonly seePhoto: boolean;
@@ -55,6 +56,7 @@ function Record({ venueId, record, can }: { venueId: string; record: MemberRecor
       </Stack>
       <EarlyDepartures venueId={venueId} memberId={record.memberId} />
       {can.manage ? <TierForm venueId={venueId} record={record} /> : null}
+      {can.manage ? <MemberBreak venueId={venueId} memberId={record.memberId} /> : null}
       {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
       {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} currentPhone={record.phone} /> : null}
       {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}
@@ -63,7 +65,7 @@ function Record({ venueId, record, can }: { venueId: string; record: MemberRecor
 }
 
 /**
- * The member record (#60): KYC photo, tier and qualifying stake, visits and early departures; a tier change for members.manage,
+ * The member record (#60): KYC photo, tier and qualifying stake, visits and early departures; a tier change and a break (A5-14) for members.manage,
  * and feature overrides (#61) and erasure on request (#424) for super admins.
  */
 export function MemberRecordPanel({ venueId, memberId, can }: { venueId: string; memberId: string; can: RecordAccess }) {

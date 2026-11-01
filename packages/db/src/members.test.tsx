@@ -74,4 +74,14 @@ describe('Members', () => {
       p_venue_id: VENUE, p_member_id: 'm1', p_tier_id: 't2', p_reason: 'Weekend guest', p_until: '2026-11-22',
     });
   });
+
+  it('sets a break with its days and reason, giving when it ends (A5-14)', async () => {
+    const { result, calls } = renderMembers({ set_member_break: { status: 200, body: '2026-12-01T18:30:00+00:00' } });
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.actions.setBreak.mutateAsync({ memberId: 'm1', days: 30, reason: 'Asked at the desk' });
+    });
+    expect(outcome).toEqual({ ok: true, value: '2026-12-01T18:30:00+00:00' });
+    expect(calls.find((call) => call.rpc === 'set_member_break')?.body).toEqual({ p_member_id: 'm1', p_days: 30, p_reason: 'Asked at the desk' });
+  });
 });

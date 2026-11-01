@@ -10,6 +10,8 @@ import { isRemoteTarget } from '../support/apps.ts';
 import { signInToPlayer } from '../support/signIn.ts';
 
 const UNTIL = /\w{3} \d{1,2} \w{3}, \d{2}:\d{2}/.source;
+// A break in force names its end with the year, as the floor's may run for years.
+const ENDS = /\d{1,2} \w{3} \d{4}, \d{2}:\d{2}/.source;
 
 /** Table 1's Join on Home. */
 function joinTable1(page: Page): Locator {
@@ -40,7 +42,7 @@ test.describe('Self-exclusion', () => {
     // Asked once more, as it cannot be shortened (F3-15).
     await expect(page.getByText(new RegExp(`^Take a break until ${UNTIL}\\? It cannot be shortened\\.$`))).toBeVisible();
     await page.getByRole('button', { name: 'Yes, take the break' }).click();
-    await expect(page.getByText(new RegExp(`^Break active until ${UNTIL}\\. Tables are closed to you until then\\.$`))).toBeVisible();
+    await expect(page.getByText(new RegExp(`^Break active until ${ENDS}\\. Tables are closed to you until then\\.$`))).toBeVisible();
     // Take a break stays, to make the break longer: it is never shortened.
     await expect(page.getByRole('button', { name: 'Take a break' })).toBeVisible();
 
