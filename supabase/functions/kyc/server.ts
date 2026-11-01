@@ -20,13 +20,7 @@ export function reply(body: object, status = 200): Response {
   return Response.json(body, { status, headers: CORS });
 }
 
-/** Logs a vendor refusal by its code and, when refused, Cashfree's error code (never its message, which can carry what was sent). */
-export function logVendorFailure(failure: AdapterFailure): void {
-  console.error('kyc vendor call failed', failure.code, failure.code === 'rejected' ? failure.reason : '');
-}
-
 export function failed(failure: AdapterFailure): Response {
-  logVendorFailure(failure);
   return failure.code === 'not_configured' ? reply({ error: 'not_configured' }, 503) : reply({ error: 'unavailable' }, 502);
 }
 

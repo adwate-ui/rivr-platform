@@ -23,6 +23,7 @@ Date: 2 Nov 2026. Report: `docs/design/ui-polish-audit.md`. Work in six batches 
 - **Narrower than the audit asked, on purpose:**
   - E-14: the rail keeps its pinned foot (sign-out stays in view, `ConsoleShell.test`). A hairline above the foot and the item it cuts off are the cue that the list goes on; no fade, as the visual standard has no gradients.
   - K-05: `lang="en-IN"` is the right language tag for every app, but a date field's order follows the browser's own locale, so it does not change mm/dd/yyyy on a phone set to US English.
+  - K-04 moved out: the functions do not log to the console (`no-console`, a project rule), so a vendor refusal's trace belongs with the vendor-call row in the database, a schema change of its own (follow-up issue).
 - **Findings corrected on reading the code:**
   - E-03 and E-09 were the local stack answering within the 80 ms between taps; busy states hold on a real network.
   - E-05: a revoked tablet leaves at its next 30-second check.
