@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { cx } from '../internal/classes.ts';
 
 /**
@@ -24,6 +24,11 @@ export interface HeadingProps {
   isVisuallyHidden?: boolean;
   /** A screen's h1, which takes the focus when the screen opens, so a keyboard or screen reader starts there (F5-03). */
   isFocusTarget?: boolean;
+  /**
+   * A form's heading, opened below what opened it, such as the live floor's Move: it takes the focus itself as it opens, so
+   * a keyboard or screen reader starts at the form (F2-24).
+   */
+  isFocusedOnMount?: boolean;
 }
 
 const VARIANT: Record<HeadingVariant, string> = {
@@ -42,11 +47,16 @@ const VARIANT: Record<HeadingVariant, string> = {
 const DEFAULT_VARIANT = { 1: 'title', 2: 'section', 3: 'subsection', 4: 'subsection' } as const;
 
 /** A heading. Headings are nouns (Balance, Waitlist, Tonight) with no subtitle beneath. */
-export function Heading({ children, level, variant = DEFAULT_VARIANT[level], align = 'start', id, isVisuallyHidden, isFocusTarget }: HeadingProps) {
+export function Heading({ children, level, variant = DEFAULT_VARIANT[level], align = 'start', id, isVisuallyHidden, isFocusTarget, isFocusedOnMount }: HeadingProps) {
   const Element = `h${level}` as const;
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (isFocusedOnMount === true) heading.current?.focus();
+  }, [isFocusedOnMount]);
+  const isFocusable = isFocusTarget === true || isFocusedOnMount === true;
   return (
-    <Element className={cx('text-content', VARIANT[variant], align === 'center' && 'text-center', isVisuallyHidden && 'sr-only', isFocusTarget && 'outline-none')}
-      id={id} tabIndex={isFocusTarget ? -1 : undefined}>
+    <Element ref={heading} className={cx('text-content', VARIANT[variant], align === 'center' && 'text-center', isVisuallyHidden && 'sr-only', isFocusable && 'outline-none')}
+      id={id} tabIndex={isFocusable ? -1 : undefined}>
       {children}
     </Element>
   );

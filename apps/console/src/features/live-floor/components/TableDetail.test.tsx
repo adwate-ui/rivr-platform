@@ -19,8 +19,10 @@ const KABIR: SeatedPlayer = {
   mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null,
 };
 
-/** Aditya, who runs the waitlist, at Table 3 with Kabir in seat 5, and a fake API that keeps each seat ended. */
-function renderTable() {
+const PRIYA: SeatedPlayer = { ...KABIR, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Priya Nair', callTimeLeft: 1800 };
+
+/** Aditya, who runs the waitlist, at Table 3 with Kabir in seat 5 (or `seats`), and a fake API that keeps each seat ended. */
+function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: readonly string[] = ['members.read', 'waitlist.manage']) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -37,7 +39,7 @@ function renderTable() {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TableDetail venueId="v1" table={TABLE} tables={[TABLE]} seats={[KABIR]} held={[]} permissions={['members.read', 'waitlist.manage']} night={undefined} />
+      <TableDetail venueId="v1" table={TABLE} tables={[TABLE]} seats={seats} held={[]} permissions={permissions} night={undefined} />
     </RivrDataProvider>,
   );
   return ended;
@@ -49,5 +51,31 @@ describe('a table on the live floor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
     await waitFor(() => expect(ended).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
+  });
+
+  it('takes the focus to the Move form as it opens below the seats, and again for another player (F2-24)', () => {
+    renderTable([KABIR, PRIYA]);
+    fireEvent.click(screen.getByRole('button', { name: 'Move Kabir Sethi' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Move Kabir Sethi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Move Priya Nair' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Move Priya Nair' }));
+  });
+
+  it('takes the focus to the early-leave form as it opens (F2-24)', () => {
+    renderTable([PRIYA], ['members.read', 'waitlist.manage', 'call_time.override']);
+    fireEvent.click(screen.getByRole('button', { name: 'Let Priya Nair leave early' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Early departure for Priya Nair' }));
+  });
+
+  it('shows a role that does not read members the table without its night, which it would read as noughts (F2-25)', () => {
+    render(
+      <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+        queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <TableDetail venueId="v1" table={TABLE} tables={[TABLE]} seats={[]} held={[]} permissions={['dashboards.read']} night={undefined} />
+      </RivrDataProvider>,
+    );
+    expect(screen.getByRole('heading', { name: 'Table 3' })).toBeDefined();
+    expect(screen.queryByText('No dealer')).toBeNull();
+    expect(screen.queryByText('Hands')).toBeNull();
   });
 });

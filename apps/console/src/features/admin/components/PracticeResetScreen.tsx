@@ -44,7 +44,8 @@ function PracticeResetPanel({ venueId }: { venueId: string }) {
       <DataTable label={t('console.practiceReset.tableLabel')} columns={COLUMNS} rowKey={(row) => row.table} {...state} />
       <Stack gap={3} align="start">
         <Input label={t('console.practiceReset.typeName')} value={name} onChange={(event) => setName(event.target.value)} autoComplete="off" />
-        <Button variant="primary" isLoading={reset.isPending} onClick={() => void submit()}>{t('console.practiceReset.reset')}</Button>
+        {/* It cannot be undone, so it is the danger button, as Purge's is (F1-29). */}
+        <Button variant="danger" isLoading={reset.isPending} onClick={() => void submit()}>{t('console.practiceReset.reset')}</Button>
       </Stack>
     </Stack>
   );

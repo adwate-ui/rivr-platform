@@ -59,7 +59,8 @@ test.describe('Manual KYC', () => {
     await page.getByRole('switch', { name: 'Kabir Sethi agrees to this identity check' }).click();
     await page.getByRole('button', { name: 'Verify Kabir Sethi' }).click();
 
-    await expect(page.getByText('Kabir Sethi is verified and can take a seat.')).toBeVisible();
+    // Read out as it appears (F1-23).
+    await expect(page.getByRole('status').getByText('Kabir Sethi is verified and can take a seat.')).toBeVisible();
     expect(sql(`select status || ' ' || method || ' ' || masked_aadhaar from public.kyc_record where member_id = '${KABIR}'`))
       .toBe('verified manual XXXX XXXX 4321');
     expect(sql(`select r.method || ' ' || s.full_name from public.kyc_review r join public.staff s on s.id = r.reviewed_by_staff_id

@@ -27,4 +27,11 @@ describe('TableCard', () => {
     expect(screen.queryByText(/₹/)).toBeNull();
     expect(screen.getByRole('button', { name: 'Table 3' })).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('leaves out the dealer and pace for staff who do not see the night\'s figures (F2-25)', () => {
+    renderIn(<TableCard name="Table 3" stakes="100/200" seats={[]} ringLabel="Table 3" occupancy="Open" rake={null}
+      dealer={null} pace={null} onSelect={() => undefined} />);
+    expect(screen.queryByText('No dealer')).toBeNull();
+    expect(screen.getByText('Open')).toBeDefined();
+  });
 });

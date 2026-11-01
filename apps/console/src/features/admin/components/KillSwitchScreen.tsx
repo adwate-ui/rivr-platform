@@ -1,19 +1,29 @@
 import { useStaffVenue, type ControlFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, Grid, Screen, Stack, Text } from '@rivr/ui';
+import { ErrorMessage, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { CONTROL_FAILURE_COPY } from './controlCopy.ts';
 import { EngagedControls } from './EngagedControls.tsx';
 import { EngageForm } from './EngageForm.tsx';
 
-type Outcome = 'engaged' | 'released' | 'awaiting_second' | ControlFailure | null;
+const DONE_COPY = {
+  engaged: 'console.killSwitch.engaged',
+  released: 'console.killSwitch.released',
+  awaiting_second: 'console.killSwitch.awaitingSecond',
+} as const;
+type Done = keyof typeof DONE_COPY;
+type Outcome = Done | ControlFailure | null;
 
+const isDone = (outcome: Outcome): outcome is Done => outcome !== null && outcome in DONE_COPY;
+
+/** What the last engage or release did, read out as it appears (F1-23), or why it was refused. */
 function OutcomeLine({ outcome }: { outcome: Outcome }) {
-  if (outcome === null) return null;
-  if (outcome === 'engaged') return <Text>{t('console.killSwitch.engaged')}</Text>;
-  if (outcome === 'released') return <Text>{t('console.killSwitch.released')}</Text>;
-  if (outcome === 'awaiting_second') return <Text>{t('console.killSwitch.awaitingSecond')}</Text>;
-  return <ErrorMessage>{t(CONTROL_FAILURE_COPY[outcome])}</ErrorMessage>;
+  return (
+    <>
+      <StatusMessage>{isDone(outcome) ? t(DONE_COPY[outcome]) : null}</StatusMessage>
+      {outcome === null || isDone(outcome) ? null : <ErrorMessage>{t(CONTROL_FAILURE_COPY[outcome])}</ErrorMessage>}
+    </>
+  );
 }
 
 /**

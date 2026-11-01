@@ -93,8 +93,11 @@ test.describe('Console fits', () => {
       // A tap outside the menu closes it.
       await page.getByRole('button', { name: 'Menu' }).click();
       await expect(page.getByRole('dialog', { name: 'Sections' })).toBeVisible();
-      await page.mouse.click(size.width - 20, size.height / 2);
-      await expect(page.getByRole('dialog', { name: 'Sections' })).toBeHidden();
+      // The menu listens for a tap outside a moment after it opens; a tap sooner than any person's is tried again.
+      await expect(async () => {
+        await page.mouse.click(size.width - 20, size.height / 2);
+        await expect(page.getByRole('dialog', { name: 'Sections' })).toBeHidden({ timeout: 1_000 });
+      }).toPass({ timeout: 5_000 });
       await openFromMenu(page, 'Members');
       await openFromMenu(page, 'Settings');
       await fitsSideways(page);

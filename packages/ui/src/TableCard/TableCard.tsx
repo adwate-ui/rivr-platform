@@ -17,10 +17,10 @@ export interface TableCardProps {
   occupancy: string;
   /** Under the ring, right: rake tonight; null for staff who do not read the ledger. */
   rake: bigint | null;
-  /** The dealer now, or "No dealer". */
-  dealer: string;
-  /** Hands in the last hour: "30 hands/hr". */
-  pace: string;
+  /** The dealer now, or "No dealer"; null for staff who do not see the night's figures. */
+  dealer: string | null;
+  /** Hands in the last hour: "30 hands/hr"; null for staff who do not see the night's figures. */
+  pace: string | null;
   isSelected?: boolean;
   onSelect: () => void;
 }
@@ -46,10 +46,12 @@ export function TableCard({ name, stakes, seats, ringLabel, isClosed = false, oc
           <Text as="span" variant="small" tone="muted">{occupancy}</Text>
           {rake === null ? null : <Money paise={rake} />}
         </span>
-        <span className={ROW}>
-          <Text as="span" variant="small" tone="muted">{dealer}</Text>
-          <Text as="span" variant="small" tone="muted">{pace}</Text>
-        </span>
+        {dealer === null && pace === null ? null : (
+          <span className={ROW}>
+            {dealer === null ? null : <Text as="span" variant="small" tone="muted">{dealer}</Text>}
+            {pace === null ? null : <Text as="span" variant="small" tone="muted">{pace}</Text>}
+          </span>
+        )}
       </span>
     </button>
   );

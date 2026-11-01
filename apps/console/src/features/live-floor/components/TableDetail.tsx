@@ -163,14 +163,14 @@ export function TableDetail({ venueId, table, tables, seats, held, permissions, 
   const forms = { move: setMoving, leaveEarly: setLeavingEarly, callTime: setChanging };
   return (
     <Stack gap={4}>
-      <TableHeader table={table} night={night} />
+      <TableHeader table={table} night={night} canSeeNight={permissions.includes('members.read')} />
       {permissions.includes('floor.manage') ? <TableControls venueId={venueId} table={table} tables={tables} isEmpty={seats.length === 0} onResult={report} /> : null}
       {failure === null ? null : <ErrorMessage>{t(SEAT_FAILURE_COPY[failure])}</ErrorMessage>}
       {permissions.includes('members.read') ? (
         <SeatRows venueId={venueId} table={table} seats={seats} held={held} permissions={permissions} report={report}
           onForm={(form, player) => forms[form](player)} />
       ) : <Text tone="muted">{t('console.liveFloor.noSeatMap')}</Text>}
-      {moving === null ? null : <MoveForm venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
+      {moving === null ? null : <MoveForm key={moving.sessionId} venueId={venueId} player={moving} tables={tables} onDone={(outcome) => { report(outcome); if (outcome.ok) setMoving(null); }} onCancel={() => setMoving(null)} />}
       {leavingEarly === null ? null : (
         <EarlyLeaveForm key={leavingEarly.sessionId} venueId={venueId} onDone={report} onCancel={() => setLeavingEarly(null)}
           member={{ memberId: leavingEarly.memberId, fullName: leavingEarly.fullName, owed: leavingEarly.callTimeLeft ?? 0 }} />

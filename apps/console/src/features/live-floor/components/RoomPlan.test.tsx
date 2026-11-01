@@ -59,5 +59,7 @@ describe('the room plan', () => {
     expect(screen.getByText('Your role does not see the seat map.')).toBeDefined();
     expect(screen.queryByText(/ of \d+$/)).toBeNull();
     expect(screen.queryByText(/seated$/)).toBeNull();
+    // No night's figures either: the role gets no rows, so they would all read nought (F2-25).
+    expect(screen.queryByText('No dealer')).toBeNull();
   });
 });

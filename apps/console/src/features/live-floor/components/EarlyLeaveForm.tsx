@@ -33,7 +33,7 @@ export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeave
   };
   return (
     <Stack gap={3}>
-      <Heading level={3}>{t('console.liveFloor.leaveEarlyTitle', { name: member.fullName })}</Heading>
+      <Heading level={3} isFocusedOnMount>{t('console.liveFloor.leaveEarlyTitle', { name: member.fullName })}</Heading>
       <Text tone="muted">{t('console.liveFloor.leaveEarlyOwed', { time: formatDuration(member.owed) })}</Text>
       <StatusMessage>{isDone ? t('console.liveFloor.leftEarly') : null}</StatusMessage>
       {isDone ? null : (
