@@ -81,6 +81,9 @@ async function joinAndApprove(player: Page, host: Page) {
   await joinButton(player, 'Table 2').click();
   await expect(tableDetail(player, 'Table 2').getByText(/· You asked to join$/)).toBeVisible();
   await untilListShows(host, `Approve ${MEMBER}`);
+  // The host's menu counts the join waiting, and the tab leads with the urgent count (decision 0301).
+  await expect(host.getByRole('link', { name: 'Waitlist', exact: true })).toHaveAccessibleDescription(/^\d+ waiting$/, { timeout: 15_000 });
+  await expect(host).toHaveTitle(/^\(\d+\) /);
   await gameList(host, 'NLH 100/200').getByRole('button', { name: `Approve ${MEMBER}` }).click();
   await player.reload();
   await expect(tableDetail(player, 'Table 2').getByText(/· your place \d+$/)).toBeVisible();

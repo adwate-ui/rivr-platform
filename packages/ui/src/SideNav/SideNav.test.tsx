@@ -37,7 +37,7 @@ describe('SideNav', () => {
       { id: 'highHands', label: 'High hands', href: '#high-hands', count: 2 },
       { id: 'jackpots', label: 'Jackpots', href: '#jackpots', count: 0 },
     ] }]} />);
-    expect(screen.getByRole('link', { name: 'High hands 2 waiting' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'High hands', description: '2 waiting' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Jackpots' })).toHaveTextContent(/^Jackpots$/);
   });
 
@@ -83,6 +83,7 @@ describe('SideNav', () => {
     renderIn(<SideNav label="Sections" current="liveFloor" sections={[{ id: 'tonight', items: [
       { id: 'topUps', label: 'Top-ups', href: '/top-ups', count: 2, isUrgent: true }] }]} />);
     expect(screen.getByText('2')).toHaveClass('bg-alert', 'text-on-alert');
-    expect(screen.getByRole('link', { name: 'Top-ups 2 waiting' })).toBeDefined();
+    // The link keeps its name; how many wait is its description (decision 0301).
+    expect(screen.getByRole('link', { name: 'Top-ups', description: '2 waiting' })).toBeDefined();
   });
 });

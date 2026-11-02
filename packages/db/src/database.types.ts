@@ -5740,6 +5740,11 @@ isOneToOne: false
               "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
             }[]
                            },
+"staff_queue_counts":
+{ Args: { "p_venue_id": string }; Returns: {
+              "queue": string,"waiting": number
+            }[]
+                           },
 "start_device_pairing":
 { Args: { "p_device_id": string }; Returns: {
               "code": string,"expires_at": string

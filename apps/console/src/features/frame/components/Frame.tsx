@@ -1,12 +1,12 @@
 import type { Permission } from '@rivr/contracts';
-import { isTopUpWaiting, useAuthStatus, useControlState, useSignOut, useStaffVenue, useTopUpsTonight, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
+import { useAuthStatus, useControlState, useSignOut, useStaffQueueCounts, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
-import { Box, ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen, Text } from '@rivr/ui';
+import { Box, ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen, Text, TitleCount, UrgentChime } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
-import { isAllowedAt, landingFor, locksWhenIdle, railFor, railItemAt, isHiddenAt } from './rail.ts';
+import { isAllowedAt, landingFor, locksWhenIdle, railFor, railItemAt, isHiddenAt, URGENT_QUEUES } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffFooter } from './StaffFooter.tsx';
 import { useIdleLock } from './useIdleLock.ts';
@@ -74,6 +74,19 @@ function PracticeBanner() {
   );
 }
 
+/** The rail's counts, and the urgent queues' own: null until the first read, so the first read sounds nothing. */
+function useRailCounts(venueId: string, permissions: readonly Permission[]) {
+  // The high-hand claims waiting for staff who approve them (#317).
+  const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
+  // And every queue the staff member acts on, the urgent ones in red (decision 0301).
+  const queues = useStaffQueueCounts(venueId);
+  const data = queues.data;
+  const urgent = data === undefined ? null : Object.fromEntries(URGENT_QUEUES.map((queue) => [queue, data[queue] ?? 0]));
+  return { counts: { jackpots: waiting.length, ...data }, urgent };
+}
+
+const totalOf = (counts: Readonly<Record<string, number>> | null) => Object.values(counts ?? {}).reduce((sum, count) => sum + count, 0);
+
 function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const { venueId, permissions } = staff.venue;
   const { isVenueFrozen } = useControlState(venueId);
@@ -83,11 +96,8 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const signOut = useSignOut();
   // Ten idle minutes on a screen that locks sign the staff member out (#384).
   useIdleLock(locksWhenIdle(pathname), signOut.mutate);
-  // The rail counts the high-hand claims waiting for staff who approve them (#317).
-  const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
-  // And the top-ups waiting for the floor, in red (decision 0299).
-  const topUps = useTopUpsTonight(venueId, permissions.includes('waitlist.manage'));
-  const sections = railFor(permissions, { jackpots: waiting.length, topUps: (topUps.data ?? []).filter(isTopUpWaiting).length }, ['topUps']);
+  const { counts, urgent } = useRailCounts(venueId, permissions);
+  const sections = railFor(permissions, counts, URGENT_QUEUES);
   // Every table offers its export to staff who export tables, each recorded first (#102).
   const recordExport = useRecordTableExport(venueId);
   const exporter = permissions.includes('exports.table') ? recordExport : null;
@@ -105,7 +115,12 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
     >
       {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
       <DataTableExportProvider exporter={exporter}>
-        {isAllowedAt(permissions, pathname) ? children : <Refused landing={pathname === '/' ? landingFor(sections) : undefined} isOff={isHiddenAt(pathname)} />}
+        {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
+            switch starts the chime over, so the other venue's counts sound nothing. */}
+        <UrgentChime key={venueId} counts={urgent} />
+        <TitleCount count={totalOf(urgent)}>
+          {isAllowedAt(permissions, pathname) ? children : <Refused landing={pathname === '/' ? landingFor(sections) : undefined} isOff={isHiddenAt(pathname)} />}
+        </TitleCount>
       </DataTableExportProvider>
     </ConsoleShell>
   );

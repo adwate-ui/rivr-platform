@@ -2,6 +2,12 @@
 export const ui = {
   /** The browser tab's title on a screen (F5-03): `Check-in · RIVR`. */
   screenTitle: '{title} · RIVR',
+  /** The same, led by how many urgent items wait for staff (decision 0301): `(3) Top-ups · RIVR`. */
+  screenTitleCounted: '({count}) {title} · RIVR',
+  /** Said to a screen reader as new urgent work arrives on the console (decision 0301). */
+  urgentChime: {
+    waiting: '{count} urgent waiting',
+  },
   /** A shell's first stop for a keyboard (F5-03). */
   skipToContent: 'Skip to content',
   captcha: {
