@@ -11,6 +11,13 @@ export const staff = {
   tabs: { staff: 'Staff members' },
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No staff yet.',
+  /** The staff table (C-03): its headings and search, the button that opens the add form, and a row's Close (common.close). */
+  name: 'Name',
+  login: 'Login',
+  active: 'Active',
+  search: 'Find staff',
+  addOpen: 'Add staff',
+  closeFor: 'Close {name}',
   /** The permission roles, as the screen names them. */
   roles: {
     super_admin: 'Super admin',

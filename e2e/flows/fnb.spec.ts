@@ -98,6 +98,8 @@ test.describe('F&B', () => {
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await page.getByRole('button', { name: 'Ishan Mehta leaves' }).click();
     await page.getByRole('button', { name: 'Yes, Ishan Mehta leaves' }).click();
+    // His seat clears first; until it does, his row and the list of those owing call time both offer Leave early.
+    await expect(page.getByRole('button', { name: 'Move Ishan Mehta' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Let Ishan Mehta leave early' }).click();
     await page.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the F&B flow');
     await page.getByRole('button', { name: 'Let leave early' }).click();

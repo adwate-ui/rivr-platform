@@ -2,14 +2,13 @@ import type { Permission } from '@rivr/contracts';
 import { useStaffVenue, useVenueStaff } from '@rivr/db';
 import { grantableRoles } from '@rivr/domain/staff';
 import { t } from '@rivr/i18n';
-import { Screen, Stack, Text } from '@rivr/ui';
-import { AddStaffForm } from './AddStaffForm.tsx';
-import { StaffRow } from './StaffRow.tsx';
+import { Screen } from '@rivr/ui';
+import { StaffTable } from './StaffTable.tsx';
 
 /**
  * The venue's staff (#28; scope-v1 module 10), for staff with staff.manage: each with a job title from
- * the manpower plan, apart from the role that decides access. Add someone, change a job title or role,
- * turn someone off.
+ * the manpower plan, apart from the role that decides access. Find someone in the table, add someone, change a job
+ * title or role, turn someone off.
  */
 export function StaffSection() {
   const staff = useStaffVenue();
@@ -30,15 +29,7 @@ function StaffList({ venueId, permissions }: { venueId: string; permissions: rea
   if (members.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void members.refetch()} />;
   return (
     <Screen level={2} title={title}>
-      {/* Adding comes first: a venue has some 40 staff, and the form shouldn't sit below them all. */}
-      <Stack gap={8}>
-        <AddStaffForm venueId={venueId} grantable={grantable} />
-        {members.data.length === 0 ? <Text tone="muted">{t('console.staff.empty')}</Text> : (
-          <Stack gap={4} divided>
-            {members.data.map((member) => <StaffRow key={member.staffId} venueId={venueId} member={member} grantable={grantable} />)}
-          </Stack>
-        )}
-      </Stack>
+      <StaffTable venueId={venueId} members={members.data} grantable={grantable} />
     </Screen>
   );
 }

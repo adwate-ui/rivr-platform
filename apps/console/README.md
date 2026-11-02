@@ -59,7 +59,7 @@ src/
                       #606; /high-hands opens its tab); the prompt across every other screen while one waits
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
-    staff/            the venue's staff: add, change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
+    staff/            the venue's staff as a table to search (C-03): add behind a button, open a name to change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
     rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)

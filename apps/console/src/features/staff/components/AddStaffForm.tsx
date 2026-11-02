@@ -47,7 +47,7 @@ export function AddStaffForm({ venueId, grantable }: { venueId: string; grantabl
   const phoneField = form.register('phone');
   return (
     <Stack gap={4}>
-      <Heading level={2}>{t('console.staff.addTitle')}</Heading>
+      <Heading level={3}>{t('console.staff.addTitle')}</Heading>
       <Input {...fullNameField} label={t('console.staff.fullName')} autoComplete="off" error={errors.fullName ? t('console.staff.invalidName') : undefined} />
       <Input {...jobTitleField} label={t('console.staff.jobTitle')} hint={t('console.staff.jobTitleHint')} autoComplete="off"
         error={errors.jobTitle ? t('console.staff.invalidJobTitle') : undefined} />
