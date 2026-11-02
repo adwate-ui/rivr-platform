@@ -48,7 +48,7 @@ const TILE = 'rounded-md border font-text text-18 font-medium transition-colors 
 const TILE_ROW: Record<number, string> = { 3: 'grid grid-cols-3 gap-2', 5: 'grid grid-cols-5 gap-2' };
 
 // The Order screen's categories (decision 0320): words over a hairline, the chosen one underlined in gold.
-const TAB = '-mb-px min-h-touch border-b-2 font-text text-16 font-medium transition-colors';
+const TAB = '-mb-px min-h-touch min-w-touch border-b-2 font-text text-16 font-medium transition-colors';
 
 /** The row the choices sit in, by look. */
 function rowClasses(look: 'chip' | 'pill' | 'tile' | 'tabs', optionCount: number, isOneRow: boolean): string {
