@@ -13,8 +13,8 @@ export default function CookieSheet({ onChoose }: { onChoose: (choice: CookieCho
     <Sheet isOpen onClose={() => onChoose(ESSENTIAL)} title={t('player.signIn.cookies.title')} titleLook="plain">
       <Text tone="muted">{t('player.signIn.cookies.text')}</Text>
       <Grid columns={2} gap={2}>
-        <Button variant="outline" fullWidth onClick={() => onChoose(ESSENTIAL)}>{t('player.signIn.cookies.essential')}</Button>
-        <Button variant="primary" fullWidth onClick={() => onChoose(ANALYTICS)}>{t('player.signIn.cookies.allow')}</Button>
+        <Button variant="outline" size="large" fullWidth onClick={() => onChoose(ESSENTIAL)}>{t('player.signIn.cookies.essential')}</Button>
+        <Button variant="primary" size="large" fullWidth onClick={() => onChoose(ANALYTICS)}>{t('player.signIn.cookies.allow')}</Button>
       </Grid>
     </Sheet>
   );

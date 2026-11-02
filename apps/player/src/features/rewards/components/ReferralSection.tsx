@@ -2,7 +2,7 @@ import { attributionSearch } from '@rivr/contracts/attribution';
 import { useFeature } from '@rivr/db';
 import { useMyReferral, type MyReferral } from '@rivr/db/myRewards';
 import { formatChips, t } from '@rivr/i18n';
-import { Box, Button, FeatureGate, Figure, Grid, Inline, LoadState, Stack, Text, useToast } from '@rivr/ui';
+import { Box, Button, FeatureGate, Figure, Grid, Inline, LoadState, Skeleton, Stack, Text, useToast } from '@rivr/ui';
 
 /** The offer in a line: the bonus each, when the club has set it. */
 function offerOf({ bonus }: MyReferral): string {
@@ -33,7 +33,9 @@ function Invite({ link }: { link: string }) {
 /** The member's card: Refer a friend, the offer, their code large with how many joined, then the two ways to invite. */
 function Referral() {
   const referral = useMyReferral();
-  if (referral.data === undefined) return <LoadState isError={referral.isError} onRetry={() => void referral.refetch()} />;
+  // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
+  if (referral.isError) return <LoadState isError onRetry={() => void referral.refetch()} />;
+  if (referral.data === undefined) return <Skeleton rows={2} />;
   if (referral.data === null) return null;
   // A friend's sign-up keeps the code from the link they opened (sign_up_attribution).
   const link = `${window.location.origin}/?${attributionSearch({ referral: referral.data.code })}`;

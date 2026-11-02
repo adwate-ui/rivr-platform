@@ -2,6 +2,8 @@
 export const playerAlerts = {
   /** The kill switch, in red; it is never dismissed. */
   paused: 'The club is paused. Ask a member of staff.',
+  /** Offline on a screen other than Tonight, which names when its tables came. */
+  offlineScreen: 'Offline. What you see may be out of date.',
   /** A refresh failed: the screen keeps what it last had. `{time}` is when that came, 22:41. */
   failed: "Couldn't refresh. Showing {time}.",
   offline: 'Offline. Showing tables as of {time}.',

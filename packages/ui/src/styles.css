@@ -213,7 +213,7 @@
   }
 
   [data-progress-fill] {
-    transition: width var(--rivr-motion-duration-tick) linear;
+    transition: transform var(--rivr-motion-duration-tick) linear;
   }
 }
 

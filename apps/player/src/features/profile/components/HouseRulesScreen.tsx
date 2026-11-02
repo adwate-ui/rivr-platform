@@ -1,6 +1,6 @@
 import { useHouseRules, type HouseRules } from '@rivr/db/houseRules';
 import { formatNumber, t } from '@rivr/i18n';
-import { Box, Button, Figure, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
+import { BackButton, Figure, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
 /** The rules, each with its number in gold, then the legal standing and its cases, each between hairlines (brief 3.10). */
@@ -42,7 +42,7 @@ export function HouseRulesScreen() {
   const rules = useHouseRules();
   const navigate = useNavigate();
   const title = t('player.houseRules.title');
-  const back = <Box><Button variant="text" icon="chevronLeft" onClick={() => void navigate({ to: '/profile' })}>{t('player.profile.title')}</Button></Box>;
+  const back = <BackButton label={t('player.profile.title')} onBack={() => void navigate({ to: '/profile' })} />;
   const look = { titleLook: 'serif' } as const;
   if (rules.isError) return <Stack gap={2}>{back}<Screen {...look} title={title} status="error" onRetry={() => void rules.refetch()} /></Stack>;
   if (rules.data === undefined) return <Stack gap={2}>{back}<Screen {...look} title={title} status="loading" loadingLook="skeleton" /></Stack>;

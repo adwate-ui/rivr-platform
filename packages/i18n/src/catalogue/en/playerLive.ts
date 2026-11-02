@@ -102,10 +102,10 @@ export const playerLive = {
     onTheList: 'On the list',
   },
   rate: {
-    /** `Tonight · 2h 41m at Table 1`. */
-    eyebrow: 'Tonight · {duration} at {table}',
-    /** A visit with no table played, as through the door and out. */
-    eyebrowNoTable: 'Tonight',
+    /** `Tonight · 2h 41m at Table 1`, or for a visit on an earlier night `14 Nov · 2h 41m at Table 1`. */
+    eyebrow: '{when} · {duration} at {table}',
+    /** The visit's night when it is tonight's; a visit with no table played says only this, or its date. */
+    tonight: 'Tonight',
     title: 'How was your night?',
     poor: 'Poor',
     excellent: 'Excellent',

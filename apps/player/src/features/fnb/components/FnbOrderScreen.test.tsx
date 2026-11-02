@@ -24,18 +24,20 @@ const MENU = [
 ];
 
 /** Signed in with table-side food, seated or not, a menu, a usual, and orders whose first reply is lost. */
-function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = []) {
+function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = [], at = '/fnb', myOrders: unknown[] = []) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   const orders: unknown[] = [];
+  const reads: Record<string, unknown> = {
+    '/rpc/my_feature_access': [{ feature_key: 'fnb.table_side', state: 'enabled', tiers: null }], '/rpc/my_seat': seat === 'seated' ? [SEAT] : [],
+    '/rpc/my_fnb_menu': MENU, '/rpc/my_usual_fnb_items': usual, '/rpc/my_fnb_orders': myOrders,
+  };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/my_feature_access')) return Response.json([{ feature_key: 'fnb.table_side', state: 'enabled', tiers: null }]);
-    if (url.includes('/rpc/my_seat')) return Response.json(seat === 'seated' ? [SEAT] : []);
-    if (url.includes('/rpc/my_fnb_menu')) return Response.json(MENU);
-    if (url.includes('/rpc/my_usual_fnb_items')) return Response.json(usual);
+    const read = Object.keys(reads).find((path) => url.includes(path));
+    if (read !== undefined) return Response.json(reads[read]);
     if (url.includes('/rpc/place_fnb_order')) {
       orders.push(JSON.parse(String(init?.body)));
       // The first reply is lost on a weak signal; the order went through.
@@ -46,7 +48,7 @@ function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = []) {
   const rootRoute = createRootRoute({ component: () => <ToastProvider><PlayerShell tabs={[]} isTabBarHidden><Outlet /></PlayerShell></ToastProvider> });
   const tonight = createRoute({ getParentRoute: () => rootRoute, path: '/', component: () => <Text>Tonight screen</Text> });
   const fnb = createRoute({ getParentRoute: () => rootRoute, path: '/fnb', component: FnbOrderScreen });
-  const router = createRouter({ routeTree: rootRoute.addChildren([tonight, fnb]), history: createMemoryHistory({ initialEntries: ['/fnb'] }) });
+  const router = createRouter({ routeTree: rootRoute.addChildren([tonight, fnb]), history: createMemoryHistory({ initialEntries: [at] }) });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
@@ -94,5 +96,15 @@ describe('Tonight › Order', () => {
     const [first, second] = orders.map((order) => Reflect.get(Object(order), 'p_idempotency_key'));
     expect(first).toEqual(expect.any(String));
     expect(second).toBe(first);
+  });
+
+  it('Order again starts from the last order, leaving out what is no longer on the menu', async () => {
+    const order = {
+      order_id: 'o1', kot_number: 7, created_at: '2026-11-15T16:10:00Z', accepted_at: '2026-11-15T16:11:00Z', on_way_at: null,
+      delivered_at: '2026-11-15T16:20:00Z', cancelled_at: null, cancel_reason: null,
+      lines: [{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', quantity: 2, note: null }, { item_id: 'gone', name: 'Cold coffee', kind: 'soft_drink', quantity: 1, note: null }],
+    };
+    renderOrder('seated', [], '/fnb?again=o1', [order]);
+    expect((await screen.findByRole('button', { name: /Send to the bar/ }, LATER)).textContent).toContain('2 items');
   });
 });

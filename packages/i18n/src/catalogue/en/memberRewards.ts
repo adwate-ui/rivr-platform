@@ -33,6 +33,8 @@ export const memberRewards = {
   /** The redesign (decision 0320): the balance's word, the next reward, a reward out of reach, and the redeem sheet. */
   pointsWord: 'points',
   next: 'Next: {name}',
+  /** Every reward in points is within reach: the bar full. */
+  allUnlocked: 'Everything unlocked',
   /** `750 to go`. */
   toGo: '{points} to go',
   cost: 'Cost',

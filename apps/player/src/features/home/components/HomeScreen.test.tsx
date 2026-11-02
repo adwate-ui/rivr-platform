@@ -54,7 +54,9 @@ function renderTonight(places: unknown[] = [], seat: unknown[] = [], more: Recor
     const url = String(input instanceof Request ? input.url : input);
     if (init?.method === 'POST') asked.push(`${url.replace(/^.*\/rpc\//, '')} ${String(init.body)}`);
     const key = Object.keys(replies).find((path) => url.includes(`${path}?`) || url.endsWith(path));
-    return Response.json(key === undefined ? [] : replies[key]);
+    const reply = key === undefined ? [] : replies[key];
+    // A reply may be a whole Response, as a refusal is.
+    return reply instanceof Response ? reply.clone() : Response.json(reply);
   });
   const rootRoute = createRootRoute({ component: () => <ToastProvider><HomeScreen offer={null} /></ToastProvider> });
   const router = createRouter({ routeTree: rootRoute, history: createMemoryHistory({ initialEntries: [at] }) });
@@ -198,5 +200,23 @@ describe('Tonight', () => {
     expect((await screen.findByRole('button', { name: 'Register interest in Weeknight Turbo' }, LATER)).textContent).toBe('Notify me');
     expect(screen.getByRole('button', { name: 'Register interest in Sunday Main Event' }).textContent).toBe('Notifying you');
     expect(screen.getByRole('button', { name: 'Register interest in Ladies Night' }).textContent).toBe('Registered');
+  });
+
+  it('Errors › Club paused: a red banner on Tonight, and a table offers no join', async () => {
+    renderTonight([], [], { '/rest/v1/control_state': [{ venue_id: 'v1', level: 'venue_freeze', feature: null, member_id: null, released_at: null }] });
+    expect(await screen.findByText('The club is paused. Ask a member of staff.', {}, LATER)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /^Table 1 · / }));
+    const paused = await screen.findByRole('button', { name: 'The club is paused' });
+    expect(paused.hasAttribute('disabled')).toBe(true);
+  });
+
+  it('Browsing: Notify me says why it did not go through', async () => {
+    renderTonight([], [], {
+      '/rpc/my_feature_access': [...FEATURES, { feature_key: 'tournaments.register', state: 'enabled', tiers: null }],
+      '/rpc/my_upcoming_tournaments': [{ tournament_id: 't1', name: 'Weeknight Turbo', starts_at: '2026-11-17T14:30:00Z', standing: 'none' }],
+      '/rpc/register_tournament_interest': Response.json({ code: 'RVFRZ', message: 'paused' }, { status: 400 }),
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Register interest in Weeknight Turbo' }, LATER));
+    expect(await screen.findByText('The club is paused. Try again later.')).toBeDefined();
   });
 });

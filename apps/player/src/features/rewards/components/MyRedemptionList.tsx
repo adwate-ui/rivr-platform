@@ -1,6 +1,6 @@
 import { useMyRedemptions, type MyRedemption } from '@rivr/db/myRewards';
 import { formatDayMonth, t } from '@rivr/i18n';
-import { Box, DetailRow, Heading, LoadState, Stack } from '@rivr/ui';
+import { Box, DetailRow, Heading, LoadState, Skeleton, Stack } from '@rivr/ui';
 
 /** Where a redemption stands: cancelled by staff with why (decision 0302), ready to collect, or collected and when. */
 function statusOf(redemption: MyRedemption): { text: string; isReady: boolean } {
@@ -15,7 +15,9 @@ function statusOf(redemption: MyRedemption): { text: string; isReady: boolean } 
  */
 export function MyRedemptionList() {
   const redemptions = useMyRedemptions();
-  if (redemptions.data === undefined) return <LoadState isError={redemptions.isError} onRetry={() => void redemptions.refetch()} />;
+  // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
+  if (redemptions.isError) return <LoadState isError onRetry={() => void redemptions.refetch()} />;
+  if (redemptions.data === undefined) return <Skeleton rows={2} />;
   if (redemptions.data.length === 0) return null;
   return (
     <Stack gap={2}>

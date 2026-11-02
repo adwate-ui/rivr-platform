@@ -5,7 +5,7 @@ import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, use
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { isCallTimeEnding, minutesLeftToSay } from '@rivr/domain/callTime';
 import { useNow } from '../hooks/useNow.ts';
-import { usePushAction } from '../hooks/usePushAction.ts';
+import { usePushAction, type PushTarget } from '../hooks/usePushAction.ts';
 import { JoinSheet } from './JoinSheet.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { callSecondsLeft, SeatedView } from './SeatedView.tsx';
@@ -31,6 +31,15 @@ function standingOf(seat: MySeat | null, places: readonly WaitlistPlace[]): Stan
   return place.holdUntil === null ? { kind: 'waiting', place } : { kind: 'ready', place: { ...place, holdUntil: place.holdUntil } };
 }
 
+/** What a push's button may act on (usePushAction): the place called, or a seat whose call time still runs. */
+function pushTargetOf(standing: Standing, isReady: boolean): PushTarget {
+  return {
+    isReady,
+    calledEntryId: standing.kind === 'ready' ? standing.place.entryId : null,
+    canAddTime: standing.kind === 'seated' && standing.seat.hasCallTime && (standing.seat.callTimeLeft ?? 0) > 0,
+  };
+}
+
 /** The phone buzzes as the seat is called and as the member sits (brief 2.5), and a toast says where they sat. */
 function useArrivals(standing: Standing) {
   const toast = useToast();
@@ -52,7 +61,6 @@ function StandingView({ standing, now, offer, onJoin, tables, sheet }: {
   standing: Standing; now: Date; offer: ReactNode; onJoin: (table: FloorTable) => void; tables: readonly FloorTable[];
   sheet: { open: SeatSheet | null; set: (sheet: SeatSheet | null) => void };
 }) {
-  const tournaments = useMyUpcomingTournaments().data?.length ?? 0;
   switch (standing.kind) {
     case 'waiting': return <WaitingView place={standing.place} offer={offer} />;
     case 'ready': return <SeatReadyView place={standing.place} now={now} />;
@@ -61,7 +69,7 @@ function StandingView({ standing, now, offer, onJoin, tables, sheet }: {
       <Stack gap={4}>
         <RateVisit />
         <TonightOffers />
-        <SheetPanel title={t('player.live.allTables')} aside={runningLine(tables, tournaments)}><TablesList tables={tables} onOpen={onJoin} /></SheetPanel>
+        <SheetPanel title={t('player.live.allTables')} aside={runningLine(tables, 0)}><TablesList tables={tables} onOpen={onJoin} /></SheetPanel>
       </Stack>
     );
   }
@@ -124,9 +132,7 @@ export function HomeScreen({ offer }: { offer: ReactNode }) {
   const now = useNow(standing.kind === 'ready' || standing.kind === 'seated');
   useArrivals(standing);
   const openAddTime = useCallback(() => setSeatSheet('addTime'), []);
-  usePushAction({
-    isReady: !tonight.isPending, isSeated: standing.kind === 'seated', calledEntryId: standing.kind === 'ready' ? standing.place.entryId : null,
-  }, openAddTime);
+  usePushAction(pushTargetOf(standing, !tonight.isPending), openAddTime);
   const title = t('player.live.title');
   const tables = tonight.tables.data;
   if (tonight.isPending) return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;

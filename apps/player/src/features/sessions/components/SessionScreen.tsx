@@ -1,7 +1,7 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
 import { formatHoursMinutes, formatNumber, formatStakes, formatTime, t } from '@rivr/i18n';
-import { Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useToast } from '@rivr/ui';
+import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useToast } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { sessionDay, sessionTitle } from './naming.ts';
@@ -58,7 +58,7 @@ export function SessionScreen() {
   const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
   const session = sessions.data ?? undefined;
   const title = t('player.sessions.title');
-  const back = <Box><Button variant="text" icon="chevronLeft" onClick={toList}>{title}</Button></Box>;
+  const back = <BackButton label={title} onBack={toList} />;
   if (access.status === 'error') return <Screen title={title} isTitleHidden status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} isTitleHidden status="error" onRetry={() => void sessions.refetch()} />;
   if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;

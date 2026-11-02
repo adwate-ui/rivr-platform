@@ -6,6 +6,7 @@ import { InstallOffer, PlayerShell, Screen, type BottomNavItem, type FeatureAcce
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
+import { FrameBanners } from './FrameBanners.tsx';
 
 // Tonight, Card and Rewards always show as tabs; the features inside them are gated one by one (decision 0320).
 const ALWAYS: FeatureAccess = { state: 'enabled' };
@@ -52,8 +53,8 @@ function KycGate({ isMember, children }: { isMember: boolean; children: ReactNod
 /**
  * The player app's frame for a signed-in member (decision 0320): Tonight, Sessions, Card and Rewards as tabs, gated by
  * tier; the member's initial top right on a tab screen, which opens Profile; pushed screens (Order, Profile, House rules)
- * without the tabs; and on Tonight the offer to install the app (#16). The club's state (paused, offline) is a banner on
- * Tonight. Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity check is
+ * without the tabs; and on Tonight the offer to install the app (#16). The club's state (paused, offline) is a banner at
+ * the top: Tonight's own, or the frame's on every other screen. Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity check is
  * verified, a member sees only its steps (#632).
  */
 export function Frame({ children }: { children: ReactNode }) {
@@ -79,6 +80,7 @@ export function Frame({ children }: { children: ReactNode }) {
       avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, href: '/profile' }}
       isTabBarHidden={PUSHED.includes(pathname)} isFullBleed={pathname === '/'}>
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
+      {pathname === '/' ? null : <FrameBanners />}
       <KycGate isMember={Boolean(member.data)}>{children}</KycGate>
     </PlayerShell>
   );

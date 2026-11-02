@@ -1,6 +1,6 @@
 import { useFeature, useKycImageUrl, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { Box, Button, DetailRow, FeatureGate, Heading, Inline, KycPhoto, kycPhotoStatus, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
+import { BackButton, Box, DetailRow, FeatureGate, Heading, Inline, KycPhoto, kycPhotoStatus, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { FeedbackSheet } from './FeedbackSection.tsx';
@@ -73,7 +73,7 @@ export function ProfileScreen() {
   const router = useRouter();
   const canGoBack = useCanGoBack();
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
-  const back = <Box><Button variant="text" icon="chevronLeft" onClick={() => (canGoBack ? router.history.back() : void navigate({ to: '/' }))}>{t('player.profile.back')}</Button></Box>;
+  const back = <BackButton label={t('player.profile.back')} onBack={() => (canGoBack ? router.history.back() : void navigate({ to: '/' }))} />;
   if (preferences.data === undefined) {
     // Sign out works offline, so it stays within reach when Profile cannot load.
     return (

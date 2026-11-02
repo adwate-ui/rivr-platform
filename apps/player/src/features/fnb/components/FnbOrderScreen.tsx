@@ -2,7 +2,7 @@ import { FNB_ITEM_KINDS, type FnbItemKind } from '@rivr/contracts';
 import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Box, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text } from '@rivr/ui';
+import { BackButton, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text } from '@rivr/ui';
 import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { SendBar } from './SendBar.tsx';
@@ -35,16 +35,20 @@ function Usual({ menu, onAdd }: { menu: readonly FnbMenuItem[]; onAdd: (items: r
   );
 }
 
-/** The counts an order again starts from: the lines of the order named in `?again=`, when it is tonight's. */
-function useStartingCounts(): Counts {
+/**
+ * The counts an order again starts from: the lines of the order named in `?again=`, when it is tonight's, and only those
+ * still on the menu, as the member sees and changes only those.
+ */
+function useStartingCounts(menu: readonly FnbMenuItem[]): Counts {
   const { again } = useSearch({ strict: false });
   const order = useMyFnbOrders().data?.find((each) => each.orderId === again);
-  return Object.fromEntries((order?.lines ?? []).map((line) => [line.itemId, line.quantity]));
+  const lines = (order?.lines ?? []).filter((line) => menu.some((item) => item.itemId === line.itemId));
+  return Object.fromEntries(lines.map((line) => [line.itemId, line.quantity]));
 }
 
 /** The menu by category (Food, Soft drinks, Bar), the usual on top, each item addable; the send bar once anything is in. */
 function Ordering({ seat, menu }: { seat: MySeat; menu: readonly FnbMenuItem[] }) {
-  const starting = useStartingCounts();
+  const starting = useStartingCounts(menu);
   const [counts, setCounts] = useState<Counts | null>(null);
   const [kind, setKind] = useState<FnbItemKind>('food');
   const shown = counts ?? starting;
@@ -94,7 +98,7 @@ export function FnbOrderScreen() {
   if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
   return (
     <Stack gap={2}>
-      <Box><Button variant="text" icon="chevronLeft" onClick={() => void navigate({ to: '/' })}>{t('player.order.back')}</Button></Box>
+      <BackButton label={t('player.order.back')} onBack={() => void navigate({ to: '/' })} />
       <Heading level={1} variant="serif">{title}</Heading>
       <FeatureGate access={feature.access}><OrderBody /></FeatureGate>
     </Stack>

@@ -11,17 +11,22 @@ import { ReferralSection } from './ReferralSection.tsx';
 // The tab's copy loads with the tab, so the app's first load carries none of it (#344).
 registerMessages({ memberRewards });
 
-/** "Next: Sunday Main Event seat" with how many points short, over a bar of the share held (@rivr/domain nextReward). */
+/**
+ * "Next: Sunday Main Event seat" with how many points short, over a bar of the share held (@rivr/domain nextReward), of the
+ * rewards still to be had (one with none left is not next); with every reward in points within reach, "Everything
+ * unlocked" over a full bar. Nothing while the catalogue has no reward in points.
+ */
 function NextReward({ points }: { points: bigint }) {
-  const next = nextReward(points, useRewardCatalogue().data ?? []);
-  if (next === null) return null;
+  const inStock = (useRewardCatalogue().data ?? []).filter((item) => item.stock !== 0);
+  const next = nextReward(points, inStock);
+  if (next === null && !inStock.some((item) => item.points !== null)) return null;
   return (
     <Stack gap={2}>
       <Inline justify="between" gap={3}>
-        <Text variant="small">{t('memberRewards.next', { name: next.item.name })}</Text>
-        <Text variant="small" tone="muted">{t('memberRewards.toGo', { points: formatNumber(next.gap) })}</Text>
+        <Text variant="small">{next === null ? t('memberRewards.allUnlocked') : t('memberRewards.next', { name: next.item.name })}</Text>
+        {next === null ? null : <Text variant="small" tone="muted">{t('memberRewards.toGo', { points: formatNumber(next.gap) })}</Text>}
       </Inline>
-      <ProgressBar fraction={next.fraction} />
+      <ProgressBar fraction={next === null ? 1 : next.fraction} />
     </Stack>
   );
 }

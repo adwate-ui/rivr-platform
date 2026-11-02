@@ -2,7 +2,7 @@ import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
 import { formatNumber, t } from '@rivr/i18n';
-import { Box, Button, ChoiceChips, DetailRow, ErrorMessage, Inline, ItemPhoto, LoadState, Sheet, Stack, Text, useToast } from '@rivr/ui';
+import { Box, Button, ChoiceChips, DetailRow, ErrorMessage, Inline, ItemPhoto, LoadState, Skeleton, Sheet, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
 
 /** A reward's price: points, or hotel nights. */
@@ -80,7 +80,9 @@ export function Catalogue({ balance }: { balance: bigint }) {
   const [kind, setKind] = useState<RewardKind | 'all'>('all');
   const [redeeming, setRedeeming] = useState<RewardItem | null>(null);
   const options = [{ value: 'all' as const, label: t('memberRewards.all') }, ...REWARD_KINDS.map((value) => ({ value, label: t(`memberRewards.kinds.${value}`) }))];
-  if (catalogue.data === undefined) return <LoadState isError={catalogue.isError} onRetry={() => void catalogue.refetch()} />;
+  // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
+  if (catalogue.isError) return <LoadState isError onRetry={() => void catalogue.refetch()} />;
+  if (catalogue.data === undefined) return <Skeleton rows={2} />;
   const shown = catalogue.data.filter((item) => kind === 'all' || item.kind === kind);
   return (
     <Stack gap={4}>

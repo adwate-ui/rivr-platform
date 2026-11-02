@@ -22,7 +22,7 @@ const REDEMPTION = {
 };
 
 /** Meera signed in with 3,250 points, the catalogue and Refer a friend; redeeming sends its order to `redeemed`. */
-function renderRewards() {
+function renderRewards(points = 3250) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000231', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -31,7 +31,7 @@ function renderRewards() {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/my_feature_access')) return Response.json(FEATURES);
-    if (url.includes('/rpc/my_rewards')) return Response.json([{ points: 3250, tier_name: 'Founders’ Circle', nights: 0 }]);
+    if (url.includes('/rpc/my_rewards')) return Response.json([{ points, tier_name: 'Founders’ Circle', nights: 0 }]);
     if (url.includes('/rpc/my_locked_points')) return Response.json(0);
     if (url.includes('/rest/v1/reward_item')) return Response.json(ITEMS);
     if (url.includes('/rpc/my_redemptions')) return Response.json([REDEMPTION]);
@@ -109,5 +109,11 @@ describe('Rewards', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
     expect(await screen.findByText('Invite link copied')).toBeDefined();
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('RIVR4821'));
+  });
+
+  it('says Everything unlocked when every reward still to be had is within reach (one with none left is not next)', async () => {
+    renderRewards(4500);
+    expect(await screen.findByText('Everything unlocked', {}, LATER)).toBeDefined();
+    expect(screen.queryByText(/ to go$/)).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { useFeature, useMyUpcomingTournaments, useRegisterTournamentInterest, type FloorTable, type UpcomingTournament } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, FeatureGate, Heading, Inline, Stack, TableListRow, Text } from '@rivr/ui';
+import { Button, FeatureGate, Heading, Inline, Stack, TableListRow, Text, useToast } from '@rivr/ui';
 
 /** The wait at a table's right: gold "No wait", how many wait, or closed. */
 function waitOf(table: FloorTable): string {
@@ -24,7 +24,12 @@ function standingLabel(standing: UpcomingTournament['standing']): string {
 /** One upcoming tournament with Notify me, Notifying you once the member has asked, or Registered (#636). */
 function TournamentRow({ tournament }: { tournament: UpcomingTournament }) {
   const register = useRegisterTournamentInterest();
+  const toast = useToast();
   const isNotifying = tournament.standing !== 'none';
+  const ask = async () => {
+    const asked = await register.mutateAsync(tournament.tournamentId);
+    if (!asked.ok) toast(t(`player.tonight.interestFailures.${asked.error}`));
+  };
   return (
     <Inline gap={3} justify="between" align="center">
       <Stack gap={1}>
@@ -33,7 +38,7 @@ function TournamentRow({ tournament }: { tournament: UpcomingTournament }) {
       </Stack>
       <Button variant="outline" shape="pill" isPressed={isNotifying} isLoading={register.isPending}
         aria-label={t('player.tonight.registerInterestName', { name: tournament.name })}
-        onClick={() => { if (!isNotifying) void register.mutateAsync(tournament.tournamentId); }}>
+        onClick={() => { if (!isNotifying) void ask(); }}>
         {standingLabel(tournament.standing)}
       </Button>
     </Inline>

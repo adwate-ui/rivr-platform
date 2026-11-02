@@ -1,6 +1,7 @@
 import { visitRatingSchema } from '@rivr/contracts';
 import { useFeedbackActions, useMyFeedbackVisit, type FeedbackFailure, type FeedbackVisit } from '@rivr/db';
-import { formatHoursMinutes, t } from '@rivr/i18n';
+import { clubDay } from '@rivr/domain/clubDay';
+import { formatDayMonth, formatHoursMinutes, t } from '@rivr/i18n';
 import { Box, Button, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text, TextArea, useToast } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -31,6 +32,14 @@ function SendRating({ visit, score }: { visit: FeedbackVisit; score: number }) {
   );
 }
 
+/** "Tonight" for a visit on tonight's club night, else its date: a visit stays to rate for a week. */
+function useWhen(visit: FeedbackVisit | null): string {
+  const [today] = useState(() => clubDay(new Date()));
+  if (visit === null) return '';
+  const closed = new Date(visit.closedAt);
+  return clubDay(closed) === today ? t('player.live.rate.tonight') : formatDayMonth(closed);
+}
+
 /**
  * Rate your visit (brief 3.4 F; #160, decision 0165), on Tonight after a visit while the member browses: the night's time
  * and table, "How was your night?", five numbers from Poor to Excellent, then a note if they like and Send to the General
@@ -39,13 +48,13 @@ function SendRating({ visit, score }: { visit: FeedbackVisit; score: number }) {
 export function RateVisit() {
   const visit = useMyFeedbackVisit().data ?? null;
   const [score, setScore] = useState<number | null>(null);
+  const when = useWhen(visit);
   if (visit === null) return null;
   return (
     <Box paddingX={5} paddingY={5}>
       <Stack gap={4}>
         <Text variant="eyebrow" tone="accent">
-          {visit.tableName === null ? t('player.live.rate.eyebrowNoTable')
-            : t('player.live.rate.eyebrow', { duration: formatHoursMinutes(visit.playedSeconds), table: visit.tableName })}
+          {visit.tableName === null ? when : t('player.live.rate.eyebrow', { when, duration: formatHoursMinutes(visit.playedSeconds), table: visit.tableName })}
         </Text>
         <Heading level={2} variant="serif">{t('player.live.rate.title')}</Heading>
         <Stack gap={2}>

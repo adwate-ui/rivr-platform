@@ -1,5 +1,5 @@
 import type { Result } from '@rivr/contracts';
-import { useAuthStatus, useKycActions, useKycRecord, type KycFailure, type KycRecord, type KycStatus } from '@rivr/db';
+import { useAuthStatus, useKycActions, useKycRecord, useSignOut, type KycFailure, type KycRecord, type KycStatus } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, StepScreen, Text } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
@@ -26,6 +26,7 @@ export function KycReturnScreen() {
   const authStatus = useAuthStatus();
   const record = useKycRecord();
   const { complete } = useKycActions();
+  const signOut = useSignOut();
   const asked = useRef(false);
 
   // Pulled once the session is known to be signed in; signed out, sign-in comes first (#233).
@@ -43,9 +44,12 @@ export function KycReturnScreen() {
       <StepScreen
         title={t('player.kyc.title')}
         footer={
-          <Button variant="primary" size="tall" fullWidth onClick={() => complete.mutate()}>
-            {t('common.retry')}
-          </Button>
+          <>
+            <Button variant="primary" size="tall" fullWidth onClick={() => complete.mutate()}>
+              {t('common.retry')}
+            </Button>
+            <Button variant="text" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>{t('common.signIn.signOut')}</Button>
+          </>
         }
       >
         <KycSteps at="digilocker" />
