@@ -17,7 +17,7 @@ test.describe('Sessions', () => {
     await signInToConsole(sahil, '9000000613');
     await sahil.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 2', exact: true }).click();
     await sahil.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '4', exact: true }).click();
-    await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');
+    await sahil.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(sahil.getByRole('button', { name: 'Move Rhea Kaul' })).toBeVisible();
 

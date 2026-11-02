@@ -4484,6 +4484,9 @@ isOneToOne: false
 "ask_live_purge":
 { Args: { "p_reason": string,"p_venue_id": string }; Returns: string
                            },
+"assign_from_waitlist":
+{ Args: { "p_call_minutes": number,"p_entry_id": string,"p_seat": number,"p_table_id": string }; Returns: undefined
+                           },
 "assign_tablet":
 { Args: { "p_device_id": string,"p_table_id": string }; Returns: undefined
                            },
@@ -5542,7 +5545,7 @@ isOneToOne: false
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
 "seat_member":
-{ Args: { "p_phone": string,"p_seat": number,"p_table_id": string }; Returns: string
+{ Args: { "p_call_minutes"?: number,"p_member_number"?: number,"p_phone"?: string,"p_seat": number,"p_table_id": string }; Returns: string
                            },
 "second_approve_deposit":
 { Args: { "p_request_id": string }; Returns: string

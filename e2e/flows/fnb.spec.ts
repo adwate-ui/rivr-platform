@@ -29,7 +29,7 @@ test.describe('F&B', () => {
     await signInToConsole(page, '9000000615');
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000288');
+    await page.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000288');
     await page.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Move Ishan Mehta' })).toBeVisible();
 

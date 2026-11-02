@@ -47,7 +47,7 @@ test.describe('Kill switch', () => {
     await signInToConsole(first, '9000000135');
     await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await first.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '5', exact: true }).click();
-    await first.getByRole('textbox', { name: 'Mobile number' }).fill('9000000216');
+    await first.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000216');
     await first.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(first.getByRole('button', { name: 'Move Kunal Mehra' })).toBeVisible();
     const { tablet, name } = await tabletAtTable3(browser, first);

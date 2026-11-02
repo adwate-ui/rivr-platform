@@ -106,7 +106,7 @@ describe('a table on the live floor', () => {
       return url.includes('/rpc/seat_member') ? Response.json({ code: 'RVKYC', message: 'kyc' }, { status: 400 }) : Response.json([]);
     });
     fireEvent.click(screen.getByRole('button', { name: '4' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile number' }), { target: { value: '9000000202' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '9000000202' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     const refusal = await screen.findByRole('alert', {}, { timeout: 5000 });
     expect(refusal.textContent).toContain('This member has not finished their identity check. Send them to the front desk.');
@@ -119,7 +119,7 @@ describe('a table on the live floor', () => {
       return url.includes('/rpc/seat_member') ? Response.json({ code: 'RVOCC', message: 'taken' }, { status: 400 }) : Response.json([]);
     });
     fireEvent.click(screen.getByRole('button', { name: '4' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile number' }), { target: { value: '9000000211' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '9000000211' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     const refusal = await screen.findByRole('alert', {}, { timeout: 5000 });
     const form = screen.getByRole('heading', { level: 3, name: 'Seat a player' });

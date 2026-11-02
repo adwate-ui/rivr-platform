@@ -164,6 +164,11 @@ export const ui = {
     /** Above the time, set large on the member's seat card. */
     figureLeft: 'Call time left',
     figurePaused: 'Call time paused',
+    /** CallTimeChoice (decision 0299): the call time the floor gives a player it seats. */
+    choose: 'Call time',
+    custom: 'Custom',
+    minutes: 'Minutes',
+    minutesHint: 'Up to 1,440 (a day).',
   },
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {

@@ -101,9 +101,12 @@ export const liveFloor = {
   resetTopUpName: 'Reset the top-up for {name}',
   seatPlayer: 'Seat a player',
   seatNumber: 'Seat',
-  phone: 'Mobile number',
+  /** Seating (decision 0299): ten digits are a mobile number, fewer a membership number. */
+  phone: 'Mobile or member number',
   seat: 'Seat',
-  invalidPhone: 'Enter a 10-digit mobile number.',
+  invalidPhone: 'Enter a 10-digit mobile number or a member number.',
+  /** Seating refused: a custom call time out of range. */
+  invalidCallTime: 'Give a call time of 0 to 1,440 minutes.',
   openTable: 'Open table',
   closeTable: 'Close table',
   mustMoveTo: 'Must move to',

@@ -1,3 +1,4 @@
+import { indianMobileSchema } from '@rivr/contracts';
 import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -59,7 +60,7 @@ describe('Leaving before call time', () => {
     let outcomes: unknown[] = [];
     await act(async () => {
       outcomes = [
-        await result.current.seat.mutateAsync({ tableId: 't3', seat: 4, phone: '9000000211' }),
+        await result.current.seat.mutateAsync({ tableId: 't3', seat: 4, who: { phone: indianMobileSchema.parse('9000000211') }, callMinutes: 180 }),
         await result.current.setOpen.mutateAsync({ tableId: 't3', isOpen: false }),
         await result.current.setMustMove.mutateAsync({ tableId: 't5', mainTableId: 't5' }),
         await result.current.move.mutateAsync({ sessionId: 's1', tableId: 't4', seat: 1 }),

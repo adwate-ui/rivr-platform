@@ -1,4 +1,5 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
+import type { SeatWho } from '@rivr/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import type { TopUp } from './mySeat.ts';
@@ -132,7 +133,7 @@ function useSeatSettle(venueId: string) {
 }
 
 /**
- * The floor's seating: `seat` a member by mobile number, `move` a player (the same session, so call
+ * The floor's seating: `seat` a member by mobile or membership number, with the call time chosen (decision 0299), `move` a player (the same session, so call
  * time runs on), `leave`; floor managers `setOpen` a table (closing only an empty one) and
  * `setMustMove` (a table feeding a main table of its game, or null); admins `letLeaveEarly` a member who still owes call
  * time, with a reason (#79); the floor marks a player leaving, or takes it back (`setLeaving`, decision 0163), and away from
@@ -142,8 +143,10 @@ export function useSeatActions(venueId: string) {
   const { client } = useRivrData();
   const settle = useSeatSettle(venueId);
   const seat = useMutation({
-    mutationFn: async ({ tableId, seat: number, phone }: { tableId: string; seat: number; phone: string }) =>
-      settle((await client.rpc('seat_member', { p_table_id: tableId, p_seat: number, p_phone: phone })).error),
+    mutationFn: async ({ tableId, seat: number, who, callMinutes }: { tableId: string; seat: number; who: SeatWho; callMinutes: number }) => {
+      const found = 'phone' in who ? { p_phone: who.phone } : { p_member_number: who.memberNumber };
+      return settle((await client.rpc('seat_member', { p_table_id: tableId, p_seat: number, ...found, p_call_minutes: callMinutes })).error);
+    },
   });
   const move = useMutation({
     mutationFn: async ({ sessionId, tableId, seat: number }: { sessionId: string; tableId: string; seat: number }) =>

@@ -18,7 +18,7 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   one_at_a_time: 'console.waitlist.oneAtATime',
 };
 
-/** The same for Call, Seat, Skip and Back, where a refused request means the place or table changed. */
+/** The same for Assign, Seat, Hold place and Back, where a refused request means the place or table changed. */
 export const ENTRY_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = { ...FAILURE_COPY, invalid: 'console.waitlist.changed' };
 
 /** Back: refused as too late means the member was away too long, not that a hold ran out (#287). */

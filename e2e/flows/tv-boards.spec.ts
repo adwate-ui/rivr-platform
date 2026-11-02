@@ -75,7 +75,7 @@ async function seatNakul(floor: Page) {
   await expect(floor.getByRole('heading', { name: 'Private Room' }).first()).toBeVisible();
   if (await move.count() === 0) {
     await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '8', exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Mobile number' }).fill('9000000400');
+    await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000400');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
   }
   await expect(move).toBeVisible();
