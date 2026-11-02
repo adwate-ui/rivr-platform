@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { onlineManager } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { useDealerTablets, useDeviceActions, useMyDevice, usePairDevice } from './devices.ts';
@@ -39,6 +39,21 @@ const EMPTY = { '/rpc/my_device': { body: [] }, '/rest/v1/device': { body: [] },
 afterEach(() => {
   cleanup();
   onlineManager.setOnline(true);
+});
+
+describe('useMyDevice', () => {
+  it('asks again every ten seconds, so a table fixed on the console reaches the tablet within ten seconds (D-05)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { calls } = renderDevices(EMPTY);
+      const asked = () => calls.filter((call) => call.url.includes('/rpc/my_device')).length;
+      await waitFor(() => expect(asked()).toBe(1));
+      await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+      expect(asked()).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe('Dealer tablets', () => {

@@ -46,8 +46,9 @@ export type DeviceFailure = 'not_allowed' | 'paused' | 'invalid' | 'unavailable'
 
 const DEVICE_FAILURE_BY_CODE: Readonly<Record<string, DeviceFailure>> = { '42501': 'not_allowed', RVFRZ: 'paused', '22023': 'invalid' };
 
-// The tablet asks again every half minute, so a table fixed on the console reaches it without a restart.
-const TABLE_CHECK = 30_000;
+// The tablet asks again every ten seconds, as its seats do, so a table fixed on the console reaches it within ten
+// seconds without a restart (D-05; it waited up to half a minute).
+const TABLE_CHECK = 10_000;
 // The console's list asks again every ten seconds, so a tablet shows as paired soon after its code is entered.
 const PAIRING_CHECK = 10_000;
 
