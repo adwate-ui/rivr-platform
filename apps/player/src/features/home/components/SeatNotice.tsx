@@ -1,5 +1,5 @@
 import { useFeature, useMySeat, useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Box, Button, CallTimeTimer, ErrorMessage, FeatureGate, Grid, Heading, LockedNotice, Stack, Text, type FeatureAccess } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -21,8 +21,8 @@ function SeatNotes({ seat, topUp, leaving }: { seat: MySeat; topUp: FeatureAcces
 }
 
 /**
- * What the member does from the seat (#634), two to a row (UI polish audit A-08): an hour more call time while it runs
- * (with call_time.view), a top-up (with table.top_up), food and drink to the seat (#123), and leaving. With call time
+ * What the member does from the seat (#634), two to a row (UI polish audit A-08): an hour more call time at any time
+ * (with call_time.view; decision 0300), a top-up (with table.top_up), food and drink to the seat (#123), and leaving. With call time
  * still owed, leaving puts them on the floor's Leaving list. Only buttons share the grid; their notes run beneath.
  */
 function SeatActions({ seat }: { seat: MySeat }) {
@@ -37,7 +37,7 @@ function SeatActions({ seat }: { seat: MySeat }) {
   return (
     <Stack gap={2}>
       <Grid columns={2} gap={2}>
-        {(seat.callTimeLeft ?? 0) > 0 && callTime.state === 'enabled' ? (
+        {callTime.state === 'enabled' ? (
           <Button variant="secondary" aria-label={t('player.tonight.extendCallTimeName')} isLoading={extend.isPending}
             onClick={() => void extend.mutateAsync().then(report)}>
             {t('player.tonight.extendCallTime')}
@@ -63,8 +63,8 @@ function SeatActions({ seat }: { seat: MySeat }) {
 
 /**
  * While the member is seated (#78): their table and seat as the card's heading, always theirs to see as their waitlist
- * places are (decision 0057); how long they have played (#634); the call time left as the card's figure with
- * call_time.view, or the locked notice; and what they do from the seat (#634). Nothing otherwise.
+ * places are (decision 0057); since when and how long they have played, and their minimum session (decision 0300); the
+ * call time left as the card's figure with call_time.view, or the locked notice; and what they do from the seat (#634).
  */
 export function SeatNotice() {
   const seat = useMySeat().data ?? null;
@@ -75,7 +75,12 @@ export function SeatNotice() {
       <Stack gap={4}>
         <Stack gap={1}>
           <Heading level={2}>{t('player.tonight.seated', { table: seat.tableName, seat: seat.seat })}</Heading>
-          <Text variant="small" tone="muted">{t('player.tonight.playedFor', { time: formatDuration(seat.playedSeconds) })}</Text>
+          <Text variant="small" tone="muted">{t('player.tonight.playingSince', {
+            time: formatTime(new Date(seat.startedAt)), played: formatDuration(seat.playedSeconds),
+          })}</Text>
+          {(seat.callTimeMinutes ?? 0) > 0 ? (
+            <Text variant="small" tone="muted">{t('player.tonight.minimumSession', { time: formatDuration((seat.callTimeMinutes ?? 0) * 60) })}</Text>
+          ) : null}
         </Stack>
         {seat.hasCallTime ? (
           <FeatureGate access={callTime}>

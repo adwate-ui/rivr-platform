@@ -26,11 +26,10 @@ describe('FloorList', () => {
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Join Table 2' }).disabled).toBe(false);
   });
 
-  it('says Ask to open on a closed table, whose Join registers interest in its game (P-08)', async () => {
-    renderList([{ ...TABLE, isOpen: false, openSeats: null }]);
-    const ask = await screen.findByRole('button', { name: 'Ask to open Table 2' }, { timeout: 5000 });
-    expect(ask.textContent).toBe('Ask to open');
-    expect(screen.queryByRole('button', { name: 'Join Table 2' })).toBeNull();
+  it('offers no Join at a closed table (decision 0300)', async () => {
+    renderList([{ ...TABLE, isOpen: false, openSeats: null }, OTHER]);
+    expect(await screen.findByRole('button', { name: 'Join Table 3' }, { timeout: 5000 })).toBeDefined();
+    expect(screen.queryByRole('button', { name: /Table 2/ })).toBeNull();
   });
 });
 

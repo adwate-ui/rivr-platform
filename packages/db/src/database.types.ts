@@ -5166,7 +5166,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "call_time_left": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"table_name": string,"top_up": string
+              "call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"started_at": string,"table_name": string,"top_up": string
             }[]
                            },
 "my_sessions":

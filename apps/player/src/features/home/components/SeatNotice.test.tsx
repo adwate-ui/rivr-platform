@@ -24,7 +24,7 @@ function renderSeated(topUp: 'in_progress' | null = null) {
     if (url.includes('/rpc/my_feature_access')) return Response.json(FEATURES.map((key) => ({ feature_key: key, state: 'enabled', tiers: null })));
     if (url.includes('/rpc/my_seat')) {
       return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: true, call_time_left: 4290, played_seconds: 4800,
-        is_leaving: false, top_up: topUp }]);
+        is_leaving: false, top_up: topUp, call_time_minutes: 180, started_at: '2026-11-15T15:30:00Z' }]);
     }
     return Response.json([]);
   });
@@ -45,7 +45,8 @@ describe('the seat card (UI polish audit A-08)', () => {
   it('heads the card with the table and seat, and sets the call time left as its figure', async () => {
     renderSeated();
     expect(await screen.findByRole('heading', { level: 2, name: 'Table 3, seat 5' })).toBeDefined();
-    expect(screen.getByText('Playing for 1 h 20 min')).toBeDefined();
+    expect(screen.getByText(/^Playing since \d{2}:\d{2} · 1 h 20 min$/)).toBeDefined();
+    expect(screen.getByText('Minimum session 3 h')).toBeDefined();
     expect(await screen.findByText('Call time left')).toBeDefined();
     expect(screen.getByText('1 h 12 min').className).toContain('tabular-nums');
   });
@@ -53,7 +54,7 @@ describe('the seat card (UI polish audit A-08)', () => {
   it('gives the four seat actions short labels, two to a row, each named in full for a screen reader', async () => {
     renderSeated();
     const extend = await screen.findByRole('button', { name: 'Add an hour of call time' });
-    expect(extend.textContent).toBe('Add an hour');
+    expect(extend.textContent).toBe('Add 1 h');
     const grid = extend.closest('.grid');
     if (!(grid instanceof HTMLElement)) throw new Error('The seat actions are not in a grid');
     const actions = within(grid);

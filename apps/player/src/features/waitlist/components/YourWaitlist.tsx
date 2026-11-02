@@ -1,6 +1,6 @@
 import { useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
 import { formatStakes, formatTime, t } from '@rivr/i18n';
-import { Button, ConfirmButton, ErrorMessage, FloorRow, Heading, Inline, Stack } from '@rivr/ui';
+import { ConfirmButton, ErrorMessage, FloorRow, Heading, Inline, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
@@ -21,7 +21,7 @@ function detailOf(place: WaitlistPlace): string {
  * call while it holds (#63); Step away and I'm back, and Leave. Nothing when there are none.
  */
 export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
-  const { leave, stepAway } = useWaitlistActions();
+  const { leave } = useWaitlistActions();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
   // The place whose Step away or Leave is pending, so only its buttons say so (F3-17).
   const [busyAt, setBusyAt] = useState<string | null>(null);
@@ -43,13 +43,6 @@ export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
           detail={detailOf(place)}
           action={
             <Inline gap={2}>
-              {place.holdUntil !== null || place.isRequest ? null : (
-                <Button variant="text" isLoading={stepAway.isPending && busyAt === place.entryId}
-                  aria-label={t(place.awayUntil === null ? 'player.tonight.stepAwayName' : 'player.tonight.backName', { game: place.tableTypeName })}
-                  onClick={() => void act(place.entryId, stepAway.mutateAsync({ entryId: place.entryId, isAway: place.awayUntil === null }))}>
-                  {place.awayUntil === null ? t('player.tonight.stepAway') : t('player.tonight.back')}
-                </Button>
-              )}
               <ConfirmButton variant="secondary" label={t('player.tonight.leave')} name={t('player.tonight.leaveName', { game: place.tableTypeName })}
                 confirm={t('player.tonight.confirmLeave')} isBusy={leave.isPending && busyAt === place.entryId}
                 onConfirm={() => void act(place.entryId, leave.mutateAsync(place.entryId))} />
