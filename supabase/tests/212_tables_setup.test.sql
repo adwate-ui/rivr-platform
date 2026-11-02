@@ -21,15 +21,22 @@ create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-insert into ids select 'plo', public.add_table_type('00000000-0000-4000-8000-000000000001', 'PLO 200/400', 'plo', 20000, 40000);
-select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Odd', 'nlh', 12345, 40000) $$, '22023', null,
+insert into ids select 'plo', public.add_table_type('00000000-0000-4000-8000-000000000001', 'PLO 200/400', 20000, 40000);
+insert into ids select 'straddle', public.add_table_type('00000000-0000-4000-8000-000000000001', 'Straddle 200/400', 20000, 40000, 80000);
+select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Odd', 12345, 40000) $$, '22023', null,
   'blinds are whole ₹50 chips');
-select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Upside down', 'nlh', 40000, 20000) $$, '22023', null,
+select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Upside down', 40000, 20000) $$, '22023', null,
   'the big blind above the small');
+select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Low straddle', 20000, 40000, 40000) $$, '22023', null,
+  'a straddle above the big blind');
+select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Odd straddle', 20000, 40000, 81000) $$, '22023', null,
+  'in whole ₹50 chips');
 reset role;
-select results_eq($$ select code, game, small_blind_paise, big_blind_paise from public.table_type where id = (select id from ids where name = 'plo') $$,
-  $$ values ('plo_200_400'::text, 'plo'::text, 20000::bigint, 40000::bigint) $$, 'the super admin adds a stake, coded by its game and blinds');
-select is((private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', 'plo_200_400', now()) ->> 'minutes')::integer, 180,
+select results_eq($$ select code, game, small_blind_paise, big_blind_paise, straddle_paise from public.table_type
+                     where id in (select id from ids where name in ('plo', 'straddle')) order by code $$,
+  $$ values ('200_400'::text, null::text, 20000::bigint, 40000::bigint, null::bigint), ('200_400_2'::text, null::text, 20000::bigint, 40000::bigint, 80000::bigint) $$,
+  'the super admin adds stakes with no game, coded by their blinds, one with a straddle (decision 0299)');
+select is((private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', '200_400', now()) ->> 'minutes')::integer, 180,
   'with three hours of call time');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
@@ -47,10 +54,15 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.set_game_table((select id from ids where name = 'table'), 'Table 9', (select id from ids where name = 'plo'), 6) $$,
   'an admin sets it to 6 seats');
 select lives_ok($$ select public.set_table_type((select id from ids where name = 'plo'), 'PLO 250/500', 25000, 50000) $$, 'and changes the stake''s blinds');
+select lives_ok($$ select public.set_table_type((select id from ids where name = 'straddle'), 'Straddle 200/400', 20000, 40000, 100000) $$,
+  'and another''s straddle');
+select lives_ok($$ select public.set_table_type((select id from ids where name = 'straddle'), 'Straddle 200/400', 20000, 40000) $$,
+  'then takes it off');
 reset role;
 select results_eq($$ select g.seats, t.name, t.small_blind_paise, t.big_blind_paise from public.game_table g join public.table_type t on t.id = g.table_type_id
                      where g.id = (select id from ids where name = 'table') $$,
   $$ values (6, 'PLO 250/500'::text, 25000::bigint, 50000::bigint) $$, 'the table plays 250/500 on 6 seats');
+select is((select straddle_paise from public.table_type where id = (select id from ids where name = 'straddle')), null::bigint, 'no straddle once taken off');
 
 -- A table with a player keeps its stake until they move.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -68,7 +80,7 @@ select lives_ok($$ update public.game_table set seats = 4 where id = (select id 
 reset role;
 select is((select seats from public.game_table where id = (select id from ids where name = 'table')), 6, 'so it keeps its 6 seats');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
-select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Theirs', 'nlh', 5000, 10000) $$, '42501', null,
+select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Theirs', 5000, 10000) $$, '42501', null,
   'another venue''s admin adds no stake here');
 reset role;
 

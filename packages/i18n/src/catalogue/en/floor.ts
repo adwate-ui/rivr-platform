@@ -159,17 +159,16 @@ export const tablesSetup = {
   tablesLabel: 'The club’s tables, in floor order',
   tablesEmpty: 'No tables yet.',
   name: 'Name',
-  game: 'Game',
-  games: { nlh: 'No-limit hold’em', plo: 'Pot-limit Omaha' },
-  /** In the stakes' table, where the full name does not fit. */
-  gamesShort: { nlh: 'NLH', plo: 'PLO' },
   stakeName: 'Stake name',
   tableName: 'Table name',
   blinds: 'Blinds',
   smallBlind: 'Small blind',
   bigBlind: 'Big blind',
   blindsHint: 'Whole 50s of chips.',
-  gameFixed: 'A stake keeps its game.',
+  /** A compulsory straddle (decision 0299): optional, above the big blind. */
+  straddle: 'Straddle',
+  straddleHint: 'Optional. Whole 50s of chips, above the big blind.',
+  noStraddle: 'None',
   stake: 'Stake',
   seats: 'Seats',
   now: 'Now',
@@ -184,12 +183,12 @@ export const tablesSetup = {
   saveStake: 'Save the stake',
   saveTable: 'Save the table',
   /** Save pressed on half a form (UI polish audit UI-19). */
-  stakeIncomplete: 'Name the stake and set both blinds, big above small.',
+  stakeIncomplete: 'Name the stake and set both blinds, big above small, and any straddle above the big blind.',
   tableIncomplete: 'Name the table and choose its stake.',
   /** After a save: `{name}` is the stake or table. */
   saved: '{name} is saved.',
   failures: {
-    invalid: 'Check the name, the blinds (whole 50s) and the seats (2 to 10).',
+    invalid: 'Check the name, the blinds and straddle (whole 50s) and the seats (2 to 10).',
     players_seated: 'Move the players off this table before changing its stake.',
     seats_taken: 'More seats are taken. Free them first.',
     not_allowed: 'Only the super admin sets up tables.',
