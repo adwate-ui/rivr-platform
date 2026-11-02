@@ -1,46 +1,50 @@
 /** The player app's sign-up copy. */
 
 /**
- * Joining the club after the first code (#631): the number they signed in with, an optional photo, the name on the
- * player's Aadhaar, the city, what best describes them and when they usually play.
+ * Joining the club after the first code (#631), as the redesign has it (decision 0320): "About you", the name on the
+ * player's Aadhaar, the city, then their game in three pickers. The option labels map to the stored values, which do not
+ * change. The KYC selfie becomes the profile photo, so sign-up takes none.
  */
 export const playerSignUp = {
   title: 'About you',
+  /** The top bar's place in joining: sign-up, then identity. */
+  progress: '1 of 2',
+  back: 'Back',
   /** `{phone}` is the number they signed in with: `+91 98765 43210`. */
-  phone: 'Mobile {phone}',
-  addPhoto: 'Add a photo (optional)',
-  photoAdded: 'Photo added.',
-  removePhoto: 'Remove the photo',
-  photoFailed: 'Photo not sent. Try again or remove it.',
+  phone: 'Signing up with {phone}',
+  nameLabel: 'Full name, as on Aadhaar',
+  namePlaceholder: 'Ira Kapoor',
+  nameInvalid: 'Enter your name in English, as on Aadhaar.',
   cityLabel: 'City',
-  cityInvalid: 'Enter your city in English letters.',
-  occupationLabel: 'What best describes you',
+  cityPlaceholder: 'Gurugram',
+  cityInvalid: 'Enter your city.',
+  yourGame: 'Your game',
+  select: 'Select',
+  selectAny: 'Select any',
+  occupationLabel: 'Occupation',
   occupations: {
-    salaried: 'Salaried or working professional',
-    business_owner: 'Business owner or self-employed',
-    independent_professional: 'Independent professional (doctor, lawyer, CA, consultant)',
+    salaried: 'Salaried',
+    business_owner: 'Business owner',
+    independent_professional: 'Self-employed professional',
     student: 'Student',
     homemaker: 'Homemaker',
     retired: 'Retired',
     prefer_not_to_say: 'Prefer not to say',
   },
-  occupationNeeded: 'Choose what best describes you.',
+  occupationNeeded: 'Select your occupation.',
   playTimesLabel: 'When you usually play',
   playTimes: {
-    weekday_afternoons: 'Weekday afternoons (12:00 to 18:00)',
-    weekday_evenings: 'Weekday evenings (18:00 to 22:00)',
-    late_night: 'Late night (after 22:00)',
+    weekday_afternoons: 'Weekday afternoons',
+    weekday_evenings: 'Weekday evenings',
+    late_night: 'Late nights',
     weekends: 'Weekends',
   },
   /** The games the member plays (#653), any of them. */
   gamesLabel: 'Games you play',
-  games: { poker: 'Poker', plo: 'PLO', bomb: 'Bomb', roe: 'ROE' },
+  games: { poker: "Hold'em", plo: 'PLO', bomb: 'Bomb pots', roe: 'ROE' },
   answersInvalid: 'Check your city and your choices, then try again.',
-  nameLabel: 'Full name as on your Aadhaar',
   submit: 'Continue',
-  /** Signs out, for someone who signed in with the wrong number. */
-  otherNumber: 'Use another number',
-  nameInvalid: 'Full name in English, as on your Aadhaar.',
+  photoFailed: 'Photo not sent. Try again or remove it.',
   staff: 'Staff join as members at the front desk.',
   stopped: 'Sign-ups are paused. Try again later.',
   unavailable: 'Sign-up is down. Try again shortly.',

@@ -277,13 +277,38 @@ describe('sign-in', () => {
   });
 });
 
-describe('sign-up', () => {
+/** A client for a number signed in that is not a member yet: no member record, an empty list to all else. */
+function clientWithNewcomer() {
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    return url.includes('/rest/v1/member') ? Response.json(null) : Response.json([]);
+  });
+  return createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
+}
+
+describe('Sign up', () => {
   // Nothing answers at the client's address, so this also signs out with Auth out of reach.
-  it('lets a number that signed in by mistake sign out and start again', async () => {
+  it('About you: Back returns to the number step, signed out', async () => {
     signIn();
     renderAt('/sign-up');
-    fireEvent.click(await screen.findByRole('button', { name: 'Use another number' }, LAZY_SCREEN));
+    expect(await screen.findByText('1 of 2', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Use another number' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it('Errors: asks for the name, the city and the occupation under each field', async () => {
+    signIn();
+    renderAt('/sign-up', clientWithNewcomer());
+    const name = await screen.findByRole('textbox', { name: 'Full name, as on Aadhaar' }, LAZY_SCREEN);
+    expect(screen.getByRole('button', { name: /^Occupation/ }).textContent).toContain('Select');
+    expect(screen.getByRole('button', { name: /^Games you play/ }).textContent).toContain('Select any');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' }).getAttribute('aria-busy')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('Enter your name in English, as on Aadhaar.')).toBeDefined();
+    expect(screen.getByText('Enter your city.')).toBeDefined();
+    expect(screen.getByText('Select your occupation.')).toBeDefined();
+    expect(name.getAttribute('aria-invalid')).toBe('true');
   });
 });

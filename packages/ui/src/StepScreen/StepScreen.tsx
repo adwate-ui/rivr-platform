@@ -1,6 +1,7 @@
 import type { FormEvent, ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { Heading, type SerifSize } from '../Heading/Heading.tsx';
+import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 
@@ -17,7 +18,7 @@ export interface StepScreenProps {
    * The player redesign's step (decision 0320): the title in the display face at `serifSize` (36 unless given), a gold
    * `eyebrow` above it and a muted `subtitle` under it, and a chevron on Back. Otherwise the text face's step title.
    */
-  look?: { serifSize?: SerifSize; eyebrow?: string | undefined; subtitle?: string | undefined } | undefined;
+  look?: StepLook | undefined;
   /** `top` sets the content under the title; `center` sets it in the middle of the screen. */
   align?: 'top' | 'center';
   /**
@@ -30,6 +31,48 @@ export interface StepScreenProps {
 const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
 
 const BACK_CHEVRON = { icon: 'chevronLeft' } as const;
+
+const FOOTER_RULED = '-mx-6 border-t border-hairline px-6 pt-3';
+
+/** The redesign's step: its title's size, eyebrow and subtitle; a bar of the steps in place of Back's words; a ruled footer. */
+export interface StepLook {
+  serifSize?: SerifSize;
+  eyebrow?: string | undefined;
+  subtitle?: string | undefined;
+  /** Sign-up's top bar: the chevron back, a segment a step (gold to this one) and "1 of 2". */
+  progress?: { step: number; of: number; label: string } | undefined;
+  /** A gold hairline over the footer, which stays at the foot as the fields scroll. */
+  isFooterRuled?: boolean;
+}
+
+/** The way back: sign-up's bar of steps, or Back's words, with a chevron in the redesign. */
+function StepBack({ back, look }: { back: { label: string; onBack: () => void }; look: StepLook | undefined }) {
+  if (look?.progress) return <ProgressBack back={back} progress={look.progress} />;
+  return (
+    <header className="-ml-3 self-start">
+      <Button variant="text" onClick={back.onBack} {...(look ? BACK_CHEVRON : {})}>
+        {back.label}
+      </Button>
+    </header>
+  );
+}
+
+/** Back as a chevron, then a segment a step, gold up to this one, then where the member is: "1 of 2". */
+function ProgressBack({ back, progress }: { back: { label: string; onBack: () => void }; progress: NonNullable<StepLook['progress']> }) {
+  return (
+    <header className="-ml-2 flex items-center gap-4">
+      <button type="button" aria-label={back.label} onClick={back.onBack} className="flex size-touch shrink-0 items-center justify-center text-content">
+        <Icon name="chevronLeft" size="lg" />
+      </button>
+      <span aria-hidden="true" className="grid flex-1 grid-flow-col gap-2">
+        {Array.from({ length: progress.of }, (_, index) => (
+          <span key={index} className={cx('h-1 rounded-full', index < progress.step ? 'bg-gold' : 'bg-cream-track')} />
+        ))}
+      </span>
+      <Text as="span" variant="small" tone="muted">{progress.label}</Text>
+    </header>
+  );
+}
 
 /** The step's title: the text face's, or the redesign's in the display face with its eyebrow and subtitle. */
 function StepTitle({ title, look }: { title: string; look: StepScreenProps['look'] }) {
@@ -58,7 +101,7 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
         {title ? <StepTitle title={title} look={look} /> : null}
         {children}
       </div>
-      <div className="flex flex-col gap-6 pt-6">{footer}</div>
+      <div className={cx('flex flex-col gap-6 pt-6', look?.isFooterRuled === true && FOOTER_RULED)}>{footer}</div>
     </>
   );
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -68,13 +111,7 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
   return (
     <div className="flex min-h-dvh w-full flex-col bg-surface text-content medium:items-center medium:justify-center medium:px-6 medium:py-12">
       <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-6 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
-        {back ? (
-          <header className="-ml-3 self-start">
-            <Button variant="text" onClick={back.onBack} {...(look ? BACK_CHEVRON : {})}>
-              {back.label}
-            </Button>
-          </header>
-        ) : null}
+        {back ? <StepBack back={back} look={look} /> : null}
         <main className="flex flex-1 flex-col">
           {onSubmit ? (
             // Fields are checked by the form's schema, so the browser's own validation stays off.

@@ -85,3 +85,14 @@ export const Redesign: Story = {
     footer: <Button variant="primary" size="tall" fullWidth>Take a selfie</Button>,
   },
 };
+
+/** Sign-up's top bar: the chevron back, a segment a step and "1 of 2", with the footer ruled (decision 0320). */
+export const SignUpProgress: Story = {
+  args: {
+    title: 'About you',
+    look: { serifSize: 40, subtitle: 'Signing up with +91 90000 00901', progress: { step: 1, of: 2, label: '1 of 2' }, isFooterRuled: true },
+    back: { label: 'Back', onBack: () => undefined },
+    children: null,
+    footer: <Button variant="primary" size="tall" fullWidth>Continue</Button>,
+  },
+};
