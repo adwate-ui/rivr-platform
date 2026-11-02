@@ -112,6 +112,13 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `callTime(clock, at)`, `CallTimeClock`, `CallTime` | A seat session's call time (#78, decision 0057): whole seconds left of the table type's `call_time.minutes` fixed at seating, never below zero, and whether it is complete. The clock runs across moves, stands still while the player is away, and stops when they leave (the shortfall). The database's `private.call_time_left` is proved equal by `packages/testing/golden/callTime.json`. |
+| `CALL_TIME_CHOICES`, `isCallTimeMinutes(minutes)` | The call times the floor picks when it seats a player (decision 0299): 3, 4 or 5 hours, in minutes, or a custom whole number of minutes from 0 to 1,440, which `isCallTimeMinutes` checks. The database's `private.set_seat_call_time` refuses the same. |
+
+### `@rivr/domain/topUps`
+
+| Export | What it does |
+|---|---|
+| `TOP_UP_TARGET_SECONDS`, `secondsWaiting(requestedAt, now)`, `isTopUpLate(seconds)` | How long a top-up request has waited, in whole seconds never below zero, and whether it is past the floor's 60-second target, when the Top-ups page marks it Late in red (decision 0299). |
 
 ### `@rivr/domain/tds`
 

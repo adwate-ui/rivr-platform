@@ -13,7 +13,11 @@ const clubDayAt = (ms: number) => formatIsoDay(new Date(ms - NIGHT_ENDS_MS));
 // Noon IST, so the day reads as itself whatever the time zone.
 const dayText = (day: string) => formatDate(new Date(`${day}T12:00:00+05:30`));
 
-const stakeText = (row: GamesDay) => t('console.gamesHistory.stakeLine', { game: t(`console.gamesHistory.games.${row.game}`), blinds: formatStakes(row.smallBlind, row.bigBlind) });
+/** The stake: its blinds, after its game for a stake made before games were left out (decision 0299). */
+const stakeText = (row: GamesDay) => {
+  const blinds = formatStakes(row.smallBlind, row.bigBlind);
+  return row.game === null ? blinds : t('console.gamesHistory.stakeLine', { game: t(`console.gamesHistory.games.${row.game}`), blinds });
+};
 
 const COLUMNS: readonly DataTableColumn<GamesDay>[] = [
   { key: 'day', header: t('console.gamesHistory.day'), cell: (row) => dayText(row.clubDay), sortValue: (row) => row.clubDay, priority: 'primary' },

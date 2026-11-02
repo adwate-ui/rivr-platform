@@ -21,9 +21,9 @@ test.describe('Call time', () => {
     await signInToConsole(floor, '9000000128');
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
     await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Mobile number' }).fill('9000000215');
+    await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000215');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(floor.getByRole('button', { name: 'Move Ritika Das' })).toBeVisible();
+    await expect(floor.getByRole('button', { name: 'Ritika Das leaves' })).toBeVisible();
     await expect(floor.getByText(/^Call time (3 h|2 h 59 min) left$/)).toBeVisible();
 
     const player = await browser.newPage();
@@ -39,18 +39,21 @@ test.describe('Call time', () => {
     await expect(player.getByText(/^(4 h|3 h 59 min|3 h 58 min)$/)).toBeVisible();
     await player.getByRole('button', { name: 'Top up' }).click();
     await expect(player.getByText('Top-up requested.')).toBeVisible();
-    await floor.getByRole('button', { name: 'The top-up for Ritika Das is in progress' }).click({ timeout: 20_000 });
-    await expect(floor.getByText('Top-up in progress', { exact: true })).toBeVisible();
+    // The floor sees it on Top-ups, counted in red on the rail and marked on the room plan (decision 0299).
+    await expect(floor.getByRole('region', { name: 'Room plan' }).getByText('Top-up', { exact: true })).toBeVisible({ timeout: 20_000 });
+    await floor.getByRole('link', { name: /^Top-ups \d+ waiting$/ }).click({ timeout: 20_000 });
+    await expect(floor.getByText('Table 1, seat 1 · Ritika Das').or(floor.getByText(/· Ritika Das$/)).first()).toBeVisible();
+    await floor.getByRole('button', { name: 'The top-up for Ritika Das is in progress' }).click();
+    await expect(floor.getByRole('button', { name: 'The top-up for Ritika Das is done' })).toBeVisible();
     await player.reload();
     await expect(player.getByText('Top-up in progress at your seat.')).toBeVisible();
-    await floor.getByRole('button', { name: 'Reset the top-up for Ritika Das' }).click();
-    await expect(floor.getByText('Top-up in progress', { exact: true })).toHaveCount(0);
+    await floor.getByRole('button', { name: 'The top-up for Ritika Das is done' }).click();
+    // Tonight's top-ups (#639): fulfilled, with the time it took.
+    await expect(floor.getByText(/^Fulfilled in /).first()).toBeVisible({ timeout: 20_000 });
     await player.reload();
     await expect(player.getByRole('button', { name: 'Top up' })).toBeVisible();
-
-    // Tonight's top-ups (#639): fulfilled, with the time it took.
-    await expect(floor.getByRole('heading', { name: 'Top-ups tonight' })).toBeVisible();
-    await expect(floor.getByText(/^Fulfilled in /).first()).toBeVisible({ timeout: 20_000 });
+    await floor.getByRole('link', { name: 'Live floor', exact: true }).click();
+    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
     // The floor changes her call time (#638): five hours from when she sat down.
     await floor.getByRole('button', { name: 'Change the call time of Ritika Das' }).click();
     await floor.getByRole('textbox', { name: 'Call time in minutes, from when they sat down' }).fill('300');
@@ -69,13 +72,11 @@ test.describe('Call time', () => {
     await expect(player.getByText('On the leaving list until your call time ends.')).toBeVisible();
     await expect(floor.getByRole('button', { name: 'Ritika Das is not leaving' }).first()).toBeVisible({ timeout: 20_000 });
 
-    // Flow 13: an admin lets her leave early, with a reason, and ends her seat.
-    await floor.getByRole('button', { name: 'Let Ritika Das leave early' }).click();
+    // Flow 13: one Leave (decision 0299). She owes call time, so the admin lets her go early with a reason, and the seat is freed.
+    await floor.getByRole('button', { name: 'Ritika Das leaves' }).click();
     await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('Family emergency');
     await floor.getByRole('button', { name: 'Let leave early' }).click();
     await expect(floor.getByText('Released early.')).toBeVisible();
-    await floor.getByRole('button', { name: 'Ritika Das leaves' }).click();
-    await floor.getByRole('button', { name: 'Yes, Ritika Das leaves' }).click();
-    await expect(floor.getByRole('button', { name: 'Move Ritika Das' })).toHaveCount(0, { timeout: 15_000 });
+    await expect(floor.getByRole('button', { name: 'Ritika Das leaves' })).toHaveCount(0, { timeout: 15_000 });
   });
 });

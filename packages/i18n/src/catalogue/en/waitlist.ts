@@ -157,14 +157,14 @@ export const waitlist = {
   removeShort: 'Remove',
   remove: 'Remove {name}',
   confirmRemove: 'Yes, remove {name}',
-  /** Call-down (#63). */
-  call: 'Call {name}',
+  /** Assign (decision 0299): the call and the seating in one step, with the call time. */
+  call: 'Assign {name}',
   /** The visible label; `call` is its name for a screen reader (UI polish audit A-09). The same for seat, skip and back. */
-  callShort: 'Call',
+  callShort: 'Assign',
   callTable: 'Table for {name}',
   callSeat: 'Seat',
-  callConfirm: 'Call to this seat',
-  invalidCall: 'Choose an open table, and a seat at it.',
+  callConfirm: 'Assign',
+  invalidCall: 'Choose an open table, a seat at it, and a call time of 0 to 1,440 minutes.',
   seatHeld: 'Held for a called player. Choose another seat.',
   seatTaken: 'Seat taken. Choose another.',
   tooLate: 'Hold expired. The next name is called shortly.',
@@ -176,9 +176,12 @@ export const waitlist = {
   changed: 'The list changed. Check it and try again.',
   seat: 'Seat {name}',
   seatShort: 'Seat',
-  skip: 'Skip {name}',
-  skipShort: 'Skip',
-  confirmSkip: 'Yes, skip {name}',
+  /** Hold place (decision 0299): the member is away; their place is kept for the hold time, the seat goes to the next name. */
+  skip: 'Hold place: {name}',
+  skipShort: 'Hold place',
+  confirmSkip: 'Yes, hold {name}’s place',
+  /** Under the list: what Hold place and Remove each do. */
+  holdOrRemove: 'Hold place keeps a member’s place while they are away. Remove takes them off the list.',
   back: 'Back: {name}',
   backShort: 'Back',
   /** A called place: `{time}` is when the hold runs out. */

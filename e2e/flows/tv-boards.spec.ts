@@ -71,14 +71,14 @@ async function addToFifties(floor: Page, number: string, name: string) {
 async function seatNakul(floor: Page) {
   await floor.getByRole('link', { name: 'Live floor' }).click();
   await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
-  const move = floor.getByRole('button', { name: `Move ${LEAVING}` });
+  const seated = floor.getByRole('button', { name: `${LEAVING} leaves` });
   await expect(floor.getByRole('heading', { name: 'Private Room' }).first()).toBeVisible();
-  if (await move.count() === 0) {
+  if (await seated.count() === 0) {
     await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '8', exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Mobile number' }).fill('9000000400');
+    await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000400');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
   }
-  await expect(move).toBeVisible();
+  await expect(seated).toBeVisible();
 }
 
 test.describe('TV boards', () => {
@@ -128,7 +128,8 @@ test.describe('TV boards', () => {
       .toHaveCount(0);
     await expect(tv.getByText(/₹/)).toHaveCount(0);
 
-    // The call-time board: Nakul at his table with three hours to play, then his seat opening once he is marked leaving.
+    // The call-time board: Nakul at his table with three hours to play, then his seat opening once he says he is leaving, from
+    // his seat in the app (the console's Mark leaving is hidden, decision 0299).
     const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
     await modes.getByRole('button', { name: 'Call-time board', exact: true }).click();
     await expect(tv.getByRole('heading', { level: 1, name: 'Call time' })).toBeVisible({ timeout: 15_000 });
@@ -136,8 +137,10 @@ test.describe('TV boards', () => {
     const room = tv.getByRole('region', { name: 'Private Room' });
     await expect(room.getByText('Nakul D.', { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(room.getByText(/^(3 h|2 h 59 min)$/)).toBeVisible();
-    await floor.getByRole('button', { name: `Mark leaving: ${LEAVING}` }).click();
-    await expect(floor.getByRole('heading', { name: 'Leaving', exact: true })).toBeVisible();
+    const nakul = await (await browser.newContext()).newPage();
+    await signInToPlayer(nakul, '9000000400');
+    await nakul.getByRole('button', { name: 'Leave my seat' }).click();
+    await expect(floor.getByRole('heading', { name: 'Leaving', exact: true })).toBeVisible({ timeout: 20_000 });
     await expect(floor.getByText('Private Room · seat 8', { exact: true })).toBeVisible();
     const openings = tv.getByRole('region', { name: 'Seats opening' });
     await expect(openings.getByText('Private Room · Seat 8', { exact: true })).toBeVisible({ timeout: 10_000 });
@@ -157,13 +160,11 @@ test.describe('TV boards', () => {
     // Pooja, an admin, lets Nakul go before his call time, and he leaves.
     await floor.getByRole('link', { name: 'Live floor' }).click();
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
-    await floor.getByRole('button', { name: `Let ${LEAVING} leave early` }).first().click();
+    await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
     await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Let leave early' }).click();
     await expect(floor.getByText('Released early.')).toBeVisible();
-    await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
-    await floor.getByRole('button', { name: `Yes, ${LEAVING} leaves` }).click();
-    await expect(floor.getByRole('button', { name: `Move ${LEAVING}` })).toHaveCount(0);
+    await expect(floor.getByRole('button', { name: `${LEAVING} leaves` })).toHaveCount(0);
 
     await floor.getByRole('link', { name: 'Waitlist' }).click();
     await floor.getByRole('button', { name: `Remove ${PLAYER}` }).click();

@@ -37,15 +37,15 @@ function renderSetup(replies: Record<string, { status?: number; body: unknown }>
 afterEach(cleanup);
 
 describe('tables setup, games history and points by hand', () => {
-  it('reads the stakes and tables, an unknown game as hold\'em', async () => {
+  it('reads the stakes, an older one with its game and a newer one with none, and the tables', async () => {
     const { result } = renderSetup({
-      table_type: { body: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000 },
-        { id: 's2', name: 'PLO 100/200', game: 'odd', small_blind_paise: 10000, big_blind_paise: 20000 }] },
+      table_type: { body: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null },
+        { id: 's2', name: '100/200', game: null, small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 40000 }] },
       game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true }] },
     });
     await waitFor(() => expect(result.current.setup.data).toEqual({
-      stakes: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n },
-        { id: 's2', name: 'PLO 100/200', game: 'nlh', smallBlind: 10000n, bigBlind: 20000n }],
+      stakes: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null },
+        { id: 's2', name: '100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n }],
       tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, isOpen: true }],
     }));
   });
@@ -54,16 +54,18 @@ describe('tables setup, games history and points by hand', () => {
     const { result, calls } = renderSetup({ set_game_table: { status: 400, body: { code: 'RVSTD', message: 'Move the players' } } });
     let added: unknown;
     await act(async () => {
-      added = await result.current.actions.saveStake.mutateAsync({ stakeId: null, name: ' PLO 100/200 ', game: 'plo', smallBlind: 10000n, bigBlind: 20000n });
+      added = await result.current.actions.saveStake.mutateAsync({ stakeId: null, name: ' 100/200 ', smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n });
     });
     expect(added).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.path === 'add_table_type')?.body).toEqual({
-      p_venue_id: VENUE, p_game: 'plo', p_name: 'PLO 100/200', p_small_blind_paise: 10000, p_big_blind_paise: 20000,
+      p_venue_id: VENUE, p_name: '100/200', p_small_blind_paise: 10000, p_big_blind_paise: 20000, p_straddle_paise: 40000,
     });
     await act(async () => {
-      await result.current.actions.saveStake.mutateAsync({ stakeId: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n });
+      await result.current.actions.saveStake.mutateAsync({ stakeId: 's1', name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, straddle: null });
     });
-    expect(calls.find((call) => call.path === 'set_table_type')?.body).toMatchObject({ p_type_id: 's1' });
+    expect(calls.find((call) => call.path === 'set_table_type')?.body).toEqual({
+      p_type_id: 's1', p_name: 'NLH 50/100', p_small_blind_paise: 5000, p_big_blind_paise: 10000, p_straddle_paise: 0,
+    });
     let refused: unknown;
     await act(async () => {
       await result.current.actions.saveTable.mutateAsync({ tableId: null, name: 'Table 9', stakeId: 's1', seats: 8 });

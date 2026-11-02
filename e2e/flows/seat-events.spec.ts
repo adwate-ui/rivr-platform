@@ -19,9 +19,9 @@ test.describe('Seat events', () => {
     await signInToConsole(floor, '9000000127');
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '9', exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Mobile number' }).fill('9000000214');
+    await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000214');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(floor.getByRole('button', { name: 'Move Yash Gupta' })).toBeVisible();
+    await expect(floor.getByRole('button', { name: 'Yash Gupta leaves' })).toBeVisible();
 
     const { tablet, name } = await tabletAtTable3(browser, floor);
     await dealerSignsIn(tablet);
@@ -37,13 +37,6 @@ test.describe('Seat events', () => {
     await expect(tablet.getByText(/^Call time paused, /)).toBeVisible();
     await tablet.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(tablet.getByText('Away from the table. The seat is kept.')).toHaveCount(0);
-    // The console marks him away and back too, so nothing needs the tablet (#630).
-    await floor.getByRole('link', { name: 'Live floor' }).click();
-    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await floor.getByRole('button', { name: 'Yash Gupta is away from the table' }).click();
-    await expect(floor.getByRole('button', { name: 'Yash Gupta is back at the table' })).toBeVisible();
-    await floor.getByRole('button', { name: 'Yash Gupta is back at the table' }).click();
-    await expect(floor.getByRole('button', { name: 'Yash Gupta is away from the table' })).toBeVisible();
     await tablet.getByRole('button', { name: 'Player left' }).click();
     await tablet.getByRole('button', { name: 'Yes, Yash Gupta left' }).click();
     await expect(tablet.getByRole('button', { name: 'Seat 9, open' })).toBeVisible();

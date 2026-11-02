@@ -10,6 +10,8 @@ export interface SideNavItem {
   href: string;
   /** How many things wait on the screen, such as high-hand claims (#317); shown beside the label when above 0. */
   count?: number | undefined;
+  /** The count is urgent, such as a top-up waiting (decision 0299): a red marker, not the gold outline. */
+  isUrgent?: boolean | undefined;
 }
 
 export interface SideNavSection {
@@ -68,7 +70,7 @@ function RailSection({ section, current, onNavigate }: RailSectionProps) {
   );
 }
 
-/** One entry; with things waiting on its screen, the number in gold beside it, and its name says how many. */
+/** One entry; with things waiting on its screen, the number beside it, gold or red when urgent, and its name says how many. */
 function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurrent: boolean; onNavigate: Navigate | undefined }) {
   const waiting = item.count !== undefined && item.count > 0 ? item.count : null;
   return (
@@ -85,7 +87,8 @@ function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurren
     >
       {item.label}
       {waiting === null ? null : (
-        <span className="ml-auto rounded-md border border-action px-2 font-text text-13 font-medium tabular-nums text-action">{waiting}</span>
+        <span className={cx('ml-auto rounded-md border px-2 font-text text-13 font-medium tabular-nums',
+          item.isUrgent === true ? 'border-alert bg-alert text-on-alert' : 'border-action text-action')}>{waiting}</span>
       )}
     </a>
   );

@@ -16,18 +16,17 @@ export function useWaitlistCallActions() {
     await reload();
     return error ? err(failureOf(error)) : ok(null);
   };
-  const call = useMutation({
-    mutationFn: async ({ entryId, tableId, seat }: { entryId: string; tableId: string; seat: number }) => {
-      const { error } = await client.rpc('call_from_waitlist', { p_entry_id: entryId, p_table_id: tableId, p_seat: seat });
-      return settle(error);
-    },
-  });
   const seat = useMutation({
     mutationFn: async (entryId: string) => settle((await client.rpc('seat_from_waitlist', { p_entry_id: entryId })).error),
+  });
+  // Assign (decision 0299): the call and the seating in one step, with the call time the floor chose.
+  const assign = useMutation({
+    mutationFn: async ({ entryId, tableId, seat: number, callMinutes }: { entryId: string; tableId: string; seat: number; callMinutes: number }) =>
+      settle((await client.rpc('assign_from_waitlist', { p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes })).error),
   });
   const away = useMutation({
     mutationFn: async ({ entryId, isAway }: { entryId: string; isAway: boolean }) =>
       settle((await client.rpc('step_away', { p_entry_id: entryId, p_is_away: isAway })).error),
   });
-  return { call, seat, away };
+  return { seat, assign, away };
 }

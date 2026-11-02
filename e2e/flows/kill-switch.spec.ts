@@ -47,9 +47,9 @@ test.describe('Kill switch', () => {
     await signInToConsole(first, '9000000135');
     await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await first.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '5', exact: true }).click();
-    await first.getByRole('textbox', { name: 'Mobile number' }).fill('9000000216');
+    await first.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000216');
     await first.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(first.getByRole('button', { name: 'Move Kunal Mehra' })).toBeVisible();
+    await expect(first.getByRole('button', { name: 'Kunal Mehra leaves' })).toBeVisible();
     const { tablet, name } = await tabletAtTable3(browser, first);
     await dealerSignsIn(tablet);
     let frozen = false;
@@ -96,8 +96,11 @@ test.describe('Kill switch', () => {
       if (frozen) await releaseIfFrozen(browser, first);
       await first.getByRole('link', { name: 'Live floor' }).click();
       await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
+      // One Leave (decision 0299): he owes call time, so he is let go early with a reason, and the seat is freed.
       await first.getByRole('button', { name: 'Kunal Mehra leaves' }).click();
-      await first.getByRole('button', { name: 'Yes, Kunal Mehra leaves' }).click();
+      await first.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the kill switch run');
+      await first.getByRole('button', { name: 'Let leave early' }).click();
+      await expect(first.getByRole('button', { name: 'Kunal Mehra leaves' })).toHaveCount(0);
       await revoke(first, name);
     }
   });

@@ -2,7 +2,7 @@ import { useFloorWaitlistActions, useWaitlistCallActions, type FloorTable, type 
 import { formatTime, t, type MessageKey } from '@rivr/i18n';
 import { Button, ConfirmButton, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { CallForm } from './CallForm.tsx';
+import { AssignForm } from './AssignForm.tsx';
 import { BACK_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
 
 const at = (iso: string) => formatTime(new Date(iso));
@@ -33,9 +33,10 @@ interface EntryActionsProps {
 }
 
 /**
- * The floor's actions on one place: Call, then Seat; Skip and Back; Remove. Skip on a called member
- * ends the call, keeps their place as away, and calls the next name to the seat. Each shows its verb, the name on the
- * row beside it, and carries the name for a screen reader (UI polish audit A-09).
+ * The floor's actions on one place: Assign, which seats the member at once (decision 0299); Seat for a place called by
+ * the roll-on; Hold place and Back; Remove. Hold place on a called member ends the call, keeps their place as away, and
+ * calls the next name to the seat. Each shows its verb, the name on the row beside it, and carries the name for a screen
+ * reader (UI polish audit A-09).
  */
 function EntryActions({ venueId, entry, onCall, canCall, act }: EntryActionsProps) {
   const { remove } = useFloorWaitlistActions(venueId);
@@ -61,7 +62,7 @@ function EntryActions({ venueId, entry, onCall, canCall, act }: EntryActionsProp
         </Button>
       ) : (
         <>
-          {/* No call without an open table of the game to call to (F2-18). */}
+          {/* No assignment without an open table of the game (F2-18). */}
           {canCall ? <Button variant="secondary" aria-label={t('console.waitlist.call', { name })} onClick={onCall}>{t('console.waitlist.callShort')}</Button> : null}
           {skip}
         </>
@@ -72,7 +73,7 @@ function EntryActions({ venueId, entry, onCall, canCall, act }: EntryActionsProp
   );
 }
 
-/** One place on a list: who and where they stand, the floor's actions, and the call form when calling. */
+/** One place on a list: who and where they stand, the floor's actions, and the assign form when assigning. */
 export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: WaitlistBoardEntry; tables: readonly FloorTable[] }) {
   const [isCalling, setIsCalling] = useState(false);
   const [failure, setFailure] = useState<MessageKey | null>(null);
@@ -91,7 +92,7 @@ export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: W
         </Stack>
         <EntryActions venueId={venueId} entry={entry} onCall={() => setIsCalling(true)} canCall={tables.length > 0} act={act} />
       </Inline>
-      {isCalling ? <CallForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} onDone={() => setIsCalling(false)} /> : null}
+      {isCalling ? <AssignForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} onDone={() => setIsCalling(false)} /> : null}
       {failure === null ? null : <ErrorMessage>{t(failure)}</ErrorMessage>}
     </Stack>
   );

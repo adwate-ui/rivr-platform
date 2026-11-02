@@ -3551,14 +3551,14 @@ isOneToOne: false
                   ]
                 },"table_type": {
                   Row: {
-                    "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at": string,"game": string,"has_variation": boolean,"id": string,"name": string,"small_blind_paise": number,"straddle_paise": number | null,"updated_at": string,"venue_id": string
+                    "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at": string,"game": string | null,"has_variation": boolean,"id": string,"name": string,"small_blind_paise": number,"straddle_paise": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at"?: string,"game": string,"has_variation"?: boolean,"id"?: string,"name": string,"small_blind_paise": number,"straddle_paise"?: number | null,"updated_at"?: string,"venue_id": string
+                    "big_blind_paise": number,"buy_in_max_paise": number,"buy_in_min_paise": number,"code": string,"created_at"?: string,"game"?: string | null,"has_variation"?: boolean,"id"?: string,"name": string,"small_blind_paise": number,"straddle_paise"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "big_blind_paise"?: number,"buy_in_max_paise"?: number,"buy_in_min_paise"?: number,"code"?: string,"created_at"?: string,"game"?: string,"has_variation"?: boolean,"id"?: string,"name"?: string,"small_blind_paise"?: number,"straddle_paise"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "big_blind_paise"?: number,"buy_in_max_paise"?: number,"buy_in_min_paise"?: number,"code"?: string,"created_at"?: string,"game"?: string | null,"has_variation"?: boolean,"id"?: string,"name"?: string,"small_blind_paise"?: number,"straddle_paise"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4478,7 +4478,7 @@ isOneToOne: false
 { Args: { "p_amount": number,"p_kind": string,"p_venue_id": string,"p_weight": number }; Returns: string
                            },
 "add_table_type":
-{ Args: { "p_big_blind_paise": number,"p_game": string,"p_name": string,"p_small_blind_paise": number,"p_venue_id": string }; Returns: string
+{ Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_venue_id": string }; Returns: string
                            },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
@@ -4509,6 +4509,9 @@ isOneToOne: false
                            },
 "ask_live_purge":
 { Args: { "p_reason": string,"p_venue_id": string }; Returns: string
+                           },
+"assign_from_waitlist":
+{ Args: { "p_call_minutes": number,"p_entry_id": string,"p_seat": number,"p_table_id": string }; Returns: undefined
                            },
 "assign_tablet":
 { Args: { "p_device_id": string,"p_table_id": string }; Returns: undefined
@@ -5579,7 +5582,7 @@ isOneToOne: false
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
 "seat_member":
-{ Args: { "p_phone": string,"p_seat": number,"p_table_id": string }; Returns: string
+{ Args: { "p_call_minutes"?: number,"p_member_number"?: number,"p_phone"?: string,"p_seat": number,"p_table_id": string }; Returns: string
                            },
 "second_approve_deposit":
 { Args: { "p_request_id": string }; Returns: string
@@ -5651,7 +5654,7 @@ isOneToOne: false
 { Args: { "p_is_open": boolean,"p_table_id": string }; Returns: undefined
                            },
 "set_table_type":
-{ Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_type_id": string }; Returns: undefined
+{ Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_type_id": string }; Returns: undefined
                            },
 "set_tally_ledger":
 { Args: { "p_account_code": string,"p_tally_ledger": string,"p_venue_id": string }; Returns: undefined
@@ -5835,7 +5838,7 @@ isOneToOne: false
                            },
 "top_ups_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"status": string,"table_name": string
+              "fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
             }[]
                            },
 "tournament_balance":

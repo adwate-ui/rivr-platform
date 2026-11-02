@@ -22,6 +22,8 @@ export interface TableCardProps {
   /** Hands in the last hour: "30 hands/hr"; null for staff who do not see the night's figures. */
   pace: string | null;
   isSelected?: boolean;
+  /** Something waiting at the table that the floor must see, such as a top-up (decision 0299): a red marker under the ring. */
+  marker?: string | undefined;
   onSelect: () => void;
 }
 
@@ -33,7 +35,7 @@ const ROW = 'flex items-baseline justify-between gap-4';
  * there and its rake tonight, its dealer and hands per hour. Pressing it opens the table beside; a
  * screen reader hears the table's name, then the ring's summary and the figures.
  */
-export function TableCard({ name, stakes, seats, ringLabel, isClosed = false, occupancy, rake, dealer, pace, isSelected = false, onSelect }: TableCardProps) {
+export function TableCard({ name, stakes, seats, ringLabel, isClosed = false, occupancy, rake, dealer, pace, isSelected = false, marker, onSelect }: TableCardProps) {
   const id = useId();
   return (
     <button type="button" aria-label={name} aria-describedby={`${id}-ring ${id}-figures`} aria-pressed={isSelected} onClick={onSelect}
@@ -46,6 +48,9 @@ export function TableCard({ name, stakes, seats, ringLabel, isClosed = false, oc
           <Text as="span" variant="small" tone="muted">{occupancy}</Text>
           {rake === null ? null : <Money paise={rake} />}
         </span>
+        {marker === undefined ? null : (
+          <span className="w-fit rounded-md bg-alert px-2 font-text text-14 font-medium text-on-alert">{marker}</span>
+        )}
         {dealer === null && pace === null ? null : (
           <span className={ROW}>
             {dealer === null ? null : <Text as="span" variant="small" tone="muted">{dealer}</Text>}

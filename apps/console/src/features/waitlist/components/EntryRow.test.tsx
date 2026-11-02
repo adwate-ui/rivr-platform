@@ -49,13 +49,13 @@ describe('a place on the waitlist', () => {
 
   it('offers no Call while the game has no open table (F2-18)', () => {
     renderEntry();
-    expect(screen.queryByRole('button', { name: 'Call Naina Kapoor' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Skip Naina Kapoor' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Assign Naina Kapoor' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Hold place: Naina Kapoor' })).toBeDefined();
   });
 
   it('shows each action as its verb alone, the name already on the row, and names the player for a screen reader (A-09)', () => {
     renderEntry();
-    expect(screen.getByRole('button', { name: 'Skip Naina Kapoor' }).textContent).toBe('Skip');
+    expect(screen.getByRole('button', { name: 'Hold place: Naina Kapoor' }).textContent).toBe('Hold place');
     expect(screen.getByRole('button', { name: 'Remove Naina Kapoor' }).textContent).toBe('Remove');
   });
 });

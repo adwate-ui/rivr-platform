@@ -28,12 +28,12 @@ test.describe('Admin tools', () => {
     await page.getByRole('link', { name: 'Tables setup' }).click();
     await expect(page.getByRole('heading', { name: 'New stake' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);
-    await page.getByRole('group', { name: 'Game' }).getByRole('button', { name: 'Pot-limit Omaha' }).click();
     await page.getByRole('textbox', { name: 'Small blind' }).fill('200');
     await page.getByRole('textbox', { name: 'Big blind' }).fill('400');
+    await page.getByRole('textbox', { name: 'Straddle' }).fill('800');
     await page.getByRole('button', { name: 'Save the stake' }).click();
     await expect(page.getByText(`PLO 200/400 ${RUN} is saved.`)).toBeVisible();
-    await expect(page.getByRole('table', { name: 'The stakes the club runs' }).getByRole('row').filter({ hasText: `PLO 200/400 ${RUN}` })).toContainText('200/400');
+    await expect(page.getByRole('table', { name: 'The stakes the club runs' }).getByRole('row').filter({ hasText: `PLO 200/400 ${RUN}` })).toContainText('800');
 
     await expect(page.getByRole('heading', { name: 'New table' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Table name' }).fill(`Table ${RUN}`);
@@ -47,8 +47,9 @@ test.describe('Admin tools', () => {
     await page.getByRole('group', { name: 'Seats' }).getByRole('button', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
-    expect(sql(`select g.seats || ' ' || t.game || ' ' || t.big_blind_paise from public.game_table g join public.table_type t on t.id = g.table_type_id
-                where g.name = 'Table ${RUN}'`)).toBe('6 plo 40000');
+    // No game asked, and the straddle kept (decision 0299).
+    expect(sql(`select g.seats || ' ' || coalesce(t.game, 'none') || ' ' || t.big_blind_paise || ' ' || t.straddle_paise
+                from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Table ${RUN}'`)).toBe('6 none 40000 80000');
 
     // The seed's open tables have run since it was loaded, within the last seven club days.
     await page.getByRole('link', { name: 'Games history' }).click();

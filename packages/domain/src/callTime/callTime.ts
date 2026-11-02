@@ -1,3 +1,11 @@
+/** The call times the floor offers as it seats a player (owner, 2 Nov; decision 0299), in minutes; any other is typed. */
+export const CALL_TIME_CHOICES = [180, 240, 300] as const;
+
+/** A call time the floor may set: whole minutes, from none to a day, as set_seat_call_time takes it. */
+export function isCallTimeMinutes(minutes: number | null): minutes is number {
+  return minutes !== null && Number.isInteger(minutes) && minutes >= 0 && minutes <= 24 * 60;
+}
+
 /** A seat session's call-time clock (#78): the call time in force at seating, and when the player played. */
 export interface CallTimeClock {
   /** The table type's call_time.minutes in force at seating; 0 when none is set. */

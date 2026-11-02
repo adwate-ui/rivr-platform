@@ -1,6 +1,6 @@
 import { useFloorTables, useInterestLists, useStaffVenue, useWaitlistBoard, useWaitlistRequests, type FloorTable, type InterestList } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, Screen, Stack, StaleNotice } from '@rivr/ui';
+import { ErrorMessage, Screen, Stack, StaleNotice, Text } from '@rivr/ui';
 import { GameList } from './GameList.tsx';
 
 /** The floor's waitlists (#38), one per game and stake, for staff with waitlist.manage. */
@@ -52,6 +52,8 @@ function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
       <Stack gap={10}>
         {isFailing ? <StaleNotice since={new Date(Math.min(tables.dataUpdatedAt, board.dataUpdatedAt))} onRetry={retry} /> : null}
         {asked.isError ? <ErrorMessage>{t('console.waitlist.requestsFailed')}</ErrorMessage> : null}
+        {/* What Hold place and Remove each do (decision 0299: the owner asked). */}
+        <Text tone="muted">{t('console.waitlist.holdOrRemove')}</Text>
         {games.map((game) => (
           <GameList key={game.tableTypeId} venueId={venueId} game={game}
             tables={tables.data.filter((table) => table.venueId === venueId && table.tableTypeId === game.tableTypeId && table.isOpen)}

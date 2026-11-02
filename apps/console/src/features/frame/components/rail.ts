@@ -37,6 +37,8 @@ const RAIL: readonly RailGroup[] = [
       // Everyone but Service, which has only food and drink (#640).
       { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', anyOf: ['members.read', 'floor.manage', 'waitlist.manage', 'hands.log', 'dashboards.read', 'promotions.manage'] },
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
+      // Top-ups on a page of their own, the waiting ones counted in red (decision 0299).
+      { id: 'topUps', label: 'console.rail.items.topUps', href: '/top-ups', anyOf: ['waitlist.manage'] },
       { id: 'checkIn', label: 'console.rail.items.checkIn', href: '/check-in', anyOf: ['waitlist.manage'] },
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'], hidden: true },
       { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'], hidden: true },
@@ -142,14 +144,14 @@ const isAllowed = (entry: RailEntry, permissions: readonly Permission[]) =>
 
 /**
  * The rail for a staff member: the screens their role allows, with no empty group, and beside an entry how many
- * wait on its screen, by entry id (#317: High hands' claims).
+ * wait on its screen, by entry id (#317: High hands' claims), red for the entries in `urgent` (decision 0299: top-ups).
  */
-export function railFor(permissions: readonly Permission[], counts: Readonly<Record<string, number>> = {}): SideNavSection[] {
+export function railFor(permissions: readonly Permission[], counts: Readonly<Record<string, number>> = {}, urgent: readonly string[] = []): SideNavSection[] {
   return RAIL.map((group) => ({
     id: group.id,
     label: group.label === undefined ? undefined : t(group.label),
     items: group.entries.filter((entry) => entry.hidden !== true && isAllowed(entry, permissions))
-      .map((entry) => ({ id: entry.id, label: t(entry.label), href: entry.href, count: counts[entry.id] })),
+      .map((entry) => ({ id: entry.id, label: t(entry.label), href: entry.href, count: counts[entry.id], isUrgent: urgent.includes(entry.id) })),
   })).filter((section) => section.items.length > 0);
 }
 

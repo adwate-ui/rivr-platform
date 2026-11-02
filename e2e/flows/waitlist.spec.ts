@@ -143,7 +143,7 @@ test.describe('Waitlist', () => {
     await expect(gameList(host, 'NLH 50/100').getByText('No one is waiting.')).toBeVisible();
   });
 
-  test('Join and seat: the floor calls the member to a seat they see on Home, then seats them', async () => {
+  test('Join and seat: the floor assigns the member a seat and a call time, and they see it on Home (decision 0299)', async () => {
     // Tonight's floor (#87): each table's open seats, its wait and its call time (#633), and the upcoming tournaments (#636);
     // no jackpot (#627).
     await player.reload();
@@ -155,16 +155,12 @@ test.describe('Waitlist', () => {
 
     await host.reload();
     const higher = gameList(host, 'NLH 100/200');
-    await higher.getByRole('button', { name: `Call ${MEMBER}` }).click();
+    await higher.getByRole('button', { name: `Assign ${MEMBER}` }).click();
     await higher.getByRole('button', { name: 'Table 3', exact: true }).click();
     await higher.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '9', exact: true }).click();
-    await higher.getByRole('button', { name: 'Call to this seat' }).click();
-    await expect(higher.getByText(/^Called to Table 3, seat 9 · hold until \d{2}:\d{2}$/)).toBeVisible();
-
-    await player.reload();
-    await expect(player.getByText(/^Your seat is ready: Table 3, seat 9\. Held until \d{2}:\d{2}\.$/)).toBeVisible();
-
-    await higher.getByRole('button', { name: `Seat ${MEMBER}` }).click();
+    await higher.getByRole('group', { name: 'Call time' }).getByRole('button', { name: '4 h', exact: true }).click();
+    await higher.getByRole('button', { name: 'Assign', exact: true }).click();
+    // Assigned is seated: off the list at once, with no hold to wait out.
     await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
     await player.reload();
     await expect(player.getByRole('heading', { name: 'Your waitlist' })).toHaveCount(0);
@@ -173,7 +169,7 @@ test.describe('Waitlist', () => {
     await expect(player.getByRole('button', { name: /^Join / })).toHaveCount(0);
   });
 
-  test('Skip, Back, Step away and I\u2019m back: the floor and the member move a place to away and back (#287)', async () => {
+  test('Hold place, Back, Step away and I\u2019m back: the floor and the member move a place to away and back (#287)', async () => {
     // Seated from the step before, the member is on the list only as the floor adds him, to change tables (#633).
     await host.reload();
     await addByNumber(gameList(host, 'NLH 100/200'), '9000000211');
@@ -182,21 +178,17 @@ test.describe('Waitlist', () => {
 
     await host.reload();
     const higher = gameList(host, 'NLH 100/200');
-    await higher.getByRole('button', { name: `Call ${MEMBER}` }).click();
-    await higher.getByRole('button', { name: 'Table 3', exact: true }).click();
-    await higher.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '8', exact: true }).click();
-    await higher.getByRole('button', { name: 'Call to this seat' }).click();
-    await higher.getByRole('button', { name: `Skip ${MEMBER}` }).click();
-    await higher.getByRole('button', { name: `Yes, skip ${MEMBER}` }).click();
+    await higher.getByRole('button', { name: `Hold place: ${MEMBER}` }).click();
+    await higher.getByRole('button', { name: `Yes, hold ${MEMBER}’s place` }).click();
     await expect(higher.getByRole('button', { name: `Back: ${MEMBER}` })).toBeVisible();
     await higher.getByRole('button', { name: `Back: ${MEMBER}` }).click();
-    await expect(higher.getByRole('button', { name: `Call ${MEMBER}` })).toBeVisible();
+    await expect(higher.getByRole('button', { name: `Assign ${MEMBER}` })).toBeVisible();
 
     await player.reload();
     await player.getByRole('button', { name: 'Step away' }).click();
     await untilListShows(host, `Back: ${MEMBER}`);
     await player.getByRole('button', { name: "I'm back" }).click();
-    await untilListShows(host, `Call ${MEMBER}`);
+    await untilListShows(host, `Assign ${MEMBER}`);
 
     await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave');
   });

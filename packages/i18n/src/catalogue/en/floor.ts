@@ -37,18 +37,13 @@ export const liveFloor = {
   heldFor: 'Held for {name}',
   /** The same seat on a table's ring. */
   heldMark: 'H',
+  /** A seated player's row (decision 0299): since when they play, and that no call time was given. `{time}`: 21:40. */
+  playingSince: 'Playing since {time}',
+  noCallTime: 'No call time',
   /** At a must-move table: the player's turn to move up, 1 first. */
   mustMove: 'Must move {order}',
   /** A player away from the table, the seat kept (#59). */
   away: 'Away',
-  /** The floor marks a player away from the table, or back, as the tablet does (#630). */
-  markAway: 'Away',
-  markAwayName: '{name} is away from the table',
-  markBack: 'Back',
-  markBackName: '{name} is back at the table',
-  move: 'Move',
-  moveName: 'Move {name}',
-  moveTitle: 'Move {name}',
   leave: 'Leave',
   leaveName: '{name} leaves',
   confirmLeave: 'Yes, {name} leaves',
@@ -60,6 +55,8 @@ export const liveFloor = {
   leaveEarlyReason: 'Why they leave early',
   leaveEarlyHint: 'Recorded with your name.',
   letLeaveEarly: 'Let leave early',
+  /** The single Leave's other way (decision 0299): the seat freed, the call time still owed at the cage. */
+  leaveOwing: 'Leave owing',
   leftEarly: 'Released early.',
   callTimeDone: 'Call time complete.',
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
@@ -67,9 +64,6 @@ export const liveFloor = {
   leftOwingLine: '{table} · {time} owed',
   /** A player who is up and wants to go tells the floor, which marks them leaving (decision 0163). */
   leaving: 'Leaving',
-  /** A mark, not Leaving beside Leave and Leave early, which read alike (C-08). */
-  markLeaving: 'Mark leaving',
-  markLeavingName: 'Mark leaving: {name}',
   notLeaving: 'Not leaving',
   notLeavingName: '{name} is not leaving',
   /** The Live floor's list of players marked leaving, soonest seat first. `{table}` and `{seat}`: Table 3, 5. */
@@ -87,23 +81,19 @@ export const liveFloor = {
   callTimeHint: 'Minutes. 0 for none.',
   saveCallTime: 'Save call time',
   callTimeInvalid: 'Enter whole minutes from 0 to 1,440.',
-  /** Tonight's top-up requests by table (#639), with how long each took. `{time}`: 4 min. */
-  topUpsTitle: 'Top-ups tonight',
-  noTopUps: 'No top-ups asked for tonight.',
-  topUpLine: '{table}, seat {seat} · {name}',
-  topUpStatus: { requested: 'Requested', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
-  /** A seated player's top-up (#634): asked for from the app, then in hand; the floor resets it once done. No amount. */
+  /** A seated player's top-up (#634): asked for from the app, then in hand; handled on Top-ups (decision 0299). No amount. */
   topUpRequested: 'Top-up requested',
   topUpInProgress: 'Top-up in progress',
-  startTopUp: 'Start top-up',
-  startTopUpName: 'The top-up for {name} is in progress',
-  resetTopUp: 'Reset top-up',
-  resetTopUpName: 'Reset the top-up for {name}',
+  /** A table's red marker on the room plan while a top-up waits there (decision 0299). */
+  topUpMarker: 'Top-up',
   seatPlayer: 'Seat a player',
   seatNumber: 'Seat',
-  phone: 'Mobile number',
+  /** Seating (decision 0299): ten digits are a mobile number, fewer a membership number. */
+  phone: 'Mobile or member number',
   seat: 'Seat',
-  invalidPhone: 'Enter a 10-digit mobile number.',
+  invalidPhone: 'Enter a 10-digit mobile number or a member number.',
+  /** Seating refused: a custom call time out of range. */
+  invalidCallTime: 'Give a call time of 0 to 1,440 minutes.',
   openTable: 'Open table',
   closeTable: 'Close table',
   mustMoveTo: 'Must move to',
@@ -111,7 +101,7 @@ export const liveFloor = {
   notAllowed: 'Your role does not seat players or change tables.',
   occupied: 'Someone sits in that seat.',
   held: 'Held for a called member.',
-  seated: 'Already seated. Move them instead.',
+  seated: 'Already seated. Assign them from the waitlist to change tables.',
   tableInUse: 'Move the players and called members first.',
   mustMoveInvalid: 'A must-move table needs an open main table of its game.',
   /** For staff whose role does not read members (#333): the dealer, marketing, the owner's view. */
@@ -159,17 +149,16 @@ export const tablesSetup = {
   tablesLabel: 'The club’s tables, in floor order',
   tablesEmpty: 'No tables yet.',
   name: 'Name',
-  game: 'Game',
-  games: { nlh: 'No-limit hold’em', plo: 'Pot-limit Omaha' },
-  /** In the stakes' table, where the full name does not fit. */
-  gamesShort: { nlh: 'NLH', plo: 'PLO' },
   stakeName: 'Stake name',
   tableName: 'Table name',
   blinds: 'Blinds',
   smallBlind: 'Small blind',
   bigBlind: 'Big blind',
   blindsHint: 'Whole 50s of chips.',
-  gameFixed: 'A stake keeps its game.',
+  /** A compulsory straddle (decision 0299): optional, above the big blind. */
+  straddle: 'Straddle',
+  straddleHint: 'Optional. Whole 50s of chips, above the big blind.',
+  noStraddle: 'None',
   stake: 'Stake',
   seats: 'Seats',
   now: 'Now',
@@ -184,17 +173,42 @@ export const tablesSetup = {
   saveStake: 'Save the stake',
   saveTable: 'Save the table',
   /** Save pressed on half a form (UI polish audit UI-19). */
-  stakeIncomplete: 'Name the stake and set both blinds, big above small.',
+  stakeIncomplete: 'Name the stake and set both blinds, big above small, and any straddle above the big blind.',
   tableIncomplete: 'Name the table and choose its stake.',
   /** After a save: `{name}` is the stake or table. */
   saved: '{name} is saved.',
   failures: {
-    invalid: 'Check the name, the blinds (whole 50s) and the seats (2 to 10).',
+    invalid: 'Check the name, the blinds and straddle (whole 50s) and the seats (2 to 10).',
     players_seated: 'Move the players off this table before changing its stake.',
     seats_taken: 'More seats are taken. Free them first.',
     not_allowed: 'Only the super admin sets up tables.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
+  },
+} as const;
+
+/** Top-ups (decision 0299): the requests waiting, each with its wait against the minute, then tonight's closed ones. */
+export const topUps = {
+  title: 'Top-ups',
+  waiting: 'Waiting',
+  noneWaiting: 'No top-ups waiting.',
+  earlier: 'Earlier tonight',
+  noneEarlier: 'None yet tonight.',
+  /** `{table}, seat {seat} · {name}`: Table 3, seat 5 · Kabir Sethi. `{time}`: 21:40. */
+  line: '{table}, seat {seat} · {name}',
+  askedAt: 'Asked {time}',
+  status: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
+  start: 'Start',
+  startName: 'The top-up for {name} is in progress',
+  done: 'Done',
+  doneName: 'The top-up for {name} is done',
+  reset: 'Reset',
+  resetName: 'Reset the top-up for {name}',
+  notAllowed: 'Not in your role. Ask an admin.',
+  failures: {
+    paused: 'Venue frozen. Try again once it is released.',
+    not_allowed: 'Not in your role. Ask an admin.',
+    changed: 'This top-up changed. Check the list and try again.',
   },
 } as const;
 
