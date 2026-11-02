@@ -15,10 +15,12 @@ function Members() {
 }
 
 describe('SplitView', () => {
-  it('shows the list alone, across the width, with no record open (C-03)', () => {
-    renderIn(<SplitView list={<p>Members list</p>} detail={null} backLabel="Back to Members" onBack={vi.fn()} />);
-    expect(screen.getByText('Members list')).toBeInTheDocument();
+  it('shows the list alone, across the width, with no record open, and two fifths of it once one opens (C-03)', () => {
+    const { rerender } = renderIn(<SplitView list={<p>Members list</p>} detail={null} backLabel="Back to Members" onBack={vi.fn()} />);
+    expect(screen.getByText('Members list').parentElement?.className).toContain('tablet:col-span-5');
     expect(screen.queryByRole('button', { name: 'Back to Members' })).not.toBeInTheDocument();
+    rerender(<SplitView list={<p>Members list</p>} detail={<p>Arjun Mehta</p>} backLabel="Back to Members" onBack={vi.fn()} />);
+    expect(screen.getByText('Members list').parentElement?.className).toContain('tablet:col-span-2');
   });
 
   it('shows the record with a way back to the list, which a phone hides while the record shows', async () => {

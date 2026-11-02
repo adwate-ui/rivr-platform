@@ -4,7 +4,7 @@
 export const liveFloor = {
   title: 'Live floor',
   empty: 'No tables are running.',
-  /** A phone's way from a table back to the plan, and the desk's line while none is chosen (#605). */
+  /** A phone's way from a table back to the plan (#605). */
   backToFloor: 'Back to the floor',
   table: 'Table',
   /** The tables, room by room, read out as one part of the screen. */

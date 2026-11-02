@@ -21,6 +21,8 @@ test.describe('Members', () => {
     await search.fill('Arjun');
     await page.getByRole('button', { name: 'Open Arjun Mehta' }).click();
     await expect(page.getByRole('heading', { name: 'Arjun Mehta', level: 2 })).toBeVisible();
+    // The list stays where it was as the record opens beside it, so the search typed is still there (C-02).
+    await expect(search).toHaveValue('Arjun');
     await expect(page.getByText(/^Member \d+ · Black card · KYC verified/)).toBeVisible();
     await expect(page.getByText('Qualifies at 100/200')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Early departures' })).toBeVisible();

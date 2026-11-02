@@ -6,8 +6,8 @@ export const feedback = {
   notAllowed: 'Not in your role. Ask an admin.',
   open: 'Open tickets',
   noneOpen: 'No open tickets.',
-  recent: 'Resolved, last 90 days',
-  noneRecent: 'None resolved in the last 90 days.',
+  recent: 'Other feedback, last 90 days',
+  noneRecent: 'Nothing else in the last 90 days.',
   /** A rating: `{name}` and their number, `{score}` of 5, and the day of the visit (IST): `Mihir Shah · No. 1213 · 2 of 5 · visit 25 Oct`. */
   ratingLine: '{name} · No. {number} · {score} of 5 · visit {date}',
   /** A note sent from Profile, on the day it came. */

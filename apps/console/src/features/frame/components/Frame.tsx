@@ -21,7 +21,7 @@ export interface FrameStaff {
 }
 
 /**
- * A screen the role does not include, refused; but the Live floor's address, for a role without it (#640: Service), opens the
+ * A screen the role does not include, refused, or one the club switched off, said to be off (C-04); but the Live floor's address, for a role without it (#640: Service), opens the
  * first screen the role has instead.
  */
 function Refused({ landing, isOff }: { landing: string | undefined; isOff: boolean }) {
