@@ -27,9 +27,11 @@ export interface CodeInputProps {
 
 /** One cell: its digit, the gold edge of the next one to fill while the field has focus, red when the code is wrong. */
 function Cell({ digit, isNext, isInvalid }: { digit: string | undefined; isNext: boolean; isInvalid: boolean }) {
-  const edge = isInvalid ? 'border-alert' : isNext ? 'border-accent' : digit === undefined ? 'border-control' : 'border-content';
+  // The next cell's 2 px edge is the field's focus, red on a refused code, so the focus shows either way (WCAG 2.4.7).
+  const next = isInvalid ? 'border-2 border-alert' : 'border-2 border-accent';
+  const edge = isNext ? next : isInvalid ? 'border-alert' : digit === undefined ? 'border-control' : 'border-content';
   return (
-    <span className={cx('flex h-12 min-w-0 flex-1 items-center justify-center rounded-md border bg-raised font-text text-28 text-content', edge)}>
+    <span className={cx('flex h-12 w-12 min-w-0 items-center justify-center rounded-md border bg-raised font-text text-28 text-content', edge)}>
       {digit}
     </span>
   );
@@ -53,8 +55,8 @@ const caretToEnd = (event: SyntheticEvent<HTMLInputElement>) => {
 /**
  * A one-time code as a row of cells, one a digit (S-01). One real field lies over the cells, so the phone's offer to fill
  * the code from a message, a paste and a screen reader all work as with any field; the cells only show what it holds. It
- * takes any length of paste and keeps the digits (a length limit would cut `123 456` short before they are read). The
- * focus ring goes round the row (styles.css).
+ * takes any length of paste and keeps the digits (a length limit would cut `123 456` short before they are read). Its
+ * focus is the gold edge of the next cell, shown whenever the field has focus; no ring round the row as well (P-07).
  */
 export function CodeInput({ label, value, onChange, onComplete, length = 6, hint, error, autoFocus, isDisabled = false, name, ref }: CodeInputProps) {
   const id = useId();

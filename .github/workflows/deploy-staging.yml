@@ -59,6 +59,15 @@ jobs:
         env:
           ORIGINS: ${{ vars.STAGING_TABLET_URL }},${{ vars.STAGING_DISPLAY_URL }}
         run: pnpm supabase secrets set "DEVICE_APP_ORIGINS=$ORIGINS" --project-ref "$PROJECT_REF"
+      # Where DigiLocker sends the member back (P-01): the player app's own address, set with every deploy. Set by hand,
+      # it changed on 2 Nov and every DigiLocker start was refused.
+      - if: env.HAS_SUPABASE == 'true'
+        name: Player app address for the KYC return (P-01)
+        env:
+          PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
+        run: |
+          [[ "$PLAYER_URL" =~ ^https://[a-z0-9.-]+/?$ ]] || { echo "::error::Set the repository variable STAGING_PLAYER_URL to the staging player app's https address."; exit 1; }
+          pnpm supabase secrets set "PLAYER_APP_URL=$PLAYER_URL" --project-ref "$PROJECT_REF"
       - if: env.HAS_SUPABASE == 'true'
         name: Auth settings (sessions only from a code, #187)
         run: node scripts/ci/check-auth-config.mjs --warn

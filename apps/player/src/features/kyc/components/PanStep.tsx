@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
+import { KycHelp } from './KycHelp.tsx';
 
 /** The PAN form. The date of birth is asked for only when DigiLocker gave none. */
 function panForm(knowsDateOfBirth: boolean) {
@@ -79,6 +80,7 @@ export function PanStep({ knowsDateOfBirth, onChecked }: { knowsDateOfBirth: boo
       {knowsDateOfBirth ? null : (
         <Input {...birthField} label={t('player.kyc.dateOfBirthLabel')} type="date" autoComplete="bday" error={errors.dateOfBirth ? t('player.kyc.dateOfBirthInvalid') : undefined} />
       )}
+      <KycHelp />
     </StepScreen>
   );
 }

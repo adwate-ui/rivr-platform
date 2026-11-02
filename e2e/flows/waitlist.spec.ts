@@ -60,7 +60,7 @@ test.beforeAll(async ({ browser }) => {
   await host.getByRole('link', { name: 'Waitlist' }).click();
   await expect(host.getByRole('heading', { name: 'NLH 100/200' })).toBeVisible();
   // A run stopped early may have left places behind.
-  await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave the');
+  await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave');
   await pressEvery(host, `Remove ${BLACK_CARD}`, `Yes, remove ${BLACK_CARD}`);
   await pressEvery(host, `Remove ${MEMBER}`, `Yes, remove ${MEMBER}`);
 });
@@ -138,7 +138,7 @@ test.describe('Waitlist', () => {
     await expect(lower.getByText(new RegExp(`^2\\. ${BLACK_CARD} · \\d{2}:\\d{2}$`))).toBeVisible();
     await pressEvery(host, `Remove ${BLACK_CARD}`, `Yes, remove ${BLACK_CARD}`);
 
-    await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave the');
+    await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave');
     await host.reload();
     await expect(gameList(host, 'NLH 50/100').getByText('No one is waiting.')).toBeVisible();
   });
@@ -198,6 +198,6 @@ test.describe('Waitlist', () => {
     await player.getByRole('button', { name: "I'm back" }).click();
     await untilListShows(host, `Call ${MEMBER}`);
 
-    await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave the');
+    await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave');
   });
 });

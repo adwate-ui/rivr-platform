@@ -110,6 +110,11 @@ jobs:
         env:
           ORIGINS: ${{ vars.PROD_TABLET_URL }},${{ vars.PROD_DISPLAY_URL }}
         run: pnpm supabase secrets set "DEVICE_APP_ORIGINS=$ORIGINS" --project-ref "$PROJECT_REF"
+      # Where DigiLocker sends the member back (P-01): the player app's own address, set with every release.
+      - name: Player app address for the KYC return (P-01)
+        env:
+          PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
+        run: pnpm supabase secrets set "PLAYER_APP_URL=$PLAYER_URL" --project-ref "$PROJECT_REF"
       # Production never talks to Cashfree's sandbox, even with staging's TEST keys copied over by mistake: the live
       # system refuses those keys, so KYC and payouts stay closed instead of taking sandbox answers (#112).
       - name: Cashfree's live system on production (#112)

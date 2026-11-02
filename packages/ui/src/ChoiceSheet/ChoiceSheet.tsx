@@ -39,7 +39,7 @@ export function ChoiceSheet<Value extends string>({ isOpen, title, description, 
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-green-black opacity-muted" />
         {/* Focus moves to the sheet itself, not its first choice, so no choice looks picked as it opens. */}
         <Dialog.Content
-          className="fixed inset-x-0 bottom-0 z-modal mx-auto flex max-w-phone flex-col gap-2 rounded-t-lg border-t border-hairline bg-raised px-6 pt-6 pb-8 shadow-modal focus:outline-none"
+          className="fixed inset-x-0 bottom-0 z-modal mx-auto flex flex-col medium:max-w-phone gap-2 rounded-t-lg border-t border-hairline bg-raised px-6 pt-6 pb-8 shadow-modal focus:outline-none"
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();

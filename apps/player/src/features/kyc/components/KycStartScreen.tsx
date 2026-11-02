@@ -4,6 +4,7 @@ import { Button, StepScreen, Text } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DigilockerStep } from './DigilockerStep.tsx';
+import { KycHelp } from './KycHelp.tsx';
 import { KycOutcome } from './KycOutcome.tsx';
 import { KycLoadFailed, KycLoading } from './KycRecordStates.tsx';
 import { KycSteps } from './KycSteps.tsx';
@@ -22,6 +23,7 @@ function KycIntro({ onStart }: { onStart: () => void }) {
     >
       <KycSteps at="selfie" />
       <Text variant="small" tone="muted">{t('player.kyc.kept')}</Text>
+      <KycHelp />
     </StepScreen>
   );
 }

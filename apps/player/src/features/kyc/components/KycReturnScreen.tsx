@@ -5,6 +5,7 @@ import { Button, ErrorMessage, StepScreen, Text } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
+import { KycHelp } from './KycHelp.tsx';
 import { KycOutcome } from './KycOutcome.tsx';
 import { KycSteps } from './KycSteps.tsx';
 
@@ -50,6 +51,7 @@ export function KycReturnScreen() {
       >
         <KycSteps at="digilocker" />
         <ErrorMessage>{t(FAILURE_COPY[view.failure])}</ErrorMessage>
+        <KycHelp />
       </StepScreen>
     );
   }
