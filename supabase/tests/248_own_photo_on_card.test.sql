@@ -16,6 +16,7 @@ values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000
         '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg');
 insert into storage.objects (bucket_id, name) values
   ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg'),
+  ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg'),
   ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg');
 
 -- Before his selfie is kept, Arjun's card has no photo: it never shows one it cannot load.
@@ -33,7 +34,9 @@ select lives_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-00
 select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg') $$,
   '42501', null, 'not his own document image');
 select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg') $$,
-  '42501', null, 'nor another member''s selfie');
+  '42501', null, 'nor another member''s selfie under review');
+select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg') $$,
+  '42501', null, 'nor another member''s verified selfie: only his own');
 reset role;
 select is((select count(*)::int from public.audit_log where action = 'kyc_image.view' and actor_user_id = '00000000-0000-4000-8000-000000000201'), 1,
   'his view is audited with his name');

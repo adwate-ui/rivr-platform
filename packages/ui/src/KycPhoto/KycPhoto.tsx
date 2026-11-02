@@ -23,7 +23,8 @@ export function kycPhotoStatus(path: string | null, address: { isError: boolean;
 
 /**
  * A member's KYC photo at a fixed portrait size beside their details: in the review queue, and at the
- * cage (A-003). Shows in words when it is loading, missing or could not load.
+ * cage (A-003); or, `isFilling`, as tall as its container at 3:4, as on the membership card (decision 0300).
+ * Shows in words when it is loading, missing or could not load.
  */
 export function KycPhoto({ alt, src, status = 'ready', isFilling }: KycPhotoProps) {
   // The address that failed to load, so a new address is tried again.

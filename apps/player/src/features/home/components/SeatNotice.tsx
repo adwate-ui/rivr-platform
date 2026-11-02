@@ -21,8 +21,8 @@ function SeatNotes({ seat, topUp, leaving }: { seat: MySeat; topUp: FeatureAcces
 }
 
 /**
- * What the member does from the seat (#634), two to a row (UI polish audit A-08): an hour more call time at any time
- * (with call_time.view; decision 0300), a top-up (with table.top_up), food and drink to the seat (#123), and leaving. With call time
+ * What the member does from the seat (#634), two to a row (UI polish audit A-08): an hour more call time while it runs
+ * (with call_time.view), a top-up (with table.top_up), food and drink to the seat (#123), and leaving. With call time
  * still owed, leaving puts them on the floor's Leaving list. Only buttons share the grid; their notes run beneath.
  */
 function SeatActions({ seat }: { seat: MySeat }) {
@@ -37,7 +37,7 @@ function SeatActions({ seat }: { seat: MySeat }) {
   return (
     <Stack gap={2}>
       <Grid columns={2} gap={2}>
-        {callTime.state === 'enabled' ? (
+        {(seat.callTimeLeft ?? 0) > 0 && callTime.state === 'enabled' ? (
           <Button variant="secondary" aria-label={t('player.tonight.extendCallTimeName')} isLoading={extend.isPending}
             onClick={() => void extend.mutateAsync().then(report)}>
             {t('player.tonight.extendCallTime')}
@@ -78,7 +78,7 @@ export function SeatNotice() {
           <Text variant="small" tone="muted">{t('player.tonight.playingSince', {
             time: formatTime(new Date(seat.startedAt)), played: formatDuration(seat.playedSeconds),
           })}</Text>
-          {(seat.callTimeMinutes ?? 0) > 0 ? (
+          {callTime.state === 'enabled' && (seat.callTimeMinutes ?? 0) > 0 ? (
             <Text variant="small" tone="muted">{t('player.tonight.minimumSession', { time: formatDuration((seat.callTimeMinutes ?? 0) * 60) })}</Text>
           ) : null}
         </Stack>

@@ -63,11 +63,6 @@ function JoinButton({ table, access, isPending, isJoining, onJoin }: JoinButtonP
   );
 }
 
-/**
- * Tonight's tables in floor order, each with its stakes, open seats, wait and call time (#633), and Join while the member may join
- * (waitlist.join), is not seated and waits for no game: a join is a request the floor approves, one game at a time (#633); a closed table's Join registers interest in its game. Where the member's tier lacks Join, one locked notice says
- * which tiers have it; until their identity check is done, Join waits for it (#87).
- */
 /** Whether the member may ask to join a game now: on no list, not seated and not on a break. */
 function useMayJoin(places: readonly WaitlistPlace[]): boolean {
   const isSeated = (useMySeat().data ?? null) !== null;
@@ -75,12 +70,18 @@ function useMayJoin(places: readonly WaitlistPlace[]): boolean {
   return places.length === 0 && !isSeated && !isOnBreak;
 }
 
+/**
+ * Tonight's tables in floor order, each with its stakes, open seats, wait and call time (#633). Join (waitlist.join) shows
+ * only at an open table, and only when the member is on no list, not seated and not on a break (decision 0300): a join is
+ * a request the floor approves, one game at a time (#633). Where the member's tier lacks Join, one locked notice says
+ * which tiers have it; until their identity check is done, Join waits for it (#87).
+ */
+
 export function FloorList({ tables, places }: { tables: readonly FloorTable[]; places: readonly WaitlistPlace[] }) {
   const joinAccess = useFeature('waitlist.join');
   // Until it is known, Join shows: the database refuses it without a finished check anyway.
   const isKycComplete = useMyTonight().data?.isKycComplete ?? true;
   const { join } = useWaitlistActions();
-  // One game at a time (#633): seated, or waiting already, the member joins nothing.
   // No Join while on a list or seated, nor on a break, which the club would refuse (decision 0300).
   const mayJoin = useMayJoin(places);
   const requests = useRequestIds();

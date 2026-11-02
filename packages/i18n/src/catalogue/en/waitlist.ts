@@ -11,7 +11,7 @@ export const tonight = {
   playingSince: 'Playing since {time} · {played}',
   /** The call time the floor gave, the least the member plays before leaving: `3 h`. */
   minimumSession: 'Minimum session {time}',
-  /** An hour more call time, at any time while seated (decision 0300). */
+  /** An hour more call time, while it runs (#634). */
   extendCallTime: 'Add 1 h',
   /** The same button's full name for a screen reader. */
   extendCallTimeName: 'Add an hour of call time',

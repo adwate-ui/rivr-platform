@@ -74,17 +74,7 @@ reset role;
 update public.seat_session set started_at = started_at - interval '5 hours', away_since = now() - interval '10 minutes'
 where id = (select id from ids where name = 'ishaan');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
--- Add 1 h works at any time (decision 0300): past his call time, an hour from the minutes he has played.
-select lives_ok($$ select public.extend_my_call_time() $$, 'with his call time done he adds an hour more');
-select results_eq($$ select call_time_left between 3540 and 3600, call_time_minutes from public.my_seat() $$,
-  $$ values (true, 350) $$, 'an hour from now: five hours played, less ten minutes away, plus sixty');
-reset role;
-update public.seat_session set call_time_minutes = 1400 where id = (select id from ids where name = 'ishaan');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select throws_ok($$ select public.extend_my_call_time() $$, '22023', null, 'but never past a day');
-reset role;
-update public.seat_session set call_time_minutes = 180, call_time_completed_at = now() where id = (select id from ids where name = 'ishaan');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select throws_ok($$ select public.extend_my_call_time() $$, '22023', null, 'with his call time done he adds none');
 select is(public.leave_my_seat(), 'left', 'with his call time done he leaves');
 select is((select count(*)::integer from public.my_seat()), 0, 'and has no seat');
 reset role;

@@ -18,12 +18,12 @@ function detailOf(place: WaitlistPlace): string {
 
 /**
  * The member's waitlist places: the game, their number on its list and when they joined, or the seat
- * call while it holds (#63); Step away and I'm back, and Leave. Nothing when there are none.
+ * call while it holds (#63), and Leave. Nothing when there are none.
  */
 export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
   const { leave } = useWaitlistActions();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
-  // The place whose Step away or Leave is pending, so only its buttons say so (F3-17).
+  // The place whose Leave is pending, so only its button says so (F3-17).
   const [busyAt, setBusyAt] = useState<string | null>(null);
   if (places.length === 0) return null;
   const act = async (entryId: string, done: Promise<{ ok: true } | { ok: false; error: WaitlistFailure }>) => {

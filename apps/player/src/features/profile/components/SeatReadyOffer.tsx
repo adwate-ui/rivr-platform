@@ -46,7 +46,8 @@ export function SeatReadyOffer() {
           <Text variant="small">{t('player.profile.seatReadyOffer')}</Text>
           <Inline gap={1}>
             <Button variant="text" onClick={notNow}>{t('player.profile.seatReadyNotNow')}</Button>
-            <Button variant="secondary" isLoading={phone.isBusy} onClick={() => { setAsked(true); void phone.change(true); }}>
+            <Button variant="secondary" isLoading={phone.isBusy} aria-label={t('player.profile.seatReadyYesName')}
+              onClick={() => { setAsked(true); void phone.change(true); }}>
               {t('player.profile.seatReadyYes')}
             </Button>
           </Inline>

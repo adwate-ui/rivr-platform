@@ -26,6 +26,13 @@ describe('FloorList', () => {
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Join Table 2' }).disabled).toBe(false);
   });
 
+  it('offers no Join while the member is on a break, which the club would refuse (decision 0300)', async () => {
+    renderList([TABLE, OTHER], { break_until: '2026-12-01T00:00:00Z', session_reminder_hours: null });
+    expect(await screen.findByText('Table 3', {}, { timeout: 5000 })).toBeDefined();
+    await new Promise((resolve) => { setTimeout(resolve, 50); });
+    expect(screen.queryByRole('button', { name: /^Join / })).toBeNull();
+  });
+
   it('offers no Join at a closed table (decision 0300)', async () => {
     renderList([{ ...TABLE, isOpen: false, openSeats: null }, OTHER]);
     expect(await screen.findByRole('button', { name: 'Join Table 3' }, { timeout: 5000 })).toBeDefined();
@@ -33,8 +40,8 @@ describe('FloorList', () => {
   });
 });
 
-/** A member who may join, with a join still on its way, and the list of `tables`. */
-function renderList(tables: readonly FloorTable[]) {
+/** A member who may join unless `restrictions` put them on a break, with a join still on its way, and the list of `tables`. */
+function renderList(tables: readonly FloorTable[], restrictions: object | null = null) {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
       access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
       user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -44,6 +51,7 @@ function renderList(tables: readonly FloorTable[]) {
       if (url.includes('/rpc/my_feature_access')) return Response.json([{ feature_key: 'waitlist.join', state: 'enabled', tiers: null }]);
       // The join is still on its way.
       if (url.includes('/rpc/join_waitlist')) return new Promise<Response>(() => undefined);
+      if (url.includes('/rpc/my_restrictions')) return Response.json(restrictions === null ? [] : [restrictions]);
       return Response.json([]);
     });
     render(
