@@ -89,6 +89,7 @@ function readWithdrawal(row: { amount: string; utr: string }): Result<{ amount: 
 
 - `WEB_PUSH_PUBLIC_KEY`: the club's VAPID public key, public by design (decision 0272). `PUSH_SERVICE_ADDRESS` and `pushSubscriptionSchema`: a browser's push subscription, only at the browsers' own push services.
 - `callTimeCompletedSchema`, `sessionReminderSchema`, `withdrawalSentSchema`, `tournamentStartingSchema`: the payloads the push consumer reads, beside `waitlistCalledSchema` and `promotionOfferedSchema`.
+- `callTimeEndingSchema` (15 minutes or less to run, with the table, seat and `ends_at`) and `callTimeUpdatedSchema` (the floor added time): the call time's events (decision 0320). With `waitlistCalledSchema` (now with its `entry_id`) and `seat.taken`, the events phase 2's lock-screen status runs on (decision 0323).
 - `WINNER_CARD_KINDS`, `winnerCardRowSchema`, `winnerCardRowsSchema`, `winnerCardImagesSchema`: the winner cards the nightly job draws, and the images it removes (#155, decision 0273).
 
 ## Host queue

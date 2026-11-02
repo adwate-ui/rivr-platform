@@ -15,6 +15,15 @@
   <color name="rivr_color_muted">#99f3ede0</color>
   <color name="rivr_color_hairline">#40c9a85c</color>
   <color name="rivr_color_control">#80f3ede0</color>
+  <color name="rivr_color_gold_tint">#24c9a85c</color>
+  <color name="rivr_color_gold_edge">#59c9a85c</color>
+  <color name="rivr_color_cream_track">#1ff3ede0</color>
+  <color name="rivr_color_cream_faint">#4df3ede0</color>
+  <color name="rivr_color_seat_taken">#59f3ede0</color>
+  <color name="rivr_color_skeleton">#14f3ede0</color>
+  <color name="rivr_color_skeleton_faint">#0df3ede0</color>
+  <color name="rivr_color_rim">#ff3a2a14</color>
+  <color name="rivr_color_scrim">#99050f0b</color>
   <color name="rivr_color_surface">#ff0e3b2c</color>
   <color name="rivr_color_raised">#ff0a2a20</color>
   <color name="rivr_color_content">#fff3ede0</color>

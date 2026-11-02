@@ -1,6 +1,8 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { clubDay } from '@rivr/domain/clubDay';
+import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
-import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router';
+import { createMemoryHistory, createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SessionScreen } from './SessionScreen.tsx';
@@ -74,7 +76,7 @@ function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'wor
     if (url.includes('/rpc/my_sessions')) return Response.json(access === 'locked' ? [] : rowsFor(url, listed));
     return Response.json([]);
   });
-  const rootRoute = createRootRoute();
+  const rootRoute = createRootRoute({ component: () => <ToastProvider><Outlet /></ToastProvider> });
   const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => rootRoute, path: '/sessions', component: SessionsScreen }),
     createRoute({ getParentRoute: () => rootRoute, path: '/sessions/$visitId', component: SessionScreen }),
@@ -111,11 +113,9 @@ describe('Sessions', () => {
     expect(await screen.findByText('No sessions yet. Each night you play at the club shows here.', {}, { timeout: 5000 })).toBeDefined();
   });
 
-  it('lists a session under its club month, by the day its night began, with its tables and hours and no money', async () => {
+  it('lists each session by the day its night began, with its tables and hours and no money', async () => {
     renderAt('/sessions', { sessions: [SESSION, { ...SESSION, visit_id: 'v2', table_name: 'Table 2', other_tables: 1, played_seconds: 5400 }] });
-    expect(await screen.findByRole('heading', { name: 'February 2026' }, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByText('2 sessions · 7 h 30 min')).toBeDefined();
-    const row = screen.getByRole('button', { name: /Table 3/ });
+    const row = await screen.findByRole('button', { name: /Table 3/ }, { timeout: 5000 });
     expect(row.textContent).toContain('13 Feb 2026');
     expect(row.textContent).toContain('6 h');
     expect(screen.getByRole('button', { name: /Table 2 and 1 more/ }).textContent).toContain('1 h 30 min');
@@ -130,16 +130,29 @@ describe('Sessions', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Sessions' })).toBeDefined();
   });
 
-  it('reads thirty at a time, with Show earlier sessions, and counts the month at the page\'s end only once it is whole (F3-28)', async () => {
+  it('reads thirty at a time, with Show earlier sessions (F3-28)', async () => {
     const many = Array.from({ length: 31 }, (_, at) => ({ ...SESSION, visit_id: `v${String(at + 1)}` }));
     renderAt('/sessions', { sessions: many });
     const earlier = await screen.findByRole('button', { name: 'Show earlier sessions' }, { timeout: 5000 });
     expect(screen.getAllByRole('button', { name: /Table 3/ })).toHaveLength(30);
-    expect(screen.queryByText(/^\d+ sessions · /)).toBeNull();
     fireEvent.click(earlier);
     await vi.waitFor(() => expect(screen.getAllByRole('button', { name: /Table 3/ })).toHaveLength(31));
     expect(screen.queryByRole('button', { name: 'Show earlier sessions' })).toBeNull();
-    expect(screen.getByText(/^31 sessions · /)).toBeDefined();
+  });
+
+  it('counts this club month whole, as the server totals it, past the page (F3-28)', async () => {
+    const month = `${clubDay(new Date()).slice(0, 7)}-01`;
+    renderAt('/sessions', { sessions: [{ ...SESSION, month, month_sessions: 34, month_played_seconds: 27000 }] });
+    const stats = await screen.findByText('This month', {}, { timeout: 5000 });
+    expect(stats.nextElementSibling?.textContent).toBe('34');
+    expect(screen.getByText('Hours played').nextElementSibling?.textContent).toBe('7h 30m');
+  });
+
+  it('reads 0 this month when the latest session was in an earlier month', async () => {
+    renderAt('/sessions', { sessions: [SESSION] });
+    const stats = await screen.findByText('This month', {}, { timeout: 5000 });
+    expect(stats.nextElementSibling?.textContent).toBe('0');
+    expect(screen.getByText('Hours played').nextElementSibling?.textContent).toBe('0h 00m');
   });
 });
 
@@ -148,27 +161,29 @@ describe('a session', () => {
     renderAt('/sessions/v1', { sessions: [SESSION] });
     expect(await screen.findByText('13 Feb 2026', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('02:00 to 08:00')).toBeDefined();
-    expect(screen.getByText('6 h')).toBeDefined();
+    expect(screen.getByText('100/200')).toBeDefined();
+    expect(screen.getByText('6h 00m')).toBeDefined();
     expect(screen.queryByText(/₹/)).toBeNull();
     expect(screen.queryByText(/TDS|Receipt|Buy-in|Cash-out/)).toBeNull();
   });
 
   it('shows a tournament with its place in the field', async () => {
     renderAt('/sessions/t1', { sessions: [{ ...SESSION, visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: 4, entrants: 61 }] });
-    expect(await screen.findByText('Tournament · place 4 of 61 · 6 h', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('Tournament · place 4 of 61', {}, { timeout: 5000 })).toBeDefined();
   });
 
-  it('hides it from the member’s own list and goes back to the list without it', async () => {
+  it('hides it from the member’s own list, says so, and goes back to the list without it', async () => {
     const { router, hidden } = renderAt('/sessions/v1', { sessions: [SESSION] });
-    fireEvent.click(await screen.findByRole('button', { name: 'Hide from my sessions' }, { timeout: 5000 }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Hide from my list' }, { timeout: 5000 }));
     expect(await screen.findByText('No sessions yet. Each night you play at the club shows here.', {}, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('Hidden from your list')).toBeDefined();
     expect(router.state.location.pathname).toBe('/sessions');
     expect(hidden).toEqual(['v1']);
   });
 
   it('says so when hiding does not go through, and stays on the session', async () => {
     renderAt('/sessions/v1', { sessions: [SESSION], hide: 'fails' });
-    fireEvent.click(await screen.findByRole('button', { name: 'Hide from my sessions' }, { timeout: 5000 }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Hide from my list' }, { timeout: 5000 }));
     expect(await screen.findByText('Not sent. Try again.', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('02:00 to 08:00')).toBeDefined();
   });
@@ -178,19 +193,19 @@ describe('a session', () => {
     expect(await screen.findByText('This session is not in your history.', {}, { timeout: 5000 })).toBeDefined();
   });
 
-  it('shows a locked session under its heading, with Back (F3-21)', async () => {
+  it('shows a locked session under its heading, with back to Sessions (F3-21)', async () => {
     renderAt('/sessions/v1', { sessions: [SESSION], access: 'locked' });
     expect(await screen.findByText('Black card only.', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('heading', { level: 1, name: 'Sessions' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Back' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Sessions' })).toBeDefined();
   });
 
   it('goes back from a session opened from the list, adding no page to the history (F3-22)', async () => {
     const { router } = renderAt('/sessions', { sessions: [SESSION] });
     fireEvent.click(await screen.findByRole('button', { name: /Table 3/ }, { timeout: 5000 }));
-    await screen.findByRole('button', { name: 'Back' }, { timeout: 5000 });
+    await screen.findByRole('button', { name: 'Sessions' }, { timeout: 5000 });
     expect(router.history.length).toBe(2);
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sessions' }));
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/sessions'));
     expect(router.history.length).toBe(2);
     expect(router.history.canGoBack()).toBe(false);
@@ -198,7 +213,7 @@ describe('a session', () => {
 
   it('goes to the list in its place from a session opened by its address (F3-22)', async () => {
     const { router } = renderAt('/sessions/v1', { sessions: [SESSION] });
-    fireEvent.click(await screen.findByRole('button', { name: 'Back' }, { timeout: 5000 }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Sessions' }, { timeout: 5000 }));
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/sessions'));
     expect(router.history.length).toBe(1);
   });

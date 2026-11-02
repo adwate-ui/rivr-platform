@@ -4,7 +4,7 @@
 import { expect, test } from '@playwright/test';
 import { signInToPlayer } from '../support/signIn.ts';
 
-test('Push: a member turns notifications on for her phone and switches seat calls off', async ({ page }) => {
+test('Push: Profile › Profile: a member turns notifications on for her phone and switches seat calls off', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(Notification, 'permission', { get: () => 'granted' });
     Object.defineProperty(Notification, 'requestPermission', { value: async () => 'granted' });
@@ -29,7 +29,7 @@ test('Push: a member turns notifications on for her phone and switches seat call
   });
   await signInToPlayer(page, '9000000638');
   await page.getByRole('link', { name: 'Profile' }).click();
-  await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
   // The switch waits for the service worker, which a first visit installs.
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;

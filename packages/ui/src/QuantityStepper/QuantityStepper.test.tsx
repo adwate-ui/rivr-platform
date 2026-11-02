@@ -48,4 +48,10 @@ describe('QuantityStepper', () => {
     expect(screen.getByRole('button', { name: 'One fewer Masala chai' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'One more Masala chai' })).toHaveFocus();
   });
+
+  it('drops its label beside the buttons and fills one more in gold when round (decision 0320)', () => {
+    renderIn(<QuantityStepper label="Masala chai" value={1} onChange={() => undefined} look="round" />);
+    expect(screen.getByRole('group', { name: 'Masala chai' })).not.toHaveTextContent('Masala chai');
+    expect(screen.getByRole('button', { name: 'One more Masala chai' })).toHaveClass('bg-action', 'rounded-full');
+  });
 });

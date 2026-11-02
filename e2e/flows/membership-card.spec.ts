@@ -1,5 +1,5 @@
 /**
- * Membership card (#71; tech plan item 28; decision 0162). Kavya Rao opens her card from Profile: her name,
+ * Membership card (#71; tech plan item 28; decision 0162). Kavya Rao opens her card from its tab: her name,
  * tier and number, and a QR that changes every 30 seconds. The front desk, Farhan Ali, enters what the
  * door's scanner reads: a code from before her QR changed, as a screenshot would hold, is refused, and the
  * one on her screen checks her in. Both are this flow's own people (supabase/seed/14_people_c.sql). She
@@ -20,14 +20,14 @@ function doorList(page: Page, name: string): Locator {
 }
 
 test.describe('Membership card', () => {
-  test('the door checks a member in by the QR on her card, and refuses a code from before it changed', async ({ browser }) => {
+  test('Sessions, card, rewards › Card: the door checks a member in by the QR on her card, and refuses a code from before it changed', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'opens a visit that only check-out (#82) closes, so the local stack only');
     // The QR changes every 30 seconds, and the flow waits for one change.
     test.setTimeout(150_000);
     const member = await (await browser.newContext()).newPage();
     await signInToPlayer(member, '9000000290');
-    await member.getByRole('link', { name: 'Profile' }).click();
-    await member.getByRole('button', { name: 'Show card' }).click();
+    // The card is a tab since the redesign (decision 0320).
+    await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Card' }).click();
     await expect(member.getByRole('article', { name: 'Membership card' })).toBeVisible();
     await expect(member.getByText('Kavya Rao')).toBeVisible();
     await expect(member.getByRole('img', { name: 'Your door code' })).toBeVisible();

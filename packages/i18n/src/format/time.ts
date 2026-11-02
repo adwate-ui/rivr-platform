@@ -60,6 +60,28 @@ export function formatDuration(seconds: number): string {
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
+/** Whole seconds, never below nought. */
+const wholeSeconds = (seconds: number) => Math.floor(Math.max(0, seconds));
+const twoDigits = (value: number) => String(value).padStart(2, '0');
+
+/** The call time's clock on the redesigned seat (decision 0320), always with its hours: `2:41:08`, `0:14:50`. */
+export function formatClock(seconds: number): string {
+  const whole = wholeSeconds(seconds);
+  return `${Math.floor(whole / 3600)}:${twoDigits(Math.floor((whole % 3600) / 60))}:${twoDigits(whole % 60)}`;
+}
+
+/** A short countdown as the redesign shows it (decision 0320), minutes unpadded: a hold's `19:42`, a resend's `0:24`. */
+export function formatMinutesSeconds(seconds: number): string {
+  const whole = wholeSeconds(seconds);
+  return `${Math.floor(whole / 60)}:${twoDigits(whole % 60)}`;
+}
+
+/** Hours and minutes as the redesign writes a length of time (decision 0320), rounded down: `2h 41m`, `0h 24m`. */
+export function formatHoursMinutes(seconds: number): string {
+  const minutes = Math.floor(wholeSeconds(seconds) / 60);
+  return `${Math.floor(minutes / 60)}h ${twoDigits(minutes % 60)}m`;
+}
+
 /** A countdown as a clock shows it, in whole seconds rounded down: `11:29`, `05:00`, `1:15:00` from an hour up. */
 export function formatCountdown(seconds: number): string {
   const whole = Math.floor(Math.max(0, seconds));
@@ -107,4 +129,23 @@ export function formatQuarter(firstDay: string): string {
   const start = new Date(`${firstDay}T00:00:00Z`);
   const lastMonth = (start.getUTCMonth() + 2) % 12;
   return `${MONTHS[start.getUTCMonth()] ?? ''}–${MONTHS[lastMonth] ?? ''} ${start.getUTCFullYear()}`;
+}
+
+/**
+ * A date of birth as it is typed into a numeric field (decision 0320), never the browser's mm/dd/yyyy picker: the digits
+ * set out as `DD / MM / YYYY` as they come, `14 / 0` part way.
+ */
+export function formatTypedDay(typed: string): string {
+  const digits = typed.replace(/\D/g, '').slice(0, 8);
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter((part) => part !== '').join(' / ');
+}
+
+/** A typed `DD / MM / YYYY` as the ISO day `YYYY-MM-DD`, or null until it is a whole day that exists. */
+export function isoDayOfTyped(typed: string): string | null {
+  const match = /^(\d{2}) \/ (\d{2}) \/ (\d{4})$/.exec(typed);
+  if (match === null) return null;
+  const [, day = '', month = '', year = ''] = match;
+  const iso = `${year}-${month}-${day}`;
+  const at = new Date(`${iso}T00:00:00Z`);
+  return Number.isNaN(at.getTime()) || at.toISOString().slice(0, 10) !== iso ? null : iso;
 }

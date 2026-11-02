@@ -31,6 +31,18 @@ describe('web push', () => {
     ]]);
   });
 
+  it('carries a notification’s button and the page it opens (decision 0320)', async () => {
+    const sent: unknown[] = [];
+    const push = createWebPush({ ...keys, sendNotification: async (_to, payload) => {
+      sent.push(JSON.parse(String(payload)));
+      return { statusCode: 201, body: '', headers: {} };
+    } });
+    await push.send({ ...notification, action: { title: "I'm on my way", url: '/?accept=e1' } });
+    expect(sent).toEqual([{
+      title: 'Your seat is ready', body: 'Table 3, seat 9. Hold until 00:30.', url: '/', tag: 'seat-ready', action: { title: "I'm on my way", url: '/?accept=e1' },
+    }]);
+  });
+
   it('says a subscription is gone when the push service has dropped it', async () => {
     for (const status of [404, 410]) {
       expect(await createWebPush({ ...keys, sendNotification: refusedWith(status) }).send(notification)).toEqual({ ok: false, error: { code: 'subscription_gone' } });

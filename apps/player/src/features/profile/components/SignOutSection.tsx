@@ -14,7 +14,7 @@ export function SignOutSection() {
     signOut.mutate();
   }
   return (
-    <Button variant="secondary" fullWidth isLoading={signOut.isPending || remove.isPending} onClick={() => void signOutHere()}>
+    <Button variant="outline" size="large" fullWidth isLoading={signOut.isPending || remove.isPending} onClick={() => void signOutHere()}>
       {t('common.signIn.signOut')}
     </Button>
   );

@@ -69,6 +69,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
+| `holdFraction(calledAt, holdUntil, at)` | How much of a called seat's hold is left, 1 to 0: the bar under the countdown (decision 0320). |
 | `priorityOn(stake, { tier, qualifyingStake })`, `TierPriority`, `Priority` | A member's priority on the list for one stake (#40): the tier's weight from the setting `waitlist.priority_weights`, with its name as the reason. The black card's counts only at the member's qualifying stake; Founders' Circle on every list. The database's `private.priority_weight` is proved equal by `packages/testing/golden/waitlist.json`; the database orders each list by weight, then join time. |
 
 ### `@rivr/domain/credit`
@@ -107,10 +108,18 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `withdrawalCheck(amount, walletCash)`, `WithdrawalRefusal` | A withdrawal from the member's wallet (#21; design prompt flow 9): whole rupees above nothing (`not_rupees`), no more than the wallet's cash (`wallet_short`); bonus and points are never withdrawn. The database's `private.withdrawal_check` is proved equal by `packages/testing/golden/wallet.json`. |
 
+### `@rivr/domain/fnb`
+
+| Export | What it does |
+|---|---|
+| `orderStage({ acceptedAt, onWayAt, deliveredAt })`, `ORDER_STAGES` | Where a member's order stands from the bar's steps (decision 0320): sent, preparing, on its way, delivered; the furthest step taken wins. |
+
 ### `@rivr/domain/callTime`
 
 | Export | What it does |
 |---|---|
+| `extendedCallTime(current, add)`, `ADD_TIME_CHOICES`, `CALL_TIME_CAP_MINUTES`, `isAddTimeChoice` | More call time the floor approves (decision 0320): 30, 60 or 120 minutes added whole to a call time the seat has, up to a day in all, else refused (`not_a_choice`, `no_call_time`, `over_a_day`). The database's `private.extended_call_time` is proved equal by `packages/testing/golden/callTimeExtension.json`. |
+| `isCallTimeEnding(secondsLeft)`, `minutesLeftToSay`, `callTimeFraction`, `secondsUntil` | The seat's clock on Tonight: its last 15 minutes (the red ring, the banner, the push), the minutes to say, the ring's share left, and whole seconds to a time the server gave. |
 | `callTime(clock, at)`, `CallTimeClock`, `CallTime` | A seat session's call time (#78, decision 0057): whole seconds left of the table type's `call_time.minutes` fixed at seating, never below zero, and whether it is complete. The clock runs across moves, stands still while the player is away, and stops when they leave (the shortfall). The database's `private.call_time_left` is proved equal by `packages/testing/golden/callTime.json`. |
 | `CALL_TIME_CHOICES`, `isCallTimeMinutes(minutes)` | The call times the floor picks when it seats a player (decision 0299): 3, 4 or 5 hours, in minutes, or a custom whole number of minutes from 0 to 1,440, which `isCallTimeMinutes` checks. The database's `private.set_seat_call_time` refuses the same. |
 

@@ -1,20 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { panSchema } from '@rivr/contracts';
 import { useKycActions, type KycFailure } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Input, Stack, StepScreen, Text } from '@rivr/ui';
+import { formatTypedDay, isoDayOfTyped, t } from '@rivr/i18n';
+import { Button, ErrorMessage, Input, Stack, StepScreen } from '@rivr/ui';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
-import { KycHelp } from './KycHelp.tsx';
 
 /** The PAN form. The date of birth is asked for only when DigiLocker gave none. */
 function panForm(knowsDateOfBirth: boolean) {
   return z
     .object({ pan: z.string().toUpperCase().pipe(panSchema), dateOfBirth: z.string() })
     .superRefine(({ dateOfBirth }, context) => {
-      if (!knowsDateOfBirth && !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+      // Typed as DD / MM / YYYY in a numeric field (decision 0320), not the browser's mm/dd/yyyy picker.
+      if (!knowsDateOfBirth && isoDayOfTyped(dateOfBirth) === null) {
         context.addIssue({ code: 'custom', path: ['dateOfBirth'], message: 'required' });
       }
     });
@@ -35,8 +35,8 @@ function DigilockerAgain() {
   };
   return (
     <Stack gap={2}>
-      <Button variant="secondary" fullWidth isLoading={start.isPending} onClick={() => void begin()}>{t('player.kyc.tryDigilockerAgain')}</Button>
-      {failure ? <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage> : null}
+      <Button variant="text" fullWidth isLoading={start.isPending} onClick={() => void begin()}>{t('player.kyc.tryDigilockerAgain')}</Button>
+      {failure ? <ErrorMessage look="dot">{t(FAILURE_COPY[failure])}</ErrorMessage> : null}
     </Stack>
   );
 }
@@ -54,33 +54,36 @@ export function PanStep({ knowsDateOfBirth, onChecked }: { knowsDateOfBirth: boo
   const { errors } = form.formState;
 
   const verify = form.handleSubmit(async ({ pan, dateOfBirth }) => {
-    const checked = await verifyPan.mutateAsync(knowsDateOfBirth ? { pan } : { pan, dateOfBirth });
+    const checked = await verifyPan.mutateAsync(knowsDateOfBirth ? { pan } : { pan, dateOfBirth: isoDayOfTyped(dateOfBirth) ?? '' });
     if (checked.ok) onChecked();
     else form.setError('pan', { type: 'server', message: t(FAILURE_COPY[checked.error]) });
   });
   // A refusal carries its own words; anything else failed the field's check.
   const panError = errors.pan ? (errors.pan.type === 'server' ? errors.pan.message : t('player.kyc.panInvalid')) : undefined;
   const panField = form.register('pan');
-  const birthField = form.register('dateOfBirth');
   return (
     <StepScreen
       title={t('player.kyc.panTitle')}
+      look={{ subtitle: t(knowsDateOfBirth ? 'player.kyc.panIntro' : 'player.kyc.panAfterDigilocker') }}
       onSubmit={verify}
       footer={
         <Stack gap={3}>
-          <Button variant="primary" type="submit" fullWidth isLoading={verifyPan.isPending}>
+          <Button variant="primary" size="tall" type="submit" fullWidth isLoading={verifyPan.isPending}>
             {t('player.kyc.verify')}
           </Button>
           {knowsDateOfBirth ? null : <DigilockerAgain />}
         </Stack>
       }
     >
-      <Text tone="muted">{t(knowsDateOfBirth ? 'player.kyc.panIntro' : 'player.kyc.panAfterDigilocker')}</Text>
-      <Input {...panField} label={t('player.kyc.panLabel')} placeholder={t('player.kyc.panPlaceholder')} autoComplete="off" maxLength={10} autoFocus error={panError} />
+      <Input {...panField} label={t('player.kyc.panLabel')} placeholder={t('player.kyc.panPlaceholder')} autoComplete="off" maxLength={10}
+        isTall autoFocus error={panError} />
       {knowsDateOfBirth ? null : (
-        <Input {...birthField} label={t('player.kyc.dateOfBirthLabel')} type="date" autoComplete="bday" error={errors.dateOfBirth ? t('player.kyc.dateOfBirthInvalid') : undefined} />
+        <Controller control={form.control} name="dateOfBirth" render={({ field }) => (
+          <Input ref={field.ref} name={field.name} value={field.value} onBlur={field.onBlur} onChange={(event) => field.onChange(formatTypedDay(event.target.value))}
+            label={t('player.kyc.dateOfBirthLabel')} placeholder={t('player.kyc.dateOfBirthPlaceholder')} inputMode="numeric" autoComplete="bday"
+            isTall error={errors.dateOfBirth ? t('player.kyc.dateOfBirthInvalid') : undefined} />
+        )} />
       )}
-      <KycHelp />
     </StepScreen>
   );
 }

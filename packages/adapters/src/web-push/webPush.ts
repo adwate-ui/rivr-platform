@@ -28,9 +28,9 @@ function failureOf(error: unknown): PushFailure {
  */
 export function createWebPush({ publicKey, privateKey, subject, sendNotification = webpush.sendNotification }: WebPushOptions): PushAdapter {
   return {
-    async send({ subscription, title, body, url, tag }) {
+    async send({ subscription, title, body, url, tag, action }) {
       try {
-        const sent = await sendNotification(subscription, JSON.stringify({ title, body, url, tag }), {
+        const sent = await sendNotification(subscription, JSON.stringify({ title, body, url, tag, action }), {
           vapidDetails: { subject, publicKey, privateKey },
           TTL: 60 * 60,
           urgency: 'high',

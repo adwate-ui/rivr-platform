@@ -44,3 +44,6 @@ export const LongTextWithPhoto: Story = {
 export const LongText: Story = {
   args: { name: 'Venkataraghavan Subramaniam Iyer', tier: "Founders' Circle", memberNumber: '1048576' },
 };
+
+/** The player app's card tab (decision 0320): gold-edged, no QR on the card. */
+export const Redesign: Story = { args: { look: 'redesign', qr: undefined } };

@@ -1,1 +1,1 @@
-export { StepScreen, type StepScreenProps } from './StepScreen.tsx';
+export { StepScreen, type StepLook, type StepScreenProps } from './StepScreen.tsx';

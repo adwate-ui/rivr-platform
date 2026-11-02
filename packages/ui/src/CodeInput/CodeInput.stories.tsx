@@ -48,3 +48,6 @@ export const FocusedRefused: Story = {
     await userEvent.click(within(canvasElement).getByRole('textbox'));
   },
 };
+
+/** The redesign's tall cells across the row, with the dotted error (decision 0320). */
+export const Tall: Story = { args: { size: 'tall', value: '4829', error: "That code didn't match. 2 tries left." } };

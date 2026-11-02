@@ -7,16 +7,20 @@ export interface ErrorMessageProps {
   children: ReactNode;
   /** For a field that points at the message with aria-describedby. */
   id?: string | undefined;
+  /** `dot`, a red 8 px dot before the words: the player redesign's field error (decision 0320). `icon` elsewhere. */
+  look?: 'icon' | 'dot';
 }
 
 /**
- * Why a step did not go through: an alert icon and the message in cream, so it never relies on red
- * text, announced as it appears. Under a field (Input's error) or under the action that failed.
+ * Why a step did not go through: an alert icon (or, in the player app, a red dot) and the message in cream, so it never
+ * relies on red text, announced as it appears. Under a field (Input's error) or under the action that failed.
  */
-export function ErrorMessage({ children, id }: ErrorMessageProps) {
+export function ErrorMessage({ children, id, look = 'icon' }: ErrorMessageProps) {
   return (
     <div role="alert" className="flex items-start gap-2 text-content">
-      <Icon name="alert" size="sm" />
+      {look === 'dot' ? (
+        <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-alert" />
+      ) : <Icon name="alert" size="sm" />}
       <Text variant="small" {...(id === undefined ? {} : { id })}>
         {children}
       </Text>

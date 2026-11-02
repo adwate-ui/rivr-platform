@@ -38,6 +38,12 @@ describe('Heading', () => {
     expect(screen.getByRole('heading', { name: 'Double points' })).toHaveClass('font-display', 'text-96');
   });
 
+  it('sets a serif title in the display face at 36 px, or at the size asked (decision 0320)', () => {
+    renderIn(<><Heading level={1} variant="serif">Sessions</Heading><Heading level={2} variant="serif" serifSize={32}>Top up</Heading></>);
+    expect(screen.getByRole('heading', { name: 'Sessions' })).toHaveClass('font-display', 'text-36');
+    expect(screen.getByRole('heading', { name: 'Top up' })).toHaveClass('font-display', 'text-32');
+  });
+
   it('holds the optical size of a TV title low, and sets a code to type in the text face (D-01)', () => {
     renderIn(<><Heading level={1} variant="tvTitle">Call time</Heading><Heading level={2} variant="tvCode">482719</Heading></>);
     expect(screen.getByRole('heading', { name: 'Call time' }).className).toContain('optical-tv');

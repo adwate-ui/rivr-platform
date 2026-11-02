@@ -14,6 +14,11 @@ export interface MembershipCardProps {
   qr?: ReactNode;
   /** The member's photo between the wordmark and their name: a filling `KycPhoto` (decision 0300). None without one. */
   photo?: ReactNode;
+  /**
+   * `redesign`, the player app's card tab (decision 0320): gold-edged, the wordmark and "No. 73" along the top, the 64 × 80
+   * selfie, the name in the display face and the tier in gold along the foot; the QR goes under it on its own panel.
+   */
+  look?: 'classic' | 'redesign';
 }
 
 /**
@@ -21,7 +26,8 @@ export interface MembershipCardProps {
  * number, any photo between, and beside them a cream square, as large as the card allows, for the QR the door scans. It fills
  * its container up to `tokens.viewport.card` wide; @rivr/render draws it at that size.
  */
-export function MembershipCard({ name, tier, memberNumber, qr, photo }: MembershipCardProps) {
+export function MembershipCard({ name, tier, memberNumber, qr, photo, look = 'classic' }: MembershipCardProps) {
+  if (look === 'redesign') return <RedesignCard name={name} tier={tier} memberNumber={memberNumber} photo={photo} />;
   return (
     <article
       aria-label={t('ui.membershipCard.label')}
@@ -46,6 +52,26 @@ export function MembershipCard({ name, tier, memberNumber, qr, photo }: Membersh
       </div>
       {/* The cream around the QR is its quiet zone: about three modules, so a scanner finds its edges. */}
       <div className="flex aspect-square min-w-0 flex-1 items-center justify-center rounded-md bg-cream p-3">{qr}</div>
+    </article>
+  );
+}
+
+/** The player app's card (decision 0320): no QR on it; the screen sets the QR under it. */
+function RedesignCard({ name, tier, memberNumber, photo }: Pick<MembershipCardProps, 'name' | 'tier' | 'memberNumber' | 'photo'>) {
+  return (
+    <article aria-label={t('ui.membershipCard.label')}
+      className="flex aspect-card w-full max-w-card flex-col justify-between rounded-card border border-gold bg-raised p-5 text-content">
+      <div className="flex items-start justify-between">
+        <Wordmark />
+        <span className="font-text text-12 font-medium tracking-wide text-accent uppercase">{t('ui.membershipCard.number', { number: memberNumber })}</span>
+      </div>
+      <div className="flex items-end gap-4">
+        {photo === undefined ? null : <div className="h-20 w-16 shrink-0 overflow-hidden rounded-md border border-gold-edge">{photo}</div>}
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="font-display text-28 leading-tight">{name}</span>
+          <span className="font-text text-13 text-accent">{tier}</span>
+        </div>
+      </div>
     </article>
   );
 }

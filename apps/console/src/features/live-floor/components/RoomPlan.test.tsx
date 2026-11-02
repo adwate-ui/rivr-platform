@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RoomPlan } from './RoomPlan.tsx';
 
 const TABLE: Omit<FloorTable, 'id' | 'name' | 'room' | 'isOpen'> = {
-  venueId: 'v1', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n,
+  venueId: 'v1', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', game: 'nlh', smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n,
   straddle: null, waiting: 0, callTimeMinutes: 180, openSeats: null, mustMoveToTableId: null,
 };
 const TABLES: FloorTable[] = [
@@ -15,7 +15,7 @@ const TABLES: FloorTable[] = [
 ];
 const SEATED: SeatedPlayer = {
   sessionId: 's1', tableId: 't3', seat: 1, memberId: 'm1', fullName: 'Vikram Rao', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
-  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null,
+  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null, timeRequest: null,
 };
 const NIGHT: FloorNight = {
   rake: fromPaise(41_175_000n),
@@ -62,5 +62,14 @@ describe('the room plan', () => {
     expect(screen.queryByText(/seated$/)).toBeNull();
     // No night's figures either: the role gets no rows, so they would all read nought (F2-25).
     expect(screen.queryByText('No dealer')).toBeNull();
+  });
+
+  it('marks a table where a top-up waits, or else where a member asked for more call time (decision 0320)', () => {
+    const asked: SeatedPlayer = { ...SEATED, timeRequest: { id: 'r1', minutes: 60 } };
+    render(<RoomPlan tables={TABLES} seats={[asked]} held={[]} night={NIGHT} canSeeSeats chosenId="t3" onChoose={() => undefined} />);
+    expect(within(screen.getByRole('button', { name: 'Table 3' })).getByText('Time asked')).toBeDefined();
+    cleanup();
+    render(<RoomPlan tables={TABLES} seats={[{ ...asked, topUp: 'requested' }]} held={[]} night={NIGHT} canSeeSeats chosenId="t3" onChoose={() => undefined} />);
+    expect(within(screen.getByRole('button', { name: 'Table 3' })).getByText('Top-up')).toBeDefined();
   });
 });

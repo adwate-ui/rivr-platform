@@ -43,9 +43,9 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 }
 
-/** Sets the member's "Show my name on the club's TVs" in Profile, whatever a run stopped early left it at. */
+/** Sets the member's "Name on club TVs" in Profile (decision 0320), whatever a run stopped early left it at. */
 async function nameOnTvs(member: Page, isOn: boolean) {
-  const choice = member.getByRole('switch', { name: 'Show my name on the club\'s TVs' });
+  const choice = member.getByRole('switch', { name: 'Name on club TVs' });
   if ((await choice.getAttribute('aria-checked')) !== String(isOn)) await choice.click();
   await expect(choice).toHaveAttribute('aria-checked', String(isOn));
 }
@@ -139,7 +139,9 @@ test.describe('TV boards', () => {
     await expect(room.getByText(/^(3 h|2 h 59 min)$/)).toBeVisible();
     const nakul = await (await browser.newContext()).newPage();
     await signInToPlayer(nakul, '9000000400');
-    await nakul.getByRole('button', { name: 'Leave my seat' }).click();
+    // Tonight › Leaving list: Leave seat asks first, as call time is owed (decision 0320).
+    await nakul.getByRole('button', { name: 'Leave seat' }).click();
+    await nakul.getByRole('dialog', { name: 'Leave your seat?' }).getByRole('button', { name: 'Join leaving list' }).click();
     await expect(floor.getByRole('heading', { name: 'Leaving', exact: true })).toBeVisible({ timeout: 20_000 });
     await expect(floor.getByText('Private Room · seat 8', { exact: true })).toBeVisible();
     const openings = tv.getByRole('region', { name: 'Seats opening' });

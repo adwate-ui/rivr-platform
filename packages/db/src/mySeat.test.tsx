@@ -32,7 +32,8 @@ function renderSeat(replies: Record<string, { status?: number; body: unknown }>)
 
 const SEAT = {
   table_name: 'Table 3', seat: 2, is_away: false, has_call_time: true, call_time_left: 10800, played_seconds: 600, is_leaving: false,
-  top_up: 'requested',
+  top_up: 'requested', call_time_ends_at: '2026-11-15T20:00:00+00:00', table_type_name: 'NLH 100/200', small_blind_paise: 10000,
+  big_blind_paise: 20000,
 };
 
 afterEach(cleanup);
@@ -42,6 +43,7 @@ describe('the member at the table', () => {
     const { result } = renderSeat({ my_seat: { body: [SEAT] } });
     await waitFor(() => expect(result.current.seat.data).toEqual({
       tableName: 'Table 3', seat: 2, isAway: false, hasCallTime: true, callTimeLeft: 10800, playedSeconds: 600, isLeaving: false, topUp: 'requested',
+      callTimeEndsAt: '2026-11-15T20:00:00+00:00', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n,
     }));
   });
 
@@ -50,17 +52,17 @@ describe('the member at the table', () => {
     await waitFor(() => expect(result.current.seat.data?.topUp).toBeNull());
   });
 
-  it('extends call time, asks for a top-up and leaves, each a Result', async () => {
+  it('asks for more call time and a top-up, and leaves, each a Result (decision 0320)', async () => {
     const { result } = renderSeat({
       my_seat: { body: [SEAT] },
       leave_my_seat: { body: 'leaving' },
       request_top_up: { status: 400, body: { code: '42501', message: 'not open' } },
-      extend_my_call_time: { status: 400, body: { code: '22023', message: 'not seated' } },
+      request_call_time: { status: 400, body: { code: '22023', message: 'not seated' } },
     });
     let outcomes: unknown[] = [];
     await act(async () => {
       outcomes = [await result.current.actions.leave.mutateAsync(), await result.current.actions.requestTopUp.mutateAsync(),
-        await result.current.actions.extend.mutateAsync()];
+        await result.current.actions.requestTime.mutateAsync({ minutes: 60, requestId: 'r1' })];
     });
     expect(outcomes).toEqual([{ ok: true, value: 'leaving' }, { ok: false, error: 'not_allowed' }, { ok: false, error: 'not_seated' }]);
   });

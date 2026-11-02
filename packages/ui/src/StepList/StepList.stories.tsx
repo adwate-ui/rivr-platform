@@ -42,3 +42,6 @@ export const LongText: Story = {
     ],
   },
 };
+
+/** The player redesign's identity steps, each between hairlines (decision 0320). */
+export const Ruled: Story = { args: { look: 'ruled' } };

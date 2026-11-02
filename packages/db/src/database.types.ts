@@ -459,6 +459,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"call_time_request": {
+                  Row: {
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"minutes": number,"requested_at": string,"session_id": string,"status": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"member_id": string,"minutes": number,"requested_at"?: string,"session_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"minutes"?: number,"requested_at"?: string,"session_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "call_time_request_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "call_time_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "call_time_request_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"camera": {
                   Row: {
                     "channel": string,"created_at": string,"id": string,"is_active": boolean,"is_cage": boolean,"name": string,"table_id": string | null,"updated_at": string,"venue_id": string
@@ -1245,14 +1277,14 @@ isOneToOne: false
                   ]
                 },"fnb_order": {
                   Row: {
-                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"cancelled_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"idempotency_key": string | null,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"cancelled_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"idempotency_key": string | null,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"on_way_at": string | null,"on_way_by_staff_id": string | null,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"on_way_at"?: string | null,"on_way_by_staff_id"?: string | null,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"on_way_at"?: string | null,"on_way_by_staff_id"?: string | null,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -1284,6 +1316,12 @@ isOneToOne: false
       columns: ["member_id","venue_id"]
 isOneToOne: false
       referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "fnb_order_on_way_staff_fkey"
+      columns: ["on_way_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "fnb_order_placed_by_device_id_venue_id_fkey"
@@ -2959,14 +2997,14 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -4133,14 +4171,14 @@ isOneToOne: false
                   ]
                 },"waitlist_entry": {
                   Row: {
-                    "added_by_staff_id": string | null,"approved_at": string | null,"approved_by_staff_id": string | null,"away_used": string,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "added_by_staff_id": string | null,"approved_at": string | null,"approved_by_staff_id": string | null,"away_used": string,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"on_way_at": string | null,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_id": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id": string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id": string,"on_way_at"?: string | null,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_id"?: string | null,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id"?: string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id"?: string,"on_way_at"?: string | null,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_id"?: string | null,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4167,6 +4205,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "waitlist_entry_table_id_fkey"
+      columns: ["table_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "waitlist_entry_table_type_id_venue_id_fkey"
       columns: ["table_type_id","venue_id"]
@@ -4445,6 +4489,9 @@ isOneToOne: false
                            },
 "accept_fnb_order":
 { Args: { "p_order_id": string }; Returns: undefined
+                           },
+"accept_seat_call":
+{ Args: { "p_entry_id": string }; Returns: undefined
                            },
 "account_statement":
 { Args: { "p_from": string,"p_payment_account_id": string,"p_to": string }; Returns: {
@@ -4770,6 +4817,9 @@ isOneToOne: false
               "down_id": string,"refusal": string,"tries_left": number
             }[]
                            },
+"decide_call_time_request":
+{ Args: { "p_is_approved": boolean,"p_request_id": string }; Returns: undefined
+                           },
 "decide_credit_limit":
 { Args: { "p_expected_limit_paise": number,"p_is_approved": boolean,"p_line_id": string }; Returns: undefined
                            },
@@ -4862,7 +4912,12 @@ isOneToOne: false
                            },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"top_up": string
+              "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"time_request_id": string,"time_request_minutes": number,"top_up": string
+            }[]
+                           },
+"floor_taken_seats":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "seat": number,"table_id": string
             }[]
                            },
 "floor_tonight":
@@ -4877,7 +4932,7 @@ isOneToOne: false
                            },
 "fnb_orders_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
+              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"source": string,"table_name": string
             }[]
                            },
 "forget_push_subscription":
@@ -4962,6 +5017,9 @@ isOneToOne: false
                            },
 "join_waitlist":
 { Args: { "p_idempotency_key": string,"p_table_type_id": string }; Returns: string
+                           },
+"join_waitlist_at":
+{ Args: { "p_idempotency_key": string,"p_table_id": string }; Returns: string
                            },
 "kyc_in_person_candidates":
 { Args: { "p_search": string,"p_venue_id": string }; Returns: {
@@ -5112,7 +5170,7 @@ isOneToOne: false
                            },
 "my_feedback_visit":
 { Args: Record<PropertyKey, never>; Returns: {
-              "closed_at": string,"visit_id": string
+              "closed_at": string,"played_seconds": number,"table_name": string,"visit_id": string
             }[]
                            },
 "my_fnb_menu":
@@ -5122,7 +5180,7 @@ isOneToOne: false
                            },
 "my_fnb_orders":
 { Args: Record<PropertyKey, never>; Returns: {
-              "accepted_at": string,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"order_id": string
+              "accepted_at": string,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"on_way_at": string,"order_id": string
             }[]
                            },
 "my_league":
@@ -5175,7 +5233,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"started_at": string,"table_name": string,"top_up": string
+              "big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
             }[]
                            },
 "my_sessions":
@@ -5218,9 +5276,14 @@ isOneToOne: false
               "name": string,"standing": string,"starts_at": string,"tournament_id": string
             }[]
                            },
+"my_usual_fnb_items":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "item_id": string,"times": number
+            }[]
+                           },
 "my_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
-              "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"entry_id": string,"hold_until": string,"is_request": boolean,"joined_at": string,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
+              "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"called_at": string,"entry_id": string,"hold_until": string,"is_request": boolean,"joined_at": string,"on_way_at": string,"place": number,"small_blind_paise": number,"table_id": string,"table_name": string,"table_type_id": string,"table_type_name": string
             }[]
                            },
 "my_wallet":
@@ -5500,6 +5563,9 @@ isOneToOne: false
 "request_cab":
 { Args: { "p_address": string,"p_kind": string,"p_time": string }; Returns: string
                            },
+"request_call_time":
+{ Args: { "p_idempotency_key": string,"p_minutes": number }; Returns: string
+                           },
 "request_deposit":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_payout_account_id": string,"p_utr": string }; Returns: string
                            },
@@ -5604,6 +5670,9 @@ isOneToOne: false
                            },
 "send_feedback":
 { Args: { "p_note": string }; Returns: string
+                           },
+"send_fnb_order_on_way":
+{ Args: { "p_order_id": string }; Returns: undefined
                            },
 "send_quick_feedback":
 { Args: { "p_note": string,"p_topic": string }; Returns: string
@@ -6006,7 +6075,7 @@ isOneToOne: false
                            },
 "waitlist_board":
 { Args: { "p_venue_id": string }; Returns: {
-              "added_by_floor": boolean,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"place": number,"priority_reason": string,"table_type_id": string
+              "added_by_floor": boolean,"asked_table_id": string,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"on_way_at": string,"place": number,"priority_reason": string,"table_type_id": string
             }[]
                            },
 "waitlist_lengths":

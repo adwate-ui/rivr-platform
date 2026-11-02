@@ -8,6 +8,9 @@ import { queryKeys } from './queryKeys.ts';
 export interface FeedbackVisit {
   readonly visitId: string;
   readonly closedAt: string;
+  /** Time played across the visit's seats, and the table of the last: "Tonight · 2h 41m at Table 1" (decision 0320). */
+  readonly playedSeconds: number;
+  readonly tableName: string | null;
 }
 
 /**
@@ -65,7 +68,7 @@ export function useMyFeedbackVisit() {
       const { data, error } = await client.rpc('my_feedback_visit');
       if (error) throw error;
       const row = data[0];
-      return row ? { visitId: row.visit_id, closedAt: row.closed_at } : null;
+      return row ? { visitId: row.visit_id, closedAt: row.closed_at, playedSeconds: row.played_seconds, tableName: row.table_name } : null;
     },
   });
 }

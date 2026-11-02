@@ -37,6 +37,6 @@ describe('MyRedemptionList', () => {
   it('keeps a redemption staff cancelled, with why, where it used to vanish (decision 0302)', async () => {
     renderList([CAP, { ...CAP, id: 'r2', cancelled_at: '2026-11-14T16:00:00Z', cancel_reason: 'Out of caps at the desk' }]);
     expect(await screen.findByText('Cancelled: Out of caps at the desk', {}, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByText('To collect: At the host desk')).toBeDefined();
+    expect(screen.getByText('Ready to collect')).toBeDefined();
   });
 });

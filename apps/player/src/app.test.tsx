@@ -1,9 +1,14 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startInstallWatch } from './features/frame/index.ts';
 import { createAppRouter } from './router.tsx';
+
+// A returning phone: its cookie choice is kept, so the first-launch sheet (CookieChoices) stays out of the way.
+beforeEach(() => {
+  localStorage.setItem('rivr.cookies', JSON.stringify({ maps: false, analytics: false }));
+});
 
 afterEach(() => {
   // Back online while the app is still mounted, so the query client hears it: a client that thinks
@@ -122,17 +127,18 @@ describe('the player app', () => {
   it('says it is offline above the screen while the phone has no connection', async () => {
     signIn();
     renderAt('/', clientWithKabir());
-    await screen.findByText('No tables are running.');
-    expect(screen.queryByText('No connection. What you see may be out of date.')).toBeNull();
+    await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 });
+    expect(screen.queryByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeNull();
     act(() => goOnline(false));
-    expect(screen.getByRole('status').textContent).toBe('No connection. What you see may be out of date.');
+    // A banner at the top of Tonight (decision 0320), naming when the tables shown came.
+    expect(screen.getByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeDefined();
   });
 
   it('opens on Tonight inside the frame', async () => {
     signIn();
     renderAt('/', clientWithKabir());
     expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
-    expect(await screen.findByText('No tables are running.')).toBeDefined();
+    expect(await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeDefined();
   });
 
@@ -176,11 +182,12 @@ describe('the player app', () => {
     expect(screen.queryByRole('heading', { name: 'Learn' })).toBeNull();
   });
 
-  it('says so when a page does not exist', async () => {
+  it('Errors › Not found: says the page does not exist, with the tabs and the way to Tonight', async () => {
     signIn();
     renderAt('/nowhere', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
-    expect(screen.getByText('This page is not here. Check the address, or go back.')).toBeDefined();
+    expect(await screen.findByRole('heading', { name: "This page doesn't exist." })).toBeDefined();
+    expect(screen.getByText('The link may be old or mistyped.')).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Go to Tonight' }).getAttribute('href')).toBe('/');
     expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);
   });
 });
@@ -270,13 +277,38 @@ describe('sign-in', () => {
   });
 });
 
-describe('sign-up', () => {
+/** A client for a number signed in that is not a member yet: no member record, an empty list to all else. */
+function clientWithNewcomer() {
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    return url.includes('/rest/v1/member') ? Response.json(null) : Response.json([]);
+  });
+  return createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
+}
+
+describe('Sign up', () => {
   // Nothing answers at the client's address, so this also signs out with Auth out of reach.
-  it('lets a number that signed in by mistake sign out and start again', async () => {
+  it('About you: Back returns to the number step, signed out', async () => {
     signIn();
     renderAt('/sign-up');
-    fireEvent.click(await screen.findByRole('button', { name: 'Use another number' }, LAZY_SCREEN));
+    expect(await screen.findByText('1 of 2', {}, LAZY_SCREEN)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Use another number' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it('Errors: asks for the name, the city and the occupation under each field', async () => {
+    signIn();
+    renderAt('/sign-up', clientWithNewcomer());
+    const name = await screen.findByRole('textbox', { name: 'Full name, as on Aadhaar' }, LAZY_SCREEN);
+    expect(screen.getByRole('button', { name: /^Occupation/ }).textContent).toContain('Select');
+    expect(screen.getByRole('button', { name: /^Games you play/ }).textContent).toContain('Select any');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' }).getAttribute('aria-busy')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('Enter your name in English, as on Aadhaar.')).toBeDefined();
+    expect(screen.getByText('Enter your city.')).toBeDefined();
+    expect(screen.getByText('Select your occupation.')).toBeDefined();
+    expect(name.getAttribute('aria-invalid')).toBe('true');
   });
 });

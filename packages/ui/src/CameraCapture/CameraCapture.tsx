@@ -74,7 +74,7 @@ async function openCamera(facing: CameraFacing): Promise<MediaStream> {
  * The camera, on while `isOn`: the video element to show its picture in, and how starting it went; `retry` starts it again.
  * Every track stops when it goes off, so the camera's light goes out once the photo is taken.
  */
-function useCamera(facing: CameraFacing, isOn: boolean) {
+export function useCamera(facing: CameraFacing, isOn: boolean) {
   const video = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<CameraStatus>('starting');
   const [attempt, setAttempt] = useState(0);
@@ -141,7 +141,7 @@ function Frame({ children }: { children: ReactNode }) {
  * Why there is no picture and what to do, announced as it appears, and Try again. With no camera at all, the QR code to
  * carry on with a phone; a blocked or busy camera is this device's own to sort out.
  */
-function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble; phoneUrl: string | undefined; onRetry: () => void }) {
+export function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble; phoneUrl: string | undefined; onRetry: () => void }) {
   return (
     <Stack gap={6}>
       <div role="alert"><Text>{t(`ui.camera.${trouble}`)}</Text></div>

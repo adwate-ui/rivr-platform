@@ -12,11 +12,11 @@ afterEach(() => {
 
 const CHAI: FnbOrderTonight = {
   orderId: 'o12', kotNumber: 12, tableName: 'Table 3', seat: 5, memberName: 'Yash Gupta', memberNumber: 1043,
-  lines: [{ name: 'Masala chai', quantity: 1, note: null }], isComp: false, source: 'app', createdAt: '2026-11-15T16:10:00Z',
-  kotSentBy: 'agent', acceptedAt: null, deliveredAt: null, ageSeconds: 240, cancelledAt: null, cancelReason: null,
+  lines: [{ itemId: 'chai', name: 'Masala chai', quantity: 1, note: null }], isComp: false, source: 'app', createdAt: '2026-11-15T16:10:00Z',
+  kotSentBy: 'agent', acceptedAt: null, deliveredAt: null, ageSeconds: 240, cancelledAt: null, cancelReason: null, onWayAt: null,
 };
 const FRIES: FnbOrderTonight = {
-  ...CHAI, orderId: 'o13', kotNumber: 13, lines: [{ name: 'French fries', quantity: 1, note: null }],
+  ...CHAI, orderId: 'o13', kotNumber: 13, lines: [{ itemId: 'fries', name: 'French fries', quantity: 1, note: null }],
   cancelledAt: '2026-11-15T16:20:00Z', cancelReason: 'Out of potatoes',
 };
 
@@ -29,8 +29,8 @@ function renderServe(orders: readonly FnbOrderTonight[]) {
   const voided: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/cancel_fnb_order')) {
-      voided.push(JSON.parse(String(init?.body)));
+    if (url.includes('/rpc/cancel_fnb_order') || url.includes('/rpc/send_fnb_order_on_way')) {
+      voided.push({ [url.replace(/^.*\/rpc\//, '')]: JSON.parse(String(init?.body)) });
       return new Response(null, { status: 204 });
     }
     return Response.json([]);
@@ -49,7 +49,7 @@ describe('ServeOrders (decision 0302)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Void KOT 12' }));
     fireEvent.change(screen.getByRole('textbox', { name: /^Why void KOT 12/ }), { target: { value: 'Out of milk' } });
     fireEvent.click(screen.getByRole('button', { name: 'Void the order' }));
-    await waitFor(() => expect(voided).toEqual([{ p_order_id: 'o12', p_reason: 'Out of milk' }]));
+    await waitFor(() => expect(voided).toEqual([{ cancel_fnb_order: { p_order_id: 'o12', p_reason: 'Out of milk' } }]));
   });
 
   it('asks for a reason before it voids', async () => {
@@ -66,5 +66,16 @@ describe('ServeOrders (decision 0302)', () => {
     expect(screen.getByText('Void: Out of potatoes')).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Accept KOT 13' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Accept KOT 12' })).toBeDefined();
+  });
+
+  it('sends an order being prepared on its way, which the member tracker reads, then says so (decision 0320)', async () => {
+    const sent = renderServe([{ ...CHAI, acceptedAt: '2026-11-15T16:12:00Z' }]);
+    fireEvent.click(screen.getByRole('button', { name: 'KOT 12 on its way' }));
+    await waitFor(() => expect(sent).toEqual([{ send_fnb_order_on_way: { p_order_id: 'o12' } }]));
+    cleanup();
+    renderServe([{ ...CHAI, acceptedAt: '2026-11-15T16:12:00Z', onWayAt: '2026-11-15T16:15:00Z' }]);
+    expect(screen.queryByRole('button', { name: 'KOT 12 on its way' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Mark KOT 12 delivered' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Void KOT 12' })).toBeDefined();
   });
 });

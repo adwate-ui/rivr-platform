@@ -16,6 +16,8 @@ export interface PushNotification {
   readonly url: string;
   /** Replaces an earlier notification with the same tag. */
   readonly tag: string;
+  /** One button under it, opening its own app path: "I'm on my way", "Add time" (decision 0320). */
+  readonly action?: { readonly title: string; readonly url: string };
 }
 
 /** Why a push failed: a vendor failure, or a subscription the browser dropped (delete it). */

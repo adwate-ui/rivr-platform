@@ -69,4 +69,11 @@ describe('CodeInput', () => {
     expect(field).toHaveValue('482913');
     expect(onComplete).toHaveBeenLastCalledWith('482913');
   });
+
+  it('sets tall cells across the row with a dotted error (decision 0320)', () => {
+    const { container } = renderIn(<CodeInput label="6-digit code" value="12" onChange={() => undefined} size="tall" error="That code didn't match. 2 tries left." />);
+    expect(container.querySelectorAll('.h-field.flex-1')).toHaveLength(6);
+    expect(screen.getByRole('alert')).toHaveTextContent("That code didn't match. 2 tries left.");
+    expect(screen.getByRole('alert').querySelector('svg')).toBeNull();
+  });
 });

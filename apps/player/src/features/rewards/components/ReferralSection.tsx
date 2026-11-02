@@ -2,60 +2,62 @@ import { attributionSearch } from '@rivr/contracts/attribution';
 import { useFeature } from '@rivr/db';
 import { useMyReferral, type MyReferral } from '@rivr/db/myRewards';
 import { formatChips, t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, Heading, LoadState, Stack, Text } from '@rivr/ui';
-import { useState } from 'react';
-import { ShareReferralCard } from './ShareReferralCard.tsx';
+import { Box, Button, FeatureGate, Figure, Grid, Inline, LoadState, Skeleton, Stack, Text, useToast } from '@rivr/ui';
 
-/**
- * Refer a friend (#151, #153; feature referral.share_cards): the member's code, what a referral gives each side while
- * the referral promotion runs, how many so far, their link to copy, and their share card.
- */
-export function ReferralSection() {
-  const shareCards = useFeature('referral.share_cards');
-  return <FeatureGate access={shareCards}><Referral /></FeatureGate>;
+/** The offer in a line: the bonus each, when the club has set it. */
+function offerOf({ bonus }: MyReferral): string {
+  return bonus === null ? t('memberRewards.referral.how') : t('memberRewards.referral.offer', { chips: formatChips(bonus) });
 }
 
+/**
+ * Copy link, and Share invite through the phone's own share sheet (the Web Share API), or the link copied where it has
+ * none. A toast says the link was copied.
+ */
+function Invite({ link }: { link: string }) {
+  const toast = useToast();
+  const copy = async () => {
+    await navigator.clipboard.writeText(link).then(() => toast(t('memberRewards.referral.linkCopied')), () => toast(t('memberRewards.referral.copyFailed')));
+  };
+  const share = async () => {
+    if (typeof navigator.share !== 'function') return copy();
+    await navigator.share({ text: t('memberRewards.referral.card.message'), url: link }).catch(() => undefined);
+  };
+  return (
+    <Grid columns={2} gap={2}>
+      <Button variant="outline" fullWidth onClick={() => void copy()}>{t('memberRewards.referral.copyLink')}</Button>
+      <Button variant="primary" fullWidth onClick={() => void share()}>{t('memberRewards.referral.shareInvite')}</Button>
+    </Grid>
+  );
+}
+
+/** The member's card: Refer a friend, the offer, their code large with how many joined, then the two ways to invite. */
 function Referral() {
   const referral = useMyReferral();
-  if (referral.data === undefined) return <LoadState isError={referral.isError} onRetry={() => void referral.refetch()} />;
+  // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
+  if (referral.isError) return <LoadState isError onRetry={() => void referral.refetch()} />;
+  if (referral.data === undefined) return <Skeleton rows={2} />;
   if (referral.data === null) return null;
   // A friend's sign-up keeps the code from the link they opened (sign_up_attribution).
   const link = `${window.location.origin}/?${attributionSearch({ referral: referral.data.code })}`;
   return (
-    <Stack gap={2}>
-      <Heading level={2}>{t('memberRewards.referral.title')}</Heading>
-      <Text>{howItWorks(referral.data)}</Text>
-      <Text variant="lead" isTabular>{referral.data.code}</Text>
-      <Text variant="small" tone="muted">
-        {referral.data.referred === 1 ? t('memberRewards.referral.referredOne') : t('memberRewards.referral.referred', { count: referral.data.referred })}
-      </Text>
-      <CopyLink link={link} />
-      <ShareReferralCard code={referral.data.code} link={link} />
-    </Stack>
+    <Box padding={5} hairline="all" radius="lg">
+      <Stack gap={4}>
+        <Text variant="eyebrow" tone="accent">{t('memberRewards.referral.title')}</Text>
+        <Text>{offerOf(referral.data)}</Text>
+        <Box surface="raised" paddingX={4} paddingY={3} radius="md">
+          <Inline justify="between" align="center">
+            <Figure size="stat">{referral.data.code}</Figure>
+            <Text variant="small" tone="muted">{t('memberRewards.referral.joined', { count: referral.data.referred })}</Text>
+          </Inline>
+        </Box>
+        <Invite link={link} />
+      </Stack>
+    </Box>
   );
 }
 
-function howItWorks({ bonus }: MyReferral): string {
-  return bonus === null ? t('memberRewards.referral.how') : t('memberRewards.referral.howAmount', { chips: formatChips(bonus) });
-}
-
-/** The member's referral link, copied to paste anywhere. */
-function CopyLink({ link }: { link: string }) {
-  const [copied, setCopied] = useState<'not yet' | 'copied' | 'failed'>('not yet');
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied('copied');
-    } catch {
-      setCopied('failed');
-    }
-  };
-  return (
-    <Stack gap={1}>
-      <Button variant="secondary" onClick={() => void copy()}>
-        {copied === 'copied' ? t('memberRewards.referral.copied') : t('memberRewards.referral.copy')}
-      </Button>
-      {copied === 'failed' ? <ErrorMessage>{t('memberRewards.referral.copyFailed')}</ErrorMessage> : null}
-    </Stack>
-  );
+/** Refer a friend (brief 3.8), with feature referral.share_cards. */
+export function ReferralSection() {
+  const shareCards = useFeature('referral.share_cards');
+  return <FeatureGate access={shareCards}><Referral /></FeatureGate>;
 }

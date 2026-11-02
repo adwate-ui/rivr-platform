@@ -75,3 +75,21 @@ export const Interactive: Story = {
     return <ChoiceChips label="Games" options={GAMES} selected={games} onChange={setGames} />;
   },
 };
+
+/** The redesign's pills, picked in gold tint (decision 0320). */
+export const Pills: Story = {
+  args: { look: 'pill', mode: 'one', isOneRow: true, label: 'Filter', selected: ['all'],
+    options: [{ value: 'all', label: 'All' }, { value: 'seats', label: 'Tournament seats' }, { value: 'fnb', label: 'F&B' }, { value: 'merch', label: 'Merch' }] },
+};
+
+/** The redesign's tiles: a rating of 1 to 5, or Add time's three lengths. */
+export const Tiles: Story = {
+  args: { look: 'tile', mode: 'one', label: 'Add time', selected: ['60'],
+    options: [{ value: '30', label: '30 min' }, { value: '60', label: '1 hour' }, { value: '120', label: '2 hours' }] },
+};
+
+/** The Order screen's categories, underlined in gold (decision 0320). */
+export const Tabs: Story = {
+  args: { look: 'tabs', mode: 'one', label: 'Menu', isLabelVisuallyHidden: true, selected: ['food'],
+    options: [{ value: 'food', label: 'Food' }, { value: 'soft', label: 'Soft drinks' }, { value: 'bar', label: 'Bar' }] },
+};

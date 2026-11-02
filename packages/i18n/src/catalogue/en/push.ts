@@ -4,6 +4,14 @@ export const push = {
     title: 'Your seat is ready',
     /** `Table 3, seat 9. Hold until 21:40.` */
     body: '{table}, seat {seat}. Held until {time}.',
+    /** The notification's button (decision 0321): opens the app, which tells the floor at once. */
+    action: "I'm on my way",
+  },
+  /** Fifteen minutes or less to run (decision 0320): `Call time ends in 15 min`, `Table 1, seat 4. Ends at 23:18.` */
+  callTimeEnding: {
+    title: 'Call time ends in {minutes} min',
+    body: '{table}, seat {seat}. Ends at {time}.',
+    action: 'Add time',
   },
   callTimeDone: {
     title: 'Call time complete',

@@ -15,11 +15,13 @@
 | `color.muted` | cream at 60% | Secondary text |
 | Display face | Bodoni Moda | Wordmark, TV titles, jackpot figure; never below 20 px |
 | Text face | Instrument Sans, tabular figures | Everything else |
-| Radius | 3, 4, 6 px | 6 px maximum on product surfaces |
+| Radius | 3, 4, 6 px; 8 and 16 px on the player app | 6 px maximum on product surfaces, besides the player redesign's card (8) and sheet (16), decision 0320 |
 
 Type sizes used in the prototype, to normalise into a scale: 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28, 30, 34, 36, 40, 44, 56, 96 px. Suggested scale: 12, 13, 14, 16, 18, 20, 24, 28, 36, 44, 56, 96.
 
 The prototype's TV (1920 by 1080, read across a room) adds larger sizes: 48 for a name on a board, 88 for a board's title and tonight's high hand, 280 for the jackpot figure (decision 0052). TV scale: 48, 88, 280.
+
+The player app's redesign (`docs/design/player-redesign/`, decision 0320) adds a sheet's title (32), a sign-up title (40), a seat's hold counting down (72) and the member's place on a waitlist (160). Player scale: 32, 40, 72, 160.
 
 Both faces are SIL OFL; install them from `@fontsource` packages rather than copying files from the prototype.
 

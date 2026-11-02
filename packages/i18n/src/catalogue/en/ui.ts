@@ -26,10 +26,25 @@ export const ui = {
     /** On the share image's photograph while it is a concept (decision 0289). */
     conceptNote: 'Concept visualisation',
   },
+  /** The player redesign's alert system and sheets (decision 0320). */
+  banner: {
+    dismiss: 'Dismiss',
+  },
+  toast: {
+    undo: 'Undo',
+  },
+  picker: {
+    done: 'Done',
+    chooseOne: 'Choose one',
+    chooseAny: 'Choose any',
+  },
   playerTabs: {
     /** Accessible name of the player app's bottom tab bar. */
     label: 'Main',
-    home: 'Home',
+    /** The member's own night (decision 0320): the first tab. */
+    home: 'Tonight',
+    /** The membership card, a tab since the redesign. */
+    card: 'Card',
     sessions: 'Sessions',
     balance: 'Balance',
     /** Food and drink to the seat (#635). */
@@ -143,6 +158,18 @@ export const ui = {
     /** Beside a QR code that opens the same step on a phone. */
     onPhone: 'Scan with your phone to carry on there.',
     phoneLink: 'Link to this step on your phone',
+  },
+  /** The redesign's selfie camera (decision 0320): its live line, three tips and the review. */
+  selfie: {
+    back: 'Back',
+    title: 'Selfie',
+    closer: 'Move closer',
+    steady: 'Hold still',
+    capturing: 'Capturing',
+    tipLight: 'Even light',
+    tipCap: 'No cap or sunglasses',
+    tipAlone: 'Only you',
+    reviewTitle: 'Use this photo?',
   },
   /** StepList: where a person is in a flow of steps, read out beside each step's name. */
   steps: {

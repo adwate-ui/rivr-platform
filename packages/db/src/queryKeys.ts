@@ -69,6 +69,8 @@ export const queryKeys = {
   kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
   /** Tonight's tables and each game's waitlist length, as a member or staff sees them. */
   floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
+  floorTakenSeats: (userId: string) => ['user', userId, 'floor-taken-seats'] as const,
+  myUsualFnbItems: (userId: string) => ['user', userId, 'my-usual-fnb-items'] as const,
   myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
   practiceResetPreview: (userId: string, venueId: string) => ['user', userId, 'practice-reset-preview', venueId] as const,
   /** A live venue's purge (#432): what it would remove, the files left after one, and a second super admin's ask. */

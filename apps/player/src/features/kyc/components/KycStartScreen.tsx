@@ -1,50 +1,35 @@
 import { useAuthStatus, useKycRecord } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, StepScreen, Text } from '@rivr/ui';
+import { Button } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DigilockerStep } from './DigilockerStep.tsx';
-import { KycHelp } from './KycHelp.tsx';
+import { KycIntro } from './KycIntro.tsx';
 import { KycOutcome } from './KycOutcome.tsx';
 import { KycLoadFailed, KycLoading } from './KycRecordStates.tsx';
-import { KycSteps } from './KycSteps.tsx';
 import { SelfieStep } from './SelfieStep.tsx';
-import { SelfieTips } from './SelfieTips.tsx';
-
-/** Before the camera opens: the three steps, how to take a selfie that passes (issue 720), what is kept, and Take a selfie (K-09). */
-function KycIntro({ onStart }: { onStart: () => void }) {
-  return (
-    <StepScreen
-      title={t('player.kyc.title')}
-      footer={
-        <Button variant="primary" size="large" fullWidth onClick={onStart}>
-          {t('player.kyc.takeSelfie')}
-        </Button>
-      }
-    >
-      <KycSteps at="selfie" />
-      <SelfieTips />
-      <Text variant="small" tone="muted">{t('player.kyc.kept')}</Text>
-      <KycHelp />
-    </StepScreen>
-  );
-}
 
 /**
- * Identity (design prompt, "Sign-in and KYC"): the steps and what is kept, the selfie with the device's camera, then the
- * hand-off to DigiLocker, which sends the member back to /kyc/return. A member whose check has moved on sees where it stands.
+ * Identity (decision 0320): the steps and what is kept, the selfie with the front camera, then the hand-off to DigiLocker,
+ * which sends the member back to /kyc/return. A member with the selfie already in picks up at DigiLocker ("Pick up where
+ * you left off", derived from the record: brief 7.7); one whose check has moved on sees where it stands.
  */
 export function KycStartScreen() {
   const authStatus = useAuthStatus();
   const record = useKycRecord();
   const [isTaking, setIsTaking] = useState(false);
+  // The selfie sent on this visit: DigiLocker follows as the next step, not as a return.
+  const [hasJustSent, setHasJustSent] = useState(false);
 
   // Outside the frame, so it sends the signed-out to sign-in itself, to come back here (#233).
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={{ next: '/kyc' }} replace />;
   if (record.isPending) return <KycLoading />;
   if (record.isError) return <KycLoadFailed onRetry={() => void record.refetch()} />;
   if (record.data && record.data.status !== 'started') return <KycOutcome record={record.data} onChecked={() => void record.refetch()} />;
-  if (record.data?.hasSelfie) return <DigilockerStep />;
-  if (isTaking) return <SelfieStep onBack={() => setIsTaking(false)} />;
-  return <KycIntro onStart={() => setIsTaking(true)} />;
+  if (record.data?.hasSelfie || hasJustSent) return <DigilockerStep isResume={!hasJustSent} />;
+  if (isTaking) return <SelfieStep onBack={() => setIsTaking(false)} onSent={() => setHasJustSent(true)} />;
+  return (
+    <KycIntro at="selfie" isResume={false}
+      action={<Button variant="primary" size="tall" fullWidth onClick={() => setIsTaking(true)}>{t('player.kyc.takeSelfie')}</Button>} />
+  );
 }

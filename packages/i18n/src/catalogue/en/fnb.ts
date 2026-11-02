@@ -75,6 +75,9 @@ export const consoleFnb = {
   noneDelivered: 'Nothing delivered yet tonight.',
   accept: 'Accept KOT {kot}',
   deliver: 'Mark KOT {kot} delivered',
+  /** A runner leaves with the order (decision 0320). */
+  onWay: 'KOT {kot} on its way',
+  isOnWay: 'On its way',
   /** `{time}`: 6 min. */
   waitingFor: 'Waiting {time}',
   deliveredIn: 'Delivered in {time}',

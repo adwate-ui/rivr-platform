@@ -2,6 +2,7 @@ import { t } from '@rivr/i18n';
 import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from 'react';
 import { Heading } from '../Heading/Heading.tsx';
 import { LoadState } from '../LoadState/LoadState.tsx';
+import { Skeleton } from '../Skeleton/Skeleton.tsx';
 import { Text } from '../Text/Text.tsx';
 
 /** What the screen can show: its content, or one of the states every screen has. */
@@ -18,6 +19,12 @@ export type ScreenProps = ScreenState & {
   actions?: ReactNode;
   /** 2 for a part of a screen shown under its tabs (#606), such as Devices' Tablets: its heading is the second level. */
   level?: 1 | 2;
+  /** `serif`, the player redesign's screen title in the display face at 36 (decision 0320). */
+  titleLook?: 'default' | 'serif';
+  /** Keeps the heading for screen readers only: a screen headed by something else, such as Tonight's wordmark. */
+  isTitleHidden?: boolean;
+  /** `skeleton`, faint blocks in place of the word, for the player app's first load (decision 0320). */
+  loadingLook?: 'text' | 'skeleton';
   children?: ReactNode;
 };
 
@@ -59,6 +66,8 @@ function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) 
   return section;
 }
 
+const SERIF_TITLE = { variant: 'serif' } as const;
+
 /** One screen of an app: its heading, then its content or its loading, empty or error state. */
 export function Screen(props: ScreenProps) {
   const headingId = useId();
@@ -66,13 +75,17 @@ export function Screen(props: ScreenProps) {
   const section = useScreenFocus(props.title, headingId, isOwnScreen);
   return (
     <section ref={section} aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
-      {/* The heading and its actions wrap onto two lines on a narrow screen. */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen}>
-          {props.title}
-        </Heading>
-        {props.actions}
-      </div>
+      {/* The heading and its actions wrap onto two lines on a narrow screen; a hidden heading takes no room at all. */}
+      {props.isTitleHidden === true ? (
+        <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} isVisuallyHidden>{props.title}</Heading>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})}>
+            {props.title}
+          </Heading>
+          {props.actions}
+        </div>
+      )}
       <ScreenBody {...props} />
     </section>
   );
@@ -81,7 +94,7 @@ export function Screen(props: ScreenProps) {
 function ScreenBody(props: ScreenProps) {
   switch (props.status) {
     case 'loading':
-      return <LoadState />;
+      return props.loadingLook === 'skeleton' ? <Skeleton /> : <LoadState />;
     case 'empty':
       return <Text tone="muted">{props.emptyText}</Text>;
     case 'error':

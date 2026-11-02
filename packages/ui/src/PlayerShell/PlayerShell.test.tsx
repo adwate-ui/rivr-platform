@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { PLAYER_TABS } from '../storybook/fixtures.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { PlayerShell } from './PlayerShell.tsx';
+import { PlayerDock, PlayerShell } from './PlayerShell.tsx';
 
-function renderShell(onNavigate = vi.fn()) {
+function renderShell(props: { isTabBarHidden?: boolean; onNavigate?: () => void } = {}) {
   return renderIn(
-    <PlayerShell tabs={PLAYER_TABS} currentTab="home" memberInitial="A" profileHref="/profile" onNavigate={onNavigate} banner={<p>Venue frozen.</p>}>
+    <PlayerShell tabs={PLAYER_TABS} currentTab="home" avatar={{ initial: 'I', href: '/profile' }} {...props}>
       <h1>Tonight</h1>
     </PlayerShell>,
   );
@@ -18,41 +18,37 @@ describe('PlayerShell', () => {
     renderShell();
     expect(screen.getByRole('main')).toHaveTextContent('Tonight');
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Tonight' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('opens Profile from the member initial, top right', async () => {
     const onNavigate = vi.fn();
-    renderShell(onNavigate);
-    const profile = screen.getByRole('link', { name: 'Profile' });
-    expect(profile).toHaveTextContent('A');
-    await userEvent.click(profile);
+    renderShell({ onNavigate });
+    await userEvent.click(screen.getByRole('link', { name: 'Profile' }));
     expect(onNavigate).toHaveBeenCalledWith('/profile');
   });
 
-  it('shows a profile icon, not an empty tile, before the member is known', () => {
-    const { container } = renderIn(
-      <PlayerShell tabs={PLAYER_TABS} currentTab="home" profileHref="/profile">
+  it('hides the tab bar on a pushed screen', () => {
+    renderShell({ isTabBarHidden: true });
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('keeps a screen\'s dock above the tab bar', () => {
+    renderIn(
+      <PlayerShell tabs={PLAYER_TABS} currentTab="home">
         <h1>Tonight</h1>
+        <PlayerDock><button type="button">All tables</button></PlayerDock>
       </PlayerShell>,
     );
-    const profile = screen.getByRole('link', { name: 'Profile' });
-    expect(profile).toHaveTextContent('');
-    expect(container.querySelector('a[href="/profile"] svg')).toBeInTheDocument();
+    const dock = screen.getByRole('button', { name: 'All tables' });
+    expect(screen.getByRole('main')).not.toContainElement(dock);
+    expect(dock.compareDocumentPosition(screen.getByRole('navigation'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('shows the banner first; a keyboard meets Skip to content, then the profile link', async () => {
+  it('takes the focus to the screen on Skip to content (F5-03)', async () => {
     renderShell();
-    expect(screen.getByText('Venue frozen.')).toBeInTheDocument();
     await userEvent.tab();
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
-    await userEvent.tab();
-    expect(screen.getByRole('link', { name: 'Profile' })).toHaveFocus();
-  });
-
-  it('takes the focus to the screen on Skip to content, past the bars (F5-03)', async () => {
-    renderShell();
-    await userEvent.tab();
     await userEvent.keyboard('{Enter}');
     expect(screen.getByRole('main')).toHaveFocus();
   });

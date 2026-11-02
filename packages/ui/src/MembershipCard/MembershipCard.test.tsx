@@ -37,4 +37,10 @@ describe('MembershipCard', () => {
     const { container } = renderIn(<MembershipCard {...ARJUN} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('sets the redesign\'s card with its number along the top and no QR (decision 0320)', () => {
+    renderIn(<MembershipCard look="redesign" name="Ira Kapoor" tier="Founders' Circle" memberNumber="73" qr={<span>QR</span>} />);
+    expect(screen.getByRole('article', { name: /membership card/i })).toHaveTextContent('No. 73');
+    expect(screen.queryByText('QR')).toBeNull();
+  });
 });

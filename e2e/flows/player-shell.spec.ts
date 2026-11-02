@@ -1,6 +1,6 @@
 /**
- * Player shell (#6): anyone signed out goes to sign-in; a signed-in member gets the five-tab frame
- * with their initial top right, which opens Profile. Rajat Singh, a practice-venue member, so no
+ * Player shell (#6; decision 0320): anyone signed out goes to sign-in; a signed-in member gets the four tabs (Tonight,
+ * Sessions, Card, Rewards) with their initial top right, which opens Profile. Rajat Singh, a practice-venue member, so no
  * other flow signs in with his number inside Auth's one-code-a-minute window.
  */
 import { expect, test } from '@playwright/test';
@@ -18,16 +18,20 @@ test.describe('Player shell', () => {
     await page.goto(appUrl('player'));
     await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000406');
     await page.getByRole('button', { name: 'Send code' }).click();
-    await page.getByRole('textbox', { name: /^Code sent to/ }).fill(CODE);
+    await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
 
-    await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });
-    for (const tab of ['Home', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
+    for (const tab of ['Tonight', 'Sessions', 'Card', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
     // Balance is hidden (#627): the app shows no rupee.
     await expect(tabs.getByRole('link', { name: 'Balance' })).toHaveCount(0);
     const profile = page.getByRole('link', { name: 'Profile' });
     await expect(profile).toHaveText('C');
     await profile.click();
-    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+    await expect(page).toHaveURL(/\/profile$/);
+    // Profile has no tab: the bar goes, and Back returns to the tab it came from.
+    await expect(tabs).toHaveCount(0);
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
   });
 });

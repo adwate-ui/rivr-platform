@@ -17,12 +17,15 @@ export interface BoxProps {
   paddingY?: Space;
   surface?: BoxSurface;
   hairline?: BoxHairline;
-  radius?: 'none' | 'sm' | 'md' | 'lg';
+  /** `card`, 8 px, the player redesign's card and QR panel (decision 0320). */
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'card';
   /** Fills the remaining space in a Stack or Inline. */
   grow?: boolean;
   id?: string;
   'aria-label'?: string;
   'aria-labelledby'?: string;
+  /** Reads changes out politely, such as an order moving on (decision 0320). */
+  isLive?: boolean;
 }
 
 const SURFACE: Record<BoxSurface, string> = {
@@ -40,7 +43,7 @@ const HAIRLINE: Record<BoxHairline, string> = {
   all: 'border border-hairline',
 };
 
-const RADIUS = { none: '', sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg' } as const;
+const RADIUS = { none: '', sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg', card: 'rounded-card' } as const;
 
 type BoxLook = Pick<BoxProps, 'padding' | 'paddingX' | 'paddingY' | 'surface' | 'hairline' | 'radius' | 'grow'>;
 
@@ -57,9 +60,9 @@ function boxClasses({ padding, paddingX, paddingY, surface = 'none', hairline = 
 }
 
 /** A plain block with token padding, a surface, hairlines and a radius. The base of every layout. */
-export function Box({ children, as: Element = 'div', id, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, ...look }: BoxProps) {
+export function Box({ children, as: Element = 'div', id, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, isLive, ...look }: BoxProps) {
   return (
-    <Element className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy}>
+    <Element className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy} aria-live={isLive ? 'polite' : undefined}>
       {children}
     </Element>
   );

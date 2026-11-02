@@ -40,8 +40,11 @@ describe('the design inventory', () => {
     const suggested = [12, 13, 14, 16, 18, 20, 24, 28, 36, 44, 56, 96];
     // The prototype's TV, read across a room (design inventory, decision 0052).
     const tv = [48, 88, 280];
-    expect(sizes.map((token) => px(token.value))).toEqual([...suggested, ...tv].sort((a, b) => a - b));
+    // The player app's redesign (decision 0320).
+    const player = [32, 40, 72, 160];
+    expect(sizes.map((token) => px(token.value))).toEqual([...suggested, ...tv, ...player].sort((a, b) => a - b));
     expect(INVENTORY).toContain('TV scale: 48, 88, 280.');
+    expect(INVENTORY).toContain('Player scale: 32, 40, 72, 160.');
   });
 
   it('sets the text face\'s ₹ sign in Noto Sans Devanagari, after Instrument Sans, which lacks it; the display face carries its own', () => {
@@ -51,10 +54,13 @@ describe('the design inventory', () => {
 });
 
 describe('visual rules', () => {
-  it('never rounds a corner by more than 6 px', () => {
+  it('never rounds a corner by more than 6 px, besides the player redesign\'s card and sheet (decision 0320)', () => {
     const radii = resolvedTokens().filter((token) => token.path.startsWith('radius.'));
-    expect(radii.map((token) => px(token.value))).toEqual([3, 4, 6]);
-    expect(Math.max(...radii.map((token) => px(token.value)))).toBeLessThanOrEqual(6);
+    const product = radii.filter((token) => !['radius.card', 'radius.sheet'].includes(token.path));
+    expect(product.map((token) => px(token.value))).toEqual([3, 4, 6]);
+    expect(Math.max(...product.map((token) => px(token.value)))).toBeLessThanOrEqual(6);
+    expect(px(tokenValue('radius.card'))).toBe(8);
+    expect(px(tokenValue('radius.sheet'))).toBe(16);
   });
 
   it('has exactly one shadow, for the modal', () => {
@@ -65,6 +71,11 @@ describe('visual rules', () => {
     expect(tokenValue('motion.duration.state')).toBe('200ms');
     expect(tokenValue('motion.duration.stagger')).toBe('120ms');
     expect(tokenValue('motion.easing.out')).toEqual([0, 0, 0.58, 1]);
+  });
+
+  it('slides a sheet up in 240 ms and moves a live timer on in one-second steps (decision 0320)', () => {
+    expect(tokenValue('motion.duration.sheet')).toBe('240ms');
+    expect(tokenValue('motion.duration.tick')).toBe('1000ms');
   });
 
   it('draws icons with a 1.5 px stroke and keeps touch targets at 44 px', () => {

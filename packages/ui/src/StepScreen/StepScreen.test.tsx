@@ -86,4 +86,18 @@ describe('StepScreen', () => {
     const { container } = renderStep();
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('sets the redesign\'s title in the display face, between its eyebrow and subtitle (decision 0320)', () => {
+    renderIn(<StepScreen title="Enter the code" look={{ subtitle: 'Sent on WhatsApp to +91 90000 00901' }} footer={null}>{null}</StepScreen>);
+    expect(screen.getByRole('heading', { name: 'Enter the code' })).toHaveClass('font-display', 'text-36');
+    expect(screen.getByText('Sent on WhatsApp to +91 90000 00901')).toBeDefined();
+  });
+
+  it('shows sign-up\'s bar of steps with an icon Back named for a screen reader (decision 0320)', async () => {
+    const onBack = vi.fn();
+    renderIn(<StepScreen title="About you" back={{ label: 'Back', onBack }} look={{ progress: { step: 1, of: 2, label: '1 of 2' } }} footer={null}>{null}</StepScreen>);
+    expect(screen.getByText('1 of 2')).toBeDefined();
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(onBack).toHaveBeenCalledOnce();
+  });
 });

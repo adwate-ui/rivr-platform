@@ -124,7 +124,10 @@
 
     /* The busy circle keeps turning: it is the only sign a tap is being sent (Button). */
     [data-reveal],
-    [data-board-progress] {
+    [data-board-progress],
+    [data-sheet],
+    [data-scrim],
+    [data-toast] {
       animation: none !important;
     }
   }
@@ -187,6 +190,42 @@
 @keyframes rivr-board-progress {
   from {
     transform: scaleX(0);
+  }
+}
+
+/*
+ * The player redesign's motion (decision 0320): a sheet slides up in its own duration while its scrim and a toast fade in
+ * in the state duration, both ease-out; the call-time ring and a progress bar move on each second, linear. Reduced motion
+ * stops all of them (above).
+ */
+@layer components {
+  [data-sheet] {
+    animation: rivr-sheet-up var(--rivr-motion-duration-sheet) var(--rivr-motion-easing-out);
+  }
+
+  [data-scrim],
+  [data-toast] {
+    animation: rivr-fade-in var(--rivr-motion-duration-state) var(--rivr-motion-easing-out);
+  }
+
+  [data-ring-arc] {
+    transition: stroke-dashoffset var(--rivr-motion-duration-tick) linear;
+  }
+
+  [data-progress-fill] {
+    transition: transform var(--rivr-motion-duration-tick) linear;
+  }
+}
+
+@keyframes rivr-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes rivr-fade-in {
+  from {
+    opacity: 0;
   }
 }
 

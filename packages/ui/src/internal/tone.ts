@@ -15,17 +15,23 @@ export const TONE: Record<TextTone, string> = {
 };
 
 /**
- * Sizes for a figure (money, a count, a time, stakes). `display`, `jackpot` and `tvJackpot` use the
- * display face; `tvJackpot` is the TV's jackpot figure, the largest on any screen.
+ * Sizes for a figure (money, a count, a time, stakes). `stat`, `timer`, `display`, `hold`, `jackpot`, `place` and
+ * `tvJackpot` use the display face; `tvJackpot` is the TV's jackpot figure, the largest on any screen.
  */
-export type FigureSize = 'small' | 'body' | 'lead' | 'title' | 'display' | 'jackpot' | 'tvJackpot';
+export type FigureSize = 'small' | 'body' | 'lead' | 'title' | 'numeral' | 'stat' | 'timer' | 'display' | 'hold' | 'jackpot' | 'place' | 'tvJackpot';
 
 const FIGURE_SIZE: Record<FigureSize, string> = {
   small: 'text-14',
   body: 'text-16',
   lead: 'text-18 font-medium',
   title: 'text-28 leading-tight font-semibold',
+  // The player redesign's figures (decision 0320): a stat, the call-time ring's clock, a seat's hold, a waitlist place.
+  numeral: 'font-display text-24 leading-tight',
+  stat: 'font-display text-32 leading-tight',
+  timer: 'font-display text-48 leading-none',
   display: 'font-display text-56 leading-tight',
+  hold: 'font-display text-72 leading-none',
+  place: 'font-display text-160 leading-none',
   jackpot: 'font-display text-96 leading-tight',
   tvJackpot: 'font-display text-280 leading-tight font-medium',
 };

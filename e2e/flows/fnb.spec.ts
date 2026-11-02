@@ -5,8 +5,8 @@
  * both paid to Glaza. With no cage agent running,
  * their KOTs wait at the console under KOTs to print until Meera hands them to the bar and marks them sent. She orders
  * a club sandwich for his seat as a comp, the tablet is revoked and he leaves early, so Table 3 is as it was. Sameer Rao, the
- * flow's steward in the Service role (#640), sees only food and drink: he accepts the app's order, then delivers it, and
- * the member follows it on the Menu tab. The agent
+ * flow's steward in the Service role (#640), sees only food and drink: he accepts the app's order, sends it on its way and
+ * delivers it, and the member follows it on Tonight's order tracker (decision 0320). The agent
  * printing KOTs, alcohol at 21 or over and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql and
  * apps/cage-agent's tests.
  */
@@ -23,7 +23,7 @@ async function kotIn(page: Page, sent: RegExp) {
 }
 
 test.describe('F&B', () => {
-  test('a seated member and the dealer order to his seat; the floor marks the KOTs sent and orders a comp', async ({ page, browser }) => {
+  test('Tonight › Order, Order on its way, Order delivered: a seated member and the dealer order to his seat; the floor marks the KOTs sent and orders a comp', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'seats a seeded member, pairs a tablet and places orders, so the local stack only');
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000615');
@@ -35,30 +35,38 @@ test.describe('F&B', () => {
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000288');
-    await member.getByRole('button', { name: 'Order food and drink' }).click();
-    await member.getByRole('button', { name: 'One more Masala chai' }).click();
-    await member.getByRole('button', { name: 'One more Beer' }).click();
-    await member.getByRole('button', { name: 'Send to the bar' }).click();
-    const fromApp = await kotIn(member, /^Sent to the bar\. Order \d+\.$/);
-    // The Menu tab (#635) follows it to the seat: placed, until the service staff take it (their screen is #640).
-    await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Menu' }).click();
-    await expect(member.getByRole('heading', { name: 'Your orders tonight' })).toBeVisible();
-    const order = member.getByText(`Order ${fromApp} · 1 × Masala chai, 1 × Beer`);
-    await expect(order).toBeVisible();
-    await expect(order.locator('xpath=..').getByText('Placed', { exact: true })).toBeVisible();
+    // Order (brief 3.5): from the seat, the menu by category, Add turning into a count, then the send bar.
+    await member.getByRole('button', { name: 'Order to my seat' }).click();
+    await expect(member.getByRole('heading', { name: 'Order', level: 1, exact: true })).toBeVisible();
+    await expect(member.getByText('Table 3, seat 1 · Pay on delivery')).toBeVisible();
+    await member.getByRole('button', { name: 'Soft drinks', exact: true }).click();
+    await member.getByRole('button', { name: 'Add Masala chai' }).click();
+    await member.getByRole('button', { name: 'Bar', exact: true }).click();
+    await member.getByRole('button', { name: 'Add Beer' }).click();
+    await member.getByRole('button', { name: /^Send to the bar/ }).click();
+    // Back on Tonight, a toast says so, and the tracker follows it to the seat: sent, until the service staff take it (#640).
+    await expect(member.getByText('Order sent')).toBeVisible();
+    await expect(member.getByText('Masala chai, Beer')).toBeVisible();
+    const tracker = member.getByRole('list', { name: 'Order' });
+    await expect(tracker.locator('[aria-current="step"]')).toHaveText('Sent');
 
     // The Service role (#640): the steward lands on food and drink, with nothing else, and serves the order.
     const steward = await browser.newPage();
     await signInToConsole(steward, '9000000790');
     await expect(steward.getByRole('heading', { name: 'To accept' })).toBeVisible();
     await expect(steward.getByRole('link', { name: 'Live floor' })).toHaveCount(0);
+    const fromApp = /^KOT (\d+) /.exec((await steward.getByText(/^KOT \d+ · Table 3, seat 1 · Ishan Mehta \(\d+\)$/).last().textContent()) ?? '')?.[1] ?? '';
     await steward.getByRole('button', { name: `Accept KOT ${fromApp}` }).click();
     await member.reload();
-    await expect(member.getByText(`Order ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Being prepared', { exact: true })).toBeVisible();
+    await expect(tracker.locator('[aria-current="step"]')).toHaveText('Preparing');
+    await steward.getByRole('button', { name: `KOT ${fromApp} on its way` }).click();
+    await member.reload();
+    await expect(tracker.locator('[aria-current="step"]')).toHaveText('On its way');
     await steward.getByRole('button', { name: `Mark KOT ${fromApp} delivered` }).click();
     await expect(steward.getByText(/^Delivered in /).first()).toBeVisible();
     await member.reload();
-    await expect(member.getByText(`Order ${fromApp} · 1 × Masala chai, 1 × Beer`).locator('xpath=..').getByText('Delivered', { exact: true })).toBeVisible();
+    await expect(tracker.locator('[aria-current="step"]')).toHaveText('Delivered');
+    await expect(member.getByRole('button', { name: 'Order again' })).toBeVisible();
     await steward.close();
 
     const { tablet, name } = await tabletAtTable3(browser, page);

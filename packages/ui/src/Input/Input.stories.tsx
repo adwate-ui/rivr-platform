@@ -49,3 +49,11 @@ export const WithSuffix: Story = {
 export const WithSuffixOnAPhone: Story = { ...WithSuffix, tags: ['viewport-phone'] };
 
 export const WithSuffixOnAPortraitTablet: Story = { ...WithSuffix, tags: ['viewport-portrait'] };
+
+/** The player redesign's field, its label inside the box (decision 0320). */
+export const Inset: Story = { args: { variant: 'inset', label: 'Full name, as on Aadhaar', placeholder: 'Ira Kapoor' } };
+
+export const InsetWithError: Story = { args: { variant: 'inset', label: 'City', placeholder: 'Gurugram', error: 'Enter your city.' } };
+
+/** The redesign's sign-in number, 54 px tall (decision 0320). */
+export const Tall: Story = { args: { label: 'Mobile number', prefix: '+91', isTall: true, placeholder: '98765 43210' } };

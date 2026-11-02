@@ -74,3 +74,25 @@ export const LongText: Story = {
 
 /** From 768 px: the step is a panel in the middle of the screen, its action under its content (S-01). */
 export const OnAComputer: Story = { ...Centred, tags: ['!viewport-phone', 'viewport-console'] };
+
+/** The player redesign's step (decision 0320): eyebrow, the title in the display face, a subtitle, and Back with a chevron. */
+export const Redesign: Story = {
+  args: {
+    title: 'Verify your identity',
+    look: { eyebrow: 'Step 2 of 2', subtitle: 'Required before you play.' },
+    back: { label: 'Back', onBack: () => undefined },
+    children: null,
+    footer: <Button variant="primary" size="tall" fullWidth>Take a selfie</Button>,
+  },
+};
+
+/** Sign-up's top bar: the chevron back, a segment a step and "1 of 2", with the footer ruled (decision 0320). */
+export const SignUpProgress: Story = {
+  args: {
+    title: 'About you',
+    look: { serifSize: 40, subtitle: 'Signing up with +91 90000 00901', progress: { step: 1, of: 2, label: '1 of 2' }, isFooterRuled: true },
+    back: { label: 'Back', onBack: () => undefined },
+    children: null,
+    footer: <Button variant="primary" size="tall" fullWidth>Continue</Button>,
+  },
+};

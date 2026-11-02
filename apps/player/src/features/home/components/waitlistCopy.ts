@@ -1,0 +1,20 @@
+import type { WaitlistFailure } from '@rivr/db';
+import type { MessageKey } from '@rivr/i18n';
+
+/** What Tonight says when joining, answering a call or leaving a waitlist did not go through. */
+export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
+  not_open: 'player.tonight.notOpen',
+  kyc_needed: 'player.tonight.kycNeeded',
+  on_break: 'player.tonight.onBreak',
+  stopped: 'player.tonight.stopped',
+  paused: 'ui.killSwitch.member',
+  no_member: 'player.tonight.unavailable',
+  invalid: 'player.tonight.unavailable',
+  unavailable: 'player.tonight.unavailable',
+  // The floor's refusal; a member never calls anyone.
+  seat_held: 'player.tonight.unavailable',
+  seat_taken: 'player.tonight.unavailable',
+  too_late: 'player.tonight.tooLate',
+  no_time_away: 'player.tonight.unavailable',
+  one_at_a_time: 'player.tonight.oneAtATime',
+};

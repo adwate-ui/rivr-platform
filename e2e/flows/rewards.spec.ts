@@ -1,8 +1,8 @@
 /**
  * Rewards and the TV (#148, #152; decisions 0181 to 0183). Riya Sen, this flow's own member with the seed's
  * 20,000 points, opens Rewards in the player app: her points and tier, the catalogue, the League. She
- * redeems a bar upgrade, which asks first and then says where to collect it, and finds it under her
- * redemptions. Meher Lal, its own floor manager, pairs a TV on the rewards ticker, which shows her
+ * redeems a bar upgrade from its sheet, which shows the cost and her balance after, and finds it under her
+ * redemptions, ready to collect (decision 0320). Meher Lal, its own floor manager, pairs a TV on the rewards ticker, which shows her
  * redemption; turned to the League leaderboard, the TV shows the League. Meher hands the upgrade over on
  * the console, and Riya's app says it was collected. The TV is unpaired at the end. Who may redeem, and
  * that points never go below nothing, is proved in supabase/tests/099 and 101.
@@ -13,18 +13,20 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const REWARD = 'Bar upgrade, one night';
 
-/** Riya redeems the bar upgrade from the catalogue. */
+/** Riya redeems the bar upgrade from the catalogue's redeem sheet (decision 0320), which shows the cost and her balance after. */
 async function redeem(member: Page) {
-  await member.getByRole('link', { name: 'Rewards' }).click();
+  await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Rewards' }).click();
   await expect(member.getByRole('heading', { name: 'Rewards', level: 1 })).toBeVisible();
-  await expect(member.getByText('Your tier: Member')).toBeVisible({ timeout: 10_000 });
+  await expect(member.getByText('Member', { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(member.getByRole('heading', { name: 'RIVR League' })).toBeVisible();
   await member.getByRole('button', { name: `Redeem ${REWARD}` }).click();
-  await expect(member.getByText(`Redeem ${REWARD} for 2,500 points?`)).toBeVisible();
-  await member.getByRole('button', { name: 'Yes, redeem' }).click();
-  await expect(member.getByText('Redeemed. Collect it: At the Glaza bar')).toBeVisible({ timeout: 10_000 });
-  await expect(member.getByText(`${REWARD} · 2,500 points`).first()).toBeVisible();
-  await expect(member.getByText('To collect: At the Glaza bar').first()).toBeVisible();
+  const sheet = member.getByRole('dialog', { name: REWARD });
+  await expect(sheet.getByText('2,500 points')).toBeVisible();
+  await expect(sheet.getByText('Balance after')).toBeVisible();
+  await sheet.getByRole('button', { name: 'Redeem', exact: true }).click();
+  await expect(member.getByText('Redeemed', { exact: true })).toBeVisible({ timeout: 10_000 });
+  await expect(sheet).toHaveCount(0);
+  await expect(member.getByText('Ready to collect').first()).toBeVisible();
 }
 
 /** Pairs a TV on the console's TVs screen by the code it shows, and gives it a board. */
@@ -43,7 +45,7 @@ async function pairTv(tv: Page, floor: Page, name: string, board: string) {
 }
 
 test.describe('Rewards', () => {
-  test('Rewards and the TV: a member redeems from the app, the TV ticker shows it, the floor hands it over', async ({ browser }) => {
+  test('Sessions, card, rewards › Rewards, Redeem: a member redeems from the app, the TV ticker shows it, the floor hands it over', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'redeems points and pairs a TV, so the local stack only');
     test.setTimeout(150_000);
     const member = await browser.newPage();

@@ -57,8 +57,16 @@ import { tds } from './tds.ts';
 import { endOfDay, endOfDayFailures } from './endOfDay.ts';
 import { tonight, waitlist } from './waitlist.ts';
 import { consoleFnb, playerFnb } from './fnb.ts';
+import { playerAlerts, playerNotFound } from './playerAlerts.ts';
+import { playerSignIn } from './playerSignIn.ts';
+import { playerLive, playerOrder } from './playerLive.ts';
 
 export const playerApp = {
+  alerts: playerAlerts,
+  notFound: playerNotFound,
+  signIn: playerSignIn,
+  live: playerLive,
+  order: playerOrder,
   tonight,
   fnb: playerFnb,
   events: playerEvents,
@@ -70,8 +78,9 @@ export const playerApp = {
   /** The digital membership card (#71): the QR the door scans changes every few seconds. */
   card: {
     title: 'Membership card',
+    /** The Card tab's title (decision 0320). */
+    tab: 'Card',
     qr: 'Your door code',
-    hint: 'Show at the door.',
     /** The member's verified selfie on the card (decision 0300). */
     photo: 'Your photo',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */

@@ -26,3 +26,6 @@ export const Counted: Story = { args: { value: 2 } };
 export const AtMost: Story = { args: { value: 9 } };
 
 export const LongText: Story = { args: { label: 'Grilled paneer tikka with mint chutney and onion rings', value: 1 } };
+
+/** The order screen's round buttons, one more in gold (decision 0320). */
+export const Round: Story = { args: { look: 'round', value: 2 } };

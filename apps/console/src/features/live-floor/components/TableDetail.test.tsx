@@ -11,12 +11,12 @@ afterEach(() => {
 });
 
 const TABLE: FloorTable = {
-  id: 't3', venueId: 'v1', name: 'Table 3', room: 'main', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n,
+  id: 't3', venueId: 'v1', name: 'Table 3', room: 'main', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', game: 'nlh', smallBlind: 10000n, bigBlind: 20000n,
   buyIn: 1000000n, straddle: null, waiting: 0, callTimeMinutes: 180, openSeats: null, mustMoveToTableId: null, isOpen: true,
 };
 const KABIR: SeatedPlayer = {
   sessionId: 's1', tableId: 't3', seat: 5, memberId: 'm1', fullName: 'Kabir Sethi', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
-  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null,
+  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null, timeRequest: null,
 };
 
 const PRIYA: SeatedPlayer = { ...KABIR, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Priya Nair', callTimeLeft: 1800 };

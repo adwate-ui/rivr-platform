@@ -2,102 +2,96 @@ import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, ItemPhoto, Stack, Text, StatusMessage } from '@rivr/ui';
+import { Box, Button, ChoiceChips, DetailRow, ErrorMessage, Inline, ItemPhoto, LoadState, Skeleton, Sheet, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
 
-/** A price, or what a redemption took: "1 point", "4,000 points", or for a hotel night "1 night", "2 nights". */
+/** A reward's price: points, or hotel nights. */
 export function priceText({ points, nights }: { points: bigint | null; nights: number | null }): string {
   if (nights !== null) return nights === 1 ? t('memberRewards.oneNight') : t('memberRewards.nightsPrice', { nights: formatNumber(nights) });
   return points === 1n ? t('memberRewards.onePoint') : t('memberRewards.price', { points: formatNumber(points ?? 0n) });
 }
 
-/** How many are left with where to collect it, or only where for a reward with no limit. */
-const leftText = (item: RewardItem) => (item.stock === null ? item.detail : t('memberRewards.leftLine', { count: formatNumber(item.stock), detail: item.detail }));
+/** Where and how it is collected, with how many are left where the club counts them. */
+const noteOf = (item: RewardItem) => (item.stock === null ? item.detail : t('memberRewards.leftLine', { count: formatNumber(item.stock), detail: item.detail }));
 
-type Outcome = { ok: true; text: string } | { ok: false; text: string } | null;
+/** Whether the member's points cover a reward priced in points; a hotel night's own check is the database's. */
+const canAfford = (item: RewardItem, balance: bigint) => item.points === null || balance >= item.points;
 
 /**
- * Asks before the points or nights are taken, then redeems for the row's request id. The id outlives a failed try
- * when it is not known whether the redemption went through (`unavailable`), so trying again never
- * redeems twice; any answer the server gave starts a new one.
+ * The redeem sheet (brief 3.8): Redeem, the reward, its cost and the balance after, how it is collected, then Redeem or
+ * Cancel. One request id until the server answers, so a retried tap redeems once; done, a toast says so.
  */
-function Confirm({ item, requestId, onDone }: { item: RewardItem; requestId: string; onDone: (outcome: Outcome, isSettled: boolean) => void }) {
+function RedeemSheet({ item, balance, onClose }: { item: RewardItem; balance: bigint; onClose: () => void }) {
   const redeem = useRedeemReward();
+  const toast = useToast();
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+  const [failure, setFailure] = useState<string | null>(null);
   const press = async () => {
     const done = await redeem.mutateAsync({ itemId: item.id, points: item.points, nights: item.nights, requestId });
-    if (done.ok) return onDone({ ok: true, text: t('memberRewards.redeemed', { detail: item.detail }) }, true);
-    return onDone({ ok: false, text: t(`memberRewards.failures.${done.error}`) }, done.error !== 'unavailable');
+    if (done.ok || done.error !== 'unavailable') setRequestId(crypto.randomUUID());
+    setFailure(done.ok ? null : t(`memberRewards.failures.${done.error}`));
+    if (!done.ok) return;
+    toast(t('memberRewards.redeemedToast'));
+    onClose();
   };
   return (
-    <Stack gap={2}>
-      <Text>{t('memberRewards.confirm', { name: item.name, price: priceText(item) })}</Text>
-      <Inline gap={3}>
-        <Button variant="primary" isLoading={redeem.isPending} onClick={() => void press()}>{t('memberRewards.confirmYes')}</Button>
-        <Button variant="text" onClick={() => onDone(null, false)}>{t('memberRewards.cancel')}</Button>
-      </Inline>
-    </Stack>
-  );
-}
-
-/** One reward: its photo (AS-11), name, price and what is left; Redeem asks first, then says where to collect it. None left, it says so. */
-function RewardRow({ item }: { item: RewardItem }) {
-  const [isAsking, setIsAsking] = useState(false);
-  const [outcome, setOutcome] = useState<Outcome>(null);
-  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
-  const finish = (next: Outcome, isSettled: boolean) => {
-    setIsAsking(false);
-    setOutcome(next);
-    if (isSettled) setRequestId(crypto.randomUUID());
-  };
-  const action = item.stock === 0 ? <Text variant="small" tone="muted">{t('memberRewards.noneLeft')}</Text> : (
-    <Button variant="secondary" aria-label={t('memberRewards.redeemName', { name: item.name })}
-      onClick={() => { setOutcome(null); setIsAsking(true); }}>{t('memberRewards.redeem')}</Button>
-  );
-  return (
-    <Stack gap={3}>
-      <Inline justify="between" align="center" gap={4}>
-        <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
-        <Stack gap={1} grow>
-          <Text weight="medium">{item.name}</Text>
-          <Text variant="small">{priceText(item)}</Text>
-          <Text variant="small" tone="muted">{leftText(item)}</Text>
-        </Stack>
-        {isAsking ? null : action}
-      </Inline>
-      {isAsking ? <Confirm item={item} requestId={requestId} onDone={finish} /> : null}
-      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
-      {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
-    </Stack>
-  );
-}
-
-/** The rewards of the kind shown, or why there are none. */
-function Rows({ kind }: { kind: RewardKind | 'all' }) {
-  const catalogue = useRewardCatalogue();
-  if (catalogue.data === undefined) {
-    return (
+    <Sheet isOpen onClose={onClose} eyebrow={t('memberRewards.redeem')} title={item.name}>
+      <Box>
+        <DetailRow label={t('memberRewards.cost')} labelTone="muted" value={priceText(item)} />
+        {item.points === null ? null : (
+          <DetailRow label={t('memberRewards.balanceAfter')} labelTone="muted" isLast value={t('memberRewards.price', { points: formatNumber(balance - item.points) })} />
+        )}
+      </Box>
+      <Text variant="small" tone="muted">{noteOf(item)}</Text>
       <Stack gap={3}>
-        <Text tone="muted">{t(catalogue.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-        {catalogue.isError ? <Inline><Button onClick={() => void catalogue.refetch()}>{t('common.retry')}</Button></Inline> : null}
+        <Button variant="primary" size="tall" fullWidth isLoading={redeem.isPending} onClick={() => void press()}>{t('memberRewards.redeem')}</Button>
+        {failure === null ? null : <ErrorMessage look="dot">{failure}</ErrorMessage>}
+        <Button variant="text" fullWidth onClick={onClose}>{t('memberRewards.cancel')}</Button>
       </Stack>
-    );
-  }
-  const shown = catalogue.data.filter((item) => kind === 'all' || item.kind === kind);
-  if (shown.length === 0) return <Text tone="muted">{t('memberRewards.noRewards')}</Text>;
-  return <Stack gap={4} divided>{shown.map((item) => <RewardRow key={item.id} item={item} />)}</Stack>;
+    </Sheet>
+  );
 }
 
-/** The catalogue (#145; feature rewards.catalogue): the club's live rewards, one kind or all, each redeemed with points, or hotel nights with nights. */
-export function Catalogue() {
+/** One reward: its tile, name, cost in gold and note; Redeem, or how many points short, or none left. */
+function RewardRow({ item, balance, onRedeem }: { item: RewardItem; balance: bigint; onRedeem: () => void }) {
+  const isShort = !canAfford(item, balance);
+  const cta = item.stock === 0 ? t('memberRewards.noneLeft')
+    : isShort ? t('memberRewards.toGo', { points: formatNumber((item.points ?? 0n) - balance) }) : t('memberRewards.redeem');
+  return (
+    <Inline gap={3} align="center">
+      <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
+      <Stack gap={1} grow>
+        <Text weight="medium">{item.name}</Text>
+        <Text variant="small" tone="accent">{priceText(item)}</Text>
+        <Text variant="caption" tone="muted">{noteOf(item)}</Text>
+      </Stack>
+      <Button variant="outline" shape="pill" isDisabled={isShort || item.stock === 0} aria-label={t('memberRewards.redeemName', { name: item.name })}
+        onClick={onRedeem}>{cta}</Button>
+    </Inline>
+  );
+}
+
+/**
+ * The catalogue (brief 3.8): filter pills that scroll (All and each kind), a row a reward, and the redeem sheet. Feature
+ * rewards.catalogue, gated by the screen.
+ */
+export function Catalogue({ balance }: { balance: bigint }) {
+  const catalogue = useRewardCatalogue();
   const [kind, setKind] = useState<RewardKind | 'all'>('all');
-  const options: { value: RewardKind | 'all'; label: string }[] = [
-    { value: 'all', label: t('memberRewards.all') }, ...REWARD_KINDS.map((value) => ({ value, label: t(`memberRewards.kinds.${value}`) })),
-  ];
+  const [redeeming, setRedeeming] = useState<RewardItem | null>(null);
+  const options = [{ value: 'all' as const, label: t('memberRewards.all') }, ...REWARD_KINDS.map((value) => ({ value, label: t(`memberRewards.kinds.${value}`) }))];
+  // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
+  if (catalogue.isError) return <LoadState isError onRetry={() => void catalogue.refetch()} />;
+  if (catalogue.data === undefined) return <Skeleton rows={2} />;
+  const shown = catalogue.data.filter((item) => kind === 'all' || item.kind === kind);
   return (
     <Stack gap={4}>
-      <Heading level={2}>{t('memberRewards.catalogue')}</Heading>
-      <ChoiceChips label={t('memberRewards.show')} mode="one" selected={[kind]} options={options} onChange={(chosen) => setKind(chosen[0] ?? 'all')} isOneRow />
-      <Rows kind={kind} />
+      <ChoiceChips label={t('memberRewards.show')} isLabelVisuallyHidden look="pill" mode="one" isOneRow selected={[kind]} options={options}
+        onChange={(chosen) => setKind(chosen[0] ?? 'all')} />
+      {shown.length === 0 ? <Text tone="muted">{t('memberRewards.noRewards')}</Text> : (
+        <Stack gap={3} divided>{shown.map((item) => <RewardRow key={item.id} item={item} balance={balance} onRedeem={() => setRedeeming(item)} />)}</Stack>
+      )}
+      {redeeming === null ? null : <RedeemSheet item={redeeming} balance={balance} onClose={() => setRedeeming(null)} />}
     </Stack>
   );
 }

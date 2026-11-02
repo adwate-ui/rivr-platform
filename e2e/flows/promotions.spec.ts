@@ -53,7 +53,7 @@ async function pairTvOnPromotions(tv: Page, floor: Page, name: string) {
 }
 
 test.describe('Promotions', () => {
-  test('Publish a promotion: Thursday 14:00 to 20:00 at 100/200, double points, no limits; the card on Home, the slide on the TV', async ({ browser }) => {
+  test('Publish a promotion: Thursday 14:00 to 20:00 at 100/200, double points, no limits; the card on Tonight, the slide on the TV', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'publishes a promotion and pairs a TV, so the local stack only');
     test.setTimeout(120_000);
     const floor = await browser.newPage();
@@ -64,7 +64,8 @@ test.describe('Promotions', () => {
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000280');
-    const card = member.getByRole('region', { name: 'Promotions' }).getByRole('article', { name: 'Double points' });
+    // Tonight's offers (decision 0320): the card in the carousel headed Tonight.
+    const card = member.getByRole('region', { name: 'Tonight' }).getByRole('listitem').filter({ hasText: 'Double points' });
     await expect(card).toContainText(RUNS, { timeout: 15_000 });
 
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;

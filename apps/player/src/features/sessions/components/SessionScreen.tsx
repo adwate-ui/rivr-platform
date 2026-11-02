@@ -1,71 +1,75 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
-import { formatDuration, formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, Inline, Screen, Stack, Text } from '@rivr/ui';
+import { formatHoursMinutes, formatNumber, formatStakes, formatTime, t } from '@rivr/i18n';
+import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useToast } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
-import { sessionDay, sessionLine, sessionTitle } from './naming.ts';
+import { sessionDay, sessionTitle } from './naming.ts';
 
-/** One session (#627): when, its time and hours, and the way to hide it from the member's own list. No money. */
+/** The game a session was: a cash table's stakes, or the tournament with the member's place in its field (#549). */
+function gameOf(session: MySession): string {
+  if (session.kind === 'cash') return formatStakes(session.smallBlind, session.bigBlind);
+  return session.place === null || session.entrants === null
+    ? t('player.sessions.tournament')
+    : t('player.sessions.tournamentPlace', { place: formatNumber(session.place), entrants: formatNumber(session.entrants) });
+}
+
+/** The day, the table large, Game, Time and Played, then Hide from my list, which says so with a toast (brief 3.6). */
 function Detail({ session, onHidden }: { session: MySession; onHidden: () => void }) {
   const hide = useHideMySession();
+  const toast = useToast();
   const [failed, setFailed] = useState(false);
-  const rows = [
-    { label: t('player.sessions.time'), value: t('player.sessions.timeRange', { from: formatTime(new Date(session.openedAt)), to: formatTime(new Date(session.closedAt)) }) },
-    { label: t('player.sessions.hours'), value: formatDuration(session.playedSeconds) },
-  ];
   const onHide = async () => {
-    setFailed(false);
     const result = await hide.mutateAsync(session.visitId);
-    if (result.ok) onHidden();
-    else setFailed(true);
+    setFailed(!result.ok);
+    if (!result.ok) return;
+    toast(t('player.sessions.hiddenToast'));
+    onHidden();
   };
+  const time = t('player.sessions.timeRange', { from: formatTime(new Date(session.openedAt)), to: formatTime(new Date(session.closedAt)) });
   return (
     <Stack gap={6}>
       <Stack gap={1}>
-        <Text tone="muted">{sessionDay(session)}</Text>
-        {session.kind === 'tournament' ? <Text tone="muted">{sessionLine(session)}</Text> : null}
+        <Text variant="small" tone="muted">{sessionDay(session)}</Text>
+        <Heading level={1} variant="serif">{sessionTitle(session)}</Heading>
       </Stack>
-      <Stack gap={3} divided>
-        {rows.map((row) => (
-          <Inline key={row.label} gap={4} align="baseline" justify="between">
-            <Text tone="muted">{row.label}</Text>
-            <Text>{row.value}</Text>
-          </Inline>
-        ))}
-      </Stack>
-      <Stack gap={2}>
-        <Button variant="secondary" onClick={() => void onHide()} isLoading={hide.isPending}>{t('player.sessions.hide')}</Button>
-        <Text variant="small" tone="muted">{t('player.sessions.hideNote')}</Text>
-        {failed ? <ErrorMessage>{t('player.sessions.hideFailed')}</ErrorMessage> : null}
-      </Stack>
+      <Box>
+        <DetailRow label={t('player.sessions.game')} labelTone="muted" value={gameOf(session)} />
+        <DetailRow label={t('player.sessions.time')} labelTone="muted" value={time} />
+        <DetailRow label={t('player.sessions.played')} labelTone="muted" value={formatHoursMinutes(session.playedSeconds)} isLast />
+      </Box>
+      <Button variant="outline" size="large" fullWidth onClick={() => void onHide()} isLoading={hide.isPending}>{t('player.sessions.hide')}</Button>
+      {failed ? <ErrorMessage look="dot">{t('player.sessions.hideFailed')}</ErrorMessage> : null}
     </Stack>
   );
 }
 
-/** A session's detail (#127), read by its visit (F3-28); gated as the history is, once access is known. */
+/**
+ * A session's detail (decision 0320; #127): back to Sessions, then the session. Back goes back, so the phone's own back
+ * button does not return here (F3-22); opened by address, it goes to the list.
+ */
 export function SessionScreen() {
   const { visitId = '' } = useParams({ strict: false });
   const sessions = useMySession(visitId);
   const access = useFeatureStatus('sessions.history');
   const navigate = useNavigate();
-  // Back goes back, so the phone's own back button does not return here (F3-22); opened by address, it goes to the list.
   const router = useRouter();
   const canGoBack = useCanGoBack();
   const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
-  const back = <Button variant="text" icon="chevronLeft" onClick={toList}>{t('common.back')}</Button>;
   const session = sessions.data ?? undefined;
-  const title = session === undefined ? t('player.sessions.title') : sessionTitle(session);
-  if (access.status === 'error') return <Screen title={title} actions={back} status="error" onRetry={access.retry} />;
-  if (sessions.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void sessions.refetch()} />;
-  if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} actions={back} status="loading" />;
-  // A tier without session history sees the heading and Back over the locked notice, not a bare notice (F3-21).
-  if (access.access.state !== 'enabled') return <Screen title={title} actions={back}><FeatureGate access={access.access}>{null}</FeatureGate></Screen>;
+  const title = t('player.sessions.title');
+  const back = <BackButton label={title} onBack={toList} />;
+  if (access.status === 'error') return <Screen title={title} isTitleHidden status="error" onRetry={access.retry} />;
+  if (sessions.isError) return <Screen title={title} isTitleHidden status="error" onRetry={() => void sessions.refetch()} />;
+  if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
+  if (access.access.state !== 'enabled') {
+    // A tier without session history sees the screen's heading over the locked notice (F3-21).
+    return <Stack gap={2}>{back}<Heading level={1} variant="serif">{title}</Heading><FeatureGate access={access.access}>{null}</FeatureGate></Stack>;
+  }
   return (
-    <FeatureGate access={access.access}>
-      {session === undefined
-        ? <Screen title={title} actions={back} status="empty" emptyText={t('player.sessions.notFound')} />
-        : <Screen title={title} actions={back}><Detail session={session} onHidden={toList} /></Screen>}
-    </FeatureGate>
+    <Stack gap={2}>
+      {back}
+      {session === undefined ? <Text tone="muted">{t('player.sessions.notFound')}</Text> : <Detail session={session} onHidden={toList} />}
+    </Stack>
   );
 }

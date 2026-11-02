@@ -110,4 +110,18 @@ describe('Input', () => {
     expect(field).toHaveAccessibleDescription('%');
     expect(screen.getByText('%')).toBeInTheDocument();
   });
+
+  it('sets its label inside a 60 px box when inset, with a dotted error under it (decision 0320)', () => {
+    renderIn(<Input variant="inset" label="City" error="Enter your city." />);
+    const field = screen.getByRole('textbox', { name: 'City' });
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+    expect(field).toHaveAccessibleDescription('Enter your city.');
+    expect(field.closest('label')).toHaveClass('min-h-field', 'border-alert');
+  });
+
+  it('is 54 px tall when asked, with a dotted error (decision 0320)', () => {
+    renderIn(<Input label="Mobile number" prefix="+91" isTall error="Enter a 10-digit mobile number." />);
+    expect(screen.getByRole('textbox', { name: 'Mobile number' }).closest('[data-field-row]')).toHaveClass('min-h-action');
+    expect(screen.getByRole('alert').querySelector('svg')).toBeNull();
+  });
 });

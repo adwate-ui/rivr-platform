@@ -1,26 +1,29 @@
 import { useHouseRules, type HouseRules } from '@rivr/db/houseRules';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, Heading, Screen, Stack, Text } from '@rivr/ui';
+import { BackButton, Figure, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
-/** The house rules, numbered, then the cases behind poker's legal standing, as the club publishes them on its website. */
+/** The rules, each with its number in gold, then the legal standing and its cases, each between hairlines (brief 3.10). */
 function Rules({ rules }: { rules: HouseRules }) {
   return (
     <Stack gap={8}>
-      <Stack gap={3}>
-        {rules.intro === null ? null : <Text tone="muted">{rules.intro}</Text>}
+      <Stack gap={3} divided>
         {rules.rules.map((rule, index) => (
-          <Text key={`${String(index)}-${rule}`}>{t('player.houseRules.rule', { number: formatNumber(index + 1), rule })}</Text>
+          <Inline key={`${String(index)}-${rule}`} gap={4} align="start">
+            <Figure size="numeral" tone="money">{formatNumber(index + 1)}</Figure>
+            <Text>{rule}</Text>
+          </Inline>
         ))}
       </Stack>
       {rules.legal === null ? null : (
         <Stack gap={3}>
-          <Heading level={2}>{rules.legal.heading ?? t('player.houseRules.legal')}</Heading>
+          <Heading level={2} variant="serif" serifSize={28}>{rules.legal.heading ?? t('player.houseRules.legal')}</Heading>
           {rules.legal.intro === null ? null : <Text tone="muted">{rules.legal.intro}</Text>}
           <Stack gap={3} divided>
             {rules.legal.cases.map((legalCase) => (
               <Stack key={`${legalCase.when}-${legalCase.title}`} gap={1}>
-                <Text weight="medium">{t('player.houseRules.case', { when: legalCase.when, title: legalCase.title })}</Text>
+                <Text variant="small" tone="accent">{legalCase.when}</Text>
+                <Text weight="medium">{legalCase.title}</Text>
                 {legalCase.text === null ? null : <Text variant="small" tone="muted">{legalCase.text}</Text>}
               </Stack>
             ))}
@@ -31,16 +34,30 @@ function Rules({ rules }: { rules: HouseRules }) {
   );
 }
 
-/** House rules in Settings (#637): the club's house rules and the legal standing, whatever the member's tier. */
+/**
+ * House rules (brief 3.10; #637), from Profile: back to Profile, the title and its line, the club's rules numbered in gold,
+ * then that poker is a game of skill and the cases that say so. The club writes them (decision 0296).
+ */
 export function HouseRulesScreen() {
   const rules = useHouseRules();
   const navigate = useNavigate();
   const title = t('player.houseRules.title');
-  const back = <Button variant="text" icon="chevronLeft" onClick={() => void navigate({ to: '/profile' })}>{t('common.back')}</Button>;
-  if (rules.isError) return <Screen title={title} actions={back} status="error" onRetry={() => void rules.refetch()} />;
-  if (rules.data === undefined) return <Screen title={title} actions={back} status="loading" />;
+  const back = <BackButton label={t('player.profile.title')} onBack={() => void navigate({ to: '/profile' })} />;
+  const look = { titleLook: 'serif' } as const;
+  if (rules.isError) return <Stack gap={2}>{back}<Screen {...look} title={title} status="error" onRetry={() => void rules.refetch()} /></Stack>;
+  if (rules.data === undefined) return <Stack gap={2}>{back}<Screen {...look} title={title} status="loading" loadingLook="skeleton" /></Stack>;
   if (rules.data.rules.length === 0 && rules.data.legal === null) {
-    return <Screen title={title} actions={back} status="empty" emptyText={t('player.houseRules.empty')} />;
+    return <Stack gap={2}>{back}<Screen {...look} title={title} status="empty" emptyText={t('player.houseRules.empty')} /></Stack>;
   }
-  return <Screen title={title} actions={back}><Rules rules={rules.data} /></Screen>;
+  return (
+    <Stack gap={2}>
+      {back}
+      <Screen {...look} title={title}>
+        <Stack gap={6}>
+          <Text tone="muted">{rules.data.intro ?? t('player.houseRules.appliesAtEveryTable')}</Text>
+          <Rules rules={rules.data} />
+        </Stack>
+      </Screen>
+    </Stack>
+  );
 }
