@@ -37,5 +37,13 @@ describe('DigilockerStep', () => {
     renderStep({ status: 429, body: { error: 'too_many_attempts' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continue to DigiLocker' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Too many tries today. Try tomorrow or ask at the front desk.');
+    // Nothing to try again today (P-03).
+    expect(screen.getByRole('button', { name: 'Continue to DigiLocker' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  it('always offers the front desk and Sign out, so no member is stuck here (P-03)', () => {
+    renderStep({ status: 200, body: {} });
+    expect(screen.getByText('The front desk can check you in person.')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
 });

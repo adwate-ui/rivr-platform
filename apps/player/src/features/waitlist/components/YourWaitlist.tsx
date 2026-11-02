@@ -1,5 +1,5 @@
 import { useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
-import { formatTime, t } from '@rivr/i18n';
+import { formatStakes, formatTime, t } from '@rivr/i18n';
 import { Button, ConfirmButton, ErrorMessage, FloorRow, Heading, Inline, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
@@ -38,8 +38,8 @@ export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
         <FloorRow
           key={place.entryId}
           name={place.tableTypeName}
-          smallBlind={place.smallBlind}
-          bigBlind={place.bigBlind}
+          // A game's name often carries its stakes ("NLH 100/200"): then they show once (P-05); a name without them keeps them.
+          {...(place.tableTypeName.includes(formatStakes(place.smallBlind, place.bigBlind)) ? {} : { smallBlind: place.smallBlind, bigBlind: place.bigBlind })}
           detail={detailOf(place)}
           action={
             <Inline gap={2}>
@@ -51,7 +51,7 @@ export function YourWaitlist({ places }: { places: readonly WaitlistPlace[] }) {
                 </Button>
               )}
               <ConfirmButton variant="secondary" label={t('player.tonight.leave')} name={t('player.tonight.leaveName', { game: place.tableTypeName })}
-                confirm={t('player.tonight.confirmLeave', { game: place.tableTypeName })} isBusy={leave.isPending && busyAt === place.entryId}
+                confirm={t('player.tonight.confirmLeave')} isBusy={leave.isPending && busyAt === place.entryId}
                 onConfirm={() => void act(place.entryId, leave.mutateAsync(place.entryId))} />
             </Inline>
           }

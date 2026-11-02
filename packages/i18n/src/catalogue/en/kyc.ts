@@ -13,6 +13,8 @@ export const playerKyc = {
   verifiedStepDetail: 'Book a seat.',
   kept: 'Kept: your photo, date of birth, address, PAN and the last four digits of your Aadhaar.',
   takeSelfie: 'Take a selfie',
+  /** Under the steps: the way round a check that will not go on (P-03). */
+  inPerson: 'The front desk can check you in person.',
   selfieTitle: 'Selfie',
   notLive: 'Photo unclear. Retake it in good light.',
   start: 'Continue to DigiLocker',

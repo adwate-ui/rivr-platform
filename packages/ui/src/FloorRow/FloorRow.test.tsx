@@ -16,6 +16,12 @@ describe('FloorRow', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('shows no stakes when none are given, as for a game whose name carries them', () => {
+    renderIn(<FloorRow name="NLH 100/200" detail="2nd on the list" />);
+    expect(screen.getByText('NLH 100/200')).toBeDefined();
+    expect(screen.queryByText('100/200')).toBeNull();
+  });
+
   it('has no action for a closed table', () => {
     renderIn(<FloorRow name="Table 4" smallBlind={10_000n} bigBlind={20_000n} detail="Closed" isMuted />);
     expect(screen.queryByRole('button')).toBeNull();

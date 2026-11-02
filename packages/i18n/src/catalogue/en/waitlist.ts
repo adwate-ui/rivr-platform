@@ -105,7 +105,7 @@ export const tonight = {
   leave: 'Leave',
   /** On each of the member's places: `{game}` is the list, `NLH 100/200`. */
   leaveName: 'Leave: the {game} list',
-  confirmLeave: 'Yes, leave the {game} list',
+  confirmLeave: 'Yes, leave',
   /** The seat call (#63), as the WhatsApp message says it: `{time}` is when the hold runs out, IST. */
   seatReady: 'Your seat is ready: {table}, seat {seat}. Held until {time}.',
   stepAway: 'Step away',

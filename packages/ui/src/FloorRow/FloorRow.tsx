@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Inline } from '../Inline/Inline.tsx';
-import { Stack } from '../Stack/Stack.tsx';
 import { Stakes } from '../Stakes/Stakes.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -8,9 +7,9 @@ export interface FloorRowProps {
   /** The table's name: "Table 3", "Private Room". */
   name: string;
   /** Small blind in paise. */
-  smallBlind: bigint;
+  smallBlind?: bigint | undefined;
   /** Big blind in paise. */
-  bigBlind: bigint;
+  bigBlind?: bigint | undefined;
   /** One line under the name: how many wait, or that the table is closed. */
   detail: string;
   /** The row's one action, such as Join. */
@@ -23,14 +22,16 @@ export interface FloorRowProps {
 export function FloorRow({ name, smallBlind, bigBlind, detail, action, isMuted = false }: FloorRowProps) {
   const tone = isMuted ? 'muted' : 'default';
   return (
-    <Inline gap={4} align="center" justify="between">
-      <Stack gap={1} grow>
+    // Wraps: the name keeps 96 px, so an action that grows, as Leave asking to be sure does, goes under it rather than
+    // squeezing it to a word (P-04).
+    <Inline gap={4} align="center" justify="between" wrap>
+      <div className="flex min-w-0 grow basis-24 flex-col gap-1">
         <Inline gap={3} align="baseline" wrap>
           <Text weight="medium" tone={tone}>{name}</Text>
-          <Stakes smallBlind={smallBlind} bigBlind={bigBlind} tone="muted" />
+          {smallBlind === undefined || bigBlind === undefined ? null : <Stakes smallBlind={smallBlind} bigBlind={bigBlind} tone="muted" />}
         </Inline>
         <Text variant="small" tone="muted">{detail}</Text>
-      </Stack>
+      </div>
       {action ?? null}
     </Inline>
   );
