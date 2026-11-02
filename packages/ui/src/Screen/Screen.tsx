@@ -75,14 +75,17 @@ export function Screen(props: ScreenProps) {
   const section = useScreenFocus(props.title, headingId, isOwnScreen);
   return (
     <section ref={section} aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
-      {/* The heading and its actions wrap onto two lines on a narrow screen. */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} isVisuallyHidden={props.isTitleHidden === true}
-          {...(props.titleLook === 'serif' ? SERIF_TITLE : {})}>
-          {props.title}
-        </Heading>
-        {props.actions}
-      </div>
+      {/* The heading and its actions wrap onto two lines on a narrow screen; a hidden heading takes no room at all. */}
+      {props.isTitleHidden === true ? (
+        <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} isVisuallyHidden>{props.title}</Heading>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})}>
+            {props.title}
+          </Heading>
+          {props.actions}
+        </div>
+      )}
       <ScreenBody {...props} />
     </section>
   );

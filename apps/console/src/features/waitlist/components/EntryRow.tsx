@@ -16,7 +16,9 @@ function entryLine(entry: WaitlistBoardEntry): string {
 /** Where the place stands: called to a seat and held until, away and kept until, or nothing more. */
 function standing(entry: WaitlistBoardEntry): string | null {
   if (entry.holdUntil !== null) {
-    return t('console.waitlist.called', { table: entry.callTableName ?? '', seat: entry.callSeat ?? 0, time: at(entry.holdUntil) });
+    const called = t('console.waitlist.called', { table: entry.callTableName ?? '', seat: entry.callSeat ?? 0, time: at(entry.holdUntil) });
+    // The member said "I'm on my way" from the app (decision 0321).
+    return entry.onWayAt === null ? called : `${called} · ${t('console.waitlist.onTheWay')}`;
   }
   return entry.awayUntil === null ? null : t('console.waitlist.away', { time: at(entry.awayUntil) });
 }
@@ -92,7 +94,8 @@ export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: W
         </Stack>
         <EntryActions venueId={venueId} entry={entry} onCall={() => setIsCalling(true)} canCall={tables.length > 0} act={act} />
       </Inline>
-      {isCalling ? <AssignForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} onDone={() => setIsCalling(false)} /> : null}
+      {isCalling ? <AssignForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} askedTableId={entry.askedTableId}
+        onDone={() => setIsCalling(false)} /> : null}
       {failure === null ? null : <ErrorMessage>{t(failure)}</ErrorMessage>}
     </Stack>
   );

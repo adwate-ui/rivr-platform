@@ -24,6 +24,15 @@ export interface MySeat {
   readonly callTimeMinutes: number | null;
   /** When the member sat down, for "Playing since" (decision 0300). */
   readonly startedAt: string;
+  /**
+   * When the call time ends, from the server, so the ring counts down from the phone's clock and never from data gone
+   * stale (decision 0320); null while away (the clock stands still) or without call time.
+   */
+  readonly callTimeEndsAt: string | null;
+  /** The seat's game and stakes: "NLH 50/100". */
+  readonly tableTypeName: string;
+  readonly smallBlind: bigint;
+  readonly bigBlind: bigint;
 }
 
 // The time left is read again each half minute; Home shows it to the minute.
@@ -45,7 +54,8 @@ export function useMySeat() {
       return row === undefined ? null
         : { tableName: row.table_name, seat: row.seat, isAway: row.is_away, hasCallTime: row.has_call_time, callTimeLeft: row.call_time_left,
             playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null,
-            callTimeMinutes: row.call_time_minutes, startedAt: row.started_at };
+            callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
+            tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise) };
     },
   });
 }

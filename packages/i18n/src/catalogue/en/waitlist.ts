@@ -181,6 +181,8 @@ export const waitlist = {
   backShort: 'Back',
   /** A called place: `{time}` is when the hold runs out. */
   called: 'Called to {table}, seat {seat} · hold until {time}',
+  /** The called member said "I'm on my way" from the app (decision 0321). */
+  onTheWay: 'On the way',
   /** A place stepped away or skipped: `{time}` is when it goes. */
   away: 'Away · place kept until {time}',
   phone: 'Mobile number',

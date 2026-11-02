@@ -16,6 +16,8 @@ export interface FloorTable {
   readonly seats: number;
   readonly tableTypeId: string;
   readonly tableTypeName: string;
+  /** The game: No-Limit Hold'em or Pot-Limit Omaha. */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly buyIn: bigint;
@@ -50,6 +52,13 @@ export interface WaitlistPlace {
   readonly holdUntil: string | null;
   /** While the member has stepped away: when their place goes; null otherwise. */
   readonly awayUntil: string | null;
+  /** The table the member asked for from the app (decision 0321); null for a place the floor added. */
+  readonly tableId: string | null;
+  readonly tableName: string | null;
+  /** When the seat was called: the hold drains from here to holdUntil. */
+  readonly calledAt: string | null;
+  /** When the member said they were on their way. */
+  readonly onWayAt: string | null;
 }
 
 /** One place on a list, as the floor sees it. */
@@ -69,6 +78,10 @@ export interface WaitlistBoardEntry {
   readonly holdUntil: string | null;
   /** While away (Skip, or the member stepped away): when the place goes. */
   readonly awayUntil: string | null;
+  /** The table the member asked for from the app (decision 0321): the floor's Assign starts from it. */
+  readonly askedTableId: string | null;
+  /** When a called member said they were on their way. */
+  readonly onWayAt: string | null;
 }
 
 /** Why joining, adding or leaving did not go through: `stopped` is the member frozen, `paused` the whole venue. */
@@ -106,7 +119,7 @@ export function useFloorTables() {
     queryFn: async (): Promise<FloorTable[]> => {
       const [tables, types, lengths, open] = await Promise.all([
         client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room').order('position'),
-        client.from('table_type').select('id, name, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise'),
+        client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise'),
         client.rpc('waitlist_lengths'),
         client.rpc('floor_open_seats'),
       ]);
@@ -122,6 +135,7 @@ export function useFloorTables() {
         if (!type) return [];
         return [{
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
+          game: type.game === 'plo' ? 'plo' : 'nlh',
           smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(type.buy_in_min_paise),
           straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(type.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
           callTimeMinutes: callTime.get(type.id) ?? 0,
@@ -147,6 +161,7 @@ export function useMyWaitlist() {
         bigBlind: BigInt(row.big_blind_paise), joinedAt: row.joined_at, place: row.is_request ? null : row.place, isRequest: row.is_request,
         callTableName: row.call_table_name,
         callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,
+        tableId: row.table_id, tableName: row.table_name, calledAt: row.called_at, onWayAt: row.on_way_at,
       }));
     },
   });
@@ -168,6 +183,13 @@ export function useWaitlistActions() {
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
     },
   });
+  const joinAt = useMutation({
+    mutationFn: async ({ tableId, requestId }: { tableId: string; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
+      const { data, error } = await client.rpc('join_waitlist_at', { p_table_id: tableId, p_idempotency_key: requestId });
+      await reload();
+      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
+    },
+  });
   const leave = useMutation({
     mutationFn: async (entryId: string): Promise<Result<null, WaitlistFailure>> => {
       const { error } = await client.rpc('leave_waitlist', { p_entry_id: entryId });
@@ -182,7 +204,7 @@ export function useWaitlistActions() {
       return error ? err(failureOf(error)) : ok(null);
     },
   });
-  return { join, leave, stepAway };
+  return { join, joinAt, leave, stepAway };
 }
 
 /** The venue's lists for the floor (`waitlist_board`, waitlist.manage): each place in order, with names. */
@@ -198,7 +220,7 @@ export function useWaitlistBoard(venueId: string) {
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
         place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason, callTableName: row.call_table_name,
-        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,
+        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until, askedTableId: row.asked_table_id, onWayAt: row.on_way_at,
       }));
     },
   });

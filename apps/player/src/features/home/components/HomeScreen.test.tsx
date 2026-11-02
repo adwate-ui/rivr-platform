@@ -1,0 +1,105 @@
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { ToastProvider } from '@rivr/ui';
+import { QueryClient } from '@tanstack/react-query';
+import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { HomeScreen } from './HomeScreen.tsx';
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.unstubAllGlobals();
+});
+
+const NOW = Date.parse('2026-11-15T17:14:00Z');
+const TABLES = [
+  { id: 't1', venue_id: 'v1', name: 'Table 1', is_open: true, seats: 9, position: 1, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' },
+  { id: 't4', venue_id: 'v1', name: 'Table 4', is_open: false, seats: 9, position: 4, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' },
+];
+const TYPES = [{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, buy_in_min_paise: 500000, straddle_paise: null }];
+const FEATURES = ['floor.live_view', 'waitlist.join', 'call_time.view'].map((key) => ({ feature_key: key, state: 'enabled', tiers: null }));
+const PLACE = {
+  entry_id: 'e1', table_type_id: 'tt1', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, joined_at: '2026-11-15T17:14:00Z',
+  place: 1, call_table_name: null, call_seat: null, hold_until: null, away_until: null, is_request: false, table_id: 't1', table_name: 'Table 1',
+  called_at: null, on_way_at: null,
+};
+const SEAT = {
+  table_name: 'Table 1', seat: 4, is_away: false, has_call_time: true, call_time_left: 9668, played_seconds: 1140, is_leaving: false, top_up: null,
+  call_time_minutes: 180, started_at: '2026-11-15T16:55:30Z', call_time_ends_at: new Date(NOW + 9668 * 1000).toISOString(),
+  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000,
+};
+
+/** The answers the screen's reads get: each table, the member's places and seat as the test says, and nothing else. */
+function answers(places: unknown[], seat: unknown[]): Record<string, unknown> {
+  return {
+    '/rest/v1/game_table': TABLES, '/rest/v1/table_type': TYPES, '/rpc/my_feature_access': FEATURES,
+    '/rpc/waitlist_lengths': [{ table_type_id: 'tt1', waiting: 0, call_time_minutes: 180 }],
+    '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }],
+    '/rpc/floor_taken_seats': [1, 3, 5, 6, 8, 9].map((seatNumber) => ({ table_id: 't1', seat: seatNumber })),
+    '/rpc/my_waitlist': places, '/rpc/my_seat': seat,
+  };
+}
+
+function renderTonight(places: unknown[] = [], seat: unknown[] = []) {
+  vi.useFakeTimers({ now: NOW, shouldAdvanceTime: true });
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(NOW / 1000) + 3600,
+    user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+  }));
+  const replies = answers(places, seat);
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    const key = Object.keys(replies).find((path) => url.includes(`${path}?`) || url.endsWith(path));
+    return Response.json(key === undefined ? [] : replies[key]);
+  });
+  const rootRoute = createRootRoute({ component: () => <ToastProvider><HomeScreen offer={null} /></ToastProvider> });
+  const router = createRouter({ routeTree: rootRoute, history: createMemoryHistory({ initialEntries: ['/'] }) });
+  render(
+    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <RouterProvider router={router} />
+    </RivrDataProvider>,
+  );
+}
+
+const LATER = { timeout: 5000 };
+
+describe('Tonight', () => {
+  it('Browsing: lists the tables in the sheet, a closed one dimmed, and opens the join sheet', async () => {
+    renderTonight();
+    const table = await screen.findByRole('button', { name: /Table 1 · NLH 50\/100/ }, LATER);
+    expect(table.textContent).toContain('No wait');
+    expect(table.textContent).toContain('3 open');
+    expect(screen.getByText('Table 4 · NLH 50/100')).toBeDefined();
+    expect(screen.getByText('Opens later')).toBeDefined();
+    fireEvent.click(table);
+    const sheet = await screen.findByRole('dialog', { name: "No-Limit Hold'em 50/100" });
+    expect(sheet.textContent).toContain('Table 1');
+    expect(screen.getByRole('img', { name: '3 of 9 seats open' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Take a seat' })).toBeDefined();
+  });
+
+  it('On the list: the place, Next in line, when they joined, and Leave waitlist', async () => {
+    renderTonight([PLACE]);
+    expect(await screen.findByText('Next in line', {}, LATER)).toBeDefined();
+    expect(screen.getByText('Waitlist · Table 1 · NLH 50/100')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Leave waitlist' })).toBeDefined();
+  });
+
+  it('Seat ready: where, the hold counting down from the server\'s time, and the two answers', async () => {
+    renderTonight([{ ...PLACE, call_table_name: 'Table 1', call_seat: 4, called_at: '2026-11-15T17:04:00Z', hold_until: '2026-11-15T17:24:00Z' }]);
+    expect(await screen.findByText('Your seat is ready', {}, LATER)).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Table 1, seat 4' })).toBeDefined();
+    expect(screen.getByRole('timer', { name: 'Seat held for 10 min' }).textContent).toBe('10:00');
+    expect(screen.getByRole('button', { name: "I'm on my way" })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Decline seat' })).toBeDefined();
+  });
+
+  it('Seated: the seat in the header and the call time counting down to its end', async () => {
+    renderTonight([], [SEAT]);
+    expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
+    expect(screen.getByText('NLH 50/100 · playing 19 min')).toBeDefined();
+    expect(screen.getByRole('timer', { name: 'Call time left 2h 41m' }).textContent).toBe('2:41:08');
+  });
+});

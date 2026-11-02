@@ -52,7 +52,8 @@ describe('the Menu, while the feature map loads or fails (a weak signal in the c
 function seatReply(seat: 'on its way' | 'seated' | 'not seated'): Promise<Response> | Response {
   if (seat === 'on its way') return new Promise<Response>(() => undefined);
   if (seat === 'not seated') return Response.json([]);
-  return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null }]);
+  return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null, call_time_minutes: null,
+    started_at: '2026-11-15T16:55:00Z', call_time_ends_at: null, table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000 }]);
 }
 
 /** Signed in with table-side food, the seat answering as given, a chai on the menu, and orders whose first reply is lost. */

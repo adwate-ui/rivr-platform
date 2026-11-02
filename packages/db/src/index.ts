@@ -85,6 +85,7 @@ export {
   type TableOrder, type TablesFailure,
 } from './tablesSetup.ts';
 export { useGivePoints, useMemberPoints, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';
+export { useFloorTakenSeats, useSeatCallActions } from './seatCall.ts';
 export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {

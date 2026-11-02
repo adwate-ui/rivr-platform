@@ -4133,14 +4133,14 @@ isOneToOne: false
                   ]
                 },"waitlist_entry": {
                   Row: {
-                    "added_by_staff_id": string | null,"approved_at": string | null,"approved_by_staff_id": string | null,"away_used": string,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "added_by_staff_id": string | null,"approved_at": string | null,"approved_by_staff_id": string | null,"away_used": string,"call_seat": number | null,"call_table_id": string | null,"called_at": string | null,"created_at": string,"hold_until": string | null,"id": string,"idempotency_key": string,"joined_at": string,"left_at": string | null,"left_reason": string | null,"member_id": string,"on_way_at": string | null,"seated_at": string | null,"status": string,"stepped_away_at": string | null,"table_id": string | null,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id": string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key": string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id": string,"on_way_at"?: string | null,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_id"?: string | null,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id"?: string,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "added_by_staff_id"?: string | null,"approved_at"?: string | null,"approved_by_staff_id"?: string | null,"away_used"?: string,"call_seat"?: number | null,"call_table_id"?: string | null,"called_at"?: string | null,"created_at"?: string,"hold_until"?: string | null,"id"?: string,"idempotency_key"?: string,"joined_at"?: string,"left_at"?: string | null,"left_reason"?: string | null,"member_id"?: string,"on_way_at"?: string | null,"seated_at"?: string | null,"status"?: string,"stepped_away_at"?: string | null,"table_id"?: string | null,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4167,6 +4167,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "waitlist_entry_table_id_fkey"
+      columns: ["table_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "waitlist_entry_table_type_id_venue_id_fkey"
       columns: ["table_type_id","venue_id"]
@@ -4445,6 +4451,9 @@ isOneToOne: false
                            },
 "accept_fnb_order":
 { Args: { "p_order_id": string }; Returns: undefined
+                           },
+"accept_seat_call":
+{ Args: { "p_entry_id": string }; Returns: undefined
                            },
 "account_statement":
 { Args: { "p_from": string,"p_payment_account_id": string,"p_to": string }; Returns: {
@@ -4865,6 +4874,11 @@ isOneToOne: false
               "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"top_up": string
             }[]
                            },
+"floor_taken_seats":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "seat": number,"table_id": string
+            }[]
+                           },
 "floor_tonight":
 { Args: { "p_venue_id": string }; Returns: {
               "dealer_name": string,"hands": number,"hands_last_hour": number,"rake_basis_points": number,"rake_cap_paise": number,"rake_paise": number,"table_id": string,"venue_rake_paise": number
@@ -4962,6 +4976,9 @@ isOneToOne: false
                            },
 "join_waitlist":
 { Args: { "p_idempotency_key": string,"p_table_type_id": string }; Returns: string
+                           },
+"join_waitlist_at":
+{ Args: { "p_idempotency_key": string,"p_table_id": string }; Returns: string
                            },
 "kyc_in_person_candidates":
 { Args: { "p_search": string,"p_venue_id": string }; Returns: {
@@ -5112,7 +5129,7 @@ isOneToOne: false
                            },
 "my_feedback_visit":
 { Args: Record<PropertyKey, never>; Returns: {
-              "closed_at": string,"visit_id": string
+              "closed_at": string,"played_seconds": number,"table_name": string,"visit_id": string
             }[]
                            },
 "my_fnb_menu":
@@ -5175,7 +5192,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"started_at": string,"table_name": string,"top_up": string
+              "big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"table_name": string,"table_type_name": string,"top_up": string
             }[]
                            },
 "my_sessions":
@@ -5220,7 +5237,7 @@ isOneToOne: false
                            },
 "my_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
-              "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"entry_id": string,"hold_until": string,"is_request": boolean,"joined_at": string,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
+              "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"called_at": string,"entry_id": string,"hold_until": string,"is_request": boolean,"joined_at": string,"on_way_at": string,"place": number,"small_blind_paise": number,"table_id": string,"table_name": string,"table_type_id": string,"table_type_name": string
             }[]
                            },
 "my_wallet":
@@ -6006,7 +6023,7 @@ isOneToOne: false
                            },
 "waitlist_board":
 { Args: { "p_venue_id": string }; Returns: {
-              "added_by_floor": boolean,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"place": number,"priority_reason": string,"table_type_id": string
+              "added_by_floor": boolean,"asked_table_id": string,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"on_way_at": string,"place": number,"priority_reason": string,"table_type_id": string
             }[]
                            },
 "waitlist_lengths":

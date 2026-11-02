@@ -32,7 +32,8 @@ function renderSeat(replies: Record<string, { status?: number; body: unknown }>)
 
 const SEAT = {
   table_name: 'Table 3', seat: 2, is_away: false, has_call_time: true, call_time_left: 10800, played_seconds: 600, is_leaving: false,
-  top_up: 'requested',
+  top_up: 'requested', call_time_ends_at: '2026-11-15T20:00:00+00:00', table_type_name: 'NLH 100/200', small_blind_paise: 10000,
+  big_blind_paise: 20000,
 };
 
 afterEach(cleanup);
@@ -42,6 +43,7 @@ describe('the member at the table', () => {
     const { result } = renderSeat({ my_seat: { body: [SEAT] } });
     await waitFor(() => expect(result.current.seat.data).toEqual({
       tableName: 'Table 3', seat: 2, isAway: false, hasCallTime: true, callTimeLeft: 10800, playedSeconds: 600, isLeaving: false, topUp: 'requested',
+      callTimeEndsAt: '2026-11-15T20:00:00+00:00', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n,
     }));
   });
 

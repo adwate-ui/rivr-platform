@@ -1,7 +1,7 @@
 import type { WaitlistFailure } from '@rivr/db';
 import type { MessageKey } from '@rivr/i18n';
 
-/** What Home says when joining or leaving a waitlist did not go through. */
+/** What Tonight says when joining, answering a call or leaving a waitlist did not go through. */
 export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   not_open: 'player.tonight.notOpen',
   kyc_needed: 'player.tonight.kycNeeded',
@@ -15,6 +15,6 @@ export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>
   seat_held: 'player.tonight.unavailable',
   seat_taken: 'player.tonight.unavailable',
   too_late: 'player.tonight.tooLate',
-  no_time_away: 'player.tonight.noTimeAway',
+  no_time_away: 'player.tonight.unavailable',
   one_at_a_time: 'player.tonight.oneAtATime',
 };

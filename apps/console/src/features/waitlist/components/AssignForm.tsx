@@ -11,6 +11,8 @@ interface AssignFormProps {
   name: string;
   /** The game's open tables, one of which the member is assigned to. */
   tables: readonly FloorTable[];
+  /** The table the member asked for from the app (decision 0321): chosen first when it is open. */
+  askedTableId?: string | null | undefined;
   onDone: () => void;
 }
 
@@ -21,19 +23,22 @@ function useFreeSeats(venueId: string, table: FloorTable | undefined): number[] 
   return table === undefined ? [] : openSeatsAt(table, [...(seats.data ?? []), ...(held.data ?? [])]);
 }
 
-/** A table chosen first when the game has only one open. */
-const onlyTable = (tables: readonly FloorTable[]): string[] => (tables.length === 1 && tables[0] ? [tables[0].id] : []);
+/** The table chosen first: the one the member asked for when it is open, else the game's only open one. */
+function firstTable(tables: readonly FloorTable[], askedTableId: string | null | undefined): string[] {
+  if (askedTableId && tables.some((table) => table.id === askedTableId)) return [askedTableId];
+  return tables.length === 1 && tables[0] ? [tables[0].id] : [];
+}
 
 /**
  * Assigns a member to an open table of their game, a seat free at it (neither taken nor held, F2-18) and a call time, and
  * seats them at once (decision 0299); the seat-ready message still goes out by WhatsApp.
  */
-export function AssignForm({ venueId, entryId, name, tables, onDone }: AssignFormProps) {
+export function AssignForm({ venueId, entryId, name, tables, askedTableId, onDone }: AssignFormProps) {
   const { assign } = useWaitlistCallActions();
-  const [tableIds, setTableIds] = useState<string[]>(() => onlyTable(tables));
+  const [tableIds, setTableIds] = useState<string[]>(() => firstTable(tables, askedTableId));
   const [picked, setPicked] = useState<number | null>(null);
   // The stake's own call time to start from (decision 0299); another is the floor's choice.
-  const [callMinutes, setCallMinutes] = useState<number | null>(() => tables.find((one) => one.id === onlyTable(tables)[0])?.callTimeMinutes ?? null);
+  const [callMinutes, setCallMinutes] = useState<number | null>(() => tables.find((one) => one.id === firstTable(tables, askedTableId)[0])?.callTimeMinutes ?? null);
   // 'choose' when no table, seat or call time is chosen; else why the assignment did not go through.
   const [failure, setFailure] = useState<WaitlistFailure | 'choose' | null>(null);
   const table = tables.find((candidate) => candidate.id === tableIds[0]);

@@ -1,66 +1,132 @@
-import { useFeature, useFloorTables, useMyWaitlist, type FloorTable, type WaitlistPlace } from '@rivr/db';
+import { useFloorTables, useMySeat, useMyUpcomingTournaments, useMyWaitlist, type FloorTable, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { useMyNotices } from '@rivr/db/notices';
 import { t } from '@rivr/i18n';
-import { FeatureGate, Heading, Screen, Stack, Text } from '@rivr/ui';
-import type { ReactNode } from 'react';
-import { HomePromotions } from './HomePromotions.tsx';
+import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, useToast } from '@rivr/ui';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNow } from '../hooks/useNow.ts';
+import { JoinSheet } from './JoinSheet.tsx';
 import { RateVisit } from './RateVisit.tsx';
-import { SeatNotice } from './SeatNotice.tsx';
+import { SeatedView } from './SeatedView.tsx';
+import { SeatReadyView } from './SeatReadyView.tsx';
+import { runningLine, TablesList } from './TablesList.tsx';
 import { TonightBanners } from './TonightBanners.tsx';
-import { UpcomingTournaments } from './UpcomingTournaments.tsx';
+import { TonightHeader } from './TonightHeader.tsx';
+import { TonightOffers } from './TonightOffers.tsx';
+import { WaitingView } from './WaitingView.tsx';
 
-/**
- * Home: tonight's floor (design prompt, "Home"). The member's waitlist places first, then each table
- * with its stakes and how many wait, and Join (#38). The floor shows with feature floor.live_view.
- * During a break (#56), Home says until when tables are closed to the member, as in the prototype.
- * Seated, Home says where, and the call time left (#78). The live promotions page beneath (#86). The
- * club's upcoming tournaments above the tables, to register interest in (#636), and each table's open seats.
- * After a visit, Home asks how it was (#160, decision 0165). The club's notices come first (decision 0298). The tournament card and satellite tickets
- * (TonightHighlights, TournamentTickets) are hidden with the tournament module (decision 0284).
- * The waitlist's parts come from features/waitlist, through the route (#273), so no feature imports another.
- */
-interface HomeScreenProps {
-  /** The member's waitlist places, from features/waitlist (#273). */
-  yourWaitlist: (places: readonly WaitlistPlace[]) => ReactNode;
-  /** Tonight's tables with Join, from features/waitlist. */
-  floor: (tables: readonly FloorTable[], places: readonly WaitlistPlace[]) => ReactNode;
+/** Where the member stands tonight, which fills the screen (decision 0320). */
+type Standing =
+  | { kind: 'browsing' }
+  | { kind: 'waiting'; place: WaitlistPlace }
+  | { kind: 'ready'; place: WaitlistPlace & { holdUntil: string } }
+  | { kind: 'seated'; seat: MySeat };
+
+function standingOf(seat: MySeat | null, places: readonly WaitlistPlace[]): Standing {
+  if (seat !== null) return { kind: 'seated', seat };
+  const [place] = places;
+  if (place === undefined) return { kind: 'browsing' };
+  return place.holdUntil === null ? { kind: 'waiting', place } : { kind: 'ready', place: { ...place, holdUntil: place.holdUntil } };
 }
 
-export function HomeScreen({ yourWaitlist, floor }: HomeScreenProps) {
-  const liveView = useFeature('floor.live_view');
+/** The phone buzzes as the seat is called and as the member sits (brief 2.5), and a toast says where they sat. */
+function useArrivals(standing: Standing) {
+  const toast = useToast();
+  const last = useRef(standing.kind);
+  useEffect(() => {
+    const before = last.current;
+    last.current = standing.kind;
+    if (before === standing.kind || before === 'seated') return;
+    if (standing.kind === 'ready') haptic();
+    if (standing.kind === 'seated' && before !== 'browsing') {
+      haptic();
+      toast(t('player.live.seated.seatedToast', { table: standing.seat.tableName, seat: standing.seat.seat }));
+    }
+  }, [standing, toast]);
+}
+
+/** What the member's standing shows: offers and the tables while browsing, else their place, their seat call or their seat. */
+function StandingView({ standing, now, offer, onJoin, tables }: {
+  standing: Standing; now: Date; offer: ReactNode; onJoin: (table: FloorTable) => void; tables: readonly FloorTable[];
+}) {
+  const tournaments = useMyUpcomingTournaments().data?.length ?? 0;
+  switch (standing.kind) {
+    case 'waiting': return <WaitingView place={standing.place} offer={offer} />;
+    case 'ready': return <SeatReadyView place={standing.place} now={now} />;
+    case 'seated': return <SeatedView seat={standing.seat} now={now}>{null}</SeatedView>;
+    default: return (
+      <Stack gap={4}>
+        <RateVisit />
+        <TonightOffers />
+        <SheetPanel title={t('player.live.allTables')} aside={runningLine(tables, tournaments)}><TablesList tables={tables} onOpen={onJoin} /></SheetPanel>
+      </Stack>
+    );
+  }
+}
+
+/** While the member waits or plays, all the tables peek above the tab bar and open in a sheet. */
+function TablesPeek({ tables }: { tables: readonly FloorTable[] }) {
+  const [isOpen, setOpen] = useState(false);
+  const tournaments = useMyUpcomingTournaments().data?.length ?? 0;
+  return (
+    <>
+      <PlayerDock><PeekBar title={t('player.live.allTables')} aside={runningLine(tables, tournaments)} onOpen={() => setOpen(true)} /></PlayerDock>
+      <Sheet isOpen={isOpen} onClose={() => setOpen(false)} title={t('player.live.allTables')} titleLook="plain"><TablesList tables={tables} /></Sheet>
+    </>
+  );
+}
+
+/** The header and the banners under it, at the top of every standing. */
+function TonightTop({ seat, now, isBrowsing, shownAt, hasRefreshFailed, onRetry }: {
+  seat: MySeat | null; now: Date; isBrowsing: boolean; shownAt: number; hasRefreshFailed: boolean; onRetry: () => void;
+}) {
+  const notices = useMyNotices().data ?? [];
+  return (
+    <Stack gap={2}>
+      <TonightHeader seat={seat} now={now} />
+      <Box paddingX={5}>
+        <TonightBanners notices={notices} isBrowsing={isBrowsing} shownAt={shownAt} hasRefreshFailed={hasRefreshFailed} onRetry={onRetry} />
+      </Box>
+    </Stack>
+  );
+}
+
+/** Tonight's three reads together: the tables, the member's places and their seat, with one retry for all. */
+function useTonight() {
   const tables = useFloorTables();
   const places = useMyWaitlist();
-  const myNotices = useMyNotices();
-  const notices = myNotices.data ?? [];
-  const title = t('player.tonight.title');
-  if (tables.isPending || places.isPending || myNotices.isPending) return <Screen title={title} status="loading" loadingLook="skeleton" />;
-  // A refresh that fails keeps what the screen had, under a banner (decision 0320): the error screen only with nothing to show.
-  if (tables.data === undefined || places.data === undefined) {
-    return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />;
-  }
-  // Without the live floor the member reads no tables: the gate below says so, not the empty state.
-  const isEmpty = liveView.state === 'enabled' && [tables.data, places.data, notices].every((list) => list.length === 0);
-  const banners = (
-    <TonightBanners notices={notices} isBrowsing={places.data.length === 0} shownAt={tables.dataUpdatedAt}
-      hasRefreshFailed={tables.isError || places.isError} onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />
-  );
-  if (isEmpty) return <Screen title={title}><Stack gap={4}>{banners}<Text tone="muted">{t('player.tonight.empty')}</Text></Stack></Screen>;
+  const seat = useMySeat();
+  return {
+    tables, places, seat,
+    isPending: tables.isPending || places.isPending || seat.isPending,
+    hasFailed: tables.isError || places.isError || seat.isError,
+    retry: () => void Promise.all([tables.refetch(), places.refetch(), seat.refetch()]),
+  };
+}
+
+/**
+ * Tonight (decision 0320, "Live night"): the member's own state fills the screen and the floor sits in a sheet. Browsing,
+ * the offers and the tables, a table opening its join sheet; on a list, their place; called, the seat held for them; seated,
+ * the call-time ring and what they do from the seat. Banners under the header. A first load is a skeleton; a refresh that
+ * fails keeps what was shown, under a banner. `offer` is Profile's offer of seat-ready push, through the route.
+ */
+export function HomeScreen({ offer }: { offer: ReactNode }) {
+  const tonight = useTonight();
+  const [joining, setJoining] = useState<FloorTable | null>(null);
+  const seat = tonight.seat.data ?? null;
+  const standing = standingOf(seat, tonight.places.data ?? []);
+  const now = useNow(standing.kind === 'ready' || standing.kind === 'seated');
+  useArrivals(standing);
+  const title = t('player.live.title');
+  const tables = tonight.tables.data;
+  if (tonight.isPending) return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
+  if (tables === undefined || tonight.places.data === undefined) return <Screen title={title} status="error" onRetry={tonight.retry} />;
   return (
-    <Screen title={title}>
-      <Stack gap={8}>
-        {banners}
-        <SeatNotice />
-        <RateVisit />
-        {yourWaitlist(places.data)}
-        <FeatureGate access={liveView}>
-          <Stack gap={3}>
-            <Heading level={2}>{t('player.tonight.tables')}</Heading>
-            {floor(tables.data, places.data)}
-          </Stack>
-        </FeatureGate>
-        <UpcomingTournaments />
-        <HomePromotions />
-      </Stack>
+    <Screen title={title} isTitleHidden>
+      <TonightTop seat={seat} now={now} isBrowsing={standing.kind === 'browsing'} shownAt={tonight.tables.dataUpdatedAt}
+        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} />
+      <StandingView standing={standing} now={now} offer={offer} onJoin={setJoining} tables={tables} />
+      {standing.kind === 'browsing' ? null : <TablesPeek tables={tables} />}
+      <JoinSheet table={joining} onClose={() => setJoining(null)} />
     </Screen>
   );
 }

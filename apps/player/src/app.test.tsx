@@ -127,7 +127,7 @@ describe('the player app', () => {
   it('says it is offline above the screen while the phone has no connection', async () => {
     signIn();
     renderAt('/', clientWithKabir());
-    await screen.findByText('No tables are running.');
+    await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 });
     expect(screen.queryByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeNull();
     act(() => goOnline(false));
     // A banner at the top of Tonight (decision 0320), naming when the tables shown came.
@@ -138,7 +138,7 @@ describe('the player app', () => {
     signIn();
     renderAt('/', clientWithKabir());
     expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
-    expect(await screen.findByText('No tables are running.')).toBeDefined();
+    expect(await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeDefined();
   });
 
