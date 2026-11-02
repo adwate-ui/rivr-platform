@@ -13,6 +13,13 @@ export const playerKyc = {
   verifiedStepDetail: 'Book a seat.',
   kept: 'Kept: your photo, date of birth, address, PAN and the last four digits of your Aadhaar.',
   takeSelfie: 'Take a selfie',
+  /** Before the camera opens: a check keeps one selfie, so how to take one that passes (#720). */
+  tipsTitle: 'Selfie tips',
+  tipLight: 'Good, even light on your face.',
+  tipCamera: 'Look straight at the camera.',
+  tipClear: 'No cap, mask or sunglasses.',
+  tipAlone: 'Only you in the photo.',
+  tipOnce: 'It is your one selfie for this check.',
   /** Under the steps: the way round a check that will not go on (P-03). */
   inPerson: 'The front desk can check you in person.',
   selfieTitle: 'Selfie',

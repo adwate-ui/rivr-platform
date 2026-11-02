@@ -11,7 +11,7 @@ select results_eq(
   $$ values ('Privacy'::text, true, null::integer) $$,
   'the club has its published Privacy page, linked from the footer, from its bootstrap');
 select ok((select b.content ->> 'body' from public.site_block b join public.site_page p on p.id = b.page_id
-           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug = 'privacy' and b.kind = 'text')
+           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug = 'privacy' and b.kind = 'text' and b.content ->> 'heading' = 'Backups and erasure')
           ~ 'kept for 35 days, and one backup a month for 400 days.*\n\nErasure\..*made again before the restored records are used\.$',
   'which says how long backups keep personal data, and that erasures are made again after a restore');
 select is((select count(*)::integer from public.site_page where venue_id = '00000000-0000-4000-8000-000000000001'), 23,
@@ -41,7 +41,7 @@ update public.site_block b set content = '{"body": "Edited by marketing."}'
 from public.site_page p where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-000000000a06' and p.slug = 'privacy' and b.kind = 'text';
 delete from public.site_page where venue_id = '00000000-0000-4000-8000-000000000a06' and slug = 'terms';
 select private.add_website('00000000-0000-4000-8000-000000000a06');
-select is((select b.content ->> 'body' from public.site_block b join public.site_page p on p.id = b.page_id
+select is((select string_agg(distinct b.content ->> 'body', ' | ') from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = '00000000-0000-4000-8000-000000000a06' and p.slug = 'privacy' and b.kind = 'text'),
   'Edited by marketing.', 'adding it again leaves a page, and any edit to it, as it is');
 select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
@@ -51,8 +51,9 @@ select is((select count(*)::integer from public.site_block b join public.site_pa
 set local role anon;
 select results_eq(
   $$ select page_slug, kind from public.public_site_block where venue_slug = 'gurugram' and page_slug = 'privacy' order by position $$,
-  $$ values ('privacy'::text, 'hero'::text), ('privacy', 'text') $$,
-  'anyone reads the Privacy page on the website');
+  $$ values ('privacy'::text, 'hero'::text), ('privacy', 'text'), ('privacy', 'text'), ('privacy', 'text'), ('privacy', 'text'),
+            ('privacy', 'text'), ('privacy', 'text'), ('privacy', 'text'), ('privacy', 'text') $$,
+  'anyone reads the Privacy page on the website: its notice in eight sections (W-05)');
 reset role;
 
 select * from finish();

@@ -37,7 +37,7 @@ select results_eq($$ select p.slug, jsonb_array_length(b.content -> 'items'),
                             (select count(*)::integer from jsonb_array_elements(b.content -> 'items') i where i #>> '{link,href}' like 'https://indiankanoon.org/doc/%')
                      from public.site_block b join public.site_page p on p.id = b.page_id
                      where p.venue_id = (select venue_id from club) and b.kind = 'timeline' order by p.slug $$,
-  $$ values ('about'::text, 4, 4), ('home', 4, 4) $$, 'On the record lists four rulings on both pages, each linked to its judgment');
+  $$ values ('about'::text, 4, 4) $$, 'On the record lists four rulings on the About page, each linked to its judgment (the front page''s copy went, W-01)');
 
 select ok((select b.content -> 'cards' @> '[{"link": {"page": "journal-cash-game-tips"}}, {"link": {"page": "journal-tournaments-gurugram"}}]'
              and not b.content::text like '%journal-poker-legal-gurugram%'
@@ -48,9 +48,9 @@ select is((select count(*) from public.site_block b join public.site_page p on p
            where p.venue_id = (select venue_id from club) and p.slug in ('home', 'membership')
              and (b.content::text like '%5\% of your rake%' or b.content::text like '%₹1,000 on your first%' or b.content::text like '%fourth visit%')), 0::bigint,
   'no page writes in words a rule the settings and promotions now hold');
-select ok((select b.content -> 'cards' @> '[{"title": "Valet and parking"}]' from public.site_block b join public.site_page p on p.id = b.page_id
-           where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.content ->> 'eyebrow' = 'Hospitality'),
-  'hospitality lists valet and parking');
+select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
+           where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.content ->> 'eyebrow' = 'Hospitality'), 0,
+  'the front page no longer repeats hospitality (W-01); the room keeps its parking card');
 
 -- Again: nothing changes.
 create temporary table before as select b.id, b.position, b.kind, b.content from public.site_block b where b.venue_id = (select venue_id from club);

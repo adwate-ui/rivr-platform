@@ -1,0 +1,9 @@
+# 0295: The website's launch text, and selfie tips
+
+Date: 2 Nov 2026. The owner, that afternoon: trim the front page, write the legal pages and the Academy's, and no selfie retake but tips.
+
+- **The front page (W-01).** Five bands said again what others say: the phrase strip, Play. Connect. Belong., the RIVR difference, Hospitality and the legal timeline (the About page keeps the legal story). They go, matched by the heading they shipped with, so a band the club renamed stays. The cab home, the one thing Hospitality said that no other band does, joins The room's cards first, and Hospitality goes only once it has (not when The room was renamed or is full). The bands left close up from the top.
+- **Privacy and terms (W-05).** Written from what the platform does: what is kept (never the full Aadhaar number), why, who sees it (staff by role, the cashier too for the selfie; Cashfree, WhatsApp, MSG91, HubSpot, Supabase, Cloudflare; Meta and Google measure adverts, only with the offers yes), how long, the member's rights under the DPDP Act 2023 with the Data Protection Board, cookies, and the backups note word for word. The terms cover membership, the club, offers, the account, responsible play, liability and Indian law. They are a working draft for a lawyer to review before the opening.
+- **The Academy (W-06).** How it works, Level 1, who can join, and the graduate's bonus worded as Membership words it, with no amount (the promotion is a draft). The app does not book a batch (0284 switched `academy.booking` off), so the page says to ask at the front desk; #724 asks the owner how members join and whether the bonus is live.
+- **Only as shipped.** Each page changes only while it reads as the website came with it, so words a club wrote stay.
+- **Selfie tips (#720).** A check keeps one selfie, so the identity intro says how to take one that passes before the camera opens.

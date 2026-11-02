@@ -9,8 +9,9 @@ import { KycOutcome } from './KycOutcome.tsx';
 import { KycLoadFailed, KycLoading } from './KycRecordStates.tsx';
 import { KycSteps } from './KycSteps.tsx';
 import { SelfieStep } from './SelfieStep.tsx';
+import { SelfieTips } from './SelfieTips.tsx';
 
-/** Before the camera opens: the three steps, what is kept, and Take a selfie (K-09). */
+/** Before the camera opens: the three steps, how to take a selfie that passes (issue 720), what is kept, and Take a selfie (K-09). */
 function KycIntro({ onStart }: { onStart: () => void }) {
   return (
     <StepScreen
@@ -22,6 +23,7 @@ function KycIntro({ onStart }: { onStart: () => void }) {
       }
     >
       <KycSteps at="selfie" />
+      <SelfieTips />
       <Text variant="small" tone="muted">{t('player.kyc.kept')}</Text>
       <KycHelp />
     </StepScreen>
