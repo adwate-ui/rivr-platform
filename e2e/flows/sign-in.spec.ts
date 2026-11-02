@@ -80,7 +80,7 @@ test.describe('Sign in', () => {
 
   test('Sign in › Phone: Back changes the number, and a second code inside the minute is refused', async ({ page }) => {
     await requestCode(page, '9000000204');
-    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000204');
     await page.getByRole('button', { name: 'Send code' }).click();
     await expect(page.getByText('Too many tries. Wait a minute.')).toBeVisible();

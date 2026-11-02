@@ -37,7 +37,7 @@ test.describe('F&B', () => {
     await signInToPlayer(member, '9000000288');
     // Order (brief 3.5): from the seat, the menu by category, Add turning into a count, then the send bar.
     await member.getByRole('button', { name: 'Order to my seat' }).click();
-    await expect(member.getByRole('heading', { name: 'Order' })).toBeVisible();
+    await expect(member.getByRole('heading', { name: 'Order', level: 1, exact: true })).toBeVisible();
     await expect(member.getByText('Table 3, seat 1 · Pay on delivery')).toBeVisible();
     await member.getByRole('button', { name: 'Soft drinks', exact: true }).click();
     await member.getByRole('button', { name: 'Add Masala chai' }).click();

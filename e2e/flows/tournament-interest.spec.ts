@@ -1,8 +1,8 @@
 /**
  * Tournament interest (#636). The club publishes a tournament for the day after tomorrow (made here, in the local
- * database, with a name of the run's own). Ajay Dhillon, this flow's own member, sees it under Upcoming tournaments on
- * Home with no buy-in, and registers interest. Leela Pillai, this flow's own admin, finds him on the console's Tournament
- * interest screen and marks him registered once he paid at the club; his Home then says Registered. The rules are
+ * database, with a name of the run's own). Ajay Dhillon, this flow's own member, sees it under Tournaments in Tonight's
+ * tables with no buy-in, and asks to be notified (decision 0320). Leela Pillai, this flow's own admin, finds him on the console's Tournament
+ * interest screen and marks him registered once he paid at the club; his Tonight then says Registered. The rules are
  * proved in supabase/tests/204_tournament_interest.test.sql.
  */
 import { execFileSync } from 'node:child_process';
@@ -28,11 +28,12 @@ test.describe('Tournament interest', () => {
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000408');
-    await expect(member.getByRole('heading', { name: 'Upcoming tournaments' })).toBeVisible();
+    await expect(member.getByRole('heading', { name: 'Tournaments', exact: true })).toBeVisible();
     await expect(member.getByText(name, { exact: true })).toBeVisible();
     await expect(member.getByText(/₹/)).toHaveCount(0);
     await member.getByRole('button', { name: `Register interest in ${name}` }).click();
-    await expect(member.getByText('Pay at the club, and the floor registers you.')).toBeVisible();
+    // Notify me becomes Notifying you (decision 0320); the floor registers them once they pay at the club.
+    await expect(member.getByRole('button', { name: `Register interest in ${name}` })).toHaveText('Notifying you');
 
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000116');
