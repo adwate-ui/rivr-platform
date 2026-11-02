@@ -34,7 +34,7 @@ export interface FnbOrderTonight {
   readonly seat: number;
   readonly memberName: string;
   readonly memberNumber: number;
-  readonly lines: readonly { name: string; quantity: number; note: string | null }[];
+  readonly lines: readonly { itemId: string; name: string; quantity: number; note: string | null }[];
   readonly isComp: boolean;
   readonly source: 'app' | 'tablet' | 'console';
   readonly createdAt: string;
@@ -221,7 +221,7 @@ function linesOf(lines: unknown): FnbOrderTonight['lines'] {
   return lines.map((line: unknown) => {
     const field = (name: string): unknown => (typeof line === 'object' && line !== null ? Reflect.get(line, name) : undefined);
     const note = field('note');
-    return { name: String(field('name')), quantity: Number(field('quantity')), note: typeof note === 'string' ? note : null };
+    return { itemId: String(field('item_id')), name: String(field('name')), quantity: Number(field('quantity')), note: typeof note === 'string' ? note : null };
   });
 }
 

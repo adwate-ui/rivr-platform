@@ -87,3 +87,9 @@ export const Tiles: Story = {
   args: { look: 'tile', mode: 'one', label: 'Add time', selected: ['60'],
     options: [{ value: '30', label: '30 min' }, { value: '60', label: '1 hour' }, { value: '120', label: '2 hours' }] },
 };
+
+/** The Order screen's categories, underlined in gold (decision 0320). */
+export const Tabs: Story = {
+  args: { look: 'tabs', mode: 'one', label: 'Menu', isLabelVisuallyHidden: true, selected: ['food'],
+    options: [{ value: 'food', label: 'Food' }, { value: 'soft', label: 'Soft drinks' }, { value: 'bar', label: 'Bar' }] },
+};

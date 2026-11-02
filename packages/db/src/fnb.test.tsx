@@ -63,7 +63,7 @@ describe('table-side food and drink', () => {
     await waitFor(() => expect(result.current.items.data).toEqual([{ ...chai, isAvailable: false, position: 1 }]));
     await waitFor(() => expect(result.current.tonight.data).toEqual([{
       orderId: 'o1', kotNumber: 3, tableName: 'Table 3', seat: 5, memberName: 'Yash Gupta', memberNumber: 1043,
-      lines: [{ name: 'Masala chai', quantity: 2, note: null }], isComp: true, source: 'console', createdAt: '2026-11-15T16:30:00Z', kotSentBy: null,
+      lines: [{ itemId: CHAI, name: 'Masala chai', quantity: 2, note: null }], isComp: true, source: 'console', createdAt: '2026-11-15T16:30:00Z', kotSentBy: null,
     }]));
   });
 

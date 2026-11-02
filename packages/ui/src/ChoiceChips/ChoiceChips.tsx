@@ -33,7 +33,7 @@ export interface ChoiceChipsProps<Value extends string> {
    * `pill`, the redesign's rounded chips, picked in gold tint; `tile`, square choices in a row of equal columns, such as a
    * rating of 1 to 5 or Add time's three lengths (decision 0320). `chip` elsewhere.
    */
-  look?: 'chip' | 'pill' | 'tile';
+  look?: 'chip' | 'pill' | 'tile' | 'tabs';
 }
 
 const CHIP =
@@ -47,8 +47,19 @@ const TILE = 'rounded-md border font-text text-18 font-medium transition-colors 
 
 const TILE_ROW: Record<number, string> = { 3: 'grid grid-cols-3 gap-2', 5: 'grid grid-cols-5 gap-2' };
 
+// The Order screen's categories (decision 0320): words over a hairline, the chosen one underlined in gold.
+const TAB = '-mb-px min-h-touch border-b-2 font-text text-16 font-medium transition-colors';
+
+/** The row the choices sit in, by look. */
+function rowClasses(look: 'chip' | 'pill' | 'tile' | 'tabs', optionCount: number, isOneRow: boolean): string {
+  if (look === 'tile') return TILE_ROW[optionCount] ?? 'grid grid-cols-3 gap-2';
+  if (look === 'tabs') return 'flex gap-6 border-b border-hairline';
+  return cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap');
+}
+
 /** The classes of one choice in each look, on or off. */
-function choiceClasses(look: 'chip' | 'pill' | 'tile', isOn: boolean, optionCount: number): string {
+function choiceClasses(look: 'chip' | 'pill' | 'tile' | 'tabs', isOn: boolean, optionCount: number): string {
+  if (look === 'tabs') return cx(TAB, isOn ? 'border-gold text-content' : 'border-transparent text-content-muted');
   if (look === 'chip') return cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted');
   const picked = isOn ? 'border-gold bg-gold-tint text-content' : 'border-control text-content-muted';
   return look === 'pill' ? cx(PILL, picked) : cx(TILE, optionCount === 5 ? 'h-round' : 'h-tile', picked);
@@ -74,7 +85,7 @@ export function ChoiceChips<Value extends string>({
         </Text>
       )}
       <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined}
-        className={look === 'tile' ? TILE_ROW[options.length] ?? 'grid grid-cols-3 gap-2' : cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap')}>
+        className={rowClasses(look, options.length, isOneRow)}>
         {options.map((option) => {
           const isOn = selected.includes(option.value);
           return (

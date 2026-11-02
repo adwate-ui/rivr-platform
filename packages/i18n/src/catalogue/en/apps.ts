@@ -59,13 +59,14 @@ import { tonight, waitlist } from './waitlist.ts';
 import { consoleFnb, playerFnb } from './fnb.ts';
 import { playerAlerts, playerNotFound } from './playerAlerts.ts';
 import { playerSignIn } from './playerSignIn.ts';
-import { playerLive } from './playerLive.ts';
+import { playerLive, playerOrder } from './playerLive.ts';
 
 export const playerApp = {
   alerts: playerAlerts,
   notFound: playerNotFound,
   signIn: playerSignIn,
   live: playerLive,
+  order: playerOrder,
   tonight,
   fnb: playerFnb,
   events: playerEvents,

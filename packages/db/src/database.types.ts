@@ -5276,6 +5276,11 @@ isOneToOne: false
               "name": string,"standing": string,"starts_at": string,"tournament_id": string
             }[]
                            },
+"my_usual_fnb_items":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "item_id": string,"times": number
+            }[]
+                           },
 "my_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
               "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"called_at": string,"entry_id": string,"hold_until": string,"is_request": boolean,"joined_at": string,"on_way_at": string,"place": number,"small_blind_paise": number,"table_id": string,"table_name": string,"table_type_id": string,"table_type_name": string

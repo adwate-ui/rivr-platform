@@ -112,3 +112,22 @@ export const playerLive = {
     sentToast: 'Rating sent',
   },
 } as const;
+
+/** The Order screen (brief 3.5): food and drink to the seat, paid on delivery. */
+export const playerOrder = {
+  back: 'Tonight',
+  title: 'Order',
+  /** `Table 1, seat 4 · Pay on delivery`. */
+  seat: '{table}, seat {seat} · Pay on delivery',
+  categories: 'Menu',
+  usual: 'Your usual',
+  addBoth: 'Add both',
+  add: 'Add',
+  /** Read out for an item's Add: `Add Masala chai`. */
+  addName: 'Add {name}',
+  send: 'Send to the bar',
+  items: '{count} items',
+  itemsOne: '1 item',
+  sentToast: 'Order sent',
+} as const;
+

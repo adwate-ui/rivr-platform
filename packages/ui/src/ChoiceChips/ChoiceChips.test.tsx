@@ -90,4 +90,11 @@ describe('ChoiceChips', () => {
     expect(screen.getByRole('button', { name: '30 min' })).toHaveClass('rounded-full', 'border-gold');
     expect(screen.getByRole('button', { name: '2 hours' })).toHaveClass('border-control');
   });
+
+  it('underlines the chosen category in gold as tabs (decision 0320)', () => {
+    renderIn(<ChoiceChips label="Menu" look="tabs" mode="one" options={[{ value: 'food', label: 'Food' }, { value: 'bar', label: 'Bar' }]}
+      selected={['food']} onChange={() => undefined} />);
+    expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('border-gold', 'border-b-2');
+    expect(screen.getByRole('button', { name: 'Bar' })).toHaveClass('border-transparent');
+  });
 });
