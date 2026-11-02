@@ -15,9 +15,9 @@ export async function signInToPlayer(page: Page, number: string, path = '/sign-i
   await page.goto(`${appUrl('player')}${path}`);
   await page.getByRole('textbox', { name: 'Mobile number' }).fill(number);
   await page.getByRole('button', { name: 'Send code' }).click();
-  // Six digits in, the code goes on by itself (S-01).
-  await page.getByRole('textbox', { name: /^Code sent to/ }).fill(SIGN_IN_CODE);
-  if (path === '/sign-in') await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+  // Six digits in, the code goes on by itself (S-01), in the redesign's code cells (decision 0320).
+  await page.getByRole('textbox', { name: '6-digit code' }).fill(SIGN_IN_CODE);
+  if (path === '/sign-in') await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
   else await expect(page).toHaveURL(new RegExp(`${path}$`));
 }
 

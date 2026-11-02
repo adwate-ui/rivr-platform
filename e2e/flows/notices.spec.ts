@@ -22,6 +22,6 @@ test('Notices: a notice put up in Settings shows on members\' Home until it is e
   await page.getByRole('button', { name: 'Yes, end it' }).click();
   await expect(page.getByRole('status').getByText('Notice ended.')).toBeVisible();
   await member.reload();
-  await expect(member.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+  await expect(member.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
   await expect(member.getByText(words)).toHaveCount(0);
 });

@@ -1,6 +1,6 @@
 /**
- * KYC (#4, #5): a member takes a selfie, checks their identity with DigiLocker and sees what was
- * kept: the masked Aadhaar, never the number. The practice venue uses the fake vendor, which consents at once and
+ * KYC (#4, #5): a member takes a selfie with the live camera, checks their identity with DigiLocker and is welcomed by
+ * their first name (decision 0320). The practice venue uses the fake vendor, which consents at once and
  * sends the member straight back; a real venue without vendor keys fails closed (decision 0014). Staging has
  * Cashfree's sandbox keys (#474, decision 0197), so there the real venue's check goes to Cashfree instead.
  */
@@ -18,7 +18,7 @@ async function takeSelfie(page: Page) {
   await page.goto(`${appUrl('player')}/kyc`);
   const take = page.getByRole('button', { name: 'Take a selfie' });
   const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
-  await expect(take.or(start).or(page.getByRole('heading', { name: 'Identity verified' }))).toBeVisible();
+  await expect(take.or(start).or(page.getByRole('heading', { name: "You're verified." }))).toBeVisible();
   if (!(await take.isVisible())) return;
   await expect(page.getByRole('list', { name: 'Identity check' })).toBeVisible();
   await take.click();
@@ -30,21 +30,21 @@ async function takeSelfie(page: Page) {
 /** After the selfie, sets off for DigiLocker, unless an earlier run already verified this member. */
 async function startDigiLocker(page: Page) {
   const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
-  await expect(start.or(page.getByRole('heading', { name: 'Identity verified' }))).toBeVisible();
+  await expect(start.or(page.getByRole('heading', { name: "You're verified." }))).toBeVisible();
   if (await start.isVisible()) await start.click();
 }
 
 test.describe('KYC', () => {
-  test('a practice-venue member is verified with a selfie and DigiLocker in under three minutes', async ({ page }) => {
+  test('Identity › Start, Camera, Review selfie, Verified: a practice-venue member is verified with a selfie and DigiLocker in under three minutes', async ({ page }) => {
     const began = Date.now();
     await signInToPlayer(page, '9000000301', '/kyc');
     await takeSelfie(page);
     await startDigiLocker(page);
-    await expect(page.getByRole('heading', { name: 'Identity verified' })).toBeVisible();
-    await expect(page.getByText(/^XXXX XXXX \d{4}$/)).toBeVisible();
+    await expect(page.getByRole('heading', { name: "You're verified." })).toBeVisible();
+    await expect(page.getByText(/^Welcome to RIVR, \w+\.$/)).toBeVisible();
     expect(Date.now() - began).toBeLessThan(180_000);
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
+    await page.getByRole('button', { name: "See tonight's tables" }).click();
+    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
   });
 
   test('a real venue without a KYC vendor fails closed', async ({ page }) => {
@@ -56,7 +56,7 @@ test.describe('KYC', () => {
     // Staging's real venue has Cashfree's sandbox keys, so its KYC is open, not closed: it is proved locally.
     if (isRemoteTarget()) return;
     await takeSelfie(page);
-    await expect(page.getByText('Not open yet. Staff check your documents at the club.')).toBeVisible();
+    await expect(page.getByRole('alert').getByText('Identity checks are not open yet.')).toBeVisible();
   });
 
   test('a member DigiLocker failed for can try it again from the PAN step; one it matched without a PAN is not offered it', async ({ browser, page, request }) => {

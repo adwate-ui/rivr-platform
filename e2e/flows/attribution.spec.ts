@@ -1,7 +1,7 @@
 /**
  * Attribution (#10): a new player opens a link to Rewards with a referral and UTM codes, signs in
- * with a code, sees the number they signed in with, adds a photo and gives their name, city, what best describes them and
- * when they usually play (#631) and the games they play (#653), and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
+ * with a code, sees the number they signed in with, gives their name, city, occupation, when they usually play (#631) and
+ * the games they play (#653) in the redesign's pickers (decision 0320), and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
  * member.signed_up carries them). Local stack only: it frees its number from the member an earlier run
  * created, and reads the codes, in the local database itself.
  */
@@ -32,41 +32,33 @@ test.describe('Attribution', () => {
     await page.goto(`${appUrl('player')}/rewards?ref=FRIEND1&utm_source=instagram&utm_campaign=launch`);
     await page.getByRole('textbox', { name: 'Mobile number' }).fill(NUMBER);
     await page.getByRole('button', { name: 'Send code' }).click();
-    await page.getByRole('textbox', { name: /^Code sent to/ }).fill('123456');
+    await page.getByRole('textbox', { name: '6-digit code' }).fill('123456');
 
+    // Sign up › About you (decision 0320): the name and city in their boxes, then the game in three pickers.
     await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
-    await expect(page.getByText(`Mobile +91 ${NUMBER.slice(0, 5)} ${NUMBER.slice(5)}`)).toBeVisible();
-    // The photo is optional (#631): the file picker behind Add a photo takes one.
-    const photo = await page.evaluate(() => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 240;
-      canvas.height = 320;
-      canvas.getContext('2d')?.fillRect(0, 0, 240, 320);
-      return canvas.toDataURL('image/jpeg');
-    });
-    await page.locator('input[type=file]').setInputFiles({
-      name: 'me.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(photo.slice(photo.indexOf(',') + 1), 'base64'),
-    });
-    await expect(page.getByText('Photo added.')).toBeVisible();
-    await page.getByRole('textbox', { name: 'Full name as on your Aadhaar' }).fill('Tara Joshi');
+    await expect(page.getByText(`Signing up with +91 ${NUMBER.slice(0, 5)} ${NUMBER.slice(5)}`)).toBeVisible();
+    await page.getByRole('textbox', { name: 'Full name, as on Aadhaar' }).fill('Tara Joshi');
     await page.getByRole('textbox', { name: 'City' }).fill('Gurugram');
-    await page.getByRole('button', { name: 'Salaried or working professional' }).click();
-    await page.getByRole('button', { name: 'Weekday evenings (18:00 to 22:00)' }).click();
-    await page.getByRole('button', { name: 'Weekends', exact: true }).click();
-    await page.getByRole('button', { name: 'PLO', exact: true }).click();
-    await page.getByRole('button', { name: 'Bomb', exact: true }).click();
+    await page.getByRole('button', { name: /^Occupation/ }).click();
+    await page.getByRole('dialog', { name: 'Occupation' }).getByRole('button', { name: 'Salaried', exact: true }).click();
+    await page.getByRole('button', { name: /^When you usually play/ }).click();
+    await page.getByRole('dialog', { name: 'When you usually play' }).getByRole('button', { name: 'Weekday evenings', exact: true }).click();
+    await page.getByRole('button', { name: /^Games you play/ }).click();
+    const games = page.getByRole('dialog', { name: 'Games you play' });
+    await games.getByRole('button', { name: 'PLO', exact: true }).click();
+    await games.getByRole('button', { name: 'Bomb pots', exact: true }).click();
+    await games.getByRole('button', { name: 'Done' }).click();
     await page.getByRole('button', { name: 'Continue' }).click();
     // A new member's identity check is not done, so they see only its steps first (#632).
-    await expect(page.getByRole('heading', { name: 'Identity', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Verify your identity', level: 1 })).toBeVisible();
 
     expect(
       sql(`select m.full_name || '|' || a.referral_code || '|' || a.utm_source || '|' || a.utm_campaign
            from public.sign_up_attribution a join public.member m on m.id = a.member_id where m.phone = '+91${NUMBER}'`),
     ).toBe('Tara Joshi|FRIEND1|instagram|launch');
-    expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') || '|' || array_to_string(p.games_played, ',')
+    expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') || '|'
+                || array_to_string(array(select g from unnest(p.games_played) g order by g), ',')
                 from public.member_preference p join public.member m on m.id = p.member_id where m.phone = '+91${NUMBER}'`))
-      .toBe('Gurugram|salaried|weekday_evenings,weekends|bomb,plo');
-    expect(sql(`select count(*) from storage.objects o join public.member m on o.name = m.venue_id || '/' || m.id || '/photo.jpg'
-                where o.bucket_id = 'kyc' and m.phone = '+91${NUMBER}'`)).toBe('1');
+      .toBe('Gurugram|salaried|weekday_evenings|bomb,plo');
   });
 });

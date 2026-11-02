@@ -8,7 +8,7 @@ test('Host queue: a host records why a lapsed regular stopped coming and an offe
   const ritika = await (await browser.newContext()).newPage();
   await signInToPlayer(ritika, '9000000642');
   await ritika.getByRole('link', { name: 'Profile' }).click();
-  const promotions = ritika.getByRole('switch', { name: 'Promotions and offers' });
+  const promotions = ritika.getByRole('switch', { name: 'Offers', exact: true });
   await promotions.click();
   await expect(promotions).toBeChecked();
 

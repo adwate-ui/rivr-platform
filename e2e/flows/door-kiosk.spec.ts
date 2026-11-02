@@ -7,8 +7,8 @@
  *   the kiosk's card scanner reads it: she is welcomed in, and a second scan straight away (a card
  *   still held up) changes nothing; Nisha checks her out on the console (the kiosk's scan out, two
  *   minutes on, is proved in supabase/tests/096_door_kiosk.test.sql);
- * - her Home then asks how her visit was; she gives it a 2 with a note, and is told the General Manager
- *   will look into it;
+ * - her Tonight then asks how her night was (decision 0320); she gives it a 2 with a note, and a toast says it went to
+ *   the General Manager;
  * - Nisha, an admin, sees the ticket on Feedback and resolves it with what was done.
  * The kiosk is revoked at the end. In and out with no time played, Vidya's visit earns nothing. A scan
  * within ten minutes of a visit closing says goodbye, so a rerun waits ten minutes or a fresh seed.
@@ -17,10 +17,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
-/** What the QR on the member's card holds now. */
+/** What the QR on the member's card holds now, on the Card tab (decision 0320). */
 async function doorCode(member: Page): Promise<string> {
-  await member.getByRole('link', { name: 'Profile' }).click();
-  await member.getByRole('button', { name: 'Show card' }).click();
+  await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Card' }).click();
   const qr = member.getByRole('img', { name: 'Your door code' });
   await expect(qr).toBeVisible();
   return (await qr.getAttribute('data-value')) ?? '';
@@ -69,13 +68,14 @@ test.describe('Door kiosk', () => {
     await floor.getByRole('button', { name: 'Check out Vidya Chadha' }).click();
     await expect(floor.getByRole('button', { name: 'Check out Vidya Chadha' })).toHaveCount(0);
 
-    // Home asks how it was; a 2 with a note is a ticket for the General Manager.
-    await member.getByRole('link', { name: 'Home' }).click();
-    await expect(member.getByRole('heading', { name: /^Your visit on \w+day$/ })).toBeVisible();
+    // Tonight › Rate your visit: a 2 with a note is a ticket for the General Manager.
+    await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Tonight' }).click();
+    await expect(member.getByRole('heading', { name: 'How was your night?' })).toBeVisible();
     await member.getByRole('group', { name: 'Your rating, 1 to 5' }).getByRole('button', { name: '2', exact: true }).click();
-    await member.getByRole('textbox', { name: 'Anything to add (optional)' }).fill('The door queue was slow.');
-    await member.getByRole('button', { name: 'Send', exact: true }).click();
-    await expect(member.getByText('Thank you. The General Manager may call you.')).toBeVisible();
+    await member.getByRole('textbox', { name: 'Anything to add? (optional)' }).fill('The door queue was slow.');
+    await member.getByRole('button', { name: 'Send to the General Manager' }).click();
+    await expect(member.getByText('Rating sent')).toBeVisible();
+    await expect(member.getByRole('heading', { name: 'How was your night?' })).toHaveCount(0);
 
     await floor.getByRole('link', { name: 'Feedback' }).click();
     await expect(floor.getByText('The door queue was slow.')).toBeVisible();
