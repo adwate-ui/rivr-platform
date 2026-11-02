@@ -59,7 +59,6 @@ test.describe('Website', () => {
     // The teaser's room, labelled as the teaser labels it.
     await expect(page.locator('video[data-web-video]')).toHaveAttribute('poster', '/media/hero-room.webp');
     await expect(page.getByText('Concept visualisation').first()).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Not luck. A game of skill.' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Built for the long session.' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'A dealer in a waistcoat deals at a table' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Done waiting for a seat?' })).toBeVisible();

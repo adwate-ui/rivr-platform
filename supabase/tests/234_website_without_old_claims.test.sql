@@ -20,15 +20,15 @@ select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'League points'
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Every finish earns'), 0, 'nor points for every tournament finish');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'every night balances'), 0, 'nor that every night''s money is on record');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'rake back as points'), 0, 'nor that rake comes back as points');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Call time kept for every seat'), 1, 'the front page says call time is kept instead');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Call time kept for every seat'), 0,
+  'the line that said call time is kept went with the front page''s repeated bands (W-01)');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'the bad-beat jackpot and the next tournament'), 0, 'and its picture of the app names no jackpot');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Points and rewards'), 1, 'and Membership''s rewards are headed Points and rewards');
 
 -- Words the club wrote stay as written.
 update public.site_block b set content = jsonb_set(b.content, '{text}', '"Every hand logged at the table, by our dealers."')
 from public.site_page p
-where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and b.kind = 'statement' and p.slug = 'home'
-  and b.content ->> 'eyebrow' = 'The RIVR difference';
+where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and b.kind = 'hero' and p.slug = 'home';
 select private.website_without_old_claims('00000000-0000-4000-8000-000000000001');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Every hand logged at the table, by our dealers.'), 1,
   'a line the club wrote in the editor is kept');
@@ -39,7 +39,7 @@ select private.bootstrap_venue('00000000-0000-4000-8000-0000000000ad', 'RIVR Cla
 select private.add_website('00000000-0000-4000-8000-0000000000ad');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000ad', 'hand logged'), 0, 'a new club''s website says no hand is logged at the table');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000ad', 'for every hour'), 0, 'nor that every hour earns points');
-select is(pg_temp.saying('00000000-0000-4000-8000-0000000000ad', 'Call time kept for every seat'), 1, 'and says call time is kept');
+select is(pg_temp.saying('00000000-0000-4000-8000-0000000000ad', 'Call time kept for every seat'), 0, 'and comes without the repeated bands (W-01)');
 
 select * from finish();
 rollback;
