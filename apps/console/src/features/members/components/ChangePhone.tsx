@@ -1,5 +1,5 @@
 import { useChangeMemberPhone, type PhoneChangeFailure } from '@rivr/db';
-import { t, type MessageKey } from '@rivr/i18n';
+import { formatMobile, t, type MessageKey } from '@rivr/i18n';
 import { ConfirmButton, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -58,7 +58,7 @@ export function ChangePhone({ venueId, memberId, currentPhone }: { venueId: stri
     <Stack gap={3}>
       <Heading level={3}>{t('console.members.changePhone.title')}</Heading>
       <Text tone="muted">{t('console.members.changePhone.intro')}</Text>
-      {currentPhone === null ? null : <Text>{t('console.members.changePhone.current', { phone: currentPhone })}</Text>}
+      {currentPhone === null ? null : <Text>{t('console.members.changePhone.current', { phone: formatMobile(currentPhone) })}</Text>}
       <NumberFields phone={phone} again={again} onPhone={setPhone} onAgain={setAgain} />
       <Input label={t('console.members.changePhone.reason')} value={reason} maxLength={300} autoComplete="off" onChange={(event) => setReason(event.target.value)} />
       <Stack align="start">

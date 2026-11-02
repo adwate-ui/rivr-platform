@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { staffJobTitleSchema, type StaffRole } from '@rivr/contracts';
 import { useStaffActions, type StaffChange, type StaffFailure, type StaffMember } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatMobile, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ConfirmQuestion, ErrorMessage, Inline, Input, Stack, Switch, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,7 +32,7 @@ function StaffIdentity({ member, showsInactive }: { member: StaffMember; showsIn
     <Stack gap={1}>
       <Text weight="semibold">{member.isMe ? `${member.fullName} · ${t('console.staff.you')}` : member.fullName}</Text>
       <Text variant="small" tone="muted">{t('console.staff.line', { jobTitle: member.jobTitle, role: roleName(member.role) })}</Text>
-      <Text variant="small" tone="muted">{member.phone ?? t('console.staff.noPhone')}</Text>
+      <Text variant="small" tone="muted">{member.phone === null ? t('console.staff.noPhone') : formatMobile(member.phone)}</Text>
       {member.isActive || !showsInactive ? null : <Text variant="small" weight="medium">{t('console.staff.inactive')}</Text>}
     </Stack>
   );

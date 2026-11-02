@@ -30,6 +30,7 @@ describe('StaffTable', () => {
     renderTable();
     expect(screen.getByRole('button', { name: 'Ayesha Thomas · You' })).toBeDefined();
     expect(screen.getByText('No number')).toBeDefined();
+    expect(screen.getByText('+91 90000 00151')).toBeDefined();
     expect(screen.getByText('Turned off')).toBeDefined();
   });
 
@@ -38,6 +39,10 @@ describe('StaffTable', () => {
     fireEvent.change(screen.getByRole('searchbox', { name: 'Find staff' }), { target: { value: 'cashier' } });
     expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Ravi Dealer' })).toBeNull();
+    // A number as the table shows it finds its row too.
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Find staff' }), { target: { value: '90000 00151' } });
+    expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
   });
 
   it('keeps the add form behind Add staff, and closes it again', () => {

@@ -1,6 +1,6 @@
 import type { StaffRole } from '@rivr/contracts';
 import type { StaffMember } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatMobile, t } from '@rivr/i18n';
 import { Button, DataTable, Grid, Inline, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { AddStaffForm } from './AddStaffForm.tsx';
@@ -18,7 +18,8 @@ function columns(): readonly DataTableColumn<StaffMember>[] {
     { key: 'role', header: t('console.staff.role'), cell: (row) => roleName(row.role), sortValue: (row) => roleName(row.role) },
     {
       key: 'phone', header: t('console.staff.phone'), priority: 'secondary',
-      cell: (row) => row.phone ?? <Text tone="muted">{t('console.staff.noPhone')}</Text>, exportValue: (row) => row.phone ?? '',
+      cell: (row) => (row.phone === null ? <Text tone="muted">{t('console.staff.noPhone')}</Text> : formatMobile(row.phone)),
+      exportValue: (row) => row.phone ?? '',
     },
     {
       key: 'login', header: t('console.staff.login'), sortValue: (row) => (row.isActive ? 0 : 1),
@@ -27,9 +28,10 @@ function columns(): readonly DataTableColumn<StaffMember>[] {
   ];
 }
 
-/** What the search box looks through: name, job title, role and number. */
+/** What the search box looks through: name, job title, role and number, as kept and as shown. */
 function searchText(member: StaffMember): string {
-  return [member.fullName, member.jobTitle, roleName(member.role), member.phone ?? ''].join(' ');
+  const phone = member.phone === null ? [] : [member.phone, formatMobile(member.phone)];
+  return [member.fullName, member.jobTitle, roleName(member.role), ...phone].join(' ');
 }
 
 interface StaffTableProps {
