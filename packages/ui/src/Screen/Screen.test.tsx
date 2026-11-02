@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { Screen } from './Screen.tsx';
+import { Screen, TitleCount } from './Screen.tsx';
 
 describe('Screen', () => {
   it('heads a part of a screen under its tabs at the second level', () => {
@@ -54,6 +54,13 @@ describe('Screen', () => {
     renderIn(<Screen title="Check-in">content</Screen>);
     expect(document.title).toBe('Check-in · RIVR');
     expect(screen.getByRole('heading', { level: 1, name: 'Check-in' })).toHaveFocus();
+  });
+
+  it('starts the page name with the urgent count waiting for staff, and drops it at none (decision 0301)', () => {
+    const { rerender } = renderIn(<TitleCount count={3}><Screen title="Top-ups">content</Screen></TitleCount>);
+    expect(document.title).toBe('(3) Top-ups · RIVR');
+    rerender(<TitleCount count={0}><Screen title="Top-ups">content</Screen></TitleCount>);
+    expect(document.title).toBe('Top-ups · RIVR');
   });
 
   it('leaves the focus on a field the screen focuses itself, such as the door\u2019s scanner field', () => {

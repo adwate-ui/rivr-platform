@@ -11,9 +11,9 @@ $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
 select results_eq($$ select permission from public.role_permission where role = 'floor' order by 1 $$,
-  $$ values ('call_time.override'::text), ('floor.manage'), ('fnb.serve'), ('incidents.log'), ('members.read'), ('points.give'),
-            ('rewards.hand_over'), ('rewards.manage'), ('sops.acknowledge'), ('waitlist.manage') $$,
-  'the floor runs tonight, the waitlist, call time, today''s players, orders, rewards and points by hand');
+  $$ values ('call_time.override'::text), ('floor.manage'), ('fnb.serve'), ('incidents.log'), ('kyc.in_person'), ('members.read'),
+            ('points.give'), ('rewards.hand_over'), ('rewards.manage'), ('sops.acknowledge'), ('waitlist.manage') $$,
+  'the floor runs tonight, the waitlist, call time, today''s players, orders, rewards and points by hand, and checks members in person (decision 0301)');
 select ok(not exists (select 1 from public.role_permission where role = 'floor'
                       and permission in ('tables.manage', 'members.manage', 'tournaments.manage', 'promotions.manage', 'devices.manage')),
   'but not tables setup, the member list, games history, tournaments, bonus or the cage''s computers');

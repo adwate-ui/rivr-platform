@@ -48,7 +48,8 @@ describe('the console rail and who may open each screen', () => {
 
   it('gives Floor every super admin module but tables setup, the member list, games history, tournaments and bonus', () => {
     const floor = ROLE_PERMISSIONS.floor;
-    expect(items(floor)).toEqual(['/', '/waitlist', '/top-ups', '/check-in', '/fnb', '/players-today', '/rewards']);
+    // And KYC review, for its checks in person (decision 0301).
+    expect(items(floor)).toEqual(['/', '/waitlist', '/top-ups', '/check-in', '/fnb', '/players-today', '/kyc-review', '/rewards']);
     // Devices waits for a TV-only permission: devices.manage also enrols the cage's computers.
     for (const kept of ['/tables', '/members', '/games-history', '/tournament-interest', '/promotions', '/spin-wheel', '/devices']) {
       expect(isAllowedAt(floor, kept)).toBe(false);

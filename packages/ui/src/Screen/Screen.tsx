@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from 'react';
 import { Heading } from '../Heading/Heading.tsx';
 import { LoadState } from '../LoadState/LoadState.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -21,6 +21,19 @@ export type ScreenProps = ScreenState & {
   children?: ReactNode;
 };
 
+const TitleCountContext = createContext(0);
+
+export interface TitleCountProps {
+  /** How many urgent items wait for this staff member; none below 1. */
+  count: number;
+  children: ReactNode;
+}
+
+/** Every screen inside starts the page's name with `count` when there is one, "(3) Top-ups · RIVR" (decision 0301). */
+export function TitleCount({ count, children }: TitleCountProps) {
+  return <TitleCountContext.Provider value={count}>{children}</TitleCountContext.Provider>;
+}
+
 /**
  * A screen of its own (an h1, not one nested at level 2) names the page, "Check-in · RIVR", and takes the focus when it
  * opens, so a keyboard or screen reader starts at its heading rather than on the last screen's link (F5-03). A field the
@@ -28,15 +41,16 @@ export type ScreenProps = ScreenState & {
  */
 function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) {
   const section = useRef<HTMLElement>(null);
+  const count = useContext(TitleCountContext);
   useEffect(() => {
     if (!isOwnScreen) return undefined;
     // The title before it is the page's again when the screen goes, as for the sign-in steps, which are no screen.
     const before = document.title;
-    document.title = t('ui.screenTitle', { title });
+    document.title = count > 0 ? t('ui.screenTitleCounted', { count, title }) : t('ui.screenTitle', { title });
     return () => {
       document.title = before;
     };
-  }, [isOwnScreen, title]);
+  }, [isOwnScreen, title, count]);
   useEffect(() => {
     const element = section.current;
     if (!isOwnScreen || element === null || element.contains(document.activeElement)) return;

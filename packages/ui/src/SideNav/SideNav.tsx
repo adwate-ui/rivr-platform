@@ -70,14 +70,19 @@ function RailSection({ section, current, onNavigate }: RailSectionProps) {
   );
 }
 
-/** One entry; with things waiting on its screen, the number beside it, gold or red when urgent, and its name says how many. */
+/**
+ * One entry; with things waiting on its screen, the number beside it, gold or red when urgent. Its name is its label
+ * whatever waits, and its description says how many (decision 0301), so a screen reader hears both and the link keeps one name.
+ * The name comes from the label itself, not an aria-label, so a search by label for a word inside it finds no link.
+ */
 function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurrent: boolean; onNavigate: Navigate | undefined }) {
   const waiting = item.count !== undefined && item.count > 0 ? item.count : null;
+  const descriptionId = useId();
   return (
     <a
       href={item.href}
       aria-current={isCurrent ? 'page' : undefined}
-      aria-label={waiting === null ? undefined : `${item.label} ${t('ui.consoleRail.waiting', { count: waiting })}`}
+      aria-describedby={waiting === null ? undefined : descriptionId}
       onClick={(event) => routeClick(event, item.href, onNavigate)}
       className={cx(
         // A finger's width below a desk, where the rail is the console's menu.
@@ -87,8 +92,12 @@ function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurren
     >
       {item.label}
       {waiting === null ? null : (
-        <span className={cx('ml-auto rounded-md border px-2 font-text text-13 font-medium tabular-nums',
-          item.isUrgent === true ? 'border-alert bg-alert text-on-alert' : 'border-action text-action')}>{waiting}</span>
+        <>
+          <span aria-hidden="true" className={cx('ml-auto rounded-md border px-2 font-text text-13 font-medium tabular-nums',
+            item.isUrgent === true ? 'border-alert bg-alert text-on-alert' : 'border-action text-action')}>{waiting}</span>
+          {/* Out of the name, read as the description, which reaches hidden text by its id. */}
+          <span id={descriptionId} aria-hidden="true" className="sr-only">{t('ui.consoleRail.waiting', { count: waiting })}</span>
+        </>
       )}
     </a>
   );

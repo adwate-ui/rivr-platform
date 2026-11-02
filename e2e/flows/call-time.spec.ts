@@ -43,7 +43,8 @@ test.describe('Call time', () => {
     await expect(player.getByText('Top-up requested.')).toBeVisible();
     // The floor sees it on Top-ups, counted in red on the rail and marked on the room plan (decision 0299).
     await expect(floor.getByRole('region', { name: 'Room plan' }).getByText('Top-up', { exact: true })).toBeVisible({ timeout: 20_000 });
-    await floor.getByRole('link', { name: /^Top-ups \d+ waiting$/ }).click({ timeout: 20_000 });
+    await expect(floor.getByRole('link', { name: 'Top-ups', exact: true })).toHaveAccessibleDescription(/^\d+ waiting$/, { timeout: 20_000 });
+    await floor.getByRole('link', { name: 'Top-ups', exact: true }).click();
     await expect(floor.getByText('Table 1, seat 1 · Ritika Das').or(floor.getByText(/· Ritika Das$/)).first()).toBeVisible();
     await floor.getByRole('button', { name: 'The top-up for Ritika Das is in progress' }).click();
     await expect(floor.getByRole('button', { name: 'The top-up for Ritika Das is done' })).toBeVisible();
