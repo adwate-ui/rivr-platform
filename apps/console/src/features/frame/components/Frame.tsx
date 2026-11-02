@@ -6,7 +6,7 @@ import { Box, ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen, T
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 import { NotStaff } from './NotStaff.tsx';
-import { isAllowedAt, landingFor, locksWhenIdle, railFor, railItemAt } from './rail.ts';
+import { isAllowedAt, landingFor, locksWhenIdle, railFor, railItemAt, isHiddenAt } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffFooter } from './StaffFooter.tsx';
 import { useIdleLock } from './useIdleLock.ts';
@@ -24,12 +24,13 @@ export interface FrameStaff {
  * A screen the role does not include, refused; but the Live floor's address, for a role without it (#640: Service), opens the
  * first screen the role has instead.
  */
-function Refused({ landing }: { landing: string | undefined }) {
+function Refused({ landing, isOff }: { landing: string | undefined; isOff: boolean }) {
   const navigate = useNavigate();
   useEffect(() => {
     if (landing !== undefined) void navigate({ href: landing, replace: true });
   }, [landing, navigate]);
-  return landing === undefined ? <Screen title={t('console.title')} status="error" errorText={t('console.notAllowed')} /> : null;
+  const why = isOff ? t('console.switchedOff') : t('console.notAllowed');
+  return landing === undefined ? <Screen title={t('console.title')} status="error" errorText={why} /> : null;
 }
 
 /**
@@ -102,7 +103,7 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
     >
       {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
       <DataTableExportProvider exporter={exporter}>
-        {isAllowedAt(permissions, pathname) ? children : <Refused landing={pathname === '/' ? landingFor(sections) : undefined} />}
+        {isAllowedAt(permissions, pathname) ? children : <Refused landing={pathname === '/' ? landingFor(sections) : undefined} isOff={isHiddenAt(pathname)} />}
       </DataTableExportProvider>
     </ConsoleShell>
   );

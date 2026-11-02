@@ -2,7 +2,6 @@ import { tokens } from '@rivr/tokens';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { cx } from '../internal/classes.ts';
-import { Text } from '../Text/Text.tsx';
 
 export interface SplitViewProps {
   /** The list: members, tables, tournaments. */
@@ -12,8 +11,6 @@ export interface SplitViewProps {
   /** Below 1180 px, where the record replaces the list: the way back, such as "Back to Members". */
   backLabel: string;
   onBack: () => void;
-  /** From 1180 px, beside the list while no record is open: what to do, such as "Choose a member to see their record." */
-  emptyText: string;
   /**
    * Whether the record was chosen (#605); true unless said. A record shown only because none is chosen yet, such as the
    * floor's first table, sits beside the list from 1180 px, and below it the list stays until one is chosen.
@@ -23,9 +20,10 @@ export interface SplitViewProps {
 
 /**
  * A list and the record opened from it (#603). From 1180 px they sit side by side, the record taking three parts in
- * five. Below, one shows at a time: the record replaces the list, with a way back to it.
+ * five; with no record open the list takes the full width (C-03). Below, one shows at a time: the record replaces the
+ * list, with a way back to it.
  */
-export function SplitView({ list, detail, backLabel, onBack, emptyText, isChosen = true }: SplitViewProps) {
+export function SplitView({ list, detail, backLabel, onBack, isChosen = true }: SplitViewProps) {
   const record = useRef<HTMLDivElement>(null);
   const openedFrom = useRef<HTMLElement | null>(null);
   const isOpen = detail !== null && isChosen;
@@ -47,12 +45,8 @@ export function SplitView({ list, detail, backLabel, onBack, emptyText, isChosen
   }, [isOpen]);
   return (
     <div className="grid gap-6 tablet:grid-cols-5">
-      <div className={cx('min-w-0 tablet:col-span-2', isOpen ? 'hidden tablet:block' : '')}>{list}</div>
-      {detail === null ? (
-        <div className="hidden tablet:col-span-3 tablet:block">
-          <Text tone="muted">{emptyText}</Text>
-        </div>
-      ) : (
+      <div className={cx('min-w-0', detail === null ? 'tablet:col-span-5' : 'tablet:col-span-2', isOpen ? 'hidden tablet:block' : '')}>{list}</div>
+      {detail === null ? null : (
         <div className={cx('min-w-0 flex-col items-start gap-4 tablet:col-span-3 tablet:flex', isOpen ? 'flex' : 'hidden')}>
           <div className="tablet:hidden">
             <Button variant="text" onClick={onBack}>{backLabel}</Button>

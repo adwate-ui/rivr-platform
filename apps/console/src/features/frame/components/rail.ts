@@ -165,6 +165,11 @@ export function isAllowedAt(permissions: readonly Permission[], pathname: string
   return found === undefined || (found.entry.hidden !== true && isAllowed(found.entry, permissions));
 }
 
+/** True at a screen the club switched off (`hidden`), so its refusal says that rather than blaming the role (C-04). */
+export function isHiddenAt(pathname: string): boolean {
+  return entryAt(pathname)?.entry.hidden === true;
+}
+
 /** True on the screens that lock after ten idle minutes (#384): marked on their own entries (#602). */
 export function locksWhenIdle(pathname: string): boolean {
   return entryAt(pathname)?.entry.locksWhenIdle === true;

@@ -55,6 +55,6 @@ export function RulesArea({ venueId, area, isSuperAdmin }: { venueId: string; ar
   const detail = open === undefined ? null : <SettingPanel key={open.key} venueId={venueId} setting={open} tiers={tiers} isSuperAdmin={isSuperAdmin} />;
   return (
     <SplitView list={list} detail={detail} backLabel={t('console.settings.backTo', { area: t(`console.settings.areas.${area}`) })}
-      onBack={() => setOpenKey(null)} emptyText={t('console.settings.chooseSetting')} />
+      onBack={() => setOpenKey(null)} />
   );
 }

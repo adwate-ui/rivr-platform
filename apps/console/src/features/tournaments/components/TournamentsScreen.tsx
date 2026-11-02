@@ -35,7 +35,6 @@ function TournamentsView({ venueId, tournaments, templates, access }: ViewProps)
   // The running one shows beside the list from 1180 px; below, the list stays until a tournament is chosen.
   return (
     <SplitView isChosen={chosenId !== null} onBack={() => setChosenId(null)} backLabel={t('console.tournaments.backToList')}
-      emptyText={t('console.tournaments.chooseOne')}
       list={(
         <Stack gap={10}>
           {/* Marked only once chosen: the one shown by default stays open to a phone, whose list it is not beside. */}

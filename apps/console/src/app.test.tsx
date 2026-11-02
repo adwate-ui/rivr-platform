@@ -119,11 +119,12 @@ describe('the console', () => {
     expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
   });
 
-  it('refuses a screen the role does not include, opened by its address', async () => {
+  // A screen outside the role is refused; one the club switched off says so rather than blaming the role (C-04).
+  it.each([['/purge', 'Not in your role. Ask an admin.'], ['/academy', 'This screen is switched off.']])('refuses %s, opened by its address', async (path, text) => {
     signIn();
     answerStaff([CLUB]);
-    renderAt('/academy');
-    expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
+    renderAt(path);
+    expect(await screen.findByText(text)).toBeDefined();
   });
 
   // Screens merged into others (#606): each old address opens its tab.
