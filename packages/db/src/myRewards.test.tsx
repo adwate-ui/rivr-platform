@@ -43,7 +43,7 @@ describe('the member\'s Rewards', () => {
   it('reads points, tier and hotel nights, the catalogue, the redemptions and the League', async () => {
     const { result } = renderHooks({
       '/rpc/my_rewards': { body: [{ points: 20000, tier_name: 'Member', nights: 1250 }] },
-      '/reward_item': { body: [{ id: 'r1', kind: 'fnb_upgrade', name: 'Bar upgrade', detail: 'At the bar', points: 2500, stock: null, is_live: true }] },
+      '/reward_item': { body: [{ id: 'r1', kind: 'fnb_upgrade', name: 'Bar upgrade', detail: 'At the bar', points: 2500, stock: null, is_live: true, photo_path: null }] },
       '/rpc/my_redemptions': {
         body: [{ id: 'd1', reward_name: 'Bar upgrade', kind: 'fnb_upgrade', detail: 'At the bar', points: 2500, created_at: '2026-11-15T17:00:00Z', handed_over_at: null }],
       },

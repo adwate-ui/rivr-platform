@@ -2,7 +2,7 @@ import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text, StatusMessage } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, ItemPhoto, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
 /** A price, or what a redemption took: "1 point", "4,000 points", or for a hotel night "1 night", "2 nights". */
@@ -39,7 +39,7 @@ function Confirm({ item, requestId, onDone }: { item: RewardItem; requestId: str
   );
 }
 
-/** One reward: its name, price and what is left; Redeem asks first, then says where to collect it. None left, it says so. */
+/** One reward: its photo (AS-11), name, price and what is left; Redeem asks first, then says where to collect it. None left, it says so. */
 function RewardRow({ item }: { item: RewardItem }) {
   const [isAsking, setIsAsking] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>(null);
@@ -56,6 +56,7 @@ function RewardRow({ item }: { item: RewardItem }) {
   return (
     <Stack gap={3}>
       <Inline justify="between" align="center" gap={4}>
+        <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
         <Stack gap={1} grow>
           <Text weight="medium">{item.name}</Text>
           <Text variant="small">{priceText(item)}</Text>

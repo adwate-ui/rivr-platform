@@ -32,7 +32,7 @@ function SeatLine({ number, player, heldFor, isOpen }: { number: number; player:
     return <Inline gap={4}><Text tone="muted">{number}</Text><Text tone="muted">{state}</Text></Inline>;
   }
   return (
-    <Inline gap={4} align="center">
+    <Inline gap={4} align="center" wrap>
       <Text tone="muted">{number}</Text>
       <Text>{player.fullName}</Text>
       <Text tone="muted">{player.tierName}</Text>
@@ -78,29 +78,29 @@ interface SeatButtonsProps {
 }
 
 /**
- * The floor's buttons on a seated player's row: mark them leaving or take it back (decision 0163), away from
- * the table or back (#630: as the tablet does), the top-up (#634), the call time (#638), move, leave, and for admins, leave early
- * while call time is owed (#79).
+ * The floor's buttons on a seated player's row, on a line of their own under who sits there (#712), in the order the floor
+ * uses them: away from the table or back (#630: as the tablet does), move, leave; then mark them leaving or take it back
+ * (decision 0163), the top-up (#634), the call time (#638), and for admins, leave early while call time is owed (#79).
  */
 function SeatButtons({ player, isLeaveBusy, canLetGoEarly, onMove, onLeave, onLeaveEarly, onLeaving, onAway, onTopUp, onCallTime }: SeatButtonsProps) {
   const isLeaving = player.leavingAt !== null;
   return (
-    <Inline gap={2}>
-      <Button variant="text" aria-label={t(isLeaving ? 'console.liveFloor.notLeavingName' : 'console.liveFloor.markLeavingName', { name: player.fullName })}
-        onClick={() => onLeaving(!isLeaving)}>
-        {t(isLeaving ? 'console.liveFloor.notLeaving' : 'console.liveFloor.markLeaving')}
-      </Button>
+    <Inline gap={2} wrap>
       <Button variant="text" aria-label={t(player.isAway ? 'console.liveFloor.markBackName' : 'console.liveFloor.markAwayName', { name: player.fullName })}
         onClick={() => onAway(!player.isAway)}>
         {t(player.isAway ? 'console.liveFloor.markBack' : 'console.liveFloor.markAway')}
+      </Button>
+      <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
+      <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leaveName', { name: player.fullName })}
+        confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} isBusy={isLeaveBusy} onConfirm={onLeave} />
+      <Button variant="text" aria-label={t(isLeaving ? 'console.liveFloor.notLeavingName' : 'console.liveFloor.markLeavingName', { name: player.fullName })}
+        onClick={() => onLeaving(!isLeaving)}>
+        {t(isLeaving ? 'console.liveFloor.notLeaving' : 'console.liveFloor.markLeaving')}
       </Button>
       <TopUpButtons player={player} onTopUp={onTopUp} />
       <Button variant="text" aria-label={t('console.liveFloor.changeCallTimeName', { name: player.fullName })} onClick={onCallTime}>
         {t('console.liveFloor.changeCallTime')}
       </Button>
-      <Button variant="text" aria-label={t('console.liveFloor.moveName', { name: player.fullName })} onClick={onMove}>{t('console.liveFloor.move')}</Button>
-      <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leaveName', { name: player.fullName })}
-        confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} isBusy={isLeaveBusy} onConfirm={onLeave} />
       {canLetGoEarly && (player.callTimeLeft ?? 0) > 0 ? (
         <Button variant="text" aria-label={t('console.liveFloor.leaveEarlyName', { name: player.fullName })} onClick={onLeaveEarly}>
           {t('console.liveFloor.leaveEarly')}
@@ -125,7 +125,7 @@ interface SeatRowsProps {
   onForm: (form: 'move' | 'leaveEarly' | 'callTime', player: SeatedPlayer) => void;
 }
 
-/** Each seat's row, with the floor's buttons beside a seated player (waitlist.manage). */
+/** Each seat's row; under a seated player, the floor's buttons on a line of their own (waitlist.manage), so neither crowds the other (#712). */
 function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: SeatRowsProps) {
   const { leave, setLeaving, setAway } = useSeatActions(venueId);
   const setTopUp = useSetTopUp(venueId);
@@ -135,7 +135,7 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
       {Array.from({ length: table.seats }, (_, index) => {
         const player = seats.find((seat) => seat.seat === index + 1);
         return (
-          <Inline key={index} justify="between" align="center">
+          <Stack key={index} gap={1}>
             <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
             {isFloor && player !== undefined ? (
               <SeatButtons player={player} isLeaveBusy={leave.isPending && leave.variables === player.sessionId} canLetGoEarly={permissions.includes('call_time.override')} onMove={() => onForm('move', player)}
@@ -145,7 +145,7 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
                 onTopUp={(inProgress) => void setTopUp.mutateAsync({ sessionId: player.sessionId, inProgress }).then(report)}
                 onCallTime={() => onForm('callTime', player)} />
             ) : null}
-          </Inline>
+          </Stack>
         );
       })}
     </Stack>

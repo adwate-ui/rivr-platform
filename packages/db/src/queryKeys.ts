@@ -112,6 +112,7 @@ export const queryKeys = {
   venueRedemptions: (userId: string, venueId: string) => ['user', userId, 'venue-redemptions', venueId] as const,
   /** A venue's League seasons, and its standings over some months (decision 0182). */
   leagueSeasons: (userId: string, venueId: string) => ['user', userId, 'league-seasons', venueId] as const,
+  venueLeagueAll: (userId: string, venueId: string) => ['user', userId, 'venue-league', venueId] as const,
   venueLeague: (userId: string, venueId: string, first: string, last: string) => ['user', userId, 'venue-league', venueId, first, last] as const,
   /** The member's Rewards tab (#152): points and tier, the catalogue, their redemptions and the League. */
   myRewards: (userId: string) => ['user', userId, 'my-rewards'] as const,

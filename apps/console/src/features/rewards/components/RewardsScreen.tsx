@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { CatalogueList } from './CatalogueList.tsx';
+import { LeagueCsvImport } from './LeagueCsvImport.tsx';
 import { PointsByHand } from './PointsByHand.tsx';
 import { RedemptionList } from './RedemptionList.tsx';
 import { RewardForm } from './RewardForm.tsx';
@@ -33,6 +34,7 @@ function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: stri
     <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
       <Stack gap={10}>
         {canGive ? <PointsByHand venueId={venueId} /> : null}
+        {canGive ? <LeagueCsvImport venueId={venueId} /> : null}
         {canKeep ? (
           <Grid columns={2} gap={12} stackBelow="medium">
             {catalogue}
@@ -53,7 +55,7 @@ function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: stri
  * Rewards (#145, decision 0181; design prompt "Rewards"): the venue's catalogue of tournament seats, F&B
  * upgrades, merchandise and hotel nights, kept by staff with rewards.manage beside the form; and members'
  * redemptions, which the cage, the host desk or an admin (rewards.hand_over) see and hand over. Staff with points.give give
- * points by hand, earned or locked, and release them (#645).
+ * points by hand, earned or locked, and release them (#645), and give League points, to one member or from a CSV (L-01).
  */
 export function RewardsScreen() {
   const staff = useStaffVenue();

@@ -35,7 +35,7 @@ function renderFnb(replies: Record<string, { status?: number; body: unknown }>) 
   return { result, calls };
 }
 
-const MENU = [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink' }];
+const MENU = [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink', photo_path: null }];
 const LINES = [{ item_id: CHAI, quantity: 2, note: 'Less sugar' }];
 
 afterEach(() => {
@@ -48,7 +48,7 @@ describe('table-side food and drink', () => {
     const { result } = renderFnb({
       '/rpc/my_fnb_menu': { body: MENU },
       '/rpc/fnb_menu': { body: MENU },
-      '/rest/v1/fnb_item': { body: [{ id: CHAI, name: 'Masala chai', kind: 'soft_drink', is_available: false, position: 1 }] },
+      '/rest/v1/fnb_item': { body: [{ id: CHAI, name: 'Masala chai', kind: 'soft_drink', is_available: false, position: 1, photo_path: null }] },
       '/rpc/fnb_orders_tonight': {
         body: [{
           order_id: 'o1', kot_number: 3, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
@@ -57,7 +57,7 @@ describe('table-side food and drink', () => {
         }],
       },
     });
-    const chai = { itemId: CHAI, name: 'Masala chai', kind: 'soft_drink' };
+    const chai = { itemId: CHAI, name: 'Masala chai', kind: 'soft_drink', photoUrl: null };
     await waitFor(() => expect(result.current.mine.data).toEqual([chai]));
     await waitFor(() => expect(result.current.menu.data).toEqual([chai]));
     await waitFor(() => expect(result.current.items.data).toEqual([{ ...chai, isAvailable: false, position: 1 }]));

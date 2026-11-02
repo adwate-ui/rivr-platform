@@ -1225,14 +1225,14 @@ isOneToOne: true
                   ]
                 },"fnb_item": {
                   Row: {
-                    "created_at": string,"id": string,"is_available": boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"position": number,"updated_at": string,"venue_id": string
+                    "created_at": string,"id": string,"is_available": boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string | null,"position": number,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"position"?: number,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind"?: Database["public"]['Enums']["fnb_item_kind"],"name"?: string,"position"?: number,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind"?: Database["public"]['Enums']["fnb_item_kind"],"name"?: string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1771,6 +1771,32 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "venue"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"league_adjustment": {
+                  Row: {
+                    "created_at": string,"given_by_staff_id": string,"id": string,"member_id": string,"month": string,"points": number,"reason": string,"request_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"given_by_staff_id": string,"id"?: string,"member_id": string,"month": string,"points": number,"reason": string,"request_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"given_by_staff_id"?: string,"id"?: string,"member_id"?: string,"month"?: string,"points"?: number,"reason"?: string,"request_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "league_adjustment_given_by_staff_id_venue_id_fkey"
+      columns: ["given_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "league_adjustment_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
     }
                   ]
                 },"league_finish": {
@@ -2759,14 +2785,14 @@ isOneToOne: false
                   ]
                 },"reward_item": {
                   Row: {
-                    "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"photo_path": string | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"detail": string,"id"?: string,"is_live"?: boolean,"kind": string,"name": string,"nights"?: number | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"detail": string,"id"?: string,"is_live"?: boolean,"kind": string,"name": string,"nights"?: number | null,"photo_path"?: string | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"detail"?: string,"id"?: string,"is_live"?: boolean,"kind"?: string,"name"?: string,"nights"?: number | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"detail"?: string,"id"?: string,"is_live"?: boolean,"kind"?: string,"name"?: string,"nights"?: number | null,"photo_path"?: string | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4805,7 +4831,7 @@ isOneToOne: false
                            },
 "fnb_menu":
 { Args: { "p_venue_id": string }; Returns: {
-              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string
+              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
 "fnb_orders_tonight":
@@ -4823,6 +4849,11 @@ isOneToOne: false
                            },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
+                           },
+"give_league_points":
+{ Args: { "p_reason": string,"p_request_id": string,"p_rows": Json,"p_venue_id": string }; Returns: {
+              "members": number,"points": number
+            }[]
                            },
 "glaza_statement":
 { Args: { "p_month": string,"p_venue_id": string }; Returns: {
@@ -5045,7 +5076,7 @@ isOneToOne: false
                            },
 "my_fnb_menu":
 { Args: Record<PropertyKey, never>; Returns: {
-              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string
+              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
 "my_fnb_orders":
@@ -5543,6 +5574,9 @@ isOneToOne: false
 "set_game_table":
 { Args: { "p_name": string,"p_seats": number,"p_table_id": string,"p_table_type_id": string }; Returns: undefined
                            },
+"set_item_photo":
+{ Args: { "p_item_id": string,"p_kind": string,"p_path": string }; Returns: undefined
+                           },
 "set_leaving":
 { Args: { "p_is_leaving": boolean,"p_session_id": string }; Returns: undefined
                            },
@@ -5883,7 +5917,7 @@ isOneToOne: false
                            },
 "venue_league":
 { Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
-              "cash_points": number,"full_name": string,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
+              "cash_points": number,"full_name": string,"hand_points": number,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
             }[]
                            },
 "venue_redemptions":

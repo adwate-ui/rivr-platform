@@ -1,5 +1,7 @@
 import { err, ok, type FnbItemKind, type FnbLine, type Result } from '@rivr/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { RivrClient } from './client.ts';
+import { itemPhotoUrl } from './itemPhotos.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -8,6 +10,8 @@ export interface FnbMenuItem {
   readonly itemId: string;
   readonly name: string;
   readonly kind: FnbItemKind;
+  /** The club's own photo of the dish or drink, or null until one is added (AS-11). */
+  readonly photoUrl: string | null;
 }
 
 /** An item as staff who run F&B keep it: whether it is on offer, and where it sits on the menu. */
@@ -74,8 +78,8 @@ function linesJson(lines: readonly FnbLine[]) {
   return lines.map((line) => ({ item_id: line.item_id, quantity: line.quantity, note: line.note ?? null }));
 }
 
-function menuItem(row: { item_id: string; name: string; kind: FnbItemKind }): FnbMenuItem {
-  return { itemId: row.item_id, name: row.name, kind: row.kind };
+function menuItem(client: RivrClient, row: { item_id: string; name: string; kind: FnbItemKind; photo_path: string | null }): FnbMenuItem {
+  return { itemId: row.item_id, name: row.name, kind: row.kind, photoUrl: itemPhotoUrl(client, row.photo_path) };
 }
 
 /** The signed-in member's menu at their venue: alcohol only at 21 or over, nothing without table-side ordering. */
@@ -87,7 +91,7 @@ export function useMyFnbMenu() {
     queryFn: async (): Promise<FnbMenuItem[]> => {
       const { data, error } = await client.rpc('my_fnb_menu');
       if (error) throw error;
-      return data.map(menuItem);
+      return data.map((row) => menuItem(client, row));
     },
   });
 }
@@ -101,7 +105,7 @@ export function useFnbMenu(venueId: string | null) {
     queryFn: async (): Promise<FnbMenuItem[]> => {
       const { data, error } = await client.rpc('fnb_menu', { p_venue_id: venueId ?? '' });
       if (error) throw error;
-      return data.map(menuItem);
+      return data.map((row) => menuItem(client, row));
     },
   });
 }
@@ -263,10 +267,12 @@ export function useFnbItems(venueId: string) {
     queryKey: queryKeys.fnbItems(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<FnbItem[]> => {
-      const { data, error } = await client.from('fnb_item').select('id, name, kind, is_available, position').eq('venue_id', venueId)
+      const { data, error } = await client.from('fnb_item').select('id, name, kind, is_available, position, photo_path').eq('venue_id', venueId)
         .order('position').order('name');
       if (error) throw error;
-      return data.map((row) => ({ itemId: row.id, name: row.name, kind: row.kind, isAvailable: row.is_available, position: row.position }));
+      return data.map((row) => ({
+        itemId: row.id, name: row.name, kind: row.kind, isAvailable: row.is_available, position: row.position, photoUrl: itemPhotoUrl(client, row.photo_path),
+      }));
     },
   });
 }

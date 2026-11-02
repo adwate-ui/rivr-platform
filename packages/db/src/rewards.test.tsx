@@ -43,8 +43,8 @@ describe('the rewards catalogue (decision 0181)', () => {
     const { result } = renderHooks({
       '/reward_item': {
         body: [
-          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true },
-          { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, is_live: true },
+          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true, photo_path: 'v1/reward-r1.jpg' },
+          { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, is_live: true, photo_path: null },
         ],
       },
       '/rpc/venue_redemptions': {
@@ -58,8 +58,8 @@ describe('the rewards catalogue (decision 0181)', () => {
       },
     });
     await waitFor(() => expect(result.current.items.data).toEqual([
-      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true },
-      { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, isLive: true },
+      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true, photoUrl: 'http://127.0.0.1:9/storage/v1/object/public/item-photos/v1/reward-r1.jpg' },
+      { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, isLive: true, photoUrl: null },
     ]));
     await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', points: 4000n, nights: null, handedOverAt: null }));
     expect(result.current.redemptions.data?.[1]).toMatchObject({ rewardName: 'Partner hotel', points: null, nights: 2 });
@@ -115,12 +115,12 @@ describe('the League (decision 0182)', () => {
     const { result, calls } = renderHooks({
       '/league_season': { body: [{ id: 's1', name: 'Season one', first_month: '2026-11-01', last_month: '2027-04-01' }] },
       '/rpc/venue_league': {
-        body: [{ place: 1, member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, cash_points: 30, tournament_points: 105, points: 135 }],
+        body: [{ place: 1, member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, cash_points: 30, tournament_points: 105, hand_points: 40, points: 175 }],
       },
       '/rpc/save_league_season': { body: 's2' },
     });
     await waitFor(() => expect(result.current.seasons.data).toEqual([{ id: 's1', name: 'Season one', firstMonth: '2026-11-01', lastMonth: '2027-04-01' }]));
-    await waitFor(() => expect(result.current.league.data?.[0]).toMatchObject({ place: 1, cashPoints: 30n, tournamentPoints: 105n, points: 135n }));
+    await waitFor(() => expect(result.current.league.data?.[0]).toMatchObject({ place: 1, cashPoints: 30n, tournamentPoints: 105n, handPoints: 40n, points: 175n }));
     expect(bodyOf(calls, '/rpc/venue_league')).toEqual({ p_venue_id: VENUE, p_first: '2026-11-01', p_last: '2027-01-01' });
     let outcome: unknown;
     await act(async () => {

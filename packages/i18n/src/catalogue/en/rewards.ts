@@ -27,16 +27,48 @@ export const rewards = {
     giveEarned: 'Give as earned',
     giveLocked: 'Give as locked',
     unlock: 'Release',
+    /** League points by hand (L-01): they rank the member this month, and are never spent. */
+    giveLeague: 'Give League points',
     done: {
       earned: '{points} points given to {name} to spend.',
       locked: '{points} points locked for {name}.',
       unlock: '{points} of {name}’s locked points released to spend.',
+      league: '{points} League points given to {name}.',
     },
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
       no_member: 'No member here has that number.',
       invalid: '1 to 10,00,000 points and a reason of 3 to 200 characters.',
       not_enough_locked: 'They hold fewer locked points than that.',
+      paused: 'Venue frozen. Try again once it is released.',
+      unavailable: 'Not sent. Try again.',
+    },
+  },
+  /** League points from a CSV (L-01): member numbers and points, given in one go, all or none. */
+  leagueCsv: {
+    heading: 'League points from a CSV',
+    /** The one hint the file needs: what its columns are. */
+    format: 'Member number, points. A heading line is skipped.',
+    choose: 'Choose a CSV',
+    chooseAnother: 'Choose another CSV',
+    summary: '{members} members, {points} points',
+    summaryOne: '1 member, {points} points',
+    badLine: 'Line {line}: needs a member number and 1 to 10,00,000 points.',
+    twice: 'Line {line}: member {number} is listed twice.',
+    tooMany: 'Over 500 members. Split the file.',
+    empty: 'No rows in that file.',
+    /** After the first ten problems: the file holds more. */
+    more: 'And {count} more lines to fix.',
+    unreadable: 'Not read. Choose a CSV file.',
+    tooBig: 'Over 1 MB. Choose the CSV of member numbers and points.',
+    reason: 'Reason',
+    give: 'Give from file',
+    done: '{points} League points given to {members} members.',
+    doneOne: '{points} League points given to 1 member.',
+    failures: {
+      no_member: 'No member numbered {numbers}, so nothing was given. Correct the file.',
+      not_allowed: 'Not in your role. Ask an admin.',
+      invalid: 'Not given. Use 1 to 500 members and a 3 to 200 character reason.',
       paused: 'Venue frozen. Try again once it is released.',
       unavailable: 'Not sent. Try again.',
     },
@@ -140,6 +172,8 @@ export const league = {
   memberLine: '{name} · No. {number}',
   cash: 'Cash',
   tournaments: 'Tournaments',
+  /** Given by hand on Rewards (L-01). */
+  byHand: 'By hand',
   total: 'Points',
   seasons: 'Seasons',
   noSeasons: 'No seasons yet.',
@@ -162,6 +196,22 @@ export const league = {
     not_allowed: 'Your role does not allow this.',
     invalid: 'Overlaps another season, or the months are out of order.',
     paused: 'Venue frozen. Try again once it is released.',
+    unavailable: 'Not sent. Try again.',
+  },
+} as const;
+
+/** A reward's or a dish's photo on the console (AS-11): the club's own, shown in the app in a 4:3 tile. */
+export const itemPhoto = {
+  /** Read out with the button: `Add a photo of Paneer tikka`. */
+  add: 'Add a photo',
+  addName: 'Add a photo of {name}',
+  replace: 'Replace the photo',
+  replaceName: 'Replace the photo of {name}',
+  saved: 'Photo saved.',
+  failures: {
+    not_a_photo: 'Not a photo. Choose a JPEG, PNG or WebP.',
+    too_big: 'Too large. Choose a smaller photo.',
+    not_allowed: 'Not in your role. Ask an admin.',
     unavailable: 'Not sent. Try again.',
   },
 } as const;

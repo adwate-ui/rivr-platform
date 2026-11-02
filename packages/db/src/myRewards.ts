@@ -6,7 +6,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import type { LeagueBoardRow } from './league.ts';
 import { toPaise } from './parse/hands.ts';
-import { rewardItemOf, type RewardFailure, type RewardItem } from './rewards.ts';
+import { REWARD_ITEM_COLUMNS, rewardItemOf, type RewardFailure, type RewardItem } from './rewards.ts';
 
 export type { LeagueBoardRow } from './league.ts';
 
@@ -68,10 +68,10 @@ export function useRewardCatalogue() {
     queryKey: queryKeys.rewardCatalogue(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<RewardItem[]> => {
-      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, nights, stock, is_live')
+      const { data, error } = await client.from('reward_item').select(REWARD_ITEM_COLUMNS)
         .eq('is_live', true).order('points').order('name');
       if (error) throw error;
-      return data.map(rewardItemOf);
+      return data.map((row) => rewardItemOf(client, row));
     },
   });
 }

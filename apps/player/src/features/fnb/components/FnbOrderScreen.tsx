@@ -2,7 +2,7 @@ import { FNB_ITEM_KINDS } from '@rivr/contracts';
 import { useFeatureStatus, useMySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, usePlaceFnbOrder, type FnbFailure, type FnbMenuItem, type MyFnbOrder } from '@rivr/db/fnb';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, Heading, Inline, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, ErrorMessage, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState, type JSX } from 'react';
 
 /**
@@ -49,7 +49,12 @@ function MenuBeforeSeat({ items }: { items: readonly FnbMenuItem[] }) {
   return (
     <Stack gap={6}>
       <Text>{t('player.fnb.notSeated')}</Text>
-      <MenuSections items={items} item={(menuItem) => <Text key={menuItem.itemId}>{menuItem.name}</Text>} />
+      <MenuSections items={items} item={(menuItem) => (
+        <Inline key={menuItem.itemId} gap={3} align="center">
+          <ItemPhoto src={menuItem.photoUrl} name={menuItem.name} size="sm" />
+          <Text>{menuItem.name}</Text>
+        </Inline>
+      )} />
     </Stack>
   );
 }
@@ -107,8 +112,13 @@ function FnbOrder() {
   return (
     <Stack gap={4}>
       <MenuSections items={menu.data} item={(item) => (
-        <QuantityStepper key={item.itemId} label={item.name} value={counts[item.itemId] ?? 0}
-          onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); setRequestId(crypto.randomUUID()); }} />
+        <Inline key={item.itemId} gap={3} align="center">
+          <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
+          <Stack grow>
+            <QuantityStepper label={item.name} value={counts[item.itemId] ?? 0}
+              onChange={(quantity) => { setCounts({ ...counts, [item.itemId]: quantity }); setSent(null); setRequestId(crypto.randomUUID()); }} />
+          </Stack>
+        </Inline>
       )} />
       <Text variant="small" tone="muted">{t('player.fnb.paid')}</Text>
       <Button variant="primary" isDisabled={lines.length === 0} isLoading={place.isPending} onClick={() => void send()}>{t('player.fnb.send')}</Button>

@@ -19,7 +19,7 @@ export interface LeagueSeasonOrder {
   readonly lastMonth: string;
 }
 
-/** One member's place over some League months on the console: cash and tournament points apart; ties share a place. */
+/** One member's place over some League months on the console: cash, tournament and by-hand points apart; ties share a place. */
 export interface LeagueStanding {
   readonly place: number;
   readonly memberId: string;
@@ -27,6 +27,8 @@ export interface LeagueStanding {
   readonly memberNumber: number;
   readonly cashPoints: bigint;
   readonly tournamentPoints: bigint;
+  /** Given by hand on Rewards, one member or a CSV (L-01). */
+  readonly handPoints: bigint;
   readonly points: bigint;
 }
 
@@ -96,8 +98,46 @@ export function useVenueLeague(venueId: string, firstMonth: string, lastMonth: s
       if (error) throw error;
       return data.map((row) => ({
         place: row.place, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number,
-        cashPoints: BigInt(row.cash_points), tournamentPoints: BigInt(row.tournament_points), points: BigInt(row.points),
+        cashPoints: BigInt(row.cash_points), tournamentPoints: BigInt(row.tournament_points), handPoints: BigInt(row.hand_points),
+        points: BigInt(row.points),
       }));
+    },
+  });
+}
+
+/** League points to give by hand (L-01): each member by number with their points, one reason, and the request id that gives once. */
+export interface LeagueGiving {
+  readonly rows: readonly { readonly memberNumber: number; readonly points: bigint }[];
+  readonly reason: string;
+  readonly requestId: string;
+}
+
+/** What was given: how many members and how many points in all. */
+export interface LeagueGiven {
+  readonly members: number;
+  readonly points: bigint;
+}
+
+/** Why League points were not given: member numbers not at the club (listed), or the role, the rows or the reason, a frozen venue, or anything else. */
+export type LeagueGiveFailure = { readonly kind: 'no_member'; readonly numbers: string } | { readonly kind: 'not_allowed' | 'invalid' | 'paused' | 'unavailable' };
+
+const GIVE_FAILURE_BY_CODE: Readonly<Record<string, Exclude<LeagueGiveFailure['kind'], 'no_member'>>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'paused' };
+
+/** Gives League points by hand (points.give), all or none; a Result, and the standings reload. */
+export function useGiveLeaguePoints(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (giving: LeagueGiving): Promise<Result<LeagueGiven, LeagueGiveFailure>> => {
+      const { data, error } = await client.rpc('give_league_points', {
+        p_venue_id: venueId, p_reason: giving.reason.trim(), p_request_id: giving.requestId,
+        p_rows: giving.rows.map((row) => ({ member_number: row.memberNumber, points: Number(row.points) })),
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.venueLeagueAll(userId ?? 'signed-out', venueId) });
+      if (error?.code === 'RVNOM') return err({ kind: 'no_member', numbers: error.details });
+      if (error) return err({ kind: GIVE_FAILURE_BY_CODE[error.code] ?? 'unavailable' });
+      const given = data[0];
+      return given === undefined ? err({ kind: 'unavailable' }) : ok({ members: given.members, points: BigInt(given.points) });
     },
   });
 }

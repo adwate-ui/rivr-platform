@@ -14,11 +14,12 @@ function columns(): readonly DataTableColumn<LeagueStanding>[] {
       key: 'tournaments', header: t('console.league.tournaments'), align: 'end', cell: (row) => formatNumber(row.tournamentPoints),
       sortValue: (row) => row.tournamentPoints,
     },
+    { key: 'byHand', header: t('console.league.byHand'), align: 'end', cell: (row) => formatNumber(row.handPoints), sortValue: (row) => row.handPoints },
     { key: 'total', header: t('console.league.total'), align: 'end', cell: (row) => formatNumber(row.points), sortValue: (row) => row.points },
   ];
 }
 
-/** The standings over the League months from `firstMonth` to `lastMonth` (`2026-11-01`): place, member, cash, tournaments and total. */
+/** The standings over the League months from `firstMonth` to `lastMonth` (`2026-11-01`): place, member, cash, tournaments, by hand and total. */
 export function StandingsTable({ venueId, label, firstMonth, lastMonth }: { venueId: string; label: string; firstMonth: string; lastMonth: string }) {
   const standings = useVenueLeague(venueId, firstMonth, lastMonth);
   const base = { label, columns: columns(), rowKey: (row: LeagueStanding) => row.memberId };

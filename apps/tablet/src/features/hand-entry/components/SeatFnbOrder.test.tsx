@@ -22,7 +22,7 @@ function renderOrder() {
     if (url.includes('/rpc/my_device')) {
       return Response.json([{ device_id: 'd1', venue_id: 'v1', name: 'Tablet A', kind: 'dealer_tablet', table_id: 't3', table_name: 'Table 3', is_practice: false }]);
     }
-    if (url.includes('/rpc/fnb_menu')) return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink' }]);
+    if (url.includes('/rpc/fnb_menu')) return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: null }]);
     if (url.includes('/rpc/tablet_fnb_order')) {
       orders.push(JSON.parse(String(init?.body)));
       return orders.length === 1 ? Response.json({ message: 'unreachable' }, { status: 503 }) : Response.json([{ order_id: 'o1', kot_number: 9 }]);
