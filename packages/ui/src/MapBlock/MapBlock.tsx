@@ -26,13 +26,13 @@ function spokenPhone(phone: string): string {
   return `${phone.slice(0, 3)} ${phone.slice(3, 8)} ${phone.slice(8)}`;
 }
 
-/** A map that waits for the visitor's consent: a note and a button to allow maps, then the map in their place. */
+/** A map that waits for the visitor's consent: a note and a button to allow maps, then the map in their place, both as wide as the address (W-09). */
 function ConsentedMap({ embedUrl }: { embedUrl: string }) {
   return (
-    <div data-consent="maps" className="w-full">
+    <div data-consent="maps" className="w-full max-w-text">
       <iframe data-consent-src={embedUrl} title={t('ui.web.mapTitle')} hidden loading="lazy" className="aspect-photo w-full rounded-sm border-0" />
-      <div data-consent-ask="" className="flex aspect-photo w-full flex-col items-center justify-center gap-4 rounded-sm border border-hairline p-6">
-        <Text tone="muted" align="center">{t('ui.web.mapConsent')}</Text>
+      <div data-consent-ask="" className="flex w-full flex-col items-start gap-4 rounded-sm border border-hairline p-6">
+        <Text tone="muted">{t('ui.web.mapConsent')}</Text>
         <Button variant="secondary" data-consent-allow="maps">{t('ui.web.allowMaps')}</Button>
       </div>
     </div>

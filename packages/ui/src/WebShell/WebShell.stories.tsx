@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { Container } from '../Container/Container.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { Stack } from '../Stack/Stack.tsx';
@@ -56,8 +57,19 @@ export const WithTopBar: Story = {
   },
 };
 
-/** On a phone: the member app beside Reserve a seat, the contacts scrolling sideways above. */
+/** On a phone: Menu beside the wordmark, the contacts scrolling sideways above. */
 export const WithTopBarOnAPhone: Story = { ...WithTopBar, tags: ['!viewport-console', 'viewport-phone'] };
+
+/** On a phone with Menu open: the member app, the links and Reserve a seat in a list under the header (W-03). */
+export const MenuOpenOnAPhone: Story = {
+  ...WithTopBar,
+  // Written out, not spread: Storybook reads a story's tags only where they are written.
+  tags: ['!viewport-console', 'viewport-phone'],
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByText('Menu'));
+    await expect(within(canvasElement).getAllByRole('link', { name: 'Member app' }).at(-1)).toBeVisible();
+  },
+};
 
 export const Empty: Story = { args: { links: [], footer: undefined, children: hero('Tournaments', 'No tournaments scheduled.') } };
 

@@ -54,6 +54,14 @@
     outline-offset: var(--rivr-border-width-focus);
   }
 
+  /* A summary draws its own mark (FaqBlock's chevron, the website's Menu): never the browser's triangle (W-10). */
+  summary {
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
   /* A switch's ring goes round its track, not the larger tap area around it. */
   [role='switch']:focus-visible {
     outline: none;

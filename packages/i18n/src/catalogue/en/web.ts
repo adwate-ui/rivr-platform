@@ -3,6 +3,8 @@ export const webApp = {
   /** A website page when its content cannot be read. */
   unavailableTitle: 'Website unavailable',
   unavailable: 'Try again shortly.',
+  /** A missing page's way back (W-07). */
+  backHome: 'Front page',
   /** The header's one action (#441): a WhatsApp message to the club, with these words ready to send (#616). */
   reserve: 'Reserve a seat',
   reserveMessage: 'Hi RIVR, I would like to reserve a seat tonight.',
@@ -71,7 +73,8 @@ export const webApp = {
     winner: 'The player who wins the hand: {percent}%',
     table: 'Everyone else dealt in: {percent}%',
     rareHands: 'Rare hand bonuses',
-    pays: '{hand}: {amount}',
+    /** `{chips}`: a count of bonus chips, as the promotions say them (W-08). */
+    pays: '{hand}: {chips} bonus chips',
     royalFlush: 'Royal flush',
     straightFlush: 'Straight flush',
     fourOfAKind: 'Four of a kind',

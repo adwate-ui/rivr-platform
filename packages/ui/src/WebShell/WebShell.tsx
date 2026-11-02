@@ -72,11 +72,26 @@ function TopBar({ links, app }: NonNullable<WebShellProps['topBar']>) {
 
 const SITE_LINK = 'flex min-h-touch items-center whitespace-nowrap font-text text-14 text-content-muted transition-colors hover:text-content';
 
-/** The header's links, scrolling in one row on a phone, led there by the member app (the top bar has it from a tablet up, A-25). */
-function SiteLinks({ links, app, onNavigate }: { links: readonly WebShellLink[]; app: WebShellLink | undefined; onNavigate: Navigate | undefined }) {
+/**
+ * The header's links: in a row from a tablet up; on a phone behind Menu, the same list opening under the header (W-03),
+ * led there by the member app (the top bar has it from a tablet up, A-25) and ended by the header's action, which has no
+ * room beside the wordmark and Menu. Menu is a disclosure, so it works without JavaScript: the list follows it and shows
+ * while it is open (peer-open).
+ */
+function SiteLinks({ links, app, action, onNavigate }: {
+  links: readonly WebShellLink[]; app: WebShellLink | undefined; action: WebShellProps['action']; onNavigate: Navigate | undefined;
+}) {
   return (
-    <nav aria-label={t('ui.web.navigation')} className="order-last w-full tablet:order-none tablet:w-auto">
-      <ul className="flex items-center gap-x-6 overflow-x-auto tablet:flex-wrap tablet:overflow-visible">
+    <nav aria-label={t('ui.web.navigation')}>
+      <details className="group peer tablet:hidden">
+        <summary className="flex min-h-touch min-w-touch cursor-pointer items-center justify-center gap-2 font-text text-14 font-medium text-content">
+          <span className="flex group-open:hidden"><Icon name="menu" size="sm" /></span>
+          <span className="hidden group-open:flex"><Icon name="close" size="sm" /></span>
+          {t('ui.web.menu')}
+        </summary>
+      </details>
+      <ul className={'absolute inset-x-0 top-full z-nav hidden flex-col border-b border-hairline bg-raised px-6 py-2 peer-open:flex '
+        + 'tablet:static tablet:flex tablet:flex-row tablet:flex-wrap tablet:items-center tablet:gap-x-6 tablet:border-0 tablet:p-0'}>
         {app ? (
           <li className="tablet:hidden">
             <a href={app.href} className={SITE_LINK}>{app.label}</a>
@@ -89,6 +104,11 @@ function SiteLinks({ links, app, onNavigate }: { links: readonly WebShellLink[];
             </a>
           </li>
         ))}
+        {action ? (
+          <li className="py-2 tablet:hidden">
+            <Button variant="secondary" href={action.href}>{action.label}</Button>
+          </li>
+        ) : null}
       </ul>
     </nav>
   );
@@ -102,14 +122,14 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-content">
       {topBar ? <TopBar links={topBar.links} app={topBar.app} /> : null}
-      <header className="border-b border-hairline bg-raised tablet:sticky tablet:top-0 tablet:z-nav">
-        {/* On a phone the action sits beside the wordmark and the links scroll in one row beneath, rather than widening the page. */}
-        <div className="mx-auto flex min-h-header max-w-console flex-wrap items-center justify-between gap-x-6 px-6 py-1">
-          <a href={homeHref} onClick={(event) => routeClick(event, homeHref, onNavigate)} className="flex rounded-sm">
+      <header className="relative border-b border-hairline bg-raised tablet:sticky tablet:top-0 tablet:z-nav">
+        {/* On a phone Menu sits beside the wordmark, its list (with the action) opening under the header, rather than widening the page. */}
+        <div className="mx-auto flex min-h-header max-w-console flex-wrap items-center justify-between gap-x-3 px-6 py-1 tablet:gap-x-6">
+          <a href={homeHref} onClick={(event) => routeClick(event, homeHref, onNavigate)} className="me-auto flex rounded-sm tablet:me-0">
             <Wordmark />
           </a>
-          <SiteLinks links={links} app={topBar?.app} onNavigate={onNavigate} />
-          {action ? <Button variant="secondary" href={action.href}>{action.label}</Button> : null}
+          <SiteLinks links={links} app={topBar?.app} action={action} onNavigate={onNavigate} />
+          {action ? <div className="hidden tablet:flex"><Button variant="secondary" href={action.href}>{action.label}</Button></div> : null}
         </div>
       </header>
       <main className="flex-1">{children}</main>

@@ -80,7 +80,7 @@ describe('promotions in grandpokerarena.com’s way', () => {
     expect(screen.getByText('₹3,42,770 in the pool')).toBeDefined();
     expect(screen.getByText('A bad beat pays 100% of the pool, shared at the table:')).toBeDefined();
     expect(screen.getByText('The player whose hand loses: 50%')).toBeDefined();
-    expect(screen.getByText('Royal flush: ₹25,000')).toBeDefined();
+    expect(screen.getByText('Royal flush: 25,000 bonus chips')).toBeDefined();
     expect(screen.queryByText(/Four of a kind/)).toBeNull();
     cleanup();
     renderPage({ blocks: [JACKPOT] });

@@ -1,5 +1,6 @@
 import { cx } from '../internal/classes.ts';
 import { Heading } from '../Heading/Heading.tsx';
+import { OpenChevron } from '../internal/OpenChevron.tsx';
 import { Text } from '../Text/Text.tsx';
 
 /** A live promotion, as published: its title, what it gives, who and when, and its rules and questions (#618). */
@@ -35,8 +36,11 @@ function Promotion({ promotion }: { promotion: WebPromotion }) {
       {questions.length > 0 ? (
         <div className="flex flex-col divide-y divide-hairline">
           {questions.map(({ question, answer }) => (
-            <details key={question} className="py-2">
-              <summary className="min-h-touch cursor-pointer py-2 font-text text-14 font-medium text-content">{question}</summary>
+            <details key={question} className="group py-2">
+              <summary className="flex min-h-touch cursor-pointer items-center justify-between gap-4 py-2 font-text text-14 font-medium text-content">
+                {question}
+                <OpenChevron />
+              </summary>
               <Text variant="small" tone="muted">{answer}</Text>
             </details>
           ))}

@@ -46,8 +46,9 @@ test.describe('Website', () => {
     await page.getByRole('button', { name: 'Allow maps' }).click();
     await expect(map).toHaveAttribute('src', /^https:\/\/www\.google\.com\/maps\?q=/);
 
-    // The footer opens the choices again, as they now stand.
+    // The footer opens the choices again, as they now stand, shown open rather than behind Choose.
     await page.getByRole('button', { name: 'Cookie settings' }).click();
+    await expect(banner.getByRole('checkbox', { name: /Maps/ })).toBeVisible();
     await expect(banner.getByRole('checkbox', { name: /Maps/ })).toBeChecked();
   });
 
@@ -89,6 +90,7 @@ test.describe('Website', () => {
       expect(response?.status()).toBe(404);
       await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'RIVR Poker Club' })).toHaveAttribute('href', '/?ref=FRIEND1');
+      await expect(page.getByRole('link', { name: 'Front page' })).toHaveAttribute('href', '/?ref=FRIEND1');
     }
   });
 });

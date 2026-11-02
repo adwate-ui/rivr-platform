@@ -3,7 +3,7 @@ import type { Attribution } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
 import { CookieBanner, HeroBlock, WebShell } from '@rivr/ui';
 import { siteHref } from '../links.ts';
-import { Footer, topBar } from './SitePage.tsx';
+import { Footer, menuLinks, topBar } from './SitePage.tsx';
 
 interface MissingPageProps {
   /** The content could not be read, rather than there being no such page. */
@@ -14,15 +14,16 @@ interface MissingPageProps {
   playerUrl: string;
 }
 
-/** No page to show: a draft or an address the website does not have, or content that could not be read. */
+/** No page to show: a draft or an address the website does not have, or content that could not be read; the menu, and the way back to the front page (W-07). */
 export function MissingPage({ failed, attribution, playerUrl }: MissingPageProps) {
+  const home = { label: t('web.backHome'), href: siteHref('home', attribution) };
   return (
-    <WebShell links={[]} homeHref={siteHref('home', attribution)} topBar={topBar(playerUrl, attribution)}
+    <WebShell links={menuLinks(attribution)} homeHref={siteHref('home', attribution)} topBar={topBar(playerUrl, attribution)}
       footer={<Footer attribution={attribution} playerUrl={playerUrl} />} after={<CookieBanner />}>
       {failed ? (
-        <HeroBlock heading={t('web.unavailableTitle')} text={t('web.unavailable')} />
+        <HeroBlock heading={t('web.unavailableTitle')} text={t('web.unavailable')} action={home} />
       ) : (
-        <HeroBlock heading={t('common.notFoundTitle')} text={t('common.notFound')} />
+        <HeroBlock heading={t('common.notFoundTitle')} text={t('common.notFound')} action={home} />
       )}
     </WebShell>
   );

@@ -20,7 +20,7 @@ export interface HeroBlockProps {
 
 /**
  * A website page's opening block: an eyebrow, the heading set large, a line or two and the action; on the
- * front page, the room's loop beside them (#441), above them on a phone.
+ * front page, the room's loop beside them (#441), under them on a phone, so a phone's first screen opens on the heading (W-02).
  */
 export function HeroBlock({ eyebrow, heading, text, action, video, note }: HeroBlockProps) {
   return (
@@ -42,7 +42,7 @@ export function HeroBlock({ eyebrow, heading, text, action, video, note }: HeroB
         ) : null}
       </div>
       {video ? (
-        <div className="order-first tablet:order-last">
+        <div>
           <LoopingVideo src={video.src} poster={video.poster} note={note} />
         </div>
       ) : null}

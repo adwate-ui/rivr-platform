@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { FaqBlock } from './FaqBlock.tsx';
 
 const meta = {
@@ -22,6 +23,16 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const WithoutHeading: Story = { args: { heading: undefined } };
+
+/** The first question open: its answer under it, its chevron turned. */
+export const OneOpen: Story = {
+  play: async ({ canvasElement, args }) => {
+    const first = args.questions[0];
+    if (first === undefined) return;
+    await userEvent.click(within(canvasElement).getByText(first.question));
+    await expect(within(canvasElement).getByText(first.answer)).toBeVisible();
+  },
+};
 
 export const LongText: Story = {
   args: {

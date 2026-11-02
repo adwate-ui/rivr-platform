@@ -178,6 +178,11 @@ const MENU: readonly SiteLink[] = [
   { label: 'web.menu.visit', page: 'visit' },
 ];
 
+/** The header's menu, keeping the codes the visitor arrived by: every page's, and a missing page's (W-07). */
+export function menuLinks(attribution: Attribution | null) {
+  return MENU.map((item) => ({ label: t(item.label), href: siteHref(item.page, attribution, item.anchor) }));
+}
+
 // The footer's columns, as grandpokerarena.com's has them (#616); its policies as decision 0166 listed them.
 const FOOTER_CLUB: readonly SiteLink[] = [
   { label: 'web.footer.story', page: 'about' }, { label: 'web.footer.room', page: 'home', anchor: 'the-room' },
@@ -244,7 +249,7 @@ function anchorsOf(blocks: readonly SiteBlock[]): (string | undefined)[] {
 
 /** A page of the website: the navigation and its one action, the page's blocks in their bands, and the footer. */
 export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
-  const links = MENU.map((item) => ({ label: t(item.label), href: siteHref(item.page, attribution, item.anchor) }));
+  const links = menuLinks(attribution);
   // While the club is paused (#278) nothing leads to the waitlist: seating is refused.
   const link: Link = (action) => (action && !(page.isPaused && action.to === 'waitlist')
     ? { label: action.label, href: playerHref(playerUrl, action.to, attribution) } : undefined);

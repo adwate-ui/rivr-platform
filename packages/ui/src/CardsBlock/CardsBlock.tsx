@@ -40,7 +40,8 @@ function Card({ card }: { card: WebCard }) {
           ))}
         </ul>
       ) : null}
-      {card.link ? <div className="self-start"><Button variant="text" href={card.link.href} aria-label={`${card.link.label}: ${card.title}`}>{card.link.label}</Button></div> : null}
+      {/* -ms-3 takes back the text button's own padding, so its label starts where the card's words do. */}
+      {card.link ? <div className="-ms-3 self-start"><Button variant="text" href={card.link.href} aria-label={`${card.link.label}: ${card.title}`}>{card.link.label}</Button></div> : null}
     </li>
   );
 }

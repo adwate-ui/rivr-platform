@@ -52,6 +52,8 @@ export const ui = {
   web: {
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
+    /** On a phone, what opens the website's links. */
+    menu: 'Menu',
     /** CareersBlock with no roles open. */
     noOpenings: 'No openings.',
     /** MapBlock's link to directions in a maps app. */
@@ -73,6 +75,8 @@ export const ui = {
       mapsHelp: 'The Google map on the Visit page.',
       acceptAll: 'Accept all',
       essentialOnly: 'Essential only',
+      /** Opens the two choices under the banner's buttons. */
+      choose: 'Choose',
       save: 'Save my choices',
     },
     /** GamesBlock and CalendarBlock: `{amount}` is formatted money. */
