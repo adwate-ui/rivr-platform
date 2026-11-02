@@ -1,5 +1,5 @@
 import {
-  callTimeCompletedSchema, err, ok, promotionOfferedSchema, sessionReminderSchema, tournamentStartingSchema, waitlistCalledSchema,
+  callTimeCompletedSchema, callTimeEndingSchema, err, ok, promotionOfferedSchema, sessionReminderSchema, tournamentStartingSchema, waitlistCalledSchema,
   withdrawalSentSchema, type Result,
 } from '@rivr/contracts';
 import { formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
@@ -12,7 +12,7 @@ registerMessages({ push: pushCopy });
 
 /** The events the push consumer sends a notification for (#139, #338). */
 export const PUSH_EVENT_TYPES = [
-  'waitlist.called', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
+  'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
 ] as const;
 
 /**
@@ -36,6 +36,7 @@ interface MemberPush {
   readonly body: string;
   readonly url: string;
   readonly tag: string;
+  readonly action?: { readonly title: string; readonly url: string };
 }
 
 /** The notification, null when there is nothing to send, or why the event cannot be read. */
@@ -48,9 +49,27 @@ function seatReady(payload: unknown, now: Date): Built {
   if (!called.success) return unreadable('waitlist.called');
   // A call claimed after its hold ran out would send the member to a seat that is gone: nothing to send.
   if (new Date(called.data.hold_until) <= now) return ok(null);
-  const { member_id: memberId, table_name: table, seat, hold_until: holdUntil } = called.data;
+  const { entry_id: entryId, member_id: memberId, table_name: table, seat, hold_until: holdUntil } = called.data;
   const body = t('push.seatReady.body', { table, seat: String(seat), time: formatTime(new Date(holdUntil)) });
-  return ok({ memberId, pushType: 'push.seat_ready', title: t('push.seatReady.title'), body, url: '/', tag: 'seat-ready' });
+  // "I'm on my way" opens Tonight, which accepts the call at once (decision 0321): a notification cannot sign the member in.
+  const action = entryId === undefined ? {} : { action: { title: t('push.seatReady.action'), url: `/?accept=${entryId}` } };
+  return ok({ memberId, pushType: 'push.seat_ready', title: t('push.seatReady.title'), body, url: '/', tag: 'seat-ready', ...action });
+}
+
+/** Fifteen minutes or less to run, under the member's Call time switch, with Add time; nothing once it has run out. */
+function callTimeEnding(payload: unknown, now: Date): Built {
+  const ending = callTimeEndingSchema.safeParse(payload);
+  if (!ending.success) return unreadable('call_time.ending');
+  const { member_id: memberId, session_id: sessionId, table_name: table, seat, ends_at: endsAt } = ending.data;
+  const left = new Date(endsAt).getTime() - now.getTime();
+  if (left <= 0) return ok(null);
+  const title = t('push.callTimeEnding.title', { minutes: String(Math.ceil(left / 60_000)) });
+  const body = t('push.callTimeEnding.body', { table, seat: String(seat), time: formatTime(new Date(endsAt)) });
+  // Its tag is the completion's, so "Call time complete" takes its place.
+  return ok({
+    memberId, pushType: 'push.call_time_complete', title, body, url: '/', tag: `call-time-${sessionId}`,
+    action: { title: t('push.callTimeEnding.action'), url: '/?sheet=add-time' },
+  });
 }
 
 function callTimeDone(payload: unknown): Built {
@@ -115,6 +134,7 @@ function isStale(eventType: (typeof PUSH_EVENT_TYPES)[number], occurredAt: Date 
 
 const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unknown, now: Date) => Built>> = {
   'waitlist.called': seatReady,
+  'call_time.ending': callTimeEnding,
   'call_time.completed': callTimeDone,
   'session.reminder': sessionReminder,
   'withdrawal.sent': withdrawalSent,

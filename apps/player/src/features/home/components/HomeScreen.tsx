@@ -2,9 +2,10 @@ import { useFloorTables, useMySeat, useMyUpcomingTournaments, useMyWaitlist, typ
 import { useMyNotices } from '@rivr/db/notices';
 import { t } from '@rivr/i18n';
 import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, useToast } from '@rivr/ui';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { isCallTimeEnding, minutesLeftToSay } from '@rivr/domain/callTime';
 import { useNow } from '../hooks/useNow.ts';
+import { usePushAction } from '../hooks/usePushAction.ts';
 import { JoinSheet } from './JoinSheet.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { callSecondsLeft, SeatedView } from './SeatedView.tsx';
@@ -122,6 +123,10 @@ export function HomeScreen({ offer }: { offer: ReactNode }) {
   const standing = standingOf(seat, tonight.places.data ?? []);
   const now = useNow(standing.kind === 'ready' || standing.kind === 'seated');
   useArrivals(standing);
+  const openAddTime = useCallback(() => setSeatSheet('addTime'), []);
+  usePushAction({
+    isReady: !tonight.isPending, isSeated: standing.kind === 'seated', calledEntryId: standing.kind === 'ready' ? standing.place.entryId : null,
+  }, openAddTime);
   const title = t('player.live.title');
   const tables = tonight.tables.data;
   if (tonight.isPending) return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
@@ -129,7 +134,7 @@ export function HomeScreen({ offer }: { offer: ReactNode }) {
   return (
     <Screen title={title} isTitleHidden>
       <TonightTop seat={seat} now={now} isBrowsing={standing.kind === 'browsing'} shownAt={tonight.tables.dataUpdatedAt}
-        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} onAddTime={() => setSeatSheet('addTime')} />
+        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} onAddTime={openAddTime} />
       <StandingView standing={standing} now={now} offer={offer} onJoin={setJoining} tables={tables} sheet={{ open: seatSheet, set: setSeatSheet }} />
       {standing.kind === 'browsing' ? null : <TablesPeek tables={tables} />}
       <JoinSheet table={joining} onClose={() => setJoining(null)} />

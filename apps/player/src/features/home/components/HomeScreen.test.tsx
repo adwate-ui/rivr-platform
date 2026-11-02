@@ -42,26 +42,29 @@ function answers(places: unknown[], seat: unknown[], more: Record<string, unknow
   };
 }
 
-function renderTonight(places: unknown[] = [], seat: unknown[] = [], more: Record<string, unknown> = {}) {
+function renderTonight(places: unknown[] = [], seat: unknown[] = [], more: Record<string, unknown> = {}, at = '/') {
   vi.useFakeTimers({ now: NOW, shouldAdvanceTime: true });
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(NOW / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   const replies = answers(places, seat, more);
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+  const asked: string[] = [];
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
+    if (init?.method === 'POST') asked.push(`${url.replace(/^.*\/rpc\//, '')} ${String(init.body)}`);
     const key = Object.keys(replies).find((path) => url.includes(`${path}?`) || url.endsWith(path));
     return Response.json(key === undefined ? [] : replies[key]);
   });
   const rootRoute = createRootRoute({ component: () => <ToastProvider><HomeScreen offer={null} /></ToastProvider> });
-  const router = createRouter({ routeTree: rootRoute, history: createMemoryHistory({ initialEntries: ['/'] }) });
+  const router = createRouter({ routeTree: rootRoute, history: createMemoryHistory({ initialEntries: [at] }) });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
+  return { router, asked };
 }
 
 const LATER = { timeout: 5000 };
@@ -134,5 +137,26 @@ describe('Tonight', () => {
     expect(screen.getByRole('list', { name: 'Order' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Order to my seat' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Order again' })).toBeNull();
+  });
+
+  it('Call time ending push: Add time opens its sheet, and the address is cleaned', async () => {
+    const { router } = renderTonight([], [SEAT], {}, '/?sheet=add-time');
+    expect(await screen.findByRole('dialog', { name: 'Add time' }, LATER)).toBeDefined();
+    expect(router.state.location.search).toEqual({});
+  });
+
+  it('Seat ready push: I\'m on my way tells the floor for the place it names, once', async () => {
+    const called = { ...PLACE, call_table_name: 'Table 1', call_seat: 4, called_at: '2026-11-15T17:04:00Z', hold_until: '2026-11-15T17:24:00Z' };
+    const { router, asked } = renderTonight([called], [], {}, '/?accept=e1');
+    expect(await screen.findByText('Your seat is ready', {}, LATER)).toBeDefined();
+    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('accept_seat_call'))).toEqual(['accept_seat_call {"p_entry_id":"e1"}']));
+    expect(router.state.location.search).toEqual({});
+  });
+
+  it('Seat ready push for a call that is over: nothing is sent', async () => {
+    const { router, asked } = renderTonight([], [SEAT], {}, '/?accept=e1');
+    expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
+    await vi.waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(asked.filter((call) => call.startsWith('accept_seat_call'))).toEqual([]);
   });
 });

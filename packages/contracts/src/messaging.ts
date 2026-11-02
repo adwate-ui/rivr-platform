@@ -5,8 +5,12 @@ import { z } from 'zod';
  * never their number: the consumer looks the number up when it sends, so an outbox row holds no phone.
  */
 
-/** waitlist.called (#63): a seat is held for the member until `hold_until`. */
+/**
+ * waitlist.called (#63): a seat is held for the member until `hold_until`. The phase-2 lock screen's seat.called (decision
+ * 0323). `entry_id` is the member's place, which "I'm on my way" answers (decision 0321).
+ */
 export const waitlistCalledSchema = z.object({
+  entry_id: z.uuid().optional(),
   member_id: z.uuid(),
   table_name: z.string().trim().min(1).max(40),
   seat: z.int().min(1).max(10),
@@ -59,6 +63,21 @@ export type PromotionOffered = z.infer<typeof promotionOfferedSchema>;
 
 /** call_time.completed (#56): the member's call time at their seat is complete. */
 export const callTimeCompletedSchema = z.object({ member_id: z.uuid(), session_id: z.uuid() });
+
+/**
+ * call_time.ending (decision 0320): the member's call time has 15 minutes or less to run (@rivr/domain
+ * CALL_TIME_ENDING_SECONDS), sent once by the minute sweep, and again once time is added. It ends at `ends_at`.
+ */
+export const callTimeEndingSchema = z.object({
+  member_id: z.uuid(),
+  session_id: z.uuid(),
+  table_name: z.string().trim().min(1).max(40),
+  seat: z.int().min(1).max(10),
+  ends_at: z.iso.datetime({ offset: true }),
+});
+
+/** call_time.updated (decision 0320): the floor added time; the call time is now `minutes` in all. */
+export const callTimeUpdatedSchema = z.object({ member_id: z.uuid(), session_id: z.uuid(), minutes: z.int().min(1).max(1440) });
 
 /** session.reminder (#56; decision 0053): the member has been seated as long as their own reminder. */
 export const sessionReminderSchema = z.object({ member_id: z.uuid(), session_id: z.uuid(), hours: z.int().min(1).max(24) });

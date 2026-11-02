@@ -18,8 +18,18 @@ async function loadHome() {
   };
 }
 
+/** A push's button opens Tonight with what to do (decision 0320): the Add time sheet, or "I'm on my way" to a seat call. */
+interface TonightSearch {
+  sheet?: 'add-time' | undefined;
+  accept?: string | undefined;
+}
+
 export const tonightRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: '/',
+  validateSearch: (search: Record<string, unknown>): TonightSearch => ({
+    sheet: search.sheet === 'add-time' ? 'add-time' : undefined,
+    accept: typeof search.accept === 'string' ? search.accept : undefined,
+  }),
   component: lazyRouteComponent(loadHome),
 });

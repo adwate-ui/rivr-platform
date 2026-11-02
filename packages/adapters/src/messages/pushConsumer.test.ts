@@ -39,7 +39,7 @@ describe('the push consumer', () => {
   it('is a messaging consumer of seat calls, call time, session reminders, withdrawals, tournaments and promotion offers', () => {
     const consumer = createPushConsumer({ push: createFakePush(), ...members([]), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'push', true, ['waitlist.called', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered'],
+      'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered'],
     ]);
   });
 
@@ -51,6 +51,28 @@ describe('the push consumer', () => {
     expect(push.calls).toEqual([phone('a'), phone('b')].map((subscription) => ({
       subscription, title: 'Your seat is ready', body: 'Table 3, seat 9. Held until 00:30.', url: '/', tag: 'seat-ready',
     })));
+  });
+
+  it('gives the seat call "I\u2019m on my way", which opens Tonight to accept it (decision 0321)', async () => {
+    const push = createFakePush();
+    const called = { entry_id: OTHER, member_id: MEMBER, table_name: 'Table 3', seat: 9, hold_until: '2026-11-15T19:00:00+00:00' };
+    await createPushConsumer({ push, ...members([phone('a')]), now }).deliver(delivery('waitlist.called', called));
+    expect(push.calls.map(({ tag, action }) => ({ tag, action }))).toEqual([{ tag: 'seat-ready', action: { title: "I'm on my way", url: `/?accept=${OTHER}` } }]);
+  });
+
+  it('warns of the call time\u2019s end under the Call time switch, with Add time, and sends nothing once it has run out', async () => {
+    const ending = { member_id: MEMBER, session_id: SESSION, table_name: 'Table 1', seat: 4, ends_at: '2026-11-15T19:05:00.123456+00:00' };
+    const { outcome, asked } = await sendOne('call_time.ending', ending);
+    expect([outcome, asked]).toEqual([{ ok: true, value: null }, ['push.call_time_complete']]);
+    const push = createFakePush();
+    await createPushConsumer({ push, ...members([phone('a')]), now }).deliver(delivery('call_time.ending', ending));
+    expect(push.calls.map(({ title, body, url, tag, action }) => ({ title, body, url, tag, action }))).toEqual([{
+      title: 'Call time ends in 16 min', body: 'Table 1, seat 4. Ends at 00:35.', url: '/', tag: `call-time-${SESSION}`,
+      action: { title: 'Add time', url: '/?sheet=add-time' },
+    }]);
+    const late = createFakePush();
+    await createPushConsumer({ push: late, ...members([phone('a')]), now: () => new Date('2026-11-15T19:06:00Z') }).deliver(delivery('call_time.ending', ending));
+    expect(late.calls).toEqual([]);
   });
 
   it('words each kind, asking for the member\u2019s phones that want it', async () => {
