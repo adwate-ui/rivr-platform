@@ -71,7 +71,6 @@ describe('CameraCapture', () => {
     getUserMedia.mockRejectedValue(new DOMException('None', 'NotFoundError'));
     renderIn(<CameraCapture onPhoto={vi.fn()} phoneUrl="https://rivr.test/kyc" />);
     expect(await screen.findByText('No camera here. Carry on with a phone.')).toBeInTheDocument();
-    // The encoder loads only now, with the code.
     expect(await screen.findByRole('img', { name: 'Link to this step on your phone' })).toHaveAttribute('data-value', 'https://rivr.test/kyc');
   });
 

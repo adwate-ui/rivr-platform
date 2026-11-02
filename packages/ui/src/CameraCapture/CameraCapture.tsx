@@ -1,8 +1,9 @@
 import { t } from '@rivr/i18n';
-import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { cx } from '../internal/classes.ts';
+import { QrCode } from '../QrCode/QrCode.tsx';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -25,9 +26,6 @@ export interface CameraCaptureProps {
 
 /** Why the camera did not start: blocked by the person or the browser, no camera at all, or anything else. */
 export type CameraTrouble = 'blocked' | 'none' | 'failed';
-
-// The QR code's encoder loads only when a device has no camera: @rivr/ui keeps it off the player's first load.
-const QrCode = lazy(async () => ({ default: (await import('../QrCode/QrCode.tsx')).QrCode }));
 
 /** The browser's refusal as one of the three, by its DOMException's name. */
 export function troubleOf(error: unknown): CameraTrouble {
@@ -150,7 +148,7 @@ function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble; phone
       {trouble === 'none' && phoneUrl ? (
         <Stack gap={3} align="center">
           <div className="size-photo rounded-md bg-cream p-3">
-            <Suspense fallback={null}><QrCode value={phoneUrl} label={t('ui.camera.phoneLink')} /></Suspense>
+            <QrCode value={phoneUrl} label={t('ui.camera.phoneLink')} />
           </div>
           <Text variant="small" tone="muted" align="center">{t('ui.camera.onPhone')}</Text>
         </Stack>
