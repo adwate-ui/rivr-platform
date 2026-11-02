@@ -49,12 +49,11 @@ export function StaffTable({ venueId, members, grantable }: StaffTableProps) {
   const chosen = members.find((member) => member.staffId === chosenId) ?? null;
   return (
     <Stack gap={8}>
-      {isAdding ? (
-        <Stack gap={4}>
-          <AddStaffForm venueId={venueId} grantable={grantable} />
-          <Inline><Button variant="text" onClick={() => setIsAdding(false)}>{t('console.staff.close')}</Button></Inline>
-        </Stack>
-      ) : <Inline><Button variant="secondary" onClick={() => setIsAdding(true)}>{t('console.staff.addOpen')}</Button></Inline>}
+      {/* One button opens and closes the form, so focus stays on it. */}
+      <Inline>
+        <Button variant="secondary" onClick={() => setIsAdding(!isAdding)}>{isAdding ? t('common.close') : t('console.staff.addOpen')}</Button>
+      </Inline>
+      {isAdding ? <AddStaffForm venueId={venueId} grantable={grantable} /> : null}
       {/* The table full width until someone is opened, as on Members; in place, so the search typed stays. */}
       <Grid columns={chosen === null ? 1 : 2} gap={8} stackBelow="medium">
         <DataTable label={t('console.staff.tabs.staff')} columns={columns()} rows={members} rowKey={(row) => row.staffId}
@@ -65,7 +64,7 @@ export function StaffTable({ venueId, members, grantable }: StaffTableProps) {
             <StaffRow key={chosen.staffId} venueId={venueId} member={chosen} grantable={grantable} />
             <Inline>
               <Button variant="text" aria-label={t('console.staff.closeFor', { name: chosen.fullName })} onClick={() => setChosenId(null)}>
-                {t('console.staff.close')}
+                {t('common.close')}
               </Button>
             </Inline>
           </Stack>

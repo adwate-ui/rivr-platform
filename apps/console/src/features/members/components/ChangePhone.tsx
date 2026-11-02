@@ -56,7 +56,7 @@ export function ChangePhone({ venueId, memberId, currentPhone }: { venueId: stri
   };
   return (
     <Stack gap={3}>
-      <Heading level={2} variant="section">{t('console.members.changePhone.title')}</Heading>
+      <Heading level={3}>{t('console.members.changePhone.title')}</Heading>
       <Text tone="muted">{t('console.members.changePhone.intro')}</Text>
       {currentPhone === null ? null : <Text>{t('console.members.changePhone.current', { phone: currentPhone })}</Text>}
       <NumberFields phone={phone} again={again} onPhone={setPhone} onAgain={setAgain} />

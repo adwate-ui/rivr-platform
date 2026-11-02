@@ -1,6 +1,6 @@
 import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { formatDate, formatStakes, t } from '@rivr/i18n';
-import { ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Tabs, Text, LoadState } from '@rivr/ui';
+import { ChoiceChips, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
 import { ChangePhone } from './ChangePhone.tsx';
@@ -77,16 +77,19 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
   );
 }
 
-/** The record's parts as tabs, so it is no longer one long scroll (C-02); one part alone needs none. */
+/**
+ * The record's parts, one shown at a time and chosen as Members chooses a tier, so the record is no longer one long scroll
+ * (C-02). Not Tabs: those parts each have an address, and the open record has none. One part alone needs no choice.
+ */
 function RecordParts({ venueId, record, can }: PartProps) {
   const [part, setPart] = useState<RecordPart>('visits');
   const parts = partsFor(can);
   return (
     <Stack gap={6}>
       {parts.length > 1 ? (
-        <Tabs label={t('console.members.parts.label', { name: record.fullName })} current={part}
-          onNavigate={(href) => setPart(RECORD_PARTS.find((one) => `#${one}` === href) ?? 'visits')}
-          tabs={parts.map((id) => ({ id, label: t(PART_LABELS[id]), href: `#${id}` }))} />
+        <ChoiceChips label={t('console.members.parts.label', { name: record.fullName })} mode="one" selected={[part]}
+          options={parts.map((id) => ({ value: id, label: t(PART_LABELS[id]) }))}
+          onChange={([picked]) => { const next = RECORD_PARTS.find((one) => one === picked); if (next !== undefined) setPart(next); }} />
       ) : null}
       <PartContent part={part} venueId={venueId} record={record} can={can} />
     </Stack>
@@ -116,7 +119,7 @@ function Record({ venueId, record, can }: PartProps) {
 }
 
 /**
- * The member record (#60): KYC photo, tier and qualifying stake, then its parts by tab (C-02): visits and early departures; a tier
+ * The member record (#60): KYC photo, tier and qualifying stake, then its parts, one at a time (C-02): visits and early departures; a tier
  * change and a break (A5-14) for members.manage; feature overrides (#61), the phone number and erasure on request (#424) for super admins.
  */
 export function MemberRecordPanel({ venueId, memberId, can }: { venueId: string; memberId: string; can: RecordAccess }) {

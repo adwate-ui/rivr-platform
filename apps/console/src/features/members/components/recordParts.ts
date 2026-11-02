@@ -1,4 +1,4 @@
-/** The member record's parts, as tabs (C-02): visits, then the tier and a break, then the account's. */
+/** The member record's parts, one shown at a time (C-02): visits, then the tier and a break, then the account's. */
 export const RECORD_PARTS = ['visits', 'membership', 'account'] as const;
 export type RecordPart = (typeof RECORD_PARTS)[number];
 

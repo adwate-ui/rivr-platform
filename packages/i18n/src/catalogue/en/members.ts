@@ -31,7 +31,7 @@ export const members = {
   kycIncomplete: 'KYC incomplete',
   inRoom: 'In the room',
   visitsTitle: 'Visits',
-  /** The record's parts, by tab (C-02); visits takes visitsTitle. `{name}` is the member's. */
+  /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
   parts: { label: 'Record of {name}', membership: 'Tier and break', account: 'Account' },
   /** `{count}` visits, the last on `{date}`. */
   visitsLine: '{count} visits, the last on {date}',
