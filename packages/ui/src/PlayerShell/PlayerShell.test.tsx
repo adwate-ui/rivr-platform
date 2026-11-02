@@ -1,14 +1,13 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { PLAYER_TABS } from '../storybook/fixtures.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { PlayerShell } from './PlayerShell.tsx';
+import { PlayerDock, PlayerShell } from './PlayerShell.tsx';
 
-function renderShell(props: { isTabBarHidden?: boolean; dock?: ReactNode } = {}) {
+function renderShell(props: { isTabBarHidden?: boolean; onNavigate?: () => void } = {}) {
   return renderIn(
-    <PlayerShell tabs={PLAYER_TABS} currentTab="home" onNavigate={vi.fn()} {...props}>
+    <PlayerShell tabs={PLAYER_TABS} currentTab="home" avatar={{ initial: 'I', href: '/profile' }} {...props}>
       <h1>Tonight</h1>
     </PlayerShell>,
   );
@@ -22,15 +21,27 @@ describe('PlayerShell', () => {
     expect(screen.getByRole('link', { name: 'Tonight' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('hides the tab bar on a pushed screen, and keeps the dock above it', () => {
-    const { rerender } = renderShell({ isTabBarHidden: true });
+  it('opens Profile from the member initial, top right', async () => {
+    const onNavigate = vi.fn();
+    renderShell({ onNavigate });
+    await userEvent.click(screen.getByRole('link', { name: 'Profile' }));
+    expect(onNavigate).toHaveBeenCalledWith('/profile');
+  });
+
+  it('hides the tab bar on a pushed screen', () => {
+    renderShell({ isTabBarHidden: true });
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-    rerender(
-      <PlayerShell tabs={PLAYER_TABS} currentTab="home" dock={<button type="button">All tables</button>}>
+  });
+
+  it('keeps a screen\'s dock above the tab bar', () => {
+    renderIn(
+      <PlayerShell tabs={PLAYER_TABS} currentTab="home">
         <h1>Tonight</h1>
+        <PlayerDock><button type="button">All tables</button></PlayerDock>
       </PlayerShell>,
     );
     const dock = screen.getByRole('button', { name: 'All tables' });
+    expect(screen.getByRole('main')).not.toContainElement(dock);
     expect(dock.compareDocumentPosition(screen.getByRole('navigation'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 

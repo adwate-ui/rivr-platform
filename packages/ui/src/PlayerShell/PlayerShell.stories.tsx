@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AvatarLink } from '../AvatarLink/AvatarLink.tsx';
 import { PeekBar } from '../PeekBar/PeekBar.tsx';
 import { Screen } from '../Screen/Screen.tsx';
 import { PLAYER_TABS } from '../storybook/fixtures.ts';
 import { TablesList } from '../storybook/screens.tsx';
-import { PlayerShell } from './PlayerShell.tsx';
+import { PlayerDock, PlayerShell } from './PlayerShell.tsx';
 
 const meta = {
   title: 'Shells/PlayerShell',
@@ -14,8 +13,9 @@ const meta = {
   args: {
     tabs: PLAYER_TABS,
     currentTab: 'sessions',
+    avatar: { initial: 'I', href: '#profile' },
     children: (
-      <Screen title="Sessions" titleLook="serif" actions={<AvatarLink initial="I" href="#profile" />}>
+      <Screen title="Sessions" titleLook="serif">
         <TablesList />
       </Screen>
     ),
@@ -38,10 +38,13 @@ export const WithError: Story = {
 };
 
 export const WithDock: Story = {
-  args: { currentTab: 'home', dock: <PeekBar title="All tables" aside="4 running · 2 tournaments" onOpen={() => undefined} /> },
+  args: {
+    currentTab: 'home',
+    children: <><Screen title="Tonight" titleLook="serif"><TablesList /></Screen><PlayerDock><PeekBar title="All tables" aside="4 running · 2 tournaments" onOpen={() => undefined} /></PlayerDock></>,
+  },
 };
 
-export const PushedScreen: Story = { args: { isTabBarHidden: true } };
+export const PushedScreen: Story = { args: { isTabBarHidden: true, avatar: undefined } };
 
 export const LockedTab: Story = {
   args: {

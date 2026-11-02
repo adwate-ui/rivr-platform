@@ -1,23 +1,29 @@
 import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
-import { useAuthStatus, useControlState, useFeature, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
+import { useAuthStatus, useFeature, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { InstallOffer, KillSwitchBanner, OfflineBanner, PlayerShell, Screen, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
+import { InstallOffer, PlayerShell, Screen, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
 
-// Home and Rewards always show as tabs; the features inside them are gated one by one. Balance is hidden (#627), and
-// the Menu (#635) takes its place, gated by table-side ordering.
+// Tonight, Card and Rewards always show as tabs; the features inside them are gated one by one (decision 0320).
 const ALWAYS: FeatureAccess = { state: 'enabled' };
 
 const TAB_FOR_PATH: Readonly<Record<string, PlayerTab>> = {
   '/': 'home',
   '/sessions': 'sessions',
-  '/fnb': 'food',
+  '/card': 'card',
   '/rewards': 'rewards',
-  '/learn': 'learn',
 };
+
+// Pushed screens with their own way back hide the tabs (decision 0320): Order, Profile and House rules.
+const PUSHED = ['/fnb', '/profile', '/profile/rules'];
+
+/** The tab a path sits under: a session's detail is under Sessions. */
+function tabOf(pathname: string): PlayerTab | undefined {
+  return TAB_FOR_PATH[pathname] ?? (pathname.startsWith('/sessions/') ? 'sessions' : undefined);
+}
 
 /**
  * Where sign-in, and sign-up after it, return to (#233): the screen this frame shows, not the address
@@ -40,22 +46,20 @@ function KycGate({ isMember, children }: { isMember: boolean; children: ReactNod
   const kyc = useKycRecord();
   if (kyc.data?.status === 'verified') return children;
   if (isMember && kyc.isSuccess) return <Navigate to="/kyc" replace />;
-  return <Screen title={t('player.kyc.title')} status={kyc.isError ? 'error' : 'loading'} onRetry={() => void kyc.refetch()} />;
+  return <Screen title={t('player.kyc.title')} status={kyc.isError ? 'error' : 'loading'} loadingLook="skeleton" onRetry={() => void kyc.refetch()} />;
 }
 
 /**
- * The player app's frame for a signed-in member: tabs gated by tier, the member's initial (which
- * opens Profile), the kill-switch or offline banner and navigation, and on Tonight the offer to
- * install the app (#16). Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity
- * check is verified, a member sees only its steps (#632): every screen of the frame waits on it, and goes to /kyc.
+ * The player app's frame for a signed-in member (decision 0320): Tonight, Sessions, Card and Rewards as tabs, gated by
+ * tier; the member's initial top right on a tab screen, which opens Profile; pushed screens (Order, Profile, House rules)
+ * without the tabs; and on Tonight the offer to install the app (#16). The club's state (paused, offline) is a banner on
+ * Tonight. Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity check is
+ * verified, a member sees only its steps (#632).
  */
 export function Frame({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
   const member = useMember();
   const sessions = useFeature(TAB_FEATURES.sessions);
-  const learn = useFeature(TAB_FEATURES.learn);
-  const menu = useFeature('fnb.table_side');
-  const { isVenueFrozen } = useControlState();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { toSignIn, toSignUp } = useReturnSearch(authStatus);
@@ -66,19 +70,14 @@ export function Frame({ children }: { children: ReactNode }) {
   const tabs: BottomNavItem[] = [
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },
-    { tab: 'food', href: '/fnb', access: menu },
+    { tab: 'card', href: '/card', access: ALWAYS },
     { tab: 'rewards', href: '/rewards', access: ALWAYS },
-    { tab: 'learn', href: '/learn', access: learn },
   ];
+  const currentTab = tabOf(pathname);
   return (
-    <PlayerShell
-      tabs={tabs}
-      currentTab={TAB_FOR_PATH[pathname]}
-      memberInitial={member.data?.initial}
-      profileHref="/profile"
-      onNavigate={(href) => void navigate({ href })}
-      banner={isVenueFrozen ? <KillSwitchBanner audience="member" /> : <OfflineBanner />}
-    >
+    <PlayerShell tabs={tabs} currentTab={currentTab} onNavigate={(href) => void navigate({ href })}
+      avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, href: '/profile' }}
+      isTabBarHidden={PUSHED.includes(pathname)} isFullBleed={pathname === '/'}>
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
       <KycGate isMember={Boolean(member.data)}>{children}</KycGate>
     </PlayerShell>

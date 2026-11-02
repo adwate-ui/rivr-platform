@@ -1,13 +1,12 @@
 import { useFeature, useFloorTables, useMyWaitlist, type FloorTable, type WaitlistPlace } from '@rivr/db';
 import { useMyNotices } from '@rivr/db/notices';
 import { t } from '@rivr/i18n';
-import { FeatureGate, Heading, Screen, Stack } from '@rivr/ui';
+import { FeatureGate, Heading, Screen, Stack, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
-import { BreakNotice } from './BreakNotice.tsx';
-import { ClubNotices } from './ClubNotices.tsx';
 import { HomePromotions } from './HomePromotions.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { SeatNotice } from './SeatNotice.tsx';
+import { TonightBanners } from './TonightBanners.tsx';
 import { UpcomingTournaments } from './UpcomingTournaments.tsx';
 
 /**
@@ -34,18 +33,22 @@ export function HomeScreen({ yourWaitlist, floor }: HomeScreenProps) {
   const myNotices = useMyNotices();
   const notices = myNotices.data ?? [];
   const title = t('player.tonight.title');
-  if (tables.isPending || places.isPending || myNotices.isPending) return <Screen title={title} status="loading" />;
-  if (tables.isError || places.isError) {
+  if (tables.isPending || places.isPending || myNotices.isPending) return <Screen title={title} status="loading" loadingLook="skeleton" />;
+  // A refresh that fails keeps what the screen had, under a banner (decision 0320): the error screen only with nothing to show.
+  if (tables.data === undefined || places.data === undefined) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />;
   }
   // Without the live floor the member reads no tables: the gate below says so, not the empty state.
   const isEmpty = liveView.state === 'enabled' && [tables.data, places.data, notices].every((list) => list.length === 0);
-  if (isEmpty) return <Screen title={title} status="empty" emptyText={t('player.tonight.empty')} />;
+  const banners = (
+    <TonightBanners notices={notices} isBrowsing={places.data.length === 0} shownAt={tables.dataUpdatedAt}
+      hasRefreshFailed={tables.isError || places.isError} onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />
+  );
+  if (isEmpty) return <Screen title={title}><Stack gap={4}>{banners}<Text tone="muted">{t('player.tonight.empty')}</Text></Stack></Screen>;
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <ClubNotices notices={notices} />
-        <BreakNotice />
+        {banners}
         <SeatNotice />
         <RateVisit />
         {yourWaitlist(places.data)}

@@ -1,1 +1,1 @@
-export { OfflineBanner, type OfflineBannerProps } from './OfflineBanner.tsx';
+export { OfflineBanner, useIsOnline, type OfflineBannerProps } from './OfflineBanner.tsx';

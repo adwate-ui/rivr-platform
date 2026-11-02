@@ -123,9 +123,10 @@ describe('the player app', () => {
     signIn();
     renderAt('/', clientWithKabir());
     await screen.findByText('No tables are running.');
-    expect(screen.queryByText('No connection. What you see may be out of date.')).toBeNull();
+    expect(screen.queryByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeNull();
     act(() => goOnline(false));
-    expect(screen.getByRole('status').textContent).toBe('No connection. What you see may be out of date.');
+    // A banner at the top of Tonight (decision 0320), naming when the tables shown came.
+    expect(screen.getByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeDefined();
   });
 
   it('opens on Tonight inside the frame', async () => {
@@ -176,11 +177,12 @@ describe('the player app', () => {
     expect(screen.queryByRole('heading', { name: 'Learn' })).toBeNull();
   });
 
-  it('says so when a page does not exist', async () => {
+  it('Errors › Not found: says the page does not exist, with the tabs and the way to Tonight', async () => {
     signIn();
     renderAt('/nowhere', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
-    expect(screen.getByText('This page is not here. Check the address, or go back.')).toBeDefined();
+    expect(await screen.findByRole('heading', { name: "This page doesn't exist." })).toBeDefined();
+    expect(screen.getByText('The link may be old or mistyped.')).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Go to Tonight' }).getAttribute('href')).toBe('/');
     expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);
   });
 });
