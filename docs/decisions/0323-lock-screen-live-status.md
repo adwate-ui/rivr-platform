@@ -15,4 +15,4 @@ Date: 3 Nov 2026. The redesign's prototype shows a live status on the lock scree
 | `waitlist.position_changed` | not emitted yet | | |
 
 - **Ends.** `seat.left` ends a seated status; leaving or losing a place (`waitlist_entry.left_at`) ends a waiting one.
-- **Not yet: `waitlist.position_changed`.** A place moves whenever anyone ahead joins, leaves, is called or is seated, so it is a fan-out to every member behind them. Phase 2 decides whether to emit it per member or have the consumer read `my_waitlist` on `waitlist.joined`, `waitlist.called` and `seat.taken` (issue). Nothing in phase 1 needs it.
+- **Not yet: `waitlist.position_changed`.** A place moves whenever anyone ahead joins, leaves, is called or is seated, so it is a fan-out to every member behind them. Phase 2 decides whether to emit it per member or have the consumer read `my_waitlist` on `waitlist.joined`, `waitlist.called` and `seat.taken` (#778). Nothing in phase 1 needs it. The phase-2 work is #779.

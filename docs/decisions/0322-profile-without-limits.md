@@ -7,4 +7,4 @@ Date: 3 Nov 2026. The player redesign's Profile (brief 3.9) is Account, Notifica
 - **A break still shows.** On a break, Tonight's banner says until when and a table's sheet offers no join (decision 0300), as Home did; the member's place is gone, as the server removes it.
 - **Feedback.** Send feedback is a sheet with the prototype's quick note first and the detailed form (#637) a tab away: the detailed form is not one of the removals.
 - **Learn and Events.** They lost their tabs in the redesign. Until the owner says where they live, each is a row under Club, behind its feature as before (`learn.library`, `events.book`).
-- **Open.** Whether a member should set limits or a break from the app again is the owner's question. Removing the backend is not part of this work.
+- **Open.** Whether a member should set limits or a break from the app again is the owner's question, and so is the session reminder a member set before, which still pushes and which they can no longer change (#784). Removing the backend is not part of this work.
