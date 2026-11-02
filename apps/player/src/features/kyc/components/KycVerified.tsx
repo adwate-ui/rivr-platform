@@ -1,32 +1,25 @@
-import type { KycRecord } from '@rivr/db';
-import { formatDate, t } from '@rivr/i18n';
-import { Button, Inline, Stack, StepScreen, Text } from '@rivr/ui';
+import { useMember } from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { Button, DoneMark, Heading, Stack, StepScreen, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
-/** The return state once the check is done: what was verified, the Aadhaar masked as stored. */
-export function KycVerified({ record }: { record: KycRecord }) {
+/** The check is done (decision 0320): a gold tick, "You're verified.", a welcome by first name, and on to tonight's tables. */
+export function KycVerified() {
   const navigate = useNavigate();
-  const rows = [
-    { label: t('player.kyc.dateOfBirthLabel'), value: record.dateOfBirth ? formatDate(new Date(`${record.dateOfBirth}T12:00:00Z`)) : null },
-    { label: t('player.kyc.aadhaarLabel'), value: record.maskedAadhaar },
-    { label: t('player.kyc.panLabel'), value: record.pan },
-  ].filter((row) => row.value !== null);
+  const firstName = useMember().data?.fullName.split(' ')[0] ?? '';
   return (
     <StepScreen
-      title={t('player.kyc.verifiedTitle')}
+      align="center"
       footer={
-        <Button variant="primary" fullWidth onClick={() => void navigate({ to: '/', replace: true })}>
-          {t('player.kyc.continue')}
+        <Button variant="primary" size="tall" fullWidth onClick={() => void navigate({ to: '/', replace: true })}>
+          {t('player.kyc.toTonight')}
         </Button>
       }
     >
-      <Stack divided>
-        {rows.map((row) => (
-          <Inline key={row.label} justify="between">
-            <Text tone="muted">{row.label}</Text>
-            <Text>{row.value}</Text>
-          </Inline>
-        ))}
+      <Stack gap={4} align="start">
+        <DoneMark />
+        <Heading level={1} variant="serif" serifSize={44}>{t('player.kyc.verifiedTitle')}</Heading>
+        {firstName ? <Text tone="muted">{t('player.kyc.welcome', { name: firstName })}</Text> : null}
       </Stack>
     </StepScreen>
   );

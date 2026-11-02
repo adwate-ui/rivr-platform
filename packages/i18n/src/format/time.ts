@@ -130,3 +130,22 @@ export function formatQuarter(firstDay: string): string {
   const lastMonth = (start.getUTCMonth() + 2) % 12;
   return `${MONTHS[start.getUTCMonth()] ?? ''}–${MONTHS[lastMonth] ?? ''} ${start.getUTCFullYear()}`;
 }
+
+/**
+ * A date of birth as it is typed into a numeric field (decision 0320), never the browser's mm/dd/yyyy picker: the digits
+ * set out as `DD / MM / YYYY` as they come, `14 / 0` part way.
+ */
+export function formatTypedDay(typed: string): string {
+  const digits = typed.replace(/\D/g, '').slice(0, 8);
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter((part) => part !== '').join(' / ');
+}
+
+/** A typed `DD / MM / YYYY` as the ISO day `YYYY-MM-DD`, or null until it is a whole day that exists. */
+export function isoDayOfTyped(typed: string): string | null {
+  const match = /^(\d{2}) \/ (\d{2}) \/ (\d{4})$/.exec(typed);
+  if (match === null) return null;
+  const [, day = '', month = '', year = ''] = match;
+  const iso = `${year}-${month}-${day}`;
+  const at = new Date(`${iso}T00:00:00Z`);
+  return Number.isNaN(at.getTime()) || at.toISOString().slice(0, 10) !== iso ? null : iso;
+}

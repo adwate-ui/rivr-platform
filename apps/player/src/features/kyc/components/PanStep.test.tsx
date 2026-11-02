@@ -41,7 +41,7 @@ describe('PanStep', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'PAN' }), { target: { value: 'ABCPE1234F' } });
     fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
 
-    expect(await screen.findByText('This PAN did not verify. Check it, or ask at the front desk.')).toBeDefined();
+    expect(await screen.findByText('This PAN did not verify. Check it and try again.')).toBeDefined();
   });
 
   it('asks for the date of birth when DigiLocker gave none, and never for a name', async () => {
@@ -53,6 +53,18 @@ describe('PanStep', () => {
     expect(await screen.findByText('Enter your date of birth.')).toBeDefined();
     expect(screen.queryByRole('textbox', { name: /name/i })).toBeNull();
     expect(requests).toEqual([]);
+  });
+
+  it('PAN fallback: takes the date of birth as DD / MM / YYYY in a numeric field, and sends it as an ISO day', async () => {
+    const { requests } = renderPanStep({ status: 200, body: { status: 'verified' } }, false);
+    const birth = screen.getByRole('textbox', { name: 'Date of birth' });
+    expect(birth.getAttribute('inputmode')).toBe('numeric');
+    expect(birth.getAttribute('type')).toBe('text');
+    fireEvent.change(birth, { target: { value: '14031990' } });
+    expect(birth).toHaveProperty('value', '14 / 03 / 1990');
+    fireEvent.change(screen.getByRole('textbox', { name: 'PAN' }), { target: { value: 'abcpe1234f' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    await waitFor(() => expect(requests).toEqual([{ action: 'pan', pan: 'ABCPE1234F', dateOfBirth: '1990-03-14' }]));
   });
 
   it('offers DigiLocker again after it failed, and says why when it cannot start', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatClock, formatCountdown, formatDate, formatHoursMinutes, formatMinutesSeconds, isLaterIstDay, istMidnight, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatQuarter, formatTime, formatWeekday } from './time.ts';
+import { formatClock, formatCountdown, formatTypedDay, isoDayOfTyped, formatDate, formatHoursMinutes, formatMinutesSeconds, isLaterIstDay, istMidnight, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatQuarter, formatTime, formatWeekday } from './time.ts';
 
 // 21:10 UTC on 14 Nov is 02:40 IST on Sunday 15 Nov, the opening night.
 const OPENING_NIGHT = new Date('2026-11-14T21:10:00Z');
@@ -30,6 +30,15 @@ describe('time and dates are shown in IST', () => {
     expect(formatDuration(2700)).toBe('45 min');
     expect(formatDuration(1)).toBe('1 min');
     expect(formatDuration(0)).toBe('0 min');
+  });
+
+  it('sets out a typed date of birth as DD / MM / YYYY, and reads it back as an ISO day that exists', () => {
+    expect(formatTypedDay('1')).toBe('1');
+    expect(formatTypedDay('140')).toBe('14 / 0');
+    expect(formatTypedDay('14/03/1990x9')).toBe('14 / 03 / 1990');
+    expect(isoDayOfTyped('14 / 03 / 1990')).toBe('1990-03-14');
+    expect(isoDayOfTyped('31 / 02 / 1990')).toBeNull();
+    expect(isoDayOfTyped('14 / 03')).toBeNull();
   });
 
   it('writes the redesign\'s clocks and lengths (decision 0320)', () => {

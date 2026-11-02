@@ -163,4 +163,6 @@ export * from './DetailRow/index.ts';
 export * from './StatRow/index.ts';
 export * from './AvatarLink/index.ts';
 export * from './PeekBar/index.ts';
+export * from './SelfieCamera/index.ts';
+export * from './DoneMark/index.ts';
 export { haptic } from './haptic/index.ts';

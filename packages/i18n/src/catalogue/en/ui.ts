@@ -159,6 +159,18 @@ export const ui = {
     onPhone: 'Scan with your phone to carry on there.',
     phoneLink: 'Link to this step on your phone',
   },
+  /** The redesign's selfie camera (decision 0320): its live line, three tips and the review. */
+  selfie: {
+    back: 'Back',
+    title: 'Selfie',
+    closer: 'Move closer',
+    steady: 'Hold still',
+    capturing: 'Capturing',
+    tipLight: 'Even light',
+    tipCap: 'No cap or sunglasses',
+    tipAlone: 'Only you',
+    reviewTitle: 'Use this photo?',
+  },
   /** StepList: where a person is in a flow of steps, read out beside each step's name. */
   steps: {
     done: 'done',

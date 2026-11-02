@@ -1,51 +1,52 @@
 /** The player app's identity check copy. */
 
-/** KYC: DigiLocker, or a PAN when DigiLocker fails, from where the member can try DigiLocker again. Only the masked Aadhaar is ever shown. */
+/**
+ * KYC, as the redesign has it (decision 0320): the selfie, DigiLocker, or a PAN when DigiLocker fails, from where the
+ * member can try DigiLocker again. The front desk is named only once the check was refused. Only the masked Aadhaar is
+ * ever shown.
+ */
 export const playerKyc = {
   title: 'Identity',
+  /** Above the title: sign-up is step 1. */
+  eyebrow: 'Step 2 of 2',
+  startTitle: 'Verify your identity',
+  /** A member back with the check partly done, at their step. */
+  resumeTitle: 'Pick up where you left off',
+  startSubtitle: 'Required before you play.',
   /** The three steps (K-09), read out as a list named this. */
   stepsLabel: 'Identity check',
   selfieStep: 'Selfie',
-  selfieStepDetail: 'A photo of your face, taken now.',
+  selfieStepDetail: 'A photo of your face',
   digilockerStep: 'DigiLocker',
-  digilockerStepDetail: 'Your Aadhaar, its OTP and your consent.',
+  digilockerStepDetail: 'Aadhaar and OTP',
   verifiedStep: 'Verified',
-  verifiedStepDetail: 'Book a seat.',
-  kept: 'Kept: your photo, date of birth, address, PAN and the last four digits of your Aadhaar.',
+  kept: 'We store your photo, date of birth, address, PAN and the last 4 digits of your Aadhaar.',
   takeSelfie: 'Take a selfie',
-  /** Before the camera opens: a check keeps one selfie, so how to take one that passes (#720). */
-  tipsTitle: 'Selfie tips',
-  tipLight: 'Good, even light on your face.',
-  tipCamera: 'Look straight at the camera.',
-  tipClear: 'No cap, mask or sunglasses.',
-  tipAlone: 'Only you in the photo.',
-  tipOnce: 'It is your one selfie for this check.',
-  /** Under the steps: the way round a check that will not go on (P-03). */
-  inPerson: 'The front desk can check you in person.',
-  selfieTitle: 'Selfie',
   notLive: 'Photo unclear. Retake it in good light.',
   start: 'Continue to DigiLocker',
   checking: 'Checking your documents',
-  verifiedTitle: 'Identity verified',
-  dateOfBirthLabel: 'Date of birth',
-  aadhaarLabel: 'Aadhaar',
-  panLabel: 'PAN',
-  continue: 'Continue',
-  panTitle: 'PAN',
+  verifiedTitle: "You're verified.",
+  /** `{name}` is the member's first name. */
+  welcome: 'Welcome to RIVR, {name}.',
+  toTonight: "See tonight's tables",
+  panTitle: 'Verify with PAN',
   panIntro: 'Enter your PAN to finish.',
-  panAfterDigilocker: 'DigiLocker did not finish. Enter your PAN instead.',
+  panAfterDigilocker: "DigiLocker didn't finish. Use your PAN instead.",
+  panLabel: 'PAN',
   panPlaceholder: 'ABCDE1234F',
+  dateOfBirthLabel: 'Date of birth',
+  dateOfBirthPlaceholder: 'DD / MM / YYYY',
   verify: 'Verify',
   panInvalid: 'Enter a PAN like ABCDE1234F.',
   dateOfBirthInvalid: 'Enter your date of birth.',
-  panRejected: 'This PAN did not verify. Check it, or ask at the front desk.',
+  panRejected: 'This PAN did not verify. Check it and try again.',
   tryDigilockerAgain: 'Try DigiLocker again',
-  reviewTitle: 'Identity check',
-  refusedTitle: 'Not verified',
-  refused: 'Not verified. Ask at the front desk.',
-  review: 'Bring your Aadhaar and PAN to the front desk.',
+  reviewTitle: "We're checking your details",
+  review: "We'll notify you when it's done.",
+  refusedTitle: "We couldn't verify you",
+  refused: 'Bring your Aadhaar and PAN to the front desk.',
   stopped: 'Identity checks are paused. Try again later.',
-  tooManyAttempts: 'Too many tries today. Try tomorrow or ask at the front desk.',
-  notConfigured: 'Not open yet. Staff check your documents at the club.',
+  tooManyAttempts: 'Too many tries today. Try again tomorrow.',
+  notConfigured: 'Identity checks are not open yet.',
   unavailable: 'Identity checks are down. Try again shortly.',
 } as const;

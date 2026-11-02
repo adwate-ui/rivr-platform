@@ -1,11 +1,11 @@
 import { t } from '@rivr/i18n';
-import { Button, StepScreen, Text } from '@rivr/ui';
+import { Button, Skeleton, StepScreen, Text } from '@rivr/ui';
 
-/** Identity while the member's record loads. */
+/** Identity while the member's record loads: faint blocks, never the word (decision 0320). */
 export function KycLoading() {
   return (
-    <StepScreen title={t('player.kyc.title')} footer={null}>
-      <Text tone="muted">{t('common.loading')}</Text>
+    <StepScreen footer={null}>
+      <Skeleton />
     </StepScreen>
   );
 }
@@ -16,7 +16,7 @@ export function KycLoadFailed({ onRetry }: { onRetry: () => void }) {
     <StepScreen
       title={t('player.kyc.title')}
       footer={
-        <Button variant="primary" fullWidth onClick={onRetry}>
+        <Button variant="primary" size="tall" fullWidth onClick={onRetry}>
           {t('common.retry')}
         </Button>
       }

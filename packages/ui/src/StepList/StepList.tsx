@@ -17,6 +17,8 @@ export interface StepListProps {
   /** What the steps are, read out: "Identity check". */
   label: string;
   steps: readonly Step[];
+  /** `ruled`, each step between hairlines, as the player redesign's identity steps (decision 0320); `joined` by a line otherwise. */
+  look?: 'joined' | 'ruled';
 }
 
 const MARKER: Record<StepState, string> = {
@@ -38,13 +40,15 @@ function Marker({ number, state }: { number: number; state: StepState }) {
  * The steps of a flow and where the person is in it (K-09): each step's number, name and what it asks for, a tick for those
  * done, the current one in gold, joined by a hairline. Read out as an ordered list, the current step marked as such.
  */
-export function StepList({ label, steps }: StepListProps) {
+export function StepList({ label, steps, look = 'joined' }: StepListProps) {
+  const isRuled = look === 'ruled';
   return (
     // An explicit list role: a list drawn without bullets loses its semantics in Safari with VoiceOver.
     <ol role="list" aria-label={label} className="flex flex-col">
       {steps.map((step, index) => (
-        <li key={step.title} aria-current={step.state === 'current' ? 'step' : undefined} className="relative flex gap-4 pb-6 last:pb-0">
-          {index < steps.length - 1 ? <span aria-hidden="true" className="absolute top-8 bottom-0 start-4 border-s border-hairline" /> : null}
+        <li key={step.title} aria-current={step.state === 'current' ? 'step' : undefined}
+          className={cx('relative flex gap-4', isRuled ? 'border-t border-hairline py-4 last:border-b' : 'pb-6 last:pb-0')}>
+          {!isRuled && index < steps.length - 1 ? <span aria-hidden="true" className="absolute top-8 bottom-0 start-4 border-s border-hairline" /> : null}
           <Marker number={index + 1} state={step.state} />
           <span className="flex min-w-0 flex-col gap-1 pt-1">
             <Text as="span" weight="medium" tone={step.state === 'next' ? 'muted' : 'default'}>

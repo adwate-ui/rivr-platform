@@ -34,4 +34,9 @@ describe('StepList', () => {
     expect(marks[1]).toHaveTextContent('2');
     expect(marks[2]).toHaveTextContent('3');
   });
+
+  it('rules each step between hairlines in the redesign\'s look (decision 0320)', () => {
+    renderIn(<StepList label="Identity check" look="ruled" steps={[{ title: 'Selfie', state: 'done' }, { title: 'DigiLocker', state: 'current' }]} />);
+    expect(screen.getAllByRole('listitem')[0]).toHaveClass('border-t');
+  });
 });
