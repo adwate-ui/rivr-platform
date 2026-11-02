@@ -44,7 +44,8 @@ export function RateVisit() {
     <Box paddingX={5} paddingY={5}>
       <Stack gap={4}>
         <Text variant="eyebrow" tone="accent">
-          {t('player.live.rate.eyebrow', { duration: formatHoursMinutes(visit.playedSeconds), table: visit.tableName ?? '' })}
+          {visit.tableName === null ? t('player.live.rate.eyebrowNoTable')
+            : t('player.live.rate.eyebrow', { duration: formatHoursMinutes(visit.playedSeconds), table: visit.tableName })}
         </Text>
         <Heading level={2} variant="serif">{t('player.live.rate.title')}</Heading>
         <Stack gap={2}>

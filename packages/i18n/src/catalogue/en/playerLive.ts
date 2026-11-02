@@ -104,6 +104,8 @@ export const playerLive = {
   rate: {
     /** `Tonight · 2h 41m at Table 1`. */
     eyebrow: 'Tonight · {duration} at {table}',
+    /** A visit with no table played, as through the door and out. */
+    eyebrowNoTable: 'Tonight',
     title: 'How was your night?',
     poor: 'Poor',
     excellent: 'Excellent',
