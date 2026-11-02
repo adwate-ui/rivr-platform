@@ -18,3 +18,6 @@ export const Hold: Story = { args: { children: '19:42', size: 'hold' } };
 export const Place: Story = { args: { children: '1', size: 'place', role: undefined, 'aria-label': undefined } };
 
 export const Points: Story = { args: { children: '3,250', size: 'display', tone: 'money', role: undefined, 'aria-label': undefined } };
+
+/** A house rule's number in gold (decision 0320). */
+export const Numeral: Story = { args: { children: '1', size: 'numeral', tone: 'money', role: undefined, 'aria-label': undefined } };

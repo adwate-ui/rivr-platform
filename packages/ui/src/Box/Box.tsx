@@ -17,7 +17,8 @@ export interface BoxProps {
   paddingY?: Space;
   surface?: BoxSurface;
   hairline?: BoxHairline;
-  radius?: 'none' | 'sm' | 'md' | 'lg';
+  /** `card`, 8 px, the player redesign's card and QR panel (decision 0320). */
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'card';
   /** Fills the remaining space in a Stack or Inline. */
   grow?: boolean;
   id?: string;
@@ -42,7 +43,7 @@ const HAIRLINE: Record<BoxHairline, string> = {
   all: 'border border-hairline',
 };
 
-const RADIUS = { none: '', sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg' } as const;
+const RADIUS = { none: '', sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg', card: 'rounded-card' } as const;
 
 type BoxLook = Pick<BoxProps, 'padding' | 'paddingX' | 'paddingY' | 'surface' | 'hairline' | 'radius' | 'grow'>;
 

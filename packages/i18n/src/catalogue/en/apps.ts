@@ -78,8 +78,9 @@ export const playerApp = {
   /** The digital membership card (#71): the QR the door scans changes every few seconds. */
   card: {
     title: 'Membership card',
+    /** The Card tab's title (decision 0320). */
+    tab: 'Card',
     qr: 'Your door code',
-    hint: 'Show at the door.',
     /** The member's verified selfie on the card (decision 0300). */
     photo: 'Your photo',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */

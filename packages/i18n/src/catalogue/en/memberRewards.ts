@@ -7,14 +7,10 @@ export const memberRewards = {
   title: 'Rewards',
   /** Someone signed in who is not a member. */
   notMember: 'Rewards are for members.',
-  points: 'Points',
   /** Points the club gave locked (#645), under the points they spend: `And 500 locked, for the club to release`. */
   locked: 'And {points} locked, for the club to release',
   /** Hotel nights earned by the hours played (#146), shown as `1.25`. */
   nights: 'Hotel nights',
-  /** The member's tier, beside their points: `Member`, `Black card`. */
-  tier: 'Your tier: {tier}',
-  catalogue: 'Catalogue',
   noRewards: 'No rewards here yet.',
   /** The catalogue's filter: all rewards, or one kind. */
   show: 'Show',
@@ -34,35 +30,32 @@ export const memberRewards = {
   /** How many are left, and where to collect it: `42 left · At the host desk`. */
   leftLine: '{count} left · {detail}',
   redeem: 'Redeem',
+  /** The redesign (decision 0320): the balance's word, the next reward, a reward out of reach, and the redeem sheet. */
+  pointsWord: 'points',
+  next: 'Next: {name}',
+  /** `750 to go`. */
+  toGo: '{points} to go',
+  cost: 'Cost',
+  balanceAfter: 'Balance after',
+  redeemedToast: 'Redeemed',
+  readyToCollect: 'Ready to collect',
   noneLeft: 'None left',
   redeemName: 'Redeem {name}',
-  /** Asked before the points are taken. */
-  confirm: 'Redeem {name} for {price}?',
-  confirmYes: 'Yes, redeem',
   cancel: 'Cancel',
-  /** After a redemption: where to collect it. */
-  redeemed: 'Redeemed. Collect it: {detail}',
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {
     title: 'Refer a friend',
     how: 'Bonus chips for you both when a friend joins from your link and buys in.',
-    /** `{chips}`: a count of bonus chips, `5,000` (#627). */
-    howAmount: '{chips} bonus chips each when a friend joins from your link and buys in.',
-    referredOne: 'You have referred 1 friend.',
-    referred: 'You have referred {count} friends.',
-    copy: 'Copy my link',
-    copied: 'Link copied',
-    copyFailed: 'Not copied. Share your card instead.',
-    /** The share card (#153): what it says, and the share, which carries the member's link. */
+    /** The redesign's card (decision 0320): `{chips}` is `1,000`. */
+    offer: '{chips} bonus chips each when a friend joins and buys in.',
+    joined: '{count} joined',
+    copyLink: 'Copy link',
+    shareInvite: 'Share invite',
+    linkCopied: 'Invite link copied',
+    copyFailed: 'Not copied. Use Share invite instead.',
+    /** What Share invite sends with the member's link. */
     card: {
-      brand: 'RIVR',
-      heading: 'Play with me at RIVR',
-      codeLabel: 'My code',
-      footer: 'Join from my link. On your first buy-in, we both get bonus chips.',
-      alt: 'Referral card with the code {code}',
-      share: 'Share my card',
       message: 'Join me at RIVR Poker Club.',
-      failed: 'Not shared. Try again.',
     },
   },
   failures: {
@@ -81,11 +74,6 @@ export const memberRewards = {
     unavailable: 'Not sent. Try again.',
   },
   yourRedemptions: 'Your redemptions',
-  noRedemptions: 'Nothing redeemed yet.',
-  /** A redemption and its price: `RIVR hoodie · 4,000 points`, `Partner hotel · 2 nights`. */
-  redemptionLine: '{name} · {price}',
-  /** Still to collect: where. */
-  waiting: 'To collect: {detail}',
   /** Handed over, and when: `Collected 15 Nov`. */
   collected: 'Collected {date}',
   /** A redemption staff cancelled (decision 0302), with their reason; the points are back. */

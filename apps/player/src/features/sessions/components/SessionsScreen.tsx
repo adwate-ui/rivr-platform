@@ -1,91 +1,69 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
-import { formatDuration, formatMonth, formatNumber, t } from '@rivr/i18n';
-import { Button, FeatureGate, Heading, HistoryRow, Inline, Screen, Stack, Text } from '@rivr/ui';
+import { formatHoursMinutes, formatNumber, t } from '@rivr/i18n';
+import { Button, FeatureGate, HistoryRow, Inline, Screen, Stack, StatRow, Text } from '@rivr/ui';
+import { clubDay } from '@rivr/domain/clubDay';
 import { useNavigate } from '@tanstack/react-router';
-import { sessionDay, sessionLine, sessionTitle } from './naming.ts';
 import { useState } from 'react';
+import { sessionDay, sessionLine, sessionTitle } from './naming.ts';
 
-/** The sessions of each club month in turn, as the list comes: newest first. */
-function byMonth(sessions: readonly MySession[]): MySession[][] {
-  const months: MySession[][] = [];
-  for (const session of sessions) {
-    const month = months.at(-1);
-    if (month?.[0]?.month === session.month) month.push(session);
-    else months.push([session]);
-  }
-  return months;
-}
+const PAGE = 30;
 
 /**
- * One club month: its name, how many sessions and hours in the list, then each session, which opens to its detail. The
- * oldest month on a page may go on past it (`isPartial`): it shows no count until Show earlier sessions loads the rest.
+ * "This month" and "Hours played": the current club month's totals as the server counts them on each of its sessions, so
+ * a month longer than the page still counts whole (F3-28); none yet this month reads 0.
  */
-function Month({ sessions, isPartial, onOpen }: { sessions: readonly MySession[]; isPartial: boolean; onOpen: (visitId: string) => void }) {
-  const [first] = sessions;
-  if (first === undefined) return null;
-  // Counted from the list, not the month's totals, so a session the member hid is not counted either.
-  const hours = formatDuration(sessions.reduce((seconds, session) => seconds + session.playedSeconds, 0));
+function MonthStats({ latest }: { latest: MySession | undefined }) {
+  const [thisMonth] = useState(() => `${clubDay(new Date()).slice(0, 7)}-01`);
+  const month = latest?.month === thisMonth ? latest : undefined;
   return (
-    <Stack gap={2}>
-      <Heading level={2}>{formatMonth(first.month)}</Heading>
-      {isPartial ? null : (
-        <Text variant="small" tone="muted">
-          {sessions.length === 1
-            ? t('player.sessions.monthSummaryOne', { hours })
-            : t('player.sessions.monthSummary', { count: formatNumber(sessions.length), hours })}
-        </Text>
-      )}
+    <StatRow stats={[
+      { label: t('player.sessions.thisMonth'), value: formatNumber(month?.monthSessions ?? 0) },
+      { label: t('player.sessions.hoursPlayed'), value: formatHoursMinutes(month?.monthPlayedSeconds ?? 0) },
+    ]} />
+  );
+}
+
+/** The list: a row a session, newest first, each opening its detail; Show earlier while there are more. */
+function SessionList({ sessions, hasEarlier, isLoadingMore, onMore, onOpen }: {
+  sessions: readonly MySession[]; hasEarlier: boolean; isLoadingMore: boolean; onMore: () => void; onOpen: (visitId: string) => void;
+}) {
+  return (
+    <Stack gap={6}>
+      <MonthStats latest={sessions[0]} />
       <Stack divided>
         {sessions.map((session) => (
-          <HistoryRow key={session.visitId} when={sessionDay(session)} title={sessionTitle(session)} value={null}
-            detail={sessionLine(session)} onOpen={() => onOpen(session.visitId)} />
+          <HistoryRow key={session.visitId} when={sessionDay(session)} title={sessionTitle(session)} value={<Text>{sessionLine(session)}</Text>}
+            detail="" onOpen={() => onOpen(session.visitId)} />
         ))}
       </Stack>
+      {hasEarlier ? (
+        <Inline><Button variant="text" isLoading={isLoadingMore} onClick={onMore}>{t('player.sessions.showEarlier')}</Button></Inline>
+      ) : null}
     </Stack>
   );
 }
 
-/** How many sessions the list reads at a time (F3-28). */
-const PAGE = 30;
-
 /**
- * Sessions: the member's history by club month (#127), gated by tier (feature sessions.history). Each session shows when,
- * where and how long, and no money (#627). It reads a page at a time (F3-28) and waits until access is known.
+ * Sessions (decision 0320; #127, #549, #627): "This month" and "Hours played", then each session with its day, table and
+ * time played, opening its detail. With feature sessions.history; a tier without it sees the title over the locked notice.
  */
-
 export function SessionsScreen() {
   const [count, setCount] = useState(PAGE);
   const sessions = useMySessions(count);
   const access = useFeatureStatus('sessions.history');
   const navigate = useNavigate();
   const title = t('player.sessions.title');
-  if (access.status === 'error') return <Screen title={title} status="error" onRetry={access.retry} />;
-  if (sessions.isError) return <Screen title={title} status="error" onRetry={() => void sessions.refetch()} />;
-  if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} status="loading" />;
-  const open = (visitId: string) => void navigate({ to: '/sessions/$visitId', params: { visitId } });
-  // A tier without session history sees the screen's heading over the locked notice, not a bare notice (F3-21).
-  if (access.access.state !== 'enabled') return <Screen title={title}><FeatureGate access={access.access}>{null}</FeatureGate></Screen>;
+  const look = { titleLook: 'serif' } as const;
+  if (access.status === 'error') return <Screen {...look} title={title} status="error" onRetry={access.retry} />;
+  if (sessions.isError) return <Screen {...look} title={title} status="error" onRetry={() => void sessions.refetch()} />;
+  if (sessions.data === undefined || access.status === 'loading') return <Screen {...look} title={title} status="loading" loadingLook="skeleton" />;
+  if (access.access.state !== 'enabled') return <Screen {...look} title={title}><FeatureGate access={access.access}>{null}</FeatureGate></Screen>;
+  if (sessions.data.sessions.length === 0) return <Screen {...look} title={title} status="empty" emptyText={t('player.sessions.empty')} />;
   return (
-    <FeatureGate access={access.access}>
-      {sessions.data.sessions.length === 0
-        ? <Screen title={title} status="empty" emptyText={t('player.sessions.empty')} />
-        : (
-          <Screen title={title}>
-            <Stack gap={8}>
-              {byMonth(sessions.data.sessions).map((month, index, months) => (
-                <Month key={month[0]?.month} sessions={month} isPartial={sessions.data.hasEarlier && index === months.length - 1} onOpen={open} />
-              ))}
-              {sessions.data.hasEarlier ? (
-                <Inline>
-                  <Button variant="text" isLoading={sessions.isPlaceholderData} onClick={() => setCount((shown) => shown + PAGE)}>
-                    {t('player.sessions.showEarlier')}
-                  </Button>
-                </Inline>
-              ) : null}
-            </Stack>
-          </Screen>
-        )}
-    </FeatureGate>
+    <Screen {...look} title={title}>
+      <SessionList sessions={sessions.data.sessions} hasEarlier={sessions.data.hasEarlier} isLoadingMore={sessions.isPlaceholderData}
+        onMore={() => setCount((shown) => shown + PAGE)} onOpen={(visitId) => void navigate({ to: '/sessions/$visitId', params: { visitId } })} />
+    </Screen>
   );
 }

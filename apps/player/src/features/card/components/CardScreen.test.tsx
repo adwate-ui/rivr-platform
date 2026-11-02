@@ -61,16 +61,17 @@ describe('Membership card', () => {
   it('says it is loading until the card comes', async () => {
     renderCard('never');
     expect(await screen.findByRole('status', {}, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByRole('heading', { name: 'Membership card' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Card' })).toBeDefined();
   });
 
-  it('shows the member, their tier and number, and the QR holding their door code', async () => {
+  it('Card: shows the member, their tier and number, and the QR holding their door code, with no caption', async () => {
     renderCard('card');
     expect(await screen.findByText('Kavya Rao', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('Member')).toBeDefined();
     expect(screen.getByText('No. 1024')).toBeDefined();
     expect(screen.getByRole('img', { name: 'Your door code' }).getAttribute('data-value')).toBe('card-1.1792740800.mac');
-    expect(screen.getByText('Show at the door.')).toBeDefined();
+    // No caption under the card (decision 0320).
+    expect(screen.queryByText('Show at the door.')).toBeNull();
   });
 
   it('shows no photo for a member without a verified selfie', async () => {
