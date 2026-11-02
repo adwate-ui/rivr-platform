@@ -52,8 +52,11 @@ function MenuSteppers({ menu, counts, onChange }: MenuStepperProps) {
   ));
 }
 
-/** Orders for a seat from the console, paid or comp: a comp is RIVR's cost, at Glaza's price through the monthly import. */
-export function OrderForSeat({ venueId }: { venueId: string }) {
+/**
+ * Orders for a seat from the console, paid or, for staff who run F&B (`canComp`), comp: a comp is RIVR's cost, at Glaza's
+ * price through the monthly import. Staff who serve order paid only (decision 0302).
+ */
+export function OrderForSeat({ venueId, canComp }: { venueId: string; canComp: boolean }) {
   const seats = useSeatChoices(venueId);
   const menu = useFnbMenu(venueId);
   const { order } = useFnbActions(venueId);
@@ -78,7 +81,7 @@ export function OrderForSeat({ venueId }: { venueId: string }) {
       <Heading level={2}>{t('console.fnb.newOrder')}</Heading>
       <SeatChooser seats={seats} chosen={chosen} onChoose={(picked) => { setChosen(picked); renew(); }} />
       <MenuSteppers menu={menu} counts={counts} onChange={(itemId, quantity) => { setCounts({ ...counts, [itemId]: quantity }); setOutcome(null); renew(); }} />
-      <Switch label={t('console.fnb.isComp')} isOn={isComp} onChange={(comp) => { setIsComp(comp); renew(); }} />
+      {canComp ? <Switch label={t('console.fnb.isComp')} isOn={isComp} onChange={(comp) => { setIsComp(comp); renew(); }} /> : null}
       <Button variant="secondary" isDisabled={chosen === null || lines.length === 0} isLoading={order.isPending} onClick={() => void send()}>
         {t('console.fnb.send')}
       </Button>

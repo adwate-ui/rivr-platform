@@ -1,4 +1,4 @@
-import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure, type TableNight } from '@rivr/db';
+import { useSeatActions, useWaitlistCallActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure, type TableNight } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Button, CallTimeTimer, ConfirmButton, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -44,6 +44,23 @@ function SeatLine({ number, player, heldFor, isOpen }: { number: number; player:
       {player.topUp === null ? null
         : <Text variant="small" weight="semibold">{t(player.topUp === 'requested' ? 'console.liveFloor.topUpRequested' : 'console.liveFloor.topUpInProgress')}</Text>}
     </Inline>
+  );
+}
+
+/** A seat held for a waitlist call: the floor seats the member there in one press, as the waitlist does (decision 0302). */
+function SeatHeld({ held }: { held: HeldSeat }) {
+  const { seat } = useWaitlistCallActions();
+  // Why Seat was refused: a hold that ran out says so (decision 0302); anything else, the waitlist says.
+  const [refusal, setRefusal] = useState<string | null>(null);
+  return (
+    <Stack gap={1}>
+      <Button variant="secondary" aria-label={t('console.waitlist.seat', { name: held.fullName })} isLoading={seat.isPending}
+        onClick={() => void seat.mutateAsync(held.entryId).then((outcome) => setRefusal(outcome.ok ? null : outcome.error))}>
+        {t('console.waitlist.seatShort')}
+      </Button>
+      {refusal === null ? null
+        : <ErrorMessage>{t(refusal === 'too_late' ? 'console.liveFloor.heldSeatLate' : 'console.liveFloor.heldSeatRefused')}</ErrorMessage>}
+    </Stack>
   );
 }
 
@@ -103,9 +120,11 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
     <Stack gap={2} divided>
       {Array.from({ length: table.seats }, (_, index) => {
         const player = seats.find((seat) => seat.seat === index + 1);
+        const heldFor = held.find((seat) => seat.seat === index + 1);
         return (
           <Stack key={index} gap={1}>
-            <SeatLine number={index + 1} player={player} heldFor={held.find((seat) => seat.seat === index + 1)} isOpen={table.isOpen} />
+            <SeatLine number={index + 1} player={player} heldFor={heldFor} isOpen={table.isOpen} />
+            {isFloor && player === undefined && heldFor !== undefined ? <SeatHeld held={heldFor} /> : null}
             {isFloor && player !== undefined ? (
               <SeatButtons player={player} isLeaveBusy={leave.isPending && leave.variables === player.sessionId} canLetGoEarly={permissions.includes('call_time.override')}
                 onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => onForm('leaveEarly', player)}

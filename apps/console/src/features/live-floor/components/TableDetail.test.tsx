@@ -1,4 +1,4 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type FloorTable, type SeatedPlayer } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type FloorTable, type HeldSeat, type SeatedPlayer } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -22,7 +22,8 @@ const KABIR: SeatedPlayer = {
 const PRIYA: SeatedPlayer = { ...KABIR, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Priya Nair', callTimeLeft: 1800 };
 
 /** Aditya, who runs the waitlist, at Table 3 with Kabir in seat 5 (or `seats`), and a fake API that keeps each seat ended. */
-function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: readonly string[] = ['members.read', 'waitlist.manage'], table = TABLE) {
+function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: readonly string[] = ['members.read', 'waitlist.manage'], table = TABLE,
+  held: readonly HeldSeat[] = []) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -30,7 +31,10 @@ function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: read
   const ended: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/end_seat') || url.includes('/rpc/let_leave_early')) {
+    if (url.includes('/rpc/seat_from_waitlist') && JSON.parse(String(init?.body)).p_entry_id === 'late') {
+      return Response.json({ code: 'RVLAT', message: 'hold over' }, { status: 400 });
+    }
+    if (url.includes('/rpc/end_seat') || url.includes('/rpc/let_leave_early') || url.includes('/rpc/seat_from_waitlist')) {
       ended.push({ to: url.split('/rpc/')[1], body: JSON.parse(String(init?.body)) });
       return new Response(null, { status: 204 });
     }
@@ -39,7 +43,7 @@ function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: read
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TableDetail venueId="v1" table={table} tables={[table]} seats={seats} held={[]} permissions={permissions} night={undefined} />
+      <TableDetail venueId="v1" table={table} tables={[table]} seats={seats} held={held} permissions={permissions} night={undefined} />
     </RivrDataProvider>,
   );
   return ended;
@@ -87,6 +91,19 @@ describe('a table on the live floor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Leave owing' }));
     await waitFor(() => expect(ended).toEqual([{ to: 'end_seat', body: { p_session_id: 's2', p_reason: 'left' } }]));
     expect(screen.queryByRole('heading', { name: 'Early departure for Priya Nair' })).toBeNull();
+  });
+
+  it('seats a member held for a waitlist call in one press, as the waitlist does (decision 0302)', async () => {
+    const ended = renderTable([], ['members.read', 'waitlist.manage'], TABLE, [{ tableId: 't3', seat: 2, fullName: 'Vihaan Kapoor', entryId: 'e9' }]);
+    expect(screen.getByText('Held for Vihaan Kapoor')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Seat Vihaan Kapoor' }));
+    await waitFor(() => expect(ended).toEqual([{ to: 'seat_from_waitlist', body: { p_entry_id: 'e9' } }]));
+  });
+
+  it('says a hold ran out when Seat comes too late (decision 0302)', async () => {
+    renderTable([], ['members.read', 'waitlist.manage'], TABLE, [{ tableId: 't3', seat: 2, fullName: 'Vihaan Kapoor', entryId: 'late' }]);
+    fireEvent.click(screen.getByRole('button', { name: 'Seat Vihaan Kapoor' }));
+    expect(await screen.findByText('The hold ran out. Assign them again from the waitlist.')).toBeDefined();
   });
 
   it('shows a role that does not read members the table without its night, which it would read as noughts (F2-25)', () => {

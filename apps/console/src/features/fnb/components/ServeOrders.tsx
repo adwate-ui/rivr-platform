@@ -2,10 +2,17 @@ import { useServeFnbOrder, type FnbFailure, type FnbOrderTonight } from '@rivr/d
 import { formatDuration, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
+import { VoidOrder } from './VoidOrder.tsx';
 
-/** One order: its KOT, table, seat and member, its lines, and its time: waiting so long, or delivered in so long. */
-function ServeRow({ order, action }: { order: FnbOrderTonight; action?: ReactNode }) {
+/** How long an order waited, or took to deliver, or why it is void (decision 0302). */
+function timeLine(order: FnbOrderTonight): string {
   const time = formatDuration(order.ageSeconds);
+  if (order.cancelReason !== null) return t('console.fnb.voidedLine', { reason: order.cancelReason });
+  return order.deliveredAt === null ? t('console.fnb.waitingFor', { time }) : t('console.fnb.deliveredIn', { time });
+}
+
+/** One order: its KOT, table, seat and member, its lines, and its time: waiting so long, delivered in so long, or void. */
+function ServeRow({ order, action }: { order: FnbOrderTonight; action?: ReactNode }) {
   return (
     <Inline gap={4} align="center" justify="between" wrap>
       <Stack gap={1}>
@@ -13,7 +20,7 @@ function ServeRow({ order, action }: { order: FnbOrderTonight; action?: ReactNod
           {t('console.fnb.order', { kot: order.kotNumber, table: order.tableName, seat: order.seat, member: order.memberName, number: order.memberNumber })}
         </Text>
         <Text variant="small">{order.lines.map((line) => t('console.fnb.line', { quantity: line.quantity, name: line.name })).join(', ')}</Text>
-        <Text variant="small" tone="muted">{order.deliveredAt === null ? t('console.fnb.waitingFor', { time }) : t('console.fnb.deliveredIn', { time })}</Text>
+        <Text variant="small" tone="muted">{timeLine(order)}</Text>
       </Stack>
       {action}
     </Inline>
@@ -30,9 +37,31 @@ function Section({ title, empty, children }: { title: string; empty: string; chi
   );
 }
 
+/** Tonight's orders by where they stand: placed, being prepared, delivered, and void (decision 0302). */
+function sectionsOf(orders: readonly FnbOrderTonight[]) {
+  const standing = orders.filter((order) => order.cancelledAt === null);
+  return {
+    placed: standing.filter((order) => order.acceptedAt === null),
+    preparing: standing.filter((order) => order.acceptedAt !== null && order.deliveredAt === null),
+    delivered: standing.filter((order) => order.deliveredAt !== null),
+    voided: orders.filter((order) => order.cancelledAt !== null),
+  };
+}
+
+/** A standing order's next step, Accept or Deliver, with Void beside it (decision 0302). */
+function StepActions({ venueId, order, step }: { venueId: string; order: FnbOrderTonight; step: ReactNode }) {
+  return (
+    <Inline gap={2} align="center" wrap>
+      {step}
+      <VoidOrder venueId={venueId} order={order} />
+    </Inline>
+  );
+}
+
 /**
  * Serving tonight's orders (#640): those placed, to accept, each with the time it has waited; those accepted, being
- * prepared, to mark delivered; and those delivered, with how long each took, for Service, the floor and the super admin.
+ * prepared, to mark delivered; those delivered, with how long each took; and those void, with why. An order not yet
+ * delivered can be voided with a reason (decision 0302). For Service, the floor and the super admin.
  */
 export function ServeOrders({ venueId, orders }: { venueId: string; orders: readonly FnbOrderTonight[] }) {
   const { accept, deliver } = useServeFnbOrder(venueId);
@@ -41,33 +70,30 @@ export function ServeOrders({ venueId, orders }: { venueId: string; orders: read
     const outcome = await done;
     setFailure(outcome.ok ? null : outcome.error);
   };
-  const placed = orders.filter((order) => order.acceptedAt === null);
-  const preparing = orders.filter((order) => order.acceptedAt !== null && order.deliveredAt === null);
-  const delivered = orders.filter((order) => order.deliveredAt !== null);
+  const { placed, preparing, delivered, voided } = sectionsOf(orders);
   return (
     <Stack gap={8}>
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
       <Section title={t('console.fnb.toAccept')} empty={t('console.fnb.noneToAccept')}>
-        {placed.map((order) => (
-          <ServeRow key={order.orderId} order={order} action={(
-            <Button variant="primary" isLoading={accept.isPending && accept.variables === order.orderId} onClick={() => void act(accept.mutateAsync(order.orderId))}>
-              {t('console.fnb.accept', { kot: order.kotNumber })}
-            </Button>
-          )} />
-        ))}
+        {placed.map((order) => <ServeRow key={order.orderId} order={order} action={<StepActions venueId={venueId} order={order} step={(
+          <Button variant="primary" isLoading={accept.isPending && accept.variables === order.orderId} onClick={() => void act(accept.mutateAsync(order.orderId))}>
+            {t('console.fnb.accept', { kot: order.kotNumber })}
+          </Button>
+        )} />} />)}
       </Section>
       <Section title={t('console.fnb.preparing')} empty={t('console.fnb.nonePreparing')}>
-        {preparing.map((order) => (
-          <ServeRow key={order.orderId} order={order} action={(
-            <Button variant="secondary" isLoading={deliver.isPending && deliver.variables === order.orderId} onClick={() => void act(deliver.mutateAsync(order.orderId))}>
-              {t('console.fnb.deliver', { kot: order.kotNumber })}
-            </Button>
-          )} />
-        ))}
+        {preparing.map((order) => <ServeRow key={order.orderId} order={order} action={<StepActions venueId={venueId} order={order} step={(
+          <Button variant="secondary" isLoading={deliver.isPending && deliver.variables === order.orderId} onClick={() => void act(deliver.mutateAsync(order.orderId))}>
+            {t('console.fnb.deliver', { kot: order.kotNumber })}
+          </Button>
+        )} />} />)}
       </Section>
       <Section title={t('console.fnb.delivered')} empty={t('console.fnb.noneDelivered')}>
         {delivered.map((order) => <ServeRow key={order.orderId} order={order} />)}
       </Section>
+      {voided.length === 0 ? null : (
+        <Section title={t('console.fnb.voided')} empty="">{voided.map((order) => <ServeRow key={order.orderId} order={order} />)}</Section>
+      )}
     </Stack>
   );
 }

@@ -43,8 +43,11 @@ export interface FnbOrderTonight {
   /** When service accepted it and delivered it (#640); null until then. */
   readonly acceptedAt: string | null;
   readonly deliveredAt: string | null;
-  /** Whole seconds since it was placed, or, once delivered, the seconds it took. */
+  /** Whole seconds since it was placed, or, once delivered or void, the seconds until then. */
   readonly ageSeconds: number;
+  /** When staff voided it, and why, which the member sees (decision 0302); null for an order that stands. */
+  readonly cancelledAt: string | null;
+  readonly cancelReason: string | null;
 }
 
 /**
@@ -110,8 +113,14 @@ export function useFnbMenu(venueId: string | null) {
   });
 }
 
-/** Where one of the member's orders is (#635): placed, accepted and being prepared, or delivered to the seat. */
-export type FnbOrderProgress = 'placed' | 'in_progress' | 'delivered';
+/** Where one of the member's orders is (#635): placed, accepted and being prepared, delivered to the seat, or void (decision 0302). */
+export type FnbOrderProgress = 'placed' | 'in_progress' | 'delivered' | 'cancelled';
+
+const progressOf = (row: { cancelled_at: string | null; delivered_at: string | null; accepted_at: string | null }): FnbOrderProgress => {
+  if (row.cancelled_at !== null) return 'cancelled';
+  if (row.delivered_at !== null) return 'delivered';
+  return row.accepted_at !== null ? 'in_progress' : 'placed';
+};
 
 /** One of the member's orders tonight: its KOT, what, when, and where it is. */
 export interface MyFnbOrder {
@@ -120,6 +129,8 @@ export interface MyFnbOrder {
   readonly lines: FnbOrderTonight['lines'];
   readonly createdAt: string;
   readonly progress: FnbOrderProgress;
+  /** Why staff voided it; null unless void. */
+  readonly cancelReason: string | null;
 }
 
 /** The signed-in member's orders tonight, newest first, asked again every ten seconds as the bar works through them (#635). */
@@ -134,7 +145,7 @@ export function useMyFnbOrders() {
       if (error) throw error;
       return data.map((row) => ({
         orderId: row.order_id, kotNumber: row.kot_number, lines: linesOf(row.lines), createdAt: row.created_at,
-        progress: row.delivered_at !== null ? 'delivered' : row.accepted_at !== null ? 'in_progress' : 'placed',
+        progress: progressOf(row), cancelReason: row.cancel_reason,
       }));
     },
   });
@@ -187,6 +198,7 @@ export function useFnbOrdersTonight(venueId: string) {
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
         acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds,
+        cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
       }));
     },
   });
@@ -247,7 +259,10 @@ export function useFnbActions(venueId: string) {
   return { order, markSent, saveItem };
 }
 
-/** Service accepts a placed order, then delivers it (#640, fnb.manage). Each is a Result, and tonight's orders are read again. */
+/**
+ * Service accepts a placed order, then delivers it (#640, fnb.manage), or voids one not yet delivered with a reason the member
+ * sees (decision 0302). Each is a Result, and tonight's orders are read again.
+ */
 export function useServeFnbOrder(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -257,7 +272,11 @@ export function useServeFnbOrder(venueId: string) {
   };
   const accept = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('accept_fnb_order', { p_order_id: orderId })).error) });
   const deliver = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('deliver_fnb_order', { p_order_id: orderId })).error) });
-  return { accept, deliver };
+  const cancel = useMutation({
+    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) =>
+      settle((await client.rpc('cancel_fnb_order', { p_order_id: orderId, p_reason: reason })).error),
+  });
+  return { accept, deliver, cancel };
 }
 
 /** Every item on the venue's menu, on offer or not, in menu order, for staff who run F&B. */

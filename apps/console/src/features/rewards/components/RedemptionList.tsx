@@ -48,7 +48,7 @@ function CancelRedemption({ venueId, redemption }: { venueId: string; redemption
   }
   return (
     <Stack gap={2}>
-      <ReasonForm field={form.register('reason')} label={t('console.rewards.cancelRedemptionReason', names)}
+      <ReasonForm field={form.register('reason')} label={t('console.rewards.cancelRedemptionReason', names)} hint={t('console.fnb.memberSeesReason')}
         error={form.formState.errors.reason ? t('console.rewards.invalidCancelReason') : undefined}
         actions={[{ label: t('console.rewards.cancelRedemptionConfirm'), onClick: () => void submit() }]} isLoading={cancel.isPending}
         onCancel={() => setIsOpen(false)} />

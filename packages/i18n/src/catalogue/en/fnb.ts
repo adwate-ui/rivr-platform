@@ -40,6 +40,8 @@ export const playerFnb = {
   item: '{quantity} × {name}',
   itemsSeparator: ', ',
   progress: { placed: 'Placed', in_progress: 'Being prepared', delivered: 'Delivered' },
+  /** An order staff voided (decision 0302), with their reason. */
+  cancelled: 'Cancelled: {reason}',
   ordersFailed: 'Your orders did not load.',
   failures,
 } as const;
@@ -76,6 +78,17 @@ export const consoleFnb = {
   /** `{time}`: 6 min. */
   waitingFor: 'Waiting {time}',
   deliveredIn: 'Delivered in {time}',
+  /** Voiding an order not yet delivered (decision 0302), with a reason the member sees. */
+  void: 'Void',
+  voidName: 'Void KOT {kot}',
+  voidReason: 'Why void KOT {kot}',
+  voidConfirm: 'Void the order',
+  invalidVoidReason: 'Give a reason of 3 to 300 characters.',
+  voided: 'Void orders',
+  memberSeesReason: 'The member sees this.',
+  voidedLine: 'Void: {reason}',
+  /** When an order was placed, `21:40`. */
+  orderedAt: 'Ordered {time}',
   tonight: 'Tonight’s orders',
   noneTonight: 'No orders tonight.',
   /** `{kot}`, the table, seat and member: `KOT 12 · Table 3, seat 5 · Yash Gupta (1043)`. */

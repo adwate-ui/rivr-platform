@@ -35,6 +35,9 @@ export const liveFloor = {
   seatFree: 'Empty',
   /** A seat held for a member called from the waitlist (#63). */
   heldFor: 'Held for {name}',
+  /** Seat on a held seat did not go through (decision 0302): the waitlist says why. */
+  heldSeatRefused: 'Not seated. Open the waitlist to see why.',
+  heldSeatLate: 'The hold ran out. Assign them again from the waitlist.',
   /** The same seat on a table's ring. */
   heldMark: 'H',
   /** A seated player's row (decision 0299): since when they play, and that no call time was given. `{time}`: 21:40. */

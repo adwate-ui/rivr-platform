@@ -1245,19 +1245,25 @@ isOneToOne: false
                   ]
                 },"fnb_order": {
                   Row: {
-                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"idempotency_key": string | null,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
+                    "accepted_at": string | null,"accepted_by_staff_id": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"cancelled_by_staff_id": string | null,"club_day": string,"created_at": string,"delivered_at": string | null,"delivered_by_staff_id": string | null,"id": string,"idempotency_key": string | null,"is_comp": boolean,"kot_number": number,"kot_sent_at": string | null,"kot_sent_by": string | null,"kot_sent_by_staff_id": string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id": string | null,"placed_by_staff_id": string | null,"seat": number,"source": string,"table_id": string,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"club_day": string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number": number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines": NonNullable<Json>,"member_id": string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat": number,"source": string,"table_id": string,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "accepted_at"?: string | null,"accepted_by_staff_id"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"club_day"?: string,"created_at"?: string,"delivered_at"?: string | null,"delivered_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string | null,"is_comp"?: boolean,"kot_number"?: number,"kot_sent_at"?: string | null,"kot_sent_by"?: string | null,"kot_sent_by_staff_id"?: string | null,"lines"?: NonNullable<Json>,"member_id"?: string,"placed_by_device_id"?: string | null,"placed_by_staff_id"?: string | null,"seat"?: number,"source"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
       foreignKeyName: "fnb_order_accepted_by_fkey"
       columns: ["accepted_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "fnb_order_cancelled_by_staff"
+      columns: ["cancelled_by_staff_id","venue_id"]
 isOneToOne: false
       referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
@@ -4578,6 +4584,9 @@ isOneToOne: false
 "cancel_academy_booking":
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
+"cancel_fnb_order":
+{ Args: { "p_order_id": string,"p_reason": string }; Returns: undefined
+                           },
 "cancel_redemption":
 { Args: { "p_reason": string,"p_redemption_id": string }; Returns: undefined
                            },
@@ -4868,7 +4877,7 @@ isOneToOne: false
                            },
 "fnb_orders_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "accepted_at": string,"age_seconds": number,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
+              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"order_id": string,"seat": number,"source": string,"table_name": string
             }[]
                            },
 "forget_push_subscription":
@@ -4911,7 +4920,7 @@ isOneToOne: false
                            },
 "held_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "full_name": string,"hold_until": string,"seat": number,"table_id": string
+              "entry_id": string,"full_name": string,"hold_until": string,"seat": number,"table_id": string
             }[]
                            },
 "hide_my_session":
@@ -5113,7 +5122,7 @@ isOneToOne: false
                            },
 "my_fnb_orders":
 { Args: Record<PropertyKey, never>; Returns: {
-              "accepted_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"order_id": string
+              "accepted_at": string,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"order_id": string
             }[]
                            },
 "my_league":
@@ -5146,7 +5155,7 @@ isOneToOne: false
                            },
 "my_redemptions":
 { Args: Record<PropertyKey, never>; Returns: {
-              "created_at": string,"detail": string,"handed_over_at": string,"id": string,"kind": string,"nights": number,"points": number,"reward_name": string
+              "cancel_reason": string,"cancelled_at": string,"created_at": string,"detail": string,"handed_over_at": string,"id": string,"kind": string,"nights": number,"points": number,"reward_name": string
             }[]
                            },
 "my_referral":
