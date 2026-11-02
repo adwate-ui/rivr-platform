@@ -11,4 +11,8 @@ describe('the boards a TV shows', () => {
     expect(boardsFor('jackpot', [])).toEqual(['waitlist']);
     expect(boardsFor('call_time', ['jackpot', 'rewards'])).toEqual(['call_time', 'rewards']);
   });
+
+  it('shows a TV still set to the tournament clock the waitlist board, while tournaments are hidden (D-03)', () => {
+    expect(boardsFor('tournament_clock', ['tournament_clock', 'league'])).toEqual(['waitlist', 'league']);
+  });
 });

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useSlides } from './PromotionsMode.tsx';
+import { SLIDE_MS, useSlides } from './PromotionsMode.tsx';
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
@@ -24,13 +24,15 @@ describe('the promotions slides (#86, decision 0163)', () => {
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
-  it('in a rotation with none live, hand on at once; while loading, wait', () => {
+  it('in a rotation with none live, hand on after one slide, so a rotation of empty boards never spins (D-03); while loading, wait', () => {
     const onDone = vi.fn();
     const loading: { count: number | undefined } = { count: undefined };
     const { rerender } = renderHook(({ count }) => useSlides(count, onDone), { initialProps: loading });
     act(() => { vi.advanceTimersByTime(60_000); });
     expect(onDone).not.toHaveBeenCalled();
     rerender({ count: 0 });
+    expect(onDone).not.toHaveBeenCalled();
+    act(() => { vi.advanceTimersByTime(SLIDE_MS); });
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 });

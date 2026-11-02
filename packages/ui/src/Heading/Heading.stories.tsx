@@ -29,3 +29,9 @@ export const Levels: Story = {
 export const LongText: Story = {
   args: { children: 'Tournament registration and late entry for the RIVR Sunday main event' },
 };
+
+/** A TV title, its optical size held low so its hairlines show from across a room (D-01). */
+export const TvTitle: Story = { tags: ['viewport-tv'], args: { level: 1, variant: 'tvTitle', children: 'High hands' } };
+
+/** A code staff type in from across a room, in the text face, whose 4 never reads as a 1 (D-01). */
+export const TvCode: Story = { tags: ['viewport-tv'], args: { level: 2, variant: 'tvCode', children: '481 447' } };

@@ -1,6 +1,6 @@
 # display
 
-The TV app at 1920 px: waitlist and call-time boards, the tournament clock, the promotions rotation and the other TV modes, with no rupee (#628, decision 0284): the jackpot mode is hidden, the clock has no prize pool or payouts panel (F3-05) and spin prizes read as bonus chips. Each board has a bar along the stage's foot that fills over its half minute. When the TV's reads fail, as in a network drop, the boards keep what they had and a quiet line at the foot says since when (F3-24). A TV pairs with a six-digit code and then shows the mode a manager assigns it.
+The TV app at 1920 px: waitlist and call-time boards, the tournament clock, the promotions rotation and the other TV modes, with no rupee (#628, decision 0284): the jackpot mode is hidden, and the tournament clock and the stream overlay while tournaments are (D-03); the clock has no prize pool or payouts panel (F3-05) and spin prizes read as bonus chips. Each board has a bar along the stage's foot that fills over its half minute. When the TV's reads fail, as in a network drop, the boards keep what they had and a quiet line at the foot says since when (F3-24). A TV pairs with a six-digit code and then shows the mode a manager assigns it.
 
 The final-table stream's overlay (#125, decision 0256) is an OBS browser source at `/overlay?delay=<seconds>`, 1920 by 1080: the tournament clock on a transparent page, held back by the hole-card delay (`delay=900` for 15 minutes; `delay=0` when OBS delays the whole stream). Pair it like a TV, at the club (never the practice venue), and give it the tournament clock on the console's TVs screen. Set it up before the final table, with OBS's "Shutdown source when not visible" and "Refresh browser when scene becomes active" off: after a reload it shows nothing until the delay has passed, and once paired it never shows a code again until OBS reloads it.
 
@@ -43,3 +43,5 @@ Lane B owns every mode, built from `@rivr/ui` and lane D's templates.
 ## Budgets
 
 A TV recovers its mode within 5 seconds of a reload.
+
+In a rotation, a board with nothing to show (rewards, League, spin wheel) passes its half minute on; the main board never does, and promotions with none live show for one slide's time (D-03, decision 0293).

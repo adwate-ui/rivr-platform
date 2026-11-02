@@ -52,12 +52,17 @@ interface TabletRowProps {
 export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowProps) {
   const { pair } = useDeviceActions(venueId);
   const [isRevoking, setIsRevoking] = useState(false);
+  // Whether the code shown was given while the tablet was paired: one given before is spent once it pairs (D-02).
+  const [isForRepair, setIsForRepair] = useState(false);
   const [failure, setFailure] = useState<DeviceFailure | null>(null);
   const settle = (outcome: Outcome) => setFailure(outcome.ok ? null : outcome.error);
   const newCode = async () => {
     const paired = await pair.mutateAsync(tablet.deviceId);
     settle(paired);
-    if (paired.ok && paired.value !== null) onCode(paired.value);
+    if (paired.ok && paired.value !== null) {
+      setIsForRepair(tablet.isPaired);
+      onCode(paired.value);
+    }
   };
   const name = tablet.name;
   return (
@@ -67,8 +72,7 @@ export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowPr
           <Text weight="semibold">{name}</Text>
           {tablet.isDoor ? <Text variant="small">{t('console.tablets.doorKiosk')}</Text> : null}
           <Text variant="small" tone="muted">{t(tablet.isPaired ? 'console.tablets.paired' : 'console.tablets.notPaired')}</Text>
-          {/* A paired tablet has used its code (D-02). */}
-          {code === null || tablet.isPaired ? null : <Text>{t('console.tablets.code', { code: code.code, time: formatTime(new Date(code.expiresAt)) })}</Text>}
+          {code === null || (tablet.isPaired && !isForRepair) ? null : <Text>{t('console.tablets.code', { code: code.code, time: formatTime(new Date(code.expiresAt)) })}</Text>}
         </Stack>
         <Inline gap={2} wrap>
           <Button variant="secondary" isLoading={pair.isPending} onClick={() => void newCode()}>{t('console.tablets.newCode', { name })}</Button>

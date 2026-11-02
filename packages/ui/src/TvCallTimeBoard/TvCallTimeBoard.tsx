@@ -44,11 +44,12 @@ export interface TvCallTimeBoardProps {
   page?: string | undefined;
 }
 
-// What fits the 1920 by 1080 stage under the title: four openings, and four tables of four players, two by two.
+// What fits the 1920 by 1080 stage under the title: four openings, and four tables of three players, two by two, at a
+// size read from across the room (D-03).
 // More tables take turns: the TV app passes a page of them at a time.
 const SHOWN_OPENINGS = 4;
 export const CALL_TIME_TABLES_SHOWN = 4;
-const SHOWN_ROWS = 4;
+const SHOWN_ROWS = 3;
 
 function More({ hidden, moreText }: { hidden: number; moreText: (hidden: number) => string }) {
   return hidden > 0 ? <p className="pt-2 font-text text-24 text-content-muted">{moreText(hidden)}</p> : null;

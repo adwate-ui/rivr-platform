@@ -262,6 +262,6 @@
 @layer components {
   /* TV type is read from across a room (D-01): Bodoni's optical size held low, so its hairlines still show at 88 and 96 px. */
   .optical-tv {
-    font-variation-settings: 'opsz' 28;
+    font-variation-settings: 'opsz' var(--rivr-font-optical-size-tv);
   }
 }

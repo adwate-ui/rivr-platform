@@ -19,7 +19,7 @@ const PROPS: TvCallTimeBoardProps = {
 };
 
 describe('TvCallTimeBoard', () => {
-  it('shows the seats opening, the first four, and each table\'s players on call time, the first four', () => {
+  it('shows the seats opening, the first four, and each table\'s players on call time, the first three (D-03)', () => {
     renderIn(<TvCallTimeBoard {...PROPS} />);
     expect(screen.getByRole('heading', { level: 1, name: 'Call time' })).toBeInTheDocument();
     const openings = within(screen.getByRole('region', { name: 'Seats opening' }));
@@ -30,10 +30,10 @@ describe('TvCallTimeBoard', () => {
     expect(openings.getByText('+1 more')).toBeInTheDocument();
     const table = within(screen.getByRole('region', { name: 'Table 3' }));
     expect(table.getByText('NLH 100/200')).toBeInTheDocument();
-    expect(table.getAllByRole('listitem')).toHaveLength(4);
-    expect(table.getByText('4 min')).toBeInTheDocument();
-    expect(table.queryByText('Player 5')).toBeNull();
-    expect(table.getByText('+1 more')).toBeInTheDocument();
+    expect(table.getAllByRole('listitem')).toHaveLength(3);
+    expect(table.getByText('3 min')).toBeInTheDocument();
+    expect(table.queryByText('Player 4')).toBeNull();
+    expect(table.getByText('+2 more')).toBeInTheDocument();
   });
 
   it('shows a page of four tables, and which page', () => {

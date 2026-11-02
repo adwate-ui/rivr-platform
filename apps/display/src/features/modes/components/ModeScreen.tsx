@@ -2,7 +2,7 @@ import { HIDDEN_TV_MODES, type TvMode } from '@rivr/contracts';
 import { useMyTvScreen, useTvSignals } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Heading, StaleNotice, Stack, Text, TvBoardProgress } from '@rivr/ui';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CallTimeMode } from './CallTimeMode.tsx';
 import { LeagueMode } from './LeagueMode.tsx';
 import { PromotionsMode, SLIDE_MS } from './PromotionsMode.tsx';
@@ -58,6 +58,8 @@ function Board({ mode, name, onDone, onEmpty }: BoardProps) {
 function Rotation({ boards, name }: { boards: readonly TvMode[]; name: string }) {
   const [turn, setTurn] = useState(0);
   const next = useCallback(() => setTurn((current) => current + 1), []);
+  // Once a turn whoever asks: an empty board and its effect run twice in development, and must not skip two boards (D-03).
+  const done = useMemo(() => () => setTurn((current) => (current === turn ? current + 1 : current)), [turn]);
   const mode = boards[turn % boards.length] ?? 'waitlist';
   useEffect(() => {
     if (mode === 'promotions') return undefined;
@@ -66,7 +68,7 @@ function Rotation({ boards, name }: { boards: readonly TvMode[]; name: string })
   }, [mode, turn, next]);
   return (
     <>
-      <Board key={turn} mode={mode} name={name} onDone={next} onEmpty={turn % boards.length === 0 ? undefined : next} />
+      <Board key={turn} mode={mode} name={name} onDone={done} onEmpty={turn % boards.length === 0 ? undefined : done} />
       <TvBoardProgress key={`progress-${turn}`} durationMs={progressFor(mode)} />
     </>
   );
