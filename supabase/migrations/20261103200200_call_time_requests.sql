@@ -1,11 +1,13 @@
 -- Add time as a request the floor approves (brief 3.4 E and 7.1; owner, 3 Nov). From the seat a member asks for 30 min,
 -- 1 hour or 2 hours; the floor approves or declines it beside the seat's top-up, and on approval the seat's call time
--- grows. It replaces the app's fixed "Add 1 h" (extend_my_call_time, kept but no longer called by the app).
+-- grows. It replaces the app's fixed "Add 1 h": extend_my_call_time is kept, but no member may call it any more, so the
+-- floor approves every minute added.
 --
 -- The rule (@rivr/domain/callTime extendedCallTime, proved equal on packages/testing/golden/callTimeExtension.json in
 -- 024): a choice of 30, 60 or 120 minutes, added to a call time the seat has (more than nought), up to a day (1,440
--- minutes) in all; anything else is refused. Approving after the call time completed leaves call_time_completed_at as it
--- was: the completion it recorded, its event and the promotion condition it met stand, and no second completion is sent.
+-- minutes) in all; anything else is refused. A call time already met takes no more: asking and approving are refused once
+-- it has run out (decision 0324), as a member who met it never comes to owe time again (20261029170000, 20261101090200).
+-- A request still open when the seat ends closes as left, as a top-up does (20261103010000).
 
 create function private.extended_call_time(p_current integer, p_add integer)
 returns integer
@@ -27,7 +29,7 @@ create table public.call_time_request (
   member_id uuid not null,
   session_id uuid not null references public.seat_session (id),
   minutes integer not null check (minutes in (30, 60, 120)),
-  status text not null default 'requested' check (status in ('requested', 'approved', 'declined')),
+  status text not null default 'requested' check (status in ('requested', 'approved', 'declined', 'left')),
   idempotency_key uuid not null,
   requested_at timestamptz not null default now(),
   decided_at timestamptz,
@@ -80,6 +82,9 @@ begin
   if private.extended_call_time(v_session.call_time_minutes, p_minutes) is null then
     raise exception 'Call time is added in 30, 60 or 120 minutes, to a call time, up to a day' using errcode = '22023';
   end if;
+  if v_session.call_time_completed_at is not null or private.session_call_time(v_session, now()) = 0 then
+    raise exception 'A call time already met takes no more' using errcode = '22023';
+  end if;
   insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key)
   values (v_session.venue_id, v_session.member_id, v_session.id, p_minutes, p_idempotency_key)
   returning id into v_id;
@@ -107,10 +112,13 @@ begin
   if v_request.id is null or not private.has_permission(v_request.venue_id, 'waitlist.manage') then
     raise exception 'Only the floor decides call time' using errcode = '42501';
   end if;
-  perform private.assert_writable(v_request.venue_id);
+  perform private.assert_writable(v_request.venue_id, null, v_request.member_id);
   select * into v_session from public.seat_session s where s.id = v_request.session_id for update;
   if v_request.status <> 'requested' or p_is_approved is null or v_session.ended_at is not null then
     raise exception 'A request is decided once, while the member is seated' using errcode = '22023';
+  end if;
+  if p_is_approved and (v_session.call_time_completed_at is not null or private.session_call_time(v_session, now()) = 0) then
+    raise exception 'A call time already met takes no more: decline the request' using errcode = '22023';
   end if;
   if p_is_approved then
     v_minutes := private.extended_call_time(v_session.call_time_minutes, v_request.minutes);
@@ -132,6 +140,25 @@ create function public.decide_call_time_request(p_request_id uuid, p_is_approved
 returns void language sql security invoker set search_path = ''
 as $$ select private.decide_call_time_request(p_request_id, p_is_approved); $$;
 
+-- A request still open when the seat ends closes as left: there is no seat to add time to.
+create function private.close_call_time_requests()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.call_time_request set status = 'left', decided_at = now() where session_id = new.id and status = 'requested';
+  return null;
+end;
+$$;
+create trigger seat_session_close_call_time_requests after update of ended_at on public.seat_session
+  for each row when (old.ended_at is null and new.ended_at is not null) execute function private.close_call_time_requests();
+
+-- Members no longer add call time themselves: every minute added is a request the floor approves (owner, 3 Nov).
+revoke execute on function public.extend_my_call_time(), private.extend_my_call_time() from authenticated;
+
+revoke execute on function private.close_call_time_requests() from public, anon, authenticated;
 revoke execute on function private.extended_call_time(integer, integer), private.request_call_time(integer, uuid),
   public.request_call_time(integer, uuid), private.decide_call_time_request(uuid, boolean), public.decide_call_time_request(uuid, boolean)
   from public, anon;

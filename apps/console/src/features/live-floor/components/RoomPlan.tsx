@@ -32,6 +32,13 @@ function dealerOf(figures: FloorNight['tables'][number] | undefined, canSeeSeats
   return canSeeSeats ? figures?.dealerName ?? t('console.liveFloor.noDealer') : null;
 }
 
+/** The red marker under a table's ring: a top-up waiting there (decision 0299), else more call time asked for (decision 0320). */
+function markerOf(here: readonly SeatedPlayer[], canSeeSeats: boolean): string | undefined {
+  if (!canSeeSeats) return undefined;
+  if (here.some((seat) => seat.topUp !== null)) return t('console.liveFloor.topUpMarker');
+  return here.some((seat) => seat.timeRequest !== null) ? t('console.liveFloor.timeMarker') : undefined;
+}
+
 /** One table's card: its ring, how many sit there and its dealer; no rake, as no console shows it (#626). */
 function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Omit<RoomPlanProps, 'tables' | 'chosenId' | 'onChoose'> & { table: FloorTable; isChosen: boolean; onChoose: () => void }) {
   const here = seats.filter((seat) => seat.tableId === table.id);
@@ -42,7 +49,7 @@ function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Om
       seats={canSeeSeats ? ringOf(table, here, held.filter((seat) => seat.tableId === table.id)) : []}
       occupancy={occupancy}
       rake={null} dealer={dealerOf(figures, canSeeSeats)} pace={null}
-      marker={canSeeSeats && here.some((seat) => seat.topUp !== null) ? t('console.liveFloor.topUpMarker') : undefined}
+      marker={markerOf(here, canSeeSeats)}
       isSelected={isChosen} onSelect={onChoose} />
   );
 }

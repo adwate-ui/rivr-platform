@@ -56,5 +56,12 @@ select ok(not exists (select 1 from taken t join public.game_table g on g.id = t
 select throws_ok($$ set local role anon; select * from public.floor_taken_seats() $$, '42501', null, 'anon may not read taken seats');
 reset role;
 
+-- A member whose tier has no live floor reads no taken seats.
+insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'floor.live_view', false, 'test 270');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select is_empty($$ select * from public.floor_taken_seats() $$, 'without floor.live_view, no taken seats');
+reset role;
+
 select * from finish();
 rollback;

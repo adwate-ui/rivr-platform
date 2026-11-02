@@ -63,4 +63,13 @@ describe('the room plan', () => {
     // No night's figures either: the role gets no rows, so they would all read nought (F2-25).
     expect(screen.queryByText('No dealer')).toBeNull();
   });
+
+  it('marks a table where a top-up waits, or else where a member asked for more call time (decision 0320)', () => {
+    const asked: SeatedPlayer = { ...SEATED, timeRequest: { id: 'r1', minutes: 60 } };
+    render(<RoomPlan tables={TABLES} seats={[asked]} held={[]} night={NIGHT} canSeeSeats chosenId="t3" onChoose={() => undefined} />);
+    expect(within(screen.getByRole('button', { name: 'Table 3' })).getByText('Time asked')).toBeDefined();
+    cleanup();
+    render(<RoomPlan tables={TABLES} seats={[{ ...asked, topUp: 'requested' }]} held={[]} night={NIGHT} canSeeSeats chosenId="t3" onChoose={() => undefined} />);
+    expect(within(screen.getByRole('button', { name: 'Table 3' })).getByText('Top-up')).toBeDefined();
+  });
 });

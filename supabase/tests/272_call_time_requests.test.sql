@@ -54,8 +54,8 @@ select throws_ok($$ select count(*) from public.call_time_request $$, '42501', n
 reset role;
 
 -- The floor sees it beside the seat and approves: three hours become four, the warning is owed again, and the member's
--- devices hear of it. A completion already recorded stands.
-update public.seat_session set call_time_completed_at = now(), ending_warned_at = now() where id = (pg_temp.session()).id;
+-- devices hear of it.
+update public.seat_session set ending_warned_at = now() where id = (pg_temp.session()).id;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select time_request_minutes from public.floor_seats('00000000-0000-4000-8000-000000000001') where session_id = (select id from sess)),
   60, 'the floor sees the hour asked for beside the seat');
@@ -64,7 +64,6 @@ select throws_ok($$ select public.decide_call_time_request((select id from asked
 reset role;
 select is((pg_temp.session()).call_time_minutes, 240, 'his call time is four hours');
 select ok((pg_temp.session()).ending_warned_at is null, 'its 15-minute warning is owed again');
-select ok((pg_temp.session()).call_time_completed_at is not null, 'the completion recorded stands');
 select is((select status from public.call_time_request where id = (select id from asked)), 'approved', 'the request is approved');
 select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.updated' and payload ->> 'session_id' = (pg_temp.session()).id::text),
   1, 'call_time.updated goes out once');
@@ -84,12 +83,82 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '22023', null, 'an hour onto 1,400 minutes is refused');
 reset role;
 
--- With the venue frozen, nothing is asked or decided.
-update public.seat_session set call_time_minutes = 180 where id = (pg_temp.session()).id;
-insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'test 272');
+-- Up to a day exactly is allowed: an hour onto 1,380 minutes makes 1,440.
+update public.seat_session set call_time_minutes = 1380 where id = (pg_temp.session()).id;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, 'RVFRZ', null, 'a frozen venue takes no request');
+create temp table to_a_day on commit drop as select public.request_call_time(60, gen_random_uuid()) as id;
+grant select on to_a_day to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.decide_call_time_request((select id from to_a_day), true) $$, 'the floor approves an hour onto 1,380');
 reset role;
+select is((pg_temp.session()).call_time_minutes, 1440, 'a day, exactly');
+
+-- A call time already met takes no more (decision 0324): asking and approving are both refused once it has run out.
+update public.seat_session set call_time_minutes = 180, call_time_completed_at = null where id = (pg_temp.session()).id;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+create temp table before_end on commit drop as select public.request_call_time(30, gen_random_uuid()) as id;
+grant select on before_end to authenticated;
+reset role;
+update public.seat_session set started_at = now() - interval '4 hours', seated_here_at = now() - interval '4 hours'
+where id = (pg_temp.session()).id;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.decide_call_time_request((select id from before_end), true) $$, '22023', null,
+  'the floor approves no time once the call time has run out');
+select lives_ok($$ select public.decide_call_time_request((select id from before_end), false) $$, 'and declines it instead');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '22023', null, 'nor does the member ask once it has run out');
+reset role;
+select is((pg_temp.session()).call_time_minutes, 180, 'his call time stays three hours: met, he owes no more');
+update public.seat_session set started_at = now(), seated_here_at = now() where id = (pg_temp.session()).id;
+
+-- A tier without call time asks for none.
+insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', 'call_time.view', false, 'test 272');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.seat_member(pg_temp.table_id('Table 5'), 3, p_member_number => (select member_number from public.member
+                     where id = '00000000-0000-4000-8000-000000000212'), p_call_minutes => 180) $$, 'the floor seats Vihaan');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
+select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '42501', null, 'without call_time.view he asks for none');
+reset role;
+
+-- The floor of another venue decides nothing: Imran (153) works only at the club, and a practice-venue request is not his.
+insert into public.visit (venue_id, member_id)
+select '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000301'
+where not exists (select 1 from public.visit where member_id = '00000000-0000-4000-8000-000000000301' and closed_at is null);
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, call_time_minutes)
+select '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000301',
+       (select id from public.visit where member_id = '00000000-0000-4000-8000-000000000301' and closed_at is null order by opened_at desc limit 1),
+       (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000002' and name = 'Table 1'), 9, 180;
+insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key)
+select '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000301', s.id, 60, gen_random_uuid()
+from public.seat_session s where s.member_id = '00000000-0000-4000-8000-000000000301' and s.ended_at is null;
+create temp table elsewhere on commit drop as select id from public.call_time_request where member_id = '00000000-0000-4000-8000-000000000301';
+grant select on elsewhere to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000153');
+select throws_ok($$ select public.decide_call_time_request((select id from elsewhere), true) $$, '42501', null,
+  'the floor of another venue decides nothing');
+reset role;
+
+-- A request still open when the seat ends closes as left.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+create temp table at_end on commit drop as select public.request_call_time(30, gen_random_uuid()) as id;
+grant select on at_end to authenticated;
+reset role;
+
+-- With the member frozen, nothing he asked for is approved; with the venue frozen, nothing is asked or decided.
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000211', 'test 272');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.decide_call_time_request((select id from at_end), true) $$, 'RVMBR', null, 'a frozen member''s request is not approved');
+reset role;
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'test 272');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.decide_call_time_request((select id from at_end), true) $$, 'RVFRZ', null, 'a frozen venue decides nothing');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, 'RVFRZ', null, 'and takes no request');
+reset role;
+update public.seat_session set ended_at = now(), end_reason = 'left' where id = (pg_temp.session()).id;
+select is((select status from public.call_time_request where id = (select id from at_end)), 'left', 'the seat ended, its open request closes as left');
 
 select * from finish();
 rollback;

@@ -109,7 +109,8 @@ revoke execute on function private.fnb_orders_tonight(uuid), public.fnb_orders_t
 grant execute on function private.fnb_orders_tonight(uuid), public.fnb_orders_tonight(uuid) to authenticated;
 
 -- As 20261103010100_fnb_orders_void_and_serve.sql made it, against fnb_orders_tonight as made again above: an order on its
--- way is not delivered yet, so it still counts; a void one does not.
+-- way is not delivered yet, so it still counts; a void one does not. The live floor also counts a seat whose member asked
+-- for more call time (20261103200200), so the rail and its chime tell the floor as they do for the Leaving list.
 create or replace function private.staff_queue_counts(p_venue_id uuid)
 returns table (queue text, waiting integer)
 language sql
@@ -122,7 +123,7 @@ as $$
     ('waitlist', (select count(*) from private.waitlist_requests(p_venue_id))),
     ('topUps', (select count(*) from private.top_ups_tonight(p_venue_id) t where t.status in ('requested', 'in_progress'))),
     ('fnb', (select count(*) from private.fnb_orders_tonight(p_venue_id) o where o.delivered_at is null and o.cancelled_at is null)),
-    ('liveFloor', (select count(*) from private.floor_seats(p_venue_id) s where s.leaving_at is not null)),
+    ('liveFloor', (select count(*) from private.floor_seats(p_venue_id) s where s.leaving_at is not null or s.time_request_id is not null)),
     ('kycReview', (select count(*) from private.kyc_review_queue(p_venue_id) k where k.status = 'needs_review')),
     ('rewards', (select count(*) from private.venue_redemptions(p_venue_id) r where r.handed_over_at is null)),
     ('feedback', (select count(*) from private.venue_feedback(p_venue_id) f where f.is_ticket and f.resolved_at is null)),

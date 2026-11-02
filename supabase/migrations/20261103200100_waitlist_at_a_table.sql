@@ -39,7 +39,8 @@ as $$ select private.join_waitlist_at(p_table_id, p_idempotency_key); $$;
 revoke execute on function private.join_waitlist_at(uuid, uuid), public.join_waitlist_at(uuid, uuid) from public, anon;
 grant execute on function private.join_waitlist_at(uuid, uuid), public.join_waitlist_at(uuid, uuid) to authenticated;
 
--- "I'm on my way": the member whose seat is held says so, once; the floor sees it on the list. Not after the hold.
+-- "I'm on my way": the member whose seat is held says so, once a call; the floor sees it on the list. Not after the hold.
+-- It answers the call in force: called again (or skipped and called), the place shows no answer until the member gives one.
 create function private.accept_seat_call(p_entry_id uuid)
 returns void
 language plpgsql
@@ -57,7 +58,8 @@ begin
   if v_entry.status <> 'waiting' or v_entry.called_at is null or v_entry.hold_until < now() then
     raise exception 'No seat is held for you' using errcode = '22023';
   end if;
-  update public.waitlist_entry set on_way_at = coalesce(on_way_at, now()) where id = v_entry.id;
+  -- Once a call: an answer to an earlier call the floor skipped or called again does not count for this one.
+  update public.waitlist_entry set on_way_at = case when on_way_at >= called_at then on_way_at else now() end where id = v_entry.id;
 end;
 $$;
 create function public.accept_seat_call(p_entry_id uuid)
@@ -82,7 +84,7 @@ set search_path = ''
 as $$
   select e.id, t.id, t.name, t.small_blind_paise, t.big_blind_paise, e.joined_at, r.place, ct.name, e.call_seat, e.hold_until,
          private.away_until(e.venue_id, e.stepped_away_at, e.away_used), e.approved_at is null, e.table_id, asked.name, e.called_at,
-         e.on_way_at
+         case when e.on_way_at >= e.called_at then e.on_way_at end
   from public.waitlist_entry e
   join public.table_type t on t.id = e.table_type_id
   left join lateral private.ranked_waitlist(array[e.table_type_id]) r on r.entry_id = e.id
@@ -115,7 +117,8 @@ security definer
 set search_path = ''
 as $$
   select r.entry_id, r.table_type_id, m.id, m.full_name, r.joined_at, r.place, r.added_by_staff_id is not null, r.priority_reason,
-         ct.name, e.call_seat, e.hold_until, private.away_until(e.venue_id, e.stepped_away_at, e.away_used), e.table_id, e.on_way_at
+         ct.name, e.call_seat, e.hold_until, private.away_until(e.venue_id, e.stepped_away_at, e.away_used), e.table_id,
+         case when e.on_way_at >= e.called_at then e.on_way_at end
   from private.ranked_waitlist(array(select t.id from public.table_type t where t.venue_id = p_venue_id)) r
   join public.waitlist_entry e on e.id = r.entry_id
   join public.member m on m.id = r.member_id

@@ -36,4 +36,10 @@ describe('the lengths a member may ask for (decision 0320)', () => {
       }
     }));
   });
+
+  it('refuse a call time that is not whole minutes, as the database keeps none such', () => {
+    expect(extendedCallTime(Number.NaN, 60)).toEqual({ ok: false, error: 'no_call_time' });
+    expect(extendedCallTime(180.5, 60)).toEqual({ ok: false, error: 'no_call_time' });
+    expect(extendedCallTime(180, 60)).toEqual({ ok: true, value: 240 });
+  });
 });

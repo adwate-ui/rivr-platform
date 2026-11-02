@@ -187,7 +187,6 @@ export function useSetSeatCallTime(venueId: string) {
   });
 }
 
-/** The floor takes a seat's top-up in hand (`inProgress`), or resets it once done (#634). A Result, and the floor is read again. */
 /** The floor approves or declines a seat's request for more call time (decision 0320); approved, the call time grows. */
 export function useDecideCallTime(venueId: string) {
   const { client } = useRivrData();
@@ -198,6 +197,7 @@ export function useDecideCallTime(venueId: string) {
   });
 }
 
+/** The floor takes a seat's top-up in hand (`inProgress`), or resets it once done (#634). A Result, and the floor is read again. */
 export function useSetTopUp(venueId: string) {
   const { client } = useRivrData();
   const settle = useSeatSettle(venueId);

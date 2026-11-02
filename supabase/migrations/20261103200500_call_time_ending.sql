@@ -32,6 +32,8 @@ begin
     join public.game_table t on t.id = s.table_id
     where s.ended_at is null and s.away_since is null and s.call_time_completed_at is null and s.ending_warned_at is null
       and s.call_time_minutes > 0 and private.session_call_time(s, now()) between 1 and 15 * 60
+      -- Only a member who may see their call time hears it is ending (my_seat hides it otherwise).
+      and private.has_feature(s.member_id, 'call_time.view')
     for update of s skip locked
   loop
     update public.seat_session set ending_warned_at = now() where id = v_ending.id;
@@ -55,3 +57,20 @@ begin
 end;
 $$;
 revoke execute on function private.sweep_seated_time() from public, anon, authenticated;
+
+-- Time added any way (the floor's approval, or the floor setting the call time) owes the warning again for the new end.
+create function private.rearm_call_time_ending()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.call_time_minutes > old.call_time_minutes then
+    new.ending_warned_at := null;
+  end if;
+  return new;
+end;
+$$;
+create trigger seat_session_rearm_call_time_ending before update of call_time_minutes on public.seat_session
+  for each row execute function private.rearm_call_time_ending();
+revoke execute on function private.rearm_call_time_ending() from public, anon, authenticated;

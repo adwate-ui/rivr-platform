@@ -24,7 +24,8 @@ export function isAddTimeChoice(minutes: number): minutes is AddTimeMinutes {
  */
 export function extendedCallTime(currentMinutes: number, addMinutes: number): Result<number, ExtensionRefusal> {
   if (!isAddTimeChoice(addMinutes)) return err('not_a_choice');
-  if (currentMinutes <= 0) return err('no_call_time');
+  // A call time is whole minutes, as the database keeps it: anything else is none to add to.
+  if (!Number.isInteger(currentMinutes) || currentMinutes <= 0) return err('no_call_time');
   const total = currentMinutes + addMinutes;
   return total > CALL_TIME_CAP_MINUTES ? err('over_a_day') : ok(total);
 }

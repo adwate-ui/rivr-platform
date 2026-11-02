@@ -43,9 +43,9 @@ export interface FnbOrderTonight {
   /** When service accepted it and delivered it (#640); null until then. */
   readonly acceptedAt: string | null;
   readonly deliveredAt: string | null;
-  /** Whole seconds since it was placed, or, once delivered or void, the seconds until then. */
   /** When a runner left the bar with it (decision 0320); null before. */
   readonly onWayAt: string | null;
+  /** Whole seconds since it was placed, or, once delivered or void, the seconds until then. */
   readonly ageSeconds: number;
   /** When staff voided it, and why, which the member sees (decision 0302); null for an order that stands. */
   readonly cancelledAt: string | null;

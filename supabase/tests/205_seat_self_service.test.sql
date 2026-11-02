@@ -36,8 +36,9 @@ reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select results_eq($$ select call_time_left, played_seconds between 0 and 5, is_leaving, top_up from public.my_seat() $$,
   $$ values (10800, true, false, null::text) $$, 'Ishaan sees how long he has played and three hours of call time');
-select lives_ok($$ select public.extend_my_call_time() $$, 'he extends his call time');
-select is((select call_time_left from public.my_seat()), 14400, 'by an hour');
+-- Members no longer add call time themselves: the floor approves a request (20261103200200, owner 3 Nov).
+select throws_ok($$ select public.extend_my_call_time() $$, '42501', null, 'he adds no call time himself');
+select is((select call_time_left from public.my_seat()), 10800, 'so his three hours stand');
 select lives_ok($$ select public.request_top_up() $$, 'he asks for a top-up');
 select lives_ok($$ select public.request_top_up() $$, 'and asking again changes nothing');
 select is((select top_up from public.my_seat()), 'requested', 'his top-up is requested');
@@ -45,7 +46,7 @@ reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select throws_ok($$ select public.request_top_up() $$, '22023', null, 'Mihir, not seated, asks for no top-up');
-select throws_ok($$ select public.extend_my_call_time() $$, '22023', null, 'extends no call time');
+select throws_ok($$ select public.extend_my_call_time() $$, '42501', null, 'extends no call time');
 select throws_ok($$ select public.leave_my_seat() $$, '22023', null, 'and leaves no seat');
 reset role;
 
@@ -74,7 +75,7 @@ reset role;
 update public.seat_session set started_at = started_at - interval '5 hours', away_since = now() - interval '10 minutes'
 where id = (select id from ids where name = 'ishaan');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select throws_ok($$ select public.extend_my_call_time() $$, '22023', null, 'with his call time done he adds none');
+select throws_ok($$ select public.extend_my_call_time() $$, '42501', null, 'with his call time done he adds none');
 select is(public.leave_my_seat(), 'left', 'with his call time done he leaves');
 select is((select count(*)::integer from public.my_seat()), 0, 'and has no seat');
 reset role;

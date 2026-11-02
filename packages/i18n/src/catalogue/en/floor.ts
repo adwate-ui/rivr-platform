@@ -95,6 +95,8 @@ export const liveFloor = {
   declineTimeName: 'Decline more call time for {name}',
   /** A table's red marker on the room plan while a top-up waits there (decision 0299). */
   topUpMarker: 'Top-up',
+  /** A table's marker while a member there asks for more call time (decision 0320): minutes are on the seat's row. */
+  timeMarker: 'Time asked',
   seatPlayer: 'Seat a player',
   seatNumber: 'Seat',
   /** Seating (decision 0299): ten digits are a mobile number, fewer a membership number. */

@@ -70,6 +70,14 @@ select ok((select on_way_at is not null from public.waitlist_board('00000000-000
   'the floor sees he is on his way');
 reset role;
 
+-- Called again after he answered (the floor skipped and called him again), his earlier answer does not count for this call.
+update public.waitlist_entry set on_way_at = now() - interval '1 minute', called_at = now() - interval '30 seconds' where id = (select id from ishaan);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select is((select on_way_at from public.my_waitlist()), null, 'called again, his earlier answer does not count');
+select lives_ok($$ select public.accept_seat_call((select id from ishaan)) $$, 'he answers this call');
+select ok((select on_way_at is not null from public.my_waitlist()), 'and the answer shows');
+reset role;
+
 -- Past the hold, there is nothing to answer.
 update public.waitlist_entry set hold_until = now() - interval '1 minute', on_way_at = null where id = (select id from ishaan);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');

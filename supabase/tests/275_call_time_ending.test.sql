@@ -76,5 +76,30 @@ select is(pg_temp.warnings('00000000-0000-4000-8000-000000000212'), 0, 'run out:
 select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.completed'
              and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000212'), 1, 'call_time.completed instead');
 
+-- The edge: 15 minutes and one second to run is no warning; 15 minutes is.
+select lives_ok($$ select private.sweep_seated_time() $$, 'a sweep');
+update public.seat_session set call_time_minutes = 60, ending_warned_at = null,
+  started_at = now() - interval '44 minutes 59 seconds', seated_here_at = now() - interval '44 minutes 59 seconds'
+where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null;
+update public.seat_session set call_time_completed_at = null where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null;
+delete from public.outbox_event where event_type = 'call_time.ending' and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000212';
+select private.sweep_seated_time();
+select is(pg_temp.warnings('00000000-0000-4000-8000-000000000212'), 0, '15 minutes and a second to run: no warning');
+update public.seat_session set started_at = now() - interval '45 minutes', seated_here_at = now() - interval '45 minutes'
+where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null;
+select private.sweep_seated_time();
+select is(pg_temp.warnings('00000000-0000-4000-8000-000000000212'), 1, '15 minutes to run: the warning');
+
+-- Time the floor sets (not only an approved request) owes the warning again: the session forgets it was warned.
+update public.seat_session set call_time_minutes = 120 where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null;
+select ok((pg_temp.session_of('00000000-0000-4000-8000-000000000212')).ending_warned_at is null, 'more call time, the warning is owed again');
+
+-- A member who may not see their call time hears nothing of its end.
+insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', 'call_time.view', false, 'test 275');
+select pg_temp.played('00000000-0000-4000-8000-000000000212', 110);
+select private.sweep_seated_time();
+select is(pg_temp.warnings('00000000-0000-4000-8000-000000000212'), 1, 'without call_time.view, no second warning');
+
 select * from finish();
 rollback;
