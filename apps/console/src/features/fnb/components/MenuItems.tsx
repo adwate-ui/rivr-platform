@@ -1,7 +1,8 @@
 import { FNB_ITEM_KINDS, type FnbItemKind } from '@rivr/contracts';
+import { useItemPhotoUpload, type ItemPhotoFailure } from '@rivr/db';
 import { useFnbActions, useFnbItems, type FnbFailure, type FnbItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, LoadState, Stack, Switch, Text } from '@rivr/ui';
+import { Button, CameraButton, ChoiceChips, ErrorMessage, Heading, Inline, Input, ItemPhoto, LoadState, Stack, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The kinds to choose from, made when the form draws, so t() runs once the app's words are registered (F2-31). */
@@ -31,6 +32,27 @@ function AddItem({ venueId, next }: { venueId: string; next: number }) {
   );
 }
 
+/** A dish's photo on its row (AS-11): the one the app shows, and the club's own photo from this computer to add or replace it. */
+function DishPhoto({ venueId, item }: { venueId: string; item: FnbItem }) {
+  const upload = useItemPhotoUpload(venueId);
+  const [failure, setFailure] = useState<ItemPhotoFailure | null>(null);
+  const put = async (photo: File) => {
+    setFailure(null);
+    const done = await upload.mutateAsync({ kind: 'menu', itemId: item.itemId, photo });
+    setFailure(done.ok ? null : done.error);
+  };
+  const isNew = item.photoUrl === null;
+  return (
+    <Stack gap={2}>
+      <CameraButton variant="text" camera="none" accept="image/jpeg,image/png,image/webp" isLoading={upload.isPending} onPhoto={(photo) => void put(photo)}
+        aria-label={t(isNew ? 'console.itemPhoto.addName' : 'console.itemPhoto.replaceName', { name: item.name })}>
+        {t(isNew ? 'console.itemPhoto.add' : 'console.itemPhoto.replace')}
+      </CameraButton>
+      {failure === null ? null : <ErrorMessage>{t(`console.itemPhoto.failures.${failure}`)}</ErrorMessage>}
+    </Stack>
+  );
+}
+
 /** Each item on offer or off the menu; a switch that did not save says why. */
 function ItemSwitches({ venueId, items }: { venueId: string; items: readonly FnbItem[] }) {
   const { saveItem } = useFnbActions(venueId);
@@ -44,7 +66,11 @@ function ItemSwitches({ venueId, items }: { venueId: string; items: readonly Fnb
     <Stack gap={3}>
       {items.map((item) => (
         <Inline key={item.itemId} gap={4} align="center" justify="between">
-          <Text>{`${item.name} · ${t(`console.fnb.kinds.${item.kind}`)}`}</Text>
+          <Inline gap={3} align="center">
+            <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
+            <Text>{`${item.name} · ${t(`console.fnb.kinds.${item.kind}`)}`}</Text>
+          </Inline>
+          <DishPhoto venueId={venueId} item={item} />
           <Switch label={item.isAvailable ? t('console.fnb.onOffer') : t('console.fnb.offMenu')} isOn={item.isAvailable}
             isDisabled={saveItem.isPending} onChange={(isOn) => void toggle(item, isOn)} />
         </Inline>

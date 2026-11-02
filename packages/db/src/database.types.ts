@@ -1225,14 +1225,14 @@ isOneToOne: true
                   ]
                 },"fnb_item": {
                   Row: {
-                    "created_at": string,"id": string,"is_available": boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"position": number,"updated_at": string,"venue_id": string
+                    "created_at": string,"id": string,"is_available": boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string | null,"position": number,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"position"?: number,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind"?: Database["public"]['Enums']["fnb_item_kind"],"name"?: string,"position"?: number,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind"?: Database["public"]['Enums']["fnb_item_kind"],"name"?: string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2785,14 +2785,14 @@ isOneToOne: false
                   ]
                 },"reward_item": {
                   Row: {
-                    "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"photo_path": string | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"detail": string,"id"?: string,"is_live"?: boolean,"kind": string,"name": string,"nights"?: number | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"detail": string,"id"?: string,"is_live"?: boolean,"kind": string,"name": string,"nights"?: number | null,"photo_path"?: string | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"detail"?: string,"id"?: string,"is_live"?: boolean,"kind"?: string,"name"?: string,"nights"?: number | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"detail"?: string,"id"?: string,"is_live"?: boolean,"kind"?: string,"name"?: string,"nights"?: number | null,"photo_path"?: string | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4831,7 +4831,7 @@ isOneToOne: false
                            },
 "fnb_menu":
 { Args: { "p_venue_id": string }; Returns: {
-              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string
+              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
 "fnb_orders_tonight":
@@ -5076,7 +5076,7 @@ isOneToOne: false
                            },
 "my_fnb_menu":
 { Args: Record<PropertyKey, never>; Returns: {
-              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string
+              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
 "my_fnb_orders":
@@ -5573,6 +5573,9 @@ isOneToOne: false
                            },
 "set_game_table":
 { Args: { "p_name": string,"p_seats": number,"p_table_id": string,"p_table_type_id": string }; Returns: undefined
+                           },
+"set_item_photo":
+{ Args: { "p_item_id": string,"p_kind": string,"p_path": string }; Returns: undefined
                            },
 "set_leaving":
 { Args: { "p_is_leaving": boolean,"p_session_id": string }; Returns: undefined

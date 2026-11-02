@@ -1,6 +1,8 @@
 import { rewardKindOf, type RewardKind } from '@rivr/contracts/rewardKinds';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { RivrClient } from './client.ts';
+import { itemPhotoUrl } from './itemPhotos.ts';
 import { useRivrData } from './provider.tsx';
 import type { LeagueBoardRow } from './league.ts';
 import { queryKeys } from './queryKeys.ts';
@@ -19,6 +21,8 @@ export interface RewardItem {
   readonly nights: number | null;
   readonly stock: number | null;
   readonly isLive: boolean;
+  /** The club's own photo of it, or null until one is added (AS-11). */
+  readonly photoUrl: string | null;
 }
 
 /**
@@ -80,12 +84,16 @@ interface RewardItemRow {
   nights: number | null;
   stock: number | null;
   is_live: boolean;
+  photo_path: string | null;
 }
 
-export function rewardItemOf(row: RewardItemRow): RewardItem {
+/** The columns a reward is read with, for the console and the member's catalogue alike. */
+export const REWARD_ITEM_COLUMNS = 'id, kind, name, detail, points, nights, stock, is_live, photo_path';
+
+export function rewardItemOf(client: RivrClient, row: RewardItemRow): RewardItem {
   return {
     id: row.id, kind: rewardKindOf(row.kind), name: row.name, detail: row.detail, points: row.points === null ? null : BigInt(row.points), nights: row.nights,
-    stock: row.stock, isLive: row.is_live,
+    stock: row.stock, isLive: row.is_live, photoUrl: itemPhotoUrl(client, row.photo_path),
   };
 }
 
@@ -96,10 +104,10 @@ export function useRewardItems(venueId: string) {
     queryKey: queryKeys.rewardItems(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<RewardItem[]> => {
-      const { data, error } = await client.from('reward_item').select('id, kind, name, detail, points, nights, stock, is_live')
+      const { data, error } = await client.from('reward_item').select(REWARD_ITEM_COLUMNS)
         .eq('venue_id', venueId).order('is_live', { ascending: false }).order('points').order('name');
       if (error) throw error;
-      return data.map(rewardItemOf);
+      return data.map((row) => rewardItemOf(client, row));
     },
   });
 }

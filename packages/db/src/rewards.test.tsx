@@ -43,8 +43,8 @@ describe('the rewards catalogue (decision 0181)', () => {
     const { result } = renderHooks({
       '/reward_item': {
         body: [
-          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true },
-          { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, is_live: true },
+          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true, photo_path: null },
+          { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, is_live: true, photo_path: null },
         ],
       },
       '/rpc/venue_redemptions': {
@@ -58,8 +58,8 @@ describe('the rewards catalogue (decision 0181)', () => {
       },
     });
     await waitFor(() => expect(result.current.items.data).toEqual([
-      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true },
-      { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, isLive: true },
+      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true, photoUrl: null },
+      { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, isLive: true, photoUrl: null },
     ]));
     await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', points: 4000n, nights: null, handedOverAt: null }));
     expect(result.current.redemptions.data?.[1]).toMatchObject({ rewardName: 'Partner hotel', points: null, nights: 2 });

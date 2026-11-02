@@ -22,6 +22,7 @@ export { rememberAttribution, storedAttribution, type SignUpAttribution } from '
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { toBase64, useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
 export { shrinkPhoto } from './photo.ts';
+export { itemPhotoUrl, useItemPhotoUpload, type ItemPhotoFailure, type ItemPhotoKind, type ItemPhotoOrder } from './itemPhotos.ts';
 export {
   useKycInPerson,
   useKycInPersonCandidates,

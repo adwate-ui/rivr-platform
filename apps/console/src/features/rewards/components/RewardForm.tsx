@@ -4,6 +4,7 @@ import { useSaveRewardItem, type RewardItem, type RewardItemOrder } from '@rivr/
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
+import { RewardPhotoField } from './RewardPhotoField.tsx';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -88,6 +89,8 @@ export function RewardForm({ venueId, item, onOutcome, onCancel }: {
     <Stack gap={4}>
       <Heading level={2} variant="section">{item === null ? t('console.rewards.newReward') : t('console.rewards.editName', { name: item.name })}</Heading>
       <Choices form={form} />
+      {/* A reward is saved before it has a photo: the photo goes on the reward, by its id. */}
+      {item === null ? null : <RewardPhotoField venueId={venueId} item={item} />}
       <Fields form={form} />
       <Inline gap={4} align="center">
         <Button variant="primary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.rewards.save')}</Button>

@@ -16,6 +16,8 @@ export interface CameraButtonProps {
   variant?: ButtonVariant;
   /** Shows the loading label while the photo is sent. */
   isLoading?: boolean;
+  /** Its name for screen readers where the words on it are the same on every row: `Add a photo of Paneer tikka`. */
+  'aria-label'?: string;
   fullWidth?: boolean;
 }
 

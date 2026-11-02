@@ -64,7 +64,7 @@ function renderOrdering(seat: 'on its way' | 'seated' | 'not seated') {
       return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null }]);
     }
     if (url.includes('/rpc/my_fnb_menu')) {
-      return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink' }, { item_id: 'sandwich', name: 'Club sandwich', kind: 'food' }]);
+      return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink' , photo_path: null }, { item_id: 'sandwich', name: 'Club sandwich', kind: 'food' , photo_path: null }]);
     }
     if (url.includes('/rpc/place_fnb_order')) {
       orders.push(JSON.parse(String(init?.body)));

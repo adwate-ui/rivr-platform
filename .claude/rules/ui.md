@@ -43,7 +43,8 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 - Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only, besides a busy button's turning circle and the TV's progress bar.
 - One gold filled button per screen at most.
 - No decorative poker imagery, gradients, glass, glows or shadows beyond a modal's.
-- Do not copy from the prototype: the demo bar, the Claude Design badge, image slots, device-frame radii, placeholder payee details.
+- A reward's or a dish's own photograph, the club's and never stock, in `ItemPhoto`'s 4:3 tile, with its initial until one is added (AS-11); no other image slots.
+- Do not copy from the prototype: the demo bar, the Claude Design badge, its image slots, device-frame radii, placeholder payee details.
 
 ## Public website (decision 0118)
 The public website's blocks (`WebBand` and the blocks it holds) are the one exception to the visual standard above. They may use:
