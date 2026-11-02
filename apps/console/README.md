@@ -48,7 +48,7 @@ src/
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); purge a frozen live venue after its full archive is saved, a dry run and its name typed (/purge, #432); the full export archive and one member's data (what a member is owed, staff notes in their own folder, #498), locked to the owner's backup key (/exports, #103); the roster, for staff who manage staff: a week's shifts by job title, adding shifts for a job title's staff, copying the week before, and tonight's attendance (/roster, #106)
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
     devices/          the devices, by tab (/devices, #606): dealer tablets and door kiosks to add, pair, fix to a
-                      table and revoke; TVs to pair by their code, change and unpair; cage and admin computers to
+                      table and unpair; TVs to pair by their code, change and unpair; cage and admin computers to
                       add, enrol and revoke; CCTV cameras over a table or the cage (#122), whose Playback Pot data,
                       Incidents and the cage's receipt link to. /tablets, /tvs, /computers and /cameras open their tab
     settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
