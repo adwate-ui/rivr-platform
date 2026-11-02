@@ -3,13 +3,23 @@
 /** KYC: DigiLocker, or a PAN when DigiLocker fails, from where the member can try DigiLocker again. Only the masked Aadhaar is ever shown. */
 export const playerKyc = {
   title: 'Identity',
-  intro: 'A selfie, then DigiLocker. Kept: your photo, masked Aadhaar, PAN, date of birth and address.',
-  selfieIntro: 'Face the camera, at eye level.',
+  /** The three steps (K-09), read out as a list named this. */
+  stepsLabel: 'Identity check',
+  selfieStep: 'Selfie',
+  selfieStepDetail: 'A photo of your face, taken now.',
+  digilockerStep: 'DigiLocker',
+  digilockerStepDetail: 'Your Aadhaar, and the code sent to its mobile.',
+  verifiedStep: 'Verified',
+  verifiedStepDetail: 'Book a seat and play.',
+  kept: 'Kept: your photo, date of birth, address, PAN and the last four digits of your Aadhaar.',
   takeSelfie: 'Take a selfie',
+  selfieTitle: 'Selfie',
+  back: 'Back',
   notLive: 'Photo unclear. Retake it in good light.',
-  digilockerIntro: 'Selfie done. DigiLocker next.',
-  start: 'Continue with DigiLocker',
-  checking: 'Checking your identity',
+  /** Before the hand-off: what DigiLocker will ask. */
+  digilockerIntro: 'Sign in to DigiLocker with your Aadhaar, then allow RIVR to read your Aadhaar and PAN.',
+  start: 'Continue to DigiLocker',
+  checking: 'Checking your documents',
   verifiedTitle: 'Identity verified',
   dateOfBirthLabel: 'Date of birth',
   aadhaarLabel: 'Aadhaar',

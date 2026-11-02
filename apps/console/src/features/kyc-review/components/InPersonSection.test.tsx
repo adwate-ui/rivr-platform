@@ -1,12 +1,18 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InPersonSection } from './InPersonSection.tsx';
 
-// jsdom decodes and draws nothing: the camera's photo comes back from the canvas as these bytes.
+// jsdom has no camera, plays and draws nothing: the console's camera opens on a stand-in, and the photo comes back from
+// the canvas as these bytes.
 beforeEach(() => {
+  vi.stubGlobal('isSecureContext', true);
+  Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [{ stop: () => undefined }] }) } });
+  Object.defineProperty(HTMLMediaElement.prototype, 'play', { configurable: true, value: () => Promise.resolve() });
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:photo' });
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => undefined });
   vi.stubGlobal('createImageBitmap', async () => ({ width: 1200, height: 1600, close: () => undefined }));
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => null);
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => ({ translate: () => undefined, scale: () => undefined, drawImage: () => undefined }) });
   vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((done) => done(new Blob(['jpeg'], { type: 'image/jpeg' })));
 });
 
@@ -53,10 +59,12 @@ async function checkNaina({ photo = true, consent = true } = {}) {
   expect(await screen.findByText('Mobile ending 0203')).toBeDefined();
   fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
   if (photo) {
-    // The camera's hidden file input, as a phone or webcam fills it.
-    const camera = document.querySelector('input[type="file"]');
-    if (camera === null) throw new Error('No camera');
-    fireEvent.change(camera, { target: { files: [new File(['raw'], 'naina.jpg', { type: 'image/jpeg' })] } });
+    // Taken with the console's camera, kept, never a file (K-07).
+    fireEvent.click(screen.getByRole('button', { name: 'Take their photo' }));
+    const take = await screen.findByRole('button', { name: 'Take photo' });
+    await waitFor(() => expect(take.hasAttribute('disabled')).toBe(false));
+    fireEvent.click(take);
+    fireEvent.click(await screen.findByRole('button', { name: 'Use photo' }));
     await screen.findByRole('button', { name: 'Take the photo again' });
   }
   fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '1990-04-12' } });

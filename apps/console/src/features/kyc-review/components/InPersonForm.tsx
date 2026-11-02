@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
 import { shrinkPhoto, toBase64, useKycInPerson, type KycCandidate, type KycInPersonFailure, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, CameraButton, ErrorMessage, Inline, Input, KycPhoto, Stack, Switch } from '@rivr/ui';
+import { Button, CameraCapture, ErrorMessage, Inline, Input, KycPhoto, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -26,10 +26,24 @@ interface Photo {
   preview: string;
 }
 
-/** The photo the camera took, made ready to send and to show; null for a file that is not an image. */
-async function photoFrom(taken: File): Promise<Photo | null> {
+/** The photo the camera took, made ready to send and to show; null for one the browser cannot read. */
+async function photoFrom(taken: Blob): Promise<Photo | null> {
   const jpeg = await shrinkPhoto(taken).catch(() => null);
   return jpeg === null ? null : { jpeg, preview: `data:image/jpeg;base64,${await toBase64(jpeg)}` };
+}
+
+/** The member's photo, taken there with the console's camera and kept or taken again (K-07); never a file. */
+function PhotoTaker({ hasPhoto, onPhoto }: { hasPhoto: boolean; onPhoto: (taken: Blob) => void }) {
+  const [isTaking, setIsTaking] = useState(false);
+  if (!isTaking) {
+    return <Button variant="secondary" onClick={() => setIsTaking(true)}>{t(hasPhoto ? 'console.kycInPerson.retakePhoto' : 'console.kycInPerson.takePhoto')}</Button>;
+  }
+  return (
+    <Stack gap={3}>
+      <CameraCapture facing="environment" onPhoto={(taken) => { setIsTaking(false); onPhoto(taken); }} />
+      <Button variant="text" onClick={() => setIsTaking(false)}>{t('common.cancel')}</Button>
+    </Stack>
+  );
 }
 
 interface InPersonFormProps {
@@ -51,7 +65,7 @@ export function InPersonForm({ venueId, member, onDecided, onCancel }: InPersonF
   const [problem, setProblem] = useState<MessageKey | null>(null);
   const [resolver] = useState(() => zodResolver(detailsSchema));
   const form: DetailsForm = useForm({ resolver, defaultValues: { dateOfBirth: '', aadhaarLast4: '', pan: '' } });
-  const takePhoto = async (taken: File) => {
+  const takePhoto = async (taken: Blob) => {
     const ready = await photoFrom(taken);
     setPhoto(ready);
     setProblem(ready === null ? 'console.kycInPersonFailures.noPhoto' : null);
@@ -65,9 +79,7 @@ export function InPersonForm({ venueId, member, onDecided, onCancel }: InPersonF
     <Inline gap={6} align="start">
       <KycPhoto alt={t('console.kycReview.photoOf', { name: member.fullName })} src={photo?.preview ?? null} status={photo === null ? 'missing' : 'ready'} />
       <Stack gap={3} grow>
-        <CameraButton variant="secondary" camera="environment" onPhoto={(taken) => void takePhoto(taken)}>
-          {t(photo === null ? 'console.kycInPerson.takePhoto' : 'console.kycInPerson.retakePhoto')}
-        </CameraButton>
+        <PhotoTaker hasPhoto={photo !== null} onPhoto={(taken) => void takePhoto(taken)} />
         <DetailsFields form={form} name={member.fullName} consent={consent} onConsent={setConsent} />
         <Inline gap={3}>
           <Button variant="primary" isLoading={check.isPending} onClick={() => void submit()}>

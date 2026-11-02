@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { panSchema } from '@rivr/contracts';
 import { useKycActions, type KycFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Input, Stack, StepScreen, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Input, Stack, StepScreen, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -35,7 +35,7 @@ function DigilockerAgain() {
   return (
     <Stack gap={2}>
       <Button variant="secondary" fullWidth isLoading={start.isPending} onClick={() => void begin()}>{t('player.kyc.tryDigilockerAgain')}</Button>
-      {failure ? <Text>{t(FAILURE_COPY[failure])}</Text> : null}
+      {failure ? <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage> : null}
     </Stack>
   );
 }

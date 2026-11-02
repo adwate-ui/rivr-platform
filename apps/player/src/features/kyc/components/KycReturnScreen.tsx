@@ -1,11 +1,12 @@
 import type { Result } from '@rivr/contracts';
 import { useAuthStatus, useKycActions, useKycRecord, type KycFailure, type KycRecord, type KycStatus } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, StepScreen, Text } from '@rivr/ui';
+import { Button, ErrorMessage, StepScreen, Text } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
 import { KycOutcome } from './KycOutcome.tsx';
+import { KycSteps } from './KycSteps.tsx';
 
 type ReturnView = { kind: 'checking' } | { kind: 'failed'; failure: KycFailure } | { kind: 'outcome'; record: KycRecord };
 
@@ -47,12 +48,14 @@ export function KycReturnScreen() {
           </Button>
         }
       >
-        <Text>{t(FAILURE_COPY[view.failure])}</Text>
+        <KycSteps at="digilocker" />
+        <ErrorMessage>{t(FAILURE_COPY[view.failure])}</ErrorMessage>
       </StepScreen>
     );
   }
   return (
     <StepScreen title={t('player.kyc.title')} footer={null}>
+      <KycSteps at="digilocker" />
       <Text tone="muted">{t('player.kyc.checking')}</Text>
     </StepScreen>
   );

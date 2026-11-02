@@ -6,7 +6,7 @@
  * next run's photo replaces it). Rhea is this flow's own reviewer: Auth sends one code a minute.
  */
 import { execFileSync } from 'node:child_process';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
@@ -23,17 +23,6 @@ function removeCheck() {
   sql(`delete from public.kyc_record where member_id = '${KABIR}'`);
 }
 
-/** A plain JPEG made in the page, standing in for the camera. */
-async function photo(page: Page): Promise<Buffer> {
-  const dataUrl = await page.evaluate(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 480;
-    canvas.height = 640;
-    canvas.getContext('2d')?.fillRect(0, 0, 480, 640);
-    return canvas.toDataURL('image/jpeg');
-  });
-  return Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
-}
 
 test.describe('Manual KYC', () => {
   test.skip(isRemoteTarget(), 'takes the member\'s check away in the local database, so the local stack only');
@@ -49,9 +38,10 @@ test.describe('Manual KYC', () => {
     await expect(page.getByText('Mobile ending 0202')).toBeVisible();
     await page.getByRole('button', { name: 'Check Kabir Sethi' }).click();
 
-    const chooser = page.waitForEvent('filechooser');
+    // Taken with the console's camera, the browser's fake one here (playwright.config.ts), never a file (K-07).
     await page.getByRole('button', { name: 'Take their photo' }).click();
-    await (await chooser).setFiles({ name: 'kabir.jpg', mimeType: 'image/jpeg', buffer: await photo(page) });
+    await page.getByRole('button', { name: 'Take photo' }).click();
+    await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('img', { name: 'KYC photo of Kabir Sethi' })).toBeVisible();
     await page.getByLabel('Date of birth on Kabir Sethi\'s original document').fill('1990-04-12');
     await page.getByRole('textbox', { name: 'Last four digits of Kabir Sethi\'s Aadhaar' }).fill('4321');
