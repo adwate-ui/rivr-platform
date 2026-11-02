@@ -7,10 +7,10 @@ import { cx } from '../internal/classes.ts';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 
 /**
- * The player app's tabs. Profile sits behind the member's initial instead. The Menu (#635) took Balance's place,
- * which is hidden (#627).
+ * The player app's tabs: since the redesign (decision 0320) Tonight, Sessions, Card and Rewards. Profile sits behind the
+ * member's initial instead. `food`, `balance` and `learn` remain for the console's preview of a tier's tabs.
  */
-export type PlayerTab = 'home' | 'sessions' | 'food' | 'balance' | 'rewards' | 'learn';
+export type PlayerTab = 'home' | 'sessions' | 'card' | 'food' | 'balance' | 'rewards' | 'learn';
 
 export interface BottomNavItem {
   tab: PlayerTab;
@@ -62,7 +62,7 @@ function TabLink({ item, isCurrent, onNavigate }: TabLinkProps) {
           isCurrent ? 'font-medium text-content' : 'text-content-muted',
         )}
       >
-        <Icon name={item.tab} />
+        <Icon name={item.tab} size="lg" />
         <span className="flex items-center gap-1">
           {t(`ui.playerTabs.${item.tab}`)}
           {tiers ? <Icon name="lock" size="sm" /> : null}

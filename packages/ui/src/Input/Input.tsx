@@ -26,9 +26,9 @@ type NativeInputProps = Pick<
 
 /**
  * `boxed` for forms; `line`, an underline, for a screen with one field, such as the sign-in
- * number. A one-time code is a CodeInput.
+ * number; `inset`, the player redesign's 60 px box with its label inside (decision 0320). A one-time code is a CodeInput.
  */
-export type InputVariant = 'boxed' | 'line';
+export type InputVariant = 'boxed' | 'line' | 'inset';
 
 export interface InputProps extends NativeInputProps {
   /** The visible label. Every input has one. */
@@ -48,7 +48,7 @@ export interface InputProps extends NativeInputProps {
 
 // The line is sized as in the prototype's sign-in: a 48 px row for the number, in plain spacing (S-01: tracked tabular
 // figures read as a typewriter). Its focus is its own line, drawn thicker (styles.css), never a box round it.
-const FRAME: Record<InputVariant, string> = {
+const FRAME: Record<Exclude<InputVariant, 'inset'>, string> = {
   boxed: 'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
   line: 'min-h-12 w-full border-b bg-transparent font-text text-20 text-content',
 };
@@ -60,8 +60,19 @@ const DIMMED = 'disabled:opacity-disabled';
 const ROW_DIMMED = 'has-disabled:opacity-disabled';
 
 /** A labelled text field with an optional prefix, suffix, hint and error message. */
-export function Input({ label, hint, error, type = 'text', variant = 'boxed', prefix, suffix, ...native }: InputProps) {
+export function Input({ variant = 'boxed', ...props }: InputProps) {
   const id = useId();
+  if (variant === 'inset') return <InsetInput id={id} label={props.label} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
+  return <FramedInput id={id} variant={variant} {...props} />;
+}
+
+/** The input's own attributes, without the props Input reads itself. */
+function nativeOf({ label: _label, hint: _hint, error: _error, type: _type, prefix: _prefix, suffix: _suffix, ...native }: Omit<InputProps, 'variant'>): NativeInputProps {
+  return native;
+}
+
+/** A boxed or line field: its label above, then the field, its hint and its error. */
+function FramedInput({ id, variant, label, hint, error, type = 'text', prefix, suffix, ...native }: Omit<InputProps, 'variant'> & { id: string; variant: Exclude<InputVariant, 'inset'> }) {
   const describedBy = cx(prefix && `${id}-prefix`, suffix && `${id}-suffix`, hint && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <Stack gap={2}>
@@ -77,10 +88,36 @@ export function Input({ label, hint, error, type = 'text', variant = 'boxed', pr
   );
 }
 
+interface InsetInputProps {
+  id: string;
+  label: string;
+  error: string | undefined;
+  type: NonNullable<InputProps['type']>;
+  native: NativeInputProps;
+}
+
+/**
+ * The player redesign's field (decision 0320): a raised 60 px box with its label small and muted inside, above the value; a
+ * red edge and the dotted error under it while it is wrong. The whole box is the field's label, so a tap anywhere focuses it.
+ */
+function InsetInput({ id, label, error, type, native }: InsetInputProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className={cx('flex min-h-field flex-col justify-center gap-1 rounded-lg border bg-raised px-4 py-2',
+        'has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-focus', error ? 'border-alert' : 'border-control')}>
+        <span className="font-text text-12 text-content-muted">{label}</span>
+        <input id={id} type={type} className={cx('w-full bg-transparent p-0 font-text text-16 text-content outline-none', STATE)}
+          aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} {...native} />
+      </label>
+      {error ? <ErrorMessage id={`${id}-error`} look="dot">{error}</ErrorMessage> : null}
+    </div>
+  );
+}
+
 interface FieldProps {
   id: string;
   type: NonNullable<InputProps['type']>;
-  variant: InputVariant;
+  variant: Exclude<InputVariant, 'inset'>;
   prefix: string | undefined;
   suffix: string | undefined;
   isInvalid: boolean;
@@ -95,7 +132,7 @@ function Adornment({ id, text }: { id: string; text: string }) {
 }
 
 /** A line field's line in the focus colour while it has focus, unless it is wrong (S-01): on its row when it has a prefix or suffix. */
-function lineFocusClass(variant: InputVariant, isInvalid: boolean, isAdorned: boolean): string | undefined {
+function lineFocusClass(variant: Exclude<InputVariant, 'inset'>, isInvalid: boolean, isAdorned: boolean): string | undefined {
   if (variant !== 'line' || isInvalid) return undefined;
   return isAdorned ? 'has-[input:focus-visible]:border-focus' : 'focus-visible:border-focus';
 }

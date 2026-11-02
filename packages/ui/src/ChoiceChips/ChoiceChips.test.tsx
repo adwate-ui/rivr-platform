@@ -80,4 +80,14 @@ describe('ChoiceChips', () => {
     const { container } = renderIn(<ChoiceChips label="Games" options={GAMES} selected={['nlh']} onChange={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('draws the redesign\'s pills and tiles, the picked one in gold tint (decision 0320)', () => {
+    const lengths = [{ value: '30', label: '30 min' }, { value: '60', label: '1 hour' }, { value: '120', label: '2 hours' }];
+    const { rerender } = renderIn(<ChoiceChips label="Add time" look="tile" mode="one" options={lengths} selected={['60']} onChange={() => undefined} />);
+    expect(screen.getByRole('button', { name: '1 hour' })).toHaveClass('h-tile', 'bg-gold-tint');
+    expect(screen.getByRole('group', { name: 'Add time' })).toHaveClass('grid-cols-3');
+    rerender(<ChoiceChips label="Filter" look="pill" mode="one" options={lengths} selected={['30']} onChange={() => undefined} />);
+    expect(screen.getByRole('button', { name: '30 min' })).toHaveClass('rounded-full', 'border-gold');
+    expect(screen.getByRole('button', { name: '2 hours' })).toHaveClass('border-control');
+  });
 });

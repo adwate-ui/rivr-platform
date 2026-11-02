@@ -35,3 +35,8 @@ export const TvTitle: Story = { tags: ['viewport-tv'], args: { level: 1, variant
 
 /** A code staff type in from across a room, in the text face, whose 4 never reads as a 1 (D-01). */
 export const TvCode: Story = { tags: ['viewport-tv'], args: { level: 2, variant: 'tvCode', children: '481 447' } };
+
+/** The player redesign's titles in the display face (decision 0320): a screen's at 36, a sheet's at 32. */
+export const Serif: Story = { args: { level: 1, variant: 'serif', children: 'Sessions' } };
+
+export const SerifSheet: Story = { args: { level: 2, variant: 'serif', serifSize: 32, children: 'Leave your seat?' } };

@@ -23,18 +23,47 @@ export interface CodeInputProps {
   isDisabled?: boolean;
   name?: string;
   ref?: Ref<HTMLInputElement>;
+  /** `tall`, the redesign's 60 px cells sharing the row (decision 0320); 48 px squares otherwise. */
+  size?: 'regular' | 'tall';
 }
 
 /** One cell: its digit, the gold edge of the next one to fill while the field has focus, red when the code is wrong. */
-function Cell({ digit, isNext, isInvalid }: { digit: string | undefined; isNext: boolean; isInvalid: boolean }) {
+function Cell({ digit, isNext, isInvalid, isTall }: { digit: string | undefined; isNext: boolean; isInvalid: boolean; isTall: boolean }) {
   // The next cell's 2 px edge is the field's focus, red on a refused code, so the focus shows either way (WCAG 2.4.7).
   const next = isInvalid ? 'border-2 border-alert' : 'border-2 border-accent';
   const edge = isNext ? next : isInvalid ? 'border-alert' : digit === undefined ? 'border-control' : 'border-content';
   return (
-    <span className={cx('flex h-12 w-12 min-w-0 items-center justify-center rounded-md border bg-raised font-text text-28 text-content', edge)}>
+    <span className={cx('flex min-w-0 items-center justify-center rounded-md border bg-raised font-text text-28 text-content', isTall ? 'h-field flex-1' : 'h-12 w-12', edge)}>
       {digit}
     </span>
   );
+}
+
+const ERROR_LOOK = { regular: 'icon', tall: 'dot' } as const;
+
+/** The hint and the error under the cells, each with the id the field points at. */
+function CodeNotes({ id, hint, error, size }: { id: string; hint: string | undefined; error: string | undefined; size: 'regular' | 'tall' }) {
+  return (
+    <>
+      {hint ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
+      {error ? <ErrorMessage id={`${id}-error`} look={ERROR_LOOK[size]}>{error}</ErrorMessage> : null}
+    </>
+  );
+}
+
+interface CellsProps {
+  value: string;
+  length: number;
+  hasFocus: boolean;
+  isInvalid: boolean;
+  isTall: boolean;
+}
+
+/** A cell a digit; the next one to fill has the gold edge while the field has focus. */
+function Cells({ value, length, hasFocus, isInvalid, isTall }: CellsProps) {
+  return Array.from({ length }, (_, index) => (
+    <Cell key={index} digit={value[index]} isNext={hasFocus && index === Math.min(value.length, length - 1)} isInvalid={isInvalid} isTall={isTall} />
+  ));
 }
 
 /** What was typed, pasted or filled in, as the code's digits: a whole code pasted after the digits already there is the new
@@ -58,7 +87,7 @@ const caretToEnd = (event: SyntheticEvent<HTMLInputElement>) => {
  * takes any length of paste and keeps the digits (a length limit would cut `123 456` short before they are read). Its
  * focus is the gold edge of the next cell, shown whenever the field has focus; no ring round the row as well (P-07).
  */
-export function CodeInput({ label, value, onChange, onComplete, length = 6, hint, error, autoFocus, isDisabled = false, name, ref }: CodeInputProps) {
+export function CodeInput({ label, value, onChange, onComplete, length = 6, hint, error, autoFocus, isDisabled = false, name, ref, size = 'regular' }: CodeInputProps) {
   const id = useId();
   const [hasFocus, setHasFocus] = useState(Boolean(autoFocus));
   const describedBy = cx(hint && `${id}-hint`, error && `${id}-error`) || undefined;
@@ -71,9 +100,7 @@ export function CodeInput({ label, value, onChange, onComplete, length = 6, hint
     <Stack gap={2}>
       <Label htmlFor={id}>{label}</Label>
       <div data-code-cells className={cx('relative flex gap-2', isDisabled && 'opacity-disabled')}>
-        {Array.from({ length }, (_, index) => (
-          <Cell key={index} digit={value[index]} isNext={hasFocus && index === Math.min(value.length, length - 1)} isInvalid={Boolean(error)} />
-        ))}
+        <Cells value={value} length={length} hasFocus={hasFocus} isInvalid={Boolean(error)} isTall={size === 'tall'} />
         <input
           ref={ref}
           id={id}
@@ -94,8 +121,7 @@ export function CodeInput({ label, value, onChange, onComplete, length = 6, hint
           onBlur={() => setHasFocus(false)}
         />
       </div>
-      {hint ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
-      {error ? <ErrorMessage id={`${id}-error`}>{error}</ErrorMessage> : null}
+      <CodeNotes id={id} hint={hint} error={error} size={size} />
     </Stack>
   );
 }

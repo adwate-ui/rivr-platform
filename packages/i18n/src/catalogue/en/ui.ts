@@ -26,10 +26,25 @@ export const ui = {
     /** On the share image's photograph while it is a concept (decision 0289). */
     conceptNote: 'Concept visualisation',
   },
+  /** The player redesign's alert system and sheets (decision 0320). */
+  banner: {
+    dismiss: 'Dismiss',
+  },
+  toast: {
+    undo: 'Undo',
+  },
+  picker: {
+    done: 'Done',
+    chooseOne: 'Choose one',
+    chooseAny: 'Choose any',
+  },
   playerTabs: {
     /** Accessible name of the player app's bottom tab bar. */
     label: 'Main',
-    home: 'Home',
+    /** The member's own night (decision 0320): the first tab. */
+    home: 'Tonight',
+    /** The membership card, a tab since the redesign. */
+    card: 'Card',
     sessions: 'Sessions',
     balance: 'Balance',
     /** Food and drink to the seat (#635). */

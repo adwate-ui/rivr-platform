@@ -116,6 +116,7 @@
   --spacing-oval-width: var(--rivr-size-oval-width);
   --spacing-oval-height: var(--rivr-size-oval-height);
   --spacing-shutter: var(--rivr-size-shutter);
+  --spacing-sheet: var(--rivr-size-sheet);
   --spacing-receipt: var(--rivr-size-receipt);
   --spacing-chart: var(--rivr-size-chart);
   --spacing-share-card: var(--rivr-size-share-card);

@@ -82,4 +82,12 @@ describe('Screen', () => {
     unmount();
     expect(document.title).toBe('RIVR');
   });
+
+  it('sets a serif title, hides it for a screen headed otherwise, and loads as a skeleton (decision 0320)', () => {
+    const { rerender } = renderIn(<Screen title="Sessions" titleLook="serif" status="loading" loadingLook="skeleton" />);
+    expect(screen.getByRole('heading', { name: 'Sessions' })).toHaveClass('font-display', 'text-36');
+    expect(screen.queryByText('Loading')).toHaveClass('sr-only');
+    rerender(<Screen title="Tonight" isTitleHidden>x</Screen>);
+    expect(screen.getByRole('heading', { name: 'Tonight' })).toHaveClass('sr-only');
+  });
 });

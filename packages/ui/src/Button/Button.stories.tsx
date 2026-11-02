@@ -33,3 +33,16 @@ export const Disabled: Story = { args: { isDisabled: true, children: 'Approve' }
 export const LongText: Story = { args: { children: 'Send the withdrawal to the second approver', variant: 'secondary' } };
 
 export const FullWidth: Story = { args: { fullWidth: true, children: 'Log hand' } };
+
+/** The player redesign's buttons (decision 0320): the tall gold action, the outlined button and pills. */
+export const PlayerRedesign: Story = {
+  render: () => (
+    <Inline gap={3} wrap>
+      <Button variant="primary" size="tall">Send code</Button>
+      <Button variant="outline">Leave waitlist</Button>
+      <Button variant="outline" shape="pill">Notify me</Button>
+      <Button variant="outline" shape="pill" isPressed>Notifying you</Button>
+      <Button variant="primary" shape="pill">Add both</Button>
+    </Inline>
+  ),
+};

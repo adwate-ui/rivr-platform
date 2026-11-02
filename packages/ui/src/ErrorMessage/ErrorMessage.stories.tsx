@@ -18,3 +18,6 @@ export const LongText: Story = {
       'Could not save this. Check the connection and try again. If it keeps failing, the cage can record the payment by hand and confirm it later.',
   },
 };
+
+/** The player redesign's field error: a red dot, cream words (decision 0320). */
+export const Dot: Story = { args: { look: 'dot', children: 'Enter a 10-digit mobile number.' } };

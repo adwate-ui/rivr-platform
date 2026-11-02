@@ -1,0 +1,72 @@
+import { t } from '@rivr/i18n';
+import { tokens } from '@rivr/tokens';
+import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+
+/** One toast: what the member's own action did, and how to undo it when it can be undone. */
+export interface ToastMessage {
+  text: string;
+  onUndo?: (() => void) | undefined;
+}
+
+export interface ToastProps extends ToastMessage {
+  /** Undo was pressed: the toast goes as its action is undone. */
+  onClose: () => void;
+}
+
+/** How long a toast stays, from the tokens: 3.2 s. */
+export const TOAST_MS = Number.parseInt(String(tokens.motion.duration.toast), 10);
+
+/** A toast on its own, as the provider shows it: cream, above the tab bar, read out politely. */
+export function Toast({ text, onUndo, onClose }: ToastProps) {
+  return (
+    <div role="status" aria-live="polite"
+      className="flex items-center justify-between gap-3 rounded-lg bg-cream px-4 py-3 font-text text-16 font-medium text-on-cream shadow-modal"
+      data-toast="">
+      <span>{text}</span>
+      {onUndo ? (
+        <button type="button" className="min-h-touch shrink-0 font-semibold text-green underline"
+          onClick={() => { onClose(); onUndo(); }}>
+          {t('ui.toast.undo')}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+type ShowToast = (text: string, options?: { onUndo?: () => void }) => void;
+
+const ToastContext = createContext<ShowToast | null>(null);
+
+/**
+ * Confirms the member's own action at the foot of the screen, above the tab bar (decision 0320): "Joined waitlist", with
+ * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s.
+ */
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [message, setMessage] = useState<ToastMessage | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const close = useCallback(() => setMessage(null), []);
+  const show = useCallback<ShowToast>((text, options) => {
+    clearTimeout(timer.current);
+    setMessage({ text, onUndo: options?.onUndo });
+    timer.current = setTimeout(close, TOAST_MS);
+  }, [close]);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const value = useMemo(() => show, [show]);
+  return (
+    <ToastContext value={value}>
+      {children}
+      <div className="pointer-events-none fixed inset-x-0 bottom-bottom-nav z-modal mx-auto px-5 pb-5 medium:max-w-phone">
+        <div className="pointer-events-auto">
+          {message ? <Toast text={message.text} onUndo={message.onUndo} onClose={close} /> : null}
+        </div>
+      </div>
+    </ToastContext>
+  );
+}
+
+/** Shows a toast: `toast('Joined waitlist', { onUndo })`. Inside a ToastProvider. */
+export function useToast(): ShowToast {
+  const show = use(ToastContext);
+  if (show === null) throw new Error('useToast needs a ToastProvider above it');
+  return show;
+}

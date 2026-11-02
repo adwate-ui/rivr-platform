@@ -102,6 +102,19 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('min-h-touch');
   });
 
+  it('is 54 px tall when tall, rounds its ends as a pill, and reads out a toggle that is on (decision 0320)', () => {
+    renderIn(
+      <>
+        <Button variant="primary" size="tall">Send code</Button>
+        <Button variant="outline" shape="pill" isPressed>Notifying you</Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Send code' })).toHaveClass('min-h-action', 'rounded-lg');
+    const toggle = screen.getByRole('button', { name: 'Notifying you' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle).toHaveClass('rounded-full', 'min-h-touch', 'border-accent', 'text-accent');
+  });
+
   it('as a link with a file name, saves what it points at under that name', () => {
     renderIn(<Button href="blob:https://console.invalid/1" download="tds-return.csv">Download the extract</Button>);
     expect(screen.getByRole('link', { name: 'Download the extract' })).toHaveAttribute('download', 'tds-return.csv');

@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useRef } from 'react';
 import { Button } from '../Button/Button.tsx';
+import { cx } from '../internal/classes.ts';
 
 export interface QuantityStepperProps {
   /** What is counted, already translated, such as a menu item's name: it names the group and its buttons. */
@@ -10,6 +11,8 @@ export interface QuantityStepperProps {
   /** 0 and 9 unless set: an order's line is 1 to 9 of an item (#123). */
   min?: number;
   max?: number;
+  /** `round`, the redesign's 44 px circles, one more in gold, with no label beside them (decision 0320). */
+  look?: 'row' | 'round';
 }
 
 /**
@@ -17,7 +20,7 @@ export interface QuantityStepperProps {
  * read out as it changes; a button at its limit is disabled, and the press that took it there hands the focus to the
  * other button, so a keyboard is never dropped to the page (F5-07).
  */
-export function QuantityStepper({ label, value, onChange, min = 0, max = 9 }: QuantityStepperProps) {
+export function QuantityStepper({ label, value, onChange, min = 0, max = 9, look = 'row' }: QuantityStepperProps) {
   const group = useRef<HTMLDivElement>(null);
   const step = (next: number) => {
     onChange(next);
@@ -26,13 +29,15 @@ export function QuantityStepper({ label, value, onChange, min = 0, max = 9 }: Qu
     if (next >= max) fewer?.focus();
   };
   return (
-    <div ref={group} role="group" aria-label={label} className="flex items-center gap-3">
-      <span className="min-w-0 flex-1 font-text text-16 text-content">{label}</span>
-      <Button variant="secondary" isDisabled={value <= min} aria-label={t('ui.quantity.fewer', { name: label })} onClick={() => step(value - 1)}>
+    <div ref={group} role="group" aria-label={label} className={cx('flex items-center', look === 'round' ? 'gap-1' : 'gap-3')}>
+      {look === 'row' ? <span className="min-w-0 flex-1 font-text text-16 text-content">{label}</span> : null}
+      <Button variant={look === 'round' ? 'outline' : 'secondary'} shape={look === 'round' ? 'pill' : 'rounded'} isDisabled={value <= min}
+        aria-label={t('ui.quantity.fewer', { name: label })} onClick={() => step(value - 1)}>
         −
       </Button>
       <span aria-live="polite" className="w-6 text-center font-text text-16 font-medium tabular-nums text-content">{value}</span>
-      <Button variant="secondary" isDisabled={value >= max} aria-label={t('ui.quantity.more', { name: label })} onClick={() => step(value + 1)}>
+      <Button variant={look === 'round' ? 'primary' : 'secondary'} shape={look === 'round' ? 'pill' : 'rounded'} isDisabled={value >= max}
+        aria-label={t('ui.quantity.more', { name: label })} onClick={() => step(value + 1)}>
         +
       </Button>
     </div>

@@ -33,6 +33,14 @@ const ICONS = {
   mail: ['M3 5.5H21V18.5H3Z', 'M3 5.5L12 13L21 5.5'],
   /** A Button's turning circle while its action is in flight (F5-17). */
   loading: ['M12 3.5A8.5 8.5 0 1 1 3.5 12'],
+  // The player redesign (decision 0320), from its prototype: a banner's mark, the Card tab, the seat's three actions and an
+  // offer's arrow.
+  info: ['M3 12A9 9 0 1 0 21 12A9 9 0 1 0 3 12Z', 'M12 8V13', 'M12 15.5V17'],
+  card: ['M3 6H21V19H3Z', 'M7 15H12', 'M14 10H18V14H14Z'],
+  topUp: ['M4 12A8 8 0 1 0 20 12A8 8 0 1 0 4 12Z', 'M12 8V16', 'M8 12H16'],
+  addTime: ['M4 13A8 8 0 1 0 20 13A8 8 0 1 0 4 13Z', 'M12 9V13L15 15', 'M10 2.5H14'],
+  leave: ['M14 4H19V20H14', 'M10 8L6 12L10 16', 'M6 12H15'],
+  arrowRight: ['M5 12H19', 'M13 6L19 12L13 18'],
 } satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof ICONS;

@@ -110,4 +110,12 @@ describe('Input', () => {
     expect(field).toHaveAccessibleDescription('%');
     expect(screen.getByText('%')).toBeInTheDocument();
   });
+
+  it('sets its label inside a 60 px box when inset, with a dotted error under it (decision 0320)', () => {
+    renderIn(<Input variant="inset" label="City" error="Enter your city." />);
+    const field = screen.getByRole('textbox', { name: 'City' });
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+    expect(field).toHaveAccessibleDescription('Enter your city.');
+    expect(field.closest('label')).toHaveClass('min-h-field', 'border-alert');
+  });
 });

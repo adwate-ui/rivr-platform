@@ -33,7 +33,6 @@ const ENABLED = { state: 'enabled' } as const;
 export const PLAYER_TABS: BottomNavItem[] = [
   { tab: 'home', href: '#home', access: ENABLED },
   { tab: 'sessions', href: '#sessions', access: ENABLED },
-  { tab: 'food', href: '#menu', access: ENABLED },
+  { tab: 'card', href: '#card', access: ENABLED },
   { tab: 'rewards', href: '#rewards', access: ENABLED },
-  { tab: 'learn', href: '#learn', access: ENABLED },
 ];

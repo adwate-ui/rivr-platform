@@ -29,15 +29,34 @@ export interface ChoiceChipsProps<Value extends string> {
    * which should not push the list down a phone's screen (UI polish audit A-05).
    */
   isOneRow?: boolean;
+  /**
+   * `pill`, the redesign's rounded chips, picked in gold tint; `tile`, square choices in a row of equal columns, such as a
+   * rating of 1 to 5 or Add time's three lengths (decision 0320). `chip` elsewhere.
+   */
+  look?: 'chip' | 'pill' | 'tile';
 }
 
 const CHIP =
   'min-h-touch rounded-md border px-4 font-text text-14 leading-snug font-medium transition-colors ' +
   'disabled:cursor-not-allowed disabled:opacity-disabled';
 
+const PILL = 'min-h-touch rounded-full border px-4 font-text text-14 leading-snug transition-colors disabled:cursor-not-allowed disabled:opacity-disabled';
+
+// Five ratings sit in 52 px tiles; three lengths of time in 56 px ones, as in the prototype.
+const TILE = 'rounded-md border font-text text-18 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-disabled';
+
+const TILE_ROW: Record<number, string> = { 3: 'grid grid-cols-3 gap-2', 5: 'grid grid-cols-5 gap-2' };
+
+/** The classes of one choice in each look, on or off. */
+function choiceClasses(look: 'chip' | 'pill' | 'tile', isOn: boolean, optionCount: number): string {
+  if (look === 'chip') return cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted');
+  const picked = isOn ? 'border-gold bg-gold-tint text-content' : 'border-control text-content-muted';
+  return look === 'pill' ? cx(PILL, picked) : cx(TILE, optionCount === 5 ? 'h-round' : 'h-tile', picked);
+}
+
 /** A preference picked from a few choices, such as games or stakes: a row of chips that wraps, or scrolls. */
 export function ChoiceChips<Value extends string>({
-  label, options, selected, onChange, mode = 'many', isDisabled, isLabelVisuallyHidden = false, isOneRow = false,
+  label, options, selected, onChange, mode = 'many', isDisabled, isLabelVisuallyHidden = false, isOneRow = false, look = 'chip',
 }: ChoiceChipsProps<Value>) {
   const labelId = useId();
   const press = (value: Value) => {
@@ -55,7 +74,7 @@ export function ChoiceChips<Value extends string>({
         </Text>
       )}
       <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined}
-        className={cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap')}>
+        className={look === 'tile' ? TILE_ROW[options.length] ?? 'grid grid-cols-3 gap-2' : cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap')}>
         {options.map((option) => {
           const isOn = selected.includes(option.value);
           return (
@@ -65,7 +84,7 @@ export function ChoiceChips<Value extends string>({
               aria-pressed={isOn}
               disabled={isDisabled}
               onClick={() => press(option.value)}
-              className={cx(CHIP, isOneRow && 'shrink-0 whitespace-nowrap', isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted')}
+              className={cx(choiceClasses(look, isOn, options.length), isOneRow && 'shrink-0 whitespace-nowrap')}
             >
               {option.label}
             </button>

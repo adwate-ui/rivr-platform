@@ -140,6 +140,7 @@ export const tokens = {
     "ovalWidth": 250,
     "ovalHeight": 330,
     "shutter": 76,
+    "sheet": 720,
     "receipt": 576,
     "chart": 192,
     "shareCard": 1080

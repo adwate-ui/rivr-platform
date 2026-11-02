@@ -14,6 +14,13 @@ describe('ErrorMessage', () => {
     expect(screen.getByText('Enter the 12-digit UTR.')).toHaveAttribute('id', 'utr-error');
   });
 
+  it('marks a field error with a red dot instead of the icon in the player app (decision 0320)', () => {
+    const { container } = renderIn(<ErrorMessage look="dot">Enter your city.</ErrorMessage>);
+    expect(screen.getByRole('alert')).toHaveTextContent('Enter your city.');
+    expect(container.querySelector('svg')).toBeNull();
+    expect(container.querySelector('.bg-alert.rounded-full')).not.toBeNull();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<ErrorMessage>Not enough seats left in this batch. Choose another batch.</ErrorMessage>);
     expect(await axeViolations(container)).toEqual([]);
