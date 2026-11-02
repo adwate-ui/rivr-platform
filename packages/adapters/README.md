@@ -75,7 +75,10 @@ Locally no channel is configured, so the hook refuses every real number and Auth
 
 | Adapter | Import | Credentials |
 |---|---|---|
+| WhatsApp, Evolution bridge (for now, decision 0297) | `createWhatsAppEvolution({ baseUrl, apiKey, instance })` from `@rivr/adapters/whatsapp`: each template's text from `WHATSAPP_TEMPLATES`, as plain text; a link button is refused | `EVOLUTION_API_URL`, `EVOLUTION_API_KEY` and `EVOLUTION_INSTANCE_NAME`, as Edge Function secrets; staging also sets `WHATSAPP_ALLOWLIST` |
 | WhatsApp, Meta Cloud API | `createWhatsAppCloudApi({ phoneNumberId, accessToken })` from `@rivr/adapters/whatsapp` | `WHATSAPP_PHONE_NUMBER_ID` (the business number's id in Meta's dashboard) and `WHATSAPP_ACCESS_TOKEN` (a system user's permanent token), as Edge Function secrets |
+
+The functions pick the bridge while its secrets are set, else the Cloud API (`supabase/functions/_shared/whatsapp.ts`).
 
 The WhatsApp adapter sends every template category. Marketing opt-in rules, and the templates themselves, arrive with #62.
 

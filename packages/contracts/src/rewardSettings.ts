@@ -50,6 +50,14 @@ export const learnSessionPoints = {
   value: z.strictObject({ per_session: z.int().min(0).max(1000), per_principle: z.int().min(0).max(1000) }),
 } as const satisfies SettingDefinition;
 
+/** The pre-registration bonus (owner, 2 Nov; decision 0298): points given once, when a member's identity check is verified. */
+export const pointsVerifiedBonus = {
+  key: 'points.verified_bonus',
+  description: 'Points a member gets once, when their identity check is verified (the pre-registration bonus); none set, or 0, gives none.',
+  scope: 'venue',
+  value: z.strictObject({ points: z.int().min(0).max(10000) }),
+} as const satisfies SettingDefinition;
+
 /** The most Learn points a member earns in an IST day (#135), so re-drilling cannot farm them; none set is 100. */
 export const learnDailyPointsCap = {
   key: 'learn.daily_points_cap',

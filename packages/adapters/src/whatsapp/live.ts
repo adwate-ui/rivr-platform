@@ -81,7 +81,7 @@ async function readJson(response: Response): Promise<unknown> {
  * member without their opt-in (Meta fixes a template's category when it approves it), or a link
  * suffix that could add a query or a host. Null when it may go.
  */
-function refusal(message: WhatsAppMessage): string | null {
+export function refusal(message: WhatsAppMessage): string | null {
   const known = Object.entries(WHATSAPP_TEMPLATES).find(([name]) => name === message.template)?.[1];
   if (known?.category === 'marketing' && message.category !== 'marketing') return 'a marketing template needs the member\'s opt-in';
   if (message.urlButton !== undefined && !linkSuffixSchema.safeParse(message.urlButton).success) return 'the link suffix is not a plain path';

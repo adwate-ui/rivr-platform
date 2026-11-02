@@ -67,12 +67,17 @@ export const ui = {
     /** CookieBanner (#616): what the website stores, and the visitor's choice. */
     cookies: {
       title: 'Cookies on this website',
-      text: 'Essential cookies only, unless you allow maps.',
+      text: 'Essential cookies only, unless you allow maps or analytics.',
+      /** The player app's banner (decision 0298): no map there, so analytics alone. */
+      appTitle: 'Cookies in this app',
+      appText: 'Essential storage only, unless you allow analytics.',
       choices: 'What the website may store',
       essential: 'Essential',
       essentialHelp: 'Always on.',
       maps: 'Maps',
       mapsHelp: 'The Google map on the Visit page.',
+      analytics: 'Analytics and ads',
+      analyticsHelp: 'Google Analytics and the Meta pixel, to count visits and measure adverts.',
       acceptAll: 'Accept all',
       essentialOnly: 'Essential only',
       /** Opens the two choices under the banner's buttons. */

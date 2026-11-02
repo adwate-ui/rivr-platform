@@ -152,6 +152,11 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The points a member earns for each hour played at this table type. Not set earns none.',
     fields: { points: 'Points' },
   },
+  'points.verified_bonus': {
+    name: 'Bonus on verification',
+    help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',
+    fields: { points: 'Points' },
+  },
   'points.rewards_rake_share': {
     name: 'Points from rake',
     help: "The share of a member's rake they earn back as points, one a rupee. Not set earns none.",

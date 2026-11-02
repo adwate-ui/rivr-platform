@@ -4,8 +4,10 @@ import { SETTINGS, type SettingKey } from '@rivr/contracts/settings';
 export const RULE_AREAS = ['floor', 'rake', 'cage', 'members', 'academy', 'tax', 'compliance', 'system'] as const;
 export type RuleArea = (typeof RULE_AREAS)[number];
 export const VENUE_AREAS = ['club', 'chips'] as const;
+/** Notices on members' Home (decision 0298), with the rules for staff with settings.manage. */
+export const NOTICE_AREA = 'notices';
 
-export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number];
+export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number] | typeof NOTICE_AREA;
 
 /**
  * The areas and rules hidden at the owner's word (29 Oct, #626, decision 0284): no rupee, rake or reporting on any
@@ -38,6 +40,7 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'markers.due_days': 'cage',
   'accommodation.hours_per_night': 'members',
   'cab.minimum_visits': 'members',
+  'points.verified_bonus': 'members',
   'host.lapse': 'members',
   'league.points': 'members',
   'league.prizes': 'members',

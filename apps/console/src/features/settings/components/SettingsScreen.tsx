@@ -2,21 +2,24 @@ import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack, Tabs } from '@rivr/ui';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { HIDDEN_AREAS, RULE_AREAS, VENUE_AREAS, type SettingsArea } from './areas.ts';
+import { HIDDEN_AREAS, NOTICE_AREA, RULE_AREAS, VENUE_AREAS, type SettingsArea } from './areas.ts';
 import { ChipsSection } from './ChipsSection.tsx';
+import { NoticesSection } from './NoticesSection.tsx';
 import { RakeSection } from './RakeSection.tsx';
 import { RulesArea } from './RulesArea.tsx';
 import { VenueSection } from './VenueSection.tsx';
 
-/** The areas a staff member has: the rules with settings.manage, the club's details as a super admin; none hidden (#626). */
+/** The areas a staff member has: the rules and notices with settings.manage, the club's details as a super admin; none hidden (#626). */
 function areasFor(canSet: boolean, isSuperAdmin: boolean): readonly SettingsArea[] {
-  return [...(canSet ? RULE_AREAS : []), ...(isSuperAdmin ? VENUE_AREAS : [])].filter((area) => !HIDDEN_AREAS.includes(area));
+  const rules: readonly SettingsArea[] = canSet ? [...RULE_AREAS, NOTICE_AREA] : [];
+  return [...rules, ...(isSuperAdmin ? VENUE_AREAS : [])].filter((area) => !HIDDEN_AREAS.includes(area));
 }
 
 /** One area's content: its rules (in the Rake area, each table type's rake first), the club's details, or the chips. */
 function AreaContent({ area, venueId, isSuperAdmin }: { area: SettingsArea; venueId: string; isSuperAdmin: boolean }) {
   if (area === 'club') return <VenueSection venueId={venueId} />;
   if (area === 'chips') return <ChipsSection venueId={venueId} />;
+  if (area === NOTICE_AREA) return <NoticesSection venueId={venueId} />;
   const rules = <RulesArea key={area} venueId={venueId} area={area} isSuperAdmin={isSuperAdmin} />;
   return area === 'rake' ? <Stack gap={10}><RakeSection venueId={venueId} />{rules}</Stack> : rules;
 }

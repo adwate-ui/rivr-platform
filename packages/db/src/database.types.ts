@@ -2287,6 +2287,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notice": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by_staff_id": string | null,"ends_at": string | null,"id": string,"starts_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string | null,"id"?: string,"starts_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by_staff_id"?: string | null,"ends_at"?: string | null,"id"?: string,"starts_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notice_created_by_staff_id_fkey"
+      columns: ["created_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notice_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"notification_preference": {
                   Row: {
                     "created_at": string,"is_on": boolean,"member_id": string,"push_type": string,"updated_at": string,"venue_id": string
@@ -4778,6 +4804,9 @@ isOneToOne: false
               "logged_paise": number,"variance_paise": number
             }[]
                            },
+"end_notice":
+{ Args: { "p_notice_id": string }; Returns: undefined
+                           },
 "end_seat":
 { Args: { "p_reason": string,"p_session_id": string }; Returns: undefined
                            },
@@ -5100,6 +5129,11 @@ isOneToOne: false
               "code": string,"full_name": string,"member_number": number,"ms_left": number,"tier_name": string
             }[]
                            },
+"my_notices":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "body": string,"notice_id": string
+            }[]
+                           },
 "my_payout_accounts":
 { Args: Record<PropertyKey, never>; Returns: {
               "account_number": string,"bank_name": string,"holder_name": string,"id": string,"ifsc": string,"kind": string,"reject_reason": string,"status": string,"vpa": string
@@ -5267,6 +5301,9 @@ isOneToOne: false
 { Args: { "p_idempotency_key"?: string,"p_lines": Json }; Returns: {
               "kot_number": number,"order_id": string
             }[]
+                           },
+"post_notice":
+{ Args: { "p_body": string,"p_venue_id": string }; Returns: string
                            },
 "pot_data":
 { Args: { "p_from": string,"p_until": string,"p_venue_id": string }; Returns: {
@@ -5921,6 +5958,11 @@ isOneToOne: false
 "venue_league":
 { Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
               "cash_points": number,"full_name": string,"hand_points": number,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
+            }[]
+                           },
+"venue_notices":
+{ Args: { "p_venue_id": string }; Returns: {
+              "body": string,"ends_at": string,"notice_id": string,"starts_at": string
             }[]
                            },
 "venue_redemptions":
