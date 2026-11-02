@@ -13,14 +13,56 @@ const findRecipient: FindRecipient = async (venueId, memberId) =>
 // Ten minutes before the hold in these calls runs out.
 const now = () => new Date('2026-11-15T18:50:00Z');
 
-function delivery(eventType: string, payload: unknown): ClaimedDelivery {
-  return { deliveryId: 'd1', eventId: 'e1', venueId: VENUE, eventType, payload, attempts: 1 };
+function delivery(eventType: string, payload: unknown, occurredAt?: Date): ClaimedDelivery {
+  return { deliveryId: 'd1', eventId: 'e1', venueId: VENUE, eventType, payload, attempts: 1, ...(occurredAt === undefined ? {} : { occurredAt }) };
 }
 
 describe('the WhatsApp consumer', () => {
-  it('is a messaging consumer of the seat call, the receipt notice, promotion offers and review requests, so a messaging stop holds it', () => {
+  it('is a messaging consumer of the seat call, the receipt notice, promotion offers, review requests and member notices, so a messaging stop holds it', () => {
     const consumer = createWhatsAppConsumer({ whatsapp: createFakeWhatsApp(), findRecipient, now });
-    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested']]);
+    expect([consumer.name, consumer.isMessaging, consumer.eventTypes])
+      .toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested', 'member.notice']]);
+  });
+
+  it('tells a member, by a utility message, what happened while they were away from the app (decision 0303)', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    const notices = [
+      { notice: 'kyc_verified', params: [] },
+      { notice: 'kyc_in_review', params: [] },
+      { notice: 'reward_cancelled', params: ['RIVR cap'] },
+      { notice: 'seat_released', params: ['Table 3', '4'] },
+    ];
+    for (const notice of notices) expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, ...notice }, now()))).ok).toBe(true);
+    expect(whatsapp.calls).toEqual(notices.map(({ notice, params }) => ({ category: 'utility', to: phone, template: notice, params })));
+  });
+
+  it('puts a refusal in words by its code, never a reviewer\u2019s note', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_refused', params: ['under_18'] }, now()));
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_refused', params: ['something_new'] }, now()));
+    expect(whatsapp.calls.map((call) => call.params)).toEqual([['you must be 18 or over to play.'], ['your details could not be confirmed.']]);
+  });
+
+  it('sends no notice claimed long after it happened, as when WhatsApp is switched on, nor one of no known time', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    const verified = { member_id: MEMBER, notice: 'kyc_verified', params: [] };
+    const late = await consumer.deliver(delivery('member.notice', verified, new Date('2026-11-15T10:00:00Z')));
+    const untimed = await consumer.deliver(delivery('member.notice', verified));
+    const badly = await consumer.deliver(delivery('member.notice', verified, new Date('not a time')));
+    expect([late.ok, untimed.ok, badly.ok, whatsapp.calls]).toEqual([true, true, true, []]);
+  });
+
+  it('refuses, for good, a notice whose words carry a link or another line, so nothing typed reads as the club\u2019s', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    for (const word of ['Pay at https://example.com', 'Cap\nPay now', '*Urgent*']) {
+      const outcome = await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'reward_cancelled', params: [word] }, now()));
+      expect(outcome.ok).toBe(false);
+    }
+    expect(whatsapp.calls).toEqual([]);
   });
 
   it('sends the seat call: the table, the seat and when the hold expires, in IST', async () => {

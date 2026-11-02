@@ -1,4 +1,6 @@
-import { err, ok, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, waitlistCalledSchema, type IndianMobile, type Result } from '@rivr/contracts';
+import {
+  err, memberNoticeSchema, ok, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, waitlistCalledSchema, type IndianMobile, type Result,
+} from '@rivr/contracts';
 import { formatMoney, formatTime } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
@@ -18,7 +20,7 @@ export interface MessageRecipient {
 export type FindRecipient = (venueId: string, memberId: string, offeredPromotionId?: string) => Promise<MessageRecipient | null>;
 
 /** The events the WhatsApp consumer sends a message for. */
-export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested'] as const;
+export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested', 'member.notice'] as const;
 
 const rejected = (reason: string) => err<AdapterFailure>({ code: 'rejected', reason });
 
@@ -50,6 +52,44 @@ async function reviewMessage(delivery: ClaimedDelivery, findRecipient: FindRecip
   return ok({ category: 'marketing', optedInAt: recipient.marketingOptedInAt, to: recipient.phone, template: 'review_request', params: [review.data.url] });
 }
 
+/** A notice older than this, or of no known time, is not sent: the member has long since seen it in the app (decision 0303). */
+const NOTICE_FRESH_MS = 6 * 60 * 60 * 1000;
+
+/** A refusal's code in the member's words; an unknown code, the plainest. */
+const REFUSED_BECAUSE: Readonly<Record<string, string>> = {
+  under_18: 'you must be 18 or over to play.',
+  duplicate_face: 'these details are on another membership.',
+  duplicate_pan: 'these details are on another membership.',
+  duplicate_aadhaar: 'these details are on another membership.',
+  staff_rejected: 'the front desk could not confirm your details.',
+};
+const REFUSED_OTHERWISE = 'your details could not be confirmed.';
+
+/**
+ * What a member hears of while away from the app (decision 0303): a utility message in the notice's own template, the
+ * refusal's code put in words. A notice claimed long after it happened, as when WhatsApp is switched on, is not sent.
+ */
+async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
+  const notice = memberNoticeSchema.safeParse(delivery.payload);
+  if (!notice.success) return rejected('member.notice payload is not a notice');
+  const age = delivery.occurredAt === undefined ? Number.NaN : now.getTime() - delivery.occurredAt.getTime();
+  if (!(age <= NOTICE_FRESH_MS)) return ok(HANDLED);
+  const recipient = await findRecipient(delivery.venueId, notice.data.member_id);
+  if (!recipient) return rejected('the member is no longer there');
+  const { notice: template, params } = notice.data;
+  const words = template === 'kyc_refused' ? [REFUSED_BECAUSE[params[0] ?? ''] ?? REFUSED_OTHERWISE] : params;
+  return ok({ category: 'utility', to: recipient.phone, template, params: words });
+}
+
+type MessageBuilder = (delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date) => Promise<Result<WhatsAppMessage | null, AdapterFailure>>;
+
+/** The events whose message is built by a function of its own. */
+const BUILDERS: Readonly<Record<string, MessageBuilder>> = {
+  'promotion.offered': (delivery, findRecipient) => offerMessage(delivery, findRecipient),
+  'review.requested': (delivery, findRecipient) => reviewMessage(delivery, findRecipient),
+  'member.notice': noticeMessage,
+};
+
 /**
  * The template message for a delivery, null when it needs none, or why it cannot be sent. Neither the
  * number nor the payload is ever logged.
@@ -73,14 +113,15 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
     const amount = formatMoney(BigInt(receipt.data.amount_paise));
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'receipt_ready', params: [amount], urlButton: receipt.data.link } };
   }
-  if (delivery.eventType === 'promotion.offered') return offerMessage(delivery, findRecipient);
-  if (delivery.eventType === 'review.requested') return reviewMessage(delivery, findRecipient);
+  const build = BUILDERS[delivery.eventType];
+  if (build !== undefined) return build(delivery, findRecipient, now);
   return rejected(`no WhatsApp message for ${delivery.eventType}`);
 }
 
 /**
  * The WhatsApp outbox consumer (#62, #86): the seat call when a member is called from the waitlist,
- * the receipt-ready notice, and a published promotion offered to a member who opted in to marketing. A messaging consumer, so a messaging stop holds every send; practice-venue
+ * the receipt-ready notice, a published promotion offered to a member who opted in to marketing, and what a member hears of
+ * while away from the app (decision 0303). A messaging consumer, so a messaging stop holds every send; practice-venue
  * events never reach it. Utility messages need no opt-in; a marketing message needs the member's
  * opt-in, which the message type itself requires.
  */

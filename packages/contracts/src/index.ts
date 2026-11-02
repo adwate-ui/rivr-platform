@@ -105,8 +105,8 @@ export {
   type HighHandRank,
 } from './highHands.ts';
 export {
-  alertRaisedSchema, callTimeCompletedSchema, linkSuffixSchema, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, sessionReminderSchema,
-  tournamentStartingSchema, waitlistCalledSchema, withdrawalSentSchema, type PromotionOffered, type ReceiptReady, type ReviewRequested, type WaitlistCalled,
+  alertRaisedSchema, callTimeCompletedSchema, linkSuffixSchema, MEMBER_NOTICES, memberNoticeSchema, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, sessionReminderSchema,
+  tournamentStartingSchema, waitlistCalledSchema, withdrawalSentSchema, type MemberNotice, type PromotionOffered, type ReceiptReady, type ReviewRequested, type WaitlistCalled,
 } from './messaging.ts';
 export { pushSubscriptionSchema, WEB_PUSH_PUBLIC_KEY, type PushSubscriptionInput } from './push.ts';
 export { HOST_CHURN_REASONS, HOST_OFFER_BONUS_DAYS, hostContactSchema, hostLapse, type HostChurnReason, type HostContact } from './hostQueue.ts';
