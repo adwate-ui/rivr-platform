@@ -5126,7 +5126,7 @@ isOneToOne: false
                            },
 "my_membership_card":
 { Args: Record<PropertyKey, never>; Returns: {
-              "code": string,"full_name": string,"member_number": number,"ms_left": number,"tier_name": string
+              "code": string,"full_name": string,"member_number": number,"ms_left": number,"photo_path": string,"tier_name": string
             }[]
                            },
 "my_notices":

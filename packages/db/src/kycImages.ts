@@ -15,7 +15,8 @@ function storageApiUrl(client: RivrClient): string {
 /**
  * A signed URL for one KYC image (`<venue_id>/<member_id>/<file>` in the private `kyc` bucket),
  * valid for a minute. The kyc-image-url Edge Function signs it for active staff with KYC review
- * or the cage at that venue, and audits the view; anyone else gets an error.
+ * or the cage at that venue, and for a member their own verified selfie (decision 0300), and audits the view;
+ * anyone else gets an error.
  */
 export async function signedKycImageUrl(client: RivrClient, path: string): Promise<string> {
   const { data, error } = await client.functions.invoke('kyc-image-url', { body: { path } });

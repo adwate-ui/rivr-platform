@@ -1,5 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useState } from 'react';
+import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 
 export interface KycPhotoProps {
@@ -9,6 +10,8 @@ export interface KycPhotoProps {
   src: string | null;
   /** `loading` while its address is fetched, `missing` when there is no photo, `error` when it could not be had. */
   status?: 'ready' | 'loading' | 'missing' | 'error';
+  /** As tall as its container, at the selfie's 3:4, as on the membership card; otherwise the fixed size beside details. */
+  isFilling?: boolean;
 }
 
 /** A photo's state from its stored path and the fetch of its address: none kept, could not be had, shown, or still loading. */
@@ -22,14 +25,15 @@ export function kycPhotoStatus(path: string | null, address: { isError: boolean;
  * A member's KYC photo at a fixed portrait size beside their details: in the review queue, and at the
  * cage (A-003). Shows in words when it is loading, missing or could not load.
  */
-export function KycPhoto({ alt, src, status = 'ready' }: KycPhotoProps) {
+export function KycPhoto({ alt, src, status = 'ready', isFilling }: KycPhotoProps) {
   // The address that failed to load, so a new address is tried again.
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const isFailed = status === 'error' || (src !== null && src === failedSrc);
   const isShown = status === 'ready' && src !== null && !isFailed;
   const words = status === 'loading' ? t('common.loading') : isFailed ? t('ui.photo.failed') : t('ui.photo.missing');
   return (
-    <div className="flex aspect-portrait w-photo shrink-0 items-center justify-center overflow-hidden rounded-md border border-hairline bg-raised">
+    <div className={cx('flex aspect-portrait shrink-0 items-center justify-center overflow-hidden rounded-md border border-hairline bg-raised',
+      isFilling === true ? 'h-full' : 'w-photo')}>
       {isShown ? (
         <img src={src} alt={alt} className="h-full w-full object-cover" onError={() => setFailedSrc(src)} />
       ) : (

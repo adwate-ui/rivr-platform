@@ -11,6 +11,8 @@ export interface MembershipCardView {
   readonly code: string;
   /** How long until the code changes, by the database's clock, when it was fetched. */
   readonly msLeft: number;
+  /** Their verified KYC selfie in the kyc bucket, for the card's photo (decision 0300); null when there is none to show. */
+  readonly photoPath: string | null;
 }
 
 // Never asks more often than this.
@@ -40,7 +42,10 @@ export function useMembershipCard() {
       if (error) throw error;
       const row = data[0];
       if (row === undefined) return null;
-      return { memberNumber: String(row.member_number), fullName: row.full_name, tierName: row.tier_name, code: row.code, msLeft: row.ms_left };
+      return {
+        memberNumber: String(row.member_number), fullName: row.full_name, tierName: row.tier_name, code: row.code, msLeft: row.ms_left,
+        photoPath: row.photo_path,
+      };
     },
   });
 }
