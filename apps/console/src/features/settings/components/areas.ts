@@ -38,6 +38,7 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'markers.due_days': 'cage',
   'accommodation.hours_per_night': 'members',
   'cab.minimum_visits': 'members',
+  'points.verified_bonus': 'members',
   'host.lapse': 'members',
   'league.points': 'members',
   'league.prizes': 'members',
