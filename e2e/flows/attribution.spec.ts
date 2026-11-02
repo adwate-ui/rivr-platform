@@ -32,8 +32,7 @@ test.describe('Attribution', () => {
     await page.goto(`${appUrl('player')}/rewards?ref=FRIEND1&utm_source=instagram&utm_campaign=launch`);
     await page.getByRole('textbox', { name: 'Mobile number' }).fill(NUMBER);
     await page.getByRole('button', { name: 'Send code' }).click();
-    await page.getByRole('textbox', { name: /^Code sent to/ }).fill('123456');
-    await page.getByRole('button', { name: 'Verify' }).click();
+    await page.getByRole('textbox', { name: '6-digit code' }).fill('123456');
 
     await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
     await expect(page.getByText(`Mobile +91 ${NUMBER.slice(0, 5)} ${NUMBER.slice(5)}`)).toBeVisible();

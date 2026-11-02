@@ -18,8 +18,7 @@ test.describe('Player shell', () => {
     await page.goto(appUrl('player'));
     await page.getByRole('textbox', { name: 'Mobile number' }).fill('9000000406');
     await page.getByRole('button', { name: 'Send code' }).click();
-    await page.getByRole('textbox', { name: /^Code sent to/ }).fill(CODE);
-    await page.getByRole('button', { name: 'Verify' }).click();
+    await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
 
     await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });

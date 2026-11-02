@@ -37,6 +37,7 @@ export * from './Switch/index.ts';
 export * from './ConfirmButton/index.ts';
 export * from './ConfirmQuestion/index.ts';
 export * from './Input/index.ts';
+export * from './CodeInput/index.ts';
 export * from './TextArea/index.ts';
 export * from './ReasonForm/index.ts';
 export * from './ReferralCard/index.ts';

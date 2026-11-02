@@ -2,18 +2,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signInCodeSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn, type SignInFailure } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { Button, Input, StepScreen } from '@rivr/ui';
-import { useForm, useWatch } from 'react-hook-form';
+import { Button, CodeInput, StepScreen, Text } from '@rivr/ui';
+import { useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
 import { ResendButton } from './ResendButton.tsx';
 
 const codeForm = z.object({ code: signInCodeSchema });
 
-/** The second step: the six-digit code sent to the number, or a new one once a minute has passed. */
+/**
+ * The second step: where the code went, and its six digits, which go on by themselves once all are in, typed or filled
+ * from the message (S-01); or a new code by SMS once a minute has passed.
+ */
 export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; onBack: () => void; onSignedIn: () => void }) {
   const { verifyCode } = useSignIn();
-  const form = useForm<z.input<typeof codeForm>>({ resolver: zodResolver(codeForm) });
+  const [isResent, setIsResent] = useState(false);
+  const form = useForm<z.input<typeof codeForm>>({ resolver: zodResolver(codeForm), defaultValues: { code: '' } });
   const fail = (failure: SignInFailure) => form.setError('code', { type: 'server', message: t(FAILURE_COPY[failure]) });
 
   const verify = form.handleSubmit(async ({ code }) => {
@@ -25,7 +30,6 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
   const { errors } = form.formState;
   // A refusal from Auth carries its own words; anything else failed the six-digit check.
   const error = errors.code ? (errors.code.type === 'server' ? errors.code.message : t('common.signIn.codeInvalid')) : undefined;
-  const codeField = form.register('code');
   const hasSixDigits = signInCodeSchema.safeParse(useWatch({ control: form.control, name: 'code' })).success;
   return (
     <StepScreen
@@ -38,11 +42,15 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
           <Button variant="primary" size="large" type="submit" fullWidth isDisabled={!hasSixDigits} isLoading={verifyCode.isPending}>
             {t('common.signIn.submit')}
           </Button>
-          <ResendButton phone={phone} onFail={fail} />
+          <ResendButton phone={phone} onSent={() => setIsResent(true)} onFail={fail} />
         </>
       }
     >
-      <Input {...codeField} label={t('common.signIn.codeLabel', { phone: formatMobile(phone) })} variant="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder={t('common.signIn.codePlaceholder')} autoFocus error={error} />
+      <Text tone="muted">{t(isResent ? 'common.signIn.codeSentBySms' : 'common.signIn.codeSent', { phone: formatMobile(phone) })}</Text>
+      <Controller control={form.control} name="code" render={({ field }) => (
+        <CodeInput ref={field.ref} name={field.name} value={field.value} onChange={field.onChange} label={t('common.signIn.codeLabel')} autoFocus
+          isDisabled={verifyCode.isPending} error={error} onComplete={() => void verify()} />
+      )} />
     </StepScreen>
   );
 }

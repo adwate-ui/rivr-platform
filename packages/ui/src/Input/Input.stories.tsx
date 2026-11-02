@@ -41,15 +41,6 @@ export const LineWithError: Story = {
 
 export const LineDisabled: Story = { args: { ...LineWithPrefix.args, disabled: true } };
 
-/** The one-time code: large and letter-spaced. */
-export const Code: Story = {
-  args: { label: 'Code', hint: 'Sent to +91 98110 42817', variant: 'code', inputMode: 'numeric', placeholder: '6 digits', autoComplete: 'one-time-code' },
-};
-
-export const CodeWithError: Story = {
-  args: { ...Code.args, defaultValue: '482913', error: 'Code expired. Request a new one.' },
-};
-
 /** A number with its unit after it, as Settings shows minutes, days or a percent (#603). */
 export const WithSuffix: Story = {
   args: { label: 'Seat hold', hint: 'Between 1 and 120 minutes.', suffix: 'minutes', defaultValue: '15' },

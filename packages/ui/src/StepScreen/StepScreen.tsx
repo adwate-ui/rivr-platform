@@ -27,7 +27,9 @@ const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
  * One step of a flow on a 390 px phone, outside the app's tabs: sign-in, then the KYC steps.
  * Back, the heading and the content, and the action at the bottom of the screen (design
  * prompt, "Sign-in and KYC"). The action stays inside `main`: it is the step's purpose, not
- * page furniture, so a screen reader jumping to main finds the field and the button.
+ * page furniture, so a screen reader jumping to main finds the field and the button. From 768 px,
+ * on a tablet or a computer, the step is a panel in the middle of the screen, its action under its
+ * content, not the phone's column stretched to the screen's foot (S-01).
  */
 export function StepScreen({ children, footer, title, back, align = 'top', onSubmit }: StepScreenProps) {
   const step = (
@@ -44,24 +46,26 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
     void onSubmit?.(event);
   };
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface px-6 pt-4 pb-8 text-content">
-      {back ? (
-        <header className="-ml-3 self-start">
-          <Button variant="text" onClick={back.onBack}>
-            {back.label}
-          </Button>
-        </header>
-      ) : null}
-      <main className="flex flex-1 flex-col">
-        {onSubmit ? (
-          // Fields are checked by the form's schema, so the browser's own validation stays off.
-          <form noValidate className="flex flex-1 flex-col" onSubmit={submit}>
-            {step}
-          </form>
-        ) : (
-          step
-        )}
-      </main>
+    <div className="flex min-h-dvh w-full flex-col bg-surface text-content medium:items-center medium:justify-center medium:px-6 medium:py-12">
+      <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-6 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
+        {back ? (
+          <header className="-ml-3 self-start">
+            <Button variant="text" onClick={back.onBack}>
+              {back.label}
+            </Button>
+          </header>
+        ) : null}
+        <main className="flex flex-1 flex-col">
+          {onSubmit ? (
+            // Fields are checked by the form's schema, so the browser's own validation stays off.
+            <form noValidate className="flex flex-1 flex-col" onSubmit={submit}>
+              {step}
+            </form>
+          ) : (
+            step
+          )}
+        </main>
+      </div>
     </div>
   );
 }
