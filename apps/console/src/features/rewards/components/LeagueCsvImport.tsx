@@ -6,6 +6,8 @@ import { parseLeagueCsv, type LeagueCsv, type LeagueCsvProblem } from '../league
 
 // A long file's problems are shown ten at a time: fix those, choose it again, and the next ones show.
 const PROBLEMS_SHOWN = 10;
+// 500 members and their points fit in a few kilobytes: a larger file is not this one, and is never read.
+const MOST_BYTES = 1_048_576;
 
 function problemText(problem: LeagueCsvProblem): string {
   if (problem.kind === 'badLine') return t('console.rewards.leagueCsv.badLine', { line: formatNumber(problem.line) });
@@ -28,10 +30,18 @@ interface Chosen {
 function FileSummary({ chosen }: { chosen: Chosen }) {
   const { rows, problems } = chosen.csv;
   if (problems.length > 0) {
-    return <Stack gap={2}>{problems.slice(0, PROBLEMS_SHOWN).map((problem) => <ErrorMessage key={JSON.stringify(problem)}>{problemText(problem)}</ErrorMessage>)}</Stack>;
+    const more = problems.length - PROBLEMS_SHOWN;
+    return (
+      <Stack gap={2}>
+        {problems.slice(0, PROBLEMS_SHOWN).map((problem) => <ErrorMessage key={JSON.stringify(problem)}>{problemText(problem)}</ErrorMessage>)}
+        {more > 0 ? <Text variant="small" tone="muted">{t('console.rewards.leagueCsv.more', { count: formatNumber(more) })}</Text> : null}
+      </Stack>
+    );
   }
   const points = rows.reduce((sum, row) => sum + row.points, 0n);
-  return <Text weight="medium">{t('console.rewards.leagueCsv.summary', { members: formatNumber(rows.length), points: formatNumber(points) })}</Text>;
+  // Said as it appears, so a screen reader hears the file is ready before Give shows.
+  const summary = rows.length === 1 ? 'console.rewards.leagueCsv.summaryOne' : 'console.rewards.leagueCsv.summary';
+  return <StatusMessage>{t(summary, { members: formatNumber(rows.length), points: formatNumber(points) })}</StatusMessage>;
 }
 
 /** The reason and Give, for a file with no problems; what came of it. */
@@ -42,14 +52,16 @@ function GiveFile({ venueId, chosen, onGiven }: { venueId: string; chosen: Chose
   const send = async () => {
     setFailure(null);
     const done = await give.mutateAsync({ rows: chosen.csv.rows, reason, requestId: chosen.requestId });
-    if (done.ok) onGiven(t('console.rewards.leagueCsv.done', { points: formatNumber(done.value.points), members: formatNumber(done.value.members) }));
+    const given = done.ok && done.value.members === 1 ? 'console.rewards.leagueCsv.doneOne' : 'console.rewards.leagueCsv.done';
+    if (done.ok) onGiven(t(given, { points: formatNumber(done.value.points), members: formatNumber(done.value.members) }));
     else setFailure(done.error);
   };
   return (
     <Stack gap={3}>
       <Input label={t('console.rewards.leagueCsv.reason')} maxLength={200} value={reason} onChange={(event) => setReason(event.target.value)} />
       <Inline>
-        <Button variant="primary" isDisabled={reason.trim().length < 3} isLoading={give.isPending} onClick={() => void send()}>
+        {/* Secondary: Points by hand's Give as earned is the screen's one gold button (ui.md). */}
+        <Button variant="secondary" isDisabled={reason.trim().length < 3} isLoading={give.isPending} onClick={() => void send()}>
           {t('console.rewards.leagueCsv.give')}
         </Button>
       </Inline>
@@ -64,12 +76,12 @@ function GiveFile({ venueId, chosen, onGiven }: { venueId: string; chosen: Chose
  */
 export function LeagueCsvImport({ venueId }: { venueId: string }) {
   const [chosen, setChosen] = useState<Chosen | null>(null);
-  const [isUnreadable, setIsUnreadable] = useState(false);
+  const [fileProblem, setFileProblem] = useState<'unreadable' | 'tooBig' | null>(null);
   const [given, setGiven] = useState<string | null>(null);
   const choose = async (file: File) => {
     setGiven(null);
-    const text = await file.text().catch(() => null);
-    setIsUnreadable(text === null);
+    const text = file.size > MOST_BYTES ? null : await file.text().catch(() => null);
+    setFileProblem(text !== null ? null : file.size > MOST_BYTES ? 'tooBig' : 'unreadable');
     setChosen(text === null ? null : { csv: parseLeagueCsv(text), requestId: crypto.randomUUID() });
   };
   return (
@@ -81,7 +93,7 @@ export function LeagueCsvImport({ venueId }: { venueId: string }) {
           {t(chosen === null ? 'console.rewards.leagueCsv.choose' : 'console.rewards.leagueCsv.chooseAnother')}
         </CameraButton>
       </Inline>
-      {isUnreadable ? <ErrorMessage>{t('console.rewards.leagueCsv.unreadable')}</ErrorMessage> : null}
+      {fileProblem ? <ErrorMessage>{t(`console.rewards.leagueCsv.${fileProblem}`)}</ErrorMessage> : null}
       {chosen ? <FileSummary chosen={chosen} /> : null}
       {chosen && chosen.csv.problems.length === 0 ? (
         <GiveFile key={chosen.requestId} venueId={venueId} chosen={chosen} onGiven={(text) => { setGiven(text); setChosen(null); }} />

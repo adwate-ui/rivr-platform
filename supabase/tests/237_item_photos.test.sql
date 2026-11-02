@@ -73,6 +73,25 @@ select throws_ok($$ insert into storage.objects (bucket_id, name, owner_id)
   '42501', null, 'a member uploads nothing');
 reset role;
 
+-- Elsewhere, a venue made here with its own admin (points.give, rewards.manage and fnb.manage there, nothing at the club).
+-- Made as the system, as in 221: no one signed in.
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e2', 'authenticated', 'authenticated', '919000000999', now(), now());
+insert into public.staff (venue_id, user_id, full_name, job_title, role)
+values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e2', 'Elsewhere Admin', 'Admin', 'admin');
+
+-- Another venue's staff, who keep the catalogue and the menu there, upload nothing into the club's folder.
+select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
+select throws_ok($$ insert into storage.objects (bucket_id, name, owner_id)
+                    values ('item-photos', '00000000-0000-4000-8000-000000000001/reward-00000000-0000-4000-8000-0000000a5015.jpg',
+                            '00000000-0000-4000-8000-0000000000e2') $$,
+  '42501', null, 'staff of another venue upload nothing into the club''s folder');
+select throws_ok($$ select public.set_item_photo('reward', (select reward from fixture), (select reward_photo from fixture)) $$,
+  '42501', null, 'and make nothing the photo of the club''s reward');
+reset role;
+
 select throws_ok($$ update public.reward_item set photo_path = '00000000-0000-4000-8000-000000000002/reward-00000000-0000-4000-8000-0000000a5011.jpg'
                     where id = (select reward from fixture) $$,
   '23514', null, 'and no reward points at another venue''s photo');

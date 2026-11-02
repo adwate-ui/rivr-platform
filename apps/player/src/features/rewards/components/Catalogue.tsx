@@ -56,7 +56,7 @@ function RewardRow({ item }: { item: RewardItem }) {
   return (
     <Stack gap={3}>
       <Inline justify="between" align="center" gap={4}>
-        <ItemPhoto src={item.photoUrl} name={item.name} />
+        <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
         <Stack gap={1} grow>
           <Text weight="medium">{item.name}</Text>
           <Text variant="small">{priceText(item)}</Text>

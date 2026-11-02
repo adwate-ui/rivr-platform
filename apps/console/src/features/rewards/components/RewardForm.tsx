@@ -4,9 +4,9 @@ import { useSaveRewardItem, type RewardItem, type RewardItemOrder } from '@rivr/
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
-import { RewardPhotoField } from './RewardPhotoField.tsx';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
+import { RewardPhotoField } from './RewardPhotoField.tsx';
 
 type RewardValues = z.input<typeof rewardItemSchema>;
 type RewardFormApi = UseFormReturn<RewardValues, unknown, z.output<typeof rewardItemSchema>>;

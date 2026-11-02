@@ -64,7 +64,7 @@ function renderOrdering(seat: 'on its way' | 'seated' | 'not seated') {
       return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null }]);
     }
     if (url.includes('/rpc/my_fnb_menu')) {
-      return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink' , photo_path: null }, { item_id: 'sandwich', name: 'Club sandwich', kind: 'food' , photo_path: null }]);
+      return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: 'v1/menu-chai.jpg' }, { item_id: 'sandwich', name: 'Club sandwich', kind: 'food', photo_path: null }]);
     }
     if (url.includes('/rpc/place_fnb_order')) {
       orders.push(JSON.parse(String(init?.body)));
@@ -88,6 +88,9 @@ describe('ordering at the seat', () => {
     expect(await screen.findByText('Take a seat to order.', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual(['Food', 'Soft drinks', 'Your orders tonight']);
     expect(screen.getByText('Masala chai')).toBeDefined();
+    // The club's photo of the chai beside its name (AS-11); the sandwich, with none, shows its initial.
+    expect(screen.getAllByRole('presentation', { hidden: true }).map((image) => image.getAttribute('src')))
+      .toEqual(['http://127.0.0.1:9/storage/v1/object/public/item-photos/v1/menu-chai.jpg']);
     expect(screen.queryByRole('button', { name: 'One more Masala chai' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Send to the bar' })).toBeNull();
   });

@@ -43,7 +43,7 @@ describe('the rewards catalogue (decision 0181)', () => {
     const { result } = renderHooks({
       '/reward_item': {
         body: [
-          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true, photo_path: null },
+          { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000, nights: null, stock: null, is_live: true, photo_path: 'v1/reward-r1.jpg' },
           { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, is_live: true, photo_path: null },
         ],
       },
@@ -58,7 +58,7 @@ describe('the rewards catalogue (decision 0181)', () => {
       },
     });
     await waitFor(() => expect(result.current.items.data).toEqual([
-      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true, photoUrl: null },
+      { id: 'r1', kind: 'merchandise', name: 'RIVR cap', detail: 'At the host desk', points: 4000n, nights: null, stock: null, isLive: true, photoUrl: 'http://127.0.0.1:9/storage/v1/object/public/item-photos/v1/reward-r1.jpg' },
       { id: 'r2', kind: 'hotel_night', name: 'Partner hotel', detail: 'The host confirms', points: null, nights: 2, stock: 6, isLive: true, photoUrl: null },
     ]));
     await waitFor(() => expect(result.current.redemptions.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', points: 4000n, nights: null, handedOverAt: null }));

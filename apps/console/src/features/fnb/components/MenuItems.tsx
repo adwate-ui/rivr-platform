@@ -53,8 +53,8 @@ function DishPhoto({ venueId, item }: { venueId: string; item: FnbItem }) {
   );
 }
 
-/** Each item on offer or off the menu; a switch that did not save says why. */
-function ItemSwitches({ venueId, items }: { venueId: string; items: readonly FnbItem[] }) {
+/** Each item on offer or off the menu, with its photo to add or replace for staff who run F&B; a switch that did not save says why. */
+function ItemSwitches({ venueId, items, canManage }: { venueId: string; items: readonly FnbItem[]; canManage: boolean }) {
   const { saveItem } = useFnbActions(venueId);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
   const toggle = async (item: FnbItem, isOn: boolean) => {
@@ -65,12 +65,12 @@ function ItemSwitches({ venueId, items }: { venueId: string; items: readonly Fnb
   return (
     <Stack gap={3}>
       {items.map((item) => (
-        <Inline key={item.itemId} gap={4} align="center" justify="between">
-          <Inline gap={3} align="center">
+        <Inline key={item.itemId} gap={4} align="center" justify="between" wrap>
+          <Inline gap={3} align="center" grow>
             <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
             <Text>{`${item.name} · ${t(`console.fnb.kinds.${item.kind}`)}`}</Text>
           </Inline>
-          <DishPhoto venueId={venueId} item={item} />
+          {canManage ? <DishPhoto venueId={venueId} item={item} /> : null}
           <Switch label={item.isAvailable ? t('console.fnb.onOffer') : t('console.fnb.offMenu')} isOn={item.isAvailable}
             isDisabled={saveItem.isPending} onChange={(isOn) => void toggle(item, isOn)} />
         </Inline>
@@ -80,14 +80,14 @@ function ItemSwitches({ venueId, items }: { venueId: string; items: readonly Fnb
   );
 }
 
-/** Glaza's menu as the tables see it: each item on offer or off the menu, and a new item at the end. */
-export function MenuItems({ venueId }: { venueId: string }) {
+/** Glaza's menu as the tables see it: each item on offer or off the menu, and a new item at the end; with `canManage` (fnb.manage), each dish's photo. */
+export function MenuItems({ venueId, canManage }: { venueId: string; canManage: boolean }) {
   const items = useFnbItems(venueId);
   if (items.data === undefined) return <LoadState isError={items.isError} onRetry={() => void items.refetch()} />;
   return (
     <Stack gap={3}>
       <Heading level={2}>{t('console.fnb.items')}</Heading>
-      <ItemSwitches venueId={venueId} items={items.data} />
+      <ItemSwitches venueId={venueId} items={items.data} canManage={canManage} />
       <AddItem venueId={venueId} next={(items.data.at(-1)?.position ?? 0) + 1} />
     </Stack>
   );

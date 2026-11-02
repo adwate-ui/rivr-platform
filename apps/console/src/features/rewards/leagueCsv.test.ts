@@ -18,6 +18,11 @@ describe('parseLeagueCsv', () => {
     expect(csv.problems).toEqual([2, 3, 4, 5, 6].map((line) => ({ kind: 'badLine', line })));
   });
 
+  it('skips a spreadsheet\'s lines of commas alone, and takes a mistyped first line for a line to fix, not a heading', () => {
+    expect(parseLeagueCsv('1042,40\n,\n,,\n7,10').rows.map((row) => row.memberNumber)).toEqual([1042, 7]);
+    expect(parseLeagueCsv('O42,40\n7,10').problems).toEqual([{ kind: 'badLine', line: 1 }]);
+  });
+
   it('names a member listed twice, keeping the first', () => {
     const csv = parseLeagueCsv('1042,30\n1042,5');
     expect(csv.rows).toEqual([{ memberNumber: 1042, points: 30n, line: 1 }]);

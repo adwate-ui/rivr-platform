@@ -46,7 +46,7 @@ describe('League points from a CSV', () => {
     await choose('Member number,Points\n1042,40\n7,25\n');
     expect(await screen.findByText('2 members, 65 points')).toBeDefined();
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'November League night' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Give League points' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Give from file' }));
     expect(await screen.findByText('65 League points given to 2 members.')).toBeDefined();
     expect(sent).toEqual([expect.objectContaining({
       p_venue_id: 'v1', p_reason: 'November League night',
@@ -57,16 +57,16 @@ describe('League points from a CSV', () => {
   it('names each bad line and offers nothing to give until the file is right', async () => {
     renderImport(() => Response.json([]));
     await choose('1042,40\nKabir,10\n1042,5\n');
-    expect(await screen.findByText('Line 2: not a member number and 1 to 10,00,000 points.')).toBeDefined();
+    expect(await screen.findByText('Line 2: needs a member number and 1 to 10,00,000 points.')).toBeDefined();
     expect(screen.getByText('Line 3: member 1042 is listed twice.')).toBeDefined();
-    expect(screen.queryByRole('button', { name: 'Give League points' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Give from file' })).toBeNull();
   });
 
   it('names the numbers the club does not know, and gives nothing', async () => {
     renderImport(() => Response.json({ code: 'RVNOM', message: 'No such member at this venue', details: '7, 99' }, { status: 400 }));
     await choose('1042,40\n7,25\n99,5\n');
     fireEvent.change(await screen.findByLabelText('Reason'), { target: { value: 'November League night' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Give League points' }));
-    expect(await screen.findByText('No member numbered 7, 99. Nothing was given.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Give from file' }));
+    expect(await screen.findByText('No member numbered 7, 99, so nothing was given. Correct the file.')).toBeDefined();
   });
 });

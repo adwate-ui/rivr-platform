@@ -49,7 +49,8 @@ function FnbSections({ venueId, canOrder }: { venueId: string; canOrder: boolean
         <TonightOrders venueId={venueId} />
         {/* Ordering for a seat can comp it: for staff who run F&B, never Service alone (#640). */}
         {canOrder ? <OrderForSeat venueId={venueId} /> : null}
-        <MenuItems venueId={venueId} />
+        {/* A dish's photo is for staff who run F&B: the photo bucket takes them alone (AS-11). */}
+        <MenuItems venueId={venueId} canManage={canOrder} />
       </Stack>
     </Screen>
   );

@@ -27,8 +27,8 @@ const cell = (text: string | undefined) => (text ?? '').trim().replace(/^"(.*)"$
 /** A line's two cells, split at a comma, semicolon or tab, as spreadsheets save them. */
 const cellsOf = (line: string) => line.split(/[,;\t]/).map(cell);
 
-/** The first line names the columns when its first cell is not a number. */
-const isHeading = (line: string) => !/^\d/.test(cellsOf(line)[0] ?? '');
+/** The first line names the columns when none of its cells is a number: `O42,40` is a line to fix, not a heading. */
+const isHeading = (line: string) => !cellsOf(line).some((text) => /^\d+$/.test(text));
 
 /** One line as a row, or null when it is not a member number and 1 to 10,00,000 points. */
 function rowOf(text: string, line: number): LeagueCsvRow | null {
@@ -39,12 +39,13 @@ function rowOf(text: string, line: number): LeagueCsvRow | null {
 }
 
 /**
- * League points from a CSV of member numbers and points (L-01): a first line of headings is skipped, blank lines too,
+ * League points from a CSV of member numbers and points (L-01): a first line of headings is skipped, and blank lines, or a
+ * spreadsheet's lines of commas alone, too;
  * and every line that is not a member number and its points is a problem, as is a member listed twice. Nothing is given
  * while the file has a problem.
  */
 export function parseLeagueCsv(text: string): LeagueCsv {
-  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).map((line, index) => ({ text: line, line: index + 1 })).filter((line) => line.text.trim() !== '');
+  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).map((line, index) => ({ text: line, line: index + 1 })).filter((line) => cellsOf(line.text).some((text) => text !== ''));
   const body = lines[0] !== undefined && isHeading(lines[0].text) ? lines.slice(1) : lines;
   const rows: LeagueCsvRow[] = [];
   const problems: LeagueCsvProblem[] = [];

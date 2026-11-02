@@ -16,7 +16,7 @@ The package's README lists each with its props; this is the map (F5-18: only wha
 - Type: Text, Heading, Label, Money, Number, Time, Stakes, Icon, Wordmark, BrandIcon, BrandArt
 - Controls: Button (primary, secondary, text, danger), Input, TextArea, ChoiceChips, ChoiceSheet, Switch, QuantityStepper, PinPad, Keypad, SignaturePad, CameraButton (a file), CameraCapture (a photo taken there and then), CodeInput, Captcha, ReasonForm, ConfirmButton, ConfirmQuestion, PlaybackLink, QrScanView
 - Feedback: ErrorMessage, StatusMessage, StaleNotice, OfflineBanner, KillSwitchBanner, CookieBanner, InstallOffer, PromptBar, LockedNotice, FeatureGate
-- Data: DataTable (sort, filter, export, virtualisation), HistoryRow, FloorRow, KycPhoto, VenueLogo, QrCode, Chart, Heatmap, TierMatrix
+- Data: DataTable (sort, filter, export, virtualisation), HistoryRow, FloorRow, KycPhoto, VenueLogo, ItemPhoto, QrCode, Chart, Heatmap, TierMatrix
 - Shells and navigation: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell, BottomNav, SideNav, Tabs
 - Domain: SeatRing, TableCard, CallTimeTimer, DrillTable, MembershipCard, PromotionCard, PromotionPager, ReferralCard, SocialCard, TournamentClock, Receipt, ThermalReceipt, and the TV boards (TvWaitlistBoard, TvCallTimeBoard, TvJackpotBoard, TvTournamentClock, TvPromotionSlide, TvBoardProgress)
 - Documents: PrintSheet, DocumentPage, DocumentTable, InvoiceDocument, OfflinePackDocument, PartnerStatementDocument, DisplayPreview, WebPreview, StreamOverlay

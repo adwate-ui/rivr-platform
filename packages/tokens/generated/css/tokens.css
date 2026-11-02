@@ -71,7 +71,7 @@
   --rivr-size-share-card: 1080px; /** A share card's side (#153): a square image at the size chat and social apps show without scaling it. */
   --rivr-print-receipt-scale: 0.4729; /** Shrinks a size.receipt receipt to the 72 mm a 203 dpi printer prints on 80 mm paper: 96 / 203. */
   --rivr-aspect-portrait: 3 / 4; /** A KYC photo: the selfie is taken 3:4. */
-  --rivr-aspect-photo: 4 / 3; /** A photo tile on the public website (#441). */
+  --rivr-aspect-photo: 4 / 3; /** A photo tile on the public website (#441), and a reward's or a dish's photo (ItemPhoto, AS-11). */
   --rivr-aspect-story: 9 / 16; /** A phone screen upright, as the website shows the RIVR app (#441). */
   --rivr-aspect-card: 85.6 / 54; /** The membership card: an ID-1 card, 85.6 by 54 mm. */
   --rivr-aspect-video: 16 / 9; /** The website editor's preview of a draft, as a wide screen shows the page (F5-01). */

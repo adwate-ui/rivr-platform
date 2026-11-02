@@ -133,3 +133,6 @@ revoke execute on function private.may_upload_item_photo(text), private.set_item
   private.fnb_menu(uuid), public.fnb_menu(uuid), private.my_fnb_menu(), public.my_fnb_menu() from public, anon;
 grant execute on function private.may_upload_item_photo(text), private.set_item_photo(text, uuid, text), public.set_item_photo(text, uuid, text),
   private.fnb_menu(uuid), public.fnb_menu(uuid), private.my_fnb_menu(), public.my_fnb_menu() to authenticated;
+
+-- The practice venue's seed is captured again with the new columns (database.md, decision 0117).
+select private.capture_practice_seed(v.id) from public.venue v where v.is_practice;

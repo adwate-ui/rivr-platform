@@ -84,8 +84,9 @@ begin
      or jsonb_typeof(p_rows) is distinct from 'array' or jsonb_array_length(p_rows) not between 1 and 500 then
     raise exception 'One to 500 rows, a reason of 3 to 200 characters, and a request id' using errcode = '22023';
   end if;
-  if exists (select 1 from public.league_adjustment a where a.request_id = p_request_id) then
-    return query select count(*)::integer, sum(a.points)::bigint from public.league_adjustment a where a.request_id = p_request_id;
+  if exists (select 1 from public.league_adjustment a where a.venue_id = p_venue_id and a.request_id = p_request_id) then
+    return query select count(*)::integer, sum(a.points)::bigint from public.league_adjustment a
+                 where a.venue_id = p_venue_id and a.request_id = p_request_id;
     return;
   end if;
   perform private.assert_writable(p_venue_id);
