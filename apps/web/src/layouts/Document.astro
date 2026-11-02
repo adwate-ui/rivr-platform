@@ -86,6 +86,9 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
           keep({ maps: true });
         } else if (target?.closest('[data-cookie-settings]') && banner) {
           if (mapsBox) mapsBox.checked = storedChoice()?.maps === true;
+          // Asked for from the footer, the choices show open, not behind Choose.
+          const choices = banner.querySelector('details');
+          if (choices) choices.open = true;
           banner.hidden = false;
         }
       });

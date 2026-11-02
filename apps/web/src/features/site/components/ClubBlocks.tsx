@@ -1,6 +1,6 @@
 import type { SiteBlock } from '@rivr/contracts';
 import type { SitePage as SitePageData, SiteLeague, SiteRules, SiteStanding } from '@rivr/db/site';
-import { formatMoney, formatMonth, formatNumber, t } from '@rivr/i18n';
+import { formatChips, formatMoney, formatMonth, formatNumber, t } from '@rivr/i18n';
 import { CardsBlock, TableBlock, TextBlock } from '@rivr/ui';
 
 /** A rate in basis points as a percentage's figure: 500 is `5`, 250 is `2.5`. */
@@ -64,13 +64,13 @@ function OutstationBlock({ eyebrow, heading, rules }: { eyebrow: string | undefi
   return <CardsBlock eyebrow={eyebrow} heading={heading} cards={cards} />;
 }
 
-/** The rare hands that pay, from the best down, each with what it pays; one that pays nothing is left out. */
+/** The rare hands that pay, from the best down, each with the bonus chips it pays (W-08); one that pays nothing is left out. */
 function rareHands(highHands: NonNullable<SiteRules['highHands']>): string[] {
   const hands = [
     { name: t('web.jackpot.royalFlush'), paise: highHands.royalFlush }, { name: t('web.jackpot.straightFlush'), paise: highHands.straightFlush },
     { name: t('web.jackpot.fourOfAKind'), paise: highHands.fourOfAKind },
   ];
-  return hands.flatMap((hand) => (hand.paise > 0n ? [t('web.jackpot.pays', { hand: hand.name, amount: formatMoney(hand.paise) })] : []));
+  return hands.flatMap((hand) => (hand.paise > 0n ? [t('web.jackpot.pays', { hand: hand.name, chips: formatChips(hand.paise) })] : []));
 }
 
 /** The Bad Beat Jackpot and the rare-hand bonuses (#618), from the live pool, jackpot.payout and high_hand.payouts. */

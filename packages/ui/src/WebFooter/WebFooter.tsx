@@ -28,12 +28,15 @@ export interface WebFooterProps {
 
 const LINK = 'flex min-h-touch items-center font-text text-14 text-content-muted transition-colors hover:text-content';
 
-/** The public website's footer (#441): the wordmark and where the club is, its columns of links, its 18+ line and copyright. */
+/**
+ * The public website's footer (#441): the wordmark and where the club is, its columns of links, its 18+ line and copyright.
+ * On a phone the columns go two across under the address, not one long column (W-11).
+ */
 export function WebFooter({ address, notice, columns, copyright, cookieSettings }: WebFooterProps) {
   return (
     <div className="flex flex-col gap-10">
-      <div className="flex flex-col gap-8 tablet:flex-row tablet:items-start tablet:justify-between">
-        <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-8 tablet:flex tablet:items-start tablet:justify-between">
+        <div className="col-span-2 flex flex-col gap-3">
           <Wordmark />
           <address className="not-italic">
             <Text tone="muted">{address}</Text>
