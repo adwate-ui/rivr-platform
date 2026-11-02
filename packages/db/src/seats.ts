@@ -126,7 +126,9 @@ function useSeatSettle(venueId: string) {
   const queryClient = useQueryClient();
   const user = userId ?? 'signed-out';
   return async (error: { code: string } | null, codes: Readonly<Record<string, SeatFailure>> = FAILURE_BY_CODE): Promise<Result<null, SeatFailure>> => {
-    const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user)];
+    // Tonight's top-ups too, so Top-ups moves on as soon as the floor starts or finishes one (decision 0299).
+    const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user),
+      queryKeys.topUpsTonight(user, venueId)];
     await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
     return error ? err(codes[error.code] ?? 'unavailable') : ok(null);
   };
