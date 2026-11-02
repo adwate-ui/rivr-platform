@@ -31,8 +31,8 @@ export const liveFloor = {
   ringClosed: '{name}, closed',
   closed: 'Closed',
   seatOpen: 'Open · call the waitlist',
-  /** An empty seat at a closed table. */
-  seatFree: 'Open',
+  /** An empty seat at a closed table: not Open, which reads as one to fill (C-08). */
+  seatFree: 'Empty',
   /** A seat held for a member called from the waitlist (#63). */
   heldFor: 'Held for {name}',
   /** The same seat on a table's ring. */
@@ -67,9 +67,10 @@ export const liveFloor = {
   leftOwingLine: '{table} · {time} owed',
   /** A player who is up and wants to go tells the floor, which marks them leaving (decision 0163). */
   leaving: 'Leaving',
-  markLeaving: 'Leaving',
+  /** Not Leaving beside Leave and Leave early, which read alike (C-08). */
+  markLeaving: 'Going soon',
   markLeavingName: '{name} is leaving',
-  notLeaving: 'Not leaving',
+  notLeaving: 'Staying',
   notLeavingName: '{name} is not leaving',
   /** The Live floor's list of players marked leaving, soonest seat first. `{table}` and `{seat}`: Table 3, 5. */
   leavingTitle: 'Leaving',
@@ -118,7 +119,7 @@ export const liveFloor = {
   /** A table's card and ring for a role without the seat map. */
   tableOpen: 'Open',
   ringOpen: '{name}, open',
-  kycNeeded: 'This member has not finished their identity check.',
+  kycNeeded: 'This member has not finished their identity check. Ask them to finish it in the app first.',
   onBreak: 'On a break. Seating is closed until it ends.',
   noMember: 'No member has that number. Sign them up first.',
   stopped: 'This member is frozen. Ask a manager.',

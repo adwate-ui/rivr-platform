@@ -185,7 +185,7 @@ export const waitlist = {
   phone: 'Mobile number',
   add: 'Add to the list',
   noMember: 'No member has that number. Sign them up first.',
-  kycNeeded: 'This member has not finished their identity check.',
+  kycNeeded: 'This member has not finished their identity check. Ask them to finish it in the app first.',
   onBreak: 'This member is on a break.',
   stopped: 'This member is frozen.',
   paused: 'Venue frozen. Try again once it is released.',
