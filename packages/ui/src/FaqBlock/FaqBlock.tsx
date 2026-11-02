@@ -1,5 +1,5 @@
 import { Heading } from '../Heading/Heading.tsx';
-import { Icon } from '../Icon/Icon.tsx';
+import { OpenChevron } from '../internal/OpenChevron.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface FaqQuestion {
@@ -22,7 +22,7 @@ export function FaqBlock({ heading, questions }: FaqBlockProps) {
           <details key={question} className="group py-4">
             <summary className="flex min-h-touch cursor-pointer items-center justify-between gap-4 py-2 font-text text-18 font-medium text-content">
               {question}
-              <span className="flex shrink-0 motion-safe:transition-transform group-open:rotate-180"><Icon name="chevronDown" size="sm" /></span>
+              <OpenChevron />
             </summary>
             <Text tone="muted">{answer}</Text>
           </details>

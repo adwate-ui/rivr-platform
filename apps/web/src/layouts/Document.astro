@@ -78,6 +78,8 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
 
       document.addEventListener('click', (event) => {
         const target = event.target instanceof Element ? event.target : null;
+        // A link followed from the phone's Menu closes it, even one to a place on this page (W-03).
+        if (target?.closest('nav a')) document.querySelector('header details[open]')?.removeAttribute('open');
         const button = target?.closest<HTMLElement>('[data-consent-choice]');
         if (button) {
           const kind = button.dataset.consentChoice;

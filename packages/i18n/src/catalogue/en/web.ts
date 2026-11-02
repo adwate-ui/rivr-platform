@@ -4,7 +4,7 @@ export const webApp = {
   unavailableTitle: 'Website unavailable',
   unavailable: 'Try again shortly.',
   /** A missing page's way back (W-07). */
-  backHome: 'Back to the front page',
+  backHome: 'Front page',
   /** The header's one action (#441): a WhatsApp message to the club, with these words ready to send (#616). */
   reserve: 'Reserve a seat',
   reserveMessage: 'Hi RIVR, I would like to reserve a seat tonight.',

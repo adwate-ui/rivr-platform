@@ -8,9 +8,9 @@ security definer
 set search_path = ''
 as $$
   update public.site_block b
-  set content = replace(b.content::text, '₹1,000 for each side of a referral', '1,000 bonus chips for each side of a referral')::jsonb
+  set content = replace(b.content::text, '"₹1,000 for each side of a referral"', '"1,000 bonus chips for each side of a referral"')::jsonb
   from public.site_page p
-  where p.id = b.page_id and p.venue_id = p_venue_id and strpos(b.content::text, '₹1,000 for each side of a referral') > 0;
+  where p.id = b.page_id and p.venue_id = p_venue_id and strpos(b.content::text, '"₹1,000 for each side of a referral"') > 0;
 $$;
 revoke execute on function private.website_referral_in_chips(uuid) from public, anon, authenticated;
 

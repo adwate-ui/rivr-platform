@@ -14,12 +14,20 @@ select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '₹1,000 for e
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '1,000 bonus chips for each side of a referral'), 1,
   'it says 1,000 bonus chips for each side, as its promotions do');
 
--- Words the club wrote stay as written.
-update public.site_block b set content = replace(b.content::text, '1,000 bonus chips for each side of a referral', '₹2,000 for each side of a referral')::jsonb
+-- Words the club wrote stay as written, even around the shipped words; the shipped line alone changes.
+update public.site_block b
+set content = replace(b.content::text, '"1,000 bonus chips for each side of a referral"', '"₹1,000 for each side of a referral, paid the same night"')::jsonb
 from public.site_page p
 where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and strpos(b.content::text, '1,000 bonus chips for each side') > 0;
 select private.website_referral_in_chips('00000000-0000-4000-8000-000000000001');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '₹2,000 for each side of a referral'), 1, 'a line the club wrote in the editor is kept');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '₹1,000 for each side of a referral, paid the same night'), 1,
+  'a line the club wrote in the editor is kept, though it holds the shipped words');
+update public.site_block b
+set content = replace(b.content::text, '"₹1,000 for each side of a referral, paid the same night"', '"₹1,000 for each side of a referral"')::jsonb
+from public.site_page p
+where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and strpos(b.content::text, 'paid the same night') > 0;
+select private.website_referral_in_chips('00000000-0000-4000-8000-000000000001');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '1,000 bonus chips for each side of a referral'), 1, 'and the shipped line itself changes');
 
 -- A new venue's website comes that way. Made as the system, as in 221.
 select set_config('request.jwt.claims', '', true);

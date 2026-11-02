@@ -1,7 +1,7 @@
 import { t } from '@rivr/i18n';
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
-import { Icon } from '../Icon/Icon.tsx';
+import { OpenChevron } from '../internal/OpenChevron.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface CookieBannerProps {
@@ -37,13 +37,14 @@ export function CookieBanner({ isOpen = false }: CookieBannerProps) {
           <Text variant="small" tone="muted">{t('ui.web.cookies.text')}</Text>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button variant="primary" data-consent-choice="all">{t('ui.web.cookies.acceptAll')}</Button>
+          {/* Both secondary: refusing is as easy as accepting, and the page's own gold action stays its one (ui.md). */}
+          <Button variant="secondary" data-consent-choice="all">{t('ui.web.cookies.acceptAll')}</Button>
           <Button variant="secondary" data-consent-choice="essential">{t('ui.web.cookies.essentialOnly')}</Button>
         </div>
         <details className="group w-full">
-          <summary className="flex min-h-touch cursor-pointer items-center gap-2 font-text text-14 font-medium text-content">
+          <summary className="flex min-h-touch w-fit cursor-pointer items-center gap-2 font-text text-14 font-medium text-content">
             {t('ui.web.cookies.choose')}
-            <span className="flex motion-safe:transition-transform group-open:rotate-180"><Icon name="chevronDown" size="sm" /></span>
+            <OpenChevron />
           </summary>
           <div className="flex flex-col gap-3 pt-2">
             <fieldset className="flex flex-col gap-2 tablet:flex-row tablet:gap-8">

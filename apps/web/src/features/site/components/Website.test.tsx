@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { SiteView } from '../loadPage.ts';
 import { Website } from './Website.tsx';
@@ -16,6 +16,9 @@ describe('the website without a page to show', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'RIVR Poker Club' }).getAttribute('href')).toBe('/?ref=FRIEND1');
     expect(screen.getByText('Strictly 18+. Poker is a game of skill.')).toBeDefined();
+    // Not a dead end (W-07): the menu, and the front page as its action.
+    expect(within(screen.getByRole('navigation', { name: 'Site' })).getByRole('link', { name: 'Membership' }).getAttribute('href')).toBe('/membership?ref=FRIEND1');
+    expect(screen.getByRole('link', { name: 'Front page' }).getAttribute('href')).toBe('/?ref=FRIEND1');
   });
 
   it('says so when the content cannot be read, and the way home keeps the code', () => {
@@ -23,5 +26,7 @@ describe('the website without a page to show', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Website unavailable' })).toBeDefined();
     expect(screen.getByText('Try again shortly.')).toBeDefined();
     expect(screen.getByRole('link', { name: 'RIVR Poker Club' }).getAttribute('href')).toBe('/?ref=FRIEND1');
+    expect(within(screen.getByRole('navigation', { name: 'Site' })).getByRole('link', { name: 'Membership' }).getAttribute('href')).toBe('/membership?ref=FRIEND1');
+    expect(screen.getByRole('link', { name: 'Front page' }).getAttribute('href')).toBe('/?ref=FRIEND1');
   });
 });
