@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./qr-code": "./src/QrCode/index.ts",
+    "./cookies": "./src/CookieBanner/cookieChoice.ts",
     "./styles.css": "./dist/styles.css"
   },
   "scripts": {

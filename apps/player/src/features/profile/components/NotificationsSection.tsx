@@ -1,6 +1,7 @@
 import { PUSH_CHOICES, useFeature, usePreferenceActions, type Preferences, type PushChoice } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { FeatureGate, Heading, Stack, Switch, Text } from '@rivr/ui';
+import { AnalyticsSwitch } from './AnalyticsSwitch.tsx';
 import { PhonePushSwitch } from './PhonePushSwitch.tsx';
 
 const PUSH_COPY: Readonly<Record<PushChoice, { label: MessageKey; hint: MessageKey }>> = {
@@ -31,7 +32,7 @@ function NotificationSwitch({ type, isOn }: { type: PushChoice; isOn: boolean })
   );
 }
 
-/** Push notifications by kind, then promotions, which are the marketing consent (DPDP). */
+/** Push notifications by kind, then promotions, which are the marketing consent (DPDP), and analytics on this phone. */
 export function NotificationsSection({ preferences }: { preferences: Preferences }) {
   const { setMarketing } = usePreferenceActions();
   return (
@@ -50,6 +51,7 @@ export function NotificationsSection({ preferences }: { preferences: Preferences
           onChange={(isOn) => setMarketing.mutate(isOn)}
         />
         {setMarketing.data?.ok === false ? <Text>{t('player.profile.saveFailed')}</Text> : null}
+        <AnalyticsSwitch />
       </Stack>
     </Stack>
   );

@@ -38,22 +38,15 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
     <slot />
     <script>
       // The cookie banner (#616): open while this browser holds no choice. A choice is kept here, never sent anywhere,
-      // and loads what it allows: the embedded map only once maps are allowed.
-      interface CookieChoice { maps: boolean }
-      const CHOICE_KEY = 'rivr.cookies';
-      const banner = document.querySelector<HTMLElement>('[data-cookie-banner]');
-      const mapsBox = banner?.querySelector<HTMLInputElement>('input[name="maps"]') ?? null;
+      // and loads what it allows: the embedded map only once maps are allowed, and Google Tag Manager, with Google
+      // Analytics and the Meta pixel inside it, only once analytics is (decision 0298).
+      import { keepCookieChoice, loadTagManager, storedCookieChoice, type CookieChoice } from '@rivr/ui/cookies';
 
-      function storedChoice(): CookieChoice | null {
-        try {
-          const choice: unknown = JSON.parse(localStorage.getItem(CHOICE_KEY) ?? 'null');
-          return typeof choice === 'object' && choice !== null && 'maps' in choice && typeof choice.maps === 'boolean' ? { maps: choice.maps } : null;
-        } catch {
-          return null;
-        }
-      }
+      const banner = document.querySelector<HTMLElement>('[data-cookie-banner]');
+      const box = (name: string) => banner?.querySelector<HTMLInputElement>(`input[name="${name}"]`) ?? null;
 
       function load(choice: CookieChoice) {
+        if (choice.analytics) loadTagManager();
         if (!choice.maps) return;
         for (const frame of document.querySelectorAll<HTMLIFrameElement>('[data-consent="maps"] iframe[data-consent-src]')) {
           frame.src = frame.dataset.consentSrc ?? '';
@@ -63,16 +56,12 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
       }
 
       function keep(choice: CookieChoice) {
-        try {
-          localStorage.setItem(CHOICE_KEY, JSON.stringify(choice));
-        } catch {
-          // A browser that keeps nothing asks again on the next page; this page still loads what was allowed.
-        }
+        keepCookieChoice(choice);
         load(choice);
         if (banner) banner.hidden = true;
       }
 
-      const choice = storedChoice();
+      const choice = storedCookieChoice();
       if (choice) load(choice);
       else if (banner) banner.hidden = false;
 
@@ -83,11 +72,15 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
         const button = target?.closest<HTMLElement>('[data-consent-choice]');
         if (button) {
           const kind = button.dataset.consentChoice;
-          keep({ maps: kind === 'all' || (kind === 'ticked' && mapsBox?.checked === true) });
+          const ticked = (name: string) => kind === 'all' || (kind === 'ticked' && box(name)?.checked === true);
+          keep({ maps: ticked('maps'), analytics: ticked('analytics') });
         } else if (target?.closest('[data-consent-allow="maps"]')) {
-          keep({ maps: true });
+          keep({ maps: true, analytics: storedCookieChoice()?.analytics === true });
         } else if (target?.closest('[data-cookie-settings]') && banner) {
-          if (mapsBox) mapsBox.checked = storedChoice()?.maps === true;
+          for (const name of ['maps', 'analytics'] as const) {
+            const checkbox = box(name);
+            if (checkbox) checkbox.checked = storedCookieChoice()?.[name] === true;
+          }
           // Asked for from the footer, the choices show open, not behind Choose.
           const choices = banner.querySelector('details');
           if (choices) choices.open = true;
