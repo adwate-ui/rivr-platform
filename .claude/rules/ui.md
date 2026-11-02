@@ -40,7 +40,7 @@ A hook blocks these on write; ESLint blocks them in CI. Feature components in ap
 - `@rivr/render` templates compose `@rivr/ui`; they define no styles.
 
 ## Visual standard
-- Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum, motion 200 ms ease-out on state changes only, besides a busy button's turning circle and the TV's progress bar.
+- Dark only. Flat surfaces, gold hairlines at 25%, radius 6 px maximum (the player app's card at 8 and sheet at 16, decision 0320), motion 200 ms ease-out on state changes only, besides a busy button's turning circle, the TV's progress bar, a sheet sliding up in 240 ms and a live timer's ring or bar moving on each second (decision 0320).
 - One gold filled button per screen at most.
 - No decorative poker imagery, gradients, glass, glows or shadows beyond a modal's.
 - A reward's or a dish's own photograph, the club's and never stock, in `ItemPhoto`'s 4:3 tile, with its initial until one is added (AS-11); no other image slots.

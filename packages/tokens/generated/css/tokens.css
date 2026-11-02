@@ -14,6 +14,15 @@
   --rivr-color-muted: #F3EDE099; /** Cream at 60%. Secondary text; at least 4.5:1 on green. */
   --rivr-color-hairline: #C9A85C40; /** Gold at 25%. The 1 px rules that separate content. */
   --rivr-color-control: #F3EDE080; /** Cream at 50%. A form control's edge: an input, a switch's track when off, an unselected chip, a key. 3.89:1 on the page green and 4.37:1 on raised, past the 3:1 a control needs (F5-04); a hairline is 1.6:1. */
+  --rivr-color-gold-tint: #C9A85C24; /** Gold at 14%. A picked chip or time, the member's usual order, an open seat on the seat map (decision 0320). */
+  --rivr-color-gold-edge: #C9A85C59; /** Gold at 35%. A neutral banner's edge and the selfie's frame on the membership card. */
+  --rivr-color-cream-track: #F3EDE01F; /** Cream at 12%. The track under the call-time ring and a progress bar, and a paused action's fill. */
+  --rivr-color-cream-faint: #F3EDE04D; /** Cream at 30%. A sheet's grabber, a picker field's edge and a step not reached. */
+  --rivr-color-seat-taken: #F3EDE059; /** Cream at 35%. A taken seat's dot on the tables list. */
+  --rivr-color-skeleton: #F3EDE014; /** Cream at 8%. A first load's blocks, where its text will be. */
+  --rivr-color-skeleton-faint: #F3EDE00D; /** Cream at 5%. A first load's blocks, where its rows will be. */
+  --rivr-color-rim: #3A2A14; /** The wooden rim round the felt on the seat map. */
+  --rivr-color-scrim: #050F0B99; /** The dark veil behind an open sheet, and round the selfie's oval. */
   --rivr-color-chart-3: #7FC8A9; /** Mint. */
   --rivr-color-chart-4: #8DB8E0; /** Sky. */
   --rivr-color-chart-5: #E88B7D; /** Coral. */
@@ -28,12 +37,16 @@
   --rivr-font-size-20: 20px;
   --rivr-font-size-24: 24px;
   --rivr-font-size-28: 28px;
+  --rivr-font-size-32: 32px; /** A sheet's title and a screen title on the player app (decision 0320). */
   --rivr-font-size-36: 36px;
+  --rivr-font-size-40: 40px; /** A sign-up and identity title on the player app. */
   --rivr-font-size-44: 44px;
   --rivr-font-size-48: 48px; /** A player's name on the TV's waitlist board. */
   --rivr-font-size-56: 56px;
+  --rivr-font-size-72: 72px; /** A seat's hold counting down on the player app. */
   --rivr-font-size-88: 88px; /** A TV board's title, and tonight's high hand. */
   --rivr-font-size-96: 96px;
+  --rivr-font-size-160: 160px; /** The member's place on a waitlist, the largest thing on the player app. */
   --rivr-font-size-280: 280px; /** The TV's jackpot figure, the largest thing on any screen. */
   --rivr-font-weight-regular: 400;
   --rivr-font-weight-medium: 500;
@@ -67,6 +80,21 @@
   --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
   --rivr-size-photo: 160px; /** A KYC photo beside its member's details, such as in the review queue. */
+  --rivr-size-action: 54px; /** The player app's tall action button: a step's one gold action (decision 0320). */
+  --rivr-size-field: 60px; /** A field with its label inside the box, a picker's field and a code cell. */
+  --rivr-size-round: 52px; /** A round seat action, a rating button and a picker's option row. */
+  --rivr-size-tile: 56px; /** An item's initial tile, an Add time choice and the verified check. */
+  --rivr-size-seat: 34px; /** A seat on the seat map. */
+  --rivr-size-pip: 6px; /** A seat's dot on the tables list, and a status row's dot. */
+  --rivr-size-grabber: 36px; /** A sheet's grabber, 4 px tall. */
+  --rivr-size-ring: 236px; /** The call-time ring on Tonight. */
+  --rivr-size-seat-map: 170px; /** The seat map's height in the join sheet. */
+  --rivr-size-hold-bar: 200px; /** The bar a seat's hold drains along. */
+  --rivr-size-offer: 300px; /** An offer card's width in Tonight's carousel. */
+  --rivr-size-offer-height: 168px; /** An offer card's least height. */
+  --rivr-size-oval-width: 250px; /** The selfie camera's oval guide. */
+  --rivr-size-oval-height: 330px; /** The selfie camera's oval guide. */
+  --rivr-size-shutter: 76px; /** The selfie camera's shutter. */
   --rivr-size-receipt: 576px; /** A thermal receipt: 80 mm paper at 203 dpi, one CSS pixel to each printer dot. */
   --rivr-size-chart: 192px; /** The height of a chart's plot (#90): its width is the container's. */
   --rivr-size-share-card: 1080px; /** A share card's side (#153): a square image at the size chat and social apps show without scaling it. */
@@ -79,6 +107,8 @@
   --rivr-radius-sm: 3px;
   --rivr-radius-md: 4px;
   --rivr-radius-lg: 6px;
+  --rivr-radius-card: 8px; /** An offer card, the QR's panel and the membership card on the player app. */
+  --rivr-radius-sheet: 16px; /** A bottom sheet's top corners, and the tables sheet on Tonight. */
   --rivr-border-width-hairline: 1px;
   --rivr-border-width-focus: 2px;
   --rivr-shadow-modal: 0px 16px 48px 0px #00000080; /** The only shadow, under a modal. */
@@ -113,6 +143,9 @@
   --rivr-brand-lockup: 400px; /** A splash screen or cover: the wordmark and tagline. */
   --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
   --rivr-motion-duration-stagger: 120ms; /** The logo animation: the wait before the next tile rises. Each tile rises in the state duration. */
+  --rivr-motion-duration-sheet: 240ms; /** A bottom sheet sliding up (decision 0320). */
+  --rivr-motion-duration-tick: 1000ms; /** A live timer's ring or bar moving on by one second, linear. */
+  --rivr-motion-duration-toast: 3200ms; /** How long a toast stays before it goes. */
   --rivr-motion-duration-turn: 1000ms; /** One turn of a busy button's circle, which keeps turning while its action is in flight (F5-17); still under reduced motion. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
   --rivr-icon-size-sm: 16px;

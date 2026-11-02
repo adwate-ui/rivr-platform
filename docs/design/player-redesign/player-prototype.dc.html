@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E6E1D5;font-family:'Instrument Sans',sans-serif;color:#141414;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+a{color:#0E3B2C}a:hover{color:#C4162A}
+input,textarea,button{font-family:inherit}
+input::placeholder,textarea::placeholder{color:rgba(243,237,224,.4)}
+@keyframes rivrspin{to{transform:rotate(1turn)}}
+@keyframes rivrup{from{transform:translateY(100%)}}
+@keyframes rivrfade{from{opacity:0}}
+@keyframes rivrdown{from{transform:translateY(-120%)}}
+@keyframes rivrpulse{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:0s!important;transition-duration:0s!important}}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;gap:48px;justify-content:center;align-items:flex-start;padding:40px 24px">
+
+<!-- ================= PHONE ================= -->
+<div style="width:390px;height:844px;flex-shrink:0;border-radius:48px;overflow:hidden;background:#0E3B2C;color:#F3EDE0;position:relative;box-shadow:0 0 0 10px #07170f,0 30px 60px rgba(0,0,0,.35)">
+  <div style="position:absolute;top:0;left:0;right:0;height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 32px;font-size:14px;font-weight:600;z-index:5"><span>{{ clock }}</span><span style="font-size:12px;opacity:.8">5G · 82%</span></div>
+
+  <!-- SIGN IN -->
+  <sc-if value="{{ isSignin }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:44px 0 0;display:flex;flex-direction:column">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+        <div style="display:flex;gap:5px"><span style="width:44px;height:58px;background:#F3EDE0;color:#141414;border-radius:4px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:36px">R</span><span style="width:44px;height:58px;background:#F3EDE0;color:#141414;border-radius:4px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:36px">I</span><span style="width:44px;height:58px;background:#F3EDE0;color:#141414;border-radius:4px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:36px">V</span><span style="width:44px;height:58px;background:#F3EDE0;color:#141414;border-radius:4px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:36px">R</span><span style="width:44px;height:58px;background:#C4162A;color:#F3EDE0;border-radius:4px;display:grid;place-items:center;font-size:26px">♠</span></div>
+        <span style="font-size:13px;letter-spacing:.3em;text-transform:uppercase">Poker club</span>
+        <span style="font-family:'Bodoni Moda',serif;font-style:italic;font-size:22px;color:rgba(243,237,224,.6)">Skill runs deep.</span>
+      </div>
+      <div style="padding:0 24px 40px;display:flex;flex-direction:column;gap:16px">
+        <span style="font-family:'Bodoni Moda',serif;font-size:30px;line-height:1.1">Sign in or join</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="font-size:13px;color:rgba(243,237,224,.6)">Mobile number</label>
+          <div style="display:flex;height:54px;background:#0A2A20;border:1px solid {{ phoneBorder }};border-radius:4px;align-items:center">
+            <span style="padding:0 12px 0 16px;font-size:17px;color:rgba(243,237,224,.6);border-right:1px solid rgba(201,168,92,.25)">+91</span>
+            <input type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" value="{{ phone }}" onChange="{{ onPhone }}" style="flex:1;height:100%;background:transparent;border:0;outline:none;color:#F3EDE0;font-size:17px;padding:0 14px;letter-spacing:.04em">
+          </div>
+          <sc-if value="{{ hasPhoneErr }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;align-items:center;font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#C4162A"></span>{{ phoneErr }}</div></sc-if>
+        </div>
+        <button onClick="{{ submitPhone }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Send code</button>
+        <span style="font-size:12px;line-height:1.5;color:rgba(243,237,224,.6);text-align:center">Members only, 18+. By continuing you accept the <span style="text-decoration:underline">terms</span> and <span style="text-decoration:underline">privacy notice</span>.</span>
+      </div>
+      <sc-if value="{{ cookie }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:-44px 0 0;background:rgba(5,15,11,.55);display:flex;align-items:flex-end;z-index:10">
+          <div style="width:100%;background:#0A2A20;border-top:1px solid rgba(201,168,92,.25);border-radius:16px 16px 0 0;padding:24px 24px 40px;display:flex;flex-direction:column;gap:12px">
+            <span style="font-size:20px;font-weight:500">Cookies</span>
+            <span style="font-size:15px;line-height:1.5;color:rgba(243,237,224,.6)">Essential storage only, unless you allow analytics.</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:8px">
+              <button onClick="{{ cookieEssential }}" style="height:48px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;font-weight:500;cursor:pointer">Essential only</button>
+              <button onClick="{{ cookieAll }}" style="height:48px;background:#C9A85C;border:0;border-radius:4px;color:#0A2A20;font-size:15px;font-weight:600;cursor:pointer">Allow analytics</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- OTP -->
+  <sc-if value="{{ isOtp }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;padding:16px 24px 40px;display:flex;flex-direction:column;gap:24px">
+      <button onClick="{{ toSignin }}" style="align-self:flex-start;background:none;border:0;color:#F3EDE0;padding:8px 0;display:flex;align-items:center;gap:4px;font-size:15px;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg>Back</button>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">Enter the code</span>
+        <span style="font-size:15px;color:rgba(243,237,224,.6)">Sent by SMS to {{ phoneFmt }}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <label style="position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;cursor:text">
+          <sc-for list="{{ otpCells }}" as="c" hint-placeholder-count="6"><span style="height:60px;background:#0A2A20;border:1px solid {{ c.bd }};border-radius:4px;display:grid;place-items:center;font-size:26px;font-weight:500">{{ c.d }}</span></sc-for>
+          <input inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="6-digit code" value="{{ otp }}" onChange="{{ onOtp }}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;border:0;font-size:16px">
+        </label>
+        <sc-if value="{{ otpErr }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;align-items:center;font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:#C4162A"></span>That code didn't match. 2 tries left.</div></sc-if>
+        <sc-if value="{{ otpAuto }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;align-items:center;font-size:14px;color:#C9A85C"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5 9-10"></path></svg>Filled from SMS</div></sc-if>
+      </div>
+      <button onClick="{{ submitOtp }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Verify</button>
+      <div style="display:flex;justify-content:center;font-size:14px;color:rgba(243,237,224,.6)">Resend code in 0:24</div>
+    </div>
+  </sc-if>
+
+  <!-- SIGN UP -->
+  <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;display:flex;flex-direction:column">
+      <div style="padding:8px 20px 0;display:flex;align-items:center;gap:16px">
+        <button onClick="{{ toSignin }}" aria-label="Back" style="width:40px;height:40px;margin-left:-8px;background:none;border:0;color:#F3EDE0;display:grid;place-items:center;cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px"><span style="height:3px;border-radius:2px;background:#C9A85C"></span><span style="height:3px;border-radius:2px;background:rgba(243,237,224,.2)"></span></div>
+        <span style="font-size:13px;color:rgba(243,237,224,.6)">1 of 2</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px 20px 24px;display:flex;flex-direction:column;gap:28px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-family:'Bodoni Moda',serif;font-size:40px;line-height:1.1">About you</span>
+          <span style="font-size:15px;color:rgba(243,237,224,.6)">Signing up with {{ phoneFmt }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <label style="min-height:60px;background:#0A2A20;border:1px solid {{ nameBorder }};border-radius:6px;padding:8px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+            <span style="font-size:12px;color:rgba(243,237,224,.6)">Full name, as on Aadhaar</span>
+            <input value="{{ suName }}" onChange="{{ onSuName }}" placeholder="Ira Kapoor" style="background:transparent;border:0;outline:none;color:#F3EDE0;font-size:16px;padding:0">
+          </label>
+          <sc-if value="{{ errName }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:-6px"><span style="width:8px;height:8px;border-radius:50%;background:#C4162A"></span>Enter your name in English, as on Aadhaar.</div></sc-if>
+          <label style="min-height:60px;background:#0A2A20;border:1px solid {{ cityBorder }};border-radius:6px;padding:8px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+            <span style="font-size:12px;color:rgba(243,237,224,.6)">City</span>
+            <input value="{{ suCity }}" onChange="{{ onSuCity }}" placeholder="Gurugram" style="background:transparent;border:0;outline:none;color:#F3EDE0;font-size:16px;padding:0">
+          </label>
+          <sc-if value="{{ errCity }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:-6px"><span style="width:8px;height:8px;border-radius:50%;background:#C4162A"></span>Enter your city.</div></sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Your game</span>
+          <button onClick="{{ pickOcc }}" style="min-height:60px;background:#0A2A20;border:1px solid {{ occBorder }};border-radius:6px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;text-align:left;color:#F3EDE0">
+            <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:rgba(243,237,224,.6)">Occupation</span><span style="font-size:16px;color:{{ occColor }}">{{ occValue }}</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5" style="flex-shrink:0"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <sc-if value="{{ errOcc }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:-6px"><span style="width:8px;height:8px;border-radius:50%;background:#C4162A"></span>Select your occupation.</div></sc-if>
+          <button onClick="{{ pickWhen }}" style="min-height:60px;background:#0A2A20;border:1px solid {{ whenBorder }};border-radius:6px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;text-align:left;color:#F3EDE0">
+            <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:rgba(243,237,224,.6)">When you usually play</span><span style="font-size:16px;color:{{ whenColor }}">{{ whenValue }}</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5" style="flex-shrink:0"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <button onClick="{{ pickGames }}" style="min-height:60px;background:#0A2A20;border:1px solid {{ gamesBorder }};border-radius:6px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;text-align:left;color:#F3EDE0">
+            <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:rgba(243,237,224,.6)">Games you play</span><span style="font-size:16px;color:{{ gamesColor }}">{{ gamesValue }}</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5" style="flex-shrink:0"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+        </div>
+      </div>
+      <div style="padding:12px 20px 36px;border-top:1px solid rgba(201,168,92,.25);background:#0E3B2C">
+        <button onClick="{{ submitSignup }}" style="width:100%;height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Continue</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- KYC STEPS -->
+  <sc-if value="{{ isKyc }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;padding:16px 24px 40px;display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Step 2 of 2</span>
+        <span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">{{ kycTitle }}</span>
+        <span style="font-size:15px;line-height:1.5;color:rgba(243,237,224,.6)">Required before you play.</span>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <div style="display:flex;gap:16px;padding:16px 0;border-top:1px solid rgba(201,168,92,.25)">
+          <span style="width:32px;height:32px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:600;background:{{ k1bg }};color:{{ k1fg }};border:1px solid {{ k1bd }}">{{ k1mark }}</span>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:17px;font-weight:500">Selfie</span><span style="font-size:14px;color:rgba(243,237,224,.6)">A photo of your face</span></div>
+        </div>
+        <div style="display:flex;gap:16px;padding:16px 0;border-top:1px solid rgba(201,168,92,.25)">
+          <span style="width:32px;height:32px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:600;border:1px solid {{ k2bd }};color:{{ k2fg }}">2</span>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:17px;font-weight:500;opacity:{{ k2op }}">DigiLocker</span><span style="font-size:14px;color:rgba(243,237,224,.6)">Aadhaar and OTP</span></div>
+        </div>
+        <div style="display:flex;gap:16px;padding:16px 0;border-top:1px solid rgba(201,168,92,.25);border-bottom:1px solid rgba(201,168,92,.25)">
+          <span style="width:32px;height:32px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:600;border:1px solid rgba(243,237,224,.3);color:rgba(243,237,224,.6)">3</span>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:17px;font-weight:500;opacity:.6">Verified</span></div>
+        </div>
+      </div>
+      <span style="font-size:13px;line-height:1.5;color:rgba(243,237,224,.6)">We store your photo, date of birth, address, PAN and the last 4 digits of your Aadhaar.</span>
+      <div style="flex:1"></div>
+      <button onClick="{{ kycPrimary }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px"><sc-if value="{{ kycBusy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border:2px solid #0A2A20;border-right-color:transparent;border-radius:50%;animation:rivrspin 1s linear infinite"></span></sc-if>{{ kycCta }}</button>
+      <button onClick="{{ toSignin }}" style="background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer;padding:0">Sign out</button>
+    </div>
+  </sc-if>
+
+  <!-- CAMERA -->
+  <sc-if value="{{ isCam }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:#050f0b;display:flex;flex-direction:column;align-items:center">
+      <div style="width:100%;padding:52px 20px 0;display:flex;justify-content:space-between;align-items:center"><button onClick="{{ toKyc }}" style="background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg>Back</button><span style="font-size:15px;font-weight:500">Selfie</span><span style="width:60px"></span></div>
+      <div style="margin-top:60px;width:250px;height:330px;border-radius:50%;border:3px solid {{ camRing }};transition:border-color .3s;box-shadow:0 0 0 999px rgba(5,15,11,.6);display:grid;place-items:center;font-size:13px;color:rgba(243,237,224,.4)">Camera</div>
+      <span aria-live="polite" style="margin-top:28px;font-size:17px;font-weight:500">{{ camHint }}</span>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:0 24px"><span style="font-size:13px;padding:6px 12px;border:1px solid rgba(243,237,224,.3);border-radius:16px;color:rgba(243,237,224,.8)">Even light</span><span style="font-size:13px;padding:6px 12px;border:1px solid rgba(243,237,224,.3);border-radius:16px;color:rgba(243,237,224,.8)">No cap or sunglasses</span><span style="font-size:13px;padding:6px 12px;border:1px solid rgba(243,237,224,.3);border-radius:16px;color:rgba(243,237,224,.8)">Only you</span></div>
+      <button onClick="{{ takePhoto }}" aria-label="Take photo" style="position:absolute;bottom:48px;width:76px;height:76px;border-radius:50%;border:3px solid #F3EDE0;background:transparent;padding:5px;cursor:pointer"><span style="display:block;width:100%;height:100%;border-radius:50%;background:#F3EDE0"></span></button>
+    </div>
+  </sc-if>
+
+  <!-- REVIEW SELFIE -->
+  <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;padding:16px 24px 40px;display:flex;flex-direction:column;gap:20px">
+      <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Use this photo?</span>
+      <div style="aspect-ratio:3/4;background:#0A2A20;border:1px solid rgba(201,168,92,.25);border-radius:6px;display:grid;place-items:center;font-size:13px;color:rgba(243,237,224,.4)">Selfie preview</div>
+      <div style="flex:1"></div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px">
+        <button onClick="{{ toCam }}" style="height:54px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:16px;font-weight:500;cursor:pointer">Retake</button>
+        <button onClick="{{ usePhoto }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Use photo</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- VERIFIED -->
+  <sc-if value="{{ isVerified }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;padding:16px 24px 40px;display:flex;flex-direction:column;gap:16px">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px">
+        <span style="width:56px;height:56px;border-radius:50%;background:#C9A85C;color:#0A2A20;display:grid;place-items:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5 9-10"></path></svg></span>
+        <span style="font-family:'Bodoni Moda',serif;font-size:44px;line-height:1.1">You're verified.</span>
+        <span style="font-size:16px;line-height:1.5;color:rgba(243,237,224,.6)">Welcome to RIVR, Ira.</span>
+      </div>
+      <button onClick="{{ toHome }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">See tonight's tables</button>
+    </div>
+  </sc-if>
+
+  <!-- PAN -->
+  <sc-if value="{{ isPan }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;padding:16px 24px 40px;display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">Verify with PAN</span>
+        <span style="font-size:15px;line-height:1.5;color:rgba(243,237,224,.6)">DigiLocker didn't finish. Use your PAN instead.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px"><label style="font-size:13px;color:rgba(243,237,224,.6)">PAN</label><input placeholder="ABCDE1234F" style="height:52px;background:#0A2A20;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:17px;padding:0 14px;outline:none;text-transform:uppercase;letter-spacing:.06em"></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><label style="font-size:13px;color:rgba(243,237,224,.6)">Date of birth</label><input placeholder="DD / MM / YYYY" inputmode="numeric" style="height:52px;background:#0A2A20;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:17px;padding:0 14px;outline:none"></div>
+      <div style="flex:1"></div>
+      <button onClick="{{ toVerified }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Verify</button>
+      <button onClick="{{ toKyc2 }}" style="background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer">Try DigiLocker again</button>
+    </div>
+  </sc-if>
+
+  <!-- KYC INFO (review / refused) -->
+  <sc-if value="{{ isKycInfo }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;padding:16px 24px 40px;display:flex;flex-direction:column;gap:16px">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px">
+        <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">{{ kiEyebrow }}</span>
+        <span style="font-family:'Bodoni Moda',serif;font-size:40px;line-height:1.1">{{ kiTitle }}</span>
+        <span style="font-size:16px;line-height:1.5;color:rgba(243,237,224,.6)">{{ kiBody }}</span>
+      </div>
+      <button onClick="{{ toSignin }}" style="height:54px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:16px;font-weight:500;cursor:pointer">Sign out</button>
+    </div>
+  </sc-if>
+
+  <!-- ================= HOME (1b) ================= -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 84px;overflow-y:auto;overflow-x:hidden">
+      <div style="padding:8px 20px;display:flex;justify-content:space-between;align-items:center">
+        <sc-if value="{{ hdrLogo }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:3px"><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">R</span><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">I</span><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">V</span><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">R</span><span style="width:20px;height:26px;background:#C4162A;color:#F3EDE0;border-radius:3px;display:grid;place-items:center;font-size:13px">♠</span></div></sc-if>
+        <sc-if value="{{ hdrSeat }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Bodoni Moda',serif;font-size:28px;line-height:1.1">Table 1 · Seat 4</span><span style="font-size:13px;color:rgba(243,237,224,.6)">NLH 50/100 · playing {{ playFmt }}</span></div></sc-if>
+        <button onClick="{{ toProfile }}" aria-label="Profile" style="width:44px;height:44px;border-radius:50%;border:1px solid rgba(243,237,224,.5);background:transparent;color:#F3EDE0;font-size:15px;font-weight:600;cursor:pointer">I</button>
+      </div>
+
+      <sc-if value="{{ hasBanners }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:4px 20px 8px;display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ banners }}" as="b" hint-placeholder-count="1">
+            <div role="status" style="display:flex;gap:12px;align-items:center;min-height:48px;padding:10px 8px 10px 14px;border-radius:6px;background:{{ b.bg }};border:1px solid {{ b.bd }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ b.icon }}" stroke-width="1.6" style="flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16v.5"></path></svg>
+              <span style="flex:1;font-size:14px;line-height:1.4;font-weight:500">{{ b.text }}</span>
+              <sc-if value="{{ b.hasAction }}" hint-placeholder-val="{{ false }}"><button onClick="{{ b.onAction }}" style="height:44px;padding:0 14px;flex-shrink:0;background:none;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:13px;font-weight:600;cursor:pointer">{{ b.action }}</button></sc-if><sc-if value="{{ b.canDismiss }}" hint-placeholder-val="{{ false }}"><button onClick="{{ b.dismiss }}" aria-label="Dismiss" style="width:32px;height:32px;flex-shrink:0;background:none;border:0;color:rgba(243,237,224,.7);cursor:pointer;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:24px 20px;display:flex;flex-direction:column;gap:14px"><div style="height:16px;width:40%;background:rgba(243,237,224,.08);border-radius:3px"></div><div style="height:44px;width:80%;background:rgba(243,237,224,.08);border-radius:3px"></div><div style="height:52px;background:rgba(243,237,224,.08);border-radius:4px;margin-top:12px"></div><div style="height:56px;background:rgba(243,237,224,.05);border-radius:4px;margin-top:40px"></div><div style="height:56px;background:rgba(243,237,224,.05);border-radius:4px"></div><div style="height:56px;background:rgba(243,237,224,.05);border-radius:4px"></div></div>
+      </sc-if>
+      <sc-if value="{{ isLoadErr }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:120px 32px 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px"><span style="font-family:'Bodoni Moda',serif;font-size:28px">Couldn't load tonight</span><span style="font-size:15px;color:rgba(243,237,224,.6)">Check your connection and try again.</span><button onClick="{{ retry }}" style="margin-top:12px;height:48px;padding:0 28px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;font-weight:500;cursor:pointer">Retry</button></div>
+      </sc-if>
+
+      <!-- BROWSE -->
+      <sc-if value="{{ homeBrowse }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column">
+          <sc-if value="{{ showRateCard }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px 20px 28px;display:flex;flex-direction:column;gap:14px">
+              <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Tonight · 2h 41m at Table 1</span>
+              <span style="font-family:'Bodoni Moda',serif;font-size:34px;line-height:1.1">How was your night?</span>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+                <sc-for list="{{ rateOpts }}" as="r" hint-placeholder-count="5"><button onClick="{{ r.onClick }}" style="height:52px;border-radius:4px;border:1px solid {{ r.bd }};background:{{ r.bg }};color:{{ r.fg }};font-size:18px;font-weight:500;cursor:pointer">{{ r.n }}</button></sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(243,237,224,.6)"><span>Poor</span><span>Excellent</span></div>
+              <sc-if value="{{ rated }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <textarea placeholder="Anything to add? (optional)" style="height:80px;background:#0A2A20;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;padding:12px 14px;outline:none;resize:none"></textarea>
+                  <button onClick="{{ sendRating }}" style="height:48px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:15px;font-weight:600;cursor:pointer">Send to the General Manager</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showHero }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:16px 0 28px;display:flex;flex-direction:column;gap:14px">
+              <div style="padding:0 20px;display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Tonight</span><span style="font-size:13px;color:rgba(243,237,224,.6)">{{ promoCount }}</span></div>
+              <div style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 20px">
+                <sc-for list="{{ promos }}" as="p" hint-placeholder-count="3">
+                  <button onClick="{{ p.onClick }}" style="flex-shrink:0;width:300px;min-height:168px;scroll-snap-align:start;padding:20px;border-radius:8px;border:1px solid #C9A85C;background:#0A2A20;color:#F3EDE0;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:16px;cursor:pointer">
+                    <span style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">{{ p.title }}</span><span style="font-family:'Bodoni Moda',serif;font-size:28px;line-height:1.15">{{ p.offer }}</span></span>
+                    <span style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:rgba(243,237,224,.6)">{{ p.when }}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A85C" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <div style="background:#0A2A20;border-top:1px solid rgba(201,168,92,.25);border-radius:16px 16px 0 0;padding:10px 20px 32px;display:flex;flex-direction:column;min-height:420px">
+            <div style="width:36px;height:4px;border-radius:2px;background:rgba(243,237,224,.3);align-self:center"></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:16px 0 8px"><span style="font-size:18px;font-weight:500">All tables</span><span style="font-size:13px;color:rgba(243,237,224,.6)">4 running</span></div>
+            <sc-for list="{{ tables }}" as="t" hint-placeholder-count="5">
+              <button onClick="{{ t.onClick }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border:0;border-top:1px solid rgba(201,168,92,.25);background:transparent;color:#F3EDE0;text-align:left;cursor:pointer;opacity:{{ t.op }}">
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:16px;font-weight:500">{{ t.name }} · {{ t.game }} {{ t.stakes }}</span><div style="display:flex;gap:4px"><sc-for list="{{ t.pips }}" as="p" hint-placeholder-count="9"><span style="width:6px;height:6px;border-radius:50%;background:{{ p.c }}"></span></sc-for></div></div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span style="font-size:14px;color:{{ t.waitColor }}">{{ t.wait }}</span><span style="font-size:12px;color:rgba(243,237,224,.6)">{{ t.open }}</span></div>
+              </button>
+            </sc-for>
+            <div style="padding:28px 0 8px;font-size:18px;font-weight:500">Tournaments</div>
+            <sc-for list="{{ tourneys }}" as="x" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid rgba(201,168,92,.25)">
+                <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:500">{{ x.name }}</span><span style="font-size:13px;color:rgba(243,237,224,.6)">{{ x.when }}</span></div>
+                <button onClick="{{ x.onClick }}" style="height:44px;padding:0 16px;border-radius:22px;border:1px solid {{ x.bd }};background:transparent;color:{{ x.fg }};font-size:14px;font-weight:500;cursor:pointer">{{ x.label }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ON THE LIST -->
+      <sc-if value="{{ homeList }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:56px 24px 0">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Waitlist · Table 1 · NLH 50/100</span>
+          <span style="font-family:'Bodoni Moda',serif;font-size:160px;line-height:1">1</span>
+          <span style="font-size:18px">Next in line</span>
+          <span style="font-size:14px;color:rgba(243,237,224,.6)">Joined 22:44</span>
+        </div>
+        <div style="padding:36px 20px 0">
+          <button onClick="{{ leaveList }}" style="width:100%;height:48px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;font-weight:500;cursor:pointer">Leave waitlist</button>
+        </div>
+      </sc-if>
+
+      <!-- SEAT READY -->
+      <sc-if value="{{ homeReady }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 24px 0">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Your seat is ready</span>
+          <span style="font-family:'Bodoni Moda',serif;font-size:48px;line-height:1.1">Table 1, seat 4</span>
+          <span style="font-size:15px;color:rgba(243,237,224,.6)">NLH 50/100</span>
+          <div style="margin-top:24px;display:flex;flex-direction:column;gap:4px"><span role="timer" style="font-family:'Bodoni Moda',serif;font-size:72px;line-height:1">{{ holdFmt }}</span><span style="font-size:14px;color:rgba(243,237,224,.6)">Held until 23:04</span><div style="width:200px;height:3px;margin-top:10px;background:rgba(243,237,224,.15);border-radius:2px"><div style="height:3px;width:{{ holdPct }};background:#C9A85C;border-radius:2px;transition:width 1s linear"></div></div></div>
+        </div>
+        <div style="padding:36px 20px 0;display:flex;flex-direction:column;gap:8px">
+          <button onClick="{{ onMyWay }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px"><sc-if value="{{ onWay }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border:2px solid #0A2A20;border-right-color:transparent;border-radius:50%;animation:rivrspin 1s linear infinite"></span></sc-if>{{ wayLabel }}</button>
+          <button onClick="{{ giveUpSeat }}" style="height:48px;background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer">Decline seat</button>
+        </div>
+      </sc-if>
+
+      <!-- SEATED -->
+      <sc-if value="{{ homeSeated }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;place-items:center;padding-top:16px">
+          <div style="position:relative;width:236px;height:236px">
+            <svg width="236" height="236" viewBox="0 0 240 240" style="position:absolute;inset:0"><circle cx="120" cy="120" r="110" fill="none" stroke="rgba(243,237,224,.12)" stroke-width="4"></circle><circle cx="120" cy="120" r="110" fill="none" stroke="#C9A85C" stroke-width="4" stroke-linecap="round" stroke-dasharray="691" stroke-dashoffset="{{ ringOffset }}" transform="rotate(-90 120 120)" style="transition:stroke-dashoffset 1s linear;stroke:{{ ringColor }}"></circle></svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span role="timer" aria-label="Call time left {{ callLong }}" style="font-family:'Bodoni Moda',serif;font-size:50px;line-height:1">{{ callFmt }}</span><span style="font-size:13px;color:rgba(243,237,224,.6)">call time left · ends {{ callEnds }}</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);padding:20px 24px 0">
+          <button onClick="{{ openTopup }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;background:none;border:0;color:#F3EDE0;cursor:pointer;opacity:{{ topOp }}"><span style="width:52px;height:52px;border-radius:50%;border:1px solid rgba(243,237,224,.5);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v8M8 12h8"></path></svg></span>Top up</button>
+          <button onClick="{{ openAddtime }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;background:none;border:0;color:#F3EDE0;cursor:pointer;opacity:{{ timeOp }}"><span style="width:52px;height:52px;border-radius:50%;border:1px solid rgba(243,237,224,.5);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M10 2h4"></path></svg></span>Add time</button>
+          <button onClick="{{ openLeave }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;background:none;border:0;color:#F3EDE0;cursor:pointer;opacity:{{ leaveOp }}"><span style="width:52px;height:52px;border-radius:50%;border:1px solid rgba(243,237,224,.5);display:grid;place-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h9"></path></svg></span>Leave seat</button>
+        </div>
+        <div style="padding:20px 20px 0"><button onClick="{{ toOrder }}" style="width:100%;height:52px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 18h18M5 18a7 7 0 0114 0M12 8V6M10 6h4"></path></svg>Order to my seat</button></div>
+        <sc-if value="{{ hasOrder }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:16px 20px 0;padding:16px;border:1px solid rgba(201,168,92,.25);border-radius:6px;display:flex;flex-direction:column;gap:14px" aria-live="polite">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:15px;font-weight:500">{{ orderText }}</span><span style="font-size:13px;color:#C9A85C;white-space:nowrap">{{ orderStatus }}</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+              <sc-for list="{{ orderSteps }}" as="o" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:6px"><span style="height:3px;border-radius:2px;background:{{ o.c }};transition:background .3s"></span><span style="font-size:11px;color:{{ o.t }}">{{ o.label }}</span></div></sc-for>
+            </div>
+            <sc-if value="{{ orderDone }}" hint-placeholder-val="{{ false }}"><button onClick="{{ orderAgain }}" style="height:44px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;font-weight:500;cursor:pointer">Order again</button></sc-if>
+          </div>
+        </sc-if>
+        <div style="padding:14px 20px 90px;display:flex;flex-direction:column">
+          <sc-for list="{{ seatStatus }}" as="s" hint-placeholder-count="0">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(201,168,92,.25);font-size:14px"><span style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:50%;background:#C9A85C"></span>{{ s.label }}</span><span style="color:{{ s.c }};text-align:right">{{ s.value }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ showPeek }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ openTables }}" style="position:absolute;left:0;right:0;bottom:84px;background:#0A2A20;border:0;border-top:1px solid rgba(201,168,92,.25);border-radius:16px 16px 0 0;padding:10px 20px 14px;display:flex;flex-direction:column;gap:10px;color:#F3EDE0;cursor:pointer">
+        <span style="width:36px;height:4px;border-radius:2px;background:rgba(243,237,224,.3);align-self:center"></span>
+        <span style="display:flex;justify-content:space-between;align-items:center;width:100%"><span style="font-size:16px;font-weight:500">All tables</span><span style="font-size:13px;color:rgba(243,237,224,.6)">4 running · 2 tournaments</span></span>
+      </button>
+    </sc-if>
+  </sc-if>
+
+  <!-- ORDER -->
+  <sc-if value="{{ isOrder }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;display:flex;flex-direction:column">
+      <div style="padding:8px 20px 0;display:flex;align-items:center;justify-content:space-between"><button onClick="{{ toHome }}" style="background:none;border:0;color:#F3EDE0;padding:8px 0;display:flex;align-items:center;gap:4px;font-size:15px;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg>Tonight</button></div>
+      <div style="padding:8px 20px 16px;display:flex;flex-direction:column;gap:4px"><span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">Order</span><span style="font-size:14px;color:rgba(243,237,224,.6)">Table 1, seat 4 · Pay on delivery</span></div>
+      <div style="display:flex;gap:24px;padding:0 20px;border-bottom:1px solid rgba(201,168,92,.25)">
+        <sc-for list="{{ cats }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onClick }}" style="background:none;border:0;border-bottom:2px solid {{ c.bd }};padding:10px 0;color:{{ c.fg }};font-size:15px;font-weight:500;cursor:pointer;margin-bottom:-1px">{{ c.name }}</button></sc-for>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:4px 20px 120px">
+        <button onClick="{{ addUsual }}" style="width:100%;margin-top:14px;padding:14px 16px;border-radius:6px;border:1px solid #C9A85C;background:rgba(201,168,92,.1);color:#F3EDE0;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;text-align:left">
+          <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Your usual</span><span style="font-size:15px">Masala chai, Club sandwich</span></span>
+          <span style="height:44px;padding:0 16px;border-radius:22px;background:#C9A85C;color:#0A2A20;display:grid;place-items:center;font-size:14px;font-weight:600;flex-shrink:0">Add both</span>
+        </button>
+        <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(201,168,92,.25)">
+            <span style="width:56px;height:56px;border-radius:4px;background:#0A2A20;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:24px;color:rgba(243,237,224,.5)">{{ m.initial }}</span>
+            <span style="flex:1;font-size:16px">{{ m.name }}</span>
+            <sc-if value="{{ m.has }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:4px">
+                <button onClick="{{ m.dec }}" aria-label="Remove one" style="width:44px;height:44px;border-radius:50%;border:1px solid rgba(243,237,224,.5);background:transparent;color:#F3EDE0;font-size:18px;cursor:pointer">−</button>
+                <span style="width:28px;text-align:center;font-size:16px;font-weight:500">{{ m.qty }}</span>
+                <button onClick="{{ m.inc }}" aria-label="Add one" style="width:44px;height:44px;border-radius:50%;border:0;background:#C9A85C;color:#0A2A20;font-size:18px;cursor:pointer">+</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ m.none }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ m.inc }}" style="height:44px;padding:0 18px;border-radius:22px;border:1px solid rgba(243,237,224,.5);background:transparent;color:#F3EDE0;font-size:14px;font-weight:500;cursor:pointer">Add</button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 36px;background:#0A2A20;border-top:1px solid rgba(201,168,92,.25)">
+          <button onClick="{{ sendOrder }}" style="width:100%;height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:0 20px"><span>Send to the bar</span><span>{{ cartCount }}</span></button>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- SESSIONS -->
+  <sc-if value="{{ isSessions }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 84px;overflow-y:auto">
+      <div style="padding:8px 20px;display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">Sessions</span><button onClick="{{ toProfile }}" aria-label="Profile" style="width:44px;height:44px;border-radius:50%;border:1px solid rgba(243,237,224,.5);background:transparent;color:#F3EDE0;font-size:15px;font-weight:600;cursor:pointer">I</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;margin:16px 20px;border-top:1px solid rgba(201,168,92,.25);border-bottom:1px solid rgba(201,168,92,.25)">
+        <div style="padding:16px 0;display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:rgba(243,237,224,.6)">This month</span><span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">{{ sessCount }}</span></div>
+        <div style="padding:16px 0 16px 20px;border-left:1px solid rgba(201,168,92,.25);display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:rgba(243,237,224,.6)">Hours played</span><span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">{{ sessHours }}</span></div>
+      </div>
+      <div style="padding:0 20px">
+        <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="3">
+          <button onClick="{{ s.onClick }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border:0;border-bottom:1px solid rgba(201,168,92,.25);background:transparent;color:#F3EDE0;text-align:left;cursor:pointer">
+            <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13px;color:rgba(243,237,224,.6)">{{ s.date }}</span><span style="font-size:16px;font-weight:500">{{ s.table }}</span></div>
+            <span style="display:flex;align-items:center;gap:8px;font-size:15px">{{ s.dur }}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5"><path d="M9 6l6 6-6 6"></path></svg></span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- SESSION DETAIL -->
+  <sc-if value="{{ isSession }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 84px;overflow-y:auto;padding:8px 20px">
+      <button onClick="{{ toSessions }}" style="background:none;border:0;color:#F3EDE0;padding:8px 0;display:flex;align-items:center;gap:4px;font-size:15px;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg>Sessions</button>
+      <div style="padding:12px 0 24px;display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;color:rgba(243,237,224,.6)">{{ sd.date }}</span><span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">{{ sd.table }}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid rgba(201,168,92,.25);font-size:15px"><span style="color:rgba(243,237,224,.6)">Game</span><span>{{ sd.game }}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid rgba(201,168,92,.25);font-size:15px"><span style="color:rgba(243,237,224,.6)">Time</span><span>{{ sd.time }}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid rgba(201,168,92,.25);border-bottom:1px solid rgba(201,168,92,.25);font-size:15px"><span style="color:rgba(243,237,224,.6)">Played</span><span>{{ sd.dur }}</span></div>
+      <button onClick="{{ hideSession }}" style="margin-top:28px;width:100%;height:48px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;font-weight:500;cursor:pointer">Hide from my list</button>
+    </div>
+  </sc-if>
+
+  <!-- CARD -->
+  <sc-if value="{{ isCard }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 84px;overflow-y:auto;padding:8px 20px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">Card</span><button onClick="{{ toProfile }}" aria-label="Profile" style="width:44px;height:44px;border-radius:50%;border:1px solid rgba(243,237,224,.5);background:transparent;color:#F3EDE0;font-size:15px;font-weight:600;cursor:pointer">I</button></div>
+      <div style="background:#0A2A20;border:1px solid #C9A85C;border-radius:10px;padding:20px;aspect-ratio:85.6/54;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="display:flex;gap:3px"><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">R</span><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">I</span><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">V</span><span style="width:20px;height:26px;background:#F3EDE0;color:#141414;border-radius:3px;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:16px">R</span><span style="width:20px;height:26px;background:#C4162A;color:#F3EDE0;border-radius:3px;display:grid;place-items:center;font-size:13px">♠</span></div>
+          <span style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#C9A85C">No. 73</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:14px">
+          <div style="width:64px;height:80px;flex-shrink:0;border-radius:4px;background:#0E3B2C;border:1px solid rgba(201,168,92,.4);display:grid;place-items:center;font-size:10px;color:rgba(243,237,224,.4);text-align:center">KYC<br>selfie</div>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Bodoni Moda',serif;font-size:26px;line-height:1.1">Ira Kapoor</span><span style="font-size:13px;color:#C9A85C">Founders' Circle</span></div>
+        </div>
+      </div>
+      <div style="align-self:center;background:#F3EDE0;padding:16px;border-radius:8px">
+        <div style="display:grid;grid-template-columns:repeat(21,9px);grid-auto-rows:9px">
+          <sc-for list="{{ qr }}" as="q" hint-placeholder-count="441"><span style="background:{{ q.c }}"></span></sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- REWARDS -->
+  <sc-if value="{{ isRewards }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 84px;overflow-y:auto">
+      <div style="padding:8px 20px;display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">Rewards</span><button onClick="{{ toProfile }}" aria-label="Profile" style="width:44px;height:44px;border-radius:50%;border:1px solid rgba(243,237,224,.5);background:transparent;color:#F3EDE0;font-size:15px;font-weight:600;cursor:pointer">I</button></div>
+      <div style="margin:16px 20px 0;display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Founders' Circle</span>
+        <div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'Bodoni Moda',serif;font-size:56px;line-height:1;color:#C9A85C">{{ pointsFmt }}</span><span style="font-size:15px;color:rgba(243,237,224,.6)">points</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:14px"><span>{{ nextLabel }}</span><span style="color:rgba(243,237,224,.6)">{{ nextGap }}</span></div><div style="height:4px;background:rgba(243,237,224,.15);border-radius:2px"><div style="height:4px;width:{{ nextPct }};background:#C9A85C;border-radius:2px;transition:width .6s ease-out"></div></div></div>
+      </div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding:24px 20px 8px">
+        <sc-for list="{{ rwFilters }}" as="f" hint-placeholder-count="5"><button onClick="{{ f.onClick }}" style="flex-shrink:0;height:44px;padding:0 16px;border-radius:22px;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};font-size:14px;cursor:pointer">{{ f.label }}</button></sc-for>
+      </div>
+      <div style="padding:0 20px">
+        <sc-for list="{{ catalogue }}" as="c" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(201,168,92,.25)">
+            <span style="width:56px;height:56px;flex-shrink:0;border-radius:4px;background:#0A2A20;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:24px;color:rgba(243,237,224,.5)">{{ c.initial }}</span>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:500">{{ c.name }}</span><span style="font-size:14px;color:#C9A85C">{{ c.cost }}</span><span style="font-size:12px;color:rgba(243,237,224,.6)">{{ c.note }}</span></div>
+            <button onClick="{{ c.onClick }}" style="height:44px;padding:0 16px;border-radius:22px;border:1px solid {{ c.bd }};background:transparent;color:{{ c.fg }};font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">{{ c.cta }}</button>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasRedemptions }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 20px 0;display:flex;flex-direction:column"><span style="font-size:18px;font-weight:500;padding-bottom:8px">Your redemptions</span>
+          <sc-for list="{{ redemptions }}" as="r" hint-placeholder-count="1"><div style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid rgba(201,168,92,.25);font-size:15px"><span>{{ r.name }}</span><span style="color:#C9A85C">{{ r.status }}</span></div></sc-for>
+        </div>
+      </sc-if>
+      <div style="margin:32px 20px 32px;padding:20px;border:1px solid rgba(201,168,92,.4);border-radius:6px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Refer a friend</span>
+        <span style="font-size:16px;line-height:1.5">1,000 bonus chips each when a friend joins and buys in.</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#0A2A20;border-radius:4px"><span style="font-family:'Bodoni Moda',serif;font-size:24px;letter-spacing:.08em">PGHG59H7</span><span style="font-size:13px;color:rgba(243,237,224,.6)">0 joined</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onClick="{{ copyLink }}" style="height:44px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:14px;font-weight:500;cursor:pointer">Copy link</button>
+          <button onClick="{{ shareCard }}" style="height:44px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:14px;font-weight:600;cursor:pointer">Share invite</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PROFILE -->
+  <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;overflow-y:auto">
+      <div style="padding:8px 20px"><button onClick="{{ backFromProfile }}" style="background:none;border:0;color:#F3EDE0;padding:8px 0;display:flex;align-items:center;gap:4px;font-size:15px;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg>Back</button></div>
+      <div style="padding:8px 20px 24px;display:flex;align-items:center;gap:16px">
+        <span style="width:64px;height:64px;border-radius:50%;border:1px solid #C9A85C;display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:28px">I</span>
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Bodoni Moda',serif;font-size:28px;line-height:1.1">Ira Kapoor</span><span style="font-size:14px;color:rgba(243,237,224,.6)">Founders' Circle · +91 90000 00901</span></div>
+      </div>
+      <div style="padding:0 20px 40px;display:flex;flex-direction:column;gap:28px">
+        <div style="display:flex;flex-direction:column">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C;padding-bottom:8px">Account</span>
+          <button onClick="{{ toCard }}" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border:0;border-top:1px solid rgba(201,168,92,.25);background:none;color:#F3EDE0;font-size:16px;cursor:pointer">Membership card<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5"><path d="M9 6l6 6-6 6"></path></svg></button>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid rgba(201,168,92,.25);font-size:16px">Identity<span style="font-size:14px;color:#C9A85C">Verified</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C;padding-bottom:8px">Notifications</span>
+          <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="5">
+            <button onClick="{{ n.onClick }}" role="switch" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;border:0;border-top:1px solid rgba(201,168,92,.25);background:none;color:#F3EDE0;text-align:left;cursor:pointer">
+              <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:16px">{{ n.label }}</span><span style="font-size:13px;color:rgba(243,237,224,.6)">{{ n.sub }}</span></span>
+              <span style="width:46px;height:28px;flex-shrink:0;border-radius:14px;background:{{ n.track }};border:1px solid {{ n.trackBd }};position:relative"><span style="position:absolute;top:3px;left:{{ n.knobX }};width:20px;height:20px;border-radius:50%;background:{{ n.knob }}"></span></span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column">
+          <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C;padding-bottom:8px">Club</span>
+          <button onClick="{{ toRules }}" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border:0;border-top:1px solid rgba(201,168,92,.25);background:none;color:#F3EDE0;font-size:16px;cursor:pointer">House rules<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5"><path d="M9 6l6 6-6 6"></path></svg></button>
+          <button onClick="{{ openFeedback }}" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border:0;border-top:1px solid rgba(201,168,92,.25);background:none;color:#F3EDE0;font-size:16px;cursor:pointer">Send feedback<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(243,237,224,.6)" stroke-width="1.5"><path d="M9 6l6 6-6 6"></path></svg></button>
+          <div style="padding:14px 0;border-top:1px solid rgba(201,168,92,.25);border-bottom:1px solid rgba(201,168,92,.25);font-size:13px;line-height:1.5;color:rgba(243,237,224,.6)">To erase your data, ask at the front desk.</div>
+        </div>
+        <button onClick="{{ toSignin }}" style="height:48px;background:transparent;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;font-weight:500;cursor:pointer">Sign out</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- HOUSE RULES -->
+  <sc-if value="{{ isRules }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 0;overflow-y:auto;padding:8px 20px 48px">
+      <button onClick="{{ toProfile }}" style="background:none;border:0;color:#F3EDE0;padding:8px 0;display:flex;align-items:center;gap:4px;font-size:15px;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6l-6 6 6 6"></path></svg>Profile</button>
+      <div style="padding:12px 0 20px;display:flex;flex-direction:column;gap:8px"><span style="font-family:'Bodoni Moda',serif;font-size:36px;line-height:1.1">House rules</span><span style="font-size:15px;color:rgba(243,237,224,.6)">The floor applies these at every table.</span></div>
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="7">
+        <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid rgba(201,168,92,.25)"><span style="font-family:'Bodoni Moda',serif;font-size:22px;color:#C9A85C;width:20px">{{ r.n }}</span><span style="font-size:15px;line-height:1.5">{{ r.text }}</span></div>
+      </sc-for>
+      <div style="padding:36px 0 12px;display:flex;flex-direction:column;gap:8px"><span style="font-family:'Bodoni Moda',serif;font-size:28px;line-height:1.1">Poker is a game of skill</span><span style="font-size:15px;line-height:1.5;color:rgba(243,237,224,.6)">Indian courts separate games of skill from games of chance. RIVR runs every table as a game of skill.</span></div>
+      <sc-for list="{{ cases }}" as="c" hint-placeholder-count="4">
+        <div style="padding:14px 0;border-top:1px solid rgba(201,168,92,.25);display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;color:#C9A85C">{{ c.year }}</span><span style="font-size:15px;font-weight:500">{{ c.name }}</span><span style="font-size:14px;line-height:1.5;color:rgba(243,237,224,.6)">{{ c.text }}</span></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- 404 -->
+  <sc-if value="{{ isNotFound }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:44px 0 84px;padding:0 32px;display:flex;flex-direction:column;justify-content:center;gap:12px">
+      <span style="font-family:'Bodoni Moda',serif;font-size:96px;line-height:1;color:#C9A85C">404</span>
+      <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">This page doesn't exist.</span>
+      <span style="font-size:15px;color:rgba(243,237,224,.6)">The link may be old or mistyped.</span>
+      <button onClick="{{ toHome }}" style="margin-top:12px;align-self:flex-start;height:48px;padding:0 24px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:15px;font-weight:600;cursor:pointer">Go to Tonight</button>
+    </div>
+  </sc-if>
+
+  <!-- TAB BAR -->
+  <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;height:84px;background:#0A2A20;border-top:1px solid rgba(201,168,92,.25);padding:8px 8px 0;display:grid;grid-template-columns:repeat(4,1fr);z-index:20">
+      <button onClick="{{ toHome }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:{{ tabHome }};background:none;border:0;cursor:pointer;height:52px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c3 4 7 6 7 10a4 4 0 01-7 2 4 4 0 01-7-2c0-4 4-6 7-10zM12 15v6M9 21h6"></path></svg>Tonight</button>
+      <button onClick="{{ toSessions }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:{{ tabSessions }};background:none;border:0;cursor:pointer;height:52px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>Sessions</button>
+      <button onClick="{{ toCard }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:{{ tabCard }};background:none;border:0;cursor:pointer;height:52px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M7 15h5"></path><rect x="14" y="10" width="4" height="4"></rect></svg>Card</button>
+      <button onClick="{{ toRewards }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:{{ tabRewards }};background:none;border:0;cursor:pointer;height:52px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="9" r="5"></circle><path d="M9 13l-2 8 5-3 5 3-2-8"></path></svg>Rewards</button>
+    </div>
+  </sc-if>
+
+  <!-- ================= SHEETS ================= -->
+  <sc-if value="{{ anySheet }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end">
+      <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(5,15,11,.6);animation:rivrfade .2s ease-out"></div>
+      <div style="position:relative;background:#0A2A20;border-top:1px solid rgba(201,168,92,.25);border-radius:16px 16px 0 0;box-shadow:0 -16px 48px rgba(0,0,0,.5);padding:12px 20px 36px;display:flex;flex-direction:column;gap:20px;max-height:720px;overflow-y:auto;animation:rivrup .24s cubic-bezier(0,0,.58,1)">
+        <div style="width:36px;height:4px;border-radius:2px;background:rgba(243,237,224,.3);align-self:center;flex-shrink:0"></div>
+
+        <sc-if value="{{ sheetJoin }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">{{ jt.name }}</span><span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">{{ jt.gameLong }} {{ jt.stakes }}</span></div>
+            <div role="img" aria-label="{{ jt.free }} of 9 seats open" style="position:relative;height:170px;margin:4px 8px">
+              <div style="position:absolute;left:44px;right:44px;top:30px;bottom:30px;border-radius:999px;background:#0E3B2C;border:6px solid #3a2a14;box-shadow:inset 0 0 0 1px rgba(201,168,92,.3);display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:20px;color:rgba(243,237,224,.35)">RIVR</div>
+              <sc-for list="{{ seatMap }}" as="m" hint-placeholder-count="9"><span style="position:absolute;left:{{ m.x }};top:{{ m.y }};width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ m.bg }};border:1px solid {{ m.bd }};color:{{ m.fg }}">{{ m.n }}</span></sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(201,168,92,.25);border-bottom:1px solid rgba(201,168,92,.25)">
+              <div style="padding:14px 0;display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:rgba(243,237,224,.6)">Seats open</span><span style="font-size:20px;font-weight:500">{{ jt.free }} of 9</span></div>
+              <div style="padding:14px 0 14px 14px;border-left:1px solid rgba(201,168,92,.25);display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:rgba(243,237,224,.6)">Waiting</span><span style="font-size:20px;font-weight:500">{{ jt.waitShort }}</span></div>
+              <div style="padding:14px 0 14px 14px;border-left:1px solid rgba(201,168,92,.25);display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:rgba(243,237,224,.6)">Call time</span><span style="font-size:20px;font-weight:500">3 h</span></div>
+            </div>
+            <button onClick="{{ joinList }}" style="height:54px;border:0;border-radius:4px;background:{{ joinBg }};color:{{ joinFg }};font-size:16px;font-weight:600;cursor:pointer">{{ joinCta }}</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetTables }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column">
+            <span style="font-size:18px;font-weight:500;padding-bottom:8px">All tables</span>
+            <sc-for list="{{ tables }}" as="t" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid rgba(201,168,92,.25);opacity:{{ t.op }}">
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:16px;font-weight:500">{{ t.name }} · {{ t.game }} {{ t.stakes }}</span><div style="display:flex;gap:4px"><sc-for list="{{ t.pips }}" as="p" hint-placeholder-count="9"><span style="width:6px;height:6px;border-radius:50%;background:{{ p.c }}"></span></sc-for></div></div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span style="font-size:14px;color:{{ t.waitColor }}">{{ t.wait }}</span><span style="font-size:12px;color:rgba(243,237,224,.6)">{{ t.open }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetTopup }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Top up</span>
+            <button onClick="{{ confirmTopup }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Request top-up</button>
+            <button onClick="{{ closeSheet }}" style="height:44px;background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer">Cancel</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetAddtime }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Add time</span>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><sc-for list="{{ timeOpts }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onClick }}" style="height:56px;border-radius:4px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font-size:16px;font-weight:500;cursor:pointer">{{ c.label }}</button></sc-for></div>
+            <button onClick="{{ confirmAddtime }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Request {{ timeChoiceLabel }}</button>
+            <button onClick="{{ closeSheet }}" style="height:44px;background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer">Cancel</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetLeave }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Leave your seat?</span>
+            <span style="font-size:15px;line-height:1.5;color:rgba(243,237,224,.6)">{{ callLong }} call time left.</span>
+            <button onClick="{{ confirmLeave }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Join leaving list</button>
+            <button onClick="{{ closeSheet }}" style="height:44px;background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer">Stay seated</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetRedeem }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C9A85C">Redeem</span>
+            <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">{{ ri.name }}</span>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid rgba(201,168,92,.25);font-size:15px"><span style="color:rgba(243,237,224,.6)">Cost</span><span>{{ ri.cost }}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid rgba(201,168,92,.25);border-bottom:1px solid rgba(201,168,92,.25);font-size:15px"><span style="color:rgba(243,237,224,.6)">Balance after</span><span>{{ ri.after }}</span></div>
+            <span style="font-size:14px;color:rgba(243,237,224,.6)">{{ ri.note }}</span>
+            <button onClick="{{ confirmRedeem }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Redeem</button>
+            <button onClick="{{ closeSheet }}" style="height:44px;background:none;border:0;color:#F3EDE0;font-size:15px;cursor:pointer">Cancel</button>
+          </div>
+        </sc-if>
+
+
+        <sc-if value="{{ sheetPick }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:20px;font-weight:500">{{ pickTitle }}</span><span style="font-size:13px;color:rgba(243,237,224,.6)">{{ pickHint }}</span></div>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ pickOpts }}" as="o" hint-placeholder-count="5">
+                <button onClick="{{ o.onClick }}" style="min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px;background:none;border:0;border-top:1px solid rgba(201,168,92,.2);color:#F3EDE0;font-size:16px;text-align:left;cursor:pointer">{{ o.label }}<span style="width:22px;height:22px;flex-shrink:0;border-radius:{{ o.radius }};border:1px solid {{ o.bd }};background:{{ o.bg }};display:grid;place-items:center;color:#0A2A20;font-size:13px;font-weight:700">{{ o.tick }}</span></button>
+              </sc-for>
+            </div>
+            <button onClick="{{ closeSheet }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Done</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetFeedback }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Send feedback</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ fbTopics }}" as="c" hint-placeholder-count="7"><button onClick="{{ c.onClick }}" style="min-height:44px;padding:0 16px;border-radius:22px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font-size:14px;cursor:pointer">{{ c.label }}</button></sc-for></div>
+            <textarea placeholder="What happened?" style="height:110px;background:#0E3B2C;border:1px solid rgba(243,237,224,.5);border-radius:4px;color:#F3EDE0;font-size:15px;padding:12px 14px;outline:none;resize:none"></textarea>
+            <button onClick="{{ sendFeedback }}" style="height:54px;border:0;border-radius:4px;background:#C9A85C;color:#0A2A20;font-size:16px;font-weight:600;cursor:pointer">Send</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasPush }}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="position:absolute;left:10px;right:10px;top:10px;z-index:70;background:rgba(243,237,224,.97);color:#141414;border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 48px rgba(0,0,0,.5);animation:rivrdown .3s cubic-bezier(0,0,.58,1)">
+      <button onClick="{{ tapPush }}" style="display:flex;gap:12px;align-items:center;text-align:left;background:none;border:0;padding:0;color:#141414;cursor:pointer">
+        <span style="width:38px;height:38px;flex-shrink:0;border-radius:9px;background:#C4162A;color:#F3EDE0;display:grid;place-items:center;font-size:20px">♠</span>
+        <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="display:flex;justify-content:space-between;font-size:13px;color:rgba(20,20,20,.6)"><span>RIVR</span><span>now</span></span><span style="font-size:15px;font-weight:600">{{ pushTitle }}</span><span style="font-size:14px">{{ pushBody }}</span></span>
+      </button>
+      <button onClick="{{ pushAction }}" style="height:40px;border:0;border-radius:10px;background:rgba(20,20,20,.08);color:#141414;font-size:14px;font-weight:600;cursor:pointer">{{ pushActionLabel }}</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isLock }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:80;background:linear-gradient(180deg,#0A2A20,#050f0b);display:flex;flex-direction:column;align-items:center;padding:72px 14px 0;color:#F3EDE0">
+      <span style="font-size:15px;font-weight:500;opacity:.85">Monday 2 November</span>
+      <span style="font-size:84px;font-weight:600;line-height:1.05;letter-spacing:-.02em">{{ clock }}</span>
+      <button onClick="{{ unlock }}" style="margin-top:auto;margin-bottom:120px;width:100%;background:rgba(243,237,224,.12);backdrop-filter:blur(20px);border:1px solid rgba(243,237,224,.15);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;color:#F3EDE0;text-align:left;cursor:pointer">
+        <span style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><span style="width:22px;height:22px;border-radius:6px;background:#C4162A;display:grid;place-items:center;font-size:12px">♠</span>RIVR</span><span style="font-size:13px;opacity:.7">{{ lockMeta }}</span></span>
+        <span style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;opacity:.7">{{ lockLabel }}</span><span style="font-family:'Bodoni Moda',serif;font-size:40px;line-height:1">{{ lockValue }}</span></span><span style="font-size:14px;font-weight:600;color:#C9A85C">{{ lockCta }}</span></span>
+        <span style="height:4px;border-radius:2px;background:rgba(243,237,224,.2)"><span style="display:block;height:4px;width:{{ lockPct }};border-radius:2px;background:#C9A85C;transition:width 1s linear"></span></span>
+      </button>
+      <span style="position:absolute;bottom:14px;width:134px;height:5px;border-radius:3px;background:rgba(243,237,224,.8)"></span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="animation:rivrfade .2s ease-out;position:absolute;left:20px;right:20px;bottom:104px;z-index:60;background:#F3EDE0;color:#141414;border-radius:6px;padding:14px 16px;font-size:15px;font-weight:500;box-shadow:0 16px 48px rgba(0,0,0,.5);display:flex;justify-content:space-between;align-items:center;gap:12px"><span>{{ toast }}</span><sc-if value="{{ hasUndo }}" hint-placeholder-val="{{ false }}"><button onClick="{{ undo }}" style="background:none;border:0;color:#0E3B2C;font-size:15px;font-weight:600;cursor:pointer;text-decoration:underline">Undo</button></sc-if></div>
+  </sc-if>
+</div>
+
+<!-- ================= STATE BOARD ================= -->
+<div style="width:340px;display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#6b665c">RIVR player app · Direction 1b</span>
+    <span style="font-family:'Bodoni Moda',serif;font-size:32px;line-height:1.1">Every state</span>
+    <span style="font-size:14px;line-height:1.5;color:#3d3a34">Tap through the phone, or jump to any state. The code fills itself from SMS; typing 000000 shows the error. After you join a waitlist, the seat is called in 4 seconds with a push notification.</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid rgba(14,59,44,.25);border-radius:6px">
+    <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#0E3B2C;font-weight:600">Alert system</span>
+    <span style="font-size:13px;line-height:1.5;color:#3d3a34"><b>Banner</b> · top of Tonight. Club notices, offline, club paused. Red only when it blocks you.</span>
+    <span style="font-size:13px;line-height:1.5;color:#3d3a34"><b>Toast</b> · bottom, 3 s. Confirms your own action, with Undo when it can be undone.</span>
+    <span style="font-size:13px;line-height:1.5;color:#3d3a34"><b>Push</b> · outside the app. Seat ready and call time ending.</span>
+    <span style="font-size:13px;line-height:1.5;color:#3d3a34"><b>Field error</b> · under the field it belongs to.</span>
+  </div>
+  <sc-for list="{{ board }}" as="g" hint-placeholder-count="6">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#0E3B2C;font-weight:600">{{ g.group }}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="4"><button onClick="{{ i.onClick }}" style="height:32px;padding:0 12px;border-radius:16px;border:1px solid {{ i.bd }};background:{{ i.bg }};color:{{ i.fg }};font-size:13px;cursor:pointer">{{ i.label }}</button></sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const TABLES = [
+  { name: 'Table 1', game: 'NLH', gameLong: "No-Limit Hold'em", stakes: '50/100', taken: 6, wait: 'No wait' },
+  { name: 'Table 2', game: 'NLH', gameLong: "No-Limit Hold'em", stakes: '100/200', taken: 9, wait: '3 waiting' },
+  { name: 'Table 3', game: 'PLO', gameLong: 'Pot-Limit Omaha', stakes: '100/200', taken: 7, wait: 'No wait' },
+  { name: 'Private Room', game: 'NLH', gameLong: "No-Limit Hold'em", stakes: '100/200', taken: 5, wait: '1 waiting' },
+  { name: 'Table 4', game: 'NLH', gameLong: "No-Limit Hold'em", stakes: '100/200', taken: 0, wait: 'Closed', closed: true },
+];
+const MENU = { Food: ['Club sandwich', 'Paneer tikka', 'French fries'], 'Soft drinks': ['Masala chai', 'Fresh lime soda', 'Mineral water'], Bar: ['Beer', 'Whisky'] };
+const CATALOGUE = [
+  { name: 'Bar upgrade, one night', pts: 2500, note: 'At the Glaza bar', cat: 'F&B' },
+  { name: 'RIVR hoodie', pts: 4000, note: '42 left · Collect at the host desk', cat: 'Merch' },
+  { name: 'Sunday Main Event seat', pts: 12000, note: '18 left · The cage registers you', cat: 'Tournament seats' },
+  { name: 'Partner hotel suite', nights: 1, note: '6 left · The host confirms by text', cat: 'Hotel' },
+];
+const SESSIONS = [
+  { date: 'Fri 30 Oct', table: 'Table 3', game: 'PLO 100/200', time: '20:10 to 00:15', dur: '4h 05m', mins: 245 },
+  { date: 'Tue 27 Oct', table: 'Table 1', game: 'NLH 50/100', time: '21:30 to 23:55', dur: '2h 25m', mins: 145 },
+];
+const RULES = [
+  'Members only, 18 and over. Check in at the front desk with the phone you signed up with.',
+  'One player to a hand. No advice from the rail, and no phones on the table during a hand.',
+  'English only at the table during a hand.',
+  'Chips stay on the table until you cash out at the cage. Chips never leave the club.',
+  'Seats go in waitlist order. A called seat is held for 20 minutes.',
+  "The floor settles any dispute at a table. Their decision on a hand is final.",
+  'Treat dealers, staff and players with respect. The floor may ask anyone to leave.',
+];
+const CASES = [
+  { year: '1968', name: 'State of Andhra Pradesh v. K. Satyanarayana', text: 'The Supreme Court holds that a game of mere skill is not gambling.' },
+  { year: '1996', name: 'K.R. Lakshmanan v. State of Tamil Nadu', text: 'The Supreme Court sets the test still applied: whether skill predominates over chance.' },
+  { year: '2013', name: 'Indian Poker Association v. State of Karnataka', text: 'The Karnataka High Court holds that poker played as a game of skill needs no gaming licence.' },
+  { year: '2017', name: 'Varun Gumber v. Union Territory of Chandigarh', text: 'The Punjab and Haryana High Court holds that games where skill predominates are not gambling. The Supreme Court dismissed the appeal.' },
+];
+const PICK = {
+  occ: { title: 'Occupation', opts: ['Salaried', 'Business owner', 'Self-employed professional', 'Student', 'Homemaker', 'Retired', 'Prefer not to say'] },
+  when: { title: 'When you usually play', opts: ['Weekday afternoons', 'Weekday evenings', 'Late nights', 'Weekends'] },
+  games: { title: 'Games you play', opts: ["Hold'em", 'PLO', 'Bomb pots', 'ROE'] },
+};
+const CREAM = '#F3EDE0', MUTED = 'rgba(243,237,224,.6)', GOLD = '#C9A85C', CTRL = 'rgba(243,237,224,.5)';
+const chip = (on) => ({ bd: on ? GOLD : CTRL, bg: on ? 'rgba(201,168,92,.14)' : 'transparent', fg: on ? CREAM : MUTED });
+
+const BASE = () => ({
+  screen: 'home', prevTab: 'home', cookie: false, phone: '', phoneErr: '', otp: '', otpErr: false,
+  su: { name: '', city: '', occ: '', when: '', games: [] }, suErr: {},
+  kycStep: 1, kycBusy: false, kycInfo: null,
+  home: 'browse', sheet: null, selTable: 0, onWay: false, push: false, gamesOpen: false, dismissed: {},
+  callSec: 9668, holdSec: 1182, camHintIdx: 0, otpAuto: false, kycResume: false, lock: false, lastOrder: null, totalCall: 180, playMin: 19, topUp: null, timeReq: null, timeChoice: 60, leaving: false,
+  order: {}, orderCat: 'Food', orderStatus: null, orderText: '',
+  banner: null, loadState: null, showRate: false, rating: 0,
+  tourneys: {},
+  points: 3250, redeemed: [], redeemIdx: null, rwFilter: 'All',
+  toast: null, undoFn: null, sessions: SESSIONS, sessionIdx: 0, active: 'browse',
+  notifs: { seat: true, call: true, tourn: true, promo: false, analytics: false, tv: true },
+});
+
+class Component extends DCLogic {
+  state = { ...BASE(), screen: 'signin', cookie: true, active: 'signin' };
+  timers = [];
+  componentDidMount() {
+    this.tickT = setInterval(() => this.setState(st => ({
+      callSec: st.home === 'seated' ? Math.max(0, st.callSec - 1) : st.callSec,
+      holdSec: st.home === 'ready' ? Math.max(0, st.holdSec - 1) : st.holdSec,
+    })), 1000);
+  }
+  componentWillUnmount() { this.clearTimers(); clearInterval(this.tickT); }
+  buzz() { try { navigator.vibrate && navigator.vibrate(12); } catch (e) {} }
+  startOtp() { this.set({ screen: 'otp', otp: '', otpErr: false, otpAuto: false });
+    this.later(1500, () => { if (this.state.screen === 'otp' && !this.state.otp) this.set({ otp: '482913', otpAuto: true }); });
+    this.later(2600, () => { if (this.state.screen === 'otp' && this.state.otpAuto) this.set({ screen: 'signup' }); }); }
+  startCam() { this.set({ screen: 'cam', camHintIdx: 0 });
+    this.later(1200, () => this.state.screen === 'cam' && this.set({ camHintIdx: 1 }));
+    this.later(2400, () => this.state.screen === 'cam' && this.set({ camHintIdx: 2 }));
+    this.later(3600, () => this.state.screen === 'cam' && this.set({ screen: 'review' })); }
+  sendOrderNow(items) {
+    const text = Object.entries(items).filter(([, q]) => q > 0).map(([n, q]) => (q > 1 ? q + ' × ' : '') + n).join(', ');
+    this.buzz();
+    this.set({ screen: 'home', orderStatus: 'Sent', orderText: text, lastOrder: items, order: {} });
+    this.toastMsg('Order sent');
+    this.later(3000, () => this.set({ orderStatus: 'Preparing' }));
+    this.later(7000, () => this.set({ orderStatus: 'On its way' }));
+    this.later(11000, () => this.set({ orderStatus: 'Delivered' }));
+  }
+  clearTimers() { this.timers.forEach(clearTimeout); this.timers = []; }
+  later(ms, fn) { this.timers.push(setTimeout(fn, ms)); }
+  set = (p) => this.setState(p);
+  toastMsg(msg, undoFn) {
+    this.setState({ toast: msg, undoFn: undoFn || null });
+    clearTimeout(this.toastT);
+    this.toastT = setTimeout(() => this.setState({ toast: null, undoFn: null }), 3200);
+  }
+  go(key) {
+    this.clearTimers();
+    const P = {
+      signin: { screen: 'signin', cookie: true }, phone: { screen: 'signin' },
+      phoneErr: { screen: 'signin', phone: '90000', phoneErr: 'Enter a 10-digit mobile number.' },
+      otp: { screen: 'otp', phone: '9000000901' }, otpAutoP: { screen: 'otp', phone: '9000000901', otp: '482913', otpAuto: true }, otpErr: { screen: 'otp', phone: '9000000901', otp: '000000', otpErr: true },
+      signup: { screen: 'signup', phone: '9000000901' },
+      pickOcc: { screen: 'signup', phone: '9000000901', sheet: 'pick', pickKey: 'occ' },
+      pickGames: { screen: 'signup', phone: '9000000901', sheet: 'pick', pickKey: 'games', su: { name: '', city: '', occ: '', when: '', games: ["Hold'em"] } }, signupErr: { screen: 'signup', phone: '9000000901', suErr: { name: 1, city: 1, occ: 1 } },
+      kyc: { screen: 'kyc' }, cam: { screen: 'cam' }, review: { screen: 'review' }, kyc2: { screen: 'kyc', kycStep: 2 }, resume: { screen: 'kyc', kycStep: 2, kycResume: true },
+      verifying: { screen: 'kyc', kycStep: 2, kycBusy: true }, verified: { screen: 'verified' }, pan: { screen: 'pan' },
+      underReview: { screen: 'kycInfo', kycInfo: 'review' }, refused: { screen: 'kycInfo', kycInfo: 'refused' },
+      browse: {}, join: { sheet: 'join' }, list: { home: 'list' }, ready: { home: 'ready', push: 'seat' }, callEnding: { home: 'seated', callSec: 890, push: 'call' },
+      lockList: { home: 'list', lock: true }, lockReady: { home: 'ready', lock: true }, lockSeated: { home: 'seated', lock: true },
+      seated: { home: 'seated' }, topup: { home: 'seated', topUp: 'requested' }, addtime: { home: 'seated', sheet: 'addtime' },
+      timePending: { home: 'seated', timeReq: 60 }, leaving: { home: 'seated', leaving: true },
+      order: { screen: 'order', home: 'seated', order: { 'Club sandwich': 1, 'Paneer tikka': 1 } },
+      orderOn: { home: 'seated', orderStatus: 'On its way', orderText: 'Club sandwich, Paneer tikka', lastOrder: { 'Club sandwich': 1, 'Paneer tikka': 1 } },
+      orderDone: { home: 'seated', orderStatus: 'Delivered', orderText: 'Club sandwich, Paneer tikka', lastOrder: { 'Club sandwich': 1, 'Paneer tikka': 1 } },
+      rate: { showRate: true },
+      sessions: { screen: 'sessions' }, session: { screen: 'session' }, card: { screen: 'card' }, rewards: { screen: 'rewards' },
+      redeem: { screen: 'rewards', sheet: 'redeem', redeemIdx: 0 }, profile: { screen: 'profile' },
+      feedback: { screen: 'profile', sheet: 'feedback' }, rules: { screen: 'rules' },
+      loading: { loadState: 'loading' }, failed: { banner: 'failed' }, offline: { banner: 'offline' }, paused: { banner: 'paused' }, notfound: { screen: 'notfound' },
+    };
+    this.setState({ ...BASE(), ...P[key], active: key });
+    if (key === 'verifying') this.later(1600, () => this.set({ screen: 'verified', kycBusy: false }));
+    if (key === 'ready' || key === 'callEnding') this.later(5000, () => this.set({ push: false }));
+    if (key === 'otp') this.startOtp();
+    if (key === 'cam') this.startCam();
+  }
+  toScreen(s) { this.setState(st => ({ screen: s, sheet: null, prevTab: ['home', 'sessions', 'card', 'rewards'].includes(s) ? s : st.prevTab })); }
+  join() {
+    const s = this.state;
+    if (s.banner === 'paused') return;
+    this.setState({ sheet: null, home: 'list' });
+    this.toastMsg('Joined waitlist', () => { this.clearTimers(); this.set({ home: 'browse' }); });
+    this.buzz();
+    this.later(4000, () => { if (this.state.home === 'list') { this.buzz(); this.set({ home: 'ready', push: 'seat', holdSec: 1182 }); this.later(6000, () => this.set({ push: false })); } });
+  }
+  renderVals() {
+    const s = this.state;
+    const is = (x) => s.screen === x;
+    const tabs = ['home', 'sessions', 'card', 'rewards', 'session', 'notfound'];
+    const tabC = (x) => (s.screen === x || (x === 'sessions' && s.screen === 'session')) ? CREAM : MUTED;
+    const fmtHMS = (t) => `${Math.floor(t / 3600)}:${String(Math.floor(t / 60) % 60).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    const fmtMS = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+    const fmtH = (m) => `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`;
+    const cart = Object.values(s.order).reduce((a, b) => a + b, 0);
+    const jtRaw = TABLES[s.selTable];
+    const free = 9 - jtRaw.taken;
+    const blocked = s.banner === 'paused' ? 'The club is paused' : null;
+    const homeOn = is('home') && !s.loadState;
+    // One banner component for every in-app alert on Home: neutral (info) or alert (blocking).
+    const banners = [];
+    if (homeOn && s.banner === 'paused') banners.push({ text: 'The club is paused. Ask a member of staff.', bg: '#C4162A', bd: '#C4162A', icon: CREAM, canDismiss: false });
+    if (homeOn && s.banner === 'failed') banners.push({ text: "Couldn't refresh. Showing 22:41.", bg: '#0A2A20', bd: 'rgba(201,168,92,.35)', icon: GOLD, hasAction: true, action: 'Retry', onAction: () => { this.set({ banner: null, loadState: 'loading' }); this.later(1000, () => this.set({ loadState: null })); } });
+    if (homeOn && s.home === 'seated' && s.callSec <= 900) banners.push({ text: `Call time ends in ${Math.ceil(s.callSec / 60)} min`, bg: '#0A2A20', bd: 'rgba(201,168,92,.35)', icon: GOLD, hasAction: true, action: 'Add time', onAction: () => this.set({ sheet: 'addtime' }) });
+    if (homeOn && s.banner === 'offline') banners.push({ text: 'Offline. Showing tables as of 22:41.', bg: '#0A2A20', bd: 'rgba(201,168,92,.35)', icon: GOLD, canDismiss: false });
+    if (homeOn && s.home === 'browse' && !s.dismissed.launch) banners.push({ text: 'RIVR opens on Sunday 15 November.', bg: '#0A2A20', bd: 'rgba(201,168,92,.35)', icon: GOLD, canDismiss: true, dismiss: () => this.set({ dismissed: { ...s.dismissed, launch: true } }) });
+    const seatStatus = [];
+    const OSTEPS = ['Sent', 'Preparing', 'On its way', 'Delivered'];
+    const oi = OSTEPS.indexOf(s.orderStatus);
+    if (s.topUp) seatStatus.push({ label: 'Top-up', value: s.topUp === 'requested' ? 'Requested' : 'In progress', c: GOLD });
+    if (s.timeReq) seatStatus.push({ label: `+${s.timeReq === 30 ? '30 min' : s.timeReq / 60 + ' h'}`, value: 'Requested', c: GOLD });
+    if (s.leaving) seatStatus.push({ label: 'Leaving list', value: 'On the list', c: MUTED });
+    const ri = s.redeemIdx === null ? null : CATALOGUE[s.redeemIdx];
+    const qr = []; let seed = 7;
+    for (let y = 0; y < 21; y++) for (let x = 0; x < 21; x++) {
+      seed = (seed * 9301 + 49297) % 233280;
+      const inF = (fx, fy) => x >= fx && x < fx + 7 && y >= fy && y < fy + 7;
+      let on = seed / 233280 > 0.5;
+      [[0, 0], [14, 0], [0, 14]].forEach(([fx, fy]) => { if (inF(fx, fy)) { const dx = x - fx, dy = y - fy; on = dx === 0 || dy === 0 || dx === 6 || dy === 6 || (dx > 1 && dx < 5 && dy > 1 && dy < 5); } });
+      qr.push({ c: on ? '#141414' : 'transparent' });
+    }
+    const boardDef = [
+      ['Sign in', [['Cookies', 'signin'], ['Phone', 'phone'], ['Phone error', 'phoneErr'], ['Code (auto-fill)', 'otp'], ['Wrong code', 'otpErr']]],
+      ['Sign up', [['About you', 'signup'], ['Errors', 'signupErr']]],
+      ['Identity', [['Start', 'kyc'], ['Camera', 'cam'], ['Review selfie', 'review'], ['DigiLocker', 'kyc2'], ['Resume', 'resume'], ['Verifying', 'verifying'], ['Verified', 'verified'], ['PAN fallback', 'pan'], ['Under review', 'underReview'], ['Not verified', 'refused']]],
+      ['Tonight', [['Browsing', 'browse'], ['Join sheet', 'join'], ['On the list', 'list'], ['Seat ready', 'ready'], ['Seated', 'seated'], ['Call time ending', 'callEnding'], ['Top-up requested', 'topup'], ['Add time', 'addtime'], ['Time requested', 'timePending'], ['Leaving list', 'leaving'], ['Order', 'order'], ['Order on its way', 'orderOn'], ['Order delivered', 'orderDone'], ['Rate your visit', 'rate']]],
+      ['Sessions, card, rewards', [['Sessions', 'sessions'], ['Session detail', 'session'], ['Card', 'card'], ['Rewards', 'rewards'], ['Redeem', 'redeem']]],
+      ['Profile', [['Profile', 'profile'], ['Feedback', 'feedback'], ['House rules', 'rules']]],
+      ['Lock screen (native)', [['Waiting', 'lockList'], ['Seat ready', 'lockReady'], ['Seated', 'lockSeated']]],
+      ['Errors', [['Loading', 'loading'], ['Failed to load', 'failed'], ['Offline', 'offline'], ['Club paused', 'paused'], ['Not found', 'notfound']]],
+      ['Pickers', [['Occupation', 'pickOcc'], ['Games (multi)', 'pickGames']]],
+    ];
+    const ki = s.kycInfo === 'refused'
+      ? { e: 'Identity', t: "We couldn't verify you", b: 'Bring your Aadhaar and PAN to the front desk.' }
+      : { e: 'Identity', t: "We're checking your details", b: "We'll notify you when it's done." };
+    const timeOptsDef = [[30, '30 min'], [60, '1 hour'], [120, '2 hours']];
+
+    return {
+      clock: s.home === 'seated' ? '23:03' : '22:44',
+      isSignin: is('signin'), isOtp: is('otp'), isSignup: is('signup'), isKyc: is('kyc'), isCam: is('cam'), isReview: is('review'),
+      isVerified: is('verified'), isPan: is('pan'), isKycInfo: is('kycInfo'), isHome: is('home'), isOrder: is('order'),
+      isSessions: is('sessions'), isSession: is('session'), isCard: is('card'), isRewards: is('rewards'), isProfile: is('profile'),
+      isRules: is('rules'), isNotFound: is('notfound'), showTabs: tabs.includes(s.screen),
+      tabHome: tabC('home'), tabSessions: tabC('sessions'), tabCard: tabC('card'), tabRewards: tabC('rewards'),
+      // sign in
+      cookie: s.cookie, cookieEssential: () => this.set({ cookie: false }), cookieAll: () => this.set({ cookie: false, notifs: { ...s.notifs, analytics: true } }),
+      phone: s.phone, phoneErr: s.phoneErr, hasPhoneErr: !!s.phoneErr, phoneBorder: s.phoneErr ? '#C4162A' : CTRL,
+      onPhone: (e) => this.set({ phone: e.target.value.replace(/\D/g, '').slice(0, 10), phoneErr: '' }),
+      submitPhone: () => s.phone.length === 10 ? this.startOtp() : this.set({ phoneErr: 'Enter a 10-digit mobile number.' }),
+      otpAuto: s.otpAuto,
+      camHint: ['Move closer', 'Hold still', 'Capturing'][s.camHintIdx], camRing: s.camHintIdx === 0 ? 'rgba(243,237,224,.6)' : GOLD,
+      kycTitle: s.kycResume ? 'Pick up where you left off' : 'Verify your identity',
+      phoneFmt: '+91 ' + (s.phone.length === 10 ? s.phone.slice(0, 5) + ' ' + s.phone.slice(5) : '90000 00901'),
+      otp: s.otp, otpErr: s.otpErr, otpBorder: s.otpErr ? '#C4162A' : CTRL,
+      onOtp: (e) => this.set({ otp: e.target.value.replace(/\D/g, '').slice(0, 6), otpErr: false, otpAuto: false }),
+      submitOtp: () => { if (s.otp.length < 6 || s.otp === '000000') this.set({ otpErr: true }); else this.set({ screen: 'signup' }); },
+      toSignin: () => this.go('phone'),
+      // sign up
+      suName: s.su.name, suCity: s.su.city,
+      onSuName: (e) => this.set({ su: { ...s.su, name: e.target.value }, suErr: { ...s.suErr, name: 0 } }),
+      onSuCity: (e) => this.set({ su: { ...s.su, city: e.target.value }, suErr: { ...s.suErr, city: 0 } }),
+      errName: !!s.suErr.name, errCity: !!s.suErr.city, errOcc: !!s.suErr.occ,
+      nameBorder: s.suErr.name ? '#C4162A' : CTRL, cityBorder: s.suErr.city ? '#C4162A' : CTRL,
+      occBorder: s.suErr.occ ? '#C4162A' : 'rgba(243,237,224,.3)', whenBorder: 'rgba(243,237,224,.3)', gamesBorder: 'rgba(243,237,224,.3)',
+      occValue: s.su.occ || 'Select', occColor: s.su.occ ? CREAM : MUTED,
+      whenValue: s.su.when || 'Select', whenColor: s.su.when ? CREAM : MUTED,
+      gamesValue: s.su.games.length ? s.su.games.join(', ') : 'Select any', gamesColor: s.su.games.length ? CREAM : MUTED,
+      pickOcc: () => this.set({ sheet: 'pick', pickKey: 'occ' }), pickWhen: () => this.set({ sheet: 'pick', pickKey: 'when' }), pickGames: () => this.set({ sheet: 'pick', pickKey: 'games' }),
+      sheetPick: s.sheet === 'pick',
+      pickTitle: PICK[s.pickKey || 'occ'].title, pickHint: s.pickKey === 'games' ? 'Choose any' : 'Choose one',
+      pickOpts: PICK[s.pickKey || 'occ'].opts.map(l => {
+        const k = s.pickKey || 'occ', multi = k === 'games';
+        const on = multi ? s.su.games.includes(l) : s.su[k] === l;
+        return { label: l, radius: multi ? '4px' : '50%', bd: on ? GOLD : CTRL, bg: on ? GOLD : 'transparent', tick: on ? '✓' : '',
+          onClick: () => multi
+            ? this.set({ su: { ...s.su, games: on ? s.su.games.filter(x => x !== l) : [...s.su.games, l] } })
+            : this.set({ su: { ...s.su, [k]: l }, suErr: { ...s.suErr, [k]: 0 }, sheet: null }) };
+      }),
+      otpCells: Array.from({ length: 6 }, (_, i) => ({ d: s.otp[i] || '', bd: s.otpErr ? '#C4162A' : i === Math.min(s.otp.length, 5) ? GOLD : CTRL })),
+      submitSignup: () => {
+        const err = { name: !s.su.name.trim(), city: !s.su.city.trim(), occ: !s.su.occ };
+        if (err.name || err.city || err.occ) this.set({ suErr: err }); else this.set({ screen: 'kyc', kycStep: 1 });
+      },
+      // kyc
+      k1bg: s.kycStep > 1 ? CREAM : 'transparent', k1fg: s.kycStep > 1 ? '#141414' : GOLD, k1bd: s.kycStep > 1 ? CREAM : GOLD, k1mark: s.kycStep > 1 ? '✓' : '1',
+      k2bd: s.kycStep > 1 ? GOLD : 'rgba(243,237,224,.3)', k2fg: s.kycStep > 1 ? GOLD : MUTED, k2op: s.kycStep > 1 ? 1 : 0.6,
+      kycBusy: s.kycBusy, kycCta: s.kycStep > 1 ? 'Continue to DigiLocker' : 'Take a selfie',
+      kycPrimary: () => {
+        if (s.kycStep === 1) return this.startCam();
+        this.set({ kycBusy: true }); this.later(1600, () => this.set({ screen: 'verified', kycBusy: false }));
+      },
+      toKyc: () => this.set({ screen: 'kyc' }), toCam: () => this.startCam(), takePhoto: () => this.set({ screen: 'review' }),
+      usePhoto: () => this.set({ screen: 'kyc', kycStep: 2 }), toVerified: () => this.set({ screen: 'verified' }), toKyc2: () => this.set({ screen: 'kyc', kycStep: 2 }),
+      kiEyebrow: ki.e, kiTitle: ki.t, kiBody: ki.b,
+      // nav
+      toHome: () => this.toScreen('home'), toSessions: () => this.toScreen('sessions'), toCard: () => this.toScreen('card'), toRewards: () => this.toScreen('rewards'),
+      toProfile: () => this.toScreen('profile'), toRules: () => this.toScreen('rules'), toOrder: () => this.set({ screen: 'order', order: {} }),
+      backFromProfile: () => this.toScreen(s.prevTab || 'home'),
+      // home
+      bannerOffline: homeOn && s.banner === 'offline', bannerPaused: homeOn && s.banner === 'paused',
+      hdrLogo: s.home !== 'seated' || !!s.loadState, hdrSeat: s.home === 'seated' && !s.loadState, playFmt: s.playMin + ' min',
+      isLoading: s.loadState === 'loading', isLoadErr: s.loadState === 'error', retry: () => { this.set({ loadState: 'loading' }); this.later(1200, () => this.set({ loadState: null })); },
+      homeBrowse: homeOn && s.home === 'browse', homeList: homeOn && s.home === 'list', homeReady: homeOn && s.home === 'ready', homeSeated: homeOn && s.home === 'seated',
+      showRateCard: s.showRate, showHero: !s.showRate,
+      hasBanners: banners.length > 0, banners,
+      promoCount: '3 offers',
+      promos: [['Referral', '1,000 bonus chips each', 'Every day', 'rewards'], ['Happy hour', '2-for-1 at the Glaza bar', 'Daily, 19:00 to 21:00', null], ['High hand', '₹10,000 for the night\'s best hand', 'Every night', null]].map(([title, offer, when, to]) => ({ title, offer, when, onClick: () => to && this.toScreen(to) })),
+      hasPush: !!s.push,
+      pushTitle: s.push === 'call' ? 'Call time ends in 15 min' : 'Your seat is ready',
+      pushBody: s.push === 'call' ? 'Table 1, seat 4. Ends at 23:18.' : 'Table 1, seat 4. Held until 23:04.',
+      pushActionLabel: s.push === 'call' ? 'Add time' : "I'm on my way",
+      tapPush: () => this.set({ push: false, screen: 'home', lock: false }),
+      pushAction: () => { if (s.push === 'call') this.set({ push: false, screen: 'home', sheet: 'addtime' }); else { this.set({ push: false }); this.later(0, () => { this.set({ onWay: true, screen: 'home', home: 'ready' }); this.later(1800, () => { this.buzz(); this.set({ home: 'seated', onWay: false }); this.toastMsg('Seated at Table 1, seat 4'); }); }); } },
+      isLock: s.lock, unlock: () => this.set({ lock: false, screen: 'home' }),
+      lockMeta: s.home === 'seated' ? 'Table 1 · Seat 4' : 'NLH 50/100',
+      lockLabel: s.home === 'seated' ? 'Call time left' : s.home === 'ready' ? 'Seat ready · held for' : 'Waitlist · Table 1',
+      lockValue: s.home === 'seated' ? fmtHMS(s.callSec) : s.home === 'ready' ? fmtMS(s.holdSec) : 'Next in line',
+      lockCta: s.home === 'ready' ? "I'm on my way" : s.home === 'seated' ? 'Order' : '',
+      lockPct: s.home === 'seated' ? Math.round(100 * s.callSec / (s.totalCall * 60)) + '%' : s.home === 'ready' ? Math.round(100 * s.holdSec / 1200) + '%' : '100%',
+      rateOpts: [1, 2, 3, 4, 5].map(n => ({ n, ...chip(s.rating === n), onClick: () => this.set({ rating: n }) })), rated: s.rating > 0,
+      sendRating: () => { this.set({ showRate: false, rating: 0 }); this.toastMsg('Rating sent'); },
+      openJoinHero: () => this.set({ sheet: 'join', selTable: 0 }),
+      tables: TABLES.map((t, i) => {
+        const f = 9 - t.taken;
+        return { ...t, op: t.closed ? 0.4 : 1, open: t.closed ? 'Opens later' : f === 0 ? 'Full' : `${f} open`,
+          waitColor: t.wait === 'No wait' ? GOLD : MUTED,
+          pips: Array.from({ length: 9 }, (_, k) => ({ c: t.closed ? 'rgba(243,237,224,.2)' : k < t.taken ? 'rgba(243,237,224,.35)' : GOLD })),
+          onClick: () => { if (!t.closed) this.set({ sheet: 'join', selTable: i }); } };
+      }),
+      tourneys: [['Weeknight Turbo', 'Mon 9 Nov, 20:00'], ['RIVR Sunday', 'Sun 15 Nov, 16:00']].map(([name, when]) => {
+        const on = !!s.tourneys[name];
+        return { name, when, label: on ? 'Notifying you' : 'Notify me', bd: on ? GOLD : CTRL, fg: on ? GOLD : CREAM,
+          onClick: () => this.set({ tourneys: { ...s.tourneys, [name]: !on } }) };
+      }),
+      showPeek: homeOn && s.home !== 'browse',
+      openTables: () => this.set({ sheet: 'tables' }),
+      leaveList: () => { this.clearTimers(); this.set({ home: 'browse' }); this.toastMsg('Left waitlist', () => this.set({ home: 'list' })); },
+      onWay: s.onWay, wayLabel: s.onWay ? 'Telling the floor' : "I'm on my way",
+      onMyWay: () => { this.set({ onWay: true, push: false, screen: 'home', home: 'ready', lock: false }); this.later(1800, () => { this.buzz(); this.set({ home: 'seated', onWay: false }); this.toastMsg('Seated at Table 1, seat 4'); }); },
+      giveUpSeat: () => { this.set({ home: 'browse' }); this.toastMsg('Seat declined'); },
+      callFmt: fmtHMS(s.callSec), callLong: fmtH(Math.floor(s.callSec / 60)), callEnds: (() => { const m = (1383 + Math.floor(s.callSec / 60)) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); })(),
+      ringColor: s.callSec <= 900 ? '#C4162A' : GOLD, holdFmt: fmtMS(s.holdSec), holdPct: Math.round(100 * s.holdSec / 1200) + '%',
+      ringOffset: Math.round(691 * (1 - s.callSec / (s.totalCall * 60))),
+      topOp: s.topUp ? 0.4 : 1, timeOp: s.timeReq ? 0.4 : 1, leaveOp: s.leaving ? 0.4 : 1,
+      openTopup: () => { if (!s.topUp) this.set({ sheet: 'topup' }); },
+      openAddtime: () => { if (!s.timeReq) this.set({ sheet: 'addtime' }); },
+      openLeave: () => { if (!s.leaving) this.set({ sheet: 'leave' }); },
+      confirmTopup: () => { this.set({ sheet: null, topUp: 'requested' }); this.later(4000, () => this.set({ topUp: 'progress' })); this.later(9000, () => { this.set({ topUp: null }); this.toastMsg('Top-up done'); }); },
+      timeOpts: timeOptsDef.map(([v, l]) => ({ label: l, ...chip(s.timeChoice === v), onClick: () => this.set({ timeChoice: v }) })),
+      timeChoiceLabel: timeOptsDef.find(t => t[0] === s.timeChoice)[1],
+      confirmAddtime: () => {
+        const v = s.timeChoice; this.set({ sheet: null, timeReq: v });
+        this.later(3500, () => { this.setState(st => ({ timeReq: null, callSec: st.callSec + v * 60, totalCall: st.totalCall + v })); this.toastMsg(`${timeOptsDef.find(t => t[0] === v)[1]} added`); });
+      },
+      confirmLeave: () => {
+        this.set({ sheet: null, leaving: true });
+        this.later(5000, () => { this.setState(st => ({ home: 'browse', leaving: false, topUp: null, timeReq: null, orderStatus: null, showRate: true, sessions: [{ date: 'Mon 2 Nov', table: 'Table 1', game: 'NLH 50/100', time: '22:44 to 23:08', dur: '0h 24m', mins: 24 }, ...st.sessions] })); this.toastMsg('Session ended'); });
+      },
+      seatStatus,
+      // join sheet
+      seatMap: (() => { const openOrder = [4, 7, 2, 9, 5, 1, 3, 6, 8].slice(0, free);
+        return Array.from({ length: 9 }, (_, k) => { const n = k + 1, a = (270 + n * 36) * Math.PI / 180, open = openOrder.includes(n);
+          return { n, x: (50 + 44 * Math.cos(a)).toFixed(1) + '%', y: (50 + 42 * Math.sin(a)).toFixed(1) + '%', bg: open ? 'rgba(201,168,92,.2)' : '#0A2A20', bd: open ? GOLD : 'rgba(243,237,224,.25)', fg: open ? GOLD : 'rgba(243,237,224,.45)' }; }); })(),
+      jt: { ...jtRaw, free, waitShort: jtRaw.wait === 'No wait' ? 'None' : jtRaw.wait.split(' ')[0] },
+      joinCta: blocked || (free > 0 && jtRaw.wait === 'No wait' ? 'Take a seat' : 'Join waitlist'),
+      joinBg: blocked ? 'rgba(243,237,224,.15)' : GOLD, joinFg: blocked ? MUTED : '#0A2A20',
+      joinList: () => this.join(),
+      // sheets
+      anySheet: !!s.sheet, closeSheet: () => this.set({ sheet: null }),
+      sheetJoin: s.sheet === 'join', sheetTables: s.sheet === 'tables', sheetTopup: s.sheet === 'topup', sheetAddtime: s.sheet === 'addtime',
+      sheetLeave: s.sheet === 'leave', sheetRedeem: s.sheet === 'redeem' && !!ri, sheetBreak: s.sheet === 'break', sheetFeedback: s.sheet === 'feedback',
+      // order
+      cats: Object.keys(MENU).map(c => ({ name: c, bd: s.orderCat === c ? GOLD : 'transparent', fg: s.orderCat === c ? CREAM : MUTED, onClick: () => this.set({ orderCat: c }) })),
+      menuItems: MENU[s.orderCat].map(n => {
+        const q = s.order[n] || 0;
+        return { name: n, initial: n[0], qty: q, has: q > 0, none: q === 0,
+          inc: () => this.set({ order: { ...s.order, [n]: q + 1 } }), dec: () => this.set({ order: { ...s.order, [n]: Math.max(0, q - 1) } }) };
+      }),
+      hasCart: cart > 0, cartCount: `${cart} item${cart === 1 ? '' : 's'}`,
+      sendOrder: () => this.sendOrderNow(s.order),
+      addUsual: () => this.set({ order: { ...s.order, 'Masala chai': (s.order['Masala chai'] || 0) + 1, 'Club sandwich': (s.order['Club sandwich'] || 0) + 1 } }),
+      hasOrder: oi >= 0, orderText: s.orderText, orderStatus: s.orderStatus, orderDone: oi === 3,
+      orderSteps: OSTEPS.map((label, i) => ({ label, c: i <= oi ? GOLD : 'rgba(243,237,224,.15)', t: i <= oi ? CREAM : MUTED })),
+      orderAgain: () => this.set({ screen: 'order', order: { ...(s.lastOrder || {}) } }),
+      // sessions
+      sessions: s.sessions.map((x, i) => ({ ...x, table: `${x.table} · ${x.game}`, onClick: () => this.set({ screen: 'session', sessionIdx: i }) })),
+      sessCount: String(s.sessions.length), sessHours: fmtH(s.sessions.reduce((a, b) => a + b.mins, 0)),
+      sd: s.sessions[s.sessionIdx] || SESSIONS[0],
+      hideSession: () => { this.setState(st => ({ screen: 'sessions', sessions: st.sessions.filter((_, i) => i !== st.sessionIdx) })); this.toastMsg('Hidden from your list'); },
+      // card
+      qr,
+      // rewards
+      pointsFmt: s.points.toLocaleString('en-IN'),
+      ...(() => { const nx = CATALOGUE.filter(c => c.pts && c.pts > s.points).sort((a, b) => a.pts - b.pts)[0];
+        return nx ? { nextLabel: 'Next: ' + nx.name, nextGap: (nx.pts - s.points).toLocaleString('en-IN') + ' to go', nextPct: Math.round(100 * s.points / nx.pts) + '%' } : { nextLabel: 'Everything unlocked', nextGap: '', nextPct: '100%' }; })(),
+      rwFilters: ['All', 'Tournament seats', 'F&B', 'Merch', 'Hotel'].map(l => ({ label: l, ...chip(s.rwFilter === l), onClick: () => this.set({ rwFilter: l }) })),
+      catalogue: CATALOGUE.map((c, i) => ({ c, i })).filter(({ c }) => s.rwFilter === 'All' || c.cat === s.rwFilter).map(({ c, i }) => {
+        const ok = c.pts ? s.points >= c.pts : false;
+        const need = c.pts ? `${(c.pts - s.points).toLocaleString('en-IN')} to go` : 'Need 1 night';
+        return { name: c.name, initial: c.name[0], note: c.note, cost: c.pts ? `${c.pts.toLocaleString('en-IN')} points` : '1 hotel night',
+          cta: ok ? 'Redeem' : need, bd: ok ? CTRL : 'rgba(243,237,224,.15)', fg: ok ? CREAM : MUTED,
+          onClick: () => { if (ok) this.set({ sheet: 'redeem', redeemIdx: i }); } };
+      }),
+      ri: ri ? { name: ri.name, note: ri.note, cost: `${(ri.pts || 0).toLocaleString('en-IN')} points`, after: `${(s.points - (ri.pts || 0)).toLocaleString('en-IN')} points` } : { name: '', note: '', cost: '', after: '' },
+      confirmRedeem: () => { this.setState(st => ({ sheet: null, points: st.points - ri.pts, redeemed: [...st.redeemed, ri.name] })); this.toastMsg('Redeemed'); },
+      hasRedemptions: s.redeemed.length > 0, redemptions: s.redeemed.map(n => ({ name: n, status: 'Ready to collect' })),
+      copyLink: () => this.toastMsg('Invite link copied'), shareCard: () => this.toastMsg('Opening share sheet'),
+      // profile
+      notifs: [['seat', 'Seat calls', 'When your seat is ready'], ['call', 'Call time', 'When your call time ends'], ['tourn', 'Tournaments', 'When a tournament starts'], ['promo', 'Offers', 'By WhatsApp and app. Stop any time.'], ['tv', 'Name on club TVs', 'Off shows your seat number instead'], ['analytics', 'Analytics', 'Google Analytics and Meta pixel on this phone']].map(([k, label, sub]) => {
+        const on = s.notifs[k];
+        return { label, sub, track: on ? GOLD : 'transparent', trackBd: on ? GOLD : CTRL, knob: on ? '#0A2A20' : CREAM, knobX: on ? '22px' : '3px', onClick: () => this.set({ notifs: { ...s.notifs, [k]: !on } }) };
+      }),
+      openFeedback: () => this.set({ sheet: 'feedback' }),
+      fbTopics: ['Gameplay', 'Dealer', 'Check-in', 'The app', 'Service', 'Ambience', 'Cashier'].map(l => ({ label: l, ...chip(s.fbTopic === l), onClick: () => this.set({ fbTopic: l }) })),
+      sendFeedback: () => { this.set({ sheet: null }); this.toastMsg('Feedback sent'); },
+      rules: RULES.map((text, i) => ({ n: String(i + 1), text })), cases: CASES,
+      // toast + board
+      hasToast: !!s.toast, toast: s.toast, hasUndo: !!s.undoFn, undo: () => { const f = s.undoFn; this.set({ toast: null, undoFn: null }); f && f(); },
+      board: boardDef.map(([group, items]) => ({ group, items: items.map(([label, key]) => ({ label, bd: s.active === key ? '#0E3B2C' : 'rgba(14,59,44,.3)', bg: s.active === key ? '#0E3B2C' : 'transparent', fg: s.active === key ? '#F3EDE0' : '#0E3B2C', onClick: () => this.go(key) })) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

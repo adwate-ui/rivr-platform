@@ -15,6 +15,15 @@ export const tokens = {
     "muted": "#F3EDE099",
     "hairline": "#C9A85C40",
     "control": "#F3EDE080",
+    "goldTint": "#C9A85C24",
+    "goldEdge": "#C9A85C59",
+    "creamTrack": "#F3EDE01F",
+    "creamFaint": "#F3EDE04D",
+    "seatTaken": "#F3EDE059",
+    "skeleton": "#F3EDE014",
+    "skeletonFaint": "#F3EDE00D",
+    "rim": "#3A2A14",
+    "scrim": "#050F0B99",
     "surface": "#0E3B2C",
     "raised": "#0A2A20",
     "content": "#F3EDE0",
@@ -57,12 +66,16 @@ export const tokens = {
       "20": 20,
       "24": 24,
       "28": 28,
+      "32": 32,
       "36": 36,
+      "40": 40,
       "44": 44,
       "48": 48,
       "56": 56,
+      "72": 72,
       "88": 88,
       "96": 96,
+      "160": 160,
       "280": 280
     },
     "weight": {
@@ -112,6 +125,21 @@ export const tokens = {
     "text": 640,
     "photo": 160,
     "card": 342,
+    "action": 54,
+    "field": 60,
+    "round": 52,
+    "tile": 56,
+    "seat": 34,
+    "pip": 6,
+    "grabber": 36,
+    "ring": 236,
+    "seatMap": 170,
+    "holdBar": 200,
+    "offer": 300,
+    "offerHeight": 168,
+    "ovalWidth": 250,
+    "ovalHeight": 330,
+    "shutter": 76,
     "receipt": 576,
     "chart": 192,
     "shareCard": 1080
@@ -129,7 +157,9 @@ export const tokens = {
   "radius": {
     "sm": 3,
     "md": 4,
-    "lg": 6
+    "lg": 6,
+    "card": 8,
+    "sheet": 16
   },
   "border": {
     "width": {
@@ -212,6 +242,9 @@ export const tokens = {
     "duration": {
       "state": "200ms",
       "stagger": "120ms",
+      "sheet": "240ms",
+      "tick": "1000ms",
+      "toast": "3200ms",
       "turn": "1000ms"
     },
     "easing": {
