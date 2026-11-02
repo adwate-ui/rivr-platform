@@ -43,13 +43,15 @@ export interface InputProps extends NativeInputProps {
   prefix?: string | undefined;
   /** Fixed text after the value that is not typed, such as `%` or `minutes` (#603). Read out with the field. */
   suffix?: string | undefined;
+  /** A boxed field 54 px tall, as the player redesign's sign-in number (decision 0320). */
+  isTall?: boolean;
   ref?: Ref<HTMLInputElement>;
 }
 
 // The line is sized as in the prototype's sign-in: a 48 px row for the number, in plain spacing (S-01: tracked tabular
 // figures read as a typewriter). Its focus is its own line, drawn thicker (styles.css), never a box round it.
 const FRAME: Record<Exclude<InputVariant, 'inset'>, string> = {
-  boxed: 'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
+  boxed: 'w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
   line: 'min-h-12 w-full border-b bg-transparent font-text text-20 text-content',
 };
 
@@ -67,24 +69,29 @@ export function Input({ variant = 'boxed', ...props }: InputProps) {
 }
 
 /** The input's own attributes, without the props Input reads itself. */
-function nativeOf({ label: _label, hint: _hint, error: _error, type: _type, prefix: _prefix, suffix: _suffix, ...native }: Omit<InputProps, 'variant'>): NativeInputProps {
+function nativeOf({ label: _label, hint: _hint, error: _error, type: _type, prefix: _prefix, suffix: _suffix, isTall: _isTall, ...native }: Omit<InputProps, 'variant'>): NativeInputProps {
   return native;
 }
 
 /** A boxed or line field: its label above, then the field, its hint and its error. */
-function FramedInput({ id, variant, label, hint, error, type = 'text', prefix, suffix, ...native }: Omit<InputProps, 'variant'> & { id: string; variant: Exclude<InputVariant, 'inset'> }) {
+function FramedInput({ id, variant, label, hint, error, type = 'text', prefix, suffix, isTall = false, ...native }: Omit<InputProps, 'variant'> & { id: string; variant: Exclude<InputVariant, 'inset'> }) {
   const describedBy = cx(prefix && `${id}-prefix`, suffix && `${id}-suffix`, hint && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <Stack gap={2}>
       <Label htmlFor={id}>{label}</Label>
-      <Field id={id} type={type} variant={variant} prefix={prefix} suffix={suffix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} />
-      {hint ? (
-        <Text variant="small" tone="muted" id={`${id}-hint`}>
-          {hint}
-        </Text>
-      ) : null}
-      {error ? <FieldError id={`${id}-error`} message={error} /> : null}
+      <Field id={id} type={type} variant={variant} prefix={prefix} suffix={suffix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} isTall={isTall} />
+      <FieldNotes id={id} hint={hint} error={error} isTall={isTall} />
     </Stack>
+  );
+}
+
+/** The hint and the error under a field, each with the id the field points at; the tall field's error has the dot. */
+function FieldNotes({ id, hint, error, isTall }: { id: string; hint: string | undefined; error: string | undefined; isTall: boolean }) {
+  return (
+    <>
+      {hint ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
+      {error ? <ErrorMessage id={`${id}-error`} look={isTall ? 'dot' : 'icon'}>{error}</ErrorMessage> : null}
+    </>
   );
 }
 
@@ -123,6 +130,7 @@ interface FieldProps {
   isInvalid: boolean;
   describedBy: string | undefined;
   native: NativeInputProps;
+  isTall: boolean;
 }
 
 /** Fixed text beside the value: a prefix or a suffix, read with the field. */
@@ -137,10 +145,16 @@ function lineFocusClass(variant: Exclude<InputVariant, 'inset'>, isInvalid: bool
   return isAdorned ? 'has-[input:focus-visible]:border-focus' : 'focus-visible:border-focus';
 }
 
+/** The frame's classes: its look, a boxed field's height, its edge, and a line field's focus. */
+function frameOf(variant: Exclude<InputVariant, 'inset'>, isTall: boolean, isInvalid: boolean, isAdorned: boolean): string {
+  const height = variant === 'boxed' ? (isTall ? 'min-h-action' : 'min-h-touch') : undefined;
+  return cx(FRAME[variant], height, isInvalid ? 'border-alert' : 'border-control', lineFocusClass(variant, isInvalid, isAdorned));
+}
+
 /** The input itself, inside its frame. With a prefix or a suffix the frame runs under them and the value together. */
-function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native }: FieldProps) {
+function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native, isTall }: FieldProps) {
   const isAdorned = Boolean(prefix) || Boolean(suffix);
-  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-control', lineFocusClass(variant, isInvalid, isAdorned));
+  const frame = frameOf(variant, isTall, isInvalid, isAdorned);
   const line = variant === 'line' ? { 'data-line': '' } : {};
   const input = (
     <input
@@ -165,7 +179,3 @@ function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, nati
   );
 }
 
-/** The error line, which the field points at. */
-function FieldError({ id, message }: { id: string; message: string }) {
-  return <ErrorMessage id={id}>{message}</ErrorMessage>;
-}

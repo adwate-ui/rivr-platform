@@ -1,9 +1,14 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startInstallWatch } from './features/frame/index.ts';
 import { createAppRouter } from './router.tsx';
+
+// A returning phone: its cookie choice is kept, so the first-launch sheet (CookieChoices) stays out of the way.
+beforeEach(() => {
+  localStorage.setItem('rivr.cookies', JSON.stringify({ maps: false, analytics: false }));
+});
 
 afterEach(() => {
   // Back online while the app is still mounted, so the query client hears it: a client that thinks

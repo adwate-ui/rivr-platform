@@ -86,4 +86,10 @@ describe('StepScreen', () => {
     const { container } = renderStep();
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('sets the redesign\'s title in the display face, between its eyebrow and subtitle (decision 0320)', () => {
+    renderIn(<StepScreen title="Enter the code" look={{ subtitle: 'Sent on WhatsApp to +91 90000 00901' }} footer={null}>{null}</StepScreen>);
+    expect(screen.getByRole('heading', { name: 'Enter the code' })).toHaveClass('font-display', 'text-36');
+    expect(screen.getByText('Sent on WhatsApp to +91 90000 00901')).toBeDefined();
+  });
 });

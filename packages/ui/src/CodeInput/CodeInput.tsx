@@ -23,7 +23,7 @@ export interface CodeInputProps {
   isDisabled?: boolean;
   name?: string;
   ref?: Ref<HTMLInputElement>;
-  /** `tall`, the redesign's 60 px cells sharing the row (decision 0320); 48 px squares otherwise. */
+  /** `tall`, the redesign's 60 px cells sharing the row, its label heard only (decision 0320); 48 px squares otherwise. */
   size?: 'regular' | 'tall';
 }
 
@@ -98,7 +98,7 @@ export function CodeInput({ label, value, onChange, onComplete, length = 6, hint
   };
   return (
     <Stack gap={2}>
-      <Label htmlFor={id}>{label}</Label>
+      <span className={size === 'tall' ? 'sr-only' : 'contents'}><Label htmlFor={id}>{label}</Label></span>
       <div data-code-cells className={cx('relative flex gap-2', isDisabled && 'opacity-disabled')}>
         <Cells value={value} length={length} hasFocus={hasFocus} isInvalid={Boolean(error)} isTall={size === 'tall'} />
         <input

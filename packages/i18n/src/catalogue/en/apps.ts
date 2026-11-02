@@ -58,10 +58,12 @@ import { endOfDay, endOfDayFailures } from './endOfDay.ts';
 import { tonight, waitlist } from './waitlist.ts';
 import { consoleFnb, playerFnb } from './fnb.ts';
 import { playerAlerts, playerNotFound } from './playerAlerts.ts';
+import { playerSignIn } from './playerSignIn.ts';
 
 export const playerApp = {
   alerts: playerAlerts,
   notFound: playerNotFound,
+  signIn: playerSignIn,
   tonight,
   fnb: playerFnb,
   events: playerEvents,

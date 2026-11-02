@@ -11,8 +11,8 @@ import { FAILURE_COPY } from './failureCopy.ts';
 const phoneForm = z.object({ phone: indianMobileSchema });
 
 /**
- * The first step: the lockup and the motto, then sign in or join with a mobile number, spaced as it is typed, and where
- * the code will come (S-01). A number the club does not know goes on to join once its code is in.
+ * The first step (decision 0320): the lockup, the motto, then at the foot "Sign in or join", the number after +91, spaced
+ * as it is typed, Send code and the legal line. A number the club does not know goes on to join once its code is in.
  */
 export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) => void }) {
   const { requestCode } = useSignIn();
@@ -29,24 +29,24 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
 
   const { errors } = form.formState;
   // A refusal from Auth carries its own words; anything else failed the number check.
-  const error = errors.phone ? (errors.phone.type === 'server' ? errors.phone.message : t('common.signIn.phoneInvalid')) : undefined;
+  const error = errors.phone ? (errors.phone.type === 'server' ? errors.phone.message : t('player.signIn.phoneInvalid')) : undefined;
   return (
     <StepScreen
       align="center"
       onSubmit={send}
       footer={
         <>
-          <Heading level={1} variant="title">{t('common.signIn.joinTitle')}</Heading>
+          <Heading level={1} variant="serif" serifSize={28}>{t('player.signIn.title')}</Heading>
           <Controller control={form.control} name="phone" render={({ field }) => (
             <Input ref={field.ref} name={field.name} value={field.value} onBlur={field.onBlur} onChange={(event) => field.onChange(formatTypedMobile(event.target.value))}
-              label={t('common.signIn.phoneLabel')} variant="line" prefix={t('common.signIn.countryCode')} type="tel" inputMode="tel" autoComplete="tel-national"
-              autoFocus error={error} />
+              label={t('player.signIn.phoneLabel')} prefix={t('common.signIn.countryCode')} isTall placeholder={t('player.signIn.phonePlaceholder')}
+              type="tel" inputMode="tel" autoComplete="tel-national" error={error} />
           )} />
           <Captcha {...captcha.props} />
-          <Button variant="primary" size="large" type="submit" fullWidth isDisabled={!captcha.isReady} isLoading={requestCode.isPending}>
-            {t('common.signIn.sendCode')}
+          <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!captcha.isReady} isLoading={requestCode.isPending}>
+            {t('player.signIn.sendCode')}
           </Button>
-          <Text variant="small" tone="muted" align="center">{t('common.signIn.channels')}</Text>
+          <Text variant="caption" tone="muted" align="center">{t('player.signIn.legal')}</Text>
         </>
       }
     >

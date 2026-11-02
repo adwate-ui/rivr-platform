@@ -11,7 +11,10 @@ export { push } from './catalogue/en/push.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
 export { formatChips, formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
-export { formatCountdown, formatDate, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
+export { formatClock,
+  formatCountdown,
+  formatHoursMinutes,
+  formatMinutesSeconds, formatDate, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
 export { formatBlinds } from './format/chips.ts';
 export { formatMobile, formatTypedMobile } from './format/phone.ts';
