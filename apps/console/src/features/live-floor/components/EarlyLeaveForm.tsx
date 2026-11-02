@@ -28,6 +28,13 @@ export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeave
   const { letLeaveEarly, leave } = useSeatActions(venueId);
   const [reason, setReason] = useState('');
   const [isDone, setIsDone] = useState(false);
+  // Freed owing, no waiver: the cage still holds their cash-out until an admin lets them go (#79).
+  const leaveOwing = async () => {
+    if (member.sessionId === undefined) return;
+    const outcome = await leave.mutateAsync(member.sessionId);
+    if (outcome.ok) onCancel();
+    onDone(outcome);
+  };
   const submit = async () => {
     const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason: reason.trim() });
     const outcome = letGo.ok && member.sessionId !== undefined ? await leave.mutateAsync(member.sessionId) : letGo;
@@ -48,6 +55,9 @@ export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeave
           <Button variant="secondary" isDisabled={reason.trim().length < 3} isLoading={letLeaveEarly.isPending || leave.isPending} onClick={() => void submit()}>
             {t('console.liveFloor.letLeaveEarly')}
           </Button>
+        )}
+        {isDone || member.sessionId === undefined ? null : (
+          <Button variant="secondary" isLoading={leave.isPending} onClick={() => void leaveOwing()}>{t('console.liveFloor.leaveOwing')}</Button>
         )}
         <Button variant="text" onClick={onCancel}>{isDone ? t('common.close') : t('common.cancel')}</Button>
       </Inline>

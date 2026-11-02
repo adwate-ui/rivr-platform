@@ -1,7 +1,7 @@
-import { secondsWaiting, TOP_UP_TARGET_SECONDS } from '@rivr/domain/topUps';
-import { isTopUpWaiting, useSetTopUp, useStaffVenue, useTopUpsTonight, type TopUpTonight } from '@rivr/db';
+import { isTopUpLate, secondsWaiting } from '@rivr/domain/topUps';
+import { isTopUpWaiting, useSetTopUp, useStaffVenue, useTopUpsTonight, type SeatFailure, type TopUpTonight } from '@rivr/db';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
-import { Button, Heading, Inline, Screen, Stack, Text, WaitTimer } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Screen, Stack, Text, WaitTimer } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 
 /** The time now, once a second, so each wait counts up on screen. */
@@ -26,13 +26,13 @@ function Who({ request, now }: { request: TopUpTonight; now: Date | null }) {
     <Inline gap={3} align="center" wrap>
       <Text>{t('console.topUps.line', { table: request.tableName, seat: request.seat, name: request.fullName })}</Text>
       <Text variant="small" tone="muted">{t('console.topUps.askedAt', { time: formatTime(new Date(request.requestedAt)) })}</Text>
-      {now === null ? null : <WaitTimer seconds={secondsWaiting(new Date(request.requestedAt), now)} lateAfter={TOP_UP_TARGET_SECONDS} />}
+      {now === null ? null : <WaitTimer seconds={secondsWaiting(new Date(request.requestedAt), now)} isLate={isTopUpLate(secondsWaiting(new Date(request.requestedAt), now))} />}
     </Inline>
   );
 }
 
 /** A waiting request: Start and Reset while asked, Done once in hand; set_top_up closes it as fulfilled or reset. */
-function WaitingRow({ request, now, onSet }: { request: TopUpTonight; now: Date; onSet: (inProgress: boolean) => void }) {
+function WaitingRow({ request, now, isBusy, onSet }: { request: TopUpTonight; now: Date; isBusy: boolean; onSet: (inProgress: boolean) => void }) {
   const name = request.fullName;
   return (
     <Inline gap={4} justify="between" align="center" wrap>
@@ -40,11 +40,11 @@ function WaitingRow({ request, now, onSet }: { request: TopUpTonight; now: Date;
       <Inline gap={2}>
         {request.status === 'requested' ? (
           <>
-            <Button variant="secondary" aria-label={t('console.topUps.startName', { name })} onClick={() => onSet(true)}>{t('console.topUps.start')}</Button>
-            <Button variant="text" aria-label={t('console.topUps.resetName', { name })} onClick={() => onSet(false)}>{t('console.topUps.reset')}</Button>
+            <Button variant="secondary" aria-label={t('console.topUps.startName', { name })} isLoading={isBusy} onClick={() => onSet(true)}>{t('console.topUps.start')}</Button>
+            <Button variant="text" aria-label={t('console.topUps.resetName', { name })} isDisabled={isBusy} onClick={() => onSet(false)}>{t('console.topUps.reset')}</Button>
           </>
         ) : (
-          <Button variant="secondary" aria-label={t('console.topUps.doneName', { name })} onClick={() => onSet(false)}>{t('console.topUps.done')}</Button>
+          <Button variant="secondary" aria-label={t('console.topUps.doneName', { name })} isLoading={isBusy} onClick={() => onSet(false)}>{t('console.topUps.done')}</Button>
         )}
       </Inline>
     </Inline>
@@ -62,6 +62,7 @@ export function TopUpsScreen() {
   const requests = useTopUpsTonight(venueId, staff.status === 'ready');
   const setTopUp = useSetTopUp(venueId);
   const now = useNow();
+  const [failure, setFailure] = useState<SeatFailure | null>(null);
   const title = t('console.topUps.title');
   if (staff.status !== 'ready') return null;
   if (!staff.venue.permissions.includes('waitlist.manage')) return <Screen title={title} status="error" errorText={t('console.topUps.notAllowed')} />;
@@ -72,17 +73,19 @@ export function TopUpsScreen() {
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <Text tone="muted">{t('console.topUps.target')}</Text>
         <Stack gap={3}>
           <Heading level={2}>{t('console.topUps.waiting')}</Heading>
           {waiting.length === 0 ? <Text tone="muted">{t('console.topUps.noneWaiting')}</Text> : (
             <Stack gap={2} divided>
               {waiting.map((request) => (
                 <WaitingRow key={request.requestId} request={request} now={now}
-                  onSet={(inProgress) => void setTopUp.mutateAsync({ sessionId: request.sessionId, inProgress })} />
+                  isBusy={setTopUp.isPending && setTopUp.variables.sessionId === request.sessionId}
+                  onSet={(inProgress) => void setTopUp.mutateAsync({ sessionId: request.sessionId, inProgress })
+                    .then((outcome) => setFailure(outcome.ok ? null : outcome.error))} />
               ))}
             </Stack>
           )}
+          {failure === null ? null : <ErrorMessage>{t(`console.topUps.failures.${failure === 'paused' || failure === 'not_allowed' ? failure : 'changed'}`)}</ErrorMessage>}
         </Stack>
         <Earlier requests={requests.data.filter((request) => !isTopUpWaiting(request))} />
       </Stack>

@@ -64,7 +64,7 @@ describe('tables setup, games history and points by hand', () => {
       await result.current.actions.saveStake.mutateAsync({ stakeId: 's1', name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, straddle: null });
     });
     expect(calls.find((call) => call.path === 'set_table_type')?.body).toEqual({
-      p_type_id: 's1', p_name: 'NLH 50/100', p_small_blind_paise: 5000, p_big_blind_paise: 10000,
+      p_type_id: 's1', p_name: 'NLH 50/100', p_small_blind_paise: 5000, p_big_blind_paise: 10000, p_straddle_paise: 0,
     });
     let refused: unknown;
     await act(async () => {

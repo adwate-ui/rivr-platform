@@ -55,7 +55,6 @@ describe('Leaving before call time', () => {
       seat_member: { status: 400, body: { code: 'RVSTD', message: 'seated' } },
       set_table_open: { status: 400, body: { code: 'RVSTD', message: 'players' } },
       set_must_move: { status: 400, body: { code: '22023', message: 'feeds a main table' } },
-      move_seat: { status: 400, body: { code: '22023', message: 'closed' } },
     });
     let outcomes: unknown[] = [];
     await act(async () => {
@@ -63,11 +62,10 @@ describe('Leaving before call time', () => {
         await result.current.seat.mutateAsync({ tableId: 't3', seat: 4, who: { phone: indianMobileSchema.parse('9000000211') }, callMinutes: 180 }),
         await result.current.setOpen.mutateAsync({ tableId: 't3', isOpen: false }),
         await result.current.setMustMove.mutateAsync({ tableId: 't5', mainTableId: 't5' }),
-        await result.current.move.mutateAsync({ sessionId: 's1', tableId: 't4', seat: 1 }),
       ];
     });
     expect(outcomes).toEqual([
-      { ok: false, error: 'seated' }, { ok: false, error: 'table_in_use' }, { ok: false, error: 'must_move_invalid' }, { ok: false, error: 'invalid' },
+      { ok: false, error: 'seated' }, { ok: false, error: 'table_in_use' }, { ok: false, error: 'must_move_invalid' },
     ]);
   });
 
@@ -81,23 +79,7 @@ describe('Leaving before call time', () => {
   });
 });
 
-describe('Away from the table', () => {
-  it('marks a player away and back from the console, as the tablet does, and says when the seat is gone', async () => {
-    const { result, calls } = renderSeats({});
-    let outcome: unknown;
-    await act(async () => {
-      outcome = await result.current.setAway.mutateAsync({ sessionId: 's1', isAway: true });
-    });
-    expect(outcome).toEqual({ ok: true, value: null });
-    expect(calls.find((call) => call.rpc === 'set_seat_away')?.body).toEqual({ p_session_id: 's1', p_is_away: true });
-
-    const gone = renderSeats({ set_seat_away: { status: 400, body: { code: '22023', message: 'left the table' } } });
-    await act(async () => {
-      outcome = await gone.result.current.setAway.mutateAsync({ sessionId: 's1', isAway: false });
-    });
-    expect(outcome).toEqual({ ok: false, error: 'invalid' });
-  });
-
+describe('Open seats', () => {
   it('gives the seats free at a table, neither taken nor held, whatever the other tables hold', () => {
     const taken = [{ tableId: 't3', seat: 2 }, { tableId: 't3', seat: 5 }, { tableId: 't4', seat: 1 }];
     expect(openSeatsAt({ id: 't3', seats: 6 }, taken)).toEqual([1, 3, 4, 6]);

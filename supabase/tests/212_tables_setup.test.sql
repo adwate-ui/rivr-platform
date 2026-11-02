@@ -57,7 +57,11 @@ select lives_ok($$ select public.set_table_type((select id from ids where name =
 select lives_ok($$ select public.set_table_type((select id from ids where name = 'straddle'), 'Straddle 200/400', 20000, 40000, 100000) $$,
   'and another''s straddle');
 select lives_ok($$ select public.set_table_type((select id from ids where name = 'straddle'), 'Straddle 200/400', 20000, 40000) $$,
-  'then takes it off');
+  'a change that leaves the straddle out, as an older console sends it');
+select is((select straddle_paise from public.table_type where id = (select id from ids where name = 'straddle')), 100000::bigint,
+  'keeps the stake''s straddle');
+select lives_ok($$ select public.set_table_type((select id from ids where name = 'straddle'), 'Straddle 200/400', 20000, 40000, 0) $$,
+  'then 0 takes it off');
 reset role;
 select results_eq($$ select g.seats, t.name, t.small_blind_paise, t.big_blind_paise from public.game_table g join public.table_type t on t.id = g.table_type_id
                      where g.id = (select id from ids where name = 'table') $$,
@@ -85,6 +89,18 @@ select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000
 reset role;
 
 select is(has_function_privilege('anon', 'public.add_game_table(uuid, text, uuid, integer, text)', 'execute'), false, 'nobody signed out adds a table');
+
+-- Another club's stake is not this super admin's to change.
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into public.table_type (venue_id, code, name, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise)
+values ('00000000-0000-4000-8000-0000000000e1', '50_100', 'Theirs 50/100', 5000, 10000, 1000000, 1000000);
+create temp table theirs as select id from public.table_type where venue_id = '00000000-0000-4000-8000-0000000000e1' and code = '50_100';
+grant select on theirs to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.set_table_type((select id from theirs), 'Mine now', 5000, 10000, 20000) $$, '42501', null,
+  'another club''s stake is not changed from here');
+reset role;
 
 select * from finish();
 rollback;

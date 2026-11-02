@@ -81,6 +81,14 @@ describe('a table on the live floor', () => {
     ]));
   });
 
+  it('frees the seat of a player who leaves owing, with no waiver, so the cage still holds the cash-out (decision 0299)', async () => {
+    const ended = renderTable([PRIYA], ['members.read', 'waitlist.manage', 'call_time.override']);
+    fireEvent.click(screen.getByRole('button', { name: 'Priya Nair leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Leave owing' }));
+    await waitFor(() => expect(ended).toEqual([{ to: 'end_seat', body: { p_session_id: 's2', p_reason: 'left' } }]));
+    expect(screen.queryByRole('heading', { name: 'Early departure for Priya Nair' })).toBeNull();
+  });
+
   it('shows a role that does not read members the table without its night, which it would read as noughts (F2-25)', () => {
     render(
       <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}

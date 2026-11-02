@@ -49,7 +49,7 @@ describe('a place on the waitlist', () => {
 
   it('offers no Call while the game has no open table (F2-18)', () => {
     renderEntry();
-    expect(screen.queryByRole('button', { name: 'Call Naina Kapoor' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Assign Naina Kapoor' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Hold place: Naina Kapoor' })).toBeDefined();
   });
 

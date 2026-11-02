@@ -88,11 +88,11 @@ export function useTablesSetupActions(venueId: string) {
     mutationFn: async (order: StakeOrder) => {
       const blinds = {
         p_name: order.name.trim(), p_small_blind_paise: Number(order.smallBlind), p_big_blind_paise: Number(order.bigBlind),
-        ...(order.straddle === null ? {} : { p_straddle_paise: Number(order.straddle) }),
       };
+      // A new stake with no straddle has none; a changed stake's 0 takes its straddle off (decision 0299).
       const { error } = order.stakeId === null
-        ? await client.rpc('add_table_type', { p_venue_id: venueId, ...blinds })
-        : await client.rpc('set_table_type', { p_type_id: order.stakeId, ...blinds });
+        ? await client.rpc('add_table_type', { p_venue_id: venueId, ...blinds, ...(order.straddle === null ? {} : { p_straddle_paise: Number(order.straddle) }) })
+        : await client.rpc('set_table_type', { p_type_id: order.stakeId, ...blinds, p_straddle_paise: Number(order.straddle ?? 0n) });
       return settle(error);
     },
   });

@@ -24,7 +24,8 @@ export function SeatForm({ venueId, table, seats, held, onResult }: SeatFormProp
   const { seat } = useSeatActions(venueId);
   const open = openSeatsAt(table, [...seats, ...held]);
   const [picked, setPicked] = useState<number | null>(null);
-  const [callMinutes, setCallMinutes] = useState<number | null>(CALL_TIME_CHOICES[0]);
+  // The stake's own call time to start from (decision 0299); another is the floor's choice.
+  const [callMinutes, setCallMinutes] = useState<number | null>(table.callTimeMinutes);
   // A seat taken since it was chosen (the floor is read every ten seconds) is no choice (F2-17).
   const chosen = picked !== null && open.includes(picked) ? picked : null;
   const [resolver] = useState(() => zodResolver(seatPlayerSchema));
@@ -42,7 +43,7 @@ export function SeatForm({ venueId, table, seats, held, onResult }: SeatFormProp
       <Heading level={3}>{t('console.liveFloor.seatPlayer')}</Heading>
       <ChoiceChips label={t('console.liveFloor.seatNumber')} mode="one" options={open.map((one) => ({ value: String(one), label: String(one) }))}
         selected={chosen === null ? [] : [String(chosen)]} onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
-      <CallTimeChoice choices={CALL_TIME_CHOICES} initial={CALL_TIME_CHOICES[0]} onChange={setCallMinutes} />
+      <CallTimeChoice choices={CALL_TIME_CHOICES} initial={table.callTimeMinutes} onChange={setCallMinutes} />
       <Inline gap={3} align="end">
         <Input {...number} label={t('console.liveFloor.phone')} inputMode="numeric" autoComplete="off" />
         <Button variant="secondary" isDisabled={chosen === null} isLoading={seat.isPending} onClick={() => void submit()}>{t('console.liveFloor.seat')}</Button>

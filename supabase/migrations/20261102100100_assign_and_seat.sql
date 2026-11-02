@@ -14,13 +14,13 @@ set search_path = ''
 as $$
 declare
   v_member_id uuid := (select e.member_id from public.waitlist_entry e where e.id = p_entry_id);
-  v_session public.seat_session;
+  -- Seated already, the member changes tables in the same session, keeping their call time.
+  v_was_seated boolean := exists (select 1 from public.seat_session s where s.member_id = v_member_id and s.ended_at is null);
 begin
   perform private.call_from_waitlist(p_entry_id, p_table_id, p_seat);
   perform private.seat_from_waitlist(p_entry_id);
-  select * into v_session from public.seat_session s where s.member_id = v_member_id and s.ended_at is null;
-  if v_session.started_at = now() then
-    perform private.set_seat_call_time(v_session.id, p_call_minutes);
+  if not v_was_seated then
+    perform private.set_seat_call_time((select s.id from public.seat_session s where s.member_id = v_member_id and s.ended_at is null), p_call_minutes);
   end if;
 end;
 $$;
@@ -36,7 +36,8 @@ grant execute on function private.assign_from_waitlist(uuid, uuid, integer, inte
 
 -- Seating by mobile number or by membership number, with the call time the floor chose. As 20261028392200 made it
 -- otherwise: off the game's waitlist, a seat they were called to passing to the next name. Without a call time the stake's
--- own stands. Refusals: RVNOM no member has that number; as start_seat_session and set_seat_call_time otherwise.
+-- own stands. Refusals: 22023 not exactly one of the two numbers; RVNOM no member has it; as start_seat_session and
+-- set_seat_call_time otherwise.
 drop function public.seat_member(uuid, integer, text);
 drop function private.seat_member(uuid, integer, text);
 create function private.seat_member(p_table_id uuid, p_seat integer, p_phone text default null, p_member_number bigint default null,
@@ -52,6 +53,9 @@ declare
   v_id uuid;
   v_entry public.waitlist_entry;
 begin
+  if (p_phone is null) = (p_member_number is null) then
+    raise exception 'Seat by a mobile number or a membership number' using errcode = '22023';
+  end if;
   select m.id into v_member_id from public.member m
   where m.venue_id = v_table.venue_id
     and (m.phone = '+91' || right(regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g'), 10) or m.member_number = p_member_number);

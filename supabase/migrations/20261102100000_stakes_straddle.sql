@@ -57,7 +57,8 @@ begin
 end;
 $$;
 
--- A stake's name, blinds and straddle, changed; a table playing it plays them from the next hand. Refusals as above.
+-- A stake's name, blinds and straddle, changed; a table playing it plays them from the next hand. A straddle left out keeps
+-- the stake's own (a console open on an older build sends none), and 0 takes it off. Refusals as above.
 create function private.set_table_type(p_type_id uuid, p_name text, p_small_blind_paise bigint, p_big_blind_paise bigint,
                                        p_straddle_paise bigint default null)
 returns void
@@ -70,10 +71,11 @@ declare
 begin
   select * into v_type from public.table_type t where t.id = p_type_id for update;
   perform private.assert_tables_manager(v_type.venue_id);
-  perform private.assert_straddle(p_big_blind_paise, p_straddle_paise);
+  perform private.assert_straddle(p_big_blind_paise, nullif(coalesce(p_straddle_paise, v_type.straddle_paise), 0));
   begin
     update public.table_type
-    set name = trim(p_name), small_blind_paise = p_small_blind_paise, big_blind_paise = p_big_blind_paise, straddle_paise = p_straddle_paise,
+    set name = trim(p_name), small_blind_paise = p_small_blind_paise, big_blind_paise = p_big_blind_paise,
+        straddle_paise = nullif(coalesce(p_straddle_paise, v_type.straddle_paise), 0),
         buy_in_min_paise = least(buy_in_min_paise, p_big_blind_paise * 100), buy_in_max_paise = greatest(buy_in_max_paise, p_big_blind_paise * 100)
     where id = v_type.id;
   exception when check_violation or not_null_violation then
@@ -92,9 +94,10 @@ create function public.set_table_type(p_type_id uuid, p_name text, p_small_blind
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.set_table_type(p_type_id, p_name, p_small_blind_paise, p_big_blind_paise, p_straddle_paise); $$;
 
-revoke execute on function private.assert_straddle(bigint, bigint), private.add_table_type(uuid, text, bigint, bigint, bigint),
+revoke execute on function private.assert_straddle(bigint, bigint) from public, anon, authenticated;
+revoke execute on function private.add_table_type(uuid, text, bigint, bigint, bigint),
   private.set_table_type(uuid, text, bigint, bigint, bigint), public.add_table_type(uuid, text, bigint, bigint, bigint),
   public.set_table_type(uuid, text, bigint, bigint, bigint) from public, anon;
-grant execute on function private.assert_straddle(bigint, bigint), private.add_table_type(uuid, text, bigint, bigint, bigint),
+grant execute on function private.add_table_type(uuid, text, bigint, bigint, bigint),
   private.set_table_type(uuid, text, bigint, bigint, bigint), public.add_table_type(uuid, text, bigint, bigint, bigint),
   public.set_table_type(uuid, text, bigint, bigint, bigint) to authenticated;

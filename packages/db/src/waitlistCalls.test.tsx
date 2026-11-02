@@ -32,12 +32,12 @@ const bodyOf = (calls: { url: string; body: unknown }[], path: string) => calls.
 afterEach(cleanup);
 
 describe('the floor\u2019s call-down (#63)', () => {
-  it('calls a waiting member to a table and seat, seats them there, and steps a place away and back', async () => {
+  it('assigns a waiting member a table, seat and call time, seats a called one, and holds a place and brings it back', async () => {
     const { result, calls } = renderCalls({});
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.call.mutateAsync({ entryId: 'e1', tableId: 't3', seat: 9 }); });
+    await act(async () => { outcome = await result.current.assign.mutateAsync({ entryId: 'e1', tableId: 't3', seat: 9, callMinutes: 240 }); });
     expect(outcome).toEqual({ ok: true, value: null });
-    expect(bodyOf(calls, '/rpc/call_from_waitlist')).toEqual({ p_entry_id: 'e1', p_table_id: 't3', p_seat: 9 });
+    expect(bodyOf(calls, '/rpc/assign_from_waitlist')).toEqual({ p_entry_id: 'e1', p_table_id: 't3', p_seat: 9, p_call_minutes: 240 });
     await act(async () => { outcome = await result.current.seat.mutateAsync('e1'); });
     expect(outcome).toEqual({ ok: true, value: null });
     expect(bodyOf(calls, '/rpc/seat_from_waitlist')).toEqual({ p_entry_id: 'e1' });
@@ -48,10 +48,10 @@ describe('the floor\u2019s call-down (#63)', () => {
     ]);
   });
 
-  it('says why a call did not go through, as the waitlist says it: a frozen venue is paused', async () => {
-    const { result } = renderCalls({ '/rpc/call_from_waitlist': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } } });
+  it('says why an assignment did not go through, as the waitlist says it: a frozen venue is paused', async () => {
+    const { result } = renderCalls({ '/rpc/assign_from_waitlist': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } } });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.call.mutateAsync({ entryId: 'e1', tableId: 't3', seat: 9 }); });
+    await act(async () => { outcome = await result.current.assign.mutateAsync({ entryId: 'e1', tableId: 't3', seat: 9, callMinutes: 180 }); });
     expect(outcome).toEqual({ ok: false, error: 'paused' });
   });
 });

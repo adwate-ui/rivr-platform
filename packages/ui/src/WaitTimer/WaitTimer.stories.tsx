@@ -5,7 +5,7 @@ import { WaitTimer } from './WaitTimer.tsx';
 const meta = {
   title: 'Floor/WaitTimer',
   component: WaitTimer,
-  args: { seconds: 42, lateAfter: 60 },
+  args: { seconds: 42, isLate: false },
 } satisfies Meta<typeof WaitTimer>;
 
 export default meta;
@@ -15,7 +15,7 @@ type Story = StoryObj<typeof meta>;
 export const InTime: Story = {};
 
 /** Past the minute: late, in red. */
-export const Late: Story = { args: { seconds: 95 } };
+export const Late: Story = { args: { seconds: 95, isLate: true } };
 
 /** A long wait, over an hour. */
-export const VeryLate: Story = { args: { seconds: 3725 } };
+export const VeryLate: Story = { args: { seconds: 3725, isLate: true } };

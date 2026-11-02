@@ -44,14 +44,6 @@ export const liveFloor = {
   mustMove: 'Must move {order}',
   /** A player away from the table, the seat kept (#59). */
   away: 'Away',
-  /** The floor marks a player away from the table, or back, as the tablet does (#630). */
-  markAway: 'Away',
-  markAwayName: '{name} is away from the table',
-  markBack: 'Back',
-  markBackName: '{name} is back at the table',
-  move: 'Move',
-  moveName: 'Move {name}',
-  moveTitle: 'Move {name}',
   leave: 'Leave',
   leaveName: '{name} leaves',
   confirmLeave: 'Yes, {name} leaves',
@@ -63,6 +55,8 @@ export const liveFloor = {
   leaveEarlyReason: 'Why they leave early',
   leaveEarlyHint: 'Recorded with your name.',
   letLeaveEarly: 'Let leave early',
+  /** The single Leave's other way (decision 0299): the seat freed, the call time still owed at the cage. */
+  leaveOwing: 'Leave owing',
   leftEarly: 'Released early.',
   callTimeDone: 'Call time complete.',
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
@@ -70,9 +64,6 @@ export const liveFloor = {
   leftOwingLine: '{table} · {time} owed',
   /** A player who is up and wants to go tells the floor, which marks them leaving (decision 0163). */
   leaving: 'Leaving',
-  /** A mark, not Leaving beside Leave and Leave early, which read alike (C-08). */
-  markLeaving: 'Mark leaving',
-  markLeavingName: 'Mark leaving: {name}',
   notLeaving: 'Not leaving',
   notLeavingName: '{name} is not leaving',
   /** The Live floor's list of players marked leaving, soonest seat first. `{table}` and `{seat}`: Table 3, 5. */
@@ -110,7 +101,7 @@ export const liveFloor = {
   notAllowed: 'Your role does not seat players or change tables.',
   occupied: 'Someone sits in that seat.',
   held: 'Held for a called member.',
-  seated: 'Already seated. Move them instead.',
+  seated: 'Already seated. Assign them from the waitlist to change tables.',
   tableInUse: 'Move the players and called members first.',
   mustMoveInvalid: 'A must-move table needs an open main table of its game.',
   /** For staff whose role does not read members (#333): the dealer, marketing, the owner's view. */
@@ -199,7 +190,6 @@ export const tablesSetup = {
 /** Top-ups (decision 0299): the requests waiting, each with its wait against the minute, then tonight's closed ones. */
 export const topUps = {
   title: 'Top-ups',
-  target: 'Bring each top-up within a minute of the ask.',
   waiting: 'Waiting',
   noneWaiting: 'No top-ups waiting.',
   earlier: 'Earlier tonight',
@@ -214,7 +204,12 @@ export const topUps = {
   doneName: 'The top-up for {name} is done',
   reset: 'Reset',
   resetName: 'Reset the top-up for {name}',
-  notAllowed: 'Not in your role. Ask the floor.',
+  notAllowed: 'Not in your role. Ask an admin.',
+  failures: {
+    paused: 'Venue frozen. Try again once it is released.',
+    not_allowed: 'Not in your role. Ask an admin.',
+    changed: 'This top-up changed. Check the list and try again.',
+  },
 } as const;
 
 /** Games history (#643): the tables run each club day and the hours each ran, for the super admin (tables.manage). */

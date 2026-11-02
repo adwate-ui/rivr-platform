@@ -32,7 +32,8 @@ export function AssignForm({ venueId, entryId, name, tables, onDone }: AssignFor
   const { assign } = useWaitlistCallActions();
   const [tableIds, setTableIds] = useState<string[]>(() => onlyTable(tables));
   const [picked, setPicked] = useState<number | null>(null);
-  const [callMinutes, setCallMinutes] = useState<number | null>(CALL_TIME_CHOICES[0]);
+  // The stake's own call time to start from (decision 0299); another is the floor's choice.
+  const [callMinutes, setCallMinutes] = useState<number | null>(() => tables.find((one) => one.id === onlyTable(tables)[0])?.callTimeMinutes ?? null);
   // 'choose' when no table, seat or call time is chosen; else why the assignment did not go through.
   const [failure, setFailure] = useState<WaitlistFailure | 'choose' | null>(null);
   const table = tables.find((candidate) => candidate.id === tableIds[0]);
@@ -50,14 +51,15 @@ export function AssignForm({ venueId, entryId, name, tables, onDone }: AssignFor
   };
   return (
     <Stack gap={3}>
-      <ChoiceChips label={t('console.waitlist.callTable', { name })} mode="one" selected={tableIds} onChange={(chosen) => { setTableIds(chosen); setPicked(null); }}
+      <ChoiceChips label={t('console.waitlist.callTable', { name })} mode="one" selected={tableIds}
+        onChange={(chosen) => { setTableIds(chosen); setPicked(null); setCallMinutes(tables.find((one) => one.id === chosen[0])?.callTimeMinutes ?? null); }}
         options={tables.map((one) => ({ value: one.id, label: one.name }))} />
       {table === undefined ? null : (
         <ChoiceChips label={t('console.waitlist.callSeat')} mode="one" selected={seat === null ? [] : [String(seat)]}
           options={free.map((number) => ({ value: String(number), label: String(number) }))}
           onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
       )}
-      <CallTimeChoice choices={CALL_TIME_CHOICES} initial={CALL_TIME_CHOICES[0]} onChange={setCallMinutes} />
+      {table === undefined ? null : <CallTimeChoice key={table.id} choices={CALL_TIME_CHOICES} initial={table.callTimeMinutes} onChange={setCallMinutes} />}
       <Inline gap={3} align="end">
         <Button variant="secondary" isLoading={assign.isPending} onClick={() => void assignNow()}>{t('console.waitlist.callConfirm')}</Button>
         <Button variant="text" onClick={onDone}>{t('common.cancel')}</Button>

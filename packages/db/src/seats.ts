@@ -135,8 +135,7 @@ function useSeatSettle(venueId: string) {
 }
 
 /**
- * The floor's seating: `seat` a member by mobile or membership number, with the call time chosen (decision 0299), `move` a player (the same session, so call
- * time runs on), `leave`; floor managers `setOpen` a table (closing only an empty one) and
+ * The floor's seating: `seat` a member by mobile or membership number, with the call time chosen (decision 0299), `leave`; floor managers `setOpen` a table (closing only an empty one) and
  * `setMustMove` (a table feeding a main table of its game, or null); admins `letLeaveEarly` a member who still owes call
  * time, with a reason (#79); the floor marks a player leaving, or takes it back (`setLeaving`, decision 0163), and away from
  * the table or back (`setAway`, #630: as the tablet does, so nothing needs it). Each is a Result and reloads the floor.
@@ -149,10 +148,6 @@ export function useSeatActions(venueId: string) {
       const found = 'phone' in who ? { p_phone: who.phone } : { p_member_number: who.memberNumber };
       return settle((await client.rpc('seat_member', { p_table_id: tableId, p_seat: number, ...found, p_call_minutes: callMinutes })).error);
     },
-  });
-  const move = useMutation({
-    mutationFn: async ({ sessionId, tableId, seat: number }: { sessionId: string; tableId: string; seat: number }) =>
-      settle((await client.rpc('move_seat', { p_session_id: sessionId, p_table_id: tableId, p_seat: number })).error),
   });
   const leave = useMutation({
     mutationFn: async (sessionId: string) => settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left' })).error),
@@ -174,11 +169,7 @@ export function useSeatActions(venueId: string) {
     mutationFn: async ({ sessionId, isLeaving }: { sessionId: string; isLeaving: boolean }) =>
       settle((await client.rpc('set_leaving', { p_session_id: sessionId, p_is_leaving: isLeaving })).error),
   });
-  const setAway = useMutation({
-    mutationFn: async ({ sessionId, isAway }: { sessionId: string; isAway: boolean }) =>
-      settle((await client.rpc('set_seat_away', { p_session_id: sessionId, p_is_away: isAway })).error),
-  });
-  return { seat, move, leave, setOpen, setMustMove, letLeaveEarly, setLeaving, setAway };
+  return { seat, leave, setOpen, setMustMove, letLeaveEarly, setLeaving };
 }
 
 /** The floor sets a seated player's call time in minutes, 0 for none (#638). A Result, and the floor is read again. */

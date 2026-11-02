@@ -74,5 +74,44 @@ select is((pg_temp.session('00000000-0000-4000-8000-000000000204')).call_time_mi
   (private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', 'nlh_100_200', now()) ->> 'minutes')::integer,
   'Rohan has the stake''s own');
 
+-- A host has no call_time.override: less than the stake's own is refused, and nothing is left half done.
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', 'verified', 'digilocker', '1990-01-01', 'ABCPV2122V',
+        '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000212/selfie.jpg', now())
+on conflict (member_id) do nothing;
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, joined_at, approved_at, status, idempotency_key)
+select '00000000-0000-4000-8000-000000000001', m.id, t.id, now(), now(), 'waiting', gen_random_uuid()
+from (values ('00000000-0000-4000-8000-000000000212'::uuid), ('00000000-0000-4000-8000-000000000211'::uuid)) m (id)
+cross join public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.code = 'nlh_100_200';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
+select throws_ok($$ select public.assign_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000212'), pg_temp.table_id('Table 2'), 7, 150) $$,
+  '42501', null, 'a host cuts no call time below the stake''s own');
+reset role;
+select ok(pg_temp.session('00000000-0000-4000-8000-000000000212') is null, 'and Vihaan is not seated');
+
+-- Ishaan, seated at Table 5 for five hours, is assigned to Table 2 from the list: he changes tables and keeps his five hours.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.assign_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000211'), pg_temp.table_id('Table 2'), 8, 180) $$,
+  'the floor assigns Ishaan, already seated, to Table 2');
+reset role;
+select results_eq($$ select g.name, s.seat, s.call_time_minutes from public.seat_session s join public.game_table g on g.id = s.table_id
+                     where s.member_id = '00000000-0000-4000-8000-000000000211' and s.ended_at is null $$,
+  $$ values ('Table 2'::text, 8, 300) $$, 'his session moves, with the five hours he had');
+
+-- One number at a time; another club's member is no member here.
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000000e3', 'authenticated', 'authenticated', '919000000997', now(), now());
+insert into public.member (venue_id, user_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e3', 'Elsewhere Member', '+919000000997');
+create temp table elsewhere as select member_number from public.member where phone = '+919000000997' and venue_id = '00000000-0000-4000-8000-0000000000e1';
+grant select on elsewhere to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.seat_member(pg_temp.table_id('Table 3'), 4, '9000000213', 2) $$, '22023', null, 'a mobile and a member number together are refused');
+select throws_ok($$ select public.seat_member(pg_temp.table_id('Table 3'), 4, p_member_number => (select member_number from elsewhere)) $$,
+  'RVNOM', null, 'another club''s member number is no member here');
+reset role;
+
 select * from finish();
 rollback;
