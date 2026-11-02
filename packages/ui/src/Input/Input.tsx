@@ -90,7 +90,8 @@ interface FieldProps {
 
 /** Fixed text beside the value: a prefix or a suffix, read with the field. */
 function Adornment({ id, text }: { id: string; text: string }) {
-  return <span id={id} className="text-18 tracking-normal text-content-muted">{text}</span>;
+  // The field's own size, so +91 reads as part of the number (P-07).
+  return <span id={id} className="tracking-normal text-content-muted">{text}</span>;
 }
 
 /** A line field's line in the focus colour while it has focus, unless it is wrong (S-01): on its row when it has a prefix or suffix. */

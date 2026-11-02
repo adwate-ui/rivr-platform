@@ -48,12 +48,6 @@
     box-shadow: 0 var(--rivr-border-width-hairline) 0 0 var(--rivr-color-alert);
   }
 
-  /* A code's cells are one field (CodeInput): the ring goes round the row of cells. */
-  [data-code-cells]:has(input:focus-visible) {
-    outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
-    outline-offset: var(--rivr-border-width-focus);
-  }
-
   /* A summary draws its own mark (FaqBlock's chevron, the website's Menu): never the browser's triangle (W-10). */
   summary {
     list-style: none;

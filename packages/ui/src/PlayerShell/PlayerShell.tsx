@@ -22,7 +22,7 @@ export interface PlayerShellProps {
 /** The player app frame on a 390 px phone: banner, wordmark and the member's initial, the screen, and the tab bar. */
 export function PlayerShell({ children, tabs, currentTab, memberInitial, profileHref, onNavigate, banner }: PlayerShellProps) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-content">
+    <div className="mx-auto flex min-h-dvh w-full flex-col bg-surface text-content medium:max-w-phone">
       <SkipLink />
       {banner}
       <header className="flex h-header shrink-0 items-center justify-between pr-2 pl-4">
