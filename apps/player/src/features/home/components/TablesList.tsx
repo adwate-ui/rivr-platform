@@ -15,7 +15,13 @@ function seatsLineOf(table: FloorTable): string {
   return open === 0 ? t('player.live.full') : t('player.live.seatsOpen', { count: open });
 }
 
-/** One upcoming tournament with Notify me, or Notifying you once the member has asked (#636). */
+/** The pill's word: Notify me, Notifying you once asked, or Registered once the floor has registered them (#636). */
+function standingLabel(standing: UpcomingTournament['standing']): string {
+  if (standing === 'registered') return t('player.tonight.standing.registered');
+  return t(standing === 'interested' ? 'player.live.notifying' : 'player.live.notifyMe');
+}
+
+/** One upcoming tournament with Notify me, Notifying you once the member has asked, or Registered (#636). */
 function TournamentRow({ tournament }: { tournament: UpcomingTournament }) {
   const register = useRegisterTournamentInterest();
   const isNotifying = tournament.standing !== 'none';
@@ -28,7 +34,7 @@ function TournamentRow({ tournament }: { tournament: UpcomingTournament }) {
       <Button variant="outline" shape="pill" isPressed={isNotifying} isLoading={register.isPending}
         aria-label={t('player.tonight.registerInterestName', { name: tournament.name })}
         onClick={() => { if (!isNotifying) void register.mutateAsync(tournament.tournamentId); }}>
-        {t(isNotifying ? 'player.live.notifying' : 'player.live.notifyMe')}
+        {standingLabel(tournament.standing)}
       </Button>
     </Inline>
   );

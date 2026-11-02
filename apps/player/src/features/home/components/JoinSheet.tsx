@@ -1,6 +1,6 @@
-import { useControlState, useFeature, useFloorTakenSeats, useWaitlistActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
-import { formatDuration, formatStakes, t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, haptic, SeatMap, Sheet, StatRow, useToast } from '@rivr/ui';
+import { useControlState, useFeature, useFloorTakenSeats, useRestrictions, useWaitlistActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
+import { formatDateTime, formatDuration, formatStakes, t } from '@rivr/i18n';
+import { Button, ErrorMessage, FeatureGate, haptic, SeatMap, Sheet, StatRow, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
@@ -9,9 +9,14 @@ function openSeatsOf(table: FloorTable, taken: readonly number[]): number[] {
   return Array.from({ length: table.seats }, (_, index) => index + 1).filter((seat) => !taken.includes(seat));
 }
 
-/** The join's one button: paused, Take a seat with seats and no wait, else Join waitlist; busy while it goes. */
+/**
+ * The join's one button: paused, Take a seat with seats and no wait, else Join waitlist; busy while it goes. On a break
+ * (decision 0300) there is none, only until when, as the club would refuse the join.
+ */
 function JoinButton({ table, openCount, onJoin, isJoining }: { table: FloorTable; openCount: number; onJoin: () => void; isJoining: boolean }) {
   const { isVenueFrozen } = useControlState();
+  const breakUntil = useRestrictions().data?.breakUntil ?? null;
+  if (breakUntil !== null) return <Text tone="muted" align="center">{t('player.tonight.breakActive', { until: formatDateTime(new Date(breakUntil)) })}</Text>;
   const label = isVenueFrozen ? t('player.live.join.paused')
     : openCount > 0 && table.waiting === 0 ? t('player.live.join.takeSeat') : t('player.live.join.joinWaitlist');
   return (

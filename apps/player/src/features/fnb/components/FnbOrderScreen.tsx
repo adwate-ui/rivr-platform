@@ -2,7 +2,7 @@ import { FNB_ITEM_KINDS, type FnbItemKind } from '@rivr/contracts';
 import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Box, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, QuantityStepper, Screen, Stack, SuggestionCard, Text } from '@rivr/ui';
+import { Box, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text } from '@rivr/ui';
 import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { SendBar } from './SendBar.tsx';
@@ -70,10 +70,9 @@ function OrderBody() {
   const seat = useMySeat();
   const menu = useMyFnbMenu();
   if (seat.data === null) return <Navigate to="/" replace />;
-  if (seat.data === undefined || menu.data === undefined) {
-    return <Screen title={t('player.order.title')} isTitleHidden status={seat.isError || menu.isError ? 'error' : 'loading'} loadingLook="skeleton"
-      onRetry={() => void Promise.all([seat.refetch(), menu.refetch()])} />;
-  }
+  // Under the screen's own heading: a skeleton while it loads, or Try again, with no second title.
+  if (seat.isError || menu.isError) return <LoadState isError onRetry={() => void Promise.all([seat.refetch(), menu.refetch()])} />;
+  if (seat.data === undefined || menu.data === undefined) return <Skeleton rows={4} />;
   if (menu.data.length === 0) return <Text tone="muted">{t('player.fnb.empty')}</Text>;
   return (
     <Stack gap={4}>

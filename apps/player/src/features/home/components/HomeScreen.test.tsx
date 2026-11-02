@@ -30,15 +30,15 @@ const SEAT = {
   table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null,
 };
 
-/** The answers the screen's reads get: each table, the member's places and seat as the test says, and nothing else. */
+/** The answers the screen's reads get: each table, the member's places and seat as the test says, then the test's own. */
 function answers(places: unknown[], seat: unknown[], more: Record<string, unknown>): Record<string, unknown> {
   return {
-    ...more,
     '/rest/v1/game_table': TABLES, '/rest/v1/table_type': TYPES, '/rpc/my_feature_access': FEATURES,
     '/rpc/waitlist_lengths': [{ table_type_id: 'tt1', waiting: 0, call_time_minutes: 180 }],
     '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }],
     '/rpc/floor_taken_seats': [1, 3, 5, 6, 8, 9].map((seatNumber) => ({ table_id: 't1', seat: seatNumber })),
     '/rpc/my_waitlist': places, '/rpc/my_seat': seat,
+    ...more,
   };
 }
 
@@ -175,5 +175,28 @@ describe('Tonight', () => {
     expect(await screen.findByRole('heading', { name: 'How was your night?' }, LATER)).toBeDefined();
     expect(screen.getByText('Tonight', { selector: 'p' })).toBeDefined();
     expect(screen.queryByText(/ at $/)).toBeNull();
+  });
+
+  it('On a break (decision 0300): a banner says until when, and a table offers no join', async () => {
+    renderTonight([], [], { '/rpc/my_restrictions': [{ break_until: '2026-11-20T12:00:00Z', session_reminder_hours: null }] });
+    expect(await screen.findByText(/^On a break until /, {}, LATER)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /Table 1 · NLH 50\/100/ }));
+    expect(await screen.findByRole('dialog', { name: "No-Limit Hold'em 50/100" })).toBeDefined();
+    expect(screen.getAllByText(/^On a break until /)).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: /^(Take a seat|Join waitlist)$/ })).toBeNull();
+  });
+
+  it('Browsing: the tournaments under the tables say Notify me, Notifying you, or Registered once the floor has', async () => {
+    renderTonight([], [], {
+      '/rpc/my_feature_access': [...FEATURES, { feature_key: 'tournaments.register', state: 'enabled', tiers: null }],
+      '/rpc/my_upcoming_tournaments': [
+        { tournament_id: 't1', name: 'Weeknight Turbo', starts_at: '2026-11-17T14:30:00Z', standing: 'none' },
+        { tournament_id: 't2', name: 'Sunday Main Event', starts_at: '2026-11-22T08:30:00Z', standing: 'interested' },
+        { tournament_id: 't3', name: 'Ladies Night', starts_at: '2026-11-19T14:30:00Z', standing: 'registered' },
+      ],
+    });
+    expect((await screen.findByRole('button', { name: 'Register interest in Weeknight Turbo' }, LATER)).textContent).toBe('Notify me');
+    expect(screen.getByRole('button', { name: 'Register interest in Sunday Main Event' }).textContent).toBe('Notifying you');
+    expect(screen.getByRole('button', { name: 'Register interest in Ladies Night' }).textContent).toBe('Registered');
   });
 });
