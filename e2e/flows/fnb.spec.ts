@@ -31,7 +31,7 @@ test.describe('F&B', () => {
     await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
     await page.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000288');
     await page.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Move Ishan Mehta' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ishan Mehta leaves' })).toBeVisible();
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000288');
@@ -96,14 +96,10 @@ test.describe('F&B', () => {
     await revoke(page, name);
     await page.getByRole('link', { name: 'Live floor' }).click();
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
+    // One Leave (decision 0299): he owes call time, so he is let go early with a reason, and his seat is freed with it.
     await page.getByRole('button', { name: 'Ishan Mehta leaves' }).click();
-    await page.getByRole('button', { name: 'Yes, Ishan Mehta leaves' }).click();
-    // His seat clears first; until it does, his row and the list of those owing call time both offer Leave early.
-    await expect(page.getByRole('button', { name: 'Move Ishan Mehta' })).toHaveCount(0);
-    await page.getByRole('button', { name: 'Let Ishan Mehta leave early' }).click();
     await page.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the F&B flow');
     await page.getByRole('button', { name: 'Let leave early' }).click();
-    await page.getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Move Ishan Mehta' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Ishan Mehta leaves' })).toHaveCount(0);
   });
 });

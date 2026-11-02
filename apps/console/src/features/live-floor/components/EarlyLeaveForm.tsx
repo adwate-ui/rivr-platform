@@ -9,6 +9,8 @@ export interface OwingMember {
   fullName: string;
   /** Whole seconds of call time still owed. */
   owed: number;
+  /** A seated player's seat, freed once they are let go (decision 0299: one Leave); none for one who has left already. */
+  sessionId?: string;
 }
 
 interface EarlyLeaveFormProps {
@@ -20,14 +22,15 @@ interface EarlyLeaveFormProps {
 
 /**
  * An admin lets a member leave before their call time (#79; additions flow 13), with a reason kept on
- * their record with the admin's name: the cage can then cash them out.
+ * their record with the admin's name: the cage can then cash them out. A seated player's seat is freed with it.
  */
 export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeaveFormProps) {
-  const { letLeaveEarly } = useSeatActions(venueId);
+  const { letLeaveEarly, leave } = useSeatActions(venueId);
   const [reason, setReason] = useState('');
   const [isDone, setIsDone] = useState(false);
   const submit = async () => {
-    const outcome = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason: reason.trim() });
+    const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason: reason.trim() });
+    const outcome = letGo.ok && member.sessionId !== undefined ? await leave.mutateAsync(member.sessionId) : letGo;
     setIsDone(outcome.ok);
     onDone(outcome);
   };
@@ -42,7 +45,7 @@ export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeave
       )}
       <Inline gap={3}>
         {isDone ? null : (
-          <Button variant="secondary" isDisabled={reason.trim().length < 3} isLoading={letLeaveEarly.isPending} onClick={() => void submit()}>
+          <Button variant="secondary" isDisabled={reason.trim().length < 3} isLoading={letLeaveEarly.isPending || leave.isPending} onClick={() => void submit()}>
             {t('console.liveFloor.letLeaveEarly')}
           </Button>
         )}

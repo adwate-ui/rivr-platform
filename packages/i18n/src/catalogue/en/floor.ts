@@ -37,6 +37,9 @@ export const liveFloor = {
   heldFor: 'Held for {name}',
   /** The same seat on a table's ring. */
   heldMark: 'H',
+  /** A seated player's row (decision 0299): since when they play, and that no call time was given. `{time}`: 21:40. */
+  playingSince: 'Playing since {time}',
+  noCallTime: 'No call time',
   /** At a must-move table: the player's turn to move up, 1 first. */
   mustMove: 'Must move {order}',
   /** A player away from the table, the seat kept (#59). */

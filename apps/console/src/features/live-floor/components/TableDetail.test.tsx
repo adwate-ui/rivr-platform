@@ -30,8 +30,8 @@ function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: read
   const ended: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/end_seat')) {
-      ended.push(JSON.parse(String(init?.body)));
+    if (url.includes('/rpc/end_seat') || url.includes('/rpc/let_leave_early')) {
+      ended.push({ to: url.split('/rpc/')[1], body: JSON.parse(String(init?.body)) });
       return new Response(null, { status: 204 });
     }
     return Response.json([]);
@@ -50,21 +50,35 @@ describe('a table on the live floor', () => {
     const ended = renderTable();
     fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
-    await waitFor(() => expect(ended).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
+    await waitFor(() => expect(ended).toEqual([{ to: 'end_seat', body: { p_session_id: 's1', p_reason: 'left' } }]));
   });
 
-  it('takes the focus to the Move form as it opens below the seats, and again for another player (F2-24)', () => {
+  it('has one Leave: Away, Move and Mark leaving are not on the row (decision 0299)', () => {
+    renderTable([KABIR, PRIYA], ['members.read', 'waitlist.manage', 'call_time.override']);
+    expect(screen.queryByRole('button', { name: 'Move Kabir Sethi' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Kabir Sethi is away from the table' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Mark leaving: Kabir Sethi' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Let Priya Nair leave early' })).toBeNull();
+    expect(screen.getAllByRole('button', { name: /leaves$/ }).map((button) => button.textContent)).toEqual(['Leave', 'Leave']);
+  });
+
+  it('says since when each player plays, and their call time or none (decision 0299)', () => {
     renderTable([KABIR, PRIYA]);
-    fireEvent.click(screen.getByRole('button', { name: 'Move Kabir Sethi' }));
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Move Kabir Sethi' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Move Priya Nair' }));
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Move Priya Nair' }));
+    expect(screen.getAllByText(/^Playing since \d{2}:\d{2}$/)).toHaveLength(2);
+    expect(screen.getByText('No call time')).toBeDefined();
+    expect(screen.getByText('Call time 30 min left')).toBeDefined();
   });
 
-  it('takes the focus to the early-leave form as it opens (F2-24)', () => {
-    renderTable([PRIYA], ['members.read', 'waitlist.manage', 'call_time.override']);
-    fireEvent.click(screen.getByRole('button', { name: 'Let Priya Nair leave early' }));
+  it('lets a player who owes call time go early, with a reason, and frees the seat in the same step (decision 0299)', async () => {
+    const ended = renderTable([PRIYA], ['members.read', 'waitlist.manage', 'call_time.override']);
+    fireEvent.click(screen.getByRole('button', { name: 'Priya Nair leaves' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 3, name: 'Early departure for Priya Nair' }));
+    fireEvent.change(screen.getByRole('textbox', { name: /^Why they leave early/ }), { target: { value: 'Feeling unwell' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Let leave early' }));
+    await waitFor(() => expect(ended).toEqual([
+      { to: 'let_leave_early', body: { p_venue_id: 'v1', p_member_id: 'm2', p_reason: 'Feeling unwell' } },
+      { to: 'end_seat', body: { p_session_id: 's2', p_reason: 'left' } },
+    ]));
   });
 
   it('shows a role that does not read members the table without its night, which it would read as noughts (F2-25)', () => {
@@ -94,10 +108,6 @@ describe('a table on the live floor', () => {
     expect(screen.queryByText('Open')).toBeNull();
   });
 
-  it('marks a player leaving with Mark leaving, named as it reads (C-08)', () => {
-    renderTable();
-    expect(screen.getByRole('button', { name: 'Mark leaving: Kabir Sethi' }).textContent).toBe('Mark leaving');
-  });
 
   it('sends a member whose identity check is not finished to the front desk (C-08)', async () => {
     renderTable([], ['members.read', 'waitlist.manage']);
