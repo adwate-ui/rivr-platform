@@ -41,6 +41,14 @@ values ('00000000-0000-4000-8000-000000000001', 'points.verified_bonus', '', '{"
 select lives_ok($$ select pg_temp.verify('00000000-0000-4000-8000-000000000203') $$, 'verified again after a recheck');
 select is(pg_temp.points('00000000-0000-4000-8000-000000000203'), 500::bigint, 'the bonus is given once a member');
 
+-- Kabir, verified before any bonus, has his PAN rechecked: the result is recorded with him still verified. No one was
+-- verified, so no bonus, and a freeze on him does not block the recheck.
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000202', 'Bonus test');
+select lives_ok($$ update public.kyc_record set status = status where member_id = '00000000-0000-4000-8000-000000000202' $$,
+  'a recheck recorded on a verified member, even a frozen one');
+select is(pg_temp.points('00000000-0000-4000-8000-000000000202'), 0::bigint, 'gives no bonus');
+
 -- Rohan, verified by the same raised bonus, gets 900.
 select pg_temp.verify('00000000-0000-4000-8000-000000000204');
 select is(pg_temp.points('00000000-0000-4000-8000-000000000204'), 900::bigint, 'the bonus in force when verified');

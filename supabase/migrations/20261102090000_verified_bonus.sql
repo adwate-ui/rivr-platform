@@ -4,8 +4,9 @@
 -- by hand (#629): this is the one bonus the owner asked to be automatic.
 --
 -- The points are credited once a member, keyed by the member, whichever path verifies them (DigiLocker, PAN, the
--- front desk, a recheck), and never at the practice venue. A member verified again after a recheck gets nothing more,
--- even if the club changed the number in between.
+-- front desk, a recheck that sent them back), at the number in force when they were verified, and never at the practice
+-- venue. A row that was verified already and stays so (a PAN recheck records its result that way) gives nothing: no one
+-- was verified. A member verified again after a recheck sent them back gets nothing more, even if the number changed.
 
 insert into public.setting_key (key, description, scope, value_schema) values
   ('points.verified_bonus',
@@ -30,11 +31,12 @@ declare
   v_key constant text := 'verified_bonus:' || new.member_id;
   v_points bigint;
 begin
-  if exists (select 1 from public.venue v where v.id = new.venue_id and v.is_practice)
+  if (tg_op = 'UPDATE' and old.status = 'verified')
+     or exists (select 1 from public.venue v where v.id = new.venue_id and v.is_practice)
      or exists (select 1 from public.ledger_transaction t where t.venue_id = new.venue_id and t.idempotency_key = v_key) then
     return new;
   end if;
-  v_points := coalesce((private.setting_at(new.venue_id, 'points.verified_bonus', '', now()) ->> 'points')::bigint, 0);
+  v_points := coalesce((private.setting_at(new.venue_id, 'points.verified_bonus', '', new.verified_at) ->> 'points')::bigint, 0);
   if v_points > 0 then
     perform private.credit_points(new.venue_id, new.member_id, v_points, 'Bonus on verification', v_key);
   end if;
