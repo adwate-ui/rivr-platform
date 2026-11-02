@@ -17,6 +17,8 @@ test.describe('Feature overrides', () => {
     await admin.getByRole('link', { name: 'Members' }).click();
     await admin.getByRole('searchbox', { name: 'Find a member' }).fill('Siddharth');
     await admin.getByRole('button', { name: 'Open Siddharth Vaid' }).click();
+    // The record's parts are tabs (C-02).
+    await admin.getByRole('link', { name: 'Account', exact: true }).click();
     await expect(admin.getByRole('heading', { name: 'Feature overrides' })).toBeVisible();
     await admin.getByRole('group', { name: 'Feature' }).getByRole('button', { name: 'Session history' }).click();
     await admin.getByRole('group', { name: 'Override' }).getByRole('button', { name: 'Take away' }).click();

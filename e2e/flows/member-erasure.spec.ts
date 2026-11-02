@@ -38,6 +38,8 @@ test.describe('Member erasure', () => {
     await page.getByRole('link', { name: 'Members' }).click();
     await page.getByRole('searchbox', { name: 'Find a member' }).fill('Neel');
     await page.getByRole('button', { name: 'Open Neel Kapur' }).click();
+    // The record's parts are tabs (C-02).
+    await page.getByRole('link', { name: 'Account', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Erasure on request' })).toBeVisible();
     await expect(page.getByText('Forfeited to the club: 500 points and 0 bonus chips.')).toBeVisible();
