@@ -1,6 +1,6 @@
 import { usePreferences, useRestrictions } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack } from '@rivr/ui';
+import { Divider, Screen, Stack } from '@rivr/ui';
 import { EventsSection } from './EventsSection.tsx';
 import { CardSection } from './CardSection.tsx';
 import { FeedbackSection } from './FeedbackSection.tsx';
@@ -48,6 +48,8 @@ export function ProfileScreen() {
         <EventsSection />
         <HouseRulesSection />
         <FeedbackSection />
+        {/* Apart from Feedback, so Sign out does not read as part of its form (P-08). */}
+        <Divider />
         <SignOutSection />
       </Stack>
     </Screen>
