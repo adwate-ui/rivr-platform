@@ -32,17 +32,19 @@ interface BoardProps {
   name: string;
   /** In a rotation: the promotions call it once each has shown. */
   onDone?: (() => void) | undefined;
+  /** In a rotation, except the main board: a board with nothing to show calls it to pass on (D-03). */
+  onEmpty?: (() => void) | undefined;
 }
 
 /** One board. The waitlist board is built (#65, the jackpot hidden by #628), the promotions (#86), the call-time board (decision 0163), the rewards ticker and League leaderboard (#148), the tournament clock (#119), the spin wheel (#150) and the social wall (#158); the other modes show their name under the TV's until they are. */
-function Board({ mode, name, onDone }: BoardProps) {
+function Board({ mode, name, onDone, onEmpty }: BoardProps) {
   if (mode === 'waitlist') return <WaitlistMode />;
   if (mode === 'call_time') return <CallTimeMode />;
   if (mode === 'promotions') return <PromotionsMode onDone={onDone} />;
-  if (mode === 'rewards') return <RewardsMode />;
-  if (mode === 'league') return <LeagueMode />;
+  if (mode === 'rewards') return <RewardsMode onEmpty={onEmpty} />;
+  if (mode === 'league') return <LeagueMode onEmpty={onEmpty} />;
   if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
-  if (mode === 'spin_wheel') return <SpinMode />;
+  if (mode === 'spin_wheel') return <SpinMode onEmpty={onEmpty} />;
   if (mode === 'social_wall') return <SocialWallMode />;
   return (
     <Stack gap={4}>
@@ -64,7 +66,7 @@ function Rotation({ boards, name }: { boards: readonly TvMode[]; name: string })
   }, [mode, turn, next]);
   return (
     <>
-      <Board key={turn} mode={mode} name={name} onDone={next} />
+      <Board key={turn} mode={mode} name={name} onDone={next} onEmpty={turn % boards.length === 0 ? undefined : next} />
       <TvBoardProgress key={`progress-${turn}`} durationMs={progressFor(mode)} />
     </>
   );

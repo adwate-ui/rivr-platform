@@ -1,5 +1,6 @@
 import { useTvLeagueBoard, type LeagueBoardRow } from '@rivr/db';
 import { formatMonth, formatNumber, t } from '@rivr/i18n';
+import { isEmptyBoard, useSkipWhenEmpty } from './useSkipWhenEmpty.ts';
 import { Text, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 
 /** One column of the board: this month's places, or the season's, each a first name and initial and the points. */
@@ -27,10 +28,12 @@ export function toLeagueColumns(rows: readonly LeagueBoardRow[]): TvWaitlistStak
 }
 
 /** The League leaderboard (#148, decision 0182): this month's places and the season's, live as visits close and tournaments finish. */
-export function LeagueMode() {
+export function LeagueMode({ onEmpty }: { onEmpty?: (() => void) | undefined }) {
   const board = useTvLeagueBoard();
+  const stakes = board.data === undefined ? undefined : toLeagueColumns(board.data);
+  useSkipWhenEmpty(stakes !== undefined && isEmptyBoard(stakes), onEmpty);
   if (board.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(board.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
-  return <TvWaitlistBoard title={t('tv.league.title')} emptyText={t('tv.league.empty')} stakes={toLeagueColumns(board.data)} />;
+  return <TvWaitlistBoard title={t('tv.league.title')} emptyText={t('tv.league.empty')} stakes={stakes ?? []} />;
 }

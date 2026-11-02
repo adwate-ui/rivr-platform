@@ -67,7 +67,8 @@ export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowPr
           <Text weight="semibold">{name}</Text>
           {tablet.isDoor ? <Text variant="small">{t('console.tablets.doorKiosk')}</Text> : null}
           <Text variant="small" tone="muted">{t(tablet.isPaired ? 'console.tablets.paired' : 'console.tablets.notPaired')}</Text>
-          {code === null ? null : <Text>{t('console.tablets.code', { code: code.code, time: formatTime(new Date(code.expiresAt)) })}</Text>}
+          {/* A paired tablet has used its code (D-02). */}
+          {code === null || tablet.isPaired ? null : <Text>{t('console.tablets.code', { code: code.code, time: formatTime(new Date(code.expiresAt)) })}</Text>}
         </Stack>
         <Inline gap={2} wrap>
           <Button variant="secondary" isLoading={pair.isPending} onClick={() => void newCode()}>{t('console.tablets.newCode', { name })}</Button>

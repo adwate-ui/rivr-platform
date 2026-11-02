@@ -42,11 +42,11 @@ export const pairing = {
   title: 'Tablet pairing',
   /** In the header until the tablet is paired. */
   notPaired: 'Not paired',
-  intro: 'Enter the six-digit code from the console.',
+  intro: 'On the console, open Devices, then Tablets, and get a code for this tablet.',
   code: 'Pairing code',
   pair: 'Pair',
   wrongCode: 'Wrong or expired code. Ask for a new one.',
-  sixDigits: 'Enter the six-digit code from the console.',
+  sixDigits: 'Enter all six digits.',
   tooMany: 'Too many wrong codes. Wait ten minutes.',
   unavailable: 'Not paired. Try again.',
 };
@@ -113,6 +113,8 @@ export const dealerSignIn = {
   down: '{name} · down since {time}',
   endDown: 'End of down',
   endDownFailed: 'End of down not sent. Try again.',
+  /** Under a dealer's PIN pad: back to the names (D-04). */
+  another: 'Another dealer',
 };
 
 /** The console's TVs screen (#49): pair a TV by the code it shows, change what it shows, unpair it. */
@@ -160,7 +162,7 @@ export const tvs = {
 /** A TV before it is paired (#49): the code staff type into the console. */
 export const tvPairing = {
   title: 'Screen pairing',
-  intro: 'On the console, open TVs and type in this code.',
+  intro: 'On the console, open Devices, then TVs, and type in this code.',
   /** `{time}` (IST) is when the code runs out and a new one shows. */
   changes: 'The code changes at {time}.',
   loading: 'Getting a code.',

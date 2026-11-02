@@ -62,7 +62,8 @@ test.describe('Dealer tablet', () => {
     await floor.getByLabel(`New PIN for ${DEALER}`).fill('2741');
     await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
     await expect(floor.getByText(`PIN saved for ${DEALER}.`)).toBeVisible();
-    const dealerChip = tablet.getByRole('group', { name: 'Who is dealing?' }).getByRole('button', { name: DEALER });
+    // The dealers are large buttons, one a name (D-04).
+    const dealerChip = tablet.getByRole('button', { name: DEALER, exact: true });
     await expect(dealerChip).toBeVisible({ timeout: 20_000 });
     await dealerChip.click();
     await pressPin(tablet, '2740');

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerPinEntrySchema } from '@rivr/contracts';
 import { useDownActions, useTabletDealers, type DealerSignInFailure, type TabletDealer } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, PinPad, Screen, Stack } from '@rivr/ui';
+import { Button, Grid, Heading, PinPad, Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
@@ -33,26 +33,43 @@ function DealerPin({ dealer }: { dealer: TabletDealer }) {
   );
 }
 
+/** The dealers as large buttons a hand finds at a glance (D-04), three across. */
+function DealerNames({ dealers, onChoose }: { dealers: readonly TabletDealer[]; onChoose: (staffId: string) => void }) {
+  return (
+    <Stack gap={4}>
+      <Heading level={2} variant="section">{t('tablet.dealerSignIn.who')}</Heading>
+      <Grid columns={3} gap={4}>
+        {dealers.map((candidate) => (
+          <Button key={candidate.staffId} variant="secondary" size="large" fullWidth onClick={() => onChoose(candidate.staffId)}>
+            {candidate.fullName}
+          </Button>
+        ))}
+      </Grid>
+    </Stack>
+  );
+}
+
 /**
- * Between downs (#41): the dealer picks their name and enters their PIN, as in the prototype's
+ * Between downs (#41): the dealer picks their name, then enters their PIN, as in the prototype's
  * dealer sign-in. Only dealers with a PIN at this venue are listed; the list refreshes by itself,
  * so a PIN set on the console appears without touching the locked tablet.
  */
 export function DealerSignInScreen() {
   const dealers = useTabletDealers();
-  const [chosen, setChosen] = useState<string[]>([]);
+  const [chosen, setChosen] = useState<string | null>(null);
   const title = t('tablet.dealerSignIn.title');
   if (dealers.isPending) return <Screen title={title} status="loading" />;
   if (dealers.data === undefined) return <Screen title={title} status="error" onRetry={() => void dealers.refetch()} />;
   if (dealers.data.length === 0) return <Screen title={title} status="empty" emptyText={t('tablet.dealerSignIn.noDealers')} />;
-  const dealer = dealers.data.find((candidate) => candidate.staffId === chosen[0]);
+  const dealer = dealers.data.find((candidate) => candidate.staffId === chosen);
   return (
     <Screen title={title}>
-      <Stack gap={6}>
-        <ChoiceChips label={t('tablet.dealerSignIn.who')} mode="one" selected={chosen} onChange={setChosen}
-          options={dealers.data.map((candidate) => ({ value: candidate.staffId, label: candidate.fullName }))} />
-        {dealer === undefined ? null : <DealerPin key={dealer.staffId} dealer={dealer} />}
-      </Stack>
+      {dealer === undefined ? <DealerNames dealers={dealers.data} onChoose={setChosen} /> : (
+        <Stack gap={4}>
+          <DealerPin key={dealer.staffId} dealer={dealer} />
+          <Button variant="text" onClick={() => setChosen(null)}>{t('tablet.dealerSignIn.another')}</Button>
+        </Stack>
+      )}
     </Screen>
   );
 }

@@ -24,7 +24,7 @@ describe('pairing the tablet', () => {
     );
     fireEvent.change(screen.getByRole('textbox', { name: 'Pairing code' }), { target: { value: '12' } });
     fireEvent.click(screen.getByRole('button', { name: 'Pair' }));
-    expect(await screen.findByText('Enter the six-digit code from the console.')).toBeDefined();
+    expect(await screen.findByText('Enter all six digits.')).toBeDefined();
     expect(screen.queryByText('Wrong or expired code. Ask for a new one.')).toBeNull();
     expect(sent.filter((url) => url.includes('device-pair'))).toEqual([]);
   });

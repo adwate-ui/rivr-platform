@@ -2,6 +2,7 @@ import { useTvSpinWheel, type SpinPrizeKind, type TvSpinWheel } from '@rivr/db/s
 import { fromPaise } from '@rivr/domain/money';
 import { formatChips, formatNumber, t } from '@rivr/i18n';
 import { Text, TV_WAITLIST_PLACES_SHOWN, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
+import { isEmptyBoard, useSkipWhenEmpty } from './useSkipWhenEmpty.ts';
 import { usePage } from './usePage.ts';
 
 /** A prize as the TV names it: `100 points`, `500 bonus chips` (no rupee, #628) or `Nothing`. */
@@ -36,11 +37,13 @@ export function toSpinColumns(wheel: TvSpinWheel, first = 0): TvWaitlistStake[] 
 }
 
 /** The spin wheel (#150, decision 0266): the prizes and their odds beside tonight's spins, live as the floor spins; a long wheel a page at a time (#582). */
-export function SpinMode() {
+export function SpinMode({ onEmpty }: { onEmpty?: (() => void) | undefined }) {
   const wheel = useTvSpinWheel();
   const first = usePage(Math.ceil((wheel.data?.prizes.length ?? 0) / TV_WAITLIST_PLACES_SHOWN)) * TV_WAITLIST_PLACES_SHOWN;
+  const stakes = wheel.data === undefined ? undefined : toSpinColumns(wheel.data, first);
+  useSkipWhenEmpty(stakes !== undefined && isEmptyBoard(stakes), onEmpty);
   if (wheel.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(wheel.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
-  return <TvWaitlistBoard title={t('tv.spin.title')} emptyText={t('tv.spin.empty')} stakes={toSpinColumns(wheel.data, first)} />;
+  return <TvWaitlistBoard title={t('tv.spin.title')} emptyText={t('tv.spin.empty')} stakes={stakes ?? []} />;
 }
