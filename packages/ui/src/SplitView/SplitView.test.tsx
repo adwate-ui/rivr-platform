@@ -10,21 +10,22 @@ function Members() {
   const [isOpen, setOpen] = useState(false);
   return (
     <SplitView list={<button type="button" onClick={() => setOpen(true)}>Arjun Mehta</button>}
-      detail={isOpen ? <p>Arjun Mehta, Black card</p> : null} backLabel="Back to Members" onBack={() => setOpen(false)} emptyText="Choose a member." />
+      detail={isOpen ? <p>Arjun Mehta, Black card</p> : null} backLabel="Back to Members" onBack={() => setOpen(false)} />
   );
 }
 
 describe('SplitView', () => {
-  it('shows the list and, with no record open, what to do', () => {
-    renderIn(<SplitView list={<p>Members list</p>} detail={null} backLabel="Back to Members" onBack={vi.fn()} emptyText="Choose a member." />);
-    expect(screen.getByText('Members list')).toBeInTheDocument();
-    expect(screen.getByText('Choose a member.')).toBeInTheDocument();
+  it('shows the list alone, across the width, with no record open, and two fifths of it once one opens (C-03)', () => {
+    const { rerender } = renderIn(<SplitView list={<p>Members list</p>} detail={null} backLabel="Back to Members" onBack={vi.fn()} />);
+    expect(screen.getByText('Members list').parentElement?.className).toContain('tablet:col-span-5');
     expect(screen.queryByRole('button', { name: 'Back to Members' })).not.toBeInTheDocument();
+    rerender(<SplitView list={<p>Members list</p>} detail={<p>Arjun Mehta</p>} backLabel="Back to Members" onBack={vi.fn()} />);
+    expect(screen.getByText('Members list').parentElement?.className).toContain('tablet:col-span-2');
   });
 
   it('shows the record with a way back to the list, which a phone hides while the record shows', async () => {
     const onBack = vi.fn();
-    renderIn(<SplitView list={<p>Members list</p>} detail={<p>Arjun Mehta</p>} backLabel="Back to Members" onBack={onBack} emptyText="Choose a member." />);
+    renderIn(<SplitView list={<p>Members list</p>} detail={<p>Arjun Mehta</p>} backLabel="Back to Members" onBack={onBack} />);
     expect(screen.getByText('Arjun Mehta')).toBeInTheDocument();
     expect(screen.getByText('Members list').parentElement).toHaveClass('hidden', 'tablet:block');
     await userEvent.click(screen.getByRole('button', { name: 'Back to Members' }));
@@ -40,7 +41,7 @@ describe('SplitView', () => {
   });
 
   it('keeps the list on a phone while the record shown was not chosen, and shows both from 1180 px', () => {
-    renderIn(<SplitView list={<p>Tables</p>} detail={<p>Table 1</p>} isChosen={false} backLabel="Back to the floor" onBack={vi.fn()} emptyText="Choose a table." />);
+    renderIn(<SplitView list={<p>Tables</p>} detail={<p>Table 1</p>} isChosen={false} backLabel="Back to the floor" onBack={vi.fn()} />);
     expect(screen.getByText('Tables').parentElement).not.toHaveClass('hidden');
     expect(screen.getByText('Table 1').parentElement?.parentElement).toHaveClass('hidden', 'tablet:flex');
   });
@@ -57,7 +58,7 @@ describe('SplitView', () => {
   });
 
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<SplitView list={<p>List</p>} detail={<p>Record</p>} backLabel="Back" onBack={vi.fn()} emptyText="Choose." />);
+    const { container } = renderIn(<SplitView list={<p>List</p>} detail={<p>Record</p>} backLabel="Back" onBack={vi.fn()} />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

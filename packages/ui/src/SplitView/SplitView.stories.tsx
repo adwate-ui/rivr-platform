@@ -22,7 +22,7 @@ const meta = {
   title: 'Layout/SplitView',
   component: SplitView,
   tags: ['viewport-console'],
-  args: { list: LIST, detail: RECORD, backLabel: 'Back to Members', onBack: () => undefined, emptyText: 'Choose a member to see their record.' },
+  args: { list: LIST, detail: RECORD, backLabel: 'Back to Members', onBack: () => undefined },
 } satisfies Meta<typeof SplitView>;
 
 export default meta;

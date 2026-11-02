@@ -11,7 +11,6 @@ export const settings = {
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips',
   },
   backTo: 'Back to {area}',
-  chooseSetting: 'Choose a setting.',
   nowColumn: 'Now',
   whoColumn: 'Who changes it',
   superAdminOnly: 'Super admin',

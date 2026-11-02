@@ -205,6 +205,8 @@ export const consoleApp = {
   practice: 'Practice venue',
   /** Across the top of every screen while the console works in the practice venue. */
   practiceBanner: 'Practice venue: nothing here reaches the club or its members.',
+  /** A screen the club switched off, opened by its address (C-04). */
+  switchedOff: 'This screen is switched off. Ask a super admin.',
   /** A screen opened by address that the staff member's role does not include. */
   notAllowed: 'Not in your role. Ask an admin.',
   academy,

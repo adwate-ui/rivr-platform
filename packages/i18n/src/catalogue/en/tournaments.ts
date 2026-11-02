@@ -25,9 +25,8 @@ export const tournaments = {
   title: 'Tournaments',
   notAllowed: 'Tournaments are for staff who run them.',
   show: 'Show',
-  /** A phone's way from a tournament back to the list, and the desk's line while none is chosen (#605). */
+  /** A phone's way from a tournament back to the list (#605). */
   backToList: 'Back to Tournaments',
-  chooseOne: 'Choose a tournament to see its clock and floor.',
   views: { tournaments: 'Running and upcoming', templates: 'Templates', structures: 'Blind structures' },
   formats: { freezeout: 'Freezeout', re_entry: 'Re-entry', rebuy: 'Rebuy' },
   /** What went wrong saving or changing anything here. */

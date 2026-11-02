@@ -60,7 +60,6 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
       {stale}
       {/* The first table shows beside the plan from 1180 px; below, the plan stays until a table is chosen (#605). */}
       <SplitView isChosen={chosenId !== null} onBack={() => setChosenId(null)} backLabel={t('console.liveFloor.backToFloor')}
-        emptyText={t('console.liveFloor.chooseTable')}
         list={(
           <Stack gap={8}>
             {permissions.includes('waitlist.manage') ? <JoinRequestsNotice venueId={venueId} /> : null}

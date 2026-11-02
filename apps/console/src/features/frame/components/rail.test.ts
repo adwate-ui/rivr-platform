@@ -1,6 +1,6 @@
 import { ROLE_PERMISSIONS } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { isAllowedAt, landingFor, locksWhenIdle, railFor } from './rail.ts';
+import { isAllowedAt, landingFor, locksWhenIdle, railFor, isHiddenAt } from './rail.ts';
 
 const items = (permissions: Parameters<typeof railFor>[0]) => railFor(permissions).flatMap((section) => section.items.map((item) => item.href));
 
@@ -25,8 +25,12 @@ describe('the console rail and who may open each screen', () => {
     const onTheRail = items(everyone);
     for (const screen of hidden) {
       expect(isAllowedAt(everyone, screen)).toBe(false);
+      expect(isHiddenAt(screen)).toBe(true);
       expect(onTheRail).not.toContain(screen);
     }
+    // Refused as switched off, not as outside the role (C-04); a visible screen is not.
+    expect(isHiddenAt('/cage/receipt')).toBe(true);
+    expect(isHiddenAt('/purge')).toBe(false);
     // A screen below a hidden one is hidden with it.
     expect(isAllowedAt(everyone, '/cage/receipt')).toBe(false);
     for (const kept of ['/', '/waitlist', '/check-in', '/fnb', '/members', '/promotions', '/rewards', '/staff', '/settings', '/devices']) {
