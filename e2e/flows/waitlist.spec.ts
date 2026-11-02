@@ -169,7 +169,7 @@ test.describe('Waitlist', () => {
     await expect(player.getByRole('button', { name: /^Join / })).toHaveCount(0);
   });
 
-  test('Hold place, Back, Step away and I\u2019m back: the floor and the member move a place to away and back (#287)', async () => {
+  test('Hold place and Back: the floor holds a member\u2019s place and brings it back; the member has no Step away', async () => {
     // Seated from the step before, the member is on the list only as the floor adds him, to change tables (#633).
     await host.reload();
     await addByNumber(gameList(host, 'NLH 100/200'), '9000000211');
@@ -184,11 +184,10 @@ test.describe('Waitlist', () => {
     await higher.getByRole('button', { name: `Back: ${MEMBER}` }).click();
     await expect(higher.getByRole('button', { name: `Assign ${MEMBER}` })).toBeVisible();
 
+    // Only the floor holds a place now (decision 0300): the member's place offers Leave and no Step away.
     await player.reload();
-    await player.getByRole('button', { name: 'Step away' }).click();
-    await untilListShows(host, `Back: ${MEMBER}`);
-    await player.getByRole('button', { name: "I'm back" }).click();
-    await untilListShows(host, `Assign ${MEMBER}`);
+    await expect(player.getByRole('button', { name: /^Leave: the .+ list$/ }).first()).toBeVisible();
+    await expect(player.getByRole('button', { name: /^Step away/ })).toHaveCount(0);
 
     await pressEvery(player, /^Leave: the .+ list$/, 'Yes, leave');
   });

@@ -32,7 +32,9 @@ test.describe('Call time', () => {
     // The seat card sets the time left as its figure, under its name (UI polish audit A-08).
     await expect(player.getByText('Call time left')).toBeVisible();
     await expect(player.getByText(/^(3 h|2 h 59 min|2 h 58 min)$/)).toBeVisible();
-    await expect(player.getByText(/^Playing for /)).toBeVisible();
+    // Since when she plays, and her minimum session: the call time the floor gave (decision 0300).
+    await expect(player.getByText(/^Playing since \d{2}:\d{2} · /)).toBeVisible();
+    await expect(player.getByText('Minimum session 3 h')).toBeVisible();
 
     // From her seat (#634): an hour more call time, and a top-up the floor takes in hand, then resets.
     await player.getByRole('button', { name: 'Add an hour of call time' }).click();
