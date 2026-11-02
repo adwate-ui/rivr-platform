@@ -9,6 +9,8 @@ alter table public.waitlist_entry
 
 comment on column public.waitlist_entry.table_id is 'The table the member asked for from the app (decision 0321); the list is the stake''s.';
 comment on column public.waitlist_entry.on_way_at is 'When the called member said they were on their way (decision 0321).';
+insert into private.member_export_column (table_name, column_name, kind)
+values ('waitlist_entry', 'table_id', 'owed'), ('waitlist_entry', 'on_way_at', 'owed');
 
 -- Joining at a table: the stake's list, as join_waitlist, with the table kept on the place. A table of another venue is refused.
 create function private.join_waitlist_at(p_table_id uuid, p_idempotency_key uuid)
@@ -130,3 +132,6 @@ as $$ select * from private.waitlist_board(p_venue_id); $$;
 
 revoke execute on function private.waitlist_board(uuid), public.waitlist_board(uuid) from public, anon;
 grant execute on function private.waitlist_board(uuid), public.waitlist_board(uuid) to authenticated;
+
+-- The practice venue's seed keeps the new columns (decision 0117).
+select private.capture_practice_seed(v.id) from public.venue v where v.is_practice;

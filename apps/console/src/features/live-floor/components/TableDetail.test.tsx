@@ -16,7 +16,7 @@ const TABLE: FloorTable = {
 };
 const KABIR: SeatedPlayer = {
   sessionId: 's1', tableId: 't3', seat: 5, memberId: 'm1', fullName: 'Kabir Sethi', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
-  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null,
+  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null, timeRequest: null,
 };
 
 const PRIYA: SeatedPlayer = { ...KABIR, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Priya Nair', callTimeLeft: 1800 };

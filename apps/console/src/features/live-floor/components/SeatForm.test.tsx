@@ -16,7 +16,7 @@ const TABLE: FloorTable = {
 };
 const TAKEN: SeatedPlayer = {
   sessionId: 's1', tableId: 't3', seat: 4, memberId: 'm1', fullName: 'Kabir Sethi', tierName: 'Gold', startedAt: '2026-11-15T15:00:00Z',
-  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null,
+  mustMoveOrder: null, isAway: false, callTimeLeft: null, leavingAt: null, topUp: null, timeRequest: null,
 };
 
 describe('SeatForm', () => {

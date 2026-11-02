@@ -73,7 +73,8 @@ export * from './league.ts';
 export * from './dealers.ts';
 export * from './floorReports.ts';
 export {
-  openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
+  openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useDecideCallTime,
+  useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
 export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer, type TabletSeat } from './tabletSeats.ts';
 export {

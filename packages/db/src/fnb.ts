@@ -44,6 +44,8 @@ export interface FnbOrderTonight {
   readonly acceptedAt: string | null;
   readonly deliveredAt: string | null;
   /** Whole seconds since it was placed, or, once delivered or void, the seconds until then. */
+  /** When a runner left the bar with it (decision 0320); null before. */
+  readonly onWayAt: string | null;
   readonly ageSeconds: number;
   /** When staff voided it, and why, which the member sees (decision 0302); null for an order that stands. */
   readonly cancelledAt: string | null;
@@ -131,6 +133,10 @@ export interface MyFnbOrder {
   readonly progress: FnbOrderProgress;
   /** Why staff voided it; null unless void. */
   readonly cancelReason: string | null;
+  /** When the bar took each step (decision 0320): the tracker reads its stage from them. */
+  readonly acceptedAt: string | null;
+  readonly onWayAt: string | null;
+  readonly deliveredAt: string | null;
 }
 
 /** The signed-in member's orders tonight, newest first, asked again every ten seconds as the bar works through them (#635). */
@@ -146,6 +152,7 @@ export function useMyFnbOrders() {
       return data.map((row) => ({
         orderId: row.order_id, kotNumber: row.kot_number, lines: linesOf(row.lines), createdAt: row.created_at,
         progress: progressOf(row), cancelReason: row.cancel_reason,
+        acceptedAt: row.accepted_at, onWayAt: row.on_way_at, deliveredAt: row.delivered_at,
       }));
     },
   });
@@ -197,7 +204,7 @@ export function useFnbOrdersTonight(venueId: string) {
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
-        acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds,
+        acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
       }));
     },
@@ -272,11 +279,12 @@ export function useServeFnbOrder(venueId: string) {
   };
   const accept = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('accept_fnb_order', { p_order_id: orderId })).error) });
   const deliver = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('deliver_fnb_order', { p_order_id: orderId })).error) });
+  const sendOnWay = useMutation({ mutationFn: async (orderId: string) => settle((await client.rpc('send_fnb_order_on_way', { p_order_id: orderId })).error) });
   const cancel = useMutation({
     mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) =>
       settle((await client.rpc('cancel_fnb_order', { p_order_id: orderId, p_reason: reason })).error),
   });
-  return { accept, deliver, cancel };
+  return { accept, sendOnWay, deliver, cancel };
 }
 
 /** Every item on the venue's menu, on offer or not, in menu order, for staff who run F&B. */

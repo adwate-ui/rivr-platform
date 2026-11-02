@@ -2,7 +2,9 @@ import { useFeature, type MySeat } from '@rivr/db';
 import { callTimeFraction, isCallTimeEnding, secondsUntil } from '@rivr/domain/callTime';
 import { formatClock, formatHoursMinutes, formatTime, t } from '@rivr/i18n';
 import { FeatureGate, Figure, Inline, ProgressRing, Text } from '@rivr/ui';
-import type { ReactNode } from 'react';
+import { OrderTracker } from './OrderTracker.tsx';
+import { OrderToSeat, SeatActions, SeatStatus } from './SeatActions.tsx';
+import { SeatSheets, type SeatSheet } from './SeatSheets.tsx';
 
 /** The call time left now: counted down from the server's end of it, or as it stands while the member is away. */
 export function callSecondsLeft(seat: MySeat, now: Date): number {
@@ -25,11 +27,19 @@ function CallTimeRing({ seat, now }: { seat: MySeat; now: Date }) {
   );
 }
 
+interface SeatedViewProps {
+  seat: MySeat;
+  now: Date;
+  /** The seat's sheet that is open, which the call-time banner opens too. */
+  sheet: SeatSheet | null;
+  onSheet: (sheet: SeatSheet | null) => void;
+}
+
 /**
- * Seated (brief 3.4 E): the call-time ring with call_time.view, where the seat has call time; then what the member does
- * from the seat (`children`).
+ * Seated (brief 3.4 E): the call-time ring with call_time.view, where the seat has call time; the three round actions and
+ * their sheets; Order to my seat; tonight's order on its way; and the seat's open requests.
  */
-export function SeatedView({ seat, now, children }: { seat: MySeat; now: Date; children: ReactNode }) {
+export function SeatedView({ seat, now, sheet, onSheet }: SeatedViewProps) {
   const callTime = useFeature('call_time.view');
   return (
     <>
@@ -38,7 +48,11 @@ export function SeatedView({ seat, now, children }: { seat: MySeat; now: Date; c
           <FeatureGate access={callTime}><CallTimeRing seat={seat} now={now} /></FeatureGate>
         </Inline>
       ) : null}
-      {children}
+      <SeatActions seat={seat} onOpen={onSheet} />
+      <OrderToSeat />
+      <OrderTracker />
+      <SeatStatus seat={seat} />
+      <SeatSheets open={sheet} seat={seat} secondsLeft={callSecondsLeft(seat, now)} onClose={() => onSheet(null)} />
     </>
   );
 }

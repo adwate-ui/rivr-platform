@@ -70,6 +70,37 @@ export const playerLive = {
     timer: 'Call time left {time}',
     seatedToast: 'Seated at {table}, seat {seat}',
   },
+  /** What the member does from the seat (brief 3.4 E): three round actions, each a sheet, then food and drink. */
+  seat: {
+    topUp: 'Top up',
+    addTime: 'Add time',
+    leave: 'Leave seat',
+    requestTopUp: 'Request top-up',
+    cancel: 'Cancel',
+    /** `{choice}` is `1 hour`. */
+    requestTime: 'Request {choice}',
+    times: { m30: '30 min', m60: '1 hour', m120: '2 hours' },
+    /** Once the floor approves: `1 hour added`. */
+    timeAdded: '{choice} added',
+    leaveTitle: 'Leave your seat?',
+    /** `{time}` is `2h 41m`. */
+    leaveLeft: '{time} call time left.',
+    joinLeaving: 'Join leaving list',
+    stay: 'Stay seated',
+    order: 'Order to my seat',
+    orderAgain: 'Order again',
+    /** The order tracker's steps, read out as a list named this. */
+    orderLabel: 'Order',
+    stages: { sent: 'Sent', preparing: 'Preparing', on_its_way: 'On its way', delivered: 'Delivered' },
+    /** An order's line: `2 × Beer`. */
+    many: '{quantity} × {name}',
+    statusTopUp: 'Top-up',
+    requested: 'Requested',
+    inProgress: 'In progress',
+    statusTimes: { m30: '+30 min', m60: '+1 h', m120: '+2 h' },
+    statusLeaving: 'Leaving list',
+    onTheList: 'On the list',
+  },
   rate: {
     /** `Tonight · 2h 41m at Table 1`. */
     eyebrow: 'Tonight · {duration} at {table}',

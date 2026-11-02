@@ -3,10 +3,12 @@ import { useMyNotices } from '@rivr/db/notices';
 import { t } from '@rivr/i18n';
 import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, useToast } from '@rivr/ui';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { isCallTimeEnding, minutesLeftToSay } from '@rivr/domain/callTime';
 import { useNow } from '../hooks/useNow.ts';
 import { JoinSheet } from './JoinSheet.tsx';
 import { RateVisit } from './RateVisit.tsx';
-import { SeatedView } from './SeatedView.tsx';
+import { callSecondsLeft, SeatedView } from './SeatedView.tsx';
+import type { SeatSheet } from './SeatSheets.tsx';
 import { SeatReadyView } from './SeatReadyView.tsx';
 import { runningLine, TablesList } from './TablesList.tsx';
 import { TonightBanners } from './TonightBanners.tsx';
@@ -45,14 +47,15 @@ function useArrivals(standing: Standing) {
 }
 
 /** What the member's standing shows: offers and the tables while browsing, else their place, their seat call or their seat. */
-function StandingView({ standing, now, offer, onJoin, tables }: {
+function StandingView({ standing, now, offer, onJoin, tables, sheet }: {
   standing: Standing; now: Date; offer: ReactNode; onJoin: (table: FloorTable) => void; tables: readonly FloorTable[];
+  sheet: { open: SeatSheet | null; set: (sheet: SeatSheet | null) => void };
 }) {
   const tournaments = useMyUpcomingTournaments().data?.length ?? 0;
   switch (standing.kind) {
     case 'waiting': return <WaitingView place={standing.place} offer={offer} />;
     case 'ready': return <SeatReadyView place={standing.place} now={now} />;
-    case 'seated': return <SeatedView seat={standing.seat} now={now}>{null}</SeatedView>;
+    case 'seated': return <SeatedView seat={standing.seat} now={now} sheet={sheet.open} onSheet={sheet.set} />;
     default: return (
       <Stack gap={4}>
         <RateVisit />
@@ -76,15 +79,17 @@ function TablesPeek({ tables }: { tables: readonly FloorTable[] }) {
 }
 
 /** The header and the banners under it, at the top of every standing. */
-function TonightTop({ seat, now, isBrowsing, shownAt, hasRefreshFailed, onRetry }: {
-  seat: MySeat | null; now: Date; isBrowsing: boolean; shownAt: number; hasRefreshFailed: boolean; onRetry: () => void;
+function TonightTop({ seat, now, isBrowsing, shownAt, hasRefreshFailed, onRetry, onAddTime }: {
+  seat: MySeat | null; now: Date; isBrowsing: boolean; shownAt: number; hasRefreshFailed: boolean; onRetry: () => void; onAddTime: () => void;
 }) {
   const notices = useMyNotices().data ?? [];
+  const left = seat === null || !seat.hasCallTime ? 0 : callSecondsLeft(seat, now);
   return (
     <Stack gap={2}>
       <TonightHeader seat={seat} now={now} />
       <Box paddingX={5}>
-        <TonightBanners notices={notices} isBrowsing={isBrowsing} shownAt={shownAt} hasRefreshFailed={hasRefreshFailed} onRetry={onRetry} />
+        <TonightBanners notices={notices} isBrowsing={isBrowsing} shownAt={shownAt} hasRefreshFailed={hasRefreshFailed} onRetry={onRetry}
+          callEnding={isCallTimeEnding(left) ? { minutes: minutesLeftToSay(left), onAddTime } : undefined} />
       </Box>
     </Stack>
   );
@@ -112,6 +117,7 @@ function useTonight() {
 export function HomeScreen({ offer }: { offer: ReactNode }) {
   const tonight = useTonight();
   const [joining, setJoining] = useState<FloorTable | null>(null);
+  const [seatSheet, setSeatSheet] = useState<SeatSheet | null>(null);
   const seat = tonight.seat.data ?? null;
   const standing = standingOf(seat, tonight.places.data ?? []);
   const now = useNow(standing.kind === 'ready' || standing.kind === 'seated');
@@ -123,8 +129,8 @@ export function HomeScreen({ offer }: { offer: ReactNode }) {
   return (
     <Screen title={title} isTitleHidden>
       <TonightTop seat={seat} now={now} isBrowsing={standing.kind === 'browsing'} shownAt={tonight.tables.dataUpdatedAt}
-        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} />
-      <StandingView standing={standing} now={now} offer={offer} onJoin={setJoining} tables={tables} />
+        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} onAddTime={() => setSeatSheet('addTime')} />
+      <StandingView standing={standing} now={now} offer={offer} onJoin={setJoining} tables={tables} sheet={{ open: seatSheet, set: setSeatSheet }} />
       {standing.kind === 'browsing' ? null : <TablesPeek tables={tables} />}
       <JoinSheet table={joining} onClose={() => setJoining(null)} />
     </Screen>

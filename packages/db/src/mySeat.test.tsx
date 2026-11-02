@@ -52,17 +52,17 @@ describe('the member at the table', () => {
     await waitFor(() => expect(result.current.seat.data?.topUp).toBeNull());
   });
 
-  it('extends call time, asks for a top-up and leaves, each a Result', async () => {
+  it('asks for more call time and a top-up, and leaves, each a Result (decision 0320)', async () => {
     const { result } = renderSeat({
       my_seat: { body: [SEAT] },
       leave_my_seat: { body: 'leaving' },
       request_top_up: { status: 400, body: { code: '42501', message: 'not open' } },
-      extend_my_call_time: { status: 400, body: { code: '22023', message: 'not seated' } },
+      request_call_time: { status: 400, body: { code: '22023', message: 'not seated' } },
     });
     let outcomes: unknown[] = [];
     await act(async () => {
       outcomes = [await result.current.actions.leave.mutateAsync(), await result.current.actions.requestTopUp.mutateAsync(),
-        await result.current.actions.extend.mutateAsync()];
+        await result.current.actions.requestTime.mutateAsync({ minutes: 60, requestId: 'r1' })];
     });
     expect(outcomes).toEqual([{ ok: true, value: 'leaving' }, { ok: false, error: 'not_allowed' }, { ok: false, error: 'not_seated' }]);
   });

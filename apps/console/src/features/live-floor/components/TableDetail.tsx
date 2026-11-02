@@ -8,6 +8,7 @@ import { SEAT_FAILURE_COPY } from './seatCopy.ts';
 import { SeatForm } from './SeatForm.tsx';
 import { TableControls } from './TableControls.tsx';
 import { TableHeader } from './TableHeader.tsx';
+import { TimeRequest } from './TimeRequest.tsx';
 
 interface TableDetailProps {
   venueId: string;
@@ -130,6 +131,7 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
                 onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => onForm('leaveEarly', player)}
                 onCallTime={() => onForm('callTime', player)} />
             ) : null}
+            {isFloor && player?.timeRequest ? <TimeRequest venueId={venueId} player={{ ...player, timeRequest: player.timeRequest }} report={report} /> : null}
           </Stack>
         );
       })}

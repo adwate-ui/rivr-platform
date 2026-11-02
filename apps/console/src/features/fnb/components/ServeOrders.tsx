@@ -58,13 +58,32 @@ function StepActions({ venueId, order, step }: { venueId: string; order: FnbOrde
   );
 }
 
+type Serve = ReturnType<typeof useServeFnbOrder>;
+type Act = (done: Promise<{ ok: true } | { ok: false; error: FnbFailure }>) => Promise<void>;
+
+/** An order being prepared: On its way as a runner leaves with it (the member's tracker reads it, decision 0320), and delivered. */
+function PreparingActions({ order, serve, act }: { order: FnbOrderTonight; serve: Pick<Serve, 'sendOnWay' | 'deliver'>; act: Act }) {
+  const { sendOnWay, deliver } = serve;
+  return (
+    <Inline gap={2} wrap>
+      {order.onWayAt === null ? (
+        <Button variant="secondary" isLoading={sendOnWay.isPending && sendOnWay.variables === order.orderId}
+          onClick={() => void act(sendOnWay.mutateAsync(order.orderId))}>{t('console.fnb.onWay', { kot: order.kotNumber })}</Button>
+      ) : <Text variant="small" weight="medium">{t('console.fnb.isOnWay')}</Text>}
+      <Button variant="secondary" isLoading={deliver.isPending && deliver.variables === order.orderId} onClick={() => void act(deliver.mutateAsync(order.orderId))}>
+        {t('console.fnb.deliver', { kot: order.kotNumber })}
+      </Button>
+    </Inline>
+  );
+}
+
 /**
  * Serving tonight's orders (#640): those placed, to accept, each with the time it has waited; those accepted, being
  * prepared, to mark delivered; those delivered, with how long each took; and those void, with why. An order not yet
  * delivered can be voided with a reason (decision 0302). For Service, the floor and the super admin.
  */
 export function ServeOrders({ venueId, orders }: { venueId: string; orders: readonly FnbOrderTonight[] }) {
-  const { accept, deliver } = useServeFnbOrder(venueId);
+  const { accept, sendOnWay, deliver } = useServeFnbOrder(venueId);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
   const act = async (done: Promise<{ ok: true } | { ok: false; error: FnbFailure }>) => {
     const outcome = await done;
@@ -82,11 +101,10 @@ export function ServeOrders({ venueId, orders }: { venueId: string; orders: read
         )} />} />)}
       </Section>
       <Section title={t('console.fnb.preparing')} empty={t('console.fnb.nonePreparing')}>
-        {preparing.map((order) => <ServeRow key={order.orderId} order={order} action={<StepActions venueId={venueId} order={order} step={(
-          <Button variant="secondary" isLoading={deliver.isPending && deliver.variables === order.orderId} onClick={() => void act(deliver.mutateAsync(order.orderId))}>
-            {t('console.fnb.deliver', { kot: order.kotNumber })}
-          </Button>
-        )} />} />)}
+        {preparing.map((order) => (
+          <ServeRow key={order.orderId} order={order}
+            action={<StepActions venueId={venueId} order={order} step={<PreparingActions order={order} serve={{ sendOnWay, deliver }} act={act} />} />} />
+        ))}
       </Section>
       <Section title={t('console.fnb.delivered')} empty={t('console.fnb.noneDelivered')}>
         {delivered.map((order) => <ServeRow key={order.orderId} order={order} />)}

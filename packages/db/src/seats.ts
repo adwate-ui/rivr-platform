@@ -25,6 +25,8 @@ export interface SeatedPlayer {
   readonly leavingAt: string | null;
   /** Their top-up (#634): asked for, or in hand; null with none asked for. */
   readonly topUp: TopUp | null;
+  /** More call time they asked for, waiting on the floor (decision 0320): the request and its minutes; null with none. */
+  readonly timeRequest: { readonly id: string; readonly minutes: number } | null;
 }
 
 /** A seat held for a member called from the waitlist (#63): nobody else is seated there. */
@@ -78,6 +80,7 @@ export function useFloorSeats(venueId: string) {
         tierName: row.tier_name, startedAt: row.started_at, mustMoveOrder: row.must_move_order, isAway: row.away_since !== null,
         callTimeLeft: row.call_time_left, leavingAt: row.leaving_at,
         topUp: row.top_up === 'requested' || row.top_up === 'in_progress' ? row.top_up : null,
+        timeRequest: row.time_request_id === null ? null : { id: row.time_request_id, minutes: row.time_request_minutes },
       }));
     },
   });
@@ -185,6 +188,16 @@ export function useSetSeatCallTime(venueId: string) {
 }
 
 /** The floor takes a seat's top-up in hand (`inProgress`), or resets it once done (#634). A Result, and the floor is read again. */
+/** The floor approves or declines a seat's request for more call time (decision 0320); approved, the call time grows. */
+export function useDecideCallTime(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSeatSettle(venueId);
+  return useMutation({
+    mutationFn: async ({ requestId, isApproved }: { requestId: string; isApproved: boolean }) =>
+      settle((await client.rpc('decide_call_time_request', { p_request_id: requestId, p_is_approved: isApproved })).error),
+  });
+}
+
 export function useSetTopUp(venueId: string) {
   const { client } = useRivrData();
   const settle = useSeatSettle(venueId);

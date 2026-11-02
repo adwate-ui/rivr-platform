@@ -18,7 +18,7 @@ const TABLES = [
   { id: 't4', venue_id: 'v1', name: 'Table 4', is_open: false, seats: 9, position: 4, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' },
 ];
 const TYPES = [{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, buy_in_min_paise: 500000, straddle_paise: null }];
-const FEATURES = ['floor.live_view', 'waitlist.join', 'call_time.view'].map((key) => ({ feature_key: key, state: 'enabled', tiers: null }));
+const FEATURES = ['floor.live_view', 'waitlist.join', 'call_time.view', 'table.top_up', 'table.leave', 'fnb.table_side'].map((key) => ({ feature_key: key, state: 'enabled', tiers: null }));
 const PLACE = {
   entry_id: 'e1', table_type_id: 'tt1', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, joined_at: '2026-11-15T17:14:00Z',
   place: 1, call_table_name: null, call_seat: null, hold_until: null, away_until: null, is_request: false, table_id: 't1', table_name: 'Table 1',
@@ -27,12 +27,13 @@ const PLACE = {
 const SEAT = {
   table_name: 'Table 1', seat: 4, is_away: false, has_call_time: true, call_time_left: 9668, played_seconds: 1140, is_leaving: false, top_up: null,
   call_time_minutes: 180, started_at: '2026-11-15T16:55:30Z', call_time_ends_at: new Date(NOW + 9668 * 1000).toISOString(),
-  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000,
+  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null,
 };
 
 /** The answers the screen's reads get: each table, the member's places and seat as the test says, and nothing else. */
-function answers(places: unknown[], seat: unknown[]): Record<string, unknown> {
+function answers(places: unknown[], seat: unknown[], more: Record<string, unknown>): Record<string, unknown> {
   return {
+    ...more,
     '/rest/v1/game_table': TABLES, '/rest/v1/table_type': TYPES, '/rpc/my_feature_access': FEATURES,
     '/rpc/waitlist_lengths': [{ table_type_id: 'tt1', waiting: 0, call_time_minutes: 180 }],
     '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }],
@@ -41,13 +42,13 @@ function answers(places: unknown[], seat: unknown[]): Record<string, unknown> {
   };
 }
 
-function renderTonight(places: unknown[] = [], seat: unknown[] = []) {
+function renderTonight(places: unknown[] = [], seat: unknown[] = [], more: Record<string, unknown> = {}) {
   vi.useFakeTimers({ now: NOW, shouldAdvanceTime: true });
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(NOW / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
-  const replies = answers(places, seat);
+  const replies = answers(places, seat, more);
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
     const key = Object.keys(replies).find((path) => url.includes(`${path}?`) || url.endsWith(path));
@@ -101,5 +102,37 @@ describe('Tonight', () => {
     expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
     expect(screen.getByText('NLH 50/100 · playing 19 min')).toBeDefined();
     expect(screen.getByRole('timer', { name: 'Call time left 2h 41m' }).textContent).toBe('2:41:08');
+  });
+
+  it('Add time: asks the floor for 30 min, 1 hour or 2 hours, and shows the request waiting', async () => {
+    renderTonight([], [{ ...SEAT, top_up: 'requested', time_request_minutes: 60 }]);
+    expect(await screen.findByText('+1 h', {}, LATER)).toBeDefined();
+    expect(screen.getByText('Top-up')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Add time' }).getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Top up' }).getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Leave seat' }));
+    expect(await screen.findByRole('dialog', { name: 'Leave your seat?' })).toBeDefined();
+    expect(screen.getByText('2h 41m call time left.')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Join leaving list' })).toBeDefined();
+  });
+
+  it('Add time sheet: an hour unless changed, then Request it', async () => {
+    renderTonight([], [SEAT]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
+    expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Request 1 hour' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: '2 hours' }));
+    expect(screen.getByRole('button', { name: 'Request 2 hours' })).toBeDefined();
+  });
+
+  it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {
+    renderTonight([], [SEAT], { '/rpc/my_fnb_orders': [{
+      order_id: 'o1', kot_number: 7, created_at: '2026-11-15T17:00:00Z', accepted_at: '2026-11-15T17:02:00Z', on_way_at: '2026-11-15T17:10:00Z',
+      delivered_at: null, lines: [{ item_id: 'i1', name: 'Club sandwich', kind: 'food', quantity: 1, note: null }, { item_id: 'i2', name: 'Beer', kind: 'bar', quantity: 2, note: null }],
+    }] });
+    expect(await screen.findByText('Club sandwich, 2 × Beer', {}, LATER)).toBeDefined();
+    expect(screen.getByRole('list', { name: 'Order' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Order to my seat' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Order again' })).toBeNull();
   });
 });

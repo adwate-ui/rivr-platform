@@ -23,6 +23,8 @@ export interface BoxProps {
   id?: string;
   'aria-label'?: string;
   'aria-labelledby'?: string;
+  /** Reads changes out politely, such as an order moving on (decision 0320). */
+  isLive?: boolean;
 }
 
 const SURFACE: Record<BoxSurface, string> = {
@@ -57,9 +59,9 @@ function boxClasses({ padding, paddingX, paddingY, surface = 'none', hairline = 
 }
 
 /** A plain block with token padding, a surface, hairlines and a radius. The base of every layout. */
-export function Box({ children, as: Element = 'div', id, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, ...look }: BoxProps) {
+export function Box({ children, as: Element = 'div', id, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, isLive, ...look }: BoxProps) {
   return (
-    <Element className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy}>
+    <Element className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy} aria-live={isLive ? 'polite' : undefined}>
       {children}
     </Element>
   );

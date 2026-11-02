@@ -33,6 +33,8 @@ export interface MySeat {
   readonly tableTypeName: string;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
+  /** More call time asked for, waiting on the floor (decision 0320), in minutes; null with none. */
+  readonly timeRequestMinutes: number | null;
 }
 
 // The time left is read again each half minute; Home shows it to the minute.
@@ -55,7 +57,8 @@ export function useMySeat() {
         : { tableName: row.table_name, seat: row.seat, isAway: row.is_away, hasCallTime: row.has_call_time, callTimeLeft: row.call_time_left,
             playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null,
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
-            tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise) };
+            tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
+            timeRequestMinutes: row.time_request_minutes };
     },
   });
 }
@@ -71,8 +74,9 @@ const FAILURE_BY_CODE: Readonly<Record<string, MySeatFailure>> = {
 };
 
 /**
- * The member's own seat actions (#634): an hour more call time (`extend`), leave the seat (`leave`), and
- * ask the floor for a top-up (`requestTopUp`). Each is a Result and reads the seat again.
+ * The member's own seat actions (#634): ask the floor for more call time (`requestTime`, 30, 60 or 120 minutes, decision
+ * 0320; the tap's request id asks once), leave the seat (`leave`), and ask for a top-up (`requestTopUp`). Each is a Result
+ * and reads the seat again.
  */
 export function useMySeatActions() {
   const { client, userId } = useRivrData();
@@ -81,7 +85,10 @@ export function useMySeatActions() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.mySeat(userId ?? 'signed-out') });
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
-  const extend = useMutation({ mutationFn: async () => settle((await client.rpc('extend_my_call_time')).error, null) });
+  const requestTime = useMutation({
+    mutationFn: async ({ minutes, requestId }: { minutes: number; requestId: string }) =>
+      settle((await client.rpc('request_call_time', { p_minutes: minutes, p_idempotency_key: requestId })).error, null),
+  });
   const leave = useMutation({
     mutationFn: async () => {
       const { data, error } = await client.rpc('leave_my_seat');
@@ -89,5 +96,5 @@ export function useMySeatActions() {
     },
   });
   const requestTopUp = useMutation({ mutationFn: async () => settle((await client.rpc('request_top_up')).error, null) });
-  return { extend, leave, requestTopUp };
+  return { requestTime, leave, requestTopUp };
 }

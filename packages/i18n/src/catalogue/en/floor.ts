@@ -87,6 +87,12 @@ export const liveFloor = {
   /** A seated player's top-up (#634): asked for from the app, then in hand; handled on Top-ups (decision 0299). No amount. */
   topUpRequested: 'Top-up requested',
   topUpInProgress: 'Top-up in progress',
+  /** More call time a member asked for from the app (decision 0320): `+1 h asked`. Minutes only. */
+  timeAsked: '+{time} asked',
+  approveTime: 'Approve',
+  approveTimeName: 'Approve more call time for {name}',
+  declineTime: 'Decline',
+  declineTimeName: 'Decline more call time for {name}',
   /** A table's red marker on the room plan while a top-up waits there (decision 0299). */
   topUpMarker: 'Top-up',
   seatPlayer: 'Seat a player',

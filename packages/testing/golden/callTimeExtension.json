@@ -1,0 +1,17 @@
+{
+  "rule": "call time extension",
+  "about": "More call time a member asks for from the seat and the floor approves (decision 0320). The member picks 30 minutes, 1 hour or 2 hours; the floor's approval adds exactly that to the seat's call time. Only a seat with call time (more than nought minutes) can have more, and a call time is at most a day, 1,440 minutes, in all: a request that would pass it is refused, never cut down. Any other length is refused. Approving after the call time completed adds the time the same way; the completion recorded stands.",
+  "cases": [
+    { "description": "An hour added to a three-hour call time makes four.", "operation": "extend", "inputs": { "current": "180", "add": "60" }, "expected": { "minutes": "240", "refusal": "" } },
+    { "description": "Half an hour added to three hours.", "operation": "extend", "inputs": { "current": "180", "add": "30" }, "expected": { "minutes": "210", "refusal": "" } },
+    { "description": "Two hours added to five hours.", "operation": "extend", "inputs": { "current": "300", "add": "120" }, "expected": { "minutes": "420", "refusal": "" } },
+    { "description": "At the cap: an hour onto 23 hours makes exactly a day.", "operation": "extend", "inputs": { "current": "1380", "add": "60" }, "expected": { "minutes": "1440", "refusal": "" } },
+    { "description": "At the cap: two hours onto 22 hours makes exactly a day.", "operation": "extend", "inputs": { "current": "1320", "add": "120" }, "expected": { "minutes": "1440", "refusal": "" } },
+    { "description": "Past the cap by a minute: half an hour onto 1,411 minutes is refused, not cut to a day.", "operation": "extend", "inputs": { "current": "1411", "add": "30" }, "expected": { "minutes": "", "refusal": "over_a_day" } },
+    { "description": "Past the cap: an hour onto 1,400 minutes is refused.", "operation": "extend", "inputs": { "current": "1400", "add": "60" }, "expected": { "minutes": "", "refusal": "over_a_day" } },
+    { "description": "Zero: a seat with no call time has none to add to.", "operation": "extend", "inputs": { "current": "0", "add": "60" }, "expected": { "minutes": "", "refusal": "no_call_time" } },
+    { "description": "Not a choice: 45 minutes is refused.", "operation": "extend", "inputs": { "current": "180", "add": "45" }, "expected": { "minutes": "", "refusal": "not_a_choice" } },
+    { "description": "Not a choice: nothing added is refused.", "operation": "extend", "inputs": { "current": "180", "add": "0" }, "expected": { "minutes": "", "refusal": "not_a_choice" } },
+    { "description": "Not a choice: a negative length is refused, never taken off.", "operation": "extend", "inputs": { "current": "180", "add": "-60" }, "expected": { "minutes": "", "refusal": "not_a_choice" } }
+  ]
+}
