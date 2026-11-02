@@ -8,6 +8,14 @@ import { defineConfig, devices } from '@playwright/test';
 import { appPort } from '@rivr/config/worktree';
 import { APPS, isRemoteTarget } from './e2e/support/apps.ts';
 
+// The player app's origin, where a phone has already answered the cookie banner (decision 0298), so the banner covers no
+// flow's buttons; its own tests are in @rivr/ui and the app. Staging's comes from the release workflow.
+const playerUrl = isRemoteTarget() ? process.env['E2E_PLAYER_URL'] : `http://127.0.0.1:${appPort('player')}`;
+const cookiesAnswered = playerUrl === undefined ? undefined : {
+  cookies: [],
+  origins: [{ origin: new URL(playerUrl).origin, localStorage: [{ name: 'rivr.cookies', value: JSON.stringify({ maps: false, analytics: false }) }] }],
+};
+
 export default defineConfig({
   testDir: 'e2e/flows',
   // A flaky test is a bug (.claude/rules/testing.md): fix it, never retry it into green.
@@ -26,6 +34,7 @@ export default defineConfig({
     use: {
       ...devices['Desktop Chrome'],
       permissions: ['camera'],
+      ...(cookiesAnswered ? { storageState: cookiesAnswered } : {}),
       launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
     },
   }],

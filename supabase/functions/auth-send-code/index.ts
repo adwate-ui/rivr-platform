@@ -1,11 +1,11 @@
 // Supabase Auth's Send SMS hook: Auth generates a sign-in code and posts it here; this sends it by
-// the WhatsApp authentication template, then SMS (docs/decisions/0025), or SMS first for a second
+// WhatsApp (the Evolution bridge for now, decision 0297), then SMS (docs/decisions/0025), or SMS first for a second
 // code to a number within ten minutes (#181). The one place outside an outbox consumer that calls an
 // adapter, because Auth waits for the code to go out. The code and the phone are never logged.
 import { handleSendSmsHook, hookError, type HookReply, type NoteSignInCodeSend } from '@rivr/adapters/sign-in-code';
 import { createMsg91SmsOtp } from '@rivr/adapters/sms-otp';
-import { createWhatsAppCloudApi } from '@rivr/adapters/whatsapp';
 import { Webhook } from 'standardwebhooks';
+import { liveWhatsApp } from '../_shared/whatsapp.ts';
 
 // Auth signs each call (Standard Webhooks) with this secret, set on both sides. Auth stores it as
 // `v1,whsec_<base64>`; the standardwebhooks library wants only the base64 part.
@@ -16,12 +16,10 @@ const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
 /** The channels whose credentials are set as function secrets: WhatsApp, and SMS through MSG91. */
 function liveChannels() {
-  const phoneNumberId = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
-  const accessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
   const authKey = Deno.env.get('MSG91_AUTH_KEY');
   const templateId = Deno.env.get('MSG91_TEMPLATE_ID');
   return {
-    whatsapp: phoneNumberId && accessToken ? createWhatsAppCloudApi({ phoneNumberId, accessToken }) : undefined,
+    whatsapp: liveWhatsApp(4_000),
     smsOtp: authKey && templateId ? createMsg91SmsOtp({ authKey, templateId }) : undefined,
   };
 }

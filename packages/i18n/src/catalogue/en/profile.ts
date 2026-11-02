@@ -40,6 +40,9 @@ export const profile = {
   tournamentStartsHint: 'When your tournament starts.',
   marketing: 'Promotions and offers',
   marketingHint: 'WhatsApp and app. Stop any time.',
+  /** The cookie banner's analytics choice, changed later (decision 0298). */
+  analytics: 'Analytics and ads',
+  analyticsHint: 'Google Analytics and the Meta pixel on this phone.',
   saveFailed: 'Not saved. Try again.',
   /** Offered on Home once the member has a place on a list, while this phone's push is off (F3-26). */
   seatReadyOffer: 'Seat calls on this phone, even with the app closed.',

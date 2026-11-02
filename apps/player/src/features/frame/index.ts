@@ -1,3 +1,4 @@
+export { CookieChoices } from './components/CookieChoices.tsx';
 export { Frame } from './components/Frame.tsx';
 export { NotFound } from './components/NotFound.tsx';
 export { startInstallWatch } from './install.ts';

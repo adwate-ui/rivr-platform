@@ -18,7 +18,10 @@ export const Default: Story = {};
 
 export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
 
-/** On a phone with Choose open: essential storage, maps, and Save my choices. */
+/** In the player app (decision 0298): no map there, so analytics alone. */
+export const InTheApp: Story = { tags: ['!viewport-console', 'viewport-phone'], args: { place: 'app' } };
+
+/** On a phone with Choose open: essential storage, maps, analytics, and Save my choices. */
 export const ChoicesOpenOnAPhone: Story = {
   tags: ['!viewport-console', 'viewport-phone'],
   play: async ({ canvasElement }) => {

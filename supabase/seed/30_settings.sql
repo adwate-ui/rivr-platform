@@ -6,6 +6,12 @@ select v.venue_id, 'call_time.minutes', 'private_room', '{"minutes": 180}', '-in
 from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-000000000002'::uuid)) as v (venue_id)
 on conflict (venue_id, key, subject, effective_from) do nothing;
 
+-- The pre-registration bonus ends at launch (20261102090000_verified_bonus.sql sets it where the venue already is).
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'points.verified_bonus', '', '{"points": 0}', '2026-11-15T00:00:00+05:30',
+        'The pre-registration bonus ends at launch (owner, 2 Nov)')
+on conflict (venue_id, key, subject, effective_from) do nothing;
+
 -- Academy fees: ₹2,000 a seat, ₹1,500 a head for a company (scope-v1 module 15).
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 select v.venue_id, 'academy.price', '', '{"individual_paise": 200000, "corporate_per_head_paise": 150000}', '-infinity', 'Seed'

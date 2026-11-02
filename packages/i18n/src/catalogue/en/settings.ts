@@ -8,7 +8,7 @@ export const settings = {
   areasLabel: 'Areas',
   areas: {
     floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and rewards', academy: 'Academy and Learn',
-    tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips',
+    tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',
   },
   backTo: 'Back to {area}',
   nowColumn: 'Now',
@@ -141,4 +141,25 @@ export const settings = {
   addChip: 'Add chip',
   chipAdded: 'Chip added.',
   chipInUse: 'In use: {name}',
+  /** Notices on members' Home (decision 0298), such as when the club opens. */
+  notices: {
+    title: 'Notices on Home',
+    body: 'Notice',
+    bodyHint: 'Shows at the top of every member\'s Home until you end it. Up to 280 characters.',
+    post: 'Put up',
+    posted: 'Notice put up.',
+    none: 'No notice is up.',
+    until: 'Until {date}',
+    untilEnded: 'Until ended',
+    end: 'End',
+    endName: 'End the notice: {body}',
+    endConfirm: 'Yes, end it',
+    ended: 'Notice ended.',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      invalid: 'Write 1 to 280 characters, then put it up.',
+      paused: 'Venue frozen. Try again once it is released.',
+      unavailable: 'Not saved. Try again.',
+    },
+  },
 };

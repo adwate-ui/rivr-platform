@@ -55,7 +55,13 @@ Auth and API on staging and production, in the Supabase dashboard:
      - On staging, once, end the sessions that were not started by a code, in the SQL editor: `delete from auth.sessions s where not exists (select 1 from auth.mfa_amr_claims c where c.session_id = s.id and c.authentication_method = 'otp');`
      - The deploy checks it from then on (`scripts/ci/check-auth-config.mjs`): while phone sign-in is on, a gap is a warning on staging and fails a production release.
   5. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs both hooks in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
-  6. Once WhatsApp is approved:
+  6. WhatsApp through the Evolution bridge, for now (decision 0297):
+     - On the bridge, create an instance for RIVR's own number and link it by scanning its QR code with that phone.
+     - Set `EVOLUTION_API_URL` (https, no trailing slash), `EVOLUTION_API_KEY` and `EVOLUTION_INSTANCE_NAME` as function secrets, with `supabase secrets set --env-file <file>` so no value is typed on a command line.
+     - On staging, also set `WHATSAPP_ALLOWLIST` to the team's numbers (`+91…`, comma-separated). Members' messages and alerts go only to them; sign-in codes go to whoever asks.
+     - Check it: sign in on the player app with a real number on the list; the code arrives on WhatsApp.
+     - To move to Meta's Cloud API later, unset the three bridge secrets and follow the next step.
+  6a. Once WhatsApp is approved by Meta:
      - In Meta's dashboard, approve the authentication template `sign_in_code` in English, under the language code `en` (RIVR is English only, decision 0027).
      - Set `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` as function secrets. Use a system user's token scoped to `whatsapp_business_messaging` for this one business account; every function in the project can read the secrets.
      - Until a channel is set, every sign-in except the test numbers is refused.

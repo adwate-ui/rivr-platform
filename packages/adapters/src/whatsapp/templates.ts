@@ -5,6 +5,12 @@
  * payment link or a receipt does. English only (decision 0027).
  */
 export const WHATSAPP_TEMPLATES = {
+  // The sign-in code (decision 0025). Meta writes an authentication template's text itself; this is that text.
+  sign_in_code: {
+    category: 'authentication',
+    body: '{{1}} is your verification code. For your security, do not share this code.',
+    urlButton: false,
+  },
   seat_ready: {
     category: 'utility',
     body: 'Your seat is ready. {{1}}, seat {{2}}. Hold expires {{3}}.',
