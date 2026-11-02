@@ -6,15 +6,16 @@ import { PrizeTable } from './PrizeTable.tsx';
 import { WaitingSpins } from './WaitingSpins.tsx';
 
 /**
- * The spin wheel (#150; additions "Spin wheel"; decision 0266): the floor (floor.manage) spins the wheel for each
- * member a promotion gave a spin; staff who run promotions keep its prizes and their odds.
+ * The spin wheel (#150; additions "Spin wheel"; decision 0266): staff who run promotions (promotions.manage, decision 0302)
+ * spin the wheel for each member a promotion gave a spin, and keep its prizes and their odds.
  */
 export function SpinWheelScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const { permissions, venueId } = staff.venue;
-  const canSpin = permissions.includes('floor.manage');
+  // Spins are promotions.manage's, as the database asks (decision 0302): the screen had asked floor.manage.
+  const canSpin = permissions.includes('promotions.manage');
   const canKeepPrizes = permissions.includes('promotions.manage');
   if (!canSpin && !canKeepPrizes) return <Screen title={t('console.spin.title')} status="error" errorText={t('console.spin.notAllowed')} />;
   return (

@@ -3,14 +3,20 @@ import { formatDayMonth, t } from '@rivr/i18n';
 import { Button, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { priceText } from './Catalogue.tsx';
 
-function RedemptionRow({ redemption }: { redemption: MyRedemption }) {
-  const status = redemption.handedOverAt === null
+/** Where a redemption stands: cancelled by staff with why (decision 0302), to collect, or collected. */
+function statusOf(redemption: MyRedemption): string {
+  if (redemption.cancelReason !== null) return t('memberRewards.cancelled', { reason: redemption.cancelReason });
+  return redemption.handedOverAt === null
     ? t('memberRewards.waiting', { detail: redemption.detail })
     : t('memberRewards.collected', { date: formatDayMonth(new Date(redemption.handedOverAt)) });
+}
+
+function RedemptionRow({ redemption }: { redemption: MyRedemption }) {
+  const status = statusOf(redemption);
   return (
     <Stack gap={1}>
       <Text>{t('memberRewards.redemptionLine', { name: redemption.rewardName, price: priceText(redemption) })}</Text>
-      <Text variant="small" tone={redemption.handedOverAt === null ? 'money' : 'muted'}>{status}</Text>
+      <Text variant="small" tone={redemption.handedOverAt === null && redemption.cancelReason === null ? 'money' : 'muted'}>{status}</Text>
     </Stack>
   );
 }

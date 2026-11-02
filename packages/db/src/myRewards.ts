@@ -31,6 +31,9 @@ export interface MyRedemption {
   readonly nights: number | null;
   readonly createdAt: string;
   readonly handedOverAt: string | null;
+  /** When staff cancelled it, and why (decision 0302): it stays on the list, its points back. */
+  readonly cancelledAt: string | null;
+  readonly cancelReason: string | null;
 }
 
 /** A redemption as the member asks for it: the reward, the price they were shown for it (points or nights), and one request id per tap. */
@@ -87,7 +90,7 @@ export function useMyRedemptions() {
       if (error) throw error;
       return data.map((row) => ({
         id: row.id, rewardName: row.reward_name, kind: rewardKindOf(row.kind), detail: row.detail, points: row.points === null ? null : BigInt(row.points),
-        nights: row.nights, createdAt: row.created_at, handedOverAt: row.handed_over_at,
+        nights: row.nights, createdAt: row.created_at, handedOverAt: row.handed_over_at, cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
       }));
     },
   });

@@ -88,6 +88,8 @@ export const memberRewards = {
   waiting: 'To collect: {detail}',
   /** Handed over, and when: `Collected 15 Nov`. */
   collected: 'Collected {date}',
+  /** A redemption staff cancelled (decision 0302), with their reason; the points are back. */
+  cancelled: 'Cancelled: {reason}',
   league: 'RIVR League',
   thisMonth: 'This month',
   /** The season's name and months: `Season one · November 2026 to April 2027`. */

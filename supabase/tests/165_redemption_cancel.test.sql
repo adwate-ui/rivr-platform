@@ -49,7 +49,8 @@ select results_eq($$ select action, reason from public.audit_log where entity = 
        and action = 'redemption.cancel' $$,
   $$ values ('redemption.cancel'::text, 'Out of caps at the desk'::text) $$, 'the cancel is audited with its reason');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select is_empty($$ select * from public.my_redemptions() where id = (select id from ids where name = 'redemption') $$, 'and leaves his own list');
+select results_eq($$ select cancel_reason from public.my_redemptions() where id = (select id from ids where name = 'redemption') $$,
+  $$ values ('Out of caps at the desk'::text) $$, 'and stays on his own list, cancelled with the reason (decision 0302)');
 
 -- One handed over is not cancelled.
 insert into ids select 'second', public.redeem_reward((select id from ids where name = 'item'), 1000, 'cancel-2');
