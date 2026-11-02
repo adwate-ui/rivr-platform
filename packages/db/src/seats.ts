@@ -32,6 +32,8 @@ export interface HeldSeat {
   readonly tableId: string;
   readonly seat: number;
   readonly fullName: string;
+  /** The waitlist place it is held for, which the floor seats there (decision 0302). */
+  readonly entryId: string;
 }
 
 /**
@@ -91,7 +93,7 @@ export function useHeldSeats(venueId: string) {
     queryFn: async (): Promise<HeldSeat[]> => {
       const { data, error } = await client.rpc('held_seats', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({ tableId: row.table_id, seat: row.seat, fullName: row.full_name }));
+      return data.map((row) => ({ tableId: row.table_id, seat: row.seat, fullName: row.full_name, entryId: row.entry_id }));
     },
   });
 }

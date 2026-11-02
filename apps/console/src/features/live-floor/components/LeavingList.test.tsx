@@ -37,7 +37,7 @@ function renderList(seats: SeatedPlayer[]) {
   const sent: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/set_leaving')) {
+    if (url.includes('/rpc/set_leaving') || url.includes('/rpc/end_seat')) {
       sent.push(JSON.parse(String(init?.body)));
       return new Response(null, { status: 204 });
     }
@@ -49,6 +49,14 @@ function renderList(seats: SeatedPlayer[]) {
 }
 
 describe('LeavingList (decision 0163)', () => {
+  it('lets the floor free the seat of a player whose call time is done, and of no other (decision 0302)', async () => {
+    const { sent } = renderList([{ ...PLAYER, callTimeLeft: 0 }, { ...PLAYER, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Ishaan Verma' }]);
+    expect(screen.queryByRole('button', { name: 'Ishaan Verma leaves' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
+    await waitFor(() => expect(sent).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
+  });
+
   it('lists the players marked leaving, the soonest seat first, with the call time each still owes', () => {
     renderList(SEATS);
     expect(screen.getByRole('heading', { name: 'Leaving' })).toBeDefined();
