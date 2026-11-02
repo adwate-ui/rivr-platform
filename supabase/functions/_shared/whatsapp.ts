@@ -9,7 +9,8 @@ const secret = (name: string): string => Deno.env.get(name) ?? '';
 /** The WhatsApp whose secrets are set, waiting at most `timeoutMs` for each send; undefined while none is. */
 export function liveWhatsApp(timeoutMs: number): WhatsAppAdapter | undefined {
   const [baseUrl, apiKey, instance] = [secret('EVOLUTION_API_URL'), secret('EVOLUTION_API_KEY'), secret('EVOLUTION_INSTANCE_NAME')];
-  if (baseUrl && apiKey && instance) return createWhatsAppEvolution({ baseUrl, apiKey, instance, timeoutMs });
+  // Only over https: the key and every code would otherwise cross the internet readable.
+  if (baseUrl.startsWith('https://') && apiKey && instance) return createWhatsAppEvolution({ baseUrl, apiKey, instance, timeoutMs });
   const [phoneNumberId, accessToken] = [secret('WHATSAPP_PHONE_NUMBER_ID'), secret('WHATSAPP_ACCESS_TOKEN')];
   if (phoneNumberId && accessToken) return createWhatsAppCloudApi({ phoneNumberId, accessToken, timeoutMs });
   return undefined;

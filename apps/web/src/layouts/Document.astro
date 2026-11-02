@@ -40,7 +40,7 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
       // The cookie banner (#616): open while this browser holds no choice. A choice is kept here, never sent anywhere,
       // and loads what it allows: the embedded map only once maps are allowed, and Google Tag Manager, with Google
       // Analytics and the Meta pixel inside it, only once analytics is (decision 0298).
-      import { keepCookieChoice, loadTagManager, storedCookieChoice, type CookieChoice } from '@rivr/ui/cookies';
+      import { keepCookieChoice, loadTagManager, stopAnalytics, storedCookieChoice, type CookieChoice } from '@rivr/ui/cookies';
 
       const banner = document.querySelector<HTMLElement>('[data-cookie-banner]');
       const box = (name: string) => banner?.querySelector<HTMLInputElement>(`input[name="${name}"]`) ?? null;
@@ -56,6 +56,12 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
       }
 
       function keep(choice: CookieChoice) {
+        // Analytics turned off after it was on stops at once, its cookies gone (decision 0298).
+        if (storedCookieChoice()?.analytics === true && !choice.analytics) {
+          keepCookieChoice(choice);
+          stopAnalytics();
+          return;
+        }
         keepCookieChoice(choice);
         load(choice);
         if (banner) banner.hidden = true;

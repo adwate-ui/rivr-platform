@@ -18,13 +18,20 @@ describe('the cookie choice', () => {
     expect(storedCookieChoice()).toBeNull();
   });
 
-  it('loads Google Tag Manager once, with its start on the data layer', () => {
+  it('loads Google Tag Manager once, custom scripts blocked before it starts', () => {
     loadTagManager();
     loadTagManager();
     const scripts = document.head.querySelectorAll<HTMLScriptElement>('script[data-tag-manager]');
     expect(scripts).toHaveLength(1);
     expect(scripts[0]?.src).toBe(`https://www.googletagmanager.com/gtm.js?id=${TAG_MANAGER_CONTAINER}`);
     expect(scripts[0]?.async).toBe(true);
-    expect(Reflect.get(window, 'dataLayer')).toEqual([expect.objectContaining({ event: 'gtm.js' })]);
+    expect(Reflect.get(window, 'dataLayer')).toEqual([{ 'gtm.blocklist': ['customScripts'] }, expect.objectContaining({ event: 'gtm.js' })]);
+  });
+
+  it('never loads it on a draft’s preview page, whose address is its key', () => {
+    history.pushState(null, '', '/preview/0b9c2f3e-1111-4222-8333-444455556666');
+    loadTagManager();
+    expect(document.head.querySelector('script[data-tag-manager]')).toBeNull();
+    history.pushState(null, '', '/');
   });
 });

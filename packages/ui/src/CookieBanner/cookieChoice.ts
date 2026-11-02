@@ -34,17 +34,38 @@ export function keepCookieChoice(choice: CookieChoice): void {
 
 /**
  * Loads Google Tag Manager, once a page, only after the visitor allowed analytics: Google's own snippet, with no
- * `noscript` fallback, as nothing may load without the choice a script reads.
+ * `noscript` fallback, as nothing may load without the choice a script reads. Custom HTML tags and custom JavaScript
+ * variables are blocked, so nothing published in the container can read a member's session in the app: Google
+ * Analytics and the Meta pixel go in through their own templates. Never on a draft's preview page, whose address is its
+ * key.
  */
 export function loadTagManager(container: string = TAG_MANAGER_CONTAINER): void {
-  if (document.querySelector(`script[data-tag-manager="${container}"]`)) return;
+  if (location.pathname.startsWith('/preview/') || document.querySelector(`script[data-tag-manager="${container}"]`)) return;
   const existing: unknown = Reflect.get(window, 'dataLayer');
   const dataLayer: unknown[] = Array.isArray(existing) ? existing : [];
   Reflect.set(window, 'dataLayer', dataLayer);
+  dataLayer.push({ 'gtm.blocklist': ['customScripts'] });
   dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(container)}`;
   script.dataset.tagManager = container;
   document.head.appendChild(script);
+}
+
+/** The cookies Google Analytics and the Meta pixel set on RIVR's own domains. */
+const ANALYTICS_COOKIE = /^(_ga|_gid|_gat|_fbp|_fbc)/;
+
+/**
+ * Analytics turned off after it was on: its cookies go, on this host and the domain above it, and the page loads again,
+ * so Tag Manager stops at once rather than at the next visit.
+ */
+export function stopAnalytics(): void {
+  const host = location.hostname;
+  const parent = host.split('.').slice(-2).join('.');
+  for (const name of document.cookie.split(';').map((pair) => pair.split('=')[0]?.trim() ?? '')) {
+    if (!ANALYTICS_COOKIE.test(name)) continue;
+    for (const domain of ['', `; domain=${host}`, `; domain=.${parent}`]) document.cookie = `${name}=; max-age=0; path=/${domain}`;
+  }
+  location.reload();
 }
