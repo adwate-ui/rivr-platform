@@ -18,6 +18,24 @@ const OTHER: FloorTable = { ...TABLE, id: 't3', name: 'Table 3', tableTypeId: 't
 
 describe('FloorList', () => {
   it('names each Join by its table, and shows only the one pressed as pending (F3-17)', async () => {
+    renderList([TABLE, OTHER]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Join Table 2' }, { timeout: 5000 }));
+    expect(screen.getByRole('button', { name: 'Join Table 2' }).getAttribute('aria-busy')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Join Table 3' }).getAttribute('aria-busy')).toBeNull();
+    // The pressed Join keeps the focus while it is pending.
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Join Table 2' }).disabled).toBe(false);
+  });
+
+  it('says Ask to open on a closed table, whose Join registers interest in its game (P-08)', async () => {
+    renderList([{ ...TABLE, isOpen: false, openSeats: null }]);
+    const ask = await screen.findByRole('button', { name: 'Ask to open Table 2' }, { timeout: 5000 });
+    expect(ask.textContent).toBe('Ask to open');
+    expect(screen.queryByRole('button', { name: 'Join Table 2' })).toBeNull();
+  });
+});
+
+/** A member who may join, with a join still on its way, and the list of `tables`. */
+function renderList(tables: readonly FloorTable[]) {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
       access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
       user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -32,13 +50,7 @@ describe('FloorList', () => {
     render(
       <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
         queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <FloorList tables={[TABLE, OTHER]} places={[]} />
+        <FloorList tables={tables} places={[]} />
       </RivrDataProvider>,
     );
-    fireEvent.click(await screen.findByRole('button', { name: 'Join Table 2' }, { timeout: 5000 }));
-    expect(screen.getByRole('button', { name: 'Join Table 2' }).getAttribute('aria-busy')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Join Table 3' }).getAttribute('aria-busy')).toBeNull();
-    // The pressed Join keeps the focus while it is pending.
-    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Join Table 2' }).disabled).toBe(false);
-  });
-});
+}

@@ -51,13 +51,13 @@ interface JoinButtonProps {
   onJoin: () => void;
 }
 
-/** A table's Join, named by the table for a screen reader (F3-17), behind the tier's gate. */
+/** A table's Join, named by the table for a screen reader (F3-17), behind the tier's gate; a closed table's says Ask to open (P-08). */
 function JoinButton({ table, access, isPending, isJoining, onJoin }: JoinButtonProps) {
   return (
     <FeatureGate access={access}>
-      <Button variant="secondary" isLoading={isPending && isJoining} isDisabled={isPending && !isJoining} aria-label={t('player.tonight.joinName', { table: table.name })}
-        onClick={onJoin}>
-        {t('player.tonight.join')}
+      <Button variant="secondary" isLoading={isPending && isJoining} isDisabled={isPending && !isJoining}
+        aria-label={t(table.isOpen ? 'player.tonight.joinName' : 'player.tonight.askToOpenName', { table: table.name })} onClick={onJoin}>
+        {t(table.isOpen ? 'player.tonight.join' : 'player.tonight.askToOpen')}
       </Button>
     </FeatureGate>
   );

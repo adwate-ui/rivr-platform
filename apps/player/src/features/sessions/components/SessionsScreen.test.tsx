@@ -108,7 +108,7 @@ describe('Sessions', () => {
 
   it('says there are none yet', async () => {
     renderAt('/sessions', {});
-    expect(await screen.findByText('No sessions yet.', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('No sessions yet. Each night you play at the club shows here.', {}, { timeout: 5000 })).toBeDefined();
   });
 
   it('lists a session under its club month, by the day its night began, with its tables and hours and no money', async () => {
@@ -161,7 +161,7 @@ describe('a session', () => {
   it('hides it from the member’s own list and goes back to the list without it', async () => {
     const { router, hidden } = renderAt('/sessions/v1', { sessions: [SESSION] });
     fireEvent.click(await screen.findByRole('button', { name: 'Hide from my sessions' }, { timeout: 5000 }));
-    expect(await screen.findByText('No sessions yet.', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('No sessions yet. Each night you play at the club shows here.', {}, { timeout: 5000 })).toBeDefined();
     expect(router.state.location.pathname).toBe('/sessions');
     expect(hidden).toEqual(['v1']);
   });

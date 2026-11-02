@@ -89,6 +89,9 @@ export const tonight = {
   },
   closed: 'Closed',
   join: 'Join',
+  /** A closed table's Join: it registers interest, and the floor opens the table once enough wait (decision 0184; P-08). */
+  askToOpen: 'Ask to open',
+  askToOpenName: 'Ask to open {table}',
   /** Each Join named by its table, for a screen reader (F3-17). */
   joinName: 'Join {table}',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */

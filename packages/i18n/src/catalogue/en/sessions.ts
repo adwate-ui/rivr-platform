@@ -3,7 +3,7 @@ export const playerSessions = {
   title: 'Sessions',
   /** The list's next page (F3-28). */
   showEarlier: 'Show earlier sessions',
-  empty: 'No sessions yet.',
+  empty: 'No sessions yet. Each night you play at the club shows here.',
   /** A tournament in the history, under its name (#549): `Tournament · place 4 of 61 · 6 h`. */
   sub: '{what} · {hours}',
   tournament: 'Tournament',

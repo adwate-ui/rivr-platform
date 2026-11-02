@@ -62,8 +62,8 @@ export async function dealerSignsIn(tablet: Page) {
 export async function revoke(floor: Page, name: string) {
   await floor.getByRole('link', { name: 'Devices', exact: true }).click();
   await floor.getByRole('link', { name: 'Tablets' }).click();
-  await floor.getByRole('button', { name: `Revoke ${name}`, exact: true }).click();
-  await floor.getByRole('textbox', { name: 'Why it is revoked' }).fill('End of the test run');
-  await floor.getByRole('button', { name: 'Revoke the tablet' }).click();
+  await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+  await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
+  await floor.getByRole('button', { name: 'Unpair the tablet' }).click();
   await expect(floor.getByText(name, { exact: true })).toHaveCount(0);
 }
