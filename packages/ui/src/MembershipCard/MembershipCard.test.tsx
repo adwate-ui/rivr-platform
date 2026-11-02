@@ -25,6 +25,14 @@ describe('MembershipCard', () => {
     expect(screen.getByRole('img', { name: 'Door code' }).parentElement).toHaveClass('bg-cream', 'aspect-square');
   });
 
+  it('shows the photo it is given between the wordmark and the member\u2019s name (decision 0300)', () => {
+    renderIn(<MembershipCard {...ARJUN} photo={<img alt="Your photo" src="data:," />} />);
+    const photo = screen.getByRole('img', { name: 'Your photo' });
+    expect(photo.parentElement).toHaveClass('flex-1', 'min-h-0');
+    expect(screen.getByRole('img', { name: 'RIVR Poker Club' }).compareDocumentPosition(photo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(photo.compareDocumentPosition(screen.getByText('Arjun Mehta')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<MembershipCard {...ARJUN} />);
     expect(await axeViolations(container)).toEqual([]);

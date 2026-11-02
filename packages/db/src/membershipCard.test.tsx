@@ -26,14 +26,15 @@ function renderCard(replies: unknown[]) {
   return renderHook(() => useMembershipCard(), { wrapper });
 }
 
-const row = (code: string, msLeft: number) => ({ member_number: 1024, full_name: 'Kavya Rao', tier_name: 'Member', code, ms_left: msLeft });
+const SELFIE = '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000290/selfie.jpg';
+const row = (code: string, msLeft: number) => ({ member_number: 1024, full_name: 'Kavya Rao', tier_name: 'Member', code, ms_left: msLeft, photo_path: SELFIE });
 
 afterEach(cleanup);
 
 describe('the membership card', () => {
   it('gives the member\'s card with its code for now', async () => {
     const { result } = renderCard([[row('card.1.mac', 60_000)]]);
-    await waitFor(() => expect(result.current.data).toEqual({ memberNumber: '1024', fullName: 'Kavya Rao', tierName: 'Member', code: 'card.1.mac', msLeft: 60_000 }));
+    await waitFor(() => expect(result.current.data).toEqual({ memberNumber: '1024', fullName: 'Kavya Rao', tierName: 'Member', code: 'card.1.mac', msLeft: 60_000, photoPath: SELFIE }));
   });
 
   it('asks for the next code as soon as this one changes', async () => {

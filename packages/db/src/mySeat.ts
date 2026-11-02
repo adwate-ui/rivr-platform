@@ -9,7 +9,8 @@ export type TopUp = 'requested' | 'in_progress';
 /**
  * The signed-in member's seat tonight (#78): where, whether away, whether the seat has call time, and
  * the time left (null without call_time.view or call time); how long they have played, whether they are
- * on the floor's Leaving list, and their top-up (#634).
+ * on the floor's Leaving list, and their top-up (#634); the call time the floor gave, their minimum session, in minutes
+ * (null without call_time.view; decision 0300).
  */
 export interface MySeat {
   readonly tableName: string;
@@ -20,6 +21,9 @@ export interface MySeat {
   readonly playedSeconds: number;
   readonly isLeaving: boolean;
   readonly topUp: TopUp | null;
+  readonly callTimeMinutes: number | null;
+  /** When the member sat down, for "Playing since" (decision 0300). */
+  readonly startedAt: string;
 }
 
 // The time left is read again each half minute; Home shows it to the minute.
@@ -40,7 +44,8 @@ export function useMySeat() {
       const row = data[0];
       return row === undefined ? null
         : { tableName: row.table_name, seat: row.seat, isAway: row.is_away, hasCallTime: row.has_call_time, callTimeLeft: row.call_time_left,
-            playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null };
+            playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null,
+            callTimeMinutes: row.call_time_minutes, startedAt: row.started_at };
     },
   });
 }

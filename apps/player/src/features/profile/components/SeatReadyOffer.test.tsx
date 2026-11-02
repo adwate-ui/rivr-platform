@@ -43,7 +43,7 @@ function renderOffer(seatReady: 'enabled' | 'locked', isOff = false) {
 describe('SeatReadyOffer', () => {
   it('offers seat-ready push to a tier that sends it, and asks this phone (F3-26)', async () => {
     const asked = renderOffer('enabled');
-    fireEvent.click(await screen.findByRole('button', { name: 'Tell me when my seat is ready' }, { timeout: 5000 }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Turn on seat calls on this phone' }, { timeout: 5000 }));
     await vi.waitFor(() => expect(asked).toEqual(['asked']));
   });
 

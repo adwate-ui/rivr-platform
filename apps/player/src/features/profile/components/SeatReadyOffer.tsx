@@ -26,7 +26,8 @@ function rememberNotNow() {
 /**
  * For a member with a place on a list (F3-26): when their tier sends seat calls by push (push.seat_ready), they have not
  * turned seat calls off, and this phone could tell them but does not yet, the offer to turn it on, as Profile's switch
- * does. Nothing on a phone without push, blocked, already on, or once Not now is pressed here.
+ * does. Nothing on a phone without push, blocked, already on, or once Not now is pressed here. One compact row, the line
+ * and its two buttons (decision 0300: the owner asked it streamlined).
  */
 export function SeatReadyOffer() {
   const phone = usePhonePush();
@@ -39,14 +40,17 @@ export function SeatReadyOffer() {
   if (isDismissed || access.state !== 'enabled' || !wantsSeatCalls || phone.state !== 'off') return null;
   const notNow = () => { rememberNotNow(); setDismissed(true); };
   return (
-    <Box padding={4} radius="md" hairline="all">
-      <Stack gap={3}>
-        <Text>{t('player.profile.seatReadyOffer')}</Text>
-        <Inline gap={2} wrap>
-          <Button variant="secondary" isLoading={phone.isBusy} onClick={() => { setAsked(true); void phone.change(true); }}>
-            {t('player.profile.seatReadyYes')}
-          </Button>
-          <Button variant="text" onClick={notNow}>{t('player.profile.seatReadyNotNow')}</Button>
+    <Box padding={3} radius="md" hairline="all">
+      <Stack gap={2}>
+        <Inline gap={2} justify="between" align="center" wrap>
+          <Text variant="small">{t('player.profile.seatReadyOffer')}</Text>
+          <Inline gap={1}>
+            <Button variant="text" onClick={notNow}>{t('player.profile.seatReadyNotNow')}</Button>
+            <Button variant="secondary" isLoading={phone.isBusy} aria-label={t('player.profile.seatReadyYesName')}
+              onClick={() => { setAsked(true); void phone.change(true); }}>
+              {t('player.profile.seatReadyYes')}
+            </Button>
+          </Inline>
         </Inline>
         {phone.failed ? <ErrorMessage>{t('player.profile.saveFailed')}</ErrorMessage> : null}
       </Stack>

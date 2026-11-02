@@ -45,8 +45,10 @@ export const profile = {
   analyticsHint: 'Google Analytics and the Meta pixel on this phone.',
   saveFailed: 'Not saved. Try again.',
   /** Offered on Home once the member has a place on a list, while this phone's push is off (F3-26). */
-  seatReadyOffer: 'Seat calls on this phone, even with the app closed.',
-  seatReadyYes: 'Tell me when my seat is ready',
+  seatReadyOffer: 'Get seat calls on this phone.',
+  seatReadyYes: 'Turn on',
+  /** Turn on, named for a screen reader: the button stands apart from its line. */
+  seatReadyYesName: 'Turn on seat calls on this phone',
   seatReadyNotNow: 'Not now',
   seatReadyOn: 'This phone will tell you when your seat is ready.',
   /** Whether the TVs' waitlist board names the member (#326). */

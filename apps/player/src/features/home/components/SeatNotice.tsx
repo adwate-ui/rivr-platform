@@ -1,5 +1,5 @@
 import { useFeature, useMySeat, useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Box, Button, CallTimeTimer, ErrorMessage, FeatureGate, Grid, Heading, LockedNotice, Stack, Text, type FeatureAccess } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -63,8 +63,8 @@ function SeatActions({ seat }: { seat: MySeat }) {
 
 /**
  * While the member is seated (#78): their table and seat as the card's heading, always theirs to see as their waitlist
- * places are (decision 0057); how long they have played (#634); the call time left as the card's figure with
- * call_time.view, or the locked notice; and what they do from the seat (#634). Nothing otherwise.
+ * places are (decision 0057); since when and how long they have played, and their minimum session (decision 0300); the
+ * call time left as the card's figure with call_time.view, or the locked notice; and what they do from the seat (#634).
  */
 export function SeatNotice() {
   const seat = useMySeat().data ?? null;
@@ -75,7 +75,12 @@ export function SeatNotice() {
       <Stack gap={4}>
         <Stack gap={1}>
           <Heading level={2}>{t('player.tonight.seated', { table: seat.tableName, seat: seat.seat })}</Heading>
-          <Text variant="small" tone="muted">{t('player.tonight.playedFor', { time: formatDuration(seat.playedSeconds) })}</Text>
+          <Text variant="small" tone="muted">{t('player.tonight.playingSince', {
+            time: formatTime(new Date(seat.startedAt)), played: formatDuration(seat.playedSeconds),
+          })}</Text>
+          {callTime.state === 'enabled' && (seat.callTimeMinutes ?? 0) > 0 ? (
+            <Text variant="small" tone="muted">{t('player.tonight.minimumSession', { time: formatDuration((seat.callTimeMinutes ?? 0) * 60) })}</Text>
+          ) : null}
         </Stack>
         {seat.hasCallTime ? (
           <FeatureGate access={callTime}>

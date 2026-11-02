@@ -7,9 +7,12 @@ export const tonight = {
   breakActive: 'On a break until {until}.',
   /** Seated tonight (#78): the seat card's heading, with the call time left beneath. */
   seated: '{table}, seat {seat}',
-  /** At the seat (#634): how long the member has played tonight, `1 h 20 min`, and what they can do from there. */
-  playedFor: 'Playing for {time}',
-  extendCallTime: 'Add an hour',
+  /** At the seat (decision 0300): since when the member plays, `21:40`, and for how long, `1 h 20 min`. */
+  playingSince: 'Playing since {time} · {played}',
+  /** The call time the floor gave, the least the member plays before leaving: `3 h`. */
+  minimumSession: 'Minimum session {time}',
+  /** An hour more call time, while it runs (#634). */
+  extendCallTime: 'Add 1 h',
   /** The same button's full name for a screen reader. */
   extendCallTimeName: 'Add an hour of call time',
   leaveSeat: 'Leave my seat',
@@ -89,9 +92,6 @@ export const tonight = {
   },
   closed: 'Closed',
   join: 'Join',
-  /** A closed table's Join: it registers interest, and the floor opens the table once enough wait (decision 0184; P-08). */
-  askToOpen: 'Ask to open',
-  askToOpenName: 'Ask to open {table}',
   /** Each Join named by its table, for a screen reader (F3-17). */
   joinName: 'Join {table}',
   /** The member is on this game's list: `{place}` is their place, 1 being next. */
@@ -111,11 +111,6 @@ export const tonight = {
   confirmLeave: 'Yes, leave',
   /** The seat call (#63), as the WhatsApp message says it: `{time}` is when the hold runs out, IST. */
   seatReady: 'Your seat is ready: {table}, seat {seat}. Held until {time}.',
-  stepAway: 'Step away',
-  back: "I'm back",
-  /** Named by the game, for a screen reader (F3-17). */
-  stepAwayName: 'Step away from {game}',
-  backName: "I'm back for {game}",
   /** A member who stepped away: `{time}` is when their place goes. */
   away: 'Stepped away. Place held until {time}.',
   tooLate: 'Your time away ran out. Join again to play.',

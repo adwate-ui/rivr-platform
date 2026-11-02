@@ -1,4 +1,5 @@
-// A one-minute signed URL for one KYC image (#3). Staff call it with their own session. The
+// A one-minute signed URL for one KYC image (#3). Staff call it with their own session, and a member for
+// their own verified selfie on their card (decision 0300). The
 // database decides whether they may see the image and audits the view (public.authorize_kyc_image);
 // then this signs with the service role, so the URL's lifetime is fixed here: no client can ask
 // Storage for a longer one, because no client may read the kyc bucket at all.
@@ -9,7 +10,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-// The console calls this from the browser.
+// The console and the player app call this from the browser.
 const CORS = {
   'access-control-allow-origin': '*',
   'access-control-allow-headers': 'authorization, apikey, content-type, x-client-info',

@@ -72,6 +72,8 @@ export const playerApp = {
     title: 'Membership card',
     qr: 'Your door code',
     hint: 'Show at the door.',
+    /** The member's verified selfie on the card (decision 0300). */
+    photo: 'Your photo',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */
     offline: 'No connection. Give your number at the door.',
   },

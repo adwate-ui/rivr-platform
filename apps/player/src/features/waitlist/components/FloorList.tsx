@@ -1,4 +1,4 @@
-import { useFeature, useMySeat, useMyTonight, useWaitlistActions, type FloorTable, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
+import { useFeature, useMySeat, useMyTonight, useRestrictions, useWaitlistActions, type FloorTable, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, FloorRow, LockedNotice, Stack, type FeatureAccess } from '@rivr/ui';
 import { useState } from 'react';
@@ -56,25 +56,34 @@ function JoinButton({ table, access, isPending, isJoining, onJoin }: JoinButtonP
   return (
     <FeatureGate access={access}>
       <Button variant="secondary" isLoading={isPending && isJoining} isDisabled={isPending && !isJoining}
-        aria-label={t(table.isOpen ? 'player.tonight.joinName' : 'player.tonight.askToOpenName', { table: table.name })} onClick={onJoin}>
-        {t(table.isOpen ? 'player.tonight.join' : 'player.tonight.askToOpen')}
+        aria-label={t('player.tonight.joinName', { table: table.name })} onClick={onJoin}>
+        {t('player.tonight.join')}
       </Button>
     </FeatureGate>
   );
 }
 
+/** Whether the member may ask to join a game now: on no list, not seated and not on a break. */
+function useMayJoin(places: readonly WaitlistPlace[]): boolean {
+  const isSeated = (useMySeat().data ?? null) !== null;
+  const isOnBreak = (useRestrictions().data?.breakUntil ?? null) !== null;
+  return places.length === 0 && !isSeated && !isOnBreak;
+}
+
 /**
- * Tonight's tables in floor order, each with its stakes, open seats, wait and call time (#633), and Join while the member may join
- * (waitlist.join), is not seated and waits for no game: a join is a request the floor approves, one game at a time (#633); a closed table's Join registers interest in its game. Where the member's tier lacks Join, one locked notice says
+ * Tonight's tables in floor order, each with its stakes, open seats, wait and call time (#633). Join (waitlist.join) shows
+ * only at an open table, and only when the member is on no list, not seated and not on a break (decision 0300): a join is
+ * a request the floor approves, one game at a time (#633). Where the member's tier lacks Join, one locked notice says
  * which tiers have it; until their identity check is done, Join waits for it (#87).
  */
+
 export function FloorList({ tables, places }: { tables: readonly FloorTable[]; places: readonly WaitlistPlace[] }) {
   const joinAccess = useFeature('waitlist.join');
   // Until it is known, Join shows: the database refuses it without a finished check anyway.
   const isKycComplete = useMyTonight().data?.isKycComplete ?? true;
   const { join } = useWaitlistActions();
-  // One game at a time (#633): seated, or waiting already, the member joins nothing.
-  const isSeated = (useMySeat().data ?? null) !== null;
+  // No Join while on a list or seated, nor on a break, which the club would refuse (decision 0300).
+  const mayJoin = useMayJoin(places);
   const requests = useRequestIds();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
   // The table whose Join is pending, so only its button says so (F3-17).
@@ -97,9 +106,9 @@ export function FloorList({ tables, places }: { tables: readonly FloorTable[]; p
       <Stack gap={4} divided>
         {tables.map((table) => {
           const place = places.find((candidate) => candidate.tableTypeId === table.tableTypeId);
-          // A closed table offers Join only while none of its game's tables is open: that is registering interest.
           const isRunning = tables.some((other) => other.tableTypeId === table.tableTypeId && other.isOpen);
-          const action = places.length === 0 && !isSeated && (table.isOpen || !isRunning) ? (
+          // Join only at an open table (decision 0300).
+          const action = mayJoin && table.isOpen ? (
             <JoinButton table={table} access={rowAccess} isPending={join.isPending} isJoining={joiningAt === table.id}
               onJoin={() => void joinList(table.id, table.tableTypeId)} />
           ) : undefined;
