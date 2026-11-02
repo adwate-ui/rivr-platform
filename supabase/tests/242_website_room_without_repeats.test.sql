@@ -21,7 +21,7 @@ $$;
 select is(pg_temp.room_titles('00000000-0000-4000-8000-000000000001'), 'Open every night, Smoking terrace, Parking', 'The room keeps what only it says');
 select is(pg_temp.tile_text('00000000-0000-4000-8000-000000000001'), 'Chauffeured rides for regulars. Ask the front desk for a cab home.', 'the cab home joins the photo tile');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Ask the front desk for a cab home.'), 1, 'and is on the front page once');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Buy in by UPI or in cash.'), 0, 'the cage is said once, in the photo tiles');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Buy in by UPI or in cash.'), 0, 'The room no longer repeats the cage');
 
 -- Running it again changes nothing.
 create temp table home_before as
@@ -56,6 +56,34 @@ select private.website_room_without_repeats('00000000-0000-4000-8000-0000000000c
 select is(pg_temp.room_titles('00000000-0000-4000-8000-0000000000c1'), 'The cage, Open every night, Smoking terrace, Parking, Pick-up and drop',
   'a card the club rewrote stays, and the cab home stays in The room while the tile is the club''s');
 select is(pg_temp.tile_text('00000000-0000-4000-8000-0000000000c1'), 'Our rides.', 'and the club''s tile is left alone');
+
+-- A room the club cut to one card of its own is left as it is, never below the two cards a band needs; and a cab card the
+-- club labelled is the club's, so the cab home is not also put on the tile.
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000c2', 'RIVR Room Few', 'room-few', false, 'RIVR test', 'Test', 'TRF');
+select private.add_website_with_launch_text('00000000-0000-4000-8000-0000000000c2');
+update public.site_block b set content = jsonb_set(b.content, '{cards}', (
+  select jsonb_agg(c order by n)
+  from jsonb_array_elements(b.content -> 'cards') with ordinality as e (c, n) where c ->> 'title' not in ('Smoking terrace', 'Parking')))
+from public.site_page p
+where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-0000000000c2' and p.slug = 'home' and b.content ->> 'eyebrow' = 'The room';
+select private.website_room_without_repeats('00000000-0000-4000-8000-0000000000c2');
+select is(pg_temp.room_titles('00000000-0000-4000-8000-0000000000c2'),
+  'The main room, The Private Room, Trained dealers, The cage, The chef''s menu, Safe and secure, Open every night, Pick-up and drop',
+  'a room with one card of its own left is left as it is');
+select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c2', 'Ask the front desk for a cab home.'), 1, 'with the cab home once');
+
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000c3', 'RIVR Room Label', 'room-label', false, 'RIVR test', 'Test', 'TRL');
+select private.add_website_with_launch_text('00000000-0000-4000-8000-0000000000c3');
+update public.site_block b set content = jsonb_set(b.content, '{cards}', (
+  select jsonb_agg(case when c ->> 'title' = 'Pick-up and drop' then c || '{"label": "Late"}' else c end order by n)
+  from jsonb_array_elements(b.content -> 'cards') with ordinality as e (c, n)))
+from public.site_page p
+where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-0000000000c3' and p.slug = 'home' and b.content ->> 'eyebrow' = 'The room';
+select private.website_room_without_repeats('00000000-0000-4000-8000-0000000000c3');
+select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c3', 'Ask the front desk for a cab home.'), 1,
+  'a cab card the club labelled stays its own, and the tile does not say it again');
+select is(pg_temp.room_titles('00000000-0000-4000-8000-0000000000c3'), 'Open every night, Smoking terrace, Parking, Pick-up and drop',
+  'while the repeats still go');
 
 select * from finish();
 rollback;

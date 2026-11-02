@@ -136,7 +136,7 @@ test.describe('TV boards', () => {
     const room = tv.getByRole('region', { name: 'Private Room' });
     await expect(room.getByText('Nakul D.', { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(room.getByText(/^(3 h|2 h 59 min)$/)).toBeVisible();
-    await floor.getByRole('button', { name: `${LEAVING} is leaving` }).click();
+    await floor.getByRole('button', { name: `Mark leaving: ${LEAVING}` }).click();
     await expect(floor.getByRole('heading', { name: 'Leaving', exact: true })).toBeVisible();
     await expect(floor.getByText('Private Room · seat 8', { exact: true })).toBeVisible();
     const openings = tv.getByRole('region', { name: 'Seats opening' });

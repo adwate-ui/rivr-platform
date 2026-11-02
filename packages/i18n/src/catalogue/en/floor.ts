@@ -67,10 +67,10 @@ export const liveFloor = {
   leftOwingLine: '{table} · {time} owed',
   /** A player who is up and wants to go tells the floor, which marks them leaving (decision 0163). */
   leaving: 'Leaving',
-  /** Not Leaving beside Leave and Leave early, which read alike (C-08). */
-  markLeaving: 'Going soon',
-  markLeavingName: '{name} is leaving',
-  notLeaving: 'Staying',
+  /** A mark, not Leaving beside Leave and Leave early, which read alike (C-08). */
+  markLeaving: 'Mark leaving',
+  markLeavingName: 'Mark leaving: {name}',
+  notLeaving: 'Not leaving',
   notLeavingName: '{name} is not leaving',
   /** The Live floor's list of players marked leaving, soonest seat first. `{table}` and `{seat}`: Table 3, 5. */
   leavingTitle: 'Leaving',
@@ -119,7 +119,8 @@ export const liveFloor = {
   /** A table's card and ring for a role without the seat map. */
   tableOpen: 'Open',
   ringOpen: '{name}, open',
-  kycNeeded: 'This member has not finished their identity check. Ask them to finish it in the app first.',
+  /** Started, waiting for review, refused or under age: the front desk sees which, and checks in person (C-08). */
+  kycNeeded: 'This member has not finished their identity check. Send them to the front desk.',
   onBreak: 'On a break. Seating is closed until it ends.',
   noMember: 'No member has that number. Sign them up first.',
   stopped: 'This member is frozen. Ask a manager.',

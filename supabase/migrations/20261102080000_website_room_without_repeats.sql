@@ -2,7 +2,7 @@
 -- and the Private Room are in the photo tiles and Pick your table; the dealers, the cage and the chef's menu in the photo
 -- tiles; safety in Played straight. The room keeps what only it says, the hours, the terrace and parking, and the cab
 -- home joins the photo tiles' Pick-up and drop. A card goes only while it reads as shipped, the cab home moves only while
--- the tile does, and The room is never left empty.
+-- the tile does, and The room is left alone unless two cards of its own stay (the contract's least).
 create function private.website_room_without_repeats(p_venue_id uuid)
 returns void
 language plpgsql
@@ -23,13 +23,14 @@ declare
 begin
   select b.id into v_room from public.site_block b join public.site_page p on p.id = b.page_id
   where p.venue_id = p_venue_id and p.slug = 'home' and b.kind = 'cards' and b.content ->> 'eyebrow' = 'The room'
-    and exists (select 1 from jsonb_array_elements(b.content -> 'cards') c where not (c = any(v_repeats || '{"text": "Ask the front desk for a cab home.", "title": "Pick-up and drop"}'::jsonb)));
+    and (select count(*) from jsonb_array_elements(b.content -> 'cards') c where not (c = any(v_repeats || '{"text": "Ask the front desk for a cab home.", "title": "Pick-up and drop"}'::jsonb))) >= 2;
   if v_room is null then
     return;
   end if;
   select b.id into v_gallery from public.site_block b join public.site_page p on p.id = b.page_id
   where p.venue_id = p_venue_id and p.slug = 'home' and b.kind = 'gallery' and b.content -> 'items' @> jsonb_build_array('{"alt": "A chauffeur holds a car door outside the club at night", "text": "Chauffeured rides for regulars.", "image": "/media/pick-up.webp", "title": "Pick-up and drop"}'::jsonb);
-  if v_gallery is not null and (select content -> 'cards' @> jsonb_build_array('{"text": "Ask the front desk for a cab home.", "title": "Pick-up and drop"}'::jsonb) from public.site_block where id = v_room) then
+  if v_gallery is not null and exists (select 1 from public.site_block b, jsonb_array_elements(b.content -> 'cards') c
+                                       where b.id = v_room and c = '{"text": "Ask the front desk for a cab home.", "title": "Pick-up and drop"}'::jsonb) then
     update public.site_block set content = jsonb_set(content, '{items}', (
       select jsonb_agg(case when e.item = '{"alt": "A chauffeur holds a car door outside the club at night", "text": "Chauffeured rides for regulars.", "image": "/media/pick-up.webp", "title": "Pick-up and drop"}'::jsonb then '{"alt": "A chauffeur holds a car door outside the club at night", "text": "Chauffeured rides for regulars. Ask the front desk for a cab home.", "image": "/media/pick-up.webp", "title": "Pick-up and drop"}'::jsonb else e.item end order by e.n)
       from jsonb_array_elements(content -> 'items') with ordinality as e (item, n)))
