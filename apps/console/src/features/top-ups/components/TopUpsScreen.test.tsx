@@ -48,7 +48,8 @@ function renderTopUps() {
 describe('Top-ups (decision 0299)', () => {
   it('lists the waiting ones oldest first, the late one in red, and tonight’s closed ones below', async () => {
     renderTopUps();
-    expect(await screen.findByText('Table 3, seat 5 · Kabir Sethi')).toBeDefined();
+    // The first read waits as long as other screens' do: CI's machines are slow under load.
+    expect(await screen.findByText('Table 3, seat 5 · Kabir Sethi', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText(/^Late \d\d:\d\d$/).className).toContain('bg-alert');
     expect(screen.getByText(/^00:[2-5]\d$/)).toBeDefined();
     expect(screen.getByText('Fulfilled in 1 min')).toBeDefined();
@@ -56,7 +57,7 @@ describe('Top-ups (decision 0299)', () => {
 
   it('starts a top-up that was asked for, and finishes one in hand', async () => {
     const set = renderTopUps();
-    fireEvent.click(await screen.findByRole('button', { name: 'The top-up for Kabir Sethi is in progress' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'The top-up for Kabir Sethi is in progress' }, { timeout: 5000 }));
     fireEvent.click(screen.getByRole('button', { name: 'The top-up for Naina Kapoor is done' }));
     await waitFor(() => expect(set).toEqual([{ p_session_id: 's1', p_in_progress: true }, { p_session_id: 's2', p_in_progress: false }]));
   });
