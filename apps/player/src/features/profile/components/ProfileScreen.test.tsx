@@ -29,7 +29,7 @@ function renderProfile() {
     if (url.includes('/rpc/my_membership_card')) return Response.json([CARD]);
     if (url.includes('/rest/v1/member_preference')) return Response.json({ games: [], small_blind: null, big_blind: null, name_on_tvs: true });
     if (url.includes('/rpc/has_my_consent')) return Response.json(false);
-    if (url.includes('/rpc/send_quick_feedback')) {
+    if (url.includes('/rpc/send_quick_feedback') || url.includes('/rpc/send_detailed_feedback')) {
       sent.push(JSON.parse(String(init?.body)));
       return Response.json(null);
     }
@@ -93,5 +93,19 @@ describe('Profile', () => {
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send' }));
     expect(await screen.findByText('Feedback sent', {}, LATER)).toBeDefined();
     expect(sent).toEqual([{ p_topic: 'dealer', p_note: 'Slow deal at Table 3' }]);
+  });
+
+  it('keeps the detailed form a tab away in the feedback sheet', async () => {
+    const { sent } = renderProfile();
+    fireEvent.click(await screen.findByRole('button', { name: /Send feedback/ }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Send feedback' });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Detailed feedback' }));
+    for (const area of ['The gameplay, 1 to 5', 'The cashier, 1 to 5', 'The service, 1 to 5', 'The ambience, 1 to 5']) {
+      fireEvent.click(within(within(sheet).getByRole('group', { name: area })).getByRole('button', { name: '4' }));
+    }
+    fireEvent.click(within(within(sheet).getByRole('group', { name: /recommend RIVR/ })).getByRole('button', { name: '9' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Send' }));
+    expect(await screen.findByText('Feedback sent', {}, LATER)).toBeDefined();
+    expect(sent).toEqual([{ p_ratings: { gameplay: 4, cashier: 4, service: 4, ambience: 4 }, p_nps: 9, p_note: '' }]);
   });
 });

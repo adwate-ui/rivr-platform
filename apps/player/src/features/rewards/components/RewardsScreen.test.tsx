@@ -18,7 +18,7 @@ const ITEMS = [
   { id: 'seat', kind: 'tournament_seat', name: 'Sunday Main Event seat', detail: 'Booked by the host', points: 4000, nights: null, stock: null, is_live: true, photo_path: null },
 ];
 const REDEMPTION = {
-  id: 'r0', reward_name: 'RIVR cap', kind: 'merchandise', detail: 'At the host desk', points: 800, nights: null, created_at: '2026-11-01T18:00:00Z', handed_over_at: null,
+  id: 'r0', reward_name: 'RIVR cap', kind: 'merchandise', detail: 'At the host desk', points: 800, nights: null, created_at: '2026-11-01T18:00:00Z', handed_over_at: null, cancelled_at: null, cancel_reason: null,
 };
 
 /** Meera signed in with 3,250 points, the catalogue and Refer a friend; redeeming sends its order to `redeemed`. */

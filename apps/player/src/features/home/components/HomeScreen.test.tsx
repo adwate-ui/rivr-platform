@@ -131,7 +131,7 @@ describe('Tonight', () => {
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {
     renderTonight([], [SEAT], { '/rpc/my_fnb_orders': [{
       order_id: 'o1', kot_number: 7, created_at: '2026-11-15T17:00:00Z', accepted_at: '2026-11-15T17:02:00Z', on_way_at: '2026-11-15T17:10:00Z',
-      delivered_at: null, lines: [{ item_id: 'i1', name: 'Club sandwich', kind: 'food', quantity: 1, note: null }, { item_id: 'i2', name: 'Beer', kind: 'bar', quantity: 2, note: null }],
+      delivered_at: null, cancelled_at: null, cancel_reason: null, lines: [{ item_id: 'i1', name: 'Club sandwich', kind: 'food', quantity: 1, note: null }, { item_id: 'i2', name: 'Beer', kind: 'bar', quantity: 2, note: null }],
     }] });
     expect(await screen.findByText('Club sandwich, 2 × Beer', {}, LATER)).toBeDefined();
     expect(screen.getByRole('list', { name: 'Order' })).toBeDefined();
@@ -158,5 +158,22 @@ describe('Tonight', () => {
     expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
     await vi.waitFor(() => expect(router.state.location.search).toEqual({}));
     expect(asked.filter((call) => call.startsWith('accept_seat_call'))).toEqual([]);
+  });
+
+  it('Order: an order staff voided says it was cancelled and why, with Order again (decision 0302)', async () => {
+    renderTonight([], [SEAT], { '/rpc/my_fnb_orders': [{
+      order_id: 'o1', kot_number: 7, created_at: '2026-11-15T17:00:00Z', accepted_at: '2026-11-15T17:02:00Z', on_way_at: null, delivered_at: null,
+      cancelled_at: '2026-11-15T17:05:00Z', cancel_reason: 'Out of milk', lines: [{ item_id: 'i1', name: 'Masala chai', kind: 'soft_drink', quantity: 1, note: null }],
+    }] });
+    expect(await screen.findByText('Cancelled: Out of milk', {}, LATER)).toBeDefined();
+    expect(screen.queryByRole('list', { name: 'Order' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Order again' })).toBeDefined();
+  });
+
+  it('Rate your visit: a visit with no table played says Tonight, with no time or table', async () => {
+    renderTonight([], [], { '/rpc/my_feedback_visit': [{ visit_id: 'v1', closed_at: '2026-11-15T16:00:00Z', played_seconds: 0, table_name: null }] });
+    expect(await screen.findByRole('heading', { name: 'How was your night?' }, LATER)).toBeDefined();
+    expect(screen.getByText('Tonight', { selector: 'p' })).toBeDefined();
+    expect(screen.queryByText(/ at $/)).toBeNull();
   });
 });
