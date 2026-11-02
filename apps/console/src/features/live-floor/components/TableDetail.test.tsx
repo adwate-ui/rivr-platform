@@ -22,7 +22,7 @@ const KABIR: SeatedPlayer = {
 const PRIYA: SeatedPlayer = { ...KABIR, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Priya Nair', callTimeLeft: 1800 };
 
 /** Aditya, who runs the waitlist, at Table 3 with Kabir in seat 5 (or `seats`), and a fake API that keeps each seat ended. */
-function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: readonly string[] = ['members.read', 'waitlist.manage']) {
+function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: readonly string[] = ['members.read', 'waitlist.manage'], table = TABLE) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -39,7 +39,7 @@ function renderTable(seats: readonly SeatedPlayer[] = [KABIR], permissions: read
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TableDetail venueId="v1" table={TABLE} tables={[TABLE]} seats={seats} held={[]} permissions={permissions} night={undefined} />
+      <TableDetail venueId="v1" table={table} tables={[table]} seats={seats} held={[]} permissions={permissions} night={undefined} />
     </RivrDataProvider>,
   );
   return ended;
@@ -86,6 +86,30 @@ describe('a table on the live floor', () => {
     expect(counts('Top-ups waiting')).toBe('Top-ups waiting1');
     expect(screen.queryByText('Hands')).toBeNull();
     expect(screen.queryByText('Per hour')).toBeNull();
+  });
+
+  it('says Empty for a free seat at a closed table, not Open (C-08)', () => {
+    renderTable([], ['members.read', 'waitlist.manage'], { ...TABLE, isOpen: false });
+    expect(screen.getAllByText('Empty')).toHaveLength(9);
+    expect(screen.queryByText('Open')).toBeNull();
+  });
+
+  it('marks a player leaving with Mark leaving, named as it reads (C-08)', () => {
+    renderTable();
+    expect(screen.getByRole('button', { name: 'Mark leaving: Kabir Sethi' }).textContent).toBe('Mark leaving');
+  });
+
+  it('sends a member whose identity check is not finished to the front desk (C-08)', async () => {
+    renderTable([], ['members.read', 'waitlist.manage']);
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return url.includes('/rpc/seat_member') ? Response.json({ code: 'RVKYC', message: 'kyc' }, { status: 400 }) : Response.json([]);
+    });
+    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Mobile number' }), { target: { value: '9000000202' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
+    const refusal = await screen.findByRole('alert', {}, { timeout: 5000 });
+    expect(refusal.textContent).toContain('This member has not finished their identity check. Send them to the front desk.');
   });
 
   it('shows a seat refused beside the seat form, not above the seats (F2-29)', async () => {

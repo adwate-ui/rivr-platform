@@ -38,10 +38,10 @@ select is((select count(*)::integer from public.public_club_rules where key = 'c
 select is((select count(*)::integer from public.member_feature_override where feature_key = 'cab.requests' and is_granted and revoked_at is null),
   0, 'and no member keeps a grant of cab requests of their own');
 
--- The website's hospitality card: ask the front desk.
+-- The website's line on a cab home: ask the front desk. Once on a card, it is on the photo tiles since 242.
 create function pg_temp.cards_saying(p_venue_id uuid, p_words text) returns integer language sql as $$
   select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
-  where p.venue_id = p_venue_id and b.kind = 'cards' and strpos(b.content::text, p_words) > 0;
+  where p.venue_id = p_venue_id and b.kind in ('cards', 'gallery') and strpos(b.content::text, p_words) > 0;
 $$;
 select is(pg_temp.cards_saying('00000000-0000-4000-8000-000000000001', 'Ask the front desk for a cab home.'), 1,
   'the club''s website says to ask the front desk for a cab home');
