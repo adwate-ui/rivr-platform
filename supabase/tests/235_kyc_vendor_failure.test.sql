@@ -18,9 +18,10 @@ select ok((select k.vendor_failed_at is not null from public.kyc_record k join c
 set local role service_role;
 select public.note_kyc_vendor_failure((select member_id from checked), 'complete', repeat('x', 300));
 select public.note_kyc_vendor_failure((select member_id from checked), '', 'unavailable');
+select public.note_kyc_vendor_failure((select member_id from checked), 'anything', 'unavailable');
 reset role;
 select is((select length(k.vendor_failure) from public.kyc_record k join checked c using (member_id)), 200,
-  'a long reason is cut to 200 characters, and a blank step notes nothing over it');
+  'a long reason is cut to 200 characters, and a step that is not a KYC step notes nothing over it');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000202", "role": "authenticated"}';
@@ -29,6 +30,12 @@ select throws_ok($$ select public.note_kyc_vendor_failure((select member_id from
 select throws_ok($$ select vendor_failure from public.kyc_record limit 1 $$, '42501', null,
   'nor read why a vendor call failed: it stays with the server');
 reset role;
+
+select ok(not has_function_privilege('authenticated', 'public.note_kyc_vendor_failure(uuid, text, text)', 'execute')
+          and not has_function_privilege('anon', 'public.note_kyc_vendor_failure(uuid, text, text)', 'execute'),
+  'only the server notes a failure');
+select ok(not exists (select 1 from public.audit_log a where a.entity = 'kyc_record' and (a.after ? 'vendor_failure' or a.before ? 'vendor_failure')),
+  'and the audit log never copies why');
 
 select * from finish();
 rollback;

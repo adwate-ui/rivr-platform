@@ -5,7 +5,7 @@ import { StepList } from './StepList.tsx';
 
 const steps = [
   { title: 'Selfie', state: 'done' },
-  { title: 'DigiLocker', detail: 'Your Aadhaar and the code sent to its mobile.', state: 'current' },
+  { title: 'DigiLocker', detail: 'Your Aadhaar, its OTP and your consent.', state: 'current' },
   { title: 'Verified', state: 'next' },
 ] as const;
 
@@ -24,7 +24,7 @@ describe('StepList', () => {
     expect(screen.getByText('Selfie').textContent).toBe('Selfie, done');
     expect(screen.getByText('DigiLocker').textContent).toBe('DigiLocker, current step');
     expect(screen.getByText('Verified').textContent).toBe('Verified');
-    expect(screen.getByText('Your Aadhaar and the code sent to its mobile.')).toBeInTheDocument();
+    expect(screen.getByText('Your Aadhaar, its OTP and your consent.')).toBeInTheDocument();
   });
 
   it('marks a step done with a tick and the others with their number', () => {

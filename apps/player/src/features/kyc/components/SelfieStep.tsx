@@ -1,6 +1,6 @@
 import { shrinkPhoto, useKycActions, type KycFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { CameraCapture, ErrorMessage, StepScreen } from '@rivr/ui';
+import { CameraCapture, StepScreen } from '@rivr/ui';
 import { useState } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
 
@@ -13,19 +13,27 @@ import { FAILURE_COPY } from './failureCopy.ts';
 export function SelfieStep({ onBack }: { onBack: () => void }) {
   const { sendSelfie } = useKycActions();
   const [failure, setFailure] = useState<KycFailure | null>(null);
+  // Busy from the tap, while the photo is made small, not only once it is sent: a second tap would send it twice.
+  const [isSending, setIsSending] = useState(false);
 
   const send = async (photo: Blob) => {
+    if (isSending) return;
+    setIsSending(true);
     setFailure(null);
-    // A photo the browser cannot read gets the same advice as a selfie that failed.
-    const jpeg = await shrinkPhoto(photo).catch(() => null);
-    const sent = jpeg ? await sendSelfie.mutateAsync(jpeg) : null;
-    if (!sent?.ok) setFailure(sent ? sent.error : 'not_live');
+    try {
+      // A photo the browser cannot read gets the same advice as a selfie that failed.
+      const jpeg = await shrinkPhoto(photo).catch(() => null);
+      const sent = jpeg ? await sendSelfie.mutateAsync(jpeg) : null;
+      if (!sent?.ok) setFailure(sent ? sent.error : 'not_live');
+    } finally {
+      setIsSending(false);
+    }
   };
   return (
-    <StepScreen title={t('player.kyc.selfieTitle')} back={sendSelfie.isPending ? undefined : { label: t('player.kyc.back'), onBack }} footer={null}>
-      {/* Above the camera, so on a phone it is in view, not under the frame and its buttons. */}
-      {failure ? <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage> : null}
-      <CameraCapture hasFaceGuide isSending={sendSelfie.isPending} phoneUrl={`${window.location.origin}/kyc`} onPhoto={(photo) => void send(photo)} />
+    <StepScreen title={t('player.kyc.selfieTitle')} back={isSending ? undefined : { label: t('common.back'), onBack }} footer={null}>
+      {/* The refusal shows under the photo, between it and Use photo, so a phone has it in view. */}
+      <CameraCapture hasFaceGuide isSending={isSending} phoneUrl={`${window.location.origin}/kyc`} onPhoto={(photo) => void send(photo)}
+        error={failure ? t(FAILURE_COPY[failure]) : undefined} />
     </StepScreen>
   );
 }

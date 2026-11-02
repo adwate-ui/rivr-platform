@@ -93,10 +93,16 @@ function Adornment({ id, text }: { id: string; text: string }) {
   return <span id={id} className="text-18 tracking-normal text-content-muted">{text}</span>;
 }
 
+/** A line field's line in the focus colour while it has focus, unless it is wrong (S-01): on its row when it has a prefix or suffix. */
+function lineFocusClass(variant: InputVariant, isInvalid: boolean, isAdorned: boolean): string | undefined {
+  if (variant !== 'line' || isInvalid) return undefined;
+  return isAdorned ? 'has-[input:focus-visible]:border-focus' : 'focus-visible:border-focus';
+}
+
 /** The input itself, inside its frame. With a prefix or a suffix the frame runs under them and the value together. */
 function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native }: FieldProps) {
-  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-control');
   const isAdorned = Boolean(prefix) || Boolean(suffix);
+  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-control', lineFocusClass(variant, isInvalid, isAdorned));
   const line = variant === 'line' ? { 'data-line': '' } : {};
   const input = (
     <input

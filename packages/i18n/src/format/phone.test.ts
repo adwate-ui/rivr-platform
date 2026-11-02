@@ -19,6 +19,7 @@ describe('formatTypedMobile', () => {
     expect(formatTypedMobile('+91 98765-43210')).toBe('98765 43210');
     expect(formatTypedMobile('919876543210')).toBe('98765 43210');
     expect(formatTypedMobile('98765432109')).toBe('98765 43210');
+    expect(formatTypedMobile('09876543210')).toBe('98765 43210');
   });
 
   it('lets a deleted space go with the digit before it', () => {

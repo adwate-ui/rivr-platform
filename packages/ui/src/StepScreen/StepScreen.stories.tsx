@@ -71,3 +71,6 @@ export const LongText: Story = {
     back: { label: 'Back to the mobile number', onBack: () => undefined },
   },
 };
+
+/** From 768 px: the step is a panel in the middle of the screen, its action under its content (S-01). */
+export const OnAComputer: Story = { ...Centred, tags: ['!viewport-phone', 'viewport-console'] };

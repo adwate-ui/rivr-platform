@@ -9,8 +9,8 @@ const meta = {
     label: 'Identity check',
     steps: [
       { title: 'Selfie', detail: 'A photo of your face, taken now.', state: 'current' },
-      { title: 'DigiLocker', detail: 'Your Aadhaar and the code sent to its mobile.', state: 'next' },
-      { title: 'Verified', detail: 'Book a seat and play.', state: 'next' },
+      { title: 'DigiLocker', detail: 'Your Aadhaar, its OTP and your consent.', state: 'next' },
+      { title: 'Verified', detail: 'Book a seat.', state: 'next' },
     ],
   },
 } satisfies Meta<typeof StepList>;
@@ -24,8 +24,8 @@ export const Halfway: Story = {
   args: {
     steps: [
       { title: 'Selfie', state: 'done' },
-      { title: 'DigiLocker', detail: 'Your Aadhaar and the code sent to its mobile.', state: 'current' },
-      { title: 'Verified', detail: 'Book a seat and play.', state: 'next' },
+      { title: 'DigiLocker', detail: 'Your Aadhaar, its OTP and your consent.', state: 'current' },
+      { title: 'Verified', detail: 'Book a seat.', state: 'next' },
     ],
   },
 };

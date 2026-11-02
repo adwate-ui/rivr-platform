@@ -16,7 +16,6 @@ describe('CodeInput', () => {
     const field = screen.getByLabelText('6-digit code');
     expect(field).toHaveAttribute('autocomplete', 'one-time-code');
     expect(field).toHaveAttribute('inputmode', 'numeric');
-    expect(field).toHaveAttribute('maxlength', '6');
   });
 
   it('shows each digit typed in its own cell', async () => {
@@ -26,12 +25,23 @@ describe('CodeInput', () => {
     expect(cells.map((cell) => cell.textContent)).toEqual(['4', '8', '2', '', '', '']);
   });
 
-  it('keeps digits only from a paste, and goes on once all six are in', () => {
+  it('keeps digits only from a paste, however long, and goes on once all six are in', async () => {
     const onComplete = vi.fn();
     renderIn(<Harness onComplete={onComplete} />);
-    fireEvent.change(screen.getByLabelText('6-digit code'), { target: { value: '123 457' } });
-    expect(screen.getByLabelText('6-digit code')).toHaveValue('123457');
+    const field = screen.getByLabelText('6-digit code');
+    // Pasted as a person pastes it: no length limit cuts "123 457" short before its digits are read.
+    expect(field).not.toHaveAttribute('maxlength');
+    await userEvent.click(field);
+    await userEvent.paste(' 123 457');
+    expect(field).toHaveValue('123457');
     expect(onComplete).toHaveBeenCalledWith('123457');
+  });
+
+  it('takes the code a phone fills in from the message', () => {
+    const onComplete = vi.fn();
+    renderIn(<Harness onComplete={onComplete} />);
+    fireEvent.change(screen.getByLabelText('6-digit code'), { target: { value: '482913' } });
+    expect(onComplete).toHaveBeenCalledWith('482913');
   });
 
   it('goes on once for a code, not again while it stays complete', async () => {
@@ -48,5 +58,15 @@ describe('CodeInput', () => {
     const field = screen.getByLabelText('6-digit code');
     expect(field).toHaveAttribute('aria-invalid', 'true');
     expect(field).toHaveAccessibleDescription('That code is wrong or has expired.');
+  });
+
+  it('takes a new code pasted after a refused one, not the old digits', async () => {
+    const onComplete = vi.fn();
+    renderIn(<Harness onComplete={onComplete} />);
+    const field = screen.getByLabelText('6-digit code');
+    fireEvent.change(field, { target: { value: '000000' } });
+    fireEvent.change(field, { target: { value: '000000482913' } });
+    expect(field).toHaveValue('482913');
+    expect(onComplete).toHaveBeenLastCalledWith('482913');
   });
 });

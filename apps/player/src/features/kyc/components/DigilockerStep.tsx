@@ -1,12 +1,12 @@
 import { useKycActions, type KycFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, StepScreen, Text } from '@rivr/ui';
+import { Button, ErrorMessage, StepScreen } from '@rivr/ui';
 import { useState } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
 import { KycSteps } from './KycSteps.tsx';
 
 /**
- * The selfie is in: the steps, what DigiLocker will ask, and the hand-off to DigiLocker itself, which sends the member back
+ * The selfie is in: the steps, DigiLocker's with what it asks, and the hand-off to DigiLocker itself, which sends the member back
  * to /kyc/return (K-09). A start that fails says why and what to do, and the button tries again.
  */
 export function DigilockerStep() {
@@ -28,7 +28,6 @@ export function DigilockerStep() {
       }
     >
       <KycSteps at="digilocker" />
-      <Text>{t('player.kyc.digilockerIntro')}</Text>
       {failure ? <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage> : null}
     </StepScreen>
   );

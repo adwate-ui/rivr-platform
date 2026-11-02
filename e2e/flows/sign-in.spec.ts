@@ -25,9 +25,8 @@ test.describe('Sign-in', () => {
 
   test('a member signs in with the code sent to their number and lands on Tonight', async ({ page }) => {
     await requestCode(page, '90000 00281');
-    await expect(page.getByText('Sent to +91 90000 00281. Check WhatsApp, then messages.')).toBeVisible();
     // Six digits in, the code goes on by itself (S-01).
-    await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
+    await page.getByRole('textbox', { name: 'Code sent to +91 90000 00281' }).fill(CODE);
     await expect(page.getByRole('heading', { name: 'Tonight' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
     // Signed in, Back does not lead to the sign-in screen again.
@@ -37,7 +36,7 @@ test.describe('Sign-in', () => {
 
   test('a member whose identity check is not done sees only the check (#632)', async ({ page }) => {
     await requestCode(page, '90000 00202');
-    await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
+    await page.getByRole('textbox', { name: 'Code sent to +91 90000 00202' }).fill(CODE);
     await expect(page).toHaveURL(/\/kyc$/);
     await expect(page.getByRole('heading', { name: 'Identity', level: 1 })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
@@ -49,7 +48,7 @@ test.describe('Sign-in', () => {
   test('a wrong code is refused, and says what to do', async ({ page }) => {
     await requestCode(page, '9000000203');
     await expect(page.getByRole('button', { name: 'Verify' })).toBeDisabled();
-    const code = page.getByRole('textbox', { name: '6-digit code' });
+    const code = page.getByRole('textbox', { name: 'Code sent to +91 90000 00203' });
     await code.fill('000000');
     await expect(page.getByText('Wrong or expired code. Check it or send a new one.')).toBeVisible();
     await expect(page.getByRole('button', { name: /Send by SMS in \d+ s/ })).toBeDisabled();

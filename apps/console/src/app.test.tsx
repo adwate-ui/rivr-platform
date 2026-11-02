@@ -230,12 +230,12 @@ describe('the console', () => {
     fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN), { target: { value: '9876543210' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
     // Six digits in, the code goes on by itself (S-01).
-    fireEvent.change(await screen.findByRole('textbox', { name: '6-digit code' }), { target: { value: '123456' } });
+    fireEvent.change(await screen.findByRole('textbox', { name: /^Code sent to/ }), { target: { value: '123456' } });
     // Signed in by Auth while the staff record is still being linked: the code step stays.
     await waitFor(() => expect(localStorage.getItem(SESSION_STORAGE_KEY)).not.toBeNull());
     await new Promise((settle) => setTimeout(settle, 50));
     expect(screen.queryByText(/is signed in on this device/)).toBeNull();
-    expect(screen.getByRole('textbox', { name: '6-digit code' })).toBeDefined();
+    expect(screen.getByRole('textbox', { name: /^Code sent to/ })).toBeDefined();
     answerLinking();
     expect(await screen.findByText('Sign-in is down. Try again shortly.')).toBeDefined();
   });

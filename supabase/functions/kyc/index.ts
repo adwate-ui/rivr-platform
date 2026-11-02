@@ -13,18 +13,38 @@ import { subjectFor, type Subject } from './subject.ts';
 // A selfie of at most 2 MB, in base64, and the rest of the body.
 const MAX_BODY_BYTES = 3 * 1024 * 1024;
 
-// Where DigiLocker sends the member back. Fixed here, never taken from the request, so the hand-off
-// cannot be pointed at someone else's page.
-const playerAppUrl = Deno.env.get('PLAYER_APP_URL') ?? '';
+/** An app's own origin, https (http only on this machine), with nothing after it. */
+function isAppOrigin(url: URL): boolean {
+  const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const isSecure = url.protocol === 'https:' || (url.protocol === 'http:' && isLocal);
+  return isSecure && url.pathname === '/' && url.search === '' && url.hash === '' && url.username === '' && url.password === '';
+}
+
+/**
+ * Where DigiLocker sends the member back: /kyc/return on the player app's own address, fixed here and never taken from the
+ * request, so the hand-off cannot be pointed at someone else's page. The address is the app's https origin alone (http
+ * only on this machine), as Cashfree refuses any other return (K-08: staging's was not, and every start failed); one that
+ * is not is no return address at all.
+ */
+function returnUrlOf(appUrl: string): string | null {
+  try {
+    const url = new URL(appUrl);
+    return isAppOrigin(url) ? new URL('/kyc/return', url.origin).href : null;
+  } catch {
+    return null;
+  }
+}
+
+const returnUrl = returnUrlOf(Deno.env.get('PLAYER_APP_URL') ?? '');
 
 /** The DigiLocker hand-off, once the selfie is in: the gate passes, then the vendor is called. */
 async function start({ memberId, kyc }: Subject): Promise<Response> {
-  if (playerAppUrl === '') return reply({ error: 'not_configured' }, 503);
+  if (returnUrl === null) return reply({ error: 'not_configured' }, 503);
   const record = await currentRecord(memberId);
   const canStart = record?.status === 'started' || record?.status === 'needs_pan';
   if (!canStart || typeof record?.photo_path !== 'string') return reply({ error: 'The selfie comes first' }, 409);
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
-  const started = await kyc.startDigiLocker({ memberId, returnUrl: `${playerAppUrl}/kyc/return` });
+  const started = await kyc.startDigiLocker({ memberId, returnUrl });
   if (!started.ok) return await failed(memberId, 'start', started.error);
   await rpc('record_kyc_started', { p_member_id: memberId, p_session_id: started.value.sessionId }, null);
   return reply({ redirectUrl: started.value.redirectUrl });

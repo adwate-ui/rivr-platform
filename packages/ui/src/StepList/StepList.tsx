@@ -40,7 +40,8 @@ function Marker({ number, state }: { number: number; state: StepState }) {
  */
 export function StepList({ label, steps }: StepListProps) {
   return (
-    <ol aria-label={label} className="flex flex-col">
+    // An explicit list role: a list drawn without bullets loses its semantics in Safari with VoiceOver.
+    <ol role="list" aria-label={label} className="flex flex-col">
       {steps.map((step, index) => (
         <li key={step.title} aria-current={step.state === 'current' ? 'step' : undefined} className="relative flex gap-4 pb-6 last:pb-0">
           {index < steps.length - 1 ? <span aria-hidden="true" className="absolute top-8 bottom-0 start-4 border-s border-hairline" /> : null}

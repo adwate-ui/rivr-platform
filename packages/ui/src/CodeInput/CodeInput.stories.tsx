@@ -27,3 +27,7 @@ export const Refused: Story = { args: { value: '482913', error: 'That code is wr
 export const Disabled: Story = { args: { value: '482913', isDisabled: true } };
 
 export const WithHint: Story = { args: { hint: 'Sent to +91 98765 43210.' } };
+
+export const LongText: Story = {
+  args: { label: 'Code sent by SMS to +91 98765 43210, the number on the membership', value: '48', error: 'That code is wrong or has expired. Check it, or send a new one.' },
+};

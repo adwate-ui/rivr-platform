@@ -121,8 +121,8 @@ export const ui = {
     review: 'Your photo',
     use: 'Use photo',
     retake: 'Retake',
-    blocked: 'Camera blocked. Allow it in the browser\'s site settings, then try again.',
-    none: 'No camera on this device.',
+    blocked: 'Camera blocked. Allow it in site settings.',
+    none: 'No camera here. Carry on with a phone.',
     failed: 'Camera did not start. Try again.',
     tryAgain: 'Try again',
     /** Beside a QR code that opens the same step on a phone. */

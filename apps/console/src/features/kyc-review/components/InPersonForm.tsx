@@ -40,7 +40,7 @@ function PhotoTaker({ hasPhoto, onPhoto }: { hasPhoto: boolean; onPhoto: (taken:
   }
   return (
     <Stack gap={3}>
-      <CameraCapture facing="environment" onPhoto={(taken) => { setIsTaking(false); onPhoto(taken); }} />
+      <CameraCapture facing="environment" phoneUrl={window.location.href} onPhoto={(taken) => { setIsTaking(false); onPhoto(taken); }} />
       <Button variant="text" onClick={() => setIsTaking(false)}>{t('common.cancel')}</Button>
     </Stack>
   );

@@ -30,7 +30,7 @@ const ALIGN = { start: 'items-start', center: 'items-center' } as const;
 
 /**
  * The brand's spade on a 24-unit grid: a pointed crown, two full lobes, a fine waist and a flared foot, as on a playing card.
- * Drawn here because lucide's spade is an outline whose stem is a stroke, so filled it lost its stem and read as an inverted
+ * Drawn here because the stock icon set's spade was an outline whose stem is a stroke, so filled it lost its stem and read as an inverted
  * heart (UI polish audit AS-04). The brand's designer's master replaces it when it is given.
  */
 const SPADE_PATH = 'M12 1.5C12 1.5 3 8.5 3 13.5C3 16.3 5.2 18.2 7.8 18.2C9.5 18.2 10.9 17.4 11.5 16.3C11.3 18.6 10.3 20.6 8.5 22'

@@ -1,8 +1,8 @@
 import { t } from '@rivr/i18n';
-import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Button } from '../Button/Button.tsx';
+import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { cx } from '../internal/classes.ts';
-import { QrCode } from '../QrCode/QrCode.tsx';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -19,10 +19,15 @@ export interface CameraCaptureProps {
   isSending?: boolean;
   /** This step's address, for a QR code to carry on with a phone when this device has no camera. None, no QR code. */
   phoneUrl?: string | undefined;
+  /** Why the photo was refused, under it, between the picture and its buttons, so a phone shows it in view. */
+  error?: string | undefined;
 }
 
 /** Why the camera did not start: blocked by the person or the browser, no camera at all, or anything else. */
 export type CameraTrouble = 'blocked' | 'none' | 'failed';
+
+// The QR code's encoder loads only when a device has no camera: @rivr/ui keeps it off the player's first load.
+const QrCode = lazy(async () => ({ default: (await import('../QrCode/QrCode.tsx')).QrCode }));
 
 /** The browser's refusal as one of the three, by its DOMException's name. */
 export function troubleOf(error: unknown): CameraTrouble {
@@ -134,15 +139,18 @@ function Frame({ children }: { children: ReactNode }) {
   return <div className="relative mx-auto aspect-portrait w-full overflow-hidden rounded-lg bg-raised">{children}</div>;
 }
 
-/** Why there is no picture, what to do, the QR code to carry on with a phone where that helps, and Try again. */
+/**
+ * Why there is no picture and what to do, announced as it appears, and Try again. With no camera at all, the QR code to
+ * carry on with a phone; a blocked or busy camera is this device's own to sort out.
+ */
 function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble; phoneUrl: string | undefined; onRetry: () => void }) {
   return (
     <Stack gap={6}>
-      <Text>{t(`ui.camera.${trouble}`)}</Text>
-      {trouble !== 'blocked' && phoneUrl ? (
+      <div role="alert"><Text>{t(`ui.camera.${trouble}`)}</Text></div>
+      {trouble === 'none' && phoneUrl ? (
         <Stack gap={3} align="center">
           <div className="size-photo rounded-md bg-cream p-3">
-            <QrCode value={phoneUrl} label={t('ui.camera.phoneLink')} />
+            <Suspense fallback={null}><QrCode value={phoneUrl} label={t('ui.camera.phoneLink')} /></Suspense>
           </div>
           <Text variant="small" tone="muted" align="center">{t('ui.camera.onPhone')}</Text>
         </Stack>
@@ -152,8 +160,16 @@ function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble; phone
   );
 }
 
-/** The photo just taken, kept or taken again. */
-function Review({ photo, isSending, onUse, onRetake }: { photo: Blob; isSending: boolean; onUse: () => void; onRetake: () => void }) {
+interface ReviewProps {
+  photo: Blob;
+  isSending: boolean;
+  error: string | undefined;
+  onUse: () => void;
+  onRetake: () => void;
+}
+
+/** The photo just taken, why it was refused if it was, and Use photo or Retake. */
+function Review({ photo, isSending, error, onUse, onRetake }: ReviewProps) {
   const [url] = useState(() => URL.createObjectURL(photo));
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
   return (
@@ -161,6 +177,7 @@ function Review({ photo, isSending, onUse, onRetake }: { photo: Blob; isSending:
       <Frame>
         <img src={url} alt={t('ui.camera.review')} className="size-full object-cover" />
       </Frame>
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <Stack gap={3}>
         <Button variant="primary" fullWidth isLoading={isSending} onClick={onUse}>{t('ui.camera.use')}</Button>
         <Button variant="secondary" fullWidth isDisabled={isSending} onClick={onRetake}>{t('ui.camera.retake')}</Button>
@@ -169,12 +186,6 @@ function Review({ photo, isSending, onUse, onRetake }: { photo: Blob; isSending:
   );
 }
 
-/**
- * A photo taken there and then with the device's camera, on a phone or a computer (K-07): the live picture in a 3:4
- * frame, with an oval for a face; Take photo; then the photo to keep or retake. Never a file from the device: a KYC photo
- * is of the person in front of the camera. When the camera is blocked or missing it says what to do, and offers a QR
- * code to carry on with a phone.
- */
 interface LiveProps {
   video: RefObject<HTMLVideoElement | null>;
   isLive: boolean;
@@ -191,7 +202,7 @@ function Live({ video, isLive, isMirrored, hasFaceGuide, onTake }: LiveProps) {
         <video ref={video} aria-label={t('ui.camera.preview')} autoPlay playsInline muted className={cx('size-full object-cover', isMirrored && '-scale-x-100')} />
         {hasFaceGuide ? <FaceGuide /> : null}
         {isLive ? null : (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div role="status" className="absolute inset-0 flex items-center justify-center">
             <Text tone="muted">{t('ui.camera.starting')}</Text>
           </div>
         )}
@@ -204,26 +215,38 @@ function Live({ video, isLive, isMirrored, hasFaceGuide, onTake }: LiveProps) {
   );
 }
 
+/** The photo taken, with a count of photos so each gets its own review; one photo is made at a time, however fast the taps. */
+function usePhoto(isMirrored: boolean) {
+  const [taken, setTaken] = useState<{ photo: Blob; count: number } | null>(null);
+  const isTaking = useRef(false);
+  const take = async (video: HTMLVideoElement | null) => {
+    if (isTaking.current || video === null) return;
+    isTaking.current = true;
+    const photo = await photoOf(video, isMirrored).catch(() => null);
+    isTaking.current = false;
+    if (photo) setTaken((last) => ({ photo, count: (last?.count ?? 0) + 1 }));
+  };
+  return { taken, take, clear: () => setTaken(null) };
+}
+
 /**
  * A photo taken there and then with the device's camera, on a phone or a computer (K-07): the live picture in a 3:4
  * frame, with an oval for a face; Take photo; then the photo to keep or retake. Never a file from the device: a KYC photo
- * is of the person in front of the camera. When the camera is blocked or missing it says what to do, and offers a QR
- * code to carry on with a phone.
+ * is of the person in front of the camera. When the camera is blocked or missing it says what to do, and with no camera
+ * offers a QR code to carry on with a phone.
  */
-export function CameraCapture({ facing = 'user', hasFaceGuide = false, onPhoto, isSending = false, phoneUrl }: CameraCaptureProps) {
-  const [photo, setPhoto] = useState<Blob | null>(null);
-  const camera = useCamera(facing, photo === null);
+export function CameraCapture({ facing = 'user', hasFaceGuide = false, onPhoto, isSending = false, phoneUrl, error }: CameraCaptureProps) {
   const isMirrored = facing === 'user';
-  const take = async () => {
-    if (camera.video.current) setPhoto(await photoOf(camera.video.current, isMirrored).catch(() => null));
-  };
+  const shot = usePhoto(isMirrored);
+  const camera = useCamera(facing, shot.taken === null);
   const retake = () => {
-    setPhoto(null);
+    shot.clear();
     camera.retry();
   };
-  const view = photo ? <Review photo={photo} isSending={isSending} onUse={() => onPhoto(photo)} onRetake={retake} />
+  const { taken } = shot;
+  const view = taken ? <Review key={taken.count} photo={taken.photo} isSending={isSending} error={error} onUse={() => onPhoto(taken.photo)} onRetake={retake} />
     : camera.trouble ? <Trouble trouble={camera.trouble} phoneUrl={phoneUrl} onRetry={camera.retry} />
-    : <Live video={camera.video} isLive={camera.isLive} isMirrored={isMirrored} hasFaceGuide={hasFaceGuide} onTake={() => void take()} />;
+    : <Live video={camera.video} isLive={camera.isLive} isMirrored={isMirrored} hasFaceGuide={hasFaceGuide} onTake={() => void shot.take(camera.video.current)} />;
   // A phone's width at most, so a photo on the console is not a picture the height of the screen.
   return <div className="mx-auto w-full max-w-phone">{view}</div>;
 }

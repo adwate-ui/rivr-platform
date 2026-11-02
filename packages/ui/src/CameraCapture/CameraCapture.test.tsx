@@ -60,8 +60,8 @@ describe('CameraCapture', () => {
   it('says how to allow a blocked camera, and tries again', async () => {
     getUserMedia.mockRejectedValueOnce(new DOMException('Denied', 'NotAllowedError')).mockResolvedValue(stream);
     renderIn(<CameraCapture onPhoto={vi.fn()} phoneUrl="https://rivr.test/kyc" />);
-    expect(await screen.findByText('Camera blocked. Allow it in the browser\'s site settings, then try again.')).toBeInTheDocument();
-    // Blocked is the person's own setting: a phone would not help, so no QR code.
+    expect(await screen.findByText('Camera blocked. Allow it in site settings.')).toBeInTheDocument();
+    // Blocked is this device's own setting to change: no QR code.
     expect(screen.queryByRole('img', { name: 'Link to this step on your phone' })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByRole('button', { name: 'Take photo' })).toBeInTheDocument();
@@ -70,8 +70,26 @@ describe('CameraCapture', () => {
   it('on a device with no camera, offers a QR code to carry on with a phone', async () => {
     getUserMedia.mockRejectedValue(new DOMException('None', 'NotFoundError'));
     renderIn(<CameraCapture onPhoto={vi.fn()} phoneUrl="https://rivr.test/kyc" />);
-    expect(await screen.findByText('No camera on this device.')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Link to this step on your phone' })).toHaveAttribute('data-value', 'https://rivr.test/kyc');
+    expect(await screen.findByText('No camera here. Carry on with a phone.')).toBeInTheDocument();
+    // The encoder loads only now, with the code.
+    expect(await screen.findByRole('img', { name: 'Link to this step on your phone' })).toHaveAttribute('data-value', 'https://rivr.test/kyc');
+  });
+
+  it('offers no QR code when a camera is there but would not start: it is this device\'s to sort out', async () => {
+    getUserMedia.mockRejectedValue(new DOMException('Busy', 'NotReadableError'));
+    renderIn(<CameraCapture onPhoto={vi.fn()} phoneUrl="https://rivr.test/kyc" />);
+    expect(await screen.findByText('Camera did not start. Try again.')).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Link to this step on your phone' })).toBeNull();
+  });
+
+  it('shows why a photo was refused under it, between the photo and its buttons', async () => {
+    getUserMedia.mockResolvedValue(stream);
+    renderIn(<CameraCapture onPhoto={vi.fn()} error="Photo unclear. Retake it in good light." />);
+    const take = screen.getByRole('button', { name: 'Take photo' });
+    await waitFor(() => expect(take).toBeEnabled());
+    await userEvent.click(take);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Photo unclear. Retake it in good light.');
+    expect(screen.getByRole('button', { name: 'Use photo' })).toBeInTheDocument();
   });
 
   it('opens the back camera for a photo taken at the desk', async () => {

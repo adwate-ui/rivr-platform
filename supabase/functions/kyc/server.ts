@@ -23,13 +23,22 @@ export function reply(body: object, status = 200): Response {
 /** The KYC step a vendor call belongs to. */
 export type KycStep = 'selfie' | 'start' | 'complete' | 'pan';
 
+// The note waits this long at most: the member's reply goes on without it.
+const NOTE_WAIT_MS = 3000;
+
+/** A refusal's reason as kept: `Cashfree <code>` when its code is plain words and digits, else only that it was refused. */
+function reasonOf(failure: AdapterFailure): string {
+  if (failure.code !== 'rejected') return failure.code;
+  return /^Cashfree [A-Za-z0-9_ .-]{1,80}$/.test(failure.reason) ? failure.reason : 'rejected';
+}
+
 /**
  * Keeps why a vendor call failed with the member's check (#704): the step and the failure's code, Cashfree's own for a
- * refusal, never its message. A note that does not go through never holds up the member's reply.
+ * refusal, never its message. A note that does not go through, or takes too long, never holds up the member's reply.
  */
 export async function noteFailure(memberId: string, step: KycStep, failure: AdapterFailure): Promise<void> {
-  const reason = failure.code === 'rejected' ? failure.reason : failure.code;
-  await rpc('note_kyc_vendor_failure', { p_member_id: memberId, p_step: step, p_reason: reason }, null).catch(() => undefined);
+  await rpc('note_kyc_vendor_failure', { p_member_id: memberId, p_step: step, p_reason: reasonOf(failure) }, null, NOTE_WAIT_MS)
+    .catch(() => undefined);
 }
 
 /** A vendor call that failed, as the app's reply, once why is noted; no keys yet is not a failure to note. */
@@ -46,10 +55,11 @@ class Refused extends Error {
   }
 }
 
-/** Calls a database function, as the caller (their token) or as the server (the service role). */
-export async function rpc(name: string, args: object, token: string | null): Promise<unknown> {
+/** Calls a database function, as the caller (their token) or as the server (the service role), waiting at most `waitMs` if given. */
+export async function rpc(name: string, args: object, token: string | null, waitMs?: number): Promise<unknown> {
   const answer = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
     method: 'POST',
+    ...(waitMs === undefined ? {} : { signal: AbortSignal.timeout(waitMs) }),
     headers: {
       apikey: token === null ? serviceRoleKey : anonKey,
       authorization: token === null ? `Bearer ${serviceRoleKey}` : token,

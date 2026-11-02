@@ -66,12 +66,14 @@ insert into public.member (id, venue_id, user_id, full_name, phone) values
   ('00000000-0000-4000-8000-0000000d0798', '00000000-0000-4000-8000-000000000001', null, 'Dev Khanna', '+919000000798'),
   -- Uma signs in with a login a staff record also uses (Sana, 104's), which her erasure leaves alone.
   ('00000000-0000-4000-8000-0000000d0799', '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000104', 'Uma Rao', '+919000000799');
-insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, address, masked_aadhaar, photo_path, identity_key, verified_at)
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, address, masked_aadhaar, photo_path, identity_key, verified_at,
+                               vendor_failure, vendor_failed_at)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'verified', 'digilocker', '1991-02-03', 'ABCPM7971K',
         '12 Park Road, Gurugram', 'XXXX XXXX 7971', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0797/selfie.jpg',
-        'tara-identity', now()),
+        'tara-identity', now(), 'complete: Cashfree AADHAAR_NOT_LINKED', now()),
        ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', 'verified', 'digilocker', '1989-05-06', 'ABCPK7981L',
-        null, 'XXXX XXXX 7981', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0798/selfie.jpg', 'dev-identity', now());
+        null, 'XXXX XXXX 7981', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0798/selfie.jpg', 'dev-identity', now(),
+        null, null);
 insert into public.kyc_review (venue_id, member_id, decision, reason, outcome, reviewed_by_staff_id)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'approved', 'Face matched the selfie', 'verified',
         (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000101' and venue_id = '00000000-0000-4000-8000-000000000001'));
@@ -201,9 +203,10 @@ select is((select count(*)::int from public.member_preference where member_id = 
           + (select count(*)::int from public.feedback where member_id = '00000000-0000-4000-8000-0000000d0797')
           + (select count(*)::int from public.kyc_review where member_id = '00000000-0000-4000-8000-0000000d0797'), 0,
   'her preferences, limits, overrides, attribution, card, feedback and KYC reviews are deleted');
-select results_eq($$ select status, pan, date_of_birth, address, masked_aadhaar, photo_path, identity_key, verified_at
+select results_eq($$ select status, pan, date_of_birth, address, masked_aadhaar, photo_path, identity_key, verified_at, vendor_failure, vendor_failed_at
                      from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0797' $$,
-  $$ values ('erased'::text, 'ABCPM7971K'::text, null::date, null::text, null::text, null::text, null::text, null::timestamptz) $$,
+  $$ values ('erased'::text, 'ABCPM7971K'::text, null::date, null::text, null::text, null::text, null::text, null::timestamptz, null::text,
+             null::timestamptz) $$,
   'her KYC record keeps the PAN alone, for the TDS taken from her');
 select is((select count(*)::int from public.tds_withholding where member_id = '00000000-0000-4000-8000-0000000d0797'), 1, 'which is kept');
 insert into public.member (id, venue_id, full_name, phone)

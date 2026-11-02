@@ -30,12 +30,11 @@ export const common = {
     countryCode: '+91',
     sendCode: 'Send code',
     /** Under Send code: where to look (decision 0025, WhatsApp first). */
-    channels: 'The code comes on WhatsApp, or by SMS.',
+    channels: 'Code by WhatsApp or SMS.',
     codeTitle: 'Sign-in code',
-    codeLabel: '6-digit code',
-    codeSent: 'Sent to {phone}. Check WhatsApp, then messages.',
+    codeLabel: 'Code sent to {phone}',
     /** After Send by SMS (#181). */
-    codeSentBySms: 'Sent again to {phone} by SMS.',
+    codeLabelBySms: 'Code sent by SMS to {phone}',
     submit: 'Verify',
     changeNumber: 'Change number',
     /** A second code goes by SMS: the first may not have reached WhatsApp (#181). */

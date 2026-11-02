@@ -1,4 +1,4 @@
-import { useId, useState, type Ref } from 'react';
+import { useId, useState, type Ref, type SyntheticEvent } from 'react';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { cx } from '../internal/classes.ts';
 import { Label } from '../Label/Label.tsx';
@@ -6,7 +6,7 @@ import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface CodeInputProps {
-  /** The visible label: "6-digit code". */
+  /** The visible label: "Code sent to +91 98765 43210". */
   label: string;
   /** The digits typed so far. */
   value: string;
@@ -29,29 +29,46 @@ export interface CodeInputProps {
 function Cell({ digit, isNext, isInvalid }: { digit: string | undefined; isNext: boolean; isInvalid: boolean }) {
   const edge = isInvalid ? 'border-alert' : isNext ? 'border-accent' : digit === undefined ? 'border-control' : 'border-content';
   return (
-    <span className={cx('flex h-12 max-w-12 min-w-0 flex-1 items-center justify-center rounded-md border bg-raised font-text text-28 text-content', edge)}>
+    <span className={cx('flex h-12 min-w-0 flex-1 items-center justify-center rounded-md border bg-raised font-text text-28 text-content', edge)}>
       {digit}
     </span>
   );
 }
 
+/** What was typed, pasted or filled in, as the code's digits: a whole code pasted after the digits already there is the new
+ * code, and wins over the old. */
+function digitsOf(typed: string, value: string, length: number): string {
+  const all = typed.replace(/\D/g, '');
+  const fresh = all.startsWith(value) && all.length - value.length >= length ? all.slice(value.length) : all;
+  return fresh.slice(0, length);
+}
+
+/** The caret after the last digit, so a tap on any cell types on from where the gold cell shows. Not on focus: a paste or a
+ * fill selects what is there to replace it, and moving the caret would add to it instead. */
+const caretToEnd = (event: SyntheticEvent<HTMLInputElement>) => {
+  const end = event.currentTarget.value.length;
+  event.currentTarget.setSelectionRange(end, end);
+};
+
 /**
  * A one-time code as a row of cells, one a digit (S-01). One real field lies over the cells, so the phone's offer to fill
- * the code from a message, a paste and a screen reader all work as with any field; the cells only show what it holds.
+ * the code from a message, a paste and a screen reader all work as with any field; the cells only show what it holds. It
+ * takes any length of paste and keeps the digits (a length limit would cut `123 456` short before they are read). The
+ * focus ring goes round the row (styles.css).
  */
 export function CodeInput({ label, value, onChange, onComplete, length = 6, hint, error, autoFocus, isDisabled = false, name, ref }: CodeInputProps) {
   const id = useId();
   const [hasFocus, setHasFocus] = useState(Boolean(autoFocus));
   const describedBy = cx(hint && `${id}-hint`, error && `${id}-error`) || undefined;
   const change = (typed: string) => {
-    const digits = typed.replace(/\D/g, '').slice(0, length);
+    const digits = digitsOf(typed, value, length);
     onChange(digits);
     if (digits.length === length && digits !== value) onComplete?.(digits);
   };
   return (
     <Stack gap={2}>
       <Label htmlFor={id}>{label}</Label>
-      <div className={cx('relative flex gap-2', isDisabled && 'opacity-disabled')}>
+      <div data-code-cells className={cx('relative flex gap-2', isDisabled && 'opacity-disabled')}>
         {Array.from({ length }, (_, index) => (
           <Cell key={index} digit={value[index]} isNext={hasFocus && index === Math.min(value.length, length - 1)} isInvalid={Boolean(error)} />
         ))}
@@ -63,7 +80,6 @@ export function CodeInput({ label, value, onChange, onComplete, length = 6, hint
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
-          maxLength={length}
           autoFocus={autoFocus}
           disabled={isDisabled}
           aria-invalid={error ? true : undefined}
@@ -72,6 +88,7 @@ export function CodeInput({ label, value, onChange, onComplete, length = 6, hint
           className="absolute inset-0 size-full bg-transparent text-transparent caret-transparent outline-none selection:bg-transparent"
           onChange={(event) => change(event.target.value)}
           onFocus={() => setHasFocus(true)}
+          onClick={caretToEnd}
           onBlur={() => setHasFocus(false)}
         />
       </div>
