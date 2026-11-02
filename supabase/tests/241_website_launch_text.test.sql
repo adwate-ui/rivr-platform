@@ -20,9 +20,10 @@ select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', 'A game
 select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug = 'home' and b.kind = 'marquee'), 0, 'nor the phrase strip');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', 'Built for the long session.'), 1, 'and keeps its other bands');
+-- The cab home went on to The room's cards, and from there to the photo tiles (242).
 select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
-           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug = 'home' and b.content ->> 'eyebrow' = 'The room'
-             and strpos(b.content::text, 'Ask the front desk for a cab home.') > 0), 1, 'the cab home moved to The room''s cards');
+           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug = 'home' and b.kind = 'gallery'
+             and strpos(b.content::text, 'Ask the front desk for a cab home.') > 0), 1, 'the cab home is kept, now in the photo tiles');
 select is(pg_temp.gaps('00000000-0000-4000-8000-000000000001'), 0, 'and the bands left close up, with no gaps');
 
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'privacy', 'What RIVR keeps'), 1, 'the privacy notice says what RIVR keeps');
