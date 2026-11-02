@@ -60,7 +60,7 @@ test.describe('KYC review', () => {
     expect(sql(`select status from public.kyc_record where member_id = '${ROHAN}'`)).toBe('verified');
 
     await decide(page, 'Naina Kapoor', 'The person at the desk is not the one in the photo', 'Reject');
-    await expect(page.getByRole('heading', { name: 'Stopped and refused checks' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Refused checks' })).toBeVisible();
     await expect(page.getByText('Rejected by a reviewer.')).toBeVisible();
     await expect(page.getByRole('img', { name: 'KYC photo of Naina Kapoor' }).or(page.getByText(/^Photo not loaded/))).toBeVisible();
     expect(sql(`select status || ' ' || refusal from public.kyc_record where member_id = '${NAINA}'`)).toBe('refused staff_rejected');

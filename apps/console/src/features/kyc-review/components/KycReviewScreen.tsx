@@ -1,6 +1,7 @@
 import { useKycReviewQueue, useStaffVenue, type KycCheck } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Heading, Screen, Stack, StaleNotice, Text } from '@rivr/ui';
+import { checkGroups } from './checkText.ts';
 import { InPersonSection } from './InPersonSection.tsx';
 import { KycCheckCard } from './KycCheckCard.tsx';
 
@@ -29,7 +30,7 @@ function CheckGroup({ venueId, heading, checks, canReopen }: { venueId: string; 
   );
 }
 
-/** A check in person first, then the checks waiting for review, then those stopped or refused, which need no decision. */
+/** A check in person first, then the checks to review, then those waiting on the member and those refused, which need no decision. */
 function ReviewQueue({ venueId, canReopen }: { venueId: string; canReopen: boolean }) {
   const queue = useKycReviewQueue(venueId);
   const title = t('console.kycReview.title');
@@ -37,15 +38,16 @@ function ReviewQueue({ venueId, canReopen }: { venueId: string; canReopen: boole
   if (queue.data === undefined) {
     return queue.isError ? <Screen title={title} status="error" onRetry={() => void queue.refetch()} /> : <Screen title={title} status="loading" />;
   }
-  const waiting = queue.data.filter((check) => check.status === 'needs_review');
+  const groups = checkGroups(queue.data);
   return (
     <Screen title={title}>
       <Stack gap={10}>
         {queue.isError ? <StaleNotice since={new Date(queue.dataUpdatedAt)} onRetry={() => void queue.refetch()} /> : null}
         <InPersonSection venueId={venueId} />
-        {queue.data.length === 0 ? <Text tone="muted">{t('console.kycReview.empty')}</Text> : null}
-        <CheckGroup venueId={venueId} heading={t('console.kycReview.waiting')} checks={waiting} canReopen={canReopen} />
-        <CheckGroup venueId={venueId} heading={t('console.kycReview.others')} checks={queue.data.filter((check) => check.status !== 'needs_review')} canReopen={canReopen} />
+        {groups.toReview.length === 0 ? <Text tone="muted">{t('console.kycReview.empty')}</Text> : null}
+        <CheckGroup venueId={venueId} heading={t('console.kycReview.waiting')} checks={groups.toReview} canReopen={canReopen} />
+        <CheckGroup venueId={venueId} heading={t('console.kycReview.onMember')} checks={groups.onMember} canReopen={canReopen} />
+        <CheckGroup venueId={venueId} heading={t('console.kycReview.refused')} checks={groups.refused} canReopen={canReopen} />
       </Stack>
     </Screen>
   );

@@ -4,8 +4,10 @@ export const kycReview = {
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No checks waiting for review.',
   waiting: 'Checks to review',
+  /** Checks that wait for the member, for a PAN: nothing for a reviewer to decide yet (C-06). */
+  onMember: 'Checks waiting on the member',
   /** The last 90 days of them (F1-31). */
-  others: 'Stopped and refused checks, the last 90 days',
+  refused: 'Refused checks, the last 90 days',
   photoOf: 'KYC photo of {name}',
   /** Why a check waits for a reviewer. */
   waitPanAlone: 'PAN only, no DigiLocker. Check the card and the person.',
@@ -30,6 +32,8 @@ export const kycReview = {
   address: 'Address',
   none: 'None',
   scores: 'Liveness {liveness}, face match {match}',
+  /** How a check with no scores was made: DigiLocker, PAN alone or in person. */
+  method: 'Method',
   clashes: 'Matches: {names}',
   underEighteen: 'Refused: under the minimum age.',
   duplicateFace: 'Refused: the face of a verified member.',

@@ -56,21 +56,44 @@ function day(iso: string): string {
   return formatDate(new Date(`${iso}T12:00:00Z`));
 }
 
-/** The details a reviewer checks against the documents, label and value, in order. */
+/** The date of birth to show: a missing one only while a reviewer must enter it from the original. */
+function dateOfBirth(check: KycCheck): string | null {
+  if (check.dateOfBirth !== null) return day(check.dateOfBirth);
+  return check.status === 'needs_review' ? t('console.kycReview.notKept') : null;
+}
+
+/** How the check was made, with the vendor's scores when it has any. */
+function method(check: KycCheck): { label: string; value: string } {
+  if (check.livenessScore === null && check.faceMatchScore === null) {
+    return { label: t('console.kycReview.method'), value: t(METHOD_COPY[check.method]) };
+  }
+  const score = (value: number | null) => (value === null ? t('console.kycReview.none') : String(value));
+  return {
+    label: t(METHOD_COPY[check.method]),
+    value: t('console.kycReview.scores', { liveness: score(check.livenessScore), match: score(check.faceMatchScore) }),
+  };
+}
+
+/** The details a reviewer checks against the documents, label and value, in order; one the check does not hold is left out (C-06). */
 export function checkDetails(check: KycCheck): readonly { label: string; value: string }[] {
-  const none = t('console.kycReview.none');
-  const score = (value: number | null) => (value === null ? none : String(value));
-  return [
-    { label: t('console.kycReview.dateOfBirth'), value: check.dateOfBirth === null ? t('console.kycReview.notKept') : day(check.dateOfBirth) },
-    { label: t('console.kycReview.aadhaar'), value: check.maskedAadhaar ?? none },
-    { label: t('console.kycReview.pan'), value: check.pan ?? none },
-    { label: t('console.kycReview.address'), value: check.address ?? none },
-    {
-      label: t(METHOD_COPY[check.method]),
-      value: t('console.kycReview.scores', { liveness: score(check.livenessScore), match: score(check.faceMatchScore) }),
-    },
-    { label: t('console.kycReview.vendorReference'), value: check.vendorReference ?? none },
+  const details = [
+    { label: t('console.kycReview.dateOfBirth'), value: dateOfBirth(check) },
+    { label: t('console.kycReview.aadhaar'), value: check.maskedAadhaar },
+    { label: t('console.kycReview.pan'), value: check.pan },
+    { label: t('console.kycReview.address'), value: check.address },
+    method(check),
+    { label: t('console.kycReview.vendorReference'), value: check.vendorReference },
   ];
+  return details.flatMap(({ label, value }) => (value === null ? [] : [{ label, value }]));
+}
+
+/** The queue in its groups: checks a reviewer decides, checks waiting on the member, and refused ones (C-06). */
+export function checkGroups(checks: readonly KycCheck[]) {
+  return {
+    toReview: checks.filter((check) => check.status === 'needs_review'),
+    onMember: checks.filter((check) => check.status === 'needs_pan'),
+    refused: checks.filter((check) => check.status === 'refused'),
+  };
 }
 
 /** Whether a super admin may reopen this check: a refused one done in person (#267), refused as a duplicate. */
