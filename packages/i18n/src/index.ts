@@ -14,4 +14,4 @@ export { formatChips, formatMoney, formatNights, formatNumber, formatRupeesForFi
 export { formatCountdown, formatDate, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
 export { formatBlinds } from './format/chips.ts';
-export { formatMobile } from './format/phone.ts';
+export { formatMobile, formatTypedMobile } from './format/phone.ts';

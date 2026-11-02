@@ -18,7 +18,7 @@ const config: StorybookConfig = {
       plugins: [tailwindcss()],
       build: {
         rolldownOptions: {
-          // lucide-react marks its modules "use client", which means nothing outside a server framework.
+          // Radix marks its modules "use client", which means nothing outside a server framework.
           onwarn(warning, warn) {
             if (warning.code !== 'MODULE_LEVEL_DIRECTIVE') warn(warning);
           },

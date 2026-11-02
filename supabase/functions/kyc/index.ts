@@ -7,25 +7,45 @@ import { panSchema } from '@rivr/contracts';
 import { isSameName, kycIdentityKey } from '@rivr/domain/identity';
 import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
-import { CORS, currentRecord, failed, field, photoUrl, refusal, reply, rpc } from './server.ts';
+import { CORS, currentRecord, failed, field, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
 
 // A selfie of at most 2 MB, in base64, and the rest of the body.
 const MAX_BODY_BYTES = 3 * 1024 * 1024;
 
-// Where DigiLocker sends the member back. Fixed here, never taken from the request, so the hand-off
-// cannot be pointed at someone else's page.
-const playerAppUrl = Deno.env.get('PLAYER_APP_URL') ?? '';
+/** An app's own origin, https (http only on this machine), with nothing after it. */
+function isAppOrigin(url: URL): boolean {
+  const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const isSecure = url.protocol === 'https:' || (url.protocol === 'http:' && isLocal);
+  return isSecure && url.pathname === '/' && url.search === '' && url.hash === '' && url.username === '' && url.password === '';
+}
+
+/**
+ * Where DigiLocker sends the member back: /kyc/return on the player app's own address, fixed here and never taken from the
+ * request, so the hand-off cannot be pointed at someone else's page. The address is the app's https origin alone (http
+ * only on this machine), as Cashfree refuses any other return (K-08: staging's was not, and every start failed); one that
+ * is not is no return address at all.
+ */
+function returnUrlOf(appUrl: string): string | null {
+  try {
+    const url = new URL(appUrl);
+    return isAppOrigin(url) ? new URL('/kyc/return', url.origin).href : null;
+  } catch {
+    return null;
+  }
+}
+
+const returnUrl = returnUrlOf(Deno.env.get('PLAYER_APP_URL') ?? '');
 
 /** The DigiLocker hand-off, once the selfie is in: the gate passes, then the vendor is called. */
 async function start({ memberId, kyc }: Subject): Promise<Response> {
-  if (playerAppUrl === '') return reply({ error: 'not_configured' }, 503);
+  if (returnUrl === null) return reply({ error: 'not_configured' }, 503);
   const record = await currentRecord(memberId);
   const canStart = record?.status === 'started' || record?.status === 'needs_pan';
   if (!canStart || typeof record?.photo_path !== 'string') return reply({ error: 'The selfie comes first' }, 409);
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
-  const started = await kyc.startDigiLocker({ memberId, returnUrl: `${playerAppUrl}/kyc/return` });
-  if (!started.ok) return failed(started.error);
+  const started = await kyc.startDigiLocker({ memberId, returnUrl });
+  if (!started.ok) return await failed(memberId, 'start', started.error);
   await rpc('record_kyc_started', { p_member_id: memberId, p_session_id: started.value.sessionId }, null);
   return reply({ redirectUrl: started.value.redirectUrl });
 }
@@ -43,13 +63,15 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
   // The pull and the face match are paid: they count against the five a day.
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const pulled = await kyc.pullDigiLocker({ sessionId: session });
-  if (!pulled.ok && pulled.error.code === 'not_configured') return failed(pulled.error);
+  if (!pulled.ok && pulled.error.code === 'not_configured') return await failed(memberId, 'complete', pulled.error);
   if (!pulled.ok) {
+    // DigiLocker not finished, or refused: why is kept, and the member goes on to a PAN check.
+    await noteFailure(memberId, 'complete', pulled.error);
     await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
     return reply({ status: 'needs_pan' });
   }
   const face = await kyc.matchFace({ selfieUrl: await photoUrl(record.photo_path), referenceUrl: pulled.value.photoUrl });
-  if (!face.ok) return failed(face.error);
+  if (!face.ok) return await failed(memberId, 'complete', face.error);
   const { name, dateOfBirth, maskedAadhaar, aadhaarReference, pan, address, vendorReference } = pulled.value;
   const status = await rpc('record_kyc_digilocker', {
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
@@ -85,7 +107,7 @@ async function checkPan({ memberId, fullName, kyc }: Subject, body: unknown): Pr
   const { pan, dateOfBirth } = input;
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const checked = await kyc.verifyPan({ pan, name: fullName, dateOfBirth });
-  if (!checked.ok) return failed(checked.error);
+  if (!checked.ok) return await failed(memberId, 'pan', checked.error);
   const { isValid, nameMatches, dateOfBirthMatches } = checked.value;
   if (!isValid || !nameMatches || !dateOfBirthMatches) return reply({ error: 'pan_rejected' }, 422);
   const status = await rpc('record_kyc_pan', {

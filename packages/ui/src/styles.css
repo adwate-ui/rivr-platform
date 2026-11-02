@@ -34,6 +34,26 @@
     outline-offset: var(--rivr-border-width-focus);
   }
 
+  /* A line field's focus is its own line drawn twice as thick, never a box round an underline (S-01): a second hairline as
+     a shadow under the border, so nothing below moves, in the focus colour, or the alert's while the field is wrong. Its
+     border takes the focus colour from Input's own class, as a rule here would lose to the border utilities. */
+  [data-field-row][data-line]:has(input:focus-visible),
+  input[data-line]:focus-visible {
+    outline: none;
+    box-shadow: 0 var(--rivr-border-width-hairline) 0 0 var(--rivr-color-focus);
+  }
+
+  [data-field-row][data-line]:has(input[aria-invalid='true']:focus-visible),
+  input[data-line][aria-invalid='true']:focus-visible {
+    box-shadow: 0 var(--rivr-border-width-hairline) 0 0 var(--rivr-color-alert);
+  }
+
+  /* A code's cells are one field (CodeInput): the ring goes round the row of cells. */
+  [data-code-cells]:has(input:focus-visible) {
+    outline: var(--rivr-border-width-focus) solid var(--rivr-color-focus);
+    outline-offset: var(--rivr-border-width-focus);
+  }
+
   /* A switch's ring goes round its track, not the larger tap area around it. */
   [role='switch']:focus-visible {
     outline: none;
@@ -60,7 +80,7 @@
   }
 
   /* The browser's light autofill fill never shows: its background change is held off, so every field keeps its own
-     ground (a boxed field its raised fill, a line or code field the page), and its text stays the content colour. */
+     ground (a boxed field its raised fill, a line field the page), and its text stays the content colour. */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
@@ -71,6 +91,13 @@
 
   [data-field-row] input:focus-visible {
     outline: none;
+  }
+
+  /* A code filled in from a message stays in its cells (CodeInput), never shown again over them. */
+  [data-code-cells] input:-webkit-autofill,
+  [data-code-cells] input:-webkit-autofill:hover,
+  [data-code-cells] input:-webkit-autofill:focus {
+    -webkit-text-fill-color: transparent;
   }
 
   /* Below 768 px a table's row is a card, and each line names its column first, from the cell's data-label (#603). */

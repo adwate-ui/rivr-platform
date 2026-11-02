@@ -28,4 +28,21 @@ describe('pairing the tablet', () => {
     expect(screen.queryByText('Wrong or expired code. Ask for a new one.')).toBeNull();
     expect(sent.filter((url) => url.includes('device-pair'))).toEqual([]);
   });
+
+  it('waits for Pair once six digits are in, as staff read the code out', async () => {
+    const sent: string[] = [];
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      sent.push(String(input instanceof Request ? input.url : input));
+      return Response.json({});
+    });
+    render(
+      <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+        queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <PairScreen />
+      </RivrDataProvider>,
+    );
+    fireEvent.change(screen.getByRole('textbox', { name: 'Pairing code' }), { target: { value: '482913' } });
+    await new Promise((settle) => setTimeout(settle, 50));
+    expect(sent.filter((url) => url.includes('device-pair'))).toEqual([]);
+  });
 });

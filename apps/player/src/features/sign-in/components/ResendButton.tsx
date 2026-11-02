@@ -8,16 +8,20 @@ import { useCountdown } from '../hooks/useCountdown.ts';
 // Auth sends at most one code a minute to a number (config.template.toml, max_frequency).
 const RESEND_AFTER_SECONDS = 60;
 
-/** Sends a new code to the number, once a minute has passed since the last one. */
-export function ResendButton({ phone, onFail }: { phone: IndianMobile; onFail: (failure: SignInFailure) => void }) {
+/** Sends a new code to the number, once a minute has passed since the last one; `onSent` once it has gone. */
+export function ResendButton({ phone, onSent, onFail }: { phone: IndianMobile; onSent: () => void; onFail: (failure: SignInFailure) => void }) {
   const { requestCode } = useSignIn();
   const countdown = useCountdown(RESEND_AFTER_SECONDS);
   const captcha = useCaptcha(CAPTCHA_SITE_KEY);
   const resend = async () => {
     const sent = await requestCode.mutateAsync({ phone, captchaToken: captcha.token });
     captcha.renew();
-    if (sent.ok) countdown.restart();
-    else onFail(sent.error);
+    if (sent.ok) {
+      countdown.restart();
+      onSent();
+    } else {
+      onFail(sent.error);
+    }
   };
   return (
     <Stack gap={2}>

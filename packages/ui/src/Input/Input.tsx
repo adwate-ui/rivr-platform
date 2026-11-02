@@ -26,9 +26,9 @@ type NativeInputProps = Pick<
 
 /**
  * `boxed` for forms; `line`, an underline, for a screen with one field, such as the sign-in
- * number; `code`, a large letter-spaced underline, for a one-time code.
+ * number. A one-time code is a CodeInput.
  */
-export type InputVariant = 'boxed' | 'line' | 'code';
+export type InputVariant = 'boxed' | 'line';
 
 export interface InputProps extends NativeInputProps {
   /** The visible label. Every input has one. */
@@ -46,12 +46,11 @@ export interface InputProps extends NativeInputProps {
   ref?: Ref<HTMLInputElement>;
 }
 
-// The line and the code are sized as in the prototype's sign-in: a 48 px row for the number, and
-// large digits set apart for a code (the prototype's 32 px, at 28 on the type scale).
+// The line is sized as in the prototype's sign-in: a 48 px row for the number, in plain spacing (S-01: tracked tabular
+// figures read as a typewriter). Its focus is its own line, drawn thicker (styles.css), never a box round it.
 const FRAME: Record<InputVariant, string> = {
   boxed: 'min-h-touch w-full rounded-md border bg-raised px-3 font-text text-16 text-content',
-  line: 'min-h-12 w-full border-b bg-transparent font-text text-20 tracking-wide text-content',
-  code: 'min-h-touch w-full border-b bg-transparent py-2 font-text text-28 tracking-code text-content',
+  line: 'min-h-12 w-full border-b bg-transparent font-text text-20 text-content',
 };
 
 const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed';
@@ -94,14 +93,22 @@ function Adornment({ id, text }: { id: string; text: string }) {
   return <span id={id} className="text-18 tracking-normal text-content-muted">{text}</span>;
 }
 
+/** A line field's line in the focus colour while it has focus, unless it is wrong (S-01): on its row when it has a prefix or suffix. */
+function lineFocusClass(variant: InputVariant, isInvalid: boolean, isAdorned: boolean): string | undefined {
+  if (variant !== 'line' || isInvalid) return undefined;
+  return isAdorned ? 'has-[input:focus-visible]:border-focus' : 'focus-visible:border-focus';
+}
+
 /** The input itself, inside its frame. With a prefix or a suffix the frame runs under them and the value together. */
 function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native }: FieldProps) {
-  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-control');
   const isAdorned = Boolean(prefix) || Boolean(suffix);
+  const frame = cx(FRAME[variant], isInvalid ? 'border-alert' : 'border-control', lineFocusClass(variant, isInvalid, isAdorned));
+  const line = variant === 'line' ? { 'data-line': '' } : {};
   const input = (
     <input
       id={id}
       type={type}
+      {...(isAdorned ? {} : line)}
       // With a prefix the input still fills the row's full touch height, so a tap beside the value focuses it.
       className={isAdorned ? cx('min-h-touch min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE, DIMMED)}
       aria-invalid={isInvalid || undefined}
@@ -112,7 +119,7 @@ function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, nati
   if (!isAdorned) return input;
   return (
     // data-field-row: the focus ring goes round the whole row, prefix and suffix included (styles.css).
-    <div data-field-row className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
+    <div data-field-row {...line} className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
       {prefix ? <Adornment id={`${id}-prefix`} text={prefix} /> : null}
       {input}
       {suffix ? <Adornment id={`${id}-suffix`} text={suffix} /> : null}

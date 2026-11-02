@@ -110,6 +110,30 @@ export const ui = {
     /** Read out instead of the dots: never the digits themselves. */
     entered: '{count} of {length} digits entered',
   },
+  /** CameraCapture: a photo taken there and then, the selfie or a member's photo at the desk (K-07). */
+  camera: {
+    /** The live picture, read out. */
+    preview: 'Camera',
+    starting: 'Starting the camera',
+    faceGuide: 'Fit your face in the oval.',
+    take: 'Take photo',
+    /** The photo just taken, read out. */
+    review: 'Your photo',
+    use: 'Use photo',
+    retake: 'Retake',
+    blocked: 'Camera blocked. Allow it in site settings.',
+    none: 'No camera here. Carry on with a phone.',
+    failed: 'Camera did not start. Try again.',
+    tryAgain: 'Try again',
+    /** Beside a QR code that opens the same step on a phone. */
+    onPhone: 'Scan with your phone to carry on there.',
+    phoneLink: 'Link to this step on your phone',
+  },
+  /** StepList: where a person is in a flow of steps, read out beside each step's name. */
+  steps: {
+    done: 'done',
+    current: 'current step',
+  },
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
     member: 'The club is paused. Ask a member of staff.',

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../Button/Button.tsx';
+import { CodeInput } from '../CodeInput/CodeInput.tsx';
 import { Input } from '../Input/Input.tsx';
 import { Text } from '../Text/Text.tsx';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
@@ -7,17 +8,7 @@ import { StepScreen } from './StepScreen.tsx';
 
 const back = { label: 'Back', onBack: () => undefined };
 
-const codeField = (error?: string) => (
-  <Input
-    label="Code"
-    variant="code"
-    inputMode="numeric"
-    autoComplete="one-time-code"
-    placeholder="6 digits"
-    hint="Sent to +91 98110 42817"
-    error={error}
-  />
-);
+const codeField = (error?: string) => <CodeInput label="6-digit code" value="" onChange={() => undefined} error={error} />;
 
 const meta = {
   title: 'Layout/StepScreen',
@@ -80,3 +71,6 @@ export const LongText: Story = {
     back: { label: 'Back to the mobile number', onBack: () => undefined },
   },
 };
+
+/** From 768 px: the step is a panel in the middle of the screen, its action under its content (S-01). */
+export const OnAComputer: Story = { ...Centred, tags: ['!viewport-phone', 'viewport-console'] };

@@ -20,7 +20,15 @@ export default defineConfig({
   use: isRemoteTarget()
     ? { trace: 'off', screenshot: 'off' }
     : { trace: 'retain-on-failure', screenshot: 'only-on-failure' },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // A camera the browser fakes and the person has allowed: KYC photos are taken with the live camera, never a file (K-07).
+  projects: [{
+    name: 'chromium',
+    use: {
+      ...devices['Desktop Chrome'],
+      permissions: ['camera'],
+      launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
+    },
+  }],
   webServer: isRemoteTarget()
     ? []
     : APPS.map((app) => ({

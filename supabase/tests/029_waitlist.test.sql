@@ -6,6 +6,17 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- This test's club night began twelve hours before it (#716). The night turns at 06:00 IST (private.tonight_began), so a
+-- run just after 06:00 would put the joins and visits made minutes earlier on last night's side; the turn itself is 043's
+-- and 220's to test. Here tonight_began keeps its rule, with the turn moved to twelve hours ago, until the test rolls back.
+create temp table night_shift on commit drop as select now() - private.tonight_began(now()) - interval '12 hours' as shift;
+grant select on night_shift to authenticated, anon, service_role;
+create or replace function private.tonight_began(p_at timestamptz) returns timestamptz language sql stable set search_path = '' as $$
+  select ((date_trunc('day', ((p_at - s.shift) at time zone 'Asia/Kolkata') - interval '6 hours') + interval '6 hours') at time zone 'Asia/Kolkata')
+         + s.shift
+  from pg_temp.night_shift s;
+$$;
+
 -- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
 delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
 

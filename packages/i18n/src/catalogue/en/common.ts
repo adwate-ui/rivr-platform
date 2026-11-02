@@ -22,14 +22,19 @@ export const common = {
    * in the console. `{phone}` is `+91 98765 43210`.
    */
   signIn: {
-    /** The number step's heading, for screen readers: the wordmark names the screen as an image. */
+    /** The console's number step: staff only sign in. */
     title: 'Sign in',
+    /** The player app's number step: a number the club does not know goes on to join (S-01). */
+    joinTitle: 'Sign in or join',
     phoneLabel: 'Mobile number',
     countryCode: '+91',
     sendCode: 'Send code',
-    codeTitle: 'Code',
+    /** Under Send code: where to look (decision 0025, WhatsApp first). */
+    channels: 'Code by WhatsApp or SMS.',
+    codeTitle: 'Sign-in code',
     codeLabel: 'Code sent to {phone}',
-    codePlaceholder: '6 digits',
+    /** After Send by SMS (#181). */
+    codeLabelBySms: 'Code sent by SMS to {phone}',
     submit: 'Verify',
     changeNumber: 'Change number',
     /** A second code goes by SMS: the first may not have reached WhatsApp (#181). */

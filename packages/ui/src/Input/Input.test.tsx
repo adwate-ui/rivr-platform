@@ -61,12 +61,13 @@ describe('Input', () => {
     expect(field).toHaveValue('98110 42817');
   });
 
-  it('draws a code field as a large letter-spaced underline, which turns red on an error', () => {
-    renderIn(<Input label="Code" variant="code" placeholder="6 digits" error="Code expired. Request a new one." />);
-    const field = screen.getByRole('textbox', { name: 'Code' });
-    expect(field).toHaveAttribute('placeholder', '6 digits');
-    expect(field).toHaveClass('border-b', 'border-alert', 'text-28', 'tracking-code');
-    expect(field).not.toHaveClass('rounded-md');
+  it('sets a line field in plain spacing, and marks it so its focus is its own line, not a box (S-01)', () => {
+    renderIn(<Input label="Mobile number" type="tel" variant="line" prefix="+91" />);
+    renderIn(<Input label="Amount" variant="line" />);
+    const number = screen.getByRole('textbox', { name: 'Mobile number' });
+    expect(number.closest('[data-field-row]')).toHaveAttribute('data-line');
+    expect(number.closest('[data-field-row]')).not.toHaveClass('tracking-wide');
+    expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveAttribute('data-line');
   });
 
   it('draws a line field as an underline, in the control edge until an error turns it red', () => {

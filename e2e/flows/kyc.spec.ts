@@ -10,33 +10,26 @@ import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { serviceRoleKey } from '../support/serviceRole.ts';
 import { signInToPlayer } from '../support/signIn.ts';
 
-/** A plain JPEG made in the page: the practice venue's fake vendor passes any selfie. */
-async function selfie(page: Page): Promise<Buffer> {
-  const dataUrl = await page.evaluate(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 480;
-    canvas.height = 640;
-    canvas.getContext('2d')?.fillRect(0, 0, 480, 640);
-    return canvas.toDataURL('image/jpeg');
-  });
-  return Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
-}
-
-/** Opens Identity and takes the selfie, unless an earlier run already took it. */
+/**
+ * Opens Identity and takes the selfie with the camera, unless an earlier run already took it: the browser's fake camera
+ * (playwright.config.ts) is the picture, and the practice venue's fake vendor passes any selfie. Never a file (K-07).
+ */
 async function takeSelfie(page: Page) {
   await page.goto(`${appUrl('player')}/kyc`);
   const take = page.getByRole('button', { name: 'Take a selfie' });
-  const start = page.getByRole('button', { name: 'Continue with DigiLocker' });
+  const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
   await expect(take.or(start).or(page.getByRole('heading', { name: 'Identity verified' }))).toBeVisible();
   if (!(await take.isVisible())) return;
-  const chooser = page.waitForEvent('filechooser');
+  await expect(page.getByRole('list', { name: 'Identity check' })).toBeVisible();
   await take.click();
-  await (await chooser).setFiles({ name: 'selfie.jpg', mimeType: 'image/jpeg', buffer: await selfie(page) });
+  await page.getByRole('button', { name: 'Take photo' }).click();
+  await expect(page.getByRole('img', { name: 'Your photo' })).toBeVisible();
+  await page.getByRole('button', { name: 'Use photo' }).click();
 }
 
 /** After the selfie, sets off for DigiLocker, unless an earlier run already verified this member. */
 async function startDigiLocker(page: Page) {
-  const start = page.getByRole('button', { name: 'Continue with DigiLocker' });
+  const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
   await expect(start.or(page.getByRole('heading', { name: 'Identity verified' }))).toBeVisible();
   if (await start.isVisible()) await start.click();
 }

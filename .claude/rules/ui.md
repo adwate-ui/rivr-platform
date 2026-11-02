@@ -12,9 +12,9 @@ Every pixel in every app comes from `@rivr/ui`. Every value comes from `packages
 
 ## What lives in `@rivr/ui`
 The package's README lists each with its props; this is the map (F5-18: only what exists, so a review never asks for a component that is not there).
-- Layout: Box, Stack, Inline, Grid, Divider, Container, Screen, SplitView, StepScreen, LoadState, `useIsWide`
+- Layout: Box, Stack, Inline, Grid, Divider, Container, Screen, SplitView, StepScreen, StepList, LoadState, `useIsWide`
 - Type: Text, Heading, Label, Money, Number, Time, Stakes, Icon, Wordmark, BrandIcon, BrandArt
-- Controls: Button (primary, secondary, text, danger), Input, TextArea, ChoiceChips, ChoiceSheet, Switch, QuantityStepper, PinPad, Keypad, SignaturePad, CameraButton, Captcha, ReasonForm, ConfirmButton, ConfirmQuestion, PlaybackLink, QrScanView
+- Controls: Button (primary, secondary, text, danger), Input, TextArea, ChoiceChips, ChoiceSheet, Switch, QuantityStepper, PinPad, Keypad, SignaturePad, CameraButton (a file), CameraCapture (a photo taken there and then), CodeInput, Captcha, ReasonForm, ConfirmButton, ConfirmQuestion, PlaybackLink, QrScanView
 - Feedback: ErrorMessage, StatusMessage, StaleNotice, OfflineBanner, KillSwitchBanner, CookieBanner, InstallOffer, PromptBar, LockedNotice, FeatureGate
 - Data: DataTable (sort, filter, export, virtualisation), HistoryRow, FloorRow, KycPhoto, VenueLogo, QrCode, Chart, Heatmap, TierMatrix
 - Shells and navigation: PlayerShell, ConsoleShell, TabletShell, DisplayShell, WebShell, BottomNav, SideNav, Tabs
