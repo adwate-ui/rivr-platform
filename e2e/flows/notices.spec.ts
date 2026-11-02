@@ -1,6 +1,6 @@
 /**
  * Notices (decision 0298): a super admin puts a notice up in Settings, a member reads it at the top of Home, and once it
- * is ended it is gone. Aisha Khan (126) and Kiran Joshi (281) are this flow's own, as Auth sends one code a minute.
+ * is ended it is gone. Aisha Khan (126) and Bhuvan Walia (426) are this flow's own, as Auth sends one code a minute.
  */
 import { expect, test } from '@playwright/test';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
@@ -15,7 +15,7 @@ test('Notices: a notice put up in Settings shows on members\' Home until it is e
   await expect(page.getByRole('status').getByText('Notice put up.')).toBeVisible();
 
   const member = await (await browser.newContext()).newPage();
-  await signInToPlayer(member, '9000000281');
+  await signInToPlayer(member, '9000000426');
   await expect(member.getByText(words)).toBeVisible();
 
   await page.getByRole('button', { name: `End the notice: ${words}` }).click();
