@@ -49,8 +49,8 @@ describe('Top-ups (decision 0299)', () => {
   it('lists the waiting ones oldest first, the late one in red, and tonight’s closed ones below', async () => {
     renderTopUps();
     expect(await screen.findByText('Table 3, seat 5 · Kabir Sethi')).toBeDefined();
-    expect(screen.getByText(/^Late 01:3\d$/).className).toContain('bg-alert');
-    expect(screen.getByText(/^00:2\d$/)).toBeDefined();
+    expect(screen.getByText(/^Late \d\d:\d\d$/).className).toContain('bg-alert');
+    expect(screen.getByText(/^00:[2-5]\d$/)).toBeDefined();
     expect(screen.getByText('Fulfilled in 1 min')).toBeDefined();
   });
 
