@@ -13,7 +13,7 @@ export interface PinPadProps {
   onChange: (value: string) => void;
   /** How many digits a PIN has: the dots, and the most the pad takes. */
   length?: number;
-  /** What is wrong and what to do, under the dots. */
+  /** What is wrong and what to do, under the keypad. */
   error?: string | undefined;
   /** Ignores presses, for example while the PIN is checked. */
   isDisabled?: boolean;
@@ -27,7 +27,8 @@ const KEY =
 
 /**
  * The dealer tablet's PIN pad (#41): a dot for each digit and a keypad of 1 to 9, 0 and Delete, as
- * in the prototype's dealer sign-in. Digits typed on a keyboard and Backspace work too.
+ * in the prototype's dealer sign-in. Digits typed on a keyboard and Backspace work too. What is wrong
+ * shows under the keypad, so the keys never move under a finger (D-05).
  */
 export function PinPad({ label, value, onChange, length = 4, error, isDisabled }: PinPadProps) {
   const labelId = useId();
@@ -46,21 +47,21 @@ export function PinPad({ label, value, onChange, length = 4, error, isDisabled }
       <Text id={labelId} variant="label">{label}</Text>
       <div role="group" aria-labelledby={labelId} onKeyDown={typed} className="flex flex-col gap-4">
         {/* The count is words inside the status region, which a screen reader reads as they change; a label is not (F5-08). */}
-        <div role="status" className="flex gap-3">
+        <div role="status" className="flex gap-4">
           <span className="sr-only">{t('ui.pinPad.entered', { count: value.length, length })}</span>
           {Array.from({ length }, (_, index) => (
-            <span key={index} className={cx('size-4 rounded-lg border border-content', index < value.length && 'bg-content')} />
+            <span key={index} className={cx('size-6 rounded-full border border-content', index < value.length && 'bg-content')} />
           ))}
         </div>
-        {error === undefined ? null : <ErrorMessage>{error}</ErrorMessage>}
         <div className="grid grid-cols-3 gap-3">
-          {KEYS.map((key, index) => key === '' ? <span key={index} /> : (
+          {KEYS.map((key) => key === '' ? <span key="blank" /> : (
             <button key={key} type="button" className={cx(KEY, key === 'delete' ? 'text-16' : 'text-28')} disabled={isDisabled}
               onClick={() => (key === 'delete' ? remove() : add(key))}>
               {key === 'delete' ? t('ui.pinPad.delete') : key}
             </button>
           ))}
         </div>
+        {error === undefined ? null : <ErrorMessage>{error}</ErrorMessage>}
       </div>
     </Stack>
   );

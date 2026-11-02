@@ -56,6 +56,13 @@ describe('PinPad', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('That PIN is not right.');
   });
 
+  it('shows what is wrong under the keypad, so the keys stay where they were (D-05)', () => {
+    renderIn(<PinPad label="PIN" value="" onChange={() => undefined} error="That PIN is not right." />);
+    const lastKey = screen.getByRole('button', { name: 'Delete' });
+    const error = screen.getByRole('alert');
+    expect(lastKey.compareDocumentPosition(error) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<PinPad label="PIN for Pema Lepcha" value="27" onChange={() => undefined} error="That PIN is not right." />);
 

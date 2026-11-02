@@ -37,7 +37,7 @@ function renderChange() {
 describe('ChangePhone', () => {
   it('shows the number now, takes the new one twice, and changes it only on the second press', async () => {
     const sent = renderChange();
-    expect(screen.getByText('Number now: +919000000781')).toBeDefined();
+    expect(screen.getByText('Number now: +91 90000 00781')).toBeDefined();
     fireEvent.change(screen.getByRole('textbox', { name: 'New mobile number' }), { target: { value: '+919000000782' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Type the new number again' }), { target: { value: '+919000000783' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Why it changes' }), { target: { value: 'Lost his phone' } });

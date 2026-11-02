@@ -81,7 +81,7 @@ export function Frame({ children, unpaired, signIn, door }: FrameProps) {
   if (authStatus === 'loading' || (authStatus === 'signed-in' && device.isPending)) {
     return <TabletShell tableName={title} banner={banner}><Screen title={title} status="loading" /></TabletShell>;
   }
-  // A failed check every 30 seconds keeps what was known: a dealer mid-hand keeps their screen.
+  // A failed check every ten seconds keeps what was known: a dealer mid-hand keeps their screen.
   if (device.isError && device.data === undefined) {
     return <TabletShell tableName={title} banner={banner}><Screen title={title} status="error" onRetry={() => void device.refetch()} /></TabletShell>;
   }
