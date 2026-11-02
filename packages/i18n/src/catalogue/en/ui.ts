@@ -157,6 +157,8 @@ export const ui = {
   /** The pad a member signs on at the cage (#74). */
   signaturePad: { clear: 'Clear' },
   /** A seated player's call time (#78): `{time}` is what is left, as in "1 h 12 min". */
+  /** WaitTimer (decision 0299): past its target, `{time}` is the clock, 01:35. */
+  waitTimer: { late: 'Late {time}' },
   callTime: {
     left: 'Call time {time} left',
     paused: 'Call time paused, {time} left',

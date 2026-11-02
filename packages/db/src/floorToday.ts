@@ -8,9 +8,10 @@ const LIVE = 15_000;
 /** Where a top-up stands (#639): asked for, in hand, fulfilled, reset, or left open when the player left. */
 export type TopUpStatus = 'requested' | 'in_progress' | 'fulfilled' | 'reset' | 'left';
 
-/** A top-up request tonight, for the floor and the cashier (#639). */
+/** A top-up request tonight, for the floor and the cashier (#639), with the seat session the floor acts on (decision 0299). */
 export interface TopUpTonight {
   readonly requestId: string;
+  readonly sessionId: string;
   readonly tableName: string;
   readonly seat: number;
   readonly fullName: string;
@@ -21,20 +22,26 @@ export interface TopUpTonight {
 }
 
 const TOP_UP_STATUSES: readonly TopUpStatus[] = ['requested', 'in_progress', 'fulfilled', 'reset', 'left'];
+
+/** A top-up still waiting for the floor: asked for, or in hand (decision 0299). */
+export const isTopUpWaiting = (request: TopUpTonight) => request.status === 'requested' || request.status === 'in_progress';
 const topUpStatusOf = (value: string): TopUpStatus => TOP_UP_STATUSES.find((status) => status === value) ?? 'requested';
 
+/** Read every five seconds: the floor has sixty to bring a top-up (decision 0299). */
+const TOP_UPS_LIVE = 5_000;
+
 /** Tonight's top-up requests at the venue, by table, for staff who read members (`top_ups_tonight`). */
-export function useTopUpsTonight(venueId: string) {
+export function useTopUpsTonight(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.topUpsTonight(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    refetchInterval: LIVE,
+    enabled: userId !== null && isEnabled,
+    refetchInterval: TOP_UPS_LIVE,
     queryFn: async (): Promise<TopUpTonight[]> => {
       const { data, error } = await client.rpc('top_ups_tonight', { p_venue_id: venueId });
       if (error) throw error;
       return data.map((row) => ({
-        requestId: row.request_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: topUpStatusOf(row.status),
+        requestId: row.request_id, sessionId: row.session_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: topUpStatusOf(row.status),
         requestedAt: row.requested_at, fulfilledSeconds: row.fulfilled_seconds,
       }));
     },

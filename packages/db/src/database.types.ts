@@ -5801,7 +5801,7 @@ isOneToOne: false
                            },
 "top_ups_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"status": string,"table_name": string
+              "fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
             }[]
                            },
 "tournament_balance":

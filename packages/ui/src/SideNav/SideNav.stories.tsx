@@ -37,6 +37,19 @@ export const WithCount: Story = {
   },
 };
 
+/** Top-ups waiting, an urgent count in red (decision 0299). */
+export const UrgentCount: Story = {
+  args: {
+    current: 'liveFloor',
+    sections: [
+      { id: 'floor', label: 'Floor', items: [
+        { id: 'liveFloor', label: 'Live floor', href: '#floor' },
+        { id: 'topUps', label: 'Top-ups', href: '#top-ups', count: 2, isUrgent: true },
+      ] },
+    ],
+  },
+};
+
 export const LongText: Story = {
   args: {
     current: 'long',

@@ -1,5 +1,5 @@
 import type { Permission } from '@rivr/contracts';
-import { useAuthStatus, useControlState, useSignOut, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
+import { isTopUpWaiting, useAuthStatus, useControlState, useSignOut, useStaffVenue, useTopUpsTonight, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
 import { Box, ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen, Text } from '@rivr/ui';
@@ -85,7 +85,9 @@ function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   useIdleLock(locksWhenIdle(pathname), signOut.mutate);
   // The rail counts the high-hand claims waiting for staff who approve them (#317).
   const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
-  const sections = railFor(permissions, { jackpots: waiting.length });
+  // And the top-ups waiting for the floor, in red (decision 0299).
+  const topUps = useTopUpsTonight(venueId, permissions.includes('waitlist.manage'));
+  const sections = railFor(permissions, { jackpots: waiting.length, topUps: (topUps.data ?? []).filter(isTopUpWaiting).length }, ['topUps']);
   // Every table offers its export to staff who export tables, each recorded first (#102).
   const recordExport = useRecordTableExport(venueId);
   const exporter = permissions.includes('exports.table') ? recordExport : null;

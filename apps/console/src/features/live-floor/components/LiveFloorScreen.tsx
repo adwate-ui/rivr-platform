@@ -9,7 +9,6 @@ import { LeavingList } from './LeavingList.tsx';
 import { LeftOwingCallTime } from './LeftOwingCallTime.tsx';
 import { RoomPlan } from './RoomPlan.tsx';
 import { TableDetail } from './TableDetail.tsx';
-import { TopUpsTonight } from './TopUpsTonight.tsx';
 
 /**
  * Live floor (#77, #81; the prototype's console): rake tonight and how many are seated; every table
@@ -67,7 +66,6 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
               chosenId={chosenId !== null || isAtDesk ? chosen.id : ''} onChoose={setChosenId} />
             <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
             {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
-            {permissions.includes('members.read') ? <TopUpsTonight venueId={venueId} /> : null}
           </Stack>
         )}
         detail={(

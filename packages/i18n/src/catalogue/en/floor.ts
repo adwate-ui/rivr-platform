@@ -90,18 +90,11 @@ export const liveFloor = {
   callTimeHint: 'Minutes. 0 for none.',
   saveCallTime: 'Save call time',
   callTimeInvalid: 'Enter whole minutes from 0 to 1,440.',
-  /** Tonight's top-up requests by table (#639), with how long each took. `{time}`: 4 min. */
-  topUpsTitle: 'Top-ups tonight',
-  noTopUps: 'No top-ups asked for tonight.',
-  topUpLine: '{table}, seat {seat} · {name}',
-  topUpStatus: { requested: 'Requested', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
-  /** A seated player's top-up (#634): asked for from the app, then in hand; the floor resets it once done. No amount. */
+  /** A seated player's top-up (#634): asked for from the app, then in hand; handled on Top-ups (decision 0299). No amount. */
   topUpRequested: 'Top-up requested',
   topUpInProgress: 'Top-up in progress',
-  startTopUp: 'Start top-up',
-  startTopUpName: 'The top-up for {name} is in progress',
-  resetTopUp: 'Reset top-up',
-  resetTopUpName: 'Reset the top-up for {name}',
+  /** A table's red marker on the room plan while a top-up waits there (decision 0299). */
+  topUpMarker: 'Top-up',
   seatPlayer: 'Seat a player',
   seatNumber: 'Seat',
   /** Seating (decision 0299): ten digits are a mobile number, fewer a membership number. */
@@ -201,6 +194,27 @@ export const tablesSetup = {
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },
+} as const;
+
+/** Top-ups (decision 0299): the requests waiting, each with its wait against the minute, then tonight's closed ones. */
+export const topUps = {
+  title: 'Top-ups',
+  target: 'Bring each top-up within a minute of the ask.',
+  waiting: 'Waiting',
+  noneWaiting: 'No top-ups waiting.',
+  earlier: 'Earlier tonight',
+  noneEarlier: 'None yet tonight.',
+  /** `{table}, seat {seat} · {name}`: Table 3, seat 5 · Kabir Sethi. `{time}`: 21:40. */
+  line: '{table}, seat {seat} · {name}',
+  askedAt: 'Asked {time}',
+  status: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
+  start: 'Start',
+  startName: 'The top-up for {name} is in progress',
+  done: 'Done',
+  doneName: 'The top-up for {name} is done',
+  reset: 'Reset',
+  resetName: 'Reset the top-up for {name}',
+  notAllowed: 'Not in your role. Ask the floor.',
 } as const;
 
 /** Games history (#643): the tables run each club day and the hours each ran, for the super admin (tables.manage). */

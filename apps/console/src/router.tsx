@@ -43,6 +43,7 @@ import { sopsRoute } from './routes/sops.tsx';
 import { feedbackRoute } from './routes/feedback.tsx';
 import { tournamentInterestRoute } from './routes/tournament-interest.tsx';
 import { playersTodayRoute } from './routes/players-today.tsx';
+import { topUpsRoute } from './routes/top-ups.tsx';
 import { tablesRoute } from './routes/tables.tsx';
 import { gamesHistoryRoute } from './routes/games-history.tsx';
 import { leagueRoute } from './routes/league.tsx';
@@ -78,6 +79,7 @@ const routeTree = rootRoute.addChildren([
     feedbackRoute,
     tournamentInterestRoute,
     playersTodayRoute,
+    topUpsRoute,
     tablesRoute,
     gamesHistoryRoute,
     rewardsRoute,

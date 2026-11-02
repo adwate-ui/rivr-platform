@@ -78,4 +78,11 @@ describe('SideNav', () => {
     expect(count).toHaveClass('border-action');
     expect(screen.getByRole('link', { name: /Waitlist/ })).toHaveClass('border-action');
   });
+
+  it('fills an urgent count red, such as top-ups waiting (decision 0299)', () => {
+    renderIn(<SideNav label="Sections" current="liveFloor" sections={[{ id: 'tonight', items: [
+      { id: 'topUps', label: 'Top-ups', href: '/top-ups', count: 2, isUrgent: true }] }]} />);
+    expect(screen.getByText('2')).toHaveClass('bg-alert', 'text-on-alert');
+    expect(screen.getByRole('link', { name: 'Top-ups 2 waiting' })).toBeDefined();
+  });
 });

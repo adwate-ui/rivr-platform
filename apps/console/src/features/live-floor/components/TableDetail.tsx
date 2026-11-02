@@ -1,4 +1,4 @@
-import { useSeatActions, useSetTopUp, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure, type TableNight } from '@rivr/db';
+import { useSeatActions, type FloorTable, type HeldSeat, type SeatedPlayer, type SeatFailure, type TableNight } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Button, CallTimeTimer, ConfirmButton, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -47,23 +47,6 @@ function SeatLine({ number, player, heldFor, isOpen }: { number: number; player:
   );
 }
 
-/** A requested top-up is taken in hand; one asked for or in hand is reset once done (#634). Nothing with none asked for. */
-function TopUpButtons({ player, onTopUp }: { player: SeatedPlayer; onTopUp: (inProgress: boolean) => void }) {
-  if (player.topUp === null) return null;
-  return (
-    <>
-      {player.topUp === 'requested' ? (
-        <Button variant="text" aria-label={t('console.liveFloor.startTopUpName', { name: player.fullName })} onClick={() => onTopUp(true)}>
-          {t('console.liveFloor.startTopUp')}
-        </Button>
-      ) : null}
-      <Button variant="text" aria-label={t('console.liveFloor.resetTopUpName', { name: player.fullName })} onClick={() => onTopUp(false)}>
-        {t('console.liveFloor.resetTopUp')}
-      </Button>
-    </>
-  );
-}
-
 interface SeatButtonsProps {
   player: SeatedPlayer;
   /** This player's leave is being sent. */
@@ -71,17 +54,16 @@ interface SeatButtonsProps {
   canLetGoEarly: boolean;
   onLeave: () => void;
   onLeaveEarly: () => void;
-  onTopUp: (inProgress: boolean) => void;
   onCallTime: () => void;
 }
 
 /**
  * The floor's buttons on a seated player's row, on a line of their own under who sits there (#712): one Leave (decision
- * 0299), the top-up (#634) and the call time (#638). Away, Move and Mark leaving are not here (the owner: the floor gives
+ * 0299) and the call time (#638); top-ups are handled on their own page. Away, Move and Mark leaving are not here (the owner: the floor gives
  * more call time, or assigns the player again from the waitlist). Leave asks "Yes, … leaves"; a player who still owes call
  * time is let go early by an admin, with a reason, the seat freed with it (#79), and anyone else's leaves as before, owing.
  */
-function SeatButtons({ player, isLeaveBusy, canLetGoEarly, onLeave, onLeaveEarly, onTopUp, onCallTime }: SeatButtonsProps) {
+function SeatButtons({ player, isLeaveBusy, canLetGoEarly, onLeave, onLeaveEarly, onCallTime }: SeatButtonsProps) {
   const isOwing = (player.callTimeLeft ?? 0) > 0;
   return (
     <Inline gap={2} wrap>
@@ -91,7 +73,6 @@ function SeatButtons({ player, isLeaveBusy, canLetGoEarly, onLeave, onLeaveEarly
         <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leaveName', { name: player.fullName })}
           confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} isBusy={isLeaveBusy} onConfirm={onLeave} />
       )}
-      <TopUpButtons player={player} onTopUp={onTopUp} />
       <Button variant="text" aria-label={t('console.liveFloor.changeCallTimeName', { name: player.fullName })} onClick={onCallTime}>
         {t('console.liveFloor.changeCallTime')}
       </Button>
@@ -117,7 +98,6 @@ interface SeatRowsProps {
 /** Each seat's row; under a seated player, the floor's buttons on a line of their own (waitlist.manage), so neither crowds the other (#712). */
 function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: SeatRowsProps) {
   const { leave } = useSeatActions(venueId);
-  const setTopUp = useSetTopUp(venueId);
   const isFloor = permissions.includes('waitlist.manage');
   return (
     <Stack gap={2} divided>
@@ -129,7 +109,6 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
             {isFloor && player !== undefined ? (
               <SeatButtons player={player} isLeaveBusy={leave.isPending && leave.variables === player.sessionId} canLetGoEarly={permissions.includes('call_time.override')}
                 onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => onForm('leaveEarly', player)}
-                onTopUp={(inProgress) => void setTopUp.mutateAsync({ sessionId: player.sessionId, inProgress }).then(report)}
                 onCallTime={() => onForm('callTime', player)} />
             ) : null}
           </Stack>

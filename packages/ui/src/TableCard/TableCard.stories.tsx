@@ -39,6 +39,9 @@ export const WithoutRake: Story = { args: { rake: null } };
 /** For staff who do not see the night's figures (F2-25): no rake, dealer or pace. */
 export const WithoutNight: Story = { args: { rake: null, dealer: null, pace: null } };
 
+/** A top-up waiting at the table: a red marker under the ring (decision 0299). */
+export const TopUpWaiting: Story = { args: { rake: null, marker: 'Top-up' } };
+
 /** A long dealer's name and a big night. */
 export const LongText: Story = {
   args: { name: 'Private Room', ringLabel: 'Private Room, 8 of 9 seats taken', dealer: 'Karma Tsering Bhutia Wangchuk', rake: 164_200_000n, pace: '124 hands/hr' },

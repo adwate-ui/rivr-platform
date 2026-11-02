@@ -42,6 +42,7 @@ function Card({ table, seats, held, night, canSeeSeats, isChosen, onChoose }: Om
       seats={canSeeSeats ? ringOf(table, here, held.filter((seat) => seat.tableId === table.id)) : []}
       occupancy={occupancy}
       rake={null} dealer={dealerOf(figures, canSeeSeats)} pace={null}
+      marker={canSeeSeats && here.some((seat) => seat.topUp !== null) ? t('console.liveFloor.topUpMarker') : undefined}
       isSelected={isChosen} onSelect={onChoose} />
   );
 }

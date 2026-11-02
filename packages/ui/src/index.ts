@@ -53,6 +53,7 @@ export * from './FloorRow/index.ts';
 export * from './SeatRing/index.ts';
 export * from './CallTimeChoice/index.ts';
 export * from './CallTimeTimer/index.ts';
+export * from './WaitTimer/index.ts';
 export * from './TableCard/index.ts';
 export * from './DataTable/index.ts';
 export * from './Chart/index.ts';

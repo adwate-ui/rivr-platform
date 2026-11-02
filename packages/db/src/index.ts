@@ -77,7 +77,7 @@ export {
 } from './seats.ts';
 export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer, type TabletSeat } from './tabletSeats.ts';
 export {
-  useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
+  isTopUpWaiting, useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
 } from './floorToday.ts';
 export {
   useGamesHistory, useTablesSetup, useTablesSetupActions, type GamesDay, type SetupStake, type SetupTable, type StakeOrder, type TableGame,

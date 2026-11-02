@@ -48,7 +48,7 @@ describe('the console rail and who may open each screen', () => {
 
   it('gives Floor every super admin module but tables setup, the member list, games history, tournaments and bonus', () => {
     const floor = ROLE_PERMISSIONS.floor;
-    expect(items(floor)).toEqual(['/', '/waitlist', '/check-in', '/fnb', '/players-today', '/rewards']);
+    expect(items(floor)).toEqual(['/', '/waitlist', '/top-ups', '/check-in', '/fnb', '/players-today', '/rewards']);
     // Devices waits for a TV-only permission: devices.manage also enrols the cage's computers.
     for (const kept of ['/tables', '/members', '/games-history', '/tournament-interest', '/promotions', '/spin-wheel', '/devices']) {
       expect(isAllowedAt(floor, kept)).toBe(false);
@@ -57,13 +57,19 @@ describe('the console rail and who may open each screen', () => {
   });
 
   it('gives Cashier the same as Floor, less the food and drink orders', () => {
-    expect(items(ROLE_PERMISSIONS.cashier)).toEqual(['/', '/waitlist', '/check-in', '/players-today', '/rewards']);
+    expect(items(ROLE_PERMISSIONS.cashier)).toEqual(['/', '/waitlist', '/top-ups', '/check-in', '/players-today', '/rewards']);
   });
 
   it('shows beside an entry how many wait on its screen, and nothing beside the others', () => {
     const rail = railFor(ROLE_PERMISSIONS.super_admin, { kycReview: 2 }).flatMap((section) => section.items);
     expect(rail.find((item) => item.id === 'kycReview')?.count).toBe(2);
     expect(rail.find((item) => item.id === 'members')?.count).toBeUndefined();
+  });
+
+  it('counts the top-ups waiting in red, and no other count (decision 0299)', () => {
+    const rail = railFor(ROLE_PERMISSIONS.floor, { topUps: 2, waitlist: 4 }, ['topUps']).flatMap((section) => section.items);
+    expect(rail.find((item) => item.id === 'topUps')).toMatchObject({ count: 2, isUrgent: true });
+    expect(rail.find((item) => item.id === 'waitlist')).toMatchObject({ count: 4, isUrgent: false });
   });
 
   it('keeps the cage and money screens locking after ten idle minutes, and none of them on the rail', () => {
