@@ -1773,6 +1773,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"league_adjustment": {
+                  Row: {
+                    "created_at": string,"given_by_staff_id": string,"id": string,"member_id": string,"month": string,"points": number,"reason": string,"request_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"given_by_staff_id": string,"id"?: string,"member_id": string,"month": string,"points": number,"reason": string,"request_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"given_by_staff_id"?: string,"id"?: string,"member_id"?: string,"month"?: string,"points"?: number,"reason"?: string,"request_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "league_adjustment_given_by_staff_id_venue_id_fkey"
+      columns: ["given_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "league_adjustment_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"league_finish": {
                   Row: {
                     "created_at": string,"id": string,"member_id": string,"month": string,"place": number,"points": number,"tournament_id": string,"updated_at": string,"venue_id": string
@@ -4824,6 +4850,11 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
+"give_league_points":
+{ Args: { "p_reason": string,"p_request_id": string,"p_rows": Json,"p_venue_id": string }; Returns: {
+              "members": number,"points": number
+            }[]
+                           },
 "glaza_statement":
 { Args: { "p_month": string,"p_venue_id": string }; Returns: {
               "alcohol_comps_paise": number,"alcohol_cost_paise": number,"alcohol_margin_paise": number,"alcohol_sales_paise": number,"comps_paise": number,"food_comps_paise": number,"import_id": string,"imported_at": string,"lines": number,"matched": number,"payable_paise": number,"rivr_share_paise": number,"soft_drink_comps_paise": number
@@ -5883,7 +5914,7 @@ isOneToOne: false
                            },
 "venue_league":
 { Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
-              "cash_points": number,"full_name": string,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
+              "cash_points": number,"full_name": string,"hand_points": number,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
             }[]
                            },
 "venue_redemptions":

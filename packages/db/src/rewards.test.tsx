@@ -115,12 +115,12 @@ describe('the League (decision 0182)', () => {
     const { result, calls } = renderHooks({
       '/league_season': { body: [{ id: 's1', name: 'Season one', first_month: '2026-11-01', last_month: '2027-04-01' }] },
       '/rpc/venue_league': {
-        body: [{ place: 1, member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, cash_points: 30, tournament_points: 105, points: 135 }],
+        body: [{ place: 1, member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, cash_points: 30, tournament_points: 105, hand_points: 40, points: 175 }],
       },
       '/rpc/save_league_season': { body: 's2' },
     });
     await waitFor(() => expect(result.current.seasons.data).toEqual([{ id: 's1', name: 'Season one', firstMonth: '2026-11-01', lastMonth: '2027-04-01' }]));
-    await waitFor(() => expect(result.current.league.data?.[0]).toMatchObject({ place: 1, cashPoints: 30n, tournamentPoints: 105n, points: 135n }));
+    await waitFor(() => expect(result.current.league.data?.[0]).toMatchObject({ place: 1, cashPoints: 30n, tournamentPoints: 105n, handPoints: 40n, points: 175n }));
     expect(bodyOf(calls, '/rpc/venue_league')).toEqual({ p_venue_id: VENUE, p_first: '2026-11-01', p_last: '2027-01-01' });
     let outcome: unknown;
     await act(async () => {

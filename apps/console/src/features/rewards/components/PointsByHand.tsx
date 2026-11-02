@@ -1,4 +1,4 @@
-import { useGivePoints, useMemberPoints, type MemberPoints, type PointsOrder } from '@rivr/db';
+import { useGiveLeaguePoints, useGivePoints, useMemberPoints, type MemberPoints, type PointsFailure, type PointsOrder } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Grid, Heading, Inline, Input, Number as Figure, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -39,22 +39,35 @@ const isChange = (points: string, reason: string) => /^\d{1,7}$/.test(points) &&
 
 type Outcome = { ok: boolean; text: string } | null;
 
+/** A change of reward points, or League points given (L-01): they rank the member this month and are never spent. */
+type Action = PointsOrder['action'] | 'league';
+
 /** Runs one change: one request id a change, kept only to retry the same one after an answer that may not have gone through. */
 function usePointsChange(venueId: string, member: MemberPoints) {
   const give = useGivePoints(venueId);
-  const [attempt, setAttempt] = useState<{ action: PointsOrder['action']; requestId: string } | null>(null);
+  const giveLeague = useGiveLeaguePoints(venueId);
+  const [attempt, setAttempt] = useState<{ action: Action; requestId: string } | null>(null);
   const [outcome, setOutcome] = useState<Outcome>(null);
-  const run = async (action: PointsOrder['action'], points: bigint, reason: string) => {
+  // Both answer with the same refusals: League points are given to the member found, by their number.
+  const send = async (action: Action, points: bigint, reason: string, requestId: string): Promise<PointsFailure | null> => {
+    if (action !== 'league') {
+      const done = await give.mutateAsync({ memberId: member.memberId, action, points, reason, requestId });
+      return done.ok ? null : done.error;
+    }
+    const done = await giveLeague.mutateAsync({ rows: [{ memberNumber: member.memberNumber, points }], reason, requestId });
+    return done.ok ? null : done.error.kind;
+  };
+  const run = async (action: Action, points: bigint, reason: string) => {
     const requestId = attempt?.action === action ? attempt.requestId : crypto.randomUUID();
     setAttempt({ action, requestId });
-    const done = await give.mutateAsync({ memberId: member.memberId, action, points, reason, requestId });
-    if (done.ok || done.error !== 'unavailable') setAttempt(null);
-    setOutcome(done.ok
+    const failure = await send(action, points, reason, requestId);
+    if (failure !== 'unavailable') setAttempt(null);
+    setOutcome(failure === null
       ? { ok: true, text: t(`console.rewards.byHand.done.${action}`, { points: formatNumber(points), name: member.fullName }) }
-      : { ok: false, text: t(`console.rewards.byHand.failures.${done.error}`) });
-    return done.ok;
+      : { ok: false, text: t(`console.rewards.byHand.failures.${failure}`) });
+    return failure === null;
   };
-  return { run, outcome, isPending: give.isPending, reset: () => { setAttempt(null); setOutcome(null); } };
+  return { run, outcome, isPending: give.isPending || giveLeague.isPending, reset: () => { setAttempt(null); setOutcome(null); } };
 }
 
 /** One member's points, and the form that changes them. */
@@ -63,7 +76,7 @@ function PointsForm({ venueId, member }: { venueId: string; member: MemberPoints
   const [points, setPoints] = useState('');
   const [reason, setReason] = useState('');
   const isOff = !isChange(points, reason) || change.isPending;
-  const run = async (action: PointsOrder['action']) => {
+  const run = async (action: Action) => {
     if (await change.run(action, BigInt(points), reason)) { setPoints(''); setReason(''); }
   };
   return (
@@ -78,6 +91,7 @@ function PointsForm({ venueId, member }: { venueId: string; member: MemberPoints
         <Button variant="primary" isDisabled={isOff} onClick={() => void run('earned')}>{t('console.rewards.byHand.giveEarned')}</Button>
         <Button variant="secondary" isDisabled={isOff} onClick={() => void run('locked')}>{t('console.rewards.byHand.giveLocked')}</Button>
         <Button variant="secondary" isDisabled={isOff || member.locked === 0n} onClick={() => void run('unlock')}>{t('console.rewards.byHand.unlock')}</Button>
+        <Button variant="secondary" isDisabled={isOff} onClick={() => void run('league')}>{t('console.rewards.byHand.giveLeague')}</Button>
       </Inline>
       <StatusMessage>{change.outcome?.ok === true ? change.outcome.text : null}</StatusMessage>
       {change.outcome?.ok === false ? <ErrorMessage>{change.outcome.text}</ErrorMessage> : null}
