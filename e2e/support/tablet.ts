@@ -52,7 +52,7 @@ export async function tabletAt(browser: Browser, floor: Page, tableName: string)
 /** Pema signs in on the tablet, and the table's seats open (no hand entry, #630). */
 export async function dealerSignsIn(tablet: Page) {
   await tablet.reload();
-  await tablet.getByRole('group', { name: 'Who is dealing?' }).getByRole('button', { name: DEALER }).click();
+  await tablet.getByRole('button', { name: DEALER, exact: true }).click();
   await press(tablet, [...PIN]);
   await tablet.getByRole('button', { name: 'Sign in' }).click();
   await expect(tablet.getByRole('heading', { name: 'Seats', level: 1 })).toBeVisible();

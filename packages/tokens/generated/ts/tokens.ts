@@ -83,6 +83,9 @@ export const tokens = {
     },
     "figures": {
       "numeric": "tabular-nums"
+    },
+    "opticalSize": {
+      "tv": "28"
     }
   },
   "space": {

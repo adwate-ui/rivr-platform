@@ -44,11 +44,12 @@ export interface TvCallTimeBoardProps {
   page?: string | undefined;
 }
 
-// What fits the 1920 by 1080 stage under the title: four openings, and four tables of four players, two by two.
+// What fits the 1920 by 1080 stage under the title: four openings, and four tables of three players, two by two, at a
+// size read from across the room (D-03).
 // More tables take turns: the TV app passes a page of them at a time.
 const SHOWN_OPENINGS = 4;
 export const CALL_TIME_TABLES_SHOWN = 4;
-const SHOWN_ROWS = 4;
+const SHOWN_ROWS = 3;
 
 function More({ hidden, moreText }: { hidden: number; moreText: (hidden: number) => string }) {
   return hidden > 0 ? <p className="pt-2 font-text text-24 text-content-muted">{moreText(hidden)}</p> : null;
@@ -91,15 +92,15 @@ function TableColumn({ table, moreText }: { table: TvCallTimeGroup; moreText: (h
   return (
     <section aria-label={table.name} className="flex flex-col">
       <div className="flex items-baseline justify-between gap-6 border-b border-hairline pb-3">
-        <span className="min-w-0 truncate font-text text-36 font-medium text-content">{table.name}</span>
+        <span className="min-w-0 truncate font-text text-48 font-medium text-content">{table.name}</span>
         <span className="shrink-0 whitespace-nowrap font-text text-24 uppercase tracking-tv text-content-muted">{table.detail}</span>
       </div>
       <ol>
         {table.rows.slice(0, SHOWN_ROWS).map((row) => (
           <li key={row.id} className="flex items-baseline gap-6 border-b border-hairline py-1">
-            <span className="w-12 shrink-0 font-text text-28 tabular-nums text-content-muted">{row.seat}</span>
-            <span className="min-w-0 flex-1 truncate font-text text-28 font-medium text-content">{row.name}</span>
-            <span className="shrink-0 whitespace-nowrap font-text text-28 tabular-nums text-content">{row.time}</span>
+            <span className="w-20 shrink-0 font-text text-36 tabular-nums text-content-muted">{row.seat}</span>
+            <span className="min-w-0 flex-1 truncate font-text text-36 font-medium text-content">{row.name}</span>
+            <span className="shrink-0 whitespace-nowrap font-text text-36 tabular-nums text-content">{row.time}</span>
           </li>
         ))}
       </ol>

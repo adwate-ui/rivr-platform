@@ -46,6 +46,7 @@
   --rivr-font-letter-spacing-tv: 0.2em; /** Letter-spaced labels on the TV and under the wordmark. */
   --rivr-font-letter-spacing-code: 0.5em; /** The digits of a one-time code, set apart to be read and typed. */
   --rivr-font-figures-numeric: tabular-nums;
+  --rivr-font-optical-size-tv: 28;
   --rivr-space-0: 0px;
   --rivr-space-1: 4px;
   --rivr-space-2: 8px;

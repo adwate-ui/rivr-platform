@@ -1,5 +1,6 @@
 import { useTvRewardsTicker, type TvRewardsTicker } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
+import { isEmptyBoard, useSkipWhenEmpty } from './useSkipWhenEmpty.ts';
 import { Text, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 
 /** The ticker as the board's two columns: the points leaders by place, and the week's redemptions, newest first. */
@@ -24,10 +25,12 @@ export function toRewardsColumns(ticker: TvRewardsTicker): TvWaitlistStake[] {
 }
 
 /** The rewards ticker (#148, decision 0183): this month's points leaders beside the week's redemptions, live as members redeem. */
-export function RewardsMode() {
+export function RewardsMode({ onEmpty }: { onEmpty?: (() => void) | undefined }) {
   const ticker = useTvRewardsTicker();
+  const stakes = ticker.data === undefined ? undefined : toRewardsColumns(ticker.data);
+  useSkipWhenEmpty(stakes !== undefined && isEmptyBoard(stakes), onEmpty);
   if (ticker.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(ticker.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
-  return <TvWaitlistBoard title={t('tv.rewards.title')} emptyText={t('tv.rewards.empty')} stakes={toRewardsColumns(ticker.data)} />;
+  return <TvWaitlistBoard title={t('tv.rewards.title')} emptyText={t('tv.rewards.empty')} stakes={stakes ?? []} />;
 }

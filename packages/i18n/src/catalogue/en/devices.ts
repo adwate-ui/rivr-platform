@@ -42,11 +42,11 @@ export const pairing = {
   title: 'Tablet pairing',
   /** In the header until the tablet is paired. */
   notPaired: 'Not paired',
-  intro: 'Enter the six-digit code from the console.',
+  intro: 'On the console, open Devices, then Tablets, and get a code for this tablet.',
   code: 'Pairing code',
   pair: 'Pair',
   wrongCode: 'Wrong or expired code. Ask for a new one.',
-  sixDigits: 'Enter the six-digit code from the console.',
+  sixDigits: 'Enter all six digits.',
   tooMany: 'Too many wrong codes. Wait ten minutes.',
   unavailable: 'Not paired. Try again.',
 };
@@ -100,7 +100,7 @@ export const dealerPins = {
 /** The tablet between downs: the dealer picks their name and enters their PIN. */
 export const dealerSignIn = {
   title: 'Dealer sign-in',
-  who: 'Who is dealing?',
+  who: 'Dealers',
   pinFor: 'PIN for {name}',
   signIn: 'Sign in',
   noDealers: 'No dealer PINs yet. They are set on the console.',
@@ -113,6 +113,8 @@ export const dealerSignIn = {
   down: '{name} · down since {time}',
   endDown: 'End of down',
   endDownFailed: 'End of down not sent. Try again.',
+  /** Under a dealer's PIN pad: back to the names (D-04). */
+  another: 'Another dealer',
 };
 
 /** The console's TVs screen (#49): pair a TV by the code it shows, change what it shows, unpair it. */
@@ -160,7 +162,7 @@ export const tvs = {
 /** A TV before it is paired (#49): the code staff type into the console. */
 export const tvPairing = {
   title: 'Screen pairing',
-  intro: 'On the console, open TVs and type in this code.',
+  intro: 'On the console, open Devices, then TVs, and type in this code.',
   /** `{time}` (IST) is when the code runs out and a new one shows. */
   changes: 'The code changes at {time}.',
   loading: 'Getting a code.',
@@ -183,7 +185,7 @@ export const streamOverlay = {
   /** The overlay was paired at the practice venue, which never reaches anyone outside the club. */
   practice: 'This overlay is paired at the practice venue, which never reaches a stream. Unpair it on the console, reload it in OBS, and pair it at the club.',
   /** Paired, but given another mode than the tournament clock (#559): said at once, not after the delay. */
-  notClock: 'This overlay is paired, but not on the tournament clock. Under TVs on the console\u2019s Devices screen, choose Tournament clock for it.',
+  notClock: 'This overlay shows the tournament clock, which is off while tournaments are hidden.',
   /** For a screen reader only, until the delay has passed since the overlay opened. `{seconds}` is the delay. */
   waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
 };

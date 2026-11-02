@@ -37,13 +37,12 @@ test.describe('TV pairing', () => {
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText('No TV shows that code. Check it and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
-    await floor.getByRole('group', { name: 'What it shows' }).getByRole('button', { name: 'Tournament clock', exact: true }).click();
+    await floor.getByRole('group', { name: 'What it shows' }).getByRole('button', { name: 'Call-time board', exact: true }).click();
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 
     // The TV asks every three seconds whether its code was typed in.
-    await expect(tv.getByRole('heading', { name: 'Tournament clock' })).toBeVisible({ timeout: 15_000 });
-    await expect(tv.getByText(name, { exact: true })).toBeVisible();
+    await expect(tv.getByRole('heading', { name: 'Call time' })).toBeVisible({ timeout: 15_000 });
     // The console's list asks again every ten seconds, so the TV shows as paired on its own.
     const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.

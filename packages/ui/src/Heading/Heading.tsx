@@ -10,7 +10,7 @@ import { cx } from '../internal/classes.ts';
  * the page. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection';
+export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection';
 
 export interface HeadingProps {
   children: ReactNode;
@@ -34,7 +34,9 @@ export interface HeadingProps {
 const VARIANT: Record<HeadingVariant, string> = {
   display: 'font-display text-56 leading-tight font-regular',
   poster: 'font-display text-96 leading-tight font-regular',
-  tvTitle: 'font-display text-88 leading-tight font-medium',
+  tvTitle: 'font-display text-88 leading-tight font-medium optical-tv',
+  // A code staff type from across a room (D-01): the text face, whose 4 never reads as a 1.
+  tvCode: 'font-text text-96 leading-tight font-semibold tabular-nums tracking-tv',
   hero: 'font-display text-36 leading-tight font-regular uppercase tablet:text-88',
   band: 'font-display text-36 leading-tight font-regular uppercase tablet:text-56',
   statement: 'font-display text-36 leading-tight font-regular uppercase tablet:text-96',

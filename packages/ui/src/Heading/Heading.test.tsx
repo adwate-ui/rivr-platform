@@ -38,6 +38,12 @@ describe('Heading', () => {
     expect(screen.getByRole('heading', { name: 'Double points' })).toHaveClass('font-display', 'text-96');
   });
 
+  it('holds the optical size of a TV title low, and sets a code to type in the text face (D-01)', () => {
+    renderIn(<><Heading level={1} variant="tvTitle">Call time</Heading><Heading level={2} variant="tvCode">482719</Heading></>);
+    expect(screen.getByRole('heading', { name: 'Call time' }).className).toContain('optical-tv');
+    expect(screen.getByRole('heading', { name: '482719' }).className).toContain('font-text');
+  });
+
   it('can be heard by screen readers only, for a screen named by an image', () => {
     renderIn(
       <Heading level={1} isVisuallyHidden>

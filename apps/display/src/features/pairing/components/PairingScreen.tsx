@@ -11,7 +11,7 @@ function PairingCode({ pairing }: { pairing: TvPairing }) {
   return (
     <Stack gap={6}>
       <Text variant="tvBody">{t('display.pairing.intro')}</Text>
-      <Heading level={2} variant="poster">{pairing.code.code}</Heading>
+      <Heading level={2} variant="tvCode">{pairing.code.code}</Heading>
       <Text variant="tvBody" tone="muted">{t('display.pairing.changes', { time: formatTime(new Date(pairing.code.expiresAt)) })}</Text>
     </Stack>
   );
@@ -25,7 +25,7 @@ export function PairingScreen() {
   const pairing = useTvPairing();
   return (
     <Stack gap={8}>
-      <Heading level={1} variant="display">{t('display.pairing.title')}</Heading>
+      <Heading level={1} variant="tvTitle">{t('display.pairing.title')}</Heading>
       <PairingCode pairing={pairing} />
     </Stack>
   );

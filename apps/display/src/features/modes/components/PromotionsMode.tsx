@@ -19,7 +19,14 @@ export function useSlides(count: number | undefined, onDone: (() => void) | unde
     return () => clearInterval(timer);
   }, [count, isRotating]);
   useEffect(() => {
-    if (onDone !== undefined && count !== undefined && turn >= count) onDone();
+    if (onDone === undefined || count === undefined) return undefined;
+    // None live: the board says so for a slide's time, then passes on, so a rotation of empty boards rests on it (D-03).
+    if (count === 0) {
+      const timer = setTimeout(onDone, SLIDE_MS);
+      return () => clearTimeout(timer);
+    }
+    if (turn >= count) onDone();
+    return undefined;
   }, [onDone, count, turn]);
   return count === undefined || count === 0 ? 0 : turn % count;
 }
