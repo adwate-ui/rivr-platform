@@ -68,7 +68,7 @@ const RAIL: readonly RailGroup[] = [
       { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.manage', 'host_queue.manage'], locksWhenIdle: true },
       // Everyone at the club today, with their status, times and tables (#641).
       { id: 'todaysPlayers', label: 'console.rail.items.todaysPlayers', href: '/players-today', anyOf: ['members.read'] },
-      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review'], locksWhenIdle: true },
+      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', anyOf: ['kyc.review', 'kyc.in_person'], locksWhenIdle: true },
       { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', anyOf: ['host_queue.manage'] },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', anyOf: ['feedback.manage'] },
       { id: 'tiers', label: 'console.rail.items.tiers', href: '/tiers', anyOf: ['tiers.manage'], hidden: true },
@@ -138,6 +138,9 @@ const RAIL: readonly RailGroup[] = [
     ],
   },
 ];
+
+/** The queues where minutes matter, counted in red, in the tab's title and with a chime (decision 0301): the rest are gold. */
+export const URGENT_QUEUES: readonly string[] = ['topUps', 'waitlist', 'fnb', 'liveFloor'];
 
 const isAllowed = (entry: RailEntry, permissions: readonly Permission[]) =>
   entry.anyOf.length === 0 || entry.anyOf.some((permission) => permissions.includes(permission));

@@ -22,6 +22,7 @@ export const PERMISSIONS = [
   'members.erase', // erase one member's personal data on request, super_admin only (decision 0207)
   'members.change_phone', // change a member's phone number, their login, super_admin only (decision 0248)
   'kyc.review',
+  'kyc.in_person', // check a member in person at the desk: hosts and the floor too (decision 0301)
   'tiers.manage', // tiers and the tier x feature matrix
   'floor.manage', // tables, seating, games
   'tables.manage', // the stakes and tables the club runs, and games history (#642, #643)
@@ -75,7 +76,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   super_admin: PERMISSIONS,
   admin: [
     ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'members.read', 'members.manage',
-    'kyc.review', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
+    'kyc.review', 'kyc.in_person', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'rewards.manage', 'rewards.hand_over',
@@ -85,7 +86,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   // permission of their own, as devices.manage reaches the cage's computers and the cameras.
   floor: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve',
-    'rewards.manage', 'rewards.hand_over', 'points.give',
+    'rewards.manage', 'rewards.hand_over', 'points.give', 'kyc.in_person',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
   cashier: [
@@ -95,7 +96,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   ],
   dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
   marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit', 'rewards.manage'],
-  host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'rewards.hand_over'],
+  host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'rewards.hand_over', 'kyc.in_person'],
   owner_view: [...EVERY_STAFF_MEMBER, 'reports.read', 'dashboards.read', 'ledger.read', 'audit.read'],
   // Food and drink only: the menu and the orders, with no comp nor Glaza's statement (#640).
   service: [...EVERY_STAFF_MEMBER, 'fnb.serve'],

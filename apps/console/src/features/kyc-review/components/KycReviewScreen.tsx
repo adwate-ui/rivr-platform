@@ -5,16 +5,19 @@ import { checkGroups } from './checkText.ts';
 import { InPersonSection } from './InPersonSection.tsx';
 import { KycCheckCard } from './KycCheckCard.tsx';
 
-/** KYC review, for KYC reviewers (`kyc.review`) at the venue the console works in, and checks in person. */
+/**
+ * KYC review, for KYC reviewers (`kyc.review`) at the venue the console works in, with checks in person; and for hosts and
+ * the floor, who check members in person (`kyc.in_person`, decision 0301) and review nothing, the check in person alone.
+ */
 export function KycReviewScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  if (!staff.venue.permissions.includes('kyc.review')) {
-    return <Screen title={t('console.kycReview.title')} status="error" errorText={t('console.kycReview.notAllowed')} />;
-  }
+  const { venueId, permissions } = staff.venue;
   // Reopening a refused check done in person is a super admin's (#267).
-  return <ReviewQueue venueId={staff.venue.venueId} canReopen={staff.venue.permissions.includes('members.override_features')} />;
+  if (permissions.includes('kyc.review')) return <ReviewQueue venueId={venueId} canReopen={permissions.includes('members.override_features')} />;
+  if (permissions.includes('kyc.in_person')) return <Screen title={t('console.kycReview.title')}><InPersonSection venueId={venueId} /></Screen>;
+  return <Screen title={t('console.kycReview.title')} status="error" errorText={t('console.kycReview.notAllowed')} />;
 }
 
 /** One group of checks under its heading, or nothing when there are none. */
