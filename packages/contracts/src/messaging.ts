@@ -68,3 +68,25 @@ export const withdrawalSentSchema = z.object({ member_id: z.uuid(), withdrawal_r
 
 /** tournament.starting (#139): the tournament's clock started, told to each member with a place in it. */
 export const tournamentStartingSchema = z.object({ member_id: z.uuid(), tournament_id: z.uuid(), name: z.string().trim().min(1).max(80) });
+
+/**
+ * The notices a member hears of by WhatsApp while away from the app (decision 0303): an identity check verified, waiting for
+ * review or refused; a reward cancelled; a seat on the leaving list released.
+ */
+export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'reward_cancelled', 'seat_released'] as const;
+
+/**
+ * A notice's word: one line of plain text, never a link nor WhatsApp's formatting marks, so nothing typed into the club's
+ * records reads as something else from the club's number.
+ */
+const noticeWordSchema = z.string().trim().min(1).max(120)
+  .regex(/^[^\r\n\t*~`]*$/)
+  .refine((word) => !/https?:\/\/|www\./i.test(word));
+export type MemberNotice = (typeof MEMBER_NOTICES)[number];
+
+/** member.notice: the member, the notice and its words, in the template's order: a refusal's code; a reward's name; the table and seat released. */
+export const memberNoticeSchema = z.object({
+  member_id: z.uuid(),
+  notice: z.enum(MEMBER_NOTICES),
+  params: z.array(noticeWordSchema).max(2),
+});

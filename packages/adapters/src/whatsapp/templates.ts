@@ -32,6 +32,32 @@ export const WHATSAPP_TEMPLATES = {
     body: 'RIVR alert: {{1}}. The details are on the owner dashboard.',
     urlButton: false,
   },
+  // What a member hears of while away from the app (decision 0303): utility messages, so no opt-in is asked.
+  kyc_verified: {
+    category: 'utility',
+    body: 'You are verified at RIVR Poker Club. See you at the tables.',
+    urlButton: false,
+  },
+  kyc_in_review: {
+    category: 'utility',
+    body: 'RIVR is checking your details. We will message you when it is done.',
+    urlButton: false,
+  },
+  kyc_refused: {
+    category: 'utility',
+    body: 'RIVR could not verify you: {{1}} Bring your Aadhaar and PAN to the front desk.',
+    urlButton: false,
+  },
+  reward_cancelled: {
+    category: 'utility',
+    body: 'Your {{1}} from RIVR was cancelled, and what you paid for it is back. See why in the RIVR app.',
+    urlButton: false,
+  },
+  seat_released: {
+    category: 'utility',
+    body: 'Your seat at RIVR, {{1}}, seat {{2}}, is released. Thank you for playing.',
+    urlButton: false,
+  },
   promotion: {
     category: 'marketing',
     // Meta refuses a body that is mostly a parameter. Opting out is the member's Profile, until #154 reads replies.
