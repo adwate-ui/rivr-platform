@@ -20,8 +20,23 @@ export function reply(body: object, status = 200): Response {
   return Response.json(body, { status, headers: CORS });
 }
 
-export function failed(failure: AdapterFailure): Response {
-  return failure.code === 'not_configured' ? reply({ error: 'not_configured' }, 503) : reply({ error: 'unavailable' }, 502);
+/** The KYC step a vendor call belongs to. */
+export type KycStep = 'selfie' | 'start' | 'complete' | 'pan';
+
+/**
+ * Keeps why a vendor call failed with the member's check (#704): the step and the failure's code, Cashfree's own for a
+ * refusal, never its message. A note that does not go through never holds up the member's reply.
+ */
+export async function noteFailure(memberId: string, step: KycStep, failure: AdapterFailure): Promise<void> {
+  const reason = failure.code === 'rejected' ? failure.reason : failure.code;
+  await rpc('note_kyc_vendor_failure', { p_member_id: memberId, p_step: step, p_reason: reason }, null).catch(() => undefined);
+}
+
+/** A vendor call that failed, as the app's reply, once why is noted; no keys yet is not a failure to note. */
+export async function failed(memberId: string, step: KycStep, failure: AdapterFailure): Promise<Response> {
+  if (failure.code === 'not_configured') return reply({ error: 'not_configured' }, 503);
+  await noteFailure(memberId, step, failure);
+  return reply({ error: 'unavailable' }, 502);
 }
 
 /** A database function's refusal, with its SQLSTATE (RVKIL, RVCON, RVRAT and so on). */

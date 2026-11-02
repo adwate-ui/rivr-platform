@@ -10,9 +10,9 @@ type FaceCheck =
   | { readonly ok: false; readonly response: Response };
 
 /** Liveness; a failure carries the reply to send. */
-async function checkFace(kyc: Kyc, selfieUrl: string): Promise<FaceCheck> {
+async function checkFace(memberId: string, kyc: Kyc, selfieUrl: string): Promise<FaceCheck> {
   const live = await kyc.checkLiveness({ selfieUrl });
-  if (!live.ok) return { ok: false, response: failed(live.error) };
+  if (!live.ok) return { ok: false, response: await failed(memberId, 'selfie', live.error) };
   if (!live.value.isLive) return { ok: false, response: reply({ error: 'not_live' }, 422) };
   return { ok: true, score: Math.round(live.value.score) };
 }
@@ -23,7 +23,7 @@ async function checkAndKeep({ memberId, venueId, kyc }: Subject, jpeg: Uint8Arra
   let isKept = false;
   try {
     await putPhoto(path, jpeg);
-    const checked = await checkFace(kyc, await photoUrl(path));
+    const checked = await checkFace(memberId, kyc, await photoUrl(path));
     if (!checked.ok) return checked.response;
     const status = await rpc('record_kyc_selfie', {
       p_member_id: memberId, p_liveness_score: checked.score, p_same_face_as: null,
