@@ -5300,7 +5300,7 @@ isOneToOne: false
             }[]
                            },
 "post_notice":
-{ Args: { "p_body": string,"p_ends_at"?: string,"p_venue_id": string }; Returns: string
+{ Args: { "p_body": string,"p_venue_id": string }; Returns: string
                            },
 "pot_data":
 { Args: { "p_from": string,"p_until": string,"p_venue_id": string }; Returns: {

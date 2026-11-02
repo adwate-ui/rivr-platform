@@ -18,18 +18,16 @@ insert into public.member (venue_id, user_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000000e3', 'Elsewhere Member', '+919000000997');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
-create temp table posted as select public.post_notice('00000000-0000-4000-8000-000000000001', '  We''re launching soon.  ', null) as id;
+create temp table posted as select public.post_notice('00000000-0000-4000-8000-000000000001', '  We''re launching soon.  ') as id;
 grant select on posted to authenticated;
-select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', '   ', null) $$, '22023', null, 'a notice says something');
-select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', repeat('x', 281), null) $$, '22023', null,
+select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', '   ') $$, '22023', null, 'a notice says something');
+select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', repeat('x', 281)) $$, '22023', null,
   'in at most 280 characters');
-select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', 'Gone', now() - interval '1 hour') $$, '22023', null,
-  'and an end later than now');
 select results_eq($$ select body from public.venue_notices('00000000-0000-4000-8000-000000000001') where notice_id = (select id from posted) $$,
   $$ values ('We''re launching soon.'::text) $$, 'staff see it, trimmed');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', 'Mine', null) $$, '42501', null, 'a host puts up none');
+select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', 'Mine') $$, '42501', null, 'a host puts up none');
 select throws_ok($$ select public.end_notice((select id from posted)) $$, '42501', null, 'nor ends one');
 select is((select count(*)::integer from public.venue_notices('00000000-0000-4000-8000-000000000001')), 0, 'nor reads the list');
 
@@ -37,7 +35,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select results_eq($$ select body from public.my_notices() where notice_id = (select id from posted) $$,
   $$ values ('We''re launching soon.'::text) $$, 'Arjun reads it on Home');
 select throws_ok($$ select count(*) from public.notice $$, '42501', null, 'but not the table itself');
-select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', 'Mine', null) $$, '42501', null, 'and puts up none');
+select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', 'Mine') $$, '42501', null, 'and puts up none');
 
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e3');
 select is((select count(*)::integer from public.my_notices()), 0, 'another club''s member reads none of RIVR''s');

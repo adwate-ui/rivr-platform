@@ -1,8 +1,7 @@
 // Which WhatsApp the functions send through (decision 0297): the Evolution bridge while its three secrets are set,
 // else Meta's Cloud API once its two are, else none, and nothing is sent. Shared by the sign-in code hook and the
 // two WhatsApp consumers.
-import { err } from '@rivr/contracts';
-import { createWhatsAppCloudApi, createWhatsAppEvolution, type WhatsAppAdapter } from '@rivr/adapters/whatsapp';
+import { createWhatsAppCloudApi, createWhatsAppEvolution, fencedWhatsApp, type WhatsAppAdapter } from '@rivr/adapters/whatsapp';
 
 const secret = (name: string): string => Deno.env.get(name) ?? '';
 
@@ -16,16 +15,5 @@ export function liveWhatsApp(timeoutMs: number): WhatsAppAdapter | undefined {
   return undefined;
 }
 
-/**
- * Staging's fence for the consumers: with `WHATSAPP_ALLOWLIST` set (numbers as +91…, comma-separated), a message to
- * any other number is refused unsent, so the seed's made-up members never reach a stranger's phone. Unset, as in
- * production, every message goes. A sign-in code is never fenced: it goes to the phone that asked for it.
- */
-export function fenced(whatsapp: WhatsAppAdapter): WhatsAppAdapter {
-  const allowed = secret('WHATSAPP_ALLOWLIST').split(',').map((number) => number.trim()).filter(Boolean);
-  if (allowed.length === 0) return whatsapp;
-  return {
-    sendTemplate: (message) =>
-      allowed.includes(message.to) ? whatsapp.sendTemplate(message) : Promise.resolve(err({ code: 'rejected', reason: 'not on the allowlist' })),
-  };
-}
+/** Staging's fence for the consumers (`WHATSAPP_ALLOWLIST`); a sign-in code is never fenced: it goes to the phone that asked. */
+export const fenced = (whatsapp: WhatsAppAdapter): WhatsAppAdapter => fencedWhatsApp(whatsapp, secret('WHATSAPP_ALLOWLIST'));

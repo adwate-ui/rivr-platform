@@ -34,7 +34,7 @@ const bodiesOf = (calls: { url: string; body: unknown }[], path: string) => call
 afterEach(cleanup);
 
 describe('notices', () => {
-  it('reads the member\'s and the venue\'s notices, puts one up with and without an end, and ends one', async () => {
+  it('reads the member\'s and the venue\'s notices, puts one up and ends one', async () => {
     const { result, calls } = renderHooks({
       '/rpc/my_notices': { body: [{ notice_id: 'n1', body: 'We\'re launching soon.' }] },
       '/rpc/venue_notices': { body: [{ notice_id: 'n1', body: 'We\'re launching soon.', starts_at: '2026-11-02T10:00:00+00:00', ends_at: null }] },
@@ -48,16 +48,12 @@ describe('notices', () => {
     let posted: unknown;
     let ended: unknown;
     await act(async () => {
-      posted = await result.current.actions.post.mutateAsync({ body: 'Open till 4 tonight.', endsAt: null });
-      await result.current.actions.post.mutateAsync({ body: 'Closed Monday.', endsAt: new Date('2026-11-16T18:30:00Z') });
+      posted = await result.current.actions.post.mutateAsync('Open till 4 tonight.');
       ended = await result.current.actions.end.mutateAsync('n1');
     });
     expect(posted).toEqual({ ok: true, value: 'n2' });
     expect(ended).toEqual({ ok: true, value: null });
-    expect(bodiesOf(calls, '/rpc/post_notice')).toEqual([
-      { p_venue_id: VENUE, p_body: 'Open till 4 tonight.' },
-      { p_venue_id: VENUE, p_body: 'Closed Monday.', p_ends_at: '2026-11-16T18:30:00.000Z' },
-    ]);
+    expect(bodiesOf(calls, '/rpc/post_notice')).toEqual([{ p_venue_id: VENUE, p_body: 'Open till 4 tonight.' }]);
     expect(bodiesOf(calls, '/rpc/end_notice')).toEqual([{ p_notice_id: 'n1' }]);
   });
 
@@ -69,7 +65,7 @@ describe('notices', () => {
     let posted: unknown;
     let ended: unknown;
     await act(async () => {
-      posted = await result.current.actions.post.mutateAsync({ body: 'x'.repeat(281), endsAt: null });
+      posted = await result.current.actions.post.mutateAsync('x'.repeat(281));
       ended = await result.current.actions.end.mutateAsync('n1');
     });
     expect(posted).toEqual({ ok: false, error: 'invalid' });

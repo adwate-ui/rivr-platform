@@ -144,9 +144,8 @@ export const settings = {
   /** Notices on members' Home (decision 0298), such as when the club opens. */
   notices: {
     title: 'Notices on Home',
-    help: 'A line at the top of every member\'s Home, such as when the club opens. It stays until you end it.',
     body: 'Notice',
-    bodyHint: 'Up to 280 characters.',
+    bodyHint: 'Shows at the top of every member\'s Home until you end it. Up to 280 characters.',
     post: 'Put up',
     posted: 'Notice put up.',
     none: 'No notice is up.',
@@ -159,7 +158,7 @@ export const settings = {
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
       invalid: 'Write 1 to 280 characters, then put it up.',
-      paused: 'The club is paused. Try again once it is back.',
+      paused: 'Venue frozen. Try again once it is released.',
       unavailable: 'Not saved. Try again.',
     },
   },

@@ -55,9 +55,9 @@ as $$
   order by n.starts_at desc;
 $$;
 
--- Puts up a notice from now, until p_ends_at or until it is ended. Refusals: 42501 not staff with settings.manage;
--- 22023 empty, longer than 280 characters, or an end already past; RVFRZ the venue frozen.
-create function private.post_notice(p_venue_id uuid, p_body text, p_ends_at timestamptz default null)
+-- Puts up a notice from now until it is ended. Refusals: 42501 not staff with settings.manage; 22023 empty or longer
+-- than 280 characters; RVFRZ the venue frozen.
+create function private.post_notice(p_venue_id uuid, p_body text)
 returns uuid
 language plpgsql
 security definer
@@ -70,13 +70,13 @@ begin
     raise exception 'Staff who manage settings put up notices' using errcode = '42501';
   end if;
   perform private.assert_writable(p_venue_id);
-  insert into public.notice (venue_id, body, ends_at, created_by_staff_id)
-  values (p_venue_id, btrim(coalesce(p_body, '')), p_ends_at, private.current_staff_id(p_venue_id))
+  insert into public.notice (venue_id, body, created_by_staff_id)
+  values (p_venue_id, btrim(coalesce(p_body, '')), private.current_staff_id(p_venue_id))
   returning id into v_id;
   return v_id;
 exception
   when check_violation then
-    raise exception 'A notice of 1 to 280 characters, ending later than now' using errcode = '22023';
+    raise exception 'A notice of 1 to 280 characters' using errcode = '22023';
 end;
 $$;
 
@@ -107,18 +107,18 @@ create function public.venue_notices(p_venue_id uuid)
 returns table (notice_id uuid, body text, starts_at timestamptz, ends_at timestamptz)
 language sql stable security invoker set search_path = ''
 as $$ select * from private.venue_notices(p_venue_id); $$;
-create function public.post_notice(p_venue_id uuid, p_body text, p_ends_at timestamptz default null)
+create function public.post_notice(p_venue_id uuid, p_body text)
 returns uuid language sql volatile security invoker set search_path = ''
-as $$ select private.post_notice(p_venue_id, p_body, p_ends_at); $$;
+as $$ select private.post_notice(p_venue_id, p_body); $$;
 create function public.end_notice(p_notice_id uuid)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.end_notice(p_notice_id); $$;
 
-revoke execute on function private.my_notices(), private.venue_notices(uuid), private.post_notice(uuid, text, timestamptz),
-  private.end_notice(uuid), public.my_notices(), public.venue_notices(uuid), public.post_notice(uuid, text, timestamptz),
+revoke execute on function private.my_notices(), private.venue_notices(uuid), private.post_notice(uuid, text),
+  private.end_notice(uuid), public.my_notices(), public.venue_notices(uuid), public.post_notice(uuid, text),
   public.end_notice(uuid) from public, anon;
-grant execute on function private.my_notices(), private.venue_notices(uuid), private.post_notice(uuid, text, timestamptz),
-  private.end_notice(uuid), public.my_notices(), public.venue_notices(uuid), public.post_notice(uuid, text, timestamptz),
+grant execute on function private.my_notices(), private.venue_notices(uuid), private.post_notice(uuid, text),
+  private.end_notice(uuid), public.my_notices(), public.venue_notices(uuid), public.post_notice(uuid, text),
   public.end_notice(uuid) to authenticated;
 
 -- A practice reset keeps the club's notices, as it keeps its website: they are its setup, not its play. A live purge, which

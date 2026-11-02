@@ -31,14 +31,15 @@ export function HomeScreen({ yourWaitlist, floor }: HomeScreenProps) {
   const liveView = useFeature('floor.live_view');
   const tables = useFloorTables();
   const places = useMyWaitlist();
-  const notices = useMyNotices().data ?? [];
+  const myNotices = useMyNotices();
+  const notices = myNotices.data ?? [];
   const title = t('player.tonight.title');
-  if (tables.isPending || places.isPending) return <Screen title={title} status="loading" />;
+  if (tables.isPending || places.isPending || myNotices.isPending) return <Screen title={title} status="loading" />;
   if (tables.isError || places.isError) {
     return <Screen title={title} status="error" onRetry={() => void Promise.all([tables.refetch(), places.refetch()])} />;
   }
   // Without the live floor the member reads no tables: the gate below says so, not the empty state.
-  const isEmpty = liveView.state === 'enabled' && tables.data.length === 0 && places.data.length === 0 && notices.length === 0;
+  const isEmpty = liveView.state === 'enabled' && [tables.data, places.data, notices].every((list) => list.length === 0);
   if (isEmpty) return <Screen title={title} status="empty" emptyText={t('player.tonight.empty')} />;
   return (
     <Screen title={title}>

@@ -53,14 +53,14 @@ export function useVenueNotices(venueId: string) {
   });
 }
 
-/** Puts up a notice from now, until `endsAt` or until ended, and ends one; each a Result, and the list reloads. */
+/** Puts up a notice from now until it is ended, and ends one; each a Result, and the list reloads. */
 export function useNoticeActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const reload = () => queryClient.invalidateQueries({ queryKey: keys.venue(userId ?? 'signed-out', venueId) });
   const post = useMutation({
-    mutationFn: async ({ body, endsAt }: { body: string; endsAt: Date | null }): Promise<Result<string, NoticeFailure>> => {
-      const { data, error } = await client.rpc('post_notice', { p_venue_id: venueId, p_body: body, ...(endsAt ? { p_ends_at: endsAt.toISOString() } : {}) });
+    mutationFn: async (body: string): Promise<Result<string, NoticeFailure>> => {
+      const { data, error } = await client.rpc('post_notice', { p_venue_id: venueId, p_body: body });
       await reload();
       return error ? err(toFailure(error)) : ok(data);
     },

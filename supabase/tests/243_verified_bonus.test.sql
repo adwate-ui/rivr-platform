@@ -17,6 +17,8 @@ $$;
 
 select is(private.setting_at('00000000-0000-4000-8000-000000000001', 'points.verified_bonus', '', '2026-11-15T00:00:00+05:30'),
   '{"points": 0}'::jsonb, 'the bonus is 0 from launch');
+-- From here the test runs as before launch, whatever the day it runs on.
+delete from public.setting where key = 'points.verified_bonus';
 
 -- None set: Kabir is verified and gets nothing.
 select pg_temp.verify('00000000-0000-4000-8000-000000000202');

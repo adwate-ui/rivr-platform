@@ -31,7 +31,7 @@ export function NoticesSection({ venueId }: { venueId: string }) {
   const [outcome, setOutcome] = useState<Outcome>(null);
   const failed = (error: NoticeFailure) => ({ ok: false, text: t(`console.settings.notices.failures.${error}`) });
   const putUp = async () => {
-    const done = await post.mutateAsync({ body, endsAt: null });
+    const done = await post.mutateAsync(body);
     setOutcome(done.ok ? { ok: true, text: t('console.settings.notices.posted') } : failed(done.error));
     if (done.ok) setBody('');
   };
@@ -41,10 +41,7 @@ export function NoticesSection({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={6}>
-      <Stack gap={2}>
-        <Heading level={2} variant="section">{t('console.settings.notices.title')}</Heading>
-        <Text tone="muted">{t('console.settings.notices.help')}</Text>
-      </Stack>
+      <Heading level={2} variant="section">{t('console.settings.notices.title')}</Heading>
       {notices.data === undefined ? <LoadState isError={notices.isError} onRetry={() => void notices.refetch()} /> : null}
       {notices.data?.length === 0 ? <Text>{t('console.settings.notices.none')}</Text> : null}
       {notices.data?.map((notice) => <NoticeRow key={notice.noticeId} notice={notice} isBusy={end.isPending} onEnd={() => void endOne(notice.noticeId)} />)}
