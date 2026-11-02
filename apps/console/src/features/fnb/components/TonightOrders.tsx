@@ -1,14 +1,16 @@
 import { useFnbActions, useFnbOrdersTonight, type FnbFailure, type FnbOrderTonight } from '@rivr/db/fnb';
-import { t } from '@rivr/i18n';
+import { formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, LoadState, Stack, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { ServeOrders } from './ServeOrders.tsx';
 
 const AT_BAR = { agent: 'console.fnb.byAgent', staff: 'console.fnb.byStaff' } as const;
 
-/** An order in one line, then its lines, paid or comp, and whether the bar has the KOT. */
+/** An order in one line, then its lines, paid or comp, whether the bar has the KOT, or why it is void, and when it was placed. */
 function OrderRow({ order, action }: { order: FnbOrderTonight; action?: ReactNode }) {
   const atBar = order.kotSentBy === null ? t('console.fnb.waiting') : t(AT_BAR[order.kotSentBy]);
+  const state = order.cancelReason === null ? atBar : t('console.fnb.voidedLine', { reason: order.cancelReason });
+  const placed = t('console.fnb.orderedAt', { time: formatTime(new Date(order.createdAt)) });
   return (
     <Inline gap={4} align="center" justify="between" wrap>
       <Stack gap={1}>
@@ -16,7 +18,7 @@ function OrderRow({ order, action }: { order: FnbOrderTonight; action?: ReactNod
           {t('console.fnb.order', { kot: order.kotNumber, table: order.tableName, seat: order.seat, member: order.memberName, number: order.memberNumber })}
         </Text>
         <Text variant="small">{order.lines.map((line) => t('console.fnb.line', { quantity: line.quantity, name: line.name })).join(', ')}</Text>
-        <Text variant="small" tone="muted">{`${t(order.isComp ? 'console.fnb.comp' : 'console.fnb.paid')} · ${atBar}`}</Text>
+        <Text variant="small" tone="muted">{`${t(order.isComp ? 'console.fnb.comp' : 'console.fnb.paid')} · ${state} · ${placed}`}</Text>
       </Stack>
       {action}
     </Inline>
@@ -29,7 +31,8 @@ export function TonightOrders({ venueId }: { venueId: string }) {
   const { markSent } = useFnbActions(venueId);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
   if (orders.data === undefined) return <LoadState isError={orders.isError} onRetry={() => void orders.refetch()} />;
-  const waiting = orders.data.filter((order) => order.kotSentBy === null);
+  // A void order goes to no bar.
+  const waiting = orders.data.filter((order) => order.kotSentBy === null && order.cancelledAt === null);
   const send = async (orderId: string) => {
     const done = await markSent.mutateAsync(orderId);
     setFailure(done.ok ? null : done.error);

@@ -48,8 +48,15 @@ describe('the Menu, while the feature map loads or fails (a weak signal in the c
   });
 });
 
+/** my_seat's answer: never, no seat, or Table 3, seat 5. */
+function seatReply(seat: 'on its way' | 'seated' | 'not seated'): Promise<Response> | Response {
+  if (seat === 'on its way') return new Promise<Response>(() => undefined);
+  if (seat === 'not seated') return Response.json([]);
+  return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null }]);
+}
+
 /** Signed in with table-side food, the seat answering as given, a chai on the menu, and orders whose first reply is lost. */
-function renderOrdering(seat: 'on its way' | 'seated' | 'not seated') {
+function renderOrdering(seat: 'on its way' | 'seated' | 'not seated', myOrders: readonly object[] = []) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -58,14 +65,11 @@ function renderOrdering(seat: 'on its way' | 'seated' | 'not seated') {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/my_feature_access')) return Response.json([{ feature_key: 'fnb.table_side', state: 'enabled', tiers: null }]);
-    if (url.includes('/rpc/my_seat')) {
-      if (seat === 'on its way') return new Promise<Response>(() => undefined);
-      if (seat === 'not seated') return Response.json([]);
-      return Response.json([{ table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null }]);
-    }
+    if (url.includes('/rpc/my_seat')) return seatReply(seat);
     if (url.includes('/rpc/my_fnb_menu')) {
       return Response.json([{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: 'v1/menu-chai.jpg' }, { item_id: 'sandwich', name: 'Club sandwich', kind: 'food', photo_path: null }]);
     }
+    if (url.includes('/rpc/my_fnb_orders')) return Response.json(myOrders);
     if (url.includes('/rpc/place_fnb_order')) {
       orders.push(JSON.parse(String(init?.body)));
       // The first reply is lost on a weak signal; the order went through.
@@ -83,6 +87,12 @@ function renderOrdering(seat: 'on its way' | 'seated' | 'not seated') {
 }
 
 describe('ordering at the seat', () => {
+  it('says an order staff voided is cancelled, and why (decision 0302)', async () => {
+    renderOrdering('seated', [{ order_id: 'o1', kot_number: 7, lines: [{ name: 'Masala chai', quantity: 1, note: null }], created_at: '2026-11-15T16:10:00Z',
+      accepted_at: null, delivered_at: null, cancelled_at: '2026-11-15T16:12:00Z', cancel_reason: 'Out of milk' }]);
+    expect(await screen.findByText('Cancelled: Out of milk', {}, { timeout: 5000 })).toBeDefined();
+  });
+
   it('lists the menu under its sections, food first, before the member sits, with nothing to order yet', async () => {
     renderOrdering('not seated');
     expect(await screen.findByText('Take a seat to order.', {}, { timeout: 5000 })).toBeDefined();

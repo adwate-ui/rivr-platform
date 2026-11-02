@@ -66,7 +66,9 @@ function OrderLine({ order }: { order: MyFnbOrder }) {
   return (
     <Inline gap={4} justify="between" align="baseline">
       <Text>{t('player.fnb.orderLine', { kot: formatNumber(order.kotNumber), items })}</Text>
-      <Text variant="small" weight="medium">{t(`player.fnb.progress.${order.progress}`)}</Text>
+      <Text variant="small" weight="medium">
+        {order.progress === 'cancelled' ? t('player.fnb.cancelled', { reason: order.cancelReason ?? '' }) : t(`player.fnb.progress.${order.progress}`)}
+      </Text>
     </Inline>
   );
 }

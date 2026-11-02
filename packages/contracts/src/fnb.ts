@@ -12,6 +12,9 @@ export const fnbLineSchema = z.object({
 });
 export type FnbLine = z.infer<typeof fnbLineSchema>;
 
+/** Why staff void an order not yet delivered (decision 0302): the member sees it. */
+export const cancelFnbOrderSchema = z.object({ reason: z.string().trim().min(3).max(300) });
+
 /** An order: 1 to 20 lines. */
 export const fnbOrderSchema = z.array(fnbLineSchema).min(1).max(20);
 

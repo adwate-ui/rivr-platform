@@ -11,7 +11,7 @@ afterEach(() => {
 });
 
 /** Aditya, an admin, signed in, and a fake API whose seats and tables reads answer as given, and every other read with nothing. */
-function renderOrder(seats: () => Promise<Response>, tables: () => Promise<Response> = async () => Response.json([])) {
+function renderOrder(seats: () => Promise<Response>, tables: () => Promise<Response> = async () => Response.json([]), canComp = true) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -28,12 +28,18 @@ function renderOrder(seats: () => Promise<Response>, tables: () => Promise<Respo
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={queryClient}>
-      <OrderForSeat venueId="v1" />
+      <OrderForSeat venueId="v1" canComp={canComp} />
     </RivrDataProvider>,
   );
 }
 
 describe('OrderForSeat', () => {
+  it('offers no comp to staff who only serve, who order paid (decision 0302)', async () => {
+    renderOrder(async () => Response.json([]), async () => Response.json([]), false);
+    expect(await screen.findByRole('heading', { name: 'Order for a seat' })).toBeDefined();
+    expect(screen.queryByRole('switch', { name: /^Comp it/ })).toBeNull();
+  });
+
   it('says the seats are loading, not that nobody is seated, while the floor is read', async () => {
     renderOrder(() => new Promise<Response>(() => undefined));
     expect(await screen.findByText('Loading')).toBeDefined();

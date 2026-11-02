@@ -21,8 +21,10 @@ export function FnbScreen() {
     return <Screen title={t('console.fnb.title')} status="error" errorText={t('console.fnb.notAllowed')} />;
   }
   const { venueId } = staff.venue;
-  const canOrder = permissions.includes('fnb.manage');
-  const sections = <FnbSections venueId={venueId} canOrder={canOrder} />;
+  const canManage = permissions.includes('fnb.manage');
+  // Staff who serve order for a seat too (decision 0302), when they read who sits there: the floor, not Service alone (#640).
+  const canOrder = canManage || (permissions.includes('fnb.serve') && permissions.includes('members.read'));
+  const sections = <FnbSections venueId={venueId} canOrder={canOrder} canManage={canManage} />;
   return canOrder ? <OrderingReady venueId={venueId}>{sections}</OrderingReady> : <ServingReady venueId={venueId}>{sections}</ServingReady>;
 }
 
@@ -42,15 +44,15 @@ function OrderingReady({ venueId, children }: { venueId: string; children: React
   return <ServingReady venueId={venueId}>{children}</ServingReady>;
 }
 
-function FnbSections({ venueId, canOrder }: { venueId: string; canOrder: boolean }) {
+function FnbSections({ venueId, canOrder, canManage }: { venueId: string; canOrder: boolean; canManage: boolean }) {
   return (
     <Screen title={t('console.fnb.title')}>
       <Stack gap={10}>
         <TonightOrders venueId={venueId} />
-        {/* Ordering for a seat can comp it: for staff who run F&B, never Service alone (#640). */}
-        {canOrder ? <OrderForSeat venueId={venueId} /> : null}
+        {/* Ordering for a seat; a comp is for staff who run F&B alone (#640, decision 0302). */}
+        {canOrder ? <OrderForSeat venueId={venueId} canComp={canManage} /> : null}
         {/* A dish's photo is for staff who run F&B: the photo bucket takes them alone (AS-11). */}
-        <MenuItems venueId={venueId} canManage={canOrder} />
+        <MenuItems venueId={venueId} canManage={canManage} />
       </Stack>
     </Screen>
   );
