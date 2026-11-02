@@ -14,6 +14,8 @@ export const spin = {
   wheel: 'The wheel',
   wheelHint: 'A prize’s odds are its weight out of the weights of the prizes that can be won now. A bonus more than what is left of this month’s spin budget, set in Settings, is off the wheel, here and on the TVs.',
   noPrizes: 'No prizes on the wheel yet.',
+  /** Above the waiting spins while no prize can be drawn: Spin waits for one (C-08). */
+  noDrawable: 'The wheel has no prize to draw. Add one, then spin.',
   prize: 'Prize',
   odds: 'Odds',
   /** `3 in 10`. */
