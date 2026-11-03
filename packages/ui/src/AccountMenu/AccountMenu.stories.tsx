@@ -33,7 +33,7 @@ const meta = {
   tags: ['viewport-console'],
   args: { name: 'Vikram Rao', detail: 'Super admin · RIVR Gurugram', shortcuts: SHORTCUTS, signOut: { label: 'Sign out', onPress: () => undefined }, children: settings },
   // At the end of a header line, as in the console, so the panel opens below and lines up with the button's end.
-  decorators: [(Story) => <div className="flex h-palette justify-end p-4"><Story /></div>],
+  decorators: [(Story) => <div className="flex h-palette items-start justify-end p-4"><Story /></div>],
 } satisfies Meta<typeof AccountMenu>;
 
 export default meta;

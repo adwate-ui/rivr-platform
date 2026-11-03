@@ -14,7 +14,8 @@ const ACTION =
 /**
  * Across the top of the console while it works in the practice venue (console v3, decision 0444): gold stripes, the line
  * that nothing here reaches the club, and the way back to it. Its words and button sit centred on one line; on a phone
- * the words wrap beside the button.
+ * the words wrap beside the button. Not a `Banner` tone: that is a player's card inside a screen, rounded and edged; this
+ * runs the full width of the console above everything, and is the only striped surface.
  */
 export function PracticeBanner({ message, action }: PracticeBannerProps) {
   return (

@@ -1,15 +1,17 @@
 /**
- * Console fits (#601, #605; decision 0282). Rhea Kapur, this flow's own floor manager, opens the console on a phone, a
- * portrait tablet and a desk: below the desk the top bar names the screen, and its menu reaches her screens and closes on
- * choosing one or a tap outside; at the desk the rail sits beside the screen, and Go to finds a screen by name. Then the
- * flow's own super admin, cashier and owner each open every screen their rail lists, at 390, 768 and 1440 px: nothing
- * scrolls sideways, neither the page nor the screen's own area, and each screen shows its heading.
+ * Console fits (#601, #605; decisions 0282, 0431, 0443). Rhea Kapur, this flow's own floor manager, opens the console on a
+ * phone, the floor's 1180 px tablet and a desk: on the phone a tab bar holds Floor, Requests, Waitlist, Door and More, whose
+ * menu reaches her screens and closes on choosing one; on the tablet the rail folds to its icons by itself and keeps her
+ * own choice across a reload; at the desk it shows its labels, and `/` opens the search, which finds a screen by name.
+ * Then the flow's own super admin, cashier and owner each open every screen their rail lists, and each tab, at 1440, 1180
+ * and 390 px: nothing scrolls sideways, neither the page nor the screen's own area, and each screen shows its heading.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { appUrl } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 const PHONE = { width: 390, height: 844 };
-const TABLET = { width: 768, height: 1024 };
+const TABLET = { width: 1180, height: 820 };
 const DESK = { width: 1440, height: 900 };
 
 const ROLES = [
@@ -35,13 +37,27 @@ async function fitsSideways(page: Page) {
 /** Each link's address, in order. */
 const hrefs = (links: Locator) => links.evaluateAll((all) => all.map((link) => link.getAttribute('href') ?? ''));
 
+/** Waits until nothing on the screen open now is still loading. */
+async function settled(page: Page) {
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
+  await expect(page.getByRole('main').getByRole('status').filter({ hasText: /^Loading$/ })).toHaveCount(0);
+}
+
 /** Opens a link at a desk and waits for what it opens: the link marked current, and nothing still loading. */
 async function openAtDesk(page: Page, link: Locator) {
   await page.setViewportSize(DESK);
   await link.click();
   await expect(link).toHaveAttribute('aria-current', 'page');
-  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
-  await expect(page.getByRole('main').getByRole('status').filter({ hasText: /^Loading$/ })).toHaveCount(0);
+  await settled(page);
+}
+
+/** Opens a tab at a desk by its link, or by its address when it belongs to a tab no longer shown (a part inside another). */
+async function openTabAtDesk(page: Page, href: string) {
+  const link = page.locator(`main nav a[href="${href}"]`);
+  if ((await link.count()) > 0) return openAtDesk(page, link);
+  await page.setViewportSize(DESK);
+  await page.goto(`${appUrl('console')}${href}`);
+  await settled(page);
 }
 
 /** The screen open now, at each size: nothing sideways, and its heading in view. */
@@ -54,61 +70,87 @@ async function measure(page: Page, what: string) {
   }
 }
 
-/** Each screen the rail lists, and each of a screen's tabs past the one it opens on, measured at each size. */
+/** Each screen the rail lists, Admin unfolded, and each of a screen's tabs past the one it opens on, measured at each size. */
 async function everyScreenFits(page: Page, number: string) {
   await page.setViewportSize(DESK);
   await signInToConsole(page, number);
   const rail = page.getByRole('navigation', { name: 'Sections' });
   await expect(rail).toBeVisible();
+  const admin = rail.getByRole('button', { name: 'Admin' });
+  if ((await admin.count()) > 0) await admin.click();
   const screens = await hrefs(rail.getByRole('link'));
   expect(screens.length).toBeGreaterThan(0);
   for (const href of screens) {
     await openAtDesk(page, rail.locator(`a[href="${href}"]`));
     await measure(page, href);
     for (const tab of (await hrefs(page.locator('main nav a[href*="?tab="]'))).slice(1)) {
-      await openAtDesk(page, page.locator(`main nav a[href="${tab}"]`));
+      await openTabAtDesk(page, tab);
       await measure(page, tab);
     }
   }
 }
 
-/** Below the desk: the menu opens the rail, and choosing a screen opens it and closes the menu. */
-async function openFromMenu(page: Page, screen: string) {
-  await page.getByRole('button', { name: 'Menu' }).click();
-  const menu = page.getByRole('dialog', { name: 'Sections' });
-  await menu.getByRole('link', { name: screen, exact: true }).click();
-  await expect(menu).toBeHidden();
+/** On a phone: More opens every screen, and choosing one opens it and closes the menu, its name in the header. */
+async function openFromMore(page: Page, screen: string, group?: string) {
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'More' }).click();
+  const more = page.getByRole('dialog', { name: 'All screens' });
+  if (group !== undefined) await more.getByRole('button', { name: group }).click();
+  await more.getByRole('link', { name: screen, exact: true }).click();
+  await expect(more).toBeHidden();
   await expect(page.getByRole('heading', { name: screen, level: 1 })).toBeVisible();
   await expect(page.getByRole('banner')).toContainText(screen);
+}
+
+/** On a phone: the tab bar's tabs, each a 44 px target at least, and More to every other screen. */
+async function onAPhone(page: Page) {
+  await page.setViewportSize(PHONE);
+  await expect(page.getByRole('navigation', { name: 'Sections' })).toBeHidden();
+  const tabs = page.getByRole('navigation', { name: 'Main' });
+  for (const name of ['Floor', 'Requests', 'Waitlist', 'Door']) {
+    const tab = tabs.getByRole('link', { name, exact: true });
+    await expect(tab).toBeVisible();
+    expect((await tab.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+  await openFromMore(page, 'Members');
+  await openFromMore(page, 'Settings', 'Admin');
+  await fitsSideways(page);
+  await tabs.getByRole('link', { name: 'Floor', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Live floor', level: 1 })).toBeVisible();
+}
+
+/** On the floor's tablet: the rail folds to its 64 px of icons by itself; her own choice holds across a reload. */
+async function onTheTablet(page: Page) {
+  await page.setViewportSize(TABLET);
+  const rail = page.getByRole('complementary');
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeHidden();
+  await expect.poll(async () => (await rail.boundingBox())?.width).toBe(64);
+  await rail.getByRole('button', { name: 'Expand' }).click();
+  await expect.poll(async () => (await rail.boundingBox())?.width).toBe(224);
+  await page.reload();
+  await expect.poll(async () => (await rail.boundingBox())?.width).toBe(224);
+  await rail.getByRole('button', { name: 'Collapse' }).click();
+  await expect.poll(async () => (await rail.boundingBox())?.width).toBe(64);
 }
 
 test.describe('Console fits', () => {
   test('Console fits: the console on a phone, a tablet and a desk', async ({ page }) => {
     await signInToConsole(page, '9000000644');
     await expect(page.getByRole('heading', { name: 'Live floor', level: 1 })).toBeVisible();
+    await onAPhone(page);
+    await onTheTablet(page);
 
-    for (const size of [PHONE, TABLET]) {
-      await page.setViewportSize(size);
-      // Below a desk no table is open beside the plan, so the plan marks none (F2-29).
-      if (size === PHONE) await expect(page.getByRole('region', { name: 'Room plan' }).getByRole('button', { pressed: true })).toHaveCount(0);
-      await expect(page.getByRole('navigation', { name: 'Sections' })).toBeHidden();
-      // A tap outside the menu closes it.
-      await page.getByRole('button', { name: 'Menu' }).click();
-      await expect(page.getByRole('dialog', { name: 'Sections' })).toBeVisible();
-      // The menu listens for a tap outside a moment after it opens; a tap sooner than any person's is tried again.
-      await expect(async () => {
-        await page.mouse.click(size.width - 20, size.height / 2);
-        await expect(page.getByRole('dialog', { name: 'Sections' })).toBeHidden({ timeout: 1_000 });
-      }).toPass({ timeout: 5_000 });
-      await openFromMenu(page, 'Members');
-      await openFromMenu(page, 'Settings');
-      await fitsSideways(page);
-      await openFromMenu(page, 'Live floor');
-    }
-
+    // At the desk, with no choice of her own, the rail shows its labels; / opens the search and Escape closes it.
+    await page.evaluate(() => window.localStorage.removeItem('rivr.console.rail'));
     await page.setViewportSize(DESK);
-    await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden();
-    await page.getByRole('searchbox', { name: 'Go to' }).fill('settings');
+    await page.reload();
+    await expect.poll(async () => (await page.getByRole('complementary').boundingBox())?.width).toBe(224);
+    await page.keyboard.press('/');
+    const search = page.getByRole('dialog', { name: 'Search' });
+    await expect(search).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(search).toBeHidden();
+    await page.keyboard.press('Control+k');
+    await search.getByRole('combobox', { name: 'Search' }).fill('settings');
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
     await fitsSideways(page);
@@ -117,7 +159,7 @@ test.describe('Console fits', () => {
 
 test.describe('Console fits, every screen', () => {
   for (const { who, number } of ROLES) {
-    test(`Console fits: every screen ${who} opens fits a phone, a portrait tablet and a desk`, async ({ page }) => {
+    test(`Console fits: every screen ${who} opens fits a phone, the floor's tablet and a desk`, async ({ page }) => {
       test.setTimeout(300_000);
       await everyScreenFits(page, number);
     });

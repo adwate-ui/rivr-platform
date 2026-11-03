@@ -1,1 +1,1 @@
-export { ShortcutProvider, useShortcut, useShortcutList, type ButtonShortcut, type ShortcutBinding } from './Shortcuts.tsx';
+export { ShortcutProvider, useShortcut, useShortcutList, type ButtonShortcut, type ShortcutBinding, type ShortcutHint } from './Shortcuts.tsx';

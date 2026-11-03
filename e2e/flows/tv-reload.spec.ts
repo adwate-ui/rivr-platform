@@ -9,6 +9,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openDevices } from '../support/console.ts';
 
 const BUDGET = 5_000;
 
@@ -37,8 +38,7 @@ test.describe('TV reload', () => {
     await expect(shown).toBeVisible();
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000120');
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openDevices(floor, 'TVs');
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();

@@ -62,15 +62,60 @@ reset role;
 select is((select density from public.staff_preference where staff_id = (select sana_club from ids)), 'comfortable',
   'nor changes it');
 
+-- Vikram keeps his own; Sana's upsert of his record, the console's own statement, is refused before the conflict.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+insert into public.staff_preference (staff_id, venue_id, density) select vikram_club, '00000000-0000-4000-8000-000000000001', 'compact' from ids;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, density)
+                    select vikram_club, '00000000-0000-4000-8000-000000000001', 'comfortable' from ids
+                    on conflict (staff_id) do update set density = excluded.density $$,
+  '42501', null, 'Sana cannot upsert over Vikram''s row');
+select throws_ok($$ update public.staff_preference set staff_id = (select vikram_club from ids) where staff_id = (select sana_club from ids) $$,
+  '42501', null, 'nor point her row at his record');
+reset role;
+select is((select density from public.staff_preference where staff_id = (select vikram_club from ids)), 'compact', 'Vikram''s choice stands');
+
+-- A member who is not staff reads and writes nothing.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
+select is_empty($$ select 1 from public.staff_preference $$, 'a member reads no staff density');
+select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, density)
+                    select sana_club, '00000000-0000-4000-8000-000000000001', 'compact' from ids $$,
+  '42501', null, 'nor writes one');
+reset role;
+
+-- Staff whose console access is revoked lose their row with it, reading and writing.
+insert into public.control_state (venue_id, level, staff_id, reason)
+select '00000000-0000-4000-8000-000000000001', 'access_revoke', sana_club, 'Test 297: lost phone' from ids;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select results_eq($$ select venue_id::text from public.staff_preference $$, $$ values ('00000000-0000-4000-8000-000000000002'::text) $$,
+  'revoked at the club, Sana reads only her practice venue''s row');
+select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, density)
+                    select sana_club, '00000000-0000-4000-8000-000000000001', 'compact' from ids
+                    on conflict (staff_id) do update set density = excluded.density $$,
+  '42501', null, 'and cannot change the club''s');
+reset role;
+update public.control_state set released_at = now(), release_reason = 'Test 297: found', released_by_staff_id = (select vikram_club from ids)
+where staff_id = (select sana_club from ids) and level = 'access_revoke' and released_at is null;
+
 -- Someone signed out reads nothing; staff taken off the rota lose theirs with the console.
 set local role anon;
 select throws_ok($$ select 1 from public.staff_preference $$, '42501', null, 'the public cannot read the table at all');
+select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, density)
+                    values ('00000000-0000-4000-8000-000000000000', '00000000-0000-4000-8000-000000000001', 'compact') $$,
+  '42501', null, 'nor write to it');
 reset role;
 update public.staff set is_active = false where id = (select sana_club from ids);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select results_eq($$ select venue_id::text from public.staff_preference $$, $$ values ('00000000-0000-4000-8000-000000000002'::text) $$,
   'deactivated at the club, Sana reads only her practice venue''s row');
+select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, density)
+                    select sana_club, '00000000-0000-4000-8000-000000000001', 'compact' from ids
+                    on conflict (staff_id) do update set density = excluded.density $$,
+  '42501', null, 'and cannot change the club''s');
 reset role;
+
+-- A practice reset and a live purge clear it with the venue's other rows (decision 0442); the staff record stays.
+select ok('staff_preference' in (select private.practice_reset_tables()), 'the practice reset clears the practice venue''s densities');
 
 -- A setting of the console only: nothing went to the outbox, from either venue.
 select is((select count(*) from public.outbox_event), (select outbox_before from ids), 'no outbox event, so nothing reaches an external system');

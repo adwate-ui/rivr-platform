@@ -37,6 +37,7 @@ export function useSetStaffDensity() {
   return useMutation({
     mutationFn: async (density: Density): Promise<Result<Density, 'unavailable'>> => {
       const rows = (venues.data ?? []).map((venue) => ({ staff_id: venue.staffId, venue_id: venue.venueId, density }));
+      if (rows.length === 0) return err('unavailable');
       // A read still on its way would put the old choice back over the new one.
       await Promise.all(rows.map((row) => queryClient.cancelQueries({ queryKey: keyFor(row.venue_id) })));
       for (const row of rows) queryClient.setQueryData(keyFor(row.venue_id), density);

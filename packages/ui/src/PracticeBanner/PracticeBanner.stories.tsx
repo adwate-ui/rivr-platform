@@ -22,5 +22,11 @@ export const Default: Story = {};
 /** On a phone, the words wrap beside the button. */
 export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
 
+/** A longer line, as at a second practice venue, wrapping on a phone beside the button. */
+export const LongText: Story = {
+  tags: ['!viewport-console', 'viewport-phone'],
+  args: { message: 'Practice venue, RIVR Training Room: nothing here reaches the club, its members or its records.' },
+};
+
 /** Going back to the club: the button held. */
 export const GoingBack: Story = { args: { action: { label: 'Back to the club', onPress: () => undefined, isPending: true } } };
