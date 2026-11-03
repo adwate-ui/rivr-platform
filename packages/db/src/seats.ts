@@ -168,8 +168,11 @@ export function useSeatActions(venueId: string) {
         { ...FAILURE_BY_CODE, '22023': 'must_move_invalid' }),
   });
   const letLeaveEarly = useMutation({
-    mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) =>
-      settle((await client.rpc('let_leave_early', { p_venue_id: venueId, p_member_id: memberId, p_reason: reason })).error),
+    // A seated player's seat is freed next (`leave`), which reads the floor again: one re-read then serves both steps (#745).
+    mutationFn: async ({ memberId, reason, isSeatFreedNext = false }: { memberId: string; reason: string; isSeatFreedNext?: boolean }) => {
+      const { error } = await client.rpc('let_leave_early', { p_venue_id: venueId, p_member_id: memberId, p_reason: reason });
+      return isSeatFreedNext && error === null ? ok(null) : settle(error);
+    },
   });
   const setLeaving = useMutation({
     mutationFn: async ({ sessionId, isLeaving }: { sessionId: string; isLeaving: boolean }) =>
