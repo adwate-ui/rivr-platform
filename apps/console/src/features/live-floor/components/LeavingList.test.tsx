@@ -24,8 +24,8 @@ const SEATS: SeatedPlayer[] = [
   { ...PLAYER, sessionId: 's3', seat: 2, memberId: 'm3', fullName: 'Rohan Bhatia', leavingAt: null },
 ];
 
-/** Aditya, the floor, signed in, and a fake API that records what is sent to set_leaving. */
-function renderList(seats: SeatedPlayer[]) {
+/** Aditya, the floor, signed in, and a fake API that records what is sent to set_leaving, end_seat and let_leave_early. */
+function renderList(seats: SeatedPlayer[], canLetGoEarly = false) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -37,21 +37,38 @@ function renderList(seats: SeatedPlayer[]) {
   const sent: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/set_leaving') || url.includes('/rpc/end_seat')) {
+    if (url.includes('/rpc/set_leaving') || url.includes('/rpc/end_seat') || url.includes('/rpc/let_leave_early')) {
       sent.push(JSON.parse(String(init?.body)));
       return new Response(null, { status: 204 });
     }
     return Response.json([]);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
-  const view = render(<RivrDataProvider client={client}><LeavingList venueId="v1" tables={TABLES} seats={seats} isFloor /></RivrDataProvider>);
+  const view = render(
+    <RivrDataProvider client={client}><LeavingList venueId="v1" tables={TABLES} seats={seats} isFloor canLetGoEarly={canLetGoEarly} /></RivrDataProvider>,
+  );
   return { sent, view };
 }
 
 describe('LeavingList (decision 0163)', () => {
-  it('lets the floor free the seat of a player whose call time is done, and of no other (decision 0302)', async () => {
-    const { sent } = renderList([{ ...PLAYER, callTimeLeft: 0 }, { ...PLAYER, sessionId: 's2', seat: 6, memberId: 'm2', fullName: 'Ishaan Verma' }]);
-    expect(screen.queryByRole('button', { name: 'Ishaan Verma leaves' })).toBeNull();
+  it('lets the floor free the seat of a player whose call time is done', async () => {
+    const { sent } = renderList([{ ...PLAYER, callTimeLeft: 0 }]);
+    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
+    await waitFor(() => expect(sent).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
+  });
+
+  it('lets staff with the override let one who still owes call time go early, with a reason (decision 0306)', async () => {
+    const { sent } = renderList([PLAYER], true);
+    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    expect(screen.getByRole('heading', { name: 'Early departure for Kabir Sethi' })).toBeDefined();
+    fireEvent.change(screen.getByLabelText(/Why they leave early/), { target: { value: 'Family emergency' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Let leave early' }));
+    await waitFor(() => expect(sent).toEqual([{ p_venue_id: 'v1', p_member_id: 'm1', p_reason: 'Family emergency' }, { p_session_id: 's1', p_reason: 'left' }]));
+  });
+
+  it('lets other floor staff free the seat of one who still owes, who then leaves owing (decision 0306)', async () => {
+    const { sent } = renderList([PLAYER]);
     fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
     await waitFor(() => expect(sent).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
