@@ -167,7 +167,10 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers, look = 'p
 
 /** When, why and Save: in a row on one line, the console's subtle controls of one height, centred on each other (console v3). */
 function WhenWhySave({ notes, form, reason, save }: { notes: RowNotes | undefined; form: Form; reason: ReactNode; save: ReactNode }) {
-  if (notes !== undefined) return <Inline gap={3} wrap><WhenField form={form} noteId={notes.date} />{reason}{save}</Inline>;
+  if (notes !== undefined) {
+    // When beside why and Save from 768 px; on a phone each pair on its own line, so the reason keeps its width.
+    return <Grid columns={2} gap={3} stackBelow="medium"><WhenField form={form} noteId={notes.date} /><Inline gap={3}>{reason}{save}</Inline></Grid>;
+  }
   return <><WhenField form={form} />{reason}<Inline gap={4}>{save}</Inline></>;
 }
 
