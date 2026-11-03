@@ -2,7 +2,7 @@ import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
 import { useAuthStatus, useFeature, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { InstallOffer, PlayerShell, Screen, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
+import { InstallOffer, PlayerShell, Screen, Stack, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
@@ -80,8 +80,11 @@ export function Frame({ children }: { children: ReactNode }) {
       avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, href: '/profile' }}
       isTabBarHidden={PUSHED.includes(pathname)} isFullBleed={pathname === '/'}>
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
-      {pathname === '/' ? null : <FrameBanners />}
-      <KycGate isMember={Boolean(member.data)}>{children}</KycGate>
+      {/* A banner keeps 8 px from the screen's header under it; the column grows so a screen can centre in it (Not found). */}
+      <Stack gap={2} grow>
+        {pathname === '/' ? null : <FrameBanners />}
+        <KycGate isMember={Boolean(member.data)}>{children}</KycGate>
+      </Stack>
     </PlayerShell>
   );
 }

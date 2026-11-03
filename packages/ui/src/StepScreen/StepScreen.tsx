@@ -101,7 +101,9 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
         {title ? <StepTitle title={title} look={look} /> : null}
         {children}
       </div>
-      <div className={cx('flex flex-col gap-6 pt-6', look?.isFooterRuled === true && FOOTER_RULED)}>{footer}</div>
+      {/* One top padding or the other: with both, the plain footer's 24 px won and the ruled footer's action sat 24 px under
+          its rule, not the prototype's 12. */}
+      <div className={cx('flex flex-col gap-6', look?.isFooterRuled === true ? FOOTER_RULED : 'pt-6')}>{footer}</div>
     </>
   );
   const submit = (event: FormEvent<HTMLFormElement>) => {

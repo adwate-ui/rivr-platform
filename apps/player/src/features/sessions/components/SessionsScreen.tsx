@@ -34,7 +34,7 @@ function SessionList({ sessions, hasEarlier, isLoadingMore, onMore, onOpen }: {
       <Stack divided>
         {sessions.map((session) => (
           <HistoryRow key={session.visitId} when={sessionDay(session)} title={sessionTitle(session)} value={<Text>{sessionLine(session)}</Text>}
-            detail="" onOpen={() => onOpen(session.visitId)} />
+            onOpen={() => onOpen(session.visitId)} />
         ))}
       </Stack>
       {hasEarlier ? (

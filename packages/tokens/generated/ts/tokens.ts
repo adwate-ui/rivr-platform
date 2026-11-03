@@ -86,7 +86,8 @@ export const tokens = {
     "lineHeight": {
       "tight": 1.1,
       "snug": 1.3,
-      "normal": 1.5
+      "normal": 1.5,
+      "control": 20
     },
     "letterSpacing": {
       "normal": "0em",

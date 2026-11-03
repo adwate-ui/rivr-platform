@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Banner } from '../Banner/Banner.tsx';
 import { PeekBar } from '../PeekBar/PeekBar.tsx';
+import { Stack } from '../Stack/Stack.tsx';
 import { Screen } from '../Screen/Screen.tsx';
 import { PLAYER_TABS } from '../storybook/fixtures.ts';
 import { TablesList } from '../storybook/screens.tsx';
@@ -45,6 +47,23 @@ export const WithDock: Story = {
 };
 
 export const PushedScreen: Story = { args: { isTabBarHidden: true, avatar: undefined } };
+
+/** Offline on a tab screen: the banner first, then the heading row with the initial at its end, never over the banner. */
+export const WithBanner: Story = {
+  args: {
+    children: (
+      <Stack gap={2}>
+        <Banner>Offline. What you see may be out of date.</Banner>
+        <Screen title="Sessions" titleLook="serif"><TablesList /></Screen>
+      </Stack>
+    ),
+  },
+};
+
+/** Tonight's first load, edge to edge: the skeleton keeps the page's gutter, the initial at the right. */
+export const FullBleedLoading: Story = {
+  args: { currentTab: 'home', isFullBleed: true, children: <Screen title="Tonight" isTitleHidden status="loading" loadingLook="skeleton" /> },
+};
 
 export const LockedTab: Story = {
   args: {

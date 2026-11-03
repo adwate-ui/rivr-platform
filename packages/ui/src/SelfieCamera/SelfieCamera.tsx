@@ -49,10 +49,11 @@ function Live({ video, isLive, onTake, onBack }: LiveProps) {
   return (
     <div className="fixed inset-0 z-modal mx-auto flex flex-col items-center overflow-hidden bg-green-black text-content medium:max-w-phone">
       <video ref={video} aria-label={t('ui.camera.preview')} autoPlay playsInline muted className="absolute inset-0 size-full -scale-x-100 object-cover" />
-      <div className="relative flex w-full items-center justify-between px-5 pt-12">
-        <Button variant="text" icon="chevronLeft" onClick={onBack}>{t('ui.selfie.back')}</Button>
-        <span className="font-text text-16 font-medium">{t('ui.selfie.title')}</span>
-        <span className="w-16" />
+      {/* Three equal columns, so "Selfie" sits in the middle of the screen whatever Back's width (a spacer of a guessed
+          width beside it left the title 13 px right of centre). */}
+      <div className="relative grid w-full grid-cols-3 items-center px-5 pt-12">
+        <span className="justify-self-start"><Button variant="text" icon="chevronLeft" onClick={onBack}>{t('ui.selfie.back')}</Button></span>
+        <span className="justify-self-center font-text text-16 font-medium">{t('ui.selfie.title')}</span>
       </div>
       <div aria-hidden="true" data-oval={isGood ? 'good' : 'far'}
         className={cx('relative mt-16 h-oval-height w-oval-width rounded-full border-3 outline-999 outline-scrim transition-colors', isGood ? 'border-gold' : 'border-muted')} />

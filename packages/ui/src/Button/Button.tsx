@@ -40,6 +40,11 @@ interface ActionButtonProps extends ButtonLookProps {
   form?: string;
   /** A toggle that is on, such as Notifying you: gold edge and text, and read out as pressed. */
   isPressed?: boolean | undefined;
+  /**
+   * A second part of the label at the button's right end, the label (and any icon or turning circle) at its left, not the
+   * two together in its middle: the Order screen's "Send to the bar" and "2 items" (brief 3.5; owner, 3 Nov).
+   */
+  aside?: ReactNode;
 }
 
 /** A link only goes somewhere: it is never loading, disabled or a form's submit. */
@@ -56,6 +61,7 @@ interface LinkButtonProps extends ButtonLookProps {
   isDisabled?: never;
   form?: never;
   isPressed?: never;
+  aside?: never;
 }
 
 export type ButtonProps = ActionButtonProps | LinkButtonProps;
@@ -81,13 +87,14 @@ const PRESSED = 'border border-accent font-medium text-accent';
 
 const BASE =
   // wrap-normal: a label breaks at a space, never inside a word, even in a table cell that lets text wrap anywhere.
-  'inline-flex min-w-touch items-center justify-center gap-2 font-text leading-snug wrap-normal ' +
+  // leading-control: a whole-pixel line box, so the centred label starts on a pixel (#762).
+  'inline-flex min-w-touch items-center gap-2 font-text leading-control wrap-normal ' +
   'select-none transition-colors active:opacity-muted disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
 function LinkButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
   return (
-    <a href={href} download={download} className={cx(BASE, SIZE[size], VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
+    <a href={href} download={download} className={cx(BASE, 'justify-center', SIZE[size], VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
       target={opensNewTab ? '_blank' : undefined} rel={opensNewTab ? 'noopener noreferrer' : undefined}
       aria-label={rest['aria-label']}
       aria-describedby={rest['aria-describedby']}>
@@ -103,7 +110,7 @@ export function Button(props: ButtonProps) {
   return props.href === undefined ? <ActionButton {...props} /> : <LinkButton {...props} />;
 }
 
-function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, icon, fullWidth, ...rest }: ActionButtonProps) {
+function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, ...rest }: ActionButtonProps) {
   const busy = isLoading ? true : undefined;
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (isLoading) {
@@ -115,7 +122,7 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', shape
   return (
     <button
       type={type}
-      className={cx(BASE, SIZE[size], isPressed ? PRESSED : VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
+      className={cx(BASE, aside === undefined ? 'justify-center' : 'justify-between', SIZE[size], isPressed ? PRESSED : VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
       onClick={handleClick}
       disabled={isDisabled}
       aria-pressed={isPressed}
@@ -123,9 +130,16 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', shape
       aria-disabled={busy}
       {...rest}
     >
-      <ButtonLabel icon={icon} isLoading={isLoading}>
-        {children}
-      </ButtonLabel>
+      {aside === undefined ? (
+        <ButtonLabel icon={icon} isLoading={isLoading}>{children}</ButtonLabel>
+      ) : (
+        // The label and its circle stay together at the left; the space between keeps the two parts apart in its name.
+        <>
+          <span className="inline-flex items-center gap-2"><ButtonLabel icon={icon} isLoading={isLoading}>{children}</ButtonLabel></span>
+          {' '}
+          <span>{aside}</span>
+        </>
+      )}
     </button>
   );
 }

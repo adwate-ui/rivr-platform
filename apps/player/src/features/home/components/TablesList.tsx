@@ -60,9 +60,15 @@ function Tournaments() {
   );
 }
 
+/** The open tables first, then the closed ones, each group in the floor's own order (owner, 3 Nov). */
+function openFirst(tables: readonly FloorTable[]): FloorTable[] {
+  return [...tables.filter((table) => table.isOpen), ...tables.filter((table) => !table.isOpen)];
+}
+
 /**
  * Tonight's tables (decision 0320) with the live floor: a row a table with a dot a seat, the wait, and how many seats are
- * open; a closed table dimmed. `onOpen` opens a table's join sheet; without it the rows only show. Then the tournaments.
+ * open; the open tables first and the closed ones after them, dimmed. `onOpen` opens a table's join sheet; without it the
+ * rows only show. Then the tournaments.
  */
 export function TablesList({ tables, onOpen }: { tables: readonly FloorTable[]; onOpen?: ((table: FloorTable) => void) | undefined }) {
   const liveView = useFeature('floor.live_view');
@@ -70,7 +76,7 @@ export function TablesList({ tables, onOpen }: { tables: readonly FloorTable[]; 
     <Stack gap={8}>
       <FeatureGate access={liveView}>
         <Stack gap={0}>
-          {tables.map((table) => (
+          {openFirst(tables).map((table) => (
             <TableListRow key={table.id} name={t('player.live.tableName', { name: table.name, game: table.tableTypeName })}
               seatCount={table.seats} openSeats={table.isOpen ? table.openSeats ?? 0 : 0} wait={waitOf(table)}
               isNoWait={table.waiting === 0} seatsLine={seatsLineOf(table)} isClosed={!table.isOpen}

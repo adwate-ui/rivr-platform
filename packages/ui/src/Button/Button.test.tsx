@@ -77,6 +77,30 @@ describe('Button', () => {
     expect(screen.getByRole('link', { name: 'Academy' })).toHaveAttribute('href', '/academy');
   });
 
+  it('sets an aside at its right end and the label at its left, the turning circle with the label (owner, 3 Nov)', () => {
+    renderIn(
+      <>
+        <Button variant="primary" fullWidth aside="2 items" isLoading>Send to the bar</Button>
+        <Button variant="primary">Join</Button>
+      </>,
+    );
+    const send = screen.getByRole('button', { name: 'Send to the bar 2 items' });
+    expect(send).toHaveClass('justify-between');
+    expect(send).not.toHaveClass('justify-center');
+    // Two ends: the label with its circle, and the aside; never the circle alone at the left.
+    expect(send.children).toHaveLength(2);
+    expect(send.firstElementChild).toHaveTextContent('Send to the bar');
+    expect(send.firstElementChild?.querySelector('[data-busy-turn]')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Join' })).toHaveClass('justify-center');
+  });
+
+  it('draws its label in a whole-pixel line box, so centred it starts on a pixel, never between two (issue 762)', () => {
+    renderIn(<Button>Accept all</Button>);
+    const button = screen.getByRole('button', { name: 'Accept all' });
+    expect(button).toHaveClass('leading-control');
+    expect(button).not.toHaveClass('leading-snug');
+  });
+
   it('has no accessibility violations in any variant', async () => {
     const { container } = renderIn(
       <>

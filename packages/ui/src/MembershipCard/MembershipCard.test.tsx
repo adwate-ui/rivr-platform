@@ -43,4 +43,11 @@ describe('MembershipCard', () => {
     expect(screen.getByRole('article', { name: /membership card/i })).toHaveTextContent('No. 73');
     expect(screen.queryByText('QR')).toBeNull();
   });
+
+  it('spans a phone\'s column on the player app, as the QR panel under it is centred in it, no wider than a phone (owner, 3 Nov)', () => {
+    renderIn(<MembershipCard look="redesign" name="Ira Kapoor" tier="Founders' Circle" memberNumber="73" />);
+    const card = screen.getByRole('article', { name: /membership card/i });
+    expect(card).toHaveClass('w-full', 'max-w-phone');
+    expect(card).not.toHaveClass('max-w-card');
+  });
 });

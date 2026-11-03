@@ -46,3 +46,9 @@ export const PlayerRedesign: Story = {
     </Inline>
   ),
 };
+
+/** The label at the left and an aside at the right: the Order screen's foot (brief 3.5). */
+export const WithAside: Story = { args: { variant: 'primary', size: 'tall', fullWidth: true, aside: '2 items', children: 'Send to the bar' } };
+
+/** Sending: the turning circle stays with the label, the aside at the right. */
+export const WithAsideLoading: Story = { args: { variant: 'primary', size: 'tall', fullWidth: true, aside: '2 items', children: 'Send to the bar', isLoading: true } };

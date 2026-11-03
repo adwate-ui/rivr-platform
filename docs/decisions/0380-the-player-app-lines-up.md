@@ -1,0 +1,9 @@
+# 0380: The player app lines up
+
+Date: 3 Nov 2026. The owner found the redesigned player app (#787) out of line, starting with the sign-in number sitting at the top of its box. Every route and state was screenshotted at 390 and 360 px and each box measured: the gap above its content against the gap below, and across where it centres.
+
+- **Fixed once, in `@rivr/ui`.** A prefixed field centres its row (it sat on a baseline, at the top of a row taller than its input). A ruled step footer takes one top padding, 12 px. A history row centres its figure and keeps no room for a missing detail. The membership card spans its column. The selfie title is centred in three equal columns. A `Button` may carry an `aside` at its right end, the label at its left (the Order screen's send bar).
+- **The member's initial moves into the header.** `PlayerShell` no longer pins it top right; it gives it to the screen, and `Screen` sets it at the end of its heading row, a 44 px band, so it is centred on the title, the wordmark or the seat's two lines (prototype), and it sits under a banner instead of over it. A screen that heads itself, as Tonight does, places `PlayerAvatar` (its own folder) in its own header; pushed screens, with no initial, keep their heading row as it was. In an edge-to-edge shell a screen's heading and its loading, empty and error states keep the gutter. `main` is a column, so Not found can centre.
+- **One referral card.** The referral programme's bonus is itself a live promotion, so Tonight showed it twice. `my_promotion_cards` leaves it out for a member who has the referral card (migration 20261104235900): exactly the promotion `my_referral` takes its bonus from; any other referral promotion stays a card.
+- **Open tables first** on Tonight's list, each group in floor order (owner, 3 Nov).
+- **Left alone.** The switch's thumb is 2 px further from its end when on than when off; the brief's 46 × 28 switch is its own change.

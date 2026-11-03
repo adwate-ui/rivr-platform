@@ -34,9 +34,9 @@ export function SendBar({ seat, counts, onSent }: { seat: MySeat; counts: Readon
     <PlayerDock>
       <Box surface="raised" hairline="top" paddingX={5} paddingY={4}>
         <Stack gap={2}>
-          <Button variant="primary" size="tall" fullWidth isLoading={place.isPending} onClick={() => void send()}>
+          <Button variant="primary" size="tall" fullWidth isLoading={place.isPending} onClick={() => void send()}
+            aside={<Text as="span" tone="onAction">{count === 1 ? t('player.order.itemsOne') : t('player.order.items', { count })}</Text>}>
             <Text as="span" tone="onAction" weight="semibold">{t('player.order.send')}</Text>
-            <Text as="span" tone="onAction">{count === 1 ? t('player.order.itemsOne') : t('player.order.items', { count })}</Text>
           </Button>
           {failure === null ? null : <ErrorMessage look="dot">{t(`player.fnb.failures.${failure}`, { table: seat.tableName, seat: seat.seat })}</ErrorMessage>}
         </Stack>

@@ -17,7 +17,7 @@ export interface RoundActionProps {
 export function RoundAction({ icon, label, onPress, isPending = false }: RoundActionProps) {
   return (
     <button type="button" aria-disabled={isPending || undefined} onClick={isPending ? undefined : onPress}
-      className={cx('flex min-h-touch flex-col items-center gap-2 font-text text-13 text-content transition-opacity',
+      className={cx('flex min-h-touch flex-col items-center gap-2 font-text text-13 leading-control text-content transition-opacity',
         isPending && 'cursor-not-allowed opacity-disabled')}>
       <span aria-hidden="true" className="flex size-round items-center justify-center rounded-full border border-control">
         <Icon name={icon} size="lg" />
