@@ -22,13 +22,10 @@ export function siteHref(slug: string, attribution: Attribution | null, anchor?:
   return `${slug === 'home' ? '/' : `/${slug}`}${query(attribution)}${anchor ? `#${anchor}` : ''}`;
 }
 
-/**
- * How the club is reached from every page (#616). Placeholders until the owner gives the club's number and channels:
- * the number is not a real one, so nobody is called by mistake.
- */
+/** How the club is reached from every page (#616): one number for calls and WhatsApp (the owner, 3 Nov). */
 export const CLUB_CONTACT = {
-  phone: '+910000000000',
-  whatsapp: '910000000000',
+  phone: '+918796580435',
+  whatsapp: '918796580435',
   instagram: 'https://www.instagram.com/rivr.pokerclub/',
   youtube: 'https://www.youtube.com/@rivr.pokerclub',
   email: 'info@rivrpoker.com',
