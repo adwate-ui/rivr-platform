@@ -141,12 +141,20 @@ describe('Waitlist data', () => {
       '/rpc/add_to_waitlist': { status: 400, body: { code: 'RVNOM', message: 'No member has that number' } },
       '/rpc/leave_waitlist': { status: 400, body: { code: 'XX000', message: 'boom' } },
     });
-    expect(await act(() => result.current.floor.add.mutateAsync({ tableId: 't1', phone: '9000000299', requestId: 'r2' }))).toEqual({
+    expect(await act(() => result.current.floor.add.mutateAsync({ tableId: 't1', who: { phone: '9000000299' }, requestId: 'r2' }))).toEqual({
       ok: false, error: 'no_member',
     });
     expect(calls.find((call) => call.url.includes('/rpc/add_to_waitlist'))?.body).toEqual({
       p_table_id: 't1', p_phone: '9000000299', p_idempotency_key: 'r2',
     });
     expect(await act(() => result.current.floor.remove.mutateAsync('e4'))).toEqual({ ok: false, error: 'unavailable' });
+  });
+
+  it('lets the floor add a member by membership number, with no mobile', async () => {
+    const { result, calls } = renderWaitlist({ ...EMPTY, '/rpc/add_to_waitlist': { status: 200, body: 'e9' } });
+    expect(await act(() => result.current.floor.add.mutateAsync({ tableId: 't1', who: { memberNumber: 63 }, requestId: 'r3' }))).toEqual({ ok: true, value: 'e9' });
+    expect(calls.find((call) => call.url.includes('/rpc/add_to_waitlist'))?.body).toEqual({
+      p_table_id: 't1', p_phone: '', p_member_number: 63, p_idempotency_key: 'r3',
+    });
   });
 });

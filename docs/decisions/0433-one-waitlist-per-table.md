@@ -9,4 +9,4 @@ Date: 3 Nov 2026. The owner (#777): each table has its own list with its own ord
 - **Closed tables.** A closed table's list stays and is its interest list (`interest_lists`, a row per closed active table); reopened, its order is kept.
 - **Reads.** `waitlist_lengths`, `waitlist_requests`, `interest_lists` and `tv_waitlist_board` are a row per table; the offline pack names each place's table. `public_waitlist_length` stays one count per stake. `waitlist.moved` is unchanged (it reaches everyone at the stake, more than needed).
 - **TV.** One column per table: every open table and a closed one somebody waits for, three to a screen, a page every ten seconds as the call-time board. It has no "Tables 1 to 3 of 5" line yet: `TvWaitlistBoard` has no page prop (follow-up).
-- **Console.** The existing Waitlist screen shows a section per table until the v3 Waitlist screen replaces it.
+- **Console.** A card per table on the v3 Waitlist screen (decision 0435).

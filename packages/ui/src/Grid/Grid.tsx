@@ -7,7 +7,8 @@ export type GridColumns = 1 | 2 | 3 | 4 | 5 | 6 | 12;
 
 export interface GridProps {
   children: ReactNode;
-  columns: GridColumns;
+  /** A count, or `cards`: the console's cards (console v3), one a row on a phone, two from 768 px and three from 1180 px. */
+  columns: GridColumns | 'cards';
   /**
    * One column below 768 px (`medium`), `columns` from there up (#603), as a form or a row of stats stacks on a phone.
    * Without it the columns hold at every size, as a phone layout that wants them does.
@@ -39,7 +40,10 @@ const FROM_MEDIUM: Record<GridColumns, string> = {
   12: 'medium:grid-cols-12',
 };
 
-function columnClasses(columns: GridColumns, stackBelow: GridProps['stackBelow']): string {
+const CARDS = 'grid-cols-1 medium:grid-cols-2 tablet:grid-cols-3 items-start';
+
+function columnClasses(columns: GridColumns | 'cards', stackBelow: GridProps['stackBelow']): string {
+  if (columns === 'cards') return CARDS;
   return stackBelow === undefined ? COLUMNS[columns] : cx('grid-cols-1', FROM_MEDIUM[columns]);
 }
 

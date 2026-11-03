@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  eligibilitySchema, limitsSchema, memberFactsSchema, promotionEventSchema, promotionTermsSchema, rewardSchema, scheduleSchema,
+  eligibilitySchema, limitsSchema, memberFactsSchema, promotionEventSchema, promotionTermsSchema, promotionVersionReplaySchema, rewardSchema,
+  scheduleSchema,
 } from './promotionModel.ts';
 
 const SCHEDULE = { days: [5, 6], from: '20:00', to: '02:00', startsOn: '2026-11-06', timezone: 'Asia/Kolkata' } as const;
@@ -74,6 +75,12 @@ describe('the promotion model schemas', () => {
     expect(promotionTermsSchema.safeParse({ ...TERMS, name: 'No' }).success).toBe(false);
   });
 
+  it('takes a plain https link for the card, and nothing that hides its host', () => {
+    expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'https://rivr.club/promotions?from=tv' }).success).toBe(true);
+    expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'http://rivr.club' }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'https://rivr.club@elsewhere.example' }).success).toBe(false);
+  });
+
   it('reads an event of each kind, and the member it is for', () => {
     const base = { key: 'buy_in:1', at: '2026-11-17T21:00:00+05:30', memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100' };
     expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }).success).toBe(true);
@@ -83,5 +90,17 @@ describe('the promotion model schemas', () => {
     expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: -1, isFirstOfVisit: true }).success).toBe(false);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'referral', extra: 1 }).success).toBe(false);
     expect(memberFactsSchema.safeParse({ tierId: null, daysSinceJoined: 3, daysSinceLastVisit: null, isWoman: null }).success).toBe(true);
+  });
+
+  it('reads a replay as the database gives it, with microseconds and offsets', () => {
+    const replay = {
+      from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00',
+      events: [{
+        event: { at: '2026-10-31T10:48:00.044839+00:00', key: 'visit:1', kind: 'visit', stake: null, tableId: null, visitId: 'v1', memberId: 'm3', visitInMonth: 3 },
+        member: { tierId: 'd50d783c-ad4a-4bb4-b613-59edbf9f9587', isWoman: null, daysSinceJoined: 0, daysSinceLastVisit: 7 },
+      }],
+    };
+    expect(promotionVersionReplaySchema.safeParse(replay).success).toBe(true);
+    expect(promotionVersionReplaySchema.safeParse({ ...replay, events: [{ event: replay.events[0]?.event }] }).success).toBe(false);
   });
 });

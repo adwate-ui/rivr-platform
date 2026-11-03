@@ -41,8 +41,10 @@ insert into public.device (id, venue_id, kind, name, auth_user_id, revoked_at, r
   ('00000000-0000-4000-8000-00000000d962', '00000000-0000-4000-8000-000000000001', 'door', 'Old door', '00000000-0000-4000-8000-00000000e962', now(), 'Lost');
 
 -- The four-hour bonus published, and a check-in welcome of 50 points.
-update public.promotion set status = 'live', starts_at = now() - interval '1 day'
-where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'hours_bonus';
+-- It runs in versions (decision 0461): its first version goes live, and the promotion copies it.
+update public.promotion_version v set status = 'live' from public.promotion p
+where p.id = v.promotion_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'hours_bonus';
+select private.sync_promotion(id) from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'hours_bonus';
 insert into public.promotion (id, venue_id, name, status, starts_at) values
   ('00000000-0000-4000-8000-0000000c9601', '00000000-0000-4000-8000-000000000001', 'Welcome points', 'live', now() - interval '1 day');
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values

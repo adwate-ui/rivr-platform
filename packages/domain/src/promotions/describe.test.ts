@@ -1,7 +1,7 @@
 import type { Reward } from '@rivr/contracts/promotionModel';
 import { buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
-import { describePromotion } from './describe.ts';
+import { cardWords, describePromotion } from './describe.ts';
 
 const rewardLine = (reward: Reward) => describePromotion(buildPromotionTerms({ reward })).split(', for ')[0];
 
@@ -59,5 +59,21 @@ describe('describePromotion', () => {
     const weekly = buildPromotionTerms({ limits: { perMember: 'per_week' } });
     expect(describePromotion(weekly)).toContain('every day, all day. Once a week per member.');
     expect(describePromotion(buildPromotionTerms({ limits: { perMember: 'per_day' } }))).toContain('Once a day per member.');
+  });
+});
+
+describe('cardWords', () => {
+  it('gives a card what it gives, and who and when, cut to fit the card', () => {
+    const tuesday = buildPromotionTerms({
+      reward: { kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000 },
+      eligibility: { stakes: ['nlh_100_200'], tiers: 'all', audience: 'everyone' },
+      schedule: { days: [2], from: '20:00', to: '02:00', startsOn: '2026-11-17', timezone: 'Asia/Kolkata' },
+    });
+    expect(cardWords(tuesday, { stakes: { nlh_100_200: 'NLH 100/200' } })).toEqual({
+      detail: '20% buy-in bonus, up to 2,000', runs: 'NLH 100/200 · Tue 20:00–02:00',
+    });
+    const long = buildPromotionTerms({ eligibility: { stakes: 'all', tiers: Array.from({ length: 30 }, (_, n) => `tier-number-${n}`), audience: 'everyone' } });
+    expect(cardWords(long).runs).toHaveLength(120);
+    expect(cardWords(long).runs.endsWith('…')).toBe(true);
   });
 });

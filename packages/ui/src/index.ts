@@ -61,6 +61,8 @@ export * from './WaitTimer/index.ts';
 export * from './TableCard/index.ts';
 export * from './TableTile/index.ts';
 export * from './SeatRow/index.ts';
+export * from './WaitlistRow/index.ts';
+export * from './JoinRequestRow/index.ts';
 export * from './RequestItem/index.ts';
 export * from './DataTable/index.ts';
 export * from './Chart/index.ts';

@@ -16,3 +16,12 @@ export function sameTerms(one: Terms, other: Terms): boolean {
   const pick = (terms: Terms) => canonical({ reward: terms.reward, eligibility: terms.eligibility, schedule: terms.schedule, limits: terms.limits });
   return pick(one) === pick(other);
 }
+
+/** The parts of a version an approver compares, in the order the builder shows them. */
+export const TERMS_PARTS = ['name', 'reward', 'eligibility', 'schedule', 'limits', 'channels', 'rulesText', 'link'] as const;
+export type TermsPart = (typeof TERMS_PARTS)[number];
+
+/** What a waiting version changes against the live one: the approver's diff. */
+export function termsDiff(before: PromotionTerms, after: PromotionTerms): TermsPart[] {
+  return TERMS_PARTS.filter((part) => canonical(before[part]) !== canonical(after[part]));
+}

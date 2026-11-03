@@ -2547,14 +2547,14 @@ isOneToOne: false
                   ]
                 },"promotion": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"idempotency_key": string | null,"link": string | null,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"current_version": number | null,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"idempotency_key": string | null,"link": string | null,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"link"?: string | null,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"current_version"?: number | null,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"link"?: string | null,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"link"?: string | null,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"current_version"?: number | null,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"link"?: string | null,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2599,14 +2599,14 @@ isOneToOne: false
                   ]
                 },"promotion_grant": {
                   Row: {
-                    "bonus_grant_id": string | null,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"points": number,"promotion_id": string,"promotion_rule_id": string,"source_key": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
+                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"points": number,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"spins": number,"spins_used": number,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bonus_grant_id"?: string | null,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"points": number,"promotion_id": string,"promotion_rule_id": string,"source_key": string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"points": number,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"spins"?: number,"spins_used"?: number,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "bonus_grant_id"?: string | null,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"points"?: number,"promotion_id"?: string,"promotion_rule_id"?: string,"source_key"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"points"?: number,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"spins"?: number,"spins_used"?: number,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2639,6 +2639,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "game_table"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_grant_version_fkey"
+      columns: ["promotion_version_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion_version"
+      referencedColumns: ["id","venue_id"]
     }
                   ]
                 },"promotion_rule": {
@@ -2655,6 +2661,44 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "promotion_rule_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"promotion_version": {
+                  Row: {
+                    "author_staff_id": string | null,"channels": NonNullable<Json>,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"edited_by_staff_id": string | null,"eligibility": NonNullable<Json>,"id": string,"limits": NonNullable<Json>,"link": string | null,"name": string,"promotion_id": string,"rejected_reason": string | null,"reward": NonNullable<Json>,"rules_text": (string)[],"runs": string | null,"schedule": NonNullable<Json>,"simulated_at": string | null,"simulated_terms": Json | null,"simulation": Json | null,"status": string,"submitted_at": string | null,"updated_at": string,"venue_id": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_staff_id"?: string | null,"channels": NonNullable<Json>,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"edited_by_staff_id"?: string | null,"eligibility": NonNullable<Json>,"id"?: string,"limits": NonNullable<Json>,"link"?: string | null,"name": string,"promotion_id": string,"rejected_reason"?: string | null,"reward": NonNullable<Json>,"rules_text"?: (string)[],"runs"?: string | null,"schedule": NonNullable<Json>,"simulated_at"?: string | null,"simulated_terms"?: Json | null,"simulation"?: Json | null,"status"?: string,"submitted_at"?: string | null,"updated_at"?: string,"venue_id": string,"version": number
+                  }
+                  Update: {
+                    "author_staff_id"?: string | null,"channels"?: NonNullable<Json>,"created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"edited_by_staff_id"?: string | null,"eligibility"?: NonNullable<Json>,"id"?: string,"limits"?: NonNullable<Json>,"link"?: string | null,"name"?: string,"promotion_id"?: string,"rejected_reason"?: string | null,"reward"?: NonNullable<Json>,"rules_text"?: (string)[],"runs"?: string | null,"schedule"?: NonNullable<Json>,"simulated_at"?: string | null,"simulated_terms"?: Json | null,"simulation"?: Json | null,"status"?: string,"submitted_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_version_author_staff_id_fkey"
+      columns: ["author_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "promotion_version_decided_by_staff_id_fkey"
+      columns: ["decided_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "promotion_version_edited_by_staff_id_fkey"
+      columns: ["edited_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "promotion_version_promotion_id_venue_id_fkey"
       columns: ["promotion_id","venue_id"]
 isOneToOne: false
       referencedRelation: "promotion"
@@ -4560,7 +4604,7 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: (number)[]
                            },
 "add_to_waitlist":
-{ Args: { "p_idempotency_key": string,"p_phone": string,"p_table_id": string }; Returns: string
+{ Args: { "p_idempotency_key": string,"p_member_number"?: number,"p_phone": string,"p_table_id": string }; Returns: string
                            },
 "agent_device":
 { Args: { "p_token_hash": string }; Returns: {
@@ -4582,6 +4626,9 @@ isOneToOne: false
                            },
 "approve_promotion":
 { Args: { "p_promotion_id": string }; Returns: undefined
+                           },
+"approve_promotion_version":
+{ Args: { "p_version_id": string }; Returns: undefined
                            },
 "approve_waitlist_request":
 { Args: { "p_entry_id": string }; Returns: undefined
@@ -4893,6 +4940,9 @@ isOneToOne: false
 "end_notice":
 { Args: { "p_notice_id": string }; Returns: undefined
                            },
+"end_promotion_version":
+{ Args: { "p_version_id": string }; Returns: undefined
+                           },
 "end_seat":
 { Args: { "p_reason": string,"p_session_id": string }; Returns: undefined
                            },
@@ -5126,6 +5176,11 @@ isOneToOne: false
 "member_points":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: {
               "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
+            }[]
+                           },
+"member_promotion_grants":
+{ Args: { "p_member_id": string }; Returns: {
+              "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"points": number,"promotion_name": string,"spins": number,"version": number
             }[]
                            },
 "member_record":
@@ -5425,9 +5480,22 @@ isOneToOne: false
 "promotion_replay":
 { Args: { "p_conditions": Json,"p_trigger": string,"p_venue_id": string }; Returns: Json
                            },
+"promotion_version_replay":
+{ Args: { "p_version_id": string }; Returns: Json
+                           },
+"promotion_versions_of":
+{ Args: { "p_promotion_id": string }; Returns: {
+              "author": string,"channels": Json,"decided_at": string,"decided_by": string,"detail": string,"eligibility": Json,"id": string,"is_mine": boolean,"limits": Json,"link": string,"name": string,"rejected_reason": string,"reward": Json,"rules_text": (string)[],"runs": string,"schedule": Json,"simulated_terms": Json,"simulation": Json,"status": string,"submitted_at": string,"version": number
+            }[]
+                           },
 "promotions_awaiting_approval":
 { Args: { "p_venue_id": string }; Returns: {
               "budget_count": number,"budget_paise": number,"budget_period": string,"detail": string,"is_mine": boolean,"link": string,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string,"website_questions": Json,"website_rules": (string)[]
+            }[]
+                           },
+"promotions_overview":
+{ Args: { "p_venue_id": string }; Returns: {
+              "channels": Json,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"given_this_week": number,"is_legacy": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
             }[]
                            },
 "promotions_sent_back":
@@ -5519,6 +5587,9 @@ isOneToOne: false
 "record_payout_name_check":
 { Args: { "p_account_id": string,"p_holder_name"?: string,"p_outcome": string }; Returns: undefined
                            },
+"record_promotion_simulation":
+{ Args: { "p_simulation": Json,"p_terms": Json,"p_version_id": string }; Returns: undefined
+                           },
 "record_social_post_channel":
 { Args: { "p_channel": string,"p_post_id": string,"p_post_url": string }; Returns: undefined
                            },
@@ -5565,6 +5636,9 @@ isOneToOne: false
                            },
 "reject_high_hand":
 { Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined
+                           },
+"reject_promotion_version":
+{ Args: { "p_reason": string,"p_version_id": string }; Returns: undefined
                            },
 "release_control":
 { Args: { "p_control_id": string,"p_reason"?: string }; Returns: string
@@ -5685,6 +5759,9 @@ isOneToOne: false
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined
                            },
+"save_promotion_draft":
+{ Args: { "p_draft": Json,"p_promotion_id"?: string,"p_venue_id": string }; Returns: string
+                           },
 "save_push_subscription":
 { Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string }; Returns: undefined
                            },
@@ -5768,6 +5845,9 @@ isOneToOne: false
                            },
 "set_promotion_live":
 { Args: { "p_is_live": boolean,"p_promotion_id": string }; Returns: undefined
+                           },
+"set_promotion_version_live":
+{ Args: { "p_is_live": boolean,"p_version_id": string }; Returns: undefined
                            },
 "set_seat_away":
 { Args: { "p_is_away": boolean,"p_session_id": string }; Returns: undefined
@@ -5897,6 +5977,9 @@ isOneToOne: false
                            },
 "submit_promotion_template":
 { Args: { "p_budget_paise"?: number,"p_budget_period"?: string,"p_promotion_id": string }; Returns: undefined
+                           },
+"submit_promotion_version":
+{ Args: { "p_version_id": string }; Returns: undefined
                            },
 "submit_quiz":
 { Args: { "p_answers": (number)[],"p_quiz_id": string }; Returns: {
@@ -6059,6 +6142,9 @@ isOneToOne: false
                            },
 "unlock_points":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string
+                           },
+"unmark_tournament_registered":
+{ Args: { "p_interest_id": string }; Returns: undefined
                            },
 "use_tournament_ticket":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_tournament_id": string }; Returns: string
