@@ -111,6 +111,9 @@ select is_empty($$
       'preview_token',
       -- Reviewed as safe in #627: the ids of the sessions a member hid from their own list.
       'hidden_sessions')
+    -- Reviewed as safe in #779, for this table only: a phone's push addresses for the live status, which reach it only
+    -- with the club's own Apple and Firebase keys (function secrets). The phone's own key is kept as a hash, which never goes.
+    and a.table_name || '.' || c not in ('live_status_device.push_token', 'live_status_device.activity_push_token')
 $$, 'no column that may hold a secret reaches the export archive unreviewed');
 
 select * from finish();

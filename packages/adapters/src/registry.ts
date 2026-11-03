@@ -6,6 +6,7 @@ import { createFakeGoogleAds, type GoogleAdsConversionsAdapter } from './google-
 import { createFakeInstagramGraph, type InstagramGraphAdapter } from './instagram-graph/index.ts';
 import { createFakeKitchenPrinter, type KitchenPrinterAdapter } from './kitchen-printer/index.ts';
 import { createFakeKyc, createUnconfiguredKyc, type KycAdapter } from './kyc/index.ts';
+import { createFakeLiveStatus, type LiveStatusAdapter } from './live-status/index.ts';
 import { createFakeMetaConversions, type MetaConversionsAdapter } from './meta-conversions/index.ts';
 import { createFakePush, type PushAdapter } from './push/index.ts';
 import { createFakeReceiptPrinter, type ReceiptPrinterAdapter } from './receipt-printer/index.ts';
@@ -28,6 +29,7 @@ export interface Adapters {
   readonly whatsapp: WhatsAppAdapter;
   readonly upiPayouts: UpiPayoutAdapter;
   readonly push: PushAdapter;
+  readonly liveStatus: LiveStatusAdapter;
   readonly socialPublishing: SocialPublishing;
   readonly socialInbox: SocialInboxAdapter;
   readonly instagramGraph: InstagramGraphAdapter;
@@ -61,6 +63,7 @@ export function createFakeAdapters() {
     whatsapp: createFakeWhatsApp(),
     upiPayouts: createFakeUpiPayouts(),
     push: createFakePush(),
+    liveStatus: createFakeLiveStatus(),
     socialPublishing: createFakeSocialPublishing(),
     socialInbox: createFakeSocialInbox(),
     instagramGraph: createFakeInstagramGraph(),
@@ -95,6 +98,7 @@ export function createAdapters({ isPracticeVenue, live }: CreateAdaptersOptions)
     smsOtp: liveOr(live.smsOtp, () => fakes.smsOtp),
     whatsapp: liveOr(live.whatsapp, () => fakes.whatsapp),
     push: liveOr(live.push, () => fakes.push),
+    liveStatus: liveOr(live.liveStatus, () => fakes.liveStatus),
     socialPublishing: byChannel((channel) =>
       liveOr(live.socialPublishing?.[channel], () => createDownloadAndPostTarget(channel)),
     ),

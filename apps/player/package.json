@@ -11,6 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "@hookform/resolvers": "^5.2.0",
     "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
@@ -28,6 +31,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@rivr/config": "workspace:*",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^22.18.0",

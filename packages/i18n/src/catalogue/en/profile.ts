@@ -30,6 +30,8 @@ export const profile = {
   winnerCardShare: "Share {what} from {date} on RIVR's social",
   phonePushBlocked: "Blocked in your phone's settings.",
   phonePushUnsupported: 'Not supported here. Open RIVR from your home screen.',
+  /** In the native app, Android's name for the lock-screen status's notifications, in the phone's settings (decision 0361). */
+  liveStatusChannel: 'Live status',
   seatCalls: 'Seat calls',
   seatCallsHint: 'When your seat is ready',
   callTime: 'Call time',
