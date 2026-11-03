@@ -70,6 +70,15 @@ async function measure(page: Page, what: string) {
   }
 }
 
+/** A screen's link on the rail, Admin unfolded first when a reload (a part opened by its address) folded it again. */
+async function railLink(page: Page, href: string) {
+  const rail = page.getByRole('navigation', { name: 'Sections' });
+  await expect(rail.getByRole('link').first()).toBeVisible();
+  const link = rail.locator(`a[href="${href}"]`);
+  if ((await link.count()) === 0) await rail.getByRole('button', { name: 'Admin' }).click();
+  return link;
+}
+
 /** Each screen the rail lists, Admin unfolded, and each of a screen's tabs past the one it opens on, measured at each size. */
 async function everyScreenFits(page: Page, number: string) {
   await page.setViewportSize(DESK);
@@ -81,7 +90,8 @@ async function everyScreenFits(page: Page, number: string) {
   const screens = await hrefs(rail.getByRole('link'));
   expect(screens.length).toBeGreaterThan(0);
   for (const href of screens) {
-    await openAtDesk(page, rail.locator(`a[href="${href}"]`));
+    await page.setViewportSize(DESK);
+    await openAtDesk(page, await railLink(page, href));
     await measure(page, href);
     for (const tab of (await hrefs(page.locator('main nav a[href*="?tab="]'))).slice(1)) {
       await openTabAtDesk(page, tab);
@@ -160,7 +170,8 @@ test.describe('Console fits', () => {
 test.describe('Console fits, every screen', () => {
   for (const { who, number } of ROLES) {
     test(`Console fits: every screen ${who} opens fits a phone, the floor's tablet and a desk`, async ({ page }) => {
-      test.setTimeout(300_000);
+      // Every screen and tab at three sizes: a super admin's are many since console v3's tabs and parts.
+      test.setTimeout(600_000);
       await everyScreenFits(page, number);
     });
   }

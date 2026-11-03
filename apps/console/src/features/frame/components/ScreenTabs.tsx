@@ -1,9 +1,9 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, StatusMessage, Tabs } from '@rivr/ui';
+import { Screen, Stack, StatusMessage, Tabs } from '@rivr/ui';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Suspense, type ComponentType } from 'react';
-import { screenWithTabs, tabsFor } from './rail.ts';
+import { screenWithTabs, tabsFor, type ScreenTab } from './rail.ts';
 import { MOVED_NOTICES } from './tabSearch.ts';
 
 export interface ScreenTabsProps {
@@ -28,20 +28,21 @@ export function ScreenTabs({ screen, panes }: ScreenTabsProps) {
   if (staff.status !== 'ready' || entry === undefined) return null;
   const tabs = tabsFor(entry, staff.venue.permissions);
   const current = tabs.find((tab) => tab.id === search.get('tab')) ?? tabs[0];
-  const Pane = current === undefined ? undefined : panes[current.id];
   const notice = MOVED_NOTICES.find((one) => one === search.get('notice'));
-  const tabBar = tabs.length > 1 && current !== undefined ? (
+  const line = notice === undefined ? null : <StatusMessage>{t(`console.shell.moved.${notice}`)}</StatusMessage>;
+  const pane = current === undefined ? null : <TabPane tab={current} Pane={panes[current.id]} />;
+  // A role with one of the tabs has that tab's screen alone, under its own title.
+  if (tabs.length < 2 || current === undefined) return <Stack gap={6}>{line}{pane}</Stack>;
+  const tabBar = (
     <Tabs look="pill" label={t(entry.label)} current={current.id} onNavigate={(href) => void navigate({ href })}
       tabs={tabs.map((tab) => ({ id: tab.id, label: t(tab.label), href: `${entry.href}?tab=${tab.id}` }))} />
-  ) : undefined;
-  // The screen's title, then its tabs, then the tab's own screen, whose title the tab already says (as in the prototype).
-  return (
-    <Screen title={t(entry.label)} tabs={tabBar}>
-      {notice === undefined ? null : <StatusMessage>{t(`console.shell.moved.${notice}`)}</StatusMessage>}
-      {/* A tab loaded when first opened, such as Learn content, shows its screen loading meanwhile. */}
-      {Pane === undefined || current === undefined ? null : (
-        <Suspense fallback={<Screen title={t(current.label)} status="loading" />}><Pane /></Suspense>
-      )}
-    </Screen>
   );
+  // The screen's title, then its tabs, then the tab's own screen, whose title the tab already says (as in the prototype).
+  return <Screen title={t(entry.label)} tabs={tabBar}>{line}{pane}</Screen>;
+}
+
+/** A tab's own screen; one loaded when first opened, such as Learn content, shows its screen loading meanwhile. */
+function TabPane({ tab, Pane }: { tab: ScreenTab; Pane: ComponentType | undefined }) {
+  if (Pane === undefined) return null;
+  return <Suspense fallback={<Screen title={t(tab.label)} status="loading" />}><Pane /></Suspense>;
 }

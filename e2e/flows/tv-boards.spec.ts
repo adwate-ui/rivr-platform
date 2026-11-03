@@ -26,7 +26,8 @@ const LEAVING = 'Nakul Dhillon';
 
 /** The console's card for one table's list (decision 0433), found by its heading (console v3). */
 function gameList(page: Page, name: string): Locator {
-  return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) });
+  // The innermost: the table's own card, not the screens around it (a tab's screen is a section inside its screen's).
+  return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
 }
 
 /** Takes a member's place off the lists from its ⋯ menu, asked first (decision 0435). */

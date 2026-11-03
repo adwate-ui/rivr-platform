@@ -16,7 +16,7 @@ test.describe('Website edit', () => {
     await signInToConsole(page, '9000000637');
     // The website is Content's first tab, its pages listed beside the editor (console v3).
     await page.getByRole('link', { name: 'Content', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Website', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Website', level: 1 })).toBeVisible();
     await page.getByRole('region', { name: 'Pages' }).getByRole('button', { name: 'House rules', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'House rules', level: 2 })).toBeVisible();
     const field = page.getByRole('textbox', { name: 'Heading' }).first();
