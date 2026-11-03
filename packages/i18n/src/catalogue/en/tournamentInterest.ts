@@ -9,6 +9,12 @@ export const tournamentInterest = {
   mark: 'Mark registered',
   markName: 'Mark {name} registered',
   registered: 'Registered',
+  /** A tournament's card (console v3): how many asked, and how many of them are registered. */
+  counts: '{interested} interested · {registered} registered',
+  /** The toast after Mark registered, with Undo for a mistake (console v3). */
+  marked: '{name} marked registered',
+  /** Undo refused: marked more than ten minutes ago, or by another step first. */
+  undoFailed: 'Not taken back. The list now shows it.',
   failures: {
     not_allowed: 'Your role does not register players. The floor does.',
     invalid: 'Registered already. The list now shows it.',

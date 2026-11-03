@@ -22,6 +22,11 @@ describe('Grid', () => {
     expect(screen.getByRole('list', { name: 'Form' })).toHaveClass('grid-cols-1', 'medium:grid-cols-2');
   });
 
+  it("lays the console's cards one a row on a phone, two from 768 px and three from 1180 px, each its own height", () => {
+    renderIn(<Grid columns="cards" aria-label="Waitlists" as="ul"><li>Table 1</li></Grid>);
+    expect(screen.getByRole('list', { name: 'Waitlists' })).toHaveClass('grid-cols-1', 'medium:grid-cols-2', 'tablet:grid-cols-3', 'items-start');
+  });
+
   it('takes a gap from the spacing scale', () => {
     renderIn(
       <Grid columns={2} gap={8} aria-label="Stats" as="ul">

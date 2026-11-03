@@ -131,4 +131,14 @@ describe('Input', () => {
     expect(row).toHaveClass('items-center');
     expect(row).not.toHaveClass('items-baseline');
   });
+
+  it("is the console's filled one-line field when subtle: its label read out and shown inside until something is typed (console v3)", async () => {
+    const { container } = renderIn(<Input variant="subtle" label="Add: mobile or member no." error="Not a member number or mobile." />);
+    const field = screen.getByRole('textbox', { name: 'Add: mobile or member no.' });
+    expect(field).toHaveAttribute('placeholder', 'Add: mobile or member no.');
+    expect(field).toHaveClass('bg-subtle', 'min-h-touch', 'tablet:min-h-control', 'text-13');
+    expect(screen.getByText('Add: mobile or member no.', { selector: 'label' })).toHaveClass('sr-only');
+    expect(field).toHaveAccessibleDescription('Not a member number or mobile.');
+    expect(await axeViolations(container)).toEqual([]);
+  });
 });

@@ -5,6 +5,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- A promotion run in versions goes back to draft through its version (decision 0461).
+update public.promotion_version set status = 'draft' where status = 'live';
+select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
