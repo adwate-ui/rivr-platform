@@ -109,9 +109,8 @@ jobs:
           if-no-files-found: ignore
 
   # Mutation tests (decision 0242): on a pull request the money modules it changes, in the full run every one (0254).
-  # Their files are shared ten ways, balanced by size, so no runner carries them all (#515; ten since six ran past
-  # 20 minutes, decision 0425); mutation-score then
-  # checks each module over every share's report.
+  # Their files are shared fourteen ways, balanced by size, so no runner carries them all (#515; fourteen since six ran
+  # past 20 minutes, decision 0425); mutation-score then checks each module over every share's report.
   mutation:
     name: mutation ${{ matrix.share }}
     needs: plan
@@ -121,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        share: ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10']
+        share: ['1/14', '2/14', '3/14', '4/14', '5/14', '6/14', '7/14', '8/14', '9/14', '10/14', '11/14', '12/14', '13/14', '14/14']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
