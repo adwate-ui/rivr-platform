@@ -12,6 +12,13 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
+-- Promotion cards a member was given, kept to read against the rules (owner, 3 Nov).
+create temp table cards (shown_to text, promotion_id uuid);
+grant select, insert on cards to authenticated;
+create function pg_temp.referral_cards(p_shown_to text) returns integer language sql as $$
+  select count(*)::integer from cards c join public.promotion_rule r on r.promotion_id = c.promotion_id
+  where c.shown_to = p_shown_to and r.trigger = 'referral';
+$$;
 create function pg_temp.referral_bonus(p_member text) returns bigint language sql as $$
   select coalesce(sum(amount_paise), 0)::bigint from public.bonus_grant where member_id = p_member::uuid and reason = 'Referral';
 $$;
@@ -26,6 +33,26 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select results_eq($$ select code, referred from public.my_referral() $$,
   $$ select referral_code, 0 from public.member where id = '00000000-0000-4000-8000-000000000213' $$, 'Mihir''s code is his own (#562)');
 select is((select bonus_paise from public.my_referral()), 100000::bigint, 'and a referral gives each side ₹1,000 while the promotion runs');
+-- One reward, one card on Tonight (owner, 3 Nov): the referral card speaks for the referral promotion, which is not listed
+-- again. The cards Mihir is given are kept, then read against the rules, which a member cannot read.
+insert into cards select 'with referrals', promotion_id from public.my_promotion_cards();
+reset role;
+select is(pg_temp.referral_cards('with referrals'), 0,
+  'Tonight lists the referral promotion once, as Mihir''s referral card, not again among the promotion cards');
+select ok(exists (select 1 from cards where shown_to = 'with referrals'), 'while the club''s other live promotions still show as cards');
+-- Only the promotion the card speaks for is left out: a second, newer referral promotion stays a card. It goes again
+-- before Yash buys in, so his referral pays once.
+insert into public.promotion (id, venue_id, name, status, starts_at)
+values ('00000000-0000-4000-8000-0000000000f9', '00000000-0000-4000-8000-000000000001', 'Referral weekend', 'live', now());
+insert into public.promotion_rule (venue_id, promotion_id, trigger, effect)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000f9', 'referral', '{"kind": "bonus", "amount_paise": 50000, "expires_days": 30}');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
+insert into cards select 'second referral', promotion_id from public.my_promotion_cards();
+reset role;
+select is((select count(*)::integer from cards where shown_to = 'second referral' and promotion_id = '00000000-0000-4000-8000-0000000000f9'), 1,
+  'a second referral promotion, not the one the card speaks for, stays a card');
+select is(pg_temp.referral_cards('second referral'), 1, 'and only it: the card''s own promotion is still left out');
+delete from public.promotion where id = '00000000-0000-4000-8000-0000000000f9';
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 5, '9000000214'),
@@ -75,7 +102,9 @@ insert into public.member_feature_override (venue_id, member_id, feature_key, is
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 'referral.share_cards', false, 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is_empty($$ select * from public.my_referral() $$, 'a member whose tier has no referrals has no code');
+insert into cards select 'without referrals', promotion_id from public.my_promotion_cards();
 reset role;
+select is(pg_temp.referral_cards('without referrals'), 1, 'so the club''s referral promotion shows to him as a promotion card instead');
 select private.complete_referral('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000f1', gen_random_uuid());
 select is((select count(*)::integer from public.referral where member_id = '00000000-0000-4000-8000-0000000000f1'), 0,
   'and his code completes nothing');

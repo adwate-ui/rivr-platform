@@ -97,6 +97,22 @@ describe('Tonight', () => {
     expect(rows).toEqual(['Table 1 · NLH 50/100', 'Table 5 · NLH 50/100', 'Table 4 · NLH 50/100']);
   });
 
+  it('Browsing: one referral reward makes one offer card, before the club\'s other promotions in the row (owner, 3 Nov)', async () => {
+    renderTonight([], [], {
+      '/rpc/my_feature_access': [...FEATURES, { feature_key: 'promotions.feed', state: 'enabled', tiers: null }],
+      '/rpc/my_referral': [{ code: 'PGHG59H7', referred: 0, bonus_paise: 100000 }],
+      // As the server lists them since 3 Nov: the promotion behind the referral card is not a card again.
+      '/rpc/my_promotion_cards': [
+        { promotion_id: 'p1', title: 'High hands', detail: 'Royal flush 25,000', runs: 'Every night' },
+        { promotion_id: 'p2', title: 'Buy-in bonus Tuesday', detail: '20% on the first five buy-ins per table', runs: 'Tuesday · all stakes' },
+      ],
+    });
+    const offers = (await screen.findByText('3 offers', {}, LATER)).closest('section');
+    if (offers === null) throw new Error('No offers row');
+    expect(within(offers).getAllByText('Referral')).toHaveLength(1);
+    expect(within(offers).getAllByRole('listitem')).toHaveLength(3);
+  });
+
   it('On the list: the place, Next in line, when they joined, and Leave waitlist', async () => {
     renderTonight([PLACE]);
     expect(await screen.findByText('Next in line', {}, LATER)).toBeDefined();
