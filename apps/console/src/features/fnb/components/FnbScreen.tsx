@@ -3,6 +3,7 @@ import { useFnbItems, useFnbMenu, useFnbOrdersTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { Screen, Stack } from '@rivr/ui';
 import type { ReactNode } from 'react';
+import { MenuCsvImport } from './MenuCsvImport.tsx';
 import { MenuItems } from './MenuItems.tsx';
 import { OrderForSeat } from './OrderForSeat.tsx';
 import { TonightOrders } from './TonightOrders.tsx';
@@ -10,7 +11,7 @@ import { TonightOrders } from './TonightOrders.tsx';
 /**
  * Food and drink (#123), for staff who run it (fnb.manage) or serve it (fnb.serve, Service's whole role, #640): serving tonight's
  * orders, the KOTs not yet at the bar and tonight's orders, ordering
- * for a seat (paid or comp) and Glaza's menu. Glaza's monthly statement (#109) is hidden: no console shows money (#626).
+ * for a seat (paid or comp) and Glaza's menu, also from a CSV (#799). Glaza's monthly statement (#109) is hidden: no console shows money (#626).
  */
 export function FnbScreen() {
   const staff = useStaffVenue();
@@ -53,6 +54,8 @@ function FnbSections({ venueId, canOrder, canManage }: { venueId: string; canOrd
         {canOrder ? <OrderForSeat venueId={venueId} canComp={canManage} /> : null}
         {/* A dish's photo is for staff who run F&B: the photo bucket takes them alone (AS-11). */}
         <MenuItems venueId={venueId} canManage={canManage} />
+        {/* The menu from a CSV (#799), for everyone who keeps the menu, as save_fnb_item allows. */}
+        <MenuCsvImport venueId={venueId} />
       </Stack>
     </Screen>
   );

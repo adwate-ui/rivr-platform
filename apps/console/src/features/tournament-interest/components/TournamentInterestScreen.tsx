@@ -2,6 +2,7 @@ import { useMarkTournamentRegistered, useStaffVenue, useTournamentInterest, type
 import { formatDayTime, formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { PublishTournament } from './PublishTournament.tsx';
 
 /** Each tournament's interest, in the list's order: soonest tournament first, then in the order members asked. */
 function byTournament(interests: readonly TournamentInterest[]): TournamentInterest[][] {
@@ -35,37 +36,49 @@ function InterestLine({ venueId, interest }: { venueId: string; interest: Tourna
   );
 }
 
-function InterestList({ venueId }: { venueId: string }) {
+/** Each tournament's interest, soonest first, or that nobody has registered any. */
+function InterestList({ venueId, interests }: { venueId: string; interests: readonly TournamentInterest[] }) {
+  if (interests.length === 0) return <Text>{t('console.tournamentInterest.empty')}</Text>;
+  return (
+    <Stack gap={8}>
+      {byTournament(interests).map((group) => {
+        const [first] = group;
+        if (first === undefined) return null;
+        return (
+          <Stack key={first.tournamentId} gap={3}>
+            <Heading level={2}>{t('console.tournamentInterest.tournament', { name: first.tournamentName, when: formatDayTime(new Date(first.startsAt)) })}</Heading>
+            <Stack gap={3} divided>{group.map((interest) => <InterestLine key={interest.interestId} venueId={venueId} interest={interest} />)}</Stack>
+          </Stack>
+        );
+      })}
+    </Stack>
+  );
+}
+
+/** The screen once the interest list has come: a new tournament to publish, then who asked. */
+function InterestScreen({ venueId }: { venueId: string }) {
   const list = useTournamentInterest(venueId);
   const title = t('console.tournamentInterest.title');
   if (list.isPending) return <Screen title={title} status="loading" />;
   if (list.data === undefined) return <Screen title={title} status="error" onRetry={() => void list.refetch()} />;
-  if (list.data.length === 0) return <Screen title={title} status="empty" emptyText={t('console.tournamentInterest.empty')} />;
   return (
     <Screen title={title}>
-      <Stack gap={8}>
-        {byTournament(list.data).map((group) => {
-          const [first] = group;
-          if (first === undefined) return null;
-          return (
-            <Stack key={first.tournamentId} gap={3}>
-              <Heading level={2}>{t('console.tournamentInterest.tournament', { name: first.tournamentName, when: formatDayTime(new Date(first.startsAt)) })}</Heading>
-              <Stack gap={3} divided>{group.map((interest) => <InterestLine key={interest.interestId} venueId={venueId} interest={interest} />)}</Stack>
-            </Stack>
-          );
-        })}
+      <Stack gap={10}>
+        <PublishTournament venueId={venueId} />
+        <InterestList venueId={venueId} interests={list.data} />
       </Stack>
     </Screen>
   );
 }
 
 /**
- * Tournament interest (#636), for the floor (waitlist.manage): the members who registered interest in each upcoming
- * tournament from the app, each marked registered once they paid at the venue. The tournament module stays hidden.
+ * Tournament interest (#636), for staff who manage tournaments: a new upcoming tournament to publish without money (#800),
+ * and the members who registered interest in each from the app, each marked registered once they paid at the venue. The
+ * tournament module stays hidden.
  */
 export function TournamentInterestScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  return <InterestList venueId={staff.venue.venueId} />;
+  return <InterestScreen venueId={staff.venue.venueId} />;
 }

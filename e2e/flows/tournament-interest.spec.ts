@@ -1,30 +1,37 @@
 /**
- * Tournament interest (#636). The club publishes a tournament for the day after tomorrow (made here, in the local
- * database, with a name of the run's own). Ajay Dhillon, this flow's own member, sees it under Tournaments in Tonight's
- * tables with no buy-in, and asks to be notified (decision 0320). Leela Pillai, this flow's own admin, finds him on the console's Tournament
- * interest screen and marks him registered once he paid at the club; his Tonight then says Registered. The rules are
- * proved in supabase/tests/204_tournament_interest.test.sql.
+ * Tournament interest (#636) and tournaments without money (#800, decision 0441). Leela Pillai, this flow's own admin,
+ * publishes a tournament for the day after tomorrow from the console's Tournament interest screen, with a name of the
+ * run's own, its game and stake as text and no buy-in. Ajay Dhillon, this flow's own member, sees it under Tournaments
+ * in Tonight's tables with no buy-in, and asks to be notified (decision 0320). Leela finds him on the same screen and
+ * marks him registered once he paid at the club; his Tonight then says Registered. The rules are proved in
+ * supabase/tests/204_tournament_interest.test.sql and 292_tournaments_without_money.test.sql.
  */
-import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
-import { worktreeName } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
-const CLUB = '00000000-0000-4000-8000-000000000001';
-
-/** Runs SQL in this worktree's local database. */
-function sql(query: string): string {
-  return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
-}
+/** The IST day two days from now, as a date field takes it: `2026-11-05`. */
+const dayAfterTomorrow = () => new Date(Date.now() + 2 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
 test.describe('Tournament interest', () => {
-  test('a member registers interest in an upcoming tournament, and the floor marks him registered', async ({ browser }) => {
+  test('the club publishes a tournament without money, a member registers interest, and the floor marks him registered', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'publishes a tournament in the local database, so the local stack only');
     test.setTimeout(90_000);
     const name = `Interest Cup ${String(Date.now() % 100_000).padStart(5, '0')}`;
-    sql(`insert into public.tournament (venue_id, name, starts_at, buy_in_paise, is_published)
-         values ('${CLUB}', '${name}', now() + interval '2 days', 1000000, true)`);
+
+    const floor = await browser.newPage();
+    await signInToConsole(floor, '9000000116');
+    await floor.getByRole('link', { name: 'Tournament interest' }).click();
+    await expect(floor.getByRole('heading', { name: 'New tournament' })).toBeVisible();
+    await expect(floor.getByLabel(/buy-in|prize|guarantee/i)).toHaveCount(0);
+    await floor.getByRole('textbox', { name: 'Name' }).fill(name);
+    await floor.getByLabel('Day').fill(dayAfterTomorrow());
+    await floor.getByRole('textbox', { name: 'Start time' }).fill('16:00');
+    await floor.getByRole('textbox', { name: 'Game' }).fill('No-limit hold’em');
+    await floor.getByRole('textbox', { name: 'Stake' }).fill('25,000 chips');
+    await floor.getByRole('textbox', { name: 'Description' }).fill('Twenty-minute levels.');
+    await floor.getByRole('button', { name: 'Publish' }).click();
+    await expect(floor.getByText(`${name} published.`)).toBeVisible();
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000408');
@@ -35,9 +42,7 @@ test.describe('Tournament interest', () => {
     // Notify me becomes Notifying you (decision 0320); the floor registers them once they pay at the club.
     await expect(member.getByRole('button', { name: `Register interest in ${name}` })).toHaveText('Notifying you');
 
-    const floor = await browser.newPage();
-    await signInToConsole(floor, '9000000116');
-    await floor.getByRole('link', { name: 'Tournament interest' }).click();
+    await floor.reload();
     await expect(floor.getByRole('heading', { name: new RegExp(`^${name} · `) })).toBeVisible();
     await floor.getByRole('button', { name: 'Mark Ajay Dhillon registered' }).first().click();
     await expect(floor.getByText('Registered', { exact: true }).first()).toBeVisible();

@@ -1,0 +1,9 @@
+# 0441: Tournaments published without money
+
+Date: 3 Nov 2026. Issue #800 (the owner, 3 Nov, #651): the Tournaments screen is hidden (decision 0284); add a money-free form to publish upcoming tournaments, with the name, date and time, the game and stake as text, and a description. No buy-in or prize amounts. Members see them as before.
+
+- **One model.** A tournament without money is a row of `tournament`, as every other: `buy_in_paise` may now be null, and `game`, `stake` and `description` hold the text. A tournament has a buy-in or its game and stake, and one without a buy-in has no blind levels, so it never runs a clock or sells an entry. Nothing new for the app or the website to read.
+- **Where.** On the console's Tournament interest screen (`tournaments.manage`, super admins and admins), above the interest list: a New tournament form of name, IST day and start time, game, stake and an optional description. `publish_tournament` publishes it at once, with a start still to come. The form has no field for money.
+- **Members see them as before.** The app's Tournaments list reads name and start (`my_upcoming_tournaments`) and members register interest, as for any published tournament. The game, stake and description are shown to no one yet, and refusing a rupee amount typed into them comes with showing them (#820): the app's list sits in Home's tables, another lane's work.
+- **The website** lists published tournaments from `public_tournament_calendar`, which dropped one without a buy-in. It now keeps it, with no buy-in line (`SiteTournament.buyIn` and `CalendarBlock`'s may be null); one with a buy-in reads as before. A practice venue's never reaches it, as before.
+- **Left for later.** Listing, changing or taking down a tournament published here (#821). The hidden Tournaments screen and Home's unrendered tournament card read a buy-in, and fail to load once a tournament without money exists; neither is on a screen today (#822).

@@ -32,7 +32,7 @@ src/
     waitlist/         the floor's waitlists: approve or remove joins from the app (#633), add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
-    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu (/fnb)
+    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu by kind, an item at a time or from a CSV (#799) (/fnb)
     todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; /players-today)
     tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
     games-history/    the tables run each club day, how often and how long, for the super admin (#643; /games-history)
@@ -64,6 +64,8 @@ src/
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
     rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
     league/           the RIVR League's standings by month or season, and its seasons (/league)
+    tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
+                      who registered interest in each from the app, marked registered once paid (#636; /tournament-interest)
     tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs with
                       bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
                       the finish, deals, what was paid), tournaments from templates, templates, and blind

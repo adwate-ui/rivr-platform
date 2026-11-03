@@ -33,6 +33,13 @@ async function pathFrom(request: Request): Promise<string | null> {
   return typeof path === 'string' && KYC_IMAGE_PATH.test(path) ? path : null;
 }
 
+/** The database's refusal: a member's eleventh view of their own selfie in a minute (#744) is a wait, anything else a 403. */
+async function refused(answer: Response): Promise<Response> {
+  const refusal: unknown = await answer.json().catch(() => null);
+  const code: unknown = typeof refusal === 'object' && refusal !== null ? Reflect.get(refusal, 'code') : null;
+  return code === 'RVRAT' ? reply({ error: 'Too many views in a minute' }, 429) : reply({ error: 'Not allowed to see this image' }, 403);
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
@@ -45,7 +52,7 @@ Deno.serve(async (request) => {
     headers: { apikey: anonKey, authorization: request.headers.get('authorization') ?? '', 'content-type': 'application/json' },
     body: JSON.stringify({ p_name: path }),
   });
-  if (!allowed.ok) return reply({ error: 'Not allowed to see this image' }, 403);
+  if (!allowed.ok) return refused(allowed);
 
   // The path matched KYC_IMAGE_PATH, so it holds only characters that need no encoding.
   const signed = await fetch(`${supabaseUrl}/storage/v1/object/sign/kyc/${path}`, {

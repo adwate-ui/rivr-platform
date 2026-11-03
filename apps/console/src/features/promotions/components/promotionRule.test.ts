@@ -65,13 +65,26 @@ describe('what a waiting promotion does, for its approver', () => {
     expect(lines).toEqual([
       'For hours played: 2 times the points earned',
       'Who and when: once call time is complete',
-      'When a hand is logged: A watch, worth ₹25,000',
+      'When a hand is logged: A watch',
       'Who and when: for a royal flush',
       'On a check-in: a spin of the wheel',
       'Who and when: new players only',
       'At most 3 per member in all',
       'Budget: 50 grants, each month',
     ]);
+  });
+
+  // Issue 649: no rupees on any console (decision 0284), so a prize is named without its worth and a jackpot payout without its amount.
+  it('states no money: a prize without its worth, a jackpot payout without its amount', () => {
+    const lines = approvalLines(waiting({
+      rules: [
+        { trigger: 'hand_logged', conditions: {}, effect: { kind: 'physical_prize', prize: 'A watch', value_paise: 2_500_000 } },
+        { trigger: 'hand_logged', conditions: {}, effect: { kind: 'jackpot_payout', pool: 'main', amount_paise: 500_000 } },
+      ],
+    }), STAKES);
+    expect(lines).toContain('When a hand is logged: A watch');
+    expect(lines).toContain('When a hand is logged: a payout from the main jackpot');
+    expect(lines?.join(' ')).not.toContain('₹');
   });
 
   it('says a card-only template gives nothing', () => {

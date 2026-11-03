@@ -18,8 +18,11 @@ export interface AgentApi {
   newestPack(token: string): Promise<PackLink | null | { refusal: AgentRefusal }>;
   /** The venue's KOTs to print, claimed for the agent as the outbox consumer bar_printer, or why not. */
   claimKots(token: string, limit: number): Promise<ClaimedDelivery[] | { refusal: AgentRefusal }>;
-  /** How a claimed KOT went: printed, or failed with when to try again (null: never). Throws when it cannot say. */
-  finishKot(token: string, outcome: { deliveryId: string; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
+  /**
+   * How a claimed KOT went: printed, or failed with when to try again (null: never), for the attempt it was claimed as.
+   * Throws when it cannot say.
+   */
+  finishKot(token: string, outcome: { deliveryId: string; attempts: number; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
 }
 
 function field(value: unknown, name: string): unknown {
@@ -75,7 +78,7 @@ export function createAgentApi(functionsUrl: string, send: typeof fetch = fetch)
     async finishKot(token, outcome) {
       const { status } = await post({
         action: 'finish_kot', delivery_id: outcome.deliveryId, delivered: outcome.isDelivered, error: outcome.error,
-        retry_after_seconds: outcome.retryAfterSeconds,
+        retry_after_seconds: outcome.retryAfterSeconds, attempts: outcome.attempts,
       }, token);
       if (status !== 200) throw new Error(`finish_kot failed (${String(status)})`);
     },

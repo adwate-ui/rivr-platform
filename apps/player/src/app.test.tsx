@@ -273,7 +273,7 @@ describe('sign-in', () => {
     renderAt('/sign-in');
     fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '98765 43210' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
-    expect(await screen.findByText('Sign-in is down. Try again shortly.', {}, { timeout: 3000 })).toBeDefined();
+    expect(await screen.findByText('Sign-in is down. Try again shortly.')).toBeDefined();
   });
 });
 

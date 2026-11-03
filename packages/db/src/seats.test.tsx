@@ -69,6 +69,22 @@ describe('Leaving before call time', () => {
     ]);
   });
 
+  // Issue 745: under load the admin waited for two full re-reads before Released early.
+  it('reads the floor again once when the seat is freed next, not after each step', async () => {
+    const { result, calls } = renderSeats({ let_leave_early: { body: 'e1' }, end_seat: { body: null } });
+    await waitFor(() => expect(result.current.leftOwing.isSuccess).toBe(true));
+    const reads = () => calls.filter((call) => call.rpc === 'left_owing_call_time').length;
+    const before = reads();
+    await act(async () => {
+      await result.current.letLeaveEarly.mutateAsync({ memberId: 'm1', reason: 'Family emergency', isSeatFreedNext: true });
+    });
+    expect(reads()).toBe(before);
+    await act(async () => {
+      await result.current.leave.mutateAsync('s1');
+    });
+    expect(reads()).toBe(before + 1);
+  });
+
   it('says when no call time is owed', async () => {
     const { result } = renderSeats({ let_leave_early: { status: 400, body: { code: 'RVCTD', message: 'none owed' } } });
     let outcome: unknown;

@@ -40,6 +40,8 @@ export const rewards = {
       no_member: 'No member here has that number.',
       invalid: '1 to 10,00,000 points and a reason of 3 to 200 characters.',
       not_enough_locked: 'They hold fewer locked points than that.',
+      /** Past the staff member's daily cap on points by hand (#798); the owner is told. */
+      daily_limit: 'You have reached your daily limit for giving points. A super admin can give more.',
       paused: 'Venue frozen. Try again once it is released.',
       unavailable: 'Not sent. Try again.',
     },

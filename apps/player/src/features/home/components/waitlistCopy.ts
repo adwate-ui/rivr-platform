@@ -1,5 +1,12 @@
-import type { WaitlistFailure } from '@rivr/db';
-import type { MessageKey } from '@rivr/i18n';
+import type { WaitlistFailure, WaitlistPlace } from '@rivr/db';
+import { formatOrdinal, t, type MessageKey } from '@rivr/i18n';
+
+/** "Next in line", "2nd in line", a join the floor has not approved yet, or a seat held for the member now they are called. */
+export function lineOf(place: WaitlistPlace): string {
+  if (place.holdUntil !== null) return t('player.live.ready.eyebrow');
+  if (place.place === null) return t('player.live.list.requested');
+  return place.place === 1 ? t('player.live.list.next') : t('player.live.list.place', { ordinal: formatOrdinal(place.place) });
+}
 
 /** What Tonight says when joining, answering a call or leaving a waitlist did not go through. */
 export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {

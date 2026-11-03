@@ -74,7 +74,11 @@ describe('fetchSitePage', () => {
     { table_type_code: 'nlh_50_100', table_type_name: 'NLH 50/100', is_open: true, small_blind_paise: 5000, big_blind_paise: 10000,
       buy_in_min_paise: 500000, buy_in_max_paise: 500000, straddle_paise: null, seats: 9, seats_taken: 4 },
   ];
-  const CALENDAR = [{ name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00+00:00', buy_in_paise: 1000000, guarantee_paise: 50000000 }];
+  const CALENDAR = [
+    { name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00+00:00', buy_in_paise: 1000000, guarantee_paise: 50000000 },
+    // Published without money from the console (decision 0441).
+    { name: 'Diwali Deepstack', starts_at: '2026-11-16T10:30:00+00:00', buy_in_paise: null, guarantee_paise: null },
+  ];
 
   it('reads the games’ stakes and the calendar from the live views when the page has their blocks, and no waiting counts', async () => {
     const { client, urls } = siteClient(PAGES, LIVE_BLOCKS, { public_table_status: { body: TABLES }, public_tournament_calendar: { body: CALENDAR } });
@@ -85,6 +89,7 @@ describe('fetchSitePage', () => {
     expect(urls.some((url) => url.includes('/public_waitlist_length'))).toBe(false);
     expect(page.ok && page.value?.tournaments).toEqual([
       { name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n },
+      { name: 'Diwali Deepstack', startsAt: new Date('2026-11-16T10:30:00Z'), buyIn: null, guarantee: null },
     ]);
   });
 

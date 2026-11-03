@@ -158,6 +158,11 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The points a member earns for each hour played at this table type. Not set earns none.',
     fields: { points: 'Points' },
   },
+  'points.daily_staff_cap': {
+    name: 'Daily points limit',
+    help: 'The most points one staff member gives by hand in a club day. Past it, a change is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
+    fields: { points: 'Points' },
+  },
   'points.verified_bonus': {
     name: 'Bonus on verification',
     help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',

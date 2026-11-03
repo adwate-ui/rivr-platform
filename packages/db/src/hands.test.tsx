@@ -67,7 +67,7 @@ describe('Hand entry data', () => {
     await waitFor(() => expect(result.current.rules.data?.nextChangeAt).toBe(changeAt));
     // The change starts: the rate goes up to 6%.
     replies['/rpc/tablet_rake_rules'] = { body: [{ ...RULES, rate_basis_points: 600 }] };
-    await waitFor(() => expect(result.current.rules.data?.rake.rateBasisPoints).toBe(600n), { timeout: 3_000 });
+    await waitFor(() => expect(result.current.rules.data?.rake.rateBasisPoints).toBe(600n));
     expect(calls.filter((call) => call.url.includes('/rpc/tablet_rake_rules'))).toHaveLength(2);
   });
 

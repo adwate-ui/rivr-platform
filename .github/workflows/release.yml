@@ -117,10 +117,18 @@ jobs:
         env:
           PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
         run: pnpm supabase secrets set "PLAYER_APP_URL=$PLAYER_URL" --project-ref "$PROJECT_REF"
-      # Production never talks to Cashfree's sandbox, even with staging's TEST keys copied over by mistake: the live
-      # system refuses those keys, so KYC and payouts stay closed instead of taking sandbox answers (#112).
-      - name: Cashfree's live system on production (#112)
-        run: pnpm supabase secrets set "CASHFREE_ENVIRONMENT=production" --project-ref "$PROJECT_REF"
+      # Production talks to Cashfree's live system, so staging's TEST keys copied over by mistake are refused and KYC and
+      # payouts stay closed instead of taking sandbox answers (#112). The one exception is the owner's choice to run the
+      # sandbox until the live keys arrive: the variable PROD_CASHFREE_ENVIRONMENT=sandbox keeps it (decision 0421).
+      - name: Cashfree's system on production (#112, decision 0421)
+        env:
+          CASHFREE_ENVIRONMENT: ${{ vars.PROD_CASHFREE_ENVIRONMENT || 'production' }}
+        run: |
+          [[ "$CASHFREE_ENVIRONMENT" =~ ^(production|sandbox)$ ]] || { echo "::error::PROD_CASHFREE_ENVIRONMENT must be production or sandbox."; exit 1; }
+          if [ "$CASHFREE_ENVIRONMENT" = sandbox ]; then
+            echo "::warning::Production runs Cashfree's sandbox (decision 0421): selfie matches prove nothing. Delete PROD_CASHFREE_ENVIRONMENT once the live keys are set."
+          fi
+          pnpm supabase secrets set "CASHFREE_ENVIRONMENT=$CASHFREE_ENVIRONMENT" --project-ref "$PROJECT_REF"
       - name: Auth settings (sessions only from a code, #187)
         run: node scripts/ci/check-auth-config.mjs
 

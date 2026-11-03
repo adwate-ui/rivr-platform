@@ -112,9 +112,9 @@ export const promotions = {
       pointsMultiplier: '{multiplier} times the points earned',
       freerollTicket: 'a freeroll ticket to {tournament}',
       cab: 'a cab home',
+      /** No rupees on the console (decision 0284, #649): a prize by its name, a jackpot payout without its amount. */
       prize: '{prize}',
-      prizeWorth: '{prize}, worth {value}',
-      jackpot: '{amount} from the {pool} jackpot',
+      jackpot: 'a payout from the {pool} jackpot',
       message: 'a message: {text}',
       spin: 'a spin of the wheel',
     },
