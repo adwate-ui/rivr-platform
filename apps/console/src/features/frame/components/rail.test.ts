@@ -74,6 +74,11 @@ describe('the console rail (console v3)', () => {
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'rewards')).toBe(true);
     expect(refusalAt(ROLE_PERMISSIONS.cashier, '/rewards', 'spin-wheel')).toEqual({ title: 'Rewards', isOff: false });
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/waitlist', 'interest')).toBe(false);
+    // A host has no Marketing, so hands redemptions over at the Door.
+    const door = entry('door');
+    if (door === undefined) throw new Error('no Door entry');
+    expect(tabsFor(door, ROLE_PERMISSIONS.host).map((tab) => tab.id)).toEqual(['check-in', 'players', 'handover']);
+    expect(tabsFor(door, ROLE_PERMISSIONS.service).map((tab) => tab.id)).toEqual([]);
     expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/waitlist', 'interest')).toBe(true);
     // A tab the screen does not have is the screen's first: the role's, not a refusal.
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'nowhere')).toBe(true);

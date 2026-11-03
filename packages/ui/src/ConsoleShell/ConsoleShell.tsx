@@ -49,7 +49,7 @@ type HeaderProps = Pick<ConsoleShellProps, 'search' | 'pulse' | 'clock' | 'accou
  */
 function ConsoleHeader({ title, search, pulse, clock, account }: HeaderProps) {
   return (
-    <header className="flex h-header shrink-0 items-center gap-3 px-4 medium:gap-4 medium:px-8">
+    <header className="flex h-console-header shrink-0 items-center gap-3 px-4 medium:gap-4 medium:px-8">
       <div className="flex min-w-0 flex-1 items-center gap-3 medium:hidden">
         <span role="img" aria-label={t('ui.brand.label')} className="flex shrink-0"><WordmarkCard /></span>
         {title ? <p className="min-w-0 truncate font-text text-16 leading-snug font-semibold">{title}</p> : null}

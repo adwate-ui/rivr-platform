@@ -62,7 +62,7 @@ export function ConsoleRail({ sections, currentItem, onNavigate, isLabelled, onT
   const toggleLabel = t(isLabelled ? 'ui.console.shell.collapse' : 'ui.console.shell.expand');
   return (
     <aside className={cx('hidden shrink-0 flex-col bg-raised medium:flex', isLabelled ? 'w-rail' : 'w-rail-collapsed')}>
-      <div className={cx('flex h-header shrink-0 items-center', isLabelled ? 'px-6' : 'justify-center')}>
+      <div className={cx('flex h-console-header shrink-0 items-center', isLabelled ? 'px-6' : 'justify-center')}>
         {isLabelled ? <Wordmark /> : <span role="img" aria-label={t('ui.brand.label')} className="flex"><WordmarkCard /></span>}
       </div>
       <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pt-1 pb-3">

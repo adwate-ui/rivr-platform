@@ -116,6 +116,7 @@
   --spacing-search: var(--rivr-size-search);
   --spacing-bottom-nav: var(--rivr-size-bottom-nav);
   --spacing-header: var(--rivr-size-header);
+  --spacing-console-header: var(--rivr-size-console-header);
   --spacing-text: var(--rivr-size-text);
   --spacing-photo: var(--rivr-size-photo);
   --spacing-card: var(--rivr-size-card);

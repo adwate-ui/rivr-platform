@@ -93,6 +93,7 @@
   --rivr-size-search: 420px; /** The console header's search field at its widest. */
   --rivr-size-bottom-nav: 64px; /** Player bottom tab bar. */
   --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
+  --rivr-size-console-header: 60px; /** The console's header and the rail's wordmark row beside it, as the console v3 prototype draws them. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
   --rivr-size-photo: 160px; /** A KYC photo beside its member's details, such as in the review queue. */
   --rivr-size-action: 54px; /** The player app's tall action button: a step's one gold action (decision 0320). */

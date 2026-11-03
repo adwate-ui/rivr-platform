@@ -58,6 +58,8 @@ export const RAIL: readonly RailGroup[] = [
       { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], tabs: [
         { id: 'check-in', label: 'console.rail.items.checkIn', anyOf: ['waitlist.manage'] },
         { id: 'players', label: 'console.rail.items.todaysPlayers', anyOf: ['members.read'] },
+        // Redemptions to hand over at the door, so a host, who has no Marketing (decision 0443), still hands them over.
+        { id: 'handover', label: 'console.rail.items.handOver', anyOf: ['rewards.hand_over'] },
       ] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', icon: 'food', anyOf: ['fnb.manage', 'fnb.serve'], counts: ['fnb'], isActionable: true },
     ],
