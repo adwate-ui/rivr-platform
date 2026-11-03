@@ -3,7 +3,8 @@
 --   queue that fed it are dropped, and nothing now sends member.answers_saved or member.erased, which only the CRM took.
 --   The privacy notice no longer names HubSpot.
 -- - Rake is allowed (#794, answering #624): "Is poker legal in Gurugram?" is published.
--- - No Academy for now (#795, answering #724): the Academy page is unpublished. It is in no menu, and nothing links to it.
+-- - No Academy for now (#795, answering #724): the Academy page is unpublished (it is in no menu, and no page links to it),
+--   and the links page no longer offers "Book RIVR Academy".
 -- Each website change applies only while the page reads as the website came with it, so a club's own words stay.
 
 select cron.unschedule(j.jobid) from cron.job j where j.jobname = 'outbox-crm-sync';
@@ -69,6 +70,14 @@ as $$
   where venue_id = p_venue_id and slug = 'journal-poker-legal-gurugram' and not is_published;
   update public.site_page set is_published = false
   where venue_id = p_venue_id and slug = 'academy' and is_published;
+  -- The links page loses "Book RIVR Academy", the player app's Academy being off too (Learn and Events are, #651).
+  update public.site_block b
+  set content = jsonb_set(b.content, '{links}', (select coalesce(jsonb_agg(x.link order by x.place), '[]'::jsonb)
+                                                 from jsonb_array_elements(b.content -> 'links') with ordinality as x (link, place)
+                                                 where x.link ->> 'to' is distinct from 'academy'))
+  from public.site_page p
+  where p.id = b.page_id and p.venue_id = p_venue_id and p.slug = 'links' and b.kind = 'links'
+    and b.content -> 'links' @> '[{"to": "academy"}]';
 $$;
 revoke execute on function private.website_launch_answers(uuid) from public, anon, authenticated;
 
