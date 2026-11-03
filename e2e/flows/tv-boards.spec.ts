@@ -17,7 +17,8 @@
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { letGoEarly, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
+import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
@@ -41,8 +42,8 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
+  // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
+  await openConsole(floor, '/settings?tab=devices&part=tvs');
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
@@ -70,17 +71,12 @@ async function addToFifties(floor: Page, number: string, name: string) {
   await expect(floor.getByRole('button', { name: `More for ${name}`, exact: true })).toBeVisible();
 }
 
-/** Seats Nakul at the Private Room's seat 8, unless a run stopped early left him seated. */
+/** Seats Nakul at the Private Room's seat 8 from the Live floor (console v3), unless a run stopped early left him seated. */
 async function seatNakul(floor: Page) {
   await floor.getByRole('link', { name: 'Live floor' }).click();
-  await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
-  const seated = floor.getByRole('button', { name: `${LEAVING} leaves` });
-  await expect(floor.getByRole('heading', { name: 'Private Room' }).first()).toBeVisible();
-  if (await seated.count() === 0) {
-    await floor.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '8', exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000400');
-    await floor.getByRole('button', { name: 'Seat', exact: true }).click();
-  }
+  await showSeats(floor);
+  const seated = tableTile(floor, 'Private Room').getByRole('button', { name: new RegExp(`^Seat 8, ${LEAVING},`) });
+  if (await seated.count() === 0) await seatOnFloor(floor, { table: 'Private Room', seat: 8, number: '9000000400' });
   await expect(seated).toBeVisible();
 }
 
@@ -124,9 +120,9 @@ test.describe('TV boards', () => {
     await expect(fifties.getByText('Kunal M.', { exact: true })).toBeVisible({ timeout: 25_000 });
     await expect(fifties.getByText('Player 1', { exact: true })).toHaveCount(0);
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
+    // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
 
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openConsole(floor, '/settings?tab=devices&part=tvs');
     // No jackpot to choose, and no rupee on the TV (#628).
     await expect(floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'Jackpot and high hand', exact: true }))
       .toHaveCount(0);
@@ -155,8 +151,8 @@ test.describe('TV boards', () => {
     await expect(room.getByText('Nakul D.', { exact: true })).toHaveCount(0);
 
     // The promotions in between: after half a minute on the board, a promotion, and then the board again.
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
+    await openConsole(floor, '/settings?tab=devices&part=tvs');
     await floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
     await expect(floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true })
       .getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -165,18 +161,14 @@ test.describe('TV boards', () => {
 
     // Pooja, an admin, lets Nakul go before his call time, and he leaves.
     await floor.getByRole('link', { name: 'Live floor' }).click();
-    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
-    await floor.getByRole('button', { name: `${LEAVING} leaves` }).click();
-    await floor.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the test run');
-    await floor.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(floor.getByText('Released early.')).toBeVisible();
-    await expect(floor.getByRole('button', { name: `${LEAVING} leaves` })).toHaveCount(0);
+    await letGoEarly(floor, LEAVING, 'Floor decision');
+    await expect(floor.getByRole('button', { name: new RegExp(`^Seat \\d+, ${LEAVING},`) })).toHaveCount(0);
 
     await floor.goto(`${appUrl('console')}/waitlist`);
     await removePlace(floor, PLAYER);
     await removePlace(floor, HIDDEN);
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
+    await openConsole(floor, '/settings?tab=devices&part=tvs');
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
