@@ -1,9 +1,7 @@
-import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Learn sources (#131). Loaded when first opened: it carries the drill engine, which checks an encoding before upload. */
+/** Learn content moved into Content (console v3): an old link or bookmark opens its tab there. */
 export const learnSourcesRoute = createRoute({
-  getParentRoute: () => frameRoute,
-  path: '/learn-sources',
-  component: lazyRouteComponent(() => import('../features/learn-sources/index.ts'), 'LearnSourcesScreen'),
+  getParentRoute: () => frameRoute, path: '/learn-sources', component: () => <Navigate to="/content" search={{ tab: 'learn' }} replace />,
 });
