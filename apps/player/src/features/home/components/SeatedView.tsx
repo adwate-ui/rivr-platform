@@ -1,4 +1,4 @@
-import { useFeature, type MySeat } from '@rivr/db';
+import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { callTimeFraction, isCallTimeEnding, secondsUntil } from '@rivr/domain/callTime';
 import { formatClock, formatHoursMinutes, formatTime, t } from '@rivr/i18n';
 import { FeatureGate, Figure, Inline, ProgressRing, Text } from '@rivr/ui';
@@ -29,6 +29,8 @@ function CallTimeRing({ seat, now }: { seat: MySeat; now: Date }) {
 
 interface SeatedViewProps {
   seat: MySeat;
+  /** A place on another list to change tables (#781), which the floor added. */
+  places: readonly WaitlistPlace[];
   now: Date;
   /** The seat's sheet that is open, which the call-time banner opens too. */
   sheet: SeatSheet | null;
@@ -37,9 +39,9 @@ interface SeatedViewProps {
 
 /**
  * Seated (brief 3.4 E): the call-time ring with call_time.view, where the seat has call time; the three round actions and
- * their sheets; Order to my seat; tonight's order on its way; and the seat's open requests.
+ * their sheets; Order to my seat; tonight's order on its way; and the seat's open requests, any place on a list among them.
  */
-export function SeatedView({ seat, now, sheet, onSheet }: SeatedViewProps) {
+export function SeatedView({ seat, places, now, sheet, onSheet }: SeatedViewProps) {
   const callTime = useFeature('call_time.view');
   return (
     <>
@@ -51,7 +53,7 @@ export function SeatedView({ seat, now, sheet, onSheet }: SeatedViewProps) {
       <SeatActions seat={seat} onOpen={onSheet} />
       <OrderToSeat />
       <OrderTracker />
-      <SeatStatus seat={seat} />
+      <SeatStatus seat={seat} places={places} />
       <SeatSheets open={sheet} seat={seat} secondsLeft={callSecondsLeft(seat, now)} onClose={() => onSheet(null)} />
     </>
   );

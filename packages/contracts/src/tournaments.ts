@@ -153,6 +153,17 @@ export const newTournamentSchema = z.object({
   isPublished: z.boolean(),
 });
 
+/**
+ * A tournament published without money (#800; decision 0441): its name, IST day and start, the game and stake as text, and
+ * a description if any. No buy-in or prize: strict, so none is ever sent.
+ */
+export const publishTournamentSchema = z.strictObject({
+  ...newTournamentSchema.pick({ name: true, day: true, time: true }).shape,
+  game: z.string().trim().min(1).max(40),
+  stake: z.string().trim().min(1).max(40),
+  description: z.string().trim().max(500),
+});
+
 /** An IST day (`2026-11-15`) and 24-hour time (`16:00`) as the moment it is. IST keeps no daylight saving. */
 export function istMoment(day: string, time: string): Date {
   return new Date(`${day}T${time}:00+05:30`);

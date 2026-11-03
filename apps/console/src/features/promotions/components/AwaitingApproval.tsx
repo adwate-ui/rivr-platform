@@ -90,6 +90,7 @@ function AwaitingRow({ venueId, promotion, stakes, mayApprove, onOutcome }: RowP
         <Stack gap={1} grow>
           <Text weight="medium" id={nameId}>{promotion.name}</Text>
           {words === '' ? null : <Text variant="small" tone="muted">{words}</Text>}
+          {promotion.link === null ? null : <Text variant="small" tone="muted">{t('console.promotions.awaiting.link', { link: promotion.link })}</Text>}
           <Text variant="small" tone="muted">
             {t('console.promotions.awaiting.submittedBy', { name: promotion.requestedBy, time: formatDayTime(new Date(promotion.requestedAt)) })}
           </Text>

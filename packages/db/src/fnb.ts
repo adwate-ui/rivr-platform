@@ -5,6 +5,8 @@ import { itemPhotoUrl } from './itemPhotos.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
+export { useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
+
 /** An item on the table-side menu (#123): Glaza's, no price. */
 export interface FnbMenuItem {
   readonly itemId: string;

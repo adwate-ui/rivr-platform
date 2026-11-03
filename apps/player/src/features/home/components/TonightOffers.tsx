@@ -19,7 +19,7 @@ export function TonightOffers() {
     schedule: t('player.live.referralSchedule'), onOpen: () => void navigate({ to: '/rewards' }),
   }];
   const live: Offer[] = feed.state === 'enabled'
-    ? promotions.map((card) => ({ id: card.id, title: card.title, offer: card.detail ?? card.title, schedule: card.runs ?? undefined }))
+    ? promotions.map((card) => ({ id: card.id, title: card.title, offer: card.detail ?? card.title, schedule: card.runs ?? undefined, href: card.link ?? undefined }))
     : [];
   const offers = [...referral, ...live];
   if (offers.length === 0) return null;

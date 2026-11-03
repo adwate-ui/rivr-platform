@@ -103,14 +103,18 @@ describe('Tonight', () => {
       '/rpc/my_referral': [{ code: 'PGHG59H7', referred: 0, bonus_paise: 100000 }],
       // As the server lists them since 3 Nov: the promotion behind the referral card is not a card again.
       '/rpc/my_promotion_cards': [
-        { promotion_id: 'p1', title: 'High hands', detail: 'Royal flush 25,000', runs: 'Every night' },
-        { promotion_id: 'p2', title: 'Buy-in bonus Tuesday', detail: '20% on the first five buy-ins per table', runs: 'Tuesday · all stakes' },
+        { promotion_id: 'p1', title: 'High hands', detail: 'Royal flush 25,000', runs: 'Every night', link: null },
+        { promotion_id: 'p2', title: 'Buy-in bonus Tuesday', detail: '20% on the first five buy-ins per table', runs: 'Tuesday · all stakes',
+          link: 'https://glaza.example/tuesday' },
       ],
     });
     const offers = (await screen.findByText('3 offers', {}, LATER)).closest('section');
     if (offers === null) throw new Error('No offers row');
     expect(within(offers).getAllByText('Referral')).toHaveLength(1);
     expect(within(offers).getAllByRole('listitem')).toHaveLength(3);
+    // A card with a link opens it (issue 776); one without only says its offer.
+    expect(within(offers).getByRole('link', { name: /Buy-in bonus Tuesday/ }).getAttribute('href')).toBe('https://glaza.example/tuesday');
+    expect(within(offers).queryByRole('link', { name: /High hands/ })).toBeNull();
   });
 
   it('On the list: the place, Next in line, when they joined, and Leave waitlist', async () => {
@@ -134,6 +138,22 @@ describe('Tonight', () => {
     expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
     expect(screen.getByText('NLH 50/100 · playing 19 min')).toBeDefined();
     expect(screen.getByRole('timer', { name: 'Call time left 2h 41m' }).textContent).toBe('2:41:08');
+  });
+
+  // Issue 781: the floor can add a seated member to another list to change tables (#633).
+  it('Seated: a place on a list to change tables shows under the seat, with where they stand', async () => {
+    renderTonight([{ ...PLACE, place: 2, table_id: null, table_name: null }, { ...PLACE, entry_id: 'e2', place: null, is_request: true },
+      { ...PLACE, entry_id: 'e3', table_name: 'Table 2', call_table_name: 'Table 2', call_seat: 3, hold_until: new Date(NOW + 600_000).toISOString() }], [SEAT]);
+    expect(await screen.findByText('Waitlist · NLH 50/100', {}, LATER)).toBeDefined();
+    expect(screen.getByText('2nd in line')).toBeDefined();
+    expect(screen.getByText('Waitlist · Table 1 · NLH 50/100')).toBeDefined();
+    expect(screen.getByText('Requested')).toBeDefined();
+    // Called to the new table, the place says its seat is held.
+    expect(screen.getByText('Waitlist · Table 2 · NLH 50/100')).toBeDefined();
+    expect(screen.getByText('Your seat is ready')).toBeDefined();
+    // Still the seat's screen, not the place's.
+    expect(screen.getByRole('button', { name: 'Leave seat' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Leave waitlist' })).toBeNull();
   });
 
   it('Add time: asks the floor for 30 min, 1 hour or 2 hours, and shows the request waiting', async () => {

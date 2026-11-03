@@ -66,9 +66,13 @@ test.describe('Website', { tag: '@staging' }, () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Find us' })).toBeVisible();
     await expect(page.getByText('Strictly 18+. Poker is a game of skill.')).toBeVisible();
 
-    // On a phone the page fits the screen: nothing scrolls sideways.
+    // On a phone the page fits the screen: nothing scrolls sideways, even under the Tournaments page's long hero word.
     await page.setViewportSize(VIEWPORT.player);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(VIEWPORT.player.width);
+    await page.goto(`${appUrl('web')}/tournaments`);
+    await expect(page.getByRole('heading', { level: 1, name: 'Championship nights' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(VIEWPORT.player.width);
+    await page.goto(appUrl('web'));
 
     // A visitor who asks for less motion sees the room's still, not the loop.
     await page.emulateMedia({ reducedMotion: 'reduce' });

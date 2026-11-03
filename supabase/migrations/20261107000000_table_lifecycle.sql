@@ -252,7 +252,7 @@ as $$
   from night n;
 $$;
 
--- The website's and link-in-bio's tables: active ones only. As 20261028392500_public_table_seats.sql made it.
+-- The website's and link-in-bio's tables: active ones only. As 20261105110200_frozen_room_off_the_games.sql made it.
 create or replace function private.public_table_status_rows()
 returns table (venue_slug text, table_name text, table_position integer, is_open boolean, table_type_code text, table_type_name text,
                game text, small_blind_paise bigint, big_blind_paise bigint, buy_in_min_paise bigint, buy_in_max_paise bigint,
@@ -268,5 +268,6 @@ as $$
   from public.game_table g
   join public.table_type t on t.id = g.table_type_id
   join public.venue v on v.id = g.venue_id
-  where not v.is_practice and g.active;
+  where not v.is_practice and g.active
+    and not exists (select 1 from public.control_state c where c.venue_id = v.id and c.level = 'venue_freeze' and c.released_at is null);
 $$;

@@ -42,7 +42,8 @@ const VARIANT: Record<HeadingVariant, string> = {
   tvTitle: 'font-display text-88 leading-tight font-medium optical-tv',
   // A code staff type from across a room (D-01): the text face, whose 4 never reads as a 1.
   tvCode: 'font-text text-96 leading-tight font-semibold tabular-nums tracking-tv',
-  hero: 'font-display text-36 leading-tight font-regular uppercase tablet:text-88',
+  // A word wider than a phone, such as CHAMPIONSHIP in the display face, breaks rather than scroll the page sideways (#621).
+  hero: 'font-display text-36 leading-tight font-regular uppercase wrap-anywhere tablet:text-88',
   band: 'font-display text-36 leading-tight font-regular uppercase tablet:text-56',
   statement: 'font-display text-36 leading-tight font-regular uppercase tablet:text-96',
   step: 'font-text text-28 leading-snug font-medium',

@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** A live promotion's card (#86), as published: its title, what it gives and who and when. */
+/** A live promotion's card (#86), as published: its title, what it gives and who and when, and the https address it opens, if any (#776). */
 export interface PromotionCardData {
   readonly id: string;
   readonly title: string;
   readonly detail: string | null;
   readonly runs: string | null;
+  readonly link: string | null;
 }
 
 export interface CardRow {
@@ -15,10 +16,14 @@ export interface CardRow {
   title: string;
   detail: string | null;
   runs: string | null;
+  /** The member's cards carry it; a TV's do not. */
+  link?: string | null;
 }
 
 /** A card as the database gives it. */
-export const toPromotionCard = (row: CardRow): PromotionCardData => ({ id: row.promotion_id, title: row.title, detail: row.detail, runs: row.runs });
+export const toPromotionCard = (row: CardRow): PromotionCardData => ({
+  id: row.promotion_id, title: row.title, detail: row.detail, runs: row.runs, link: row.link ?? null,
+});
 
 // Cards change when the floor publishes or pauses one: Home reads them again every minute.
 const HOME_CHECK = 60_000;
