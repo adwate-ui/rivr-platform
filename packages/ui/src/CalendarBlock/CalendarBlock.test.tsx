@@ -28,6 +28,13 @@ describe('CalendarBlock', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'November 2026' })).toBeInTheDocument();
   });
 
+  it('shows a tournament published without money with no buy-in line', () => {
+    renderIn(<CalendarBlock heading="Tournaments" tournaments={[{ name: 'Diwali Deepstack', startsAt: new Date('2026-11-16T10:30:00Z'), buyIn: null, guarantee: null }]} />);
+    expect(screen.getByText('Diwali Deepstack')).toBeInTheDocument();
+    expect(screen.getByText('Monday 16 Nov 2026, 16:00')).toBeInTheDocument();
+    expect(screen.queryByText(/Buy-in|₹/)).toBeNull();
+  });
+
   it('says when nothing is on the calendar', () => {
     renderIn(<CalendarBlock heading="Tournaments" tournaments={[]} />);
     expect(screen.getByText('No tournaments on the calendar yet.')).toBeInTheDocument();

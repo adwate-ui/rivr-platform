@@ -24,7 +24,7 @@ function agentAt(home: string) {
     return Promise.resolve(Response.json({ name: '2026-11-15.pdf', path: '/storage/v1/object/sign/offline-packs/v1/2026-11-15.pdf?token=t' }));
   });
   const deps: CliDeps = { env: { RIVR_FUNCTIONS_URL: 'https://rivr.test/functions/v1', RIVR_AGENT_HOME: home }, send, every, say: (line) => said.push(line) };
-  return { deps, said, every };
+  return { deps, said, every, send };
 }
 
 describe('the cage agent', () => {
@@ -38,14 +38,16 @@ describe('the cage agent', () => {
     expect(every).toHaveBeenCalledWith(expect.any(Function), 60 * 60 * 1000);
   });
 
-  it('with the bar printer set, prints the waiting KOT and checks again every five seconds', async () => {
+  it('with the bar printer set, prints the waiting KOT, finishes the attempt it claimed, and checks again every five seconds', async () => {
     const home = await mkdtemp(join(tmpdir(), 'rivr-agent-'));
-    const { deps, said, every } = agentAt(home);
+    const { deps, said, every, send } = agentAt(home);
     const printer = createFakeKitchenPrinter();
     await runCli(['enrol', '123456'], deps);
     await runCli(['run'], { ...deps, env: { ...deps.env, RIVR_BAR_PRINTER: '192.168.1.50' }, printerAt: () => printer });
     expect(printer.calls.map((ticket) => ticket.kotNumber)).toEqual(['1']);
     expect(said).toContain('KOTs: {"delivered":1,"failed":0,"unrecorded":0}');
+    const finish = send.mock.calls.map(([, init]) => String(init?.body)).find((body) => body.includes('"finish_kot"'));
+    expect(JSON.parse(finish ?? '{}')).toMatchObject({ delivery_id: 'k1', delivered: true, attempts: 1 });
     expect(every).toHaveBeenCalledWith(expect.any(Function), 5_000);
   });
 

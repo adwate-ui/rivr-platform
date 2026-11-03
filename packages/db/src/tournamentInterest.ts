@@ -84,6 +84,30 @@ export function useTournamentInterest(venueId: string) {
   });
 }
 
+/** A tournament to publish without money (#800; decision 0441): its name, start, the game and stake as text, and a description. */
+export interface TournamentListing {
+  readonly name: string;
+  readonly startsAt: Date;
+  readonly game: string;
+  readonly stake: string;
+  /** Empty for none. */
+  readonly description: string;
+}
+
+/** Publishes an upcoming tournament without money (tournaments.manage): a Result with its id; members see it at once. */
+export function usePublishTournament(venueId: string) {
+  const { client } = useRivrData();
+  return useMutation({
+    mutationFn: async (listing: TournamentListing): Promise<Result<string, TournamentInterestFailure>> => {
+      const { data, error } = await client.rpc('publish_tournament', {
+        p_venue_id: venueId, p_name: listing.name.trim(), p_starts_at: listing.startsAt.toISOString(), p_game: listing.game.trim(),
+        p_stake: listing.stake.trim(), p_description: listing.description.trim(),
+      });
+      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
+    },
+  });
+}
+
 /** The floor marks a member registered once they paid at the venue: a Result, and the list reloads. */
 export function useMarkTournamentRegistered(venueId: string) {
   const { client, userId } = useRivrData();
