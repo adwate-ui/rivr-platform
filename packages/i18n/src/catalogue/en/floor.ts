@@ -142,16 +142,20 @@ export const todaysPlayers = {
   notAllowed: 'Not in your role. Ask an admin.',
   label: 'Players today',
   empty: 'Nobody has come in today yet.',
+  /** The status filter's chips (console v3), each with its count. */
+  all: 'All',
+  noneOfStatus: 'No player with this status.',
   filter: 'Find a player',
   name: 'Player',
   status: 'Status',
   statuses: { playing: 'Playing', waiting: 'Waiting', left: 'Left' },
-  checkedIn: 'Checked in',
-  checkedOut: 'Checked out',
+  /** When they checked in and out, short as the prototype's headers, so a phone's scrolling line keeps them on one line. */
+  checkedIn: 'In',
+  checkedOut: 'Out',
   waited: 'Waited',
-  tables: 'Tables and hours',
-  /** One table and the time there: `Table 3 · 1 h 20 min`. */
-  tableLine: '{table} · {time}',
+  /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
+  table: 'Table',
+  played: 'Time played',
   none: '–',
 } as const;
 

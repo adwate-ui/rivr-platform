@@ -22,15 +22,15 @@ export function ResolveForm({ venueId, item }: { venueId: string; item: Feedback
   const field = form.register('resolution');
   return (
     <Stack gap={2}>
-      <Input {...field} label={t('console.feedback.resolution')} hint={t('console.feedback.resolutionHint')} autoComplete="off"
-        error={form.formState.errors.resolution ? t('console.feedback.invalidResolution') : undefined} />
-      {/* Under the field, not beside it: beside, it lined up with the hint rather than the box (C-06). */}
-      <Inline>
-        <Button variant="secondary" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
+      {/* Resolve beside the console's filled field, on its centre line (console v3); what is wrong goes under the row, so they stay level. */}
+      <Inline gap={2} align="center">
+        <Input {...field} variant="subtle" label={t('console.feedback.resolution')} autoComplete="off" maxLength={500} />
+        <Button variant="subtle" size="compact" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
           onClick={() => void submit()}>
           {t('console.feedback.resolve')}
         </Button>
       </Inline>
+      {form.formState.errors.resolution ? <ErrorMessage>{t('console.feedback.invalidResolution')}</ErrorMessage> : null}
       {failure === null ? null : <ErrorMessage>{t(`console.feedback.failures.${failure}`)}</ErrorMessage>}
     </Stack>
   );

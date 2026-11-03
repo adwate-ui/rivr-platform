@@ -24,7 +24,7 @@ src/
     frame/            the app's shell: staff only, the rail for the role, who is signed in, the
                       practice venue switch, sign out, the kill-switch banner, not found
     sign-in/          mobile number and code, as in the player app (decision 0032)
-    kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason, and checks in person (/kyc-review)
+    kyc-review/       identity checks waiting for a KYC reviewer: the queue beside the check open, decided with a reason in words, and Check in person in a sheet (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
     live-floor/       the room plan and each table's seats (/): seat, move, away, leaving, top-ups and a player's call time (#638);
@@ -32,11 +32,11 @@ src/
     waitlist/         the floor's waitlists: approve or remove joins from the app (#633), add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
-    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu by kind, an item at a time or from a CSV (#799) (/fnb)
-    todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; /players-today)
+    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): Orders in three lanes, to accept, being prepared and delivered tonight, each with its time; a KOT the bar printer missed, as its outbox delivery says, to print or read to the bar and mark handed over; New order, the table then the seat, paid or comp; the Menu tab, by kind, an item at a time or from a CSV (#799) (/fnb?tab=orders|menu, console v3)
     tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
     games-history/    the tables run each club day, how often and how long, for the super admin (#643; /games-history)
-    check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (/check-in)
+    check-in/         the Door's Check-in tab (/door?tab=check-in): one field for the card the scanner reads (#71), a mobile, a member number or a name; then the members expected and in the room
+    todays-players/   the Door's Today's players tab (/door?tab=players): every member at the club today by status, with times, tables and time played (#641)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
     withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)
@@ -44,7 +44,7 @@ src/
                       its float and counting its chips by denomination; then closing it against the ledger, with an
                       anomaly's reason from a manager, and every opening and close before (/treasury and
                       /end-of-day open their tab); the payment accounts (/accounts)
-    members/          a member found by name, mobile or number; the record, early departures, a tier change, a break (decision 0053), feature overrides and erasure on request (/members)
+    members/          a member found by name, mobile or number, with where each is tonight; the record docked beside the list and in the address (/members?member=…&part=…), with the seat and a link to it on the floor, visits, early departures and promotions given, a tier change, a break (decision 0053), feature overrides and erasure on request
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); purge a frozen live venue after its full archive is saved, a dry run and its name typed (/purge, #432); the full export archive and one member's data (what a member is owed, staff notes in their own folder, #498), locked to the owner's backup key (/exports, #103); the roster, for staff who manage staff: a week's shifts by job title, adding shifts for a job title's staff, copying the week before, and tonight's attendance (/roster, #106)
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
     devices/          the devices, by tab (/devices, #606): dealer tablets and door kiosks to add, pair, fix to a
@@ -61,8 +61,13 @@ src/
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
     staff/            the venue's staff as a table to search (C-03): add behind a button, open a name to change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
-    feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
-    rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
+    feedback/         the General Manager's feedback by tab (/feedback?tab=open|resolved): open tickets, each resolved with what was done, kept with the staff member's name; and the rest of the last 90 days
+    host-queue/       lapsed regulars to call, longest gone first, beside the call open: why they stopped coming (needed to save it), the offer and a note; or off the queue (/host-queue)
+    social/           by tab (/social?tab=wall|publish|leads): the social wall's tagged posts to approve or reject, publishing with the posts made, and the inbox's leads
+    website/          Content's Website tab (/content?tab=website): the pages found by name in Club, Guides and Legal, beside the open page's draft, preview, publishing and history (#129)
+    learn-sources/    Content's Learn content tab (/content?tab=learn), loaded when first opened as it carries the drill engine: licensed encodings and adding one that passes its checks (#131)
+    rewards/          the Rewards tab of /rewards, by part (?part=catalogue|handover|points): the catalogue, its form opened by New reward or a reward's Edit; members' redemptions to hand over; points by hand, earned or locked, and released (#645), and League points from a CSV
+    spin-wheel/       the Spin wheel tab of /rewards (?tab=spin-wheel): the spins waiting, and the wheel's prizes with their odds as bars, a bonus the month's spin budget cannot pay saying it is off the wheel, with a link to the budget
     league/           the RIVR League's standings by month or season, and its seasons (/league)
     tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
                       who registered interest in each from the app, marked registered once paid (#636; /tournament-interest)

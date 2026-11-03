@@ -80,7 +80,9 @@ test.describe('Admin tools', () => {
     test.setTimeout(90_000);
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000113');
-    await admin.getByRole('link', { name: 'Rewards' }).click();
+    await admin.getByRole('link', { name: 'Rewards', exact: true }).click();
+    // Points by hand is a part of Rewards' Rewards tab (console v3).
+    await admin.getByRole('link', { name: 'Points by hand', exact: true }).click();
     await admin.getByRole('textbox', { name: 'Member’s mobile number' }).fill('9000000752');
     await admin.getByRole('button', { name: 'Find', exact: true }).click();
     await expect(admin.getByText(/^Neha Bhalla · No\. \d+$/)).toBeVisible();

@@ -1,28 +1,35 @@
 /** The console's host queue (#165): lapsed regulars to call, why they stopped coming, and the offer made. */
 export const consoleHostQueue = {
   title: 'Host queue',
-  hint: 'Lapsed regulars, longest gone first.',
   notAllowed: 'Not in your role. Ask an admin.',
   none: 'No lapsed regulars to call.',
+  /** The list beside the call open, longest gone first (console v3). */
+  list: 'Lapsed regulars',
+  /** A list row's line: `last here 4 Oct 2026 · 4 visits before that`. */
+  listLine: 'last here {last} · {visits} visits before that',
+  /** On a phone, from the call back to the list. */
+  back: 'Back to the queue',
   /** `+91 90000 00642 · last here 28 Sep 2026 · 4 visits before that` */
   lapse: '{phone} · last here {last} · {visits} visits before that',
   offered: 'Offered: {offer}',
-  reasonFor: 'Why {name} stopped coming',
-  offerTo: 'Offer to {name}',
-  note: 'Note on {name}',
-  save: 'Save the call to {name}',
-  close: 'Close {name}',
+  reasonFor: 'Why they stopped coming',
+  offerTo: 'Offer',
+  note: 'Note',
+  save: 'Save the call',
+  saveName: 'Save the call to {name}',
+  /** A call is saved only with the reason (console v3). */
+  needReason: 'Choose why they stopped coming.',
+  close: 'Take off the queue',
+  closeName: 'Take off the queue: {name}',
   /** Close's second press: the player leaves the queue for good (F2-19). */
   closeConfirm: 'Yes, take {name} off the queue',
   saved: 'Call to {name} saved.',
-  /** The next calls, shown twenty at a time. `{count}`: how many more this shows. */
-  showMore: 'Show {count} more',
   reasons: {
     moved_away: 'Moved away', busy: 'Busy', budget: 'Budget', game_too_big: 'Game too big', game_too_small: 'Game too small',
     bad_experience: 'Unhappy with a visit', playing_elsewhere: 'Playing elsewhere', unreachable: 'Could not reach', other: 'Other',
   },
   kinds: { none: 'No offer', points: 'Points', bonus: 'Bonus', spin: 'A free spin', message: 'A message' },
-  values: { points: 'Points for {name}', bonus: 'Bonus chips for {name}', message: 'Message to {name}' },
+  values: { points: 'Points', bonus: 'Bonus chips', message: 'Message' },
   /** Why an offer cannot be saved yet, under its field. */
   invalid: { points: 'Type a whole number of points.', bonus: 'Type bonus chips in whole 50s, such as 2000.', message: 'Type a message of up to 500 characters.' },
   /** An offer as the queue names it; a bonus as bonus chips, never rupees (#629). */

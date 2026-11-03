@@ -17,7 +17,7 @@ export function RevisionHistory({ revisions, onRestore }: { revisions: readonly 
   ];
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.website.history.title')}</Heading>
+      <Heading level={3} variant="subsection">{t('console.website.history.title')}</Heading>
       <DataTable label={t('console.website.history.title')} columns={columns} rowKey={(row) => row.revisionId} rows={[...revisions]} emptyText={t('console.website.history.none')} />
     </Stack>
   );

@@ -24,6 +24,9 @@ export const Asking: Story = {
   },
 };
 
+/** The console's form (console v3): a subtle fill at the compact size. */
+export const Subtle: Story = { args: { variant: 'subtle', size: 'compact', label: 'Take off the queue', confirm: 'Yes, take Ritika Das off the queue' }, tags: ['viewport-console'] };
+
 export const Disabled: Story = { args: { isDisabled: true } };
 
 export const LongText: Story = {

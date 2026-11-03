@@ -160,11 +160,11 @@ describe('a screen whose refresh fails', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     signIn();
     answerOnceThenFail({ '/rpc/door_board': [] });
-    renderAt('/check-in');
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '9876543210' } });
+    renderAt('/door?tab=check-in');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Card, mobile, number or name' }), { target: { value: '9876543210' } });
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(await screen.findByText(/^Not updated since \d{2}:\d{2}\. Check the connection\.$/)).toBeDefined();
-    expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Mobile number' }).value).toBe('9876543210');
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Card, mobile, number or name' }).value).toBe('9876543210');
     vi.useRealTimers();
   });
 

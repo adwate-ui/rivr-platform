@@ -27,7 +27,7 @@ export function BlockEditor({ block, position, onChange }: { block: EditorBlock;
   const [long] = useState(() => new Set(fields.filter((field) => field.value.length > LONG).map((field) => field.path.join('.'))));
   return (
     <Stack gap={2}>
-      <Heading level={3} variant="section">{t('console.website.block', { number: String(position), kind: kindOf(block.kind) })}</Heading>
+      <Heading level={3} variant="subsection">{t('console.website.block', { number: String(position), kind: kindOf(block.kind) })}</Heading>
       {fields.map((field) => {
         const change = (value: string) => onChange({ ...block, content: setAt(block.content, field.path, value) });
         const shared = { label: labelOf(field), value: field.value };

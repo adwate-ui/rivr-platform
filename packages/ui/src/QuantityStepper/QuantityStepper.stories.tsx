@@ -29,3 +29,6 @@ export const LongText: Story = { args: { label: 'Grilled paneer tikka with mint 
 
 /** The order screen's round buttons, one more in gold (decision 0320). */
 export const Round: Story = { args: { look: 'round', value: 2 } };
+
+/** The console's New order (console v3): the name at 14, faintly filled buttons of 32 px at a desk. */
+export const Console: Story = { args: { look: 'console', value: 2 }, tags: ['viewport-console'] };
