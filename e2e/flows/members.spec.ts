@@ -1,6 +1,7 @@
 /**
  * Members (#60; design prompt console rail "Members"). Sunita Rao, this flow's own membership manager
- * (Auth sends one code a minute to a number), finds Arjun Mehta by name and opens his record: a black
+ * (Auth sends one code a minute to a number), sees every member listed on open (decision 0483), narrows
+ * the list to Arjun Mehta by name and opens his record: a black
  * card qualifying at 100/200, his visits and early departures. She finds Kabir Sethi by mobile number
  * and moves him to Founders' Circle for the weekend, with a reason; his record shows the tier and its
  * last day. She puts him back for good at the end, so the next run finds him a member. The sweep that
@@ -17,8 +18,13 @@ test.describe('Members', () => {
     await page.getByRole('link', { name: 'Members' }).click();
     await expect(page.getByRole('heading', { name: 'Members', level: 1 })).toBeVisible();
 
+    // Every member is listed on open, with no prompt to search first (decision 0483); the search narrows the list.
+    const table = page.getByRole('table', { name: 'Members' });
+    await expect(table.getByRole('row').nth(1)).toBeVisible();
+    await expect(page.getByText(/^Search by member number/)).toHaveCount(0);
     const search = page.getByRole('searchbox', { name: 'Name, member no. or mobile' });
     await search.fill('Arjun');
+    await expect(table.getByRole('button', { name: 'Kabir Sethi', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: 'Arjun Mehta', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Arjun Mehta', level: 2 })).toBeVisible();
     // The record is in the address (console v3), so Back and the floor's links open it.

@@ -5233,7 +5233,7 @@ isOneToOne: false
             }[]
                            },
 "members_of_tier":
-{ Args: { "p_tier_id": string,"p_venue_id": string }; Returns: {
+{ Args: { "p_tier_id"?: string,"p_venue_id": string }; Returns: {
               "full_name": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"tier_name": string,"visits": number
             }[]
                            },

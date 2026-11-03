@@ -24,7 +24,7 @@ const GRANT = { grant_id: 'g1', granted_at: '2026-11-03T13:00:00Z', club_day: '2
 const PERK = { ...GRANT, grant_id: 'g2', promotion_name: 'Cab home', points: 0, perk: 'cab_home' };
 
 const ANSWERS: Record<string, unknown> = {
-  '/rpc/member_search': [SAKSHI, ARJUN], '/rpc/member_record': [RECORD], '/rpc/floor_seats': [SEAT], '/rpc/todays_players': [TODAY],
+  '/rpc/members_of_tier': [SAKSHI, ARJUN], '/rpc/member_record': [RECORD], '/rpc/floor_seats': [SEAT], '/rpc/todays_players': [TODAY],
   '/rest/v1/game_table': [{ id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' }],
   '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
   '/rpc/member_promotion_grants': [GRANT, PERK],
@@ -55,10 +55,10 @@ function renderAs(role: string, memberId?: string, part?: string) {
 }
 
 describe('Members (console v3)', () => {
-  it('lists the members found with where each is tonight, and opens a record in the address', async () => {
+  it('lists every member on open with where each is tonight, and opens a record in the address', async () => {
     const onNavigate = renderAs('super_admin');
-    fireEvent.change(await screen.findByRole('searchbox', { name: 'Name, member no. or mobile' }, { timeout: 5000 }), { target: { value: 'sa' } });
-    const table = await screen.findByRole('table', { name: 'Members' });
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    expect(screen.queryByText(/^Search by/)).toBeNull();
     expect(await within(table).findByText('Table 2 · 3')).toBeDefined();
     expect(within(table).getByText('Waiting')).toBeDefined();
     for (const header of ['Name', 'No.', 'Tier', 'Tonight', 'Visits']) expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
@@ -66,11 +66,27 @@ describe('Members (console v3)', () => {
     expect(onNavigate).toHaveBeenCalledWith('/members?member=m2');
   });
 
+  it('narrows the list by a name as typed or a member number, and says when nothing matches', async () => {
+    renderAs('super_admin');
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    const search = screen.getByRole('searchbox', { name: 'Name, member no. or mobile' });
+    fireEvent.change(search, { target: { value: 'sak' } });
+    expect(within(table).getByRole('button', { name: 'Sakshi Tandon' })).toBeDefined();
+    expect(within(table).queryByRole('button', { name: 'Arjun Mehta' })).toBeNull();
+    fireEvent.change(search, { target: { value: '63' } });
+    expect(within(table).getByRole('button', { name: 'Arjun Mehta' })).toBeDefined();
+    expect(within(table).queryByRole('button', { name: 'Sakshi Tandon' })).toBeNull();
+    fireEvent.change(search, { target: { value: 'Zoya' } });
+    expect(await screen.findByText('No member matches Zoya.')).toBeDefined();
+  });
+
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {
     const onNavigate = renderAs('super_admin', 'm1');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
-    expect(await screen.findByText('Table 2, seat 3')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Show Sakshi Tandon on the floor' }));
+    // The list beside it names her seat too, in its Tonight column's title: the record's line is the one with Show.
+    const show = await screen.findByRole('button', { name: 'Show Sakshi Tandon on the floor' });
+    expect(show.parentElement?.textContent).toContain('Table 2, seat 3');
+    fireEvent.click(show);
     expect(onNavigate).toHaveBeenCalledWith('/?table=t2&seat=3');
     expect(await screen.findByText(/Triple points: 300 points/)).toBeDefined();
     // A perk reads as the promotion builder names it, never its code.

@@ -121,14 +121,17 @@ export function useMemberEarlyDepartures(venueId: string, memberId: string) {
   });
 }
 
-/** Every member of a tier (additions flow 20), by name, at most 5,000, for staff who read members. */
+/**
+ * Every member of a tier (additions flow 20), or of the whole venue when `tierId` is null (Members lists everyone on
+ * open, decision 0483), by name, at most 5,000, for staff who read members.
+ */
 export function useMembersOfTier(venueId: string, tierId: string | null) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.membersOfTier(userId ?? 'signed-out', venueId, tierId ?? ''),
-    enabled: userId !== null && tierId !== null,
+    enabled: userId !== null,
     queryFn: async (): Promise<MemberRow[]> => {
-      const { data, error } = await client.rpc('members_of_tier', { p_venue_id: venueId, p_tier_id: tierId ?? '' });
+      const { data, error } = await client.rpc('members_of_tier', tierId === null ? { p_venue_id: venueId } : { p_venue_id: venueId, p_tier_id: tierId });
       if (error) throw error;
       return data.map((row) => ({
         memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, tierName: row.tier_name,

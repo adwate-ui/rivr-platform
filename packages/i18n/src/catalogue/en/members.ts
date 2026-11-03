@@ -2,15 +2,16 @@
 export const members = {
   title: 'Members',
   notAllowed: 'Not in your role. Ask an admin.',
-  /** Lists every member of a tier (additions flow 20), or any tier, as the search finds them. */
+  /** Every member is listed on open (decision 0483); a tier (additions flow 20) and the search narrow the list. */
   filterTier: 'Tier',
   anyTier: 'All tiers',
   noneInTier: 'No members in {tier}.',
-  /** How an export of the results records the search (#102). */
+  none: 'No members yet.',
+  /** How an export of the list records the search (#102), and what it records when nothing narrows the list. */
   searchedFor: 'Search: {query}',
-  /** The search field's label, shown inside it (console v3): two or more letters of a name, or four or more digits. */
+  allMembers: 'All members',
+  /** The search field's label, shown inside it (console v3): a name as typed, a member number, or four or more digits. */
   search: 'Name, member no. or mobile',
-  searchPrompt: 'Search by member number, name or mobile.',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',

@@ -1,6 +1,7 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, SplitView } from '@rivr/ui';
+import { useState } from 'react';
 import { useTonight } from '../hooks/useTonight.ts';
 import { MemberList } from './MemberList.tsx';
 import { MemberRecordPanel, type RecordAccess } from './MemberRecordPanel.tsx';
@@ -16,8 +17,8 @@ export interface MembersScreenProps {
 }
 
 /**
- * Members (#60; console v3): staff who read members find one by name, mobile number or member number, see where each is
- * tonight, and open their record docked beside the list, in the address so Back and the floor's links reach it. On a
+ * Members (#60; console v3): staff who read members see every member on open (decision 0483), narrow the list by name,
+ * mobile number, member number or tier, see where each is tonight, and open their record docked beside the list, in the address so Back and the floor's links reach it. On a
  * phone the record is a view of its own with a way back. Staff with members.manage change a tier there, with a reason;
  * super admins override one feature for one member (#61).
  */
@@ -40,11 +41,13 @@ export function MembersScreen(props: MembersScreenProps) {
 
 function Members({ title, venueId, can, memberId, part, onNavigate }: MembersScreenProps & { title: string; venueId: string; can: RecordAccess }) {
   const tonight = useTonight(venueId);
+  // The table's Export sits beside the title, as the prototype has it.
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   return (
-    <Screen title={title}>
+    <Screen title={title} onActionsSlot={setExportIn}>
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" backLabel={t('console.members.back')} onBack={() => onNavigate('/members')}
-        list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} />}
+        list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} />}
         detail={memberId === undefined ? null : (
           <MemberRecordPanel key={memberId} venueId={venueId} memberId={memberId} can={can} part={part}
             tonight={tonight.get(memberId)} onNavigate={onNavigate} />
