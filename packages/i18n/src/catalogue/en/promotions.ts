@@ -21,8 +21,8 @@ export const promotions = {
     newVersionWaits: 'New version awaits approval',
     newVersionDraft: 'New version in draft',
     sentBack: 'Sent back',
-    /** A promotion still run by its rule (decision 0491): its card and Pause only. */
-    cardOnly: 'Card only',
+    /** A promotion still run by its old rule (decision 0491): its words and Pause only. */
+    byRule: 'Run by its rule',
     pause: 'Pause',
     resume: 'Resume',
     edit: 'Edit',

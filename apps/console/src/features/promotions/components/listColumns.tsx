@@ -25,16 +25,19 @@ export function canOpen(promotion: PromotionOverview): boolean {
 
 const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 
-/** Who it is for and when it runs, from its terms; a rule's card says only when, in its own words. */
+/** Who it is for and when it runs, from its terms; a promotion run by its rule says only when, in its own words. */
 function whoWhen(promotion: PromotionOverview, names: PromotionNames): { who: string; when: string } {
   if (promotion.terms === null) return { who: '', when: promotion.runs ?? '' };
   const words = whoAndWhen(promotion.terms, names);
   return { who: capitalised(words.who), when: capitalised(words.when) };
 }
 
-/** Under the status: a new version beside the running one, a draft sent back, or a card run by its rule. */
+/**
+ * Under the status: a new version beside the running one, a draft sent back, or a promotion still run by its old rule
+ * (decision 0491). An ended one says nothing more: the retired word-only cards are history (decision 0498).
+ */
 function statusNote(promotion: PromotionOverview): string | null {
-  if (promotion.isLegacy) return t('console.promotions.list.cardOnly');
+  if (promotion.isLegacy) return promotion.status === 'ended' ? null : t('console.promotions.list.byRule');
   if (promotion.currentVersionId !== null && promotion.openStatus !== null) {
     return t(promotion.openStatus === 'awaiting_approval' ? 'console.promotions.list.newVersionWaits' : 'console.promotions.list.newVersionDraft');
   }

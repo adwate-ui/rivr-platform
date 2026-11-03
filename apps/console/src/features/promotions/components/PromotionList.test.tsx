@@ -23,8 +23,8 @@ const ROWS = [
     eligibility: { stakes: ['nlh_100_200'], tiers: 'all', audience: 'everyone' }, schedule: { ...TUESDAY.schedule, days: [5, 6], from: '20:00', to: '02:00' },
   }),
   overviewRow({ promotion_id: 'p3', name: 'Four-hour bonus', open_version_id: 'v5', open_status: 'awaiting_approval', given_this_week: 4 }),
-  overviewRow({ promotion_id: 'p4', name: 'High hands', status: 'paused', detail: 'Royal flush 25,000', runs: 'Every night', current_version_id: null,
-    current_status: null, is_legacy: true, given_this_week: 3 }),
+  overviewRow({ promotion_id: 'p4', name: 'Lapsed regulars bonus', status: 'paused', detail: '500 bonus chips', runs: 'Every night',
+    current_version_id: null, current_status: null, is_legacy: true, given_this_week: 3 }),
 ];
 
 function renderList(onOpen = vi.fn()) {
@@ -49,15 +49,15 @@ describe('the promotions list (console v3)', () => {
     expect(screen.getByRole('radio', { name: 'All, 4' }).getAttribute('aria-checked')).toBe('true');
   });
 
-  it('shows the running version and that a new one awaits approval, and a card run by its rule', async () => {
+  it('shows the running version and that a new one awaits approval, and a promotion run by its rule', async () => {
     renderList();
     const table = await screen.findByRole('table', { name: 'Promotions' });
     const fourHour = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Four-hour bonus')) ?? table;
     expect(fourHour.textContent).toContain('Live');
     expect(fourHour.textContent).toContain('New version awaits approval');
     expect(within(fourHour).getByRole('button', { name: 'Review Four-hour bonus' })).toBeDefined();
-    expect(within(table).getAllByRole('row').find((row) => row.textContent?.includes('High hands'))?.textContent).toContain('Card only');
-    expect(screen.queryByRole('button', { name: 'Edit High hands' })).toBeNull();
+    expect(within(table).getAllByRole('row').find((row) => row.textContent?.includes('Lapsed regulars bonus'))?.textContent).toContain('Run by its rule');
+    expect(screen.queryByRole('button', { name: 'Edit Lapsed regulars bonus' })).toBeNull();
   });
 
   it('lists what awaits approval under its chip: new promotions and new versions of running ones', async () => {
@@ -89,10 +89,10 @@ describe('the promotions list (console v3)', () => {
     ]));
   });
 
-  it('resumes a card run by its rule through its own call', async () => {
+  it('resumes a promotion run by its rule through its own call', async () => {
     const { bodiesOf } = renderList();
-    fireEvent.click(await screen.findByRole('button', { name: 'Resume High hands' }));
-    expect(await screen.findByText('High hands resumed')).toBeDefined();
+    fireEvent.click(await screen.findByRole('button', { name: 'Resume Lapsed regulars bonus' }));
+    expect(await screen.findByText('Lapsed regulars bonus resumed')).toBeDefined();
     expect(bodiesOf('set_promotion_live')).toEqual([{ p_promotion_id: 'p4', p_is_live: true }]);
   });
 });
