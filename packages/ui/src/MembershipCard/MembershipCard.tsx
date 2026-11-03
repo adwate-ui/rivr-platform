@@ -56,11 +56,15 @@ export function MembershipCard({ name, tier, memberNumber, qr, photo, look = 'cl
   );
 }
 
-/** The player app's card (decision 0320): no QR on it; the screen sets the QR under it. */
+/**
+ * The player app's card (decision 0320): no QR on it; the screen sets the QR under it. It spans a phone's column, as in the
+ * prototype, no wider than a phone: capped at the classic card's 342 px it sat 8 px short of a 390 px phone's 350 px column,
+ * flush left while the QR's panel under it is centred.
+ */
 function RedesignCard({ name, tier, memberNumber, photo }: Pick<MembershipCardProps, 'name' | 'tier' | 'memberNumber' | 'photo'>) {
   return (
     <article aria-label={t('ui.membershipCard.label')}
-      className="flex aspect-card w-full max-w-card flex-col justify-between rounded-card border border-gold bg-raised p-5 text-content">
+      className="flex aspect-card w-full max-w-phone flex-col justify-between rounded-card border border-gold bg-raised p-5 text-content">
       <div className="flex items-start justify-between">
         <Wordmark />
         <span className="font-text text-12 font-medium tracking-wide text-accent uppercase">{t('ui.membershipCard.number', { number: memberNumber })}</span>
