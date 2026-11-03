@@ -1,7 +1,10 @@
 import { t } from '@rivr/i18n';
 import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from 'react';
 import { Heading } from '../Heading/Heading.tsx';
+import { cx } from '../internal/classes.ts';
+import { usePlayerFrame } from '../internal/playerFrame.ts';
 import { LoadState } from '../LoadState/LoadState.tsx';
+import { PlayerAvatar } from '../PlayerAvatar/PlayerAvatar.tsx';
 import { Skeleton } from '../Skeleton/Skeleton.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -68,25 +71,60 @@ function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) 
 
 const SERIF_TITLE = { variant: 'serif' } as const;
 
-/** One screen of an app: its heading, then its content or its loading, empty or error state. */
+/** Where the screen sits: its heading's id, whether it is a screen of its own, and the player shell's gutter, if any. */
+interface ScreenPlace {
+  headingId: string;
+  isOwnScreen: boolean;
+  /** `px-5` in a player shell that runs edge to edge (Tonight), so a heading or a state keeps the page's gutter. */
+  gutter: string | undefined;
+  /** A tab screen's own heading in a player shell: the 44 px band of the member's initial, at its end (decision 0380). */
+  isTabHeading: boolean;
+  /** Its content is not showing yet: it is loading, empty or failed. */
+  isWaiting: boolean;
+}
+
+/** The screen's own title, read out only when hidden; otherwise a row with its actions and, in a player shell, the initial. */
+function ScreenHeading({ props, place }: { props: ScreenProps; place: ScreenPlace }) {
+  const heading = { level: props.level ?? 1, id: place.headingId, isFocusTarget: place.isOwnScreen } as const;
+  const avatar = place.isTabHeading ? <PlayerAvatar /> : null;
+  if (props.isTitleHidden === true) {
+    // A screen that heads itself puts the initial in its own header; until its content shows, the initial stands alone.
+    return (
+      <>
+        <Heading {...heading} isVisuallyHidden>{props.title}</Heading>
+        {avatar && place.isWaiting ? <div className={cx('flex min-h-touch items-center justify-end', place.gutter)}>{avatar}</div> : null}
+      </>
+    );
+  }
+  // The heading and its actions wrap onto two lines on a narrow screen.
+  return (
+    <div className={cx('flex flex-wrap items-center justify-between gap-4', place.isTabHeading && 'min-h-touch', place.gutter)}>
+      <Heading {...heading} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})}>{props.title}</Heading>
+      {props.actions}
+      {avatar}
+    </div>
+  );
+}
+
+/**
+ * One screen of an app: its heading, then its content or its loading, empty or error state. In the player app's shell
+ * (decision 0380) a screen's heading row is the 44 px band of the member's initial, which sits at its end, centred on the
+ * title; and in a shell that runs edge to edge (Tonight) the heading and a loading, empty or error state keep the page's
+ * gutter, as only the screen's own content runs to the edges.
+ */
 export function Screen(props: ScreenProps) {
   const headingId = useId();
   const isOwnScreen = (props.level ?? 1) === 1;
   const section = useScreenFocus(props.title, headingId, isOwnScreen);
+  const frame = usePlayerFrame();
+  const place: ScreenPlace = {
+    headingId, isOwnScreen, gutter: frame?.isFullBleed === true ? 'px-5' : undefined,
+    isTabHeading: isOwnScreen && Boolean(frame?.avatar), isWaiting: props.status !== undefined && props.status !== 'ready',
+  };
   return (
     <section ref={section} aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
-      {/* The heading and its actions wrap onto two lines on a narrow screen; a hidden heading takes no room at all. */}
-      {props.isTitleHidden === true ? (
-        <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} isVisuallyHidden>{props.title}</Heading>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <Heading level={props.level ?? 1} id={headingId} isFocusTarget={isOwnScreen} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})}>
-            {props.title}
-          </Heading>
-          {props.actions}
-        </div>
-      )}
-      <ScreenBody {...props} />
+      <ScreenHeading props={props} place={place} />
+      {place.gutter && place.isWaiting ? <div className={place.gutter}><ScreenBody {...props} /></div> : <ScreenBody {...props} />}
     </section>
   );
 }

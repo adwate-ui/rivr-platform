@@ -1,9 +1,9 @@
-import { createContext, use, useState, type ReactNode } from 'react';
+import { createContext, use, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AvatarLink } from '../AvatarLink/AvatarLink.tsx';
 import { BottomNav, type BottomNavItem, type PlayerTab } from '../BottomNav/BottomNav.tsx';
 import { cx } from '../internal/classes.ts';
 import type { Navigate } from '../internal/navigation.ts';
+import { PlayerFrameContext } from '../internal/playerFrame.ts';
 import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
 
 export interface PlayerShellProps {
@@ -12,7 +12,11 @@ export interface PlayerShellProps {
   tabs: readonly BottomNavItem[];
   currentTab?: PlayerTab | undefined;
   onNavigate?: Navigate | undefined;
-  /** The member's initial at the top right, opening Profile: on the tab screens. Left out on a screen with its own way back. */
+  /**
+   * The member's initial at the right of the screen's header, opening Profile: on the tab screens. Left out on a screen with
+   * its own way back. The screen's header draws it (Screen's heading row, or `PlayerAvatar` in a header of its own), so it
+   * is centred on the title beside it and follows the header down under any banner above it.
+   */
   avatar?: { initial: string | undefined; href: string } | undefined;
   /** Hides the tab bar: a pushed screen with its own way back, such as Order, Profile or House rules. */
   isTabBarHidden?: boolean;
@@ -33,25 +37,25 @@ export function PlayerDock({ children }: { children: ReactNode }) {
 
 /**
  * The player app frame on a 390 px phone (decision 0320): the screen, which heads itself, with the member's initial at the
- * top right on the tab screens; then the dock and the tab bar along the foot. Pushed screens hide the tab bar.
+ * right of its header on the tab screens; then the dock and the tab bar along the foot. Pushed screens hide the tab bar.
+ * `main` is a column, so a screen that grows fills the height between the top and the tab bar and can centre in it, as
+ * Not found does.
  */
 export function PlayerShell({ children, tabs, currentTab, onNavigate, avatar, isTabBarHidden = false, isFullBleed = false }: PlayerShellProps) {
   const [dock, setDock] = useState<HTMLElement | null>(null);
+  const frame = useMemo(() => ({ avatar, onNavigate, isFullBleed }), [avatar, onNavigate, isFullBleed]);
   return (
     <DockContext value={dock}>
-      <div className="relative mx-auto flex min-h-dvh w-full flex-col bg-surface text-content medium:max-w-phone">
-        <SkipLink />
-        <main id={MAIN_ID} tabIndex={-1} className={cx('flex-1 pt-2 pb-8 outline-none', !isFullBleed && 'px-5')}>{children}</main>
-        {avatar ? (
-          <div className="absolute top-2 right-5">
-            <AvatarLink initial={avatar.initial} href={avatar.href} onNavigate={onNavigate} />
+      <PlayerFrameContext value={frame}>
+        <div className="relative mx-auto flex min-h-dvh w-full flex-col bg-surface text-content medium:max-w-phone">
+          <SkipLink />
+          <main id={MAIN_ID} tabIndex={-1} className={cx('flex flex-1 flex-col pt-2 pb-8 outline-none', !isFullBleed && 'px-5')}>{children}</main>
+          <div className="sticky bottom-0 z-nav">
+            <div ref={setDock} />
+            {isTabBarHidden ? null : <BottomNav items={tabs} current={currentTab} onNavigate={onNavigate} />}
           </div>
-        ) : null}
-        <div className="sticky bottom-0 z-nav">
-          <div ref={setDock} />
-          {isTabBarHidden ? null : <BottomNav items={tabs} current={currentTab} onNavigate={onNavigate} />}
         </div>
-      </div>
+      </PlayerFrameContext>
     </DockContext>
   );
 }
