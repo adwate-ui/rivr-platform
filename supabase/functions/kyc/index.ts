@@ -79,6 +79,8 @@ async function complete({ memberId, kyc }: Subject): Promise<Response> {
     p_face_matches: face.value.isMatch, p_face_match_score: Math.round(face.value.score),
     // Duplicates by the document's name, date of birth and last four digits (decision 0197).
     p_identity_key: kycIdentityKey(name, dateOfBirth, maskedAadhaar),
+    // The Aadhaar's name becomes the member's once verified; the one they gave stays as what they are known as (#803).
+    p_name: name,
   }, null);
   return reply({ status });
 }
