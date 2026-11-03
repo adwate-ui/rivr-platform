@@ -1,14 +1,8 @@
 import { useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
-import { formatOrdinal, formatTime, t } from '@rivr/i18n';
+import { formatTime, t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, Figure, Stack, Text, useToast } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
-import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
-
-/** "Next in line", "2nd in line", or a join the floor has not approved yet. */
-function lineOf(place: WaitlistPlace): string {
-  if (place.place === null) return t('player.live.list.requested');
-  return place.place === 1 ? t('player.live.list.next') : t('player.live.list.place', { ordinal: formatOrdinal(place.place) });
-}
+import { lineOf, WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
 /** Leaving the list, with Undo: back on the same list, at the table asked for (at its end: a place is not kept). */
 function useLeave(place: WaitlistPlace) {
