@@ -1,31 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { isSameName, kycIdentityKey } from './sameName.ts';
-
-describe('isSameName', () => {
-  it('ignores case, spacing and punctuation', () => {
-    expect(isSameName('ARJUN  MEHTA', 'Arjun Mehta')).toBe(true);
-    expect(isSameName(" Rhea D'Souza ", 'Rhea DSouza')).toBe(true);
-  });
-
-  it('tells different people apart', () => {
-    expect(isSameName('Kabir Sethi', 'Arjun Mehta')).toBe(false);
-    expect(isSameName('Arjun Mehta', 'Arjun Mehra')).toBe(false);
-  });
-
-  it('keeps Devanagari vowel signs, so राम is not रमा', () => {
-    expect(isSameName('राम', 'रमा')).toBe(false);
-    expect(isSameName('सीता', 'सत')).toBe(false);
-    expect(isSameName('राम', 'राम')).toBe(true);
-  });
-
-  it('matches nothing to a name with no letters', () => {
-    expect(isSameName('', '')).toBe(false);
-    expect(isSameName('...', '')).toBe(false);
-  });
-});
+import { kycIdentityKey } from './identityKey.ts';
 
 describe('kycIdentityKey', () => {
-  it('is the name as the name match reads it, the date of birth and the last four digits', () => {
+  it('is the name in plain letters, the date of birth and the last four digits', () => {
     expect(kycIdentityKey(' RAHUL  SHARMA ', '1995-02-02', 'XXXX XXXX 5647')).toBe('rahul sharma|1995-02-02|5647');
   });
 
@@ -34,6 +11,11 @@ describe('kycIdentityKey', () => {
     expect(kycIdentityKey('Rahul Sharma.', '1995-02-02', 'XXXX XXXX 5647')).toBe(key);
     expect(kycIdentityKey('Rahul-Sharma', '1995-02-02', 'XXXX XXXX 5647')).not.toBe(key);
     expect(kycIdentityKey("Rahul Sharma's", '1995-02-02', 'xxxxxxxx5647')).toBe('rahul sharmas|1995-02-02|5647');
+  });
+
+  it('keeps Devanagari vowel signs, so राम is not रमा', () => {
+    expect(kycIdentityKey('राम', '1995-02-02', 'XXXX XXXX 5647')).toBe('राम|1995-02-02|5647');
+    expect(kycIdentityKey('रमा', '1995-02-02', 'XXXX XXXX 5647')).not.toBe(kycIdentityKey('राम', '1995-02-02', 'XXXX XXXX 5647'));
   });
 
   it('tells apart another date of birth or other last four digits', () => {

@@ -9,7 +9,7 @@ export type Kyc = ReturnType<typeof createAdapters>['kyc'];
 export interface Subject {
   readonly memberId: MemberId;
   readonly venueId: VenueId;
-  /** As the venue registered it: DigiLocker's name and a PAN are checked against it. */
+  /** As the venue registered it: a PAN is checked against it. */
   readonly fullName: string;
   readonly kyc: Kyc;
 }
