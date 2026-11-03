@@ -20,7 +20,7 @@ test.describe('Call time', () => {
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000128');
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
-    await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
+    await floor.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '1', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000215');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(floor.getByRole('button', { name: 'Ritika Das leaves' })).toBeVisible();

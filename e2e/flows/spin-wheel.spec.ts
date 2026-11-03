@@ -24,7 +24,7 @@ test.describe('Spin wheel', () => {
     }
     await expect(page.getByText('No prizes on the wheel yet.')).toBeVisible();
 
-    await page.getByRole('group', { name: 'Prize' }).getByRole('button', { name: 'Points' }).click();
+    await page.getByRole('radiogroup', { name: 'Prize' }).getByRole('radio', { name: 'Points' }).click();
     await page.getByRole('textbox', { name: 'Points' }).fill('100');
     await page.getByRole('textbox', { name: 'Weight' }).fill('1');
     await page.getByRole('button', { name: 'Add to the wheel' }).click();

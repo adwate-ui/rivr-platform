@@ -46,7 +46,7 @@ test.describe('Kill switch', () => {
     const first = await browser.newPage();
     await signInToConsole(first, '9000000135');
     await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await first.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '5', exact: true }).click();
+    await first.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '5', exact: true }).click();
     await first.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000216');
     await first.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(first.getByRole('button', { name: 'Kunal Mehra leaves' })).toBeVisible();
@@ -56,7 +56,7 @@ test.describe('Kill switch', () => {
     try {
       await first.getByRole('link', { name: 'Kill switch' }).click();
       await expect(first.getByText('Nothing is engaged.')).toBeVisible();
-      await first.getByRole('group', { name: 'Level' }).getByRole('button', { name: 'Venue freeze' }).click();
+      await first.getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'Venue freeze' }).click();
       await first.getByRole('textbox', { name: 'Why' }).fill('Dispute at Table 3');
       await first.getByRole('button', { name: 'Engage', exact: true }).click();
       await expect(first.getByText('Engage Venue freeze now?')).toBeVisible();

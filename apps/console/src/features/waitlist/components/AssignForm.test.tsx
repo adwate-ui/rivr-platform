@@ -41,20 +41,20 @@ describe('AssignForm', () => {
         <AssignForm venueId="v1" entryId="e1" name="Naina Kapoor" tables={[TABLE]} onDone={() => undefined} />
       </RivrDataProvider>,
     );
-    await waitFor(() => expect(screen.queryByRole('button', { name: '5' })).toBeNull(), { timeout: 5000 });
-    expect(screen.queryByRole('button', { name: '2' })).toBeNull();
-    expect(screen.getAllByRole('button').map((button) => button.textContent)).toEqual(expect.arrayContaining(['1', '3', '4', '6']));
-    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    await waitFor(() => expect(screen.queryByRole('radio', { name: '5' })).toBeNull(), { timeout: 5000 });
+    expect(screen.queryByRole('radio', { name: '2' })).toBeNull();
+    expect(screen.getAllByRole('radio').map((button) => button.textContent)).toEqual(expect.arrayContaining(['1', '3', '4', '6']));
+    fireEvent.click(screen.getByRole('radio', { name: '4' }));
     floor.seats = [seated(2), seated(4)];
     await act(() => cache.invalidateQueries());
-    await waitFor(() => expect(screen.queryByRole('button', { name: '4' })).toBeNull(), { timeout: 5000 });
+    await waitFor(() => expect(screen.queryByRole('radio', { name: '4' })).toBeNull(), { timeout: 5000 });
     fireEvent.click(screen.getByRole('button', { name: 'Assign' }));
     expect(await screen.findByText('Choose an open table, a seat at it, and a call time of 0 to 1,440 minutes.')).toBeDefined();
     expect(calls).toEqual([]);
 
     // A free seat and four hours: assigned, and seated at once (decision 0299).
-    fireEvent.click(screen.getByRole('button', { name: '6' }));
-    fireEvent.click(screen.getByRole('button', { name: '4 h' }));
+    fireEvent.click(screen.getByRole('radio', { name: '6' }));
+    fireEvent.click(screen.getByRole('radio', { name: '4 h' }));
     fireEvent.click(screen.getByRole('button', { name: 'Assign' }));
     await waitFor(() => expect(calls).toEqual([{ p_entry_id: 'e1', p_table_id: 't3', p_seat: 6, p_call_minutes: 240 }]));
   });

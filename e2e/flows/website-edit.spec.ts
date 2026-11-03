@@ -15,7 +15,7 @@ test.describe('Website edit', () => {
     const heading = `House rules ${String(Date.now()).slice(-6)}`;
     await signInToConsole(page, '9000000637');
     await page.getByRole('link', { name: 'Website' }).click();
-    await page.getByRole('group', { name: 'Page' }).getByRole('button', { name: 'House rules', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Page' }).getByRole('radio', { name: 'House rules', exact: true }).click();
     const field = page.getByRole('textbox', { name: 'Heading' }).first();
     const original = await field.inputValue();
     await field.fill(heading);

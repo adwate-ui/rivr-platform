@@ -18,11 +18,11 @@ async function publishFlow7(floor: Page, approver: Page) {
   await floor.getByRole('link', { name: 'Promotions' }).click();
   await expect(floor.getByRole('heading', { name: 'New promotion' })).toBeVisible({ timeout: 5000 });
   await floor.getByRole('group', { name: 'Days' }).getByRole('button', { name: 'Thursday' }).click();
-  await floor.getByRole('group', { name: 'From' }).getByRole('button', { name: '14:00' }).click();
-  await floor.getByRole('group', { name: 'To' }).getByRole('button', { name: '20:00' }).click();
-  await floor.getByRole('group', { name: 'Who' }).getByRole('button', { name: 'NLH 100/200' }).click();
-  await expect(floor.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Double points' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(floor.getByRole('group', { name: 'Limits' }).getByRole('button', { name: 'None' })).toHaveAttribute('aria-pressed', 'true');
+  await floor.getByRole('radiogroup', { name: 'From' }).getByRole('radio', { name: '14:00' }).click();
+  await floor.getByRole('radiogroup', { name: 'To' }).getByRole('radio', { name: '20:00' }).click();
+  await floor.getByRole('radiogroup', { name: 'Who' }).getByRole('radio', { name: 'NLH 100/200' }).click();
+  await expect(floor.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Double points' })).toHaveAttribute('aria-checked', 'true');
+  await expect(floor.getByRole('radiogroup', { name: 'Limits' }).getByRole('radio', { name: 'None' })).toHaveAttribute('aria-checked', 'true');
   // The player card and the TV slide, as the choices would publish them.
   await expect(floor.getByRole('article', { name: 'Double points' })).toContainText(RUNS);
   await expect(floor.getByRole('group', { name: 'TV slide' })).toContainText(RUNS);
@@ -53,7 +53,7 @@ async function pairTvOnPromotions(tv: Page, floor: Page, name: string) {
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
   await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
-  await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
+  await floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'Promotions', exact: true }).click();
 }
 
 test.describe('Promotions', () => {

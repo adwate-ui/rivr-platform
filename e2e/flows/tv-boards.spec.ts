@@ -74,7 +74,7 @@ async function seatNakul(floor: Page) {
   const seated = floor.getByRole('button', { name: `${LEAVING} leaves` });
   await expect(floor.getByRole('heading', { name: 'Private Room' }).first()).toBeVisible();
   if (await seated.count() === 0) {
-    await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '8', exact: true }).click();
+    await floor.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '8', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000400');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
   }
@@ -125,14 +125,14 @@ test.describe('TV boards', () => {
 
     await floor.getByRole('link', { name: 'TVs' }).click();
     // No jackpot to choose, and no rupee on the TV (#628).
-    await expect(floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'Jackpot and high hand', exact: true }))
+    await expect(floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'Jackpot and high hand', exact: true }))
       .toHaveCount(0);
     await expect(tv.getByText(/₹/)).toHaveCount(0);
 
     // The call-time board: Nakul at his table with three hours to play, then his seat opening once he says he is leaving, from
     // his seat in the app (the console's Mark leaving is hidden, decision 0299).
-    const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
-    await modes.getByRole('button', { name: 'Call-time board', exact: true }).click();
+    const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
+    await modes.getByRole('radio', { name: 'Call-time board', exact: true }).click();
     await expect(tv.getByRole('heading', { level: 1, name: 'Call time' })).toBeVisible({ timeout: 15_000 });
     await seatNakul(floor);
     const room = tv.getByRole('region', { name: 'Private Room' });

@@ -16,8 +16,8 @@ test('Host queue: a host records why a lapsed regular stopped coming and an offe
   await signInToConsole(page, '9000000643');
   await page.getByRole('link', { name: 'Host queue' }).click();
   await expect(page.getByRole('heading', { name: 'Ritika Bhalla' })).toBeVisible();
-  await page.getByRole('group', { name: 'Why Ritika Bhalla stopped coming' }).getByRole('button', { name: 'Busy' }).click();
-  await page.getByRole('group', { name: 'Offer to Ritika Bhalla' }).getByRole('button', { name: 'Points' }).click();
+  await page.getByRole('radiogroup', { name: 'Why Ritika Bhalla stopped coming' }).getByRole('radio', { name: 'Busy' }).click();
+  await page.getByRole('radiogroup', { name: 'Offer to Ritika Bhalla' }).getByRole('radio', { name: 'Points' }).click();
   await page.getByRole('textbox', { name: 'Points for Ritika Bhalla' }).fill('500');
   await page.getByRole('button', { name: 'Save the call to Ritika Bhalla' }).click();
   await expect(page.getByText('Offered: 500 points')).toBeVisible();

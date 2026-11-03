@@ -47,10 +47,10 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByText('Not assigned', { exact: true })).toBeVisible();
 
     // The console's list asks again every ten seconds, so the tablet shows as paired on its own.
-    const table = floor.getByRole('group', { name: `Table for ${name}`, exact: true });
+    const table = floor.getByRole('radiogroup', { name: `Table for ${name}`, exact: true });
     await expect(floor.locator('div').filter({ has: table }).getByText('Paired', { exact: true }).first()).toBeVisible({ timeout: 15_000 });
-    await table.getByRole('button', { name: 'Table 3', exact: true }).click();
-    await expect(table.getByRole('button', { name: 'Table 3', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await table.getByRole('radio', { name: 'Table 3', exact: true }).click();
+    await expect(table.getByRole('radio', { name: 'Table 3', exact: true })).toHaveAttribute('aria-checked', 'true');
 
     await tablet.reload();
     await expect(tablet.getByText('Table 3', { exact: true })).toBeVisible();

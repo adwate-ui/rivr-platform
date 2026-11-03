@@ -37,19 +37,19 @@ test.describe('TV pairing', () => {
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText('No TV shows that code. Check it and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
-    await floor.getByRole('group', { name: 'What it shows' }).getByRole('button', { name: 'Call-time board', exact: true }).click();
+    await floor.getByRole('radiogroup', { name: 'What it shows' }).getByRole('radio', { name: 'Call-time board', exact: true }).click();
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 
     // The TV asks every three seconds whether its code was typed in.
     await expect(tv.getByRole('heading', { name: 'Call time' })).toBeVisible({ timeout: 15_000 });
     // The console's list asks again every ten seconds, so the TV shows as paired on its own.
-    const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
+    const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
     await expect(modes.locator('xpath=../..').getByText('Paired', { exact: true })).toBeVisible({ timeout: 15_000 });
 
-    await modes.getByRole('button', { name: 'Promotions', exact: true }).click();
-    await expect(modes.getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await modes.getByRole('radio', { name: 'Promotions', exact: true }).click();
+    await expect(modes.getByRole('radio', { name: 'Promotions', exact: true })).toHaveAttribute('aria-checked', 'true');
     // Promotions shows a live promotion's slide, or that none is running (#86).
     const promotions = tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true }));
     await expect(promotions).toBeVisible({ timeout: 15_000 });

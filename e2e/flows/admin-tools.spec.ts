@@ -37,14 +37,14 @@ test.describe('Admin tools', () => {
 
     await expect(page.getByRole('heading', { name: 'New table' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Table name' }).fill(`Table ${RUN}`);
-    await page.getByRole('group', { name: 'Stake' }).getByRole('button', { name: `PLO 200/400 ${RUN}` }).click();
-    await page.getByRole('group', { name: 'Seats' }).getByRole('button', { name: '8', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio', { name: `PLO 200/400 ${RUN}` }).click();
+    await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '8', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
     await expect(tables.getByRole('row').filter({ hasText: `Table ${RUN}` })).toContainText('Closed');
     await tables.getByRole('button', { name: `Change table Table ${RUN}` }).click();
-    await page.getByRole('group', { name: 'Seats' }).getByRole('button', { name: '6', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
     // No game asked, and the straddle kept (decision 0299).
@@ -61,7 +61,7 @@ test.describe('Admin tools', () => {
 
     // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit.
     await page.getByRole('link', { name: 'Promotions' }).click();
-    await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Bonus chips for hours played' }).click();
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Bonus chips for hours played' }).click();
     await page.getByRole('textbox', { name: 'Hours played in a visit' }).fill('3');
     await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('1500');
     await expect(page.getByRole('article', { name: 'Bonus chips for hours played' })).toContainText('1,500 bonus chips after 3 hours at the tables');

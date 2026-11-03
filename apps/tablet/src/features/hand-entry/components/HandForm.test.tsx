@@ -43,7 +43,8 @@ function renderForm(answers: string[], claims: unknown[] = []) {
 }
 
 function press(...keys: string[]) {
-  for (const key of keys) fireEvent.click(screen.getByRole('button', { name: key }));
+  // A single-choice chip is a radio (#699); a key or an action is a button.
+  for (const key of keys) fireEvent.click(screen.queryByRole('radio', { name: key }) ?? screen.getByRole('button', { name: key }));
 }
 
 afterEach(() => {
@@ -101,8 +102,8 @@ describe('logging a hand on the tablet', () => {
     // The pot first: once the claim is open, the seats share the keypad's names.
     press('2', '0', '000');
     fireEvent.click(screen.getByRole('switch', { name: 'High hand' }));
-    fireEvent.click(within(screen.getByRole('group', { name: 'Type of hand' })).getByRole('button', { name: 'Straight flush' }));
-    fireEvent.click(within(screen.getByRole('group', { name: 'Seat' })).getByRole('button', { name: '4' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Type of hand' })).getByRole('radio', { name: 'Straight flush' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Seat' })).getByRole('radio', { name: '4' }));
     press('Log hand');
     expect(await screen.findByText('High hand sent to the floor.')).toBeDefined();
     await waitFor(() => expect(claims).toEqual([{ p_hand_id: 'hand-1', p_seat: 4, p_category: 'straight_flush', p_rank: '' }]));
@@ -117,12 +118,12 @@ describe('logging a hand on the tablet', () => {
     fireEvent.click(screen.getByRole('switch', { name: 'High hand' }));
     press('Log hand');
     expect(await screen.findByText('Pick the type of hand and the seat.')).toBeDefined();
-    fireEvent.click(within(screen.getByRole('group', { name: 'Type of hand' })).getByRole('button', { name: 'Four of a kind' }));
-    fireEvent.click(within(screen.getByRole('group', { name: 'Seat' })).getByRole('button', { name: '2' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Type of hand' })).getByRole('radio', { name: 'Four of a kind' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Seat' })).getByRole('radio', { name: '2' }));
     press('Log hand');
     expect(await screen.findByText('Pick the rank of the four of a kind.')).toBeDefined();
     expect(sent).toEqual([]);
-    fireEvent.click(within(screen.getByRole('group', { name: 'Rank' })).getByRole('button', { name: 'Queens' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Rank' })).getByRole('radio', { name: 'Queens' }));
     press('Log hand');
     await waitFor(() => expect(claims).toEqual([{ p_hand_id: 'hand-1', p_seat: 2, p_category: 'four_of_a_kind', p_rank: 'Q' }]));
   });
@@ -132,7 +133,7 @@ describe('logging a hand on the tablet', () => {
     press('PLO', 'PLO', '4', '8', '000', 'Log hand');
     await waitFor(() => expect(sent).toHaveLength(1));
     expect(sent[0]?.p_variant).toBe('plo');
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Hold\'em' }).getAttribute('aria-pressed')).toBe('true'));
-    expect(screen.getByRole('button', { name: 'PLO' }).getAttribute('aria-pressed')).toBe('false');
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Hold\'em' }).getAttribute('aria-checked')).toBe('true'));
+    expect(screen.getByRole('radio', { name: 'PLO' }).getAttribute('aria-checked')).toBe('false');
   });
 });

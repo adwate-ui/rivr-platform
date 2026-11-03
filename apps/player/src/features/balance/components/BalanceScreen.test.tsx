@@ -126,7 +126,7 @@ describe('Balance', () => {
   it('adds a bank account, saying first what is wrong field by field, then that the cage verifies it', async () => {
     const api = renderBalance({});
     fireEvent.click(await screen.findByRole('button', { name: 'Add a payout account' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Bank account' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Bank account' }));
     fireEvent.click(screen.getByRole('button', { name: 'Add account' }));
     expect(await screen.findByText('Enter the account number: 9 to 18 digits.')).toBeDefined();
     expect(screen.getByText('Enter the 11-character IFSC, such as HDFC0001234.')).toBeDefined();

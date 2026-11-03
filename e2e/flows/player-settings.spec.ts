@@ -32,7 +32,7 @@ test.describe('Player settings', () => {
     const run = String(Date.now() % 100_000).padStart(5, '0');
     await member.getByRole('button', { name: 'Send feedback' }).click();
     let sheet = member.getByRole('dialog', { name: 'Send feedback' });
-    await sheet.getByRole('group', { name: 'Topic' }).getByRole('button', { name: 'Dealer' }).click();
+    await sheet.getByRole('radiogroup', { name: 'Topic' }).getByRole('radio', { name: 'Dealer' }).click();
     await sheet.getByRole('textbox', { name: 'What happened?' }).fill(`Quick and fair at Table 3, run ${run}`);
     await sheet.getByRole('button', { name: 'Send', exact: true }).click();
     await expect(member.getByText('Feedback sent')).toBeVisible();
@@ -41,7 +41,7 @@ test.describe('Player settings', () => {
     await member.getByRole('button', { name: 'Send feedback' }).click();
     sheet = member.getByRole('dialog', { name: 'Send feedback' });
     await sheet.getByRole('button', { name: 'Detailed feedback' }).click();
-    const rate = async (group: string, score: string) => sheet.getByRole('group', { name: group }).getByRole('button', { name: score, exact: true }).click();
+    const rate = async (group: string, score: string) => sheet.getByRole('radiogroup', { name: group }).getByRole('radio', { name: score, exact: true }).click();
     await rate('The gameplay, 1 to 5', '5');
     await rate('The cashier, 1 to 5', '3');
     await rate('The service, 1 to 5', '4');

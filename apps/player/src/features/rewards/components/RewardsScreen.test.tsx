@@ -66,7 +66,7 @@ describe('Rewards', () => {
   it('filters the catalogue by its pills', async () => {
     renderRewards();
     expect(await screen.findByText('RIVR hoodie', {}, LATER)).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'F&B upgrades' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'F&B upgrades' }));
     expect(screen.getByText('Masala chai upgrade')).toBeDefined();
     expect(screen.queryByText('RIVR hoodie')).toBeNull();
   });

@@ -26,15 +26,15 @@ test.describe('Staff', () => {
     await admin.getByRole('button', { name: 'Change Ayesha Thomas' }).click();
     await expect(admin.getByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeDisabled();
     // Her own role is a super admin's to give (B3), so it shows no choices; her job title stays hers to change.
-    await expect(admin.getByRole('group', { name: 'Role for Ayesha Thomas' })).toHaveCount(0);
+    await expect(admin.getByRole('radiogroup', { name: 'Role for Ayesha Thomas' })).toHaveCount(0);
     await expect(admin.getByRole('textbox', { name: 'Job title for Ayesha Thomas' })).toBeEnabled();
 
     await admin.getByRole('button', { name: 'Add staff', exact: true }).click();
     await admin.getByRole('textbox', { name: 'Full name' }).fill(name);
     await admin.getByRole('textbox', { name: 'Job title', exact: true }).fill('Floor supervisor');
-    await admin.getByRole('group', { name: 'Role', exact: true }).getByRole('button', { name: 'Host' }).click();
+    await admin.getByRole('radiogroup', { name: 'Role', exact: true }).getByRole('radio', { name: 'Host' }).click();
     // An admin can't give the cage's role: it isn't offered.
-    await expect(admin.getByRole('group', { name: 'Role', exact: true }).getByRole('button', { name: 'Cashier' })).toHaveCount(0);
+    await expect(admin.getByRole('radiogroup', { name: 'Role', exact: true }).getByRole('radio', { name: 'Cashier' })).toHaveCount(0);
     // Every run adds a new number: a number is on the list once.
     await admin.getByRole('textbox', { name: 'Mobile number' }).fill(`98765${run}`);
     await admin.getByRole('button', { name: 'Add staff member' }).click();

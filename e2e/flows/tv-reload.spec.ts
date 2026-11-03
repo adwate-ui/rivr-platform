@@ -43,12 +43,12 @@ test.describe('TV reload', () => {
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
-    const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
+    const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
 
     for (const mode of MODES) {
-      const chip = modes.getByRole('button', { name: mode.chip, exact: true });
+      const chip = modes.getByRole('radio', { name: mode.chip, exact: true });
       await chip.click();
-      await expect(chip).toHaveAttribute('aria-pressed', 'true');
+      await expect(chip).toHaveAttribute('aria-checked', 'true');
       const started = Date.now();
       await tv.reload();
       await expect(mode.rendered(tv), `${mode.chip} after a reload`).toBeVisible({ timeout: BUDGET });

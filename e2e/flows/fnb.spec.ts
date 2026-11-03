@@ -29,7 +29,7 @@ test.describe('F&B', () => {
     test.setTimeout(120_000);
     await signInToConsole(page, '9000000615');
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '1', exact: true }).click();
     await page.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000288');
     await page.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Ishan Mehta leaves' })).toBeVisible();
@@ -90,14 +90,14 @@ test.describe('F&B', () => {
     await expect(page.getByText('1 × Fresh lime soda').first()).toBeVisible();
     await expect(page.getByText('Paid · Given to the bar by hand')).toHaveCount(2);
 
-    await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: 'Table 3, seat 1 · Ishan Mehta' }).click();
+    await page.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: 'Table 3, seat 1 · Ishan Mehta' }).click();
     await page.getByRole('button', { name: 'One more Club sandwich' }).click();
     await page.getByRole('switch', { name: 'Comp it: RIVR pays Glaza' }).click();
     await page.getByRole('button', { name: 'Send to the bar' }).click();
     const comp = await kotIn(page, /^Sent to the bar: KOT \d+\.$/);
     // The next order starts afresh, not comped and with no seat chosen (F2-20).
     await expect(page.getByRole('switch', { name: 'Comp it: RIVR pays Glaza' })).not.toBeChecked();
-    await expect(page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: 'Table 3, seat 1 · Ishan Mehta' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: 'Table 3, seat 1 · Ishan Mehta' })).toHaveAttribute('aria-checked', 'false');
     await page.getByRole('button', { name: `Mark KOT ${comp} sent` }).click();
     await expect(page.getByText('Every KOT is at the bar.')).toBeVisible();
     await expect(page.getByText('Comp · Given to the bar by hand')).toBeVisible();

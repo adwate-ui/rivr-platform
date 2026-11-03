@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useId } from 'react';
+import { useId, useRef, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -18,7 +18,10 @@ export interface ChoiceChipsProps<Value extends string> {
   options: readonly ChoiceChip<Value>[];
   selected: readonly Value[];
   onChange: (selected: Value[]) => void;
-  /** `many` lets any number be chosen; `one` keeps at most one, and pressing it again clears it. */
+  /**
+   * `many` lets any number be chosen, a group of toggle buttons; `one` is a radio group (#699): the arrow keys move
+   * between the choices and choose, and pressing the chosen one keeps it.
+   */
   mode?: 'one' | 'many';
   /** Dims the chips and ignores presses, for example while a change is saved. */
   isDisabled?: boolean;
@@ -93,16 +96,88 @@ function ChipWords({ chip }: { chip: ChoiceChip<string> }) {
   );
 }
 
-/** A preference picked from a few choices, such as games or stakes: a row of chips that wraps, or scrolls. */
-export function ChoiceChips<Value extends string>({
-  label, options, selected, onChange, mode = 'many', isDisabled, isLabelVisuallyHidden = false, isOneRow = false, look = 'chip',
-}: ChoiceChipsProps<Value>) {
-  const labelId = useId();
-  const press = (value: Value) => {
-    const isOn = selected.includes(value);
-    if (mode === 'one') onChange(isOn ? [] : [value]);
-    else onChange(isOn ? selected.filter((chosen) => chosen !== value) : [...selected, value]);
+/** Where an arrow key moves in a radio group (#699): on to the next choice or back, round at the ends; Home and End. */
+function nextIndex(key: string, index: number, count: number): number | null {
+  switch (key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+      return (index + 1) % count;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      return (index - 1 + count) % count;
+    case 'Home':
+      return 0;
+    case 'End':
+      return count - 1;
+    default:
+      return null;
+  }
+}
+
+interface RowProps<Value extends string> extends ChoiceChipsProps<Value> {
+  readonly labelId: string;
+}
+
+const chipClasses = (look: ChipLook, isOn: boolean, optionCount: number, isOneRow: boolean) =>
+  cx(choiceClasses(look, isOn, optionCount), isOneRow && 'shrink-0 whitespace-nowrap');
+
+/**
+ * One choice of a few, as a radio group (#699): only the chosen chip (or the first) is in the Tab order, the arrow keys
+ * move to the next and choose it, and pressing the chosen one keeps it.
+ */
+function RadioChips<Value extends string>({ labelId, options, selected, onChange, isDisabled, isOneRow = false, look = 'chip' }: RowProps<Value>) {
+  const chips = useRef<(HTMLButtonElement | null)[]>([]);
+  const chosenAt = options.findIndex((option) => selected.includes(option.value));
+  const choose = (index: number) => {
+    const option = options[index];
+    if (option !== undefined && !selected.includes(option.value)) onChange([option.value]);
   };
+  // A press focuses its chip by itself; an arrow key moves the focus along with the choice.
+  const move = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const next = nextIndex(event.key, index, options.length);
+    if (next === null) return;
+    event.preventDefault();
+    choose(next);
+    chips.current[next]?.focus();
+  };
+  return (
+    <div role="radiogroup" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
+      {options.map((option, index) => {
+        const isOn = selected.includes(option.value);
+        return (
+          <button key={option.value} ref={(node) => { chips.current[index] = node; }} type="button" role="radio" aria-checked={isOn}
+            aria-label={nameWithCount(option)} tabIndex={index === Math.max(chosenAt, 0) ? 0 : -1} disabled={isDisabled}
+            onClick={() => choose(index)} onKeyDown={(event) => move(event, index)} className={chipClasses(look, isOn, options.length, isOneRow)}>
+            <ChipWords chip={option} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Any number of choices, as a group of toggle buttons: pressing one adds it or takes it away. */
+function ToggleChips<Value extends string>({ labelId, options, selected, onChange, isDisabled, isOneRow = false, look = 'chip' }: RowProps<Value>) {
+  const press = (value: Value) => onChange(selected.includes(value) ? selected.filter((chosen) => chosen !== value) : [...selected, value]);
+  return (
+    <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
+      {options.map((option) => {
+        const isOn = selected.includes(option.value);
+        return (
+          <button key={option.value} type="button" aria-pressed={isOn} aria-label={nameWithCount(option)} disabled={isDisabled}
+            onClick={() => press(option.value)} className={chipClasses(look, isOn, options.length, isOneRow)}>
+            <ChipWords chip={option} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A preference picked from a few choices, such as games or stakes: a row of chips that wraps, or scrolls. */
+export function ChoiceChips<Value extends string>(props: ChoiceChipsProps<Value>) {
+  const { label, mode = 'many', isLabelVisuallyHidden = false } = props;
+  const labelId = useId();
   return (
     <Stack gap={2}>
       {isLabelVisuallyHidden ? (
@@ -112,25 +187,7 @@ export function ChoiceChips<Value extends string>({
           {label}
         </Text>
       )}
-      <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined}
-        className={rowClasses(look, options.length, isOneRow)}>
-        {options.map((option) => {
-          const isOn = selected.includes(option.value);
-          return (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={isOn}
-              aria-label={nameWithCount(option)}
-              disabled={isDisabled}
-              onClick={() => press(option.value)}
-              className={cx(choiceClasses(look, isOn, options.length), isOneRow && 'shrink-0 whitespace-nowrap')}
-            >
-              <ChipWords chip={option} />
-            </button>
-          );
-        })}
-      </div>
+      {mode === 'one' ? <RadioChips {...props} labelId={labelId} /> : <ToggleChips {...props} labelId={labelId} />}
     </Stack>
   );
 }

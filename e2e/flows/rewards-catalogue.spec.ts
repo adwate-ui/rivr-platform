@@ -11,7 +11,7 @@ import { signInToConsole } from '../support/signIn.ts';
 /** Fills the reward form with a merchandise item and saves it. */
 async function addCap(page: Page, name: string) {
   await expect(page.getByRole('heading', { name: 'New reward' })).toBeVisible({ timeout: 10_000 });
-  await page.getByRole('group', { name: 'Kind' }).getByRole('button', { name: 'Merchandise' }).click();
+  await page.getByRole('radiogroup', { name: 'Kind' }).getByRole('radio', { name: 'Merchandise' }).click();
   await page.getByRole('textbox', { name: 'Name' }).fill(name);
   await page.getByRole('textbox', { name: 'Where to collect it' }).fill('At the host desk');
   await page.getByRole('textbox', { name: 'Points' }).fill('4000');
@@ -30,7 +30,7 @@ test.describe('Rewards catalogue', () => {
 
     const name = `RIVR cap ${String(Date.now() % 100_000).padStart(5, '0')}`;
     await addCap(marketing, name);
-    await marketing.getByRole('group', { name: 'Show' }).getByRole('button', { name: 'Merchandise' }).click();
+    await marketing.getByRole('radiogroup', { name: 'Show' }).getByRole('radio', { name: 'Merchandise' }).click();
     await expect(marketing.getByText(name, { exact: true })).toBeVisible();
     await expect(marketing.getByText('Sunday Main Event seat', { exact: true })).toHaveCount(0);
 

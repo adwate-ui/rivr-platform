@@ -173,7 +173,7 @@ describe('Tonight', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
     expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Request 1 hour' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: '2 hours' }));
+    fireEvent.click(screen.getByRole('radio', { name: '2 hours' }));
     expect(screen.getByRole('button', { name: 'Request 2 hours' })).toBeDefined();
   });
 
@@ -182,8 +182,8 @@ describe('Tonight', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
     expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Request 45 min' })).toBeDefined();
-    expect(screen.getByRole('button', { name: '1 hour 30' })).toBeDefined();
-    expect(screen.queryByRole('button', { name: '2 hours' })).toBeNull();
+    expect(screen.getByRole('radio', { name: '1 hour 30' })).toBeDefined();
+    expect(screen.queryByRole('radio', { name: '2 hours' })).toBeNull();
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {

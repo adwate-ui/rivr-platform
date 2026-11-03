@@ -71,7 +71,7 @@ test.describe('Door kiosk', () => {
     // Tonight › Rate your visit: a 2 with a note is a ticket for the General Manager.
     await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Tonight' }).click();
     await expect(member.getByRole('heading', { name: 'How was your night?' })).toBeVisible();
-    await member.getByRole('group', { name: 'Your rating, 1 to 5' }).getByRole('button', { name: '2', exact: true }).click();
+    await member.getByRole('radiogroup', { name: 'Your rating, 1 to 5' }).getByRole('radio', { name: '2', exact: true }).click();
     await member.getByRole('textbox', { name: 'Anything to add? (optional)' }).fill('The door queue was slow.');
     await member.getByRole('button', { name: 'Send to the General Manager' }).click();
     await expect(member.getByText('Rating sent')).toBeVisible();

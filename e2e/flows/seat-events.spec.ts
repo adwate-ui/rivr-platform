@@ -18,7 +18,7 @@ test.describe('Seat events', () => {
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000127');
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await floor.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '9', exact: true }).click();
+    await floor.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '9', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000214');
     await floor.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(floor.getByRole('button', { name: 'Yash Gupta leaves' })).toBeVisible();

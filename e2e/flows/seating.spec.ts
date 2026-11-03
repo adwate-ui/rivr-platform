@@ -17,7 +17,7 @@ test.describe('Seating', () => {
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 5', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Table 5', level: 2 })).toBeVisible();
 
-    await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '1', exact: true }).click();
     await page.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000211');
     await page.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(page.getByRole('img', { name: 'Table 5, 1 of 9 seats taken' })).toBeVisible();

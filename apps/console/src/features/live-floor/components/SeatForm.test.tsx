@@ -33,10 +33,10 @@ describe('SeatForm', () => {
       </RivrDataProvider>
     );
     const { rerender } = render(form([]));
-    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    fireEvent.click(screen.getByRole('radio', { name: '4' }));
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Seat' }).disabled).toBe(false);
     rerender(form([TAKEN]));
-    expect(screen.queryByRole('button', { name: '4' })).toBeNull();
+    expect(screen.queryByRole('radio', { name: '4' })).toBeNull();
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Seat' }).disabled).toBe(true);
   });
 
@@ -56,13 +56,13 @@ describe('SeatForm', () => {
         <SeatForm venueId="v1" table={TABLE} seats={[]} held={[]} onResult={() => undefined} />
       </RivrDataProvider>,
     );
-    fireEvent.click(screen.getByRole('button', { name: '2' }));
-    fireEvent.click(screen.getByRole('button', { name: '5 h' }));
+    fireEvent.click(screen.getByRole('radio', { name: '2' }));
+    fireEvent.click(screen.getByRole('radio', { name: '5 h' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '1042' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(sent).toEqual([{ p_table_id: 't3', p_seat: 2, p_member_number: 1042, p_call_minutes: 300 }]));
 
-    fireEvent.click(screen.getByRole('button', { name: '3' }));
+    fireEvent.click(screen.getByRole('radio', { name: '3' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '98110 00001' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(sent[1]).toEqual({ p_table_id: 't3', p_seat: 3, p_phone: '+919811000001', p_call_minutes: 300 }));

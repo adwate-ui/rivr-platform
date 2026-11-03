@@ -181,9 +181,9 @@ test.describe('Waitlist', () => {
     const higher = gameList(host, 'Table 2');
     await higher.getByRole('button', { name: `Assign ${MEMBER}` }).click();
     // A place is assigned only at its list's table (decision 0433): Table 2, chosen already.
-    await expect(higher.getByRole('button', { name: 'Table 2', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    await higher.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '9', exact: true }).click();
-    await higher.getByRole('group', { name: 'Call time' }).getByRole('button', { name: '4 h', exact: true }).click();
+    await expect(higher.getByRole('radio', { name: 'Table 2', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await higher.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '9', exact: true }).click();
+    await higher.getByRole('radiogroup', { name: 'Call time' }).getByRole('radio', { name: '4 h', exact: true }).click();
     await higher.getByRole('button', { name: 'Assign', exact: true }).click();
     // Assigned is seated: off the list at once, with no hold to wait out.
     await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);

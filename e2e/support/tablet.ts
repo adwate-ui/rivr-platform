@@ -42,10 +42,10 @@ export async function tabletAt(browser: Browser, floor: Page, tableName: string)
   await tablet.getByRole('textbox', { name: 'Pairing code' }).fill(code);
   await tablet.getByRole('button', { name: 'Pair' }).click();
   await expect(tablet.getByText('Not assigned', { exact: true })).toBeVisible();
-  const table = floor.getByRole('group', { name: `Table for ${name}`, exact: true });
+  const table = floor.getByRole('radiogroup', { name: `Table for ${name}`, exact: true });
   await expect(floor.locator('div').filter({ has: table }).getByText('Paired', { exact: true }).first()).toBeVisible({ timeout: 15_000 });
-  await table.getByRole('button', { name: tableName, exact: true }).click();
-  await expect(table.getByRole('button', { name: tableName, exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await table.getByRole('radio', { name: tableName, exact: true }).click();
+  await expect(table.getByRole('radio', { name: tableName, exact: true })).toHaveAttribute('aria-checked', 'true');
   return { tablet, name };
 }
 

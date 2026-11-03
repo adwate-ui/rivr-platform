@@ -30,7 +30,7 @@ test.describe('Members', () => {
     // The record's parts are tabs (C-02).
     await page.getByRole('button', { name: 'Tier and break' }).click();
     await expect(page.getByRole('heading', { name: 'Break', level: 3 })).toBeVisible();
-    await expect(page.getByRole('group', { name: 'How long' }).getByRole('button', { name: '1 year' })).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: 'How long' }).getByRole('radio', { name: '1 year' })).toBeVisible();
     // Feature overrides, the number and erasure, the Account part, are for super admins alone (#61).
     await expect(page.getByRole('button', { name: 'Account', exact: true })).toHaveCount(0);
 
@@ -38,7 +38,7 @@ test.describe('Members', () => {
     await page.getByRole('button', { name: 'Open Kabir Sethi' }).click();
     await expect(page.getByRole('heading', { name: 'Kabir Sethi', level: 2 })).toBeVisible();
     await page.getByRole('button', { name: 'Tier and break' }).click();
-    await page.getByRole('group', { name: 'New tier' }).getByRole('button', { name: "Founders' Circle" }).click();
+    await page.getByRole('radiogroup', { name: 'New tier' }).getByRole('radio', { name: "Founders' Circle" }).click();
     await page.getByRole('textbox', { name: 'Why', exact: true }).fill("Owner's guest for the weekend");
     const lastDay = new Date(Date.now() + 2 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     await page.getByLabel('Last day (optional)').fill(lastDay);
@@ -46,7 +46,7 @@ test.describe('Members', () => {
     await expect(page.getByText('Tier changed.')).toBeVisible();
     await expect(page.getByText(/^Member \d+ · Founders' Circle until \d{1,2} \w{3} \d{4}/)).toBeVisible();
 
-    await page.getByRole('group', { name: 'New tier' }).getByRole('button', { name: 'Member', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'New tier' }).getByRole('radio', { name: 'Member', exact: true }).click();
     await page.getByRole('textbox', { name: 'Why', exact: true }).fill('Back after the weekend');
     await page.getByRole('button', { name: 'Change tier', exact: true }).click();
     await expect(page.getByText(/^Member \d+ · Member · /)).toBeVisible();

@@ -20,8 +20,8 @@ test.describe('Feature overrides', () => {
     // The record's parts are tabs (C-02).
     await admin.getByRole('button', { name: 'Account', exact: true }).click();
     await expect(admin.getByRole('heading', { name: 'Feature overrides' })).toBeVisible();
-    await admin.getByRole('group', { name: 'Feature' }).getByRole('button', { name: 'Session history' }).click();
-    await admin.getByRole('group', { name: 'Override' }).getByRole('button', { name: 'Take away' }).click();
+    await admin.getByRole('radiogroup', { name: 'Feature' }).getByRole('radio', { name: 'Session history' }).click();
+    await admin.getByRole('radiogroup', { name: 'Override' }).getByRole('radio', { name: 'Take away' }).click();
     await admin.getByRole('textbox', { name: 'Why the override' }).fill('Asked for a break from his history');
     await admin.getByRole('button', { name: 'Save override' }).click();
     await expect(admin.getByText('Override saved.')).toBeVisible();

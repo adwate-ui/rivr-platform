@@ -51,7 +51,7 @@ test.describe('Settings', () => {
     await expect(admin.getByRole('textbox', { name: 'Minutes' })).toHaveAttribute('aria-invalid', 'true');
     await expect(admin.getByText('Between 1 and 120 minutes.')).toBeVisible();
     await admin.getByRole('textbox', { name: 'Minutes' }).fill('12');
-    await admin.getByRole('group', { name: 'Takes effect' }).getByRole('button', { name: 'From a later day' }).click();
+    await admin.getByRole('radiogroup', { name: 'Takes effect' }).getByRole('radio', { name: 'From a later day' }).click();
     await admin.getByLabel('Day').fill(tomorrow());
     await admin.getByRole('button', { name: 'Save change' }).click();
     await expect(admin.getByText('Change saved.')).toBeVisible();

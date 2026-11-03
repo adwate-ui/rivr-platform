@@ -75,10 +75,10 @@ test.describe('Promotion simulation', () => {
     await page.getByRole('link', { name: 'Promotions' }).click();
     await expect(page.getByRole('heading', { name: 'New promotion' })).toBeVisible({ timeout: 5000 });
     await page.getByRole('group', { name: 'Days' }).getByRole('button', { name: 'Thursday' }).click();
-    await page.getByRole('group', { name: 'From' }).getByRole('button', { name: '14:00' }).click();
-    await page.getByRole('group', { name: 'To' }).getByRole('button', { name: '20:00' }).click();
-    await page.getByRole('group', { name: 'Who' }).getByRole('button', { name: 'Private Room' }).click();
-    await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Triple points' }).click();
+    await page.getByRole('radiogroup', { name: 'From' }).getByRole('radio', { name: '14:00' }).click();
+    await page.getByRole('radiogroup', { name: 'To' }).getByRole('radio', { name: '20:00' }).click();
+    await page.getByRole('radiogroup', { name: 'Who' }).getByRole('radio', { name: 'Private Room' }).click();
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Triple points' }).click();
 
     // Submitting waits for the simulation.
     await expect(page.getByRole('button', { name: 'Submit for approval', exact: true })).toBeDisabled();
@@ -91,9 +91,9 @@ test.describe('Promotion simulation', () => {
     await expect(figure('Budget', 'No cap')).toBeVisible();
 
     // A change clears the simulation; simulating again lets it be submitted.
-    await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Double points' }).click();
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Double points' }).click();
     await expect(page.getByRole('button', { name: 'Submit for approval', exact: true })).toBeDisabled();
-    await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Triple points' }).click();
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Triple points' }).click();
     await page.getByRole('button', { name: 'Simulate last week' }).click();
     await expect(figure('Extra points', (expected.points * 2).toLocaleString('en-IN'))).toBeVisible({ timeout: 10_000 });
     await page.getByRole('button', { name: 'Submit for approval', exact: true }).click();

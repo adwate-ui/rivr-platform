@@ -140,7 +140,7 @@ describe('a table on the live floor', () => {
       const url = String(input instanceof Request ? input.url : input);
       return url.includes('/rpc/seat_member') ? Response.json({ code: 'RVKYC', message: 'kyc' }, { status: 400 }) : Response.json([]);
     });
-    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    fireEvent.click(screen.getByRole('radio', { name: '4' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '9000000202' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     const refusal = await screen.findByRole('alert', {}, { timeout: 5000 });
@@ -153,7 +153,7 @@ describe('a table on the live floor', () => {
       const url = String(input instanceof Request ? input.url : input);
       return url.includes('/rpc/seat_member') ? Response.json({ code: 'RVOCC', message: 'taken' }, { status: 400 }) : Response.json([]);
     });
-    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    fireEvent.click(screen.getByRole('radio', { name: '4' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '9000000211' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     const refusal = await screen.findByRole('alert', {}, { timeout: 5000 });
