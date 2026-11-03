@@ -10,9 +10,11 @@ afterEach(() => {
 });
 
 const CHAI = { id: 'chai', name: 'Masala chai', kind: 'soft_drink', is_available: true, position: 1, photo_path: null };
+const SANDWICH = { id: 'sandwich', name: 'Club sandwich', kind: 'food', is_available: true, position: 10, photo_path: null };
+const BEER = { id: 'beer', name: 'Beer', kind: 'alcohol', is_available: false, position: 20, photo_path: null };
 
-/** A staff member signed in, and a fake API whose menu is one masala chai. */
-function renderMenu(canManage: boolean) {
+/** A staff member signed in, and a fake API whose menu is `items`, one masala chai unless given. */
+function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -23,7 +25,7 @@ function renderMenu(canManage: boolean) {
   );
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
-    return Response.json(url.includes('/rest/v1/fnb_item') ? [CHAI] : []);
+    return Response.json(url.includes('/rest/v1/fnb_item') ? items : []);
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}>
@@ -33,6 +35,16 @@ function renderMenu(canManage: boolean) {
 }
 
 describe('MenuItems', () => {
+  it('sets each item under its kind, food first, with the name alone', async () => {
+    renderMenu(false, [CHAI, SANDWICH, BEER]);
+    const headings = await screen.findAllByRole('heading', { level: 3 }, { timeout: 5000 });
+    expect(headings.map((heading) => heading.textContent)).toEqual(['Food', 'Soft drinks', 'Bar']);
+    expect(screen.getByText('Club sandwich', { exact: true })).toBeDefined();
+    expect(screen.getByText('Masala chai', { exact: true })).toBeDefined();
+    expect(screen.queryByText(/ · Soft drink/)).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Off the menu' })).toBeDefined();
+  });
+
   it('offers staff who run F&B a photo for each dish, and says why a file was not one (AS-11)', async () => {
     vi.stubGlobal('createImageBitmap', async () => { throw new Error('Not an image'); });
     renderMenu(true);

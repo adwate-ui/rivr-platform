@@ -113,13 +113,45 @@ export const consoleFnb = {
   items: 'Menu',
   itemName: 'Item',
   kind: 'Kind',
-  kinds: { food: 'Food', soft_drink: 'Soft drink', alcohol: 'Alcohol' },
+  /** The menu's kinds and its sections, as the app names them (#799). */
+  kinds: { food: 'Food', soft_drink: 'Soft drinks', alcohol: 'Bar' },
   onOffer: 'On offer',
   offMenu: 'Off the menu',
   addItem: 'Add to the menu',
   empty,
   invalidItem: 'A name of 1 to 60 characters, a place from 1 to 999.',
   failures,
+  /** The menu from a CSV (#799): each line shown, and what is wrong with it, before anything is saved. No price: the menu keeps none. */
+  menuCsv: {
+    heading: 'Menu from a CSV',
+    /** The one hint the file needs: its columns and the words each takes. */
+    format: 'Columns: name, type (food, soft drinks or bar), and on offer (yes or no) if it changes.',
+    choose: 'Choose a CSV',
+    chooseAnother: 'Choose another CSV',
+    /** A line of the preview: `Club sandwich · Food · On offer`, or without on offer when the file leaves it as it is. */
+    item: '{name} · {kind} · {offer}',
+    itemOnly: '{name} · {kind}',
+    problems: {
+      name: 'Line {line}: give a name of 1 to 60 characters.',
+      type: 'Line {line}: use food, soft drinks or bar as the type.',
+      onOffer: 'Line {line}: write yes, no or nothing under on offer.',
+      twice: 'Line {line}: {name} is listed twice.',
+    },
+    columns: 'Name the columns on the first line: name and type.',
+    empty: 'No items in that file.',
+    tooMany: 'Over 300 items. Split the file.',
+    unreadable: 'Not read. Choose a CSV file.',
+    tooBig: 'Over 1 MB. Choose the menu’s CSV.',
+    save: 'Save items',
+    saved: '{count} items saved to the menu.',
+    savedOne: '1 item saved to the menu.',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      invalid: 'Not saved. Check the file and choose it again.',
+      paused: 'Venue frozen. Try again once it is released.',
+      unavailable: 'Not sent. Try again.',
+    },
+  },
   /** Glaza's monthly statement (#109; decision 0265). */
   glaza: {
     title: 'Glaza statement',

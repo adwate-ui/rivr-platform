@@ -15,7 +15,8 @@ export interface SiteGame {
 export interface SiteTournament {
   readonly name: string;
   readonly startsAt: Date;
-  readonly buyIn: bigint;
+  /** Null for a tournament published without money (decision 0441). */
+  readonly buyIn: bigint | null;
   readonly guarantee: bigint | null;
 }
 
@@ -176,8 +177,8 @@ export async function fetchSiteCalendar(client: RivrClient): Promise<Result<Site
   const { data, error } = await client.from('public_tournament_calendar')
     .select('name, starts_at, buy_in_paise, guarantee_paise').order('starts_at');
   if (error) return err('unavailable');
-  return ok(data.flatMap((row) => (row.name && row.starts_at && row.buy_in_paise !== null
-    ? [{ name: row.name, startsAt: new Date(row.starts_at), buyIn: BigInt(row.buy_in_paise),
+  return ok(data.flatMap((row) => (row.name && row.starts_at
+    ? [{ name: row.name, startsAt: new Date(row.starts_at), buyIn: row.buy_in_paise === null ? null : BigInt(row.buy_in_paise),
          guarantee: row.guarantee_paise === null ? null : BigInt(row.guarantee_paise) }]
     : [])));
 }

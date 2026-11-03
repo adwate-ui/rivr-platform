@@ -6,7 +6,8 @@
  * their KOTs wait at the console under KOTs to print until Meera hands them to the bar and marks them sent. She orders
  * a club sandwich for his seat as a comp, the tablet is revoked and he leaves early, so Table 3 is as it was. Sameer Rao, the
  * flow's steward in the Service role (#640), sees only food and drink: he accepts the app's order, sends it on its way and
- * delivers it, and the member follows it on Tonight's order tracker (decision 0320). The agent
+ * delivers it, and the member follows it on Tonight's order tracker (decision 0320). On the menu, Meera sees each item
+ * under its kind, and saves two from a CSV once it shows each line and the one it cannot read (decision 0440). The agent
  * printing KOTs, alcohol at 21 or over and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql and
  * apps/cage-agent's tests.
  */
@@ -23,9 +24,9 @@ async function kotIn(page: Page, sent: RegExp) {
 }
 
 test.describe('F&B', () => {
-  test('Tonight › Order, Order on its way, Order delivered: a seated member and the dealer order to his seat; the floor marks the KOTs sent and orders a comp', async ({ page, browser }) => {
+  test('Tonight › Order, Order on its way, Order delivered: a seated member and the dealer order to his seat; the floor marks the KOTs sent, orders a comp and saves menu items from a CSV', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'seats a seeded member, pairs a tablet and places orders, so the local stack only');
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
     await signInToConsole(page, '9000000615');
     await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
     await page.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '1', exact: true }).click();
@@ -100,6 +101,22 @@ test.describe('F&B', () => {
     await page.getByRole('button', { name: `Mark KOT ${comp} sent` }).click();
     await expect(page.getByText('Every KOT is at the bar.')).toBeVisible();
     await expect(page.getByText('Comp · Given to the bar by hand')).toBeVisible();
+
+    // The menu (#799): each item under its kind, by its name alone; and from a CSV, every line shown before it is saved.
+    for (const kind of ['Food', 'Soft drinks', 'Bar']) await expect(page.getByRole('heading', { name: kind, level: 3, exact: true })).toBeVisible();
+    await expect(page.getByText('Masala chai · Soft drink')).toHaveCount(0);
+    const picker = page.locator('input[type="file"][accept=".csv,text/csv"]');
+    const csv = (text: string) => ({ name: 'menu.csv', mimeType: 'text/csv', buffer: Buffer.from(text) });
+    await picker.setInputFiles(csv('name,type,price\nFilter coffee,soft drinks,80\nKulfi,dessert,150\n'));
+    await expect(page.getByText('Line 3: use food, soft drinks or bar as the type.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Save items' })).toHaveCount(0);
+    await picker.setInputFiles(csv('name,type,price,on offer\nFilter coffee,soft drinks,80,yes\nGin and tonic,bar,450,no\n'));
+    await expect(page.getByText('Filter coffee · Soft drinks · On offer')).toBeVisible();
+    await expect(page.getByText('Gin and tonic · Bar · Off the menu')).toBeVisible();
+    await page.getByRole('button', { name: 'Save items' }).click();
+    await expect(page.getByText('2 items saved to the menu.')).toBeVisible();
+    await expect(page.getByText('Gin and tonic', { exact: true })).toBeVisible();
+    await expect(page.getByText(/₹/)).toHaveCount(0);
 
     await revoke(page, name);
     await page.getByRole('link', { name: 'Live floor' }).click();
