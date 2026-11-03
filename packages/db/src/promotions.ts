@@ -44,6 +44,8 @@ export interface PromotionToSubmit {
   readonly requestId: string;
   /** Its budget, or none: no cap. */
   readonly budget?: PromotionBudget | null | undefined;
+  /** The https address its card opens, or none (#776). */
+  readonly link?: string | undefined;
 }
 
 /** A template sent for approval as it stands (#85), with a budget for the whole promotion or each month, or none (#562). */
@@ -76,6 +78,8 @@ export interface PromotionAwaitingApproval {
   /** The rules and questions it puts on the website (#618), for the approver to read before the public does. */
   readonly websiteRules: readonly string[];
   readonly websiteQuestions: SitePromotion['questions'];
+  /** The https address its card will open, or null (#776), for the approver to read too. */
+  readonly link: string | null;
 }
 
 /** A promotion a super admin sent back in the last fortnight (#144), with who did and why. */
@@ -107,7 +111,7 @@ export function usePromotionsAwaitingApproval(venueId: string) {
           perPlayer: row.per_player_limit === null || row.per_player_period === null ? null : { limit: row.per_player_limit, period: row.per_player_period },
           budget: { paise: row.budget_paise === null ? null : BigInt(row.budget_paise), count: row.budget_count,
             period: row.budget_period === 'month' ? 'month' : 'promotion' },
-          websiteRules: row.website_rules ?? [], websiteQuestions: questionsFrom(row.website_questions),
+          websiteRules: row.website_rules ?? [], websiteQuestions: questionsFrom(row.website_questions), link: row.link,
         };
       });
     },
@@ -233,12 +237,12 @@ export function usePromotionActions(venueId: string) {
   const { client } = useRivrData();
   const settle = useSettle(venueId);
   const submit = useMutation({
-    mutationFn: async ({ name, detail, runs, draft, rules = [], questions = [], requestId, budget = null }: PromotionToSubmit) => {
+    mutationFn: async ({ name, detail, runs, draft, rules = [], questions = [], requestId, budget = null, link }: PromotionToSubmit) => {
       const perPlayer = draft.perPlayer === null ? {} : { per_player_limit: draft.perPlayer.limit, per_player_period: draft.perPlayer.period };
       const capped = budget === null ? {} : { budget_paise: budget.paise === null ? null : Number(budget.paise), budget_count: budget.count };
       const promotion = {
         name, detail, runs, rule: draft.rule, rules: [...rules], questions: questions.map((item) => ({ ...item })), ...perPlayer, ...capped,
-        request_id: requestId,
+        request_id: requestId, link,
       };
       const { data, error } = await client.rpc('submit_promotion', { p_venue_id: venueId, p_promotion: promotion });
       return settle(data, error);

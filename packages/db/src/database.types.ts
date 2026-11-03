@@ -2547,14 +2547,14 @@ isOneToOne: false
                   ]
                 },"promotion": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"idempotency_key": string | null,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"idempotency_key": string | null,"link": string | null,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"link"?: string | null,"name": string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"detail"?: string | null,"ends_at"?: string | null,"id"?: string,"idempotency_key"?: string | null,"link"?: string | null,"name"?: string,"per_player_limit"?: number | null,"per_player_period"?: string | null,"priority"?: number,"questions"?: NonNullable<Json>,"refused_reason"?: string | null,"requested_at"?: string | null,"requested_by_staff_id"?: string | null,"rules"?: (string)[],"runs"?: string | null,"stacks"?: boolean,"starts_at"?: string,"status"?: string,"template_key"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -5237,7 +5237,7 @@ isOneToOne: false
                            },
 "my_promotion_cards":
 { Args: Record<PropertyKey, never>; Returns: {
-              "detail": string,"promotion_id": string,"runs": string,"title": string
+              "detail": string,"link": string,"promotion_id": string,"runs": string,"title": string
             }[]
                            },
 "my_redemptions":
@@ -5424,7 +5424,7 @@ isOneToOne: false
                            },
 "promotions_awaiting_approval":
 { Args: { "p_venue_id": string }; Returns: {
-              "budget_count": number,"budget_paise": number,"budget_period": string,"detail": string,"is_mine": boolean,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string,"website_questions": Json,"website_rules": (string)[]
+              "budget_count": number,"budget_paise": number,"budget_period": string,"detail": string,"is_mine": boolean,"link": string,"name": string,"per_player_limit": number,"per_player_period": string,"promotion_id": string,"requested_at": string,"requested_by": string,"rules": Json,"runs": string,"template_key": string,"website_questions": Json,"website_rules": (string)[]
             }[]
                            },
 "promotions_sent_back":

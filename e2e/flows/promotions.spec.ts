@@ -10,6 +10,8 @@ import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const RUNS = 'NLH 100/200 · Thursday, 14:00 to 20:00';
+// The card's optional link (#776): the approver reads it, and the member's card opens it.
+const LINK = 'https://glaza.example/double-points';
 
 /** Builds flow 7 in the builder and submits it; a super admin approves it. */
 async function publishFlow7(floor: Page, approver: Page) {
@@ -24,6 +26,7 @@ async function publishFlow7(floor: Page, approver: Page) {
   // The player card and the TV slide, as the choices would publish them.
   await expect(floor.getByRole('article', { name: 'Double points' })).toContainText(RUNS);
   await expect(floor.getByRole('group', { name: 'TV slide' })).toContainText(RUNS);
+  await floor.getByRole('textbox', { name: 'Card link (optional)' }).fill(LINK);
   // Simulated on last week first, then submitted; a super admin approves it (#144).
   await floor.getByRole('button', { name: 'Simulate last week' }).click();
   await expect(floor.getByText('Times given', { exact: true })).toBeVisible({ timeout: 10_000 });
@@ -32,6 +35,7 @@ async function publishFlow7(floor: Page, approver: Page) {
   await approver.getByRole('link', { name: 'Promotions' }).click();
   const waitingList = approver.getByRole('heading', { name: 'Waiting for approval' }).locator('xpath=..');
   const waiting = waitingList.getByText(RUNS, { exact: true }).first().locator('xpath=../..');
+  await expect(waiting).toContainText(`Card opens ${LINK}`);
   await waiting.getByRole('button', { name: 'Approve', exact: true }).click();
   await expect(approver.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
   await expect(approver.getByText('Live', { exact: true }).first()).toBeVisible();
@@ -67,6 +71,7 @@ test.describe('Promotions', () => {
     // Tonight's offers (decision 0320): the card in the carousel headed Tonight.
     const card = member.getByRole('region', { name: 'Tonight' }).getByRole('listitem').filter({ hasText: 'Double points' });
     await expect(card).toContainText(RUNS, { timeout: 15_000 });
+    await expect(card.getByRole('link').first()).toHaveAttribute('href', LINK);
 
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const tv = await browser.newPage();

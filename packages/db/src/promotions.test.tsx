@@ -95,6 +95,15 @@ describe('Promotions (#84)', () => {
     expect(calls.find((call) => call.url.includes('submit_promotion'))?.body).toMatchObject({ p_promotion: { budget_paise: 5_000_000, budget_count: null } });
   });
 
+  // Issue 776: the card's optional link.
+  it('sends the link the card opens with the submission', async () => {
+    const { result, calls } = renderPromotions({ '/rpc/submit_promotion': { body: 'p9' }, '/rest/v1/': { body: [] } });
+    await act(async () => {
+      await result.current.actions.submit.mutateAsync({ name: 'Happy hour', runs: 'Daily', draft: DRAFT, requestId: 'r1', link: 'https://glaza.example/happy-hour' });
+    });
+    expect(calls.find((call) => call.url.includes('submit_promotion'))?.body).toMatchObject({ p_promotion: { link: 'https://glaza.example/happy-hour' } });
+  });
+
   it('says why a submission was refused: promotions switched off, or not a promotion manager', async () => {
     const { result } = renderPromotions({ '/rpc/submit_promotion': { status: 400, body: { code: 'RVKIL', message: 'off' } }, '/rest/v1/': { body: [] } });
     let refused: unknown;
@@ -138,11 +147,11 @@ describe('Promotions (#84)', () => {
         body: [{ promotion_id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', template_key: null, requested_by: 'Ishita Bose',
                  requested_at: '2026-10-27T10:00:00Z', is_mine: false, rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }],
                  per_player_limit: 1, per_player_period: 'day', budget_paise: 500000, budget_count: null, budget_period: 'month',
-                 website_rules: ['Members only'], website_questions: [{ question: 'Do I claim it?', answer: 'No.' }] },
+                 website_rules: ['Members only'], website_questions: [{ question: 'Do I claim it?', answer: 'No.' }], link: 'https://glaza.example/happy-hour' },
                { promotion_id: 'p8', name: 'Odd', detail: null, runs: 'Any', template_key: null, requested_by: 'Ishita Bose',
                  requested_at: '2026-10-27T11:00:00Z', is_mine: true, rules: [{ trigger: 'lunch', conditions: {}, effect: { kind: 'spin' } }],
                  per_player_limit: null, per_player_period: null, budget_paise: null, budget_count: null, budget_period: null,
-                 website_rules: [], website_questions: [] }],
+                 website_rules: [], website_questions: [], link: null }],
       },
       '/rpc/approve_promotion': { body: null },
       '/rpc/refuse_promotion': { body: null },
@@ -151,10 +160,10 @@ describe('Promotions (#84)', () => {
     await waitFor(() => expect(result.current.awaiting.data).toEqual([
       { id: 'p9', name: 'Double points', detail: null, runs: 'Thursday', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T10:00:00Z', isMine: false,
         rules: [{ trigger: 'buy_in', conditions: {}, effect: { kind: 'spin' } }], perPlayer: { limit: 1, period: 'day' }, budget: { paise: 500000n, count: null, period: 'month' },
-        websiteRules: ['Members only'], websiteQuestions: [{ question: 'Do I claim it?', answer: 'No.' }] },
+        websiteRules: ['Members only'], websiteQuestions: [{ question: 'Do I claim it?', answer: 'No.' }], link: 'https://glaza.example/happy-hour' },
       // A rule the console cannot read is null, so it can only be refused.
       { id: 'p8', name: 'Odd', detail: null, runs: 'Any', requestedBy: 'Ishita Bose', requestedAt: '2026-10-27T11:00:00Z', isMine: true,
-        rules: null, perPlayer: null, budget: { paise: null, count: null, period: 'promotion' }, websiteRules: [], websiteQuestions: [] },
+        rules: null, perPlayer: null, budget: { paise: null, count: null, period: 'promotion' }, websiteRules: [], websiteQuestions: [], link: null },
     ]));
     let approved: unknown;
     await act(async () => {
