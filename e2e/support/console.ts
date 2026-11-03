@@ -3,6 +3,7 @@
  * folded until opened, a screen's tabs, and the staff member's menu at the header's end.
  */
 import { expect, type Page } from '@playwright/test';
+import { appUrl } from './apps.ts';
 
 /** Opens a screen from the rail, unfolding Admin first when the screen sits in it, and waits until it is the one open. */
 export async function openFromRail(page: Page, screen: string) {
@@ -25,10 +26,10 @@ export async function openTab(page: Page, screen: string, tab: string) {
   }
 }
 
-/** Opens Settings' Devices tab at the TVs or the tablets. */
+/** Opens Settings' Devices tab at the TVs or the tablets, by its v3 address (decision 0443). */
 export async function openDevices(page: Page, kind: 'TVs' | 'Tablets') {
-  await openTab(page, 'Settings', 'Devices');
-  await page.getByRole('main').getByRole('link', { name: kind, exact: true }).click();
+  await page.goto(`${appUrl('console')}/settings?tab=devices&part=${kind === 'TVs' ? 'tvs' : 'tablets'}`);
+  await expect(page.getByRole('main').getByRole('link', { name: kind, exact: true })).toHaveAttribute('aria-current', 'page');
 }
 
 /** Opens the staff member's menu at the header's end, and gives back its panel. */
