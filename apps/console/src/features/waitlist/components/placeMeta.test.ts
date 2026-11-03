@@ -1,18 +1,12 @@
-import type { FloorTable, WaitlistBoardEntry } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
 import { nameGivesBlinds, placeMeta, tableMeta } from './placeMeta.ts';
+import { buildFloorTable, buildPlace } from './waitlistFixtures.ts';
 
 const NOW = new Date('2026-11-15T15:40:00Z');
 
-const ENTRY: WaitlistBoardEntry = {
-  entryId: 'e1', tableTypeId: 'tt', memberId: 'm1', fullName: 'Ishaan Verma', joinedAt: '2026-11-15T15:35:00Z', place: 1, addedByFloor: false,
-  priorityReason: null, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, tableId: 't1', onWayAt: null,
-};
+const ENTRY = buildPlace({ place: 1, fullName: 'Ishaan Verma' });
 
-const TABLE: FloorTable = {
-  id: 't1', venueId: 'v1', name: 'Table 1', room: 'main', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', game: 'nlh', smallBlind: 10000n,
-  bigBlind: 20000n, buyIn: 1000000n, straddle: null, waiting: 2, callTimeMinutes: 180, openSeats: 3, mustMoveToTableId: null, isOpen: true,
-};
+const TABLE = buildFloorTable();
 
 describe("a place's line under its name (console v3)", () => {
   it('says how long they have waited, then that the floor added them', () => {

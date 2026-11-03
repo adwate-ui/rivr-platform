@@ -1,9 +1,10 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type FloorTable } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SeatSheet } from './SeatSheet.tsx';
+import { buildFloorTable } from './waitlistFixtures.ts';
 
 afterEach(() => {
   cleanup();
@@ -11,10 +12,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const TABLE: FloorTable = {
-  id: 't3', venueId: 'v1', name: 'Table 3', room: 'main', seats: 6, tableTypeId: 'tt', tableTypeName: 'NLH 100/200', game: 'nlh', smallBlind: 10000n, bigBlind: 20000n,
-  buyIn: 1000000n, straddle: null, waiting: 0, callTimeMinutes: 180, openSeats: null, mustMoveToTableId: null, isOpen: true,
-};
+const TABLE = buildFloorTable({ id: 't3', name: 'Table 3', seats: 6, openSeats: null });
 /** A seated player's row as floor_seats gives it. */
 const seated = (seat: number) => ({
   session_id: `s${String(seat)}`, table_id: 't3', seat, member_id: `m${String(seat)}`, full_name: `Player ${String(seat)}`, tier_name: 'Gold',

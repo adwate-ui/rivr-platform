@@ -9,7 +9,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsoleAndWait, signInToPlayer } from '../support/signIn.ts';
 
 /** The IST day two days from now, as a date field takes it: `2026-11-05`. */
 const dayAfterTomorrow = () => new Date(Date.now() + 2 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -21,7 +21,7 @@ test.describe('Tournament interest', () => {
     const name = `Interest Cup ${String(Date.now() % 100_000).padStart(5, '0')}`;
 
     const floor = await browser.newPage();
-    await signInToConsole(floor, '9000000116');
+    await signInToConsoleAndWait(floor, '9000000116');
     await floor.goto(`${appUrl('console')}/waitlist?tab=interest`);
     await expect(floor.getByRole('heading', { name: 'New tournament' })).toBeVisible();
     await expect(floor.getByLabel(/buy-in|prize|guarantee/i)).toHaveCount(0);

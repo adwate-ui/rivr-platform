@@ -1,14 +1,12 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type WaitlistBoardEntry } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BulkPlaces } from './BulkPlaces.tsx';
+import { buildPlace } from './waitlistFixtures.ts';
 
-const place = (place: number, fullName: string, holdUntil: string | null = null): WaitlistBoardEntry => ({
-  entryId: `e${String(place)}`, tableTypeId: 'tt', memberId: `m${String(place)}`, fullName, joinedAt: '2026-11-15T15:35:00Z', place, addedByFloor: false,
-  priorityReason: null, callTableName: null, callSeat: null, holdUntil, awayUntil: null, tableId: 't1', onWayAt: null,
-});
+const place = (number: number, fullName: string, holdUntil: string | null = null) => buildPlace({ place: number, fullName, holdUntil });
 
 let calls: { rpc: string; body: unknown }[] = [];
 
