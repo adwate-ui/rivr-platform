@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="padding:24px clamp(16px,3vw,32px) 48px;display:flex;flex-direction:column;gap:28px;color:#F3EDE0;font-family:'Instrument Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums">
+
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <div style="flex:1;min-width:240px">
+    <sc-if value="{{ isBuilder }}"><button onClick="{{ backToList }}" style="background:none;border:none;color:#C9A85C;font-size:13px;cursor:pointer;padding:0;margin-bottom:6px">← All promotions</button></sc-if>
+    <h1 style="margin:0;font-size:24px;font-weight:500">{{ title }}</h1>
+    <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">{{ desc }}</div>
+  </div>
+  <sc-if value="{{ isList }}"><button onClick="{{ newPromo }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">New promotion</button></sc-if>
+</div>
+
+<sc-if value="{{ isList }}">
+  <div style="display:flex;gap:4px;flex-wrap:wrap">
+    <sc-for list="{{ filters }}" as="c"><button onClick="{{ c.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.label }} <span style="opacity:0.6">{{ c.n }}</span></button></sc-for>
+  </div>
+  <div style="background:#0A2A20;border-radius:6px;overflow-x:auto">
+    <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 90px 130px 150px;min-width:860px;gap:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.05)">
+      <span>Promotion</span><span>Who</span><span>When</span><span style="text-align:right">This week</span><span>Status</span><span></span>
+    </div>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 90px 130px 150px;min-width:860px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(243,237,224,0.04)" style-hover="background:rgba(243,237,224,0.03)">
+        <div style="min-width:0"><div style="font-size:14px;font-weight:500">{{ r.name }}</div><div style="font-size:12px;color:#C9A85C;margin-top:3px">{{ r.reward }}</div></div>
+        <span style="font-size:13px;color:rgba(243,237,224,0.75)">{{ r.who }}</span>
+        <span style="font-size:13px;color:rgba(243,237,224,0.75)">{{ r.when }}</span>
+        <span style="font-size:13px;text-align:right">{{ r.given }}</span>
+        <span><span style="font-size:12px;padding:2px 8px;border-radius:3px;background:{{ r.pillBg }};color:{{ r.pillColor }}">{{ r.status }}</span></span>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <sc-if value="{{ r.hasToggle }}"><button onClick="{{ r.onToggle }}" style="height:28px;padding:0 10px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">{{ r.toggle }}</button></sc-if>
+          <button onClick="{{ r.onEdit }}" style="height:28px;padding:0 10px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">{{ r.editLabel }}</button>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ noRows }}"><div style="padding:18px 16px;font-size:14px;color:rgba(243,237,224,0.6)">No promotions with this status.</div></sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isBuilder }}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:24px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">Start from</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ templates }}" as="o"><button onClick="{{ o.onClick }}" style="height:30px;padding:0 10px;border-radius:4px;font-size:12px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for></div>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Name members see<input value="{{ name }}" onChange="{{ onName }}" style="height:40px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:15px"></label>
+      </div>
+
+      <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">1 · Reward</span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(170px,100%),1fr));gap:8px">
+          <sc-for list="{{ rewardTypes }}" as="rt">
+            <button onClick="{{ rt.onClick }}" style="text-align:left;padding:10px 12px;border-radius:4px;cursor:pointer;background:{{ rt.bg }};border:1px solid {{ rt.border }};color:#F3EDE0;display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:14px;font-weight:600">{{ rt.label }}</span><span style="font-size:12px;color:rgba(243,237,224,0.6);line-height:1.35">{{ rt.desc }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;padding-top:4px">
+          <sc-for list="{{ params }}" as="pm">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;color:rgba(243,237,224,0.7)">{{ pm.label }}</span>
+              <sc-if value="{{ pm.isNumber }}">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <sc-if value="{{ pm.hasPrefix }}"><span style="font-size:14px;color:rgba(243,237,224,0.7)">{{ pm.prefix }}</span></sc-if>
+                  <input type="number" value="{{ pm.value }}" onChange="{{ pm.onChange }}" step="{{ pm.step }}" min="0" style="width:{{ pm.w }};height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:15px">
+                  <span style="font-size:13px;color:rgba(243,237,224,0.7)">{{ pm.suffix }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ pm.isChips }}">
+                <div style="display:flex;border:1px solid rgba(243,237,224,0.18);border-radius:4px;overflow:hidden">
+                  <sc-for list="{{ pm.opts }}" as="o"><button onClick="{{ o.onClick }}" style="height:36px;padding:0 12px;border:none;background:{{ o.bg }};color:{{ o.color }};font-size:13px;cursor:pointer">{{ o.label }}</button></sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">2 · Who qualifies</span>
+        <sc-for list="{{ whoRows }}" as="w">
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:rgba(243,237,224,0.7)">{{ w.label }}</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ w.opts }}" as="o"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for></div></div>
+        </sc-for>
+      </div>
+
+      <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">3 · When</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ days }}" as="o"><button onClick="{{ o.onClick }}" style="width:52px;height:36px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for><button onClick="{{ everyDay }}" style="height:36px;padding:0 12px;background:transparent;border:none;color:#C9A85C;font-size:13px;cursor:pointer">Every day</button></div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">From<input type="time" value="{{ from }}" onChange="{{ onFrom }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px;color-scheme:dark"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">To<input type="time" value="{{ to }}" onChange="{{ onTo }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px;color-scheme:dark"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Starts<input type="date" value="{{ start }}" onChange="{{ onStart }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px;color-scheme:dark"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Ends (blank for no end)<input type="date" value="{{ end }}" onChange="{{ onEnd }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px;color-scheme:dark"></label>
+        </div>
+      </div>
+
+      <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">4 · Limits</span>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:rgba(243,237,224,0.7)">Each member</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ perMember }}" as="o"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for></div></div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Most members a day<input type="number" value="{{ capDay }}" onChange="{{ onCapDay }}" placeholder="No limit" style="width:140px;height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Budget in bonus chips<input type="number" value="{{ budget }}" onChange="{{ onBudget }}" placeholder="No limit" style="width:160px;height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px"></label>
+        </div>
+      </div>
+
+      <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">5 · Where it shows</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ channels }}" as="o"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for></div>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Rules on the website, one a line<textarea rows="3" style="background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:10px 12px;font-size:14px;resize:vertical"></textarea></label>
+      </div>
+    </div>
+
+    <div style="position:sticky;top:0;display:flex;flex-direction:column;gap:14px">
+      <div style="background:#0A2A20;border:1px solid rgba(201,168,92,0.35);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#C9A85C">In one line</span>
+        <span style="font-size:15px;line-height:1.5">{{ summary }}</span>
+      </div>
+      <div style="aspect-ratio:16/9;background:#0E3B2C;border:1px solid rgba(243,237,224,0.15);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;text-align:center">
+        <span style="font-size:9px;letter-spacing:0.2em;color:rgba(243,237,224,0.55)">TONIGHT AT RIVR</span>
+        <span style="font-family:'Bodoni Moda',serif;font-size:28px;line-height:1.1">{{ headline }}</span>
+        <span style="font-size:11px;color:rgba(243,237,224,0.65)">{{ subline }}</span>
+      </div>
+      <div style="background:#0A2A20;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Last week, if it had run</span><button onClick="{{ simulate }}" style="height:28px;padding:0 10px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">{{ simLabel }}</button></div>
+        <sc-if value="{{ simulated }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <sc-for list="{{ simStats }}" as="ss"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:18px;font-weight:600">{{ ss.v }}</span><span style="font-size:11px;color:rgba(243,237,224,0.6)">{{ ss.k }}</span></div></sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ notSimulated }}"><span style="font-size:13px;color:rgba(243,237,224,0.6)">Run it before submitting, so the approver sees what it would have cost.</span></sc-if>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onClick="{{ saveDraft }}" style="flex:1;height:40px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:14px;cursor:pointer">Save draft</button>
+        <button onClick="{{ submit }}" style="flex:1.4;height:40px;background:{{ submitBg }};border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Submit for approval</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:800},&quot;onToast&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(msg: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  TYPES = {
+    mult: { label: 'Points multiplier', desc: 'Points earned per hour, multiplied' },
+    buyin: { label: 'Buy-in bonus', desc: 'Bonus chips on a buy-in, % or fixed' },
+    hours: { label: 'Hours-played bonus', desc: 'Bonus chips after time at the tables' },
+    chips: { label: 'Bonus chips', desc: 'A fixed bonus on a visit or referral' },
+    spin: { label: 'Free spin', desc: 'Spins of the RIVR wheel' },
+    cab: { label: 'Cab home', desc: 'A ride home after a set visit count' },
+    entry: { label: 'Tournament entry', desc: 'A seat in a tournament' },
+    priority: { label: 'Waitlist priority', desc: 'First call on every waitlist' },
+  };
+  blank() { return { name: '', type: 'mult', mult: 2, buyMode: '%', buyVal: 20, buyCap: 2000, buyFirst: 5, hrsAmt: 1000, hrsAfter: 4, chipsAmt: 1000, chipsOn: 'Each visit', spins: 1, spinAfter: 4, cabVisit: 4, entry: 'RIVR Sunday', stakes: ['All stakes'], tiers: ['All tiers'], audience: 'Everyone', days: ['Fri', 'Sat'], from: '20:00', to: '02:00', start: '2026-11-06', end: '', perMember: 'Once per visit', capDay: '', budget: '', channels: ['Player app', 'TVs'], simulated: false, tpl: 'Blank' }; }
+  state = {
+    view: 'list', filter: 'All', editing: null, f: this.blank(),
+    promos: [
+      { name: 'High hands', reward: 'Royal flush 25,000 · Straight flush 10,000 · Four of a kind 2,000 chips', who: 'All stakes', when: 'Every night', given: '3', status: 'Live' },
+      { name: 'Referral', reward: '1,000 bonus chips to each side', who: 'Everyone', when: 'Every day', given: '7', status: 'Live' },
+      { name: 'Buy-in bonus Tuesday', reward: '20% bonus, up to 2,000, first 5 buy-ins per table', who: 'All stakes', when: 'Tue, all day', given: '38', status: 'Live' },
+      { name: 'Weekend triple points', reward: '3× points', who: 'NLH 100/200', when: 'Fri, Sat 20:00–02:00', given: '—', status: 'Awaiting approval' },
+      { name: 'Four-hour bonus', reward: '1,000 bonus chips after 4 hours', who: 'All stakes', when: 'Every night', given: '—', status: 'Scheduled' },
+      { name: "Ladies' Night", reward: '2× points', who: 'Women members', when: 'Wed 19:00–01:00', given: '0', status: 'Paused' },
+    ],
+  };
+  t(m) { this.props.onToast && this.props.onToast(m); }
+  set(o) { this.setState(s => ({ f: { ...s.f, ...o, simulated: false } })); }
+  rewardText(f) {
+    const n = (x) => Number(x || 0).toLocaleString('en-IN');
+    switch (f.type) {
+      case 'mult': return `${f.mult}× points`;
+      case 'buyin': return f.buyMode === '%' ? `${f.buyVal}% buy-in bonus${f.buyCap ? `, up to ${n(f.buyCap)}` : ''}, first ${f.buyFirst} buy-ins per table` : `${n(f.buyVal)} bonus chips on each of the first ${f.buyFirst} buy-ins per table`;
+      case 'hours': return `${n(f.hrsAmt)} bonus chips after ${f.hrsAfter} hours`;
+      case 'chips': return `${n(f.chipsAmt)} bonus chips · ${f.chipsOn.toLowerCase()}`;
+      case 'spin': return `${f.spins} free spin${f.spins > 1 ? 's' : ''} after ${f.spinAfter} hours`;
+      case 'cab': return `A cab home from visit ${f.cabVisit} in a month`;
+      case 'entry': return `An entry to ${f.entry}`;
+      default: return 'First call on every waitlist';
+    }
+  }
+  renderVals() {
+    const S = this.state, f = S.f;
+    const opt = (on) => ({ bg: on ? 'rgba(201,168,92,0.16)' : 'transparent', border: on ? '#C9A85C' : 'rgba(243,237,224,0.18)', color: on ? '#F3EDE0' : 'rgba(243,237,224,0.8)' });
+    const seg = (on) => ({ bg: on ? 'rgba(201,168,92,0.2)' : 'transparent', color: on ? '#F3EDE0' : 'rgba(243,237,224,0.7)' });
+    const multi = (key, all, l) => () => { const cur = f[key]; let nx; if (l === all) nx = [all]; else { nx = cur.filter(x => x !== all); nx = nx.includes(l) ? nx.filter(x => x !== l) : [...nx, l]; if (!nx.length) nx = [all]; } this.set({ [key]: nx }); };
+    const num = (label, key, suffix, o) => ({ label, isNumber: true, isChips: false, value: f[key], step: (o && o.step) || 1, w: (o && o.w) || '110px', suffix: suffix || '', hasPrefix: !!(o && o.prefix), prefix: (o && o.prefix) || '', onChange: (e) => this.set({ [key]: e.target.value }), opts: [] });
+    const chips = (label, key, list) => ({ label, isNumber: false, isChips: true, hasPrefix: false, opts: list.map(l => ({ label: l, ...seg(f[key] === l), onClick: () => this.set({ [key]: l }) })) });
+    const P = {
+      mult: [num('Multiplier', 'mult', '× points', { step: 0.5, w: '90px' })],
+      buyin: [chips('Bonus as', 'buyMode', ['%', 'Fixed chips']), num(f.buyMode === '%' ? 'Bonus' : 'Bonus chips', 'buyVal', f.buyMode === '%' ? '% of the buy-in' : 'chips'), ...(f.buyMode === '%' ? [num('Cap per buy-in', 'buyCap', 'chips')] : []), num('On the first', 'buyFirst', 'buy-ins per table', { w: '80px' })],
+      hours: [num('Bonus chips', 'hrsAmt', 'chips'), num('After', 'hrsAfter', 'hours played', { w: '80px', step: 0.5 })],
+      chips: [num('Bonus chips', 'chipsAmt', 'chips'), chips('Given on', 'chipsOn', ['Each visit', 'First buy-in', 'Referral', 'Sign-up'])],
+      spin: [num('Spins', 'spins', 'spins', { w: '80px' }), num('After', 'spinAfter', 'hours played', { w: '80px', step: 0.5 })],
+      cab: [num('From visit', 'cabVisit', 'in a calendar month', { w: '80px' })],
+      entry: [chips('Tournament', 'entry', ['RIVR Sunday', 'Weeknight Turbo', 'Graduate freeroll'])],
+      priority: [],
+    };
+    const tpls = { Blank: {}, 'Points multiplier': { name: 'Double points', type: 'mult', mult: 2 }, 'Buy-in bonus': { name: 'Buy-in bonus Tuesday', type: 'buyin', days: ['Tue'], from: '14:00', to: '06:00' }, 'Four-hour bonus': { name: 'Four-hour bonus', type: 'hours', days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] }, 'Cab home': { name: 'Cab home', type: 'cab', perMember: 'Once a day' }, 'Spin the wheel': { name: 'Spin the wheel', type: 'spin' }, "Founders' Circle priority": { name: "Founders' Circle priority", type: 'priority', tiers: ["Founders' Circle"] }, 'Graduate freeroll': { name: 'Graduate freeroll', type: 'entry', entry: 'Graduate freeroll', tiers: ['Academy graduate'], perMember: 'Once ever' } };
+    const D = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const daysTxt = f.days.length === 7 ? 'every day' : f.days.join(', ');
+    const whoTxt = [f.stakes.includes('All stakes') ? 'all stakes' : f.stakes.join(', '), f.tiers.includes('All tiers') ? null : f.tiers.join(', '), f.audience === 'Everyone' ? null : f.audience.toLowerCase()].filter(Boolean).join(' · ');
+    const reward = this.rewardText(f);
+    const statusPill = { Live: ['rgba(243,237,224,0.1)', '#F3EDE0'], Scheduled: ['rgba(243,237,224,0.1)', '#F3EDE0'], 'Awaiting approval': ['rgba(243,237,224,0.1)', '#F3EDE0'], Paused: ['transparent', 'rgba(243,237,224,0.6)'], Draft: ['transparent', 'rgba(243,237,224,0.6)'], Ended: ['transparent', 'rgba(243,237,224,0.45)'] };
+    const statuses = ['All', 'Live', 'Scheduled', 'Awaiting approval', 'Paused', 'Draft'];
+    const rows = S.promos.map((p, i) => ({ p, i })).filter(({ p }) => S.filter === 'All' || p.status === S.filter);
+    const ok = (f.name || '').trim().length > 0;
+    return {
+      isList: S.view === 'list', isBuilder: S.view === 'builder',
+      title: S.view === 'list' ? 'Promotions' : (S.editing != null ? `Edit: ${f.name}` : 'New promotion'),
+      desc: S.view === 'list' ? 'Every offer the club runs. A new or changed promotion goes live only after approval.' : 'Pick a reward, then who gets it, when, and how often. The summary on the right is what the approver reads.',
+      newPromo: () => this.setState({ view: 'builder', editing: null, f: this.blank() }), backToList: () => this.setState({ view: 'list' }),
+      filters: statuses.map(s => ({ label: s, n: s === 'All' ? S.promos.length : S.promos.filter(p => p.status === s).length, ...opt(S.filter === s), onClick: () => this.setState({ filter: s }) })),
+      rows: rows.map(({ p, i }) => ({ ...p, pillBg: statusPill[p.status][0], pillColor: statusPill[p.status][1], hasToggle: p.status === 'Live' || p.status === 'Paused', toggle: p.status === 'Live' ? 'Pause' : 'Resume', editLabel: p.status === 'Awaiting approval' ? 'Review' : 'Edit',
+        onToggle: () => { this.setState(s => ({ promos: s.promos.map((x, j) => j === i ? { ...x, status: x.status === 'Live' ? 'Paused' : 'Live' } : x) })); this.t(`${p.name} ${p.status === 'Live' ? 'paused' : 'resumed'}`); },
+        onEdit: () => this.setState({ view: 'builder', editing: i, f: { ...this.blank(), name: p.name, type: /×/.test(p.reward) ? 'mult' : /buy-in/i.test(p.reward) ? 'buyin' : /after/.test(p.reward) ? 'hours' : 'chips', mult: parseFloat(p.reward) || 2 } }) })),
+      noRows: rows.length === 0,
+      templates: Object.keys(tpls).map(k => ({ label: k, ...opt(f.tpl === k), onClick: () => this.setState({ f: { ...this.blank(), ...tpls[k], tpl: k } }) })),
+      name: f.name, onName: (e) => this.set({ name: e.target.value }),
+      rewardTypes: Object.entries(this.TYPES).map(([k, v]) => ({ ...v, ...opt(f.type === k), onClick: () => this.set({ type: k }) })),
+      params: P[f.type],
+      whoRows: [
+        { label: 'Stakes', opts: ['All stakes', 'NLH 50/100', 'NLH 100/200', 'Private Room'].map(l => ({ label: l, ...opt(f.stakes.includes(l)), onClick: multi('stakes', 'All stakes', l) })) },
+        { label: 'Tiers', opts: ['All tiers', 'Member', 'Academy graduate', 'Black card', "Founders' Circle"].map(l => ({ label: l, ...opt(f.tiers.includes(l)), onClick: multi('tiers', 'All tiers', l) })) },
+        { label: 'Members', opts: ['Everyone', 'New members, first 30 days', 'Lapsed regulars', 'Women members'].map(l => ({ label: l, ...opt(f.audience === l), onClick: () => this.set({ audience: l }) })) },
+      ],
+      days: D.map(d => ({ label: d, ...opt(f.days.includes(d)), onClick: () => this.set({ days: f.days.includes(d) ? f.days.filter(x => x !== d) : D.filter(x => x === d || f.days.includes(x)) }) })), everyDay: () => this.set({ days: D }),
+      from: f.from, to: f.to, start: f.start, end: f.end, onFrom: (e) => this.set({ from: e.target.value }), onTo: (e) => this.set({ to: e.target.value }), onStart: (e) => this.set({ start: e.target.value }), onEnd: (e) => this.set({ end: e.target.value }),
+      perMember: ['No limit', 'Once per visit', 'Once a day', 'Once a week', 'Once ever'].map(l => ({ label: l, ...opt(f.perMember === l), onClick: () => this.set({ perMember: l }) })),
+      capDay: f.capDay, onCapDay: (e) => this.set({ capDay: e.target.value }), budget: f.budget, onBudget: (e) => this.set({ budget: e.target.value }),
+      channels: ['Player app', 'TVs', 'Website', 'WhatsApp message'].map(l => ({ label: l, ...opt(f.channels.includes(l)), onClick: () => this.set({ channels: f.channels.includes(l) ? f.channels.filter(x => x !== l) : [...f.channels, l] }) })),
+      summary: `${reward}, for ${whoTxt}, ${daysTxt} ${f.from}–${f.to}. ${f.perMember === 'No limit' ? 'No limit per member' : f.perMember + ' per member'}${f.capDay ? `, first ${f.capDay} members a day` : ''}${f.budget ? `, budget ${Number(f.budget).toLocaleString('en-IN')} chips` : ''}. Starts ${f.start || 'on approval'}${f.end ? `, ends ${f.end}` : ', no end date'}.`,
+      headline: f.name || this.TYPES[f.type].label, subline: `${reward} · ${daysTxt} ${f.from}–${f.to}`,
+      simulated: f.simulated, notSimulated: !f.simulated, simLabel: f.simulated ? 'Run again' : 'Simulate',
+      simulate: () => this.setState(s => ({ f: { ...s.f, simulated: true } })),
+      simStats: [{ k: 'members qualified', v: '41' }, { k: 'times given', v: '57' }, { k: f.type === 'mult' ? 'extra points' : 'bonus chips', v: f.type === 'mult' ? '6,150' : '38,000' }],
+      submitBg: f.simulated && ok ? '#C9A85C' : 'rgba(201,168,92,0.4)',
+      saveDraft: () => { if (!ok) return this.t('Give it a name first'); this.save('Draft'); },
+      submit: () => { if (!ok) return this.t('Give it a name first'); if (!f.simulated) return this.t('Simulate last week first'); this.save('Awaiting approval'); },
+    };
+  }
+  save(status) {
+    const S = this.state, f = S.f;
+    const row = { name: f.name, reward: this.rewardText(f), who: f.stakes.includes('All stakes') ? 'All stakes' : f.stakes.join(', '), when: `${f.days.length === 7 ? 'Every day' : f.days.join(', ')} ${f.from}–${f.to}`, given: '—', status };
+    this.setState(s => ({ view: 'list', filter: 'All', promos: s.editing != null ? s.promos.map((p, i) => i === s.editing ? row : p) : [row, ...s.promos] }));
+    this.t(status === 'Draft' ? `${f.name} saved as a draft` : `${f.name} sent for approval`);
+  }
+}
+</script>
+</body>
+</html>
