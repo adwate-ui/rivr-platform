@@ -1,6 +1,6 @@
 import { useNoticeActions, useVenueNotices, type NoticeFailure, type VenueNotice } from '@rivr/db/notices';
 import { formatDateTime, t } from '@rivr/i18n';
-import { Button, ConfirmButton, ErrorMessage, Heading, Inline, LoadState, Stack, StatusMessage, Text, TextArea } from '@rivr/ui';
+import { Banner, Button, ConfirmButton, ErrorMessage, Grid, Heading, Inline, LoadState, Stack, StatusMessage, Text, TextArea } from '@rivr/ui';
 import { useState } from 'react';
 
 type Outcome = { ok: boolean; text: string } | null;
@@ -14,15 +14,25 @@ function NoticeRow({ notice, onEnd, isBusy }: { notice: VenueNotice; onEnd: () =
         <Text>{notice.body}</Text>
         <Text tone="muted" variant="small">{until}</Text>
       </Stack>
-      <ConfirmButton variant="secondary" label={t('console.settings.notices.end')} name={t('console.settings.notices.endName', { body: notice.body })}
+      <ConfirmButton variant="subtle" label={t('console.settings.notices.end')} name={t('console.settings.notices.endName', { body: notice.body })}
         confirm={t('console.settings.notices.endConfirm')} isBusy={isBusy} onConfirm={onEnd} />
     </Inline>
   );
 }
 
+/** The notice as members' Home shows it (console v3), as it is typed: the banner at the top of Tonight. */
+function NoticePreview({ body }: { body: string }) {
+  return (
+    <Stack gap={2}>
+      <Text variant="eyebrow" tone="muted">{t('console.settings.notices.preview')}</Text>
+      <Banner isLive={false}>{body.trim() === '' ? t('console.settings.notices.previewEmpty') : body}</Banner>
+    </Stack>
+  );
+}
+
 /**
- * Notices on members' Home (decision 0298): put one up, and end those up or to come. For staff with settings.manage;
- * the database refuses anyone else.
+ * Notices on members' Home (decision 0298): put one up, seen as members will see it while it is typed, and end those up
+ * or to come. For staff with settings.manage; the database refuses anyone else.
  */
 export function NoticesSection({ venueId }: { venueId: string }) {
   const notices = useVenueNotices(venueId);
@@ -45,15 +55,18 @@ export function NoticesSection({ venueId }: { venueId: string }) {
       {notices.data === undefined ? <LoadState isError={notices.isError} onRetry={() => void notices.refetch()} /> : null}
       {notices.data?.length === 0 ? <Text>{t('console.settings.notices.none')}</Text> : null}
       {notices.data?.map((notice) => <NoticeRow key={notice.noticeId} notice={notice} isBusy={end.isPending} onEnd={() => void endOne(notice.noticeId)} />)}
-      <Stack gap={3}>
-        <TextArea label={t('console.settings.notices.body')} hint={t('console.settings.notices.bodyHint')} value={body} rows={2}
-          onChange={(event) => { setBody(event.target.value); setOutcome(null); }} />
-        <Inline gap={4}>
-          <Button variant="secondary" isLoading={post.isPending} onClick={() => void putUp()}>{t('console.settings.notices.post')}</Button>
-        </Inline>
-        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
-        {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
-      </Stack>
+      <Grid columns={2} gap={6} stackBelow="medium">
+        <Stack gap={3}>
+          <TextArea label={t('console.settings.notices.body')} hint={t('console.settings.notices.bodyHint')} value={body} rows={4}
+            onChange={(event) => { setBody(event.target.value); setOutcome(null); }} />
+          <Inline gap={4}>
+            <Button variant="primary" isLoading={post.isPending} onClick={() => void putUp()}>{t('console.settings.notices.post')}</Button>
+          </Inline>
+          <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+          {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+        </Stack>
+        <NoticePreview body={body} />
+      </Grid>
     </Stack>
   );
 }

@@ -26,14 +26,14 @@ function TabContent({ tab }: { tab: DeviceTab }) {
  */
 export function DevicesScreen() {
   const navigate = useNavigate();
-  // The tab open is in the address (`?tab=tvs`), so a refresh, Back or a shared link opens it.
-  const { tab } = useSearch({ from: '/frame/devices' });
-  const current = TABS.find((one) => one === tab) ?? TABS[0];
+  // The kind open is in the address (`?part=tvs`, Devices being a tab of Settings), so a refresh, Back or a shared link opens it.
+  const { part } = useSearch({ from: '/frame/settings' });
+  const current = TABS.find((one) => one === part) ?? TABS[0];
   return (
     <Screen title={t('console.devices.title')}>
       <Stack gap={8}>
         <Tabs label={t('console.devices.title')} current={current} onNavigate={(href) => void navigate({ href })}
-          tabs={TABS.map((id) => ({ id, label: t(LABELS[id]), href: `/devices?tab=${id}` }))} />
+          tabs={TABS.map((id) => ({ id, label: t(LABELS[id]), href: `/settings?tab=devices&part=${id}` }))} />
         <TabContent tab={current} />
       </Stack>
     </Screen>

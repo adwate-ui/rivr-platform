@@ -47,4 +47,51 @@ describe('Sheet', () => {
     renderSheet();
     expect(await axeViolations(document.body)).toEqual([]);
   });
+
+  describe('in the console form (console v3)', () => {
+    function renderConsole() {
+      const onClose = vi.fn();
+      renderIn(
+        <Sheet place="console" isOpen onClose={onClose} title="Vidya Chadha" subtitle="Table 1, seat 2"
+          footer={<button type="button">Add 1 h</button>}>
+          <button type="button">30 min</button>
+        </Sheet>,
+      );
+      return onClose;
+    }
+
+    it('is a dialog named by its title, with its line under it and its actions at the foot', () => {
+      renderConsole();
+      const sheet = screen.getByRole('dialog', { name: 'Vidya Chadha' });
+      expect(sheet).toHaveTextContent('Table 1, seat 2');
+      expect(screen.getByRole('button', { name: 'Add 1 h' })).toBeInTheDocument();
+    });
+
+    it('sits down the right from 768 px at 440 px, and from the foot below', () => {
+      renderConsole();
+      expect(screen.getByRole('dialog')).toHaveClass('top-16', 'bottom-0', 'medium:right-0', 'medium:w-side-panel');
+    });
+
+    it('closes with Escape, its Close button and the scrim', async () => {
+      const onClose = renderConsole();
+      await userEvent.keyboard('{Escape}');
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+      const scrim = document.querySelector('[data-scrim]');
+      if (!(scrim instanceof HTMLElement)) throw new Error('no scrim');
+      await userEvent.click(scrim);
+      expect(onClose).toHaveBeenCalledTimes(3);
+    });
+
+    it('scrolls its content between a title and actions that stay', () => {
+      renderConsole();
+      const content = screen.getByRole('button', { name: '30 min' }).parentElement;
+      expect(content).toHaveClass('overflow-y-auto', 'flex-1');
+      expect(content).not.toContainElement(screen.getByRole('button', { name: 'Add 1 h' }));
+    });
+
+    it('has no accessibility violations', async () => {
+      renderConsole();
+      expect(await axeViolations(document.body)).toEqual([]);
+    });
+  });
 });

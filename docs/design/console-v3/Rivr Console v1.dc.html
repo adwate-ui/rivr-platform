@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0E3B2C;color:#F3EDE0;font-family:'Instrument Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#C9A85C;text-decoration:none}a:hover{color:#F3EDE0;text-decoration:underline}
+button{font-family:inherit;font-variant-numeric:tabular-nums}
+input{font-family:inherit}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(243,237,224,0.14);border-radius:4px}
+</style>
+</helmet>
+<div style="display:grid;grid-template-columns:220px minmax(0,1fr);height:100vh;overflow:hidden">
+
+<nav style="background:#0A2A20;border-right:1px solid rgba(201,168,92,0.18);display:flex;flex-direction:column;min-height:0">
+  <div style="padding:18px 18px 14px;display:flex;align-items:center;gap:10px">
+    <div style="display:flex;gap:3px">
+      <span style="width:20px;height:24px;background:#F3EDE0;color:#141414;font-family:'Bodoni Moda',serif;font-size:16px;display:grid;place-items:center;border-radius:2px">R</span>
+      <span style="width:20px;height:24px;background:#F3EDE0;color:#141414;font-family:'Bodoni Moda',serif;font-size:16px;display:grid;place-items:center;border-radius:2px">I</span>
+      <span style="width:20px;height:24px;background:#F3EDE0;color:#141414;font-family:'Bodoni Moda',serif;font-size:16px;display:grid;place-items:center;border-radius:2px">V</span>
+      <span style="width:20px;height:24px;background:#F3EDE0;color:#141414;font-family:'Bodoni Moda',serif;font-size:16px;display:grid;place-items:center;border-radius:2px">R</span>
+      <span style="width:20px;height:24px;background:#C4162A;color:#F3EDE0;font-size:14px;display:grid;place-items:center;border-radius:2px">♠</span>
+    </div>
+    <span style="font-size:11px;letter-spacing:0.14em;color:rgba(243,237,224,0.6)">CONSOLE</span>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:4px 10px 12px;display:flex;flex-direction:column;gap:14px">
+    <sc-for list="{{ nav }}" as="g" hint-placeholder-count="4">
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:4px 10px 6px">{{ g.label }}</div>
+        <sc-for list="{{ g.items }}" as="item" hint-placeholder-count="4">
+          <div onClick="{{ item.onClick }}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:4px;font-size:14px;cursor:pointer;color:{{ item.color }};background:{{ item.bg }};font-weight:{{ item.weight }}" style-hover="background:rgba(243,237,224,0.06)">
+            <span>{{ item.label }}</span>
+            <sc-if value="{{ item.hasBadge }}">
+              <span style="min-width:20px;height:18px;padding:0 6px;border-radius:3px;font-size:11px;font-weight:600;display:grid;place-items:center;background:{{ item.badgeBg }};color:{{ item.badgeColor }}">{{ item.badge }}</span>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+    <sc-if value="{{ showDanger }}">
+      <div style="display:flex;flex-direction:column;gap:1px;border-top:1px solid rgba(243,237,224,0.08);padding-top:10px">
+        <div onClick="{{ toggleDanger }}" style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:4px 10px 6px;cursor:pointer">
+          <span>Danger zone</span><span>{{ dangerCaret }}</span>
+        </div>
+        <sc-if value="{{ dangerOpen }}">
+          <sc-for list="{{ dangerItems }}" as="item">
+            <div onClick="{{ item.onClick }}" style="padding:7px 10px;border-radius:4px;font-size:14px;cursor:pointer;color:#E8828C;background:{{ item.bg }}" style-hover="background:rgba(196,22,42,0.12)">{{ item.label }}</div>
+          </sc-for>
+        </sc-if>
+      </div>
+    </sc-if>
+  </div>
+  <div style="border-top:1px solid rgba(243,237,224,0.08);padding:12px 14px;display:flex;align-items:center;gap:10px">
+    <span style="width:32px;height:32px;border-radius:50%;background:#0E3B2C;border:1px solid rgba(201,168,92,0.4);display:grid;place-items:center;font-size:12px;font-weight:600;color:#C9A85C">{{ userInitials }}</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:500">{{ userName }}</div>
+      <div style="font-size:12px;color:rgba(243,237,224,0.6)">{{ roleLabel }}</div>
+    </div>
+    <button style="background:none;border:none;color:rgba(243,237,224,0.6);font-size:12px;cursor:pointer;padding:6px" style-hover="color:#F3EDE0">Sign out</button>
+  </div>
+</nav>
+
+<div style="display:flex;flex-direction:column;min-width:0;min-height:0">
+  <sc-if value="{{ practice }}">
+    <div style="background:repeating-linear-gradient(135deg,#C9A85C 0 12px,#b8974d 12px 24px);color:#141414;font-size:13px;font-weight:600;padding:6px 20px;display:flex;justify-content:space-between;align-items:center">
+      <span>Practice venue. Nothing here reaches members, vendors or the club's records.</span>
+      <button onClick="{{ togglePractice }}" style="background:#141414;color:#F3EDE0;border:none;border-radius:3px;padding:4px 10px;font-size:12px;cursor:pointer">Back to the club</button>
+    </div>
+  </sc-if>
+  <header style="height:56px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:1px solid rgba(243,237,224,0.08)">
+    <button onClick="{{ openPalette }}" style="flex:1;max-width:520px;height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;background:#0A2A20;border:1px solid rgba(243,237,224,0.14);border-radius:4px;color:rgba(243,237,224,0.6);font-size:14px;cursor:pointer;text-align:left" style-hover="border-color:rgba(201,168,92,0.5)">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"></circle><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+      <span style="flex:1">Find a member, open a screen, seat someone…</span>
+      <span style="font-size:11px;border:1px solid rgba(243,237,224,0.2);border-radius:3px;padding:2px 6px">Ctrl K</span>
+    </button>
+    <div style="flex:1"></div>
+    <sc-if value="{{ showAttentionToggle }}">
+      <button onClick="{{ toggleAttention }}" style="height:32px;display:flex;align-items:center;gap:8px;padding:0 12px;background:transparent;border:1px solid rgba(243,237,224,0.2);border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">
+        Needs attention<span style="background:#C4162A;color:#F3EDE0;border-radius:3px;padding:1px 6px;font-size:11px;font-weight:600">{{ attentionCount }}</span>
+      </button>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(243,237,224,0.6)">
+      <span>{{ venueName }}</span>
+      <button onClick="{{ togglePractice }}" title="Practice venue" style="width:34px;height:20px;border-radius:10px;border:1px solid rgba(243,237,224,0.3);background:{{ practiceBg }};position:relative;cursor:pointer;padding:0">
+        <span style="position:absolute;top:2px;left:{{ practiceKnob }};width:14px;height:14px;border-radius:50%;background:#F3EDE0"></span>
+      </button>
+      <span>Practice</span>
+    </div>
+    <div style="font-size:14px;font-weight:500;padding-left:14px;border-left:1px solid rgba(243,237,224,0.12)">{{ clock }}</div>
+  </header>
+
+  <main style="flex:1;min-height:0;position:relative">
+
+    <sc-if value="{{ isFloor }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:{{ floorCols }};height:100%">
+        <section style="border-right:1px solid rgba(243,237,224,0.08);overflow-y:auto;padding:18px 18px 28px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <h1 style="margin:0;font-size:22px;font-weight:500">Live floor</h1>
+            <span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ seatedLabel }}</span>
+          </div>
+          <sc-for list="{{ rooms }}" as="room" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">{{ room.name }}</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+                <sc-for list="{{ room.tables }}" as="t" hint-placeholder-count="3">
+                  <div onClick="{{ t.onClick }}" style="background:{{ t.bg }};border:1px solid {{ t.border }};border-radius:6px;padding:10px 10px 10px;cursor:pointer;display:flex;flex-direction:column;gap:8px;opacity:{{ t.opacity }}" style-hover="border-color:rgba(201,168,92,0.6)">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline">
+                      <span style="font-size:14px;font-weight:600">{{ t.name }}</span>
+                      <span style="font-size:12px;color:rgba(243,237,224,0.6)">{{ t.stake }}</span>
+                    </div>
+                    <div style="position:relative;height:74px">
+                      <div style="position:absolute;left:18%;right:18%;top:22%;bottom:22%;border-radius:999px;background:#0E3B2C;border:2px solid rgba(201,168,92,0.35)"></div>
+                      <sc-for list="{{ t.dots }}" as="d">
+                        <span style="position:absolute;left:{{ d.x }};top:{{ d.y }};width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:{{ d.bg }};border:1px solid {{ d.border }}"></span>
+                      </sc-for>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:20px">
+                      <span style="font-size:12px;color:rgba(243,237,224,0.7)">{{ t.countLabel }}</span>
+                      <div style="display:flex;gap:4px">
+                        <sc-for list="{{ t.flags }}" as="f">
+                          <span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:3px;background:{{ f.bg }};color:{{ f.color }}">{{ f.label }}</span>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:flex;gap:14px;font-size:12px;color:rgba(243,237,224,0.6);flex-wrap:wrap">
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#F3EDE0"></span>Playing</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#C9A85C"></span>Needs you</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;border:1px solid rgba(243,237,224,0.35)"></span>Open</span>
+          </div>
+        </section>
+
+        <section style="overflow-y:auto;min-width:0">
+          <div style="position:sticky;top:0;z-index:2;background:#0E3B2C;padding:18px 24px 14px;border-bottom:1px solid rgba(243,237,224,0.08);display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <h2 style="margin:0;font-size:22px;font-weight:500">{{ sel.name }}</h2>
+                <span style="font-size:15px;color:rgba(243,237,224,0.7)">{{ sel.game }}</span>
+              </div>
+              <div style="display:flex;gap:16px;margin-top:6px;font-size:13px;color:rgba(243,237,224,0.6);flex-wrap:wrap">
+                <span>{{ sel.countLabel }}</span><span>{{ sel.dealer }}</span><span>{{ sel.callRunning }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ canManageTables }}">
+              <div style="display:flex;gap:8px;align-items:center">
+                <label style="font-size:12px;color:rgba(243,237,224,0.6)">Must move to</label>
+                <select onChange="{{ onMustMove }}" value="{{ sel.mustMove }}" style="height:32px;background:#0A2A20;color:#F3EDE0;border:1px solid rgba(243,237,224,0.2);border-radius:4px;padding:0 8px;font-family:inherit;font-size:13px">
+                  <sc-for list="{{ sel.moveOptions }}" as="o"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+                <button onClick="{{ sel.onToggleOpen }}" disabled="{{ sel.closeDisabled }}" title="{{ sel.closeHint }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid rgba(243,237,224,0.2);border-radius:4px;color:{{ sel.closeColor }};font-size:13px;cursor:pointer">{{ sel.openLabel }}</button>
+              </div>
+            </sc-if>
+            <button onClick="{{ sel.onSeat }}" disabled="{{ sel.seatDisabled }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer;opacity:{{ sel.seatOpacity }}" style-hover="background:#d6b86e">Seat a player</button>
+          </div>
+
+          <sc-if value="{{ sel.closed }}">
+            <div style="padding:48px 24px;max-width:460px;display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:16px;font-weight:500">{{ sel.name }} is closed</div>
+              <div style="font-size:14px;color:rgba(243,237,224,0.7);line-height:1.5">Open it to seat players here. It can also feed a main table when that table's list is long.</div>
+            </div>
+          </sc-if>
+
+          <div style="padding:6px 24px 32px">
+            <div style="display:grid;grid-template-columns:{{ rowCols }};gap:0 16px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:10px 0 8px">
+              <span>Seat</span><span>Player</span><span>Call time</span><sc-if value="{{ wideRows }}"><span style="text-align:right">Actions</span></sc-if>
+            </div>
+            <sc-for list="{{ sel.rows }}" as="r" hint-placeholder-count="9">
+              <div style="border-top:1px solid rgba(243,237,224,0.08)">
+                <div style="display:grid;grid-template-columns:{{ rowCols }};gap:0 16px;align-items:center;padding:{{ rowPad }};border-radius:4px" style-hover="background:#0A2A20">
+                  <span style="font-size:15px;font-weight:600;color:rgba(243,237,224,0.6);text-align:center">{{ r.n }}</span>
+                  <sc-if value="{{ r.open }}">
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                      <span style="font-size:14px;color:rgba(243,237,224,0.5)">Open</span>
+                      <sc-if value="{{ r.hasNext }}"><span style="font-size:13px;color:rgba(243,237,224,0.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Next on the list: {{ r.nextName }}</span></sc-if>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ r.taken }}">
+                    <div style="min-width:0">
+                      <div onClick="{{ r.onMember }}" style="font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" style-hover="color:#C9A85C">{{ r.name }}</div>
+                      <div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ r.tier }} · since {{ r.since }}</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ r.open }}"><span></span></sc-if>
+                  <sc-if value="{{ r.taken }}">
+                    <div onClick="{{ r.onCallTime }}" title="Change call time" style="cursor:pointer;display:flex;flex-direction:column;gap:5px">
+                      <span style="font-size:13px;color:{{ r.leftColor }}">{{ r.leftLabel }}</span>
+                      <span style="height:3px;background:rgba(243,237,224,0.12);border-radius:2px;overflow:hidden"><span style="display:block;height:100%;width:{{ r.barPct }};background:{{ r.barColor }}"></span></span>
+                    </div>
+                  </sc-if>
+                  <div style="display:flex;gap:6px;justify-content:{{ actJustify }};align-items:center;flex-wrap:wrap;grid-column:{{ actCol }};margin-top:{{ actMt }}">
+                    <sc-if value="{{ r.open }}">
+                      <button onClick="{{ r.onSeat }}" style="height:30px;padding:0 12px;background:transparent;border:1px solid rgba(201,168,92,0.6);border-radius:4px;color:#C9A85C;font-size:13px;cursor:pointer" style-hover="background:rgba(201,168,92,0.1)">Seat here</button>
+                    </sc-if>
+                    <sc-if value="{{ r.showAddTime }}">
+                      <div style="display:flex;border:1px solid rgba(243,237,224,0.18);border-radius:4px;overflow:hidden">
+                        <button onClick="{{ r.on30 }}" style="height:28px;padding:0 9px;background:transparent;border:none;color:#F3EDE0;font-size:12px;cursor:pointer" style-hover="background:rgba(243,237,224,0.08)">+30m</button>
+                        <button onClick="{{ r.on60 }}" style="height:28px;padding:0 9px;background:transparent;border:none;border-left:1px solid rgba(243,237,224,0.18);color:#F3EDE0;font-size:12px;cursor:pointer" style-hover="background:rgba(243,237,224,0.08)">+1h</button>
+                        <button onClick="{{ r.on120 }}" style="height:28px;padding:0 9px;background:transparent;border:none;border-left:1px solid rgba(243,237,224,0.18);color:#F3EDE0;font-size:12px;cursor:pointer" style-hover="background:rgba(243,237,224,0.08)">+2h</button>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ r.taken }}">
+                      <button onClick="{{ r.onLeave }}" style="height:30px;padding:0 12px;background:transparent;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer" style-hover="border-color:#E8828C;color:#E8828C">Leave</button>
+                    </sc-if>
+                  </div>
+                </div>
+                <sc-for list="{{ r.asks }}" as="a">
+                  <div style="margin:0 0 10px 52px;padding:8px 10px 8px 12px;background:rgba(201,168,92,0.1);border:1px solid rgba(201,168,92,0.3);border-radius:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#C9A85C"></span>
+                    <span style="font-size:13px;font-weight:500">{{ a.label }}</span>
+                    <span style="font-size:12px;color:{{ a.ageColor }}">{{ a.age }}</span>
+                    <span style="flex:1"></span>
+                    <button onClick="{{ a.onPrimary }}" style="height:28px;padding:0 12px;background:#F3EDE0;border:none;border-radius:4px;color:#141414;font-size:12px;font-weight:600;cursor:pointer">{{ a.primary }}</button>
+                    <sc-if value="{{ a.hasSecondary }}">
+                      <button onClick="{{ a.onSecondary }}" style="height:28px;padding:0 10px;background:transparent;border:none;color:#F3EDE0;font-size:12px;cursor:pointer" style-hover="text-decoration:underline">{{ a.secondary }}</button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <sc-if value="{{ attentionDocked }}">
+          <aside style="border-left:1px solid rgba(243,237,224,0.08);background:#0A2A20;overflow-y:auto;padding:18px 16px 28px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <h2 style="margin:0;font-size:16px;font-weight:600">Needs attention</h2>
+              <span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ attentionCount }}</span>
+            </div>
+            <sc-for list="{{ attention }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)"><span>{{ s.title }}</span><span>{{ s.count }}</span></div>
+                <sc-for list="{{ s.items }}" as="it">
+                  <div style="background:#0E3B2C;border:1px solid rgba(243,237,224,0.08);border-left:none;border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+                    <div style="display:flex;justify-content:space-between;gap:8px">
+                      <div style="min-width:0">
+                        <div onClick="{{ it.onTitle }}" style="font-size:14px;font-weight:500;cursor:pointer" style-hover="color:#C9A85C">{{ it.title }}</div>
+                        <div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ it.sub }}</div>
+                      </div>
+                      <span style="font-size:12px;white-space:nowrap;color:{{ it.ageColor }}">{{ it.age }}</span>
+                    </div>
+                    <div style="display:flex;gap:6px">
+                      <button onClick="{{ it.onPrimary }}" style="height:28px;padding:0 12px;background:#F3EDE0;border:none;border-radius:4px;color:#141414;font-size:12px;font-weight:600;cursor:pointer">{{ it.primary }}</button>
+                      <sc-if value="{{ it.hasSecondary }}">
+                        <button onClick="{{ it.onSecondary }}" style="height:28px;padding:0 10px;background:transparent;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">{{ it.secondary }}</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{ attentionEmpty }}">
+              <div style="font-size:14px;color:rgba(243,237,224,0.6);padding:24px 0">Nothing waiting. New requests appear here as they arrive.</div>
+            </sc-if>
+          </aside>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isWaitlist }}">
+      <div style="height:100%;overflow:auto;padding:20px 24px 32px">
+        <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:18px">
+          <h1 style="margin:0;font-size:22px;font-weight:500">Waitlist</h1>
+          <span style="font-size:13px;color:rgba(243,237,224,0.6)">Hold keeps a place while the member is away. Players move to a seat from here or from the Live floor.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start">
+          <sc-for list="{{ games }}" as="gm" hint-placeholder-count="3">
+            <div style="background:#0A2A20;border:1px solid rgba(243,237,224,0.08);border-radius:6px;display:flex;flex-direction:column">
+              <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.08)">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-size:16px;font-weight:600">{{ gm.name }}</span>
+                  <span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ gm.waitingLabel }}</span>
+                </div>
+                <div style="font-size:12px;color:{{ gm.seatsColor }};margin-top:4px">{{ gm.seatsLabel }}</div>
+              </div>
+              <sc-if value="{{ gm.hasRequests }}">
+                <div style="padding:10px 16px;background:rgba(201,168,92,0.08);border-bottom:1px solid rgba(201,168,92,0.2);display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#C9A85C">Asking to join</div>
+                  <sc-for list="{{ gm.requests }}" as="rq">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="flex:1;font-size:14px">{{ rq.name }}<span style="color:rgba(243,237,224,0.6);font-size:12px"> · {{ rq.at }}</span></span>
+                      <button onClick="{{ rq.onApprove }}" style="height:28px;padding:0 12px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:12px;font-weight:600;cursor:pointer">Approve</button>
+                      <button onClick="{{ rq.onRemove }}" style="height:28px;padding:0 8px;background:transparent;border:none;color:rgba(243,237,224,0.7);font-size:12px;cursor:pointer">Decline</button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ gm.queue }}" as="q">
+                  <div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.06);opacity:{{ q.opacity }}" style-hover="background:rgba(243,237,224,0.03)">
+                    <span style="font-size:14px;font-weight:600;color:rgba(243,237,224,0.5)">{{ q.pos }}</span>
+                    <div style="min-width:0">
+                      <div style="font-size:14px;font-weight:500">{{ q.name }}</div>
+                      <div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ q.meta }}</div>
+                    </div>
+                    <div style="display:flex;gap:4px">
+                      <button onClick="{{ q.onAssign }}" style="height:28px;padding:0 10px;background:transparent;border:1px solid rgba(201,168,92,0.6);border-radius:4px;color:#C9A85C;font-size:12px;cursor:pointer">Seat</button>
+                      <button onClick="{{ q.onHold }}" style="height:28px;padding:0 8px;background:transparent;border:1px solid rgba(243,237,224,0.15);border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">{{ q.holdLabel }}</button>
+                      <button onClick="{{ q.onRemove }}" title="Remove from the list" style="height:28px;width:28px;background:transparent;border:none;color:rgba(243,237,224,0.6);font-size:16px;cursor:pointer" style-hover="color:#E8828C">×</button>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ gm.empty }}"><div style="padding:16px;font-size:13px;color:rgba(243,237,224,0.6)">Nobody waiting.</div></sc-if>
+              </div>
+              <div style="padding:12px 16px;display:flex;gap:8px">
+                <input value="{{ gm.addValue }}" onChange="{{ gm.onAddChange }}" placeholder="+91 mobile or member no." style="flex:1;min-width:0;height:32px;background:#0E3B2C;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px">
+                <button onClick="{{ gm.onAdd }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid rgba(243,237,224,0.25);border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Add</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMembers }}">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 400px;height:100%">
+        <section style="overflow:auto;padding:20px 24px 32px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <h1 style="margin:0;font-size:22px;font-weight:500">Members</h1>
+            <div style="display:flex;gap:6px">
+              <button style="height:30px;padding:0 10px;background:transparent;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">Export CSV</button>
+              <button style="height:30px;padding:0 10px;background:transparent;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">Export XLSX</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input value="{{ mQuery }}" onChange="{{ onMQuery }}" placeholder="Name, member no. or last 4 digits of mobile" style="flex:1;min-width:240px;height:36px;background:#0A2A20;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <sc-for list="{{ tierChips }}" as="c">
+                <button onClick="{{ c.onClick }}" style="height:30px;padding:0 10px;border-radius:4px;font-size:12px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:60px minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 60px 100px;gap:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:8px 10px;border-bottom:1px solid rgba(243,237,224,0.1)">
+            <span>No.</span><span>Member</span><span>Tier</span><span>Status</span><span style="text-align:right">Visits</span><span style="text-align:right">Last visit</span>
+          </div>
+          <div style="display:flex;flex-direction:column;margin-top:-14px">
+            <sc-for list="{{ memberRows }}" as="m" hint-placeholder-count="8">
+              <div onClick="{{ m.onClick }}" style="display:grid;grid-template-columns:60px minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 60px 100px;gap:12px;align-items:center;padding:10px;border-bottom:1px solid rgba(243,237,224,0.06);cursor:pointer;background:{{ m.bg }};border-radius:3px" style-hover="background:#0A2A20">
+                <span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ m.no }}</span>
+                <span style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span>
+                <span style="font-size:13px">{{ m.tier }}</span>
+                <span style="font-size:13px;color:{{ m.statusColor }}">{{ m.status }}</span>
+                <span style="font-size:13px;text-align:right">{{ m.visits }}</span>
+                <span style="font-size:13px;text-align:right;color:rgba(243,237,224,0.7)">{{ m.last }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noMembers }}"><div style="padding:24px 10px;font-size:14px;color:rgba(243,237,224,0.6)">No member matches. Try a member number or four digits of the mobile.</div></sc-if>
+          </div>
+        </section>
+        <aside style="border-left:1px solid rgba(243,237,224,0.08);background:#0A2A20;overflow:auto">
+          <sc-if value="{{ hasMember }}">
+            <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;gap:14px;align-items:center">
+                <div style="width:64px;height:76px;border-radius:4px;background:#0E3B2C;border:1px solid rgba(201,168,92,0.3);display:grid;place-items:center;font-family:'Bodoni Moda',serif;font-size:22px;color:#C9A85C">{{ mem.initials }}</div>
+                <div>
+                  <div style="font-size:20px;font-weight:600">{{ mem.name }}</div>
+                  <div style="font-size:13px;color:rgba(243,237,224,0.6);margin-top:3px">Member {{ mem.no }} · {{ mem.tier }}</div>
+                  <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                    <sc-for list="{{ mem.tags }}" as="tg"><span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:3px;border:1px solid rgba(243,237,224,0.2)">{{ tg }}</span></sc-for>
+                  </div>
+                </div>
+              </div>
+              <sc-if value="{{ mem.seated }}">
+                <button onClick="{{ mem.onLocate }}" style="height:34px;background:transparent;border:1px solid rgba(201,168,92,0.6);border-radius:4px;color:#C9A85C;font-size:13px;cursor:pointer;text-align:left;padding:0 12px">{{ mem.seatLabel }} → show on the floor</button>
+              </sc-if>
+              <div style="display:flex;gap:2px;border-bottom:1px solid rgba(243,237,224,0.1)">
+                <sc-for list="{{ memTabs }}" as="tb">
+                  <button onClick="{{ tb.onClick }}" style="background:none;border:none;border-bottom:2px solid {{ tb.line }};color:{{ tb.color }};font-size:13px;padding:8px 10px;cursor:pointer;margin-bottom:-1px">{{ tb.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <sc-for list="{{ memFacts }}" as="fx">
+                  <div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(243,237,224,0.06);font-size:13px">
+                    <span style="color:rgba(243,237,224,0.6)">{{ fx.k }}</span><span style="text-align:right">{{ fx.v }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <sc-for list="{{ memActions }}" as="ma">
+                  <button style="height:30px;padding:0 12px;background:transparent;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:{{ ma.color }};font-size:12px;cursor:pointer">{{ ma.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noMemberSel }}"><div style="padding:24px;font-size:14px;color:rgba(243,237,224,0.6)">Choose a member to see their record.</div></sc-if>
+        </aside>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isOther }}">
+      <div style="padding:24px;max-width:560px;display:flex;flex-direction:column;gap:10px">
+        <h1 style="margin:0;font-size:22px;font-weight:500">{{ otherTitle }}</h1>
+        <p style="margin:0;font-size:14px;line-height:1.55;color:rgba(243,237,224,0.7)">Not mocked in this pass. It takes the same shell, list and record patterns as Live floor, Waitlist and Members.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ attentionOverlay }}">
+      <div onClick="{{ toggleAttention }}" style="position:absolute;inset:0;background:rgba(5,20,15,0.5);z-index:5"></div>
+      <aside style="position:absolute;top:0;right:0;bottom:0;width:340px;z-index:6;background:#0A2A20;border-left:1px solid rgba(201,168,92,0.25);overflow-y:auto;padding:18px 16px 28px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Needs attention</h2>
+          <button onClick="{{ toggleAttention }}" style="background:none;border:none;color:#F3EDE0;font-size:18px;cursor:pointer">×</button>
+        </div>
+        <sc-for list="{{ attention }}" as="s">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)"><span>{{ s.title }}</span><span>{{ s.count }}</span></div>
+            <sc-for list="{{ s.items }}" as="it">
+              <div style="background:#0E3B2C;border:1px solid rgba(243,237,224,0.08);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;gap:8px">
+                  <div><div style="font-size:14px;font-weight:500">{{ it.title }}</div><div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ it.sub }}</div></div>
+                  <span style="font-size:12px;white-space:nowrap;color:{{ it.ageColor }}">{{ it.age }}</span>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button onClick="{{ it.onPrimary }}" style="height:28px;padding:0 12px;background:#F3EDE0;border:none;border-radius:4px;color:#141414;font-size:12px;font-weight:600;cursor:pointer">{{ it.primary }}</button>
+                  <sc-if value="{{ it.hasSecondary }}"><button onClick="{{ it.onSecondary }}" style="height:28px;padding:0 10px;background:transparent;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">{{ it.secondary }}</button></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </aside>
+    </sc-if>
+
+    <sc-if value="{{ hasDrawer }}">
+      <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(5,20,15,0.55);z-index:10"></div>
+      <div style="position:absolute;top:0;right:0;bottom:0;width:420px;max-width:100%;z-index:11;background:#0A2A20;border-left:1px solid rgba(201,168,92,0.3);display:flex;flex-direction:column">
+        <div style="padding:18px 20px;border-bottom:1px solid rgba(243,237,224,0.08);display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:18px;font-weight:600">{{ dr.title }}</div>
+            <div style="font-size:13px;color:rgba(243,237,224,0.6);margin-top:3px">{{ dr.sub }}</div>
+          </div>
+          <button onClick="{{ closeDrawer }}" style="background:none;border:none;color:#F3EDE0;font-size:20px;cursor:pointer;line-height:1">×</button>
+        </div>
+        <div style="flex:1;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:20px">
+          <sc-if value="{{ dr.isSeat }}">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:rgba(243,237,224,0.7)">Who</div>
+              <sc-for list="{{ dr.people }}" as="p">
+                <button onClick="{{ p.onClick }}" style="display:flex;justify-content:space-between;align-items:center;height:40px;padding:0 12px;border-radius:4px;cursor:pointer;font-size:14px;text-align:left;background:{{ p.bg }};color:#F3EDE0;border:1px solid {{ p.border }}">
+                  <span>{{ p.name }}</span><span style="font-size:12px;color:rgba(243,237,224,0.6)">{{ p.meta }}</span>
+                </button>
+              </sc-for>
+              <input value="{{ dr.number }}" onChange="{{ dr.onNumber }}" placeholder="Or a mobile / member number" style="height:38px;background:#0E3B2C;border:1px solid rgba(243,237,224,0.18);border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:rgba(243,237,224,0.7)">Table and seat</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <sc-for list="{{ dr.tables }}" as="tt">
+                  <button onClick="{{ tt.onClick }}" style="height:32px;padding:0 10px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ tt.bg }};color:{{ tt.color }};border:1px solid {{ tt.border }}">{{ tt.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <sc-for list="{{ dr.seats }}" as="ss">
+                  <button onClick="{{ ss.onClick }}" style="width:38px;height:38px;border-radius:4px;font-size:14px;cursor:pointer;background:{{ ss.bg }};color:{{ ss.color }};border:1px solid {{ ss.border }}">{{ ss.n }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ dr.hasDurations }}">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:rgba(243,237,224,0.7)">Call time</div>
+              <div style="display:flex;gap:6px">
+                <sc-for list="{{ dr.durations }}" as="du">
+                  <button onClick="{{ du.onClick }}" style="flex:1;height:38px;border-radius:4px;font-size:14px;cursor:pointer;background:{{ du.bg }};color:{{ du.color }};border:1px solid {{ du.border }}">{{ du.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ dr.isLeave }}">
+            <div style="font-size:14px;line-height:1.5;color:rgba(243,237,224,0.8)">{{ dr.leaveNote }}</div>
+            <sc-if value="{{ dr.owes }}">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:12px;color:rgba(243,237,224,0.7)">Reason for letting them go early</div>
+                <sc-for list="{{ dr.reasons }}" as="rs">
+                  <button onClick="{{ rs.onClick }}" style="height:38px;padding:0 12px;border-radius:4px;font-size:14px;cursor:pointer;text-align:left;background:{{ rs.bg }};color:#F3EDE0;border:1px solid {{ rs.border }}">{{ rs.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ dr.hasError }}"><div style="font-size:13px;color:#E8828C">{{ dr.error }}</div></sc-if>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid rgba(243,237,224,0.08);display:flex;gap:8px;justify-content:flex-end">
+          <button onClick="{{ closeDrawer }}" style="height:38px;padding:0 14px;background:transparent;border:none;color:#F3EDE0;font-size:14px;cursor:pointer">Cancel</button>
+          <button onClick="{{ dr.onConfirm }}" style="height:38px;padding:0 18px;background:{{ dr.confirmBg }};border:none;border-radius:4px;color:{{ dr.confirmColor }};font-size:14px;font-weight:600;cursor:pointer">{{ dr.confirm }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ paletteOpen }}">
+      <div onClick="{{ closePalette }}" style="position:absolute;inset:0;background:rgba(5,20,15,0.6);z-index:20"></div>
+      <div style="position:absolute;top:40px;left:50%;transform:translateX(-50%);width:600px;max-width:calc(100% - 32px);z-index:21;background:#0A2A20;border:1px solid rgba(201,168,92,0.35);border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.45);overflow:hidden">
+        <input ref="{{ paletteRef }}" value="{{ pq }}" onChange="{{ onPq }}" onKeyDown="{{ onPKey }}" placeholder="Type a name, member no., screen or action" style="width:100%;height:52px;background:transparent;border:none;border-bottom:1px solid rgba(243,237,224,0.1);color:#F3EDE0;padding:0 18px;font-size:16px;outline:none">
+        <div style="max-height:420px;overflow:auto;padding:6px">
+          <sc-for list="{{ pGroups }}" as="pg">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:10px 12px 4px">{{ pg.label }}</div>
+            <sc-for list="{{ pg.items }}" as="pi">
+              <div onClick="{{ pi.onClick }}" style="display:flex;justify-content:space-between;padding:9px 12px;border-radius:4px;cursor:pointer;font-size:14px;background:{{ pi.bg }}" style-hover="background:rgba(243,237,224,0.06)">
+                <span>{{ pi.label }}</span><span style="font-size:12px;color:rgba(243,237,224,0.6)">{{ pi.meta }}</span>
+              </div>
+            </sc-for>
+          </sc-for>
+          <sc-if value="{{ pEmpty }}"><div style="padding:16px 12px;font-size:14px;color:rgba(243,237,224,0.6)">Nothing matches “{{ pq }}”.</div></sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasToast }}">
+      <div style="position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:30;background:#F3EDE0;color:#141414;border-radius:4px;padding:10px 14px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.35);display:flex;gap:14px;align-items:center">
+        <span>{{ toast }}</span>
+        <sc-if value="{{ canUndo }}"><button onClick="{{ undo }}" style="background:none;border:none;color:#0E3B2C;font-weight:700;font-size:14px;cursor:pointer;text-decoration:underline">Undo</button></sc-if>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Super admin&quot;,&quot;Admin&quot;,&quot;Host&quot;],&quot;default&quot;:&quot;Super admin&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;attentionPanel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Docked&quot;,&quot;Drawer&quot;],&quot;default&quot;:&quot;Docked&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Comfortable&quot;,&quot;Compact&quot;],&quot;default&quot;:&quot;Comfortable&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  NOW = 11 * 60 + 40;
+  state = this.initial();
+
+  initial() {
+    const P = (name, tier, left, total, extra) => Object.assign({ name, tier, since: '11:35', left, total }, extra || {});
+    const seats = (arr) => Array.from({ length: 9 }, (_, i) => arr[i + 1] || null);
+    return {
+      screen: 'floor', tableId: 't2', practice: false, dangerOpen: false, attnOpen: false,
+      width: typeof window !== 'undefined' ? window.innerWidth : 1440,
+      paletteOpen: false, pq: '', pIdx: 0, drawer: null, toast: '', undoSnap: null,
+      mQuery: '', mTier: 'Any', mSel: 66, mTab: 'Visits', adds: {},
+      tables: [
+        { id: 't1', name: 'Table 1', room: 'Main room', stake: '50/100', game: 'g50', closed: false, dealer: null, mustMove: '', seats: seats({
+          1: P('Nakul Dhillon', 'Member', 176, 180), 2: P('Vidya Chadha', 'Academy graduate', 176, 180, { topup: 'asked', topupAt: 696 }),
+          4: P('Chirag Bajaj', 'Member', 236, 240), 5: P('Jahnavi Mittal', 'Member', 176, 180), 7: P('Vaani Mathur', 'Member', 296, 300),
+          8: P('Shalini Sood', 'Member', 176, 180, { leaving: true }) }) },
+        { id: 't2', name: 'Table 2', room: 'Main room', stake: '100/200', game: 'g100', closed: false, dealer: null, mustMove: '', seats: seats({
+          1: P('Mrinal Thakur', "Founders' Circle", 236, 240, { timeReq: 60, timeAt: 697 }), 2: P('Siddharth Vaid', "Founders' Circle", 176, 180),
+          3: P('Sakshi Tandon', 'Black card', 236, 240, { topup: 'asked', topupAt: 696 }), 5: P('Bhuvan Walia', "Founders' Circle", 296, 300),
+          6: P('Yamini Mehrotra', 'Black card', 176, 180), 8: P('Eshan Taneja', 'Black card', 236, 240, { topup: 'asked', topupAt: 696 }), 9: P('Samar Dua', 'Black card', 176, 180) }) },
+        { id: 't3', name: 'Table 3', room: 'Main room', stake: '100/200', game: 'g100', closed: false, dealer: 'Pema Lepcha', mustMove: '', seats: seats({
+          1: P('Kavish Rana', 'Member', 176, 180), 3: P('Rhea Saini', 'Black card', 116, 180, { timeReq: 30, timeAt: 698 }), 4: P('Vikas Dua', 'Member', 236, 240),
+          6: P('Mehul Kapoor', 'Member', 176, 180), 7: P('Payal Bhatt', 'Member', 176, 180, { leaving: true }) }) },
+        { id: 't4', name: 'Table 4', room: 'Main room', stake: '100/200', game: 'g100', closed: true, dealer: null, mustMove: '', seats: seats({}) },
+        { id: 't5', name: 'Table 5', room: 'Main room', stake: '100/200', game: 'g100', closed: false, dealer: null, mustMove: '', seats: seats({ 9: P('Yash Luthra', 'Member', 236, 240) }) },
+        { id: 'pr', name: 'Private Room', room: 'Private Room', stake: '100/200', game: 'gpr', closed: false, dealer: null, mustMove: '', seats: seats({
+          1: P('Pranav Ahuja', 'Black card', 236, 240), 3: P('Lakshya Garg', 'Black card', 176, 180), 4: P('Kriti Mehra', "Founders' Circle", 296, 300), 9: P('Aditi Dev', 'Black card', 176, 180) }) },
+      ],
+      games: [
+        { id: 'g50', name: 'NLH 50/100', requests: [{ name: 'Ritika Bhalla', at: 696 }], queue: [{ name: 'Ishaan Verma', at: 695, floor: true }, { name: 'Mihir Shah', at: 695, floor: true }] },
+        { id: 'g100', name: 'NLH 100/200', requests: [{ name: 'Leela Menon', at: 696 }], queue: [{ name: 'Kabir Sethi', at: 665 }, { name: 'Naina Kapoor', at: 671, held: true }, { name: 'Rohan Bhatia', at: 680 }] },
+        { id: 'gpr', name: 'Private Room 100/200', requests: [{ name: 'Riya Sen', at: 696 }], queue: [{ name: 'Arjun Mehta', at: 695, floor: true, tier: 'Black card' }] },
+      ],
+      leftOwing: [{ name: 'Mahima Tiwari', where: 'Table 5', owed: 239 }, { name: 'Sonal Kohli', where: 'Table 5', owed: 179 }],
+      members: [
+        { no: 66, name: 'Sakshi Tandon', tier: 'Black card', visits: 1, last: '3 Nov 2026', kyc: true },
+        { no: 12, name: 'Mrinal Thakur', tier: "Founders' Circle", visits: 14, last: '3 Nov 2026', kyc: true },
+        { no: 41, name: 'Kabir Sethi', tier: 'Black card', visits: 6, last: '3 Nov 2026', kyc: true },
+        { no: 87, name: 'Naina Kapoor', tier: 'Member', visits: 2, last: '3 Nov 2026', kyc: false },
+        { no: 90, name: 'Rohan Bhatia', tier: 'Member', visits: 1, last: '3 Nov 2026', kyc: false },
+        { no: 23, name: 'Vidya Chadha', tier: 'Academy graduate', visits: 9, last: '3 Nov 2026', kyc: true },
+        { no: 31, name: 'Ritika Bhalla', tier: 'Black card', visits: 22, last: '14 Sep 2026', kyc: true },
+        { no: 54, name: 'Sonal Kohli', tier: 'Member', visits: 4, last: '3 Nov 2026', kyc: true, early: true },
+        { no: 8, name: 'Bhuvan Walia', tier: "Founders' Circle", visits: 31, last: '3 Nov 2026', kyc: true },
+        { no: 72, name: 'Leela Menon', tier: 'Member', visits: 3, last: '29 Oct 2026', kyc: true },
+        { no: 19, name: 'Yamini Mehrotra', tier: 'Black card', visits: 11, last: '3 Nov 2026', kyc: true },
+        { no: 63, name: 'Arjun Mehta', tier: 'Black card', visits: 7, last: '3 Nov 2026', kyc: true },
+      ],
+    };
+  }
+
+  componentDidMount() {
+    this._key = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.openPalette(); }
+      if (e.key === 'Escape') this.setState({ paletteOpen: false, drawer: null, attnOpen: false });
+    };
+    this._rs = () => this.setState({ width: window.innerWidth });
+    window.addEventListener('keydown', this._key);
+    window.addEventListener('resize', this._rs);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._key); window.removeEventListener('resize', this._rs); }
+
+  hm(min) { const h = Math.floor(min / 60), m = min % 60; return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`; }
+  clockOf(min) { return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`; }
+  age(at, lateAfter) { const a = Math.max(0, this.NOW - at); return { age: a < 1 ? 'now' : `${a} min`, ageColor: a >= (lateAfter || 99) ? '#E8828C' : 'rgba(243,237,224,0.6)' }; }
+  role() { return this.props.role ?? 'Super admin'; }
+
+  snap(msg) { this.setState({ undoSnap: JSON.stringify({ tables: this.state.tables, games: this.state.games, leftOwing: this.state.leftOwing }) }); this.toast(msg, true); }
+  toast(msg, undo) {
+    clearTimeout(this._t);
+    this.setState({ toast: msg, canUndo: !!undo });
+    this._t = setTimeout(() => this.setState({ toast: '', undoSnap: null }), 5000);
+  }
+  undo = () => { const s = JSON.parse(this.state.undoSnap || 'null'); if (s) this.setState({ ...s, toast: 'Undone', undoSnap: null, canUndo: false }); };
+
+  patchSeat(tid, n, fn) {
+    this.setState(st => ({ tables: st.tables.map(t => t.id !== tid ? t : { ...t, seats: t.seats.map((p, i) => i + 1 === n && p ? fn({ ...p }) : p) }) }));
+  }
+  removeSeat(tid, n) { this.setState(st => ({ tables: st.tables.map(t => t.id !== tid ? t : { ...t, seats: t.seats.map((p, i) => i + 1 === n ? null : p) }) })); }
+  table(id) { return this.state.tables.find(t => t.id === id); }
+
+  addTime(t, n, min) { const p = t.seats[n - 1]; this.snap(`${p.name}: call time +${this.hm(min)}`); this.patchSeat(t.id, n, x => ({ ...x, left: x.left + min, total: x.total + min })); }
+  approveTime(t, n) { const p = t.seats[n - 1]; this.snap(`${p.name}: +${this.hm(p.timeReq)} approved`); this.patchSeat(t.id, n, x => ({ ...x, left: x.left + x.timeReq, total: x.total + x.timeReq, timeReq: null })); }
+  declineTime(t, n) { const p = t.seats[n - 1]; this.snap(`${p.name}: time request declined`); this.patchSeat(t.id, n, x => ({ ...x, timeReq: null })); }
+  topup(t, n) { const p = t.seats[n - 1]; if (p.topup === 'asked') { this.snap(`Top-up started for ${p.name}`); this.patchSeat(t.id, n, x => ({ ...x, topup: 'started' })); } else { this.snap(`Top-up done for ${p.name}`); this.patchSeat(t.id, n, x => ({ ...x, topup: null })); } }
+  notLeaving(t, n) { const p = t.seats[n - 1]; this.snap(`${p.name} is staying`); this.patchSeat(t.id, n, x => ({ ...x, leaving: false })); }
+  askLeave(t, n) { this.setState({ drawer: { type: 'leave', tid: t.id, n, reason: null } }); }
+  confirmLeave() {
+    const d = this.state.drawer, t = this.table(d.tid), p = t.seats[d.n - 1];
+    if (p.left > 0 && !d.reason) return this.setState({ drawer: { ...d, error: 'Pick a reason to let them go before call time.' } });
+    this.snap(`${p.name} left ${t.name}${p.left > 0 ? ' · early departure recorded' : ''}`);
+    this.removeSeat(d.tid, d.n); this.setState({ drawer: null });
+  }
+
+  nextFor(game) { const g = this.state.games.find(x => x.id === game); return g ? g.queue.find(q => !q.held) : null; }
+  openSeat(tid, n, person) {
+    const t = this.table(tid) || this.state.tables[0];
+    const free = t.seats.findIndex(p => !p) + 1;
+    const nxt = this.nextFor(t.game);
+    this.setState({ drawer: { type: 'seat', tid: t.id, n: n || free || null, who: person || (nxt ? nxt.name : null), number: '', dur: 180 } });
+  }
+  confirmSeat() {
+    const d = this.state.drawer;
+    const who = d.number ? null : d.who;
+    if (!who && !d.number) return this.setState({ drawer: { ...d, error: 'Choose a player or type a number.' } });
+    if (d.number && !/^\d{1,4}$|^\+?\d{10,12}$/.test(d.number.replace(/\s/g, ''))) return this.setState({ drawer: { ...d, error: 'That is not a member number or a mobile. Check it and try again.' } });
+    if (!d.n) return this.setState({ drawer: { ...d, error: 'Pick a seat.' } });
+    const name = who || this.state.members.find(m => String(m.no) === d.number)?.name || `Member ${d.number.slice(-4)}`;
+    this.snap(`${name} seated at ${this.table(d.tid).name}, seat ${d.n}`);
+    this.setState(st => ({
+      drawer: null, tableId: d.tid,
+      tables: st.tables.map(t => t.id !== d.tid ? t : { ...t, seats: t.seats.map((p, i) => i + 1 === d.n ? { name, tier: st.members.find(m => m.name === name)?.tier || 'Member', since: this.clockOf(this.NOW), left: d.dur, total: d.dur } : p) }),
+      games: st.games.map(g => ({ ...g, queue: g.queue.filter(q => q.name !== name) })),
+    }));
+  }
+  setCallTime() { const d = this.state.drawer, p = this.table(d.tid).seats[d.n - 1]; this.snap(`${p.name}: call time set to ${this.hm(d.dur)}`); this.patchSeat(d.tid, d.n, x => ({ ...x, left: d.dur - 4, total: d.dur })); this.setState({ drawer: null }); }
+
+  approveJoin(gid, name) { this.snap(`${name} added to the list`); this.setState(st => ({ games: st.games.map(g => g.id !== gid ? g : { ...g, requests: g.requests.filter(r => r.name !== name), queue: [...g.queue, { name, at: this.NOW }] }) })); }
+  declineJoin(gid, name) { this.snap(`${name}'s request declined`); this.setState(st => ({ games: st.games.map(g => g.id !== gid ? g : { ...g, requests: g.requests.filter(r => r.name !== name) }) })); }
+  holdQ(gid, name) { this.setState(st => ({ games: st.games.map(g => g.id !== gid ? g : { ...g, queue: g.queue.map(q => q.name === name ? { ...q, held: !q.held } : q) }) })); }
+  removeQ(gid, name) { this.snap(`${name} removed from the list`); this.setState(st => ({ games: st.games.map(g => g.id !== gid ? g : { ...g, queue: g.queue.filter(q => q.name !== name) }) })); }
+  addQ(gid) {
+    const v = (this.state.adds[gid] || '').trim(); if (!v) return;
+    const m = this.state.members.find(x => String(x.no) === v);
+    if (!m && !/^\+?\d{10,12}$/.test(v.replace(/\s/g, ''))) return this.toast('Not a member number or mobile. Check it and try again.');
+    const name = m ? m.name : `Walk-up ···${v.slice(-4)}`;
+    this.snap(`${name} added to the list`);
+    this.setState(st => ({ adds: { ...st.adds, [gid]: '' }, games: st.games.map(g => g.id !== gid ? g : { ...g, queue: [...g.queue, { name, at: this.NOW, floor: true }] }) }));
+  }
+  bestSeat(gid) {
+    const ts = this.state.tables.filter(t => t.game === gid && !t.closed);
+    let best = null;
+    ts.forEach(t => { const c = t.seats.filter(Boolean).length, f = t.seats.findIndex(p => !p); if (f >= 0 && (!best || c > best.c)) best = { t, c, n: f + 1 }; });
+    return best;
+  }
+
+  openPalette = () => { this.setState({ paletteOpen: true, pq: '', pIdx: 0 }); setTimeout(() => this._pref && this._pref.focus(), 30); };
+  go(screen, extra) { this.setState({ screen, paletteOpen: false, attnOpen: false, ...(extra || {}) }); }
+  locate(name) {
+    const t = this.state.tables.find(x => x.seats.some(p => p && p.name === name));
+    if (t) this.go('floor', { tableId: t.id }); else { const m = this.state.members.find(x => x.name === name); this.go('members', m ? { mSel: m.no, mQuery: '' } : {}); }
+  }
+
+  renderVals() {
+    const S = this.state, role = this.role();
+    const isHost = role === 'Host', isSuper = role === 'Super admin';
+    const muted = 'rgba(243,237,224,0.6)';
+    const all = [];
+    S.tables.forEach(t => t.seats.forEach((p, i) => p && all.push({ t, n: i + 1, p })));
+    const topups = all.filter(x => x.p.topup), times = all.filter(x => x.p.timeReq), leaving = all.filter(x => x.p.leaving);
+    const joins = []; S.games.forEach(g => g.requests.forEach(r => joins.push({ g, r })));
+    const openSuggest = S.games.map(g => { const nx = g.queue.find(q => !q.held); const b = this.bestSeat(g.id); return nx && b ? { g, nx, b } : null; }).filter(Boolean);
+
+    const sections = [
+      { title: 'Asking to join', items: joins.map(({ g, r }) => ({ title: r.name, sub: g.name, ...this.age(r.at, 5), primary: 'Approve', onPrimary: () => this.approveJoin(g.id, r.name), hasSecondary: true, secondary: 'Decline', onSecondary: () => this.declineJoin(g.id, r.name), onTitle: () => this.locate(r.name) })) },
+      { title: 'Top-ups', items: topups.map(({ t, n, p }) => ({ title: p.name, sub: `${t.name}, seat ${n}${p.topup === 'started' ? ' · in progress' : ''}`, ...this.age(p.topupAt, 3), primary: p.topup === 'asked' ? 'Start' : 'Done', onPrimary: () => this.topup(t, n), hasSecondary: false, onTitle: () => this.go('floor', { tableId: t.id }) })) },
+      { title: 'Time requests', items: times.map(({ t, n, p }) => ({ title: `${p.name} · +${this.hm(p.timeReq)}`, sub: `${t.name}, seat ${n} · ${this.hm(p.left)} left`, ...this.age(p.timeAt, 5), primary: 'Approve', onPrimary: () => this.approveTime(t, n), hasSecondary: true, secondary: 'Decline', onSecondary: () => this.declineTime(t, n), onTitle: () => this.go('floor', { tableId: t.id }) })) },
+      { title: 'Open seats to fill', items: openSuggest.map(({ g, nx, b }) => ({ title: `${b.t.name}, seat ${b.n}`, sub: `Next for ${g.name}: ${nx.name}`, age: `${this.NOW - nx.at} min wait`, ageColor: muted, primary: `Seat ${nx.name.split(' ')[0]}`, onPrimary: () => this.openSeat(b.t.id, b.n, nx.name), hasSecondary: false, onTitle: () => this.go('floor', { tableId: b.t.id }) })) },
+      { title: 'Leaving', items: leaving.map(({ t, n, p }) => ({ title: p.name, sub: `${t.name}, seat ${n} · ${this.hm(p.left)} call time left`, age: '', ageColor: muted, primary: 'Leave', onPrimary: () => this.askLeave(t, n), hasSecondary: true, secondary: 'Not leaving', onSecondary: () => this.notLeaving(t, n), onTitle: () => this.go('floor', { tableId: t.id }) })) },
+      { title: 'Left before call time', items: S.leftOwing.map(l => ({ title: l.name, sub: `${l.where} · ${this.hm(l.owed)} owed`, age: '', ageColor: muted, primary: 'Record early leave', onPrimary: () => { this.snap(`Early departure recorded for ${l.name}`); this.setState(st => ({ leftOwing: st.leftOwing.filter(x => x.name !== l.name) })); }, hasSecondary: false, onTitle: () => this.locate(l.name) })) },
+    ].filter(s => s.items.length).map(s => ({ ...s, count: s.items.length }));
+    const attentionCount = sections.reduce((a, s) => a + s.count, 0);
+    const wide = S.width >= 1360 && (this.props.attentionPanel ?? 'Docked') === 'Docked';
+
+    const badge = (n, solid) => ({ hasBadge: n > 0, badge: n, badgeBg: solid ? '#C4162A' : 'transparent', badgeColor: solid ? '#F3EDE0' : '#C9A85C' });
+    const item = (id, label, b) => ({ id, label, ...(b || { hasBadge: false }), bg: S.screen === id ? 'rgba(201,168,92,0.14)' : 'transparent', color: S.screen === id ? '#F3EDE0' : 'rgba(243,237,224,0.78)', weight: S.screen === id ? 600 : 400, onClick: () => this.go(id) });
+    const reqTotal = topups.length + times.length + leaving.length + S.leftOwing.length;
+    let nav = [
+      { label: 'Tonight', items: [item('floor', 'Live floor', badge(reqTotal, true)), item('waitlist', 'Waitlist', badge(joins.length, true)), item('checkin', 'Check-in'), item('fnb', 'Food and drink', badge(3, true)), item('tint', 'Tournament interest', badge(5)), item('spin', 'Spin wheel')] },
+      { label: 'Players', items: [item('members', 'Members'), item('today', "Today's players"), item('kyc', 'KYC review', badge(2)), item('host', 'Host queue', badge(1)), item('feedback', 'Feedback', badge(4))] },
+      { label: 'Marketing', items: [item('promos', 'Promotions'), item('rewards', 'Rewards'), item('social', 'Social'), item('website', 'Website'), item('learn', 'Learn content')] },
+      { label: 'Admin', items: [item('staff', 'Staff'), item('tables', 'Tables setup'), item('history', 'Games history'), item('settings', 'Settings'), item('devices', 'Devices')] },
+    ];
+    if (isHost) nav = nav.filter(g => g.label !== 'Admin' && g.label !== 'Marketing');
+    const dangerItems = [['kill', 'Kill switch'], ['preset', 'Practice reset'], ['purge', 'Purge']].map(([id, label]) => ({ label, bg: S.screen === id ? 'rgba(196,22,42,0.16)' : 'transparent', onClick: () => this.go(id) }));
+    const allItems = nav.flatMap(g => g.items).concat(isSuper ? dangerItems.map((d, i) => ({ id: ['kill', 'preset', 'purge'][i], label: d.label })) : []);
+
+    const sel = this.table(S.tableId) || S.tables[0];
+    const count = (t) => t.seats.filter(Boolean).length;
+    const ang = (i) => (-90 + i * 40) * Math.PI / 180;
+    const rooms = ['Main room', 'Private Room'].map(name => ({ name, tables: S.tables.filter(t => t.room === name).map(t => {
+      const asks = t.seats.filter(p => p && (p.topup || p.timeReq || p.leaving));
+      const flags = [];
+      const tu = t.seats.filter(p => p && p.topup).length, tr = t.seats.filter(p => p && p.timeReq).length;
+      if (tu) flags.push({ label: tu > 1 ? `${tu} top-ups` : 'Top-up', bg: '#C9A85C', color: '#141414' });
+      if (tr) flags.push({ label: 'Time', bg: '#C9A85C', color: '#141414' });
+      if (t.mustMove) flags.push({ label: 'Must-move', bg: 'transparent', color: '#C9A85C' });
+      return {
+        name: t.name, stake: t.stake, opacity: t.closed ? 0.55 : 1,
+        countLabel: t.closed ? 'Closed' : `${count(t)} of 9${t.dealer ? ' · ' + t.dealer.split(' ')[0] : ''}`,
+        flags, bg: t.id === sel.id ? 'rgba(201,168,92,0.1)' : '#0A2A20', border: t.id === sel.id ? '#C9A85C' : 'rgba(243,237,224,0.1)',
+        onClick: () => this.setState({ tableId: t.id }),
+        dots: t.seats.map((p, i) => { const needs = p && (p.topup || p.timeReq || p.leaving); return { x: `${50 + 42 * Math.cos(ang(i))}%`, y: `${50 + 40 * Math.sin(ang(i))}%`, bg: !p ? 'transparent' : needs ? '#C9A85C' : '#F3EDE0', border: !p ? 'rgba(243,237,224,0.35)' : 'transparent' }; }),
+        _asks: asks.length,
+      };
+    }) }));
+
+    const nxt = this.nextFor(sel.game);
+    const canAdd = !isHost;
+    const rows = sel.closed ? [] : sel.seats.map((p, i) => {
+      const n = i + 1;
+      if (!p) return { n, open: true, taken: false, hasNext: !!nxt, nextName: nxt ? nxt.name : '', onSeat: () => this.openSeat(sel.id, n), showAddTime: false, asks: [] };
+      const asks = [];
+      if (p.timeReq) asks.push({ label: `Asks for +${this.hm(p.timeReq)}`, ...this.age(p.timeAt, 5), primary: 'Approve', onPrimary: () => this.approveTime(sel, n), hasSecondary: true, secondary: 'Decline', onSecondary: () => this.declineTime(sel, n) });
+      if (p.topup) asks.push({ label: p.topup === 'asked' ? 'Top-up asked' : 'Top-up in progress', ...this.age(p.topupAt, 3), primary: p.topup === 'asked' ? 'Start' : 'Done', onPrimary: () => this.topup(sel, n), hasSecondary: false });
+      if (p.leaving) asks.push({ label: 'Said they are leaving', age: '', ageColor: muted, primary: 'Leave', onPrimary: () => this.askLeave(sel, n), hasSecondary: true, secondary: 'Not leaving', onSecondary: () => this.notLeaving(sel, n) });
+      const elapsed = p.total - p.left;
+      return { n, open: false, taken: true, name: p.name, tier: p.tier, since: p.since,
+        leftLabel: p.left > 0 ? `${this.hm(p.left)} left` : 'Call time met', leftColor: p.left > 0 ? '#F3EDE0' : '#C9A85C',
+        barPct: `${Math.min(100, Math.max(3, elapsed / p.total * 100))}%`, barColor: p.left > 0 ? 'rgba(243,237,224,0.55)' : '#C9A85C',
+        showAddTime: canAdd, on30: () => this.addTime(sel, n, 30), on60: () => this.addTime(sel, n, 60), on120: () => this.addTime(sel, n, 120),
+        onLeave: () => this.askLeave(sel, n), onCallTime: () => canAdd && this.setState({ drawer: { type: 'calltime', tid: sel.id, n, dur: p.total } }),
+        onMember: () => { const m = S.members.find(x => x.name === p.name); this.go('members', { mSel: m ? m.no : null }); }, asks };
+    });
+    const seatedTotal = S.tables.reduce((a, t) => a + count(t), 0);
+    const openSeats = sel.seats.filter(p => !p).length;
+    const selV = {
+      name: sel.name, game: `NLH ${sel.stake}`, countLabel: sel.closed ? 'Closed' : `${count(sel)} of 9 seated`,
+      dealer: sel.dealer ? `Dealer: ${sel.dealer}` : 'No dealer', callRunning: sel.closed ? '' : `${sel.seats.filter(p => p && p.left > 0).length} on call time`,
+      closed: sel.closed, mustMove: sel.mustMove,
+      moveOptions: [{ value: '', label: 'None' }].concat(S.tables.filter(t => t.id !== sel.id && t.game === sel.game).map(t => ({ value: t.id, label: t.name }))),
+      openLabel: sel.closed ? 'Open table' : 'Close table', closeDisabled: !sel.closed && count(sel) > 0, closeColor: !sel.closed && count(sel) > 0 ? 'rgba(243,237,224,0.35)' : '#F3EDE0',
+      closeHint: !sel.closed && count(sel) > 0 ? 'Seat everyone elsewhere before closing' : '',
+      onToggleOpen: () => { this.snap(`${sel.name} ${sel.closed ? 'opened' : 'closed'}`); this.setState(st => ({ tables: st.tables.map(t => t.id === sel.id ? { ...t, closed: !t.closed } : t) })); },
+      onSeat: () => this.openSeat(sel.id), seatDisabled: sel.closed || openSeats === 0, seatOpacity: sel.closed || openSeats === 0 ? 0.4 : 1, rows,
+    };
+
+    // drawer
+    let dr = null;
+    const opt = (on, extra) => ({ bg: on ? 'rgba(201,168,92,0.16)' : 'transparent', border: on ? '#C9A85C' : 'rgba(243,237,224,0.18)', color: on ? '#F3EDE0' : 'rgba(243,237,224,0.85)', ...extra });
+    if (S.drawer) {
+      const d = S.drawer, t = this.table(d.tid), setD = (o) => this.setState({ drawer: { ...d, ...o, error: null } });
+      const durations = [180, 240, 300].map(m => ({ label: this.hm(m), ...opt(d.dur === m), onClick: () => setD({ dur: m }) }));
+      if (d.type === 'seat') {
+        const g = S.games.find(x => x.id === t.game);
+        const people = (g ? g.queue.filter(q => !q.held) : []).slice(0, 4).map(q => ({ name: q.name, meta: `waiting ${this.NOW - q.at} min`, ...opt(d.who === q.name && !d.number), onClick: () => setD({ who: q.name, number: '' }) }));
+        dr = { isSeat: true, hasDurations: true, title: 'Seat a player', sub: `${t.name} · NLH ${t.stake}`, people, number: d.number, onNumber: (e) => setD({ number: e.target.value }),
+          tables: S.tables.filter(x => !x.closed && x.seats.some(p => !p)).map(x => ({ label: x.name, ...opt(x.id === d.tid), onClick: () => setD({ tid: x.id, n: x.seats.findIndex(p => !p) + 1 }) })),
+          seats: t.seats.map((p, i) => p ? null : { n: i + 1, ...opt(d.n === i + 1), onClick: () => setD({ n: i + 1 }) }).filter(Boolean),
+          durations, confirm: 'Seat', onConfirm: () => this.confirmSeat() };
+      } else if (d.type === 'calltime') {
+        const p = t.seats[d.n - 1];
+        dr = { hasDurations: true, title: 'Call time', sub: `${p.name} · ${t.name}, seat ${d.n}`, durations, confirm: 'Save call time', onConfirm: () => this.setCallTime() };
+      } else {
+        const p = t.seats[d.n - 1]; const owes = p.left > 0;
+        dr = { isLeave: true, owes, title: owes ? 'Let go before call time' : `${p.name} leaves`, sub: `${p.name} · ${t.name}, seat ${d.n}`,
+          leaveNote: owes ? `${p.name} still owes ${this.hm(p.left)} of call time. This is recorded on their member record.` : 'Their seat opens for the next player on the list.',
+          reasons: ['Emergency', 'Unwell', 'Table broke', 'Floor decision'].map(r => ({ label: r, ...opt(d.reason === r), onClick: () => setD({ reason: r }) })),
+          confirm: owes ? 'Let go early' : 'Yes, they leave', onConfirm: () => this.confirmLeave() };
+      }
+      dr = { isSeat: false, isLeave: false, owes: false, hasDurations: false, people: [], tables: [], seats: [], durations: [], reasons: [], ...dr,
+        hasError: !!d.error, error: d.error, confirmBg: d.type === 'leave' && dr.owes ? '#C4162A' : '#C9A85C', confirmColor: d.type === 'leave' && dr.owes ? '#F3EDE0' : '#141414' };
+    }
+
+    // waitlist
+    const games = S.games.map(g => {
+      const b = this.bestSeat(g.id); const open = S.tables.filter(t => t.game === g.id && !t.closed).reduce((a, t) => a + t.seats.filter(p => !p).length, 0);
+      return { name: g.name, waitingLabel: `${g.queue.length} waiting`, seatsLabel: open ? `${open} open seat${open > 1 ? 's' : ''}${b ? ` · best: ${b.t.name}, seat ${b.n}` : ''}` : 'No open seats', seatsColor: open ? '#C9A85C' : muted,
+        hasRequests: g.requests.length > 0, requests: g.requests.map(r => ({ name: r.name, at: `asked ${this.clockOf(r.at)}`, onApprove: () => this.approveJoin(g.id, r.name), onRemove: () => this.declineJoin(g.id, r.name) })),
+        queue: g.queue.map((q, i) => ({ pos: i + 1, name: q.name, meta: `${this.clockOf(q.at)} · ${this.NOW - q.at} min${q.floor ? ' · added by the floor' : ''}${q.tier ? ' · ' + q.tier : ''}${q.held ? ' · place held' : ''}`, opacity: q.held ? 0.55 : 1, holdLabel: q.held ? 'Release' : 'Hold',
+          onAssign: () => { const bb = this.bestSeat(g.id); this.openSeat(bb ? bb.t.id : S.tables.find(t => t.game === g.id).id, bb ? bb.n : null, q.name); }, onHold: () => this.holdQ(g.id, q.name), onRemove: () => this.removeQ(g.id, q.name) })),
+        empty: g.queue.length === 0, addValue: S.adds[g.id] || '', onAddChange: (e) => this.setState({ adds: { ...S.adds, [g.id]: e.target.value } }), onAdd: () => this.addQ(g.id) };
+    });
+
+    // members
+    const q = S.mQuery.trim().toLowerCase();
+    const seatOf = (name) => { for (const t of S.tables) { const i = t.seats.findIndex(p => p && p.name === name); if (i >= 0) return { t, n: i + 1 }; } return null; };
+    const statusOf = (m) => { const s = seatOf(m.name); if (s) return { status: `${s.t.name}, seat ${s.n}`, statusColor: '#C9A85C' }; if (S.games.some(g => g.queue.some(x => x.name === m.name))) return { status: 'On the waitlist', statusColor: '#F3EDE0' }; return { status: m.kyc ? '—' : 'KYC pending', statusColor: m.kyc ? muted : '#E8828C' }; };
+    const memberRows = S.members.filter(m => (S.mTier === 'Any' || m.tier === S.mTier) && (!q || m.name.toLowerCase().includes(q) || String(m.no) === q)).map(m => ({ ...m, ...statusOf(m), bg: S.mSel === m.no ? 'rgba(201,168,92,0.1)' : 'transparent', onClick: () => this.setState({ mSel: m.no }) }));
+    const tierChips = ['Any', 'Black card', "Founders' Circle", 'Academy graduate', 'Member'].map(t => ({ label: t, ...opt(S.mTier === t), onClick: () => this.setState({ mTier: t }) }));
+    const m = S.members.find(x => x.no === S.mSel);
+    let mem = null, memFacts = [], memActions = [];
+    const tabs = isSuper ? ['Visits', 'Tier and break', 'Account'] : ['Visits', 'Tier and break'];
+    if (m) {
+      const s = seatOf(m.name);
+      mem = { ...m, initials: m.name.split(' ').map(w => w[0]).join(''), tags: [m.kyc ? 'KYC verified' : 'KYC pending'].concat(s ? ['In the room'] : []), seated: !!s, seatLabel: s ? `${s.t.name}, seat ${s.n}` : '', onLocate: () => s && this.go('floor', { tableId: s.t.id }) };
+      if (S.mTab === 'Visits') { memFacts = [{ k: 'Visits', v: `${m.visits}` }, { k: 'Last visit', v: m.last }, { k: 'Early departures', v: m.early ? '1 · let go early, Emergency' : 'None' }, { k: 'Qualifies at', v: m.tier === 'Member' ? '50/100' : '50/100, 100/200' }]; memActions = [{ label: 'Add to a waitlist', color: '#F3EDE0' }]; }
+      else if (S.mTab === 'Tier and break') { memFacts = [{ k: 'Tier', v: m.tier }, { k: 'Break', v: 'None' }]; memActions = [{ label: 'Change tier', color: '#F3EDE0' }, { label: 'Start a break', color: '#F3EDE0' }]; }
+      else { memFacts = [{ k: 'Mobile', v: '+91 ••••• ••' + String(10 + m.no).slice(-2) }, { k: 'Feature overrides', v: 'None' }]; memActions = [{ label: 'Change phone number', color: '#F3EDE0' }, { label: 'Feature override', color: '#F3EDE0' }, { label: 'Erase member', color: '#E8828C' }]; }
+    }
+    const memTabs = tabs.map(t => ({ label: t, line: S.mTab === t ? '#C9A85C' : 'transparent', color: S.mTab === t ? '#F3EDE0' : muted, onClick: () => this.setState({ mTab: t }) }));
+
+    // palette
+    const pq = S.pq.trim().toLowerCase();
+    const pMembers = S.members.filter(x => pq.length >= 2 && (x.name.toLowerCase().includes(pq) || String(x.no) === pq)).slice(0, 5).map(x => { const s = seatOf(x.name); return { label: x.name, meta: s ? `${s.t.name}, seat ${s.n}` : `Member ${x.no} · ${x.tier}`, run: () => this.locate(x.name) }; });
+    const actions = [{ label: 'Seat a player', meta: 'Action', run: () => { this.setState({ paletteOpen: false }); this.openSeat(S.tableId); } }, { label: 'Add to the waitlist', meta: 'Action', run: () => this.go('waitlist') }].filter(a => !pq || a.label.toLowerCase().includes(pq));
+    const screens = allItems.filter(i => !pq || i.label.toLowerCase().includes(pq)).slice(0, pq ? 6 : 5).map(i => ({ label: i.label, meta: 'Screen', run: () => this.go(i.id) }));
+    const flat = [...pMembers, ...actions, ...screens];
+    let k = 0;
+    const mk = (arr) => arr.map(x => { const idx = k++; return { ...x, bg: idx === S.pIdx ? 'rgba(243,237,224,0.08)' : 'transparent', onClick: x.run }; });
+    const pGroups = [{ label: 'Members', items: mk(pMembers) }, { label: 'Actions', items: mk(actions) }, { label: 'Screens', items: mk(screens) }].filter(g => g.items.length);
+
+    const users = { 'Super admin': ['Vikram Rao', 'VR'], Admin: ['Aditya Malhotra', 'AM'], Host: ['Karan Gill', 'KG'] };
+    const known = ['floor', 'waitlist', 'members'];
+    return {
+      nav, showDanger: isSuper, dangerOpen: S.dangerOpen, dangerCaret: S.dangerOpen ? '−' : '+', dangerItems, toggleDanger: () => this.setState({ dangerOpen: !S.dangerOpen }),
+      userName: users[role][0], userInitials: users[role][1], roleLabel: `${role} · RIVR Gurugram`, venueName: S.practice ? 'RIVR Practice' : 'RIVR Gurugram',
+      practice: S.practice, practiceBg: S.practice ? '#C9A85C' : 'transparent', practiceKnob: S.practice ? '17px' : '2px', togglePractice: () => this.setState({ practice: !S.practice }),
+      clock: this.clockOf(this.NOW), openPalette: this.openPalette,
+      showAttentionToggle: S.screen === 'floor' && !wide, toggleAttention: () => this.setState({ attnOpen: !S.attnOpen }), attentionCount,
+      isFloor: S.screen === 'floor', isWaitlist: S.screen === 'waitlist', isMembers: S.screen === 'members', isOther: !known.includes(S.screen),
+      otherTitle: (allItems.find(i => i.id === S.screen) || {}).label || '',
+      floorCols: wide ? '360px minmax(0,1fr) 320px' : (S.width < 1200 ? '280px minmax(0,1fr)' : '340px minmax(0,1fr)'),
+      wideRows: S.width >= 1200, rowCols: S.width >= 1200 ? '36px minmax(0,1fr) 170px auto' : '36px minmax(0,1fr) 120px', actCol: S.width >= 1200 ? 'auto' : '2 / -1', actJustify: S.width >= 1200 ? 'flex-end' : 'flex-start', actMt: S.width >= 1200 ? '0' : '8px', seatedLabel: `${seatedTotal} seated · ${S.tables.filter(t => !t.closed).length} tables open`,
+      rooms, sel: selV, canManageTables: !isHost, rowPad: (this.props.density ?? 'Comfortable') === 'Compact' ? '6px 0' : '11px 0',
+      onMustMove: (e) => { const v = e.target.value; this.setState(st => ({ tables: st.tables.map(t => t.id === sel.id ? { ...t, mustMove: v } : t) })); },
+      attentionDocked: wide, attentionOverlay: S.screen === 'floor' && !wide && S.attnOpen, attention: sections, attentionEmpty: sections.length === 0,
+      hasDrawer: !!dr, dr: dr || {}, closeDrawer: () => this.setState({ drawer: null }),
+      games,
+      mQuery: S.mQuery, onMQuery: (e) => this.setState({ mQuery: e.target.value }), tierChips, memberRows, noMembers: memberRows.length === 0,
+      hasMember: !!mem, noMemberSel: !mem, mem: mem || {}, memTabs, memFacts, memActions,
+      paletteOpen: S.paletteOpen, closePalette: () => this.setState({ paletteOpen: false }), pq: S.pq, paletteRef: (el) => { this._pref = el; },
+      onPq: (e) => this.setState({ pq: e.target.value, pIdx: 0 }), pGroups, pEmpty: flat.length === 0,
+      onPKey: (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ pIdx: Math.min(flat.length - 1, S.pIdx + 1) }); } if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ pIdx: Math.max(0, S.pIdx - 1) }); } if (e.key === 'Enter' && flat[S.pIdx]) flat[S.pIdx].run(); },
+      hasToast: !!S.toast, toast: S.toast, canUndo: !!S.canUndo && !!S.undoSnap, undo: this.undo,
+    };
+  }
+}
+</script>
+</body>
+</html>

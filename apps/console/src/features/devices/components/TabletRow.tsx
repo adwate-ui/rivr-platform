@@ -75,7 +75,7 @@ export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowPr
           {code === null || (tablet.isPaired && !isForRepair) ? null : <Text>{t('console.tablets.code', { code: code.code, time: formatTime(new Date(code.expiresAt)) })}</Text>}
         </Stack>
         <Inline gap={2} wrap>
-          <Button variant="secondary" isLoading={pair.isPending} onClick={() => void newCode()}>{t('console.tablets.newCode', { name })}</Button>
+          <Button variant="subtle" isLoading={pair.isPending} onClick={() => void newCode()}>{t('console.tablets.newCode', { name })}</Button>
           <Button variant="text" onClick={() => setIsRevoking(true)}>{t('console.tablets.revoke', { name })}</Button>
         </Inline>
       </Inline>

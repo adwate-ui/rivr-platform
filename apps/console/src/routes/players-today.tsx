@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { TodaysPlayersScreen } from '../features/todays-players/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Every member at the club today, with their status, times and tables (#641). */
-export const playersTodayRoute = createRoute({ getParentRoute: () => frameRoute, path: '/players-today', component: TodaysPlayersScreen });
+/** Today's players moved into the Door (console v3): an old link or bookmark opens its tab there. */
+export const playersTodayRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/players-today', component: () => <Navigate to="/door" search={{ tab: 'players' }} replace />,
+});

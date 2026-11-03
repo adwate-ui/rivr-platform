@@ -25,7 +25,7 @@ function RequestRow({ request, tableName, busy, onDecide }: RequestRowProps) {
         <Text variant="small" tone="muted">{left > 0 ? t('console.timeRequests.left', { time: formatDuration(left) }) : t('console.timeRequests.met')}</Text>
       </Inline>
       <Inline gap={2}>
-        <Button variant="secondary" aria-label={t('console.liveFloor.approveTimeName', { name })} isLoading={busy === true}
+        <Button variant="subtle" aria-label={t('console.liveFloor.approveTimeName', { name })} isLoading={busy === true}
           isDisabled={busy === false} onClick={() => onDecide(true)}>{t('console.liveFloor.approveTime')}</Button>
         <Button variant="text" aria-label={t('console.liveFloor.declineTimeName', { name })} isLoading={busy === false}
           isDisabled={busy === true} onClick={() => onDecide(false)}>{t('console.liveFloor.declineTime')}</Button>

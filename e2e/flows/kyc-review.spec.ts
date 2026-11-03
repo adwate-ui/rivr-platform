@@ -49,8 +49,9 @@ test.describe('KYC review', () => {
 
   test('a KYC reviewer approves one check and rejects another, each with a reason', async ({ page }) => {
     await signInToConsole(page, '9000000101');
-    await page.getByRole('link', { name: 'KYC review' }).click();
-    await expect(page.getByRole('heading', { name: 'Checks to review' })).toBeVisible();
+    await page.getByRole('link', { name: 'KYC review', exact: true }).click();
+    // The queue down the left, the first check to review open beside it (console v3).
+    await expect(page.getByRole('heading', { name: 'To review' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rohan Bhatia' })).toBeVisible();
     await expect(page.getByText('ABCPR4444R')).toBeVisible();
     await expect(page.getByText('PAN only, no DigiLocker. Check the card and the person.').first()).toBeVisible();
@@ -59,8 +60,9 @@ test.describe('KYC review', () => {
     await expect(page.getByRole('heading', { name: 'Rohan Bhatia' })).toHaveCount(0);
     expect(sql(`select status from public.kyc_record where member_id = '${ROHAN}'`)).toBe('verified');
 
+    // Rohan has left the queue, so Naina's check is open now.
     await decide(page, 'Naina Kapoor', 'The person at the desk is not the one in the photo', 'Reject');
-    await expect(page.getByRole('heading', { name: 'Refused checks' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Refused, last 90 days' })).toBeVisible();
     await expect(page.getByText('Rejected by a reviewer.')).toBeVisible();
     await expect(page.getByRole('img', { name: 'KYC photo of Naina Kapoor' }).or(page.getByText(/^Photo not loaded/))).toBeVisible();
     expect(sql(`select status || ' ' || refusal from public.kyc_record where member_id = '${NAINA}'`)).toBe('refused staff_rejected');

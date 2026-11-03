@@ -48,7 +48,8 @@ export interface HeldSeat {
 export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid'
   | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'unavailable';
 
-const FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
+/** The failure each database refusal of a seat change stands for; anything else is `unavailable`. */
+export const SEAT_FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
   '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
   RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid', RVCTD: 'call_time_done',
 };
@@ -65,12 +66,12 @@ export function openSeatsAt(table: { readonly id: string; readonly seats: number
   return Array.from({ length: table.seats }, (_, index) => index + 1).filter((number) => !busy.has(number));
 }
 
-/** The venue's seated players, table by table, for staff who read members. */
-export function useFloorSeats(venueId: string) {
+/** The venue's seated players, table by table, for staff who read members; not asked while `isEnabled` is false. */
+export function useFloorSeats(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.floorSeats(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
+    enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<SeatedPlayer[]> => {
       const { data, error } = await client.rpc('floor_seats', { p_venue_id: venueId });
@@ -130,11 +131,11 @@ function useSeatSettle(venueId: string) {
   const { userId } = useRivrData();
   const queryClient = useQueryClient();
   const user = userId ?? 'signed-out';
-  return async (error: { code: string } | null, codes: Readonly<Record<string, SeatFailure>> = FAILURE_BY_CODE): Promise<Result<null, SeatFailure>> => {
+  return async (error: { code: string } | null, codes: Readonly<Record<string, SeatFailure>> = SEAT_FAILURE_BY_CODE): Promise<Result<null, SeatFailure>> => {
     // Tonight's top-ups too, so Top-ups moves on as soon as the floor starts or finishes one (decision 0299), and the rail's
     // counts, so a time request decided leaves its red count at once (decision 0305).
     const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user),
-      queryKeys.topUpsTonight(user, venueId), queryKeys.staffQueueCounts(user, venueId)];
+      queryKeys.topUpsTonight(user, venueId), queryKeys.staffQueueCounts(user, venueId), queryKeys.floorRequests(user, venueId)];
     await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
     return error ? err(codes[error.code] ?? 'unavailable') : ok(null);
   };
@@ -160,12 +161,12 @@ export function useSeatActions(venueId: string) {
   });
   const setOpen = useMutation({
     mutationFn: async ({ tableId, isOpen }: { tableId: string; isOpen: boolean }) =>
-      settle((await client.rpc('set_table_open', { p_table_id: tableId, p_is_open: isOpen })).error, { ...FAILURE_BY_CODE, RVSTD: 'table_in_use' }),
+      settle((await client.rpc('set_table_open', { p_table_id: tableId, p_is_open: isOpen })).error, { ...SEAT_FAILURE_BY_CODE, RVSTD: 'table_in_use' }),
   });
   const setMustMove = useMutation({
     mutationFn: async ({ tableId, mainTableId }: { tableId: string; mainTableId: string | null }) =>
       settle((await client.rpc('set_must_move', mainTableId === null ? { p_table_id: tableId } : { p_table_id: tableId, p_main_table_id: mainTableId })).error,
-        { ...FAILURE_BY_CODE, '22023': 'must_move_invalid' }),
+        { ...SEAT_FAILURE_BY_CODE, '22023': 'must_move_invalid' }),
   });
   const letLeaveEarly = useMutation({
     // A seated player's seat is freed next (`leave`), which reads the floor again: one re-read then serves both steps (#745).

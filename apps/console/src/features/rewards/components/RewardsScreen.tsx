@@ -1,72 +1,95 @@
-import { type RewardItem, useRewardItems, useStaffVenue, useVenueRedemptions } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { Button, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
+import { useRewardItems, useStaffVenue, useVenueRedemptions } from '@rivr/db';
+import { formatNumber, t } from '@rivr/i18n';
+import { Button, Screen, Stack, Tabs } from '@rivr/ui';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
-import { CatalogueList } from './CatalogueList.tsx';
-import { LeagueCsvImport } from './LeagueCsvImport.tsx';
-import { PointsByHand } from './PointsByHand.tsx';
+import { CatalogueTab, type Editing } from './CatalogueTab.tsx';
+import { PointsTab } from './PointsTab.tsx';
 import { RedemptionList } from './RedemptionList.tsx';
-import { RewardForm } from './RewardForm.tsx';
+import { accessOf, partHref, partsFor, type RewardsAccess, type RewardsPart } from './rewardsTabs.ts';
 
-/**
- * The screen laid out once its lists have come (UI polish audit E-07), so the redemptions never push the catalogue down;
- * each role reads only what it is shown. The catalogue, for everyone here.
- */
-function CatalogueReady({ venueId, children }: { venueId: string; children: ReactNode }) {
-  return useRewardItems(venueId).isPending ? <Screen title={t('console.rewards.title')} status="loading" /> : children;
+const LABELS = { catalogue: 'console.rewards.tabs.catalogue', handover: 'console.rewards.tabs.handover', points: 'console.rewards.tabs.points' } as const;
+
+/** What waits under a part, counted on its tab: the rewards in the catalogue and the redemptions to hand over. */
+type Counts = Readonly<Partial<Record<RewardsPart, number | undefined>>>;
+
+function partLabel(part: RewardsPart, count: number | undefined): string {
+  const name = t(LABELS[part]);
+  return count === undefined ? name : t('console.rewards.tabs.counted', { label: name, count: formatNumber(count) });
 }
 
-/** For staff who hand rewards over, the redemptions too, then the catalogue. */
-function HandOverReady({ venueId, children }: { venueId: string; children: ReactNode }) {
-  if (useVenueRedemptions(venueId).isPending) return <Screen title={t('console.rewards.title')} status="loading" />;
-  return <CatalogueReady venueId={venueId}>{children}</CatalogueReady>;
+/** The catalogue's count, read only while the catalogue is a part. */
+function CatalogueCount({ venueId, children }: { venueId: string; children: (count: number | undefined) => ReactNode }) {
+  return children(useRewardItems(venueId).data?.length);
 }
 
-/** The catalogue and the redemptions beside the form: a new reward, or the one chosen to change. */
-function RewardsBody({ venueId, canKeep, canHandOver, canGive }: { venueId: string; canKeep: boolean; canHandOver: boolean; canGive: boolean }) {
-  const [editing, setEditing] = useState<RewardItem | null>(null);
-  // Kept here: a change saved closes its form, so the form's own words would go with it (F2-23).
-  const [saved, setSaved] = useState<string | null>(null);
-  const edit = (item: RewardItem | null) => { setEditing(item); setSaved(null); };
-  const catalogue = <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={edit} />;
-  const newReward = editing === null ? null : <Button variant="text" onClick={() => edit(null)}>{t('console.rewards.newReward')}</Button>;
+/** The redemptions waiting, read only for staff who hand them over. */
+function WaitingCount({ venueId, children }: { venueId: string; children: (count: number | undefined) => ReactNode }) {
+  return children(useVenueRedemptions(venueId).data?.filter((row) => row.handedOverAt === null).length);
+}
+
+interface BodyProps {
+  readonly venueId: string;
+  readonly access: RewardsAccess;
+  readonly parts: readonly RewardsPart[];
+  readonly current: RewardsPart;
+  readonly onNavigate: (href: string) => void;
+}
+
+/** What a part shows. */
+function PartContent({ props, editing, onEdit }: { props: BodyProps; editing: Editing; onEdit: (editing: Editing) => void }) {
+  const { venueId, access, current } = props;
+  if (current === 'handover') return <RedemptionList venueId={venueId} />;
+  if (current === 'points') return <PointsTab venueId={venueId} />;
+  return <CatalogueTab venueId={venueId} canKeep={access.keep} editing={editing} onEdit={onEdit} />;
+}
+
+function RewardsBody({ props, counts }: { props: BodyProps; counts: Counts }) {
+  // Kept here: the one gold button beside the heading opens the form the catalogue shows.
+  const [editing, setEditing] = useState<Editing>('none');
+  const canAdd = props.current === 'catalogue' && props.access.keep && editing === 'none';
+  const newReward = <Button variant="primary" size="compact" onClick={() => setEditing('new')}>{t('console.rewards.newReward')}</Button>;
+  const tabs = props.parts.map((id) => ({ id, label: partLabel(id, counts[id]), href: partHref(id) }));
   return (
-    <Screen title={t('console.rewards.title')} actions={canKeep ? newReward : null}>
-      <Stack gap={10}>
-        {canGive ? <PointsByHand venueId={venueId} /> : null}
-        {canGive ? <LeagueCsvImport venueId={venueId} /> : null}
-        {canKeep ? (
-          <Grid columns={2} gap={12} stackBelow="medium">
-            {catalogue}
-            <Stack gap={4}>
-              <RewardForm key={editing?.id ?? 'new'} venueId={venueId} item={editing} onCancel={() => edit(null)}
-                onOutcome={(text) => { setSaved(text); if (text !== null) setEditing(null); }} />
-              <StatusMessage>{saved}</StatusMessage>
-            </Stack>
-          </Grid>
-        ) : catalogue}
-        {canHandOver ? <RedemptionList venueId={venueId} /> : null}
+    <Screen title={t('console.rewards.title')} actions={canAdd ? newReward : null}>
+      <Stack gap={8}>
+        <Tabs label={t('console.rewards.tabs.label')} tabs={tabs} current={props.current} onNavigate={props.onNavigate} />
+        <PartContent props={props} editing={editing} onEdit={setEditing} />
       </Stack>
     </Screen>
   );
 }
 
+/** The screen with each part's count, read only where the role may read it. */
+function CountedBody(props: BodyProps) {
+  const withWaiting = (catalogue: number | undefined) => {
+    const body = (handover: number | undefined) => <RewardsBody props={props} counts={{ catalogue, handover }} />;
+    return props.access.handOver ? <WaitingCount venueId={props.venueId}>{body}</WaitingCount> : body(undefined);
+  };
+  return props.parts.includes('catalogue') ? <CatalogueCount venueId={props.venueId}>{withWaiting}</CatalogueCount> : withWaiting(undefined);
+}
+
 /**
- * Rewards (#145, decision 0181; design prompt "Rewards"): the venue's catalogue of tournament seats, F&B
- * upgrades, merchandise and hotel nights, kept by staff with rewards.manage beside the form; and members'
- * redemptions, which the cage, the host desk or an admin (rewards.hand_over) see and hand over. Staff with points.give give
- * points by hand, earned or locked, and release them (#645), and give League points, to one member or from a CSV (L-01).
+ * Rewards (#145, decision 0181; console v3), by part: the catalogue of tournament seats, F&B upgrades, merchandise and
+ * hotel nights, kept by staff with rewards.manage; the redemptions to hand over (rewards.hand_over); and points by hand,
+ * earned or locked, and League points, one member or a CSV (points.give, within the daily limit, #815). A part the role
+ * has not falls back to the first it has. `part` is the address's; `onNavigate` takes a part's address.
  */
-export function RewardsScreen() {
+export function RewardsParts({ part, onNavigate }: { part: string | undefined; onNavigate: (href: string) => void }) {
   const staff = useStaffVenue();
+  // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  const canKeep = staff.venue.permissions.includes('rewards.manage');
-  const canHandOver = staff.venue.permissions.includes('rewards.hand_over');
-  const canGive = staff.venue.permissions.includes('points.give');
-  if (!canKeep && !canHandOver && !canGive) {
-    return <Screen title={t('console.rewards.title')} status="error" errorText={t('console.rewards.notAllowed')} />;
-  }
-  const { venueId } = staff.venue;
-  const body = <RewardsBody venueId={venueId} canKeep={canKeep} canHandOver={canHandOver} canGive={canGive} />;
-  return canHandOver ? <HandOverReady venueId={venueId}>{body}</HandOverReady> : <CatalogueReady venueId={venueId}>{body}</CatalogueReady>;
+  const access = accessOf(staff.venue.permissions);
+  const parts = partsFor(access);
+  const first = parts[0];
+  if (first === undefined) return <Screen title={t('console.rewards.title')} status="error" errorText={t('console.rewards.notAllowed')} />;
+  const current = parts.find((one) => one === part) ?? first;
+  return <CountedBody venueId={staff.venue.venueId} access={access} parts={parts} current={current} onNavigate={onNavigate} />;
+}
+
+/** The Rewards tab of /rewards (the spin wheel is the other): its part from the address, `?tab=rewards&part=points`. */
+export function RewardsScreen() {
+  const navigate = useNavigate();
+  const part = new URLSearchParams(useRouterState({ select: (state) => state.location.searchStr })).get('part') ?? undefined;
+  return <RewardsParts part={part} onNavigate={(href) => void navigate({ href })} />;
 }

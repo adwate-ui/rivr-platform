@@ -50,13 +50,39 @@ interface PracticeChoice {
 
 const PracticeContext = createContext<PracticeChoice | null>(null);
 
+/** Where the device keeps who switched to the practice venue, so a reload stays there (console v3, #811). */
+export const PRACTICE_KEY = 'rivr.console.practice-for';
+
+function storedPracticeFor(): string | null {
+  try {
+    return window.localStorage.getItem(PRACTICE_KEY);
+  } catch {
+    // Storage refused, as in a private window: the choice lasts until the page reloads.
+    return null;
+  }
+}
+
+function keepPracticeFor(userId: string | null): void {
+  try {
+    if (userId === null) window.localStorage.removeItem(PRACTICE_KEY);
+    else window.localStorage.setItem(PRACTICE_KEY, userId);
+  } catch {
+    // Storage refused: the choice lasts until the page reloads.
+  }
+}
+
 /** Holds whether the console works in the practice venue. Wrap the console in it, inside RivrDataProvider. */
 export function StaffVenueProvider({ children }: { children: ReactNode }) {
-  const { userId } = useRivrData();
-  // The user who switched to practice: someone else signing in on this device starts at the club.
-  const [practiceFor, setPracticeFor] = useState<string | null>(null);
-  // Signing out ends practice too, so even the same person signs back in at the club.
-  if (userId === null && practiceFor !== null) setPracticeFor(null);
+  const { authStatus } = useRivrData();
+  // The user who switched to practice, kept across a reload: someone else signing in on this device starts at the club.
+  const [practiceFor, setChoice] = useState<string | null>(storedPracticeFor);
+  const setPracticeFor = (userId: string | null) => {
+    keepPracticeFor(userId);
+    setChoice(userId);
+  };
+  // Signing out ends practice too, so even the same person signs back in at the club. Not while the session is still
+  // being read on a reload, when nobody is signed in yet.
+  if (authStatus === 'signed-out' && practiceFor !== null) setPracticeFor(null);
   return <PracticeContext.Provider value={{ practiceFor, setPracticeFor }}>{children}</PracticeContext.Provider>;
 }
 

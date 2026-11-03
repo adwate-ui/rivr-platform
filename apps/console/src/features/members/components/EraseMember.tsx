@@ -114,7 +114,7 @@ function FilesLeft({ venueId, memberId, count }: { venueId: string; memberId: st
       {typeof removed === 'number' ? <Text>{t('console.members.erase.filesRemoved', { count: formatNumber(removed) })}</Text> : null}
       {count > 0 ? <Text>{t('console.members.erase.filesLeft', { count: formatNumber(count) })}</Text> : null}
       {count > 0 ? (
-        <Button variant="secondary" isLoading={remove.isPending} onClick={() => void submit()}>{t('console.members.erase.removeFiles')}</Button>
+        <Button variant="subtle" isLoading={remove.isPending} onClick={() => void submit()}>{t('console.members.erase.removeFiles')}</Button>
       ) : null}
     </Stack>
   );

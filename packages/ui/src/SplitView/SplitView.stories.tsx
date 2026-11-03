@@ -55,5 +55,11 @@ export const LongText: Story = {
   },
 };
 
+/** A queue beside the item open, half each (console v3: KYC review, Host queue, Website). */
+export const Even: Story = { args: { layout: 'even' } };
+
+/** The record docked in a 440 px panel at the right, the list taking the rest (console v3: Members). */
+export const Docked: Story = { args: { layout: 'docked' } };
+
 /** On a phone, a record shown only because none is chosen yet (the floor's first table) leaves the list in place. */
 export const NotChosenOnAPhone: Story = { args: { isChosen: false }, tags: ['!viewport-console', 'viewport-phone'] };

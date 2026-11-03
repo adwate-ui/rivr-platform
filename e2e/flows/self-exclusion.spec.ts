@@ -25,10 +25,10 @@ test.describe('Self-exclusion', () => {
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000193');
     await admin.getByRole('link', { name: 'Members' }).click();
-    await admin.getByRole('searchbox', { name: 'Find a member' }).fill('9000000213');
-    await admin.getByRole('button', { name: 'Open Mihir Shah' }).click();
-    await admin.getByRole('button', { name: 'Tier and break' }).click();
-    await admin.getByRole('group', { name: 'How long' }).getByRole('button', { name: '7 days' }).click();
+    await admin.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('9000000213');
+    await admin.getByRole('button', { name: 'Mihir Shah', exact: true }).click();
+    await admin.getByRole('link', { name: 'Tier and break' }).click();
+    await admin.getByRole('radiogroup', { name: 'How long' }).getByRole('radio', { name: '7 days' }).click();
     await admin.getByRole('textbox', { name: 'Why the break' }).fill('Asked for a week off');
     await admin.getByRole('button', { name: 'Start break' }).click();
     await admin.getByRole('button', { name: 'Yes, start a break of 7 days' }).click();

@@ -27,7 +27,7 @@ export function BatchPanel({ venueId, batch, bookings }: { venueId: string; batc
       {isBookingCompany ? (
         <CompanyBookingForm venueId={venueId} batchId={batch.id} onDone={() => setIsBookingCompany(false)} />
       ) : (
-        <Button variant="secondary" onClick={() => setIsBookingCompany(true)}>
+        <Button variant="subtle" onClick={() => setIsBookingCompany(true)}>
           {t('console.academy.bookCompany')}
         </Button>
       )}

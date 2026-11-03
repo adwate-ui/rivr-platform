@@ -43,7 +43,7 @@ export function CageReceipt({ venueId, title, lines, total, transactionId }: Cag
   if (staff.status !== 'ready' || issuer.data === undefined) return null;
   return (
     <>
-      <Button variant="secondary" onClick={print}>{t('console.cage.printReceipt')}</Button>
+      <Button variant="subtle" onClick={print}>{t('console.cage.printReceipt')}</Button>
       <Playback kind="cage_transaction" id={transactionId} />
       {isPrinting ? (
         <PrintSheet>

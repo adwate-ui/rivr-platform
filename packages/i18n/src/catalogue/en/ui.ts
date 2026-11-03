@@ -1,5 +1,9 @@
+import { consoleUi } from './uiConsole.ts';
+
 /** Copy that @rivr/ui components show themselves: navigation, shells, controls. */
 export const ui = {
+  /** The console v3 redesign's components (decision 0465). */
+  console: consoleUi,
   /** The browser tab's title on a screen (F5-03): `Check-in · RIVR`. */
   screenTitle: '{title} · RIVR',
   /** The same, led by how many urgent items wait for staff (decision 0301): `(3) Top-ups · RIVR`. */
@@ -224,7 +228,12 @@ export const ui = {
     sortedBy: 'Sorted by {column}, {direction}',
     ascending: 'ascending',
     descending: 'descending',
-    /** A console table's export (#102): the rows as shown, recorded in the audit log first. */
+    /**
+     * A console table's export (#102): the rows as shown, recorded in the audit log first. One small control, as the
+     * prototype has it, whose menu offers each format; `{what}` is the table's name.
+     */
+    export: 'Export',
+    exportNamed: 'Export {what}',
     exportCsv: 'Export CSV',
     exportXlsx: 'Export XLSX',
     exportFailed: 'Export not saved. Try again.',

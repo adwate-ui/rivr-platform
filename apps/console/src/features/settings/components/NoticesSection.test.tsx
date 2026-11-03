@@ -1,6 +1,6 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NoticesSection } from './NoticesSection.tsx';
 
@@ -52,6 +52,16 @@ describe('notices on Home, in Settings', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Yes, end it' }));
     await waitFor(() => expect(calls.find((call) => call.url.includes('/rpc/end_notice'))?.body).toEqual({ p_notice_id: 'n1' }));
     expect(await screen.findByText('Notice ended.')).toBeDefined();
+  });
+
+  it('shows the notice as members’ Home will, while it is typed', async () => {
+    renderNotices();
+    const preview = (await screen.findByText('On members’ Home')).parentElement;
+    expect(within(preview ?? document.body).getByText('Your notice shows here.')).toBeDefined();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Notice' }), { target: { value: 'The Private Room opens at 20:00.' } });
+    expect(within(preview ?? document.body).getByText('The Private Room opens at 20:00.')).toBeDefined();
+    // A preview, not news: it is not read out at every keystroke.
+    expect(within(preview ?? document.body).queryByRole('status')).toBeNull();
   });
 
   it('says what to do when the notice is refused', async () => {

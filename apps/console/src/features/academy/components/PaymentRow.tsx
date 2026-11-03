@@ -33,7 +33,7 @@ export function PaymentRow({ venueId, staffId, booking, batchName }: PaymentRowP
       {hasChanged ? (
         <Stack gap={2}>
           <ErrorMessage>{t('console.academyPayments.changed', { utr: booking.utr ?? '' })}</ErrorMessage>
-          <Button variant="secondary" onClick={() => setSeenUtr(booking.utr ?? '')}>
+          <Button variant="subtle" onClick={() => setSeenUtr(booking.utr ?? '')}>
             {t('console.academyPayments.checkNew')}
           </Button>
         </Stack>
@@ -57,11 +57,11 @@ function PaymentActions({ venueId, bookingId, utr, isRecordedByYou }: { venueId:
     <Stack gap={2}>
       <Inline gap={3}>
         {isRecordedByYou ? null : (
-          <Button variant="secondary" isLoading={confirmPayment.isPending} onClick={() => void settle(confirmPayment)}>
+          <Button variant="subtle" isLoading={confirmPayment.isPending} onClick={() => void settle(confirmPayment)}>
             {t('console.academyPayments.found')}
           </Button>
         )}
-        <Button variant="secondary" isLoading={rejectPayment.isPending} onClick={() => void settle(rejectPayment)}>
+        <Button variant="subtle" isLoading={rejectPayment.isPending} onClick={() => void settle(rejectPayment)}>
           {t('console.academyPayments.notFound')}
         </Button>
       </Inline>

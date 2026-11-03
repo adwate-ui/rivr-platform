@@ -28,9 +28,9 @@ from unnest(array['waitlist', 'feedback', 'kycReview', 'liveFloor']) q (queue);
 reset role;
 
 -- A join request from the app, a feedback ticket and a check to review: each count goes up by one.
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, joined_at, approved_at, status, idempotency_key)
-select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', t.id, now(), null, 'waiting', gen_random_uuid()
-from public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.code = 'nlh_100_200';
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, joined_at, approved_at, status, idempotency_key)
+select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', g.table_type_id, g.id, now(), null, 'waiting', gen_random_uuid()
+from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 2';
 insert into public.feedback (venue_id, member_id, note, ratings, nps)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000215', 'The chai was cold.',
         '{"ambience": 4, "cashier": 4, "gameplay": 3, "service": 3}', 7);

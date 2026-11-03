@@ -61,7 +61,7 @@ export function TierForm({ venueId, record }: { venueId: string; record: MemberR
       <Input label={t('console.members.reason')} hint={t('console.members.reasonHint')} value={reason} maxLength={500} autoComplete="off"
         onChange={(event) => setReason(event.target.value)} />
       <Input type="date" label={t('console.members.until')} hint={t('console.members.untilHint')} value={until} onChange={(event) => setUntil(event.target.value)} />
-      <Button variant="secondary" isDisabled={tierId === null || reason.trim().length < 3} isLoading={setTier.isPending} onClick={() => void submit()}>
+      <Button variant="subtle" isDisabled={tierId === null || reason.trim().length < 3} isLoading={setTier.isPending} onClick={() => void submit()}>
         {t('console.members.save')}
       </Button>
       <Outcome outcome={outcome} />

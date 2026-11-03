@@ -62,7 +62,7 @@ export function ChangePhone({ venueId, memberId, currentPhone }: { venueId: stri
       <NumberFields phone={phone} again={again} onPhone={setPhone} onAgain={setAgain} />
       <Input label={t('console.members.changePhone.reason')} value={reason} maxLength={300} autoComplete="off" onChange={(event) => setReason(event.target.value)} />
       <Stack align="start">
-        <ConfirmButton variant="secondary" label={t('console.members.changePhone.change')} confirm={t('console.members.changePhone.confirm', { phone: phone.trim() })}
+        <ConfirmButton variant="subtle" label={t('console.members.changePhone.change')} confirm={t('console.members.changePhone.confirm', { phone: phone.trim() })}
           isDisabled={phone.trim() === '' || again.trim() !== phone.trim() || reason.trim().length < 3} isBusy={change.isPending} onConfirm={() => void submit()} />
       </Stack>
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>

@@ -1,7 +1,7 @@
 import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** TVs moved into Devices (#606): an old link or bookmark opens its tab there. */
+/** TVs moved into Devices (#606), now a tab of Settings (console v3): an old link or bookmark opens them there. */
 export const tvsRoute = createRoute({
-  getParentRoute: () => frameRoute, path: '/tvs', component: () => <Navigate to="/devices" search={{ tab: 'tvs' }} replace />,
+  getParentRoute: () => frameRoute, path: '/tvs', component: () => <Navigate to="/settings" search={{ tab: 'devices', part: 'tvs' }} replace />,
 });

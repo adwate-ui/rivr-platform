@@ -1,4 +1,4 @@
--- Waitlist call-down follow-ups (#287; decision 0044). The seed puts Kabir (202), Naina (203) and Rohan (204) on 100/200;
+-- Waitlist call-down follow-ups (#287; decision 0044). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's list;
 -- 103 Aditya is the floor. The floor's Skip rolls the seat to the next name, and needs time away left; a member freeze
 -- pauses a place's time away; the seat call's payload is what the WhatsApp consumer reads.
 begin;
@@ -41,17 +41,17 @@ update public.waitlist_entry set joined_at = now() - interval '30 minutes' where
 update public.waitlist_entry set joined_at = now() - interval '29 minutes' where id = pg_temp.entry('00000000-0000-4000-8000-000000000203');
 update public.waitlist_entry set joined_at = now() - interval '28 minutes' where id = pg_temp.entry('00000000-0000-4000-8000-000000000204');
 
--- The floor calls Kabir to Table 3, seat 9; the seat call carries what the WhatsApp consumer reads.
+-- The floor calls Kabir to Table 2, seat 9; the seat call carries what the WhatsApp consumer reads.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202'), pg_temp.table_id('Table 3'), 9) $$,
-  'the floor calls Kabir to Table 3, seat 9');
+select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202'), pg_temp.table_id('Table 2'), 9) $$,
+  'the floor calls Kabir to Table 2, seat 9');
 reset role;
 select results_eq(
   $$ select payload ->> 'member_id', payload ->> 'table_name', jsonb_typeof(payload -> 'seat'), (payload ->> 'seat')::integer,
             (payload ->> 'hold_until')::timestamptz > now()
      from public.outbox_event where event_type = 'waitlist.called' and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000202'
      order by created_at desc limit 1 $$,
-  $$ values ('00000000-0000-4000-8000-000000000202'::text, 'Table 3'::text, 'number'::text, 9, true) $$,
+  $$ values ('00000000-0000-4000-8000-000000000202'::text, 'Table 2'::text, 'number'::text, 9, true) $$,
   'the seat call names the member, the table, the seat as a number and when the hold ends, as the consumer reads them');
 
 -- Skip rolls the seat to the next name who can take it: Naina has not finished the check, so Rohan.
@@ -60,7 +60,7 @@ select lives_ok($$ select public.step_away(pg_temp.entry('00000000-0000-4000-800
 reset role;
 select results_eq($$ select e.member_id, ct.name, e.call_seat from public.waitlist_entry e join public.game_table ct on ct.id = e.call_table_id
                      where e.table_type_id = pg_temp.type_id('nlh_100_200') and e.status = 'waiting' and e.called_at is not null $$,
-  $$ values ('00000000-0000-4000-8000-000000000204'::uuid, 'Table 3'::text, 9) $$, 'and the next name waiting is called to the seat');
+  $$ values ('00000000-0000-4000-8000-000000000204'::uuid, 'Table 2'::text, 9) $$, 'and the next name waiting is called to the seat');
 
 -- A Skip with no time away left is refused, rather than taking the place off at the next minute.
 update public.waitlist_entry set away_used = interval '1 day' where id = pg_temp.entry('00000000-0000-4000-8000-000000000204');

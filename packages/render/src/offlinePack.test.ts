@@ -23,12 +23,14 @@ describe('the offline pack', () => {
       balances: [{ name: 'Mihir Shah', member_number: '1042', wallet_paise: 2_500_000, markers_paise: 0 }],
       wallets_paise: 2_500_000, markers_paise: 0, chips_in_play_paise: 48_600_000, cage_float_paise: 0,
       tables: [{ name: 'Table 3', game: 'NLH 100/200', seats: [{ seat: 2, name: 'Mihir Shah', member_number: '1042' }] }],
-      waitlist: [], sops: [{ title: 'Cash-out', version: 1, in_force_from: '2026-11-01', body: 'Count the chips.' }],
+      waitlist: [{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', member_number: '1051' }],
+      sops: [{ title: 'Cash-out', version: 1, in_force_from: '2026-11-01', body: 'Count the chips.' }],
     });
     expect(pack.issuer).toEqual({ legalName: 'RIVR Gurugram', address: '' });
     expect(pack.balances).toEqual([{ name: 'Mihir Shah', memberNumber: '1042', walletPaise: 2_500_000n, markersPaise: 0n }]);
     expect(pack.chipsInPlayPaise).toBe(48_600_000n);
     expect(pack.tables[0]?.seats).toEqual([{ seat: 2, name: 'Mihir Shah', memberNumber: '1042' }]);
+    expect(pack.waitlist).toEqual([{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', memberNumber: '1051' }]);
     expect(pack.sops[0]?.inForceFrom).toBe('2026-11-01');
   });
 

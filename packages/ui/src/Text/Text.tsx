@@ -9,7 +9,7 @@ export type { TextTone };
  * large canvases: the TV and social posts. `posterLabel` is the letter-spaced capitals label on a
  * social post, large enough to read once the post is shrunk to a phone's width.
  */
-export type TextVariant = 'body' | 'small' | 'caption' | 'label' | 'lead' | 'eyebrow' | 'tvLabel' | 'tvBody' | 'posterLabel';
+export type TextVariant = 'body' | 'small' | 'caption' | 'label' | 'lead' | 'eyebrow' | 'tvLabel' | 'tvBody' | 'posterLabel' | 'row' | 'secondary';
 
 export interface TextProps {
   children: ReactNode;
@@ -35,6 +35,9 @@ const VARIANT: Record<TextVariant, string> = {
   tvLabel: 'text-24 leading-snug font-medium uppercase tracking-tv',
   tvBody: 'text-36 leading-snug',
   posterLabel: 'text-36 leading-snug font-medium uppercase tracking-tv',
+  // The console's scale (console v3): a row's primary text at 15 px, and its secondary line at 13.
+  row: 'text-15 leading-snug',
+  secondary: 'text-13 leading-snug',
 };
 
 const WEIGHT = { regular: 'font-regular', medium: 'font-medium', semibold: 'font-semibold' } as const;

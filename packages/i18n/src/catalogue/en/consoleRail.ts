@@ -15,6 +15,14 @@ export const rail = {
     admin: 'Admin',
   },
   items: {
+    /** Console v3's screens that hold others by tab, and the phone's tab bar (phase 1). */
+    door: 'Door',
+    handOver: 'Hand over',
+    content: 'Content',
+    tables: 'Tables',
+    requests: 'Requests',
+    floor: 'Floor',
+    lists: 'Lists',
     /** Screens that hold others by tab (#606). */
     devices: 'Devices',
     shift: 'Shift',

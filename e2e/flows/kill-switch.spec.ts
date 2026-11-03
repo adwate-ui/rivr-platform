@@ -9,6 +9,8 @@
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
+import { letGoEarly, seatOnFloor } from '../support/floor.ts';
+import { openConsole } from '../support/console.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
@@ -18,12 +20,12 @@ const VISITOR_BANNER = 'The club is paused. Check back soon.';
 
 /** Asks to release the freeze on one super admin's console, and releases it on the other's. */
 async function release(first: Page, second: Page) {
-  await first.getByRole('link', { name: 'Kill switch' }).click();
+  await openConsole(first, '/kill-switch');
   await first.getByRole('button', { name: 'Release Venue freeze' }).click();
   await first.getByRole('textbox', { name: 'Why it is released' }).fill('Dispute settled');
   await first.getByRole('button', { name: 'Release', exact: true }).click();
   await expect(first.getByText('Asked. A second super admin releases the venue freeze.')).toBeVisible();
-  await second.getByRole('link', { name: 'Kill switch' }).click();
+  await openConsole(second, '/kill-switch');
   await expect(second.getByText('Neha Kulkarni asked to release: Dispute settled. A second super admin releases it.')).toBeVisible();
   await second.getByRole('button', { name: 'Release Venue freeze' }).click();
   await second.getByRole('button', { name: 'Release', exact: true }).click();
@@ -32,7 +34,7 @@ async function release(first: Page, second: Page) {
 
 /** After a failure: release the freeze if it is still engaged, so the flows after this one find the club open. */
 async function releaseIfFrozen(browser: Browser, first: Page) {
-  await first.getByRole('link', { name: 'Kill switch' }).click();
+  await openConsole(first, '/kill-switch');
   if (await first.getByRole('button', { name: 'Release Venue freeze' }).count() === 0) return;
   const second = await browser.newPage();
   await signInToConsole(second, '9000000136');
@@ -45,18 +47,14 @@ test.describe('Kill switch', () => {
     test.setTimeout(120_000);
     const first = await browser.newPage();
     await signInToConsole(first, '9000000135');
-    await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await first.getByRole('group', { name: 'Seat', exact: true }).getByRole('button', { name: '5', exact: true }).click();
-    await first.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000216');
-    await first.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(first.getByRole('button', { name: 'Kunal Mehra leaves' })).toBeVisible();
+    await seatOnFloor(first, { table: 'Table 3', seat: 5, number: '9000000216' });
     const { tablet, name } = await tabletAtTable3(browser, first);
     await dealerSignsIn(tablet);
     let frozen = false;
     try {
-      await first.getByRole('link', { name: 'Kill switch' }).click();
+      await openConsole(first, '/kill-switch');
       await expect(first.getByText('Nothing is engaged.')).toBeVisible();
-      await first.getByRole('group', { name: 'Level' }).getByRole('button', { name: 'Venue freeze' }).click();
+      await first.getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'Venue freeze' }).click();
       await first.getByRole('textbox', { name: 'Why' }).fill('Dispute at Table 3');
       await first.getByRole('button', { name: 'Engage', exact: true }).click();
       await expect(first.getByText('Engage Venue freeze now?')).toBeVisible();
@@ -95,12 +93,9 @@ test.describe('Kill switch', () => {
     } finally {
       if (frozen) await releaseIfFrozen(browser, first);
       await first.getByRole('link', { name: 'Live floor' }).click();
-      await first.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-      // One Leave (decision 0299): he owes call time, so he is let go early with a reason, and the seat is freed.
-      await first.getByRole('button', { name: 'Kunal Mehra leaves' }).click();
-      await first.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the kill switch run');
-      await first.getByRole('button', { name: 'Let leave early' }).click();
-      await expect(first.getByRole('button', { name: 'Kunal Mehra leaves' })).toHaveCount(0);
+      // He owes call time, so he is let go early with a reason (decision 0481), and the seat is freed.
+      await letGoEarly(first, 'Kunal Mehra', 'Floor decision');
+      await expect(first.getByRole('button', { name: /^Seat \d+, Kunal Mehra,/ })).toHaveCount(0);
       await revoke(first, name);
     }
   });

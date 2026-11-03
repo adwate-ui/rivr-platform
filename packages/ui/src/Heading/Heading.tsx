@@ -10,7 +10,7 @@ import { cx } from '../internal/classes.ts';
  * the page. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection' | 'serif';
+export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection' | 'card' | 'serif';
 
 /** The display face's sizes for `serif`, the player redesign's titles (decision 0320): a screen's is 36, a sheet's 32. */
 export type SerifSize = 28 | 32 | 36 | 40 | 44 | 48;
@@ -27,6 +27,8 @@ export interface HeadingProps {
   id?: string;
   /** Heard by screen readers only: a screen whose name is an image, such as the wordmark, still has its h1. */
   isVisuallyHidden?: boolean;
+  /** Shown from 768 px, heard only below: a console screen's title, which the phone's header already shows (console v3). */
+  isShownFromMedium?: boolean;
   /** A screen's h1, which takes the focus when the screen opens, so a keyboard or screen reader starts there (F5-03). */
   isFocusTarget?: boolean;
   /**
@@ -50,6 +52,8 @@ const VARIANT: Record<HeadingVariant, string> = {
   title: 'font-text text-24 leading-snug font-medium',
   section: 'font-text text-20 leading-snug font-semibold',
   subsection: 'font-text text-16 leading-snug font-semibold',
+  // A console card's or tile's name (console v3): the console's 15 px body, in semibold.
+  card: 'font-text text-15 leading-snug font-semibold',
   serif: 'font-display leading-tight font-regular',
 };
 
@@ -57,8 +61,12 @@ const SERIF_SIZE: Record<SerifSize, string> = { 28: 'text-28', 32: 'text-32', 36
 
 const DEFAULT_VARIANT = { 1: 'title', 2: 'section', 3: 'subsection', 4: 'subsection' } as const;
 
+/** Hidden but heard: always, or below 768 px only. */
+const hiddenClass = (isVisuallyHidden: boolean | undefined, isShownFromMedium: boolean | undefined) =>
+  (isVisuallyHidden === true ? 'sr-only' : isShownFromMedium === true ? 'max-medium:sr-only' : undefined);
+
 /** A heading. Headings are nouns (Balance, Waitlist, Tonight) with no subtitle beneath. */
-export function Heading({ children, level, variant = DEFAULT_VARIANT[level], serifSize = 36, align = 'start', id, isVisuallyHidden, isFocusTarget, isFocusedOnMount }: HeadingProps) {
+export function Heading({ children, level, variant = DEFAULT_VARIANT[level], serifSize = 36, align = 'start', id, isVisuallyHidden, isShownFromMedium, isFocusTarget, isFocusedOnMount }: HeadingProps) {
   const Element = `h${level}` as const;
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -66,7 +74,7 @@ export function Heading({ children, level, variant = DEFAULT_VARIANT[level], ser
   }, [isFocusedOnMount]);
   const isFocusable = isFocusTarget === true || isFocusedOnMount === true;
   return (
-    <Element ref={heading} className={cx('text-content', VARIANT[variant], variant === 'serif' && SERIF_SIZE[serifSize], align === 'center' && 'text-center', isVisuallyHidden && 'sr-only', isFocusable && 'outline-none')}
+    <Element ref={heading} className={cx('text-content', VARIANT[variant], variant === 'serif' && SERIF_SIZE[serifSize], align === 'center' && 'text-center', hiddenClass(isVisuallyHidden, isShownFromMedium), isFocusable && 'outline-none')}
       id={id} tabIndex={isFocusable ? -1 : undefined}>
       {children}
     </Element>

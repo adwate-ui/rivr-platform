@@ -31,7 +31,7 @@ export function PairingWindow({ venueId, canSwitch }: PairingWindowProps) {
       ) : null}
       {isWindowOnly ? (
         <Inline gap={4} align="center" wrap>
-          <Button variant="secondary" isLoading={openWindow.isPending} onClick={() => void openWindow.mutateAsync().then(report)}>{t('console.tvs.openWindow')}</Button>
+          <Button variant="subtle" isLoading={openWindow.isPending} onClick={() => void openWindow.mutateAsync().then(report)}>{t('console.tvs.openWindow')}</Button>
           <Text tone="muted">
             {openUntil === null ? t('console.tvs.windowShut') : t('console.tvs.windowOpenUntil', { time: formatTime(new Date(openUntil)) })}
           </Text>

@@ -79,7 +79,7 @@ export function SopDetail({ venueId, sop, canManage, onBack }: SopDetailProps) {
             <Heading level={2}>{t('console.sops.newVersion')}</Heading>
             {isPublishing
               ? <SopForm venueId={venueId} sop={sop} onDone={() => setIsPublishing(false)} />
-              : <Inline><Button variant="secondary" onClick={() => setIsPublishing(true)}>{t('console.sops.newVersion')}</Button></Inline>}
+              : <Inline><Button variant="subtle" onClick={() => setIsPublishing(true)}>{t('console.sops.newVersion')}</Button></Inline>}
           </Stack>
         ) : null}
       </Stack>

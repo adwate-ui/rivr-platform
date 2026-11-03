@@ -62,7 +62,7 @@ function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }
         ))}
       </Grid>
       <Inline gap={4}>
-        <Button variant="secondary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.settings.saveVenue')}</Button>
+        <Button variant="subtle" isLoading={save.isPending} onClick={() => void submit()}>{t('console.settings.saveVenue')}</Button>
         <StatusMessage>{outcome === 'saved' ? t('console.settings.venueSaved') : null}</StatusMessage>
       </Inline>
       {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{venueFailureText(outcome)}</ErrorMessage> : null}

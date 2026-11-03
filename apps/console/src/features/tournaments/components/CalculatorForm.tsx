@@ -47,7 +47,7 @@ export function CalculatorForm({ onPlan }: { onPlan: (stages: Stage[]) => void }
         <Switch label={t('console.tournaments.ante')} isOn={field.value} onChange={field.onChange} />
       )} />
       <Inline gap={4} align="center">
-        <Button variant="secondary" onClick={() => void plan()}>{t('console.tournaments.calculate')}</Button>
+        <Button variant="subtle" onClick={() => void plan()}>{t('console.tournaments.calculate')}</Button>
         {hasErrors ? <Text tone="muted">{t('console.tournaments.invalidPlan')}</Text> : null}
       </Inline>
     </Stack>

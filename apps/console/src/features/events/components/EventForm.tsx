@@ -39,7 +39,7 @@ export function EventForm({ venueId }: { venueId: string }) {
       </Inline>
       <Input {...fields.details} label={t('console.events.details')} autoComplete="off" />
       {Object.keys(form.formState.errors).length > 0 ? <ErrorMessage>{t('console.events.invalid')}</ErrorMessage> : null}
-      <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.events.add')}</Button>
+      <Button variant="subtle" isLoading={add.isPending} onClick={() => void submit()}>{t('console.events.add')}</Button>
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>

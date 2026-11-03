@@ -16,3 +16,6 @@ export const Default: Story = {};
 export const Hold: Story = { args: { width: 'hold', fraction: 0.98 } };
 
 export const Empty: Story = { args: { fraction: 0 } };
+
+/** A call time running, on the console's player sheet: cream, as it needs nobody (decision 0463). */
+export const Muted: Story = { args: { tone: 'muted', fraction: 0.35 } };

@@ -19,9 +19,10 @@ const OUTCOME_COPY: Readonly<Record<KycInPersonOutcome, MessageKey>> = {
 /**
  * A check in person (#246, while no KYC vendor is live): the reviewer finds a member at the club by
  * name or the last digits of their number, then checks them against their original documents. Only
- * members with no check, or one the app never finished, are found; never the reviewer themselves.
+ * members with no check, or one the app never finished, are found; never the reviewer themselves. In its sheet
+ * (`hasHeading` false) the sheet's title and subtitle say what the heading and hint say here.
  */
-export function InPersonSection({ venueId }: { venueId: string }) {
+export function InPersonSection({ venueId, hasHeading = true }: { venueId: string; hasHeading?: boolean }) {
   const [search, setSearch] = useState('');
   const [member, setMember] = useState<KycCandidate | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -36,8 +37,8 @@ export function InPersonSection({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={4}>
-      <Heading level={2}>{t('console.kycInPerson.title')}</Heading>
-      <Text tone="muted">{t('console.kycInPerson.hint')}</Text>
+      {hasHeading ? <Heading level={2}>{t('console.kycInPerson.title')}</Heading> : null}
+      {hasHeading ? <Text tone="muted">{t('console.kycInPerson.hint')}</Text> : null}
       {/* Always there, so the outcome is read out as it appears (F1-23). */}
       <StatusMessage>{outcome === null ? null : t(OUTCOME_COPY[outcome.status], { name: outcome.name })}</StatusMessage>
       {member === null ? (
@@ -70,12 +71,13 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
       {found.data.map((member) => (
         <Inline key={member.memberId} gap={4} align="center" justify="between">
           <Stack gap={1}>
-            <Text weight="medium">{member.fullName}</Text>
-            <Text variant="small" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
-            {member.status === null ? null : <Text variant="small" tone="muted">{t('console.kycInPerson.startedOnApp')}</Text>}
+            <Text variant="row" weight="medium">{member.fullName}</Text>
+            <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
+            {member.status === null ? null : <Text variant="secondary" tone="muted">{t('console.kycInPerson.startedOnApp')}</Text>}
           </Stack>
-          <Button variant="secondary" onClick={() => onChoose(member)}>
-            {t('console.kycInPerson.checkName', { name: member.fullName })}
+          {/* One short word on a row's button (console v3), its full name read out, so it never wraps in the sheet. */}
+          <Button variant="subtle" size="small" aria-label={t('console.kycInPerson.checkName', { name: member.fullName })} onClick={() => onChoose(member)}>
+            {t('console.kycInPerson.check')}
           </Button>
         </Inline>
       ))}

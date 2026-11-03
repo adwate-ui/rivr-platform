@@ -19,6 +19,8 @@ describe('OfflinePackDocument', () => {
     expect(balances).toHaveTextContent('All markers owed₹50,000');
     expect(screen.getByRole('table', { name: 'The cage' })).toHaveTextContent('Chips in play₹4,86,000');
     expect(screen.getByRole('table', { name: 'Who sits at Table 3' })).toHaveTextContent('Mihir Shah (1042)');
+    // Each place names the table whose list it is on (decision 0467).
+    expect(screen.getByRole('table', { name: 'Waitlist' })).toHaveTextContent('Table 3NLH 100/2001Ritika Das (1051)');
     expect(screen.getByText(/^Version 2, in force from/)).toBeInTheDocument();
     expect(await axeViolations(container)).toEqual([]);
   });

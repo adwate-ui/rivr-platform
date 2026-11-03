@@ -32,7 +32,7 @@ function ScheduleForm({ venueId, sops, onFailure }: { venueId: string; sops: rea
         <Input {...fields.title} label={t('console.incidents.drillTitle')} autoComplete="off" />
         <Input {...fields.firstOn} label={t('console.incidents.drillFirstOn')} type="date"
           error={isInvalid ? t('console.incidents.invalidDrill') : undefined} />
-        <Button variant="secondary" isLoading={scheduleDrills.isPending} onClick={() => void submit()}>{t('console.incidents.scheduleDrills')}</Button>
+        <Button variant="subtle" isLoading={scheduleDrills.isPending} onClick={() => void submit()}>{t('console.incidents.scheduleDrills')}</Button>
       </Inline>
     </Stack>
   );

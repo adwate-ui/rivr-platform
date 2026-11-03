@@ -14,7 +14,7 @@ The single source of every design value in RIVR: colours, typefaces, the type sc
 | `generated/android/res/values/` | `colors.xml` (`rivr_color_*`) and `themes.xml` (`Theme.Rivr`) | the `tablet` and `player` Android shells |
 | `generated/ios/RivrColors.swift` | `RivrColors`, every colour as a SwiftUI `Color` (`RivrColors.colorSurface`) | the `player` iOS shell's Live Activity (decision 0361) |
 
-Utility names follow the tokens: `bg-surface`, `bg-raised`, `text-content`, `text-content-muted`, `text-money`, `bg-action`, `border-hairline`, `p-4` (16 px), `text-16`, `font-display`, `rounded-lg`, `tracking-tv`, `max-w-phone`, `z-modal`, and the `phone:`, `tablet:`, `console:`, `tv:` breakpoints.
+Utility names follow the tokens: `bg-surface`, `bg-raised`, `text-content`, `text-content-muted`, `text-money`, `bg-action`, `border-hairline`, `p-4` (16 px), `text-16`, `font-display`, `rounded-lg`, `tracking-tv`, `max-w-phone`, `z-modal`, and the `phone:`, `medium:`, `tablet:`, `wide:`, `console:`, `tv:` breakpoints. The console v3 redesign (decision 0462) adds `bg-subtle`, `bg-subtle-hover` and `bg-selected` (aliases of the cream 5%, cream 8% and gold 14% tints), `text-danger`, `text-15`, `gap-7` (28 px), `h-row` and `h-row-compact` (42 and 34 px), `min-h-control` (36 px), `w-rail` and `w-rail-collapsed` (224 and 64 px), `w-side-panel`, `max-w-palette`, `max-h-palette-list`, `max-w-search` and `wide:` (1200 px, where the rail shows its labels).
 
 ## Usage
 

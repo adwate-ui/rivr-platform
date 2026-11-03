@@ -32,7 +32,7 @@ function AddChipForm({ venueId, onOutcome }: { venueId: string; onOutcome: (outc
         <Input {...fields.name} label={t('console.settings.chipName')} />
       </Inline>
       {isInvalid ? <ErrorMessage>{t('console.settings.invalidChip')}</ErrorMessage> : null}
-      <Button variant="secondary" isLoading={addChip.isPending} onClick={() => void submit()}>{t('console.settings.addChip')}</Button>
+      <Button variant="subtle" isLoading={addChip.isPending} onClick={() => void submit()}>{t('console.settings.addChip')}</Button>
     </Stack>
   );
 }

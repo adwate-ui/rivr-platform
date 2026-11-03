@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="padding:24px clamp(16px,3vw,32px) 48px;display:flex;flex-direction:column;gap:28px;color:#F3EDE0;font-family:'Instrument Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums">
+
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <div style="flex:1;min-width:240px">
+    <h1 style="margin:0;font-size:24px;font-weight:500">{{ title }}</h1>
+    <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">{{ desc }}</div>
+  </div>
+  <sc-for list="{{ headerBtns }}" as="hb"><button onClick="{{ hb.onClick }}" style="height:34px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">{{ hb.label }}</button></sc-for>
+  <sc-if value="{{ hasCta }}"><button onClick="{{ onCta }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">{{ cta }}</button></sc-if>
+</div>
+<sc-if value="{{ hasTabs }}">
+  <div style="display:flex;gap:2px;border-bottom:1px solid rgba(243,237,224,0.1);margin-top:-6px">
+    <sc-for list="{{ tabs }}" as="tb"><button onClick="{{ tb.onClick }}" style="background:none;border:none;border-bottom:2px solid {{ tb.line }};color:{{ tb.color }};font-size:14px;padding:8px 12px;cursor:pointer;margin-bottom:-1px">{{ tb.label }}</button></sc-for>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasForm }}">
+  <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px;max-width:1000px">
+    <span style="font-size:15px;font-weight:600">{{ formTitle }}</span>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px">
+      <sc-for list="{{ formFields }}" as="ff"><label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">{{ ff.label }}<input placeholder="{{ ff.ph }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px"></label></sc-for>
+    </div>
+    <sc-for list="{{ formChips }}" as="fc">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:rgba(243,237,224,0.7)">{{ fc.label }}</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ fc.opts }}" as="o"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for></div></div>
+    </sc-for>
+    <div style="display:flex;gap:8px"><button onClick="{{ formSave }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">{{ formSaveLabel }}</button><button onClick="{{ formCancel }}" style="height:36px;padding:0 12px;background:transparent;border:none;color:#F3EDE0;font-size:14px;cursor:pointer">Cancel</button></div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasFilters }}">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <input value="{{ q }}" onChange="{{ onQ }}" placeholder="{{ qph }}" style="flex:1;min-width:200px;max-width:380px;height:34px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+    <sc-for list="{{ chips }}" as="c"><button onClick="{{ c.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.label }}</button></sc-for>
+  </div>
+</sc-if>
+
+<sc-for list="{{ tables }}" as="tb" hint-placeholder-count="1">
+  <div style="background:#0A2A20;border-radius:6px;overflow-x:auto;max-width:{{ tb.max }}">
+    <sc-if value="{{ tb.hasHead }}">
+      <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span style="font-size:15px;font-weight:600">{{ tb.head }}</span>
+        <sc-if value="{{ tb.hasAdd }}"><button onClick="{{ tb.onAdd }}" style="height:30px;padding:0 12px;background:rgba(243,237,224,0.07);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">{{ tb.add }}</button></sc-if>
+      </div>
+    </sc-if>
+    <div style="display:grid;grid-template-columns:{{ tb.cols }};min-width:600px;gap:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.05)">
+      <sc-for list="{{ tb.th }}" as="h"><span style="text-align:{{ h.align }}">{{ h.label }}</span></sc-for>
+    </div>
+    <sc-for list="{{ tb.rows }}" as="r">
+      <div style="border-bottom:1px solid rgba(243,237,224,0.04)">
+        <div style="display:grid;grid-template-columns:{{ tb.cols }};min-width:600px;gap:12px;align-items:center;padding:10px 16px" style-hover="background:rgba(243,237,224,0.03)">
+          <sc-for list="{{ r.cells }}" as="c"><span style="font-size:14px;color:{{ c.color }};text-align:{{ c.align }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.v }}</span></sc-for>
+          <sc-if value="{{ r.hasAct }}"><div style="justify-self:end;display:flex;gap:6px"><button onClick="{{ r.onAct }}" style="height:28px;padding:0 10px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer;white-space:nowrap">{{ r.act }}</button><sc-if value="{{ r.hasAct2 }}"><button onClick="{{ r.onAct2 }}" style="height:28px;padding:0 10px;background:{{ r.act2Bg }};border:1px solid rgba(232,130,140,0.45);border-radius:4px;color:{{ r.act2Color }};font-size:12px;cursor:pointer;white-space:nowrap">{{ r.act2 }}</button></sc-if></div></sc-if>
+        </div>
+        <sc-if value="{{ r.expanded }}">
+          <div style="padding:4px 16px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input placeholder="{{ r.edPh }}" style="height:34px;width:200px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px">
+            <sc-if value="{{ r.hasFrom }}"><select style="height:34px;background:rgba(243,237,224,0.05);color:#F3EDE0;border:none;border-radius:4px;padding:0 8px;font-size:13px"><option>From now</option><option>From tomorrow</option><option>From Mon 9 Nov</option></select></sc-if>
+            <button onClick="{{ r.onSave }}" style="height:34px;padding:0 12px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:13px;font-weight:600;cursor:pointer">Save</button>
+            <span style="font-size:12px;color:rgba(243,237,224,0.55)">{{ r.edHint }}</span>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+    <sc-if value="{{ tb.empty }}"><div style="padding:18px 16px;font-size:14px;color:rgba(243,237,224,0.6)">{{ tb.emptyText }}</div></sc-if>
+  </div>
+</sc-for>
+
+<sc-if value="{{ showNotice }}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:20px;max-width:1000px;align-items:start">
+    <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:15px;font-weight:600">{{ noticeState }}</span>
+      <textarea value="{{ notice }}" onChange="{{ onNotice }}" rows="4" maxlength="280" placeholder="e.g. The Private Room opens at 8 tonight." style="background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:10px 12px;font-size:14px;resize:vertical"></textarea>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(243,237,224,0.55)"><span>Shows at the top of every member's Home until you end it.</span><span>{{ noticeCount }}/280</span></div>
+      <div style="display:flex;gap:8px"><button onClick="{{ putUp }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">{{ putUpLabel }}</button><sc-if value="{{ noticeUp }}"><button onClick="{{ endNotice }}" style="height:36px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:14px;cursor:pointer">End notice</button></sc-if></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5)">On members' Home</span>
+      <div style="background:#0A2A20;border:1px solid rgba(201,168,92,0.35);border-radius:6px;padding:14px;font-size:14px;line-height:1.5;min-height:60px;color:{{ previewColor }}">{{ noticePreview }}</div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showPair }}">
+  <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px;max-width:1000px">
+    <span style="font-size:15px;font-weight:600">{{ pairTitle }}</span>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px">
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Code on the screen<input placeholder="Six digits" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px;letter-spacing:0.2em"></label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Name<input placeholder="{{ pairPh }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px"></label>
+    </div>
+    <sc-if value="{{ isTv }}">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:rgba(243,237,224,0.7)">What it shows</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ tvShows }}" as="o"><button onClick="{{ o.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};border:1px solid {{ o.border }}">{{ o.label }}</button></sc-for></div></div>
+    </sc-if>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <button onClick="{{ pair }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Pair</button>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(243,237,224,0.8)"><input type="checkbox" style="accent-color:#C9A85C">Pair only after Pair is pressed here</label>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showKill }}">
+  <div style="display:flex;flex-direction:column;gap:18px;max-width:900px">
+    <div style="padding:14px 16px;border-radius:6px;display:flex;align-items:center;gap:12px;background:{{ killBg }};border:1px solid {{ killBorder }}">
+      <span style="width:10px;height:10px;border-radius:50%;background:{{ killDot }}"></span>
+      <span style="flex:1;font-size:15px;font-weight:500">{{ killStatus }}</span>
+      <sc-if value="{{ engaged }}"><button onClick="{{ release }}" style="height:32px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Release</button></sc-if>
+    </div>
+    <div style="background:#0A2A20;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px">
+      <span style="font-size:15px;font-weight:600">New control</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:8px">
+        <sc-for list="{{ levels }}" as="lv">
+          <button onClick="{{ lv.onClick }}" style="text-align:left;padding:12px;border-radius:4px;cursor:pointer;background:{{ lv.bg }};border:1px solid {{ lv.border }};color:#F3EDE0;display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:14px;font-weight:600">{{ lv.label }}</span><span style="font-size:12px;color:rgba(243,237,224,0.65);line-height:1.4">{{ lv.desc }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:rgba(243,237,224,0.7)">Why<input value="{{ why }}" onChange="{{ onWhy }}" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:14px"></label>
+      <span style="font-size:12px;color:rgba(243,237,224,0.55)">Recorded with your name. The owner is alerted.</span>
+      <button onClick="{{ engage }}" style="align-self:flex-start;height:40px;padding:0 18px;background:{{ engageBg }};border:none;border-radius:4px;color:#F3EDE0;font-size:14px;font-weight:600;cursor:pointer">{{ engageLabel }}</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showSteps }}">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:760px">
+    <sc-for list="{{ steps }}" as="st">
+      <div style="background:#0A2A20;border-radius:6px;padding:16px;display:flex;gap:14px;align-items:flex-start;opacity:{{ st.opacity }}">
+        <span style="width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ st.dotBg }};color:{{ st.dotColor }};border:1px solid {{ st.dotBorder }}">{{ st.mark }}</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-size:15px;font-weight:500">{{ st.title }}</span><span style="font-size:13px;color:rgba(243,237,224,0.7);line-height:1.5">{{ st.text }}</span></div>
+        <sc-if value="{{ st.hasBtn }}"><button onClick="{{ st.onBtn }}" disabled="{{ st.disabled }}" style="height:34px;padding:0 14px;background:{{ st.btnBg }};border:1px solid {{ st.btnBorder }};border-radius:4px;color:{{ st.btnColor }};font-size:13px;font-weight:600;cursor:pointer">{{ st.btn }}</button></sc-if>
+      </div>
+    </sc-for>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:800},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;staff&quot;,&quot;tables&quot;,&quot;history&quot;,&quot;settings&quot;,&quot;devices&quot;,&quot;kill&quot;,&quot;preset&quot;,&quot;purge&quot;],&quot;default&quot;:&quot;staff&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;practice&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onToast&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(msg: string) =&gt; void&quot;},&quot;onPractice&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = {
+    staffTab: 'Staff members', roleF: 'All', q: '', form: null, pinOpen: null, pins: {}, setOpen: null, setTab: 'Floor', devTab: 'TVs', tvShow: 'Waitlist board',
+    notice: '', noticeUp: '', level: null, why: '', engaged: null, confirm: false, archived: false,
+  };
+  t(m) { this.props.onToast && this.props.onToast(m); }
+  renderVals() {
+    const S = this.state, sc = this.props.screen;
+    const mut = 'rgba(243,237,224,0.65)';
+    const opt = (on) => ({ bg: on ? 'rgba(201,168,92,0.16)' : 'transparent', border: on ? '#C9A85C' : 'rgba(243,237,224,0.18)', color: on ? '#F3EDE0' : 'rgba(243,237,224,0.8)' });
+    const tabsOf = (list, cur, key) => list.map(l => ({ label: l, line: cur === l ? '#C9A85C' : 'transparent', color: cur === l ? '#F3EDE0' : 'rgba(243,237,224,0.6)', onClick: () => this.setState({ [key]: l, setOpen: null }) }));
+    const th = (labels, rightFrom) => labels.map((l, i) => ({ label: l, align: i >= rightFrom ? 'right' : 'left' }));
+    const cell = (v, color, align) => ({ v, color: color || '#F3EDE0', align: align || 'left' });
+    const q = S.q.trim().toLowerCase();
+    let v = { title: '', desc: '', headerBtns: [], hasCta: false, hasTabs: false, tabs: [], hasForm: false, formFields: [], formChips: [], hasFilters: false, chips: [], tables: [], showNotice: false, showPair: false, showKill: false, showSteps: false };
+    const exp = [{ label: 'Export CSV', onClick: () => this.t('CSV exported') }, { label: 'Export XLSX', onClick: () => this.t('XLSX exported') }];
+    const form = (title, fields, chips, saveLabel) => ({ hasForm: true, formTitle: title, formFields: fields, formChips: chips || [], formSaveLabel: saveLabel || 'Save', formSave: () => { this.setState({ form: null }); this.t(`${title}: saved`); }, formCancel: () => this.setState({ form: null }) });
+
+    if (sc === 'staff') {
+      const staff = [['Aarav Saxena', 'Duty manager', 'Super admin', '00177'], ['Aditya Malhotra', 'Floor manager', 'Admin', '00103'], ['Aisha Khan', 'Duty manager', 'Super admin', '00126'], ['Arjun Kohli', 'Marketing manager', 'Marketing', '00636'], ['Bhavna Rawat', 'Dealer', 'Dealer', '00173'], ['Deepa Kulkarni', 'Front desk', 'Host', '00158'], ['Dev Arora', 'Cashier', 'Cashier', '00105'], ['Karan Gill', 'Host', 'Host', '00108'], ['Kunal Desai', 'Deputy general manager', 'Super admin', '00112'], ['Manoj Thapa', 'Dealer', 'Dealer', '00170'], ['Meera Iyer', 'General manager', 'Super admin', '00615'], ['Nikhil Bansal', 'Investor', 'Owner, view only', '00109'], ['Pema Lepcha', 'Dealer', 'Dealer', '00106'], ['Sameer Rao', 'Steward', 'Service', '00790'], ['Vikram Rao', 'Owner', 'Super admin', '00101']];
+      v = { ...v, title: 'Staff', desc: 'Who can sign in to the console and the dealer tablets, and what each role can do.', hasTabs: true, tabs: tabsOf(['Staff members', 'Dealer PINs'], S.staffTab, 'staffTab') };
+      if (S.staffTab === 'Staff members') {
+        const roles = ['All', 'Super admin', 'Admin', 'Host', 'Dealer', 'Cashier', 'Marketing'];
+        const rows = staff.filter(s => (S.roleF === 'All' || s[2] === S.roleF) && (!q || s[0].toLowerCase().includes(q)));
+        v = { ...v, headerBtns: exp, hasCta: true, cta: 'Add staff', onCta: () => this.setState({ form: 'staff' }), ...(S.form === 'staff' ? form('New staff member', [{ label: 'Name', ph: '' }, { label: 'Mobile', ph: '+91' }, { label: 'Job title', ph: 'Floor manager' }], [{ label: 'Role', opts: roles.slice(1).map(r => ({ label: r, ...opt(false), onClick: () => {} })) }], 'Add staff') : {}),
+          hasFilters: true, q: S.q, qph: 'Find staff', onQ: (e) => this.setState({ q: e.target.value }), chips: roles.map(r => ({ label: r, ...opt(S.roleF === r), onClick: () => this.setState({ roleF: r }) })),
+          tables: [{ hasHead: false, max: '100%', cols: 'minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,1fr) 150px 80px 70px', th: th(['Name', 'Job title', 'Role', 'Mobile', 'Login', ''], 5), rows: rows.map(s => ({ cells: [cell(s[0]), cell(s[1], mut), cell(s[2]), cell(`+91 90000 ${s[3]}`, mut), cell('Active', 'rgba(243,237,224,0.75)')], hasAct: true, act: 'Edit', onAct: () => this.t(`Editing ${s[0]}`) })), empty: rows.length === 0, emptyText: 'No staff match.' }] };
+      } else {
+        const dealers = staff.filter(s => s[2] === 'Dealer').concat([['Ishaan Grover', 'Dealer', 'Dealer', '00122'], ['Kavya Reddy', 'Dealer', 'Dealer', '00118']]);
+        v = { ...v, tables: [{ hasHead: true, head: 'Dealer PINs', max: '820px', cols: 'minmax(0,1fr) 160px 90px', th: th(['Dealer', 'PIN', ''], 2), rows: dealers.map(s => ({ cells: [cell(s[0]), cell(S.pins[s[0]] ? 'Set ' + S.pins[s[0]] : 'No PIN yet', S.pins[s[0]] ? 'rgba(243,237,224,0.8)' : mut)], hasAct: true, act: S.pins[s[0]] ? 'Change' : 'Set PIN', onAct: () => this.setState({ pinOpen: S.pinOpen === s[0] ? null : s[0] }), expanded: S.pinOpen === s[0], edPh: 'Four digits', hasFrom: false, edHint: 'Not all the same. Tell the dealer in person.', onSave: () => { this.setState(st => ({ pins: { ...st.pins, [s[0]]: 'today' }, pinOpen: null })); this.t(`PIN saved for ${s[0]}`); } })), empty: false }] };
+      }
+    } else if (sc === 'tables') {
+      const stakes = [['NLH 50/100', '50/100', 'None'], ['NLH 100/200', '100/200', 'None'], ['Private Room', '100/200', '500']];
+      const tbls = this.props.floorTables || [];
+      v = { ...v, title: 'Tables setup', desc: 'The stakes the club runs and the tables that run them. Only active tables show on the Live floor; deactivate a table you are not using, delete one you never will.', headerBtns: exp,
+        ...(S.form === 'stake' ? form('New stake', [{ label: 'Stake name', ph: 'NLH 200/400' }, { label: 'Small blind', ph: 'Whole 50s' }, { label: 'Big blind', ph: 'Whole 50s' }, { label: 'Straddle (optional)', ph: 'Above the big blind' }], [], 'Save the stake') : {}),
+        ...(S.form === 'table' ? form('New table', [{ label: 'Table name', ph: 'Table 6' }], [{ label: 'Stake', opts: stakes.map(s => ({ label: s[0], ...opt(false), onClick: () => {} })) }, { label: 'Seats', opts: [6, 7, 8, 9, 10].map(n => ({ label: String(n), ...opt(n === 9), onClick: () => {} })) }], 'Save the table') : {}),
+        tables: [
+          { hasHead: true, head: 'Stakes', hasAdd: true, add: 'New stake', onAdd: () => this.setState({ form: 'stake' }), max: '900px', cols: 'minmax(0,1fr) 120px 100px 90px', th: th(['Name', 'Blinds', 'Straddle', ''], 1), rows: stakes.map(s => ({ cells: [cell(s[0]), cell(s[1], null, 'right'), cell(s[2], mut, 'right')], hasAct: true, act: 'Change', onAct: () => this.setState({ setOpen: S.setOpen === s[0] ? null : s[0] }), expanded: S.setOpen === s[0], edPh: 'New blinds, e.g. 100/200', hasFrom: true, edHint: 'Applies from the day you pick, never backwards.', onSave: () => { this.setState({ setOpen: null }); this.t(`${s[0]} changed`); } })) },
+          { hasHead: true, head: 'Tables', hasAdd: true, add: 'New table', onAdd: () => this.setState({ form: 'table' }), max: '1000px', cols: 'minmax(0,1fr) minmax(0,1fr) 50px 150px 210px', th: th(['Name', 'Stake', 'Seats', 'Status', ''], 2), rows: tbls.map(s => {
+            const status = !s.active ? 'Inactive · hidden from the floor' : s.closed ? 'Active · closed tonight' : `Active · ${s.seated} seated`;
+            const delArmed = S.delArm === s.id;
+            return { cells: [cell(s.name, s.active ? '#F3EDE0' : mut), cell(s.stake, mut), cell('9', null, 'right'), cell(status, s.active ? (s.closed ? '#F3EDE0' : '#C9A85C') : mut)], hasAct: true,
+              act: s.active ? 'Deactivate' : 'Reactivate', onAct: () => { this.setState({ delArm: null }); this.props.onTableActive && this.props.onTableActive(s.id, !s.active); },
+              hasAct2: true, act2: delArmed ? 'Confirm delete' : 'Delete', act2Bg: delArmed ? '#C4162A' : 'transparent', act2Color: delArmed ? '#F3EDE0' : '#E8828C',
+              onAct2: () => { if (!delArmed) return this.setState({ delArm: s.id }); this.setState({ delArm: null }); this.props.onTableDelete && this.props.onTableDelete(s.id); } };
+          }) },
+        ] };
+    } else if (sc === 'history') {
+      const rows = ['Table 1|NLH 50/100', 'Table 2|NLH 100/200', 'Table 3|NLH 100/200', 'Table 5|NLH 100/200', 'Private Room|NLH 100/200'].map(s => s.split('|')).filter(s => !q || s[0].toLowerCase().includes(q));
+      v = { ...v, title: 'Games history', desc: 'Which tables ran on each club day, and for how long.', headerBtns: exp, hasFilters: true, q: S.q, qph: 'Find a table', onQ: (e) => this.setState({ q: e.target.value }),
+        chips: ['Today', 'Last 7 days', 'Last 30 days'].map((l, i) => ({ label: l, ...opt(i === 1), onClick: () => {} })),
+        tables: [{ hasHead: false, max: '100%', cols: '140px minmax(0,1fr) minmax(0,1fr) 120px 100px', th: th(['Club day', 'Table', 'Stake', 'Times opened', 'Time run'], 3), rows: rows.map(s => ({ cells: [cell('3 Nov 2026', mut), cell(s[0]), cell(s[1]), cell('1', null, 'right'), cell('26 min', null, 'right')], hasAct: false })), empty: rows.length === 0, emptyText: 'No tables ran in this range.' }] };
+    } else if (sc === 'settings') {
+      const sets = { Floor: [['Add time choices', 'Not set'], ['Call time', '3 table types set'], ['Door code refresh', 'Not set'], ['Dealer rotation', 'Not set'], ['Seat hold', '20 minutes'], ['Open a game at', '4 players'], ['Waitlist priority', '2 tiers set']], 'Members and rewards': [['Lapsed regular', 'After 21 days away'], ['Points per hour', '100'], ['Monthly spin budget', 'Not set'], ['Break lengths', '7, 30, 90 days']], 'Club details': [['Club name', 'RIVR Poker Club'], ['Venue', 'RIVR Gurugram'], ['Address', 'Golf Course Road, Gurugram'], ['Opening hours', '14:00 to 06:00']] };
+      v = { ...v, title: 'Settings', desc: 'A change applies from now or a later day, never backwards.', hasTabs: true, tabs: tabsOf(['Floor', 'Members and rewards', 'Notices', 'Club details'], S.setTab, 'setTab') };
+      if (S.setTab === 'Notices') {
+        v = { ...v, showNotice: true, notice: S.notice, onNotice: (e) => this.setState({ notice: e.target.value }), noticeCount: S.notice.length, noticeUp: !!S.noticeUp, noticeState: S.noticeUp ? 'A notice is up' : 'No notice is up',
+          noticePreview: S.notice || S.noticeUp || 'Your notice shows here.', previewColor: S.notice || S.noticeUp ? '#F3EDE0' : 'rgba(243,237,224,0.45)', putUpLabel: S.noticeUp ? 'Replace notice' : 'Put up',
+          putUp: () => { if (!S.notice.trim()) return this.t('Type the notice first'); this.setState({ noticeUp: S.notice, notice: '' }); this.t('Notice is up on members’ Home'); }, endNotice: () => { this.setState({ noticeUp: '' }); this.t('Notice ended'); } };
+      } else {
+        const rows = (sets[S.setTab] || []).filter(s => !q || s[0].toLowerCase().includes(q));
+        v = { ...v, headerBtns: exp, hasFilters: true, q: S.q, qph: 'Find a setting', onQ: (e) => this.setState({ q: e.target.value }),
+          tables: [{ hasHead: false, max: '100%', cols: 'minmax(0,1.2fr) minmax(0,1fr) 120px 120px 90px', th: th(['Setting', 'Now', 'Who changes it', 'Changes to come', ''], 3), rows: rows.map(s => ({ cells: [cell(s[0]), cell(s[1], s[1] === 'Not set' ? mut : '#F3EDE0'), cell('Admins', mut), cell('None', mut, 'right')], hasAct: true, act: 'Change', onAct: () => this.setState({ setOpen: S.setOpen === s[0] ? null : s[0] }), expanded: S.setOpen === s[0], edPh: `New value for ${s[0].toLowerCase()}`, hasFrom: true, edHint: '', onSave: () => { this.setState({ setOpen: null }); this.t(`${s[0]} change scheduled`); } })), empty: rows.length === 0, emptyText: 'No setting matches.' }] };
+      }
+    } else if (sc === 'devices') {
+      const isTv = S.devTab === 'TVs';
+      v = { ...v, title: 'Devices', desc: 'TVs and dealer tablets paired to RIVR Gurugram.', hasTabs: true, tabs: tabsOf(['TVs', 'Tablets'], S.devTab, 'devTab'), showPair: true, isTv, pairTitle: isTv ? 'Pair a TV' : 'Pair a tablet', pairPh: isTv ? 'Bar TV' : 'Table 2 tablet',
+        tvShows: ['Waitlist board', 'Call-time board', 'Promotions', 'Rewards ticker', 'League leaderboard', 'Social wall', 'Spin wheel'].map(l => ({ label: l, ...opt(S.tvShow === l), onClick: () => this.setState({ tvShow: l }) })),
+        pair: () => this.t('Enter the six digits on the screen'),
+        tables: [{ hasHead: true, head: isTv ? 'Paired TVs' : 'Paired tablets', max: '1000px', cols: '1fr', th: [], rows: [], empty: true, emptyText: isTv ? 'No TVs yet. Turn a TV on, open the RIVR TV app and enter the code it shows.' : 'No tablets yet.' }] };
+    } else if (sc === 'kill') {
+      const levels = [['Venue freeze', 'Stops every change at the venue. Use before a purge or in a serious incident.'], ['Feature off', 'Turns one feature off for everyone, such as table-side food and drink.'], ['Messaging stop', 'Stops every message to members: texts, WhatsApp and app notices.'], ['Member freeze', 'Freezes one member: no seat, no points, no requests.'], ['Access revoked', 'Signs one staff member out everywhere and blocks sign-in.']];
+      v = { ...v, title: 'Kill switch', desc: 'Emergency controls. Every use is recorded with your name and the owner is alerted.', showKill: true, engaged: !!S.engaged,
+        killStatus: S.engaged ? `${S.engaged} is engaged` : 'Nothing is engaged', killBg: S.engaged ? 'rgba(196,22,42,0.14)' : '#0A2A20', killBorder: S.engaged ? 'rgba(196,22,42,0.6)' : 'rgba(243,237,224,0.08)', killDot: S.engaged ? '#C4162A' : '#C9A85C',
+        release: () => { this.t(`${S.engaged} released`); this.setState({ engaged: null }); },
+        levels: levels.map(([label, desc]) => ({ label, desc, bg: S.level === label ? 'rgba(196,22,42,0.12)' : 'transparent', border: S.level === label ? '#C4162A' : 'rgba(243,237,224,0.15)', onClick: () => this.setState({ level: label, confirm: false }) })),
+        why: S.why, onWhy: (e) => this.setState({ why: e.target.value, confirm: false }),
+        engageLabel: S.confirm ? `Confirm: engage ${S.level}` : 'Engage', engageBg: S.level && S.why.trim() ? '#C4162A' : 'rgba(196,22,42,0.35)',
+        engage: () => { if (!S.level || !S.why.trim()) return this.t('Choose a level and say why'); if (!S.confirm) return this.setState({ confirm: true }); this.setState({ engaged: S.level, confirm: false, level: null, why: '' }); this.t(`${S.level} engaged`); } };
+    } else if (sc === 'preset') {
+      const pr = !!this.props.practice;
+      v = { ...v, title: 'Practice reset', desc: 'Clears the practice venue back to its seed so training can start fresh. The club is never reset.', showSteps: true,
+        steps: [
+          { mark: pr ? '✓' : '1', title: 'Switch to the practice venue', text: pr ? 'You are in the practice venue.' : 'Reset only works in the practice venue.', hasBtn: !pr, btn: 'Switch to practice', onBtn: () => this.props.onPractice && this.props.onPractice(), disabled: false, btnBg: 'transparent', btnBorder: 'rgba(243,237,224,0.3)', btnColor: '#F3EDE0', opacity: 1, dotBg: pr ? '#C9A85C' : 'transparent', dotColor: pr ? '#141414' : '#F3EDE0', dotBorder: pr ? '#C9A85C' : 'rgba(243,237,224,0.3)' },
+          { mark: '2', title: 'Reset the practice venue', text: 'Clears seats, waitlists, orders, requests and visits in the practice venue, then reloads the seed members and tables.', hasBtn: true, btn: 'Reset practice venue', onBtn: () => this.t('Practice venue reset'), disabled: !pr, btnBg: pr ? '#C4162A' : 'transparent', btnBorder: pr ? '#C4162A' : 'rgba(243,237,224,0.15)', btnColor: pr ? '#F3EDE0' : 'rgba(243,237,224,0.4)', opacity: pr ? 1 : 0.55, dotBg: 'transparent', dotColor: '#F3EDE0', dotBorder: 'rgba(243,237,224,0.3)' },
+        ] };
+    } else if (sc === 'purge') {
+      v = { ...v, title: 'Purge', desc: "Deletes the venue's play for good: members, visits, seats, hands, tournaments, ledger entries, promotions and messages. Setup, staff, accounts and the audit log stay.", showSteps: true,
+        steps: [
+          { mark: '1', title: 'Freeze the venue', text: 'Engage Venue freeze on Kill switch, so nothing changes between the archive and the purge.', hasBtn: false, opacity: 1, dotBg: 'transparent', dotColor: '#F3EDE0', dotBorder: 'rgba(243,237,224,0.3)' },
+          { mark: S.archived ? '✓' : '2', title: 'Download the archive', text: 'A full export of everything that will be deleted. Keep it safe.', hasBtn: true, btn: S.archived ? 'Downloaded' : 'Download archive', onBtn: () => this.setState({ archived: true }), disabled: true, btnBg: 'transparent', btnBorder: 'rgba(243,237,224,0.15)', btnColor: 'rgba(243,237,224,0.4)', opacity: 0.55, dotBg: 'transparent', dotColor: '#F3EDE0', dotBorder: 'rgba(243,237,224,0.3)' },
+          { mark: '3', title: 'Purge', text: 'Asks you to type the venue name to confirm.', hasBtn: true, btn: 'Purge venue', onBtn: () => {}, disabled: true, btnBg: 'transparent', btnBorder: 'rgba(243,237,224,0.15)', btnColor: 'rgba(243,237,224,0.4)', opacity: 0.55, dotBg: 'transparent', dotColor: '#F3EDE0', dotBorder: 'rgba(243,237,224,0.3)' },
+        ] };
+    }
+    v.tables = v.tables.map(t => ({ hasHead: false, hasAdd: false, empty: false, emptyText: '', ...t, rows: t.rows.map(r => ({ hasAct: false, hasAct2: false, expanded: false, ...r })) }));
+    return v;
+  }
+}
+</script>
+</body>
+</html>

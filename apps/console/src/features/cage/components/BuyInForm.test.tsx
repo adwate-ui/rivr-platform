@@ -35,7 +35,7 @@ function renderForm(reply: (call: number) => Response = refuseUtr) {
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
   render(<RivrDataProvider client={client}><BuyInForm venueId="v1" member={ISHAAN} /></RivrDataProvider>);
-  fireEvent.click(screen.getByRole('button', { name: 'UPI' }));
+  fireEvent.click(screen.getByRole('radio', { name: 'UPI' }));
   fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '10000' } });
   fireEvent.change(screen.getByLabelText('UTR'), { target: { value: '223456789012' } });
   return sent;

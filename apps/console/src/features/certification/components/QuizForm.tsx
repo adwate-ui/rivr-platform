@@ -23,7 +23,7 @@ function QuizMark({ quiz, result, onRetry, onDone }: { quiz: Quiz; result: QuizR
         <Text weight="medium">{resultText(result, quiz.passPercent)}</Text>
         <Inline gap={3}>
           {result.isPassed ? null : <Button variant="primary" onClick={onRetry}>{t('console.certification.tryAgain')}</Button>}
-          <Button variant="secondary" onClick={onDone}>{t('console.certification.back')}</Button>
+          <Button variant="subtle" onClick={onDone}>{t('console.certification.back')}</Button>
         </Inline>
       </Stack>
     </Screen>

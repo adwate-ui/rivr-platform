@@ -38,7 +38,7 @@ describe('MemberBreak', () => {
   it('takes a length and a reason of three or more characters, starts the break only on the second press, and says when it ends (A5-14)', async () => {
     const sent = renderBreak(Response.json('2026-12-01T18:30:00+00:00'));
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Start break' }).disabled).toBe(true);
-    fireEvent.click(screen.getByRole('button', { name: '30 days' }));
+    fireEvent.click(screen.getByRole('radio', { name: '30 days' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Why the break' }), { target: { value: 'ab' } });
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Start break' }).disabled).toBe(true);
     fireEvent.change(screen.getByRole('textbox', { name: 'Why the break' }), { target: { value: 'Asked at the desk' } });
@@ -51,7 +51,7 @@ describe('MemberBreak', () => {
 
   it('says why a break is refused', async () => {
     renderBreak(Response.json({ code: '42501', message: 'no' }, { status: 403 }));
-    fireEvent.click(screen.getByRole('button', { name: '7 days' }));
+    fireEvent.click(screen.getByRole('radio', { name: '7 days' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Why the break' }), { target: { value: 'Asked at the desk' } });
     fireEvent.click(screen.getByRole('button', { name: 'Start break' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, start a break of 7 days' }));

@@ -57,3 +57,8 @@ export const InsetWithError: Story = { args: { variant: 'inset', label: 'City', 
 
 /** The redesign's sign-in number, 54 px tall (decision 0320). */
 export const Tall: Story = { args: { label: 'Mobile number', prefix: '+91', isTall: true, placeholder: '98765 43210' } };
+
+/** The console's filled field beside its button (console v3): the label shown inside until something is typed. */
+export const Subtle: Story = { args: { variant: 'subtle', label: 'Add: mobile or member no.' } };
+
+export const SubtleWithError: Story = { args: { variant: 'subtle', label: 'Add: mobile or member no.', error: 'Not a member number or mobile.' } };

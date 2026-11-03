@@ -26,7 +26,7 @@ export function offlinePackFromRow(row: OfflinePackRow): OfflinePack {
     tables: row.tables.map((table) => ({
       name: table.name, game: table.game, seats: table.seats.map((seat) => ({ seat: seat.seat, name: seat.name, memberNumber: seat.member_number })),
     })),
-    waitlist: row.waitlist.map((place) => ({ game: place.game, place: place.place, name: place.name, memberNumber: place.member_number })),
+    waitlist: row.waitlist.map((place) => ({ table: place.table, game: place.game, place: place.place, name: place.name, memberNumber: place.member_number })),
     sops: row.sops.map((sop) => ({ title: sop.title, version: sop.version, inForceFrom: sop.in_force_from, body: sop.body })),
   };
 }

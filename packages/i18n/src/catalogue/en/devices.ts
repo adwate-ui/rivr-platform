@@ -8,6 +8,8 @@ export const devices = {
 
 export const tablets = {
   title: 'Tablets',
+  /** The form to add one (console v3), under the tablets paired. */
+  addTitle: 'Add a tablet',
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No dealer tablets yet.',
   name: 'Tablet name',
@@ -92,7 +94,15 @@ export const dealerPins = {
   pin: 'New PIN for {name}',
   pinHint: 'Four digits, not all the same. Tell the dealer in person.',
   save: 'Save PIN for {name}',
+  saveShort: 'Save',
   saved: 'PIN saved for {name}.',
+  /** The PINs as a table (console v3): its columns, and a row's button, which opens the PIN's field under it. */
+  dealer: 'Dealer',
+  pinColumn: 'PIN',
+  set: 'Set PIN',
+  change: 'Change',
+  setFor: 'Set PIN for {name}',
+  changeFor: 'Change PIN for {name}',
   invalid: 'A PIN is four digits, not all the same.',
   notAllowedAction: 'Your role does not allow this.',
   unavailable: 'Not sent. Try again.',
@@ -121,6 +131,8 @@ export const dealerSignIn = {
 /** The console's TVs screen (#49): pair a TV by the code it shows, change what it shows, unpair it. */
 export const tvs = {
   title: 'TVs',
+  /** The form to pair one (console v3), under the TVs paired. */
+  pairTitle: 'Pair a TV',
   /** Window-only pairing (#325): the owner's switch, and Pair a TV for staff who manage devices. */
   windowOnly: 'Pair TVs only after Pair a TV is pressed',
   openWindow: 'Pair a TV',

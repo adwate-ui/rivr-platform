@@ -38,7 +38,7 @@ export function CreatorForm({ venueId }: { venueId: string }) {
       <Input {...fields.commission} label={t('console.creators.commissionLabel')} hint={t('console.creators.commissionHint')}
         inputMode="numeric" autoComplete="off" />
       {isInvalid ? <ErrorMessage>{t('console.creators.invalid')}</ErrorMessage> : null}
-      <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.creators.add')}</Button>
+      <Button variant="subtle" isLoading={add.isPending} onClick={() => void submit()}>{t('console.creators.add')}</Button>
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
     </Stack>

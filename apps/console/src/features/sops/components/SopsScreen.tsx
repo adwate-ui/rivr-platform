@@ -18,7 +18,7 @@ function SopRow({ sop, canManage, onRead }: { sop: Sop; canManage: boolean; onRe
       {canManage && sop.current !== null
         ? <Text variant="small">{t('console.sops.progress', { count: sop.acknowledgedCount, total: sop.requiredCount })}</Text>
         : null}
-      <Inline><Button variant="secondary" onClick={onRead}>{t('console.sops.read', { title: sop.title })}</Button></Inline>
+      <Inline><Button variant="subtle" onClick={onRead}>{t('console.sops.read', { title: sop.title })}</Button></Inline>
     </Stack>
   );
 }

@@ -57,6 +57,15 @@ describe('SplitView', () => {
     }
   });
 
+  it('splits the width evenly with layout even, and docks the record in a side panel with layout docked', () => {
+    const { unmount } = renderIn(<SplitView layout="even" list={<p>Checks</p>} detail={<p>Rohan</p>} backLabel="Back" onBack={vi.fn()} />);
+    expect(screen.getByText('Checks').parentElement?.parentElement).toHaveClass('tablet:grid-cols-2');
+    unmount();
+    renderIn(<SplitView layout="docked" list={<p>Members</p>} detail={<p>Sakshi</p>} backLabel="Back" onBack={vi.fn()} />);
+    expect(screen.getByText('Members').parentElement).toHaveClass('tablet:flex-1');
+    expect(screen.getByText('Sakshi').parentElement?.parentElement).toHaveClass('tablet:w-side-panel', 'tablet:shrink-0');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<SplitView list={<p>List</p>} detail={<p>Record</p>} backLabel="Back" onBack={vi.fn()} />);
     expect(await axeViolations(container)).toEqual([]);

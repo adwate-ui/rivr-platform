@@ -35,13 +35,13 @@ async function pairTv(tv: Page, floor: Page, name: string, board: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
+  // Devices is a tab of Settings (console v3), each kind a part in the address.
+  await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tvs`);
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
   await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
-  await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: board, exact: true }).click();
+  await floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: board, exact: true }).click();
 }
 
 test.describe('Rewards', () => {
@@ -60,19 +60,21 @@ test.describe('Rewards', () => {
     await expect(tv.getByRole('heading', { name: 'Rewards' })).toBeVisible({ timeout: 20_000 });
     await expect(tv.getByRole('region', { name: 'Recently redeemed' }).getByText(REWARD).first()).toBeVisible();
     await expect(tv.getByRole('region', { name: 'Recently redeemed' }).getByText('Riya S.').first()).toBeVisible();
-    await floor.getByRole('group', { name: `What ${name} shows`, exact: true }).getByRole('button', { name: 'League leaderboard', exact: true }).click();
+    await floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'League leaderboard', exact: true }).click();
     await expect(tv.getByRole('heading', { name: 'RIVR League' })).toBeVisible({ timeout: 20_000 });
 
     await floor.getByRole('link', { name: 'Rewards', exact: true }).click();
+    // What waits to be handed over is a part of Rewards, counted on its tab (console v3).
+    await floor.getByRole('link', { name: /^Hand over \d+$/ }).click();
     await floor.getByRole('button', { name: `Hand ${REWARD} over to Riya Sen` }).first().click();
     await expect(floor.getByText(/^Meher Lal, /).first()).toBeVisible();
 
     await member.reload();
     await expect(member.getByText(/^Collected /).first()).toBeVisible({ timeout: 10_000 });
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
+    // Devices is a tab of Settings (console v3), each kind a part in the address.
 
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tvs`);
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();

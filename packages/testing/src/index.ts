@@ -10,6 +10,7 @@ export {
 export { newId, nextTestUuid } from './ids.ts';
 export { formatMinutesSeconds, formatStages, parseMinutesSeconds, parseStages, type NotedStage } from './stages.ts';
 export { buildMember, buildTable, buildVenue, buildWaitlistEntry } from './factories.ts';
+export { buildMemberFacts, buildPromotionEvent, buildPromotionTerms } from './promotionFactories.ts';
 export {
   designPromptSeed,
   ist,

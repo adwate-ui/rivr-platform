@@ -6,45 +6,81 @@ import { SideNav, type SideNavSection } from './SideNav.tsx';
 
 const sections: SideNavSection[] = [
   {
-    id: 'floor',
-    label: 'Floor',
+    id: 'tonight',
+    label: 'Tonight',
     items: [
-      { id: 'liveFloor', label: 'Live floor', href: '#floor' },
-      { id: 'waitlist', label: 'Waitlist', href: '#waitlist' },
+      { id: 'floor', label: 'Live floor', href: '#floor', icon: 'floor', count: 9, isActionable: true },
+      { id: 'waitlist', label: 'Waitlist', href: '#waitlist', icon: 'waitlist' },
     ],
   },
-  { id: 'money', label: 'Money', items: [{ id: 'cage', label: 'Cage', href: '#cage' }] },
-  { id: 'reports', items: [{ id: 'reports', label: 'Reports', href: '#reports' }] },
+  { id: 'players', label: 'Players', items: [{ id: 'kyc', label: 'KYC review', href: '#kyc', icon: 'kyc', count: 2 }] },
+  { id: 'single', items: [{ id: 'members', label: 'Members', href: '#members', icon: 'profile' }] },
+  {
+    id: 'admin', label: 'Admin', isCollapsible: true, items: [
+      { id: 'staff', label: 'Staff', href: '#staff', icon: 'staff' },
+      { id: 'purge', label: 'Purge', href: '#purge', icon: 'purge', tone: 'danger' },
+    ],
+  },
 ];
 
 describe('SideNav', () => {
-  it('shows a section without a heading as its links alone, so Reports appears once', () => {
-    renderIn(<SideNav label="Sections" sections={sections} />);
-    expect(screen.getAllByText('Reports')).toHaveLength(1);
-    expect(screen.getByRole('link', { name: 'Reports' })).toBeInTheDocument();
-  });
-
-  it('is a named navigation landmark with one list per section, named by its heading', () => {
+  it('is a named navigation landmark with one list per group, named by its heading', () => {
     renderIn(<SideNav label="Sections" sections={sections} />);
     const nav = screen.getByRole('navigation', { name: 'Sections' });
-    expect(within(nav).getByRole('list', { name: 'Floor' })).toBeInTheDocument();
-    expect(within(nav).getByRole('list', { name: 'Money' })).toBeInTheDocument();
-    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(['Live floor', 'Waitlist', 'Cage', 'Reports']);
+    expect(within(nav).getByRole('list', { name: 'Tonight' })).toBeInTheDocument();
+    expect(within(nav).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['#floor', '#waitlist', '#kyc', '#members']);
   });
 
-  it('shows how many wait on an entry\'s screen, read with its name, and nothing for none', () => {
-    renderIn(<SideNav label="Sections" sections={[{ id: 'growth', label: 'Growth', items: [
-      { id: 'highHands', label: 'High hands', href: '#high-hands', count: 2 },
-      { id: 'jackpots', label: 'Jackpots', href: '#jackpots', count: 0 },
-    ] }]} />);
-    expect(screen.getByRole('link', { name: 'High hands', description: '2 waiting' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Jackpots' })).toHaveTextContent(/^Jackpots$/);
+  it('shows a group without a heading as its links alone, so its name appears once', () => {
+    renderIn(<SideNav label="Sections" sections={sections} />);
+    expect(screen.getAllByText('Members')).toHaveLength(1);
   });
 
-  it('marks the current screen', () => {
-    renderIn(<SideNav label="Sections" sections={sections} current="cage" />);
-    expect(screen.getByRole('link', { name: 'Cage' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Waitlist' })).not.toHaveAttribute('aria-current');
+  it('keeps a link\'s name its label and reads how many wait as its description', () => {
+    renderIn(<SideNav label="Sections" sections={sections} />);
+    expect(screen.getByRole('link', { name: 'Live floor', description: '9 waiting' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Waitlist' })).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('fills an actionable count gold and an informational one muted (decision 0463)', () => {
+    renderIn(<SideNav label="Sections" sections={sections} />);
+    expect(screen.getByText('9')).toHaveClass('bg-action', 'text-on-action');
+    expect(screen.getByText('2')).toHaveClass('bg-cream-track', 'text-content');
+    expect(screen.getByText('2')).not.toHaveClass('bg-action');
+  });
+
+  it('marks the current screen on a faint fill', () => {
+    renderIn(<SideNav label="Sections" sections={sections} current="waitlist" />);
+    expect(screen.getByRole('link', { name: 'Waitlist' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Waitlist' })).toHaveClass('bg-subtle-hover');
+    expect(screen.getByRole('link', { name: /Live floor/ })).not.toHaveAttribute('aria-current');
+  });
+
+  it('folds a collapsible group shut behind its heading, and opens it from the keyboard', async () => {
+    renderIn(<SideNav label="Sections" sections={sections} />);
+    const heading = screen.getByRole('button', { name: 'Admin' });
+    expect(heading).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('link', { name: 'Staff' })).toBeNull();
+    heading.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(heading).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Purge' })).toHaveClass('text-danger');
+  });
+
+  it('keeps a collapsible group open while its current screen is in it', () => {
+    renderIn(<SideNav label="Sections" sections={sections} current="staff" />);
+    expect(screen.getByRole('button', { name: 'Admin' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Staff' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('folded to icons, shows every screen without headings, its name a tooltip and still read out, a count a dot', () => {
+    renderIn(<SideNav label="Sections" sections={sections} isCollapsed />);
+    expect(screen.queryByRole('button', { name: 'Admin' })).toBeNull();
+    expect(screen.getByRole('list', { name: 'Admin' })).toBeInTheDocument();
+    const floor = screen.getByRole('link', { name: 'Live floor', description: '9 waiting' });
+    expect(floor).toHaveAttribute('title', 'Live floor');
+    expect(screen.queryByText('9')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Purge' })).toBeInTheDocument();
   });
 
   it('routes a click through the app and follows Enter from the keyboard', async () => {
@@ -54,7 +90,7 @@ describe('SideNav', () => {
     expect(onNavigate).toHaveBeenLastCalledWith('#waitlist');
     await userEvent.tab();
     await userEvent.keyboard('{Enter}');
-    expect(onNavigate).toHaveBeenLastCalledWith('#cage');
+    expect(onNavigate).toHaveBeenLastCalledWith('#kyc');
   });
 
   it('leaves a modified click to the browser', async () => {
@@ -62,28 +98,14 @@ describe('SideNav', () => {
     renderIn(<SideNav label="Sections" sections={sections} onNavigate={onNavigate} />);
     const user = userEvent.setup();
     await user.keyboard('{Control>}');
-    await user.click(screen.getByRole('link', { name: 'Cage' }));
+    await user.click(screen.getByRole('link', { name: 'Members' }));
     expect(onNavigate).not.toHaveBeenCalled();
   });
 
-  it('has no accessibility violations', async () => {
-    const { container } = renderIn(<SideNav label="Sections" sections={sections} current="liveFloor" />);
+  it('has no accessibility violations, labelled or folded', async () => {
+    const { container, rerender } = renderIn(<SideNav label="Sections" sections={sections} current="floor" />);
     expect(await axeViolations(container)).toEqual([]);
-  });
-
-  it('outlines a waiting count rather than filling it gold, and rules the current screen in gold', () => {
-    renderIn(<SideNav label="Sections" current="waitlist" sections={[{ id: 'tonight', items: [{ id: 'waitlist', label: 'Waitlist', href: '/waitlist', count: 3 }] }]} />);
-    const count = screen.getByText('3');
-    expect(count).not.toHaveClass('bg-action');
-    expect(count).toHaveClass('border-action');
-    expect(screen.getByRole('link', { name: /Waitlist/ })).toHaveClass('border-action');
-  });
-
-  it('fills an urgent count red, such as top-ups waiting (decision 0299)', () => {
-    renderIn(<SideNav label="Sections" current="liveFloor" sections={[{ id: 'tonight', items: [
-      { id: 'topUps', label: 'Top-ups', href: '/top-ups', count: 2, isUrgent: true }] }]} />);
-    expect(screen.getByText('2')).toHaveClass('bg-alert', 'text-on-alert');
-    // The link keeps its name; how many wait is its description (decision 0301).
-    expect(screen.getByRole('link', { name: 'Top-ups', description: '2 waiting' })).toBeDefined();
+    rerender(<SideNav label="Sections" sections={sections} current="floor" isCollapsed />);
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

@@ -20,7 +20,7 @@ export function VoidOrder({ venueId, order }: { venueId: string; order: FnbOrder
   });
   if (!isOpen) {
     return (
-      <Button variant="text" aria-label={t('console.fnb.voidName', { kot: order.kotNumber })} onClick={() => setIsOpen(true)}>
+      <Button variant="text" size="small" aria-label={t('console.fnb.voidName', { kot: order.kotNumber })} onClick={() => setIsOpen(true)}>
         {t('console.fnb.void')}
       </Button>
     );

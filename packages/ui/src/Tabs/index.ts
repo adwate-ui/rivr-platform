@@ -1,1 +1,1 @@
-export { Tabs, type TabItem, type TabsProps } from './Tabs.tsx';
+export { Tabs, type TabItem, type TabsLook, type TabsProps } from './Tabs.tsx';

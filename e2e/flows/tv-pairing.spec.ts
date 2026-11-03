@@ -12,6 +12,7 @@
 import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 test.describe('TV pairing', () => {
   test('TV pairing: a TV shows a code, the console pairs it with a mode and changes it; unpaired, it shows a new code', async ({ browser }) => {
@@ -29,27 +30,26 @@ test.describe('TV pairing', () => {
 
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000117');
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openConsole(floor, '/settings?tab=devices&part=tvs');
     await expect(floor.getByText('A TV paired here joins RIVR Gurugram.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText('No TV shows that code. Check it and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
-    await floor.getByRole('group', { name: 'What it shows' }).getByRole('button', { name: 'Call-time board', exact: true }).click();
+    await floor.getByRole('radiogroup', { name: 'What it shows' }).getByRole('radio', { name: 'Call-time board', exact: true }).click();
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 
     // The TV asks every three seconds whether its code was typed in.
     await expect(tv.getByRole('heading', { name: 'Call time' })).toBeVisible({ timeout: 15_000 });
     // The console's list asks again every ten seconds, so the TV shows as paired on its own.
-    const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
+    const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
     await expect(modes.locator('xpath=../..').getByText('Paired', { exact: true })).toBeVisible({ timeout: 15_000 });
 
-    await modes.getByRole('button', { name: 'Promotions', exact: true }).click();
-    await expect(modes.getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await modes.getByRole('radio', { name: 'Promotions', exact: true }).click();
+    await expect(modes.getByRole('radio', { name: 'Promotions', exact: true })).toHaveAttribute('aria-checked', 'true');
     // Promotions shows a live promotion's slide, or that none is running (#86).
     const promotions = tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true }));
     await expect(promotions).toBeVisible({ timeout: 15_000 });
@@ -69,8 +69,7 @@ test.describe('TV pairing', () => {
     // Arvind Rao, a super admin (the owner's switch, venue.configure); his number is otherwise only the Kill switch flow's.
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000136');
-    await owner.getByRole('link', { name: 'Devices', exact: true }).click();
-    await owner.getByRole('link', { name: 'TVs' }).click();
+    await openConsole(owner, '/settings?tab=devices&part=tvs');
     const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
     await windowOnly.click();
     try {

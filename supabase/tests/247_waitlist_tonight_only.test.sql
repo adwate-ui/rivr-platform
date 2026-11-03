@@ -11,23 +11,23 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
-create temp table game as select id from public.table_type where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'nlh_100_200';
+create temp table game as select table_type_id as id, id as table_id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 2';
 grant select on game to authenticated;
 delete from public.waitlist_entry where member_id in ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000202');
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, joined_at, approved_at, status, idempotency_key) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', (select id from game),
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, joined_at, approved_at, status, idempotency_key) values
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', (select id from game), (select table_id from game),
    private.tonight_began(now()) - interval '3 hours', private.tonight_began(now()) - interval '3 hours', 'waiting', gen_random_uuid()),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', (select id from game),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', (select id from game), (select table_id from game),
    now(), now(), 'waiting', gen_random_uuid());
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from public.my_waitlist()), 0, 'last night''s place is not on Arjun''s Home');
-create temp table tonight_wait as select waiting from public.waitlist_lengths() where table_type_id = (select id from game);
+create temp table tonight_wait as select waiting from public.waitlist_lengths() where table_id = (select table_id from game);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
 select results_eq($$ select place is not null from public.my_waitlist() $$, $$ values (true) $$, 'tonight''s place has its number');
 
 reset role;
-select is((select count(*)::integer from public.waitlist_entry e where e.table_type_id = (select id from game) and e.status = 'waiting'
+select is((select count(*)::integer from public.waitlist_entry e where e.table_id = (select table_id from game) and e.status = 'waiting'
            and e.approved_at is not null and e.joined_at >= private.tonight_began(now())),
   (select waiting from tonight_wait), 'the wait counts tonight''s places only');
 

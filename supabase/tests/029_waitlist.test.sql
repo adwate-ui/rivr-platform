@@ -1,5 +1,5 @@
--- The waitlist (#38). The seed puts Kabir (202), Naina (203) and Rohan (204) on 100/200 in that order;
--- 50/100 is empty. 201 Arjun and 209 Tara are members; 103 Aditya is the floor (waitlist.manage);
+-- The waitlist (#38), a list per table (decision 0467). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's
+-- list (100/200) in that order; Table 1 (50/100) has nobody. 201 Arjun and 209 Tara are members; 103 Aditya is the floor (waitlist.manage);
 -- 106 Pema is a dealer and 109 the investor (owner_view); 301 is a member of the practice venue. A join from the app
 -- is a request the floor approves (#633), and a member waits for one game at a time; 211 Ishaan waits for none.
 begin;
@@ -20,10 +20,10 @@ $$;
 -- Arjun's seeded identity check (#21) is set aside: this test takes him through the check from the start.
 delete from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000201';
 
-create function pg_temp.type_id(p_code text) returns uuid language sql as $$
-  select id from public.table_type where code = p_code and venue_id = '00000000-0000-4000-8000-000000000001';
+create function pg_temp.table_id(p_name text) returns uuid language sql as $$
+  select id from public.game_table where name = p_name and venue_id = '00000000-0000-4000-8000-000000000001';
 $$;
-grant execute on function pg_temp.type_id(text) to authenticated;
+grant execute on function pg_temp.table_id(text) to authenticated;
 
 -- Arjun and Naina have finished their identity check; Tara has not.
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
@@ -41,26 +41,26 @@ from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and nam
 -- A member joins from the app.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000aa01'), null,
-  'a member with a finished identity check joins 100/200 from the app');
-select is(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000aa01'),
+select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), '00000000-0000-4000-8000-00000000aa01'), null,
+  'a member with a finished identity check joins Table 2''s list from the app');
+select is(public.join_waitlist_at(pg_temp.table_id('Table 2'), '00000000-0000-4000-8000-00000000aa01'),
           (select entry_id from public.my_waitlist()), 'a retried join adds them once');
-select is(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000aa02'),
+select is(public.join_waitlist_at(pg_temp.table_id('Table 2'), '00000000-0000-4000-8000-00000000aa02'),
           (select entry_id from public.my_waitlist()), 'and joining again keeps their one place');
 select results_eq($$ select table_type_name, small_blind_paise, big_blind_paise, place, is_request from public.my_waitlist() $$,
   $$ values ('NLH 100/200'::text, 10000::bigint, 20000::bigint, null::integer, true) $$,
   'their join is a request: no place until the floor approves it (#633)');
-select results_eq($$ select t.code, l.waiting, l.call_time_minutes from public.waitlist_lengths() l join public.table_type t on t.id = l.table_type_id
-                     order by t.code $$,
-  $$ values ('nlh_100_200'::text, 3, 180), ('nlh_50_100', 0, 180), ('private_room', 0, 180) $$,
-  'and how many wait on each list, never who, a request not counted, with each game''s call time');
-select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_50_100'), gen_random_uuid()) $$, 'RVONE', null,
-  'they wait for one game at a time (#633)');
+select results_eq($$ select g.name, l.waiting, l.call_time_minutes from public.waitlist_lengths() l join public.game_table g on g.id = l.table_id
+                     order by g.position $$,
+  $$ values ('Table 1'::text, 0, 180), ('Table 2', 3, 180), ('Table 3', 0, 180), ('Table 4', 0, 180), ('Table 5', 0, 180), ('Private Room', 0, 180) $$,
+  'and how many wait on each table''s list, never who, a request not counted, with its stake''s call time');
+select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Table 1'), gen_random_uuid()) $$, 'RVONE', null,
+  'they wait on one list at a time (#633)');
 select is((select count(*)::integer from public.waitlist_entry), 1, 'a member sees only their own place');
 
 -- Refusals.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000209", "role": "authenticated"}';
-select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_50_100'), '00000000-0000-4000-8000-00000000aa03') $$,
+select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Table 1'), '00000000-0000-4000-8000-00000000aa03') $$,
   'RVKYC', null, 'not without a finished identity check');
 reset role;
 insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)
@@ -68,7 +68,7 @@ select '00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4
 from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000209", "role": "authenticated"}';
-select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_50_100'), '00000000-0000-4000-8000-00000000aa04') $$,
+select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Table 1'), '00000000-0000-4000-8000-00000000aa04') $$,
   'RVMBR', null, 'nor while the member is frozen');
 reset role;
 
@@ -79,24 +79,23 @@ select results_eq($$ select full_name from public.waitlist_requests('00000000-00
   $$ values ('Arjun Mehta'::text) $$, 'the floor sees the join waiting for it');
 select lives_ok($$ select public.approve_waitlist_request((select entry_id from public.waitlist_requests('00000000-0000-4000-8000-000000000001'))) $$,
   'and approves it onto the list');
-select throws_ok($$ select public.add_to_waitlist(pg_temp.type_id('nlh_50_100'), '90000 00203', gen_random_uuid()) $$, 'RVONE', null,
-  'the floor adds nobody already waiting for another game');
-select isnt(public.add_to_waitlist(pg_temp.type_id('nlh_50_100'), '90000 00211', '00000000-0000-4000-8000-00000000aa05'), null,
+select throws_ok($$ select public.add_to_waitlist(pg_temp.table_id('Table 1'), '90000 00203', gen_random_uuid()) $$, 'RVONE', null,
+  'the floor adds nobody already waiting on another list');
+select isnt(public.add_to_waitlist(pg_temp.table_id('Table 1'), '90000 00211', '00000000-0000-4000-8000-00000000aa05'), null,
   'the floor adds a member by their mobile number, on the list at once');
-select throws_ok($$ select public.add_to_waitlist(pg_temp.type_id('nlh_50_100'), '9999999999', '00000000-0000-4000-8000-00000000aa06') $$,
+select throws_ok($$ select public.add_to_waitlist(pg_temp.table_id('Table 1'), '9999999999', '00000000-0000-4000-8000-00000000aa06') $$,
   'RVNOM', null, 'and says when no member has the number');
 select results_eq(
-  $$ select t.code, b.full_name, b.place, b.added_by_floor from public.waitlist_board('00000000-0000-4000-8000-000000000001') b
-     join public.table_type t on t.id = b.table_type_id order by t.code, b.place $$,
-  $$ values ('nlh_100_200'::text, 'Kabir Sethi'::text, 1, false), ('nlh_100_200', 'Naina Kapoor', 2, false),
-            ('nlh_100_200', 'Rohan Bhatia', 3, false), ('nlh_100_200', 'Arjun Mehta', 4, false),
-            ('nlh_50_100', 'Ishaan Verma', 1, true) $$,
-  'the floor sees each list in order, with names, and who the floor added');
+  $$ select g.name, b.full_name, b.place, b.added_by_floor from public.waitlist_board('00000000-0000-4000-8000-000000000001') b
+     join public.game_table g on g.id = b.asked_table_id order by g.position, b.place $$,
+  $$ values ('Table 1'::text, 'Ishaan Verma'::text, 1, true), ('Table 2', 'Kabir Sethi', 1, false), ('Table 2', 'Naina Kapoor', 2, false),
+            ('Table 2', 'Rohan Bhatia', 3, false), ('Table 2', 'Arjun Mehta', 4, false) $$,
+  'the floor sees each table''s list in order, with names, and who the floor added');
 select lives_ok($$ select public.leave_waitlist((select e.id from public.waitlist_entry e
                     where e.member_id = '00000000-0000-4000-8000-000000000202' and e.status = 'waiting')) $$,
   'the floor takes a member off a list');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';
-select throws_ok($$ select public.add_to_waitlist(pg_temp.type_id('nlh_50_100'), '9000000201', '00000000-0000-4000-8000-00000000aa07') $$,
+select throws_ok($$ select public.add_to_waitlist(pg_temp.table_id('Table 1'), '9000000201', '00000000-0000-4000-8000-00000000aa07') $$,
   '42501', null, 'a dealer adds nobody');
 select is_empty($$ select * from public.waitlist_board('00000000-0000-4000-8000-000000000001') $$, 'and sees no board');
 select is_empty($$ select * from public.waitlist_requests('00000000-0000-4000-8000-000000000001') $$, 'nor the requests');
@@ -114,9 +113,9 @@ select ok(exists (select 1 from public.outbox_event e where e.event_type = 'wait
 -- Joining and leaving again within the hour emits nothing more (#274), so nothing sent on it repeats.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000a274'), null, 'Arjun joins again');
+select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), '00000000-0000-4000-8000-00000000a274'), null, 'Arjun joins again');
 select lives_ok($$ select public.leave_waitlist((select entry_id from public.my_waitlist())) $$, 'leaves again');
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-00000000a275'), null, 'and joins a third time');
+select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), '00000000-0000-4000-8000-00000000a275'), null, 'and joins a third time');
 reset role;
 select is((select count(*)::integer from public.outbox_event e where e.event_type = 'waitlist.joined'
            and e.payload ->> 'member_id' = '00000000-0000-4000-8000-000000000201'), 1, 'within the hour, waitlist.joined once');
@@ -139,18 +138,18 @@ select throws_ok($$ select public.leave_waitlist((select id from rohans_place)) 
 reset role;
 select is((select status from public.waitlist_entry where id = (select id from rohans_place)), 'waiting', 'so the place stands');
 
--- A request id replays only its own place, and a member joins only their own venue's games.
+-- A request id replays only its own place, and a member joins only their own venue's tables.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
-select throws_ok($$ select public.join_waitlist(pg_temp.type_id('nlh_100_200'), '00000000-0000-4000-8000-000000000203') $$,
+select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Table 2'), '00000000-0000-4000-8000-000000000203') $$,
   '22023', null, 'another member''s request id joins nobody');
-select throws_ok($$ select public.join_waitlist((select id from public.table_type where code = 'nlh_50_100'
-                                                  and venue_id = '00000000-0000-4000-8000-000000000002'), gen_random_uuid()) $$,
-  '22023', null, 'nor does a game at another venue');
+select throws_ok($$ select public.join_waitlist_at((select id from public.game_table where name = 'Table 1'
+                                                     and venue_id = '00000000-0000-4000-8000-000000000002'), gen_random_uuid()) $$,
+  '22023', null, 'nor does a table at another venue');
 
 -- The practice venue keeps its own lists.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select throws_ok($$ select public.add_to_waitlist((select id from public.table_type where code = 'nlh_50_100'
+select throws_ok($$ select public.add_to_waitlist((select id from public.game_table where name = 'Table 1'
                                                    and venue_id = '00000000-0000-4000-8000-000000000002'), '9000000301', gen_random_uuid()) $$,
   'RVKYC', null, 'the floor adds a practice member to a practice list only once they finish the check');
 select is_empty($$ select * from public.waitlist_board('00000000-0000-4000-8000-000000000002') b
@@ -164,7 +163,7 @@ insert into public.member_feature_override (venue_id, member_id, feature_key, is
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', 'floor.live_view', false, 'Test');
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
-select throws_ok($$ select public.join_waitlist(pg_temp.type_id('private_room'), gen_random_uuid()) $$,
+select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Private Room'), gen_random_uuid()) $$,
   '42501', null, 'a member without waitlist.join joins nothing from the app');
 select is_empty($$ select * from public.waitlist_lengths() $$, 'nor, without floor.live_view, sees how many wait');
 select is_empty($$ select * from public.table_type $$, 'nor the games');
@@ -175,7 +174,7 @@ reset role;
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000203", "role": "authenticated"}';
-select throws_ok($$ select public.join_waitlist(pg_temp.type_id('private_room'), gen_random_uuid()) $$,
+select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Private Room'), gen_random_uuid()) $$,
   'RVFRZ', null, 'nobody joins while the venue is frozen');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
 select throws_ok($$ select public.leave_waitlist((select id from rohans_place)) $$, 'RVFRZ', null, 'the floor removes nobody');

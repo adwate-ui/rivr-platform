@@ -4,12 +4,18 @@ import { cx } from '../internal/classes.ts';
 
 /**
  * `primary` is the gold filled button: at most one per screen. `secondary` is outlined with a
- * hairline, `text` is a cream text button, `danger` is a red fill for destructive actions.
+ * hairline, `text` is a cream text button, `danger` is a red fill for destructive actions. The console (decision 0464)
+ * fills rather than outlines: `subtle`, a faint cream fill, in place of `secondary`; `strong`, a cream fill, for the main
+ * action of each item in a list, such as a request's Approve, where gold is kept for the screen's one primary action.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'subtle' | 'strong' | 'text' | 'danger';
 
-/** `tall`, 54 px, is the player app's one gold action of a step or sheet (decision 0320). */
-export type ButtonSize = 'regular' | 'large' | 'tall';
+/**
+ * `tall`, 54 px, is the player app's one gold action of a step or sheet (decision 0320). The console's (decision 0464):
+ * `compact`, 36 px at a desk, and `small`, 32 px at a desk for an action inside a row or tile; both keep the 44 px touch
+ * target below 1180 px (decision 0282).
+ */
+export type ButtonSize = 'regular' | 'large' | 'tall' | 'compact' | 'small';
 
 /** `pill` rounds the ends: the player app's small actions in a row, such as Add, Notify me or Redeem (decision 0320). */
 export type ButtonShape = 'rounded' | 'pill';
@@ -27,6 +33,8 @@ interface ButtonLookProps {
   /** A fuller name for a screen reader, where the label alone repeats: `Read: Bankroll basics`. It starts with the label. */
   'aria-label'?: string;
   'aria-describedby'?: string;
+  /** For a button that opens something in place, such as a row's form (console v3): whether it is open now. */
+  'aria-expanded'?: boolean;
 }
 
 interface ActionButtonProps extends ButtonLookProps {
@@ -45,6 +53,10 @@ interface ActionButtonProps extends ButtonLookProps {
    * two together in its middle: the Order screen's "Send to the bar" and "2 items" (brief 3.5; owner, 3 Nov).
    */
   aside?: ReactNode;
+  /** A gold dot before the label: a control for what needs the floor, such as the Live floor's Needs you (decision 0463). */
+  hasDot?: boolean;
+  /** A key that does the same on the screen (console v3, from `useShortcut`): its tooltip names it, and it is announced. */
+  shortcut?: { readonly key: string; readonly hint: string } | undefined;
 }
 
 /** A link only goes somewhere: it is never loading, disabled or a form's submit. */
@@ -62,6 +74,8 @@ interface LinkButtonProps extends ButtonLookProps {
   form?: never;
   isPressed?: never;
   aside?: never;
+  hasDot?: never;
+  shortcut?: never;
 }
 
 export type ButtonProps = ActionButtonProps | LinkButtonProps;
@@ -72,16 +86,28 @@ const VARIANT: Record<ButtonVariant, string> = {
   secondary: 'border border-hairline font-medium text-content hover:border-control',
   // The player redesign's outlined button: the control colour's edge (decision 0320).
   outline: 'border border-control font-medium text-content',
+  subtle: 'bg-subtle font-medium text-content hover:bg-subtle-hover',
+  strong: 'bg-cream font-semibold text-on-cream',
   text: 'font-medium text-content underline-offset-4 hover:underline',
   danger: 'bg-alert font-medium text-on-alert',
 };
 
-const SIZE: Record<ButtonSize, string> = { regular: 'min-h-touch', large: 'min-h-12', tall: 'min-h-action' };
+const SIZE: Record<ButtonSize, string> = {
+  regular: 'min-h-touch', large: 'min-h-12', tall: 'min-h-action',
+  compact: 'min-h-touch tablet:min-h-control', small: 'min-h-touch tablet:min-h-8',
+};
 
 // A text button sits close to its words; a pill is set smaller, as in the player redesign's prototype.
 const SHAPE: Record<ButtonShape, string> = { rounded: 'rounded-lg text-16', pill: 'rounded-full text-14' };
 
+// The console's sizes set their own corner and type, as in its prototype (decision 0464).
+const CONSOLE_LOOK: Partial<Record<ButtonSize, string>> = { compact: 'rounded-md text-14 px-4', small: 'rounded-md text-13 px-3' };
+
 const PADDING = (variant: ButtonVariant, shape: ButtonShape) => (variant === 'text' ? 'px-3' : shape === 'pill' ? 'px-4' : 'px-5');
+
+/** The corner, type size and padding: the console's sizes have their own; the rest follow the shape. */
+const lookOf = (variant: ButtonVariant, size: ButtonSize, shape: ButtonShape) =>
+  CONSOLE_LOOK[size] ?? cx(SHAPE[shape], PADDING(variant, shape));
 
 const PRESSED = 'border border-accent font-medium text-accent';
 
@@ -94,7 +120,7 @@ const BASE =
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
 function LinkButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
   return (
-    <a href={href} download={download} className={cx(BASE, 'justify-center', SIZE[size], VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
+    <a href={href} download={download} className={cx(BASE, 'justify-center', SIZE[size], VARIANT[variant], lookOf(variant, size, shape), fullWidth && 'w-full')}
       target={opensNewTab ? '_blank' : undefined} rel={opensNewTab ? 'noopener noreferrer' : undefined}
       aria-label={rest['aria-label']}
       aria-describedby={rest['aria-describedby']}>
@@ -105,13 +131,23 @@ function LinkButton({ children, variant = 'secondary', size = 'regular', shape =
   );
 }
 
+/** A key that does the same as the button: its tooltip and the key a screen reader announces. */
+const keyShortcut = (shortcut: ActionButtonProps['shortcut']) =>
+  shortcut === undefined ? {} : { title: shortcut.hint, 'aria-keyshortcuts': shortcut.key };
+
 /** A button with a 44 px minimum touch target; a link that looks like one when it has an `href`. */
 export function Button(props: ButtonProps) {
   return props.href === undefined ? <ActionButton {...props} /> : <LinkButton {...props} />;
 }
 
-function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, ...rest }: ActionButtonProps) {
+/** The label, after a gold dot when it has one. */
+function withDot(children: ReactNode, hasDot: boolean | undefined): ReactNode {
+  return hasDot === true ? <><span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-action" />{children}</> : children;
+}
+
+function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, shortcut, hasDot, ...rest }: ActionButtonProps) {
   const busy = isLoading ? true : undefined;
+  const label = withDot(children, hasDot);
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (isLoading) {
       event.preventDefault();
@@ -122,20 +158,21 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', shape
   return (
     <button
       type={type}
-      className={cx(BASE, aside === undefined ? 'justify-center' : 'justify-between', SIZE[size], isPressed ? PRESSED : VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
+      className={cx(BASE, aside === undefined ? 'justify-center' : 'justify-between', SIZE[size], isPressed ? PRESSED : VARIANT[variant], lookOf(variant, size, shape), fullWidth && 'w-full')}
       onClick={handleClick}
       disabled={isDisabled}
       aria-pressed={isPressed}
       aria-busy={busy}
       aria-disabled={busy}
+      {...keyShortcut(shortcut)}
       {...rest}
     >
       {aside === undefined ? (
-        <ButtonLabel icon={icon} isLoading={isLoading}>{children}</ButtonLabel>
+        <ButtonLabel icon={icon} isLoading={isLoading}>{label}</ButtonLabel>
       ) : (
         // The label and its circle stay together at the left; the space between keeps the two parts apart in its name.
         <>
-          <span className="inline-flex items-center gap-2"><ButtonLabel icon={icon} isLoading={isLoading}>{children}</ButtonLabel></span>
+          <span className="inline-flex items-center gap-2"><ButtonLabel icon={icon} isLoading={isLoading}>{label}</ButtonLabel></span>
           {' '}
           <span>{aside}</span>
         </>

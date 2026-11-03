@@ -87,6 +87,14 @@ export function checkDetails(check: KycCheck): readonly { label: string; value: 
   return details.flatMap(({ label, value }) => (value === null ? [] : [{ label, value }]));
 }
 
+/** A check's line in the queue (console v3): how it was made and when it began to wait, or what the member owes, or the day refused. */
+export function queueLine(check: KycCheck): string {
+  const at = new Date(check.updatedAt);
+  if (check.status === 'needs_pan') return t('console.kycReview.needsPanLine', { time: formatTime(at) });
+  if (check.status === 'refused') return formatDate(at);
+  return t('console.kycReview.queueLine', { method: t(METHOD_COPY[check.method]), time: formatTime(at) });
+}
+
 /** The queue in its groups: checks a reviewer decides, checks waiting on the member, and refused ones (C-06). */
 export function checkGroups(checks: readonly KycCheck[]) {
   return {
@@ -94,6 +102,19 @@ export function checkGroups(checks: readonly KycCheck[]) {
     onMember: checks.filter((check) => check.status === 'needs_pan'),
     refused: checks.filter((check) => check.status === 'refused'),
   };
+}
+
+/** The queue as PickList groups (console v3): to review, waiting on the member and refused, each with its count; an empty one is left out. */
+export function queueGroups(checks: readonly KycCheck[]) {
+  const groups = checkGroups(checks);
+  const group = (label: string, list: readonly KycCheck[]) => ({
+    label, count: list.length, items: list.map((check) => ({ id: check.memberId, title: check.fullName, detail: queueLine(check) })),
+  });
+  return [
+    group(t('console.kycReview.waiting'), groups.toReview),
+    group(t('console.kycReview.onMember'), groups.onMember),
+    group(t('console.kycReview.refused'), groups.refused),
+  ];
 }
 
 /** Whether a super admin may reopen this check: a refused one done in person (#267), refused as a duplicate. */

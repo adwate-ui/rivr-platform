@@ -145,8 +145,8 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
   2, 'a change that moves no place is no move');
 
 -- Vihaan waits on the same list: an event of Ishaan's list reaches his phone too, with his own place.
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, idempotency_key, approved_at)
-select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', g.table_type_id, '00000000-0000-4000-8000-00000000b290', now()
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key, approved_at)
+select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', g.table_type_id, g.id, '00000000-0000-4000-8000-00000000b290', now()
 from public.game_table g where g.id = pg_temp.table_id('Table 5');
 select results_eq(
   $$ select member_id, state from public.live_status_targets('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
@@ -219,8 +219,8 @@ create temp table reloaded on commit drop as
     and not exists (select 1 from public.waitlist_entry e where e.member_id = m.id and e.status = 'waiting')
   limit 1;
 select set_config('rivr.purge', 'on', true), set_config('rivr.purge_venue', '00000000-0000-4000-8000-000000000001', true);
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, idempotency_key, approved_at)
-select '00000000-0000-4000-8000-000000000001', (select member_id from reloaded), g.table_type_id, '00000000-0000-4000-8000-00000000c290', now()
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key, approved_at)
+select '00000000-0000-4000-8000-000000000001', (select member_id from reloaded), g.table_type_id, g.id, '00000000-0000-4000-8000-00000000c290', now()
 from public.game_table g where g.id = pg_temp.table_id('Table 5');
 select set_config('rivr.purge', '', true), set_config('rivr.purge_venue', '', true);
 select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.moved' and payload ->> 'member_id' = (select member_id::text from reloaded)),
