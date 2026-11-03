@@ -1,14 +1,17 @@
 -- Hourly rakeback and hotel nights start off and hidden at a new venue (the owner, 3 Nov). Both were added on 28 Oct
 -- (20261028370000_rakeback.sql, 20261028380100_accommodation_nights.sql) after the bootstrap's off-list was written, so a
 -- venue made since would offer them, shown locked, against the no-money rule (decision 0284) and rakeback by hand.
--- Staging's club has no rows for either, and rivr-prod's were set off and hidden by hand; every tier of an existing venue
--- without a row for one is given it off and hidden now, so all venues read the same. A tier that has a row keeps it.
+-- Staging's club has no rows for either; rivr-prod's club was set off and hidden by hand, and its practice venue, made
+-- from the old bootstrap on 3 Nov, offers both. Every tier of an existing venue where either is on, or not set, has it off
+-- and hidden from now, so all venues read the same; a tier already off keeps its row.
 
 insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
 select t.venue_id, t.id, k.key, false, 'hidden', now()
 from public.tier t
 cross join (values ('rewards.rakeback'), ('rewards.accommodation')) k (key)
-where not exists (select 1 from public.tier_feature f where f.tier_id = t.id and f.feature_key = k.key);
+where coalesce((select f.is_enabled from public.tier_feature f
+                where f.tier_id = t.id and f.feature_key = k.key and f.effective_from <= now()
+                order by f.effective_from desc limit 1), true);
 
 -- As before (20261102030200_withdrawal_push_hidden.sql), with hourly rakeback and hotel nights off for a new venue too.
 create or replace function private.bootstrap_venue(
