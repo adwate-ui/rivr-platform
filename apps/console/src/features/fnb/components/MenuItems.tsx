@@ -53,7 +53,30 @@ function DishPhoto({ venueId, item }: { venueId: string; item: FnbItem }) {
   );
 }
 
-/** Each item on offer or off the menu, with its photo to add or replace for staff who run F&B; a switch that did not save says why. */
+interface ItemRowProps {
+  readonly venueId: string;
+  readonly item: FnbItem;
+  readonly canManage: boolean;
+  readonly isSaving: boolean;
+  readonly onToggle: (item: FnbItem, isOn: boolean) => void;
+}
+
+/** One item by its name, with its photo to add or replace for staff who run F&B, and on offer or off the menu. */
+function ItemRow({ venueId, item, canManage, isSaving, onToggle }: ItemRowProps) {
+  return (
+    <Inline gap={4} align="center" justify="between" wrap>
+      <Inline gap={3} align="center" grow>
+        <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
+        <Text>{item.name}</Text>
+      </Inline>
+      {canManage ? <DishPhoto venueId={venueId} item={item} /> : null}
+      <Switch label={item.isAvailable ? t('console.fnb.onOffer') : t('console.fnb.offMenu')} isOn={item.isAvailable}
+        isDisabled={isSaving} onChange={(isOn) => onToggle(item, isOn)} />
+    </Inline>
+  );
+}
+
+/** Each item under its kind (#799), food first, as the app's menu sorts them; a switch that did not save says why. */
 function ItemSwitches({ venueId, items, canManage }: { venueId: string; items: readonly FnbItem[]; canManage: boolean }) {
   const { saveItem } = useFnbActions(venueId);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
@@ -62,30 +85,31 @@ function ItemSwitches({ venueId, items, canManage }: { venueId: string; items: r
     setFailure(saved.ok ? null : saved.error);
   };
   if (items.length === 0) return <Text>{t('console.fnb.empty')}</Text>;
+  const groups = FNB_ITEM_KINDS.map((kind) => ({ kind, items: items.filter((item) => item.kind === kind) })).filter((group) => group.items.length > 0);
   return (
-    <Stack gap={3}>
-      {items.map((item) => (
-        <Inline key={item.itemId} gap={4} align="center" justify="between" wrap>
-          <Inline gap={3} align="center" grow>
-            <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
-            <Text>{`${item.name} · ${t(`console.fnb.kinds.${item.kind}`)}`}</Text>
-          </Inline>
-          {canManage ? <DishPhoto venueId={venueId} item={item} /> : null}
-          <Switch label={item.isAvailable ? t('console.fnb.onOffer') : t('console.fnb.offMenu')} isOn={item.isAvailable}
-            isDisabled={saveItem.isPending} onChange={(isOn) => void toggle(item, isOn)} />
-        </Inline>
+    <Stack gap={6}>
+      {groups.map((group) => (
+        <Stack key={group.kind} gap={3}>
+          <Heading level={3}>{t(`console.fnb.kinds.${group.kind}`)}</Heading>
+          {group.items.map((item) => (
+            <ItemRow key={item.itemId} venueId={venueId} item={item} canManage={canManage} isSaving={saveItem.isPending} onToggle={(each, isOn) => void toggle(each, isOn)} />
+          ))}
+        </Stack>
       ))}
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
     </Stack>
   );
 }
 
-/** Glaza's menu as the tables see it: each item on offer or off the menu, and a new item at the end; with `canManage` (fnb.manage), each dish's photo. */
+/**
+ * Glaza's menu as the tables see it: each item under its kind (#799), on offer or off the menu, and a new item at the end;
+ * with `canManage` (fnb.manage), each dish's photo.
+ */
 export function MenuItems({ venueId, canManage }: { venueId: string; canManage: boolean }) {
   const items = useFnbItems(venueId);
   if (items.data === undefined) return <LoadState isError={items.isError} onRetry={() => void items.refetch()} />;
   return (
-    <Stack gap={3}>
+    <Stack gap={6}>
       <Heading level={2}>{t('console.fnb.items')}</Heading>
       <ItemSwitches venueId={venueId} items={items.data} canManage={canManage} />
       <AddItem venueId={venueId} next={(items.data.at(-1)?.position ?? 0) + 1} />

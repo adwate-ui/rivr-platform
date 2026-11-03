@@ -5664,6 +5664,9 @@ isOneToOne: false
 "save_fnb_item":
 { Args: { "p_is_available": boolean,"p_item_id"?: string,"p_kind": Database["public"]['Enums']["fnb_item_kind"],"p_name": string,"p_position": number,"p_venue_id": string }; Returns: string
                            },
+"save_fnb_menu":
+{ Args: { "p_items": Json,"p_venue_id": string }; Returns: number
+                           },
 "save_league_season":
 { Args: { "p_first_month": string,"p_last_month": string,"p_name": string,"p_season_id"?: string,"p_venue_id": string }; Returns: string
                            },
