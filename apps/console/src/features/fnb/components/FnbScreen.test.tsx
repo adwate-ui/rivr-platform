@@ -69,18 +69,13 @@ function renderAs(role: string, tab: string | undefined = undefined, reads: Reco
 
 const WAIT = { timeout: 5000 };
 
-/** The lane headed `title`: the list under its heading. */
-function lane(title: string) {
-  const heading = screen.getByRole('heading', { name: title });
-  const section = heading.closest('section');
-  if (section === null) throw new Error(`No lane ${title}`);
-  return within(section);
-}
+/** The lane named `title`, a region of its own. */
+const lane = (title: string) => within(screen.getByRole('region', { name: title }));
 
 describe('Food and drink (console v3)', () => {
   it('lays tonight\'s orders out in three lanes, each with its count, and leaves void orders out', async () => {
     renderAs('service');
-    expect(await screen.findByRole('heading', { name: 'To accept' }, WAIT)).toBeDefined();
+    expect(await screen.findByRole('region', { name: 'To accept' }, WAIT)).toBeDefined();
     expect(lane('To accept').getByText('KOT 4')).toBeDefined();
     expect(lane('To accept').getByRole('button', { name: 'Accept KOT 4' })).toBeDefined();
     expect(lane('Being prepared').getByRole('button', { name: 'Mark KOT 2 delivered' })).toBeDefined();
@@ -102,7 +97,7 @@ describe('Food and drink (console v3)', () => {
 
   it('gives Service, who read no members, serving alone: no new order, and no marking a KOT handed over', async () => {
     renderAs('service');
-    expect(await screen.findByRole('heading', { name: 'To accept' }, WAIT)).toBeDefined();
+    expect(await screen.findByRole('region', { name: 'To accept' }, WAIT)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'New order' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Print KOT 4' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'KOT 4: bar has it' })).toBeNull();
@@ -128,13 +123,13 @@ describe('Food and drink (console v3)', () => {
   it('keeps the menu on its own tab', async () => {
     renderAs('admin', 'menu', { ...READS, '/rest/v1/fnb_item': [{ id: 'chai', name: 'Masala chai', kind: 'soft_drink', is_available: true, position: 1, photo_path: null }] });
     expect(await screen.findByRole('heading', { name: 'Menu from a CSV' }, WAIT)).toBeDefined();
-    expect(screen.queryByRole('heading', { name: 'To accept' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'To accept' })).toBeNull();
     expect(screen.getByRole('link', { name: 'Menu' }).getAttribute('aria-current')).toBe('page');
   });
 
   it('opens the orders for a tab it does not know', async () => {
     renderAs('service', 'kitchen');
-    expect(await screen.findByRole('heading', { name: 'To accept' }, WAIT)).toBeDefined();
+    expect(await screen.findByRole('region', { name: 'To accept' }, WAIT)).toBeDefined();
   });
 
   it('says tonight\'s orders did not load, with Try again', async () => {

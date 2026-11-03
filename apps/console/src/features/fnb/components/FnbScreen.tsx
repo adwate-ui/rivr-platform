@@ -1,7 +1,7 @@
 import { useStaffVenue } from '@rivr/db';
 import { useFnbOrdersTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Button, Screen, Stack, StatusMessage, Tabs } from '@rivr/ui';
+import { Button, Inline, Screen, Stack, StatusMessage, Tabs } from '@rivr/ui';
 import { useState } from 'react';
 import { MenuCsvImport } from './MenuCsvImport.tsx';
 import { MenuItems } from './MenuItems.tsx';
@@ -71,11 +71,12 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
       ? <Screen title={title} actions={action} status="error" onRetry={() => void orders.refetch()} />
       : <Screen title={title} actions={action} status="loading" loadingLook="rows" />;
   }
+  // What was sent is said beside New order, where it was asked for, and takes no line above the lanes while empty.
+  const sent = <StatusMessage>{newOrder.sentKot === null ? null : t('console.fnb.sent', { kot: newOrder.sentKot })}</StatusMessage>;
   return (
-    <Screen title={title} actions={action}>
+    <Screen title={title} actions={action === undefined ? undefined : <Inline gap={4} align="center" wrap>{sent}{action}</Inline>}>
       <Stack gap={6}>
         {tabs}
-        <StatusMessage>{newOrder.sentKot === null ? null : t('console.fnb.sent', { kot: newOrder.sentKot })}</StatusMessage>
         {tab === 'menu' ? <MenuTab access={access} /> : <OrderBoard venueId={access.venueId} orders={orders.data ?? []} canMarkSent={access.canManage} />}
       </Stack>
       {access.canOrder ? (

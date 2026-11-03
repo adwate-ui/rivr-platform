@@ -54,7 +54,7 @@ test.describe('F&B', () => {
     // The Service role (#640): the steward lands on food and drink, with nothing else, and serves the order.
     const steward = await browser.newPage();
     await signInToConsole(steward, '9000000790');
-    await expect(steward.getByRole('heading', { name: 'To accept' })).toBeVisible();
+    await expect(steward.getByRole('region', { name: 'To accept' })).toBeVisible();
     await expect(steward.getByRole('link', { name: 'Live floor' })).toHaveCount(0);
     await expect(steward.getByRole('button', { name: 'New order' })).toHaveCount(0);
     // His order's card on the To accept lane: its Accept names its KOT.
@@ -85,7 +85,7 @@ test.describe('F&B', () => {
 
     // No agent ran, so the bar printer failed nothing: neither KOT is flagged. The flag's states are proved in pgTAP.
     await page.getByRole('link', { name: 'Food and drink' }).click();
-    await expect(page.getByRole('heading', { name: 'To accept' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'To accept' })).toBeVisible();
     await expect(page.getByText('1 × Fresh lime soda').first()).toBeVisible();
     for (const kot of [fromApp, fromTablet]) await expect(page.getByRole('button', { name: `Print KOT ${kot}` })).toHaveCount(0);
 
@@ -109,7 +109,7 @@ test.describe('F&B', () => {
 
     await page.getByRole('link', { name: 'Menu', exact: true }).click();
     // The menu (#799): each item under its kind, by its name alone; and from a CSV, every line shown before it is saved.
-    for (const kind of ['Food', 'Soft drinks', 'Bar']) await expect(page.getByRole('heading', { name: kind, level: 3, exact: true })).toBeVisible();
+    for (const kind of ['Food', 'Soft drinks', 'Bar']) await expect(page.getByRole('heading', { name: kind, level: 2, exact: true })).toBeVisible();
     await expect(page.getByText('Masala chai · Soft drink')).toHaveCount(0);
     const picker = page.locator('input[type="file"][accept=".csv,text/csv"]');
     const csv = (text: string) => ({ name: 'menu.csv', mimeType: 'text/csv', buffer: Buffer.from(text) });

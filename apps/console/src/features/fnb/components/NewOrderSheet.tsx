@@ -17,7 +17,7 @@ function MenuSteppers({ menu, counts, onChange }: MenuStepperProps) {
   return (
     <Stack gap={2} divided>
       {menu.data.map((item) => (
-        <QuantityStepper key={item.itemId} label={item.name} value={counts[item.itemId] ?? 0} onChange={(quantity) => onChange(item.itemId, quantity)} />
+        <QuantityStepper key={item.itemId} look="console" label={item.name} value={counts[item.itemId] ?? 0} onChange={(quantity) => onChange(item.itemId, quantity)} />
       ))}
     </Stack>
   );
@@ -69,7 +69,7 @@ export function NewOrderSheet({ venueId, isOpen, canComp, onClose, onSent }: New
   };
   const footer = (
     <Inline gap={2} justify="end">
-      <Button variant="text" onClick={onClose}>{t('console.fnb.cancel')}</Button>
+      <Button variant="text" size="compact" onClick={onClose}>{t('console.fnb.cancel')}</Button>
       <Button variant="primary" size="compact" isDisabled={draft.seat === null || draft.lines.length === 0} isLoading={order.isPending}
         onClick={() => void send()}>{t('console.fnb.send')}</Button>
     </Inline>
@@ -79,7 +79,7 @@ export function NewOrderSheet({ venueId, isOpen, canComp, onClose, onSent }: New
       <Stack gap={6}>
         <OrderSeatPicker venueId={venueId} tableId={draft.tableId} seat={draft.seat} onTable={draft.chooseTable} onSeat={draft.chooseSeat} />
         <Stack gap={2}>
-          <Text variant="caption" tone="muted">{t('console.fnb.orderItems')}</Text>
+          <Text variant="label">{t('console.fnb.orderItems')}</Text>
           <MenuSteppers menu={menu} counts={draft.counts} onChange={draft.count} />
         </Stack>
         {canComp ? <Switch label={t('console.fnb.isComp')} isOn={draft.isComp} onChange={draft.comp} /> : null}

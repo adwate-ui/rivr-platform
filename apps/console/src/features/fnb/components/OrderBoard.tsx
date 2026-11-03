@@ -1,7 +1,7 @@
 import { useServeFnbOrder, type FnbFailure, type FnbOrderTonight } from '@rivr/db/fnb';
 import { formatNumber, t } from '@rivr/i18n';
-import { Box, ErrorMessage, Grid, Heading, Inline, Stack, Text } from '@rivr/ui';
-import { useId, useState } from 'react';
+import { Box, ErrorMessage, Grid, Inline, Stack, Text } from '@rivr/ui';
+import { useState } from 'react';
 import { OrderCard, type Act } from './OrderCard.tsx';
 import { ORDER_LANES, ordersByLane, type OrderLane } from './orderLanes.ts';
 
@@ -14,14 +14,17 @@ interface LaneProps {
   canMarkSent: boolean;
 }
 
-/** One lane: its name and count, then its orders oldest first, or that it has none. */
+/**
+ * One lane, a region named for it: its name as the prototype's small capitals and its count, then its orders oldest first,
+ * or that it has none.
+ */
 function Lane({ venueId, lane, orders, serve, act, canMarkSent }: LaneProps) {
-  const headingId = useId();
+  const name = t(`console.fnb.${lane}`);
   return (
-    <Box as="section" aria-labelledby={headingId}>
+    <Box as="section" aria-label={name}>
       <Stack gap={3}>
         <Inline gap={3} align="center" justify="between">
-          <Heading level={2} variant="subsection" id={headingId}>{t(`console.fnb.${lane}`)}</Heading>
+          <Text variant="eyebrow" tone="muted">{name}</Text>
           <Text variant="caption" tone="muted" isTabular>{formatNumber(orders.length)}</Text>
         </Inline>
         {orders.length === 0 ? <Text variant="small" tone="muted">{t('console.fnb.laneEmpty')}</Text> : orders.map((order) => (

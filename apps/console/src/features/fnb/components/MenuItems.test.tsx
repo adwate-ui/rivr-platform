@@ -37,7 +37,7 @@ function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
 describe('MenuItems', () => {
   it('sets each item under its kind, food first, with the name alone', async () => {
     renderMenu(false, [CHAI, SANDWICH, BEER]);
-    const headings = await screen.findAllByRole('heading', { level: 3 }, { timeout: 5000 });
+    const headings = await screen.findAllByRole('heading', { level: 2 }, { timeout: 5000 });
     expect(headings.map((heading) => heading.textContent)).toEqual(['Food', 'Soft drinks', 'Bar']);
     expect(screen.getByText('Club sandwich', { exact: true })).toBeDefined();
     expect(screen.getByText('Masala chai', { exact: true })).toBeDefined();

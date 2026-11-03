@@ -111,7 +111,6 @@ export const consoleFnb = {
   cancel: 'Cancel',
   send: 'Send to the bar',
   sent: 'Sent to the bar: KOT {kot}.',
-  items: 'Menu',
   itemName: 'Item',
   kind: 'Kind',
   /** The menu's kinds and its sections, as the app names them (#799). */
