@@ -10,7 +10,7 @@ import { cx } from '../internal/classes.ts';
  * the page. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection' | 'serif';
+export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection' | 'card' | 'serif';
 
 /** The display face's sizes for `serif`, the player redesign's titles (decision 0320): a screen's is 36, a sheet's 32. */
 export type SerifSize = 28 | 32 | 36 | 40 | 44 | 48;
@@ -50,6 +50,8 @@ const VARIANT: Record<HeadingVariant, string> = {
   title: 'font-text text-24 leading-snug font-medium',
   section: 'font-text text-20 leading-snug font-semibold',
   subsection: 'font-text text-16 leading-snug font-semibold',
+  // A console card's or tile's name (console v3): the console's 15 px body, in semibold.
+  card: 'font-text text-15 leading-snug font-semibold',
   serif: 'font-display leading-tight font-regular',
 };
 

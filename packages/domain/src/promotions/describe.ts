@@ -92,3 +92,19 @@ export function describePromotion(promo: Terms, names: PromotionNames = {}): str
   return `${rewardText(promo.reward, names)}, for ${whoText(promo.eligibility, names)}, ${whenText(schedule)}. ${limitsText(promo.limits)}. `
     + `Starts ${dateText(schedule.startsOn)}, ${ends}.`;
 }
+
+// The room a card has for each line, as public.promotion holds them.
+const CARD_DETAIL = 200;
+const CARD_RUNS = 120;
+const fit = (text: string, room: number) => (text.length <= room ? text : `${text.slice(0, room - 1)}…`);
+
+/**
+ * A card's two lines, saved with the version for Home, the TVs, the website and WhatsApp: what it gives, and for whom
+ * and when. "20% buy-in bonus, up to 2,000" and "NLH 100/200 · Tue 20:00–02:00".
+ */
+export function cardWords(promo: Terms, names: PromotionNames = {}): { readonly detail: string; readonly runs: string } {
+  return {
+    detail: fit(rewardText(promo.reward, names), CARD_DETAIL),
+    runs: fit(`${whoText(promo.eligibility, names)} · ${whenText(promo.schedule)}`, CARD_RUNS),
+  };
+}

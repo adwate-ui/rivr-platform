@@ -220,15 +220,23 @@ export function useWaitlistBoard(venueId: string) {
   });
 }
 
-/** The floor adds a member found by their mobile number to a table's list (decision 0433), or takes a place off a list. Both reload the board. */
+/** Who the floor adds to a list: by mobile number, or by membership number (console v3). */
+export type FloorWaitlistWho = { readonly phone: string } | { readonly memberNumber: number };
+
+/**
+ * The floor adds a member found by their mobile number or membership number to a table's list (decision 0433), or takes a
+ * place off a list. Both reload the board.
+ */
 export function useFloorWaitlistActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
   const add = useMutation({
-    mutationFn: async (entry: { tableId: string; phone: string; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
+    mutationFn: async (entry: { tableId: string; who: FloorWaitlistWho; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
+      // A blank mobile counts as none in the database, so a membership number goes with an empty one.
       const { data, error } = await client.rpc('add_to_waitlist', {
-        p_table_id: entry.tableId, p_phone: entry.phone, p_idempotency_key: entry.requestId,
+        p_table_id: entry.tableId, p_idempotency_key: entry.requestId,
+        ...('phone' in entry.who ? { p_phone: entry.who.phone } : { p_phone: '', p_member_number: entry.who.memberNumber }),
       });
       await reload();
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);

@@ -91,6 +91,8 @@ export const promotionTermsSchema = z.strictObject({
   channels: channelsSchema,
   // The rules on the website, one a line (decision 0283).
   rulesText: z.array(z.string().trim().min(1).max(200)).max(12),
+  // The card's link (#776): a plain https address, so the host the approver reads is the one the card opens.
+  link: z.string().max(500).regex(/^https:\/\/[A-Za-z0-9.-]+(:[0-9]{1,5})?([/?#][!-~]*)?$/).optional(),
 });
 export type PromotionTerms = z.infer<typeof promotionTermsSchema>;
 
@@ -144,3 +146,11 @@ export const promotionSimulationSchema = z.strictObject({
   isBudgetReached: z.boolean(),
 });
 export type PromotionSimulationResult = z.infer<typeof promotionSimulationSchema>;
+
+/** Last week replayed for a version (`promotion_version_replay`): its seven whole club days, and each event with its member. */
+export const promotionVersionReplaySchema = z.strictObject({
+  from: z.iso.datetime({ offset: true }),
+  to: z.iso.datetime({ offset: true }),
+  events: z.array(z.strictObject({ event: promotionEventSchema, member: memberFactsSchema })),
+});
+export type PromotionVersionReplay = z.infer<typeof promotionVersionReplaySchema>;

@@ -44,7 +44,7 @@ interface TickProps {
 }
 
 /** A native checkbox in the gold; the label round it takes the tap, 44 px each way below 1180 px (decision 0282). */
-function Tick({ label, isChecked, isMixed, onChange }: TickProps) {
+export function Tick({ label, isChecked, isMixed, onChange }: TickProps) {
   return (
     <label className="flex min-h-touch min-w-touch cursor-pointer items-center justify-center tablet:min-h-0 tablet:min-w-0">
       <input type="checkbox" aria-label={label} checked={isChecked} onChange={onChange}
