@@ -172,6 +172,13 @@ export {
   type ConsolePromotion, type PromotionAwaitingApproval, type PromotionFailure, type PromotionSentBack, type PromotionSimulationResult, type PromotionStake,
   type PromotionBudget, type PromotionToSubmit, type SimulationFailure, type TemplateSubmission,
 } from './promotions.ts';
+export {
+  approverViewOf, useMemberPromotionGrants, usePromotionsOverview, usePromotionVersions,
+  type ApproverView, type MemberPromotionGrant, type PromotionOverview, type PromotionsOverview, type PromotionVersionView,
+} from './promotionVersions.ts';
+export {
+  usePromotionVersionActions, type DraftToSave, type PromotionVersionFailure, type SimulationRun,
+} from './promotionVersionActions.ts';
 export { useOnboardingChecklist, type OnboardingItem } from './onboarding.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';
 export {

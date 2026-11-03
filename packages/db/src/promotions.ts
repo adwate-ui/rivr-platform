@@ -133,8 +133,14 @@ export function usePromotions(venueId: string) {
   });
 }
 
-/** The templates for what no console runs since decision 0284: the bad-beat jackpot and the Tuesday buy-in bonus (UI polish Q8). */
-const HIDDEN_TEMPLATES = ['bad_beat', 'tuesday_bonus'];
+/**
+ * The templates for what no console runs since decision 0284: the bad-beat jackpot and the Tuesday buy-in bonus (UI polish Q8);
+ * and those that run in versions (decision 0461), which the old builder's submit refuses until the console moves to versions.
+ */
+const HIDDEN_TEMPLATES = [
+  'bad_beat', 'tuesday_bonus', 'referral', 'graduate_first_buy_in', 'founders_priority', 'cab', 'hours_bonus', 'graduate_freeroll', 'spin_wheel',
+  'double_points', 'triple_points',
+];
 
 /** The venue's draft templates, every scheme in the deck not yet published (#85), by name. */
 export function usePromotionTemplates(venueId: string) {

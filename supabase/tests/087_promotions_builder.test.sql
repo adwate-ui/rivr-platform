@@ -47,7 +47,7 @@ select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-0000
   'a rule the engine does not know is refused');
 select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body - 'rule' from flow7)) $$, '22023', null,
   'so is a promotion without its rule');
-select is((select count(*)::integer from public.promotion where name = 'Double points'), 1, 'and nothing is left of either');
+select is((select count(*)::integer from public.promotion where name = 'Double points' and template_key is null), 1, 'and nothing is left of either');
 
 -- Paused and resumed by its status: nothing is given while paused.
 reset role;
