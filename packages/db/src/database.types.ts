@@ -2079,6 +2079,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"live_status_device": {
+                  Row: {
+                    "activity_push_token": string | null,"created_at": string,"device_key_hash": string,"id": string,"member_id": string,"platform": string,"push_token": string,"shown": string | null,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "activity_push_token"?: string | null,"created_at"?: string,"device_key_hash": string,"id"?: string,"member_id": string,"platform": string,"push_token": string,"shown"?: string | null,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "activity_push_token"?: string | null,"created_at"?: string,"device_key_hash"?: string,"id"?: string,"member_id"?: string,"platform"?: string,"push_token"?: string,"shown"?: string | null,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "live_status_device_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"marker": {
                   Row: {
                     "amount_paise": number,"created_at": string,"due_at": string,"id": string,"idempotency_key": string,"issued_at": string,"issued_by_staff_id": string | null,"ledger_transaction_id": string,"member_id": string,"outstanding_paise": number,"session_id": string | null,"settled_at": string | null,"signature_svg": string,"updated_at": string,"venue_id": string
@@ -4941,6 +4961,9 @@ isOneToOne: false
               "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"source": string,"table_name": string
             }[]
                            },
+"forget_live_status_device":
+{ Args: { "p_device_id": string }; Returns: undefined
+                           },
 "forget_push_subscription":
 { Args: { "p_endpoint": string }; Returns: undefined
                            },
@@ -5068,6 +5091,11 @@ isOneToOne: false
 "live_purge_preview":
 { Args: { "p_venue_id": string }; Returns: {
               "current_rows": number,"table_name": string
+            }[]
+                           },
+"live_status_targets":
+{ Args: { "p_member_id": string,"p_table_type_id"?: string,"p_venue_id": string }; Returns: {
+              "activity_push_token": string,"can_order": boolean,"device_id": string,"ends_at": string,"entry_id": string,"game": string,"member_id": string,"place": number,"platform": string,"push_token": string,"seat": number,"shown": string,"starts_at": string,"state": string,"table_name": string
             }[]
                            },
 "log_hand":
@@ -5310,6 +5338,9 @@ isOneToOne: false
 "note_kyc_vendor_failure":
 { Args: { "p_member_id": string,"p_reason": string,"p_step": string }; Returns: undefined
                            },
+"note_live_status_shown":
+{ Args: { "p_device_id": string,"p_shown": string }; Returns: undefined
+                           },
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
                            },
@@ -5540,6 +5571,9 @@ isOneToOne: false
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
                            },
+"remove_live_status_device":
+{ Args: { "p_token": string }; Returns: undefined
+                           },
 "remove_payout_account":
 { Args: { "p_account_id": string }; Returns: undefined
                            },
@@ -5562,6 +5596,9 @@ isOneToOne: false
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_member_id": string,"p_method": string,"p_utr": string,"p_venue_id": string }; Returns: {
               "o_cage_transaction_id": string,"o_settled_paise": number
             }[]
+                           },
+"report_live_status_token":
+{ Args: { "p_activity_token"?: string,"p_device_key": string,"p_token"?: string }; Returns: undefined
                            },
 "request_buy_in":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string
@@ -5637,6 +5674,9 @@ isOneToOne: false
                            },
 "save_league_season":
 { Args: { "p_first_month": string,"p_last_month": string,"p_name": string,"p_season_id"?: string,"p_venue_id": string }; Returns: string
+                           },
+"save_live_status_device":
+{ Args: { "p_device_key"?: string,"p_platform": string,"p_token": string }; Returns: string
                            },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined

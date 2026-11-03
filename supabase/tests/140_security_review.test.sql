@@ -110,7 +110,10 @@ select is_empty($$
       -- Reviewed as safe in #129: a website draft's preview token, which shows only that unpublished draft.
       'preview_token',
       -- Reviewed as safe in #627: the ids of the sessions a member hid from their own list.
-      'hidden_sessions')
+      'hidden_sessions',
+      -- Reviewed as safe in #779: a phone's push addresses for the live status, which reach it only with the club's own
+      -- Apple and Firebase keys (function secrets). The phone's own key is kept as a hash, which never goes.
+      'push_token', 'activity_push_token')
 $$, 'no column that may hold a secret reaches the export archive unreviewed');
 
 select * from finish();
