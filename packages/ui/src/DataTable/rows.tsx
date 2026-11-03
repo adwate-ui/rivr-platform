@@ -6,7 +6,7 @@ import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import type { DataTableColumn, DataTableSort } from './DataTable.tsx';
 import { textOf } from './DataTableExport.tsx';
-import { DetailRow, placesOf } from './DetailRow.tsx';
+import { OpenedRow, placesOf } from './OpenedRow.tsx';
 import { TickCell, TickHeader, type Ticks } from './Selection.tsx';
 
 // A line's height from 768 px, below 1180 px, where a row stays a 44 px target (decision 0282).
@@ -282,7 +282,7 @@ export function PlainBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onScr
       {rows.map((row, at) => (
         <Fragment key={rowKey(row)}>
           <BodyRow row={row} id={rowKey(row)} columns={columns} index={places[at] ?? at} layout={layout} onRowOpen={onRowOpen} />
-          {details[at] === null ? null : <DetailRow index={(places[at] ?? at) + 1} columns={columns.length + (layout.ticks === null ? 0 : 1)}>{details[at]}</DetailRow>}
+          {details[at] === null ? null : <OpenedRow index={(places[at] ?? at) + 1} columns={columns.length + (layout.ticks === null ? 0 : 1)}>{details[at]}</OpenedRow>}
         </Fragment>
       ))}
     </div>

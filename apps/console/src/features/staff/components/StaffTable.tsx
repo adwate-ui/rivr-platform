@@ -45,7 +45,7 @@ function RoleFilter({ members, role, onChange }: { members: readonly StaffMember
     ...held.map((one) => ({ value: one, label: roleName(one), count: members.filter((member) => member.role === one).length })),
   ];
   return (
-    <ChoiceChips label={t('console.staff.role')} isLabelVisuallyHidden mode="one" look="subtle" selected={[role]} options={options}
+    <ChoiceChips label={t('console.staff.roleFilter')} isLabelVisuallyHidden mode="one" look="subtle" selected={[role]} options={options}
       onChange={(chosen) => onChange(chosen[0] ?? ALL)} />
   );
 }

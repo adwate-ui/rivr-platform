@@ -31,7 +31,8 @@ const stateOf = () => sql(`select active || ' ' || is_open || ' ' || (deleted_at
 
 /** A place waiting on the table's own list, for a member this flow adds; its id. */
 function placeOnList(): string {
-  return sql(`with m as (insert into public.member (venue_id, full_name, phone) values ('${CLUB}', 'Lifecycle Waiter', null) returning id)
+  const phone = `+9170${String(Date.now()).slice(-8)}`;
+  return sql(`with m as (insert into public.member (venue_id, full_name, phone) values ('${CLUB}', 'Lifecycle Waiter', '${phone}') returning id)
     insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key)
     select '${CLUB}', m.id, g.table_type_id, g.id, gen_random_uuid() from m, public.game_table g where g.venue_id = '${CLUB}' and g.name = '${TABLE}'
     returning id`).split('\n')[0] ?? '';

@@ -45,7 +45,7 @@ describe('Dealer PINs as a table (console v3)', () => {
     expect(within(table).getByText('No PIN yet')).toBeDefined();
     expect(within(table).getByText('PIN set')).toBeDefined();
     expect(within(table).getByRole('button', { name: 'Set PIN for Bhavna Rawat' }).textContent).toBe('Set PIN');
-    expect(within(table).getByRole('button', { name: 'Set PIN for Manoj Thapa' }).textContent).toBe('Change');
+    expect(within(table).getByRole('button', { name: 'Change PIN for Manoj Thapa' }).textContent).toBe('Change');
     expect(screen.queryByLabelText('New PIN for Bhavna Rawat')).toBeNull();
   });
 

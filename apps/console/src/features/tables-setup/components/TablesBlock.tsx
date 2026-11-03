@@ -23,7 +23,7 @@ interface TablesBlockProps {
 }
 
 /** The tables' columns: name, stake, seats and status, then the table's actions. */
-function tableColumns(props: TablesBlockProps & { onChange: (table: SetupTable) => void; onOutcome: (outcome: TableOutcome) => void }) {
+function tableColumns(props: TablesBlockProps & { open: string | null; onChange: (table: SetupTable) => void; onOutcome: (outcome: TableOutcome) => void }) {
   const stakeName = (table: SetupTable) => props.stakes.find((stake) => stake.id === table.stakeId)?.name ?? '';
   const columns: readonly DataTableColumn<SetupTable>[] = [
     { key: 'name', header: t('console.tablesSetup.name'), cell: (table) => table.name, sortValue: (table) => table.name, priority: 'primary' },
@@ -32,7 +32,9 @@ function tableColumns(props: TablesBlockProps & { onChange: (table: SetupTable) 
     { key: 'status', header: t('console.tablesSetup.statusColumn'), cell: statusOf, isWide: true },
     {
       key: 'actions', header: '', isWide: true, align: 'end',
-      cell: (table) => <TableActions venueId={props.venueId} table={table} onChange={() => props.onChange(table)} onOutcome={props.onOutcome} />,
+      cell: (table) => (
+        <TableActions venueId={props.venueId} table={table} isOpen={props.open === table.id} onChange={() => props.onChange(table)} onOutcome={props.onOutcome} />
+      ),
     },
   ];
   return columns;
@@ -50,13 +52,13 @@ export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
     <TableForm key={table?.id ?? NEW} venueId={venueId} stakes={stakes} table={table} onCancel={() => setOpen(null)}
       onSaved={(text) => { setOpen(null); setOutcome({ ok: true, text }); }} />
   );
-  const columns = tableColumns({ venueId, stakes, tables, onChange: (table) => toggle(table.id), onOutcome: setOutcome });
+  const columns = tableColumns({ venueId, stakes, tables, open, onChange: (table) => toggle(table.id), onOutcome: setOutcome });
   return (
     <Stack gap={4}>
       <Inline justify="between" gap={4}>
         <Heading level={2} variant="section">{t('console.tablesSetup.tables')}</Heading>
         {/* A table needs a stake: until there is one, New stake is the way in. */}
-        {stakes.length === 0 ? null : <Button variant="subtle" size="compact" onClick={() => toggle(NEW)}>{t('console.tablesSetup.newTable')}</Button>}
+        {stakes.length === 0 ? null : <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newTable')}</Button>}
       </Inline>
       {open === NEW ? form(null) : null}
       <DataTable label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} rowKey={(table) => table.id}

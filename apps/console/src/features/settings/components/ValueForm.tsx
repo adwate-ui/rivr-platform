@@ -1,7 +1,7 @@
 import { useSettingActions, type SettingFailure, type SettingValue, type VenueSetting } from '@rivr/db';
 import { isLaterIstDay, istMidnight, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver, type UseFormReturn } from 'react-hook-form';
 import { FieldInput } from './FieldInput.tsx';
 import { settingFailureText } from './settingsCopy.ts';
@@ -73,11 +73,23 @@ function SettingFields({ form, setting, tiers, onEdit }: { form: Form; setting: 
   );
 }
 
+/** Where a row's errors go: under the row, by id, so the row's controls stay on one line (console v3). */
+interface RowNotes {
+  readonly date: string;
+  readonly reason: string;
+}
+
+/** A field's error, in the panel, under the field; in a row, under the row and pointed at, so the row stays one line. */
+function errorProps(isWrong: boolean, text: string, noteId: string | undefined) {
+  if (noteId === undefined) return { error: isWrong ? text : undefined };
+  return { 'aria-describedby': isWrong ? noteId : undefined, 'aria-invalid': isWrong || undefined };
+}
+
 /** When the change takes effect: now, or from a later day; in a row, the day beside the choice. */
-function WhenField({ form, isRow = false }: { form: Form; isRow?: boolean }) {
+function WhenField({ form, noteId }: { form: Form; noteId?: string | undefined }) {
   const when = useWatch({ control: form.control, name: 'when' });
   const date = form.register('date');
-  const Layout = isRow ? WhenRow : WhenStack;
+  const Layout = noteId === undefined ? WhenStack : WhenRow;
   return (
     <Layout>
       <Controller control={form.control} name="when" render={({ field }) => (
@@ -86,7 +98,8 @@ function WhenField({ form, isRow = false }: { form: Form; isRow?: boolean }) {
           onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
       )} />
       {when === 'date' ? (
-        <Input {...date} type="date" label={t('console.settings.date')} error={form.formState.errors.date ? t('console.settings.invalidDate') : undefined} />
+        <Input {...date} type="date" label={t('console.settings.date')}
+          {...errorProps(form.formState.errors.date !== undefined, t('console.settings.invalidDate'), noteId)} />
       ) : null}
     </Layout>
   );
@@ -126,11 +139,11 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers, look = 'p
     if (done.ok) form.setValue('reason', '');
   });
   const reason = form.register('reason', { onChange: () => setOutcome(null) });
-  const hasReasonError = form.formState.errors.reason !== undefined;
-  // In a row the reason's error goes under the row, so the row's controls stay on one line.
+  const notes = { date: useId(), reason: useId() };
+  const rowNotes = look === 'row' ? notes : undefined;
   const reasonField = (
     <Input {...reason} label={t('console.settings.reason')} maxLength={200}
-      error={look === 'panel' && hasReasonError ? t('console.settings.invalidReason') : undefined} />
+      {...errorProps(form.formState.errors.reason !== undefined, t('console.settings.invalidReason'), rowNotes?.reason)} />
   );
   const save = <Button variant="primary" isLoading={schedule.isPending} onClick={() => void submit()}>{t('console.settings.schedule')}</Button>;
   return (
@@ -138,23 +151,34 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers, look = 'p
       {look === 'panel' ? <Heading level={3}>{t('console.settings.newValue')}</Heading> : null}
       <SettingFields form={form} setting={setting} tiers={tiers} onEdit={() => setOutcome(null)} />
       {form.formState.errors.root?.['together'] ? <ErrorMessage>{t('console.settings.notTogether')}</ErrorMessage> : null}
-      <WhenWhySave look={look} form={form} reason={reasonField} save={save} />
-      <OutcomeLines outcome={outcome} isReasonWrong={look === 'row' && hasReasonError} />
+      <WhenWhySave notes={rowNotes} form={form} reason={reasonField} save={save} />
+      {rowNotes === undefined ? null : <RowErrors form={form} notes={rowNotes} />}
+      <OutcomeLines outcome={outcome} />
     </Stack>
   );
 }
 
 /** When, why and Save: in a row on one line, each control 44 px with their ends lined up so each sits centred on the others. */
-function WhenWhySave({ look, form, reason, save }: { look: 'panel' | 'row'; form: Form; reason: ReactNode; save: ReactNode }) {
-  if (look === 'row') return <Inline gap={4} align="end" wrap><WhenField form={form} isRow />{reason}{save}</Inline>;
+function WhenWhySave({ notes, form, reason, save }: { notes: RowNotes | undefined; form: Form; reason: ReactNode; save: ReactNode }) {
+  if (notes !== undefined) return <Inline gap={4} align="end" wrap><WhenField form={form} noteId={notes.date} />{reason}{save}</Inline>;
   return <><WhenField form={form} />{reason}<Inline gap={4}>{save}</Inline></>;
 }
 
-/** Under the form: a reason too short, said before anything is sent; then what the save did. */
-function OutcomeLines({ outcome, isReasonWrong }: { outcome: SettingFailure | 'saved' | null; isReasonWrong: boolean }) {
+/** Under a row: a day that is not a later one, and a reason too short, each said before anything is sent. */
+function RowErrors({ form, notes }: { form: Form; notes: RowNotes }) {
+  const { errors } = form.formState;
   return (
     <>
-      {isReasonWrong ? <ErrorMessage>{t('console.settings.invalidReason')}</ErrorMessage> : null}
+      {errors.date ? <ErrorMessage id={notes.date}>{t('console.settings.invalidDate')}</ErrorMessage> : null}
+      {errors.reason ? <ErrorMessage id={notes.reason}>{t('console.settings.invalidReason')}</ErrorMessage> : null}
+    </>
+  );
+}
+
+/** Under the form: what the save did. */
+function OutcomeLines({ outcome }: { outcome: SettingFailure | 'saved' | null }) {
+  return (
+    <>
       <StatusMessage>{outcome === 'saved' ? t('console.settings.saved') : null}</StatusMessage>
       {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
     </>

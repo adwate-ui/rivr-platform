@@ -102,6 +102,7 @@ export const dealerPins = {
   set: 'Set PIN',
   change: 'Change',
   setFor: 'Set PIN for {name}',
+  changeFor: 'Change PIN for {name}',
   invalid: 'A PIN is four digits, not all the same.',
   notAllowedAction: 'Your role does not allow this.',
   unavailable: 'Not sent. Try again.',

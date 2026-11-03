@@ -53,6 +53,8 @@ export function useTablesSetup(venueId: string) {
   return useQuery({
     queryKey: queryKeys.tablesSetup(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
+    // Who sits at or waits for a table changes on the floor: setup's refusals follow it within 15 seconds.
+    refetchInterval: 15_000,
     queryFn: async (): Promise<{ stakes: SetupStake[]; tables: SetupTable[] }> => {
       const [types, tables, inPlay] = await Promise.all([
         client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise').eq('venue_id', venueId)

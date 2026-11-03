@@ -56,7 +56,7 @@ function askStep(venueId: string, asked: ReturnType<typeof useShownAsk>, isFroze
 /** Step 3: the full archive, made and saved, once the other super admin has asked. */
 function archiveStep(archive: ReturnType<typeof useArchiveExport>, isTurn: boolean, isDone: boolean): Step {
   return {
-    title: t('console.purge.archiveTitle'), detail: t('console.purge.archiveHint'), state: stateOf(isDone, isTurn),
+    title: t('console.purge.archiveTitle'), detail: t('console.purge.archiveDetail'), state: stateOf(isDone, isTurn),
     action: isTurn ? undefined : waiting(t('console.exportArchive.make')), content: isTurn ? <ArchiveStep archive={archive} /> : undefined,
   };
 }

@@ -57,9 +57,11 @@ describe('notices on Home, in Settings', () => {
   it('shows the notice as members’ Home will, while it is typed', async () => {
     renderNotices();
     const preview = (await screen.findByText('On members’ Home')).parentElement;
-    expect(within(preview ?? document.body).getByRole('status').textContent).toBe('Your notice shows here.');
+    expect(within(preview ?? document.body).getByText('Your notice shows here.')).toBeDefined();
     fireEvent.change(screen.getByRole('textbox', { name: 'Notice' }), { target: { value: 'The Private Room opens at 20:00.' } });
-    expect(within(preview ?? document.body).getByRole('status').textContent).toBe('The Private Room opens at 20:00.');
+    expect(within(preview ?? document.body).getByText('The Private Room opens at 20:00.')).toBeDefined();
+    // A preview, not news: it is not read out at every keystroke.
+    expect(within(preview ?? document.body).queryByRole('status')).toBeNull();
   });
 
   it('says what to do when the notice is refused', async () => {

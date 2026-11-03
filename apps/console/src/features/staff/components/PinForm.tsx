@@ -3,7 +3,7 @@ import { dealerPinSchema } from '@rivr/contracts';
 import { useSetDealerPin, type DealerPinFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -27,16 +27,21 @@ export function PinForm({ venueId, staffId, name }: { venueId: string; staffId: 
     if (saved.ok) form.reset();
   });
   const pinField = form.register('pin', { onChange: () => setIsSaved(false) });
+  // The rule, or what is wrong, sits under the row and is read with the field.
+  const noteId = useId();
+  const isWrong = form.formState.errors.pin !== undefined;
   return (
     <Stack gap={2}>
       {/* The field and Save the same 44 px, ends on one line, so Save sits centred on the field; the rule under them both. */}
       <Inline gap={3} align="end" wrap>
-        <Input {...pinField} type="password" inputMode="numeric" maxLength={4} autoComplete="off" label={t('console.dealerPins.pin', { name })} />
+        <Input {...pinField} type="password" inputMode="numeric" maxLength={4} autoComplete="off" label={t('console.dealerPins.pin', { name })}
+          aria-describedby={noteId} aria-invalid={isWrong || undefined} />
         <Button variant="primary" aria-label={t('console.dealerPins.save', { name })} isLoading={setPin.isPending} onClick={() => void submit()}>
           {t('console.dealerPins.saveShort')}
         </Button>
       </Inline>
-      {form.formState.errors.pin ? <ErrorMessage>{t('console.dealerPins.invalid')}</ErrorMessage> : <Text variant="small" tone="muted">{t('console.dealerPins.pinHint')}</Text>}
+      {isWrong ? <ErrorMessage id={noteId}>{t('console.dealerPins.invalid')}</ErrorMessage>
+        : <Text id={noteId} variant="small" tone="muted">{t('console.dealerPins.pinHint')}</Text>}
       <StatusMessage>{isSaved ? t('console.dealerPins.saved', { name }) : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>

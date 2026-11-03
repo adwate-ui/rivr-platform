@@ -55,7 +55,7 @@ describe('StaffTable', () => {
 
   it('narrows the table by role, each role someone holds a chip with its count, and back with All', () => {
     renderTable();
-    const roles = screen.getByRole('radiogroup', { name: 'Role' });
+    const roles = screen.getByRole('radiogroup', { name: 'Staff by role' });
     expect(Array.from(roles.querySelectorAll('[role="radio"]'), (chip) => chip.textContent)).toEqual(['All3', 'Admin1', 'Cashier1', 'Dealer1']);
     fireEvent.click(screen.getByRole('radio', { name: /^Cashier/ }));
     expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();

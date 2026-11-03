@@ -25,7 +25,7 @@ function NoticePreview({ body }: { body: string }) {
   return (
     <Stack gap={2}>
       <Text variant="eyebrow" tone="muted">{t('console.settings.notices.preview')}</Text>
-      <Banner>{body.trim() === '' ? t('console.settings.notices.previewEmpty') : body}</Banner>
+      <Banner isLive={false}>{body.trim() === '' ? t('console.settings.notices.previewEmpty') : body}</Banner>
     </Stack>
   );
 }

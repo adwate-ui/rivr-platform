@@ -17,7 +17,7 @@ export async function press(tablet: Page, keys: string[]) {
 export async function tabletAtTable3(browser: Browser, floor: Page) {
   await floor.getByRole('link', { name: 'Staff', exact: true }).click();
   await floor.getByRole('link', { name: 'Dealer PINs' }).click();
-  await floor.getByRole('button', { name: `Set PIN for ${DEALER}` }).click();
+  await floor.getByRole('button', { name: new RegExp(`^(Set|Change) PIN for ${DEALER}$`) }).click();
   await floor.getByLabel(`New PIN for ${DEALER}`).fill(PIN);
   await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
   await expect(floor.getByText(`PIN saved for ${DEALER}.`)).toBeVisible();

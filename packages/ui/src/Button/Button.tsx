@@ -33,6 +33,8 @@ interface ButtonLookProps {
   /** A fuller name for a screen reader, where the label alone repeats: `Read: Bankroll basics`. It starts with the label. */
   'aria-label'?: string;
   'aria-describedby'?: string;
+  /** For a button that opens something in place, such as a row's form (console v3): whether it is open now. */
+  'aria-expanded'?: boolean;
 }
 
 interface ActionButtonProps extends ButtonLookProps {

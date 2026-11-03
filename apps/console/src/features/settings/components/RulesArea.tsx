@@ -32,11 +32,13 @@ interface ColumnsFor {
   tierName: (id: string) => string;
   /** Whether the staff member may change a setting: a super admin's only by a super admin. */
   canChange: (setting: VenueSetting) => boolean;
+  /** The setting whose change is open in its row. */
+  changingKey: string | null;
   onChange: (setting: VenueSetting) => void;
 }
 
 /** The list's columns: name, value now, who changes it and the changes to come, then Change where the staff member may. */
-function columnsFor({ tierName, canChange, onChange }: ColumnsFor): readonly DataTableColumn<VenueSetting>[] {
+function columnsFor({ tierName, canChange, changingKey, onChange }: ColumnsFor): readonly DataTableColumn<VenueSetting>[] {
   return [
     { key: 'name', header: t('console.settings.keyColumn'), cell: (setting) => settingName(setting.key), sortValue: (setting) => settingName(setting.key) },
     { key: 'now', header: t('console.settings.nowColumn'), cell: (setting) => nowText(setting, tierName) },
@@ -46,7 +48,8 @@ function columnsFor({ tierName, canChange, onChange }: ColumnsFor): readonly Dat
     {
       key: 'change', header: '', align: 'end',
       cell: (setting) => (canChange(setting) ? (
-        <Button variant="subtle" size="small" aria-label={t('console.settings.changeName', { name: settingName(setting.key) })} onClick={() => onChange(setting)}>
+        <Button variant="subtle" size="small" aria-label={t('console.settings.changeName', { name: settingName(setting.key) })}
+          aria-expanded={changingKey === setting.key} onClick={() => onChange(setting)}>
           {t('console.settings.change')}
         </Button>
       ) : null),
@@ -67,6 +70,7 @@ export function RulesArea({ venueId, area, isSuperAdmin }: { venueId: string; ar
   const columns = columnsFor({
     tierName: (id) => tiers.find((tier) => tier.subject === id)?.label ?? id,
     canChange: (setting) => isSuperAdmin || !isSuperAdminOnly(setting.key),
+    changingKey,
     onChange: (setting) => { setOpenKey(null); setChangingKey(changingKey === setting.key ? null : setting.key); },
   });
   const open = settings.data?.settings.find((setting) => setting.key === openKey);

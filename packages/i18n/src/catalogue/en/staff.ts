@@ -16,7 +16,8 @@ export const staff = {
   login: 'Login',
   active: 'Active',
   search: 'Find staff',
-  /** The role filter (console v3): All, then each role someone holds; it is named by `role`. */
+  /** The role filter (console v3): its name, apart from the add form's Role; All, then each role someone holds. */
+  roleFilter: 'Staff by role',
   allRoles: 'All',
   addOpen: 'Add staff',
   closeFor: 'Close {name}',

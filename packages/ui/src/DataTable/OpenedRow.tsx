@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 /** What a row opened in place (console v3), under it across the table: a row of one cell spanning every column. */
-export function DetailRow({ index, columns, children }: { index: number; columns: number; children: ReactNode }) {
+export function OpenedRow({ index, columns, children }: { index: number; columns: number; children: ReactNode }) {
   return (
     <div role="row" aria-rowindex={index + 2} className="border-b border-hairline px-3 pt-1 pb-4">
       <div role="cell" aria-colspan={columns} className="min-w-0">{children}</div>

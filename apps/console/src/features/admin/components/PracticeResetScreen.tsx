@@ -66,7 +66,7 @@ function PracticeResetSteps({ staff }: { staff: Extract<StaffVenueState, { statu
         state: isPractice ? 'done' : 'current', action: switchAction,
       },
       {
-        title: t('console.practiceReset.resetTitle'), detail: t('console.practiceReset.intro'), state: isPractice ? 'current' : 'next',
+        title: t('console.practiceReset.resetTitle'), detail: t('console.practiceReset.resetDetail'), state: isPractice ? 'current' : 'next',
         action: isPractice ? undefined : <Button variant="danger" size="compact" isDisabled>{t('console.practiceReset.reset')}</Button>,
         content: isPractice ? <PracticeResetPanel venueId={staff.venue.venueId} /> : undefined,
       },

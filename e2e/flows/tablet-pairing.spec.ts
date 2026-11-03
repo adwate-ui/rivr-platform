@@ -60,7 +60,7 @@ test.describe('Dealer tablet', () => {
     // The PIN is set while the tablet waits on sign-in: its list asks again every 15 seconds, no reload.
     await floor.getByRole('link', { name: 'Staff', exact: true }).click();
     await floor.getByRole('link', { name: 'Dealer PINs' }).click();
-    await floor.getByRole('button', { name: `Set PIN for ${DEALER}` }).click();
+    await floor.getByRole('button', { name: new RegExp(`^(Set|Change) PIN for ${DEALER}$`) }).click();
     await floor.getByLabel(`New PIN for ${DEALER}`).fill('2741');
     await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
     await expect(floor.getByText(`PIN saved for ${DEALER}.`)).toBeVisible();

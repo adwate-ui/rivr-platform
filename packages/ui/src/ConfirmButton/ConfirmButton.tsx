@@ -1,6 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useEffect, useRef, useState } from 'react';
-import { Button, type ButtonSize } from '../Button/index.ts';
+import { Button, type ButtonSize, type ButtonVariant } from '../Button/index.ts';
 
 // How long the confirmation waits for its second press before it turns back.
 const ASK_FOR_MS = 5000;
@@ -16,7 +16,7 @@ export interface ConfirmButtonProps {
    * The first button's look: a text button in a list, secondary for a row's action, primary for a page's main step; on the
    * console (decision 0430), subtle for a row's action.
    */
-  variant?: 'text' | 'secondary' | 'subtle' | 'primary';
+  variant?: Extract<ButtonVariant, 'text' | 'secondary' | 'subtle' | 'primary'>;
   /** Both buttons' size: the console's `small` inside a row (decision 0430). */
   size?: ButtonSize;
   /** While the step runs: the button shows it and takes no press, so it is never sent twice. */

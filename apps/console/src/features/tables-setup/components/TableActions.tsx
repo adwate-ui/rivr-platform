@@ -12,6 +12,8 @@ export interface TableOutcome {
 interface TableActionsProps {
   venueId: string;
   table: SetupTable;
+  /** Whether the table's own form is open under its row. */
+  isOpen: boolean;
   /** Opens or closes the table's own form under its row. */
   onChange: () => void;
   onOutcome: (outcome: TableOutcome) => void;
@@ -24,7 +26,7 @@ type Action = ReturnType<typeof useTablesSetupActions>['deactivate'];
  * Reactivate, which brings it back closed; and Delete, asked twice. Deactivating or deleting a table someone sits at or
  * waits for is refused before it is sent, by @rivr/domain's rule, and the database refuses it again on its own count.
  */
-export function TableActions({ venueId, table, onChange, onOutcome }: TableActionsProps) {
+export function TableActions({ venueId, table, isOpen, onChange, onOutcome }: TableActionsProps) {
   const { deactivate, reactivate, remove } = useTablesSetupActions(venueId);
   const refusal = tableRetireRefusal({ seated: table.seated, waiting: table.waiting });
   const name = table.name;
@@ -38,7 +40,7 @@ export function TableActions({ venueId, table, onChange, onOutcome }: TableActio
   const retire = (action: Action, done: MessageKey) => (refusal === null ? void run(action, done) : refuse(refusal));
   return (
     <Inline gap={2} justify="end" wrap>
-      <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeTable', { name })} onClick={onChange}>
+      <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeTable', { name })} aria-expanded={isOpen} onClick={onChange}>
         {t('console.tablesSetup.change')}
       </Button>
       {table.isActive ? (

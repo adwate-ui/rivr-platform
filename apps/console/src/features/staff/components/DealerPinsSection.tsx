@@ -11,14 +11,15 @@ function standing(dealer: VenueDealer): string {
 }
 
 /** The columns: the dealer, where their PIN stands, and Set PIN or Change, which opens the PIN's field under the row. */
-function pinColumns(onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
+function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
   return [
     { key: 'dealer', header: t('console.dealerPins.dealer'), cell: (dealer) => dealer.fullName, sortValue: (dealer) => dealer.fullName, priority: 'primary' },
     { key: 'pin', header: t('console.dealerPins.pinColumn'), cell: standing },
     {
       key: 'set', header: '', align: 'end',
       cell: (dealer) => (
-        <Button variant="subtle" size="small" aria-label={t('console.dealerPins.setFor', { name: dealer.fullName })} onClick={() => onOpen(dealer)}>
+        <Button variant="subtle" size="small" aria-label={t(dealer.hasPin ? 'console.dealerPins.changeFor' : 'console.dealerPins.setFor', { name: dealer.fullName })}
+          aria-expanded={openId === dealer.staffId} onClick={() => onOpen(dealer)}>
           {dealer.hasPin ? t('console.dealerPins.change') : t('console.dealerPins.set')}
         </Button>
       ),
@@ -51,7 +52,7 @@ function DealerList({ venueId }: { venueId: string }) {
   if (dealers.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
   return (
     <Screen level={2} title={title}>
-      <DataTable label={title} columns={pinColumns((dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
+      <DataTable label={title} columns={pinColumns(openId, (dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
         rowKey={(dealer) => dealer.staffId} emptyText={t('console.dealerPins.empty')}
         rowDetail={(dealer) => (openId === dealer.staffId ? <PinForm venueId={venueId} staffId={dealer.staffId} name={dealer.fullName} /> : null)} />
     </Screen>

@@ -15,7 +15,7 @@ const chipsOf = (paise: bigint) => String(paise / PAISE);
 const NEW = 'new';
 
 /** The stakes' columns: name, blinds and straddle, then Change, which opens or closes the stake's form. */
-function stakeColumns(onChange: (stake: SetupStake) => void): readonly DataTableColumn<SetupStake>[] {
+function stakeColumns(open: string | null, onChange: (stake: SetupStake) => void): readonly DataTableColumn<SetupStake>[] {
   return [
     { key: 'name', header: t('console.tablesSetup.name'), cell: (stake) => stake.name, sortValue: (stake) => stake.name, priority: 'primary' },
     { key: 'blinds', header: t('console.tablesSetup.blinds'), cell: (stake) => formatStakes(stake.smallBlind, stake.bigBlind), sortValue: (stake) => Number(stake.bigBlind), align: 'end' },
@@ -26,7 +26,8 @@ function stakeColumns(onChange: (stake: SetupStake) => void): readonly DataTable
     {
       key: 'change', header: '', align: 'end',
       cell: (stake) => (
-        <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeStake', { name: stake.name })} onClick={() => onChange(stake)}>
+        <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeStake', { name: stake.name })} aria-expanded={open === stake.id}
+          onClick={() => onChange(stake)}>
           {t('console.tablesSetup.change')}
         </Button>
       ),
@@ -50,10 +51,10 @@ export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: read
     <Stack gap={4}>
       <Inline justify="between" gap={4}>
         <Heading level={2} variant="section">{t('console.tablesSetup.stakes')}</Heading>
-        <Button variant="subtle" size="compact" onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>
+        <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>
       </Inline>
       {open === NEW ? form(null) : null}
-      <DataTable label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns((stake) => toggle(stake.id))} rows={stakes} rowKey={(stake) => stake.id}
+      <DataTable label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns(open, (stake) => toggle(stake.id))} rows={stakes} rowKey={(stake) => stake.id}
         emptyText={t('console.tablesSetup.stakesEmpty')} rowDetail={(stake) => (open === stake.id ? form(stake) : null)} />
       <StatusMessage>{saved}</StatusMessage>
     </Stack>
