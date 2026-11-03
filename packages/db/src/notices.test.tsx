@@ -48,7 +48,7 @@ describe('notices', () => {
     let posted: unknown;
     let ended: unknown;
     await act(async () => {
-      posted = await result.current.actions.post.mutateAsync('Open till 4 tonight.');
+      posted = await result.current.actions.post.mutateAsync({ body: 'Open till 4 tonight.', startsAt: null, endsAt: null });
       ended = await result.current.actions.end.mutateAsync('n1');
     });
     expect(posted).toEqual({ ok: true, value: 'n2' });
@@ -65,11 +65,21 @@ describe('notices', () => {
     let posted: unknown;
     let ended: unknown;
     await act(async () => {
-      posted = await result.current.actions.post.mutateAsync('x'.repeat(281));
+      posted = await result.current.actions.post.mutateAsync({ body: 'x'.repeat(501), startsAt: null, endsAt: null });
       ended = await result.current.actions.end.mutateAsync('n1');
     });
     expect(posted).toEqual({ ok: false, error: 'invalid' });
     expect(ended).toEqual({ ok: false, error: 'not_allowed' });
+  });
+
+  it('puts one up to start and end at the times given (decision 0424)', async () => {
+    const { result, calls } = renderHooks({ '/rpc/post_notice': { body: 'n3' } });
+    await act(async () => {
+      await result.current.actions.post.mutateAsync({ body: 'Quiz night.', startsAt: '2026-11-14T13:30:00.000Z', endsAt: '2026-11-14T20:30:00.000Z' });
+    });
+    expect(bodiesOf(calls, '/rpc/post_notice')).toEqual([{
+      p_venue_id: VENUE, p_body: 'Quiz night.', p_starts_at: '2026-11-14T13:30:00.000Z', p_ends_at: '2026-11-14T20:30:00.000Z',
+    }]);
   });
 
   it('edits a notice in place: its words, its start and its end (decision 0424)', async () => {

@@ -150,16 +150,37 @@ export const settings = {
   addChip: 'Add chip',
   chipAdded: 'Chip added.',
   chipInUse: 'In use: {name}',
-  /** Notices on members' Home (decision 0298), such as when the club opens. */
+  /** Notices on members' Tonight (decisions 0298 and 0424), such as when the club opens. */
   notices: {
-    title: 'Notices on Home',
+    title: 'Notices on Tonight',
     body: 'Notice',
-    /** Decision 0424: up to 500 characters, line breaks kept, https links tappable. */
-    bodyHint: 'Shows on members\' Tonight until you end it. Up to 500 characters; line breaks stay and https:// links can be tapped.',
+    /** Decision 0424: up to 500 characters, line breaks kept, https links tappable; `{count}` is how many are typed. */
+    bodyHint: 'Line breaks stay and https:// links can be tapped. {count} of 500 characters.',
+    /** When it shows: an IST day and a 24-hour time each, blank for now and for until ended (decision 0424). */
+    startDay: 'Starts on',
+    startTime: 'Start time',
+    startHint: 'As 19:00. Blank: now.',
+    startLive: 'Live, so its start stays.',
+    endDay: 'Ends on',
+    endTime: 'End time',
+    endHint: 'As 02:00. Blank: until you end it.',
+    /** A field's error (noticeFormSchema): a time without its day, a day without a time or a time not as 19:00, an end not after the start. */
+    invalidDay: 'Give its day too, or clear its time.',
+    invalidTime: 'A 24-hour time, as 19:00, with its day. Or clear both.',
+    endBeforeStart: 'End after the start.',
     post: 'Put up',
+    /** Editing one in place (decision 0424): Edit on its row, then Save changes or Cancel. */
+    edit: 'Edit',
+    editName: 'Edit the notice: {body}',
+    save: 'Save changes',
+    saved: 'Notice saved.',
+    /** A notice still to come, in the list: `{until}` is its "Until …" line. */
+    startsUntil: 'Starts {start} · {until}',
     /** The live preview beside the notice (console v3), and what it shows before anything is typed. */
-    preview: 'On members’ Home',
+    preview: 'On members’ Tonight',
     previewEmpty: 'Your notice shows here.',
+    /** The card's eyebrow, as members see it on Tonight (player.live.notice; decision 0424). */
+    previewLabel: 'From the club',
     posted: 'Notice put up.',
     none: 'No notice is up.',
     until: 'Until {date}',
@@ -170,7 +191,7 @@ export const settings = {
     ended: 'Notice ended.',
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
-      invalid: 'Write 1 to 500 characters, any link starting https://, and an end after the start.',
+      invalid: 'Write 1 to 500 characters, any link starting https://, and an end after the start and after now.',
       paused: 'Venue frozen. Try again once it is released.',
       ended: 'This notice has ended. Put up a new one.',
       unavailable: 'Not saved. Try again.',

@@ -15,6 +15,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `panSchema`, `Pan` | PAN in capitals, holder type checked (fourth letter). |
 | `kycInPersonSchema`, `KycInPerson` | A check in person at the club, as the console sends it with the photo: the member, the date of birth and PAN from the originals, only the last four Aadhaar digits, and the member's consent (#246). |
 | `erasedKycFilesSchema`, `ErasedKycFilesRequest` | Removing an erased member's KYC files (#424), as the console asks the `member-erase` Edge Function: the member id alone; the database names the folder only for an erased member. |
+| `noticeFormSchema`, `NoticeFormValues` (from `@rivr/contracts/notices`) | A club notice as the console puts one up or edits it (decision 0424): its words, and a start and an end, each an IST day and 24-hour time, blank for now and until ended. A day without its time, a time without its day or not as 19:00, and an end not after the start are that field's errors; out come the moments, null where blank. |
 | `kycReviewSchema` | A KYC reviewer's decision from the console: a reason of 3 to 500 characters with no document numbers, and a date of birth and PAN only where the check kept none. |
 | `gstinSchema`, `Gstin` | GSTIN in capitals, check character verified. |
 | `upiVpaSchema`, `UpiVpa` | `arjun.mehta@hdfcbank`, lower-cased. |
