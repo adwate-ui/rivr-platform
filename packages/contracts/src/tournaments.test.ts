@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { blindLevelsSchema } from './blindLevels.ts';
 import {
-  blindStructureSchema, cageBuySchema, dealSchema, istMoment, newTournamentSchema, payoutSharesSchema, stageFormSchema, structurePlanSchema, tournamentRoomSchema,
+  blindStructureSchema, cageBuySchema, dealSchema, istMoment, newTournamentSchema, payoutSharesSchema, publishTournamentSchema, stageFormSchema, structurePlanSchema,
+  tournamentRoomSchema,
   tournamentTemplateSchema,
 } from './tournaments.ts';
 
@@ -113,6 +114,18 @@ describe('a new tournament’s start', () => {
     const order = { templateId: '00000000-0000-4000-8000-0000000007c1', name: 'RIVR Sunday', day: '2026-11-15', time: '24:00', isPublished: true };
     expect(newTournamentSchema.safeParse(order).success).toBe(false);
     expect(newTournamentSchema.safeParse({ ...order, time: '16:00' }).success).toBe(true);
+  });
+});
+
+describe('a tournament published without money', () => {
+  it('takes a name, an IST day and time, the game and stake as text, and a description if any', () => {
+    const listing = { name: ' Diwali Deepstack ', day: '2026-11-15', time: '16:00', game: 'No-limit hold’em', stake: '25,000 chips', description: '' };
+    expect(publishTournamentSchema.parse(listing)).toEqual({ ...listing, name: 'Diwali Deepstack' });
+    expect(publishTournamentSchema.safeParse({ ...listing, game: ' ' }).success).toBe(false);
+    expect(publishTournamentSchema.safeParse({ ...listing, stake: 'x'.repeat(41) }).success).toBe(false);
+    expect(publishTournamentSchema.safeParse({ ...listing, description: 'x'.repeat(501) }).success).toBe(false);
+    expect(publishTournamentSchema.safeParse({ ...listing, time: '4 pm' }).success).toBe(false);
+    expect(publishTournamentSchema.safeParse({ ...listing, buyIn: '10000' }).success).toBe(false);
   });
 });
 

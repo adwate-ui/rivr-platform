@@ -6,7 +6,8 @@ import { Text } from '../Text/Text.tsx';
 export interface CalendarBlockTournament {
   readonly name: string;
   readonly startsAt: Date;
-  readonly buyIn: bigint;
+  /** Null for a tournament published without money (decision 0441), which shows no buy-in line. */
+  readonly buyIn: bigint | null;
   /** The prize pool the club guarantees; null for a tournament without one. */
   readonly guarantee: bigint | null;
 }
@@ -25,7 +26,8 @@ function when(at: Date): string {
   return t('ui.web.when', { weekday: formatWeekday(at), date: formatDate(at), time: formatTime(at) });
 }
 
-function money(tournament: CalendarBlockTournament): string {
+function money(tournament: CalendarBlockTournament): string | null {
+  if (tournament.buyIn === null) return null;
   const buyIn = t('ui.web.buyIn', { amount: formatMoney(tournament.buyIn) });
   if (tournament.guarantee === null) return buyIn;
   return t('ui.web.pair', { first: buyIn, second: t('ui.web.guaranteed', { amount: formatMoney(tournament.guarantee) }) });
@@ -92,7 +94,7 @@ export function CalendarBlock({ heading, tournaments, month }: CalendarBlockProp
           <li key={`${tournament.name}-${tournament.startsAt.toISOString()}`} className="flex flex-col gap-2 rounded-lg border border-hairline p-6">
             <Text variant="lead" weight="medium">{tournament.name}</Text>
             <Text>{when(tournament.startsAt)}</Text>
-            <Text tone="muted">{money(tournament)}</Text>
+            {tournament.buyIn === null ? null : <Text tone="muted">{money(tournament)}</Text>}
           </li>
         ))}
       </ul>

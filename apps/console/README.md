@@ -64,6 +64,8 @@ src/
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
     rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
     league/           the RIVR League's standings by month or season, and its seasons (/league)
+    tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
+                      who registered interest in each from the app, marked registered once paid (#636; /tournament-interest)
     tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs with
                       bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
                       the finish, deals, what was paid), tournaments from templates, templates, and blind
