@@ -22,6 +22,8 @@ export interface MemberRecord {
   readonly memberId: string;
   readonly memberNumber: number;
   readonly fullName: string;
+  /** The name they gave at sign-up, once their Aadhaar name became their name (#803); null when it is the same or not yet. */
+  readonly knownAs: string | null;
   /** Null once the member is erased (#424). */
   readonly phone: string | null;
   readonly tierId: string;
@@ -93,7 +95,7 @@ export function useMemberRecord(venueId: string, memberId: string) {
       const row = data[0];
       if (row === undefined) return null;
       return {
-        memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, tierId: row.tier_id,
+        memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, knownAs: row.known_as, phone: row.phone, tierId: row.tier_id,
         tierName: row.tier_name, tierUntil: row.tier_until, isKycComplete: row.is_kyc_complete, photoPath: row.photo_path,
         qualifying: row.qualifying_small_blind === null || row.qualifying_big_blind === null ? null
           : { smallBlind: toPaise(row.qualifying_small_blind), bigBlind: toPaise(row.qualifying_big_blind) },

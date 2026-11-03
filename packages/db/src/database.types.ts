@@ -1747,14 +1747,14 @@ isOneToOne: false
                   ]
                 },"kyc_record": {
                   Row: {
-                    "aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"identity_key": string | null,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"pan_recheck": string | null,"pan_rechecked_at": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_failed_at": string | null,"vendor_failure": string | null,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
+                    "aadhaar_name": string | null,"aadhaar_reference": string | null,"address": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"identity_key": string | null,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"pan_recheck": string | null,"pan_rechecked_at": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_failed_at": string | null,"vendor_failure": string | null,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"pan_recheck"?: string | null,"pan_rechecked_at"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_failed_at"?: string | null,"vendor_failure"?: string | null,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
+                    "aadhaar_name"?: string | null,"aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id": string,"method"?: string,"pan"?: string | null,"pan_recheck"?: string | null,"pan_rechecked_at"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_failed_at"?: string | null,"vendor_failure"?: string | null,"vendor_reference"?: string | null,"venue_id": string,"verified_at"?: string | null
                   }
                   Update: {
-                    "aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"pan_recheck"?: string | null,"pan_rechecked_at"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_failed_at"?: string | null,"vendor_failure"?: string | null,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
+                    "aadhaar_name"?: string | null,"aadhaar_reference"?: string | null,"address"?: string | null,"created_at"?: string,"date_of_birth"?: string | null,"digilocker_session_id"?: string | null,"face_match_score"?: number | null,"id"?: string,"identity_key"?: string | null,"liveness_score"?: number | null,"masked_aadhaar"?: string | null,"member_id"?: string,"method"?: string,"pan"?: string | null,"pan_recheck"?: string | null,"pan_rechecked_at"?: string | null,"photo_path"?: string | null,"refusal"?: string | null,"same_face_as"?: string | null,"selfie_claimed_at"?: string | null,"status"?: string,"updated_at"?: string,"vendor_calls"?: number,"vendor_calls_since"?: string,"vendor_failed_at"?: string | null,"vendor_failure"?: string | null,"vendor_reference"?: string | null,"venue_id"?: string,"verified_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -2165,14 +2165,14 @@ isOneToOne: false
                   ]
                 },"member": {
                   Row: {
-                    "created_at": string,"erased_at": string | null,"full_name": string,"id": string,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"referral_code": string,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
+                    "created_at": string,"erased_at": string | null,"full_name": string,"id": string,"known_as": string | null,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"referral_code": string,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"id"?: string,"known_as"?: string | null,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"id"?: string,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"id"?: string,"known_as"?: string | null,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -5132,7 +5132,7 @@ isOneToOne: false
                            },
 "member_record":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
-              "early_departures": number,"full_name": string,"is_in_room": boolean,"is_kyc_complete": boolean,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"photo_path": string,"qualifying_big_blind": number,"qualifying_small_blind": number,"tier_id": string,"tier_name": string,"tier_until": string,"visits": number
+              "early_departures": number,"full_name": string,"is_in_room": boolean,"is_kyc_complete": boolean,"known_as": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"photo_path": string,"qualifying_big_blind": number,"qualifying_small_blind": number,"tier_id": string,"tier_name": string,"tier_until": string,"visits": number
             }[]
                            },
 "member_search":
@@ -5498,7 +5498,7 @@ isOneToOne: false
 { Args: { "p_messages": Json,"p_venue_id": string }; Returns: number
                            },
 "record_kyc_digilocker":
-{ Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_identity_key"?: string,"p_masked_aadhaar": string,"p_member_id": string,"p_pan": string,"p_vendor_reference": string }; Returns: string
+{ Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_identity_key"?: string,"p_masked_aadhaar": string,"p_member_id": string,"p_name"?: string,"p_pan": string,"p_vendor_reference": string }; Returns: string
                            },
 "record_kyc_digilocker_failed":
 { Args: { "p_member_id": string }; Returns: undefined

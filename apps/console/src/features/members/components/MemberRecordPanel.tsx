@@ -107,6 +107,7 @@ function Record({ venueId, record, can }: PartProps) {
         ) : null}
         <Stack gap={1}>
           <Heading level={2}>{record.fullName}</Heading>
+          {record.knownAs === null ? null : <Text variant="small" tone="muted">{t('console.members.knownAs', { name: record.knownAs })}</Text>}
           <Text variant="small" tone="muted">{statusLine(record)}</Text>
           {record.qualifying === null ? null : (
             <Text variant="small" tone="muted">{t('console.members.qualifying', { stakes: formatStakes(record.qualifying.smallBlind, record.qualifying.bigBlind) })}</Text>
