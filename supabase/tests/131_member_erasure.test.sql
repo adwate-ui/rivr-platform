@@ -244,6 +244,14 @@ select is_empty($$ select 1 from public.ledger_transaction t where t.kind = 'bon
 select is_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797')
                    where concat(before::text, after::text) ~ '(Tara|9000000797|chairs|tara@)' $$,
   'no audit row about her holds her name, number, words or payout address');
+-- The KYC record and its reviews are audited by a list of safe fields, so the audit log never held her identity details
+-- for an erasure to strip: the PAN, date of birth and Aadhaar stay in her KYC record alone, which keeps only the PAN.
+select isnt_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797') where entity in ('kyc_record', 'kyc_review') $$,
+  'her identity check and its review are in the audit log');
+select is_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797')
+                   where coalesce(before, '{}') ?| array['pan', 'date_of_birth', 'masked_aadhaar', 'identity_key', 'photo_path', 'address']
+                      or coalesce(after, '{}') ?| array['pan', 'date_of_birth', 'masked_aadhaar', 'identity_key', 'photo_path', 'address'] $$,
+  'with no PAN, date of birth, Aadhaar, selfie or address in any row about her');
 select isnt_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797') where entity = 'feedback' $$,
   'though the rows themselves are kept');
 select results_eq($$ select entity, before, reason, (after ->> 'points')::bigint from public.audit_log
