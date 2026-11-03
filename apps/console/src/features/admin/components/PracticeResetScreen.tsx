@@ -1,6 +1,6 @@
-import { usePracticeReset, usePracticeResetPreview, useStaffVenue, type PracticeResetFailure, type PracticeResetRow } from '@rivr/db';
+import { usePracticeReset, usePracticeResetPreview, useStaffVenue, type PracticeResetFailure, type PracticeResetRow, type StaffVenueState } from '@rivr/db';
 import { formatNumber, t, type MessageKey } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Input, Screen, Stack, Text, type DataTableColumn, StatusMessage } from '@rivr/ui';
+import { Button, DataTable, ErrorMessage, Input, Screen, Stack, StatusMessage, StepList, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
 const FAILURE_COPY: Readonly<Record<PracticeResetFailure, MessageKey>> = {
@@ -37,7 +37,6 @@ function PracticeResetPanel({ venueId }: { venueId: string }) {
     : { rows, emptyText: t('console.practiceReset.empty') };
   return (
     <Stack gap={6}>
-      <Text>{t('console.practiceReset.intro')}</Text>
       <StatusMessage>{outcome === 'done' ? t('console.practiceReset.done') : null}</StatusMessage>
       {outcome !== null && outcome !== 'done' ? <ErrorMessage>{t(FAILURE_COPY[outcome])}</ErrorMessage> : null}
       {preview.isSuccess ? <Text tone="muted">{rows.some((row) => row.now !== row.seed) ? t('console.practiceReset.differs') : t('console.practiceReset.matches')}</Text> : null}
@@ -52,9 +51,33 @@ function PracticeResetPanel({ venueId }: { venueId: string }) {
 }
 
 /**
- * Practice reset (#104; features "Purge"; additions flow 16), for super admins at the practice venue: each
- * table a reset reloads with its rows now and in the seed, then the venue's name typed and Reset to seed.
- * The club is never reset (the owner's decision on #104; purging a live venue is #432).
+ * The reset's numbered steps (console v3): switch to the practice venue, which only a staff member with both venues can;
+ * then the reset, disabled until the first is done. The club is never reset.
+ */
+function PracticeResetSteps({ staff }: { staff: Extract<StaffVenueState, { status: 'ready' }> }) {
+  const { isPractice } = staff.venue;
+  const switchAction = isPractice || !staff.canPractise ? undefined : (
+    <Button variant="subtle" size="compact" onClick={() => staff.setPractice(true)}>{t('console.practiceReset.switch')}</Button>
+  );
+  return (
+    <StepList look="cards" label={t('console.practiceReset.stepsLabel')} steps={[
+      {
+        title: t('console.practiceReset.switchTitle'), detail: t(isPractice ? 'console.practiceReset.inPractice' : 'console.practiceReset.notPractice'),
+        state: isPractice ? 'done' : 'current', action: switchAction,
+      },
+      {
+        title: t('console.practiceReset.resetTitle'), detail: t('console.practiceReset.intro'), state: isPractice ? 'current' : 'next',
+        action: isPractice ? undefined : <Button variant="danger" size="compact" isDisabled>{t('console.practiceReset.reset')}</Button>,
+        content: isPractice ? <PracticeResetPanel venueId={staff.venue.venueId} /> : undefined,
+      },
+    ]} />
+  );
+}
+
+/**
+ * Practice reset (#104; features "Purge"; additions flow 16), for super admins, in numbered steps (console v3): at the
+ * practice venue, each table a reset reloads with its rows now and in the seed, then the venue's name typed and Reset to
+ * seed. The club is never reset (the owner's decision on #104; purging a live venue is #432).
  */
 export function PracticeResetScreen() {
   const staff = useStaffVenue();
@@ -62,10 +85,9 @@ export function PracticeResetScreen() {
   if (staff.status !== 'ready') return null;
   const title = t('console.practiceReset.title');
   if (!staff.venue.permissions.includes('purge.run')) return <Screen title={title} status="error" errorText={t('console.practiceReset.notAllowed')} />;
-  if (!staff.venue.isPractice) return <Screen title={title} status="error" errorText={t('console.practiceReset.notPractice')} />;
   return (
     <Screen title={title}>
-      <PracticeResetPanel venueId={staff.venue.venueId} />
+      <PracticeResetSteps staff={staff} />
     </Screen>
   );
 }
