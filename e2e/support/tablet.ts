@@ -15,8 +15,8 @@ export async function press(tablet: Page, keys: string[]) {
  * tablet, pairs it and fixes it to Table 3. Returns the tablet's page and name.
  */
 export async function tabletAtTable3(browser: Browser, floor: Page) {
-  await floor.getByRole('link', { name: 'Staff', exact: true }).click();
-  await floor.getByRole('link', { name: 'Dealer PINs' }).click();
+  // By address: the console v3 rail folds Admin away, and old addresses open their screen's tab.
+  await floor.goto(new URL('/dealer-pins', floor.url()).href);
   await floor.getByLabel(`New PIN for ${DEALER}`).fill(PIN);
   await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();
   await expect(floor.getByText(`PIN saved for ${DEALER}.`)).toBeVisible();
@@ -29,8 +29,7 @@ export async function tabletAtTable3(browser: Browser, floor: Page) {
  */
 export async function tabletAt(browser: Browser, floor: Page, tableName: string) {
   const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'Tablets' }).click();
+  await floor.goto(new URL('/tablets', floor.url()).href);
   await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
   await floor.getByRole('button', { name: 'Add and pair' }).click();
   const codeLine = floor.getByText(/^Pairing code \d{6}/);
@@ -60,8 +59,7 @@ export async function dealerSignsIn(tablet: Page) {
 
 /** Revokes the flow's tablet on the console, so the next run finds Table 3 as it was. */
 export async function revoke(floor: Page, name: string) {
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'Tablets' }).click();
+  await floor.goto(new URL('/tablets', floor.url()).href);
   await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
   await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
   await floor.getByRole('button', { name: 'Unpair the tablet' }).click();

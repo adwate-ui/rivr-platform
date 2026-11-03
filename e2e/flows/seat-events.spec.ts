@@ -1,13 +1,14 @@
 /**
  * Seat events on the dealer tablet (#59; design prompt flow 3; the prototype's tablet seats). Tanvi
  * Joshi, this flow's own duty manager (Auth sends one code a minute to a number), seats Yash Gupta at
- * Table 3, seat 9, and pairs Table 3's tablet; Pema Lepcha signs in. The tablet shows his call time and no buy-in
+ * Table 3, seat 9 from the Live floor (console v3), and pairs Table 3's tablet; Pema Lepcha signs in. The tablet shows his call time and no buy-in
  * in rupees (#630). Yash is marked away and back on the tablet, then on the console, then leaves: seat 9 is open
  * again. The tablet is revoked at the end. Another table's tablet, a revoked tablet and a frozen venue are refused
  * in supabase/tests/050_seat_events.test.sql.
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
+import { seatOnFloor } from '../support/floor.ts';
 import { signInToConsole } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
@@ -17,11 +18,7 @@ test.describe('Seat events', () => {
     test.setTimeout(90_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000127');
-    await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await floor.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '9', exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000214');
-    await floor.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(floor.getByRole('button', { name: 'Yash Gupta leaves' })).toBeVisible();
+    await seatOnFloor(floor, { table: 'Table 3', seat: 9, number: '9000000214' });
 
     const { tablet, name } = await tabletAtTable3(browser, floor);
     await dealerSignsIn(tablet);

@@ -90,7 +90,7 @@ function answer(url: string, api: FloorApi): Response {
 }
 
 /** Renders a floor screen for a staff member (admin unless said) against a fake API; every change it sends is kept. */
-export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}) {
+export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}, address = '/') {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -104,7 +104,7 @@ export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}) {
   const rootRoute = createRootRoute();
   const screenRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: () => <Screen /> });
   const membersRoute = createRoute({ getParentRoute: () => rootRoute, path: '/members', component: () => null });
-  const router = createRouter({ routeTree: rootRoute.addChildren([screenRoute, membersRoute]), history: createMemoryHistory({ initialEntries: ['/'] }) });
+  const router = createRouter({ routeTree: rootRoute.addChildren([screenRoute, membersRoute]), history: createMemoryHistory({ initialEntries: [address] }) });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>

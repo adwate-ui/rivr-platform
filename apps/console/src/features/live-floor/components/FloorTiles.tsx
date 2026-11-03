@@ -14,6 +14,8 @@ export interface FloorTilesProps {
   view: FloorView;
   /** Only the tables where a player needs the floor. */
   isNeedsYouOnly: boolean;
+  /** The table a link pointed at: brought into view with its seats shown. */
+  focusTableId?: string | undefined;
   /** Floor managers (floor.manage) open a closed table from its tile. */
   canOpenTables: boolean;
   onPlayer: (player: SeatedPlayer) => void;
@@ -22,20 +24,21 @@ export interface FloorTilesProps {
   onOpenTable: (table: FloorTable) => void;
 }
 
-type TileProps = Omit<FloorTilesProps, 'tables' | 'view' | 'isNeedsYouOnly'> & {
+type TileProps = Omit<FloorTilesProps, 'tables' | 'view' | 'isNeedsYouOnly' | 'focusTableId'> & {
+  isScrolledTo: boolean;
   table: FloorTable;
   isExpanded: boolean;
   onToggle: () => void;
 };
 
 /** One table's tile: its bar, or Closed with Open table; expanded, a row per seat. */
-function Tile({ table, seats, held, canOpenTables, isExpanded, onToggle, onPlayer, onOpenSeat, onTable, onOpenTable }: TileProps) {
+function Tile({ table, seats, held, canOpenTables, isExpanded, isScrolledTo, onToggle, onPlayer, onOpenSeat, onTable, onOpenTable }: TileProps) {
   const openAction = canOpenTables
     ? <Button variant="subtle" size="small" onClick={() => onOpenTable(table)}>{t('console.liveFloor.openTable')}</Button>
     : undefined;
   return (
     <TableTile name={table.name} stake={stakeOf(table)} seats={tileSeats(table, seats, held)} isClosed={!table.isOpen} openAction={openAction}
-      isExpanded={isExpanded} onToggle={onToggle} onSettings={() => onTable(table)}>
+      isExpanded={isExpanded} isScrolledTo={isScrolledTo} onToggle={onToggle} onSettings={() => onTable(table)}>
       {seatsAt(table, seats).map((player, index) => (player === undefined ? (
         <SeatRow key={index} number={index + 1} onSelect={() => onOpenSeat(table, index + 1)} />
       ) : (
@@ -69,9 +72,10 @@ export function FloorTiles(props: FloorTilesProps) {
           <Text variant="eyebrow" tone="muted">{roomName(room)}</Text>
           <Grid columns={3} stackBelow="medium" gap={3}>
             {here.map((table) => {
-              const isExpanded = (view === 'seats') !== (pressed[table.id] === true);
+              const isFocused = table.id === props.focusTableId;
+              const isExpanded = isFocused || (view === 'seats') !== (pressed[table.id] === true);
               return (
-                <Tile key={table.id} {...props} table={table} isExpanded={isExpanded}
+                <Tile key={table.id} {...props} table={table} isExpanded={isExpanded} isScrolledTo={isFocused}
                   onToggle={() => setPressed((current) => ({ ...current, [table.id]: current[table.id] !== true }))} />
               );
             })}

@@ -175,6 +175,22 @@ describe('The seat sheet (console v3)', () => {
   });
 });
 
+describe('The Show link of a member record (console v3)', () => {
+  it('opens the sheet of the seated player from the address', async () => {
+    const view = renderFloorScreen(LiveFloorScreen, FLOOR, '/?table=t1&seat=5');
+    expect(await screen.findByRole('dialog', { name: 'Kabir Sethi' }, { timeout: 5000 })).toBeDefined();
+    expect(view.router.state.location.pathname).toBe('/');
+  });
+
+  it('shows the seats of the table pointed at when nobody sits in that seat', async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    renderFloorScreen(LiveFloorScreen, FLOOR, '/?table=t3&seat=2');
+    expect(await within(await screen.findByRole('group', { name: 'Table 3 100/200' }, { timeout: 5000 })).findByRole('button', { name: 'Seat 2, Open' })).toBeDefined();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+});
+
 describe('The table sheet (console v3)', () => {
   it('says the table\'s status, seated, dealer and waiting; Close waits for an empty table; Must move to is undone', async () => {
     const { rpcs } = await renderFloor();

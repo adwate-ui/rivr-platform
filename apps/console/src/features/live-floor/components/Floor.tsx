@@ -9,6 +9,7 @@ import { FloorTiles, type FloorView } from './FloorTiles.tsx';
 import { requestActions, type RequestActionsFor } from './requestActions.ts';
 import { RequestList, tableNameOf } from './RequestList.tsx';
 import { useFloorData, useNow, type FloorData } from './useFloorData.ts';
+import { useFloorFocus } from './useFloorFocus.ts';
 import { useRequestChanges } from './useRequestChanges.ts';
 import { useRequestQueue } from './useRequestQueue.ts';
 import { useSeatChanges } from './useSeatChanges.ts';
@@ -71,6 +72,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
   const isFloor = permissions.includes('waitlist.manage');
   const seatAny = isFloor ? seatAnyOf(data) : null;
   const { onLeave, onOpen } = useRequestOpeners(data, setSheet);
+  const focusTableId = useFloorFocus(data, setSheet);
   const oldest = queue.shown[0];
   const openSeat = seatAny === null ? null : () => setSheet(seatAny);
   const seatKey = useFloorKeys(oldest, { changes: changes.requests, tableName: tableNameOf(data.tables, oldest?.tableId ?? ''), onLeave }, openSeat);
@@ -88,7 +90,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
         <FloorControls view={view} onView={setView} isNeedsYouOnly={isNeedsYouOnly} onNeedsYou={() => setNeedsYouOnly(!isNeedsYouOnly)}
           onSeat={openSeat} seatKey={seatKey} />
       )}>
-        <FloorTiles tables={data.tables} seats={data.seats} held={data.held} view={view} isNeedsYouOnly={isNeedsYouOnly}
+        <FloorTiles tables={data.tables} seats={data.seats} held={data.held} view={view} isNeedsYouOnly={isNeedsYouOnly} focusTableId={focusTableId}
           canOpenTables={permissions.includes('floor.manage')} onPlayer={(player) => setSheet({ kind: 'player', sessionId: player.sessionId })}
           onOpenSeat={(table, seat) => { if (isFloor && table.isOpen) setSheet({ kind: 'seat', tableId: table.id, seat }); }}
           onTable={(table) => setSheet({ kind: 'table', tableId: table.id })} onOpenTable={(table) => void changes.tables.setOpen(table, true)} />
