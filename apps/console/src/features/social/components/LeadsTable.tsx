@@ -1,6 +1,6 @@
 import { useLeads, type Lead } from '@rivr/db/social';
 import { formatDayTime, formatNumber, t } from '@rivr/i18n';
-import { DataTable, Heading, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { DataTable, type DataTableColumn } from '@rivr/ui';
 
 /** The table's columns, made when it draws, so t() runs once the app's words are registered, as columns() does elsewhere (F2-31). */
 function columns(): readonly DataTableColumn<Lead>[] {
@@ -18,13 +18,7 @@ function columns(): readonly DataTableColumn<Lead>[] {
 export function LeadsTable({ venueId }: { venueId: string }) {
   const leads = useLeads(venueId);
   const base = { label: t('console.social.leads.table'), columns: columns(), rowKey: (row: Lead) => row.leadId };
-  return (
-    <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.social.leads.title')}</Heading>
-      <Text variant="small" tone="muted">{t('console.social.leads.hint')}</Text>
-      {leads.data === undefined && leads.isError ? <DataTable {...base} status="error" onRetry={() => void leads.refetch()} /> : null}
-      {leads.data === undefined && !leads.isError ? <DataTable {...base} status="loading" /> : null}
-      {leads.data === undefined ? null : <DataTable {...base} rows={leads.data} emptyText={t('console.social.leads.none')} />}
-    </Stack>
-  );
+  if (leads.data === undefined && leads.isError) return <DataTable {...base} status="error" onRetry={() => void leads.refetch()} />;
+  if (leads.data === undefined) return <DataTable {...base} status="loading" />;
+  return <DataTable {...base} rows={leads.data} emptyText={t('console.social.leads.none')} narrowLayout="scroll" />;
 }

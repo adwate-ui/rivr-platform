@@ -48,7 +48,7 @@ import { creators } from './creators.ts';
 import { spin } from './spin.ts';
 import { consoleHostQueue } from './consoleHostQueue.ts';
 import { consoleSocial } from './consoleSocial.ts';
-import { website } from './website.ts';
+import { consoleContent, website } from './website.ts';
 import { playerSessions } from './sessions.ts';
 import { learnSources } from './learnSources.ts';
 import { playerLearn } from './learn.ts';
@@ -166,6 +166,7 @@ export const consoleApp = {
   social: consoleSocial,
   hostQueue: consoleHostQueue,
   website,
+  content: consoleContent,
   events: consoleEvents,
   learnSources,
   ownerDashboard,

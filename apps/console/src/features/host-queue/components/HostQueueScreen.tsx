@@ -1,33 +1,41 @@
 import { useStaffVenue } from '@rivr/db';
-import { useHostQueue } from '@rivr/db/hostQueue';
-import { formatNumber, t } from '@rivr/i18n';
-import { Button, Screen, Stack, Text } from '@rivr/ui';
+import { useHostQueue, type HostQueueItem } from '@rivr/db/hostQueue';
+import { formatDate, t } from '@rivr/i18n';
+import { Box, PickList, Screen, SplitView } from '@rivr/ui';
 import { useState } from 'react';
 import { HostItem } from './HostItem.tsx';
 
-/** How many calls the queue shows at a time: each is a whole form (F2-19). */
-const PAGE = 20;
+/** A lapsed regular's line in the list: when they were last here and how often before. */
+const lineOf = (item: HostQueueItem) => t('console.hostQueue.listLine', { last: formatDate(new Date(item.lastVisitAt)), visits: String(item.visits) });
 
-/** The venue's lapsed regulars, each with its call, twenty at a time. */
+/** The queue beside the call open: the one chosen, or the longest gone, which a phone leaves out until one is chosen. */
+function Queue({ venueId, items }: { venueId: string; items: readonly HostQueueItem[] }) {
+  const [chosenId, setChosenId] = useState<string | null>(null);
+  const chosen = items.find((item) => item.itemId === chosenId);
+  const open = chosen ?? items[0];
+  return (
+    <SplitView layout="even" isChosen={chosen !== undefined} backLabel={t('console.hostQueue.back')} onBack={() => setChosenId(null)}
+      list={<PickList label={t('console.hostQueue.list')} current={open?.itemId ?? null} onPick={setChosenId} emptyText={t('console.hostQueue.none')}
+        groups={[{ items: items.map((item) => ({ id: item.itemId, title: item.fullName, detail: lineOf(item) })) }]} />}
+      detail={open === undefined ? null : (
+        <Box surface="raised" radius="md" padding={5}><HostItem key={open.itemId} venueId={venueId} item={open} /></Box>
+      )} />
+  );
+}
+
+/** The venue's lapsed regulars, longest gone first, and the call to the one open (console v3). */
 export function HostQueue({ venueId }: { venueId: string }) {
   const queue = useHostQueue(venueId);
-  const [shown, setShown] = useState(PAGE);
   const title = t('console.hostQueue.title');
-  if (queue.data === undefined) return <Screen title={title} status={queue.isError ? 'error' : 'loading'} onRetry={() => void queue.refetch()} />;
+  if (queue.data === undefined) {
+    return queue.isError
+      ? <Screen title={title} status="error" onRetry={() => void queue.refetch()} />
+      : <Screen title={title} status="loading" loadingLook="rows" />;
+  }
+  if (queue.data.length === 0) return <Screen title={title} status="empty" emptyText={t('console.hostQueue.none')} />;
   return (
     <Screen title={title}>
-      <Stack gap={8}>
-        <Text tone="muted">{t('console.hostQueue.hint')}</Text>
-        {queue.data.length === 0 ? <Text tone="muted">{t('console.hostQueue.none')}</Text> : null}
-        {queue.data.slice(0, shown).map((item) => <HostItem key={item.itemId} venueId={venueId} item={item} />)}
-        {queue.data.length > shown ? (
-          <Stack align="start">
-            <Button variant="secondary" onClick={() => setShown(shown + PAGE)}>
-              {t('console.hostQueue.showMore', { count: formatNumber(Math.min(PAGE, queue.data.length - shown)) })}
-            </Button>
-          </Stack>
-        ) : null}
-      </Stack>
+      <Queue venueId={venueId} items={queue.data} />
     </Screen>
   );
 }

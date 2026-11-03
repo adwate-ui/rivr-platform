@@ -1,0 +1,67 @@
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { QueryClient } from '@tanstack/react-query';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FeedbackList } from './FeedbackScreen.tsx';
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.unstubAllGlobals();
+});
+
+const ROW = {
+  member_id: 'm1', member_number: 42, visit_closed_at: null, score: null, is_ticket: true, resolved_at: null, resolved_by: null,
+  resolution: null, created_at: '2026-11-03T06:00:00Z', topic: null, ratings: null, nps: null,
+};
+
+/** Two open tickets, one resolved by Vikram Rao, and a good rating that needed nothing. */
+const ROWS = [
+  { ...ROW, id: 'f1', full_name: 'Ritika Bhalla', note: 'Check-in took ten minutes.', topic: 'check_in_out' },
+  { ...ROW, id: 'f2', full_name: 'Rhea Kaul', note: 'Waited for a chai.', topic: 'service' },
+  { ...ROW, id: 'f3', full_name: 'Yuvraj Luthra', note: 'Quick dealer.', resolved_at: '2026-11-03T08:00:00Z', resolved_by: 'Vikram Rao', resolution: 'Thanked him.' },
+  { ...ROW, id: 'f4', full_name: 'Zoya Merchant', note: null, is_ticket: false, score: 5, visit_closed_at: '2026-11-02T20:00:00Z' },
+];
+
+function renderTab(tab: string | undefined, onNavigate = vi.fn()) {
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+  }));
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    return Response.json(url.includes('/rpc/venue_feedback') ? ROWS : []);
+  });
+  render(
+    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <FeedbackList venueId="v1" tab={tab} onNavigate={onNavigate} />
+    </RivrDataProvider>,
+  );
+  return onNavigate;
+}
+
+describe('Feedback', () => {
+  it('opens on the open tickets, each with what was done to resolve it, the tabs counting each list', async () => {
+    renderTab(undefined);
+    expect(await screen.findByText('Ritika Bhalla · No. 42', undefined, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('Check-in and check-out · 3 Nov')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Resolve Rhea Kaul’s ticket' })).toBeDefined();
+    expect(screen.queryByText('Yuvraj Luthra · No. 42')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Open 2' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('link', { name: 'Resolved 2' }).getAttribute('href')).toBe('/feedback?tab=resolved');
+  });
+
+  it('shows on Resolved what was done, with the name of who did it, and feedback that needed nothing', async () => {
+    renderTab('resolved');
+    expect(await screen.findByText('Resolved by Vikram Rao on 3 Nov: Thanked him.', undefined, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('Zoya Merchant · No. 42')).toBeDefined();
+    expect(screen.queryByRole('button', { name: /^Resolve / })).toBeNull();
+  });
+
+  it('moves between the tabs through the address', async () => {
+    const onNavigate = renderTab('nonsense');
+    fireEvent.click(await screen.findByRole('link', { name: 'Resolved 2' }, { timeout: 5000 }));
+    expect(onNavigate).toHaveBeenCalledWith('/feedback?tab=resolved');
+  });
+});

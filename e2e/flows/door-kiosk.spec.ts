@@ -64,7 +64,7 @@ test.describe('Door kiosk', () => {
     await scan(kiosk, await doorCode(member));
     await expect(kiosk.getByText('Welcome, Vidya.', { exact: true })).toBeVisible();
     await expect(kiosk.getByText('Goodbye, Vidya.', { exact: true })).toHaveCount(0);
-    await floor.getByRole('link', { name: 'Check-in' }).click();
+    await floor.getByRole('link', { name: 'Door', exact: true }).click();
     await floor.getByRole('button', { name: 'Check out Vidya Chadha' }).click();
     await expect(floor.getByRole('button', { name: 'Check out Vidya Chadha' })).toHaveCount(0);
 
@@ -81,6 +81,8 @@ test.describe('Door kiosk', () => {
     await expect(floor.getByText('The door queue was slow.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'What was done' }).first().fill('Second host on the door from Friday.');
     await floor.getByRole('button', { name: 'Resolve Vidya Chadha’s ticket' }).first().click();
+    // A resolved ticket leaves Open for Resolved, kept with the name of who resolved it (console v3).
+    await floor.getByRole('link', { name: /^Resolved \d+$/ }).click();
     await expect(floor.getByText(/^Resolved by Nisha Arora on .*: Second host on the door from Friday\.$/)).toBeVisible();
 
     await floor.getByRole('link', { name: 'Devices', exact: true }).click();

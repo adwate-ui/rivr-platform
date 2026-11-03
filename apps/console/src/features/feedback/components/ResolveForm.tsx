@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { feedbackResolveSchema } from '@rivr/contracts';
 import { useResolveFeedback, type FeedbackFailure, type FeedbackItem } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
+import { Box, Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -22,15 +22,15 @@ export function ResolveForm({ venueId, item }: { venueId: string; item: Feedback
   const field = form.register('resolution');
   return (
     <Stack gap={2}>
-      <Input {...field} label={t('console.feedback.resolution')} hint={t('console.feedback.resolutionHint')} autoComplete="off"
-        error={form.formState.errors.resolution ? t('console.feedback.invalidResolution') : undefined} />
-      {/* Under the field, not beside it: beside, it lined up with the hint rather than the box (C-06). */}
-      <Inline>
-        <Button variant="secondary" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
+      {/* Resolve beside the field, its foot on the field's (console v3); what is wrong goes under the row, so they stay level. */}
+      <Inline gap={2} align="end">
+        <Box grow><Input {...field} label={t('console.feedback.resolution')} autoComplete="off" maxLength={500} /></Box>
+        <Button variant="subtle" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
           onClick={() => void submit()}>
           {t('console.feedback.resolve')}
         </Button>
       </Inline>
+      {form.formState.errors.resolution ? <ErrorMessage>{t('console.feedback.invalidResolution')}</ErrorMessage> : null}
       {failure === null ? null : <ErrorMessage>{t(`console.feedback.failures.${failure}`)}</ErrorMessage>}
     </Stack>
   );

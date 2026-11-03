@@ -24,7 +24,7 @@ src/
     frame/            the app's shell: staff only, the rail for the role, who is signed in, the
                       practice venue switch, sign out, the kill-switch banner, not found
     sign-in/          mobile number and code, as in the player app (decision 0032)
-    kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason, and checks in person (/kyc-review)
+    kyc-review/       identity checks waiting for a KYC reviewer: the queue beside the check open, decided with a reason in words, and Check in person in a sheet (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
     live-floor/       the room plan and each table's seats (/): seat, move, away, leaving, top-ups and a player's call time (#638);
@@ -32,11 +32,10 @@ src/
     waitlist/         the floor's waitlists: approve or remove joins from the app (#633), add, call, seat, skip, remove; a game not running shows its interest, and opens a table once enough wait (/waitlist)
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
-    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu by kind, an item at a time or from a CSV (#799) (/fnb)
-    todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; /players-today)
+    fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): Orders in three lanes, to accept, being prepared and delivered tonight, each with its time; a KOT the bar printer missed, as its outbox delivery says, to print or read to the bar and mark handed over; New order, the table then the seat, paid or comp; the Menu tab, by kind, an item at a time or from a CSV (#799) (/fnb?tab=orders|menu, console v3)
     tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
     games-history/    the tables run each club day, how often and how long, for the super admin (#643; /games-history)
-    check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (/check-in)
+    door/             the Door, two tabs (/door?tab=checkin|today): Check-in, one field for the card the scanner reads (#71), a mobile, a member number or a name, then the members expected and in the room; and Today's players by status, with tables and time played (#641)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
     withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)

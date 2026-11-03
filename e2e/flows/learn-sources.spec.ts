@@ -14,6 +14,8 @@ const nextYear = () => `${String(new Date().getFullYear() + 1)}-03-31`;
 test.describe('Learn sources', () => {
   test('Learn sources: a super admin uploads an encoding that passes the validator and the gates', async ({ page }) => {
     await signInToConsole(page, '9000000629');
+    // Learn content is a tab of Content (console v3); Learn itself stays off for members.
+    await page.getByRole('link', { name: 'Content', exact: true }).click();
     await page.getByRole('link', { name: 'Learn content' }).click();
     const file = page.locator('input[type="file"]');
     await file.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"not": "an encoding"}') });

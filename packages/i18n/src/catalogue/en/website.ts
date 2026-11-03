@@ -2,9 +2,15 @@
 export const website = {
   title: 'Website',
   notAllowed: 'Not in your role. Ask an admin.',
-  hint: 'Change a page\u2019s words in place, save a draft and preview it as the website shows it, then publish it now or at a time. Every version is kept: publish an earlier one again from its history.',
-  page: 'Page',
-  choosePage: 'Choose a page to edit.',
+  /** The pages beside the editor (console v3): found by name or address, in three groups. */
+  list: 'Pages',
+  find: 'Find a page',
+  noMatch: 'No page matches.',
+  groups: { club: 'Club', guides: 'Guides', legal: 'Legal' },
+  /** The two pages titled with the club's name, named apart in the list. */
+  pages: { home: 'Home', links: 'Link in bio' },
+  /** On a phone, from the editor back to the pages. */
+  back: 'Back to the pages',
   noPages: 'The website has no pages yet.',
   /** `Block 2 · Cards`. */
   block: 'Block {number} · {kind}',
@@ -57,4 +63,11 @@ export const website = {
     paused: 'The club is paused: edit the website when it reopens.',
     unavailable: 'Not sent. Try again.',
   },
+} as const;
+
+/** The console's Content screen (console v3): the website's pages, and the Learn content behind the player app's Learn. */
+export const consoleContent = {
+  title: 'Content',
+  notAllowed: 'Not in your role. Ask an admin.',
+  tabs: { website: 'Website', learn: 'Learn content' },
 } as const;

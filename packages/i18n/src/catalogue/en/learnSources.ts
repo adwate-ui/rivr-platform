@@ -11,7 +11,6 @@ export const learnSources = {
   active: 'On',
   lapsed: 'Licence lapsed',
   addTitle: 'Add a source',
-  hint: 'Only an encoding that passes every check uploads.',
   choose: 'Choose encoding',
   checking: 'Checking the encoding\u2026',
   /** The browser could not read the chosen file (F2-30). */
