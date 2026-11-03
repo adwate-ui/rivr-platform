@@ -17,6 +17,7 @@ export const tokens = {
     "control": "#F3EDE080",
     "goldTint": "#C9A85C24",
     "goldEdge": "#C9A85C59",
+    "practiceStripe": "#B8974D",
     "creamTrack": "#F3EDE01F",
     "creamFaint": "#F3EDE04D",
     "seatTaken": "#F3EDE059",

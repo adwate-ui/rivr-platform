@@ -201,12 +201,12 @@ export function useWaitlistActions() {
   return { joinAt, leave, stepAway };
 }
 
-/** The venue's lists for the floor (`waitlist_board`, waitlist.manage): each place in order, with names. */
-export function useWaitlistBoard(venueId: string) {
+/** The venue's lists for the floor (`waitlist_board`, waitlist.manage): each place in order, with names; not asked while `isEnabled` is false. */
+export function useWaitlistBoard(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.waitlistBoard(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
+    enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<WaitlistBoardEntry[]> => {
       const { data, error } = await client.rpc('waitlist_board', { p_venue_id: venueId });

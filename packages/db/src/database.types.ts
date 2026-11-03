@@ -3593,6 +3593,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"staff_preference": {
+                  Row: {
+                    "created_at": string,"density": string,"staff_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"density"?: string,"staff_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"density"?: string,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "staff_preference_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: true
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_preference_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"staff_shift": {
                   Row: {
                     "club_day": string,"created_at": string,"created_by_staff_id": string | null,"ends_at": string,"id": string,"job_title": string,"staff_id": string,"starts_at": string,"updated_at": string,"venue_id": string

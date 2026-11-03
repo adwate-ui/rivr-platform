@@ -3,7 +3,7 @@ import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TournamentInterestList } from './TournamentInterestList.tsx';
+import { TournamentInterestScreen } from './TournamentInterestList.tsx';
 
 const VENUE = '00000000-0000-4000-8000-000000000001';
 
@@ -46,7 +46,7 @@ function renderList() {
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <StaffVenueProvider>
-        <ToastProvider place="console"><TournamentInterestList /></ToastProvider>
+        <ToastProvider place="console"><TournamentInterestScreen /></ToastProvider>
       </StaffVenueProvider>
     </RivrDataProvider>,
   );

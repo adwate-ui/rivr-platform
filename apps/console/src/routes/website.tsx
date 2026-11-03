@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { WebsiteScreen } from '../features/website/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The website editor: drafts, preview, scheduled publish, history and rollback (#129). */
-export const websiteRoute = createRoute({ getParentRoute: () => frameRoute, path: '/website', component: WebsiteScreen });
+/** The website moved into Content (console v3): an old link or bookmark opens its tab there. */
+export const websiteRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/website', component: () => <Navigate to="/content" search={{ tab: 'website' }} replace />,
+});

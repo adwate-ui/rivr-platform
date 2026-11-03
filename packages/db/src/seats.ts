@@ -65,12 +65,12 @@ export function openSeatsAt(table: { readonly id: string; readonly seats: number
   return Array.from({ length: table.seats }, (_, index) => index + 1).filter((number) => !busy.has(number));
 }
 
-/** The venue's seated players, table by table, for staff who read members. */
-export function useFloorSeats(venueId: string) {
+/** The venue's seated players, table by table, for staff who read members; not asked while `isEnabled` is false. */
+export function useFloorSeats(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.floorSeats(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
+    enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<SeatedPlayer[]> => {
       const { data, error } = await client.rpc('floor_seats', { p_venue_id: venueId });

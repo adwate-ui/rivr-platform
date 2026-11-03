@@ -1,9 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { tabSearchFrom } from '../features/frame/index.ts';
-import { DevicesScreen } from '../features/devices/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Tablets, TVs, computers and cameras, by tab (`?tab=`; #606). */
+/** Devices moved into Settings (console v3): an old link or bookmark opens its tab there. */
 export const devicesRoute = createRoute({
-  getParentRoute: () => frameRoute, path: '/devices', component: DevicesScreen, validateSearch: tabSearchFrom,
+  getParentRoute: () => frameRoute, path: '/devices', component: () => <Navigate to="/settings" search={{ tab: 'devices' }} replace />,
 });

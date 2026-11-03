@@ -8,4 +8,4 @@ Date: 3 Nov 2026. The owner's console v3 brief, Phase 3, on the lists of decisio
 - **Undo.** Every step says its outcome in a toast. Undo is offered only where a step has an exact inverse: Hold place and Release undo each other (not for a called place, whose call Hold ends), and Mark registered is undone by `unmark_tournament_registered`, within ten minutes of marking. Approve, Decline, Remove and Seat have no exact inverse (a place added back goes to the list's end), so Remove asks first instead.
 - **Bulk bar.** Hold and Remove over the places ticked, on any table; Remove asks first, then Clear.
 - **Copy.** The prototype's "One list per open table." under the heading is left out: `.claude/rules/copy.md` allows no subtitle under a heading. Counts are written "Places held: 2", as the catalogue has no plurals.
-- **Tabs.** Lists and Tournament interest, in the address (`?tab=lists`, `?tab=interest`); `/tournament-interest` opens the second.
+- **Tabs.** Lists and Tournament interest, held by the frame's tabbed screen (decision 0443) in the address (`?tab=lists`, `?tab=interest`); `/tournament-interest` opens the second.
