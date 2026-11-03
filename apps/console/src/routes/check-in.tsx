@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { CheckInScreen } from '../features/check-in/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Check-in at the door (#72): who is expected and who is in the room. */
-export const checkInRoute = createRoute({ getParentRoute: () => frameRoute, path: '/check-in', component: CheckInScreen });
+/** Check-in moved into the Door (console v3): an old link or bookmark opens its tab there. */
+export const checkInRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/check-in', component: () => <Navigate to="/door" search={{ tab: 'check-in' }} replace />,
+});

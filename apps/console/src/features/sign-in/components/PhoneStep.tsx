@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { indianMobileSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn } from '@rivr/db';
 import { formatTypedMobile, t } from '@rivr/i18n';
-import { Button, Captcha, Heading, Input, StepScreen, Text, useCaptcha, Wordmark } from '@rivr/ui';
+import { Button, Captcha, Heading, Input, StatusMessage, StepScreen, Text, useCaptcha, Wordmark } from '@rivr/ui';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { CAPTCHA_SITE_KEY } from '../captcha.ts';
@@ -12,9 +12,9 @@ const phoneForm = z.object({ phone: indianMobileSchema });
 
 /**
  * The first step: the lockup and the motto, then a staff member's mobile number, spaced as it is typed, and where the
- * code will come (S-01).
+ * code will come (S-01). `notice` says why the staff member is here, such as the idle lock having signed them out (#811).
  */
-export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) => void }) {
+export function PhoneStep({ onCodeSent, notice }: { onCodeSent: (phone: IndianMobile) => void; notice?: string | undefined }) {
   const { requestCode } = useSignIn();
   const captcha = useCaptcha(CAPTCHA_SITE_KEY);
   const form = useForm<z.input<typeof phoneForm>, unknown, z.output<typeof phoneForm>>({ resolver: zodResolver(phoneForm), defaultValues: { phone: '' } });
@@ -37,6 +37,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
       footer={
         <>
           <Heading level={1} variant="title">{t('common.signIn.title')}</Heading>
+          <StatusMessage>{notice}</StatusMessage>
           <Controller control={form.control} name="phone" render={({ field }) => (
             <Input ref={field.ref} name={field.name} value={field.value} onBlur={field.onBlur} onChange={(event) => field.onChange(formatTypedMobile(event.target.value))}
               label={t('common.signIn.phoneLabel')} variant="line" prefix={t('common.signIn.countryCode')} type="tel" inputMode="tel" autoComplete="tel-national"

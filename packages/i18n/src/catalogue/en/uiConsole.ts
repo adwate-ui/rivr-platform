@@ -24,6 +24,10 @@ export const consoleUi = {
   sheet: {
     close: 'Close',
   },
+  /** The staff member's menu at the header's end (AccountMenu): the heading over the keys that work. */
+  account: {
+    shortcuts: 'Shortcuts',
+  },
   /** DataTable's ticks: each row's, read with the row's title (`Select Arjun Mehta`), and the header's for every row as shown. */
   dataTable: {
     selectRow: 'Select {row}',

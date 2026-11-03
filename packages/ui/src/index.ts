@@ -87,6 +87,7 @@ export * from './PlayerShell/index.ts';
 export * from './ConsoleShell/index.ts';
 export * from './CommandPalette/index.ts';
 export * from './HeaderPulse/index.ts';
+export * from './AccountMenu/index.ts';
 export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
 export * from './TvJackpotBoard/index.ts';

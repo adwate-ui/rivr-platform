@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { TournamentInterestScreen } from '../features/tournament-interest/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** Who registered interest in each upcoming tournament, marked registered by the floor once they paid (#636). */
-export const tournamentInterestRoute = createRoute({ getParentRoute: () => frameRoute, path: '/tournament-interest', component: TournamentInterestScreen });
+/** Tournament interest moved into the Waitlist (console v3): an old link or bookmark opens its tab there. */
+export const tournamentInterestRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/tournament-interest', component: () => <Navigate to="/waitlist" search={{ tab: 'interest' }} replace />,
+});
