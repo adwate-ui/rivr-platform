@@ -73,7 +73,7 @@ export function StaffTable({ venueId, members, grantable, isAdding }: StaffTable
       {isAdding ? <AddStaffForm venueId={venueId} grantable={grantable} /> : null}
       {/* The table full width until someone is opened, as on Members; in place, so the search typed stays. */}
       <Grid columns={chosen === null ? 1 : 2} gap={8} stackBelow="medium">
-        <DataTable label={t('console.staff.tabs.staff')} columns={columns()} rows={shown} rowKey={(row) => row.staffId}
+        <DataTable label={t('console.staff.tabs.staff')} narrowLayout="scroll" columns={columns()} rows={shown} rowKey={(row) => row.staffId}
           emptyText={t('console.staff.empty')} filter={{ label: t('console.staff.search'), text: searchText }}
           toolbar={() => <RoleFilter members={members} role={role} onChange={setRole} />} onRowOpen={(row) => setChosenId(row.staffId)} />
         {chosen === null ? null : (

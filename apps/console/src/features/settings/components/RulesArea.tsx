@@ -77,7 +77,7 @@ export function RulesArea({ venueId, area, isSuperAdmin }: { venueId: string; ar
   const list = (
     <Stack gap={4}>
       <Text tone="muted">{t('console.settings.rulesHint')}</Text>
-      <DataTable label={t('console.settings.table')} columns={columns} rowKey={(setting) => setting.key} {...tableState(settings, area)}
+      <DataTable label={t('console.settings.table')} narrowLayout="scroll" columns={columns} rowKey={(setting) => setting.key} {...tableState(settings, area)}
         filter={{ label: t('console.settings.filter'), text: (setting) => `${settingName(setting.key)} ${settingHelp(setting.key, setting.description)}` }}
         onRowOpen={(setting) => { setChangingKey(null); setOpenKey(setting.key); }}
         rowDetail={(setting) => (setting.key === changingKey ? <SettingChange key={setting.key} venueId={venueId} setting={setting} tiers={tiers} /> : null)} />

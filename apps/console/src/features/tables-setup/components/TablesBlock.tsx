@@ -61,7 +61,7 @@ export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
         {stakes.length === 0 ? null : <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newTable')}</Button>}
       </Inline>
       {open === NEW ? form(null) : null}
-      <DataTable label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} rowKey={(table) => table.id}
+      <DataTable label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} narrowLayout="scroll" rowKey={(table) => table.id}
         emptyText={t('console.tablesSetup.tablesEmpty')} rowDetail={(table) => (open === table.id ? form(table) : null)} />
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}

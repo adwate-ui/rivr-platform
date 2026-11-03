@@ -15,8 +15,7 @@ export async function press(tablet: Page, keys: string[]) {
  * tablet, pairs it and fixes it to Table 3. Returns the tablet's page and name.
  */
 export async function tabletAtTable3(browser: Browser, floor: Page) {
-  await floor.getByRole('link', { name: 'Staff', exact: true }).click();
-  await floor.getByRole('link', { name: 'Dealer PINs' }).click();
+  await floor.goto(`${appUrl('console')}/staff?tab=dealerPins`);
   await floor.getByRole('button', { name: new RegExp(`^(Set|Change) PIN for ${DEALER}$`) }).click();
   await floor.getByLabel(`New PIN for ${DEALER}`).fill(PIN);
   await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();

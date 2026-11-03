@@ -9,7 +9,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-import { signInToConsole } from '../support/signIn.ts';
+import { openConsole, signInToConsole } from '../support/signIn.ts';
 
 const DEALER = 'Pema Lepcha';
 
@@ -26,9 +26,7 @@ test.describe('Dealer tablet', () => {
     const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000112');
-    // Signed in once the code is taken; an address then opens with the session.
-    await expect(floor.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
-    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
+    await openConsole(floor, '/settings?tab=devices&part=tablets');
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('button', { name: 'Add and pair' }).click();
     const codeLine = floor.getByText(/^Pairing code \d{6}/);
@@ -58,8 +56,7 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
     // The PIN is set while the tablet waits on sign-in: its list asks again every 15 seconds, no reload.
-    await floor.getByRole('link', { name: 'Staff', exact: true }).click();
-    await floor.getByRole('link', { name: 'Dealer PINs' }).click();
+    await floor.goto(`${appUrl('console')}/staff?tab=dealerPins`);
     await floor.getByRole('button', { name: new RegExp(`^(Set|Change) PIN for ${DEALER}$`) }).click();
     await floor.getByLabel(`New PIN for ${DEALER}`).fill('2741');
     await floor.getByRole('button', { name: `Save PIN for ${DEALER}` }).click();

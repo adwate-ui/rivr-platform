@@ -89,16 +89,19 @@ function errorProps(isWrong: boolean, text: string, noteId: string | undefined) 
 function WhenField({ form, noteId }: { form: Form; noteId?: string | undefined }) {
   const when = useWatch({ control: form.control, name: 'when' });
   const date = form.register('date');
-  const Layout = noteId === undefined ? WhenStack : WhenRow;
+  const isRow = noteId !== undefined;
+  const Layout = isRow ? WhenRow : WhenStack;
+  // In a row the chips' choices say what they are, so their name is read out only.
+  const chipLook = isRow ? { look: 'subtle', isLabelVisuallyHidden: true } as const : {};
   return (
     <Layout>
       <Controller control={form.control} name="when" render={({ field }) => (
-        <ChoiceChips label={t('console.settings.when')} mode="one" selected={[field.value]}
+        <ChoiceChips label={t('console.settings.when')} mode="one" selected={[field.value]} {...chipLook}
           options={[{ value: 'now', label: t('console.settings.now') }, { value: 'date', label: t('console.settings.fromDate') }]}
           onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
       )} />
       {when === 'date' ? (
-        <Input {...date} type="date" label={t('console.settings.date')}
+        <Input {...date} type="date" variant={isRow ? 'subtle' : 'boxed'} label={t('console.settings.date')}
           {...errorProps(form.formState.errors.date !== undefined, t('console.settings.invalidDate'), noteId)} />
       ) : null}
     </Layout>
@@ -106,7 +109,7 @@ function WhenField({ form, noteId }: { form: Form; noteId?: string | undefined }
 }
 
 const WhenStack = ({ children }: { children: ReactNode }) => <Stack gap={3}>{children}</Stack>;
-const WhenRow = ({ children }: { children: ReactNode }) => <Inline gap={4} align="end" wrap>{children}</Inline>;
+const WhenRow = ({ children }: { children: ReactNode }) => <Inline gap={3} wrap>{children}</Inline>;
 
 interface ValueFormProps {
   venueId: string;
@@ -142,10 +145,14 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers, look = 'p
   const notes = { date: useId(), reason: useId() };
   const rowNotes = look === 'row' ? notes : undefined;
   const reasonField = (
-    <Input {...reason} label={t('console.settings.reason')} maxLength={200}
+    <Input {...reason} variant={look === 'row' ? 'subtle' : 'boxed'} label={t('console.settings.reason')} maxLength={200}
       {...errorProps(form.formState.errors.reason !== undefined, t('console.settings.invalidReason'), rowNotes?.reason)} />
   );
-  const save = <Button variant="primary" isLoading={schedule.isPending} onClick={() => void submit()}>{t('console.settings.schedule')}</Button>;
+  const save = (
+    <Button variant="primary" size={look === 'row' ? 'compact' : 'regular'} isLoading={schedule.isPending} onClick={() => void submit()}>
+      {t('console.settings.schedule')}
+    </Button>
+  );
   return (
     <Stack gap={4}>
       {look === 'panel' ? <Heading level={3}>{t('console.settings.newValue')}</Heading> : null}
@@ -158,9 +165,9 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers, look = 'p
   );
 }
 
-/** When, why and Save: in a row on one line, each control 44 px with their ends lined up so each sits centred on the others. */
+/** When, why and Save: in a row on one line, the console's subtle controls of one height, centred on each other (console v3). */
 function WhenWhySave({ notes, form, reason, save }: { notes: RowNotes | undefined; form: Form; reason: ReactNode; save: ReactNode }) {
-  if (notes !== undefined) return <Inline gap={4} align="end" wrap><WhenField form={form} noteId={notes.date} />{reason}{save}</Inline>;
+  if (notes !== undefined) return <Inline gap={3} wrap><WhenField form={form} noteId={notes.date} />{reason}{save}</Inline>;
   return <><WhenField form={form} />{reason}<Inline gap={4}>{save}</Inline></>;
 }
 

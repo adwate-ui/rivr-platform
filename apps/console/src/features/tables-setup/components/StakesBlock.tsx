@@ -54,7 +54,7 @@ export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: read
         <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>
       </Inline>
       {open === NEW ? form(null) : null}
-      <DataTable label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns(open, (stake) => toggle(stake.id))} rows={stakes} rowKey={(stake) => stake.id}
+      <DataTable label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns(open, (stake) => toggle(stake.id))} rows={stakes} narrowLayout="scroll" rowKey={(stake) => stake.id}
         emptyText={t('console.tablesSetup.stakesEmpty')} rowDetail={(stake) => (open === stake.id ? form(stake) : null)} />
       <StatusMessage>{saved}</StatusMessage>
     </Stack>

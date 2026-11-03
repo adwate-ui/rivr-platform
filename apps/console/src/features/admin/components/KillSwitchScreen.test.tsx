@@ -53,12 +53,12 @@ describe('Kill switch (console v3)', () => {
     expect(screen.getByRole('textbox', { name: 'Why it is released' })).toBeDefined();
   });
 
-  it('says what each level does once it is chosen', async () => {
+  it('gives each level a card saying what it does, read as the choice\u2019s description', async () => {
     renderKillSwitch([]);
-    fireEvent.click(await screen.findByRole('radio', { name: 'Messaging stop' }, { timeout: 5000 }));
-    expect(screen.getByText('Holds every message to members: WhatsApp, texts and notifications.')).toBeDefined();
-    fireEvent.click(screen.getByRole('radio', { name: 'Venue freeze' }));
-    expect(screen.getByText('Stops every change at the venue. Before a purge, or in a serious incident.')).toBeDefined();
+    const level = await screen.findByRole('radio', { name: 'Messaging stop' }, { timeout: 5000 });
+    const described = document.getElementById(level.getAttribute('aria-describedby') ?? '');
+    expect(described?.textContent).toBe('Holds every message to members: WhatsApp, texts and notifications.');
+    expect(screen.getAllByRole('radio')).toHaveLength(5);
   });
 
   it('engages only with a reason and a second, confirming press', async () => {

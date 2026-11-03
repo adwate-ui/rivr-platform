@@ -8,7 +8,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
-import { signInToConsole } from '../support/signIn.ts';
+import { openConsole, signInToConsole } from '../support/signIn.ts';
 
 const REFUSED = 'Not in your role. Ask an admin.';
 
@@ -19,7 +19,7 @@ test.describe('Staff', () => {
     const name = `Test Host ${run}`;
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000150');
-    await admin.getByRole('link', { name: 'Staff', exact: true }).click();
+    await openConsole(admin, '/staff');
     await expect(admin.getByRole('heading', { name: 'Staff', level: 1 })).toBeVisible();
     // The staff are a table (C-03): a name opens the person beside it, and their changes open in place on Change (A-17).
     await admin.getByRole('button', { name: 'Ayesha Thomas · You', exact: true }).click();

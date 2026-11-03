@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -25,9 +25,7 @@ test.describe('Admin tools', () => {
   test('the super admin sets up a stake and a table, reads the games run, and builds an hours bonus', async ({ page }) => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000114');
-    // Signed in once the code is taken; an address then opens with the session.
-    await expect(page.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
-    await page.goto(`${appUrl('console')}/tables`);
+    await openConsole(page, '/tables');
     await page.getByRole('button', { name: 'New stake' }).click();
     await expect(page.getByRole('heading', { name: 'New stake' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);

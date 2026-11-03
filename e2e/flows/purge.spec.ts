@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
-import { signInToConsole } from '../support/signIn.ts';
+import { openConsole, signInToConsole } from '../support/signIn.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -44,10 +44,11 @@ test.describe('Purge', () => {
   test('Purge: a super admin resets the practice venue to its seed, typing its name', async ({ page }) => {
     test.skip(isRemoteTarget(), 'resets the practice venue, so the local stack only');
     await signInToConsole(page, '9000000177');
-    const rail = page.getByRole('complementary');
-    await rail.getByRole('switch', { name: 'Practice venue' }).click();
-    await expect(rail.getByText('RIVR Practice')).toBeVisible();
-    await page.getByRole('link', { name: 'Practice reset' }).click();
+    // The practice venue's switch is in the staff member's menu (console v3), and stays on as the page reloads.
+    await page.getByRole('button', { name: 'Aarav Saxena' }).click();
+    await page.getByRole('switch', { name: 'Practice venue' }).click();
+    await openConsole(page, '/practice-reset');
+    await expect(page.getByText('You are in the practice venue.')).toBeVisible();
 
     const table = page.getByRole('table', { name: 'Tables a reset reloads' });
     await expect(table.getByRole('cell', { name: 'member', exact: true })).toBeVisible();
@@ -77,7 +78,7 @@ test.describe('Purge', () => {
     // The room's other super admin asks for the purge, saying why.
     const asker = await browser.newPage();
     await signInToConsole(asker, '9000000187');
-    await asker.getByRole('link', { name: 'Purge', exact: true }).click();
+    await openConsole(asker, '/purge');
     const askedMine = asker.getByText(/^You asked for the purge at /);
     const ask = asker.getByRole('button', { name: 'Ask for the purge' });
     await expect(ask.or(askedMine)).toBeVisible();
@@ -87,7 +88,7 @@ test.describe('Purge', () => {
     }
     await expect(askedMine).toBeVisible();
     await signInToConsole(page, '9000000186');
-    await page.getByRole('link', { name: 'Purge', exact: true }).click();
+    await openConsole(page, '/purge');
     await expect(page.getByText(/ asked for the purge at .+: "Closing the E2E room for good"\. Make the archive, then purge\.$/)).toBeVisible();
 
     const saved = page.waitForEvent('download');

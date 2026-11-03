@@ -43,10 +43,10 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
   return (
     <Stack gap={2}>
       <Heading level={3}>{t('console.tablets.addTitle')}</Heading>
-      {/* The name and Add the same 44 px, ends on one line, so Add sits centred on the field; the hint under them both. */}
-      <Inline gap={3} align="end" wrap>
-        <Input {...nameField} label={t('console.tablets.name')} autoComplete="off" aria-describedby={noteId} aria-invalid={isWrong || undefined} />
-        <Button variant="primary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
+      {/* The console's field beside its button (console v3): one height, centred on one line; the hint under them both. */}
+      <Inline gap={3} wrap>
+        <Input {...nameField} variant="subtle" label={t('console.tablets.name')} autoComplete="off" aria-describedby={noteId} aria-invalid={isWrong || undefined} />
+        <Button variant="primary" size="compact" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
       </Inline>
       {isWrong ? <ErrorMessage id={noteId}>{t('console.tablets.invalidName')}</ErrorMessage>
         : <Text id={noteId} variant="small" tone="muted">{t('console.tablets.nameHint')}</Text>}

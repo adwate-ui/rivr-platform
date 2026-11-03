@@ -2,7 +2,7 @@
 
 Date: 3 Nov 2026. Console v3 brief, Phase 6 "Kill switch", "Practice reset" and "Purge".
 
-- **Levels.** The prototype shows each level as a card with its description. `ChoiceChips` holds no description and is not this scope's to change, and one screen does not earn a new component (CLAUDE.md rule 7), so the level is chosen with chips and its description shows under them once chosen. Follow-up: description cards if the owner wants every level's at once.
+- **Levels.** Each level is a card with what it does, as in the prototype: `ChoiceChips look="card"` with each option's `description`, read as the choice's description. Chosen, a card is gold-edged, as every console choice is; the prototype's red edge is left out, as red is kept for the engaged control.
 - **Engaging.** Unchanged: a level, its target, a reason of 3 to 500 characters, then a second, confirming press.
 - **Engaged.** Each engaged control is a red `Banner` with Release (its name, "Release Venue freeze", for a screen reader); Release opens the reason under it. A freeze's release still takes two super admins.
 - **Steps.** `StepList` gains a `cards` look: each step a raised card with its own action and content. A later step's button shows disabled until its turn. Its card is not dimmed as in the prototype: dimmed words would fall under 4.5:1; its title is muted instead.

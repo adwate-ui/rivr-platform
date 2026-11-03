@@ -52,7 +52,7 @@ function DealerList({ venueId }: { venueId: string }) {
   if (dealers.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
   return (
     <Screen level={2} title={title}>
-      <DataTable label={title} columns={pinColumns(openId, (dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
+      <DataTable label={title} narrowLayout="scroll" columns={pinColumns(openId, (dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
         rowKey={(dealer) => dealer.staffId} emptyText={t('console.dealerPins.empty')}
         rowDetail={(dealer) => (openId === dealer.staffId ? <PinForm venueId={venueId} staffId={dealer.staffId} name={dealer.fullName} /> : null)} />
     </Screen>

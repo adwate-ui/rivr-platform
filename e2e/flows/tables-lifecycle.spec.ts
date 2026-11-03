@@ -8,8 +8,8 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
-import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsole } from '../support/signIn.ts';
+import { isRemoteTarget } from '../support/apps.ts';
+import { openConsole, signInToConsole } from '../support/signIn.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -44,9 +44,7 @@ test.describe('Tables lifecycle', () => {
   test('a super admin deactivates a table, brings it back closed, is refused deleting it while a place waits, then deletes it', async ({ page }) => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000176');
-    // Signed in once the code is taken; an address then opens with the session.
-    await expect(page.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
-    await page.goto(`${appUrl('console')}/tables`);
+    await openConsole(page, '/tables');
     await page.getByRole('button', { name: 'New table' }).click();
     await page.getByRole('textbox', { name: 'Table name' }).fill(TABLE);
     await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio').first().click();

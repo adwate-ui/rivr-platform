@@ -68,11 +68,12 @@ export function EngageForm({ venueId, onOutcome }: { venueId: string; onOutcome:
     <Stack gap={4}>
       <Heading level={2}>{t('console.killSwitch.newControl')}</Heading>
       <Controller control={form.control} name="level" render={({ field }) => (
-        <ChoiceChips label={t('console.killSwitch.level')} mode="one" selected={field.value === null ? [] : [field.value]}
-          options={CONTROL_LEVELS.map((value) => ({ value, label: t(`console.killSwitch.levels.${value}`) }))}
+        <ChoiceChips label={t('console.killSwitch.level')} mode="one" look="card" selected={field.value === null ? [] : [field.value]}
+          options={CONTROL_LEVELS.map((value) => ({
+            value, label: t(`console.killSwitch.levels.${value}`), description: t(`console.killSwitch.levelDetails.${value}`),
+          }))}
           onChange={([chosen]) => { field.onChange(chosen ?? null); form.setValue('phone', ''); form.setValue('feature', null); setConfirming(null); }} />
       )} />
-      {level === null ? null : <Text tone="muted">{t(`console.killSwitch.levelDetails.${level}`)}</Text>}
       <Target control={form.control} level={level} phoneError={errors.phone !== undefined} />
       <Input {...reason} label={t('console.killSwitch.reason')} hint={t('console.killSwitch.reasonHint')} maxLength={500} autoComplete="off"
         error={errors.reason ? t('console.killSwitch.invalidReason') : undefined} />

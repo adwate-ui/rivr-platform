@@ -3,13 +3,12 @@
  * is ended it is gone. Aisha Khan (126) and Bhuvan Walia (426) are this flow's own, as Auth sends one code a minute.
  */
 import { expect, test } from '@playwright/test';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 test('Notices: a notice put up in Settings shows on members\' Home until it is ended', async ({ browser, page }) => {
   const words = `Valet parking from 8 pm tonight (${String(Date.now())}).`;
   await signInToConsole(page, '9000000126');
-  await page.getByRole('link', { name: 'Settings', exact: true }).click();
-  await page.getByRole('link', { name: 'Notices', exact: true }).click();
+  await openConsole(page, '/settings?tab=settings&part=notices');
   await page.getByRole('textbox', { name: 'Notice' }).fill(words);
   await page.getByRole('button', { name: 'Put up' }).click();
   await expect(page.getByRole('status').getByText('Notice put up.')).toBeVisible();
