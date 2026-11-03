@@ -8,19 +8,20 @@ select no_plan();
 set local role anon;
 select results_eq(
   $$ select venue_slug, slug, title, nav_position from public.public_site_page order by venue_slug, slug $$,
-  $$ values ('gurugram'::text, 'about'::text, 'About'::text, 1), ('gurugram', 'academy', 'RIVR Academy', 5),
+  $$ values ('gurugram'::text, 'about'::text, 'About'::text, 1),
             ('gurugram', 'home', 'RIVR Poker Club', null), ('gurugram', 'house-rules', 'House rules', null),
             ('gurugram', 'journal', 'Journal', 6), ('gurugram', 'journal-bankroll', 'Bankroll basics', null),
             ('gurugram', 'journal-cash-game-tips', 'Cash game tips for the live table', null),
             ('gurugram', 'journal-holdem-basics', 'Texas Hold''em for beginners', null),
             ('gurugram', 'journal-live-etiquette', 'Live poker etiquette', null),
             ('gurugram', 'journal-plo-basics', 'Pot-Limit Omaha: what changes', null),
+            ('gurugram', 'journal-poker-legal-gurugram', 'Is poker legal in Gurugram?', null),
             ('gurugram', 'journal-tournaments-gurugram', 'Poker tournaments in Gurugram', null), ('gurugram', 'leaderboard', 'Leaderboard', null),
             ('gurugram', 'links', 'RIVR Poker Club', null), ('gurugram', 'membership', 'Membership', 2),
             ('gurugram', 'privacy', 'Privacy', null), ('gurugram', 'promotions', 'Promotions', 3),
             ('gurugram', 'questions', 'Questions', null), ('gurugram', 'responsible-play', 'Responsible play', null),
             ('gurugram', 'terms', 'Terms of use', null), ('gurugram', 'tournaments', 'Tournaments', 4), ('gurugram', 'visit', 'Visit', 7) $$,
-  'anyone reads the club''s published pages: not the draft, not the practice venue''s');
+  'anyone reads the club''s published pages: not a draft or the Academy (#795), not the practice venue''s');
 select results_eq(
   $$ select position, kind from public.public_site_block where venue_slug = 'gurugram' and page_slug = 'home' order by position $$,
   $$ values (1, 'hero'::text), (2, 'story'::text), (3, 'gallery'), (4, 'cards'), (5, 'games'), (6, 'cards'), (7, 'cards'), (8, 'feature'),
