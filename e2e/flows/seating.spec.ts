@@ -36,7 +36,7 @@ test.describe('Seating', () => {
     await expect(tableTile(page, 'Table 5').getByRole('button', { name: 'Seat 1, Open' })).toBeVisible();
 
     // Empty, Table 5 closes for tonight; Undo opens it again.
-    await page.getByRole('button', { name: 'Settings for Table 5' }).click();
+    await page.getByRole('button', { name: 'Settings for Table 5', exact: true }).click();
     await page.getByRole('dialog', { name: 'Table 5' }).getByRole('button', { name: 'Close table for tonight' }).click();
     await expect(page.getByText('Table 5 closed', { exact: true })).toBeVisible();
     await page.keyboard.press('Escape');

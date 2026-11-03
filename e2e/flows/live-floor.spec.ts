@@ -28,7 +28,7 @@ test.describe('Live floor', () => {
     await expect(tableTile(page, 'Table 4').getByRole('button', { name: /^Seat 1, / })).toHaveCount(0);
 
     // The table's sheet: its status, seated, dealer and waiting, and Open or Close for tonight.
-    await page.getByRole('button', { name: 'Settings for Table 5' }).click();
+    await page.getByRole('button', { name: 'Settings for Table 5', exact: true }).click();
     const sheet = page.getByRole('dialog', { name: 'Table 5' });
     await expect(sheet.getByText('Status', { exact: true })).toBeVisible();
     await expect(sheet.getByText('Waiting', { exact: true })).toBeVisible();
