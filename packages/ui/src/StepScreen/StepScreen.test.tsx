@@ -100,4 +100,11 @@ describe('StepScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(onBack).toHaveBeenCalledOnce();
   });
+
+  it('sets a ruled footer\'s action 12 px under its rule, not the plain footer\'s 24 (owner, 3 Nov)', () => {
+    renderIn(<StepScreen title="About you" look={{ isFooterRuled: true }} footer={<Button variant="primary">Continue</Button>}>{null}</StepScreen>);
+    const footer = screen.getByRole('button', { name: 'Continue' }).parentElement;
+    expect(footer).toHaveClass('border-t', 'pt-3');
+    expect(footer).not.toHaveClass('pt-6');
+  });
 });
