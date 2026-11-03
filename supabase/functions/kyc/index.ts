@@ -4,7 +4,7 @@
 // the service role; members can only read it, so nobody verifies themselves. Every vendor call first
 // passes begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
 import { panSchema } from '@rivr/contracts';
-import { isSameName, kycIdentityKey } from '@rivr/domain/identity';
+import { kycIdentityKey } from '@rivr/domain/identity';
 import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
 import { CORS, currentRecord, failed, field, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
@@ -52,10 +52,10 @@ async function start({ memberId, kyc }: Subject): Promise<Response> {
 
 /**
  * The member is back from DigiLocker: pull the record and match its photo against the selfie, or
- * move them to a PAN check. A name or a face that is not the member's means someone else's documents:
- * the check waits for staff.
+ * move them to a PAN check. The member's face verifies them at once, whatever name they registered
+ * (decision 0400); a face that is not theirs means someone else's Aadhaar: the check waits for staff.
  */
-async function complete({ memberId, fullName, kyc }: Subject): Promise<Response> {
+async function complete({ memberId, kyc }: Subject): Promise<Response> {
   const record = await currentRecord(memberId);
   const session = record?.digilocker_session_id;
   if (typeof session !== 'string' || typeof record?.photo_path !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
@@ -75,7 +75,7 @@ async function complete({ memberId, fullName, kyc }: Subject): Promise<Response>
   const { name, dateOfBirth, maskedAadhaar, aadhaarReference, pan, address, vendorReference } = pulled.value;
   const status = await rpc('record_kyc_digilocker', {
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
-    p_pan: pan, p_address: address, p_vendor_reference: vendorReference, p_name_matches: isSameName(name, fullName),
+    p_pan: pan, p_address: address, p_vendor_reference: vendorReference,
     p_face_matches: face.value.isMatch, p_face_match_score: Math.round(face.value.score),
     // Duplicates by the document's name, date of birth and last four digits (decision 0197).
     p_identity_key: kycIdentityKey(name, dateOfBirth, maskedAadhaar),
@@ -96,8 +96,9 @@ function panInput(record: Record<string, unknown>, body: unknown) {
 }
 
 /**
- * A PAN check, when DigiLocker failed or held no PAN. The PAN is checked against the member's
- * registered name, never one from the request; the date of birth is DigiLocker's when it gave one.
+ * A PAN check, when DigiLocker failed (or, for a check from before decision 0400, held no PAN). The
+ * PAN is checked against the member's registered name, never one from the request; the date of birth
+ * is DigiLocker's when it gave one.
  */
 async function checkPan({ memberId, fullName, kyc }: Subject, body: unknown): Promise<Response> {
   const record = await currentRecord(memberId);

@@ -38,7 +38,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
-| `isSameName(documentName, registeredName)` | Whether the name on an identity document is the member's, ignoring case, spacing and punctuation. Devanagari vowel signs count; a name with no letters matches nothing. |
+| `kycIdentityKey(documentName, dateOfBirth, maskedAadhaar)` | The identity two KYC checks of one person share: the document's name in plain letters (case, spacing and punctuation ignored; Devanagari vowel signs count), the date of birth and the last four Aadhaar digits. Null without a name in letters or four digits. A DigiLocker name need not be the registered name (decision 0400). |
 
 ### `@rivr/domain/academy`
 

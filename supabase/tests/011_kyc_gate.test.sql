@@ -28,10 +28,10 @@ create function pg_temp.selfie(p_member uuid, p_same_face_as uuid default null) 
   select public.record_kyc_selfie(p_member, 95, p_same_face_as);
 $$;
 
--- DigiLocker for a member whose selfie is in: their own name, and a photo that matches the selfie.
+-- DigiLocker for a member whose selfie is in: a photo that matches the selfie.
 create function pg_temp.digilocker(p_member uuid, p_birth date, p_pan text, p_aadhaar text) returns text language sql as $$
   select public.record_kyc_started(p_member, 'session');
-  select public.record_kyc_digilocker(p_member, p_birth, 'XXXX XXXX 1234', p_aadhaar, p_pan, 'Gurugram', 'vendor', true, true, 97);
+  select public.record_kyc_digilocker(p_member, p_birth, 'XXXX XXXX 1234', p_aadhaar, p_pan, 'Gurugram', 'vendor', true, 97);
 $$;
 
 -- The selfie comes first, one check at a time, and is the KYC photo.
@@ -121,7 +121,7 @@ select is(pg_temp.digilocker('00000000-0000-4000-8000-000000000208', '1986-06-06
 select pg_temp.selfie('00000000-0000-4000-8000-000000000301');
 select public.record_kyc_started('00000000-0000-4000-8000-000000000301', 'session');
 select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000301', '1990-01-01', 'XXXX XXXX 9999', 'aadhaar-other',
-  'GHIPA6789L', 'Elsewhere', 'vendor', true, false, 31), 'needs_review', 'a DigiLocker photo that does not match the selfie waits for staff');
+  'GHIPA6789L', 'Elsewhere', 'vendor', false, 31), 'needs_review', 'a DigiLocker photo that does not match the selfie waits for staff');
 select is((select row(pan, aadhaar_reference, date_of_birth)::text from public.kyc_record
            where member_id = '00000000-0000-4000-8000-000000000301'), '(,,)', 'keeping none of that identity');
 select ok(exists (select 1 from public.audit_log where entity = 'kyc_record' and after ->> 'refusal' = 'duplicate_face'),
