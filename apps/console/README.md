@@ -43,7 +43,7 @@ src/
                       its float and counting its chips by denomination; then closing it against the ledger, with an
                       anomaly's reason from a manager, and every opening and close before (/treasury and
                       /end-of-day open their tab); the payment accounts (/accounts)
-    members/          a member found by name, mobile or number; the record, early departures, a tier change, a break (decision 0053), feature overrides and erasure on request (/members)
+    members/          a member found by name, mobile or number, with where each is tonight; the record docked beside the list and in the address (/members?member=…&part=…), with the seat and a link to it on the floor, visits, early departures and promotions given, a tier change, a break (decision 0053), feature overrides and erasure on request
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); purge a frozen live venue after its full archive is saved, a dry run and its name typed (/purge, #432); the full export archive and one member's data (what a member is owed, staff notes in their own folder, #498), locked to the owner's backup key (/exports, #103); the roster, for staff who manage staff: a week's shifts by job title, adding shifts for a job title's staff, copying the week before, and tonight's attendance (/roster, #106)
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
     devices/          the devices, by tab (/devices, #606): dealer tablets and door kiosks to add, pair, fix to a

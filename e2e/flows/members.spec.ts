@@ -17,10 +17,12 @@ test.describe('Members', () => {
     await page.getByRole('link', { name: 'Members' }).click();
     await expect(page.getByRole('heading', { name: 'Members', level: 1 })).toBeVisible();
 
-    const search = page.getByRole('searchbox', { name: 'Find a member' });
+    const search = page.getByRole('searchbox', { name: 'Name, member no. or mobile' });
     await search.fill('Arjun');
-    await page.getByRole('button', { name: 'Open Arjun Mehta' }).click();
+    await page.getByRole('button', { name: 'Arjun Mehta', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Arjun Mehta', level: 2 })).toBeVisible();
+    // The record is in the address (console v3), so Back and the floor's links open it.
+    await expect(page).toHaveURL(/\/members\?member=/);
     // The list stays where it was as the record opens beside it, so the search typed is still there (C-02).
     await expect(search).toHaveValue('Arjun');
     await expect(page.getByText(/^Member \d+ · Black card · KYC verified/)).toBeVisible();
@@ -28,16 +30,16 @@ test.describe('Members', () => {
     await expect(page.getByRole('heading', { name: 'Early departures' })).toBeVisible();
     // A membership manager sets a break from the record (A5-14); setting one is proved in 046_member_breaks.test.sql.
     // The record's parts are tabs (C-02).
-    await page.getByRole('button', { name: 'Tier and break' }).click();
+    await page.getByRole('link', { name: 'Tier and break' }).click();
     await expect(page.getByRole('heading', { name: 'Break', level: 3 })).toBeVisible();
     await expect(page.getByRole('radiogroup', { name: 'How long' }).getByRole('radio', { name: '1 year' })).toBeVisible();
     // Feature overrides, the number and erasure, the Account part, are for super admins alone (#61).
-    await expect(page.getByRole('button', { name: 'Account', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Account', exact: true })).toHaveCount(0);
 
     await search.fill('9000000202');
-    await page.getByRole('button', { name: 'Open Kabir Sethi' }).click();
+    await page.getByRole('button', { name: 'Kabir Sethi', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Kabir Sethi', level: 2 })).toBeVisible();
-    await page.getByRole('button', { name: 'Tier and break' }).click();
+    await page.getByRole('link', { name: 'Tier and break' }).click();
     await page.getByRole('radiogroup', { name: 'New tier' }).getByRole('radio', { name: "Founders' Circle" }).click();
     await page.getByRole('textbox', { name: 'Why', exact: true }).fill("Owner's guest for the weekend");
     const lastDay = new Date(Date.now() + 2 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });

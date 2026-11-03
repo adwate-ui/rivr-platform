@@ -1,24 +1,15 @@
 import { isMemberQuery, useMembersOfTier, useMemberSearch, useVenueTiers, type MemberRow, type VenueTier } from '@rivr/db';
-import { formatDate, formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, DataTable, Input, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { t } from '@rivr/i18n';
+import { ChoiceChips, DataTable, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { memberColumns } from './memberColumns.tsx';
+import type { Tonight } from './tonight.ts';
 
-function columns(onOpen: (memberId: string) => void): readonly DataTableColumn<MemberRow>[] {
-  return [
-    { key: 'number', header: t('console.members.number'), cell: (row) => <Text tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber },
-    {
-      key: 'name', header: t('console.members.name'), sortValue: (row) => row.fullName,
-      cell: (row) => (
-        <Button variant="text" aria-label={t('console.members.open', { name: row.fullName })} onClick={() => onOpen(row.memberId)}>{row.fullName}</Button>
-      ),
-    },
-    { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName },
-    { key: 'visits', header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end' },
-    {
-      key: 'last', header: t('console.members.lastVisit'), sortValue: (row) => row.lastVisitAt ?? '', align: 'end',
-      cell: (row) => (row.lastVisitAt === null ? <Text tone="muted">{t('console.members.never')}</Text> : formatDate(new Date(row.lastVisitAt))),
-    },
-  ];
+/** What the list is given: the venue, where each member is tonight, and how a record opens. */
+interface ListProps {
+  readonly venueId: string;
+  readonly tonight: ReadonlyMap<string, Tonight>;
+  readonly onOpen: (memberId: string) => void;
 }
 
 /** What the list shows: the members a search found, or every member of a tier; the screen's filters in words. */
@@ -40,9 +31,12 @@ function useListed(venueId: string, query: string, tier: VenueTier | null): List
 }
 
 /** The list as a table, or its loading or error state; a prompt until a search is typed or a tier chosen. */
-function Results({ venueId, query, tier, onOpen }: { venueId: string; query: string; tier: VenueTier | null; onOpen: (memberId: string) => void }) {
+function Results({ venueId, tonight, onOpen, query, tier }: ListProps & { query: string; tier: VenueTier | null }) {
   const { rows, exportFilter } = useListed(venueId, query, tier);
-  const base = { label: t('console.members.title'), columns: columns(onOpen), rowKey: (row: MemberRow) => row.memberId, exportFilter };
+  const base = {
+    label: t('console.members.title'), columns: memberColumns(tonight), rowKey: (row: MemberRow) => row.memberId, exportFilter,
+    onRowOpen: (row: MemberRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const,
+  };
   if (tier === null && !isMemberQuery(query)) return <Text tone="muted">{t('console.members.searchPrompt')}</Text>;
   if (rows.isError) return <DataTable {...base} status="error" onRetry={() => void rows.refetch()} />;
   if (rows.data === undefined) return <DataTable {...base} status="loading" />;
@@ -54,22 +48,26 @@ function Results({ venueId, query, tier, onOpen }: { venueId: string; query: str
   return <DataTable {...base} rows={shown} emptyText={tier === null ? t('console.members.noMatch', { query: query.trim() }) : t('console.members.noneInTier', { tier: tier.name })} />;
 }
 
-/** Finds members by name, mobile number or member number, or lists a tier's; a member's name opens their record. */
-export function MemberList({ venueId, onOpen }: { venueId: string; onOpen: (memberId: string) => void }) {
+/**
+ * Finds members by name, mobile number or member number, or lists a tier's (console v3: the search, a tier choice and the
+ * table of Name, No., Tier, Tonight and Visits); a click on a row opens the member's record.
+ */
+export function MemberList({ venueId, tonight, onOpen }: ListProps) {
   const [query, setQuery] = useState('');
   const [tierId, setTierId] = useState('');
   const tiers = useVenueTiers(venueId);
   const tier = tiers.data?.find((candidate) => candidate.tierId === tierId) ?? null;
   return (
     <Stack gap={4}>
-      <Input type="search" label={t('console.members.search')} hint={t('console.members.searchHint')} value={query} autoComplete="off"
+      <Input type="search" variant="subtle" label={t('console.members.search')} value={query} autoComplete="off"
         onChange={(event) => setQuery(event.target.value)} />
+      {/* No select in @rivr/ui (ui.md): the tiers are a row of chips, which scrolls sideways on a phone. */}
       {tiers.data === undefined ? null : (
-        <ChoiceChips label={t('console.members.filterTier')} mode="one" selected={[tierId]}
+        <ChoiceChips label={t('console.members.filterTier')} isLabelVisuallyHidden mode="one" look="subtle" isOneRow selected={[tierId]}
           options={[{ value: '', label: t('console.members.anyTier') }, ...tiers.data.map((choice) => ({ value: choice.tierId, label: choice.name }))]}
           onChange={(picked) => setTierId(picked[0] ?? '')} />
       )}
-      <Results venueId={venueId} query={query} tier={tier} onOpen={onOpen} />
+      <Results venueId={venueId} tonight={tonight} onOpen={onOpen} query={query} tier={tier} />
     </Stack>
   );
 }
