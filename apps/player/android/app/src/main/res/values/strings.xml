@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RIVR</string>
+    <string name="title_activity_main">RIVR</string>
+    <string name="package_name">club.rivr.player</string>
+    <string name="custom_url_scheme">club.rivr.player</string>
+</resources>

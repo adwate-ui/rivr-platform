@@ -42,6 +42,28 @@ The build writes the manifest and a service worker (`vite-plugin-pwa`, `vite.con
 
 `pnpm e2e --grep "PWA"` checks the manifest and its icons, every launch screen against its screen, and opening offline.
 
+## Native shell (Capacitor)
+
+The phone app is a Capacitor shell around the player app (decisions 0323, 0361), as the dealer tablet's APK is: a release sets `RIVR_SHELL_URL` to the hosted player app, so code reaches phones without a store update; without it the shell carries `dist/`. It adds one thing a PWA cannot do, the lock-screen live status: Waiting ("Next in line"), Seat ready (the hold counting down, "I'm on my way") and Seated (the call time counting down, "Order"), each counting down by itself to the server's end. The app's own LiveStatus plugin (`android/…/LiveStatusPlugin.java`, `ios/App/App/LiveStatusPlugin.swift`) gives the phone's push token; Profile's "Notifications on this phone" turns it on and off there (`usePhone`), and signing out ends it. The frame opens the page a tapped status names (`NotificationLinks`): Tonight, `/?accept=<place>` or `/fnb`, nothing else. The `live-status` consumer sends every word.
+
+**Android** (built locally and checked):
+
+```
+pnpm build --filter player
+pnpm --filter player exec cap sync android
+cd apps/player/android && ./gradlew assembleDebug
+```
+
+An ongoing notification with a chronometer, from a Firebase data message (`LiveStatusMessagingService`). A build shows it only with the Firebase app's `google-services.json` in `android/app/` (gitignored); without it the switch says it failed. Colours come from `@rivr/tokens`' generated Android resources.
+
+**iOS** (written, not built: it needs a Mac with Xcode). The app target already compiles `RivrLiveAttributes.swift`, `LiveStatusPlugin.swift`, `LiveActivityTokens.swift` and `RivrBridgeViewController.swift`. On a Mac:
+
+1. `pnpm --filter player exec cap sync ios`, then open `ios/App/App.xcodeproj`.
+2. File › New › Target › Widget Extension, named `RivrLiveStatus`, with Include Live Activity on; delete the files it makes and add `ios/App/RivrLiveStatus/RivrLiveStatusWidget.swift` and its `Info.plist`. Add `ios/App/App/RivrLiveAttributes.swift` and `packages/tokens/generated/ios/RivrColors.swift` to that target too. Deployment target iOS 17.2 for the extension.
+3. In Signing & Capabilities, add Push Notifications to the app (the aps-environment entitlement), with the team that owns `club.rivr.player`.
+4. Set the build setting `RIVR_LIVE_STATUS_TOKEN_URL` to `https:/$()/<project-ref>.supabase.co/functions/v1/live-status-token` (an `.xcconfig` reads `//` as a comment).
+5. Run on a device with iOS 17.2 or later, turn Notifications on this phone on in Profile, and join a list from the console.
+
 ## Budgets
 
 Initial JavaScript under 200 KB gzipped, checked in CI by `scripts/check-bundle.mjs`. With the service worker's registration it is about 192 KB (October 2026). The player ships only its own copy (`src/messages.ts`); keep it that way, as every other app's copy would cost several KB.

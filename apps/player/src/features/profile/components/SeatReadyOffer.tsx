@@ -2,7 +2,7 @@ import { useFeature, usePreferences } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { usePhonePush } from '../hooks/usePhonePush.ts';
+import { usePhone } from '../hooks/usePhone.ts';
 
 // Not now is remembered on this phone, as the install offer's is.
 const NOT_NOW_KEY = 'rivr-seat-ready-not-now';
@@ -30,7 +30,7 @@ function rememberNotNow() {
  * and its two buttons (decision 0300: the owner asked it streamlined).
  */
 export function SeatReadyOffer() {
-  const phone = usePhonePush();
+  const phone = usePhone();
   const access = useFeature('push.seat_ready');
   const preferences = usePreferences();
   const [isDismissed, setDismissed] = useState(isNotNow);
