@@ -47,8 +47,8 @@ jobs:
         run: node scripts/verify.mjs plan
 
   # Typecheck, lint, unit and property tests for the affected packages (every one on main); root and e2e lint, Edge Function import maps,
-  # migration versions, dependency rules, stylesheets, generated tokens and the drill gates. Chromium is for
-  # @rivr/render's tests, which draw in a real browser.
+  # migration versions, dependency rules, stylesheets and generated tokens. Chromium is for @rivr/render's tests, which
+  # draw in a real browser.
   code:
     name: code
     runs-on: ubuntu-latest
@@ -61,6 +61,17 @@ jobs:
         with:
           playwright: 'true'
       - run: node scripts/verify.mjs code
+
+  # The drill gates, on a runner of their own beside code: after them in one job, code ran into its 15 minutes
+  # (decision 0425).
+  drills:
+    name: drills
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup
+      - run: node scripts/verify.mjs drills
 
   # pgTAP against the migrations and seed, and the generated database types.
   database:
@@ -98,8 +109,8 @@ jobs:
           if-no-files-found: ignore
 
   # Mutation tests (decision 0242): on a pull request the money modules it changes, in the full run every one (0254).
-  # Their files are shared six ways, balanced by size, so no runner carries them all (#515); mutation-score then
-  # checks each module over every share's report.
+  # Their files are shared fourteen ways, balanced by size, so no runner carries them all (#515; fourteen since six ran
+  # past 20 minutes, decision 0425); mutation-score then checks each module over every share's report.
   mutation:
     name: mutation ${{ matrix.share }}
     needs: plan
@@ -109,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        share: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        share: ['1/14', '2/14', '3/14', '4/14', '5/14', '6/14', '7/14', '8/14', '9/14', '10/14', '11/14', '12/14', '13/14', '14/14']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -208,7 +219,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [plan, code, database, storybook, mutation, mutation-score, e2e, budgets, security]
+    needs: [plan, code, drills, database, storybook, mutation, mutation-score, e2e, budgets, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
