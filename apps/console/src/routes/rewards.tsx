@@ -1,13 +1,11 @@
-import { createRoute, useNavigate } from '@tanstack/react-router';
-import { tabSearchFrom } from '../features/frame/index.ts';
+import { createRoute } from '@tanstack/react-router';
+import { ScreenTabs, screenSearchFrom } from '../features/frame/index.ts';
 import { RewardsScreen } from '../features/rewards/index.ts';
+import { SpinWheelScreen } from '../features/spin-wheel/index.ts';
 import { frameRoute } from './frame.tsx';
 
-/** The rewards catalogue, hand-overs, points by hand and the spin wheel (#145, decision 0181; console v3), by tab. */
-export const rewardsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/rewards', validateSearch: tabSearchFrom, component: RewardsRoute });
-
-function RewardsRoute() {
-  const { tab } = rewardsRoute.useSearch();
-  const navigate = useNavigate();
-  return <RewardsScreen tab={tab} onNavigate={(href) => void navigate({ href })} />;
-}
+/** Rewards (#145, decision 0181; console v3): the catalogue and redemptions, then the spin wheel, by tab (`?tab=rewards|spin-wheel`). */
+export const rewardsRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/rewards', validateSearch: screenSearchFrom,
+  component: () => <ScreenTabs screen="rewards" panes={{ rewards: RewardsScreen, 'spin-wheel': SpinWheelScreen }} />,
+});

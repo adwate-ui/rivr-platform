@@ -1,9 +1,7 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
-import { QueryClient } from '@tanstack/react-query';
-import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { SESSION_STORAGE_KEY } from '@rivr/db';
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createAppRouter } from './router.tsx';
+import { answerOnceThenFail, answerStaff, CLUB, LAZY_SCREEN, renderAt, signIn } from './consoleTestApp.tsx';
 
 afterEach(() => {
   cleanup();
@@ -11,43 +9,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** Stores a session as the client keeps one after sign-in (under SESSION_STORAGE_KEY), for Sana, a cashier. */
-function signIn() {
-  const session = {
-    access_token: 'test',
-    refresh_token: 'test',
-    token_type: 'bearer',
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    user: { id: '00000000-0000-4000-8000-000000000104', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
-  };
-  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-}
-
-const CLUB = { id: 's1', venue_id: 'v1', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Gurugram', is_practice: false } };
-const PRACTICE = { id: 's2', venue_id: 'v2', full_name: 'Sana Qureshi', role: 'cashier', venue: { name: 'RIVR Practice', is_practice: true } };
-
-/** Sana at the club, and a fake API whose given reads answer once, then fail: a refresh that cannot reach the API. */
-function answerOnceThenFail(first: Record<string, unknown>) {
-  const asked = new Map<string, number>();
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
-    const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rest/v1/staff')) return Response.json([CLUB]);
-    const path = Object.keys(first).find((candidate) => url.includes(candidate));
-    if (path === undefined) return Response.json([]);
-    const times = (asked.get(path) ?? 0) + 1;
-    asked.set(path, times);
-    return times === 1 ? Response.json(first[path]) : Response.json({ message: 'unreachable' }, { status: 503 });
-  });
-}
-
-/** A fake API: the staff records it is given (or a failure), and nothing for anything else. */
-function answerStaff(staff: unknown[], status = 200) {
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
-    const url = String(input instanceof Request ? input.url : input);
-    return url.includes('/rest/v1/staff') ? Response.json(staff, { status }) : Response.json([]);
-  });
-}
 
 /**
  * A fake Auth that accepts the code, and an API that fails linking the login to its staff record
@@ -79,22 +40,6 @@ function answerSignInThenFailLinking(): () => void {
   return answerLinking;
 }
 
-function renderAt(path: string) {
-  // Created after the fetch is faked, so the client uses the fake.
-  const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <RivrDataProvider client={client} queryClient={queryClient}>
-      <StaffVenueProvider>
-        <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: [path] }))} />
-      </StaffVenueProvider>
-    </RivrDataProvider>,
-  );
-}
-
-// Sign-in is loaded lazily: the first test to open it waits for its module, which a busy CI runner
-// can take more than findBy's default second to load.
-const LAZY_SCREEN = { timeout: 5000 };
 
 describe('the console', () => {
   it('sends someone signed out to sign-in', async () => {
@@ -119,22 +64,6 @@ describe('the console', () => {
     expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
   });
 
-  // A screen outside the role is refused; one the club switched off says so rather than blaming the role (C-04).
-  it.each([['/purge', 'Not in your role. Ask an admin.'], ['/academy', 'This screen is switched off. Ask a super admin.']])('refuses %s, opened by its address', async (path, text) => {
-    signIn();
-    answerStaff([CLUB]);
-    renderAt(path);
-    expect(await screen.findByText(text)).toBeDefined();
-  });
-
-  // Screens merged into others (#606): each old address opens its tab.
-  it.each([['/tablets', 'Tablets'], ['/tvs', 'TVs'], ['/dealer-pins', 'Dealer PINs']])('opens %s as its tab, %s, for a super admin', async (path, tab) => {
-    signIn();
-    answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);
-    renderAt(path);
-    expect(await screen.findByRole('link', { name: tab, current: 'page' })).toBeDefined();
-  });
-
   // The old addresses of tabs the owner hid (#626): none opens its tab, a super admin's either.
   it.each([
     ['/computers', 'Computers'], ['/cameras', 'Cameras'], ['/high-hands', 'High hands'], ['/treasury', 'Opening and counts'],
@@ -154,39 +83,6 @@ describe('the console', () => {
     expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
   });
 
-  it('opens on Live floor for staff, with the rail, who is signed in and the venue', async () => {
-    signIn();
-    answerStaff([CLUB, PRACTICE]);
-    renderAt('/');
-    expect(await screen.findByRole('heading', { name: 'Live floor' })).toBeDefined();
-    expect(screen.getByRole('navigation', { name: 'Sections' })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Live floor' })).toBeDefined();
-    expect(screen.getByText('Sana Qureshi')).toBeDefined();
-    expect(screen.getByText('RIVR Gurugram')).toBeDefined();
-  });
-
-  it('switches to the practice venue and back, saying so across the top while there', async () => {
-    signIn();
-    answerStaff([CLUB, PRACTICE]);
-    renderAt('/');
-    expect(await screen.findByRole('switch', { name: 'Practice venue' })).toBeDefined();
-    expect(screen.queryByText('Practice venue: nothing here reaches the club or its members.')).toBeNull();
-    fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
-    expect(await screen.findByText('RIVR Practice')).toBeDefined();
-    expect(screen.getByText('Practice venue: nothing here reaches the club or its members.')).toBeDefined();
-    fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
-    expect(await screen.findByText('RIVR Gurugram')).toBeDefined();
-    expect(screen.queryByText('Practice venue: nothing here reaches the club or its members.')).toBeNull();
-  });
-
-  it('has no practice switch for someone who is staff at the club only', async () => {
-    signIn();
-    answerStaff([CLUB]);
-    renderAt('/');
-    await screen.findByText('RIVR Gurugram');
-    expect(screen.queryByRole('switch', { name: 'Practice venue' })).toBeNull();
-  });
-
   it('turns away someone who is not staff, who can only sign out', async () => {
     signIn();
     answerStaff([]);
@@ -203,6 +99,8 @@ describe('the console', () => {
     expect(await screen.findByText('Not loaded. Try again.')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+    // The rail is empty, not a search that found nothing.
+    expect(screen.queryByText(/No screen by that name/)).toBeNull();
   });
 
   it('says who is signed in when sign-in is opened over a live session, instead of the form', async () => {

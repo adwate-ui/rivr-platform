@@ -8,7 +8,7 @@ export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 // The website's reads are at @rivr/db/site, so the apps' bundles never carry their schemas.
 // Lane A's money hooks (cage, credit, treasury, expenses...) are listed in money.ts, so lanes rarely edit the same list.
 export * from './money.ts';
-export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
+export { PRACTICE_KEY, StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
 export { useStaffActions, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember } from './venueStaff.ts';
 export {
   cellKey, useTierActions, useTierMatrix,
@@ -82,6 +82,7 @@ export {
   isTopUpWaiting, useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
 } from './floorToday.ts';
 export { useStaffQueueCounts } from './staffQueues.ts';
+export { DENSITIES, useSetStaffDensity, useStaffDensity, type Density } from './staffPreference.ts';
 export {
   useGamesHistory, useTablesSetup, useTablesSetupActions, type GamesDay, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
   type TableOrder, type TablesFailure,

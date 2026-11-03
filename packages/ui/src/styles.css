@@ -110,6 +110,16 @@
     }
   }
 
+  /* The practice venue's banner (PracticeBanner; decision 0444): gold and a darker gold in stripes across the console, so
+     nobody takes the practice venue for the club. A sign, not decoration: the only stripes anywhere. */
+  [data-practice-stripes] {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--rivr-color-gold) 0 var(--rivr-space-3),
+      var(--rivr-color-practice-stripe) var(--rivr-space-3) var(--rivr-space-6)
+    );
+  }
+
   /* The stream overlay (#125) is drawn over OBS's video: the page behind it shows nothing. */
   html:has([data-stream-overlay]) {
     background-color: transparent;

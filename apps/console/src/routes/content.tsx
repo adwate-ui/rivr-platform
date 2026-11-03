@@ -1,22 +1,14 @@
-import { t } from '@rivr/i18n';
-import { Screen } from '@rivr/ui';
-import { createRoute, useNavigate } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
-import { tabSearchFrom } from '../features/frame/index.ts';
+import { createRoute } from '@tanstack/react-router';
+import { lazy } from 'react';
+import { ScreenTabs, screenSearchFrom } from '../features/frame/index.ts';
+import { WebsiteScreen } from '../features/website/index.ts';
 import { frameRoute } from './frame.tsx';
 
-// Loaded when first opened: its Learn content tab carries the drill engine, which checks an encoding before upload.
-const ContentScreen = lazy(async () => ({ default: (await import('../features/content/index.ts')).ContentScreen }));
+// Learn content is loaded when first opened: it carries the drill engine, which checks an encoding before upload.
+const LearnSourcesScreen = lazy(() => import('../features/learn-sources/index.ts').then((loaded) => ({ default: loaded.LearnSourcesScreen })));
 
-/** Content (console v3): the Website editor and Learn content, by tab (`?tab=website`, `?tab=learn`). */
-export const contentRoute = createRoute({ getParentRoute: () => frameRoute, path: '/content', validateSearch: tabSearchFrom, component: ContentRoute });
-
-function ContentRoute() {
-  const { tab } = contentRoute.useSearch();
-  const navigate = useNavigate();
-  return (
-    <Suspense fallback={<Screen title={t('console.content.title')} status="loading" loadingLook="rows" />}>
-      <ContentScreen tab={tab} onNavigate={(href) => void navigate({ href })} />
-    </Suspense>
-  );
-}
+/** Content (console v3): the website, then Learn content, by tab (`?tab=website|learn`). */
+export const contentRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/content', validateSearch: screenSearchFrom,
+  component: () => <ScreenTabs screen="content" panes={{ website: WebsiteScreen, learn: LearnSourcesScreen }} />,
+});
