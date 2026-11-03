@@ -72,6 +72,13 @@ describe('generated platform colours', () => {
     expect(generatedFile('android/res/values/themes.xml')).toContain('@color/rivr_color_surface');
   });
 
+  it('writes the iOS Live Activity its colours as SwiftUI colours, marked not for editing', () => {
+    const swift = generatedFile('ios/RivrColors.swift');
+    expect(swift).toContain('Do not edit.');
+    expect(swift).toContain('public enum RivrColors {');
+    expect(swift).toContain('public static let colorSurface = Color(red: 0.055, green: 0.231, blue: 0.173, opacity: 1)');
+  });
+
   it('writes Android comments the resource compiler accepts (XML forbids "--" inside a comment)', () => {
     for (const file of ['android/res/values/colors.xml', 'android/res/values/themes.xml']) {
       const comments = generatedFile(file).match(/<!--([\s\S]*?)-->/g) ?? [];
