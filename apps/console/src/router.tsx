@@ -8,8 +8,6 @@ import { settingsRoute } from './routes/settings.tsx';
 import { kycReviewRoute } from './routes/kyc-review.tsx';
 import { cageRoute } from './routes/cage.tsx';
 import { checkInRoute } from './routes/check-in.tsx';
-import { contentRoute } from './routes/content.tsx';
-import { doorRoute } from './routes/door.tsx';
 import { waitlistRoute } from './routes/waitlist.tsx';
 import { rootRoute } from './routes/root.tsx';
 import { signInRoute } from './routes/sign-in.tsx';
@@ -75,8 +73,6 @@ const routeTree = rootRoute.addChildren([
   signInRoute,
   frameRoute.addChildren([
     settingsRoute,
-    doorRoute,
-    contentRoute,
     devicesRoute,
     shiftRoute,
     // Console v3's screens that hold others by tab (phase 1).
