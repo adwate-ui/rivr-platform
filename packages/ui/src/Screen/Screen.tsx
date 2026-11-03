@@ -60,10 +60,18 @@ export function TitleCount({ count, children }: TitleCountProps) {
   return <TitleCountContext.Provider value={count}>{children}</TitleCountContext.Provider>;
 }
 
+/** Whether the focus is in a menu the person has open, the part its expanded button controls: the console's account menu. */
+function isInOpenMenu(element: Element | null): boolean {
+  if (element === null) return false;
+  return Array.from(document.querySelectorAll('[aria-expanded="true"][aria-controls]'))
+    .some((button) => document.getElementById(button.getAttribute('aria-controls') ?? '')?.contains(element) === true);
+}
+
 /**
  * A screen of its own (an h1, not one nested at level 2) names the page, "Check-in · RIVR", and takes the focus when it
  * opens, so a keyboard or screen reader starts at its heading rather than on the last screen's link (F5-03). A field the
- * screen focuses itself, such as the door's scanner field, keeps the focus.
+ * screen focuses itself, such as the door's scanner field, keeps the focus; so does a menu the person has open, as when
+ * the practice switch in the account menu loads the screen behind it again.
  */
 function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) {
   const section = useRef<HTMLElement>(null);
@@ -79,7 +87,7 @@ function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) 
   }, [isOwnScreen, title, count]);
   useEffect(() => {
     const element = section.current;
-    if (!isOwnScreen || element === null || element.contains(document.activeElement)) return;
+    if (!isOwnScreen || element === null || element.contains(document.activeElement) || isInOpenMenu(document.activeElement)) return;
     document.getElementById(headingId)?.focus({ preventScroll: true });
   }, [isOwnScreen, headingId]);
   return section;

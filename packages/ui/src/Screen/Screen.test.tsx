@@ -103,6 +103,22 @@ describe('Screen', () => {
     expect(screen.getByRole('textbox', { name: 'Membership card' })).toHaveFocus();
   });
 
+  it('leaves the focus in a menu the person has open when a screen opens behind it, as on a switch to the practice venue', () => {
+    function Page({ isScreenShown }: { isScreenShown: boolean }) {
+      return (
+        <>
+          <button type="button" aria-expanded="true" aria-controls="account">Sana Qureshi</button>
+          <div id="account" role="group" aria-label="Sana Qureshi"><button type="button">Practice venue</button></div>
+          {isScreenShown ? <Screen title="Live floor">content</Screen> : null}
+        </>
+      );
+    }
+    const { rerender } = renderIn(<Page isScreenShown={false} />);
+    screen.getByRole('button', { name: 'Practice venue' }).focus();
+    rerender(<Page isScreenShown />);
+    expect(screen.getByRole('button', { name: 'Practice venue' })).toHaveFocus();
+  });
+
   it('as a section of another screen, names nothing and takes no focus', () => {
     document.title = 'RIVR';
     renderIn(<Screen title="Tonight" level={2}>content</Screen>);
