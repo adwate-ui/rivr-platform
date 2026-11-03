@@ -1,5 +1,5 @@
 import {
-  useApproveWaitlistRequest, useDecideCallTime, useFloorUndo, useFloorWaitlistActions, useSeatActions, useSetTopUp, type FloorRequest,
+  useApproveWaitlistRequest, useDecideCallTime, useFloorActions, useFloorUndo, useSeatActions, useSetTopUp, type FloorRequest,
 } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { useChangeToast } from './useChangeToast.ts';
@@ -13,12 +13,12 @@ function useJoinChanges(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const approve = useApproveWaitlistRequest();
-  const { remove } = useFloorWaitlistActions(venueId);
+  const { declineJoin } = useFloorActions(venueId);
   const undoJoin = (join: Join) => () => undo.mutateAsync({ kind: 'join', entryId: join.id });
   return {
     approveJoin: async (join: Join, table: string) =>
       say(await approve.mutateAsync(join.id), t('console.floor.toast.joinApproved', { name: join.fullName, table }), undoJoin(join)),
-    declineJoin: async (join: Join) => say(await remove.mutateAsync(join.id), t('console.floor.toast.joinDeclined', { name: join.fullName }), undoJoin(join)),
+    declineJoin: async (join: Join) => say(await declineJoin.mutateAsync(join.id), t('console.floor.toast.joinDeclined', { name: join.fullName }), undoJoin(join)),
   };
 }
 

@@ -117,7 +117,7 @@ export function PlayerSheet(props: PlayerSheetProps) {
         const words = wordsOf(request, table.name, now, targets);
         const actions = requestActions(request, { changes: changes.requests, tableName: table.name, onLeave });
         return (
-          <RequestItem key={request.kind} look="ask" kind={words.kind} title={askTitle(request)} age={words.age} isLate={words.isLate}
+          <RequestItem key={request.kind} look="ask" title={askTitle(request)} age={words.age} isLate={words.isLate}
             primary={{ label: actions.primary.label, onClick: () => void actions.primary.run() }}
             secondary={actions.secondary && { label: actions.secondary.label, onClick: () => void actions.secondary?.run() }} />
         );

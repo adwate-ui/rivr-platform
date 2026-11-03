@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tableToSeatAt } from './index.ts';
+import { seatingCallTime, tableToSeatAt } from './index.ts';
 
 const table = (name: string, isOpen: boolean, openSeats: number, waiting: number) => ({ name, isOpen, openSeats, waiting });
 
@@ -20,5 +20,12 @@ describe('where Seat a player seats (decision 0446)', () => {
   it('finds none when every table is closed or full', () => {
     expect(tableToSeatAt([table('Table 1', true, 0, 2), table('Table 4', false, 9, 0)])).toBeNull();
     expect(tableToSeatAt([])).toBeNull();
+  });
+});
+
+describe('the call time Seat a player starts with (decision 0299)', () => {
+  it('is the stake\'s own where the floor picks it, else 3 hours', () => {
+    expect([180, 240, 300].map(seatingCallTime)).toEqual([180, 240, 300]);
+    expect([0, 120, 360].map(seatingCallTime)).toEqual([180, 180, 180]);
   });
 });

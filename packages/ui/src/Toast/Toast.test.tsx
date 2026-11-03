@@ -36,6 +36,14 @@ describe('Toast', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
+  it('keeps the player app\'s Undo to 3.2 seconds (decision 0320)', () => {
+    vi.useFakeTimers();
+    renderIn(<ToastProvider><Trigger onUndo={() => undefined} /></ToastProvider>);
+    act(() => screen.getByRole('button', { name: 'Join' }).click());
+    act(() => vi.advanceTimersByTime(TOAST_MS));
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
   it('undoes the action and goes when Undo is pressed', async () => {
     const onUndo = vi.fn();
     renderIn(<ToastProvider><Trigger onUndo={onUndo} /></ToastProvider>);

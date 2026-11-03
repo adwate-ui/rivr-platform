@@ -14,8 +14,8 @@ export interface RequestAction {
 }
 
 export interface RequestItemProps {
-  /** What is asked: "Join request", "Top-up", "Wants +1 h". */
-  kind: string;
+  /** What is asked: "Join request", "Top-up", "Wants +1 h". The queue's line; `look="ask"` draws none. */
+  kind?: string | undefined;
   /** How long it has waited: "4 min". */
   age?: string | undefined;
   /** It has waited past its target: the age in the danger colour, and "late" read after it. */

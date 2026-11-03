@@ -1,5 +1,6 @@
 import { seatPlayerSchema } from '@rivr/contracts';
 import { CALL_TIME_CHOICES } from '@rivr/domain/callTime';
+import { seatingCallTime } from '@rivr/domain/tables';
 import { openSeatsAt, useWaitlistBoard, type FloorTable, type HeldSeat, type SeatedPlayer, type WaitlistBoardEntry } from '@rivr/db';
 import { formatDuration, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text } from '@rivr/ui';
@@ -36,26 +37,33 @@ function seatingOf(number: string, entry: WaitlistBoardEntry | undefined): Seati
   return { kind: 'list', entryId: entry.entryId, memberId: entry.memberId, fullName: entry.fullName };
 }
 
-/** The sheet's choices: the table, its seat, who (a name from the list, or a number typed) and the call time. */
-function useSeatChoice(start: SeatSheetProps['start'], callTimeMinutes: number) {
+/** The sheet's choices: the table, its seat, who (a name from the list, or a number typed) and any call time chosen. */
+function useSeatChoice(start: SeatSheetProps['start']) {
   const [tableId, setTableId] = useState(start.tableId);
   const [seat, setSeat] = useState<number | null>(start.seat);
   // A name chosen from the list; undefined takes the first on it, null none (a number is typed instead).
   const [entryId, setEntryId] = useState<string | null | undefined>(undefined);
   const [number, setNumber] = useState('');
-  const [callMinutes, setCallMinutes] = useState(CALL_TIME_CHOICES.some((minutes) => minutes === callTimeMinutes) ? callTimeMinutes : 180);
+  // A call time the floor chose; null takes the table's own (seatingCallTime), as the table changes.
+  const [callMinutes, setCallMinutes] = useState<number | null>(null);
   const [error, setError] = useState<MessageKey | null>(null);
   return { tableId, setTableId, seat, setSeat, entryId, setEntryId, number, setNumber, callMinutes, setCallMinutes, error, setError };
+}
+
+/** The seat chosen while it is still free, else the table's first free seat; none at a full table. */
+function seatOf(free: readonly number[], chosen: number | null): number | null {
+  return chosen !== null && free.includes(chosen) ? chosen : (free[0] ?? null);
 }
 
 /** The sheet's state and what follows from it: the table, its open seats, the names next on its list, and Seat. */
 function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }: SeatSheetProps) {
   const board = useWaitlistBoard(venueId).data ?? [];
   const taken = [...seats, ...held];
-  const choice = useSeatChoice(start, tables.find((table) => table.id === start.tableId)?.callTimeMinutes ?? 0);
+  const choice = useSeatChoice(start);
   const table = tables.find((candidate) => candidate.id === choice.tableId);
+  const callMinutes = choice.callMinutes ?? seatingCallTime(table?.callTimeMinutes ?? 0);
   const free = table === undefined ? [] : openSeatsAt(table, taken);
-  const seat = choice.seat !== null && free.includes(choice.seat) ? choice.seat : (free[0] ?? null);
+  const seat = seatOf(free, choice.seat);
   const next = nextOn(board, choice.tableId);
   const isTyped = choice.number.trim() !== '';
   const entry = choice.entryId === undefined ? next[0] : next.find((candidate) => candidate.entryId === choice.entryId);
@@ -63,10 +71,10 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
     const who = seatingOf(choice.number, isTyped ? undefined : entry);
     if (typeof who === 'string') return choice.setError(who);
     if (table === undefined || seat === null) return choice.setError('console.floor.seat.pickSeat');
-    if (await changes.seat(who, { table, seat, callMinutes: choice.callMinutes })) onClose();
+    if (await changes.seat(who, { table, seat, callMinutes })) onClose();
   };
   const open = tables.filter((one) => one.isOpen && openSeatsAt(one, taken).length > 0);
-  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm };
+  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, callMinutes };
 }
 
 type SeatSheetState = ReturnType<typeof useSeatSheet>;
@@ -106,11 +114,11 @@ function Where({ sheet }: { sheet: SeatSheetState }) {
 
 /** For how long: 3, 4 or 5 hours (decision 0299), the stake's own chosen first. */
 function CallTime({ sheet }: { sheet: SeatSheetState }) {
-  const { choice } = sheet;
+  const { choice, callMinutes } = sheet;
   return (
     <Stack gap={3}>
       <Text variant="caption" tone="muted">{t('console.floor.seat.callTime')}</Text>
-      <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.callTime')} isLabelVisuallyHidden selected={[String(choice.callMinutes)]}
+      <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.callTime')} isLabelVisuallyHidden selected={[String(callMinutes)]}
         options={CALL_TIME_CHOICES.map((minutes) => ({ value: String(minutes), label: formatDuration(minutes * 60) }))}
         onChange={([value]) => { if (value !== undefined) choice.setCallMinutes(Number(value)); }} />
     </Stack>

@@ -36,7 +36,8 @@ interface SeatFromList {
 /**
  * The Live floor's seating (console v3, decision 0446), each a Result that reads the floor again: `seat` a member by mobile
  * or membership number, or `seatFromList` the next on a table's list (Assign: called and seated at once, decision 0299),
- * each giving the new seat's session for Undo; `move` a seated player to an open seat at another table, or back.
+ * each giving the new seat's session for Undo; `move` a seated player to an open seat at another table, or back;
+ * `declineJoin` a join asked for from the app.
  */
 export function useFloorActions(venueId: string) {
   const { client } = useRivrData();
@@ -63,7 +64,11 @@ export function useFloorActions(venueId: string) {
     mutationFn: async ({ sessionId, tableId, seat: number }: { sessionId: string; tableId: string; seat: number }) =>
       settle((await client.rpc('move_seat', { p_session_id: sessionId, p_table_id: tableId, p_seat: number })).error),
   });
-  return { seat, seatFromList, move };
+  // Declined by the floor, apart from a place its member gave up, so Undo brings back only the floor's own (decision 0447).
+  const declineJoin = useMutation({
+    mutationFn: async (entryId: string) => settle((await client.rpc('decline_waitlist_request', { p_entry_id: entryId })).error),
+  });
+  return { seat, seatFromList, move, declineJoin };
 }
 
 /**

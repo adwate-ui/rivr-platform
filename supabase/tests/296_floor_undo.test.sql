@@ -50,6 +50,8 @@ reset role;
 select is((pg_temp.seated('00000000-0000-4000-8000-000000000215')).id, null, 'Ritika no longer sits');
 select is((select row(status, called_at, seated_at, call_seat)::text from public.waitlist_entry where id = (select id from ritika)), '(waiting,,,)',
   'and waits on the list again, uncalled');
+select is((select payload ->> 'reason' from public.outbox_event where idempotency_key = 'seat.left:' || (select id from ritika_seat) || ':undone'),
+  'undone', 'her lock screen hears the seat go');
 
 -- Seated by number two minutes ago and more, or moved since: not undone.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -73,6 +75,53 @@ select throws_ok($$ select public.undo_leave((select mihir from sess)) $$, 'RVOC
 select public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'Emergency');
 select public.end_seat((select ishaan from sess), 'left');
 select throws_ok($$ select public.undo_leave((select ishaan from sess)) $$, '22023', null, 'a player let go early is not seated again');
+reset role;
+
+-- Vihaan (in seat 7) asked for a top-up and an hour; he leaves, and the leave is undone: both wait again, and his lock
+-- screen hears him seated. Left again, that leave is told too.
+update public.seat_session set top_up_requested_at = pg_temp.ago(1) where id = (select vihaan from sess);
+insert into public.top_up_request (venue_id, member_id, session_id, table_id, seat, requested_at)
+select venue_id, member_id, id, table_id, seat, pg_temp.ago(1) from public.seat_session where id = (select vihaan from sess);
+insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key, requested_at)
+select venue_id, member_id, id, 60, gen_random_uuid(), pg_temp.ago(1) from public.seat_session where id = (select vihaan from sess);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.end_seat((select vihaan from sess), 'left');
+reset role;
+select is((select count(*)::integer from public.top_up_request where session_id = (select vihaan from sess) and closed_at is null), 0, 'leaving closed his top-up');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.undo_leave((select vihaan from sess)) $$, 'the floor undoes Vihaan leaving');
+reset role;
+select is((select count(*)::integer from public.top_up_request where session_id = (select vihaan from sess) and closed_at is null), 1, 'his top-up waits again');
+select is((select status from public.call_time_request where session_id = (select vihaan from sess)), 'requested', 'and his hour');
+select ok(exists (select 1 from public.outbox_event where event_type = 'seat.taken' and idempotency_key like 'seat.taken:' || (select vihaan from sess) || ':%'),
+  'his lock screen hears him seated again');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.end_seat((select vihaan from sess), 'left');
+reset role;
+select is((select count(*)::integer from public.outbox_event where event_type = 'seat.left' and payload ->> 'session_id' = (select vihaan from sess)::text), 2,
+  'the second leave is told as well as the first');
+
+-- Not while his seat is held for a member called from the list, nor at a table closed since, nor a leave of his own.
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key)
+select g.venue_id, '00000000-0000-4000-8000-000000000216', g.table_type_id, g.id, '29600000-0000-4000-8000-000000000005'
+from public.game_table g where g.id = pg_temp.table5();
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.call_from_waitlist((select id from public.waitlist_entry where idempotency_key = '29600000-0000-4000-8000-000000000005'), pg_temp.table5(), 7);
+select throws_ok($$ select public.undo_leave((select vihaan from sess)) $$, 'RVHLD', null, 'his seat is held for a call: not undone');
+create temp table neel on commit drop as select pg_temp.seat(13, 8) as id;
+reset role;
+grant select on neel to authenticated;
+-- Neel leaves from the app, as leave_my_seat does: ended, and the event keyed by the seat alone.
+update public.seat_session set ended_at = now(), end_reason = 'left' where id = (select id from neel);
+select private.emit('00000000-0000-4000-8000-000000000001', 'seat.left', '{}'::jsonb, 'seat.left:' || (select id from neel));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.undo_leave((select id from neel)) $$, '22023', null, 'a leave from the app is the member''s');
+create temp table arjun on commit drop as
+  select public.seat_member((select id from public.game_table where name = 'Table 3' and venue_id = '00000000-0000-4000-8000-000000000001'), 1,
+    p_member_number => 1, p_call_minutes => 180) as id;
+select public.end_seat((select id from arjun), 'left');
+select public.set_table_open((select id from public.game_table where name = 'Table 3' and venue_id = '00000000-0000-4000-8000-000000000001'), false);
+select throws_ok($$ select public.undo_leave((select id from arjun)) $$, '22023', null, 'a table closed since: not undone');
 reset role;
 
 -- undo_call_time: Yash (214, in Mihir's seat) asks for an hour, approved and taken back: the request waits again and the
@@ -159,14 +208,23 @@ select public.approve_waitlist_request((select id from ritika));
 select lives_ok($$ select public.undo_waitlist_decision((select id from ritika)) $$, 'an approval undone');
 reset role;
 select is((select approved_at from public.waitlist_entry where id = (select id from ritika)), null, 'a request again');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select throws_ok($$ select public.decline_waitlist_request((select id from ritika)) $$, '42501', null, 'a dealer declines no join');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select public.leave_waitlist((select id from ritika));
+select public.decline_waitlist_request((select id from ritika));
+reset role;
+select is((select row(status, left_reason)::text from public.waitlist_entry where id = (select id from ritika)), '(left,declined)', 'the floor declines her');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
+select throws_ok($$ select public.decline_waitlist_request((select id from ritika)) $$, '22023', null, 'a join is declined once');
 select lives_ok($$ select public.undo_waitlist_decision((select id from ritika)) $$, 'a decline undone');
 reset role;
 select is((select row(status, approved_at)::text from public.waitlist_entry where id = (select id from ritika)), '(waiting,)', 'asking again');
+-- A place its member gave up is theirs: the floor does not put it back.
+update public.waitlist_entry set status = 'left', left_at = now(), left_reason = 'left' where id = (select id from ritika);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select public.leave_waitlist((select id from ritika));
+select throws_ok($$ select public.undo_waitlist_decision((select id from ritika)) $$, '22023', null, 'a place the member gave up stays given up');
 reset role;
+update public.waitlist_entry set left_reason = 'declined' where id = (select id from ritika);
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key)
 select g.venue_id, '00000000-0000-4000-8000-000000000215', g.table_type_id, g.id, gen_random_uuid()
 from public.game_table g where g.name = 'Table 2' and g.venue_id = '00000000-0000-4000-8000-000000000001';
@@ -196,6 +254,13 @@ reset role;
 select is((select call_time_minutes from public.seat_session where id = (select id from practice)), 180, 'its call time is back');
 select is_empty($$ select * from public.claim_outbox_deliveries('push', array['call_time.updated'], false, 500)
                    where venue_id = '00000000-0000-4000-8000-000000000002' $$, 'no consumer takes the practice venue''s');
+
+-- Another venue's floor undoes nothing here: Imran (153) is an admin at the club alone.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000153');
+select throws_ok($$ select public.undo_call_time((select id from practice_ask)) $$, '42501', null, 'not the practice venue''s call time');
+select throws_ok($$ select public.undo_seat((select id from practice)) $$, '42501', null, 'nor its seat');
+select throws_ok($$ select public.undo_leave((select id from practice)) $$, '42501', null, 'nor its leave');
+reset role;
 
 select * from finish();
 rollback;

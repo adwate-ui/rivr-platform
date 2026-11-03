@@ -51,6 +51,8 @@ interface ActionButtonProps extends ButtonLookProps {
    * two together in its middle: the Order screen's "Send to the bar" and "2 items" (brief 3.5; owner, 3 Nov).
    */
   aside?: ReactNode;
+  /** A gold dot before the label: a control for what needs the floor, such as the Live floor's Needs you (decision 0429). */
+  hasDot?: boolean;
 }
 
 /** A link only goes somewhere: it is never loading, disabled or a form's submit. */
@@ -68,6 +70,7 @@ interface LinkButtonProps extends ButtonLookProps {
   form?: never;
   isPressed?: never;
   aside?: never;
+  hasDot?: never;
 }
 
 export type ButtonProps = ActionButtonProps | LinkButtonProps;
@@ -128,8 +131,14 @@ export function Button(props: ButtonProps) {
   return props.href === undefined ? <ActionButton {...props} /> : <LinkButton {...props} />;
 }
 
-function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, ...rest }: ActionButtonProps) {
+/** The label, after a gold dot when it has one. */
+function withDot(children: ReactNode, hasDot: boolean | undefined): ReactNode {
+  return hasDot === true ? <><span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-action" />{children}</> : children;
+}
+
+function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, hasDot, ...rest }: ActionButtonProps) {
   const busy = isLoading ? true : undefined;
+  const label = withDot(children, hasDot);
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (isLoading) {
       event.preventDefault();
@@ -149,11 +158,11 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', shape
       {...rest}
     >
       {aside === undefined ? (
-        <ButtonLabel icon={icon} isLoading={isLoading}>{children}</ButtonLabel>
+        <ButtonLabel icon={icon} isLoading={isLoading}>{label}</ButtonLabel>
       ) : (
         // The label and its circle stay together at the left; the space between keeps the two parts apart in its name.
         <>
-          <span className="inline-flex items-center gap-2"><ButtonLabel icon={icon} isLoading={isLoading}>{children}</ButtonLabel></span>
+          <span className="inline-flex items-center gap-2"><ButtonLabel icon={icon} isLoading={isLoading}>{label}</ButtonLabel></span>
           {' '}
           <span>{aside}</span>
         </>

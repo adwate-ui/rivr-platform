@@ -64,6 +64,10 @@ select set_config('realtime.topic', 'floor:00000000-0000-4000-8000-000000000001'
 select is_empty($$ select * from realtime.messages where topic like 'floor:%' $$, 'a dealer does not');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select is_empty($$ select * from realtime.messages where topic like 'floor:%' $$, 'nor marketing');
+-- Another venue's floor does not hear the practice venue's: Imran (153) is an admin at the club alone.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000153');
+select set_config('realtime.topic', 'floor:00000000-0000-4000-8000-000000000002', true);
+select is_empty($$ select * from realtime.messages where topic like 'floor:%' $$, 'the club''s admin hears nothing of the practice floor');
 reset role;
 
 select * from finish();

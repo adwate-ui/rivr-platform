@@ -4903,6 +4903,9 @@ isOneToOne: false
 "decline_buy_in_request":
 { Args: { "p_request_id": string }; Returns: undefined
                            },
+"decline_waitlist_request":
+{ Args: { "p_entry_id": string }; Returns: undefined
+                           },
 "decline_withdrawal":
 { Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
                            },

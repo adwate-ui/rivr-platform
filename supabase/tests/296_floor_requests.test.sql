@@ -76,6 +76,10 @@ grant select on before_read to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select count(*)::integer from public.floor_requests('00000000-0000-4000-8000-000000000002')
            where member_id::text like '00000000-0000-4000-8000-00000000021%'), 0, 'the practice venue reads none of the club''s');
+-- Another venue's floor reads none of it: Imran (153) is an admin at the club alone.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000153');
+select throws_ok($$ select * from public.floor_requests('00000000-0000-4000-8000-000000000002') $$, '42501', null, 'not the practice venue''s requests');
+select throws_ok($$ select * from public.floor_request_targets('00000000-0000-4000-8000-000000000002') $$, '42501', null, 'nor its targets');
 reset role;
 select is((select count(*) from public.outbox_event), (select events from before_read), 'reading sends nothing');
 

@@ -44,6 +44,9 @@ export const Folded: Story = { args: { isOpen: false } };
 /** Folded with nothing waiting: the count is faint. */
 export const Empty: Story = { args: { isOpen: false, count: 0, panel: <Text tone="muted">All clear.</Text> } };
 
+/** A role the panel is not for: the screen alone, with the same gutter. */
+export const NoPanel: Story = { args: { hasPanel: false } };
+
 export const Loading: Story = { args: { count: 0, panel: <Skeleton look="rows" rows={3} /> } };
 
 /** A panel's own error is the screen's to show; here, a long name and a long list. */

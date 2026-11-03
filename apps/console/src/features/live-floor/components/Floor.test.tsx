@@ -127,7 +127,7 @@ describe('The requests panel (console v3)', () => {
     const { rpcs } = await renderFloor({ ...FLOOR, replies: { undo_waitlist_decision: { status: 400, body: { code: '22023', message: 'moved on' } } } });
     fireEvent.click(first(within(requests()).getAllByRole('button', { name: 'Decline' })));
     await screen.findByText('Ritika Bhalla: join declined');
-    expect(rpcs('leave_waitlist')).toEqual([{ p_entry_id: 'e1' }]);
+    expect(rpcs('decline_waitlist_request')).toEqual([{ p_entry_id: 'e1' }]);
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(await screen.findByText('Not undone. It changed since.')).toBeDefined();
   });
@@ -146,7 +146,7 @@ describe('The floor\'s keys (console v3)', () => {
     fireEvent.keyDown(window, { key: 'a' });
     await waitFor(() => expect(rpcs('approve_waitlist_request')).toEqual([{ p_entry_id: 'e1' }]));
     fireEvent.keyDown(window, { key: 'D' });
-    await waitFor(() => expect(rpcs('leave_waitlist')).toEqual([{ p_entry_id: 'e1' }]));
+    await waitFor(() => expect(rpcs('decline_waitlist_request')).toEqual([{ p_entry_id: 'e1' }]));
     fireEvent.keyDown(window, { key: 's' });
     const sheet = await screen.findByRole('dialog', { name: 'Seat a player' });
     // In the sheet, typing an S is a number's, not the floor's.

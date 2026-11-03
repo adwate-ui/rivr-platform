@@ -105,7 +105,7 @@ export const floor = {
     title: '{name} leaves',
     subtitle: '{name} · {where}',
     owes: '{name} still owes {time} of call time.',
-    free: 'Their seat opens for the next player.',
+    free: 'No call time owed.',
     reason: 'Reason for letting them go early',
     emergency: 'Emergency',
     unwell: 'Unwell',

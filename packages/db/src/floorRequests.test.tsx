@@ -99,9 +99,10 @@ describe('the floor\'s seating', () => {
       outcomes = [
         await result.current.actions.seatFromList.mutateAsync({ entryId: 'e1', memberId: 'm7', tableId: 't2', seat: 3, callMinutes: 180 }),
         await result.current.actions.move.mutateAsync({ sessionId: 's1', tableId: 't3', seat: 2 }),
+        await result.current.actions.declineJoin.mutateAsync('e1'),
       ];
     });
-    expect(outcomes).toEqual([{ ok: false, error: 'occupied' }, { ok: false, error: 'held' }]);
+    expect(outcomes).toEqual([{ ok: false, error: 'occupied' }, { ok: false, error: 'held' }, { ok: true, value: null }]);
   });
 });
 

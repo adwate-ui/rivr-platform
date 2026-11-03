@@ -38,5 +38,5 @@ export const LongText: Story = {
 
 /** Inside the player's own sheet: the ask in a gold-tinted box, its age, then the actions. */
 export const Ask: Story = {
-  args: { look: 'ask', kind: 'Time request', title: 'Wants +1 h', detail: undefined, age: '6 min', isLate: true },
+  args: { look: 'ask', kind: undefined, title: 'Wants +1 h', detail: undefined, age: '6 min', isLate: true },
 };

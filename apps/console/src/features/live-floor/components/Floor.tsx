@@ -43,7 +43,7 @@ function FloorControls({ view, onView, isNeedsYouOnly, onNeedsYou, onSeat }: {
     <Inline gap={3} wrap>
       <Segmented label={t('console.floor.view')} value={view} onChange={onView}
         options={[{ value: 'summary', label: t('console.floor.summary') }, { value: 'seats', label: t('console.floor.seats') }]} />
-      <Button variant="subtle" size="compact" isPressed={isNeedsYouOnly} onClick={onNeedsYou}>{t('console.floor.needsYou')}</Button>
+      <Button variant="subtle" size="compact" hasDot isPressed={isNeedsYouOnly} onClick={onNeedsYou}>{t('console.floor.needsYou')}</Button>
       {onSeat === null ? null : <Button variant="primary" size="compact" onClick={onSeat}>{t('console.floor.seatPlayer')}</Button>}
     </Inline>
   );

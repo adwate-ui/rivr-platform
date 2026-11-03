@@ -161,6 +161,12 @@ describe('Button', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('puts a gold dot before the label for what needs the floor, unread (decision 0429)', () => {
+    renderIn(<Button variant="subtle" hasDot>Needs you</Button>);
+    const button = screen.getByRole('button', { name: 'Needs you' });
+    expect(button.querySelector('[aria-hidden="true"].bg-action')).not.toBeNull();
+  });
+
   it('as a plain link, opens in place', () => {
     renderIn(<Button href="https://rivr.invalid/">Home</Button>);
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('target');

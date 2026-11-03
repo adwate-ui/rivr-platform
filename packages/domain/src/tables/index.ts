@@ -1,2 +1,2 @@
 export { tableRetireRefusal, type TableInPlay, type TableRetireRefusal } from './lifecycle.ts';
-export { tableToSeatAt, type TableToSeat } from './seating.ts';
+export { seatingCallTime, tableToSeatAt, type TableToSeat } from './seating.ts';
