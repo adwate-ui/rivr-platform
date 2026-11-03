@@ -31,6 +31,8 @@ export const members = {
   kycIncomplete: 'KYC incomplete',
   inRoom: 'In the room',
   visitsTitle: 'Visits',
+  /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
+  knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
   parts: { label: 'Record of {name}', membership: 'Tier and break', account: 'Account' },
   /** `{count}` visits, the last on `{date}`. */

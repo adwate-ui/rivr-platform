@@ -47,13 +47,13 @@ describe('Members', () => {
       member_record: { body: [{
         member_id: 'm1', member_number: 2, full_name: 'Kabir Sethi', phone: '+919000000202', tier_id: 't2', tier_name: "Founders' Circle", tier_until: '2026-11-22',
         qualifying_small_blind: 10000, qualifying_big_blind: 20000, is_kyc_complete: true, photo_path: null, visits: 3, last_visit_at: null, is_in_room: false,
-        early_departures: 1,
+        early_departures: 1, known_as: 'Kabir',
       }] },
       member_early_departures: { body: [{ early_departure_id: 'e1', created_at: '2026-11-15T20:00:00Z', shortfall_seconds: 3600, reason: 'Unwell', staff_name: 'Harish Kumar' }] },
       '': { body: [{ id: 't3', name: 'Black card' }, { id: 't2', name: "Founders' Circle" }] },
     });
     await waitFor(() => expect(result.current.search.data?.[0]).toMatchObject({ memberNumber: 2, fullName: 'Kabir Sethi', visits: 3, lastVisitAt: null }));
-    await waitFor(() => expect(result.current.record.data).toMatchObject({ tierUntil: '2026-11-22', qualifying: { smallBlind: 10000n, bigBlind: 20000n }, earlyDepartures: 1 }));
+    await waitFor(() => expect(result.current.record.data).toMatchObject({ knownAs: 'Kabir', tierUntil: '2026-11-22', qualifying: { smallBlind: 10000n, bigBlind: 20000n }, earlyDepartures: 1 }));
     await waitFor(() => expect(result.current.departures.data).toEqual([{ earlyDepartureId: 'e1', at: '2026-11-15T20:00:00Z', shortfallSeconds: 3600, reason: 'Unwell', staffName: 'Harish Kumar' }]));
     await waitFor(() => expect(result.current.tiers.data).toEqual([{ tierId: 't3', name: 'Black card' }, { tierId: 't2', name: "Founders' Circle" }]));
   });
