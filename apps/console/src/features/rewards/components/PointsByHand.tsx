@@ -18,7 +18,7 @@ export function PointsByHand({ venueId }: { venueId: string }) {
   const digits = typed.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.rewards.byHand.heading')}</Heading>
+      <Heading level={2} variant="card">{t('console.rewards.byHand.heading')}</Heading>
       {/* The field and Find, both 36 px at a desk, centred on one line. */}
       <Inline gap={3} align="center">
         <Input variant="subtle" label={t('console.rewards.byHand.phone')} type="tel" inputMode="numeric" maxLength={16} value={typed}
@@ -105,10 +105,10 @@ function PointsHeld({ member }: { member: MemberPoints }) {
     <Stack gap={4}>
       <Text variant="lead">{t('console.rewards.byHand.member', { name: member.fullName, number: String(member.memberNumber) })}</Text>
       <Grid columns={2} gap={6}>
-        <Stack gap={1}><Text variant="small" tone="muted">{t('console.rewards.byHand.earned')}</Text><Figure value={member.earned} size="title" /></Stack>
-        <Stack gap={1}><Text variant="small" tone="muted">{t('console.rewards.byHand.locked')}</Text><Figure value={member.locked} size="title" /></Stack>
+        <Stack gap={1}><Text variant="secondary" tone="muted">{t('console.rewards.byHand.earned')}</Text><Figure value={member.earned} size="title" /></Stack>
+        <Stack gap={1}><Text variant="secondary" tone="muted">{t('console.rewards.byHand.locked')}</Text><Figure value={member.locked} size="title" /></Stack>
       </Grid>
-      <Text variant="small" tone="muted">{t('console.rewards.byHand.lockedHint')}</Text>
+      <Text variant="secondary" tone="muted">{t('console.rewards.byHand.lockedHint')}</Text>
     </Stack>
   );
 }

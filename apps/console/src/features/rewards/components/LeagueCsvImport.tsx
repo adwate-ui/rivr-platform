@@ -34,7 +34,7 @@ function FileSummary({ chosen }: { chosen: Chosen }) {
     return (
       <Stack gap={2}>
         {problems.slice(0, PROBLEMS_SHOWN).map((problem) => <ErrorMessage key={JSON.stringify(problem)}>{problemText(problem)}</ErrorMessage>)}
-        {more > 0 ? <Text variant="small" tone="muted">{t('console.rewards.leagueCsv.more', { count: formatNumber(more) })}</Text> : null}
+        {more > 0 ? <Text variant="secondary" tone="muted">{t('console.rewards.leagueCsv.more', { count: formatNumber(more) })}</Text> : null}
       </Stack>
     );
   }
@@ -85,8 +85,8 @@ export function LeagueCsvImport({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.rewards.leagueCsv.heading')}</Heading>
-      <Text variant="small" tone="muted">{t('console.rewards.leagueCsv.format')}</Text>
+      <Heading level={2} variant="card">{t('console.rewards.leagueCsv.heading')}</Heading>
+      <Text variant="secondary" tone="muted">{t('console.rewards.leagueCsv.format')}</Text>
       <Inline>
         <CameraButton variant="subtle" camera="none" accept=".csv,text/csv" onPhoto={(file) => void choose(file)}>
           {t(chosen === null ? 'console.rewards.leagueCsv.choose' : 'console.rewards.leagueCsv.chooseAnother')}

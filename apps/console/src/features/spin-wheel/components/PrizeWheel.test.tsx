@@ -1,4 +1,5 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { DataTableExportProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -18,8 +19,11 @@ const ON_WHEEL = [
   { prize_id: 'p4', kind: 'nothing', amount: 0, weight: 3, is_drawable: true },
 ];
 
-/** Aditya, who runs promotions, signed in, and a fake API with the wheel's prizes that keeps each removal sent. */
-function renderPrizes(prizes: readonly object[] = ON_WHEEL) {
+/**
+ * Aditya, who runs promotions, signed in beneath the console's exports, and a fake API with the wheel's prizes that keeps
+ * each removal sent; `canOpenSettings` for staff who open Settings' rules.
+ */
+function renderPrizes(prizes: readonly object[] = ON_WHEEL, canOpenSettings = true) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -37,7 +41,9 @@ function renderPrizes(prizes: readonly object[] = ON_WHEEL) {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
-      <PrizeWheel venueId="v1" canKeep />
+      <DataTableExportProvider exporter={async () => true}>
+        <PrizeWheel venueId="v1" canKeep canOpenSettings={canOpenSettings} />
+      </DataTableExportProvider>
     </RivrDataProvider>,
   );
   return removed;
@@ -52,12 +58,26 @@ describe('PrizeWheel', () => {
     expect(within(wheel).getByRole('row', { name: /Nothing.*3 in 9/ })).toBeDefined();
   });
 
-  it('says why a bonus is off the wheel, and links to the spin budget', async () => {
+  it('says why a bonus is off the wheel, and links staff who open Settings to the spin budget there', async () => {
     renderPrizes();
     const row = await screen.findByRole('row', { name: /1,000 bonus chips/ }, { timeout: 5000 });
     expect(within(row).getByText('Off the wheel: this month’s spin budget cannot pay it')).toBeDefined();
-    expect(within(row).getByRole('link', { name: 'Spin budget' }).getAttribute('href')).toBe('/settings?tab=members');
+    expect(within(row).getByRole('link', { name: 'Spin budget' }).getAttribute('href')).toBe('/settings?tab=settings&part=members');
     expect(within(row).queryByText(/ in 9$/)).toBeNull();
+  });
+
+  it('gives staff who cannot open Settings the reason alone, the prize Off', async () => {
+    renderPrizes(ON_WHEEL, false);
+    const row = await screen.findByRole('row', { name: /1,000 bonus chips/ }, { timeout: 5000 });
+    expect(within(row).getByText('Off the wheel: this month’s spin budget cannot pay it')).toBeDefined();
+    expect(within(row).getByText('Off')).toBeDefined();
+    expect(within(row).queryByRole('link')).toBeNull();
+  });
+
+  it('offers no export of the prizes, though the console exports its tables', async () => {
+    renderPrizes();
+    await screen.findByRole('table', { name: 'The wheel' }, { timeout: 5000 });
+    expect(screen.queryByRole('button', { name: /^Export / })).toBeNull();
   });
 
   it('removes a prize only on the second press', async () => {

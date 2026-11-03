@@ -56,7 +56,7 @@ export function PrizeForm({ venueId }: { venueId: string }) {
         )}
         <Input variant="subtle" label={t('console.spin.weight')} value={weight} inputMode="numeric" autoComplete="off" onChange={(event) => setWeight(event.target.value)} />
         <Button variant="subtle" size="compact" isLoading={prize.isPending} onClick={submit}>{t('console.spin.add')}</Button>
-        <Text variant="small" tone="muted">{t('console.spin.weightHint')}</Text>
+        <Text variant="secondary" tone="muted">{t('console.spin.weightHint')}</Text>
       </Inline>
       <StatusMessage>{prize.outcome?.ok === true ? prize.outcome.text : null}</StatusMessage>
       {prize.outcome?.ok === false ? <ErrorMessage>{prize.outcome.text}</ErrorMessage> : null}

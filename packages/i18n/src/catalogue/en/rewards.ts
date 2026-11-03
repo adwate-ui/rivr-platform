@@ -22,7 +22,7 @@ export const rewards = {
   },
   /** Points by hand (#645): staff who keep the rewards give a member points, earned or locked, and release locked ones. */
   byHand: {
-    heading: 'Give points by hand',
+    heading: 'Points by hand',
     phone: 'Member’s mobile number',
     find: 'Find',
     notFound: 'No member here has that number.',

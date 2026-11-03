@@ -69,7 +69,7 @@ describe('Rewards', () => {
 
   it('keeps points by hand and League points from a file together on their tab', async () => {
     renderAs('floor', 'points');
-    expect(await screen.findByRole('heading', { name: 'Give points by hand' }, LAZY)).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Points by hand' }, LAZY)).toBeDefined();
     expect(screen.getByRole('heading', { name: 'League points from a CSV' })).toBeDefined();
   });
 
@@ -77,7 +77,7 @@ describe('Rewards', () => {
     renderAs('marketing', 'points');
     expect(await screen.findByText('RIVR hoodie', {}, LAZY)).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Points by hand' })).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Give points by hand' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Points by hand' })).toBeNull();
   });
 
   it('asks the address to change when a part is chosen', async () => {

@@ -17,11 +17,11 @@ function ItemRow({ item, canEdit, onEdit }: { item: RewardItem; canEdit: boolean
     <Box paddingX={4} paddingY={3}>
       <Inline justify="between" align="center" gap={4} wrap>
         <Stack gap={1} grow>
-          <Text weight="medium">{item.name}</Text>
-          <Text variant="small" tone="muted">{t('console.rewards.itemLine', { kind: t(`console.rewards.kinds.${item.kind}`), detail: item.detail })}</Text>
+          <Text variant="row" weight="medium">{item.name}</Text>
+          <Text variant="secondary" tone="muted">{t('console.rewards.itemLine', { kind: t(`console.rewards.kinds.${item.kind}`), detail: item.detail })}</Text>
         </Stack>
         <Inline gap={4} align="center">
-          <Text variant="small">{t('console.rewards.priceAndStock', { price: priceText(item), stock: stockText(item) })}</Text>
+          <Text variant="secondary">{t('console.rewards.priceAndStock', { price: priceText(item), stock: stockText(item) })}</Text>
           <DotStatus tone={item.isLive ? 'active' : 'inactive'} label={t(item.isLive ? 'console.rewards.live' : 'console.rewards.retired')} />
           {canEdit ? (
             <Button variant="subtle" size="small" aria-label={t('console.rewards.editName', { name: item.name })} onClick={() => onEdit(item)}>

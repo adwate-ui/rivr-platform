@@ -1,6 +1,6 @@
 import { useSpin, useSpinWheel, useWaitingSpins, type WaitingSpin } from '@rivr/db/spin';
 import { formatDayTime, formatNumber, t } from '@rivr/i18n';
-import { Box, Button, DataTable, ErrorMessage, Heading, Inline, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
+import { Box, Button, DataTable, DataTableExportProvider, ErrorMessage, Heading, Inline, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { prizeLabel } from './prizeLabel.ts';
 
@@ -17,8 +17,8 @@ function WaitingHeading({ saysWhy, count }: { saysWhy: boolean; count: number | 
   return (
     <Stack gap={2}>
       <Inline justify="between" align="baseline" gap={3}>
-        <Heading level={2} variant="section">{t('console.spin.waiting')}</Heading>
-        {count === undefined ? null : <Text variant="small" tone="muted">{formatNumber(count)}</Text>}
+        <Heading level={2} variant="card">{t('console.spin.waiting')}</Heading>
+        {count === undefined ? null : <Text variant="secondary" tone="muted">{formatNumber(count)}</Text>}
       </Inline>
       {saysWhy ? <Text>{t('console.spin.noDrawable')}</Text> : null}
     </Stack>
@@ -65,7 +65,8 @@ export function WaitingSpins({ venueId }: { venueId: string }) {
     <Box surface="raised" radius="md" padding={5}>
       <Stack gap={4}>
         <WaitingHeading saysWhy={saysWhy} count={waiting.data?.length} />
-        <WaitingRows waiting={waiting} columns={columnsFor(spinButton)} />
+        {/* No export: the spins are the night's work, not a record to keep. */}
+        <DataTableExportProvider exporter={null}><WaitingRows waiting={waiting} columns={columnsFor(spinButton)} /></DataTableExportProvider>
         <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
         {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
       </Stack>

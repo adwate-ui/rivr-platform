@@ -11,15 +11,15 @@ export const spin = {
   spinFor: 'Spin for {name}',
   won: '{name} won {prize}.',
   wheel: 'The wheel',
-  wheelHint: 'Odds are a prize’s weight out of all prizes that can be won now.',
   noPrizes: 'No prizes on the wheel yet.',
   /** Above the waiting spins while no prize can be drawn: Spin waits for one (C-08). */
   noDrawable: 'The wheel has no prize to draw. Add one, then spin.',
   prize: 'Prize',
   odds: 'Odds',
-  /** The odds in words: `3 in 10`. */
+  /** The odds in words, `3 in 10`, a prize's weight out of the weights of all prizes that can be won now; `Off` off the wheel. */
   chance: 'Chance',
   oddsValue: '{weight} in {odds}',
+  offWheel: 'Off',
   /** A bonus more than what is left of this month's spin budget is off the wheel, here and on the TVs. */
   budgetSpent: 'Off the wheel: this month’s spin budget cannot pay it',
   /** Where that budget is set: Settings, Members and rewards. */

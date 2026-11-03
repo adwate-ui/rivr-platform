@@ -100,7 +100,7 @@ function Section({ venueId, isWaiting, rows, onRetry }: SectionProps) {
   return (
     <Box surface="raised" radius="md" padding={5}>
       <Stack gap={4}>
-        <Heading level={2} variant="section">{label}</Heading>
+        <Heading level={2} variant="card">{label}</Heading>
         {rows === 'loading' ? <DataTable {...base} status="loading" /> : null}
         {rows === 'error' ? <DataTable {...base} status="error" onRetry={onRetry} /> : null}
         {typeof rows === 'object' ? <DataTable {...base} rows={rows} emptyText={emptyText} /> : null}

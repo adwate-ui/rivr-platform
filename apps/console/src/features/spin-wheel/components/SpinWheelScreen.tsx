@@ -19,7 +19,8 @@ export function SpinWheelScreen() {
     <Screen title={t('console.spin.title')}>
       <Stack gap={6}>
         <WaitingSpins venueId={venueId} />
-        <PrizeWheel venueId={venueId} canKeep />
+        {/* The way to the spin budget only for staff who open Settings' rules, as the rail does. */}
+        <PrizeWheel venueId={venueId} canKeep canOpenSettings={permissions.includes('settings.manage') || permissions.includes('venue.configure')} />
       </Stack>
     </Screen>
   );
