@@ -17,7 +17,8 @@ function sql(query: string): string {
   return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
 }
 
-// A name of this run's own, as a table's name is the venue's once.
+// A name of this run's own, as a table's name is the venue's once. Its table is "Setup …", never "Table …": "Table 51esg"
+// once made another flow's "Settings for Table 5" match two tables on the floor.
 const RUN = Date.now().toString(36).slice(-5);
 
 test.describe('Admin tools', () => {
@@ -39,20 +40,20 @@ test.describe('Admin tools', () => {
 
     await page.getByRole('button', { name: 'New table' }).click();
     await expect(page.getByRole('heading', { name: 'New table' })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Table name' }).fill(`Table ${RUN}`);
+    await page.getByRole('textbox', { name: 'Table name' }).fill(`Setup ${RUN}`);
     await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio', { name: `PLO 200/400 ${RUN}` }).click();
     await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '8', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
-    await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
+    await expect(page.getByText(`Setup ${RUN} is saved.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
-    await expect(tables.getByRole('row').filter({ hasText: `Table ${RUN}` })).toContainText('Active · closed tonight');
-    await tables.getByRole('button', { name: `Change table Table ${RUN}` }).click();
+    await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('Active · closed tonight');
+    await tables.getByRole('button', { name: `Change table Setup ${RUN}` }).click();
     await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
-    await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
+    await expect(page.getByText(`Setup ${RUN} is saved.`)).toBeVisible();
     // No game asked, and the straddle kept (decision 0299).
     expect(sql(`select g.seats || ' ' || coalesce(t.game, 'none') || ' ' || t.big_blind_paise || ' ' || t.straddle_paise
-                from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Table ${RUN}'`)).toBe('6 none 40000 80000');
+                from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Setup ${RUN}'`)).toBe('6 none 40000 80000');
 
     // The seed's open tables have run since it was loaded, within the last seven club days.
     await page.goto(`${appUrl('console')}/settings?tab=games-history`);
