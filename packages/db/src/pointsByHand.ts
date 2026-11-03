@@ -13,7 +13,7 @@ export interface MemberPoints {
 }
 
 /** Why a points change was refused. */
-export type PointsFailure = 'not_allowed' | 'no_member' | 'invalid' | 'not_enough_locked' | 'paused' | 'unavailable';
+export type PointsFailure = 'not_allowed' | 'no_member' | 'invalid' | 'not_enough_locked' | 'paused' | 'daily_limit' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PointsFailure>> = {
   '42501': 'not_allowed', RVNOM: 'no_member', '22023': 'invalid', RVPTS: 'not_enough_locked', RVFRZ: 'paused', RVMBR: 'paused',
@@ -52,11 +52,13 @@ export function useGivePoints(venueId: string) {
   return useMutation({
     mutationFn: async (order: PointsOrder): Promise<Result<null, PointsFailure>> => {
       const change = { p_member_id: order.memberId, p_points: Number(order.points), p_reason: order.reason.trim(), p_idempotency_key: order.requestId };
-      const { error } = order.action === 'unlock'
+      const { data, error } = order.action === 'unlock'
         ? await client.rpc('unlock_points', change)
         : await client.rpc('grant_points', { ...change, p_is_locked: order.action === 'locked' });
       await queryClient.invalidateQueries({ queryKey: queryKeys.memberPointsAll(userId ?? 'signed-out', venueId) });
-      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+      if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
+      // A change past the staff member's daily cap gives nothing and answers no transaction (#798); the owner is alerted.
+      return order.action !== 'unlock' && data === null ? err('daily_limit') : ok(null);
     },
   });
 }

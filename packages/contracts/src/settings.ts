@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { socialConnectedChannels } from './channels.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
-  accommodationHoursPerNight, cabMinimumVisits, leaguePrizes, learnDailyPointsCap, learnSessionPoints, pointsPerHour, pointsRewardsRakeShare, pointsVerifiedBonus, rakebackRate,
+  accommodationHoursPerNight, cabMinimumVisits, leaguePrizes, learnDailyPointsCap, learnSessionPoints, pointsDailyStaffCap, pointsPerHour, pointsRewardsRakeShare, pointsVerifiedBonus, rakebackRate,
   reviewsGoogleUrl, spinBudget,
 } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
@@ -288,7 +288,7 @@ export const SETTINGS = [
   callTimeMinutes, callTimeAddChoices, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, leaguePrizes, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse, socialConnectedChannels, pointsVerifiedBonus,
+  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse, socialConnectedChannels, pointsDailyStaffCap, pointsVerifiedBonus,
 ] as const;
 
 /** A setting key declared in code. */

@@ -20,7 +20,7 @@ function renderSetup(replies: Record<string, { status?: number; body: unknown }>
     const path = url.pathname.replace('/rest/v1/', '').replace('rpc/', '');
     calls.push({ path, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const reply = replies[path];
-    return Response.json(reply?.body ?? [], { status: reply?.status ?? 200 });
+    return Response.json(reply === undefined ? [] : reply.body, { status: reply?.status ?? 200 });
   };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
     global: { fetch },
@@ -104,5 +104,14 @@ describe('tables setup, games history and points by hand', () => {
       p_member_id: 'm1', p_points: 300, p_reason: 'Welcome', p_idempotency_key: 'r1', p_is_locked: true,
     });
     expect(unlocked).toEqual({ ok: false, error: 'not_enough_locked' });
+  });
+
+  it('says the daily limit is reached when a change past the staff member\'s cap gives nothing', async () => {
+    const { result } = renderSetup({ grant_points: { body: null } });
+    let given: unknown;
+    await act(async () => {
+      given = await result.current.give.mutateAsync({ memberId: 'm1', action: 'earned', points: 500n, reason: 'Birthday', requestId: 'r3' });
+    });
+    expect(given).toEqual({ ok: false, error: 'daily_limit' });
   });
 });

@@ -16,6 +16,7 @@ export const alerts = {
     'dealer.variance': 'a dealer down closed with a variance',
     'devices.pairing_guessed': 'someone kept guessing a device pairing code',
     'feedback.low_rating': 'a member rated their visit one or two out of five',
+    'points.daily_cap': 'a staff member tried to give points past their daily limit',
     'kyc.recheck_failed': 'a member\'s in-person check failed its PAN recheck',
     'eod.opening_variance': 'a cage shift opened with a variance',
     'eod.variance': 'a cage shift closed with a variance',
