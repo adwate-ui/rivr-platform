@@ -87,7 +87,8 @@ const PRESSED = 'border border-accent font-medium text-accent';
 
 const BASE =
   // wrap-normal: a label breaks at a space, never inside a word, even in a table cell that lets text wrap anywhere.
-  'inline-flex min-w-touch items-center gap-2 font-text leading-snug wrap-normal ' +
+  // leading-control: a whole-pixel line box, so the centred label starts on a pixel (#762).
+  'inline-flex min-w-touch items-center gap-2 font-text leading-control wrap-normal ' +
   'select-none transition-colors active:opacity-muted disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */

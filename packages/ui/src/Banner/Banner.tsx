@@ -22,7 +22,7 @@ const TONE: Record<BannerTone, string> = {
 };
 
 const ACTION =
-  'inline-flex min-h-touch shrink-0 items-center rounded-md border border-control px-3 font-text text-13 font-semibold text-inherit';
+  'inline-flex min-h-touch shrink-0 items-center rounded-md border border-control px-3 font-text text-13 leading-control font-semibold text-inherit';
 
 /**
  * A line at the top of Tonight (decision 0320): a club notice, offline, a refresh that failed, the call time ending, or the

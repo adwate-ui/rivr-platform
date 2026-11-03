@@ -37,13 +37,14 @@ export interface ChoiceChipsProps<Value extends string> {
 }
 
 const CHIP =
-  'min-h-touch rounded-md border px-4 font-text text-14 leading-snug font-medium transition-colors ' +
+  'min-h-touch rounded-md border px-4 font-text text-14 leading-control font-medium transition-colors ' +
   'disabled:cursor-not-allowed disabled:opacity-disabled';
 
-const PILL = 'min-h-touch rounded-full border px-4 font-text text-14 leading-snug transition-colors disabled:cursor-not-allowed disabled:opacity-disabled';
+const PILL = 'min-h-touch rounded-full border px-4 font-text text-14 leading-control transition-colors disabled:cursor-not-allowed disabled:opacity-disabled';
 
-// Five ratings sit in 52 px tiles; three lengths of time in 56 px ones, as in the prototype.
-const TILE = 'rounded-md border font-text text-18 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-disabled';
+// Five ratings sit in 52 px tiles; three lengths of time in 56 px ones, as in the prototype. Every look's label has a
+// whole-pixel line box (leading-control), so centred in its chip it starts on a pixel (#762).
+const TILE = 'rounded-md border font-text text-18 leading-control font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-disabled';
 
 const TILE_ROW: Record<number, string> = { 3: 'grid grid-cols-3 gap-2', 5: 'grid grid-cols-5 gap-2' };
 

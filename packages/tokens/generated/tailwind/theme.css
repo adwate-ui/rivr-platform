@@ -76,6 +76,7 @@
   --leading-tight: var(--rivr-font-line-height-tight);
   --leading-snug: var(--rivr-font-line-height-snug);
   --leading-normal: var(--rivr-font-line-height-normal);
+  --leading-control: var(--rivr-font-line-height-control);
   --tracking-normal: var(--rivr-font-letter-spacing-normal);
   --tracking-wide: var(--rivr-font-letter-spacing-wide);
   --tracking-tv: var(--rivr-font-letter-spacing-tv);

@@ -54,6 +54,7 @@
   --rivr-font-line-height-tight: 1.1; /** Display sizes, 28 px and up. */
   --rivr-font-line-height-snug: 1.3; /** Headings, 18 to 24 px. */
   --rivr-font-line-height-normal: 1.5; /** Body text. */
+  --rivr-font-line-height-control: 20px; /** A control's label: buttons, chips, pills, tiles, a banner's action. A whole number of pixels, so a label centred in a 44, 48, 52 or 54 px control starts on a pixel, never between two, where the rasteriser drew it one way or the other from run to run (#762). */
   --rivr-font-letter-spacing-normal: 0em;
   --rivr-font-letter-spacing-wide: 0.06em; /** Small capitals labels. */
   --rivr-font-letter-spacing-tv: 0.2em; /** Letter-spaced labels on the TV and under the wordmark. */

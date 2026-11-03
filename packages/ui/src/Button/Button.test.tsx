@@ -94,6 +94,13 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Join' })).toHaveClass('justify-center');
   });
 
+  it('draws its label in a whole-pixel line box, so centred it starts on a pixel, never between two (issue 762)', () => {
+    renderIn(<Button>Accept all</Button>);
+    const button = screen.getByRole('button', { name: 'Accept all' });
+    expect(button).toHaveClass('leading-control');
+    expect(button).not.toHaveClass('leading-snug');
+  });
+
   it('has no accessibility violations in any variant', async () => {
     const { container } = renderIn(
       <>
