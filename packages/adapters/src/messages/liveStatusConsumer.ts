@@ -10,10 +10,11 @@ registerMessages({ push: pushCopy });
 
 /**
  * The events that change what a lock screen shows (decision 0323): a list that moved (decision 0360), a seat call, a
- * member sitting, moving, stepping away and back, leaving, and their call time growing or nearing its end.
+ * member sitting, moving, stepping away and back, leaving, and their call time growing, nearing its end or met.
  */
 export const LIVE_STATUS_EVENT_TYPES = [
   'waitlist.moved', 'waitlist.called', 'seat.taken', 'seat.moved', 'seat.away', 'seat.back', 'seat.left', 'call_time.updated', 'call_time.ending',
+  'call_time.completed',
 ] as const;
 
 /** What a member's phone should show now, as the database reads it when the status goes (live_status_targets). */

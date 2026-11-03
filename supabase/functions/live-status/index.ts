@@ -1,5 +1,5 @@
 // The lock-screen live status consumer (decision 0323): a list that moved, a seat call, a seat taken, moved, stepped away
-// from or left, and call time added or ending each refresh the lock screens of the member's phones in the native app,
+// from or left, and call time added, ending or met each refresh the lock screens of the member's phones in the native app,
 // and with a list, of everyone waiting on it (decision 0360): an iPhone's Live Activity through Apple, an Android phone's
 // ongoing notification through Firebase. pg_cron runs it every minute (decision 0038); a messaging stop holds it, and
 // practice-venue events never reach it. Apple's push key and the Firebase service account are function secrets the owner

@@ -64,7 +64,8 @@ describe('the live-status consumer', () => {
     const consumer = createLiveStatusConsumer({ liveStatus: createFakeLiveStatus(), ...phones([]) });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
       'live_status', true,
-      ['waitlist.moved', 'waitlist.called', 'seat.taken', 'seat.moved', 'seat.away', 'seat.back', 'seat.left', 'call_time.updated', 'call_time.ending'],
+      ['waitlist.moved', 'waitlist.called', 'seat.taken', 'seat.moved', 'seat.away', 'seat.back', 'seat.left', 'call_time.updated', 'call_time.ending',
+        'call_time.completed'],
     ]);
   });
 
