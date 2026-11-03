@@ -4,7 +4,7 @@ import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
-import type { DataTableColumn, DataTableSort } from './DataTable.tsx';
+import type { DataTableColumn, DataTableSort } from './columns.ts';
 import { textOf } from './DataTableExport.tsx';
 import { OpenedRow, placesOf } from './OpenedRow.tsx';
 import { TickCell, TickHeader, type Ticks } from './Selection.tsx';
