@@ -204,7 +204,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'spin.budget': {
     name: 'Spin wheel budget',
-    help: 'The most bonus the wheel gives in a club month. Not set gives none.',
+    help: 'The most bonus chips the wheel gives in a club month. Not set gives none.',
     fields: { monthly_paise: 'Each month' },
   },
   'tds.config': {

@@ -3,6 +3,7 @@ import { formatNumber, t } from '@rivr/i18n';
 import { Button, DataTable, SplitView, Stack, Text, type DataTableColumn, type DataTableState } from '@rivr/ui';
 import { useState } from 'react';
 import { areaOf, isShownSetting, type RuleArea } from './areas.ts';
+import { shownInBonusChips } from './bonusChips.ts';
 import { SettingChange } from './SettingChange.tsx';
 import { SettingPanel } from './SettingPanel.tsx';
 import { isSuperAdminOnly, settingHelp, settingName, valueText } from './settingsCopy.ts';
@@ -22,7 +23,8 @@ function nowText(setting: VenueSetting, tierName: (id: string) => string): strin
 /** The area's settings, or loading, or why they could not be read. A failed refresh keeps what was known. */
 function tableState(settings: ReturnType<typeof useVenueSettings>, area: RuleArea): DataTableState<VenueSetting> {
   if (settings.data !== undefined) {
-    return { rows: settings.data.settings.filter((setting) => areaOf(setting.key) === area && isShownSetting(setting.key)), emptyText: t('console.settings.empty') };
+    const rows = settings.data.settings.filter((setting) => areaOf(setting.key) === area && isShownSetting(setting.key)).map(shownInBonusChips);
+    return { rows, emptyText: t('console.settings.empty') };
   }
   if (settings.isError) return { status: 'error', errorText: t('console.settings.loadFailed'), onRetry: () => void settings.refetch() };
   return { status: 'loading' };
@@ -73,7 +75,8 @@ export function RulesArea({ venueId, area, isSuperAdmin }: { venueId: string; ar
     changingKey,
     onChange: (setting) => { setOpenKey(null); setChangingKey(changingKey === setting.key ? null : setting.key); },
   });
-  const open = settings.data?.settings.find((setting) => setting.key === openKey);
+  const found = settings.data?.settings.find((setting) => setting.key === openKey);
+  const open = found === undefined ? undefined : shownInBonusChips(found);
   const list = (
     <Stack gap={4}>
       <Text tone="muted">{t('console.settings.rulesHint')}</Text>

@@ -2,6 +2,7 @@ import { SETTINGS } from '@rivr/contracts/settings';
 import type { SettingFailure, SettingField, SettingValue, VenueConfigFailure } from '@rivr/db';
 import { fromPaise } from '@rivr/domain/money';
 import { formatList, formatMoney, formatNumber, settingCopy, t } from '@rivr/i18n';
+import { isBonusChips, PAISE_PER_BONUS_CHIP } from './bonusChips.ts';
 
 /** A field holding basis points (hundredths of a percent) is a percentage on screen: 500 is 5%. */
 export const isBasisPoints = (name: string) => name === 'basis_points' || name.endsWith('_basis_points');
@@ -38,8 +39,9 @@ export const optionLabel = (key: string, option: string) => settingCopy(key)?.op
 /** Only a super admin changes it: the database's guard triggers (SettingDefinition.superAdminOnly). */
 export const isSuperAdminOnly = (key: string) => SETTINGS.some((definition) => definition.key === key && 'superAdminOnly' in definition);
 
-/** A number in its unit: ₹3,000, 5%, 30 minutes or a plain count. */
+/** A number in its unit: ₹3,000, 5%, 30 minutes, 5,000 bonus chips or a plain count. */
 function numberText(field: SettingField, value: number): string {
+  if (isBonusChips(field)) return t('console.settings.units.bonusChips', { value: formatNumber(value / PAISE_PER_BONUS_CHIP) });
   if (isMoney(field)) return formatMoney(fromPaise(BigInt(value)));
   const unit = unitOf(field);
   if (unit === 'percent') return t('console.settings.units.percent', { value: formatNumber(value / 100) });
@@ -74,6 +76,7 @@ export function limitsText(field: Extract<SettingField, { kind: 'integer' }>): s
   else if (field.min !== null) parts.push(t('console.settings.atLeast', { min: numberText(field, field.min) }));
   else if (field.max !== null) parts.push(t('console.settings.upTo', { max: numberText(field, field.max) }));
   if (field.isChips) parts.push(t('console.settings.inChips'));
+  if (isBonusChips(field)) parts.push(t('console.settings.inFifties'));
   if (unit === 'percent') parts.push(t('console.settings.twoDecimals'));
   return parts.join(' ');
 }

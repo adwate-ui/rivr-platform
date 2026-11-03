@@ -22,13 +22,18 @@ export const settings = {
   /** Each value's line in its history: when it began, who set it, and why. */
   by: 'by {name}',
   /** Units: as shown after a value, and after a field. */
-  units: { percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years' },
-  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years' },
+  units: {
+    percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years',
+    bonusChips: '{value} bonus chips',
+  },
+  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years', bonusChips: 'bonus chips' },
   /** A field's limits, as its hint and as its error. */
   between: 'Between {min} and {max}.',
   atLeast: '{min} or more.',
   upTo: 'Up to {max}.',
   inChips: 'In whole ₹50 chips.',
+  /** Bonus chips go out in fifties, as the promotions' do (decision 0438). */
+  inFifties: 'In fifties.',
   twoDecimals: 'Up to two decimals.',
   optional: 'Optional.',
   required: 'Required.',
