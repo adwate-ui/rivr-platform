@@ -182,6 +182,8 @@ export * from './SelfieCamera/index.ts';
 export * from './DoneMark/index.ts';
 export * from './SheetPanel/index.ts';
 export * from './SuggestionCard/index.ts';
+export * from './NoticeText/index.ts';
+export * from './NoticeCard/index.ts';
 export * from './ProfileMark/index.ts';
 export * from './BackButton/index.ts';
 export { haptic } from './haptic/index.ts';

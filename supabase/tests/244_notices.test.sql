@@ -21,8 +21,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
 create temp table posted as select public.post_notice('00000000-0000-4000-8000-000000000001', '  We''re launching soon.  ') as id;
 grant select on posted to authenticated;
 select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', '   ') $$, '22023', null, 'a notice says something');
-select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', repeat('x', 281)) $$, '22023', null,
-  'in at most 280 characters');
+select throws_ok($$ select public.post_notice('00000000-0000-4000-8000-000000000001', repeat('x', 501)) $$, '22023', null,
+  'in at most 500 characters (decision 0424)');
 select results_eq($$ select body from public.venue_notices('00000000-0000-4000-8000-000000000001') where notice_id = (select id from posted) $$,
   $$ values ('We''re launching soon.'::text) $$, 'staff see it, trimmed');
 

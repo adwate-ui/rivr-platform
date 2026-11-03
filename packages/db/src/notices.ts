@@ -20,9 +20,20 @@ export interface VenueNotice extends Notice {
   readonly endsAt: string | null;
 }
 
-/** Why putting up or ending a notice was refused: the role, empty or too long, a freeze, or anything else. */
-export type NoticeFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
-const FAILURE_BY_CODE: Readonly<Record<string, NoticeFailure>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused' };
+/**
+ * Why putting up, editing or ending a notice was refused: the role; empty, too long, an http link or an end before its
+ * start; a freeze; edited after it ended (decision 0424); or anything else.
+ */
+export type NoticeFailure = 'not_allowed' | 'invalid' | 'paused' | 'ended' | 'unavailable';
+const FAILURE_BY_CODE: Readonly<Record<string, NoticeFailure>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', P0002: 'ended' };
+
+/** A notice's new words, start (null keeps it; a live notice keeps it anyway) and end (null: until ended). */
+export interface NoticeEdit {
+  readonly noticeId: string;
+  readonly body: string;
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
+}
 const toFailure = (error: { code: string }): NoticeFailure => FAILURE_BY_CODE[error.code] ?? 'unavailable';
 
 /** The notices in force at the member's club, newest first. */
@@ -53,7 +64,7 @@ export function useVenueNotices(venueId: string) {
   });
 }
 
-/** Puts up a notice from now until it is ended, and ends one; each a Result, and the list reloads. */
+/** Puts up a notice from now until it is ended, edits one in place and ends one; each a Result, and the list reloads. */
 export function useNoticeActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
@@ -65,6 +76,19 @@ export function useNoticeActions(venueId: string) {
       return error ? err(toFailure(error)) : ok(data);
     },
   });
+  const update = useMutation({
+    mutationFn: async ({ noticeId, body, startsAt, endsAt }: NoticeEdit): Promise<Result<null, NoticeFailure>> => {
+      const { error } = await client.rpc('update_notice', {
+        p_notice_id: noticeId,
+        p_body: body,
+        // Left out, each is null in the function: the start kept, the notice running until ended.
+        ...(startsAt === null ? {} : { p_starts_at: startsAt }),
+        ...(endsAt === null ? {} : { p_ends_at: endsAt }),
+      });
+      await reload();
+      return error ? err(toFailure(error)) : ok(null);
+    },
+  });
   const end = useMutation({
     mutationFn: async (noticeId: string): Promise<Result<null, NoticeFailure>> => {
       const { error } = await client.rpc('end_notice', { p_notice_id: noticeId });
@@ -72,5 +96,5 @@ export function useNoticeActions(venueId: string) {
       return error ? err(toFailure(error)) : ok(null);
     },
   });
-  return { post, end };
+  return { post, update, end };
 }

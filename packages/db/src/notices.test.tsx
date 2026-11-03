@@ -71,4 +71,28 @@ describe('notices', () => {
     expect(posted).toEqual({ ok: false, error: 'invalid' });
     expect(ended).toEqual({ ok: false, error: 'not_allowed' });
   });
+
+  it('edits a notice in place: its words, its start and its end (decision 0424)', async () => {
+    const { result, calls } = renderHooks({ '/rpc/update_notice': { body: null } });
+    let edited: unknown;
+    await act(async () => {
+      edited = await result.current.actions.update.mutateAsync({
+        noticeId: 'n1', body: 'Launch night is Sunday.\nDoors at 8 pm.', startsAt: '2026-11-04T13:30:00.000Z', endsAt: null,
+      });
+    });
+    expect(edited).toEqual({ ok: true, value: null });
+    // No end sent: the function's default, null, runs it until ended.
+    expect(bodiesOf(calls, '/rpc/update_notice')).toEqual([{
+      p_notice_id: 'n1', p_body: 'Launch night is Sunday.\nDoors at 8 pm.', p_starts_at: '2026-11-04T13:30:00.000Z',
+    }]);
+  });
+
+  it('says when the notice being edited has ended meanwhile', async () => {
+    const { result } = renderHooks({ '/rpc/update_notice': { status: 404, body: { code: 'P0002', message: 'ended' } } });
+    let edited: unknown;
+    await act(async () => {
+      edited = await result.current.actions.update.mutateAsync({ noticeId: 'n1', body: 'Too late', startsAt: null, endsAt: null });
+    });
+    expect(edited).toEqual({ ok: false, error: 'ended' });
+  });
 });
