@@ -58,11 +58,15 @@ export const pointsVerifiedBonus = {
   value: z.strictObject({ points: z.int().min(0).max(10000) }),
 } as const satisfies SettingDefinition;
 
-/** The most points one staff member gives by hand in a club day (#798); super admins are not capped. None set is no cap. */
+/**
+ * The most points one staff member gives by hand in a club day (#798), 10,000 from the start; super admins are not capped,
+ * and only they change it. None set is no cap.
+ */
 export const pointsDailyStaffCap = {
   key: 'points.daily_staff_cap',
-  description: 'The most points one staff member gives by hand in a club day, earned and locked together; a change past it is refused and the owner hears of it. Super admins are not capped. None set is no cap.',
+  description: 'The most points one staff member gives by hand in a club day, earned and locked together; a change past it is refused and the owner hears of it. Super admins are not capped. None set is no cap. Only a super admin changes it, with a reason.',
   scope: 'venue',
+  superAdminOnly: true,
   value: z.strictObject({ points: z.int().min(1).max(1000000) }),
 } as const satisfies SettingDefinition;
 

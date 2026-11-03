@@ -160,7 +160,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'points.daily_staff_cap': {
     name: 'Daily points limit',
-    help: 'The most points one staff member gives by hand in a club day. Past it, a change is refused and you are told. Super admins have no limit. No limit unless set.',
+    help: 'The most points one staff member gives by hand in a club day. Past it, a change is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
     fields: { points: 'Points' },
   },
   'points.verified_bonus': {
