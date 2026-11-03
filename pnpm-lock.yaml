@@ -626,6 +626,9 @@ importers:
       '@eslint/js':
         specifier: ^9.39.0
         version: 9.39.5
+      '@testing-library/dom':
+        specifier: ^10.4.2
+        version: 10.4.2
       eslint-plugin-i18next:
         specifier: ^6.1.5
         version: 6.1.5

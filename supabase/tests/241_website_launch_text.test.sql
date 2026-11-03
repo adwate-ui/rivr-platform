@@ -60,6 +60,19 @@ select is(pg_temp.saying('00000000-0000-4000-8000-0000000000b0', 'privacy', 'Wha
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000b0', 'academy', 'Who can join'), 1, 'and its Academy page');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000b0', 'house-rules', 'held for 20 minutes'), 1, 'and still the 20-minute seat hold');
 
+-- The owner's answers of 3 Nov (decision 0308), for the club and for a new one: no CRM in the privacy notice, the legality
+-- article published, the Academy page unpublished and gone from the links page.
+select is(pg_temp.saying(v, 'privacy', 'HubSpot'), 0, 'the privacy notice names no CRM')
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-0000000000b0')) as venues (v);
+select is(pg_temp.saying(v, 'links', '"academy"'), 0, 'the links page offers no Academy')
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-0000000000b0')) as venues (v);
+select is(pg_temp.saying(v, 'links', '"sign-up"'), 1, 'and keeps its other links')
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-0000000000b0')) as venues (v);
+select results_eq(format($$ select slug, is_published from public.site_page where venue_id = %L
+                            and slug in ('academy', 'journal-poker-legal-gurugram') order by slug $$, v),
+  $$ values ('academy'::text, false), ('journal-poker-legal-gurugram', true) $$, 'the article is published, the Academy page is not')
+from (values ('00000000-0000-4000-8000-000000000001'::uuid), ('00000000-0000-4000-8000-0000000000b0')) as venues (v);
+
 -- A club's own words stay: a band it renamed, The room renamed (so the cab home has nowhere to go and Hospitality stays),
 -- and terms and an Academy page it wrote.
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000b1', 'RIVR Own Words', 'own-words', false, 'RIVR test', 'Test', 'TOW');

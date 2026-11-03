@@ -3,7 +3,7 @@
  * sends one code a minute to a number). Anjali sets up a stake and a table and changes the table's seats (#642), reads
  * the games each club day ran (#643) and builds a time-based bonus in bonus chips (#646). Rohit gives Neha Bhalla locked
  * points, then releases some (#645), which Neha sees on Rewards. Each role's modules are proved in the console's rail tests and
- * supabase/tests/216_role_modules; the CRM sync (#647) in 215_crm_sync. Local stack only: it reads the database.
+ * supabase/tests/216_role_modules. Local stack only: it reads the database.
  */
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';

@@ -23,8 +23,8 @@ select throws_ok(
 set local role anon;
 select results_eq(
   $$ select slug from public.public_site_page where nav_position is not null order by nav_position $$,
-  $$ values ('about'::text), ('membership'), ('promotions'), ('tournaments'), ('academy'), ('journal'), ('visit') $$,
-  'anyone sees the published pages in the navigation, in GPA''s order (decision 0166); careers stays a draft');
+  $$ values ('about'::text), ('membership'), ('promotions'), ('tournaments'), ('journal'), ('visit') $$,
+  'anyone sees the published pages in the navigation, in GPA''s order (decision 0166); careers stays a draft, and the Academy is unpublished (#795)');
 select results_eq(
   $$ select kind from public.public_site_block where page_slug = 'house-rules' order by position $$,
   $$ values ('hero'::text), ('rules') $$, 'and their blocks, each page opening with its hero');

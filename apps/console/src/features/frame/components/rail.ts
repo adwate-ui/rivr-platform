@@ -66,7 +66,7 @@ const RAIL: readonly RailGroup[] = [
     id: 'players',
     label: 'console.rail.groups.players',
     entries: [
-      // The member list, the CRM's link (#647): for staff who manage members and the host, not the floor or the cashier (#644).
+      // The member list: for staff who manage members and the host, not the floor or the cashier (#644).
       { id: 'members', label: 'console.rail.items.members', href: '/members', anyOf: ['members.manage', 'host_queue.manage'], locksWhenIdle: true },
       // Everyone at the club today, with their status, times and tables (#641).
       { id: 'todaysPlayers', label: 'console.rail.items.todaysPlayers', href: '/players-today', anyOf: ['members.read'] },
