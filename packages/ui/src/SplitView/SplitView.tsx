@@ -16,14 +16,27 @@ export interface SplitViewProps {
    * floor's first table, sits beside the list from 1180 px, and below it the list stays until one is chosen.
    */
   isChosen?: boolean;
+  /**
+   * How the width is shared from 1180 px: `record`, three parts in five for the record (the default); `even`, half each,
+   * a queue beside the item open (console v3: KYC review, Host queue, Website); `docked`, the record a 440 px panel at
+   * the right and the list the rest, so a table of members keeps its names on one line (console v3: Members).
+   */
+  layout?: 'record' | 'even' | 'docked';
 }
+
+/** Each layout's classes from 1180 px: the frame's, the list's alone and beside a record, and the record's. */
+const LAYOUTS = {
+  record: { frame: 'grid gap-6 tablet:grid-cols-5', alone: 'tablet:col-span-5', beside: 'tablet:col-span-2', record: 'tablet:col-span-3' },
+  even: { frame: 'grid gap-6 tablet:grid-cols-2', alone: 'tablet:col-span-2', beside: 'tablet:col-span-1', record: 'tablet:col-span-1' },
+  docked: { frame: 'flex flex-col gap-6 tablet:flex-row tablet:items-start', alone: 'tablet:flex-1', beside: 'tablet:flex-1', record: 'tablet:w-side-panel tablet:shrink-0' },
+} as const;
 
 /**
  * A list and the record opened from it (#603). From 1180 px they sit side by side, the record taking three parts in
- * five; with no record open the list takes the full width (C-03). Below, one shows at a time: the record replaces the
- * list, with a way back to it.
+ * five, half, or a docked panel (`layout`); with no record open the list takes the full width (C-03). Below, one shows
+ * at a time: the record replaces the list, with a way back to it.
  */
-export function SplitView({ list, detail, backLabel, onBack, isChosen = true }: SplitViewProps) {
+export function SplitView({ list, detail, backLabel, onBack, isChosen = true, layout = 'record' }: SplitViewProps) {
   const record = useRef<HTMLDivElement>(null);
   const openedFrom = useRef<HTMLElement | null>(null);
   const isOpen = detail !== null && isChosen;
@@ -43,11 +56,12 @@ export function SplitView({ list, detail, backLabel, onBack, isChosen = true }: 
       openedFrom.current = null;
     }
   }, [isOpen]);
+  const look = LAYOUTS[layout];
   return (
-    <div className="grid gap-6 tablet:grid-cols-5">
-      <div className={cx('min-w-0', detail === null ? 'tablet:col-span-5' : 'tablet:col-span-2', isOpen ? 'hidden tablet:block' : '')}>{list}</div>
+    <div className={look.frame}>
+      <div className={cx('min-w-0', detail === null ? look.alone : look.beside, isOpen ? 'hidden tablet:block' : '')}>{list}</div>
       {detail === null ? null : (
-        <div className={cx('min-w-0 flex-col items-start gap-4 tablet:col-span-3 tablet:flex', isOpen ? 'flex' : 'hidden')}>
+        <div className={cx('min-w-0 flex-col items-start gap-4 tablet:flex', look.record, isOpen ? 'flex' : 'hidden')}>
           <div className="tablet:hidden">
             <Button variant="text" onClick={onBack}>{backLabel}</Button>
           </div>
