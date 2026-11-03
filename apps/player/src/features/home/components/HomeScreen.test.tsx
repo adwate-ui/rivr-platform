@@ -136,6 +136,22 @@ describe('Tonight', () => {
     expect(screen.getByRole('timer', { name: 'Call time left 2h 41m' }).textContent).toBe('2:41:08');
   });
 
+  // Issue 781: the floor can add a seated member to another list to change tables (#633).
+  it('Seated: a place on a list to change tables shows under the seat, with where they stand', async () => {
+    renderTonight([{ ...PLACE, place: 2, table_id: null, table_name: null }, { ...PLACE, entry_id: 'e2', place: null, is_request: true },
+      { ...PLACE, entry_id: 'e3', table_name: 'Table 2', call_table_name: 'Table 2', call_seat: 3, hold_until: new Date(NOW + 600_000).toISOString() }], [SEAT]);
+    expect(await screen.findByText('Waitlist · NLH 50/100', {}, LATER)).toBeDefined();
+    expect(screen.getByText('2nd in line')).toBeDefined();
+    expect(screen.getByText('Waitlist · Table 1 · NLH 50/100')).toBeDefined();
+    expect(screen.getByText('Requested')).toBeDefined();
+    // Called to the new table, the place says its seat is held.
+    expect(screen.getByText('Waitlist · Table 2 · NLH 50/100')).toBeDefined();
+    expect(screen.getByText('Your seat is ready')).toBeDefined();
+    // Still the seat's screen, not the place's.
+    expect(screen.getByRole('button', { name: 'Leave seat' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Leave waitlist' })).toBeNull();
+  });
+
   it('Add time: asks the floor for 30 min, 1 hour or 2 hours, and shows the request waiting', async () => {
     renderTonight([], [{ ...SEAT, top_up: 'requested', time_request_minutes: 60 }]);
     expect(await screen.findByText('+1 h', {}, LATER)).toBeDefined();

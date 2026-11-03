@@ -1,10 +1,11 @@
-import { useFeature, type MySeat } from '@rivr/db';
+import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { isAddTimeChoice } from '@rivr/domain/callTime';
 import { t } from '@rivr/i18n';
 import { Box, Button, DetailRow, FeatureGate, Grid, LockedNotice, RoundAction, Stack, useToast } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import type { SeatSheet } from './SeatSheets.tsx';
+import { lineOf } from './waitlistCopy.ts';
 
 /** When the floor approves more call time, a toast says how much was added (the request goes, the minutes grow). */
 function useTimeAdded(seat: MySeat) {
@@ -59,8 +60,11 @@ export function OrderToSeat() {
   );
 }
 
-/** The seat's open requests, hairline-ruled: the top-up, more time asked for, and the Leaving list. */
-export function SeatStatus({ seat }: { seat: MySeat }) {
+/**
+ * The seat's open requests, hairline-ruled: the top-up, more time asked for, the Leaving list, and a place on another list
+ * to change tables, with where the member stands on it (#781).
+ */
+export function SeatStatus({ seat, places }: { seat: MySeat; places: readonly WaitlistPlace[] }) {
   const asked = seat.timeRequestMinutes;
   return (
     <Box paddingX={5} paddingY={4}>
@@ -72,6 +76,11 @@ export function SeatStatus({ seat }: { seat: MySeat }) {
         <DetailRow size="small" hasDot label={t(`player.live.seat.statusTimes.m${asked}`)} valueTone="accent" value={t('player.live.seat.requested')} />
       ) : null}
       {seat.isLeaving ? <DetailRow size="small" hasDot label={t('player.live.seat.statusLeaving')} valueTone="muted" value={t('player.live.seat.onTheList')} /> : null}
+      {places.map((place) => (
+        <DetailRow key={place.entryId} size="small" hasDot valueTone="accent" value={lineOf(place)}
+          label={place.tableName === null ? t('player.live.seat.statusWaitlist', { game: place.tableTypeName })
+            : t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName })} />
+      ))}
     </Box>
   );
 }
