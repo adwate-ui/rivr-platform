@@ -2,7 +2,7 @@
 # web surface (including the tablet bundle) and Storybook, the published design
 # system. docs/spec/additions-2026-10-14.md, "Environments and release".
 # Secrets come from the `staging` environment, which only main can use. Each job records a
-# GitHub deployment of this commit; a release checks that staging runs the commit it tags.
+# GitHub deployment of this commit; a release checks that staging runs the commit it tags or a later one.
 name: Deploy staging
 
 on:

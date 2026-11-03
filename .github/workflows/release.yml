@@ -55,17 +55,21 @@ jobs:
             echo "::error::CI's full run on main for $GITHUB_SHA is $result. Run it (gh workflow run ci.yml --ref main) and tag the commit it passed at."
             exit 1
           fi
-      # Staging's database and functions must already have everything the tagged commit has: its last deploy is the
-      # tagged commit or a later main commit (decision 0422).
+      # Staging's database and functions must already have everything the tagged commit has: its newest successful
+      # deploy is the tagged commit or a later main commit (decision 0422). A merge's deploy still running is passed over.
       - name: Staging runs the tagged commit or a later one
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          deployment="$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=staging&per_page=1" --jq '.[0]')"
-          sha="$(jq -r '.sha' <<< "$deployment")"
-          state="$(gh api "repos/$GITHUB_REPOSITORY/deployments/$(jq -r '.id' <<< "$deployment")/statuses" --jq '.[0].state')"
-          if [ "$state" != "success" ] || ! git merge-base --is-ancestor "$GITHUB_SHA" "$sha"; then
-            echo "::error::Staging's last deploy is $sha ($state), older than $GITHUB_SHA or not finished. Tag again once main's staging deploy of it succeeds."
+          sha=""
+          for id in $(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=staging&per_page=20" --jq '.[].id'); do
+            if [ "$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" --jq '.[0].state')" = success ]; then
+              sha="$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id" --jq '.sha')"
+              break
+            fi
+          done
+          if [ -z "$sha" ] || ! git merge-base --is-ancestor "$GITHUB_SHA" "$sha"; then
+            echo "::error::Staging's newest successful deploy is ${sha:-none}, older than $GITHUB_SHA. Tag again once main's staging deploy of it succeeds."
             exit 1
           fi
 
