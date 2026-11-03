@@ -27,12 +27,16 @@ export interface VenueNotice extends Notice {
 export type NoticeFailure = 'not_allowed' | 'invalid' | 'paused' | 'ended' | 'unavailable';
 const FAILURE_BY_CODE: Readonly<Record<string, NoticeFailure>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', P0002: 'ended' };
 
-/** A notice's new words, start (null keeps it; a live notice keeps it anyway) and end (null: until ended). */
-export interface NoticeEdit {
-  readonly noticeId: string;
+/** A notice to put up: its words, its start (null: now) and its end (null: until ended). */
+export interface NoticeDraft {
   readonly body: string;
   readonly startsAt: string | null;
   readonly endsAt: string | null;
+}
+
+/** A notice's new words, start (null keeps it; a live notice keeps it anyway) and end (null: until ended). */
+export interface NoticeEdit extends NoticeDraft {
+  readonly noticeId: string;
 }
 const toFailure = (error: { code: string }): NoticeFailure => FAILURE_BY_CODE[error.code] ?? 'unavailable';
 
@@ -64,14 +68,20 @@ export function useVenueNotices(venueId: string) {
   });
 }
 
-/** Puts up a notice from now until it is ended, edits one in place and ends one; each a Result, and the list reloads. */
+/** Puts up a notice, now or for later, edits one in place and ends one; each a Result, and the list reloads. */
 export function useNoticeActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const reload = () => queryClient.invalidateQueries({ queryKey: keys.venue(userId ?? 'signed-out', venueId) });
   const post = useMutation({
-    mutationFn: async (body: string): Promise<Result<string, NoticeFailure>> => {
-      const { data, error } = await client.rpc('post_notice', { p_venue_id: venueId, p_body: body });
+    mutationFn: async ({ body, startsAt, endsAt }: NoticeDraft): Promise<Result<string, NoticeFailure>> => {
+      const { data, error } = await client.rpc('post_notice', {
+        p_venue_id: venueId,
+        p_body: body,
+        // Left out, each is null in the function: it starts now and runs until ended.
+        ...(startsAt === null ? {} : { p_starts_at: startsAt }),
+        ...(endsAt === null ? {} : { p_ends_at: endsAt }),
+      });
       await reload();
       return error ? err(toFailure(error)) : ok(data);
     },

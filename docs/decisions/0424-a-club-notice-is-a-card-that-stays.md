@@ -14,4 +14,4 @@ Date: 3 Nov 2026. The owner: notices "are not set up properly". Edit them, keep 
   - An ended notice is refused (P0002). Ending one still to come takes it down.
   - Every change is audited.
 - **Not changed.** Only staff with `settings.manage` post. There is no approval, no tier targeting and no red notice.
-- **Still to do (Part 2, after console v3).** The console editor, and `post` with a start and an end in `@rivr/db`.
+- **The console (Part 2, on console v3).** Settings → Notices puts one up with an optional IST start and end, edits it in place (a live one's start locked), and previews the card members see.
