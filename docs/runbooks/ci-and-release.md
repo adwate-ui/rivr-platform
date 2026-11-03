@@ -44,6 +44,7 @@ Auth and API on staging and production, in the Supabase dashboard:
 - Expose only the `public` and `graphql_public` schemas, never `private`.
 - On staging, add every seed phone number someone will sign in with (`supabase/seed/`) as a test number, so a seed sign-in never sends a real SMS. Until a number is added, signing in with it sends a real code to whoever holds it once an SMS or WhatsApp channel is set. Give them a private code kept outside the repository, never the local `123456`: the seed includes super admins, and anyone who knows the code could sign in as one. Production has no test numbers. `scripts/ci/check-auth-config.mjs` checks both (#229): a release fails if production lists any test number, and the staging deploy warns about any test number that is not a seed number.
 - Never run `supabase config push` against staging or production. The generated `config.toml` carries the local hook address, a local secret and the seed's `123456` test numbers.
+- Set function secrets with `pnpm supabase secrets set … --project-ref <ref>`, never the bare CLI inside the repository. Run there, `supabase secrets set` also pushes the generated `config.toml`'s `[edge_runtime.secrets]`: this checkout's own `SEND_SMS_HOOK_SECRET` and a `127.0.0.1` `PLAYER_APP_URL`. Every sign-in code to a real number then fails with a 500. The wrapper runs the CLI in an empty directory.
 - Sign-in codes (decision 0025), in this order:
   1. Make sure the `auth-send-code` function is deployed: the staging deploy does it, or a release does for production.
   2. Under Authentication → Hooks, add a **Send SMS** hook of type HTTPS pointing to `https://<project-ref>.supabase.co/functions/v1/auth-send-code`, and generate its secret.
@@ -57,7 +58,7 @@ Auth and API on staging and production, in the Supabase dashboard:
   5. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs both hooks in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
   6. WhatsApp through the Evolution bridge, for now (decision 0297):
      - On the bridge, create an instance for RIVR's own number and link it by scanning its QR code with that phone.
-     - Set `EVOLUTION_API_URL` (https, no trailing slash), `EVOLUTION_API_KEY` and `EVOLUTION_INSTANCE_NAME` as function secrets, with `supabase secrets set --env-file <file>` so no value is typed on a command line.
+     - Set `EVOLUTION_API_URL` (https, no trailing slash), `EVOLUTION_API_KEY` and `EVOLUTION_INSTANCE_NAME` as function secrets, with `pnpm supabase secrets set --env-file <file> --project-ref <ref>` so no value is typed on a command line.
      - On staging, also set `WHATSAPP_ALLOWLIST` to the team's numbers (`+91…`, comma-separated). Members' messages and alerts go only to them; sign-in codes go to whoever asks.
      - Check it: sign in on the player app with a real number on the list; the code arrives on WhatsApp.
      - To move to Meta's Cloud API later, unset the three bridge secrets and follow the next step.
