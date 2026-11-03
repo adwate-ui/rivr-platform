@@ -121,6 +121,11 @@
   --spacing-round: var(--rivr-size-round);
   --spacing-tile: var(--rivr-size-tile);
   --spacing-seat: var(--rivr-size-seat);
+  --spacing-switch-width: var(--rivr-size-switch-width);
+  --spacing-switch-height: var(--rivr-size-switch-height);
+  --spacing-switch-knob: var(--rivr-size-switch-knob);
+  --spacing-switch-inset: var(--rivr-size-switch-inset);
+  --spacing-switch-travel: var(--rivr-size-switch-travel);
   --spacing-pip: var(--rivr-size-pip);
   --spacing-grabber: var(--rivr-size-grabber);
   --spacing-ring: var(--rivr-size-ring);

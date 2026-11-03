@@ -45,12 +45,12 @@ export function Switch({ label, hint, isOn, onChange, isDisabled }: SwitchProps)
         <span
           aria-hidden="true"
           data-switch-track=""
-          // Off, the track stays dark and its edge is the control colour: the cream thumb on it is clear, and the track
-          // meets 3:1 on the page (F5-04).
-          className={cx('inline-flex h-6 w-10 items-center rounded-lg border p-1 transition-colors',
-            isOn ? 'border-action bg-action' : 'border-control bg-raised')}
+          // The prototype's 46 x 28 track with a round knob (#786). Off, the track is clear and its edge is the control
+          // colour: the cream knob on it is clear, and the track meets 3:1 on the page (F5-04).
+          className={cx('inline-flex h-switch-height w-switch-width items-center rounded-full border px-switch-inset transition-colors',
+            isOn ? 'border-action bg-action' : 'border-control bg-transparent')}
         >
-          <span className={cx('size-3 rounded-sm transition-transform', isOn ? 'translate-x-4 bg-raised' : 'bg-cream')} />
+          <span className={cx('size-switch-knob rounded-full transition-transform', isOn ? 'translate-x-switch-travel bg-raised' : 'bg-cream')} />
         </span>
       </button>
     </div>

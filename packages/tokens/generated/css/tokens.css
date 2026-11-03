@@ -97,6 +97,11 @@
   --rivr-size-round: 52px; /** A round seat action, a rating button and a picker's option row. */
   --rivr-size-tile: 56px; /** An item's initial tile, an Add time choice and the verified check. */
   --rivr-size-seat: 34px; /** A seat on the seat map. */
+  --rivr-size-switch-width: 46px; /** A switch's track, as the prototype draws it (#786), in its 44 px row. */
+  --rivr-size-switch-height: 28px; /** A switch's track's height (#786). */
+  --rivr-size-switch-knob: 20px; /** A switch's round knob (#786). */
+  --rivr-size-switch-inset: 3px; /** The gap between a switch's knob and its track's edge (#786). */
+  --rivr-size-switch-travel: 18px; /** How far a switch's knob moves from off to on: the track's inside less the knob and both gaps (#786). */
   --rivr-size-pip: 6px; /** A seat's dot on the tables list, and a status row's dot. */
   --rivr-size-grabber: 36px; /** A sheet's grabber, 4 px tall. */
   --rivr-size-ring: 236px; /** The call-time ring on Tonight. */
