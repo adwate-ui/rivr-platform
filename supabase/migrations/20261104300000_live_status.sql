@@ -55,9 +55,10 @@ as $$
   select encode(extensions.digest(convert_to('rivr-live-status:' || p_key, 'UTF8'), 'sha256'), 'hex');
 $$;
 
--- The signed-in member's phone, saved with a new key for the phone to keep. The same phone signed in by another member
--- moves to them only when it presents its key, so nobody who merely knows a token takes the phone. A member keeps their
--- five latest phones.
+-- The signed-in member's phone and the key it keeps. A phone presenting its key keeps it, so saving again on every
+-- opening changes nothing; a new phone, or the member's own without its key (reinstalled), gets a new one. The key names
+-- one phone: a row it named under an older token goes. The same phone signed in by another member moves to them only
+-- with its key, so nobody who merely knows a token takes the phone. A member keeps their five latest phones.
 create function private.save_live_status_device(p_platform text, p_token text, p_device_key text)
 returns text
 language plpgsql
@@ -66,26 +67,29 @@ set search_path = ''
 as $$
 declare
   v_member_id uuid := private.current_member_id();
-  v_key text := encode(extensions.gen_random_bytes(32), 'hex');
-  v_id uuid;
+  v_venue_id uuid := private.current_member_venue_id();
+  v_presented text := private.live_status_key_hash(coalesce(p_device_key, ''));
+  v_existing public.live_status_device;
+  v_key text;
 begin
   if v_member_id is null then
     raise exception 'Only a member has a live status' using errcode = '42501';
   end if;
+  perform private.assert_writable(v_venue_id, null, v_member_id);
+  select * into v_existing from public.live_status_device d where d.push_token = p_token for update;
+  if v_existing.id is not null and v_existing.member_id <> v_member_id and v_existing.device_key_hash <> v_presented then
+    raise exception 'That phone is another member''s' using errcode = '42501';
+  end if;
+  v_key := case when v_existing.device_key_hash = v_presented then p_device_key else encode(extensions.gen_random_bytes(32), 'hex') end;
+  delete from public.live_status_device d where d.device_key_hash = v_presented and d.push_token <> p_token;
   insert into public.live_status_device (venue_id, member_id, platform, push_token, device_key_hash)
-  values (private.current_member_venue_id(), v_member_id, p_platform, p_token, private.live_status_key_hash(v_key))
+  values (v_venue_id, v_member_id, p_platform, p_token, private.live_status_key_hash(v_key))
   on conflict (push_token) do update
     set venue_id = excluded.venue_id, member_id = excluded.member_id, platform = excluded.platform,
         device_key_hash = excluded.device_key_hash,
         activity_push_token = case when public.live_status_device.member_id = excluded.member_id
                                    then public.live_status_device.activity_push_token end,
-        shown = case when public.live_status_device.member_id = excluded.member_id then public.live_status_device.shown end
-    where public.live_status_device.member_id = excluded.member_id
-       or public.live_status_device.device_key_hash = private.live_status_key_hash(coalesce(p_device_key, ''))
-  returning id into v_id;
-  if v_id is null then
-    raise exception 'That phone is another member''s' using errcode = '42501';
-  end if;
+        shown = case when public.live_status_device.member_id = excluded.member_id then public.live_status_device.shown end;
   delete from public.live_status_device d
   where d.member_id = v_member_id
     and d.id not in (select k.id from public.live_status_device k where k.member_id = v_member_id order by k.updated_at desc, k.id limit 5);
@@ -103,18 +107,18 @@ as $$
   delete from public.live_status_device d where d.push_token = p_token and d.member_id = private.current_member_id();
 $$;
 
--- A phone reports a new token with its key alone, through the live-status-token function (service role): an iPhone gets
--- a Live Activity's token, or a new push-to-start token, while the app's web view is not running (decision 0361). A wrong
--- key changes nothing.
-create function private.report_live_status_token(p_device_key text, p_token text, p_activity_token text)
+-- An iPhone reports its Live Activity's token with its key alone, through the live-status-token function (service role):
+-- iOS gives it while the app's web view is not running (decision 0361). Only that token: where a status starts stays
+-- what the signed-in member saved. A wrong key, or an Android phone's, changes nothing.
+create function private.report_live_status_token(p_device_key text, p_activity_token text)
 returns void
 language sql
 security definer
 set search_path = ''
 as $$
   update public.live_status_device d
-  set push_token = coalesce(p_token, d.push_token), activity_push_token = coalesce(p_activity_token, d.activity_push_token)
-  where d.device_key_hash = private.live_status_key_hash(p_device_key);
+  set activity_push_token = p_activity_token
+  where d.device_key_hash = private.live_status_key_hash(p_device_key) and d.platform = 'ios';
 $$;
 
 -- What a member's phone shows now (decision 0323): seated while their call time runs or is paused (Seated goes where call
@@ -210,7 +214,10 @@ as $$
   delete from public.live_status_device d where d.id = p_device_id;
 $$;
 
--- A list moved (decision 0360): a place joined, was approved, sat or left. A call moves no place (waitlist.called says it).
+-- A list moved (decision 0360): a place joined, was approved, sat or left, or a call was made or taken back (a skip calls
+-- no event of its own, and the skipped member's phone must stop showing Seat ready). One event per change; the consumer
+-- reads the list as it is when it sends. A purge's reload brings rows back as they were, with no new events
+-- (20261021130000_practice_reset.sql).
 create function private.emit_waitlist_moved()
 returns trigger
 language plpgsql
@@ -218,17 +225,21 @@ security definer
 set search_path = ''
 as $$
 begin
+  if private.purging(new.venue_id) then
+    return null;
+  end if;
   perform private.emit(new.venue_id, 'waitlist.moved',
                        jsonb_build_object('entry_id', new.id, 'member_id', new.member_id, 'table_type_id', new.table_type_id),
-                       'waitlist.moved:' || new.id || ':' || new.status || ':' || (new.approved_at is not null));
+                       format('waitlist.moved:%s:%s', new.id, clock_timestamp()));
   return null;
 end;
 $$;
 
 create trigger waitlist_entry_joined_moves after insert on public.waitlist_entry
   for each row execute function private.emit_waitlist_moved();
-create trigger waitlist_entry_moves after update of status, approved_at on public.waitlist_entry
-  for each row when (old.status is distinct from new.status or (old.approved_at is null) <> (new.approved_at is null))
+create trigger waitlist_entry_moves after update of status, approved_at, called_at on public.waitlist_entry
+  for each row when (old.status is distinct from new.status or (old.approved_at is null) <> (new.approved_at is null)
+                     or old.called_at is distinct from new.called_at)
   execute function private.emit_waitlist_moved();
 
 -- As 20261029160000_tournament_interest.sql made it, deleting the member's live-status phones too.
@@ -275,9 +286,9 @@ as $$ select private.save_live_status_device(p_platform, p_token, p_device_key);
 create function public.remove_live_status_device(p_token text)
 returns void language sql volatile security invoker set search_path = ''
 as $$ select private.remove_live_status_device(p_token); $$;
-create function public.report_live_status_token(p_device_key text, p_token text default null, p_activity_token text default null)
+create function public.report_live_status_token(p_device_key text, p_activity_token text)
 returns void language sql volatile security invoker set search_path = ''
-as $$ select private.report_live_status_token(p_device_key, p_token, p_activity_token); $$;
+as $$ select private.report_live_status_token(p_device_key, p_activity_token); $$;
 create function public.live_status_targets(p_venue_id uuid, p_member_id uuid, p_table_type_id uuid default null)
 returns table (device_id uuid, platform text, push_token text, activity_push_token text, shown text, member_id uuid, state text, entry_id uuid,
                table_name text, seat integer, game text, place integer, starts_at timestamptz, ends_at timestamptz, can_order boolean)
@@ -291,14 +302,14 @@ returns void language sql volatile security invoker set search_path = ''
 as $$ select private.forget_live_status_device(p_device_id); $$;
 
 revoke execute on function private.live_status_key_hash(text), private.save_live_status_device(text, text, text),
-  private.remove_live_status_device(text), private.report_live_status_token(text, text, text), private.live_status_of(uuid),
+  private.remove_live_status_device(text), private.report_live_status_token(text, text), private.live_status_of(uuid),
   private.live_status_targets(uuid, uuid, uuid), private.note_live_status_shown(uuid, text), private.forget_live_status_device(uuid),
   private.emit_waitlist_moved(), public.save_live_status_device(text, text, text), public.remove_live_status_device(text),
-  public.report_live_status_token(text, text, text), public.live_status_targets(uuid, uuid, uuid), public.note_live_status_shown(uuid, text),
+  public.report_live_status_token(text, text), public.live_status_targets(uuid, uuid, uuid), public.note_live_status_shown(uuid, text),
   public.forget_live_status_device(uuid) from public, anon, authenticated;
 grant execute on function private.save_live_status_device(text, text, text), private.remove_live_status_device(text),
   public.save_live_status_device(text, text, text), public.remove_live_status_device(text) to authenticated;
-grant execute on function private.report_live_status_token(text, text, text), public.report_live_status_token(text, text, text),
+grant execute on function private.report_live_status_token(text, text), public.report_live_status_token(text, text),
   private.live_status_targets(uuid, uuid, uuid), private.note_live_status_shown(uuid, text),
   private.forget_live_status_device(uuid), public.live_status_targets(uuid, uuid, uuid), public.note_live_status_shown(uuid, text),
   public.forget_live_status_device(uuid) to service_role;

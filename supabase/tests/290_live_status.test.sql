@@ -38,12 +38,24 @@ on conflict do nothing;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 create temp table ishaan_key on commit drop as
   select public.save_live_status_device('android', 'ishaan-phone:APA91bAndroidRegistrationToken', null) as device_key;
-grant select on ishaan_key to authenticated;
+grant select, update on ishaan_key to authenticated;
 select matches((select device_key from ishaan_key), '^[0-9a-f]{64}$', 'Ishaan saves his phone and it keeps a key of its own');
 select throws_ok($$ select public.save_live_status_device('android', 'short', null) $$, '23514', null, 'a token must look like one');
 select throws_ok($$ select public.save_live_status_device('ios', 'ishaan-phone:APA91bAndroidRegistrationToken2', null) $$, '23514', null,
   'an iPhone''s token is hex');
 select throws_ok($$ select public.save_live_status_device('windows', repeat('a1', 32), null) $$, '23514', null, 'only an iPhone or an Android phone');
+select is(public.save_live_status_device('android', 'ishaan-phone:APA91bAndroidRegistrationToken', (select device_key from ishaan_key)),
+  (select device_key from ishaan_key), 'saved again with the key it kept, the phone keeps its key');
+select isnt(public.save_live_status_device('android', 'ishaan-phone:APA91bAndroidRegistrationToken', null), (select device_key from ishaan_key),
+  'his own phone without its key (reinstalled) gets a new one');
+update ishaan_key set device_key = public.save_live_status_device('android', 'ishaan-phone:APA91bAndroidRegistrationToken', null);
+select public.save_live_status_device('android', 'ishaan-phone:APA91bNewRegistrationToken', (select device_key from ishaan_key));
+reset role;
+select results_eq($$ select push_token from public.live_status_device where member_id = '00000000-0000-4000-8000-000000000211' $$,
+  $$ values ('ishaan-phone:APA91bNewRegistrationToken'::text) $$, 'the key names one phone: its row under the old token goes');
+delete from public.live_status_device where push_token = 'ishaan-phone:APA91bNewRegistrationToken';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+update ishaan_key set device_key = public.save_live_status_device('android', 'ishaan-phone:APA91bAndroidRegistrationToken', null);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
 select throws_ok($$ select public.save_live_status_device('android', 'ishaan-phone:APA91bAndroidRegistrationToken', null) $$, '42501', null,
   'Vihaan, knowing the token of Ishaan''s phone but not its key, cannot take it');
@@ -79,23 +91,28 @@ delete from public.live_status_device where member_id = '00000000-0000-4000-8000
 -- function (the web view may not be running, so there is no session).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 create temp table iphone_key on commit drop as select public.save_live_status_device('ios', repeat('a1', 32), null) as device_key;
-grant select on iphone_key to anon, authenticated, service_role;
-select throws_ok(format('select public.report_live_status_token(%L, null, %L)', (select device_key from iphone_key), repeat('b2', 32)),
+create temp table android_key on commit drop as
+  select public.save_live_status_device('android', 'ishaan-tablet:APA91bAndroidRegistrationToken', null) as device_key;
+grant select on iphone_key, android_key to anon, authenticated, service_role;
+select throws_ok(format('select public.report_live_status_token(%L, %L)', (select device_key from iphone_key), repeat('b2', 32)),
   '42501', null, 'not straight from the app');
 reset role;
 set local role anon;
-select throws_ok(format('select public.report_live_status_token(%L, null, %L)', (select device_key from iphone_key), repeat('b2', 32)),
+select throws_ok(format('select public.report_live_status_token(%L, %L)', (select device_key from iphone_key), repeat('b2', 32)),
   '42501', null, 'nor by anyone signed out');
 select throws_ok($$ select * from public.live_status_device $$, '42501', null, 'who cannot read the phones either');
 reset role;
 set local role service_role;
-select lives_ok(format('select public.report_live_status_token(%L, null, %L)', (select device_key from iphone_key), repeat('b2', 32)),
+select lives_ok(format('select public.report_live_status_token(%L, %L)', (select device_key from iphone_key), repeat('b2', 32)),
   'the function reports the iPhone''s Live Activity token');
-select lives_ok(format('select public.report_live_status_token(%L, null, %L)', repeat('0', 64), repeat('c3', 32)),
+select lives_ok(format('select public.report_live_status_token(%L, %L)', repeat('0', 64), repeat('c3', 32)),
   'a wrong key reports nothing');
+select lives_ok(format('select public.report_live_status_token(%L, %L)', (select device_key from android_key), repeat('c3', 32)),
+  'nor an Android phone''s key');
 reset role;
 select is((select activity_push_token from public.live_status_device where push_token = repeat('a1', 32)), repeat('b2', 32), 'the right key''s token is kept');
-select is((select count(*)::integer from public.live_status_device where activity_push_token = repeat('c3', 32)), 0, 'the wrong key''s is not');
+select is((select count(*)::integer from public.live_status_device where activity_push_token = repeat('c3', 32)), 0, 'the others are not');
+delete from public.live_status_device where push_token = 'ishaan-tablet:APA91bAndroidRegistrationToken';
 
 -- ---------------------------------------------------------------------------------------------------
 -- What each phone shows, read when it is sent. Vihaan's phone too, for the list's other members.
@@ -148,6 +165,8 @@ select results_eq($$ select state, table_name, seat, starts_at, ends_at, entry_i
   $$ values ('seat_ready'::text, 'Table 5'::text, 4, date_trunc('second', now()), date_trunc('second', now() + interval '20 minutes'),
              (select id from ishaan_place)) $$,
   'called: seat ready at Table 5, seat 4, held from the call for twenty minutes');
+select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.moved' and payload ->> 'entry_id' = (select id::text from ishaan_place)),
+  3, 'a call moves the list too');
 update public.waitlist_entry set hold_until = now() - interval '1 second' where id = (select id from ishaan_place);
 select is((select state from pg_temp.status_of('00000000-0000-4000-8000-000000000211')), 'waiting', 'a hold run out is no seat ready');
 update public.waitlist_entry set hold_until = now() + interval '20 minutes' where id = (select id from ishaan_place);
@@ -159,10 +178,16 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select public.set_my_notification('push.seat_ready', true);
 reset role;
 
+-- The floor skips him: the call is taken back with no event of its own, so the list moves and his phone shows waiting.
+update public.waitlist_entry set called_at = null, hold_until = null, call_table_id = null, call_seat = null where id = (select id from ishaan_place);
+select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.moved' and payload ->> 'entry_id' = (select id::text from ishaan_place)),
+  4, 'a call taken back moves the list');
+select is((select state from pg_temp.status_of('00000000-0000-4000-8000-000000000211')), 'waiting', 'and his phone shows his place again');
+
 -- Seated for an hour: the call time counts down to its end; away, it does not count; Order with the seat's food.
 update public.waitlist_entry set status = 'left', left_at = now(), left_reason = 'left' where id = (select id from ishaan_place);
 select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.moved' and payload ->> 'entry_id' = (select id::text from ishaan_place)),
-  3, 'leaving the list moves it');
+  5, 'leaving the list moves it');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.seat_member(pg_temp.table_id('Table 5'), 2, p_member_number => pg_temp.number_of('00000000-0000-4000-8000-000000000211'), p_call_minutes => 60);
 reset role;
@@ -176,7 +201,7 @@ update public.seat_session set away_since = now() where member_id = '00000000-00
 select results_eq($$ select state, ends_at from pg_temp.status_of('00000000-0000-4000-8000-000000000211') $$, $$ values ('seated'::text, null::timestamptz) $$,
   'away: the call time does not run');
 
--- Never at the practice venue, nor at another venue, nor for an erased member.
+-- Never at the practice venue, nor at another venue (erasure deletes a member's phones, below).
 insert into public.live_status_device (venue_id, member_id, platform, push_token, device_key_hash)
 select m.venue_id, m.id, 'android', 'practice-phone:APA91bAndroidRegistrationToken', repeat('d', 64)
 from public.member m join public.venue v on v.id = m.venue_id and v.is_practice limit 1;
@@ -185,6 +210,25 @@ select is_empty($$ select * from public.live_status_targets((select id from publ
   'never at the practice venue');
 select is_empty($$ select * from public.live_status_targets('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000211') $$,
   'nor for a member of another venue');
+
+-- A purge's reload (the practice reset) brings places back with no event (20261021130000_practice_reset.sql).
+create temp table reloaded on commit drop as
+  select m.id as member_id from public.member m
+  where m.venue_id = '00000000-0000-4000-8000-000000000001' and m.erased_at is null
+    and m.id not in ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000212')
+    and not exists (select 1 from public.waitlist_entry e where e.member_id = m.id and e.status = 'waiting')
+  limit 1;
+select set_config('rivr.purge', 'on', true), set_config('rivr.purge_venue', '00000000-0000-4000-8000-000000000001', true);
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, idempotency_key, approved_at)
+select '00000000-0000-4000-8000-000000000001', (select member_id from reloaded), g.table_type_id, '00000000-0000-4000-8000-00000000c290', now()
+from public.game_table g where g.id = pg_temp.table_id('Table 5');
+select set_config('rivr.purge', '', true), set_config('rivr.purge_venue', '', true);
+select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.moved' and payload ->> 'member_id' = (select member_id::text from reloaded)),
+  0, 'a place a purge reloads moves no list');
+
+-- Leaving the seat (seat.left) ends what shows.
+update public.seat_session set ended_at = now(), end_reason = 'left', away_since = null where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null;
+select is((select state from pg_temp.status_of('00000000-0000-4000-8000-000000000211')), null, 'seat left: nothing shows');
 
 -- What the consumer keeps: what a phone shows; nothing shown ends an iPhone's Live Activity; a phone whose token is gone.
 select lives_ok($$ select public.note_live_status_shown((select id from public.live_status_device where push_token = repeat('a1', 32)), '{"kind":"seated"}') $$,
@@ -200,6 +244,14 @@ select is(pg_temp.owner_of('vihaan-phone:APA91bAndroidRegistrationToken'), null,
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.note_live_status_shown(gen_random_uuid(), null) $$, '42501', null, 'only the consumer notes what shows');
 select throws_ok($$ select public.forget_live_status_device(gen_random_uuid()) $$, '42501', null, 'or forgets a phone');
+reset role;
+
+-- A frozen member saves no phone (the kill switch, assert_writable).
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000212', 'Test 290');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
+select throws_ok($$ select public.save_live_status_device('android', 'vihaan-phone:APA91bAndroidRegistrationToken', null) $$, 'RVMBR', null,
+  'a frozen member saves no phone');
 reset role;
 
 -- Erasure deletes a member's phones.

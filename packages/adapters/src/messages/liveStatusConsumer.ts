@@ -152,9 +152,11 @@ export function createLiveStatusConsumer({ liveStatus, findTargets, noteShown, f
       if (!subject.ok) return subject;
       const targets = await findTargets(delivery.venueId, subject.value.memberId, subject.value.tableTypeId);
       // Each phone at once, so a slow push service holds up only its own.
-      const failures = await Promise.all(targets.map((target) => refresh(target, { liveStatus, noteShown, forget })));
-      const failure = failures.find((found) => found !== null) ?? null;
-      return failure === null ? ok(null) : err(failure);
+      const failures = (await Promise.all(targets.map((target) => refresh(target, { liveStatus, noteShown, forget }))))
+        .filter((found) => found !== null);
+      // One phone worth trying again keeps the delivery alive: another phone's refusal must not end its retries.
+      const failure = failures.find((found) => found.code !== 'rejected') ?? failures[0];
+      return failure === undefined ? ok(null) : err(failure);
     },
   };
 }

@@ -18,9 +18,10 @@ describe('liveStatusDeviceSchema', () => {
 describe('liveStatusTokenReportSchema', () => {
   const deviceKey = 'f0'.repeat(32);
 
-  it('takes the phone key with a push-to-start token or a Live Activity token', () => {
-    expect(liveStatusTokenReportSchema.safeParse({ device_key: deviceKey, activity_push_token: 'b2'.repeat(32) }).success).toBe(true);
-    expect(liveStatusTokenReportSchema.safeParse({ device_key: deviceKey, push_token: 'a1'.repeat(32) }).success).toBe(true);
+  it('takes the phone key with a Live Activity token, and nothing else', () => {
+    expect(liveStatusTokenReportSchema.parse({ device_key: deviceKey, activity_push_token: 'b2'.repeat(32), push_token: 'a1'.repeat(32) })).toEqual({
+      device_key: deviceKey, activity_push_token: 'b2'.repeat(32),
+    });
   });
 
   it('refuses a report with no token, a short key or a token not in hex', () => {

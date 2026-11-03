@@ -3,7 +3,7 @@ import { liveStatusDeviceSchema, type LiveStatusDeviceInput } from '@rivr/contra
 import type { Result } from '@rivr/contracts/result';
 import { t } from '@rivr/i18n';
 import { useEffect, useState } from 'react';
-import { LIVE_STATUS_PLUGIN, type LiveStatusPlugin } from '../nativePhone.ts';
+import { forgetPhone, LIVE_STATUS_PLUGIN, type LiveStatusPlugin } from '../nativePhone.ts';
 import type { PhonePushState } from './usePhonePush.ts';
 
 /** Where a change left the phone, and whether it did not take. */
@@ -35,10 +35,9 @@ async function turnOn(plugin: LiveStatusPlugin, saveDevice: SaveDevice, keptKey:
   return { state: 'on', failed: false };
 }
 
-/** Ends what the lock screen shows and forgets the phone; off either way, as the phone no longer shows it. */
+/** Forgets the phone, then ends what its lock screen shows; off either way, as the phone no longer shows it. */
 async function turnOff(plugin: LiveStatusPlugin, removeDevice: (token: string) => Promise<Result<null, 'unavailable'>>): Promise<Outcome> {
-  const { token } = await plugin.unregister();
-  const removed = token === null ? null : await removeDevice(token);
+  const removed = await forgetPhone(removeDevice, plugin);
   return { state: 'off', failed: removed?.ok === false };
 }
 

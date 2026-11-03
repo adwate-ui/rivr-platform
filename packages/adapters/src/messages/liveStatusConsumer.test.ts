@@ -160,6 +160,15 @@ describe('the live-status consumer', () => {
     expect([outcome, found.noted]).toEqual([{ ok: false, error: { code: 'rate_limited' } }, []]);
   });
 
+  it('tries again for a phone that may pass, even when another phone refused for good', async () => {
+    const liveStatus = createFakeLiveStatus();
+    liveStatus.failNext({ code: 'rejected', reason: 'Firebase answered 400 INVALID_ARGUMENT' });
+    liveStatus.failNext({ code: 'unavailable' });
+    const found = phones([target(SEATED, 'refused'), target(SEATED, 'down')]);
+
+    expect(await createLiveStatusConsumer({ liveStatus, ...found }).deliver(seatTaken)).toEqual({ ok: false, error: { code: 'unavailable' } });
+  });
+
   it('refuses an event it cannot read', async () => {
     const consumer = createLiveStatusConsumer({ liveStatus: createFakeLiveStatus(), ...phones([]) });
 

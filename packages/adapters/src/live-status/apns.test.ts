@@ -53,18 +53,19 @@ describe('createApnsLiveActivity', () => {
         actionTitle: "I'm on my way", actionUrl: '/?accept=entry-1',
       },
       'stale-date': seconds(HELD_UNTIL),
-      alert: { title: 'Your seat is ready', body: 'Table 1, seat 4. Held until 21:50.' },
+      alert: { title: 'Your seat is ready', body: 'Table 1, seat 4. Held until 21:50.', sound: 'default' },
       'attributes-type': 'RivrLiveAttributes',
       attributes: {},
     });
   });
 
-  it('starts a quiet status with an alert of its own words, as Apple needs one to start', async () => {
+  it('starts a quiet status with a silent alert of its own words, as Apple needs one to start', async () => {
     const { adapter, received } = await apple();
 
     await adapter.show({ device: iphone(), status: waiting });
 
     expect(apsOf(received[0]?.body ?? '')).toMatchObject({ event: 'start', alert: { title: 'Waitlist · Table 1', body: '2nd in line' } });
+    expect(apsOf(received[0]?.body ?? '').alert).not.toHaveProperty('sound');
   });
 
   it('updates the running Live Activity through its own token: a place quietly, a seat call at once with its alert', async () => {

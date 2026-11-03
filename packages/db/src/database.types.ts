@@ -5598,7 +5598,7 @@ isOneToOne: false
             }[]
                            },
 "report_live_status_token":
-{ Args: { "p_activity_token"?: string,"p_device_key": string,"p_token"?: string }; Returns: undefined
+{ Args: { "p_activity_token": string,"p_device_key": string }; Returns: undefined
                            },
 "request_buy_in":
 { Args: { "p_amount_paise": number,"p_idempotency_key": string,"p_session_id": string }; Returns: string

@@ -43,6 +43,7 @@ final class LiveStatusNotification {
             return;
         }
         if (!mayNotify(context)) return;
+        boolean isAlert = "1".equals(data.get("alert"));
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_rivr)
             .setColor(ContextCompat.getColor(context, R.color.rivr_color_gold))
@@ -52,7 +53,9 @@ final class LiveStatusNotification {
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setOnlyAlertOnce(!"1".equals(data.get("alert")))
+            // Only a seat call sounds and drops down; every other status, and a change to one, shows quietly.
+            .setSilent(!isAlert)
+            .setOnlyAlertOnce(!isAlert)
             .setContentIntent(open(context, "/", 0));
         String value = data.get("value");
         if (value != null && !value.isEmpty()) builder.setContentText(value);

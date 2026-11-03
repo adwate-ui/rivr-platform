@@ -21,8 +21,15 @@ export interface LiveStatusPlugin {
 /** The plugin in the native app; null in a browser, where web push does the same work. */
 export const LIVE_STATUS_PLUGIN: LiveStatusPlugin | null = Capacitor.isNativePlatform() ? registerPlugin<LiveStatusPlugin>('LiveStatus') : null;
 
-/** On signing out: ends what the lock screen shows and forgets the key, so a shared phone stops showing the member's status. */
-export async function unregisterOnSignOut(plugin = LIVE_STATUS_PLUGIN): Promise<string | null> {
+/**
+ * Turning the live status off, or signing out: the phone is forgotten while the member is still signed in, then it ends
+ * what its lock screen shows and drops its key, so a shared phone stops showing the member's status. `removeDevice`'s
+ * answer, or null when the phone had it off.
+ */
+export async function forgetPhone<Removed>(removeDevice: (token: string) => Promise<Removed>, plugin = LIVE_STATUS_PLUGIN): Promise<Removed | null> {
   if (plugin === null) return null;
-  return (await plugin.unregister()).token;
+  const { token, deviceKey } = await plugin.current();
+  const removed = token === null || deviceKey === null ? null : await removeDevice(token);
+  await plugin.unregister();
+  return removed;
 }

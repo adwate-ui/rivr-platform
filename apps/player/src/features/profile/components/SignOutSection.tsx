@@ -1,7 +1,7 @@
 import { useLiveStatusDeviceActions, usePushSubscriptionActions, useSignOut } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button } from '@rivr/ui';
-import { unregisterOnSignOut } from '../nativePhone.ts';
+import { forgetPhone } from '../nativePhone.ts';
 import { unsubscribeOnSignOut } from '../phonePush.ts';
 
 /** The end of Profile, as the prototype has it: signing out on this phone. The frame then shows sign-in. */
@@ -13,8 +13,7 @@ export function SignOutSection() {
   async function signOutHere() {
     const endpoint = await unsubscribeOnSignOut().catch(() => null);
     if (endpoint !== null) await remove.mutateAsync(endpoint);
-    const token = await unregisterOnSignOut().catch(() => null);
-    if (token !== null) await removeDevice.mutateAsync(token);
+    await forgetPhone((token) => removeDevice.mutateAsync(token)).catch(() => null);
     signOut.mutate();
   }
   return (

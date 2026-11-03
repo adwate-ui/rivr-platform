@@ -56,8 +56,9 @@ const ENDED_STATE = { kind: 'ended', meta: '', label: '', value: null, startsAt:
 function apsOf(event: ActivityEvent, status: LiveStatus | null, now: Date): Record<string, unknown> {
   const timestamp = seconds(now);
   if (status === null) return { timestamp, event, 'content-state': ENDED_STATE, 'dismissal-date': timestamp };
-  // Starting needs an alert; otherwise only a status that sounds (the seat call) has one.
-  const alert = status.alert ?? (event === 'start' ? { title: status.label, body: status.value ?? status.meta } : null);
+  // A status that sounds (the seat call) has its alert, with the phone's sound. Starting needs an alert too: a quiet one.
+  const quietStart = event === 'start' ? { title: status.label, body: status.value ?? status.meta } : null;
+  const alert = status.alert === null ? quietStart : { ...status.alert, sound: 'default' };
   return {
     timestamp,
     event,

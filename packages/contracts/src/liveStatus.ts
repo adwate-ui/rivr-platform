@@ -22,16 +22,13 @@ export const liveStatusDeviceSchema = z.discriminatedUnion('platform', [
 export type LiveStatusDeviceInput = z.infer<typeof liveStatusDeviceSchema>;
 
 /**
- * What an iPhone reports with its own key alone, through the live-status-token function (decision 0361): a new
- * push-to-start token, or the token of a Live Activity started by push, while the app's web view is not running.
+ * What an iPhone reports with its own key alone, through the live-status-token function (decision 0361): the token of a
+ * Live Activity Apple started by push, which iOS gives while the app's web view is not running.
  */
-export const liveStatusTokenReportSchema = z
-  .object({
-    device_key: z.string().regex(/^[0-9a-f]{64}$/),
-    push_token: appleTokenSchema.optional(),
-    activity_push_token: appleTokenSchema.optional(),
-  })
-  .refine((report) => report.push_token !== undefined || report.activity_push_token !== undefined, { message: 'a token to report' });
+export const liveStatusTokenReportSchema = z.object({
+  device_key: z.string().regex(/^[0-9a-f]{64}$/),
+  activity_push_token: appleTokenSchema,
+});
 
 /**
  * waitlist.moved (decision 0360): a place on a list joined, was approved, sat or left, so the places behind it may have
