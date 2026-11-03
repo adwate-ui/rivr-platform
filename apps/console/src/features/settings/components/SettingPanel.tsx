@@ -86,8 +86,8 @@ function describerFor(setting: VenueSetting, tiers: readonly Subject[]): (entry:
   return (entry) => valueText(setting.key, setting.fields, entry.value, tierName);
 }
 
-const firstSubject = (setting: VenueSetting) => setting.subjects[0]?.subject ?? '';
-const inForceOf = (rules: SettingSubjectRules | undefined) => rules?.inForce?.value ?? null;
+export const firstSubject = (setting: VenueSetting) => setting.subjects[0]?.subject ?? '';
+export const inForceOf = (rules: SettingSubjectRules | undefined) => rules?.inForce?.value ?? null;
 
 /**
  * One setting opened from its area (#604): its name and what it does, then for each subject the value now, the changes
@@ -111,7 +111,7 @@ export function SettingPanel({ venueId, setting, tiers, isSuperAdmin }: SettingP
 }
 
 /** What a scoped setting is given for: one of the scope's subjects, or a stake as typed. */
-function SubjectChoice({ setting, subject, onChange }: { setting: VenueSetting; subject: string; onChange: (subject: string) => void }) {
+export function SubjectChoice({ setting, subject, onChange }: { setting: VenueSetting; subject: string; onChange: (subject: string) => void }) {
   const scope = setting.scope === 'venue' ? 'table_type' : setting.scope;
   const label = t(`console.settings.subjects.${scope}`);
   const options = setting.subjects.map((rules) => ({ value: rules.subject, label: subjectLabel(setting, rules) }));

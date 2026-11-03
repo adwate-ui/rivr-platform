@@ -132,3 +132,12 @@ export const TickedOnAPhone: Story = { render: () => <TickedMarkers />, tags: ['
 
 /** The scroll layout on a phone: the lines under their header scroll sideways, the ticks and the member held. */
 export const ScrollOnAPhone: Story = { render: () => <TickedMarkers narrowLayout="scroll" />, tags: ['viewport-phone'] };
+
+/** A row opened in place (console v3): its form under it across the table, such as a dealer's new PIN. */
+export const RowOpenInPlace: Story = {
+  render: () => (
+    <DataTable label="Open markers" columns={TICKED_COLUMNS} rowKey={(row) => row.id} rows={markers(4)} emptyText="No markers outstanding."
+      rowDetail={(row) => (row.id === 'MK-00002' ? <Text>{`Settle ${row.id} from here.`}</Text> : null)} />
+  ),
+  tags: ['viewport-console'],
+};

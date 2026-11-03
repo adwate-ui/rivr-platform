@@ -26,13 +26,13 @@ function TvList({ venue }: { venue: StaffVenue }) {
   return (
     <Screen level={2} title={title}>
       <Stack gap={8}>
-        {/* Pairing first, where the TV's screen sends staff (D-02); the TVs already paired under it. */}
-        <PairTvForm venueId={venueId} venueName={venue.venueName} isPractice={venue.isPractice} />
+        {/* The TVs paired, then the form to pair one (console v3), with its own heading so staff the TV sends here find it. */}
         {tvs.data.length === 0 ? <Text tone="muted">{t('console.tvs.empty')}</Text> : (
           <Stack gap={4} divided>
             {tvs.data.map((tv) => <TvRow key={tv.deviceId} venueId={venueId} tv={tv} />)}
           </Stack>
         )}
+        <PairTvForm venueId={venueId} venueName={venue.venueName} isPractice={venue.isPractice} />
         {venue.isPractice ? null : <PairingWindow venueId={venueId} canSwitch={venue.permissions.includes('venue.configure')} />}
       </Stack>
     </Screen>

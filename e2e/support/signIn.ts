@@ -21,6 +21,15 @@ export async function signInToPlayer(page: Page, number: string, path = '/sign-i
   else await expect(page).toHaveURL(new RegExp(`${path}$`));
 }
 
+/**
+ * Opens a console screen by its address once the sign-in before it has gone through: the Admin screens sit in the rail's
+ * folded group (console v3), so a flow goes to them directly.
+ */
+export async function openConsole(page: Page, path: string) {
+  await expect(page.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
+  await page.goto(`${appUrl('console')}${path}`);
+}
+
 /** Signs someone in to the console at 1440 px; what they land on is the caller's to check. */
 export async function signInToConsole(page: Page, number: string) {
   if (SIGN_IN_CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the flow cannot sign in on staging');

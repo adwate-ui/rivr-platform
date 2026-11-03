@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsole, signInToConsoleAndWait, signInToPlayer } from '../support/signIn.ts';
+import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -24,9 +24,9 @@ test.describe('Admin tools', () => {
 
   test('the super admin sets up a stake and a table, reads the games run, and builds an hours bonus', async ({ page }) => {
     test.setTimeout(90_000);
-    // Signed in fully before going on by an address: a navigation while the code is checked cancels the check.
-    await signInToConsoleAndWait(page, '9000000114');
-    await page.goto(`${appUrl('console')}/tables`);
+    await signInToConsole(page, '9000000114');
+    await openConsole(page, '/tables');
+    await page.getByRole('button', { name: 'New stake' }).click();
     await expect(page.getByRole('heading', { name: 'New stake' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);
     await page.getByRole('textbox', { name: 'Small blind' }).fill('200');
@@ -36,6 +36,7 @@ test.describe('Admin tools', () => {
     await expect(page.getByText(`PLO 200/400 ${RUN} is saved.`)).toBeVisible();
     await expect(page.getByRole('table', { name: 'The stakes the club runs' }).getByRole('row').filter({ hasText: `PLO 200/400 ${RUN}` })).toContainText('800');
 
+    await page.getByRole('button', { name: 'New table' }).click();
     await expect(page.getByRole('heading', { name: 'New table' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Table name' }).fill(`Table ${RUN}`);
     await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio', { name: `PLO 200/400 ${RUN}` }).click();
@@ -43,7 +44,7 @@ test.describe('Admin tools', () => {
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
-    await expect(tables.getByRole('row').filter({ hasText: `Table ${RUN}` })).toContainText('Closed');
+    await expect(tables.getByRole('row').filter({ hasText: `Table ${RUN}` })).toContainText('Active · closed tonight');
     await tables.getByRole('button', { name: `Change table Table ${RUN}` }).click();
     await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
@@ -53,7 +54,6 @@ test.describe('Admin tools', () => {
                 from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Table ${RUN}'`)).toBe('6 none 40000 80000');
 
     // The seed's open tables have run since it was loaded, within the last seven club days.
-    // Games history is a tab of Settings (console v3, decision 0443).
     await page.goto(`${appUrl('console')}/settings?tab=games-history`);
     const history = page.getByRole('table', { name: 'Tables run each club day' });
     await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toBeVisible();

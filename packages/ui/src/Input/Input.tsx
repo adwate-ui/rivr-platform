@@ -22,6 +22,9 @@ type NativeInputProps = Pick<
   | 'required'
   | 'disabled'
   | 'readOnly'
+  // A note the form shows apart from the field, such as under a row of field and button (console v3), and whether it is wrong.
+  | 'aria-describedby'
+  | 'aria-invalid'
 >;
 
 /**

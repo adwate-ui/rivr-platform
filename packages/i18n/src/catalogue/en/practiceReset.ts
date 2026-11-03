@@ -3,7 +3,14 @@ export const practiceReset = {
   title: 'Practice reset',
   notAllowed: 'Only a super admin resets the practice venue.',
   /** At the club: the reset is for the practice venue only (the owner's decision on #104). */
-  notPractice: 'Switch on Practice venue to reset it. The club is never reset.',
+  notPractice: 'The club is never reset.',
+  /** The numbered steps (console v3). */
+  stepsLabel: 'Steps to reset the practice venue',
+  switchTitle: 'Switch to the practice venue',
+  inPractice: 'You are in the practice venue.',
+  switch: 'Switch to practice',
+  resetTitle: 'Reset the practice venue',
+  resetDetail: 'Reloads its seed. Staff, devices and setup stay.',
   intro: 'Reset to seed brings the practice venue back to how it was seeded: members, visits, seats, hands, the cage, the ledger, promotions and tournaments. Staff, devices, settings, tables, SOPs, quizzes, every certification attempt, contacts, drills and kill-switch controls stay. The audit log keeps the reset.',
   /** The dry run's table. */
   tableLabel: 'Tables a reset reloads',
@@ -36,9 +43,17 @@ export const purge = {
   notAllowed: 'Only a super admin purges a venue.',
   practice: 'The practice venue uses Practice reset instead.',
   intro: 'Purging deletes the venue\'s play for good: members, visits, seats, hands, tournaments, the ledger\'s entries, promotions and messages. Its setup, staff, accounts and the audit log stay.',
-  freezeFirst: 'Freeze the venue on Kill switch first, so nothing changes between the archive and the purge.',
-  askTitle: 'Two super admins',
-  askHint: 'One super admin asks for the purge, saying why, and another carries it out within a day. A purge cannot be undone.',
+  freezeFirst: 'Engage Venue freeze on Kill switch first.',
+  /** The numbered steps (console v3): freeze, the ask, the archive, the purge. */
+  stepsLabel: 'Steps to purge the venue',
+  freezeTitle: 'Freeze the venue',
+  frozen: 'The venue is frozen.',
+  openKillSwitch: 'Open Kill switch',
+  purgeTitle: 'The purge',
+  purgeHint: 'Deletes what the table lists, for good.',
+  archiveDetail: 'The only copy after the purge. Keep it.',
+  askTitle: 'A second super admin asks',
+  askHint: 'Another super admin carries it out, within a day.',
   askReason: 'Why the venue is purged',
   ask: 'Ask for the purge',
   /** `{time}`: when this super admin asked. */
