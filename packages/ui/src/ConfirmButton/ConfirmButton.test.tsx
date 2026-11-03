@@ -17,6 +17,14 @@ describe('ConfirmButton', () => {
     expect(screen.getByRole('button', { name: 'Leaves: Ritika Das' })).toBeInTheDocument();
   });
 
+  it('on the console, keeps both buttons at a row’s small size, the first a subtle fill (decision 0430)', async () => {
+    renderIn(<ConfirmButton variant="subtle" size="small" label="Delete" name="Delete Table 3" confirm="Yes, delete Table 3" onConfirm={() => undefined} />);
+    expect(screen.getByRole('button', { name: 'Delete Table 3' })).toHaveClass('bg-subtle', 'text-13');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete Table 3' }));
+    expect(screen.getByRole('button', { name: 'Yes, delete Table 3' })).toHaveClass('text-13');
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass('text-13');
+  });
+
   it('works from the keyboard: Enter asks, Enter again does it', async () => {
     const onConfirm = vi.fn();
     renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" onConfirm={onConfirm} />);

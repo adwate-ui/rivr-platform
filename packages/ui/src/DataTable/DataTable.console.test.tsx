@@ -26,7 +26,7 @@ const ROWS: readonly Player[] = [
   { id: 'c3', name: 'Kabir Sethi', hours: 4 },
 ];
 
-type Extra = Partial<Pick<DataTableProps<Player>, 'onRowOpen' | 'density' | 'narrowLayout' | 'filter' | 'columns'>> & { rows?: readonly Player[] };
+type Extra = Partial<Pick<DataTableProps<Player>, 'onRowOpen' | 'density' | 'narrowLayout' | 'filter' | 'columns' | 'rowDetail'>> & { rows?: readonly Player[] };
 
 /** A table whose ticks a screen keeps, as the console's screens do. */
 function Ticked({ rows = ROWS, columns = COLUMNS, ...extra }: Extra) {
@@ -168,6 +168,23 @@ describe('DataTable on the console', () => {
     expect(screen.getAllByRole('rowgroup')[0]?.firstElementChild).toHaveClass('hidden');
     expect(screen.getAllByRole('cell')[0]).not.toHaveClass('max-medium:sticky');
     expect(screen.getByRole('group', { name: 'Sort Members' })).toBeInTheDocument();
+  });
+
+  it('opens a row in place: its detail a row of its own under it, across every column, counted with the rows', async () => {
+    const { container } = renderIn(<Ticked rowDetail={(row) => (row.id === 'c2' ? <Button>Save the hours</Button> : null)} />);
+    const rows = bodyRows();
+    expect(rows.map((row) => row.getAttribute('aria-rowindex'))).toEqual(['2', '3', '4', '5']);
+    expect(within(rows[2] ?? document.body).getByRole('cell')).toHaveAttribute('aria-colspan', '4');
+    expect(within(rows[2] ?? document.body).getByRole('button', { name: 'Save the hours' })).toBeInTheDocument();
+    expect(within(rows[3] ?? document.body).getAllByRole('cell')[1]).toHaveTextContent('Kabir Sethi');
+    expect(screen.getByRole('table')).toHaveAttribute('aria-rowcount', '5');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('draws no detail in a long list, whose rows are all one height', () => {
+    const many = Array.from({ length: VIRTUAL_FROM + 1 }, (_, index) => ({ id: `c${index}`, name: `Member ${index}`, hours: index }));
+    renderIn(<Ticked rows={many} rowDetail={() => <Button>Save the hours</Button>} />);
+    expect(screen.queryByRole('button', { name: 'Save the hours' })).toBeNull();
   });
 
   it('has no accessibility violations with ticks, rows that open, and the scroll layout', async () => {

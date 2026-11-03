@@ -1,10 +1,20 @@
 import { useTablesSetupActions, type SetupStake, type SetupTable } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatNumber, t } from '@rivr/i18n';
 import { Button, ChoiceChips, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
+import { TableActions, type TableOutcome } from './TableActions.tsx';
 
 // A table seats 2 to 10, as game_table's check has it.
 const SEATS = ['2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;
+
+// The form open: a new table's, above the list, or a table's own by its id, under its row.
+const NEW = 'new';
+
+/** Where a table stands: inactive and hidden from the floor, active and closed tonight, or active with who sits at it. */
+function statusOf(table: SetupTable): string {
+  if (!table.isActive) return t('console.tablesSetup.status.inactive');
+  return table.isOpen ? t('console.tablesSetup.status.open', { count: formatNumber(table.seated) }) : t('console.tablesSetup.status.closed');
+}
 
 interface TablesBlockProps {
   venueId: string;
@@ -12,38 +22,48 @@ interface TablesBlockProps {
   tables: readonly SetupTable[];
 }
 
-/** The tables in floor order, each with Change, beside the form for a new one or the one chosen. */
-export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
-  const [editing, setEditing] = useState<SetupTable | null>(null);
-  const [saved, setSaved] = useState<{ round: number; text: string | null }>({ round: 0, text: null });
-  const stakeName = (table: SetupTable) => stakes.find((stake) => stake.id === table.stakeId)?.name ?? '';
+/** The tables' columns: name, stake, seats and status, then the table's actions. */
+function tableColumns(props: TablesBlockProps & { onChange: (table: SetupTable) => void; onOutcome: (outcome: TableOutcome) => void }) {
+  const stakeName = (table: SetupTable) => props.stakes.find((stake) => stake.id === table.stakeId)?.name ?? '';
   const columns: readonly DataTableColumn<SetupTable>[] = [
-    { key: 'name', header: t('console.tablesSetup.name'), cell: (table) => table.name, priority: 'primary' },
-    { key: 'stake', header: t('console.tablesSetup.stake'), cell: stakeName, sortValue: stakeName, isWide: true },
+    { key: 'name', header: t('console.tablesSetup.name'), cell: (table) => table.name, sortValue: (table) => table.name, priority: 'primary' },
+    { key: 'stake', header: t('console.tablesSetup.stake'), cell: stakeName, sortValue: stakeName },
     { key: 'seats', header: t('console.tablesSetup.seats'), cell: (table) => String(table.seats), sortValue: (table) => table.seats, align: 'end' },
-    { key: 'now', header: t('console.tablesSetup.now'), cell: (table) => t(table.isOpen ? 'console.tablesSetup.open' : 'console.tablesSetup.closed') },
+    { key: 'status', header: t('console.tablesSetup.statusColumn'), cell: statusOf, isWide: true },
     {
-      key: 'change', header: t('console.tablesSetup.change'),
-      cell: (table) => (
-        <Button variant="text" aria-label={t('console.tablesSetup.changeTable', { name: table.name })} onClick={() => setEditing(table)}>
-          {t('console.tablesSetup.change')}
-        </Button>
-      ),
+      key: 'actions', header: '', isWide: true, align: 'end',
+      cell: (table) => <TableActions venueId={props.venueId} table={table} onChange={() => props.onChange(table)} onOutcome={props.onOutcome} />,
     },
   ];
+  return columns;
+}
+
+/**
+ * The tables in floor order (console v3; decision 0432), each with its status and its actions: Change opens its form under
+ * its row, New table an empty one above the list. What an action did is said under the list.
+ */
+export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
+  const [open, setOpen] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<TableOutcome | null>(null);
+  const toggle = (next: string) => { setOutcome(null); setOpen(open === next ? null : next); };
+  const form = (table: SetupTable | null) => (
+    <TableForm key={table?.id ?? NEW} venueId={venueId} stakes={stakes} table={table} onCancel={() => setOpen(null)}
+      onSaved={(text) => { setOpen(null); setOutcome({ ok: true, text }); }} />
+  );
+  const columns = tableColumns({ venueId, stakes, tables, onChange: (table) => toggle(table.id), onOutcome: setOutcome });
   return (
-    <Grid columns={2} gap={12} stackBelow="medium">
-      <Stack gap={4}>
+    <Stack gap={4}>
+      <Inline justify="between" gap={4}>
         <Heading level={2} variant="section">{t('console.tablesSetup.tables')}</Heading>
-        <DataTable label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} rowKey={(table) => table.id}
-          emptyText={t('console.tablesSetup.tablesEmpty')} />
-        <StatusMessage>{saved.text}</StatusMessage>
-      </Stack>
-      {stakes.length === 0 ? null : (
-        <TableForm key={editing?.id ?? `new-${saved.round}`} venueId={venueId} stakes={stakes} table={editing} onCancel={() => setEditing(null)}
-          onSaved={(text) => { setEditing(null); setSaved((last) => ({ round: last.round + 1, text })); }} />
-      )}
-    </Grid>
+        {/* A table needs a stake: until there is one, New stake is the way in. */}
+        {stakes.length === 0 ? null : <Button variant="subtle" size="compact" onClick={() => toggle(NEW)}>{t('console.tablesSetup.newTable')}</Button>}
+      </Inline>
+      {open === NEW ? form(null) : null}
+      <DataTable label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} rowKey={(table) => table.id}
+        emptyText={t('console.tablesSetup.tablesEmpty')} rowDetail={(table) => (open === table.id ? form(table) : null)} />
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+      {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+    </Stack>
   );
 }
 
@@ -77,18 +97,20 @@ function TableForm({ venueId, stakes, table, onSaved, onCancel }: TableFormProps
   return (
     <Stack gap={4}>
       <Heading level={3}>{start.heading}</Heading>
-      <Input label={t('console.tablesSetup.tableName')} value={name} maxLength={40} onChange={(event) => setName(event.target.value)} />
-      <ChoiceChips label={t('console.tablesSetup.stake')} mode="one" selected={stakeId === null ? [] : [stakeId]}
+      <Grid columns={2} gap={4} stackBelow="medium">
+        <Input label={t('console.tablesSetup.tableName')} value={name} maxLength={40} onChange={(event) => setName(event.target.value)} />
+        <ChoiceChips label={t('console.tablesSetup.seats')} mode="one" look="subtle" selected={[seats]} options={SEATS.map((count) => ({ value: count, label: count }))}
+          onChange={(picked) => setSeats(picked[0] ?? seats)} />
+      </Grid>
+      <ChoiceChips label={t('console.tablesSetup.stake')} mode="one" look="subtle" selected={stakeId === null ? [] : [stakeId]}
         options={stakes.map((stake) => ({ value: stake.id, label: stake.name }))} onChange={(picked) => setStakeId(picked[0] ?? null)} />
-      <ChoiceChips label={t('console.tablesSetup.seats')} mode="one" selected={[seats]} options={SEATS.map((count) => ({ value: count, label: count }))}
-        onChange={(picked) => setSeats(picked[0] ?? seats)} />
       <Inline gap={3}>
-        {/* Neither form is the screen's one action, so neither is gold (A-13); a save of half a form says what is missing (UI-19). */}
-        <Button variant="secondary" isLoading={saveTable.isPending}
+        {/* Not the screen's one action, so not gold (A-13); a save of half a form says what is missing (UI-19). */}
+        <Button variant="subtle" size="compact" isLoading={saveTable.isPending}
           onClick={() => { if (name.trim() === '' || stakeId === null) setFailure(t('console.tablesSetup.tableIncomplete')); else void submit(stakeId); }}>
           {t('console.tablesSetup.saveTable')}
         </Button>
-        {start.tableId === null ? null : <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>}
+        <Button variant="text" size="compact" onClick={onCancel}>{t('common.cancel')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>

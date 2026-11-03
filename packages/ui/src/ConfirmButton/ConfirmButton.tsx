@@ -1,6 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '../Button/index.ts';
+import { Button, type ButtonSize } from '../Button/index.ts';
 
 // How long the confirmation waits for its second press before it turns back.
 const ASK_FOR_MS = 5000;
@@ -12,8 +12,13 @@ export interface ConfirmButtonProps {
   name?: string;
   /** The second press, saying plainly what the step does: "Yes, Ritika leaves". */
   confirm: string;
-  /** The first button's look: a text button in a list, secondary for a row's action, primary for a page's main step. */
-  variant?: 'text' | 'secondary' | 'primary';
+  /**
+   * The first button's look: a text button in a list, secondary for a row's action, primary for a page's main step; on the
+   * console (decision 0430), subtle for a row's action.
+   */
+  variant?: 'text' | 'secondary' | 'subtle' | 'primary';
+  /** Both buttons' size: the console's `small` inside a row (decision 0430). */
+  size?: ButtonSize;
   /** While the step runs: the button shows it and takes no press, so it is never sent twice. */
   isBusy?: boolean;
   isDisabled?: boolean;
@@ -33,7 +38,7 @@ function turnBack(wrap: HTMLSpanElement | null, setAsking: (isAsking: boolean) =
  * the confirmation turns back, so a later stray tap never does the step. It is one button that changes, so focus and the
  * hand stay on it.
  */
-export function ConfirmButton({ label, name, confirm, variant = 'text', isBusy = false, isDisabled = false, onConfirm }: ConfirmButtonProps) {
+export function ConfirmButton({ label, name, confirm, variant = 'text', size = 'regular', isBusy = false, isDisabled = false, onConfirm }: ConfirmButtonProps) {
   const [isAsking, setAsking] = useState(false);
   const wrap = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -47,12 +52,12 @@ export function ConfirmButton({ label, name, confirm, variant = 'text', isBusy =
   return (
     <span ref={wrap} className="inline-flex flex-wrap items-center gap-2">
       {isAsking ? (
-        <Button variant="danger" isDisabled={isDisabled} onClick={() => { setAsking(false); onConfirm(); }}>{confirm}</Button>
+        <Button variant="danger" size={size} isDisabled={isDisabled} onClick={() => { setAsking(false); onConfirm(); }}>{confirm}</Button>
       ) : (
-        <Button variant={variant} {...(name === undefined ? {} : { 'aria-label': name })} isLoading={isBusy} isDisabled={isDisabled}
+        <Button variant={variant} size={size} {...(name === undefined ? {} : { 'aria-label': name })} isLoading={isBusy} isDisabled={isDisabled}
           onClick={() => setAsking(true)}>{label}</Button>
       )}
-      {isAsking ? <Button variant="text" onClick={() => turnBack(wrap.current, setAsking)}>{t('common.cancel')}</Button> : null}
+      {isAsking ? <Button variant="text" size={size} onClick={() => turnBack(wrap.current, setAsking)}>{t('common.cancel')}</Button> : null}
     </span>
   );
 }

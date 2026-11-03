@@ -32,3 +32,12 @@ export const LongText: Story = {
     await userEvent.click(within(canvasElement).getByRole('button', { name: /^Player left/ }));
   },
 };
+
+/** On the console (decision 0430): a row's small subtle button, asking in its small danger one. */
+export const ConsoleRow: Story = {
+  args: { variant: 'subtle', size: 'small', label: 'Delete', name: 'Delete Table 3', confirm: 'Yes, delete Table 3' },
+  tags: ['viewport-console'],
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Delete Table 3' }));
+  },
+};

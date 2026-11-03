@@ -171,10 +171,10 @@ export const tablesSetup = {
   blinds: 'Blinds',
   smallBlind: 'Small blind',
   bigBlind: 'Big blind',
-  blindsHint: 'Whole 50s of chips.',
+  blindsHint: 'Whole 50s of chips. A straddle sits above the big blind.',
   /** A compulsory straddle (decision 0299): optional, above the big blind. */
   straddle: 'Straddle',
-  straddleHint: 'Optional. Whole 50s of chips, above the big blind.',
+  straddleOptional: 'Straddle (optional)',
   noStraddle: 'None',
   stake: 'Stake',
   seats: 'Seats',
@@ -194,6 +194,25 @@ export const tablesSetup = {
   tableIncomplete: 'Name the table and choose its stake.',
   /** After a save: `{name}` is the stake or table. */
   saved: '{name} is saved.',
+  /** The tables' status column (decision 0432): `{count}` players seated at an open table. */
+  statusColumn: 'Status',
+  status: { inactive: 'Inactive · hidden from the floor', closed: 'Active · closed tonight', open: 'Active · {count} seated' },
+  /** A table's actions (decision 0432); each `...Name` is the button's name for a screen reader, `{name}` the table. */
+  deactivate: 'Deactivate',
+  deactivateName: 'Deactivate {name}',
+  reactivate: 'Reactivate',
+  reactivateName: 'Reactivate {name}',
+  delete: 'Delete',
+  deleteName: 'Delete {name}',
+  deleteConfirm: 'Yes, delete {name}',
+  deactivated: '{name} deactivated. Its history stays.',
+  reactivated: '{name} is back, closed.',
+  deleted: '{name} deleted. Its history stays.',
+  /** Deactivating or deleting a table in play, refused before it is sent (@rivr/domain tableRetireRefusal). */
+  retireRefusals: {
+    players_seated: 'Players sit at {name}. Move them first.',
+    players_waiting: 'Players wait for {name}. Take them off its list first.',
+  },
   failures: {
     invalid: 'Check the name, the blinds and straddle (whole 50s) and the seats (2 to 10).',
     players_seated: 'Move the players off this table before changing its stake.',

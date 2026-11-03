@@ -1,5 +1,6 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { RivrClient } from './client.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -27,6 +28,9 @@ export interface SetupTable {
   readonly isOpen: boolean;
   /** False once deactivated: hidden from everything live, kept for history; reactivating brings it back closed. */
   readonly isActive: boolean;
+  /** The players seated at it now, and the places waiting on its list or called to it: @rivr/domain's TableInPlay. */
+  readonly seated: number;
+  readonly waiting: number;
 }
 
 /**
@@ -50,11 +54,12 @@ export function useTablesSetup(venueId: string) {
     queryKey: queryKeys.tablesSetup(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<{ stakes: SetupStake[]; tables: SetupTable[] }> => {
-      const [types, tables] = await Promise.all([
+      const [types, tables, inPlay] = await Promise.all([
         client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise').eq('venue_id', venueId)
           .order('small_blind_paise').order('name'),
         client.from('game_table').select('id, name, table_type_id, seats, is_open, active').eq('venue_id', venueId).is('deleted_at', null)
           .order('position'),
+        readInPlay(client, venueId),
       ]);
       if (types.error) throw types.error;
       if (tables.error) throw tables.error;
@@ -65,10 +70,31 @@ export function useTablesSetup(venueId: string) {
         })),
         tables: tables.data.map((row) => ({
           id: row.id, name: row.name, stakeId: row.table_type_id, seats: row.seats, isOpen: row.is_open, isActive: row.active,
+          seated: countOf(inPlay.seated, row.id), waiting: countOf(inPlay.waiting, row.id),
         })),
       };
     },
   });
+}
+
+const countOf = (tableIds: readonly (string | null)[], tableId: string) => tableIds.filter((id) => id === tableId).length;
+
+/**
+ * Who keeps each table in play, for setup to say why a table cannot go before it is asked (decision 0432): the open seat
+ * sessions' tables, and each waiting place's table and the table it is called to. Rows the role does not read count as
+ * none; the database refuses on its own count either way.
+ */
+async function readInPlay(client: RivrClient, venueId: string): Promise<{ seated: (string | null)[]; waiting: (string | null)[] }> {
+  const [seats, places] = await Promise.all([
+    client.from('seat_session').select('table_id').eq('venue_id', venueId).is('ended_at', null),
+    client.from('waitlist_entry').select('table_id, call_table_id').eq('venue_id', venueId).eq('status', 'waiting'),
+  ]);
+  if (seats.error) throw seats.error;
+  if (places.error) throw places.error;
+  // A place called to another table waits for that one too.
+  const waiting = places.data.flatMap((place) => (place.call_table_id === null || place.call_table_id === place.table_id
+    ? [place.table_id] : [place.table_id, place.call_table_id]));
+  return { seated: seats.data.map((seat) => seat.table_id), waiting };
 }
 
 /** A stake as the setup screen saves it: a new one has no id; no straddle is null. */

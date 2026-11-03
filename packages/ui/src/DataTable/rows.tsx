@@ -1,11 +1,12 @@
 import { tokens } from '@rivr/tokens';
-import { useState, type CSSProperties, type MouseEvent, type ReactNode, type Ref, type UIEvent } from 'react';
+import { Fragment, useState, type CSSProperties, type MouseEvent, type ReactNode, type Ref, type UIEvent } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import type { DataTableColumn, DataTableSort } from './DataTable.tsx';
 import { textOf } from './DataTableExport.tsx';
+import { DetailRow, placesOf } from './DetailRow.tsx';
 import { TickCell, TickHeader, type Ticks } from './Selection.tsx';
 
 // A line's height from 768 px, below 1180 px, where a row stays a 44 px target (decision 0282).
@@ -268,13 +269,22 @@ export interface BodyProps<Row> {
   readonly layout: Layout;
   /** The body scrolled sideways (the scroll layout below 768 px): the header follows it. */
   readonly onScrollX: (event: UIEvent<HTMLElement>) => void;
+  /** What a row opened in place, drawn under it; only when every row is drawn. */
+  readonly rowDetail?: ((row: Row) => ReactNode) | undefined;
 }
 
-/** Up to VIRTUAL_FROM rows: every one drawn. */
-export function PlainBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onScrollX }: BodyProps<Row>) {
+/** Up to VIRTUAL_FROM rows: every one drawn, each followed by its detail when it has one open. */
+export function PlainBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onScrollX, rowDetail }: BodyProps<Row>) {
+  const details = rows.map((row) => rowDetail?.(row) ?? null);
+  const places = placesOf(details);
   return (
     <div role="rowgroup" className={LOOK[layout.narrow].group} onScroll={onScrollX}>
-      {rows.map((row, index) => <BodyRow key={rowKey(row)} row={row} id={rowKey(row)} columns={columns} index={index} layout={layout} onRowOpen={onRowOpen} />)}
+      {rows.map((row, at) => (
+        <Fragment key={rowKey(row)}>
+          <BodyRow row={row} id={rowKey(row)} columns={columns} index={places[at] ?? at} layout={layout} onRowOpen={onRowOpen} />
+          {details[at] === null ? null : <DetailRow index={(places[at] ?? at) + 1} columns={columns.length + (layout.ticks === null ? 0 : 1)}>{details[at]}</DetailRow>}
+        </Fragment>
+      ))}
     </div>
   );
 }

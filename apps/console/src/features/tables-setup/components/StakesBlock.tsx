@@ -11,11 +11,12 @@ const isBlind = (text: string) => /^\d{2,7}$/.test(text) && Number(text) % 50 ==
 
 const chipsOf = (paise: bigint) => String(paise / PAISE);
 
-/** The stakes, each with Change, beside the form for a new one or the one chosen. */
-export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: readonly SetupStake[] }) {
-  const [editing, setEditing] = useState<SetupStake | null>(null);
-  const [saved, setSaved] = useState<{ round: number; text: string | null }>({ round: 0, text: null });
-  const columns: readonly DataTableColumn<SetupStake>[] = [
+// The form open: a new stake's, above the list, or a stake's own by its id, under its row.
+const NEW = 'new';
+
+/** The stakes' columns: name, blinds and straddle, then Change, which opens or closes the stake's form. */
+function stakeColumns(onChange: (stake: SetupStake) => void): readonly DataTableColumn<SetupStake>[] {
+  return [
     { key: 'name', header: t('console.tablesSetup.name'), cell: (stake) => stake.name, sortValue: (stake) => stake.name, priority: 'primary' },
     { key: 'blinds', header: t('console.tablesSetup.blinds'), cell: (stake) => formatStakes(stake.smallBlind, stake.bigBlind), sortValue: (stake) => Number(stake.bigBlind), align: 'end' },
     {
@@ -23,25 +24,39 @@ export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: read
       cell: (stake) => (stake.straddle === null ? t('console.tablesSetup.noStraddle') : chipsOf(stake.straddle)),
     },
     {
-      key: 'change', header: t('console.tablesSetup.change'),
+      key: 'change', header: '', align: 'end',
       cell: (stake) => (
-        <Button variant="text" aria-label={t('console.tablesSetup.changeStake', { name: stake.name })} onClick={() => setEditing(stake)}>
+        <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeStake', { name: stake.name })} onClick={() => onChange(stake)}>
           {t('console.tablesSetup.change')}
         </Button>
       ),
     },
   ];
+}
+
+/**
+ * The stakes (console v3): each with Change, which opens its form under its row, and New stake, which opens an empty one
+ * above the list. With no stakes yet the new one is open.
+ */
+export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: readonly SetupStake[] }) {
+  const [open, setOpen] = useState<string | null>(stakes.length === 0 ? NEW : null);
+  const [saved, setSaved] = useState<string | null>(null);
+  const toggle = (next: string) => { setSaved(null); setOpen(open === next ? null : next); };
+  const form = (stake: SetupStake | null) => (
+    <StakeForm key={stake?.id ?? NEW} venueId={venueId} stake={stake} onCancel={() => setOpen(null)}
+      onSaved={(text) => { setOpen(null); setSaved(text); }} />
+  );
   return (
-    <Grid columns={2} gap={12} stackBelow="medium">
-      <Stack gap={4}>
+    <Stack gap={4}>
+      <Inline justify="between" gap={4}>
         <Heading level={2} variant="section">{t('console.tablesSetup.stakes')}</Heading>
-        <DataTable label={t('console.tablesSetup.stakesLabel')} columns={columns} rows={stakes} rowKey={(stake) => stake.id}
-          emptyText={t('console.tablesSetup.stakesEmpty')} />
-        <StatusMessage>{saved.text}</StatusMessage>
-      </Stack>
-      <StakeForm key={editing?.id ?? `new-${saved.round}`} venueId={venueId} stake={editing} onCancel={() => setEditing(null)}
-        onSaved={(text) => { setEditing(null); setSaved((last) => ({ round: last.round + 1, text })); }} />
-    </Grid>
+        <Button variant="subtle" size="compact" onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>
+      </Inline>
+      {open === NEW ? form(null) : null}
+      <DataTable label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns((stake) => toggle(stake.id))} rows={stakes} rowKey={(stake) => stake.id}
+        emptyText={t('console.tablesSetup.stakesEmpty')} rowDetail={(stake) => (open === stake.id ? form(stake) : null)} />
+      <StatusMessage>{saved}</StatusMessage>
+    </Stack>
   );
 }
 
@@ -90,32 +105,33 @@ function StakeForm({ venueId, stake, onSaved, onCancel }: StakeFormProps) {
   return (
     <Stack gap={4}>
       <Heading level={3}>{isNew ? t('console.tablesSetup.newStake') : t('console.tablesSetup.changeStake', { name: start.name })}</Heading>
-      <Input label={t('console.tablesSetup.stakeName')} value={name} maxLength={60} onChange={(event) => setName(event.target.value)} />
-      <BlindInputs blinds={blinds} onChange={setBlinds} />
+      <Grid columns={4} gap={4} stackBelow="medium">
+        <Input label={t('console.tablesSetup.stakeName')} value={name} maxLength={60} onChange={(event) => setName(event.target.value)} />
+        <BlindInputs blinds={blinds} onChange={setBlinds} />
+      </Grid>
+      <Text variant="small" tone="muted">{t('console.tablesSetup.blindsHint')}</Text>
       <Inline gap={3}>
-        <Button variant="secondary" isLoading={saveStake.isPending}
+        <Button variant="subtle" size="compact" isLoading={saveStake.isPending}
           onClick={() => { if (isStake(name, blinds)) void submit(); else setFailure(t('console.tablesSetup.stakeIncomplete')); }}>
           {t('console.tablesSetup.saveStake')}
         </Button>
-        {isNew ? null : <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>}
+        <Button variant="text" size="compact" onClick={onCancel}>{t('common.cancel')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>
   );
 }
 
+/** The blinds and any straddle, each a cell of the form's row; their rule is the line under it. */
 function BlindInputs({ blinds, onChange }: { blinds: Blinds; onChange: (blinds: Blinds) => void }) {
   return (
-    <Stack gap={2}>
-      <Inline gap={4} wrap>
-        <Input label={t('console.tablesSetup.smallBlind')} value={blinds.small} inputMode="numeric" maxLength={7}
-          onChange={(event) => onChange({ ...blinds, small: event.target.value.trim() })} />
-        <Input label={t('console.tablesSetup.bigBlind')} value={blinds.big} inputMode="numeric" maxLength={7}
-          onChange={(event) => onChange({ ...blinds, big: event.target.value.trim() })} />
-      </Inline>
-      <Text variant="small" tone="muted">{t('console.tablesSetup.blindsHint')}</Text>
-      <Input label={t('console.tablesSetup.straddle')} hint={t('console.tablesSetup.straddleHint')} value={blinds.straddle} inputMode="numeric" maxLength={7}
+    <>
+      <Input label={t('console.tablesSetup.smallBlind')} value={blinds.small} inputMode="numeric" maxLength={7}
+        onChange={(event) => onChange({ ...blinds, small: event.target.value.trim() })} />
+      <Input label={t('console.tablesSetup.bigBlind')} value={blinds.big} inputMode="numeric" maxLength={7}
+        onChange={(event) => onChange({ ...blinds, big: event.target.value.trim() })} />
+      <Input label={t('console.tablesSetup.straddleOptional')} value={blinds.straddle} inputMode="numeric" maxLength={7}
         onChange={(event) => onChange({ ...blinds, straddle: event.target.value.trim() })} />
-    </Stack>
+    </>
   );
 }
