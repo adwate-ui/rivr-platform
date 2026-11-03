@@ -83,7 +83,7 @@ export function CountChipsForm({ venueId, lines, onDone }: { venueId: string; li
       {failure === null ? null : <ErrorMessage>{t(TREASURY_FAILURE_COPY[failure])}</ErrorMessage>}
       <Inline gap={3}>
         <Button variant="primary" isLoading={countChips.isPending} onClick={() => void submit()}>{t('console.treasury.saveCount')}</Button>
-        <Button variant="secondary" onClick={() => onDone(false)}>{t('console.treasury.cancel')}</Button>
+        <Button variant="subtle" onClick={() => onDone(false)}>{t('console.treasury.cancel')}</Button>
       </Inline>
     </Stack>
   );

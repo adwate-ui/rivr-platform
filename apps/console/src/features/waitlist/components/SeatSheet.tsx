@@ -27,8 +27,8 @@ function useFreeSeats(venueId: string, table: FloorTable): number[] {
   return openSeatsAt(table, [...(seats.data ?? []), ...(held.data ?? [])]);
 }
 
-/** The sheet's form: a free seat and a call time, then Seat, which seats the member at once (decision 0299). */
-function SeatForm({ venueId, table, place, onDone }: { venueId: string; table: FloorTable; place: SeatSheetPlace; onDone: () => void }) {
+/** The sheet's form: a free seat and a call time; Seat, in the sheet's footer, seats the member at once (decision 0299). */
+function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table: FloorTable; place: SeatSheetPlace; onDone: () => void }) {
   const { assign } = useWaitlistCallActions();
   const toast = useToast();
   const free = useFreeSeats(venueId, table);
@@ -45,19 +45,23 @@ function SeatForm({ venueId, table, place, onDone }: { venueId: string; table: F
     toast(t('console.waitlist.toast.seated', { name: place.name, table: table.name, seat }));
     return onDone();
   };
-  return (
-    <Stack gap={6}>
-      <ChoiceChips label={t('console.waitlist.callSeat')} mode="one" look="subtle" selected={seat === null ? [] : [String(seat)]}
-        options={free.map((number) => ({ value: String(number), label: String(number) }))}
-        onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
-      <CallTimeChoice choices={CALL_TIME_CHOICES} initial={table.callTimeMinutes} onChange={setCallMinutes} />
-      {failure === null ? null : <ErrorMessage>{t(failure === 'choose' ? 'console.waitlist.invalidCall' : ENTRY_FAILURE_COPY[failure])}</ErrorMessage>}
+  return {
+    body: (
+      <Stack gap={6}>
+        <ChoiceChips label={t('console.waitlist.callSeat')} mode="one" look="subtle" selected={seat === null ? [] : [String(seat)]}
+          options={free.map((number) => ({ value: String(number), label: String(number) }))}
+          onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
+        <CallTimeChoice choices={CALL_TIME_CHOICES} initial={table.callTimeMinutes} onChange={setCallMinutes} />
+        {failure === null ? null : <ErrorMessage>{t(failure === 'choose' ? 'console.waitlist.invalidCall' : ENTRY_FAILURE_COPY[failure])}</ErrorMessage>}
+      </Stack>
+    ),
+    footer: (
       <Inline gap={2} justify="end">
         <Button variant="text" onClick={onDone}>{t('common.cancel')}</Button>
         <Button variant="primary" isLoading={assign.isPending} onClick={() => void seatNow()}>{t('console.waitlist.seatShort')}</Button>
       </Inline>
-    </Stack>
-  );
+    ),
+  };
 }
 
 /**
@@ -65,10 +69,16 @@ function SeatForm({ venueId, table, place, onDone }: { venueId: string; table: F
  * Seat assigns and seats the member at once (decision 0299); the seat-ready message still goes out by WhatsApp.
  */
 export function SeatSheet({ venueId, table, place, onClose }: SeatSheetProps) {
+  return place === null ? null : <OpenSeatSheet key={place.entryId} venueId={venueId} table={table} place={place} onClose={onClose} />;
+}
+
+/** The sheet open for one place: its form in the body, Cancel and Seat in the footer that stays while the body scrolls. */
+function OpenSeatSheet({ venueId, table, place, onClose }: { venueId: string; table: FloorTable; place: SeatSheetPlace; onClose: () => void }) {
+  const form = useSeatForm({ venueId, table, place, onDone: onClose });
   return (
-    <Sheet place="console" isOpen={place !== null} onClose={onClose} title={t('console.waitlist.seatSheet.title', { name: place?.name ?? '' })}
-      subtitle={t('console.waitlist.seatSheet.subtitle', { table: table.name, stake: stakeOf(table) })}>
-      {place === null ? null : <SeatForm key={place.entryId} venueId={venueId} table={table} place={place} onDone={onClose} />}
+    <Sheet place="console" isOpen onClose={onClose} title={t('console.waitlist.seatSheet.title', { name: place.name })}
+      subtitle={t('console.waitlist.seatSheet.subtitle', { table: table.name, stake: stakeOf(table) })} footer={form.footer}>
+      {form.body}
     </Sheet>
   );
 }

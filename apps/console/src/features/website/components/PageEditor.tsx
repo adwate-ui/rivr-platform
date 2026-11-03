@@ -39,14 +39,14 @@ function Actions({ canPublish, isSaving, isPublishing, onSave, onPublish }: Acti
   return (
     <>
       <Inline gap={2}>
-        <Button variant="secondary" isLoading={isSaving} onClick={onSave}>{t('console.website.save')}</Button>
+        <Button variant="subtle" isLoading={isSaving} onClick={onSave}>{t('console.website.save')}</Button>
         <Button variant="primary" isDisabled={!canPublish} isLoading={isPublishing} onClick={() => onPublish(null)}>{t('console.website.publish')}</Button>
       </Inline>
       <Inline gap={2}>
         <Input type="date" label={t('console.website.publishOn')} value={day} onChange={(event) => setDay(event.target.value)} />
         <Input label={t('console.website.publishAt')} hint={t('console.website.timeHint')} value={time} inputMode="numeric" autoComplete="off"
           onChange={(event) => setTime(event.target.value.trim())} />
-        <Button variant="secondary" isDisabled={!canPublish || !isWhen} isLoading={isPublishing} onClick={() => onPublish(istMoment(day, time))}>
+        <Button variant="subtle" isDisabled={!canPublish || !isWhen} isLoading={isPublishing} onClick={() => onPublish(istMoment(day, time))}>
           {t('console.website.schedule')}
         </Button>
       </Inline>

@@ -14,7 +14,7 @@ function NoticeRow({ notice, onEnd, isBusy }: { notice: VenueNotice; onEnd: () =
         <Text>{notice.body}</Text>
         <Text tone="muted" variant="small">{until}</Text>
       </Stack>
-      <ConfirmButton variant="secondary" label={t('console.settings.notices.end')} name={t('console.settings.notices.endName', { body: notice.body })}
+      <ConfirmButton variant="subtle" label={t('console.settings.notices.end')} name={t('console.settings.notices.endName', { body: notice.body })}
         confirm={t('console.settings.notices.endConfirm')} isBusy={isBusy} onConfirm={onEnd} />
     </Inline>
   );

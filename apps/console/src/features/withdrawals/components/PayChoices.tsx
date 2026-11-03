@@ -19,11 +19,11 @@ export function PayChoices({ venueId, withdrawal, canDecide, onDone }: PayChoice
   const id = withdrawal.withdrawalId;
   return (
     <>
-      <Button variant="secondary" isLoading={payInCash.isPending} onClick={() => void payInCash.mutateAsync(id).then(onDone)}>
+      <Button variant="subtle" isLoading={payInCash.isPending} onClick={() => void payInCash.mutateAsync(id).then(onDone)}>
         {t('console.withdrawals.payInCash')}
       </Button>
       {withdrawal.kind === 'upi' ? (
-        <Button variant="secondary" isLoading={payThroughCashfree.isPending} onClick={() => void payThroughCashfree.mutateAsync(id).then(onDone)}>
+        <Button variant="subtle" isLoading={payThroughCashfree.isPending} onClick={() => void payThroughCashfree.mutateAsync(id).then(onDone)}>
           {t('console.withdrawals.payThroughCashfree')}
         </Button>
       ) : null}

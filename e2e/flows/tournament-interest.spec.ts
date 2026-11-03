@@ -45,7 +45,7 @@ test.describe('Tournament interest', () => {
 
     await floor.reload();
     await expect(floor.getByRole('heading', { name, exact: true })).toBeVisible();
-    const card = floor.locator('section').filter({ has: floor.getByRole('heading', { name, exact: true }) });
+    const card = floor.locator('section').filter({ has: floor.getByRole('heading', { name, exact: true }) }).last();
     await card.getByRole('button', { name: 'Mark Ajay Dhillon registered' }).click();
     await expect(card.getByText('Registered', { exact: true })).toBeVisible();
     await expect(card.getByText('1 interested · 1 registered')).toBeVisible();

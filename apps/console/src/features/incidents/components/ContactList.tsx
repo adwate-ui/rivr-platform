@@ -39,7 +39,7 @@ function AddContactForm({ venueId, onFailure }: { venueId: string; onFailure: (f
         <Input {...fields.role} label={t('console.incidents.contactRole')} autoComplete="off" />
         <Input {...fields.phone} label={t('console.incidents.contactPhone')} type="tel" autoComplete="off"
           error={isInvalid ? t('console.incidents.invalidContact') : undefined} />
-        <Button variant="secondary" isLoading={addContact.isPending} onClick={() => void submit()}>{t('console.incidents.addContact')}</Button>
+        <Button variant="subtle" isLoading={addContact.isPending} onClick={() => void submit()}>{t('console.incidents.addContact')}</Button>
       </Inline>
     </Stack>
   );

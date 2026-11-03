@@ -25,7 +25,7 @@ function OpeningReviewForm({ venueId, opening }: { venueId: string; opening: Shi
         error={form.formState.errors.reason ? t('console.endOfDay.reasonInvalid') : undefined} />
       {failure === null ? null : <ErrorMessage>{t(EOD_FAILURE_COPY[failure])}</ErrorMessage>}
       <Inline>
-        <Button variant="secondary" isLoading={reviewOpening.isPending} onClick={() => void submit()}>{t('console.endOfDay.recordReason')}</Button>
+        <Button variant="subtle" isLoading={reviewOpening.isPending} onClick={() => void submit()}>{t('console.endOfDay.recordReason')}</Button>
       </Inline>
     </Stack>
   );

@@ -63,7 +63,7 @@ export function MarkerForm({ venueId, member }: { venueId: string; member: CageM
         error={form.formState.errors.amount ? t('console.cage.invalidAmount') : undefined} />
       <SignaturePad key={`${padKey}:${typed}`} onChange={(path) => setSignature(path === null ? null : { path, amount: typed })}
         label={signFor === null ? t('console.cage.signatureOf', { name: member.fullName }) : t('console.cage.signatureFor', { name: member.fullName, amount: signFor })} />
-      <Button variant="secondary" isLoading={issue.isPending} onClick={() => void submit()}>{t('console.cage.issueMarker')}</Button>
+      <Button variant="subtle" isLoading={issue.isPending} onClick={() => void submit()}>{t('console.cage.issueMarker')}</Button>
       {outcome.failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[outcome.failure])}</ErrorMessage>}
       {outcome.issued === null ? null : <Text>{t('console.cage.markerIssued', { amount: outcome.issued })}</Text>}
     </Stack>

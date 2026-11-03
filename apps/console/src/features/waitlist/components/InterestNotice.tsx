@@ -1,6 +1,6 @@
 import { useSeatActions, type FloorTable, type InterestList, type SeatFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
+import { Button, DotStatus, ErrorMessage, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /** Why the table did not open: the role, a frozen venue, or anything else. */
@@ -38,10 +38,11 @@ export function InterestNotice({ venueId, interest, table, canOpen }: InterestNo
   };
   return (
     <Stack gap={2}>
-      <Inline gap={4} align="center">
-        <Text tone={interest.isReady ? 'money' : 'muted'}>{interestLine(interest)}</Text>
+      <Inline gap={4} align="center" justify="between">
+        {/* Enough to open a table needs the floor: a gold dot with its words, never gold text (decision 0429). */}
+        {interest.isReady ? <DotStatus tone="needsYou" label={interestLine(interest)} /> : <Text variant="secondary" tone="muted">{interestLine(interest)}</Text>}
         {interest.isReady && canOpen && table !== undefined ? (
-          <Button variant="primary" isLoading={setOpen.isPending} onClick={() => void open(table.id)}>{t('console.waitlist.openTable', { table: table.name })}</Button>
+          <Button variant="subtle" size="small" isLoading={setOpen.isPending} onClick={() => void open(table.id)}>{t('console.waitlist.openTable', { table: table.name })}</Button>
         ) : null}
       </Inline>
       {failure === null ? null : <ErrorMessage>{t(openFailureCopy(failure))}</ErrorMessage>}

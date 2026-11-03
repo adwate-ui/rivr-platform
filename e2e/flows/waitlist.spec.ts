@@ -49,7 +49,8 @@ const IN_LINE = /^(Next|\d+(st|nd|rd|th)) in line$/;
 
 /** The console's card for one table's list (decision 0433), found by its heading. */
 function gameList(page: Page, name: string): Locator {
-  return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) });
+  // The card is the innermost section that holds the heading; the screen's own section holds every card.
+  return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
 }
 
 /** A place's row on a card: its number, the name, how long and what to know, then Seat and its ⋯ menu. */

@@ -30,7 +30,7 @@ export function ArchiveStatus({ state, onRecordAgain }: { state: ArchiveState; o
     return (
       <Stack gap={2} align="start">
         <ErrorMessage>{t('console.exportArchive.unrecorded', { file: state.fileName })}</ErrorMessage>
-        <Button variant="secondary" onClick={onRecordAgain}>{t('console.exportArchive.recordAgain')}</Button>
+        <Button variant="subtle" onClick={onRecordAgain}>{t('console.exportArchive.recordAgain')}</Button>
       </Stack>
     );
   }

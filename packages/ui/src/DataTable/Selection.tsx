@@ -43,13 +43,13 @@ interface TickProps {
   readonly onChange: () => void;
 }
 
-/** A native checkbox in the gold; the label round it takes the tap, 44 px each way below 1180 px (decision 0282). */
+/** A native checkbox in cream (a choice, not gold: decision 0429); the label round it takes the tap, 44 px each way below 1180 px (decision 0282). */
 export function Tick({ label, isChecked, isMixed, onChange }: TickProps) {
   return (
     <label className="flex min-h-touch min-w-touch cursor-pointer items-center justify-center tablet:min-h-0 tablet:min-w-0">
       <input type="checkbox" aria-label={label} checked={isChecked} onChange={onChange}
         ref={(box) => { if (box !== null) box.indeterminate = isMixed; }}
-        className="size-4 cursor-pointer accent-gold focus-visible:outline-2 focus-visible:outline-focus" />
+        className="size-4 cursor-pointer accent-cream focus-visible:outline-2 focus-visible:outline-focus" />
     </label>
   );
 }

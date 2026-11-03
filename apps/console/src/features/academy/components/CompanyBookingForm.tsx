@@ -37,7 +37,7 @@ export function CompanyBookingForm({ venueId, batchId, onDone }: { venueId: stri
         <Input {...companyName} label={t('console.academy.companyName')} autoComplete="off" />
         <Input {...seats} label={t('console.academy.heads')} inputMode="numeric" autoComplete="off" />
         <Input {...companyGstin} label={t('console.academy.companyGstin')} autoComplete="off" />
-        <Button variant="secondary" isLoading={bookCompany.isPending} onClick={() => void book()}>
+        <Button variant="subtle" isLoading={bookCompany.isPending} onClick={() => void book()}>
           {t('console.academy.book')}
         </Button>
         <Button variant="text" onClick={onDone}>

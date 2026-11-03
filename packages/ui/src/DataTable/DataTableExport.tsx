@@ -92,8 +92,8 @@ export function ExportBar<Row>({ exporter, label, columns, rows, filter }: Expor
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex gap-2">
-        <Button isLoading={state === 'busy'} onClick={() => void run('csv')}>{t('ui.dataTable.exportCsv')}</Button>
-        <Button isLoading={state === 'busy'} onClick={() => void run('xlsx')}>{t('ui.dataTable.exportXlsx')}</Button>
+        <Button variant="subtle" size="compact" isLoading={state === 'busy'} onClick={() => void run('csv')}>{t('ui.dataTable.exportCsv')}</Button>
+        <Button variant="subtle" size="compact" isLoading={state === 'busy'} onClick={() => void run('xlsx')}>{t('ui.dataTable.exportXlsx')}</Button>
       </div>
       {state === 'failed' ? <ErrorMessage>{t('ui.dataTable.exportFailed')}</ErrorMessage> : null}
     </div>

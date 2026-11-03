@@ -66,7 +66,7 @@ export function MemberBreak({ venueId, memberId }: { venueId: string; memberId: 
       <Input label={t('console.members.break.reason')} hint={t('console.members.break.reasonHint')} value={reason} maxLength={300} autoComplete="off"
         onChange={(event) => setReason(event.target.value)} />
       <Stack align="start">
-        <ConfirmButton variant="secondary" label={t('console.members.break.start')}
+        <ConfirmButton variant="subtle" label={t('console.members.break.start')}
           confirm={days === null ? t('console.members.break.start') : t('console.members.break.confirm', { length: t(LENGTH_COPY[days]) })}
           isDisabled={days === null || reason.trim().length < 3} isBusy={setBreak.isPending} onConfirm={() => void submit()} />
       </Stack>

@@ -22,7 +22,7 @@ function ReleaseForm({ venueId, control, onDone, onCancel }: {
     <Stack gap={3}>
       {isSecond ? null : <Input label={t('console.killSwitch.releaseReason')} value={reason} maxLength={500} autoComplete="off" onChange={(event) => setReason(event.target.value)} />}
       <Inline gap={3}>
-        <Button variant="secondary" isDisabled={!isSecond && reason.trim().length < 3} isLoading={release.isPending} onClick={() => void submit()}>
+        <Button variant="subtle" isDisabled={!isSecond && reason.trim().length < 3} isLoading={release.isPending} onClick={() => void submit()}>
           {t('console.killSwitch.release')}
         </Button>
         <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>

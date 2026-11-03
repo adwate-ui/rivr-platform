@@ -35,9 +35,9 @@ export function AddComputerForm({ venueId }: { venueId: string }) {
       <Inline gap={3} align="end" wrap>
         <Input {...nameField} label={t('console.computers.name')} hint={t('console.computers.nameHint')} autoComplete="off"
           error={form.formState.errors.name ? t('console.computers.invalid') : undefined} />
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void addAs('cage')()}>{t('console.computers.addCage')}</Button>
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void addAs('console')()}>{t('console.computers.addConsole')}</Button>
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void addAs('agent')()}>{t('console.computers.addAgent')}</Button>
+        <Button variant="subtle" isLoading={add.isPending} onClick={() => void addAs('cage')()}>{t('console.computers.addCage')}</Button>
+        <Button variant="subtle" isLoading={add.isPending} onClick={() => void addAs('console')()}>{t('console.computers.addConsole')}</Button>
+        <Button variant="subtle" isLoading={add.isPending} onClick={() => void addAs('agent')()}>{t('console.computers.addAgent')}</Button>
       </Inline>
       {code === null ? null : (
         <Text>{t(code.kind === 'agent' ? 'console.computers.agentCode' : 'console.computers.code',
@@ -65,7 +65,7 @@ export function EnrolForm({ venueId }: { venueId: string }) {
       <Inline gap={3} align="end">
         <Input {...codeField} label={t('console.computers.enrolCode')} inputMode="numeric" autoComplete="off"
           error={form.formState.errors.code ? t('console.computers.wrongCode') : undefined} />
-        <Button variant="secondary" isLoading={enrol.isPending} onClick={() => void submit()}>{t('console.computers.enrol')}</Button>
+        <Button variant="subtle" isLoading={enrol.isPending} onClick={() => void submit()}>{t('console.computers.enrol')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
