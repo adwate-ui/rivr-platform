@@ -7,6 +7,9 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 
 -- The seed's live promotions (57_promotions.sql) back to drafts: the test starts with none live.
+-- A promotion run in versions goes back to draft through its version (decision 0461).
+update public.promotion_version set status = 'draft' where status = 'live';
+select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
@@ -14,6 +17,22 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
+-- A template run in versions (decision 0461), as staff take it live: simulated on last week and submitted by the caller,
+-- then approved by a super admin.
+create function pg_temp.submit_version(p_key text) returns void language sql as $$
+  select public.record_promotion_simulation(v.id,
+    '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "spins": 0, "perks": 0, "isBudgetReached": false}',
+    jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits))
+  from public.promotion_version v join public.promotion p on p.id = v.promotion_id
+  where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = p_key and v.version = 1;
+  select public.submit_promotion_version(v.id) from public.promotion_version v join public.promotion p on p.id = v.promotion_id
+  where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = p_key and v.version = 1;
+$$;
+create function pg_temp.approve_version(p_key text) returns void language sql as $$
+  select public.approve_promotion_version(v.id) from public.promotion_version v join public.promotion p on p.id = v.promotion_id
+  where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = p_key and v.version = 1;
+$$;
+grant execute on function pg_temp.submit_version(text), pg_temp.approve_version(text) to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 create function pg_temp.offers(p_promotion uuid) returns text language sql as $$
@@ -85,9 +104,10 @@ reset role;
 select is_empty($$ select * from private.promotion_cards('00000000-0000-4000-8000-000000000001') $$, 'paused, it leaves Home and the TVs');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select public.set_promotion_live((select id from ids where name = 'flow7'), true);
-select public.submit_promotion_template((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral'));
+-- The referral template runs in versions (decision 0461): simulated, submitted, then approved by a super admin.
+select pg_temp.submit_version('referral');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select public.approve_promotion((select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral'));
+select pg_temp.approve_version('referral');
 reset role;
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.offered'
            and payload ->> 'promotion_id' = (select id::text from ids where name = 'flow7')), 1, 'resumed, it is not offered again');
@@ -115,9 +135,9 @@ reset role;
 insert into public.consent (venue_id, member_id, purpose)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'marketing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select public.submit_promotion_template((select id from templates where template_key = 'tuesday_bonus'));
+select pg_temp.submit_version('tuesday_bonus');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select public.approve_promotion((select id from templates where template_key = 'tuesday_bonus'));
+select pg_temp.approve_version('tuesday_bonus');
 reset role;
 select is(pg_temp.offers((select id from templates where template_key = 'tuesday_bonus')), 'none',
   'a member without promotions.feed is not offered it (and Vihaan had his one offer tonight)');
@@ -130,9 +150,9 @@ values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'marketing_sends
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
   (select id from templates where template_key = 'tuesday_bonus')) $$, 'with marketing sends switched off, a waiting offer is not sent');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select public.submit_promotion_template((select id from templates where template_key = 'graduate_first_buy_in'));
+select pg_temp.submit_version('graduate_first_buy_in');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select public.approve_promotion((select id from templates where template_key = 'graduate_first_buy_in'));
+select pg_temp.approve_version('graduate_first_buy_in');
 reset role;
 select is(pg_temp.offers((select id from templates where template_key = 'graduate_first_buy_in')), 'none', 'and a new one is offered to nobody');
 

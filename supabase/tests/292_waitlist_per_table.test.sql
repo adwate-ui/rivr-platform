@@ -109,6 +109,21 @@ select throws_ok($$ select public.set_game_table(pg_temp.table_id('Table 3'), 'T
   'RVSTD', null, 'Table 3''s stake stays while its list has places');
 reset role;
 
+-- The floor adds by membership number as well as by mobile (console v3: "Add: mobile or member no."), one of the two.
+create temp table vihaan as select member_number from public.member where id = '00000000-0000-4000-8000-000000000212';
+grant select on vihaan to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.add_to_waitlist(pg_temp.table_id('Table 5'), null, gen_random_uuid()) $$, '22023', null,
+  'neither a mobile nor a membership number adds nobody');
+select throws_ok($$ select public.add_to_waitlist(pg_temp.table_id('Table 5'), '9000000212', gen_random_uuid(), (select member_number from vihaan)) $$,
+  '22023', null, 'nor both at once');
+select throws_ok($$ select public.add_to_waitlist(pg_temp.table_id('Table 5'), null, gen_random_uuid(), 999999999) $$, 'RVNOM', null,
+  'a membership number nobody has adds nobody');
+insert into ids select 'vihaan', public.add_to_waitlist(pg_temp.table_id('Table 5'), null, gen_random_uuid(), (select member_number from vihaan));
+reset role;
+select is((select g.name from public.waitlist_entry e join public.game_table g on g.id = e.table_id join ids on ids.id = e.id where ids.name = 'vihaan'),
+  'Table 5', 'Vihaan, found by his membership number, goes on Table 5''s list');
+
 -- The old join for a stake is gone.
 select is(to_regprocedure('public.join_waitlist(uuid, uuid)'), null, 'there is no join for a stake');
 

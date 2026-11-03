@@ -1,10 +1,11 @@
 /**
  * Tournament interest (#636) and tournaments without money (#800, decision 0441). Leela Pillai, this flow's own admin,
- * publishes a tournament for the day after tomorrow from the console's Tournament interest screen, with a name of the
+ * publishes a tournament for the day after tomorrow from the Waitlist's Tournament interest tab (console v3), with a name of the
  * run's own, its game and stake as text and no buy-in. Ajay Dhillon, this flow's own member, sees it under Tournaments
  * in Tonight's tables with no buy-in, and asks to be notified (decision 0320). Leela finds him on the same screen and
- * marks him registered once he paid at the club; his Tonight then says Registered. The rules are proved in
- * supabase/tests/204_tournament_interest.test.sql and 292_tournaments_without_money.test.sql.
+ * marks him registered once he paid at the club, takes it back with the toast's Undo, and marks him again; his Tonight then
+ * says Registered. The rules are proved in
+ * supabase/tests/204_tournament_interest.test.sql, 292_tournaments_without_money.test.sql and 296_tournament_registration_undo.test.sql.
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -44,9 +45,16 @@ test.describe('Tournament interest', () => {
     await expect(member.getByRole('button', { name: `Register interest in ${name}` })).toHaveText('Notifying you');
 
     await floor.reload();
-    await expect(floor.getByRole('heading', { name: new RegExp(`^${name} · `) })).toBeVisible();
-    await floor.getByRole('button', { name: 'Mark Ajay Dhillon registered' }).first().click();
-    await expect(floor.getByText('Registered', { exact: true }).first()).toBeVisible();
+    await expect(floor.getByRole('heading', { name, exact: true })).toBeVisible();
+    const card = floor.locator('section').filter({ has: floor.getByRole('heading', { name, exact: true }) });
+    await card.getByRole('button', { name: 'Mark Ajay Dhillon registered' }).click();
+    await expect(card.getByText('Registered', { exact: true })).toBeVisible();
+    await expect(card.getByText('1 interested · 1 registered')).toBeVisible();
+    // Undo takes the registration back through its own function (console v3); then the floor marks him again.
+    await floor.getByRole('button', { name: 'Undo' }).click();
+    await expect(card.getByRole('button', { name: 'Mark Ajay Dhillon registered' })).toBeVisible();
+    await card.getByRole('button', { name: 'Mark Ajay Dhillon registered' }).click();
+    await expect(card.getByText('Registered', { exact: true })).toBeVisible();
 
     await member.reload();
     await expect(member.getByText(name, { exact: true }).locator('xpath=../..').getByText('Registered', { exact: true })).toBeVisible();

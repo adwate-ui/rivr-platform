@@ -110,11 +110,23 @@ export function usePublishTournament(venueId: string) {
 
 /** The floor marks a member registered once they paid at the venue: a Result, and the list reloads. */
 export function useMarkTournamentRegistered(venueId: string) {
+  return useRegistrationChange(venueId, 'mark_tournament_registered');
+}
+
+/**
+ * Undo for Mark registered (console v3): takes back a registration marked in the last ten minutes, refused as `invalid`
+ * after that. A Result, and the list reloads.
+ */
+export function useUnmarkTournamentRegistered(venueId: string) {
+  return useRegistrationChange(venueId, 'unmark_tournament_registered');
+}
+
+function useRegistrationChange(venueId: string, rpc: 'mark_tournament_registered' | 'unmark_tournament_registered') {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (interestId: string): Promise<Result<null, TournamentInterestFailure>> => {
-      const { error } = await client.rpc('mark_tournament_registered', { p_interest_id: interestId });
+      const { error } = await client.rpc(rpc, { p_interest_id: interestId });
       await queryClient.invalidateQueries({ queryKey: queryKeys.tournamentInterest(userId ?? 'signed-out', venueId) });
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },

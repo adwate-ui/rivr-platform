@@ -49,4 +49,10 @@ describe('Text', () => {
     expect(screen.getByText('11:32')).toHaveClass('tabular-nums');
     expect(screen.getByText('11:31')).not.toHaveClass('tabular-nums');
   });
+
+  it("sets the console's row text at 15 px and its secondary line at 13 (console v3)", () => {
+    renderIn(<><Text variant="row">Kabir Sethi</Text><Text variant="secondary" tone="muted">NLH 100/200 · 2 open</Text></>);
+    expect(screen.getByText('Kabir Sethi')).toHaveClass('text-15');
+    expect(screen.getByText('NLH 100/200 · 2 open')).toHaveClass('text-13', 'text-content-muted');
+  });
 });
