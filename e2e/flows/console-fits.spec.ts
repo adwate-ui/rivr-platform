@@ -131,7 +131,8 @@ async function onAPhone(page: Page) {
 /** On the floor's tablet: the rail folds to its 64 px of icons by itself; her own choice holds across a reload. */
 async function onTheTablet(page: Page) {
   await page.setViewportSize(TABLET);
-  const rail = page.getByRole('complementary');
+  // The rail, not the Live floor's docked Requests, which is a complementary region too.
+  const rail = page.getByRole('complementary').filter({ has: page.getByRole('navigation') });
   await expect(page.getByRole('navigation', { name: 'Main' })).toBeHidden();
   await expect.poll(async () => (await rail.boundingBox())?.width).toBe(64);
   await rail.getByRole('button', { name: 'Expand' }).click();
@@ -153,7 +154,7 @@ test.describe('Console fits', () => {
     await page.evaluate(() => window.localStorage.removeItem('rivr.console.rail'));
     await page.setViewportSize(DESK);
     await page.reload();
-    await expect.poll(async () => (await page.getByRole('complementary').boundingBox())?.width).toBe(224);
+    await expect.poll(async () => (await page.getByRole('complementary').filter({ has: page.getByRole('navigation') }).boundingBox())?.width).toBe(224);
     await page.keyboard.press('/');
     const search = page.getByRole('dialog', { name: 'Search' });
     await expect(search).toBeVisible();
