@@ -49,12 +49,13 @@ describe('a website page', () => {
       'Reserve a seat',
     ]);
     const reserve = screen.getAllByRole('link', { name: 'Reserve a seat' })[0]?.getAttribute('href') ?? '';
-    expect(reserve.startsWith('https://wa.me/')).toBe(true);
+    expect(reserve.startsWith('https://wa.me/918796580435?')).toBe(true);
     expect(new URL(reserve).searchParams.get('text')).toBe('Hi RIVR, I would like to reserve a seat tonight.');
     // The contacts are their marks, named for a screen reader; the number shows beside the phone.
     expect(within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link').map((link) => link.getAttribute('aria-label') ?? link.textContent)).toEqual([
-      '+91 00000 00000', 'WhatsApp', 'Instagram', 'YouTube', 'info@rivrpoker.com',
+      '+91 87965 80435', 'WhatsApp', 'Instagram', 'YouTube', 'info@rivrpoker.com',
     ]);
+    expect(within(screen.getByRole('list', { name: 'Contact' })).getByRole('link', { name: 'WhatsApp' }).getAttribute('href')).toBe('https://wa.me/918796580435');
     // The top bar's, the header links' on a phone (A-25), and the footer's.
     expect(screen.getAllByRole('link', { name: 'Member app' }).map((link) => link.getAttribute('href'))).toEqual(['https://player.invalid/', 'https://player.invalid/', 'https://player.invalid/']);
     const footer = screen.getByRole('contentinfo');
