@@ -63,9 +63,17 @@ export function toPromotionOverview(row: OverviewRow): PromotionOverview {
   };
 }
 
-/** How many promotions are in each status, and in all. */
+/**
+ * Whether a status's filter chip lists the promotion: its own status, and awaiting approval too while a new version of a
+ * running one waits (console v3: the approver finds it there).
+ */
+export function isListedIn(promotion: PromotionOverview, status: PromotionStatus): boolean {
+  return promotion.status === status || (status === 'awaiting_approval' && promotion.openStatus === 'awaiting_approval');
+}
+
+/** How many promotions each status's filter chip lists, and in all. */
 export function countByStatus(promotions: readonly PromotionOverview[]): PromotionsOverview['counts'] {
-  const counts = Object.fromEntries(PROMOTION_STATUSES.map((status) => [status, promotions.filter((one) => one.status === status).length]));
+  const counts = Object.fromEntries(PROMOTION_STATUSES.map((status) => [status, promotions.filter((one) => isListedIn(one, status)).length]));
   return { draft: 0, awaiting_approval: 0, scheduled: 0, live: 0, paused: 0, ended: 0, ...counts, all: promotions.length };
 }
 

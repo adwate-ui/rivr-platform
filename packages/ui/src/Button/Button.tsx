@@ -53,6 +53,8 @@ interface ActionButtonProps extends ButtonLookProps {
   aside?: ReactNode;
   /** A gold dot before the label: a control for what needs the floor, such as the Live floor's Needs you (decision 0429). */
   hasDot?: boolean;
+  /** A key that does the same on the screen (console v3, from `useShortcut`): its tooltip names it, and it is announced. */
+  shortcut?: { readonly key: string; readonly hint: string } | undefined;
 }
 
 /** A link only goes somewhere: it is never loading, disabled or a form's submit. */
@@ -71,6 +73,7 @@ interface LinkButtonProps extends ButtonLookProps {
   isPressed?: never;
   aside?: never;
   hasDot?: never;
+  shortcut?: never;
 }
 
 export type ButtonProps = ActionButtonProps | LinkButtonProps;
@@ -126,6 +129,10 @@ function LinkButton({ children, variant = 'secondary', size = 'regular', shape =
   );
 }
 
+/** A key that does the same as the button: its tooltip and the key a screen reader announces. */
+const keyShortcut = (shortcut: ActionButtonProps['shortcut']) =>
+  shortcut === undefined ? {} : { title: shortcut.hint, 'aria-keyshortcuts': shortcut.key };
+
 /** A button with a 44 px minimum touch target; a link that looks like one when it has an `href`. */
 export function Button(props: ButtonProps) {
   return props.href === undefined ? <ActionButton {...props} /> : <LinkButton {...props} />;
@@ -136,7 +143,7 @@ function withDot(children: ReactNode, hasDot: boolean | undefined): ReactNode {
   return hasDot === true ? <><span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-action" />{children}</> : children;
 }
 
-function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, hasDot, ...rest }: ActionButtonProps) {
+function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, shortcut, hasDot, ...rest }: ActionButtonProps) {
   const busy = isLoading ? true : undefined;
   const label = withDot(children, hasDot);
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -155,6 +162,7 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', shape
       aria-pressed={isPressed}
       aria-busy={busy}
       aria-disabled={busy}
+      {...keyShortcut(shortcut)}
       {...rest}
     >
       {aside === undefined ? (

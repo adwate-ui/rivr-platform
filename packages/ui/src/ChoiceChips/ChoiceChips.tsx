@@ -10,6 +10,8 @@ export interface ChoiceChip<Value extends string> {
   readonly label: string;
   /** How many there are of it, shown after the label and read with it as the chip's name: "Pending, 3". */
   readonly count?: number | undefined;
+  /** A line under the label in the `card` look, read as the choice's description: "Bonus chips on a buy-in, % or fixed". */
+  readonly description?: string | undefined;
 }
 
 export interface ChoiceChipsProps<Value extends string> {
@@ -38,9 +40,11 @@ export interface ChoiceChipsProps<Value extends string> {
   /**
    * `pill`, the redesign's rounded chips, picked in gold tint; `tile`, square choices in a row of equal columns, such as a
    * rating of 1 to 5 or Add time's three lengths (decision 0320). `subtle`, the console's filter chips (console v3): a
-   * faint cream fill, the chosen one gold-tinted, 34 px at a desk and 44 px below 1180 px. `chip` elsewhere.
+   * faint cream fill, the chosen one gold-tinted, 34 px at a desk and 44 px below 1180 px. `card`, the console's choice
+   * of a kind with a line on each (console v3, a promotion's reward): outlined cards, one a row on a phone and two from
+   * 768 px, the chosen one gold-edged and tinted. `chip` elsewhere.
    */
-  look?: 'chip' | 'pill' | 'tile' | 'tabs' | 'subtle';
+  look?: 'chip' | 'pill' | 'tile' | 'tabs' | 'subtle' | 'card';
 }
 
 type ChipLook = NonNullable<ChoiceChipsProps<string>['look']>;
@@ -66,28 +70,52 @@ const SUBTLE =
   'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
 
 /** The row the choices sit in, by look. */
+// The console's cards (console v3): a semibold label and a muted line under it, both from the card's start.
+const CARD =
+  'flex min-h-touch flex-col items-start justify-center gap-1 rounded-md border px-3 py-2 text-start font-text transition-colors ' +
+  'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
+
 function rowClasses(look: ChipLook, optionCount: number, isOneRow: boolean): string {
   if (look === 'tile') return TILE_ROW[optionCount] ?? 'grid grid-cols-3 gap-2';
+  if (look === 'card') return 'grid grid-cols-1 gap-2 medium:grid-cols-2';
   if (look === 'tabs') return 'flex gap-6 border-b border-hairline';
   return cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap');
+}
+
+/** The console's looks (console v3): filled chips, and outlined cards with a line each. */
+function consoleClasses(look: 'subtle' | 'card', isOn: boolean): string {
+  if (look === 'card') return cx(CARD, isOn ? 'border-gold bg-gold-tint' : 'border-control');
+  return cx(SUBTLE, isOn ? 'bg-selected font-medium' : 'bg-subtle hover:bg-subtle-hover');
 }
 
 /** The classes of one choice in each look, on or off. */
 function choiceClasses(look: ChipLook, isOn: boolean, optionCount: number): string {
   if (look === 'tabs') return cx(TAB, isOn ? 'border-gold text-content' : 'border-transparent text-content-muted');
-  if (look === 'subtle') return cx(SUBTLE, isOn ? 'bg-selected font-medium' : 'bg-subtle hover:bg-subtle-hover');
+  if (look === 'subtle' || look === 'card') return consoleClasses(look, isOn);
   if (look === 'chip') return cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted');
   const picked = isOn ? 'border-gold bg-gold-tint text-content' : 'border-control text-content-muted';
   return look === 'pill' ? cx(PILL, picked) : cx(TILE, optionCount === 5 ? 'h-round' : 'h-tile', picked);
 }
 
-/** A chip's name with its count, `Pending, 3`; without a count, none, so its words name it. */
-function nameWithCount(chip: ChoiceChip<string>): string | undefined {
-  return chip.count === undefined ? undefined : t('ui.console.choiceChips.withCount', { label: chip.label, count: chip.count });
+/**
+ * A chip's name: with its count, `Pending, 3`; a card's, its label alone, its line read as its description; otherwise
+ * none, so its words name it.
+ */
+function namingOf(chip: ChoiceChip<string>, descriptionId: string) {
+  if (chip.description !== undefined) return { 'aria-label': chip.label, 'aria-describedby': descriptionId };
+  return { 'aria-label': chip.count === undefined ? undefined : t('ui.console.choiceChips.withCount', { label: chip.label, count: chip.count }) };
 }
 
-/** A chip's label, then any count, in the chip's own colour and set apart by its regular weight. */
-function ChipWords({ chip }: { chip: ChoiceChip<string> }) {
+/** A chip's label, then any count, in the chip's own colour and set apart by its regular weight; a card's label over its line. */
+function ChipWords({ chip, descriptionId }: { chip: ChoiceChip<string>; descriptionId: string }) {
+  if (chip.description !== undefined) {
+    return (
+      <>
+        <span className="text-14 font-semibold leading-control text-content">{chip.label}</span>
+        <span id={descriptionId} className="text-12 text-content-muted">{chip.description}</span>
+      </>
+    );
+  }
   return (
     <>
       {chip.label}
@@ -146,9 +174,9 @@ function RadioChips<Value extends string>({ labelId, options, selected, onChange
         const isOn = selected.includes(option.value);
         return (
           <button key={option.value} ref={(node) => { chips.current[index] = node; }} type="button" role="radio" aria-checked={isOn}
-            aria-label={nameWithCount(option)} tabIndex={index === Math.max(chosenAt, 0) ? 0 : -1} disabled={isDisabled}
+            {...namingOf(option, `${labelId}-${String(index)}`)} tabIndex={index === Math.max(chosenAt, 0) ? 0 : -1} disabled={isDisabled}
             onClick={() => choose(index)} onKeyDown={(event) => move(event, index)} className={chipClasses(look, isOn, options.length, isOneRow)}>
-            <ChipWords chip={option} />
+            <ChipWords chip={option} descriptionId={`${labelId}-${String(index)}`} />
           </button>
         );
       })}
@@ -161,12 +189,12 @@ function ToggleChips<Value extends string>({ labelId, options, selected, onChang
   const press = (value: Value) => onChange(selected.includes(value) ? selected.filter((chosen) => chosen !== value) : [...selected, value]);
   return (
     <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
-      {options.map((option) => {
+      {options.map((option, index) => {
         const isOn = selected.includes(option.value);
         return (
-          <button key={option.value} type="button" aria-pressed={isOn} aria-label={nameWithCount(option)} disabled={isDisabled}
+          <button key={option.value} type="button" aria-pressed={isOn} {...namingOf(option, `${labelId}-${String(index)}`)} disabled={isDisabled}
             onClick={() => press(option.value)} className={chipClasses(look, isOn, options.length, isOneRow)}>
-            <ChipWords chip={option} />
+            <ChipWords chip={option} descriptionId={`${labelId}-${String(index)}`} />
           </button>
         );
       })}

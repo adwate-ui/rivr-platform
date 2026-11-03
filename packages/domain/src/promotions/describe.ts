@@ -63,6 +63,11 @@ function whenText(schedule: Schedule): string {
   return schedule.from === '06:00' ? `${days}, all day` : `${days}, 24 hours from ${schedule.from}`;
 }
 
+/** Who a promotion is for and when it runs, each on its own, for the console's list: "NLH 100/200" and "Fri, Sat 20:00–02:00". */
+export function whoAndWhen(promo: Pick<Terms, 'eligibility' | 'schedule'>, names: PromotionNames = {}): { readonly who: string; readonly when: string } {
+  return { who: whoText(promo.eligibility, names), when: whenText(promo.schedule) };
+}
+
 const PER_MEMBER: Readonly<Record<Limits['perMember'], string>> = {
   none: 'No limit per member', per_visit: 'Once per visit per member', per_day: 'Once a day per member', per_week: 'Once a week per member',
   once: 'Once ever per member',

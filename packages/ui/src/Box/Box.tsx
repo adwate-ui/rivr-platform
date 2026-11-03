@@ -21,6 +21,11 @@ export interface BoxProps {
   radius?: 'none' | 'sm' | 'md' | 'lg' | 'card';
   /** Fills the remaining space in a Stack or Inline. */
   grow?: boolean;
+  /**
+   * Stays in view at the top as the page scrolls, from 768 px, beside a longer column in a Grid: the promotion builder's
+   * summary (console v3). Below 768 px the columns stack and it scrolls with the page.
+   */
+  isSticky?: boolean;
   id?: string;
   'aria-label'?: string;
   'aria-labelledby'?: string;
@@ -45,9 +50,18 @@ const HAIRLINE: Record<BoxHairline, string> = {
 
 const RADIUS = { none: '', sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg', card: 'rounded-card' } as const;
 
-type BoxLook = Pick<BoxProps, 'padding' | 'paddingX' | 'paddingY' | 'surface' | 'hairline' | 'radius' | 'grow'>;
+type BoxLook = Pick<BoxProps, 'padding' | 'paddingX' | 'paddingY' | 'surface' | 'hairline' | 'radius' | 'grow' | 'isSticky'>;
 
-function boxClasses({ padding, paddingX, paddingY, surface = 'none', hairline = 'none', radius = 'none', grow = false }: BoxLook): string {
+// A grid cell stretches to its row by default, and a stretched cell has nowhere to stick: a sticky box keeps its own height.
+const STICKY = 'medium:sticky medium:top-0 medium:self-start';
+
+/** How the box sits among its neighbours: filling the space left, or held in view as the page scrolls. */
+function placeClasses({ grow = false, isSticky = false }: BoxLook): string {
+  return cx(grow && 'min-w-0 flex-1', isSticky && STICKY);
+}
+
+function boxClasses(look: BoxLook): string {
+  const { padding, paddingX, paddingY, surface = 'none', hairline = 'none', radius = 'none' } = look;
   return cx(
     padding !== undefined && PADDING[padding],
     paddingX !== undefined && PADDING_X[paddingX],
@@ -55,7 +69,7 @@ function boxClasses({ padding, paddingX, paddingY, surface = 'none', hairline = 
     SURFACE[surface],
     HAIRLINE[hairline],
     RADIUS[radius],
-    grow && 'min-w-0 flex-1',
+    placeClasses(look),
   );
 }
 
