@@ -31,7 +31,7 @@ test.describe('TV pairing', () => {
     await signInToConsole(floor, '9000000117');
     // Signed in once the code is taken; an address then opens with the session.
     await expect(floor.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
-    await floor.goto(`${appUrl('console')}/settings?tab=tvs`);
+    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tvs`);
     await expect(floor.getByText('A TV paired here joins RIVR Gurugram.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
@@ -72,7 +72,7 @@ test.describe('TV pairing', () => {
     await signInToConsole(owner, '9000000136');
     // Signed in once the code is taken; an address then opens with the session.
     await expect(owner.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
-    await owner.goto(`${appUrl('console')}/settings?tab=tvs`);
+    await owner.goto(`${appUrl('console')}/settings?tab=devices&part=tvs`);
     const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
     await windowOnly.click();
     try {

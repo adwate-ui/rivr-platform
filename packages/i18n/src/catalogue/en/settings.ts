@@ -6,9 +6,6 @@ export const settings = {
   rulesHint: 'A change applies from now or a later day, never backwards.',
   /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
   areasLabel: 'Areas',
-  /** Settings' parts (console v3): the rules and the club, the TVs and tablets, and the games run. */
-  partsLabel: 'Settings, devices and games history',
-  parts: { settings: 'Settings', devices: 'Devices', history: 'Games history' },
   areas: {
     floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and rewards', academy: 'Academy and Learn',
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',

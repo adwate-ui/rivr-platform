@@ -1,7 +1,6 @@
-import { createRoute, Navigate } from '@tanstack/react-router';
+import { createRoute } from '@tanstack/react-router';
+import { GamesHistoryScreen } from '../features/games-history/index.ts';
 import { frameRoute } from './frame.tsx';
 
-/** Games history moved into Settings (console v3, decision 0455): an old link or bookmark opens its tab there. */
-export const gamesHistoryRoute = createRoute({
-  getParentRoute: () => frameRoute, path: '/games-history', component: () => <Navigate to="/settings" search={{ tab: 'history' }} replace />,
-});
+/** The tables run each club day and how long each ran, for the super admin (#643). */
+export const gamesHistoryRoute = createRoute({ getParentRoute: () => frameRoute, path: '/games-history', component: GamesHistoryScreen });

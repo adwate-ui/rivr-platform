@@ -1,6 +1,6 @@
 import { t } from '@rivr/i18n';
 import { Screen, Stack, Tabs } from '@rivr/ui';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { CamerasSection } from './CamerasSection.tsx';
 import { ComputersSection } from './ComputersSection.tsx';
 import { TabletsSection } from './TabletsSection.tsx';
@@ -21,18 +21,19 @@ function TabContent({ tab }: { tab: DeviceTab }) {
 }
 
 /**
- * Devices (#606), for staff who manage devices: the TVs and the dealer tablets and door kiosks, one kind at a time by
- * tab, each with its pairing form. A part of Settings (console v3): its kind is in Settings' address
- * (`/settings?tab=tablets`), so a refresh, Back or a shared link opens it.
+ * Devices (#606), for staff who manage devices: the dealer tablets and door kiosks, the TVs, the cage and admin computers
+ * and the CCTV cameras, one kind at a time by tab. /tablets, /tvs, /computers and /cameras open their tab here.
  */
-export function DevicesScreen({ tab }: { tab?: string | undefined }) {
+export function DevicesScreen() {
   const navigate = useNavigate();
+  // The tab open is in the address (`?tab=tvs`), so a refresh, Back or a shared link opens it.
+  const { tab } = useSearch({ from: '/frame/devices' });
   const current = TABS.find((one) => one === tab) ?? TABS[0];
   return (
     <Screen title={t('console.devices.title')}>
       <Stack gap={8}>
         <Tabs label={t('console.devices.title')} current={current} onNavigate={(href) => void navigate({ href })}
-          tabs={TABS.map((id) => ({ id, label: t(LABELS[id]), href: `/settings?tab=${id}` }))} />
+          tabs={TABS.map((id) => ({ id, label: t(LABELS[id]), href: `/devices?tab=${id}` }))} />
         <TabContent tab={current} />
       </Stack>
     </Screen>
