@@ -8,7 +8,7 @@ All workflows run on GitHub-hosted runners (`docs/decisions/0001-hosted-ci-runne
 | `nightly-backup.yml` | 08:00 IST daily, or by hand | For staging and production: an encrypted logical dump and CSV export to the target's R2 bucket. Skips until its environment is set up. See `docs/runbooks/backups-and-restore.md`. |
 | `preview.yml` | Every PR from this repository | Builds every web surface against staging data and deploys a Cloudflare Pages preview per app (`pr-<n>` branch of `rivr-<app>-staging`). |
 | `deploy-staging.yml` | Every merge to `main` | Migrations and seed, Edge Functions, every web surface and Storybook to staging. |
-| `release.yml` | A tag `release-YYYYMMDD-N` | The end-to-end flows tagged `@staging` against staging (decision 0420), then the same commit to production (migrations without seed, Edge Functions, Pages), plus the signed tablet APK attached to the GitHub release. |
+| `release.yml` | A tag `release-YYYYMMDD-N` | The tagged commit's web apps on a staging preview alias named after the tag, the end-to-end flows tagged `@staging` against them (decisions 0420, 0422), then the same commit to production (migrations without seed, Edge Functions, Pages), plus the signed tablet APK attached to the GitHub release. |
 
 Deploy jobs skip with a notice until their secrets exist, so `main` stays green before the accounts are set up.
 
@@ -113,7 +113,7 @@ Outbox consumers (#215, decision 0038), on staging and production, once:
 
 ## Releasing
 
-1. Confirm the day's `main` is green and the staging deploy of the commit you will release succeeded. The release refuses a commit that is not on `main` or that staging is not running.
+1. Confirm the day's `main` is green and its staging deploy of the commit you will release, or of a later commit, succeeded. The release refuses a commit that is not on `main` or whose migrations staging does not have yet. Main keeps merging while a release runs: the release checks its own build on a preview alias (decision 0422).
 2. `git tag release-20261115-1 <commit> && git push origin release-20261115-1`. Only repository admins can create `release-*` tags; agents never do. N runs from 1 to 99 per day, and the APK version code is YYYYMMDD × 100 + N.
 3. Approve the `production` deployment when the Release workflow asks. If the staging e2e run fails, nothing reaches production.
 

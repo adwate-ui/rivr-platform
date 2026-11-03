@@ -1,11 +1,13 @@
 # A tag release-YYYYMMDD-N deploys the tagged commit to production after the end-to-end
-# flows tagged @staging pass on staging, and builds the signed APK for the dealer tablet shell.
+# flows tagged @staging pass against it on staging, and builds the signed APK for the dealer tablet shell.
 # Production is never seeded. Rollback is a Pages rollback plus a forward-fix migration.
 # docs/spec/additions-2026-10-14.md, "Environments and release" and "Android builds".
 #
-# Only a commit on main that staging already runs can be released: "the same commit" passes on
-# staging, then goes to production. Production secrets live in the `production` environment,
-# which only release-* tags can use and a person must approve (scripts/github/setup-repo.sh).
+# Only a commit on main whose migrations staging already has can be released. The tagged commit's web
+# apps go to a staging preview alias named after the tag, and the flows run there, so main's merges and
+# staging deploys carry on while a release runs (decision 0422). Production secrets live in the
+# `production` environment, which only release-* tags can use and a person must approve
+# (scripts/github/setup-repo.sh).
 name: Release
 
 on:
@@ -53,30 +55,60 @@ jobs:
             echo "::error::CI's full run on main for $GITHUB_SHA is $result. Run it (gh workflow run ci.yml --ref main) and tag the commit it passed at."
             exit 1
           fi
-      - name: Staging runs the tagged commit
+      # Staging's database and functions must already have everything the tagged commit has: its last deploy is the
+      # tagged commit or a later main commit (decision 0422).
+      - name: Staging runs the tagged commit or a later one
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           deployment="$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=staging&per_page=1" --jq '.[0]')"
           sha="$(jq -r '.sha' <<< "$deployment")"
           state="$(gh api "repos/$GITHUB_REPOSITORY/deployments/$(jq -r '.id' <<< "$deployment")/statuses" --jq '.[0].state')"
-          if [ "$sha" != "$GITHUB_SHA" ] || [ "$state" != "success" ]; then
-            echo "::error::Staging's last deploy is $sha ($state), not $GITHUB_SHA. Tag the commit staging runs once its deploy succeeds."
+          if [ "$state" != "success" ] || ! git merge-base --is-ancestor "$GITHUB_SHA" "$sha"; then
+            echo "::error::Staging's last deploy is $sha ($state), older than $GITHUB_SHA or not finished. Tag again once main's staging deploy of it succeeds."
             exit 1
           fi
 
-  e2e-staging:
+  # The tagged commit's web apps, built against staging, on each staging project's preview alias named after the
+  # tag (as preview.yml does per pull request), for e2e-staging to run against.
+  stage:
     needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: preview
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_TURNSTILE_SITE_KEY: ${{ vars.STAGING_TURNSTILE_SITE_KEY }}
+      VITE_GTM_ID: ${{ vars.GTM_ID }}
+      PUBLIC_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      PUBLIC_GTM_ID: ${{ vars.GTM_ID }}
+      # The website links into this release's own player app, as production's links into production's.
+      PUBLIC_PLAYER_URL: https://${{ github.ref_name }}.rivr-player-staging.pages.dev
+      STAGING_WEB_URL: ${{ vars.STAGING_WEB_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup
+      - name: The console's website previews open this release's website
+        run: echo "VITE_WEB_URL=https://${GITHUB_REF_NAME}-${STAGING_WEB_URL#https://}" >> "$GITHUB_ENV"
+      - run: pnpm build --filter player --filter console --filter display --filter tablet --filter web
+      - run: node scripts/ci/cloudflare-deploy.mjs preview "$GITHUB_REF_NAME" player console display tablet web
+
+  e2e-staging:
+    needs: [check, stage]
     runs-on: ubuntu-latest
     environment: e2e-staging
     timeout-minutes: 45
     env:
       RIVR_E2E_TARGET: staging
-      E2E_PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
-      E2E_CONSOLE_URL: ${{ vars.STAGING_CONSOLE_URL }}
-      E2E_TABLET_URL: ${{ vars.STAGING_TABLET_URL }}
-      E2E_DISPLAY_URL: ${{ vars.STAGING_DISPLAY_URL }}
-      E2E_WEB_URL: ${{ vars.STAGING_WEB_URL }}
+      E2E_PLAYER_URL: https://${{ github.ref_name }}.rivr-player-staging.pages.dev
+      E2E_CONSOLE_URL: https://${{ github.ref_name }}.rivr-console-staging.pages.dev
+      E2E_TABLET_URL: https://${{ github.ref_name }}.rivr-tablet-staging.pages.dev
+      E2E_DISPLAY_URL: https://${{ github.ref_name }}.rivr-display-staging.pages.dev
+      STAGING_WEB_URL: ${{ vars.STAGING_WEB_URL }}
       # The private code staging's test numbers take, for the sign-in flow.
       E2E_SIGN_IN_CODE: ${{ secrets.E2E_SIGN_IN_CODE }}
     steps:
@@ -84,6 +116,8 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           playwright: 'true'
+      - name: The website's preview alias
+        run: echo "E2E_WEB_URL=https://${GITHUB_REF_NAME}-${STAGING_WEB_URL#https://}" >> "$GITHUB_ENV"
       # No report or trace is uploaded: this repository is public and a staging trace would
       # carry staging sessions. Failures print in the log.
       # Only the flows tagged @staging (decision 0420): they use only the apps and staging's seeded test
@@ -143,9 +177,12 @@ jobs:
       VITE_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
       VITE_TURNSTILE_SITE_KEY: ${{ vars.PROD_TURNSTILE_SITE_KEY }}
+      VITE_WEB_URL: ${{ vars.PROD_WEB_URL }}
+      VITE_GTM_ID: ${{ vars.GTM_ID }}
       PUBLIC_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
+      PUBLIC_GTM_ID: ${{ vars.GTM_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup
