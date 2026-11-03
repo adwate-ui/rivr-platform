@@ -21,6 +21,8 @@ as $$ select p_at is not null and p_at > now() - interval '2 minutes'; $$;
 alter table public.call_time_request add column minutes_before integer check (minutes_before between 0 and 1440);
 comment on column public.call_time_request.minutes_before is
   'The seat''s call time in minutes before this request was approved or the floor added it (decision 0447); null otherwise.';
+-- The member's own call time before an approval: theirs in their export (decisions 0240 and 0241).
+insert into private.member_export_column (table_name, column_name, kind) values ('call_time_request', 'minutes_before', 'owed');
 alter table public.call_time_request drop constraint call_time_request_status_check;
 alter table public.call_time_request add constraint call_time_request_status_check
   check (status in ('requested', 'approved', 'declined', 'left', 'undone'));

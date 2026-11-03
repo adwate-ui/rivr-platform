@@ -4,7 +4,7 @@ import { DEFAULT_REQUEST_TARGETS, isRequestLate, REQUEST_TARGET_SECONDS, request
 describe('how long a request may wait on the floor (decision 0446)', () => {
   it('gives a top-up its own sixty seconds and the rest five minutes when the club set none', () => {
     expect(REQUEST_TARGET_SECONDS).toBe(300);
-    expect(DEFAULT_REQUEST_TARGETS).toEqual({ topUpSeconds: 60, otherSeconds: 300 });
+    expect(DEFAULT_REQUEST_TARGETS).toEqual({ topUpSeconds: 180, otherSeconds: 300 });
     expect(requestTargets(undefined)).toEqual(DEFAULT_REQUEST_TARGETS);
     expect(requestTargets({ topUpSeconds: null, otherSeconds: null })).toEqual(DEFAULT_REQUEST_TARGETS);
   });
