@@ -6,6 +6,9 @@ export const settings = {
   rulesHint: 'A change applies from now or a later day, never backwards.',
   /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
   areasLabel: 'Areas',
+  /** Settings' parts (console v3): the rules and the club, the TVs and tablets, and the games run. */
+  partsLabel: 'Settings, devices and games history',
+  parts: { settings: 'Settings', devices: 'Devices', history: 'Games history' },
   areas: {
     floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and rewards', academy: 'Academy and Learn',
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',
@@ -72,8 +75,12 @@ export const settings = {
   fromDate: 'From a later day',
   date: 'Day',
   invalidDate: 'Choose a day after today.',
-  reason: 'Reason',
-  invalidReason: 'Say why, in up to 200 characters.',
+  /** The rule in the label (console v3): the database refuses a control setting's shorter reason. */
+  reason: 'Reason, 3 characters or more',
+  invalidReason: 'Say why, in 3 to 200 characters.',
+  /** A row's Change (console v3), which opens a new value in the row; its name for a screen reader. */
+  change: 'Change',
+  changeName: 'Change {name}',
   chooseSubject: 'Choose what it applies to.',
   schedule: 'Save change',
   saved: 'Change saved.',
@@ -147,6 +154,9 @@ export const settings = {
     body: 'Notice',
     bodyHint: 'Shows at the top of every member\'s Home until you end it. Up to 280 characters.',
     post: 'Put up',
+    /** The live preview beside the notice (console v3), and what it shows before anything is typed. */
+    preview: 'On members’ Home',
+    previewEmpty: 'Your notice shows here.',
     posted: 'Notice put up.',
     none: 'No notice is up.',
     until: 'Until {date}',

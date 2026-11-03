@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerTabletAddSchema } from '@rivr/contracts';
 import { useDeviceActions, type DeviceFailure, type PairingCode } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Switch, StatusMessage } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Switch, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -39,11 +39,14 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
   const nameField = form.register('name');
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end">
-        <Input {...nameField} label={t('console.tablets.name')} hint={t('console.tablets.nameHint')} autoComplete="off"
-          error={form.formState.errors.name ? t('console.tablets.invalidName') : undefined} />
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
+      <Heading level={3}>{t('console.tablets.addTitle')}</Heading>
+      {/* The name and Add the same 44 px, ends on one line, so Add sits centred on the field; the hint under them both. */}
+      <Inline gap={3} align="end" wrap>
+        <Input {...nameField} label={t('console.tablets.name')} autoComplete="off" />
+        <Button variant="primary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
       </Inline>
+      {form.formState.errors.name ? <ErrorMessage>{t('console.tablets.invalidName')}</ErrorMessage>
+        : <Text variant="small" tone="muted">{t('console.tablets.nameHint')}</Text>}
       <Switch label={t('console.tablets.isDoor')} hint={t('console.tablets.isDoorHint')} isOn={isDoor} onChange={setIsDoor} />
       <StatusMessage>{isAddedWithoutCode ? t('console.tablets.addedWithoutCode') : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(DEVICE_FAILURE_COPY[failure])}</ErrorMessage>}

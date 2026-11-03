@@ -1,7 +1,7 @@
 import { useSettingActions, type SettingFailure, type SettingValue, type VenueSetting } from '@rivr/db';
 import { isLaterIstDay, istMidnight, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver, type UseFormReturn } from 'react-hook-form';
 import { FieldInput } from './FieldInput.tsx';
 import { settingFailureText } from './settingsCopy.ts';
@@ -32,7 +32,13 @@ function startFrom(when: When, date: string): string | null | undefined {
   return isLaterIstDay(date) ? istMidnight(date) : undefined;
 }
 
-/** The form's check: the value by its key's schema (readValue), a later day, and a reason of 1 to 200 characters. */
+/**
+ * The shortest reason the database takes for a control setting (private.guard_control_settings); every setting asks the
+ * same, and the field says so before anything is sent.
+ */
+export const REASON_MIN = 3;
+
+/** The form's check: the value by its key's schema (readValue), a later day, and a reason of 3 to 200 characters. */
 function resolverFor(setting: VenueSetting): Resolver<ValueFormValues, unknown, ValueFormOutput> {
   return (values) => {
     const read = readValue(setting.key, setting.fields, values.drafts);
@@ -42,7 +48,7 @@ function resolverFor(setting: VenueSetting): Resolver<ValueFormValues, unknown, 
     if ('invalid' in read) errors.drafts = Object.fromEntries(read.invalid.map((name) => [name, { type: 'value', message: '' }]));
     if ('notTogether' in read) errors.root = { together: { type: 'together', message: '' } };
     if (effectiveFrom === undefined) errors.date = { type: 'date', message: '' };
-    if (reason === '' || reason.length > 200) errors.reason = { type: 'reason', message: '' };
+    if (reason.length < REASON_MIN || reason.length > 200) errors.reason = { type: 'reason', message: '' };
     if (!('value' in read) || effectiveFrom === undefined || errors.reason) return { values: {}, errors };
     return { values: { value: read.value, effectiveFrom, reason }, errors: {} };
   };
@@ -67,12 +73,13 @@ function SettingFields({ form, setting, tiers, onEdit }: { form: Form; setting: 
   );
 }
 
-/** When the change takes effect: now, or from a later day. */
-function WhenField({ form }: { form: Form }) {
+/** When the change takes effect: now, or from a later day; in a row, the day beside the choice. */
+function WhenField({ form, isRow = false }: { form: Form; isRow?: boolean }) {
   const when = useWatch({ control: form.control, name: 'when' });
   const date = form.register('date');
+  const Layout = isRow ? WhenRow : WhenStack;
   return (
-    <Stack gap={3}>
+    <Layout>
       <Controller control={form.control} name="when" render={({ field }) => (
         <ChoiceChips label={t('console.settings.when')} mode="one" selected={[field.value]}
           options={[{ value: 'now', label: t('console.settings.now') }, { value: 'date', label: t('console.settings.fromDate') }]}
@@ -81,12 +88,20 @@ function WhenField({ form }: { form: Form }) {
       {when === 'date' ? (
         <Input {...date} type="date" label={t('console.settings.date')} error={form.formState.errors.date ? t('console.settings.invalidDate') : undefined} />
       ) : null}
-    </Stack>
+    </Layout>
   );
 }
 
+const WhenStack = ({ children }: { children: ReactNode }) => <Stack gap={3}>{children}</Stack>;
+const WhenRow = ({ children }: { children: ReactNode }) => <Inline gap={4} align="end" wrap>{children}</Inline>;
+
 interface ValueFormProps {
   venueId: string;
+  /**
+   * `panel`, under its heading in the setting's panel; `row`, opened in the setting's row of the list (console v3): its
+   * fields, then when, why and Save on one line.
+   */
+  look?: 'panel' | 'row';
   setting: VenueSetting;
   /** What it is for: a table type's code, a tier's id, a stake or a role; empty for the venue. */
   subject: string;
@@ -98,7 +113,7 @@ interface ValueFormProps {
  * A new value for one setting and subject, its fields built from the key's schema and filled with the
  * value in force; when it takes effect, and why. The database checks the value against the schema too.
  */
-export function ValueForm({ venueId, setting, subject, inForce, tiers }: ValueFormProps) {
+export function ValueForm({ venueId, setting, subject, inForce, tiers, look = 'panel' }: ValueFormProps) {
   const { schedule } = useSettingActions(venueId);
   const [outcome, setOutcome] = useState<SettingFailure | 'saved' | null>(null);
   const [resolver] = useState(() => resolverFor(setting));
@@ -111,18 +126,38 @@ export function ValueForm({ venueId, setting, subject, inForce, tiers }: ValueFo
     if (done.ok) form.setValue('reason', '');
   });
   const reason = form.register('reason', { onChange: () => setOutcome(null) });
+  const hasReasonError = form.formState.errors.reason !== undefined;
+  // In a row the reason's error goes under the row, so the row's controls stay on one line.
+  const reasonField = (
+    <Input {...reason} label={t('console.settings.reason')} maxLength={200}
+      error={look === 'panel' && hasReasonError ? t('console.settings.invalidReason') : undefined} />
+  );
+  const save = <Button variant="primary" isLoading={schedule.isPending} onClick={() => void submit()}>{t('console.settings.schedule')}</Button>;
   return (
     <Stack gap={4}>
-      <Heading level={3}>{t('console.settings.newValue')}</Heading>
+      {look === 'panel' ? <Heading level={3}>{t('console.settings.newValue')}</Heading> : null}
       <SettingFields form={form} setting={setting} tiers={tiers} onEdit={() => setOutcome(null)} />
       {form.formState.errors.root?.['together'] ? <ErrorMessage>{t('console.settings.notTogether')}</ErrorMessage> : null}
-      <WhenField form={form} />
-      <Input {...reason} label={t('console.settings.reason')} error={form.formState.errors.reason ? t('console.settings.invalidReason') : undefined} />
-      <Inline gap={4}>
-        <Button variant="primary" isLoading={schedule.isPending} onClick={() => void submit()}>{t('console.settings.schedule')}</Button>
-        <StatusMessage>{outcome === 'saved' ? t('console.settings.saved') : null}</StatusMessage>
-      </Inline>
-      {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
+      <WhenWhySave look={look} form={form} reason={reasonField} save={save} />
+      <OutcomeLines outcome={outcome} isReasonWrong={look === 'row' && hasReasonError} />
     </Stack>
   );
 }
+
+/** When, why and Save: in a row on one line, each control 44 px with their ends lined up so each sits centred on the others. */
+function WhenWhySave({ look, form, reason, save }: { look: 'panel' | 'row'; form: Form; reason: ReactNode; save: ReactNode }) {
+  if (look === 'row') return <Inline gap={4} align="end" wrap><WhenField form={form} isRow />{reason}{save}</Inline>;
+  return <><WhenField form={form} />{reason}<Inline gap={4}>{save}</Inline></>;
+}
+
+/** Under the form: a reason too short, said before anything is sent; then what the save did. */
+function OutcomeLines({ outcome, isReasonWrong }: { outcome: SettingFailure | 'saved' | null; isReasonWrong: boolean }) {
+  return (
+    <>
+      {isReasonWrong ? <ErrorMessage>{t('console.settings.invalidReason')}</ErrorMessage> : null}
+      <StatusMessage>{outcome === 'saved' ? t('console.settings.saved') : null}</StatusMessage>
+      {outcome !== null && outcome !== 'saved' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
+    </>
+  );
+}
+
