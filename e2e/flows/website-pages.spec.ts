@@ -9,7 +9,7 @@ import { expect, test } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
 
 test.describe('Website', () => {
-  test('the information pages: house rules, questions, visit, responsible play and privacy', async ({ page }) => {
+  test('the information pages: house rules, questions, visit, responsible play and privacy', { tag: '@staging' }, async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
     await page.getByRole('button', { name: 'Essential only' }).click();
@@ -39,7 +39,7 @@ test.describe('Website', () => {
     await expect(page.getByText(/every erasure made since it was taken is made again/)).toBeVisible();
   });
 
-  test('the club’s pages: about, membership, promotions, and a journal article, each keeping the visitor’s codes', async ({ page }) => {
+  test('the club’s pages: about, membership, promotions, and a journal article, each keeping the visitor’s codes', { tag: '@staging' }, async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);
     await page.getByRole('button', { name: 'Essential only' }).click();

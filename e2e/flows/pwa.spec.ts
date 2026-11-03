@@ -15,7 +15,7 @@ async function pngSize(request: APIRequestContext, path: string) {
   return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
 }
 
-test.describe('PWA', () => {
+test.describe('PWA', { tag: '@staging' }, () => {
   test('the player app installs from its manifest, with the brand kit\'s icons and the tokens\' colours', async ({ request }) => {
     const manifest: unknown = await (await request.get(`${appUrl('player')}/manifest.webmanifest`)).json();
     expect(manifest).toMatchObject({ name: 'RIVR Poker Club', short_name: 'RIVR', display: 'standalone', start_url: '/', ...manifestColors });

@@ -8,7 +8,7 @@ All workflows run on GitHub-hosted runners (`docs/decisions/0001-hosted-ci-runne
 | `nightly-backup.yml` | 08:00 IST daily, or by hand | For staging and production: an encrypted logical dump and CSV export to the target's R2 bucket. Skips until its environment is set up. See `docs/runbooks/backups-and-restore.md`. |
 | `preview.yml` | Every PR from this repository | Builds every web surface against staging data and deploys a Cloudflare Pages preview per app (`pr-<n>` branch of `rivr-<app>-staging`). |
 | `deploy-staging.yml` | Every merge to `main` | Migrations and seed, Edge Functions, every web surface and Storybook to staging. |
-| `release.yml` | A tag `release-YYYYMMDD-N` | End-to-end suite against staging, then the same commit to production (migrations without seed, Edge Functions, Pages), plus the signed tablet APK attached to the GitHub release. |
+| `release.yml` | A tag `release-YYYYMMDD-N` | The end-to-end flows tagged `@staging` against staging (decision 0420), then the same commit to production (migrations without seed, Edge Functions, Pages), plus the signed tablet APK attached to the GitHub release. |
 
 Deploy jobs skip with a notice until their secrets exist, so `main` stays green before the accounts are set up.
 

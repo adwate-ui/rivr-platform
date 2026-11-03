@@ -6,7 +6,7 @@
 import { expect, test } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
 
-test.describe('Website', () => {
+test.describe('Website', { tag: '@staging' }, () => {
   test('the website shows the club\'s pages, and its links into the player app carry the visitor\'s codes', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1&utm_source=instagram`);

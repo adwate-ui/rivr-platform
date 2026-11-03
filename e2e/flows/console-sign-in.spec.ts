@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
-test.describe('Console sign-in', () => {
+test.describe('Console sign-in', { tag: '@staging' }, () => {
   test('a cashier signs in at the club, switches to the practice venue, and signs out', async ({ page }) => {
     await signInToConsole(page, '9000000104');
     await expect(page.getByRole('heading', { name: 'Live floor' })).toBeVisible();

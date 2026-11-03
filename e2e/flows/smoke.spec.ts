@@ -10,7 +10,7 @@ async function open(page: import('@playwright/test').Page, app: App) {
   await page.goto(appUrl(app));
 }
 
-test.describe('smoke: every surface starts', () => {
+test.describe('smoke: every surface starts', { tag: '@staging' }, () => {
   test('the player app opens on sign-in for someone signed out', async ({ page }) => {
     await open(page, 'player');
     await expect(page.getByRole('textbox', { name: 'Mobile number' })).toBeVisible();
